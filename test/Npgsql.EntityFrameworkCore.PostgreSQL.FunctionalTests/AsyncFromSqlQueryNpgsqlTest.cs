@@ -1,6 +1,6 @@
-﻿using Microsoft.Data.Entity.FunctionalTests;
+﻿using Microsoft.EntityFrameworkCore.FunctionalTests;
 
-namespace EntityFramework7.Npgsql.FunctionalTests
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
     public class AsyncFromSqlQueryNpgsqlTest : AsyncFromSqlQueryTestBase<NorthwindQueryNpgsqlFixture>
     {

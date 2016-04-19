@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EntityFramework7.Npgsql.FunctionalTests
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
     public class GraphUpdatesNpgsqlTest : GraphUpdatesNpgsqlTestBase<GraphUpdatesNpgsqlTest.GraphUpdatesNpgsqlFixture>
     {

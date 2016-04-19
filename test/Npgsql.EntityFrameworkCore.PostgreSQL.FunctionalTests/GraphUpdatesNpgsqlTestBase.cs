@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Data.Entity;
-using Microsoft.Data.Entity.FunctionalTests;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.FunctionalTests;
+using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
 
-namespace EntityFramework7.Npgsql.FunctionalTests
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
     public abstract class GraphUpdatesNpgsqlTestBase<TFixture> : GraphUpdatesTestBase<NpgsqlTestStore, TFixture>
         where TFixture : GraphUpdatesNpgsqlTestBase<TFixture>.GraphUpdatesNpgsqlFixtureBase, new()
@@ -24,9 +25,7 @@ namespace EntityFramework7.Npgsql.FunctionalTests
             protected GraphUpdatesNpgsqlFixtureBase()
             {
                 _serviceProvider = new ServiceCollection()
-                    .AddEntityFramework()
-                    .AddNpgsql()
-                    .ServiceCollection()
+                    .AddEntityFrameworkNpgsql()
                     .AddSingleton(TestNpgsqlModelSource.GetFactory(OnModelCreating))
                     .BuildServiceProvider();
             }
@@ -40,7 +39,7 @@ namespace EntityFramework7.Npgsql.FunctionalTests
                     var optionsBuilder = new DbContextOptionsBuilder();
                     optionsBuilder.UseNpgsql(NpgsqlTestStore.CreateConnectionString(DatabaseName));
 
-                    using (var context = new GraphUpdatesContext(_serviceProvider, optionsBuilder.Options))
+                    using (var context = new GraphUpdatesContext(optionsBuilder.Options))
                     {
                         context.Database.EnsureDeleted();
                         if (context.Database.EnsureCreated())
@@ -53,10 +52,11 @@ namespace EntityFramework7.Npgsql.FunctionalTests
 
             public override DbContext CreateContext(NpgsqlTestStore testStore)
             {
-                var optionsBuilder = new DbContextOptionsBuilder();
-                optionsBuilder.UseNpgsql(testStore.Connection);
+                var optionsBuilder = new DbContextOptionsBuilder()
+                    .UseNpgsql(testStore.Connection)
+                    .UseInternalServiceProvider(_serviceProvider);
 
-                var context = new GraphUpdatesContext(_serviceProvider, optionsBuilder.Options);
+                var context = new GraphUpdatesContext(optionsBuilder.Options);
                 context.Database.UseTransaction(testStore.Transaction);
                 return context;
             }

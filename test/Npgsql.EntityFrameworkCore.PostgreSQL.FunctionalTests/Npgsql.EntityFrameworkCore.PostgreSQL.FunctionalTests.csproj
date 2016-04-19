@@ -181,7 +181,7 @@
     <Compile Include="NavigationTest.cs" />
     <Compile Include="NorthwindQueryNpgsqlFixture.cs" />
     <Compile Include="NpgsqlFixture.cs" />
-    <Compile Include="NpgsqlTestStore.cs" />
+    <Compile Include="Utilities\NpgsqlTestStore.cs" />
     <Compile Include="NullKeysNpgsqlTest.cs" />
     <Compile Include="NullSemanticsQueryNpgsqlFixture.cs" />
     <Compile Include="NullSemanticsQueryNpgsqlTest.cs" />
@@ -198,9 +198,11 @@
     <Compile Include="StoreGeneratedNpgsqlTest.cs" />
     <Compile Include="SqlExecutorNpgsqlTest.cs" />
     <Compile Include="TestModels\NpgsqlNorthwindContext.cs" />
-    <Compile Include="TestNpgsqlModelSource.cs" />
+    <Compile Include="Utilities\TestNpgsqlModelSource.cs" />
     <Compile Include="TransactionNpgsqlFixture.cs" />
     <Compile Include="TransactionNpgsqlTest.cs" />
+    <Compile Include="Utilities\DbContextOptionsBuilderExtensions.cs" />
+    <Compile Include="Utilities\TestEnvironment.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

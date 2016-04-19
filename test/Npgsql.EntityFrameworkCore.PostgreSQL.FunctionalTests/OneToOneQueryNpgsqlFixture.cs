@@ -3,37 +3,34 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Data.Entity;
-using Microsoft.Data.Entity.FunctionalTests;
-using Microsoft.Data.Entity.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.FunctionalTests;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
 
-namespace EntityFramework7.Npgsql.FunctionalTests
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
     public class OneToOneQueryNpgsqlFixture : OneToOneQueryFixtureBase
     {
         private readonly DbContextOptions _options;
-        private readonly IServiceProvider _serviceProvider;
+        private readonly NpgsqlTestStore _testStore;
 
         public OneToOneQueryNpgsqlFixture()
         {
-            _serviceProvider
-                = new ServiceCollection()
-                    .AddEntityFramework()
-                    .AddNpgsql()
-                    .ServiceCollection()
+            _testStore = NpgsqlTestStore.CreateScratch();
+
+            _options = new DbContextOptionsBuilder()
+                .UseNpgsql(_testStore.ConnectionString)
+                .UseInternalServiceProvider(new ServiceCollection()
+                    .AddEntityFrameworkNpgsql()
                     .AddSingleton(TestNpgsqlModelSource.GetFactory(OnModelCreating))
                     .AddSingleton<ILoggerFactory>(new TestSqlLoggerFactory())
-                    .BuildServiceProvider();
+                    .BuildServiceProvider())
+                .Options;
 
-            var database = NpgsqlTestStore.CreateScratch();
-
-            var optionsBuilder = new DbContextOptionsBuilder();
-            optionsBuilder.UseNpgsql(database.ConnectionString);
-            _options = optionsBuilder.Options;
-
-            using (var context = new DbContext(_serviceProvider, _options))
+            using (var context = new DbContext(_options))
             {
                 context.Database.EnsureCreated();
 
@@ -41,9 +38,8 @@ namespace EntityFramework7.Npgsql.FunctionalTests
             }
         }
 
-        public DbContext CreateContext()
-        {
-            return new DbContext(_serviceProvider, _options);
-        }
+        public DbContext CreateContext() => new DbContext(_options);
+
+        public void Dispose() => _testStore.Dispose();
     }
 }

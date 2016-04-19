@@ -3,13 +3,38 @@
 
 using JetBrains.Annotations;
 
-namespace Microsoft.Data.Entity.Metadata.Internal
+namespace Microsoft.EntityFrameworkCore.Metadata.Internal
 {
     public static class NpgsqlInternalMetadataBuilderExtensions
     {
+        public static RelationalModelBuilderAnnotations Npgsql(
+            [NotNull] this InternalModelBuilder builder,
+            ConfigurationSource configurationSource)
+            => new RelationalModelBuilderAnnotations(builder, configurationSource, NpgsqlFullAnnotationNames.Instance);
+
+        public static RelationalPropertyBuilderAnnotations Npgsql(
+            [NotNull] this InternalPropertyBuilder builder,
+            ConfigurationSource configurationSource)
+            => new RelationalPropertyBuilderAnnotations(builder, configurationSource, NpgsqlFullAnnotationNames.Instance);
+
         public static RelationalEntityTypeBuilderAnnotations Npgsql(
             [NotNull] this InternalEntityTypeBuilder builder,
             ConfigurationSource configurationSource)
-            => new RelationalEntityTypeBuilderAnnotations(builder, configurationSource, NpgsqlAnnotationNames.Prefix);
+            => new RelationalEntityTypeBuilderAnnotations(builder, configurationSource, NpgsqlFullAnnotationNames.Instance);
+
+        public static RelationalKeyBuilderAnnotations Npgsql(
+            [NotNull] this InternalKeyBuilder builder,
+            ConfigurationSource configurationSource)
+            => new RelationalKeyBuilderAnnotations(builder, configurationSource, NpgsqlFullAnnotationNames.Instance);
+
+        public static RelationalIndexBuilderAnnotations Npgsql(
+            [NotNull] this InternalIndexBuilder builder,
+            ConfigurationSource configurationSource)
+            => new RelationalIndexBuilderAnnotations(builder, configurationSource, NpgsqlFullAnnotationNames.Instance);
+
+        public static RelationalForeignKeyBuilderAnnotations Npgsql(
+            [NotNull] this InternalRelationshipBuilder builder,
+            ConfigurationSource configurationSource)
+            => new RelationalForeignKeyBuilderAnnotations(builder, configurationSource, NpgsqlFullAnnotationNames.Instance);
     }
 }

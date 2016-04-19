@@ -6,11 +6,11 @@ using System.Data;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
-using EntityFramework7.Npgsql.FunctionalTests.TestModels;
-using Microsoft.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 using Npgsql;
+using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.TestModels;
 
-namespace EntityFramework7.Npgsql.FunctionalTests
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
     public class ExistingConnectionTest
     {
@@ -29,12 +29,9 @@ namespace EntityFramework7.Npgsql.FunctionalTests
 
         private static async Task Can_use_an_existing_closed_connection_test(bool openConnection)
         {
-            var serviceCollection = new ServiceCollection();
-            serviceCollection
-                .AddEntityFramework()
-                .AddNpgsql();
-
-            var serviceProvider = serviceCollection.BuildServiceProvider();
+            var serviceProvider = new ServiceCollection()
+                .AddEntityFrameworkNpgsql()
+                .BuildServiceProvider();
 
             using (var store = NpgsqlNorthwindContext.GetSharedStore())
             {
@@ -60,7 +57,7 @@ namespace EntityFramework7.Npgsql.FunctionalTests
                             closeCount++;
                         }
                     };
-#if !DNXCORE50
+#if NET451
                     connection.Disposed += (_, __) => disposeCount++;
 #endif
 
@@ -89,29 +86,28 @@ namespace EntityFramework7.Npgsql.FunctionalTests
 
         private class NorthwindContext : DbContext
         {
+            private readonly IServiceProvider _serviceProvider;
             private readonly NpgsqlConnection _connection;
 
             public NorthwindContext(IServiceProvider serviceProvider, NpgsqlConnection connection)
-                : base(serviceProvider)
             {
+                _serviceProvider = serviceProvider;
                 _connection = connection;
             }
 
             public DbSet<Customer> Customers { get; set; }
 
             protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-            {
-                optionsBuilder.UseNpgsql(_connection);
-            }
+                => optionsBuilder
+                    .UseNpgsql(_connection)
+                    .UseInternalServiceProvider(_serviceProvider);
 
             protected override void OnModelCreating(ModelBuilder modelBuilder)
-            {
-                modelBuilder.Entity<Customer>(b =>
+                => modelBuilder.Entity<Customer>(b =>
                 {
                     b.HasKey(c => c.CustomerID);
                     b.ForNpgsqlToTable("Customers");
                 });
-            }
         }
 
         private class Customer

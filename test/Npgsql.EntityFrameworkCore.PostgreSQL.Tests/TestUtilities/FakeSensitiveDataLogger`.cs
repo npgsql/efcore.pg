@@ -2,17 +2,17 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.Data.Entity.Infrastructure;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Logging;
 
-namespace Microsoft.Data.Entity.TestUtilities
+namespace Microsoft.EntityFrameworkCore.Relational.Tests.TestUtilities
 {
     public class FakeSensitiveDataLogger<T> : ISensitiveDataLogger<T>
 
     {
         public bool LogSensitiveData { get; }
 
-        public void Log(LogLevel logLevel, int eventId, object state, Exception exception, Func<object, Exception, string> formatter)
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
         {
         }
 
@@ -23,6 +23,6 @@ namespace Microsoft.Data.Entity.TestUtilities
             throw new NotImplementedException();
         }
 
-        public IDisposable BeginScopeImpl(object state) => null;
+        public IDisposable BeginScope<TState>(TState state) => null;
     }
 }

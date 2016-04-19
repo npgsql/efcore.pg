@@ -1,10 +1,10 @@
-﻿using Microsoft.Data.Entity.FunctionalTests;
+﻿using Microsoft.EntityFrameworkCore.FunctionalTests;
 
-namespace EntityFramework7.Npgsql.FunctionalTests
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
-    public class AsTrackingSqlServerTest : AsTrackingTestBase<NorthwindQueryNpgsqlFixture>
+    public class AsTrackingNpgsqlTest : AsTrackingTestBase<NorthwindQueryNpgsqlFixture>
     {
-        public AsTrackingSqlServerTest(NorthwindQueryNpgsqlFixture fixture)
+        public AsTrackingNpgsqlTest(NorthwindQueryNpgsqlFixture fixture)
             : base(fixture)
         {
         }

@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Linq.Expressions;
 using JetBrains.Annotations;
-using Microsoft.Data.Entity.Query.Sql.Internal;
-using Microsoft.Data.Entity.Utilities;
+using Microsoft.EntityFrameworkCore.Query.Sql.Internal;
+using Microsoft.EntityFrameworkCore.Utilities;
 
-// ReSharper disable once CheckNamespace
-namespace Microsoft.Data.Entity.Query.Expressions.Internal
+namespace Microsoft.EntityFrameworkCore.Query.Expressions.Internal
 {
     public class AtTimeZoneExpression : Expression
     {

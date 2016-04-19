@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Data.Entity;
-using Microsoft.Data.Entity.Infrastructure;
-using Microsoft.Data.Entity.Storage.Internal;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Microsoft.Extensions.Logging;
-using Npgsql;
 using Xunit;
+using Npgsql;
 
-namespace EntityFramework7.Npgsql.Tests
+namespace Microsoft.EntityFrameworkCore.Relational.Tests
 {
     public class NpgsqlRelationalConnectionTest
     {

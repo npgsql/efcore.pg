@@ -2,12 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using JetBrains.Annotations;
-using Microsoft.Data.Entity.Query.Expressions;
-using Microsoft.Data.Entity.Storage;
-using Microsoft.Data.Entity.Utilities;
+using Microsoft.EntityFrameworkCore.Query.Expressions;
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Utilities;
 
-// ReSharper disable once CheckNamespace
-namespace Microsoft.Data.Entity.Query.Sql.Internal
+namespace Microsoft.EntityFrameworkCore.Query.Sql.Internal
 {
     public class NpgsqlQuerySqlGeneratorFactory : QuerySqlGeneratorFactoryBase
     {

@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Data.Entity;
-using Microsoft.Data.Entity.FunctionalTests;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.FunctionalTests;
+using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
 
-namespace EntityFramework7.Npgsql.FunctionalTests
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
     public class DataAnnotationNpgsqlFixture : DataAnnotationFixtureBase<NpgsqlTestStore>
     {
@@ -21,9 +22,7 @@ namespace EntityFramework7.Npgsql.FunctionalTests
         public DataAnnotationNpgsqlFixture()
         {
             _serviceProvider = new ServiceCollection()
-                .AddEntityFramework()
-                .AddNpgsql()
-                .ServiceCollection()
+                .AddEntityFrameworkNpgsql()
                 .AddSingleton(TestNpgsqlModelSource.GetFactory(OnModelCreating))
                 .AddSingleton<ILoggerFactory>(new TestSqlLoggerFactory())
                 .BuildServiceProvider();
@@ -33,10 +32,11 @@ namespace EntityFramework7.Npgsql.FunctionalTests
         {
             return NpgsqlTestStore.GetOrCreateShared(DatabaseName, () =>
             {
-                var optionsBuilder = new DbContextOptionsBuilder();
-                optionsBuilder.UseNpgsql(_connectionString);
+                var optionsBuilder = new DbContextOptionsBuilder()
+                    .UseNpgsql(_connectionString)
+                    .UseInternalServiceProvider(_serviceProvider);
 
-                using (var context = new DataAnnotationContext(_serviceProvider, optionsBuilder.Options))
+                using (var context = new DataAnnotationContext(optionsBuilder.Options))
                 {
                     // TODO: Delete DB if model changed
                     context.Database.EnsureDeleted();
@@ -52,10 +52,12 @@ namespace EntityFramework7.Npgsql.FunctionalTests
 
         public override DataAnnotationContext CreateContext(NpgsqlTestStore testStore)
         {
-            var optionsBuilder = new DbContextOptionsBuilder();
-            optionsBuilder.EnableSensitiveDataLogging().UseNpgsql(testStore.Connection);
+            var optionsBuilder = new DbContextOptionsBuilder()
+                .EnableSensitiveDataLogging()
+                .UseNpgsql(testStore.Connection)
+                .UseInternalServiceProvider(_serviceProvider);
 
-            var context = new DataAnnotationContext(_serviceProvider, optionsBuilder.Options);
+            var context = new DataAnnotationContext(optionsBuilder.Options);
             context.Database.UseTransaction(testStore.Transaction);
             return context;
         }

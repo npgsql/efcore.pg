@@ -2,12 +2,13 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.Data.Entity;
-using Microsoft.Data.Entity.FunctionalTests;
-using Microsoft.Data.Entity.Metadata;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.FunctionalTests;
+using Microsoft.EntityFrameworkCore.Metadata;
+using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
 
-namespace EntityFramework7.Npgsql.FunctionalTests
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
     public class StoreGeneratedNpgsqlTest
         : StoreGeneratedTestBase<NpgsqlTestStore, StoreGeneratedNpgsqlTest.StoreGeneratedNpgsqlFixture>
@@ -26,9 +27,7 @@ namespace EntityFramework7.Npgsql.FunctionalTests
             public StoreGeneratedNpgsqlFixture()
             {
                 _serviceProvider = new ServiceCollection()
-                    .AddEntityFramework()
-                    .AddNpgsql()
-                    .ServiceCollection()
+                    .AddEntityFrameworkNpgsql()
                     .AddSingleton(TestNpgsqlModelSource.GetFactory(OnModelCreating))
                     .BuildServiceProvider();
             }
@@ -37,10 +36,11 @@ namespace EntityFramework7.Npgsql.FunctionalTests
             {
                 return NpgsqlTestStore.GetOrCreateShared(DatabaseName, () =>
                     {
-                        var optionsBuilder = new DbContextOptionsBuilder();
-                        optionsBuilder.UseNpgsql(NpgsqlTestStore.CreateConnectionString(DatabaseName));
+                        var optionsBuilder = new DbContextOptionsBuilder()
+                            .UseNpgsql(NpgsqlTestStore.CreateConnectionString(DatabaseName))
+                            .UseInternalServiceProvider(_serviceProvider);
 
-                        using (var context = new StoreGeneratedContext(_serviceProvider, optionsBuilder.Options))
+                        using (var context = new StoreGeneratedContext(optionsBuilder.Options))
                         {
                             context.Database.EnsureDeleted();
                             context.Database.EnsureCreated();
@@ -50,10 +50,11 @@ namespace EntityFramework7.Npgsql.FunctionalTests
 
             public override DbContext CreateContext(NpgsqlTestStore testStore)
             {
-                var optionsBuilder = new DbContextOptionsBuilder();
-                optionsBuilder.UseNpgsql(testStore.Connection);
+                var optionsBuilder = new DbContextOptionsBuilder()
+                    .UseNpgsql(testStore.Connection)
+                    .UseInternalServiceProvider(_serviceProvider);
 
-                var context = new StoreGeneratedContext(_serviceProvider, optionsBuilder.Options);
+                var context = new StoreGeneratedContext(optionsBuilder.Options);
                 context.Database.UseTransaction(testStore.Transaction);
 
                 return context;

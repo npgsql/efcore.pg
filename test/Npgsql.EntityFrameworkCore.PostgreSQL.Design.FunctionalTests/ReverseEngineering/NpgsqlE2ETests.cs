@@ -1,32 +1,26 @@
-﻿// With RC2 these tests fail apparently because CompilationServices.Default is null
-// (see https://github.com/aspnet/dnx/issues/3248). Follow EF7 on this.
-#if NET46
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using EntityFramework7.Npgsql.FunctionalTests;
-using Microsoft.CodeAnalysis;
-using Microsoft.Data.Entity.FunctionalTests.TestUtilities.Xunit;
-using Microsoft.Data.Entity.Relational.Design.FunctionalTests.ReverseEngineering;
-using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Xunit.Abstractions;
-using Microsoft.Data.Entity.Internal;
-using Microsoft.Data.Entity.Scaffolding;
-using Microsoft.Data.Entity.Scaffolding.Internal;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore.FunctionalTests.TestUtilities.Xunit;
+using Microsoft.EntityFrameworkCore.Internal;
+using Microsoft.EntityFrameworkCore.Relational.Design.FunctionalTests.ReverseEngineering;
+using Microsoft.EntityFrameworkCore.Relational.Design.FunctionalTests.TestUtilities;
+using Microsoft.EntityFrameworkCore.Scaffolding;
+using Microsoft.EntityFrameworkCore.Scaffolding.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
 
-namespace EntityFramework7.Npgsql.Design.FunctionalTests.ReverseEngineering
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests.ReverseEngineering
 {
     public class NpgsqlE2ETests : E2ETestBase, IClassFixture<NpgsqlE2EFixture>
     {
-        protected override string ProviderName => "EntityFramework7.Npgsql.Design";
+        protected override string ProviderName => "Npgsql.EntityFrameworkCore.PostgreSQL.Design";
 
-        protected override void ConfigureDesignTimeServices(IServiceCollection services)
-        {
-            new NpgsqlDesignTimeServices().ConfigureDesignTimeServices(services);
-        }
+        protected override IServiceCollection ConfigureDesignTimeServices(IServiceCollection services)
+            => new NpgsqlDesignTimeServices().ConfigureDesignTimeServices(services);
 
         public virtual string TestNamespace => "E2ETest.Namespace";
         public virtual string TestProjectDir => Path.Combine("E2ETest", "Output");
@@ -58,32 +52,6 @@ namespace EntityFramework7.Npgsql.Design.FunctionalTests.ReverseEngineering
             : base(output)
         {
         }
-
-        protected override E2ECompiler GetCompiler() => new E2ECompiler
-        {
-            NamedReferences =
-                    {
-                        "EntityFramework.Core",
-                        "EntityFramework.Relational",
-                        "EntityFramework7.Npgsql",
-#if DNXCORE50 || NETCORE50
-                        "System.Data.Common",
-                        "System.Linq.Expressions",
-                        "System.Reflection",
-                        "System.ComponentModel.Annotations",
-#else
-                    },
-            References =
-                    {
-                        MetadataReference.CreateFromFile(
-                            Assembly.Load(new AssemblyName(
-                                "System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")).Location),
-                        MetadataReference.CreateFromFile(
-                            Assembly.Load(new AssemblyName(
-                                "System.ComponentModel.DataAnnotations, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35")).Location),
-#endif
-                    }
-        };
 
         string _connectionString = NpgsqlTestStore.CreateConnectionString("NpgsqlReverseEngineerTestE2E");
 
@@ -252,6 +220,27 @@ CREATE SEQUENCE ""CyclicalCountByThree""
                 AssertCompile(actualFileSet);
             }
         }
+
+        protected override ICollection<BuildReference> References { get; } = new List<BuildReference>
+        {
+#if NETSTANDARDAPP1_5
+            BuildReference.ByName("System.Collections"),
+            BuildReference.ByName("System.Data.Common"),
+            BuildReference.ByName("System.Linq.Expressions"),
+            BuildReference.ByName("System.Reflection"),
+            BuildReference.ByName("System.ComponentModel.Annotations"),
+            BuildReference.ByName("Npgsql.EntityFrameworkCore.PostgreSQL", depContextAssembly: typeof(NpgsqlE2ETests).GetTypeInfo().Assembly),
+#else
+            BuildReference.ByName("System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
+            BuildReference.ByName("System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
+            BuildReference.ByName("System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
+            BuildReference.ByName("System.ComponentModel.DataAnnotations, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35"),
+            BuildReference.ByName("Npgsql.EntityFrameworkCore.PostgreSQL"),
+#endif
+            BuildReference.ByName("Microsoft.EntityFrameworkCore"),
+            BuildReference.ByName("Microsoft.EntityFrameworkCore.Relational"),
+            BuildReference.ByName("Microsoft.Extensions.Caching.Abstractions"),
+            BuildReference.ByName("Microsoft.Extensions.Logging.Abstractions")
+        };
     }
 }
-#endif

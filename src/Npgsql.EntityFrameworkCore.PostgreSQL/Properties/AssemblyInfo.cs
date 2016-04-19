@@ -3,10 +3,11 @@
 
 using System.Reflection;
 using System.Resources;
-using Microsoft.Data.Entity.Infrastructure;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
-[assembly: AssemblyTitle("EntityFramework7.Npgsql")]
-[assembly: AssemblyDescription("PostgreSQL provider for Entity Framework 7")]
+[assembly: AssemblyTitle("Npgsql.EntityFrameworkCore.PostgreSQL")]
+[assembly: AssemblyDescription("PostgreSQL provider for Entity Framework Core")]
 [assembly: DesignTimeProviderServices(
-    fullyQualifiedTypeName: "Microsoft.Data.Entity.Scaffolding.NpgsqlDesignTimeServices, EntityFramework7.Npgsql.Design",
-    packageName: "EntityFramework7.Npgsql.Design")]
+    typeName: "Microsoft.EntityFrameworkCore.Scaffolding.NpgsqlDesignTimeServices",
+    assemblyName: "Npgsql.EntityFrameworkCore.PostgreSQL.Design",
+    packageName: "Npgsql.EntityFrameworkCore.PostgreSQL.Design")]

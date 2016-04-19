@@ -2,12 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using JetBrains.Annotations;
-using Microsoft.Data.Entity.Infrastructure;
-using Microsoft.Data.Entity.Utilities;
+using Microsoft.EntityFrameworkCore.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 
 // ReSharper disable once CheckNamespace
-namespace Microsoft.Data.Entity.Internal
+namespace Microsoft.EntityFrameworkCore.Infrastructure.Internal
 {
     public class NpgsqlOptionsExtension : RelationalOptionsExtension
     {
@@ -20,11 +19,7 @@ namespace Microsoft.Data.Entity.Internal
         {
         }
 
-        public override void ApplyServices(EntityFrameworkServicesBuilder builder)
-        {
-            Check.NotNull(builder, nameof(builder));
-
-            builder.AddNpgsql();
-        }
+        public override void ApplyServices(IServiceCollection services)
+            => Check.NotNull(services, nameof(services)).AddEntityFrameworkNpgsql();
     }
 }

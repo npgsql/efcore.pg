@@ -2,14 +2,15 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.Data.Entity;
-using Microsoft.Data.Entity.ChangeTracking;
-using Microsoft.Data.Entity.FunctionalTests;
-using Microsoft.Data.Entity.FunctionalTests.TestModels.InheritanceRelationships;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.FunctionalTests;
+using Microsoft.EntityFrameworkCore.FunctionalTests.TestModels.InheritanceRelationships;
+using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
 
-namespace EntityFramework7.Npgsql.FunctionalTests
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
     public class InheritanceRelationshipsQueryNpgsqlFixture : InheritanceRelationshipsQueryRelationalFixture<NpgsqlTestStore>
     {
@@ -22,9 +23,7 @@ namespace EntityFramework7.Npgsql.FunctionalTests
         public InheritanceRelationshipsQueryNpgsqlFixture()
         {
             _serviceProvider = new ServiceCollection()
-                .AddEntityFramework()
-                .AddNpgsql()
-                .ServiceCollection()
+                .AddEntityFrameworkNpgsql()
                 .AddSingleton(TestNpgsqlModelSource.GetFactory(OnModelCreating))
                 .AddSingleton<ILoggerFactory>(new TestSqlLoggerFactory())
                 .BuildServiceProvider();
@@ -34,10 +33,11 @@ namespace EntityFramework7.Npgsql.FunctionalTests
         {
             return NpgsqlTestStore.GetOrCreateShared(DatabaseName, () =>
             {
-                var optionsBuilder = new DbContextOptionsBuilder();
-                optionsBuilder.UseNpgsql(_connectionString);
+                var optionsBuilder = new DbContextOptionsBuilder()
+                    .UseNpgsql(_connectionString)
+                    .UseInternalServiceProvider(_serviceProvider);
 
-                using (var context = new InheritanceRelationshipsContext(_serviceProvider, optionsBuilder.Options))
+                using (var context = new InheritanceRelationshipsContext(optionsBuilder.Options))
                 {
                     // TODO: Delete DB if model changed
                     context.Database.EnsureDeleted();
@@ -53,10 +53,11 @@ namespace EntityFramework7.Npgsql.FunctionalTests
 
         public override InheritanceRelationshipsContext CreateContext(NpgsqlTestStore testStore)
         {
-            var optionsBuilder = new DbContextOptionsBuilder();
-            optionsBuilder.UseNpgsql(testStore.Connection);
+            var optionsBuilder = new DbContextOptionsBuilder()
+                .UseNpgsql(testStore.Connection)
+                .UseInternalServiceProvider(_serviceProvider);
 
-            var context = new InheritanceRelationshipsContext(_serviceProvider, optionsBuilder.Options);
+            var context = new InheritanceRelationshipsContext(optionsBuilder.Options);
 
             context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
 

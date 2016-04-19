@@ -2,16 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
-using Microsoft.Data.Entity.Internal;
-using Microsoft.Data.Entity.Metadata;
-using Microsoft.Data.Entity.Metadata.Builders;
-using Microsoft.Data.Entity.Scaffolding.Internal;
-using Microsoft.Data.Entity.Scaffolding.Metadata;
-using Microsoft.Data.Entity.Storage;
-using Microsoft.Data.Entity.Utilities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 
-namespace Microsoft.Data.Entity.Scaffolding
+namespace Microsoft.EntityFrameworkCore.Scaffolding
 {
     public class NpgsqlScaffoldingModelFactory : RelationalScaffoldingModelFactory
     {
@@ -46,8 +45,8 @@ namespace Microsoft.Data.Entity.Scaffolding
             // override this behavior.
 
             // TODO use KeyConvention directly to detect when it will be applied
-            var pkColumns = table.Columns.Where(c => c.PrimaryKeyOrdinal.HasValue).Cast<NpgsqlColumnModel>().ToList();
-            if (pkColumns.Count != 1 || pkColumns[0].IsSerial)
+            var pkColumns = table.Columns.Where(c => c.PrimaryKeyOrdinal.HasValue).ToList();
+            if (pkColumns.Count != 1 || pkColumns[0].Npgsql().IsSerial)
             {
                 return keyBuilder;
             }
@@ -67,10 +66,10 @@ namespace Microsoft.Data.Entity.Scaffolding
         [CanBeNull]
         protected override IndexBuilder VisitIndex(EntityTypeBuilder builder, IndexModel index)
         {
-            var npgsqlIndex = (NpgsqlIndexModel)index;
-            if (npgsqlIndex.Expression != null)
+            var expression = index.Npgsql().Expression;
+            if (expression != null)
             {
-                Logger.LogWarning($"Ignoring unsupported index {index.Name} which contains an expression ({npgsqlIndex.Expression})");
+                Logger.LogWarning($"Ignoring unsupported index {index.Name} which contains an expression ({expression})");
                 return null;
             }
 

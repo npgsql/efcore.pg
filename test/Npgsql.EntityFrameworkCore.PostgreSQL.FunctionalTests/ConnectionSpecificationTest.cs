@@ -3,29 +3,26 @@
 
 using System;
 using System.Linq;
-using EntityFramework7.Npgsql.FunctionalTests.TestModels;
-using Microsoft.Data.Entity;
-using Microsoft.Data.Entity.Infrastructure;
-using Microsoft.Data.Entity.Internal;
-using Microsoft.Data.Entity.Storage.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.TestModels;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Internal;
+using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using Xunit;
 
-namespace EntityFramework7.Npgsql.FunctionalTests
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
     public class ConnectionSpecificationTest
     {
         [Fact]
         public void Can_specify_connection_string_in_OnConfiguring()
         {
-            var serviceCollection = new ServiceCollection();
-            serviceCollection
-                .AddEntityFramework()
-                .AddNpgsql()
-                .AddDbContext<StringInOnConfiguringContext>();
-
-            var serviceProvider = serviceCollection.BuildServiceProvider();
+            var serviceProvider
+                = new ServiceCollection()
+                    .AddDbContext<StringInOnConfiguringContext>()
+                    .BuildServiceProvider();
 
             using (NpgsqlNorthwindContext.GetSharedStore())
             {
@@ -59,14 +56,10 @@ namespace EntityFramework7.Npgsql.FunctionalTests
         [Fact]
         public void Can_specify_connection_in_OnConfiguring()
         {
-            var serviceCollection = new ServiceCollection();
-            serviceCollection
-                .AddScoped(p => new NpgsqlConnection(NpgsqlNorthwindContext.ConnectionString))
-                .AddEntityFramework()
-                .AddNpgsql()
-                .AddDbContext<ConnectionInOnConfiguringContext>();
-
-            var serviceProvider = serviceCollection.BuildServiceProvider();
+            var serviceProvider
+                = new ServiceCollection()
+                    .AddScoped(p => new NpgsqlConnection(NpgsqlNorthwindContext.ConnectionString))
+                    .AddDbContext<ConnectionInOnConfiguringContext>().BuildServiceProvider();
 
             using (NpgsqlNorthwindContext.GetSharedStore())
             {
@@ -121,13 +114,9 @@ namespace EntityFramework7.Npgsql.FunctionalTests
         [Fact]
         public void Throws_if_no_connection_found_in_config_without_UseNpgsql()
         {
-            var serviceCollection = new ServiceCollection();
-            serviceCollection
-                .AddEntityFramework()
-                .AddNpgsql()
-                .AddDbContext<NoUseNpgsqlContext>();
-
-            var serviceProvider = serviceCollection.BuildServiceProvider();
+            var serviceProvider
+                = new ServiceCollection()
+                    .AddDbContext<NoUseNpgsqlContext>().BuildServiceProvider();
 
             using (var context = serviceProvider.GetRequiredService<NoUseNpgsqlContext>())
             {
@@ -140,13 +129,9 @@ namespace EntityFramework7.Npgsql.FunctionalTests
         [Fact]
         public void Throws_if_no_config_without_UseNpgsql()
         {
-            var serviceCollection = new ServiceCollection();
-            serviceCollection
-                .AddEntityFramework()
-                .AddNpgsql()
-                .AddDbContext<NoUseNpgsqlContext>();
-
-            var serviceProvider = serviceCollection.BuildServiceProvider();
+            var serviceProvider
+                = new ServiceCollection()
+                    .AddDbContext<NoUseNpgsqlContext>().BuildServiceProvider();
 
             using (var context = serviceProvider.GetRequiredService<NoUseNpgsqlContext>())
             {
@@ -163,15 +148,11 @@ namespace EntityFramework7.Npgsql.FunctionalTests
         [Fact]
         public void Can_select_appropriate_provider_when_multiple_registered()
         {
-            var serviceCollection = new ServiceCollection();
-            serviceCollection
-                .AddScoped<SomeService>()
-                .AddEntityFramework()
-                .AddNpgsql()
-                .AddInMemoryDatabase()
-                .AddDbContext<MultipleProvidersContext>();
-
-            var serviceProvider = serviceCollection.BuildServiceProvider();
+            var serviceProvider
+                = new ServiceCollection()
+                    .AddScoped<SomeService>()
+                    .AddDbContext<MultipleProvidersContext>()
+                    .BuildServiceProvider();
 
             using (NpgsqlNorthwindContext.GetSharedStore())
             {
@@ -268,14 +249,11 @@ namespace EntityFramework7.Npgsql.FunctionalTests
         [Fact]
         public void Can_depend_on_DbContextOptions()
         {
-            var serviceCollection = new ServiceCollection();
-            serviceCollection
-                .AddScoped(p => new NpgsqlConnection(NpgsqlNorthwindContext.ConnectionString))
-                .AddEntityFramework()
-                .AddNpgsql()
-                .AddDbContext<OptionsContext>();
-
-            var serviceProvider = serviceCollection.BuildServiceProvider();
+            var serviceProvider
+                = new ServiceCollection()
+                    .AddScoped(p => new NpgsqlConnection(NpgsqlNorthwindContext.ConnectionString))
+                    .AddDbContext<OptionsContext>()
+                    .BuildServiceProvider();
 
             using (NpgsqlNorthwindContext.GetSharedStore())
             {
@@ -331,15 +309,10 @@ namespace EntityFramework7.Npgsql.FunctionalTests
         [Fact]
         public void Can_register_multiple_context_types()
         {
-            var serviceCollection = new ServiceCollection();
-            serviceCollection
-                .AddEntityFramework()
-                .AddNpgsql()
-                .AddInMemoryDatabase()
+            var serviceProvider = new ServiceCollection()
                 .AddDbContext<MultipleContext1>()
-                .AddDbContext<MultipleContext2>();
-
-            var serviceProvider = serviceCollection.BuildServiceProvider();
+                .AddDbContext<MultipleContext2>()
+                .BuildServiceProvider();
 
             using (NpgsqlNorthwindContext.GetSharedStore())
             {
@@ -415,14 +388,10 @@ namespace EntityFramework7.Npgsql.FunctionalTests
         [Fact]
         public void Can_depend_on_non_generic_options_when_only_one_context()
         {
-            var serviceCollection = new ServiceCollection();
-            serviceCollection
-                .AddEntityFramework()
-                .AddNpgsql()
-                .AddInMemoryDatabase()
-                .AddDbContext<NonGenericOptionsContext>();
-
-            var serviceProvider = serviceCollection.BuildServiceProvider();
+            var serviceProvider
+                = new ServiceCollection()
+                    .AddDbContext<NonGenericOptionsContext>()
+                    .BuildServiceProvider();
 
             using (NpgsqlNorthwindContext.GetSharedStore())
             {
@@ -503,11 +472,6 @@ namespace EntityFramework7.Npgsql.FunctionalTests
             using (var conn = new NpgsqlConnection(NpgsqlNorthwindContext.ConnectionString))
             {
                 conn.Open();
-
-                var serviceCollection = new ServiceCollection();
-                serviceCollection
-                    .AddEntityFramework()
-                    .AddNpgsql();
 
                 using (NpgsqlNorthwindContext.GetSharedStore())
                 {

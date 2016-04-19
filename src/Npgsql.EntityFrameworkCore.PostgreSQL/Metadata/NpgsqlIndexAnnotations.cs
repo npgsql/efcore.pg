@@ -1,17 +1,17 @@
 ﻿using JetBrains.Annotations;
-using Microsoft.Data.Entity.Metadata.Internal;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
-namespace Microsoft.Data.Entity.Metadata
+namespace Microsoft.EntityFrameworkCore.Metadata
 {
-    public class NpgsqlIndexAnnotations : RelationalIndexAnnotations
+    public class NpgsqlIndexAnnotations : RelationalIndexAnnotations, INpgsqlIndexAnnotations
     {
         public NpgsqlIndexAnnotations([NotNull] IIndex index)
-            : base(index, NpgsqlAnnotationNames.Prefix)
+            : base(index, NpgsqlFullAnnotationNames.Instance)
         {
         }
 
         protected NpgsqlIndexAnnotations([NotNull] RelationalAnnotations annotations)
-            : base(annotations)
+            : base(annotations, NpgsqlFullAnnotationNames.Instance)
         {
         }
 
@@ -23,8 +23,8 @@ namespace Microsoft.Data.Entity.Metadata
         /// </remarks>
         public string Method
         {
-            get { return (string) Annotations.GetAnnotation(NpgsqlAnnotationNames.IndexMethod); }
-            set { Annotations.SetAnnotation(NpgsqlAnnotationNames.IndexMethod, value); }
+            get { return (string) Annotations.GetAnnotation(NpgsqlFullAnnotationNames.Instance.IndexMethod, null); }
+            set { Annotations.SetAnnotation(NpgsqlFullAnnotationNames.Instance.IndexMethod, null, value); }
         }
     }
 }

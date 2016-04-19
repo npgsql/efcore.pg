@@ -3,7 +3,7 @@
   "authors": [
     "Shay Rojansky"
   ],
-  "description" : "PostgreSQL provider for Entity Framework 7",
+  "description" : "PostgreSQL provider for Entity Framework Core",
   "iconUrl": "http://www.npgsql.org/img/postgresql.gif",
   "repository": {
     "type": "git",
@@ -11,26 +11,22 @@
   },
   "compile": "../Shared/*.cs",
   "compilationOptions": {
-    "keyFile": "../../Npgsql.snk"
+    "keyFile": "../../Npgsql.snk",
+    "warningsAsErrors": true
   },
   "dependencies" : {
-    "EntityFramework.Core": "7.0.0-rc2-*",
-    "EntityFramework.Relational": "7.0.0-rc2-*",
+    "Microsoft.EntityFrameworkCore": "1.0.0-rc2-*",
+    "Microsoft.EntityFrameworkCore.Relational": "1.0.0-rc2-*",
     "Microsoft.Extensions.DependencyInjection.Abstractions": "1.0.0-rc2-*",
     "Microsoft.Extensions.DependencyInjection": "1.0.0-rc2-*",
     "Npgsql": "3.1.0-*"
   },
   "frameworks": {
-    "net451": {
-      "frameworkAssemblies": {
-        "System.Collections": { "version": "4.0.0.0", "type": "build" },
-        "System.Reflection": { "version": "4.0.0.0", "type": "build" },
-        "System.Diagnostics.Contracts": { "version": "4.0.0.0", "type": "build" },
-        "System.Linq.Expressions": { "version": "4.0.0.0", "type": "build" },
-        "System.Runtime": { "version": "4.0.0.0", "type": "build" }
-      }
-    },
+    "net451": {},
     "netstandard13": {
+      "imports": [
+        "portable-net452+win81"
+      ],
       "dependencies": {
       }
     }

@@ -3,18 +3,20 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.Data.Entity.FunctionalTests.TestModels.Northwind;
-using Microsoft.Data.Entity.Infrastructure;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.FunctionalTests.TestModels.Northwind;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
 
-namespace EntityFramework7.Npgsql.FunctionalTests.TestModels
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.TestModels
 {
     public class NpgsqlNorthwindContext : NorthwindContext
     {
         public static readonly string DatabaseName = StoreName;
         public static readonly string ConnectionString = NpgsqlTestStore.CreateConnectionString(DatabaseName);
 
-        public NpgsqlNorthwindContext(IServiceProvider serviceProvider, DbContextOptions options)
-            : base(serviceProvider, options)
+        public NpgsqlNorthwindContext(DbContextOptions options)
+            : base(options)
         {
         }
         public static NpgsqlTestStore GetSharedStore()

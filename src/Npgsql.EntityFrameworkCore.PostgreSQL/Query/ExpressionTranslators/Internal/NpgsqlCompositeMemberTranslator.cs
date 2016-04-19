@@ -3,8 +3,7 @@
 
 using System.Collections.Generic;
 
-// ReSharper disable once CheckNamespace
-namespace Microsoft.Data.Entity.Query.ExpressionTranslators.Internal
+namespace Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal
 {
     public class NpgsqlCompositeMemberTranslator : RelationalCompositeMemberTranslator
     {

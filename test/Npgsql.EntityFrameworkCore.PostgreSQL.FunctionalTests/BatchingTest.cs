@@ -3,13 +3,14 @@
 
 using System;
 using System.Linq;
-using Microsoft.Data.Entity;
-using Microsoft.Data.Entity.FunctionalTests;
-using Microsoft.Data.Entity.Infrastructure;
-using Microsoft.Extensions.DependencyInjection;
 using Xunit;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.FunctionalTests;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
 
-namespace EntityFramework7.Npgsql.FunctionalTests
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
     public class BatchingTest : IDisposable
     {
@@ -41,16 +42,22 @@ namespace EntityFramework7.Npgsql.FunctionalTests
         private class BloggingContext : DbContext
         {
             public BloggingContext(IServiceProvider serviceProvider, DbContextOptions options)
-                : base(serviceProvider, options)
+                : base(new DbContextOptionsBuilder(options).UseInternalServiceProvider(serviceProvider).Options)
             {
             }
 
             protected override void OnModelCreating(ModelBuilder modelBuilder)
             {
-                modelBuilder.Entity<Blog>().Property(e => e.Id).ValueGeneratedNever();
+                modelBuilder.Entity<Blog>(b =>
+                {
+                    //b.Property(e => e.Id).HasDefaultValueSql("NEWID()");
+                    //b.Property(e => e.Version).IsConcurrencyToken().ValueGeneratedOnAddOrUpdate();
+                    // TODO: Bring this up to date...
+                });
             }
 
             public DbSet<Blog> Blogs { get; set; }
+            public DbSet<Owner> Owners { get; set; }
         }
 
         public class Blog
@@ -60,6 +67,11 @@ namespace EntityFramework7.Npgsql.FunctionalTests
             public string Description { get; set; }
         }
 
+        public class Owner
+        {
+            public int Id { get; set; }
+        }
+
         private readonly NpgsqlTestStore _testStore;
         private readonly IServiceProvider _serviceProvider;
 
@@ -67,9 +79,7 @@ namespace EntityFramework7.Npgsql.FunctionalTests
         {
             _testStore = NpgsqlTestStore.CreateScratch();
             _serviceProvider = new ServiceCollection()
-                .AddEntityFramework()
-                .AddNpgsql()
-                .ServiceCollection()
+                .AddEntityFrameworkNpgsql()
                 .BuildServiceProvider();
         }
 

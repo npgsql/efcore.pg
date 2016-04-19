@@ -5,19 +5,19 @@ using System;
 using System.Linq;
 using System.Net.NetworkInformation;
 using System.Reflection;
-using Microsoft.Data.Entity;
-using Microsoft.Data.Entity.FunctionalTests;
-using Microsoft.Data.Entity.Infrastructure;
-using Microsoft.Data.Entity.Metadata;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.FunctionalTests;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Npgsql;
 using NpgsqlTypes;
+using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
 
-namespace EntityFramework7.Npgsql.FunctionalTests
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
     public class BuiltInDataTypesNpgsqlFixture : BuiltInDataTypesFixtureBase
     {
-        private readonly IServiceProvider _serviceProvider;
         private readonly DbContextOptions _options;
         private readonly NpgsqlTestStore _testStore;
 
@@ -29,19 +29,17 @@ namespace EntityFramework7.Npgsql.FunctionalTests
             NpgsqlConnection.MapCompositeGlobally<SomeComposite>("somecomposite");
             ((NpgsqlConnection)_testStore.Connection).ReloadTypes();
 
-            _serviceProvider = new ServiceCollection()
-                .AddEntityFramework()
-                .AddNpgsql()
-                .ServiceCollection()
+            var serviceProvider = new ServiceCollection()
+                .AddEntityFrameworkNpgsql()
                 .AddSingleton(TestNpgsqlModelSource.GetFactory(OnModelCreating))
                 .BuildServiceProvider();
 
-            var optionsBuilder = new DbContextOptionsBuilder();
-            optionsBuilder.UseNpgsql(_testStore.Connection);
+            _options = new DbContextOptionsBuilder()
+                .UseNpgsql(_testStore.Connection)
+                .UseInternalServiceProvider(serviceProvider)
+                .Options;
 
-            _options = optionsBuilder.Options;
-
-            using (var context = new DbContext(_serviceProvider, _options))
+            using (var context = new DbContext(_options))
             {
                 context.Database.EnsureCreated();
             }
@@ -49,7 +47,7 @@ namespace EntityFramework7.Npgsql.FunctionalTests
 
         public override DbContext CreateContext()
         {
-            var context = new DbContext(_serviceProvider, _options);
+            var context = new DbContext(_options);
             context.Database.UseTransaction(_testStore.Transaction);
             return context;
         }
@@ -284,5 +282,7 @@ namespace EntityFramework7.Npgsql.FunctionalTests
             var o = obj as SomeComposite;
             return o != null && o.SomeNumber == SomeNumber && o.SomeText == o.SomeText;
         }
+
+        public override int GetHashCode() => SomeNumber.GetHashCode() ^ SomeText.GetHashCode();
     }
 }

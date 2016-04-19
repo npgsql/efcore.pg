@@ -1,31 +1,35 @@
 ﻿using System;
-using Microsoft.Data.Entity;
-using Microsoft.Data.Entity.FunctionalTests;
-using Microsoft.Data.Entity.Infrastructure;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.FunctionalTests;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
+using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
 
-namespace EntityFramework7.Npgsql.FunctionalTests
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
     public class MigrationsNpgsqlFixture : MigrationsFixtureBase
     {
         private readonly DbContextOptions _options;
-        private readonly IServiceProvider _serviceProvider;
 
         public MigrationsNpgsqlFixture()
         {
-            _serviceProvider = new ServiceCollection()
-                .AddEntityFramework()
-                .AddNpgsql()
-                .ServiceCollection()
+            var serviceProvider = new ServiceCollection()
+                .AddEntityFrameworkNpgsql()
                 .BuildServiceProvider();
 
-            var optionsBuilder = new DbContextOptionsBuilder();
-            optionsBuilder.UseNpgsql(NpgsqlTestStore.CreateConnectionString(nameof(MigrationsNpgsqlTest)));
-            _options = optionsBuilder.Options;
+            var connectionStringBuilder = new NpgsqlConnectionStringBuilder(TestEnvironment.DefaultConnection)
+            {
+                Database = nameof(MigrationsNpgsqlTest)
+            };
+
+            _options = new DbContextOptionsBuilder()
+                .UseInternalServiceProvider(serviceProvider)
+                .UseNpgsql(connectionStringBuilder.ConnectionString).Options;
         }
 
-        public override MigrationsContext CreateContext()
-            => new MigrationsContext(_serviceProvider, _options);
+        public override MigrationsContext CreateContext() => new MigrationsContext(_options);
+
+        public override EmptyMigrationsContext CreateEmptyContext() => new EmptyMigrationsContext(_options);
     }
 }

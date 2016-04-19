@@ -3,16 +3,16 @@
 
 using System;
 using System.Threading;
-using EntityFramework7.Npgsql.FunctionalTests;
-using EntityFramework7.Npgsql.FunctionalTests.TestModels;
-using Microsoft.Data.Entity;
-using Microsoft.Data.Entity.FunctionalTests;
-using Microsoft.Data.Entity.FunctionalTests.TestModels.Northwind;
-using Microsoft.Data.Entity.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.FunctionalTests;
+using Microsoft.EntityFrameworkCore.FunctionalTests.TestModels.Northwind;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.TestModels;
+using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
 
-namespace EntityFramework7.Npgsql.FunctionalTests
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
     public class NorthwindQueryNpgsqlFixture : NorthwindQueryRelationalFixture, IDisposable
     {
@@ -26,9 +26,7 @@ namespace EntityFramework7.Npgsql.FunctionalTests
         {
             _serviceProvider
                 = new ServiceCollection()
-                    .AddEntityFramework()
-                    .AddNpgsql()
-                    .ServiceCollection()
+                    .AddEntityFrameworkNpgsql()
                     .AddSingleton(TestNpgsqlModelSource.GetFactory(OnModelCreating))
                     .AddSingleton<ILoggerFactory>(_testSqlLoggerFactory)
                     .BuildServiceProvider();
@@ -37,33 +35,23 @@ namespace EntityFramework7.Npgsql.FunctionalTests
         }
 
         protected DbContextOptions BuildOptions()
-        {
-            var optionsBuilder = new DbContextOptionsBuilder();
+            => new DbContextOptionsBuilder()
+                .EnableSensitiveDataLogging()
+                .UseInternalServiceProvider(_serviceProvider)
+                .UseNpgsql(
+                    _testStore.ConnectionString,
+                    b =>
+                    {
+                        ConfigureOptions(b);
+                        b.ApplyConfiguration();
+                    }).Options;
 
-            var NpgsqlDbContextOptionsBuilder
-                = optionsBuilder
-                    .EnableSensitiveDataLogging()
-                    .UseNpgsql(_testStore.Connection.ConnectionString);
-
-            ConfigureOptions(NpgsqlDbContextOptionsBuilder);
-
-            //NpgsqlDbContextOptionsBuilder.ApplyConfiguration();
-
-            return optionsBuilder.Options;
-        }
-
-        protected virtual void ConfigureOptions(NpgsqlDbContextOptionsBuilder npgsqlDbContextOptionsBuilder)
+        protected virtual void ConfigureOptions(NpgsqlDbContextOptionsBuilder NpgsqlDbContextOptionsBuilder)
         {
         }
 
         public override NorthwindContext CreateContext()
-        {
-            var context = new NpgsqlNorthwindContext(_serviceProvider, _options);
-
-            context.ChangeTracker.AutoDetectChangesEnabled = false;
-
-            return context;
-        }
+            => new NpgsqlNorthwindContext(_options);
 
         public void Dispose() => _testStore.Dispose();
 

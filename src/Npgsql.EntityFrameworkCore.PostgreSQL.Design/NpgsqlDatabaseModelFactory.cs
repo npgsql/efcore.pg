@@ -3,16 +3,14 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using JetBrains.Annotations;
-using Microsoft.Data.Entity.Metadata;
-using Microsoft.Data.Entity.Migrations;
-using Microsoft.Data.Entity.Migrations.Internal;
-using Microsoft.Data.Entity.Scaffolding.Internal;
-using Microsoft.Data.Entity.Scaffolding.Metadata;
-using Microsoft.Data.Entity.Utilities;
+using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
+using Microsoft.EntityFrameworkCore.Utilities;
 using Microsoft.Extensions.Logging;
 using Npgsql;
 
-namespace Microsoft.Data.Entity.Scaffolding
+namespace Microsoft.EntityFrameworkCore.Scaffolding
 {
     public class NpgsqlDatabaseModelFactory : IDatabaseModelFactory
     {
@@ -20,7 +18,7 @@ namespace Microsoft.Data.Entity.Scaffolding
         private TableSelectionSet _tableSelectionSet;
         private DatabaseModel _databaseModel;
         private Dictionary<string, TableModel> _tables;
-        private Dictionary<string, NpgsqlColumnModel> _tableColumns;
+        private Dictionary<string, ColumnModel> _tableColumns;
 
         private static string TableKey(TableModel table) => TableKey(table.Name, table.SchemaName);
         private static string TableKey(string name, string schema) => $"\"{schema}\".\"{name}\"";
@@ -41,7 +39,7 @@ namespace Microsoft.Data.Entity.Scaffolding
             _tableSelectionSet = null;
             _databaseModel = new DatabaseModel();
             _tables = new Dictionary<string, TableModel>();
-            _tableColumns = new Dictionary<string, NpgsqlColumnModel>(StringComparer.OrdinalIgnoreCase);
+            _tableColumns = new Dictionary<string, ColumnModel>(StringComparer.OrdinalIgnoreCase);
         }
 
         public DatabaseModel Create(string connectionString, TableSelectionSet tableSelectionSet)
@@ -159,7 +157,7 @@ namespace Microsoft.Data.Entity.Scaffolding
                     }
 
                     var table = _tables[TableKey(tableName, schemaName)];
-                    var column = new NpgsqlColumnModel
+                    var column = new ColumnModel
                     {
                         Table          = table,
                         Name           = columnName,
@@ -179,7 +177,7 @@ namespace Microsoft.Data.Entity.Scaffolding
                           defaultValue == $"nextval('\"{tableName}_{columnName}_seq\"'::regclass)")
                        )
                     {
-                        column.IsSerial = true;
+                        column.Npgsql().IsSerial = true;
                         column.ValueGenerated = ValueGenerated.OnAdd;
                         column.DefaultValue = null;
                     }
@@ -219,17 +217,13 @@ namespace Microsoft.Data.Entity.Scaffolding
                     var indexName = reader.GetString(2);
 
                     if (!_tableSelectionSet.Allows(schemaName, tableName))
-                    {
                         continue;
-                    }
 
                     TableModel table;
                     if (!_tables.TryGetValue(TableKey(tableName, schemaName), out table))
-                    {
                         continue;
-                    }
 
-                    var index = new NpgsqlIndexModel
+                    var index = new IndexModel
                     {
                         Table = table,
                         Name = indexName,
@@ -241,14 +235,23 @@ namespace Microsoft.Data.Entity.Scaffolding
                     var columnIndices = reader.GetFieldValue<short[]>(4);
                     if (columnIndices.Any(i => i == 0))
                     {
-                        if (reader.IsDBNull(5)) {
+                        if (reader.IsDBNull(5))
                             throw new Exception($"Seen 0 in indkey for index {indexName} but indexprs is null");
-                        }
-                        index.Expression = reader.GetString(5);
+                        index.Npgsql().Expression = reader.GetString(5);
                     }
-                    else foreach (var column in columnIndices.Select(i => table.Columns[i - 1]))
+                    else
                     {
-                        index.Columns.Add(column);
+                        var columns = (List<ColumnModel>)table.Columns;
+                        for (var ordinal = 0; ordinal < columnIndices.Length; ordinal++)
+                        {
+                            var columnIndex = columnIndices[ordinal] - 1;
+                            index.IndexColumns.Add(new IndexColumnModel
+                            {
+                                Index = index,
+                                Column = columns[columnIndex],
+                                Ordinal = ordinal  // TODO: One-based or zero-based?
+                            });
+                        }
                     }
                 }
             }
@@ -279,10 +282,9 @@ namespace Microsoft.Data.Entity.Scaffolding
                     var tableName = reader.GetString(1);
 
                     if (!_tableSelectionSet.Allows(schemaName, tableName))
-                    {
                         continue;
-                    }
                     var table = _tables[TableKey(tableName, schemaName)];
+                    var columns = (List<ColumnModel>)table.Columns;
 
                     var constraintName = reader.GetString(2);
                     var constraintType = reader.GetChar(3);
@@ -291,9 +293,7 @@ namespace Microsoft.Data.Entity.Scaffolding
                     case 'p':
                         var pkColumnIndices = reader.GetFieldValue<short[]>(4);
                         for (var i = 0; i < pkColumnIndices.Length; i++)
-                        {
-                            table.Columns[pkColumnIndices[i] - 1].PrimaryKeyOrdinal = i + 1;
-                        }
+                            columns[pkColumnIndices[i] - 1].PrimaryKeyOrdinal = i + 1;
                         continue;
 
                     case 'f':
@@ -301,9 +301,7 @@ namespace Microsoft.Data.Entity.Scaffolding
                         var foreignTableName = reader.GetString(6);
                         TableModel principalTable;
                         if (!_tables.TryGetValue(TableKey(foreignTableName, foreignSchemaName), out principalTable))
-                        {
                             continue;
-                        }
 
                         var fkInfo = new ForeignKeyModel
                         {
@@ -313,13 +311,17 @@ namespace Microsoft.Data.Entity.Scaffolding
                             OnDelete = ConvertToReferentialAction(reader.GetChar(8))
                         };
 
-                        foreach (var column in reader.GetFieldValue<short[]>(4).Select(i => table.Columns[i - 1])) {
-                            fkInfo.Columns.Add(column);
-                        }
+                        var columnIndices = reader.GetFieldValue<short[]>(4);
+                        var principalColumnIndices = reader.GetFieldValue<short[]>(7);
+                        if (columnIndices.Length != principalColumnIndices.Length)
+                            throw new Exception("Got varying lengths for column and principal column indices");
 
-                        foreach (var principalColumn in reader.GetFieldValue<short[]>(7).Select(i => principalTable.Columns[i - 1])) {
-                            fkInfo.PrincipalColumns.Add(principalColumn);
-                        }
+                        for (var ordinal = 0; ordinal < columnIndices.Length; ordinal++)
+                            fkInfo.Columns.Add(new ForeignKeyColumnModel {
+                                Column = columns[columnIndices[ordinal] - 1],
+                                PrincipalColumn = columns[principalColumnIndices[ordinal] - 1],
+                                Ordinal = ordinal
+                            });
 
                         table.ForeignKeys.Add(fkInfo);
                         break;
@@ -380,10 +382,10 @@ namespace Microsoft.Data.Entity.Scaffolding
                         var ownerColumn = reader.GetString(10);
 
                         TableModel ownerTableModel;
-                        NpgsqlColumnModel ownerColumnModel;
+                        ColumnModel ownerColumnModel;
                         if (_tables.TryGetValue(TableKey(ownerTable, ownerSchema), out ownerTableModel) &&
                             _tableColumns.TryGetValue(ColumnKey(ownerTableModel, ownerColumn), out ownerColumnModel) &&
-                            ownerColumnModel.IsSerial)
+                            ownerColumnModel.Npgsql().IsSerial)
                         {
                             continue;
                         }

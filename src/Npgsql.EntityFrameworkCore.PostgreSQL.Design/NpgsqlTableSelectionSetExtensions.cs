@@ -1,7 +1,8 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using JetBrains.Annotations;
 
-namespace Microsoft.Data.Entity.Scaffolding
+namespace Microsoft.EntityFrameworkCore.Scaffolding
 {
     internal static class NpgsqlTableSelectionSetExtensions
     {
@@ -14,17 +15,33 @@ namespace Microsoft.Data.Entity.Scaffolding
                 return true;
             }
 
-            if (_tableSelectionSet.Schemas.Contains(schemaName))
+            var result = false;
+
+            foreach (var schemaSelection in _tableSelectionSet.Schemas)
+                if (EqualsWithQuotes(schemaSelection.Text, schemaName))
+                {
+                    schemaSelection.IsMatched = true;
+                    result = true;
+                }
+
+            foreach (var tableSelection in _tableSelectionSet.Tables)
             {
-                return true;
+                var components = tableSelection.Text.Split('.');
+                if (components.Length == 1
+                    ? EqualsWithQuotes(components[0], tableName)
+                    : EqualsWithQuotes(components[0], schemaName) && EqualsWithQuotes(components[1], tableName))
+                {
+                    tableSelection.IsMatched = true;
+                    result = true;
+                }
             }
 
-            return _tableSelectionSet.Tables.Contains($"{schemaName}.{tableName}")
-                || _tableSelectionSet.Tables.Contains($"[{schemaName}].[{tableName}]")
-                || _tableSelectionSet.Tables.Contains($"{schemaName}.[{tableName}]")
-                || _tableSelectionSet.Tables.Contains($"[{schemaName}].{tableName}")
-                || _tableSelectionSet.Tables.Contains($"{tableName}")
-                || _tableSelectionSet.Tables.Contains($"[{tableName}]");
+            return result;
         }
+
+        static bool EqualsWithQuotes(string expr, string name) =>
+            expr[0] == '"' && expr[expr.Length - 1] == '"'
+                ? expr.Substring(0, expr.Length - 2).Equals(name)
+                : expr.Equals(name, StringComparison.OrdinalIgnoreCase);
     }
 }

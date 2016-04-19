@@ -1,31 +1,15 @@
 {
   "dependencies": {
-    "EntityFramework.Relational.FunctionalTests": "7.0.0-rc2-16583",
-    "EntityFramework.Relational.Design.FunctionalTests": "7.0.0-rc2-16583",
-    "EntityFramework7.Npgsql.Design": "3.1.0-*",
-    "EntityFramework7.Npgsql": "3.1.0-*",
-    "EntityFramework7.Npgsql.FunctionalTests": "1.0.0"
+    "Microsoft.EntityFrameworkCore.Relational.FunctionalTests": "1.0.0-rc2-*",
+    "Microsoft.EntityFrameworkCore.Relational.Design.FunctionalTests": "1.0.0-rc2-*",
+    "Npgsql.EntityFrameworkCore.PostgreSQL.Design": "1.0.0-*",
+    "Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests": "1.0.0-*"
   },
-  "commands": {
-    "test": "xunit.runner.dnx"
-  },
+  "testRunner": "xunit",
   "frameworks": {
-    "net46": {
+    "net451": {
       "frameworkAssemblies": {
         "System.Threading.Tasks": { "version": "4.0.0.0", "type": "build" }
-      }
-    },
-    "dnx452": {
-      "frameworkAssemblies": {
-        "System.Threading.Tasks": "4.0.0.0"
-      },
-      "dependencies": {
-        "xunit.runner.dnx": "2.1.0-rc1-*"
-      }
-    },
-    "dnxcore50": {
-      "dependencies": {
-        "xunit.runner.dnx": "2.1.0-rc1-*"
       }
     }
   }

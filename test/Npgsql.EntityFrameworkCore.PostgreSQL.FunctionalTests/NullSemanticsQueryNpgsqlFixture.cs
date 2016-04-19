@@ -2,14 +2,14 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.Data.Entity;
-using Microsoft.Data.Entity.FunctionalTests;
-using Microsoft.Data.Entity.FunctionalTests.TestModels.NullSemantics;
-using Microsoft.Data.Entity.FunctionalTests.TestModels.NullSemanticsModel;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.FunctionalTests;
+using Microsoft.EntityFrameworkCore.FunctionalTests.TestModels.NullSemanticsModel;
+using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
 
-namespace EntityFramework7.Npgsql.FunctionalTests
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
     public class NullSemanticsQueryNpgsqlFixture : NullSemanticsQueryRelationalFixture<NpgsqlTestStore>
     {
@@ -22,9 +22,7 @@ namespace EntityFramework7.Npgsql.FunctionalTests
         public NullSemanticsQueryNpgsqlFixture()
         {
             _serviceProvider = new ServiceCollection()
-                .AddEntityFramework()
-                .AddNpgsql()
-                .ServiceCollection()
+                .AddEntityFrameworkNpgsql()
                 .AddSingleton(TestNpgsqlModelSource.GetFactory(OnModelCreating))
                 .AddSingleton<ILoggerFactory>(new TestSqlLoggerFactory())
                 .BuildServiceProvider();
@@ -34,10 +32,9 @@ namespace EntityFramework7.Npgsql.FunctionalTests
         {
             return NpgsqlTestStore.GetOrCreateShared(DatabaseName, () =>
             {
-                var optionsBuilder = new DbContextOptionsBuilder();
-                optionsBuilder.UseNpgsql(_connectionString);
-
-                using (var context = new NullSemanticsContext(_serviceProvider, optionsBuilder.Options))
+                using (var context = new NullSemanticsContext(new DbContextOptionsBuilder()
+                    .UseNpgsql(_connectionString)
+                    .UseInternalServiceProvider(_serviceProvider).Options))
                 {
                     // TODO: Delete DB if model changed
 
@@ -53,19 +50,20 @@ namespace EntityFramework7.Npgsql.FunctionalTests
 
         public override NullSemanticsContext CreateContext(NpgsqlTestStore testStore, bool useRelationalNulls)
         {
-            var optionsBuilder = new DbContextOptionsBuilder();
+            var context = new NullSemanticsContext(new DbContextOptionsBuilder()
+                .EnableSensitiveDataLogging()
+                .UseInternalServiceProvider(_serviceProvider)
+                .UseNpgsql(
+                    testStore.Connection,
+                    b =>
+                    {
+                        if (useRelationalNulls)
+                        {
+                            b.UseRelationalNulls();
+                        }
+                    }).Options);
 
-            var npgsqlOptions
-                = optionsBuilder
-                    .EnableSensitiveDataLogging()
-                    .UseNpgsql(testStore.Connection);
-
-            if (useRelationalNulls)
-            {
-                npgsqlOptions.UseRelationalNulls();
-            }
-
-            var context = new NullSemanticsContext(_serviceProvider, optionsBuilder.Options);
+            context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
 
             context.Database.UseTransaction(testStore.Transaction);
 

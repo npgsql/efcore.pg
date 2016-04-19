@@ -3,20 +3,17 @@
 
 using System;
 using System.Globalization;
-using System.Linq;
 using System.Text;
-using JetBrains.Annotations;
-using Microsoft.Data.Entity.Utilities;
+using Microsoft.EntityFrameworkCore.Utilities;
 
-// ReSharper disable once CheckNamespace
-namespace Microsoft.Data.Entity.Storage.Internal
+namespace Microsoft.EntityFrameworkCore.Storage.Internal
 {
     public class NpgsqlSqlGenerationHelper : RelationalSqlGenerationHelper
     {
-        public override string EscapeIdentifier([NotNull] string identifier)
+        public override string EscapeIdentifier(string identifier)
             => Check.NotEmpty(identifier, nameof(identifier)).Replace("\"", "\"\"");
 
-        public override string DelimitIdentifier([NotNull] string identifier)
+        public override string DelimitIdentifier(string identifier)
             => $"\"{EscapeIdentifier(Check.NotEmpty(identifier, nameof(identifier)))}\"";
 
         protected override string GenerateLiteralValue(byte[] literal)

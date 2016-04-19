@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Linq;
 using System.Net.NetworkInformation;
-using Microsoft.Data.Entity;
-using Microsoft.Data.Entity.FunctionalTests;
+using Microsoft.EntityFrameworkCore.FunctionalTests;
 using NpgsqlTypes;
 using Xunit;
 
-namespace EntityFramework7.Npgsql.FunctionalTests
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
     public class BuiltInDataTypesNpgsqlTest : BuiltInDataTypesTestBase<BuiltInDataTypesNpgsqlFixture>
     {
@@ -391,6 +390,6 @@ namespace EntityFramework7.Npgsql.FunctionalTests
             }
         }
 
-        // TODO: Other tests from SqlServerBuiltInDataTypesSqlServerTest?
+        // TODO: Other tests from NpgsqlBuiltInDataTypesNpgsqlTest?
     }
 }

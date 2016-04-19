@@ -4,14 +4,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Data.Entity;
-using Microsoft.Data.Entity.FunctionalTests;
-using Microsoft.Data.Entity.Infrastructure;
+using Xunit;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.FunctionalTests;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
-using Xunit;
+using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
 
-namespace EntityFramework7.Npgsql.FunctionalTests
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
     public class NavigationTest : IClassFixture<NavigationTestFixture>
     {
@@ -76,38 +77,38 @@ namespace EntityFramework7.Npgsql.FunctionalTests
 
     public class GoTContext : DbContext
     {
-        public GoTContext(IServiceProvider serviceProvider, DbContextOptions options)
-            : base(serviceProvider, options)
+        public GoTContext(DbContextOptions options)
+            : base(options)
         {
         }
 
         public DbSet<Person> People { get; set; }
         public Func<ModelBuilder, int> ConfigAction { get; set; }
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            ConfigAction.Invoke(modelBuilder);
-        }
+        protected override void OnModelCreating(ModelBuilder modelBuilder) => ConfigAction.Invoke(modelBuilder);
     }
 
     public class NavigationTestFixture
     {
         private readonly DbContextOptions _options;
-        private readonly IServiceProvider _serviceProvider;
 
         public NavigationTestFixture()
         {
-            _serviceProvider = new ServiceCollection()
-                .AddEntityFramework()
-                .AddNpgsql()
-                .ServiceCollection()
+            var serviceProvider = new ServiceCollection()
+                .AddEntityFrameworkNpgsql()
                 .BuildServiceProvider();
 
-            var optionsBuilder = new DbContextOptionsBuilder();
-            optionsBuilder.UseNpgsql(NpgsqlTestStore.CreateConnectionString("StateManagerBug"));
-            _options = optionsBuilder.Options;
+            var connStrBuilder = new NpgsqlConnectionStringBuilder(TestEnvironment.DefaultConnection)
+            {
+                Database = "StateManagerBug"
+            };
+
+            _options = new DbContextOptionsBuilder()
+                .UseNpgsql(connStrBuilder.ConnectionString)
+                .UseInternalServiceProvider(serviceProvider)
+                .Options;
         }
 
-        public virtual GoTContext CreateContext() => new GoTContext(_serviceProvider, _options);
+        public virtual GoTContext CreateContext() => new GoTContext(_options);
     }
 }

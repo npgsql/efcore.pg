@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Data.Entity;
-using Microsoft.Data.Entity.FunctionalTests;
-using Microsoft.Data.Entity.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.FunctionalTests;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
 
-namespace EntityFramework7.Npgsql.FunctionalTests
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
     public class NullKeysNpgsqlTest : NullKeysTestBase<NullKeysNpgsqlTest.NullKeysNpgsqlFixture>
     {
@@ -19,29 +20,23 @@ namespace EntityFramework7.Npgsql.FunctionalTests
 
         public class NullKeysNpgsqlFixture : NullKeysFixtureBase
         {
-            private readonly IServiceProvider _serviceProvider;
             private readonly DbContextOptions _options;
 
             public NullKeysNpgsqlFixture()
             {
-                _serviceProvider = new ServiceCollection()
-                    .AddEntityFramework()
-                    .AddNpgsql()
-                    .ServiceCollection()
-                    .AddSingleton(TestNpgsqlModelSource.GetFactory(OnModelCreating))
-                    .BuildServiceProvider();
-
-                var optionsBuilder = new DbContextOptionsBuilder();
-                optionsBuilder.UseNpgsql(NpgsqlTestStore.CreateConnectionString("StringsContext"));
-                _options = optionsBuilder.Options;
+                _options = new DbContextOptionsBuilder()
+                    .UseNpgsql(NpgsqlTestStore.CreateConnectionString("StringsContext"))
+                    .UseInternalServiceProvider(new ServiceCollection()
+                        .AddEntityFrameworkNpgsql()
+                        .AddSingleton(TestNpgsqlModelSource.GetFactory(OnModelCreating))
+                        .BuildServiceProvider())
+                    .Options;
 
                 EnsureCreated();
             }
 
             public override DbContext CreateContext()
-            {
-                return new DbContext(_serviceProvider, _options);
-            }
+                => new DbContext(_options);
         }
     }
 }

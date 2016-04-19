@@ -1,15 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Data.Entity.Metadata;
-using Microsoft.Data.Entity.Migrations;
-using Microsoft.Data.Entity.Scaffolding;
-using Microsoft.Data.Entity.Scaffolding.Metadata;
+using System.Threading;
+using System.Threading.Tasks;
 using Xunit;
-using EntityFramework7.Npgsql.FunctionalTests;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore.FunctionalTests.TestUtilities.Xunit;
+using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Scaffolding;
+using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
+using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests;
+using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
 
-namespace EntityFramework7.Npgsql.Design.FunctionalTests
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests
 {
     public class NpgsqlDatabaseModelFactoryTest : IClassFixture<NpgsqlDatabaseModelFixture>
     {
@@ -48,8 +52,8 @@ CREATE TABLE public.denali (id int);";
             Assert.Equal("mountains", fk.Table.Name);
             Assert.Equal("public", fk.PrincipalTable.SchemaName);
             Assert.Equal("ranges", fk.PrincipalTable.Name);
-            Assert.Equal("range_id", fk.Columns.Single().Name);
-            Assert.Equal("id", fk.PrincipalColumns.Single().Name);
+            Assert.Equal("range_id", fk.Columns.Single().Column.Name);
+            Assert.Equal("id", fk.Columns.Single().PrincipalColumn.Name);
             Assert.Equal(ReferentialAction.Cascade, fk.OnDelete);
         }
 
@@ -67,8 +71,8 @@ CREATE TABLE public.denali (id int);";
             Assert.Equal("mountains1", fk.Table.Name);
             Assert.Equal("public", fk.PrincipalTable.SchemaName);
             Assert.Equal("ranges1", fk.PrincipalTable.Name);
-            Assert.Equal(new[] { "range_id", "range_alt_id" }, fk.Columns.Select(c => c.Name).ToArray());
-            Assert.Equal(new[] { "id", "alt_id" }, fk.PrincipalColumns.Select(c => c.Name).ToArray());
+            Assert.Equal(new[] { "range_id", "range_alt_id" }, fk.Columns.Select(c => c.Column.Name).ToArray());
+            Assert.Equal(new[] { "id", "alt_id" }, fk.Columns.Select(c => c.PrincipalColumn.Name).ToArray());
             Assert.Equal(ReferentialAction.NoAction, fk.OnDelete);
         }
 
@@ -91,13 +95,13 @@ CREATE TABLE public.denali (id int);";
                 unique =>
                 {
                     Assert.True(unique.IsUnique);
-                    Assert.Equal("name", unique.Columns.Single().Name);
+                    Assert.Equal("name", unique.IndexColumns.Single().Column.Name);
                 },
                 composite =>
                 {
                     Assert.Equal("IX_name_location", composite.Name);
                     Assert.False(composite.IsUnique);
-                    Assert.Equal(new List<string> { "name", "location" }, composite.Columns.Select(c => c.Name).ToList());
+                    Assert.Equal(new List<string> { "name", "location" }, composite.IndexColumns.Select(c => c.Column.Name).ToList());
                 });
         }
 

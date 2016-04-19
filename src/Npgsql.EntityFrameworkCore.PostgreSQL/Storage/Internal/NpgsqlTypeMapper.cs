@@ -3,14 +3,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Reflection;
-using Microsoft.Data.Entity.Metadata;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Npgsql;
 using Npgsql.TypeHandlers;
 
-// ReSharper disable once CheckNamespace
-namespace Microsoft.Data.Entity.Storage.Internal
+namespace Microsoft.EntityFrameworkCore.Storage.Internal
 {
     // TODO: BIT(1) vs. BIT(N)
     // TODO: Enums - https://github.com/aspnet/EntityFramework/issues/3620

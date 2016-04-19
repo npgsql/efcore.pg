@@ -5,13 +5,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Data.Entity;
-using Microsoft.Data.Entity.FunctionalTests;
-using Microsoft.Data.Entity.Infrastructure;
-using Microsoft.Data.Entity.Internal;
+using Xunit;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Xunit;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.FunctionalTests;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
 
 // ReSharper disable ClassNeverInstantiated.Local
 // ReSharper disable AccessToDisposedClosure
@@ -19,7 +20,7 @@ using Xunit;
 // ReSharper disable UnusedAutoPropertyAccessor.Local
 // ReSharper disable UnusedMember.Local
 
-namespace EntityFramework7.Npgsql.FunctionalTests
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
     public class QueryBugsTest : IClassFixture<NpgsqlFixture>
     {
@@ -109,15 +110,22 @@ namespace EntityFramework7.Npgsql.FunctionalTests
 
         private class MyContext603 : DbContext
         {
-            public MyContext603(IServiceProvider provider)
-                : base(provider)
+            private readonly IServiceProvider _serviceProvider;
+
+            public MyContext603(IServiceProvider serviceProvider)
             {
+                _serviceProvider = serviceProvider;
             }
 
             public DbSet<Product> Products { get; set; }
 
             protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-                => optionsBuilder.UseNpgsql(NpgsqlTestStore.CreateConnectionString("Repro603"));
+                => optionsBuilder
+                    .UseNpgsql(NpgsqlTestStore.CreateConnectionString("Repro603"))
+                    .UseInternalServiceProvider(_serviceProvider);
+
+            protected override void OnModelCreating(ModelBuilder modelBuilder)
+                => modelBuilder.Entity<Product>().ToTable("Product");
         }
 
         [Fact]
@@ -127,9 +135,7 @@ namespace EntityFramework7.Npgsql.FunctionalTests
 
             var loggingFactory = new TestSqlLoggerFactory();
             var serviceProvider = new ServiceCollection()
-                .AddEntityFramework()
-                .AddNpgsql()
-                .ServiceCollection()
+                .AddEntityFrameworkNpgsql()
                 .AddSingleton<ILoggerFactory>(loggingFactory)
                 .BuildServiceProvider();
 
@@ -166,9 +172,7 @@ ORDER BY ""c"".""FirstName"", ""c"".""LastName""";
 
             var loggingFactory = new TestSqlLoggerFactory();
             var serviceProvider = new ServiceCollection()
-                .AddEntityFramework()
-                .AddNpgsql().
-                ServiceCollection()
+                .AddEntityFrameworkNpgsql()
                 .AddSingleton<ILoggerFactory>(loggingFactory)
                 .BuildServiceProvider();
 
@@ -232,9 +236,11 @@ LEFT JOIN ""Customer"" AS ""c"" ON (""o"".""CustomerFirstName"" = ""c"".""FirstN
 
         public class MyContext925 : DbContext
         {
+            private readonly IServiceProvider _serviceProvider;
+
             public MyContext925(IServiceProvider serviceProvider)
-                : base(serviceProvider)
             {
+                _serviceProvider = serviceProvider;
             }
 
             public DbSet<Customer> Customers { get; set; }
@@ -243,15 +249,19 @@ LEFT JOIN ""Customer"" AS ""c"" ON (""o"".""CustomerFirstName"" = ""c"".""FirstN
             protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
                 => optionsBuilder
                     .EnableSensitiveDataLogging()
-                    .UseNpgsql(NpgsqlTestStore.CreateConnectionString("Repro925"));
+                    .UseNpgsql(NpgsqlTestStore.CreateConnectionString("Repro925"))
+                    .UseInternalServiceProvider(_serviceProvider);
 
             protected override void OnModelCreating(ModelBuilder modelBuilder)
             {
                 modelBuilder.Entity<Customer>(m =>
                 {
+                    m.ToTable("Customer");
                     m.HasKey(c => new { c.FirstName, c.LastName });
                     m.HasMany(c => c.Orders).WithOne(o => o.Customer);
                 });
+
+                modelBuilder.Entity<Order>().ToTable("Order");
             }
         }
 
@@ -369,9 +379,11 @@ Queen of the Andals and the Rhoynar and the First Men, Khaleesi of the Great Gra
         // TODO: replace with GearsOfWar context when it's refactored properly
         public class MyContext963 : DbContext
         {
-            public MyContext963(IServiceProvider provider)
-                : base(provider)
+            private readonly IServiceProvider _serviceProvider;
+
+            public MyContext963(IServiceProvider serviceProvider)
             {
+                _serviceProvider = serviceProvider;
             }
 
             public DbSet<Targaryen> Targaryens { get; set; }
@@ -380,16 +392,21 @@ Queen of the Andals and the Rhoynar and the First Men, Khaleesi of the Great Gra
             public DbSet<Dragon> Dragons { get; set; }
 
             protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-                => optionsBuilder.UseNpgsql(NpgsqlTestStore.CreateConnectionString("Repro963"));
+                => optionsBuilder
+                    .UseNpgsql(NpgsqlTestStore.CreateConnectionString("Repro963"))
+                    .UseInternalServiceProvider(_serviceProvider);
 
             protected override void OnModelCreating(ModelBuilder modelBuilder)
             {
                 modelBuilder.Entity<Targaryen>(m =>
                 {
+                    m.ToTable("Targaryen");
                     m.HasKey(t => t.Id);
                     m.HasMany(t => t.Dragons).WithOne(d => d.Mother).HasForeignKey(d => d.MotherId);
                     m.HasOne(t => t.Details).WithOne(d => d.Targaryen).HasForeignKey<Details>(d => d.TargaryenId);
                 });
+
+                modelBuilder.Entity<Dragon>().ToTable("Dragon");
             }
         }
 
@@ -403,9 +420,7 @@ Queen of the Andals and the Rhoynar and the First Men, Khaleesi of the Great Gra
 
             var loggingFactory = new TestSqlLoggerFactory();
             var serviceProvider = new ServiceCollection()
-                .AddEntityFramework()
-                .AddNpgsql()
-                .ServiceCollection()
+                .AddEntityFrameworkNpgsql()
                 .AddSingleton<ILoggerFactory>(loggingFactory)
                 .BuildServiceProvider();
 

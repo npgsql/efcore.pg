@@ -6,13 +6,10 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Data.Entity.FunctionalTests;
-#if DNX452 || DNXCORE50
-using Microsoft.Extensions.PlatformAbstractions;
-#endif
+using Microsoft.EntityFrameworkCore.FunctionalTests;
 using Npgsql;
 
-namespace EntityFramework7.Npgsql.FunctionalTests
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities
 {
     public class NpgsqlTestStore : RelationalTestStore
     {
@@ -47,6 +44,8 @@ namespace EntityFramework7.Npgsql.FunctionalTests
         private readonly string _name;
         private bool _deleteDatabase;
 
+        public override string ConnectionString => _connectionString;
+
         // Use async static factory method
         private NpgsqlTestStore(string name)
         {
@@ -73,7 +72,7 @@ namespace EntityFramework7.Npgsql.FunctionalTests
         /// <remarks>
         /// In PostgreSQL (unlike other DBs) a connection is always to a single database - you can't switch
         /// databases retaining the same connection. Therefore, a single SQL script drop and create the database
-        /// like with SqlServer, for example.
+        /// like with Npgsql, for example.
         /// </remarks>
         /// <param name="name"></param>
         /// <param name="scriptPath"></param>
@@ -121,16 +120,6 @@ namespace EntityFramework7.Npgsql.FunctionalTests
                     scriptPath = @"..\..\" + scriptPath;
                 }
 
-#if DNXCORE50 || DNX452
-                else {
-                    var appBase = PlatformServices.Default.Application.ApplicationBasePath;
-                    //throw new Exception("AppBase: " + appBase);
-                    if (appBase != null)
-                    {
-                        scriptPath = Path.Combine(appBase, scriptPath);
-                    }
-                }
-#endif
                 var script = File.ReadAllText(scriptPath);
 
                 using (var conn = new NpgsqlConnection(CreateConnectionString(name)))
@@ -255,8 +244,6 @@ namespace EntityFramework7.Npgsql.FunctionalTests
             }
         }
 
-        public string ConnectionString => _connectionString;
-
         public override DbConnection Connection => _connection;
 
         public override DbTransaction Transaction => _transaction;
@@ -335,20 +322,11 @@ namespace EntityFramework7.Npgsql.FunctionalTests
             }
         }
 
-        const string DefaultConnectionString = "Server=localhost;Username=npgsql_tests;Password=npgsql_tests;PersistSecurityInfo=true";
-
         public static string CreateConnectionString(string name)
-        {
-            // TODO: Clean all this up, unify with NpgsqlTests.TestBase somehow
-            // Temporary hack to get tests running on the build server
-            var csb = new NpgsqlConnectionStringBuilder(Environment.GetEnvironmentVariable("NPGSQL_TEST_DB_9_4") ?? DefaultConnectionString);
-            csb.Database = name;
-            return csb.ConnectionString;
-        }
+            => new NpgsqlConnectionStringBuilder(TestEnvironment.DefaultConnection) {
+                Database = name
+            }.ConnectionString;
 
-        static string CreateAdminConnectionString()
-        {
-            return CreateConnectionString("postgres");
-        }
+        static string CreateAdminConnectionString() => CreateConnectionString("postgres");
     }
 }

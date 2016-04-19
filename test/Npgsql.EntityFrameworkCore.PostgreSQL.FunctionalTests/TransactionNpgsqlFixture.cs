@@ -3,11 +3,12 @@
 
 using System;
 using System.Data.Common;
-using Microsoft.Data.Entity;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Data.Entity.FunctionalTests;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.FunctionalTests;
+using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
 
-namespace EntityFramework7.Npgsql.FunctionalTests
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
     public class TransactionNpgsqlFixture : TransactionFixtureBase<NpgsqlTestStore>
     {
@@ -16,9 +17,7 @@ namespace EntityFramework7.Npgsql.FunctionalTests
         public TransactionNpgsqlFixture()
         {
             _serviceProvider = new ServiceCollection()
-                .AddEntityFramework()
-                .AddNpgsql()
-                .ServiceCollection()
+                .AddEntityFrameworkNpgsql()
                 .AddSingleton(TestNpgsqlModelSource.GetFactory(OnModelCreating))
                 .BuildServiceProvider();
         }
@@ -36,19 +35,13 @@ namespace EntityFramework7.Npgsql.FunctionalTests
         }
 
         public override DbContext CreateContext(NpgsqlTestStore testStore)
-        {
-            var optionsBuilder = new DbContextOptionsBuilder();
-            optionsBuilder.UseNpgsql(testStore.ConnectionString);
-
-            return new DbContext(_serviceProvider, optionsBuilder.Options);
-        }
+            => new DbContext(new DbContextOptionsBuilder()
+                .UseNpgsql(testStore.ConnectionString)
+                .UseInternalServiceProvider(_serviceProvider).Options);
 
         public override DbContext CreateContext(DbConnection connection)
-        {
-            var optionsBuilder = new DbContextOptionsBuilder();
-            optionsBuilder.UseNpgsql(connection);
-
-            return new DbContext(_serviceProvider, optionsBuilder.Options);
-        }
+            => new DbContext(new DbContextOptionsBuilder()
+                .UseNpgsql(connection)
+                .UseInternalServiceProvider(_serviceProvider).Options);
     }
 }

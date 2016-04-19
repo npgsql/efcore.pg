@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -7,9 +7,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using JetBrains.Annotations;
-using Microsoft.Data.Entity.Internal;
+using Microsoft.EntityFrameworkCore.Internal;
 
-namespace Microsoft.Data.Entity.Utilities
+namespace Microsoft.EntityFrameworkCore.Utilities
 {
     [DebuggerStepThrough]
     internal static class Check
@@ -85,7 +85,7 @@ namespace Microsoft.Data.Entity.Utilities
         public static string NullButNotEmpty(string value, [InvokerParameterName] [NotNull] string parameterName)
         {
             if (!ReferenceEquals(value, null)
-                && value.Length == 0)
+                && (value.Length == 0))
             {
                 NotEmpty(parameterName, nameof(parameterName));
 
@@ -110,26 +110,13 @@ namespace Microsoft.Data.Entity.Utilities
             return value;
         }
 
-        public static T IsDefined<T>(T value, [InvokerParameterName] [NotNull] string parameterName)
-            where T : struct
-        {
-            if (!Enum.IsDefined(typeof(T), value))
-            {
-                NotEmpty(parameterName, nameof(parameterName));
-
-                throw new ArgumentException(CoreStrings.InvalidEnumValue(parameterName, typeof(T)));
-            }
-
-            return value;
-        }
-
         public static Type ValidEntityType(Type value, [InvokerParameterName] [NotNull] string parameterName)
         {
             if (!value.GetTypeInfo().IsClass)
             {
                 NotEmpty(parameterName, nameof(parameterName));
 
-                throw new ArgumentException(CoreStrings.InvalidEntityType(parameterName, value));
+                throw new ArgumentException(CoreStrings.InvalidEntityType(value, parameterName));
             }
 
             return value;

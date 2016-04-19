@@ -1,10 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.Data.Entity.FunctionalTests;
+using System.Data.Common;
+using Microsoft.EntityFrameworkCore.FunctionalTests;
 using Xunit;
 
-namespace EntityFramework7.Npgsql.FunctionalTests
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
     public class FromSqlQueryNpgsqlTest : FromSqlQueryTestBase<NorthwindQueryNpgsqlFixture>
     {
@@ -297,6 +298,13 @@ WHERE (""c"".""ContactName"" = ""c"".""CompanyName"") OR (""c"".""ContactName"" 
             : base(fixture)
         {
         }
+
+        protected override DbParameter CreateDbParameter(string name, object value)
+            => new NpgsqlParameter
+            {
+                ParameterName = name,
+                Value = value
+            };
 
         private static string Sql => TestSqlLoggerFactory.Sql;
     }

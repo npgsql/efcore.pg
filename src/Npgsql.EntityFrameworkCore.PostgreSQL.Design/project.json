@@ -1,46 +1,33 @@
 ﻿{
-  "version": "3.1.0-*",
+  "version": "1.0.0-*",
   "authors": [
     "Shay Rojansky"
   ],
-  "description": "Design-time Entity Framework Functionality for PostgreSQL",
+  "description": "Design-time Entity Framework Core Functionality for PostgreSQL",
   "iconUrl": "http://www.npgsql.org/img/postgresql.gif",
   "repository": {
     "type": "git",
     "url": "git://github.com/npgsql/npgsql"
   },
+  "compile": "../Shared/*.cs",
   "compilationOptions": {
-    "keyFile": "../../Npgsql.snk"
+    "keyFile": "../../Npgsql.snk",
+    "warningsAsErrors": true
   },
   "dependencies" : {
-    "EntityFramework.Core": "7.0.0-rc2-16563",
-    "EntityFramework.Relational": "7.0.0-rc2-16563",
-    "EntityFramework.Relational.Design": "7.0.0-rc2-16563",
+    "Microsoft.EntityFrameworkCore": "1.0.0-rc2-*",
+    "Microsoft.EntityFrameworkCore.Relational": "1.0.0-rc2-*",
+    "Microsoft.EntityFrameworkCore.Relational.Design": "1.0.0-rc2-*",
     "Microsoft.Extensions.DependencyInjection": "1.0.0-rc2-*",
     "Microsoft.Extensions.DependencyInjection.Abstractions": "1.0.0-rc2-*",
-    "EntityFramework7.Npgsql": "3.1.0-*",
-    "Npgsql": "3.1.0-*"
+    "Npgsql.EntityFrameworkCore.PostgreSQL": "1.0.0-*"
   },
   "frameworks": {
-    "net451": {
-      "frameworkAssemblies": {
-        "System.Collections": { "version": "4.0.0.0", "type": "build" },
-        "System.Reflection": { "version": "4.0.0.0", "type": "build" },
-        "System.Diagnostics.Contracts": { "version": "4.0.0.0", "type": "build" },
-        "System.Linq.Expressions": { "version": "4.0.0.0", "type": "build" },
-        "System.Runtime": { "version": "4.0.0.0", "type": "build" }
-      }
-    },
-    "dnx451": {
-      "frameworkAssemblies": {
-        "System.Collections": "4.0.0.0",
-        "System.Reflection": "4.0.0.0",
-        "System.Diagnostics.Contracts": "4.0.0.0",
-        "System.Linq.Expressions": "4.0.0.0",
-        "System.Runtime": "4.0.0.0"
-      }
-    },
-    "dotnet54": {
+    "net451": {},
+    "netstandard13": {
+      "imports": [
+        "portable-net452+win81"
+      ],
       "dependencies": {
       }
     }
