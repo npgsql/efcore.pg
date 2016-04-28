@@ -14,6 +14,9 @@
     "keyFile": "../../Npgsql.snk",
     "warningsAsErrors": true
   },
+  "runtimes": {
+    "win": {}
+  },
   "dependencies" : {
     "Microsoft.EntityFrameworkCore": "1.0.0-rc2-*",
     "Microsoft.EntityFrameworkCore.Relational": "1.0.0-rc2-*",

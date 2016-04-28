@@ -6,7 +6,5 @@
 [assembly: AssemblyTitle("Npgsql.EntityFrameworkCore.PostgreSQL.Design")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyCopyright("Copyright ©  2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

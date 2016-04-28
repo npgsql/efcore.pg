@@ -1,4 +1,8 @@
 {
+  "version": "0.0.0",
+  "runtimes": {
+    "win": {}
+  },
   "dependencies": {
     "Microsoft.EntityFrameworkCore.Relational.FunctionalTests": "1.0.0-rc2-*",
     "Microsoft.EntityFrameworkCore.Relational.Design.FunctionalTests": "1.0.0-rc2-*",
