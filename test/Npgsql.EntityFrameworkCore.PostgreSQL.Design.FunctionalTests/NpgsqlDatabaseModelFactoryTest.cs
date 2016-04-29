@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 using Microsoft.Extensions.Logging;
-using Microsoft.EntityFrameworkCore.FunctionalTests.TestUtilities.Xunit;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Scaffolding;
@@ -283,7 +282,11 @@ CREATE SEQUENCE ""CustomSequence_read""
         [Fact]
         public void Serial_sequences()
         {
-            Assert.Empty(CreateModel(@"CREATE TABLE ""Foo"" (""FooId"" serial primary key);").Sequences);
+            Assert.Empty(
+                CreateModel(@"CREATE TABLE ""SerialSequence"" (""SerialSequenceId"" serial primary key)")
+                .Sequences
+                .Where(s => s.Name == "SerialSequence_SerialSequenceId_seq")
+            );
         }
 
         private readonly NpgsqlDatabaseModelFixture _fixture;
@@ -294,32 +297,6 @@ CREATE SEQUENCE ""CustomSequence_read""
         public NpgsqlDatabaseModelFactoryTest(NpgsqlDatabaseModelFixture fixture)
         {
             _fixture = fixture;
-        }
-    }
-
-    public class NpgsqlDatabaseModelFixture : IDisposable
-    {
-        private readonly NpgsqlTestStore _testStore;
-
-        public NpgsqlDatabaseModelFixture()
-        {
-            _testStore = NpgsqlTestStore.CreateScratch();
-        }
-
-        public DatabaseModel CreateModel(string createSql, TableSelectionSet selection = null)
-        {
-            _testStore.ExecuteNonQuery(createSql);
-
-            var reader = new NpgsqlDatabaseModelFactory(new LoggerFactory());
-
-            return reader.Create(_testStore.Connection.ConnectionString, selection ?? TableSelectionSet.All);
-        }
-
-        public void ExecuteNonQuery(string sql) => _testStore.ExecuteNonQuery(sql);
-
-        public void Dispose()
-        {
-            _testStore.Dispose();
         }
     }
 }

@@ -4,7 +4,7 @@ using System.Data.Common;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore.FunctionalTests;
+using Microsoft.EntityFrameworkCore.Specification.Tests;
 using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
@@ -23,6 +23,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         public override void Executes_stored_procedure_with_parameter()
         {
             base.Executes_stored_procedure_with_parameter();
+
+            Assert.Equal(
+                @"@CustomerID: ALFKI
+
+SELECT * FROM ""CustOrderHist""(@CustomerID)",
+                Sql);
+        }
+
+        public override void Executes_stored_procedure_with_generated_parameter()
+        {
+            base.Executes_stored_procedure_with_generated_parameter();
 
             Assert.Equal(
                 @"@p0: ALFKI
@@ -45,9 +56,9 @@ SELECT * FROM ""CustOrderHist""(@p0)",
 
         protected override string TenMostExpensiveProductsSproc => @"SELECT * FROM ""Ten Most Expensive Products""()";
 
-        protected override string CustomerOrderHistorySproc => @"SELECT * FROM ""CustOrderHist""({0})";
+        protected override string CustomerOrderHistorySproc => @"SELECT * FROM ""CustOrderHist""(@CustomerID)";
 
-        protected override string CustomerOrderHistoryWithGeneratedParameterSproc => @"SELECT * FROM [dbo].[CustOrderHist] WHERE ""CustomerID"" = {0}";
+        protected override string CustomerOrderHistoryWithGeneratedParameterSproc => @"SELECT * FROM ""CustOrderHist""({0})";
 
         private static string Sql => TestSqlLoggerFactory.Sql;
     }

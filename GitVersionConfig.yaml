@@ -1,3 +1,6 @@
 assembly-versioning-scheme: MajorMinorPatch
 next-version: 1.0.0
 mode: ContinuousDeployment
+branches:
+  dev(elop)?(ment)?$:
+      tag: rc2

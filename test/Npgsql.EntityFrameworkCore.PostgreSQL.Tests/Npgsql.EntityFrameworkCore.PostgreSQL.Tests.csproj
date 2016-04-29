@@ -51,7 +51,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Npgsql.EntityFrameworkCore.PostgreSQL\Npgsql.EntityFrameworkCore.PostgreSQL.csproj">

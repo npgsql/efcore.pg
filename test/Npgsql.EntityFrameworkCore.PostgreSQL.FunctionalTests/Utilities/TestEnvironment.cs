@@ -3,8 +3,6 @@ using Microsoft.Extensions.Configuration;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities
 {
-    // TODO: Clean this up and adapt to our use case... Specifically how to manage build server,
-    // environment vars...?
     public static class TestEnvironment
     {
         public static IConfiguration Config { get; }

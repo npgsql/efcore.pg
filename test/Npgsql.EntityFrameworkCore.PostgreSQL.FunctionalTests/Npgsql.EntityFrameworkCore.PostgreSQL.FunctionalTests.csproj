@@ -65,7 +65,6 @@
     <Compile Include="GearsOfWarQueryNpgsqlFixture.cs" />
     <Compile Include="GearsOfWarQueryNpgsqlTest.cs" />
     <Compile Include="GraphUpdatesNpgsqlTest.cs" />
-    <Compile Include="GraphUpdatesNpgsqlTestBase.cs" />
     <Compile Include="IncludeAsyncNpgsqlTest.cs" />
     <Compile Include="IncludeNpgsqlTest.cs" />
     <Compile Include="IncludeOneToOneNpgsqlTest.cs" />
@@ -81,6 +80,7 @@
     <Compile Include="NavigationTest.cs" />
     <Compile Include="NorthwindQueryNpgsqlFixture.cs" />
     <Compile Include="NpgsqlFixture.cs" />
+    <Compile Include="TempInheritanceRelationalFixture.cs" />
     <Compile Include="Utilities\NpgsqlTestStore.cs" />
     <Compile Include="NullKeysNpgsqlTest.cs" />
     <Compile Include="NullSemanticsQueryNpgsqlFixture.cs" />
@@ -106,9 +106,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="packages.config">
-      <SubType>Designer</SubType>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Npgsql.EntityFrameworkCore.PostgreSQL\Npgsql.EntityFrameworkCore.PostgreSQL.csproj">

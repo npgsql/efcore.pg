@@ -7,7 +7,7 @@ using System.Net.NetworkInformation;
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.FunctionalTests;
+using Microsoft.EntityFrameworkCore.Specification.Tests;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Npgsql;
@@ -25,9 +25,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         {
             _testStore = NpgsqlTestStore.CreateScratch();
 
-            _testStore.ExecuteNonQuery("CREATE TYPE somecomposite AS (some_number int, some_text text)");
-            NpgsqlConnection.MapCompositeGlobally<SomeComposite>("somecomposite");
-            ((NpgsqlConnection)_testStore.Connection).ReloadTypes();
+            /*
+            _testStore.ExecuteNonQuery("CREATE TYPE some_composite AS (some_number int, some_text text)");
+            var npgsqlConn = (NpgsqlConnection)_testStore.Connection;
+            npgsqlConn.ReloadTypes();
+            npgsqlConn.MapComposite<SomeComposite>();
+            */
 
             var serviceProvider = new ServiceCollection()
                 .AddEntityFrameworkNpgsql()
@@ -191,7 +194,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         public NpgsqlPoint Point { get; set; }
 
         // Composite
-        public SomeComposite SomeComposite { get; set; }
+        //public SomeComposite SomeComposite { get; set; }
     }
 
     public class MappedSizedDataTypes
@@ -267,14 +270,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         public NpgsqlPoint? Point { get; set; }
 
         // Composite
-        public SomeComposite SomeComposite { get; set; }
+        //public SomeComposite SomeComposite { get; set; }
     }
 
+    /*
     public class SomeComposite
     {
-        [PgName("some_number")]
         public int SomeNumber { get; set; }
-        [PgName("some_text")]
         public string SomeText { get; set; }
 
         public override bool Equals(object obj)
@@ -285,4 +287,5 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 
         public override int GetHashCode() => SomeNumber.GetHashCode() ^ SomeText.GetHashCode();
     }
+    */
 }

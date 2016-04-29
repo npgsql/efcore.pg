@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
-using Microsoft.EntityFrameworkCore.FunctionalTests;
+using Microsoft.EntityFrameworkCore.Specification.Tests;
 using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
@@ -26,11 +26,11 @@ FROM ""CogTag"" AS ""t""
 LEFT JOIN (
     SELECT ""g"".*
     FROM ""Gear"" AS ""g""
-    WHERE (""g"".""Discriminator"" = 'Officer') OR (""g"".""Discriminator"" = 'Gear')
+    WHERE ""g"".""Discriminator"" IN ('Officer', 'Gear')
 ) AS ""g"" ON (""t"".""GearNickName"" = ""g"".""Nickname"") AND (""t"".""GearSquadId"" = ""g"".""SquadId"")
 ORDER BY ""g"".""FullName""
 
-SELECT ""w"".""Id"", ""w"".""AmmunitionType"", ""w"".""Name"", ""w"".""OwnerFullName"", ""w"".""SynergyWithId""
+SELECT ""w"".""Id"", ""w"".""AmmunitionType"", ""w"".""IsAutomatic"", ""w"".""Name"", ""w"".""OwnerFullName"", ""w"".""SynergyWithId""
 FROM ""Weapon"" AS ""w""
 INNER JOIN (
     SELECT DISTINCT ""g"".""FullName""
@@ -38,10 +38,10 @@ INNER JOIN (
     LEFT JOIN (
         SELECT ""g"".*
         FROM ""Gear"" AS ""g""
-        WHERE (""g"".""Discriminator"" = 'Officer') OR (""g"".""Discriminator"" = 'Gear')
+        WHERE ""g"".""Discriminator"" IN ('Officer', 'Gear')
     ) AS ""g"" ON (""t"".""GearNickName"" = ""g"".""Nickname"") AND (""t"".""GearSquadId"" = ""g"".""SquadId"")
-) AS ""g"" ON ""w"".""OwnerFullName"" = ""g"".""FullName""
-ORDER BY ""g"".""FullName""",
+) AS ""g0"" ON ""w"".""OwnerFullName"" = ""g0"".""FullName""
+ORDER BY ""g0"".""FullName""",
                 Sql);
         }
 
@@ -55,11 +55,11 @@ FROM ""CogTag"" AS ""t""
 LEFT JOIN (
     SELECT ""g"".*
     FROM ""Gear"" AS ""g""
-    WHERE (""g"".""Discriminator"" = 'Officer') OR (""g"".""Discriminator"" = 'Gear')
+    WHERE ""g"".""Discriminator"" IN ('Officer', 'Gear')
 ) AS ""g"" ON (""t"".""GearNickName"" = ""g"".""Nickname"") AND (""t"".""GearSquadId"" = ""g"".""SquadId"")
 ORDER BY ""g"".""FullName""
 
-SELECT ""w"".""Id"", ""w"".""AmmunitionType"", ""w"".""Name"", ""w"".""OwnerFullName"", ""w"".""SynergyWithId""
+SELECT ""w"".""Id"", ""w"".""AmmunitionType"", ""w"".""IsAutomatic"", ""w"".""Name"", ""w"".""OwnerFullName"", ""w"".""SynergyWithId""
 FROM ""Weapon"" AS ""w""
 INNER JOIN (
     SELECT DISTINCT ""g"".""FullName""
@@ -67,10 +67,10 @@ INNER JOIN (
     LEFT JOIN (
         SELECT ""g"".*
         FROM ""Gear"" AS ""g""
-        WHERE (""g"".""Discriminator"" = 'Officer') OR (""g"".""Discriminator"" = 'Gear')
+        WHERE ""g"".""Discriminator"" IN ('Officer', 'Gear')
     ) AS ""g"" ON (""t"".""GearNickName"" = ""g"".""Nickname"") AND (""t"".""GearSquadId"" = ""g"".""SquadId"")
-) AS ""g"" ON ""w"".""OwnerFullName"" = ""g"".""FullName""
-ORDER BY ""g"".""FullName""",
+) AS ""g0"" ON ""w"".""OwnerFullName"" = ""g0"".""FullName""
+ORDER BY ""g0"".""FullName""",
                 Sql);
         }
 
@@ -84,25 +84,25 @@ FROM ""CogTag"" AS ""t""
 LEFT JOIN (
     SELECT ""g"".*
     FROM ""Gear"" AS ""g""
-    WHERE (""g"".""Discriminator"" = 'Officer') OR (""g"".""Discriminator"" = 'Gear')
+    WHERE ""g"".""Discriminator"" IN ('Officer', 'Gear')
 ) AS ""g"" ON (""t"".""GearNickName"" = ""g"".""Nickname"") AND (""t"".""GearSquadId"" = ""g"".""SquadId"")
 LEFT JOIN ""Squad"" AS ""s"" ON ""g"".""SquadId"" = ""s"".""Id""
 ORDER BY ""s"".""Id""
 
-SELECT ""g"".""Nickname"", ""g"".""SquadId"", ""g"".""AssignedCityName"", ""g"".""CityOrBirthName"", ""g"".""Discriminator"", ""g"".""FullName"", ""g"".""LeaderNickname"", ""g"".""LeaderSquadId"", ""g"".""Rank""
-FROM ""Gear"" AS ""g""
+SELECT ""g0"".""Nickname"", ""g0"".""SquadId"", ""g0"".""AssignedCityName"", ""g0"".""CityOrBirthName"", ""g0"".""Discriminator"", ""g0"".""FullName"", ""g0"".""LeaderNickname"", ""g0"".""LeaderSquadId"", ""g0"".""Rank""
+FROM ""Gear"" AS ""g0""
 INNER JOIN (
     SELECT DISTINCT ""s"".""Id""
     FROM ""CogTag"" AS ""t""
     LEFT JOIN (
         SELECT ""g"".*
         FROM ""Gear"" AS ""g""
-        WHERE (""g"".""Discriminator"" = 'Officer') OR (""g"".""Discriminator"" = 'Gear')
+        WHERE ""g"".""Discriminator"" IN ('Officer', 'Gear')
     ) AS ""g"" ON (""t"".""GearNickName"" = ""g"".""Nickname"") AND (""t"".""GearSquadId"" = ""g"".""SquadId"")
     LEFT JOIN ""Squad"" AS ""s"" ON ""g"".""SquadId"" = ""s"".""Id""
-) AS ""s"" ON ""g"".""SquadId"" = ""s"".""Id""
-WHERE (""g"".""Discriminator"" = 'Officer') OR (""g"".""Discriminator"" = 'Gear')
-ORDER BY ""s"".""Id""", Sql);
+) AS ""s0"" ON ""g0"".""SquadId"" = ""s0"".""Id""
+WHERE ""g0"".""Discriminator"" IN ('Officer', 'Gear')
+ORDER BY ""s0"".""Id""", Sql);
         }
 
         public override void Include_multiple_one_to_one_optional_and_one_to_one_required()
@@ -115,9 +115,10 @@ FROM ""CogTag"" AS ""t""
 LEFT JOIN (
     SELECT ""g"".*
     FROM ""Gear"" AS ""g""
-    WHERE (""g"".""Discriminator"" = 'Officer') OR (""g"".""Discriminator"" = 'Gear')
+    WHERE ""g"".""Discriminator"" IN ('Officer', 'Gear')
 ) AS ""g"" ON (""t"".""GearNickName"" = ""g"".""Nickname"") AND (""t"".""GearSquadId"" = ""g"".""SquadId"")
-LEFT JOIN ""Squad"" AS ""s"" ON ""g"".""SquadId"" = ""s"".""Id""", Sql);
+LEFT JOIN ""Squad"" AS ""s"" ON ""g"".""SquadId"" = ""s"".""Id""",
+                Sql);
         }
 
         public override void Include_multiple_circular()
@@ -131,16 +132,16 @@ INNER JOIN ""City"" AS ""c"" ON ""g"".""CityOrBirthName"" = ""c"".""Name""
 WHERE ""g"".""Discriminator"" IN ('Officer', 'Gear')
 ORDER BY ""c"".""Name""
 
-SELECT ""g"".""Nickname"", ""g"".""SquadId"", ""g"".""AssignedCityName"", ""g"".""CityOrBirthName"", ""g"".""Discriminator"", ""g"".""FullName"", ""g"".""LeaderNickname"", ""g"".""LeaderSquadId"", ""g"".""Rank""
-FROM ""Gear"" AS ""g""
+SELECT ""g0"".""Nickname"", ""g0"".""SquadId"", ""g0"".""AssignedCityName"", ""g0"".""CityOrBirthName"", ""g0"".""Discriminator"", ""g0"".""FullName"", ""g0"".""LeaderNickname"", ""g0"".""LeaderSquadId"", ""g0"".""Rank""
+FROM ""Gear"" AS ""g0""
 INNER JOIN (
     SELECT DISTINCT ""c"".""Name""
     FROM ""Gear"" AS ""g""
     INNER JOIN ""City"" AS ""c"" ON ""g"".""CityOrBirthName"" = ""c"".""Name""
     WHERE ""g"".""Discriminator"" IN ('Officer', 'Gear')
-) AS ""c"" ON ""g"".""AssignedCityName"" = ""c"".""Name""
-WHERE (""g"".""Discriminator"" = 'Officer') OR (""g"".""Discriminator"" = 'Gear')
-ORDER BY ""c"".""Name""",
+) AS ""c0"" ON ""g0"".""AssignedCityName"" = ""c0"".""Name""
+WHERE ""g0"".""Discriminator"" IN ('Officer', 'Gear')
+ORDER BY ""c0"".""Name""",
                 Sql);
         }
 
@@ -155,16 +156,16 @@ INNER JOIN ""City"" AS ""c"" ON ""g"".""CityOrBirthName"" = ""c"".""Name""
 WHERE ""g"".""Discriminator"" IN ('Officer', 'Gear') AND (""g"".""Nickname"" = 'Marcus')
 ORDER BY ""c"".""Name""
 
-SELECT ""g"".""Nickname"", ""g"".""SquadId"", ""g"".""AssignedCityName"", ""g"".""CityOrBirthName"", ""g"".""Discriminator"", ""g"".""FullName"", ""g"".""LeaderNickname"", ""g"".""LeaderSquadId"", ""g"".""Rank""
-FROM ""Gear"" AS ""g""
+SELECT ""g0"".""Nickname"", ""g0"".""SquadId"", ""g0"".""AssignedCityName"", ""g0"".""CityOrBirthName"", ""g0"".""Discriminator"", ""g0"".""FullName"", ""g0"".""LeaderNickname"", ""g0"".""LeaderSquadId"", ""g0"".""Rank""
+FROM ""Gear"" AS ""g0""
 INNER JOIN (
     SELECT DISTINCT ""c"".""Name""
     FROM ""Gear"" AS ""g""
     INNER JOIN ""City"" AS ""c"" ON ""g"".""CityOrBirthName"" = ""c"".""Name""
     WHERE ""g"".""Discriminator"" IN ('Officer', 'Gear') AND (""g"".""Nickname"" = 'Marcus')
-) AS ""c"" ON ""g"".""AssignedCityName"" = ""c"".""Name""
-WHERE (""g"".""Discriminator"" = 'Officer') OR (""g"".""Discriminator"" = 'Gear')
-ORDER BY ""c"".""Name""",
+) AS ""c0"" ON ""g0"".""AssignedCityName"" = ""c0"".""Name""
+WHERE ""g0"".""Discriminator"" IN ('Officer', 'Gear')
+ORDER BY ""c0"".""Name""",
                 Sql);
         }
 
@@ -178,14 +179,14 @@ FROM ""Gear"" AS ""g""
 WHERE ""g"".""Discriminator"" IN ('Officer', 'Gear') AND (""g"".""Nickname"" = 'Marcus')
 ORDER BY ""g"".""FullName""
 
-SELECT ""w"".""Id"", ""w"".""AmmunitionType"", ""w"".""Name"", ""w"".""OwnerFullName"", ""w"".""SynergyWithId""
+SELECT ""w"".""Id"", ""w"".""AmmunitionType"", ""w"".""IsAutomatic"", ""w"".""Name"", ""w"".""OwnerFullName"", ""w"".""SynergyWithId""
 FROM ""Weapon"" AS ""w""
 INNER JOIN (
     SELECT DISTINCT ""g"".""FullName""
     FROM ""Gear"" AS ""g""
     WHERE ""g"".""Discriminator"" IN ('Officer', 'Gear') AND (""g"".""Nickname"" = 'Marcus')
-) AS ""g"" ON ""w"".""OwnerFullName"" = ""g"".""FullName""
-ORDER BY ""g"".""FullName""",
+) AS ""g0"" ON ""w"".""OwnerFullName"" = ""g0"".""FullName""
+ORDER BY ""g0"".""FullName""",
                 Sql);
         }
 
@@ -205,7 +206,7 @@ WHERE ""g"".""Discriminator"" IN ('Officer', 'Gear') AND (""g"".""Rank"" = 2)",
             base.Where_nullable_enum_with_constant();
 
             Assert.Equal(
-                @"SELECT ""w"".""Id"", ""w"".""AmmunitionType"", ""w"".""Name"", ""w"".""OwnerFullName"", ""w"".""SynergyWithId""
+                @"SELECT ""w"".""Id"", ""w"".""AmmunitionType"", ""w"".""IsAutomatic"", ""w"".""Name"", ""w"".""OwnerFullName"", ""w"".""SynergyWithId""
 FROM ""Weapon"" AS ""w""
 WHERE ""w"".""AmmunitionType"" = 1",
                 Sql);
@@ -216,7 +217,7 @@ WHERE ""w"".""AmmunitionType"" = 1",
             base.Where_nullable_enum_with_null_constant();
 
             Assert.Equal(
-                @"SELECT ""w"".""Id"", ""w"".""AmmunitionType"", ""w"".""Name"", ""w"".""OwnerFullName"", ""w"".""SynergyWithId""
+                @"SELECT ""w"".""Id"", ""w"".""AmmunitionType"", ""w"".""IsAutomatic"", ""w"".""Name"", ""w"".""OwnerFullName"", ""w"".""SynergyWithId""
 FROM ""Weapon"" AS ""w""
 WHERE ""w"".""AmmunitionType"" IS NULL",
                 Sql);
@@ -242,11 +243,11 @@ WHERE ""w"".""AmmunitionType"" = @__p_0",
             Assert.Equal(
                 @"@__ammunitionType_0: Cartridge
 
-SELECT ""w"".""Id"", ""w"".""AmmunitionType"", ""w"".""Name"", ""w"".""OwnerFullName"", ""w"".""SynergyWithId""
+SELECT ""w"".""Id"", ""w"".""AmmunitionType"", ""w"".""IsAutomatic"", ""w"".""Name"", ""w"".""OwnerFullName"", ""w"".""SynergyWithId""
 FROM ""Weapon"" AS ""w""
 WHERE ""w"".""AmmunitionType"" = @__ammunitionType_0
 
-SELECT ""w"".""Id"", ""w"".""AmmunitionType"", ""w"".""Name"", ""w"".""OwnerFullName"", ""w"".""SynergyWithId""
+SELECT ""w"".""Id"", ""w"".""AmmunitionType"", ""w"".""IsAutomatic"", ""w"".""Name"", ""w"".""OwnerFullName"", ""w"".""SynergyWithId""
 FROM ""Weapon"" AS ""w""
 WHERE ""w"".""AmmunitionType"" IS NULL",
                 Sql);

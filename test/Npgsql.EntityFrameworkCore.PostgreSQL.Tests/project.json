@@ -7,7 +7,7 @@
     "Microsoft.Extensions.Logging": "1.0.0-*",
     "Microsoft.EntityFrameworkCore": "1.0.0-rc2-*",
     "Microsoft.EntityFrameworkCore.Relational": "1.0.0-rc2-*",
-    "Microsoft.EntityFrameworkCore.Relational.FunctionalTests": "1.0.0-rc2-*",
+    "Microsoft.EntityFrameworkCore.Relational.Specification.Tests": "1.0.0-rc2-*",
     "Npgsql.EntityFrameworkCore.PostgreSQL": "1.0.0-*",
     "Npgsql": "3.1.0-*"
   },

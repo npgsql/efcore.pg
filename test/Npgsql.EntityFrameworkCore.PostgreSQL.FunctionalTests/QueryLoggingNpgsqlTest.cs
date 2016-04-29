@@ -1,11 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.FunctionalTests;
-using Microsoft.EntityFrameworkCore.FunctionalTests.TestModels.Northwind;
 using Microsoft.EntityFrameworkCore.Internal;
+using Microsoft.EntityFrameworkCore.Specification.Tests;
+using Microsoft.EntityFrameworkCore.Specification.Tests.TestModels.Northwind;
 using Xunit;
 
 #if NETSTANDARDAPP1_5
@@ -27,8 +28,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 
                 Assert.NotNull(customers);
                 Assert.StartsWith(
-                    @"    Compiling query model: 'value(Microsoft.Data.Entity.Query.Internal.EntityQueryable`1[Microsoft.Data.Entity.FunctionalTests.TestModels.Northwind.Customer])'
-    Optimized query model: 'value(Microsoft.Data.Entity.Query.Internal.EntityQueryable`1[Microsoft.Data.Entity.FunctionalTests.TestModels.Northwind.Customer])'
+                    @"    Compiling query model: 'value(Microsoft.EntityFrameworkCore.Query.Internal.EntityQueryable`1[Microsoft.EntityFrameworkCore.Specification.Tests.TestModels.Northwind.Customer])'
+    Optimized query model: 'value(Microsoft.EntityFrameworkCore.Query.Internal.EntityQueryable`1[Microsoft.EntityFrameworkCore.Specification.Tests.TestModels.Northwind.Customer])'
     TRACKED: True
 (QueryContext queryContext) => IEnumerable<Customer> _ShapedQuery(
     queryContext: queryContext, 
@@ -36,7 +37,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         SELECT ""c"".""CustomerID"", ""c"".""Address"", ""c"".""City"", ""c"".""CompanyName"", ""c"".""ContactName"", ""c"".""ContactTitle"", ""c"".""Country"", ""c"".""Fax"", ""c"".""Phone"", ""c"".""PostalCode"", ""c"".""Region""
         FROM ""Customers"" AS ""c""
     , 
-    shaper: UnbufferedEntityShaper`1
+    shaper: UnbufferedEntityShaper<Customer>
 )",
                     TestSqlLoggerFactory.Log);
             }
@@ -71,9 +72,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                         .ToList();
 
                 Assert.NotNull(customers);
-                Assert.StartsWith(@"    Compiling query model: 'value(Microsoft.Data.Entity.Query.Internal.EntityQueryable`1[Microsoft.Data.Entity.FunctionalTests.TestModels.Northwind.Customer]) => Include([c].Orders)'
-    Optimized query model: 'value(Microsoft.Data.Entity.Query.Internal.EntityQueryable`1[Microsoft.Data.Entity.FunctionalTests.TestModels.Northwind.Customer])'
-    Including navigation: 'Microsoft.Data.Entity.FunctionalTests.TestModels.Northwind.Customer.Orders'
+                Assert.StartsWith(@"    Compiling query model: 'value(Microsoft.EntityFrameworkCore.Query.Internal.EntityQueryable`1[Microsoft.EntityFrameworkCore.Specification.Tests.TestModels.Northwind.Customer]) => Include([c].Orders)'
+    Optimized query model: 'value(Microsoft.EntityFrameworkCore.Query.Internal.EntityQueryable`1[Microsoft.EntityFrameworkCore.Specification.Tests.TestModels.Northwind.Customer])'
+    Including navigation: 'Microsoft.EntityFrameworkCore.Specification.Tests.TestModels.Northwind.Customer.Orders'
     TRACKED: True
 (QueryContext queryContext) => IEnumerable<Customer> _Include(
     queryContext: (RelationalQueryContext) queryContext, 
@@ -84,38 +85,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             FROM ""Customers"" AS ""c""
             ORDER BY ""c"".""CustomerID""
         , 
-        shaper: BufferedEntityShaper`1
+        shaper: BufferedEntityShaper<Customer>
     )
     , 
-    entityAccessor: default(System.Func`2[FunctionalTests.TestModels.Northwind.Customer,System.Object]), 
+    entityAccessor: default(System.Func`2[Specification.Tests.TestModels.Northwind.Customer,System.Object]), 
     navigationPath: INavigation[] { Customer.Orders, }, 
-    includeRelatedValuesStrategyFactories: new Func<IIncludeRelatedValuesStrategy>[]{ () => IIncludeRelatedValuesStrategy _CreateCollectionIncludeStrategy(
-            relatedValueBuffers: IEnumerable<ValueBuffer> _Query(
-                queryContext: queryContext, 
-                shaperCommandContext: SelectExpression: 
-                    SELECT ""o"".""OrderID"", ""o"".""CustomerID"", ""o"".""EmployeeID"", ""o"".""OrderDate""
-                    FROM ""Orders"" AS ""o""
-                    INNER JOIN (
-                        SELECT DISTINCT ""c"".""CustomerID""
-                        FROM ""Customers"" AS ""c""
-                    ) AS ""c"" ON ""o"".""CustomerID"" = ""c"".""CustomerID""
-                    ORDER BY ""c"".""CustomerID""
-                , 
-                queryIndex: 1
-            )
-            , 
-            materializer: (ValueBuffer valueBuffer) => 
-            {
-                var var2
-                var2 = new Order()
-                var2.OrderID = (int) object valueBuffer.get_Item(0)
-                var2.CustomerID = (string) object valueBuffer.get_Item(1)
-                var2.EmployeeID = (Nullable<int>) object valueBuffer.get_Item(2)
-                var2.OrderDate = (Nullable<DateTime>) object valueBuffer.get_Item(3)
-                var2
-            }
-        )
-         }
+    relatedEntitiesLoaderFactories: List<Func<QueryContext, IRelatedEntitiesLoader>> 
+    { 
+        System.Func`2[QueryContext,Internal.IRelatedEntitiesLoader], 
+    }
     , 
     querySourceRequiresTracking: True
 )",

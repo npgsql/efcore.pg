@@ -339,10 +339,11 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding
                         if (columnIndices.Length != principalColumnIndices.Length)
                             throw new Exception("Got varying lengths for column and principal column indices");
 
+                        var principalColumns = (List<ColumnModel>)principalTable.Columns;
                         for (var ordinal = 0; ordinal < columnIndices.Length; ordinal++)
                             fkInfo.Columns.Add(new ForeignKeyColumnModel {
                                 Column = columns[columnIndices[ordinal] - 1],
-                                PrincipalColumn = columns[principalColumnIndices[ordinal] - 1],
+                                PrincipalColumn = principalColumns[principalColumnIndices[ordinal] - 1],
                                 Ordinal = ordinal
                             });
 
@@ -410,6 +411,8 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding
                             _tableColumns.TryGetValue(ColumnKey(ownerTableModel, ownerColumn), out ownerColumnModel) &&
                             ownerColumnModel.Npgsql().IsSerial)
                         {
+                            // Don't reverse-engineer sequences which drive serial columns, these are implicitly
+                            // reverse-engineered by the serial column.
                             continue;
                         }
                     }

@@ -1,13 +1,14 @@
-﻿using Microsoft.Data.Entity;
-using Microsoft.Data.Entity.Metadata;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace E2ETest.Namespace
 {
     public partial class SequenceContext : DbContext
     {
-        protected override void OnConfiguring(DbContextOptionsBuilder options)
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            options.UseNpgsql(@"{{connectionString}}");
+            #warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
+            optionsBuilder.UseNpgsql(@"{{connectionString}}");
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

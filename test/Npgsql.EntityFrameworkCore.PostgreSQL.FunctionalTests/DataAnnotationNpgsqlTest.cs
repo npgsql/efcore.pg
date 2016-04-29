@@ -4,8 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
-using Microsoft.EntityFrameworkCore.FunctionalTests;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Specification.Tests;
 using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
@@ -70,17 +70,12 @@ RETURNING ""UniqueNo"";",
         {
             base.RequiredAttribute_for_navigation_throws_while_inserting_null_value();
 
-            Assert.Equal(@"@p0: 0
-@p1: Book1
+            Assert.Contains(@"@p1: Book1
+",
+                Sql);
 
-INSERT INTO ""BookDetail"" (""Id"", ""BookId"")
-VALUES (@p0, @p1);
-
-@p0: 0
-@p1: 
-
-INSERT INTO ""BookDetail"" (""Id"", ""BookId"")
-VALUES (@p0, @p1);",
+            Assert.Contains(@"@p1: 
+",
                 Sql);
         }
 

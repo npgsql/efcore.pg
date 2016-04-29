@@ -9,10 +9,10 @@ namespace E2ETest.Namespace
     {
         public int OneToOneFKToUniqueKeyPrincipalID1 { get; set; }
         public int OneToOneFKToUniqueKeyPrincipalID2 { get; set; }
-        public int OneToOneFKToUniqueKeyPrincipalUniqueKey1 { get; set; }
-        public int OneToOneFKToUniqueKeyPrincipalUniqueKey2 { get; set; }
         [Required]
         public string SomePrincipalColumn { get; set; }
+        public int OneToOneFKToUniqueKeyPrincipalUniqueKey1 { get; set; }
+        public int OneToOneFKToUniqueKeyPrincipalUniqueKey2 { get; set; }
 
         public virtual OneToOneFKToUniqueKeyDependent OneToOneFKToUniqueKeyDependent { get; set; }
     }

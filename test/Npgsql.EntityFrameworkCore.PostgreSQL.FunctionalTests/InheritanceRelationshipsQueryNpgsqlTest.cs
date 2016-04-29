@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Xunit;
-using Microsoft.EntityFrameworkCore.FunctionalTests;
+using Microsoft.EntityFrameworkCore.Specification.Tests;
 using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
@@ -19,12 +19,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             base.Include_reference_with_inheritance1();
 
             Assert.Equal(
-                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""b"".""Id"", ""b"".""BaseParentId"", ""b"".""Discriminator"", ""b"".""Name""
+                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""e"".""BaseId"", ""b"".""Id"", ""b"".""BaseParentId"", ""b"".""Discriminator"", ""b"".""Name""
 FROM ""BaseInheritanceRelationshipEntity"" AS ""e""
 LEFT JOIN (
     SELECT ""b"".*
     FROM ""BaseReferenceOnBase"" AS ""b""
-    WHERE (""b"".""Discriminator"" = 'DerivedReferenceOnBase') OR (""b"".""Discriminator"" = 'BaseReferenceOnBase')
+    WHERE ""b"".""Discriminator"" IN ('DerivedReferenceOnBase', 'BaseReferenceOnBase')
 ) AS ""b"" ON ""b"".""BaseParentId"" = ""e"".""Id""
 WHERE ""e"".""Discriminator"" IN ('DerivedInheritanceRelationshipEntity', 'BaseInheritanceRelationshipEntity')",
                 Sql);
@@ -44,12 +44,12 @@ WHERE ""e"".""Discriminator"" IN ('DerivedInheritanceRelationshipEntity', 'BaseI
             base.Include_reference_with_inheritance_reverse();
 
             Assert.Equal(
-                @"SELECT ""e"".""Id"", ""e"".""BaseParentId"", ""e"".""Discriminator"", ""e"".""Name"", ""b"".""Id"", ""b"".""Discriminator"", ""b"".""Name""
+                @"SELECT ""e"".""Id"", ""e"".""BaseParentId"", ""e"".""Discriminator"", ""e"".""Name"", ""b"".""Id"", ""b"".""Discriminator"", ""b"".""Name"", ""b"".""BaseId""
 FROM ""BaseReferenceOnBase"" AS ""e""
 LEFT JOIN (
     SELECT ""b"".*
     FROM ""BaseInheritanceRelationshipEntity"" AS ""b""
-    WHERE (""b"".""Discriminator"" = 'DerivedInheritanceRelationshipEntity') OR (""b"".""Discriminator"" = 'BaseInheritanceRelationshipEntity')
+    WHERE ""b"".""Discriminator"" IN ('DerivedInheritanceRelationshipEntity', 'BaseInheritanceRelationshipEntity')
 ) AS ""b"" ON ""e"".""BaseParentId"" = ""b"".""Id""
 WHERE ""e"".""Discriminator"" IN ('DerivedReferenceOnBase', 'BaseReferenceOnBase')",
                 Sql);
@@ -60,12 +60,12 @@ WHERE ""e"".""Discriminator"" IN ('DerivedReferenceOnBase', 'BaseReferenceOnBase
             base.Include_reference_with_inheritance_with_filter1();
 
             Assert.Equal(
-                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""b"".""Id"", ""b"".""BaseParentId"", ""b"".""Discriminator"", ""b"".""Name""
+                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""e"".""BaseId"", ""b"".""Id"", ""b"".""BaseParentId"", ""b"".""Discriminator"", ""b"".""Name""
 FROM ""BaseInheritanceRelationshipEntity"" AS ""e""
 LEFT JOIN (
     SELECT ""b"".*
     FROM ""BaseReferenceOnBase"" AS ""b""
-    WHERE (""b"".""Discriminator"" = 'DerivedReferenceOnBase') OR (""b"".""Discriminator"" = 'BaseReferenceOnBase')
+    WHERE ""b"".""Discriminator"" IN ('DerivedReferenceOnBase', 'BaseReferenceOnBase')
 ) AS ""b"" ON ""b"".""BaseParentId"" = ""e"".""Id""
 WHERE ""e"".""Discriminator"" IN ('DerivedInheritanceRelationshipEntity', 'BaseInheritanceRelationshipEntity') AND ((""e"".""Name"" <> 'Bar') OR ""e"".""Name"" IS NULL)",
                 Sql);
@@ -85,12 +85,12 @@ WHERE ""e"".""Discriminator"" IN ('DerivedInheritanceRelationshipEntity', 'BaseI
             base.Include_reference_with_inheritance_with_filter_reverse();
 
             Assert.Equal(
-                @"SELECT ""e"".""Id"", ""e"".""BaseParentId"", ""e"".""Discriminator"", ""e"".""Name"", ""b"".""Id"", ""b"".""Discriminator"", ""b"".""Name""
+                @"SELECT ""e"".""Id"", ""e"".""BaseParentId"", ""e"".""Discriminator"", ""e"".""Name"", ""b"".""Id"", ""b"".""Discriminator"", ""b"".""Name"", ""b"".""BaseId""
 FROM ""BaseReferenceOnBase"" AS ""e""
 LEFT JOIN (
     SELECT ""b"".*
     FROM ""BaseInheritanceRelationshipEntity"" AS ""b""
-    WHERE (""b"".""Discriminator"" = 'DerivedInheritanceRelationshipEntity') OR (""b"".""Discriminator"" = 'BaseInheritanceRelationshipEntity')
+    WHERE ""b"".""Discriminator"" IN ('DerivedInheritanceRelationshipEntity', 'BaseInheritanceRelationshipEntity')
 ) AS ""b"" ON ""e"".""BaseParentId"" = ""b"".""Id""
 WHERE ""e"".""Discriminator"" IN ('DerivedReferenceOnBase', 'BaseReferenceOnBase') AND ((""e"".""Name"" <> 'Bar') OR ""e"".""Name"" IS NULL)",
                 Sql);
@@ -101,7 +101,7 @@ WHERE ""e"".""Discriminator"" IN ('DerivedReferenceOnBase', 'BaseReferenceOnBase
             base.Include_reference_without_inheritance();
 
             Assert.Equal(
-                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""r"".""Id"", ""r"".""Name"", ""r"".""ParentId""
+                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""e"".""BaseId"", ""r"".""Id"", ""r"".""Name"", ""r"".""ParentId""
 FROM ""BaseInheritanceRelationshipEntity"" AS ""e""
 LEFT JOIN ""ReferenceOnBase"" AS ""r"" ON ""r"".""ParentId"" = ""e"".""Id""
 WHERE ""e"".""Discriminator"" IN ('DerivedInheritanceRelationshipEntity', 'BaseInheritanceRelationshipEntity')",
@@ -113,12 +113,12 @@ WHERE ""e"".""Discriminator"" IN ('DerivedInheritanceRelationshipEntity', 'BaseI
             base.Include_reference_without_inheritance_reverse();
 
             Assert.Equal(
-                @"SELECT ""e"".""Id"", ""e"".""Name"", ""e"".""ParentId"", ""b"".""Id"", ""b"".""Discriminator"", ""b"".""Name""
+                @"SELECT ""e"".""Id"", ""e"".""Name"", ""e"".""ParentId"", ""b"".""Id"", ""b"".""Discriminator"", ""b"".""Name"", ""b"".""BaseId""
 FROM ""ReferenceOnBase"" AS ""e""
 LEFT JOIN (
     SELECT ""b"".*
     FROM ""BaseInheritanceRelationshipEntity"" AS ""b""
-    WHERE (""b"".""Discriminator"" = 'DerivedInheritanceRelationshipEntity') OR (""b"".""Discriminator"" = 'BaseInheritanceRelationshipEntity')
+    WHERE ""b"".""Discriminator"" IN ('DerivedInheritanceRelationshipEntity', 'BaseInheritanceRelationshipEntity')
 ) AS ""b"" ON ""e"".""ParentId"" = ""b"".""Id""",
                 Sql);
         }
@@ -128,7 +128,7 @@ LEFT JOIN (
             base.Include_reference_without_inheritance_with_filter();
 
             Assert.Equal(
-                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""r"".""Id"", ""r"".""Name"", ""r"".""ParentId""
+                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""e"".""BaseId"", ""r"".""Id"", ""r"".""Name"", ""r"".""ParentId""
 FROM ""BaseInheritanceRelationshipEntity"" AS ""e""
 LEFT JOIN ""ReferenceOnBase"" AS ""r"" ON ""r"".""ParentId"" = ""e"".""Id""
 WHERE ""e"".""Discriminator"" IN ('DerivedInheritanceRelationshipEntity', 'BaseInheritanceRelationshipEntity') AND ((""e"".""Name"" <> 'Bar') OR ""e"".""Name"" IS NULL)",
@@ -140,12 +140,12 @@ WHERE ""e"".""Discriminator"" IN ('DerivedInheritanceRelationshipEntity', 'BaseI
             base.Include_reference_without_inheritance_with_filter_reverse();
 
             Assert.Equal(
-                @"SELECT ""e"".""Id"", ""e"".""Name"", ""e"".""ParentId"", ""b"".""Id"", ""b"".""Discriminator"", ""b"".""Name""
+                @"SELECT ""e"".""Id"", ""e"".""Name"", ""e"".""ParentId"", ""b"".""Id"", ""b"".""Discriminator"", ""b"".""Name"", ""b"".""BaseId""
 FROM ""ReferenceOnBase"" AS ""e""
 LEFT JOIN (
     SELECT ""b"".*
     FROM ""BaseInheritanceRelationshipEntity"" AS ""b""
-    WHERE (""b"".""Discriminator"" = 'DerivedInheritanceRelationshipEntity') OR (""b"".""Discriminator"" = 'BaseInheritanceRelationshipEntity')
+    WHERE ""b"".""Discriminator"" IN ('DerivedInheritanceRelationshipEntity', 'BaseInheritanceRelationshipEntity')
 ) AS ""b"" ON ""e"".""ParentId"" = ""b"".""Id""
 WHERE (""e"".""Name"" <> 'Bar') OR ""e"".""Name"" IS NULL",
                 Sql);
@@ -156,20 +156,20 @@ WHERE (""e"".""Name"" <> 'Bar') OR ""e"".""Name"" IS NULL",
             base.Include_collection_with_inheritance1();
 
             Assert.Equal(
-                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name""
+                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""e"".""BaseId""
 FROM ""BaseInheritanceRelationshipEntity"" AS ""e""
 WHERE ""e"".""Discriminator"" IN ('DerivedInheritanceRelationshipEntity', 'BaseInheritanceRelationshipEntity')
 ORDER BY ""e"".""Id""
 
-SELECT ""b"".""Id"", ""b"".""BaseParentId"", ""b"".""Discriminator"", ""b"".""Name""
+SELECT ""b"".""Id"", ""b"".""BaseParentId"", ""b"".""Discriminator"", ""b"".""Name"", ""b"".""DerivedProperty""
 FROM ""BaseCollectionOnBase"" AS ""b""
 INNER JOIN (
     SELECT DISTINCT ""e"".""Id""
     FROM ""BaseInheritanceRelationshipEntity"" AS ""e""
     WHERE ""e"".""Discriminator"" IN ('DerivedInheritanceRelationshipEntity', 'BaseInheritanceRelationshipEntity')
-) AS ""e"" ON ""b"".""BaseParentId"" = ""e"".""Id""
-WHERE (""b"".""Discriminator"" = 'DerivedCollectionOnBase') OR (""b"".""Discriminator"" = 'BaseCollectionOnBase')
-ORDER BY ""e"".""Id""",
+) AS ""e0"" ON ""b"".""BaseParentId"" = ""e0"".""Id""
+WHERE ""b"".""Discriminator"" IN ('DerivedCollectionOnBase', 'BaseCollectionOnBase')
+ORDER BY ""e0"".""Id""",
                 Sql);
         }
 
@@ -187,12 +187,12 @@ ORDER BY ""e"".""Id""",
             base.Include_collection_with_inheritance_reverse();
 
             Assert.Equal(
-                @"SELECT ""e"".""Id"", ""e"".""BaseParentId"", ""e"".""Discriminator"", ""e"".""Name"", ""b"".""Id"", ""b"".""Discriminator"", ""b"".""Name""
+                @"SELECT ""e"".""Id"", ""e"".""BaseParentId"", ""e"".""Discriminator"", ""e"".""Name"", ""e"".""DerivedProperty"", ""b"".""Id"", ""b"".""Discriminator"", ""b"".""Name"", ""b"".""BaseId""
 FROM ""BaseCollectionOnBase"" AS ""e""
 LEFT JOIN (
     SELECT ""b"".*
     FROM ""BaseInheritanceRelationshipEntity"" AS ""b""
-    WHERE (""b"".""Discriminator"" = 'DerivedInheritanceRelationshipEntity') OR (""b"".""Discriminator"" = 'BaseInheritanceRelationshipEntity')
+    WHERE ""b"".""Discriminator"" IN ('DerivedInheritanceRelationshipEntity', 'BaseInheritanceRelationshipEntity')
 ) AS ""b"" ON ""e"".""BaseParentId"" = ""b"".""Id""
 WHERE ""e"".""Discriminator"" IN ('DerivedCollectionOnBase', 'BaseCollectionOnBase')",
                 Sql);
@@ -203,20 +203,20 @@ WHERE ""e"".""Discriminator"" IN ('DerivedCollectionOnBase', 'BaseCollectionOnBa
             base.Include_collection_with_inheritance_with_filter1();
 
             Assert.Equal(
-                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name""
+                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""e"".""BaseId""
 FROM ""BaseInheritanceRelationshipEntity"" AS ""e""
 WHERE ""e"".""Discriminator"" IN ('DerivedInheritanceRelationshipEntity', 'BaseInheritanceRelationshipEntity') AND ((""e"".""Name"" <> 'Bar') OR ""e"".""Name"" IS NULL)
 ORDER BY ""e"".""Id""
 
-SELECT ""b"".""Id"", ""b"".""BaseParentId"", ""b"".""Discriminator"", ""b"".""Name""
+SELECT ""b"".""Id"", ""b"".""BaseParentId"", ""b"".""Discriminator"", ""b"".""Name"", ""b"".""DerivedProperty""
 FROM ""BaseCollectionOnBase"" AS ""b""
 INNER JOIN (
     SELECT DISTINCT ""e"".""Id""
     FROM ""BaseInheritanceRelationshipEntity"" AS ""e""
     WHERE ""e"".""Discriminator"" IN ('DerivedInheritanceRelationshipEntity', 'BaseInheritanceRelationshipEntity') AND ((""e"".""Name"" <> 'Bar') OR ""e"".""Name"" IS NULL)
-) AS ""e"" ON ""b"".""BaseParentId"" = ""e"".""Id""
-WHERE (""b"".""Discriminator"" = 'DerivedCollectionOnBase') OR (""b"".""Discriminator"" = 'BaseCollectionOnBase')
-ORDER BY ""e"".""Id""",
+) AS ""e0"" ON ""b"".""BaseParentId"" = ""e0"".""Id""
+WHERE ""b"".""Discriminator"" IN ('DerivedCollectionOnBase', 'BaseCollectionOnBase')
+ORDER BY ""e0"".""Id""",
                 Sql);
         }
 
@@ -234,12 +234,12 @@ ORDER BY ""e"".""Id""",
             base.Include_collection_with_inheritance_with_filter_reverse();
 
             Assert.Equal(
-                @"SELECT ""e"".""Id"", ""e"".""BaseParentId"", ""e"".""Discriminator"", ""e"".""Name"", ""b"".""Id"", ""b"".""Discriminator"", ""b"".""Name""
+                @"SELECT ""e"".""Id"", ""e"".""BaseParentId"", ""e"".""Discriminator"", ""e"".""Name"", ""e"".""DerivedProperty"", ""b"".""Id"", ""b"".""Discriminator"", ""b"".""Name"", ""b"".""BaseId""
 FROM ""BaseCollectionOnBase"" AS ""e""
 LEFT JOIN (
     SELECT ""b"".*
     FROM ""BaseInheritanceRelationshipEntity"" AS ""b""
-    WHERE (""b"".""Discriminator"" = 'DerivedInheritanceRelationshipEntity') OR (""b"".""Discriminator"" = 'BaseInheritanceRelationshipEntity')
+    WHERE ""b"".""Discriminator"" IN ('DerivedInheritanceRelationshipEntity', 'BaseInheritanceRelationshipEntity')
 ) AS ""b"" ON ""e"".""BaseParentId"" = ""b"".""Id""
 WHERE ""e"".""Discriminator"" IN ('DerivedCollectionOnBase', 'BaseCollectionOnBase') AND ((""e"".""Name"" <> 'Bar') OR ""e"".""Name"" IS NULL)",
                 Sql);
@@ -250,7 +250,7 @@ WHERE ""e"".""Discriminator"" IN ('DerivedCollectionOnBase', 'BaseCollectionOnBa
             base.Include_collection_without_inheritance();
 
             Assert.Equal(
-                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name""
+                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""e"".""BaseId""
 FROM ""BaseInheritanceRelationshipEntity"" AS ""e""
 WHERE ""e"".""Discriminator"" IN ('DerivedInheritanceRelationshipEntity', 'BaseInheritanceRelationshipEntity')
 ORDER BY ""e"".""Id""
@@ -261,8 +261,8 @@ INNER JOIN (
     SELECT DISTINCT ""e"".""Id""
     FROM ""BaseInheritanceRelationshipEntity"" AS ""e""
     WHERE ""e"".""Discriminator"" IN ('DerivedInheritanceRelationshipEntity', 'BaseInheritanceRelationshipEntity')
-) AS ""e"" ON ""c"".""ParentId"" = ""e"".""Id""
-ORDER BY ""e"".""Id""",
+) AS ""e0"" ON ""c"".""ParentId"" = ""e0"".""Id""
+ORDER BY ""e0"".""Id""",
                 Sql);
         }
 
@@ -271,12 +271,12 @@ ORDER BY ""e"".""Id""",
             base.Include_collection_without_inheritance_reverse();
 
             Assert.Equal(
-                @"SELECT ""e"".""Id"", ""e"".""Name"", ""e"".""ParentId"", ""b"".""Id"", ""b"".""Discriminator"", ""b"".""Name""
+                @"SELECT ""e"".""Id"", ""e"".""Name"", ""e"".""ParentId"", ""b"".""Id"", ""b"".""Discriminator"", ""b"".""Name"", ""b"".""BaseId""
 FROM ""CollectionOnBase"" AS ""e""
 LEFT JOIN (
     SELECT ""b"".*
     FROM ""BaseInheritanceRelationshipEntity"" AS ""b""
-    WHERE (""b"".""Discriminator"" = 'DerivedInheritanceRelationshipEntity') OR (""b"".""Discriminator"" = 'BaseInheritanceRelationshipEntity')
+    WHERE ""b"".""Discriminator"" IN ('DerivedInheritanceRelationshipEntity', 'BaseInheritanceRelationshipEntity')
 ) AS ""b"" ON ""e"".""ParentId"" = ""b"".""Id""",
                 Sql);
         }
@@ -286,7 +286,7 @@ LEFT JOIN (
             base.Include_collection_without_inheritance_with_filter();
 
             Assert.Equal(
-                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name""
+                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""e"".""BaseId""
 FROM ""BaseInheritanceRelationshipEntity"" AS ""e""
 WHERE ""e"".""Discriminator"" IN ('DerivedInheritanceRelationshipEntity', 'BaseInheritanceRelationshipEntity') AND ((""e"".""Name"" <> 'Bar') OR ""e"".""Name"" IS NULL)
 ORDER BY ""e"".""Id""
@@ -297,8 +297,8 @@ INNER JOIN (
     SELECT DISTINCT ""e"".""Id""
     FROM ""BaseInheritanceRelationshipEntity"" AS ""e""
     WHERE ""e"".""Discriminator"" IN ('DerivedInheritanceRelationshipEntity', 'BaseInheritanceRelationshipEntity') AND ((""e"".""Name"" <> 'Bar') OR ""e"".""Name"" IS NULL)
-) AS ""e"" ON ""c"".""ParentId"" = ""e"".""Id""
-ORDER BY ""e"".""Id""",
+) AS ""e0"" ON ""c"".""ParentId"" = ""e0"".""Id""
+ORDER BY ""e0"".""Id""",
                 Sql);
         }
 
@@ -307,12 +307,12 @@ ORDER BY ""e"".""Id""",
             base.Include_collection_without_inheritance_with_filter_reverse();
 
             Assert.Equal(
-                @"SELECT ""e"".""Id"", ""e"".""Name"", ""e"".""ParentId"", ""b"".""Id"", ""b"".""Discriminator"", ""b"".""Name""
+                @"SELECT ""e"".""Id"", ""e"".""Name"", ""e"".""ParentId"", ""b"".""Id"", ""b"".""Discriminator"", ""b"".""Name"", ""b"".""BaseId""
 FROM ""CollectionOnBase"" AS ""e""
 LEFT JOIN (
     SELECT ""b"".*
     FROM ""BaseInheritanceRelationshipEntity"" AS ""b""
-    WHERE (""b"".""Discriminator"" = 'DerivedInheritanceRelationshipEntity') OR (""b"".""Discriminator"" = 'BaseInheritanceRelationshipEntity')
+    WHERE ""b"".""Discriminator"" IN ('DerivedInheritanceRelationshipEntity', 'BaseInheritanceRelationshipEntity')
 ) AS ""b"" ON ""e"".""ParentId"" = ""b"".""Id""
 WHERE (""e"".""Name"" <> 'Bar') OR ""e"".""Name"" IS NULL",
                 Sql);
@@ -323,12 +323,12 @@ WHERE (""e"".""Name"" <> 'Bar') OR ""e"".""Name"" IS NULL",
             base.Include_reference_with_inheritance_on_derived1();
 
             Assert.Equal(
-                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""b"".""Id"", ""b"".""BaseParentId"", ""b"".""Discriminator"", ""b"".""Name""
+                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""e"".""BaseId"", ""b"".""Id"", ""b"".""BaseParentId"", ""b"".""Discriminator"", ""b"".""Name""
 FROM ""BaseInheritanceRelationshipEntity"" AS ""e""
 LEFT JOIN (
     SELECT ""b"".*
     FROM ""BaseReferenceOnBase"" AS ""b""
-    WHERE (""b"".""Discriminator"" = 'DerivedReferenceOnBase') OR (""b"".""Discriminator"" = 'BaseReferenceOnBase')
+    WHERE ""b"".""Discriminator"" IN ('DerivedReferenceOnBase', 'BaseReferenceOnBase')
 ) AS ""b"" ON ""b"".""BaseParentId"" = ""e"".""Id""
 WHERE ""e"".""Discriminator"" = 'DerivedInheritanceRelationshipEntity'",
                 Sql);
@@ -339,12 +339,12 @@ WHERE ""e"".""Discriminator"" = 'DerivedInheritanceRelationshipEntity'",
             base.Include_reference_with_inheritance_on_derived2();
 
             Assert.Equal(
-                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""b"".""Id"", ""b"".""BaseParentId"", ""b"".""Discriminator"", ""b"".""Name"", ""b"".""DerivedInheritanceRelationshipEntityId""
+                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""e"".""BaseId"", ""b"".""Id"", ""b"".""BaseParentId"", ""b"".""Discriminator"", ""b"".""Name"", ""b"".""DerivedInheritanceRelationshipEntityId""
 FROM ""BaseInheritanceRelationshipEntity"" AS ""e""
 LEFT JOIN (
     SELECT ""b"".*
     FROM ""BaseReferenceOnDerived"" AS ""b""
-    WHERE (""b"".""Discriminator"" = 'DerivedReferenceOnDerived') OR (""b"".""Discriminator"" = 'BaseReferenceOnDerived')
+    WHERE ""b"".""Discriminator"" IN ('DerivedReferenceOnDerived', 'BaseReferenceOnDerived')
 ) AS ""b"" ON ""b"".""BaseParentId"" = ""e"".""Id""
 WHERE ""e"".""Discriminator"" = 'DerivedInheritanceRelationshipEntity'",
                 Sql);
@@ -364,7 +364,7 @@ WHERE ""e"".""Discriminator"" = 'DerivedInheritanceRelationshipEntity'",
             base.Include_reference_with_inheritance_on_derived4();
 
             Assert.Equal(
-                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""b"".""Id"", ""b"".""BaseParentId"", ""b"".""Discriminator"", ""b"".""Name"", ""b"".""DerivedInheritanceRelationshipEntityId""
+                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""e"".""BaseId"", ""b"".""Id"", ""b"".""BaseParentId"", ""b"".""Discriminator"", ""b"".""Name"", ""b"".""DerivedInheritanceRelationshipEntityId""
 FROM ""BaseInheritanceRelationshipEntity"" AS ""e""
 LEFT JOIN (
     SELECT ""b"".*
@@ -380,7 +380,7 @@ WHERE ""e"".""Discriminator"" = 'DerivedInheritanceRelationshipEntity'",
             base.Include_reference_with_inheritance_on_derived_reverse();
 
             Assert.Equal(
-                @"SELECT ""e"".""Id"", ""e"".""BaseParentId"", ""e"".""Discriminator"", ""e"".""Name"", ""e"".""DerivedInheritanceRelationshipEntityId"", ""b"".""Id"", ""b"".""Discriminator"", ""b"".""Name""
+                @"SELECT ""e"".""Id"", ""e"".""BaseParentId"", ""e"".""Discriminator"", ""e"".""Name"", ""e"".""DerivedInheritanceRelationshipEntityId"", ""b"".""Id"", ""b"".""Discriminator"", ""b"".""Name"", ""b"".""BaseId""
 FROM ""BaseReferenceOnDerived"" AS ""e""
 LEFT JOIN (
     SELECT ""b"".*
@@ -396,12 +396,12 @@ WHERE ""e"".""Discriminator"" IN ('DerivedReferenceOnDerived', 'BaseReferenceOnD
             base.Include_reference_with_inheritance_on_derived_with_filter1();
 
             Assert.Equal(
-                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""b"".""Id"", ""b"".""BaseParentId"", ""b"".""Discriminator"", ""b"".""Name""
+                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""e"".""BaseId"", ""b"".""Id"", ""b"".""BaseParentId"", ""b"".""Discriminator"", ""b"".""Name""
 FROM ""BaseInheritanceRelationshipEntity"" AS ""e""
 LEFT JOIN (
     SELECT ""b"".*
     FROM ""BaseReferenceOnBase"" AS ""b""
-    WHERE (""b"".""Discriminator"" = 'DerivedReferenceOnBase') OR (""b"".""Discriminator"" = 'BaseReferenceOnBase')
+    WHERE ""b"".""Discriminator"" IN ('DerivedReferenceOnBase', 'BaseReferenceOnBase')
 ) AS ""b"" ON ""b"".""BaseParentId"" = ""e"".""Id""
 WHERE (""e"".""Discriminator"" = 'DerivedInheritanceRelationshipEntity') AND ((""e"".""Name"" <> 'Bar') OR ""e"".""Name"" IS NULL)",
                 Sql);
@@ -412,12 +412,12 @@ WHERE (""e"".""Discriminator"" = 'DerivedInheritanceRelationshipEntity') AND (("
             base.Include_reference_with_inheritance_on_derived_with_filter2();
 
             Assert.Equal(
-                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""b"".""Id"", ""b"".""BaseParentId"", ""b"".""Discriminator"", ""b"".""Name"", ""b"".""DerivedInheritanceRelationshipEntityId""
+                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""e"".""BaseId"", ""b"".""Id"", ""b"".""BaseParentId"", ""b"".""Discriminator"", ""b"".""Name"", ""b"".""DerivedInheritanceRelationshipEntityId""
 FROM ""BaseInheritanceRelationshipEntity"" AS ""e""
 LEFT JOIN (
     SELECT ""b"".*
     FROM ""BaseReferenceOnDerived"" AS ""b""
-    WHERE (""b"".""Discriminator"" = 'DerivedReferenceOnDerived') OR (""b"".""Discriminator"" = 'BaseReferenceOnDerived')
+    WHERE ""b"".""Discriminator"" IN ('DerivedReferenceOnDerived', 'BaseReferenceOnDerived')
 ) AS ""b"" ON ""b"".""BaseParentId"" = ""e"".""Id""
 WHERE (""e"".""Discriminator"" = 'DerivedInheritanceRelationshipEntity') AND ((""e"".""Name"" <> 'Bar') OR ""e"".""Name"" IS NULL)",
                 Sql);
@@ -437,7 +437,7 @@ WHERE (""e"".""Discriminator"" = 'DerivedInheritanceRelationshipEntity') AND (("
             base.Include_reference_with_inheritance_on_derived_with_filter4();
 
             Assert.Equal(
-                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""b"".""Id"", ""b"".""BaseParentId"", ""b"".""Discriminator"", ""b"".""Name"", ""b"".""DerivedInheritanceRelationshipEntityId""
+                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""e"".""BaseId"", ""b"".""Id"", ""b"".""BaseParentId"", ""b"".""Discriminator"", ""b"".""Name"", ""b"".""DerivedInheritanceRelationshipEntityId""
 FROM ""BaseInheritanceRelationshipEntity"" AS ""e""
 LEFT JOIN (
     SELECT ""b"".*
@@ -453,7 +453,7 @@ WHERE (""e"".""Discriminator"" = 'DerivedInheritanceRelationshipEntity') AND (("
             base.Include_reference_with_inheritance_on_derived_with_filter_reverse();
 
             Assert.Equal(
-                @"SELECT ""e"".""Id"", ""e"".""BaseParentId"", ""e"".""Discriminator"", ""e"".""Name"", ""e"".""DerivedInheritanceRelationshipEntityId"", ""b"".""Id"", ""b"".""Discriminator"", ""b"".""Name""
+                @"SELECT ""e"".""Id"", ""e"".""BaseParentId"", ""e"".""Discriminator"", ""e"".""Name"", ""e"".""DerivedInheritanceRelationshipEntityId"", ""b"".""Id"", ""b"".""Discriminator"", ""b"".""Name"", ""b"".""BaseId""
 FROM ""BaseReferenceOnDerived"" AS ""e""
 LEFT JOIN (
     SELECT ""b"".*
@@ -469,7 +469,7 @@ WHERE ""e"".""Discriminator"" IN ('DerivedReferenceOnDerived', 'BaseReferenceOnD
             base.Include_reference_without_inheritance_on_derived1();
 
             Assert.Equal(
-                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""r"".""Id"", ""r"".""Name"", ""r"".""ParentId""
+                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""e"".""BaseId"", ""r"".""Id"", ""r"".""Name"", ""r"".""ParentId""
 FROM ""BaseInheritanceRelationshipEntity"" AS ""e""
 LEFT JOIN ""ReferenceOnBase"" AS ""r"" ON ""r"".""ParentId"" = ""e"".""Id""
 WHERE ""e"".""Discriminator"" = 'DerivedInheritanceRelationshipEntity'",
@@ -481,7 +481,7 @@ WHERE ""e"".""Discriminator"" = 'DerivedInheritanceRelationshipEntity'",
             base.Include_reference_without_inheritance_on_derived2();
 
             Assert.Equal(
-                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""r"".""Id"", ""r"".""Name"", ""r"".""ParentId""
+                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""e"".""BaseId"", ""r"".""Id"", ""r"".""Name"", ""r"".""ParentId""
 FROM ""BaseInheritanceRelationshipEntity"" AS ""e""
 LEFT JOIN ""ReferenceOnDerived"" AS ""r"" ON ""r"".""ParentId"" = ""e"".""Id""
 WHERE ""e"".""Discriminator"" = 'DerivedInheritanceRelationshipEntity'",
@@ -493,7 +493,7 @@ WHERE ""e"".""Discriminator"" = 'DerivedInheritanceRelationshipEntity'",
             base.Include_reference_without_inheritance_on_derived_reverse();
 
             Assert.Equal(
-                @"SELECT ""e"".""Id"", ""e"".""Name"", ""e"".""ParentId"", ""b"".""Id"", ""b"".""Discriminator"", ""b"".""Name""
+                @"SELECT ""e"".""Id"", ""e"".""Name"", ""e"".""ParentId"", ""b"".""Id"", ""b"".""Discriminator"", ""b"".""Name"", ""b"".""BaseId""
 FROM ""ReferenceOnDerived"" AS ""e""
 LEFT JOIN (
     SELECT ""b"".*
@@ -508,20 +508,20 @@ LEFT JOIN (
             base.Include_collection_with_inheritance_on_derived1();
 
             Assert.Equal(
-                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name""
+                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""e"".""BaseId""
 FROM ""BaseInheritanceRelationshipEntity"" AS ""e""
 WHERE ""e"".""Discriminator"" = 'DerivedInheritanceRelationshipEntity'
 ORDER BY ""e"".""Id""
 
-SELECT ""b"".""Id"", ""b"".""BaseParentId"", ""b"".""Discriminator"", ""b"".""Name""
+SELECT ""b"".""Id"", ""b"".""BaseParentId"", ""b"".""Discriminator"", ""b"".""Name"", ""b"".""DerivedProperty""
 FROM ""BaseCollectionOnBase"" AS ""b""
 INNER JOIN (
     SELECT DISTINCT ""e"".""Id""
     FROM ""BaseInheritanceRelationshipEntity"" AS ""e""
     WHERE ""e"".""Discriminator"" = 'DerivedInheritanceRelationshipEntity'
-) AS ""e"" ON ""b"".""BaseParentId"" = ""e"".""Id""
-WHERE (""b"".""Discriminator"" = 'DerivedCollectionOnBase') OR (""b"".""Discriminator"" = 'BaseCollectionOnBase')
-ORDER BY ""e"".""Id""",
+) AS ""e0"" ON ""b"".""BaseParentId"" = ""e0"".""Id""
+WHERE ""b"".""Discriminator"" IN ('DerivedCollectionOnBase', 'BaseCollectionOnBase')
+ORDER BY ""e0"".""Id""",
                 Sql);
         }
 
@@ -530,7 +530,7 @@ ORDER BY ""e"".""Id""",
             base.Include_collection_with_inheritance_on_derived2();
 
             Assert.Equal(
-                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name""
+                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""e"".""BaseId""
 FROM ""BaseInheritanceRelationshipEntity"" AS ""e""
 WHERE ""e"".""Discriminator"" = 'DerivedInheritanceRelationshipEntity'
 ORDER BY ""e"".""Id""
@@ -541,9 +541,9 @@ INNER JOIN (
     SELECT DISTINCT ""e"".""Id""
     FROM ""BaseInheritanceRelationshipEntity"" AS ""e""
     WHERE ""e"".""Discriminator"" = 'DerivedInheritanceRelationshipEntity'
-) AS ""e"" ON ""b"".""ParentId"" = ""e"".""Id""
-WHERE (""b"".""Discriminator"" = 'DerivedCollectionOnDerived') OR (""b"".""Discriminator"" = 'BaseCollectionOnDerived')
-ORDER BY ""e"".""Id""",
+) AS ""e0"" ON ""b"".""ParentId"" = ""e0"".""Id""
+WHERE ""b"".""Discriminator"" IN ('DerivedCollectionOnDerived', 'BaseCollectionOnDerived')
+ORDER BY ""e0"".""Id""",
                 Sql);
         }
 
@@ -570,7 +570,7 @@ ORDER BY ""e"".""Id""",
             base.Include_collection_with_inheritance_on_derived_reverse();
 
             Assert.Equal(
-                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""e"".""ParentId"", ""e"".""DerivedInheritanceRelationshipEntityId"", ""b"".""Id"", ""b"".""Discriminator"", ""b"".""Name""
+                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""e"".""ParentId"", ""e"".""DerivedInheritanceRelationshipEntityId"", ""b"".""Id"", ""b"".""Discriminator"", ""b"".""Name"", ""b"".""BaseId""
 FROM ""BaseCollectionOnDerived"" AS ""e""
 LEFT JOIN (
     SELECT ""b"".*
@@ -586,17 +586,17 @@ WHERE ""e"".""Discriminator"" IN ('DerivedCollectionOnDerived', 'BaseCollectionO
             base.Nested_include_with_inheritance_reference_reference1();
 
             Assert.Equal(
-                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""b"".""Id"", ""b"".""BaseParentId"", ""b"".""Discriminator"", ""b"".""Name"", ""n"".""Id"", ""n"".""Discriminator"", ""n"".""Name"", ""n"".""ParentCollectionId"", ""n"".""ParentReferenceId""
+                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""e"".""BaseId"", ""b"".""Id"", ""b"".""BaseParentId"", ""b"".""Discriminator"", ""b"".""Name"", ""n"".""Id"", ""n"".""Discriminator"", ""n"".""Name"", ""n"".""ParentCollectionId"", ""n"".""ParentReferenceId""
 FROM ""BaseInheritanceRelationshipEntity"" AS ""e""
 LEFT JOIN (
     SELECT ""b"".*
     FROM ""BaseReferenceOnBase"" AS ""b""
-    WHERE (""b"".""Discriminator"" = 'DerivedReferenceOnBase') OR (""b"".""Discriminator"" = 'BaseReferenceOnBase')
+    WHERE ""b"".""Discriminator"" IN ('DerivedReferenceOnBase', 'BaseReferenceOnBase')
 ) AS ""b"" ON ""b"".""BaseParentId"" = ""e"".""Id""
 LEFT JOIN (
     SELECT ""n"".*
     FROM ""NestedReferenceBase"" AS ""n""
-    WHERE (""n"".""Discriminator"" = 'NestedReferenceDerived') OR (""n"".""Discriminator"" = 'NestedReferenceBase')
+    WHERE ""n"".""Discriminator"" IN ('NestedReferenceDerived', 'NestedReferenceBase')
 ) AS ""n"" ON ""n"".""ParentReferenceId"" = ""b"".""Id""
 WHERE ""e"".""Discriminator"" IN ('DerivedInheritanceRelationshipEntity', 'BaseInheritanceRelationshipEntity')",
                 Sql);
@@ -616,17 +616,17 @@ WHERE ""e"".""Discriminator"" IN ('DerivedInheritanceRelationshipEntity', 'BaseI
             base.Nested_include_with_inheritance_reference_reference3();
 
             Assert.Equal(
-                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""b"".""Id"", ""b"".""BaseParentId"", ""b"".""Discriminator"", ""b"".""Name"", ""n"".""Id"", ""n"".""Discriminator"", ""n"".""Name"", ""n"".""ParentCollectionId"", ""n"".""ParentReferenceId""
+                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""e"".""BaseId"", ""b"".""Id"", ""b"".""BaseParentId"", ""b"".""Discriminator"", ""b"".""Name"", ""n"".""Id"", ""n"".""Discriminator"", ""n"".""Name"", ""n"".""ParentCollectionId"", ""n"".""ParentReferenceId""
 FROM ""BaseInheritanceRelationshipEntity"" AS ""e""
 LEFT JOIN (
     SELECT ""b"".*
     FROM ""BaseReferenceOnBase"" AS ""b""
-    WHERE (""b"".""Discriminator"" = 'DerivedReferenceOnBase') OR (""b"".""Discriminator"" = 'BaseReferenceOnBase')
+    WHERE ""b"".""Discriminator"" IN ('DerivedReferenceOnBase', 'BaseReferenceOnBase')
 ) AS ""b"" ON ""b"".""BaseParentId"" = ""e"".""Id""
 LEFT JOIN (
     SELECT ""n"".*
     FROM ""NestedReferenceBase"" AS ""n""
-    WHERE (""n"".""Discriminator"" = 'NestedReferenceDerived') OR (""n"".""Discriminator"" = 'NestedReferenceBase')
+    WHERE ""n"".""Discriminator"" IN ('NestedReferenceDerived', 'NestedReferenceBase')
 ) AS ""n"" ON ""n"".""ParentReferenceId"" = ""b"".""Id""
 WHERE ""e"".""Discriminator"" = 'DerivedInheritanceRelationshipEntity'",
                 Sql);
@@ -646,17 +646,17 @@ WHERE ""e"".""Discriminator"" = 'DerivedInheritanceRelationshipEntity'",
             base.Nested_include_with_inheritance_reference_reference_reverse();
 
             Assert.Equal(
-                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""e"".""ParentCollectionId"", ""e"".""ParentReferenceId"", ""b"".""Id"", ""b"".""BaseParentId"", ""b"".""Discriminator"", ""b"".""Name"", ""b0"".""Id"", ""b0"".""Discriminator"", ""b0"".""Name""
+                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""e"".""ParentCollectionId"", ""e"".""ParentReferenceId"", ""b"".""Id"", ""b"".""BaseParentId"", ""b"".""Discriminator"", ""b"".""Name"", ""b0"".""Id"", ""b0"".""Discriminator"", ""b0"".""Name"", ""b0"".""BaseId""
 FROM ""NestedReferenceBase"" AS ""e""
 LEFT JOIN (
     SELECT ""b"".*
     FROM ""BaseReferenceOnBase"" AS ""b""
-    WHERE (""b"".""Discriminator"" = 'DerivedReferenceOnBase') OR (""b"".""Discriminator"" = 'BaseReferenceOnBase')
+    WHERE ""b"".""Discriminator"" IN ('DerivedReferenceOnBase', 'BaseReferenceOnBase')
 ) AS ""b"" ON ""e"".""ParentReferenceId"" = ""b"".""Id""
 LEFT JOIN (
     SELECT ""b0"".*
     FROM ""BaseInheritanceRelationshipEntity"" AS ""b0""
-    WHERE (""b0"".""Discriminator"" = 'DerivedInheritanceRelationshipEntity') OR (""b0"".""Discriminator"" = 'BaseInheritanceRelationshipEntity')
+    WHERE ""b0"".""Discriminator"" IN ('DerivedInheritanceRelationshipEntity', 'BaseInheritanceRelationshipEntity')
 ) AS ""b0"" ON ""b"".""BaseParentId"" = ""b0"".""Id""
 WHERE ""e"".""Discriminator"" IN ('NestedReferenceDerived', 'NestedReferenceBase')",
                 Sql);
@@ -667,12 +667,12 @@ WHERE ""e"".""Discriminator"" IN ('NestedReferenceDerived', 'NestedReferenceBase
             base.Nested_include_with_inheritance_reference_collection1();
 
             Assert.Equal(
-                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""b"".""Id"", ""b"".""BaseParentId"", ""b"".""Discriminator"", ""b"".""Name""
+                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""e"".""BaseId"", ""b"".""Id"", ""b"".""BaseParentId"", ""b"".""Discriminator"", ""b"".""Name""
 FROM ""BaseInheritanceRelationshipEntity"" AS ""e""
 LEFT JOIN (
     SELECT ""b"".*
     FROM ""BaseReferenceOnBase"" AS ""b""
-    WHERE (""b"".""Discriminator"" = 'DerivedReferenceOnBase') OR (""b"".""Discriminator"" = 'BaseReferenceOnBase')
+    WHERE ""b"".""Discriminator"" IN ('DerivedReferenceOnBase', 'BaseReferenceOnBase')
 ) AS ""b"" ON ""b"".""BaseParentId"" = ""e"".""Id""
 WHERE ""e"".""Discriminator"" IN ('DerivedInheritanceRelationshipEntity', 'BaseInheritanceRelationshipEntity')
 ORDER BY ""b"".""Id""
@@ -685,12 +685,12 @@ INNER JOIN (
     LEFT JOIN (
         SELECT ""b"".*
         FROM ""BaseReferenceOnBase"" AS ""b""
-        WHERE (""b"".""Discriminator"" = 'DerivedReferenceOnBase') OR (""b"".""Discriminator"" = 'BaseReferenceOnBase')
+        WHERE ""b"".""Discriminator"" IN ('DerivedReferenceOnBase', 'BaseReferenceOnBase')
     ) AS ""b"" ON ""b"".""BaseParentId"" = ""e"".""Id""
     WHERE ""e"".""Discriminator"" IN ('DerivedInheritanceRelationshipEntity', 'BaseInheritanceRelationshipEntity')
-) AS ""b"" ON ""n"".""ParentReferenceId"" = ""b"".""Id""
-WHERE (""n"".""Discriminator"" = 'NestedCollectionDerived') OR (""n"".""Discriminator"" = 'NestedCollectionBase')
-ORDER BY ""b"".""Id""",
+) AS ""b0"" ON ""n"".""ParentReferenceId"" = ""b0"".""Id""
+WHERE ""n"".""Discriminator"" IN ('NestedCollectionDerived', 'NestedCollectionBase')
+ORDER BY ""b0"".""Id""",
                 Sql);
         }
 
@@ -708,12 +708,12 @@ ORDER BY ""b"".""Id""",
             base.Nested_include_with_inheritance_reference_collection3();
 
             Assert.Equal(
-                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""b"".""Id"", ""b"".""BaseParentId"", ""b"".""Discriminator"", ""b"".""Name""
+                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""e"".""BaseId"", ""b"".""Id"", ""b"".""BaseParentId"", ""b"".""Discriminator"", ""b"".""Name""
 FROM ""BaseInheritanceRelationshipEntity"" AS ""e""
 LEFT JOIN (
     SELECT ""b"".*
     FROM ""BaseReferenceOnBase"" AS ""b""
-    WHERE (""b"".""Discriminator"" = 'DerivedReferenceOnBase') OR (""b"".""Discriminator"" = 'BaseReferenceOnBase')
+    WHERE ""b"".""Discriminator"" IN ('DerivedReferenceOnBase', 'BaseReferenceOnBase')
 ) AS ""b"" ON ""b"".""BaseParentId"" = ""e"".""Id""
 WHERE ""e"".""Discriminator"" = 'DerivedInheritanceRelationshipEntity'
 ORDER BY ""b"".""Id""
@@ -726,12 +726,12 @@ INNER JOIN (
     LEFT JOIN (
         SELECT ""b"".*
         FROM ""BaseReferenceOnBase"" AS ""b""
-        WHERE (""b"".""Discriminator"" = 'DerivedReferenceOnBase') OR (""b"".""Discriminator"" = 'BaseReferenceOnBase')
+        WHERE ""b"".""Discriminator"" IN ('DerivedReferenceOnBase', 'BaseReferenceOnBase')
     ) AS ""b"" ON ""b"".""BaseParentId"" = ""e"".""Id""
     WHERE ""e"".""Discriminator"" = 'DerivedInheritanceRelationshipEntity'
-) AS ""b"" ON ""n"".""ParentReferenceId"" = ""b"".""Id""
-WHERE (""n"".""Discriminator"" = 'NestedCollectionDerived') OR (""n"".""Discriminator"" = 'NestedCollectionBase')
-ORDER BY ""b"".""Id""",
+) AS ""b0"" ON ""n"".""ParentReferenceId"" = ""b0"".""Id""
+WHERE ""n"".""Discriminator"" IN ('NestedCollectionDerived', 'NestedCollectionBase')
+ORDER BY ""b0"".""Id""",
                 Sql);
         }
 
@@ -749,17 +749,17 @@ ORDER BY ""b"".""Id""",
             base.Nested_include_with_inheritance_reference_collection_reverse();
 
             Assert.Equal(
-                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""e"".""ParentCollectionId"", ""e"".""ParentReferenceId"", ""b"".""Id"", ""b"".""BaseParentId"", ""b"".""Discriminator"", ""b"".""Name"", ""b0"".""Id"", ""b0"".""Discriminator"", ""b0"".""Name""
+                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""e"".""ParentCollectionId"", ""e"".""ParentReferenceId"", ""b"".""Id"", ""b"".""BaseParentId"", ""b"".""Discriminator"", ""b"".""Name"", ""b0"".""Id"", ""b0"".""Discriminator"", ""b0"".""Name"", ""b0"".""BaseId""
 FROM ""NestedCollectionBase"" AS ""e""
 LEFT JOIN (
     SELECT ""b"".*
     FROM ""BaseReferenceOnBase"" AS ""b""
-    WHERE (""b"".""Discriminator"" = 'DerivedReferenceOnBase') OR (""b"".""Discriminator"" = 'BaseReferenceOnBase')
+    WHERE ""b"".""Discriminator"" IN ('DerivedReferenceOnBase', 'BaseReferenceOnBase')
 ) AS ""b"" ON ""e"".""ParentReferenceId"" = ""b"".""Id""
 LEFT JOIN (
     SELECT ""b0"".*
     FROM ""BaseInheritanceRelationshipEntity"" AS ""b0""
-    WHERE (""b0"".""Discriminator"" = 'DerivedInheritanceRelationshipEntity') OR (""b0"".""Discriminator"" = 'BaseInheritanceRelationshipEntity')
+    WHERE ""b0"".""Discriminator"" IN ('DerivedInheritanceRelationshipEntity', 'BaseInheritanceRelationshipEntity')
 ) AS ""b0"" ON ""b"".""BaseParentId"" = ""b0"".""Id""
 WHERE ""e"".""Discriminator"" IN ('NestedCollectionDerived', 'NestedCollectionBase')",
                 Sql);
@@ -770,25 +770,25 @@ WHERE ""e"".""Discriminator"" IN ('NestedCollectionDerived', 'NestedCollectionBa
             base.Nested_include_with_inheritance_collection_reference1();
 
             Assert.Equal(
-                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name""
+                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""e"".""BaseId""
 FROM ""BaseInheritanceRelationshipEntity"" AS ""e""
 WHERE ""e"".""Discriminator"" IN ('DerivedInheritanceRelationshipEntity', 'BaseInheritanceRelationshipEntity')
 ORDER BY ""e"".""Id""
 
-SELECT ""b"".""Id"", ""b"".""BaseParentId"", ""b"".""Discriminator"", ""b"".""Name"", ""n"".""Id"", ""n"".""Discriminator"", ""n"".""Name"", ""n"".""ParentCollectionId"", ""n"".""ParentReferenceId""
+SELECT ""b"".""Id"", ""b"".""BaseParentId"", ""b"".""Discriminator"", ""b"".""Name"", ""b"".""DerivedProperty"", ""n"".""Id"", ""n"".""Discriminator"", ""n"".""Name"", ""n"".""ParentCollectionId"", ""n"".""ParentReferenceId""
 FROM ""BaseCollectionOnBase"" AS ""b""
 INNER JOIN (
     SELECT DISTINCT ""e"".""Id""
     FROM ""BaseInheritanceRelationshipEntity"" AS ""e""
     WHERE ""e"".""Discriminator"" IN ('DerivedInheritanceRelationshipEntity', 'BaseInheritanceRelationshipEntity')
-) AS ""e"" ON ""b"".""BaseParentId"" = ""e"".""Id""
+) AS ""e0"" ON ""b"".""BaseParentId"" = ""e0"".""Id""
 LEFT JOIN (
     SELECT ""n"".*
     FROM ""NestedReferenceBase"" AS ""n""
-    WHERE (""n"".""Discriminator"" = 'NestedReferenceDerived') OR (""n"".""Discriminator"" = 'NestedReferenceBase')
+    WHERE ""n"".""Discriminator"" IN ('NestedReferenceDerived', 'NestedReferenceBase')
 ) AS ""n"" ON ""n"".""ParentCollectionId"" = ""b"".""Id""
-WHERE (""b"".""Discriminator"" = 'DerivedCollectionOnBase') OR (""b"".""Discriminator"" = 'BaseCollectionOnBase')
-ORDER BY ""e"".""Id""",
+WHERE ""b"".""Discriminator"" IN ('DerivedCollectionOnBase', 'BaseCollectionOnBase')
+ORDER BY ""e0"".""Id""",
                 Sql);
         }
 
@@ -824,17 +824,17 @@ ORDER BY ""e"".""Id""",
             base.Nested_include_with_inheritance_collection_reference_reverse();
 
             Assert.Equal(
-                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""e"".""ParentCollectionId"", ""e"".""ParentReferenceId"", ""b"".""Id"", ""b"".""BaseParentId"", ""b"".""Discriminator"", ""b"".""Name"", ""b0"".""Id"", ""b0"".""Discriminator"", ""b0"".""Name""
+                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""e"".""ParentCollectionId"", ""e"".""ParentReferenceId"", ""b"".""Id"", ""b"".""BaseParentId"", ""b"".""Discriminator"", ""b"".""Name"", ""b"".""DerivedProperty"", ""b0"".""Id"", ""b0"".""Discriminator"", ""b0"".""Name"", ""b0"".""BaseId""
 FROM ""NestedReferenceBase"" AS ""e""
 LEFT JOIN (
     SELECT ""b"".*
     FROM ""BaseCollectionOnBase"" AS ""b""
-    WHERE (""b"".""Discriminator"" = 'DerivedCollectionOnBase') OR (""b"".""Discriminator"" = 'BaseCollectionOnBase')
+    WHERE ""b"".""Discriminator"" IN ('DerivedCollectionOnBase', 'BaseCollectionOnBase')
 ) AS ""b"" ON ""e"".""ParentCollectionId"" = ""b"".""Id""
 LEFT JOIN (
     SELECT ""b0"".*
     FROM ""BaseInheritanceRelationshipEntity"" AS ""b0""
-    WHERE (""b0"".""Discriminator"" = 'DerivedInheritanceRelationshipEntity') OR (""b0"".""Discriminator"" = 'BaseInheritanceRelationshipEntity')
+    WHERE ""b0"".""Discriminator"" IN ('DerivedInheritanceRelationshipEntity', 'BaseInheritanceRelationshipEntity')
 ) AS ""b0"" ON ""b"".""BaseParentId"" = ""b0"".""Id""
 WHERE ""e"".""Discriminator"" IN ('NestedReferenceDerived', 'NestedReferenceBase')",
                 Sql);
@@ -845,35 +845,35 @@ WHERE ""e"".""Discriminator"" IN ('NestedReferenceDerived', 'NestedReferenceBase
             base.Nested_include_with_inheritance_collection_collection1();
 
             Assert.Equal(
-                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name""
+                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""e"".""BaseId""
 FROM ""BaseInheritanceRelationshipEntity"" AS ""e""
 WHERE ""e"".""Discriminator"" IN ('DerivedInheritanceRelationshipEntity', 'BaseInheritanceRelationshipEntity')
 ORDER BY ""e"".""Id""
 
-SELECT ""b"".""Id"", ""b"".""BaseParentId"", ""b"".""Discriminator"", ""b"".""Name""
+SELECT ""b"".""Id"", ""b"".""BaseParentId"", ""b"".""Discriminator"", ""b"".""Name"", ""b"".""DerivedProperty""
 FROM ""BaseCollectionOnBase"" AS ""b""
 INNER JOIN (
     SELECT DISTINCT ""e"".""Id""
     FROM ""BaseInheritanceRelationshipEntity"" AS ""e""
     WHERE ""e"".""Discriminator"" IN ('DerivedInheritanceRelationshipEntity', 'BaseInheritanceRelationshipEntity')
-) AS ""e"" ON ""b"".""BaseParentId"" = ""e"".""Id""
-WHERE (""b"".""Discriminator"" = 'DerivedCollectionOnBase') OR (""b"".""Discriminator"" = 'BaseCollectionOnBase')
-ORDER BY ""e"".""Id"", ""b"".""Id""
+) AS ""e0"" ON ""b"".""BaseParentId"" = ""e0"".""Id""
+WHERE ""b"".""Discriminator"" IN ('DerivedCollectionOnBase', 'BaseCollectionOnBase')
+ORDER BY ""e0"".""Id"", ""b"".""Id""
 
 SELECT ""n"".""Id"", ""n"".""Discriminator"", ""n"".""Name"", ""n"".""ParentCollectionId"", ""n"".""ParentReferenceId""
 FROM ""NestedCollectionBase"" AS ""n""
 INNER JOIN (
-    SELECT DISTINCT ""e"".""Id"", ""b"".""Id"" AS ""Id0""
+    SELECT DISTINCT ""e0"".""Id"", ""b"".""Id"" AS ""Id0""
     FROM ""BaseCollectionOnBase"" AS ""b""
     INNER JOIN (
         SELECT DISTINCT ""e"".""Id""
         FROM ""BaseInheritanceRelationshipEntity"" AS ""e""
         WHERE ""e"".""Discriminator"" IN ('DerivedInheritanceRelationshipEntity', 'BaseInheritanceRelationshipEntity')
-    ) AS ""e"" ON ""b"".""BaseParentId"" = ""e"".""Id""
-    WHERE (""b"".""Discriminator"" = 'DerivedCollectionOnBase') OR (""b"".""Discriminator"" = 'BaseCollectionOnBase')
-) AS ""b"" ON ""n"".""ParentCollectionId"" = ""b"".""Id0""
-WHERE (""n"".""Discriminator"" = 'NestedCollectionDerived') OR (""n"".""Discriminator"" = 'NestedCollectionBase')
-ORDER BY ""b"".""Id"", ""b"".""Id0""",
+    ) AS ""e0"" ON ""b"".""BaseParentId"" = ""e0"".""Id""
+    WHERE ""b"".""Discriminator"" IN ('DerivedCollectionOnBase', 'BaseCollectionOnBase')
+) AS ""b0"" ON ""n"".""ParentCollectionId"" = ""b0"".""Id0""
+WHERE ""n"".""Discriminator"" IN ('NestedCollectionDerived', 'NestedCollectionBase')
+ORDER BY ""b0"".""Id"", ""b0"".""Id0""",
                 Sql);
         }
 
@@ -909,17 +909,17 @@ ORDER BY ""b"".""Id"", ""b"".""Id0""",
             base.Nested_include_with_inheritance_collection_collection_reverse();
 
             Assert.Equal(
-                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""e"".""ParentCollectionId"", ""e"".""ParentReferenceId"", ""b"".""Id"", ""b"".""BaseParentId"", ""b"".""Discriminator"", ""b"".""Name"", ""b0"".""Id"", ""b0"".""Discriminator"", ""b0"".""Name""
+                @"SELECT ""e"".""Id"", ""e"".""Discriminator"", ""e"".""Name"", ""e"".""ParentCollectionId"", ""e"".""ParentReferenceId"", ""b"".""Id"", ""b"".""BaseParentId"", ""b"".""Discriminator"", ""b"".""Name"", ""b"".""DerivedProperty"", ""b0"".""Id"", ""b0"".""Discriminator"", ""b0"".""Name"", ""b0"".""BaseId""
 FROM ""NestedCollectionBase"" AS ""e""
 LEFT JOIN (
     SELECT ""b"".*
     FROM ""BaseCollectionOnBase"" AS ""b""
-    WHERE (""b"".""Discriminator"" = 'DerivedCollectionOnBase') OR (""b"".""Discriminator"" = 'BaseCollectionOnBase')
+    WHERE ""b"".""Discriminator"" IN ('DerivedCollectionOnBase', 'BaseCollectionOnBase')
 ) AS ""b"" ON ""e"".""ParentCollectionId"" = ""b"".""Id""
 LEFT JOIN (
     SELECT ""b0"".*
     FROM ""BaseInheritanceRelationshipEntity"" AS ""b0""
-    WHERE (""b0"".""Discriminator"" = 'DerivedInheritanceRelationshipEntity') OR (""b0"".""Discriminator"" = 'BaseInheritanceRelationshipEntity')
+    WHERE ""b0"".""Discriminator"" IN ('DerivedInheritanceRelationshipEntity', 'BaseInheritanceRelationshipEntity')
 ) AS ""b0"" ON ""b"".""BaseParentId"" = ""b0"".""Id""
 WHERE ""e"".""Discriminator"" IN ('NestedCollectionDerived', 'NestedCollectionBase')",
                 Sql);
