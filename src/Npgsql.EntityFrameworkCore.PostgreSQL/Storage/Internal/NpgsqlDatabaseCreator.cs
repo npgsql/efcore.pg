@@ -99,7 +99,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
                 _connection.Close();
                 return true;
             }
-            catch (NpgsqlException e)
+            catch (PostgresException e)
             {
                 if (IsDoesNotExist(e))
                 {
@@ -118,7 +118,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
                 _connection.Close();
                 return true;
             }
-            catch (NpgsqlException e)
+            catch (PostgresException e)
             {
                 if (IsDoesNotExist(e))
                 {
@@ -130,7 +130,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
         }
 
         // Login failed is thrown when database does not exist (See Issue #776)
-        private static bool IsDoesNotExist(NpgsqlException exception) => exception.Code == "3D000";
+        private static bool IsDoesNotExist(PostgresException exception) => exception.SqlState == "3D000";
 
         public override void Delete()
         {
