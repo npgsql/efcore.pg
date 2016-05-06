@@ -1,8 +1,5 @@
 {
   "version": "0.0.0",
-  "runtimes": {
-    "win": {}
-  },
   "content": [
     "ReverseEngineering/**/*.expected",
     "ReverseEngineering/**/*.sql"

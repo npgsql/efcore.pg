@@ -1,9 +1,6 @@
 {
   "version": "0.0.0",
   "content": "**/*.sql",
-  "runtimes": {
-    "win": {}
-  },
   "dependencies": {
     "Microsoft.EntityFrameworkCore": "1.0.0-rc2-*",
     "Microsoft.EntityFrameworkCore.Relational": "1.0.0-rc2-*",
