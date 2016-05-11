@@ -98,8 +98,17 @@ ORDER BY ""l20"".""Id"", ""l20"".""Id0"", ""l20"".""Id1""",
                 Sql);
         }
 
-        [Fact(Skip= "https://github.com/aspnet/EntityFramework/issues/5215")]
-        public override void OrderBy_nav_prop_reference_optional() {}
+        public override void Result_operator_nav_prop_reference_optional()
+        {
+            base.Result_operator_nav_prop_reference_optional();
+
+            Assert.Equal(
+                @"SELECT ""e"".""Id"", ""e"".""Name"", ""e"".""OneToMany_Optional_Self_InverseId"", ""e"".""OneToMany_Required_Self_InverseId"", ""e"".""OneToOne_Optional_SelfId"", ""e.OneToOne_Optional_FK"".""Id"", ""e.OneToOne_Optional_FK"".""Level1_Optional_Id"", ""e.OneToOne_Optional_FK"".""Level1_Required_Id"", ""e.OneToOne_Optional_FK"".""Name"", ""e.OneToOne_Optional_FK"".""OneToMany_Optional_InverseId"", ""e.OneToOne_Optional_FK"".""OneToMany_Optional_Self_InverseId"", ""e.OneToOne_Optional_FK"".""OneToMany_Required_InverseId"", ""e.OneToOne_Optional_FK"".""OneToMany_Required_Self_InverseId"", ""e.OneToOne_Optional_FK"".""OneToOne_Optional_PK_InverseId"", ""e.OneToOne_Optional_FK"".""OneToOne_Optional_SelfId""
+FROM ""Level1"" AS ""e""
+LEFT JOIN ""Level2"" AS ""e.OneToOne_Optional_FK"" ON ""e"".""Id"" = ""e.OneToOne_Optional_FK"".""Level1_Optional_Id""
+ORDER BY ""e"".""Id""",
+                Sql);
+        }
 
         private static string Sql => TestSqlLoggerFactory.Sql;
     }
