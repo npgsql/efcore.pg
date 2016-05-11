@@ -1,14 +1,18 @@
 {
   "version": "0.0.0",
-  "content": [
-    "ReverseEngineering/**/*.expected",
-    "ReverseEngineering/**/*.sql"
-  ],
+  "buildOptions": {
+    "embed": {
+      "include": [
+        "ReverseEngineering/**/*.expected",
+        "ReverseEngineering/**/*.sql"
+      ]
+    }
+  },
   "dependencies": {
     "Microsoft.EntityFrameworkCore.Relational.Specification.Tests": "1.0.0-rc2-*",
     "Microsoft.EntityFrameworkCore.Relational.Design.Specification.Tests": "1.0.0-rc2-*",
     "Npgsql.EntityFrameworkCore.PostgreSQL.Design": "1.0.0-*",
-    "Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests": "1.0.0-*"
+    "Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests": "0.0.0-*"
   },
   "testRunner": "xunit",
   "frameworks": {
