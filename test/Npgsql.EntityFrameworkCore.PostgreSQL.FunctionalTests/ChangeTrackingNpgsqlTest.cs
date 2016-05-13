@@ -12,9 +12,5 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             : base(fixture)
         {
         }
-
-        [Fact]
-        public override void Multiple_entities_can_revert()
-        { }
     }
 }
