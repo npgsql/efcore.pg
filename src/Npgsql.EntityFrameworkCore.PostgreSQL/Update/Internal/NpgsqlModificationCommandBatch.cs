@@ -61,7 +61,7 @@ namespace Microsoft.EntityFrameworkCore.Update.Internal
         }
 
         protected override bool CanAddCommand(ModificationCommand modificationCommand)
-            => ModificationCommands.Count < NpgsqlCommand.MaxStatements;
+            => true;
 
         protected override bool IsCommandTextValid()
             => true;
