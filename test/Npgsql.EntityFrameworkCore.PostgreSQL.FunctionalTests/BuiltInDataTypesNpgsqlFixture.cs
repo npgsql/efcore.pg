@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.NetworkInformation;
 using System.Reflection;
@@ -24,6 +25,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         public BuiltInDataTypesNpgsqlFixture()
         {
             _testStore = NpgsqlTestStore.CreateScratch();
+
+            // TODO: find a better way to do this
+            _testStore.ExecuteNonQuery("CREATE EXTENSION hstore");
+            var npgsqlConn = (NpgsqlConnection)_testStore.Connection;
+            npgsqlConn.ReloadTypes();
 
             /*
             _testStore.ExecuteNonQuery("CREATE TYPE some_composite AS (some_number int, some_text text)");
@@ -197,6 +203,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         public PhysicalAddress Macaddr { get; set; }
         public NpgsqlPoint Point { get; set; }
         public string Jsonb { get; set; }
+        public Dictionary<string, string> Hstore { get; set; }
 
         // Composite
         //public SomeComposite SomeComposite { get; set; }
@@ -274,6 +281,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         public PhysicalAddress Macaddr { get; set; }
         public NpgsqlPoint? Point { get; set; }
         public string Jsonb { get; set; }
+        public Dictionary<string, string> Hstore { get; set; }
 
         // Composite
         //public SomeComposite SomeComposite { get; set; }

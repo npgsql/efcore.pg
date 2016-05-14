@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.NetworkInformation;
 using Microsoft.EntityFrameworkCore.Specification.Tests;
@@ -47,6 +48,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                         Macaddr = PhysicalAddress.Parse("08-00-2B-01-02-03"),
                         Point = new NpgsqlPoint(5.2, 3.3),
                         Jsonb = @"{""a"": ""b""}",
+                        Hstore = new Dictionary<string, string> { {"a", "b"} },
 
                         //SomeComposite = new SomeComposite { SomeNumber = 8, SomeText = "foo" }
                     });
@@ -120,7 +122,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 //var param20 = @"{""a"": ""b""}";
                 //Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Jsonb == param20));
 
-                //SomeComposite param21 = new SomeComposite { SomeNumber = 8, SomeText = "foo" };
+                // The following fails because of https://github.com/aspnet/EntityFramework/issues/5365
+                // var param21 = new Dictionary<string, string> { { "a", "b" } };
+                // Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Hstore == param21));
+
+                //SomeComposite param22 = new SomeComposite { SomeNumber = 8, SomeText = "foo" };
                 //Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.SomeComposite.Equals(param20)));
             }
         }
@@ -203,7 +209,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 string param20 = null;
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.Jsonb == param20));
 
-                //SomeComposite param21 = null;
+                Dictionary<string, string> param21 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.Hstore == param21));
+
+                //SomeComposite param22 = null;
                 //Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.SomeComposite == param20));
             }
         }
@@ -241,9 +250,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                         Macaddr = PhysicalAddress.Parse("08-00-2B-01-02-03"),
                         Point = new NpgsqlPoint(5.2, 3.3),
                         Jsonb = @"{""a"": ""b""}",
+                        Hstore = new Dictionary<string, string> { { "a", "b" } },
 
-                        //SomeComposite = new SomeComposite { SomeNumber = 8, SomeText = "foo" }
-                    });
+                //SomeComposite = new SomeComposite { SomeNumber = 8, SomeText = "foo" }
+            });
 
                 Assert.Equal(1, context.SaveChanges());
             }
@@ -277,6 +287,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 Assert.Equal(PhysicalAddress.Parse("08-00-2B-01-02-03"), entity.Macaddr);
                 Assert.Equal(new NpgsqlPoint(5.2, 3.3), entity.Point);
                 Assert.Equal(@"{""a"": ""b""}", entity.Jsonb);
+                Assert.Equal(new Dictionary<string, string> { { "a", "b" } }, entity.Hstore);
 
                 //Assert.Equal(new SomeComposite { SomeNumber = 8, SomeText = "foo" }, entity.SomeComposite);
             }
@@ -315,6 +326,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                         Macaddr = PhysicalAddress.Parse("08-00-2B-01-02-03"),
                         Point = new NpgsqlPoint(5.2, 3.3),
                         Jsonb = @"{""a"": ""b""}",
+                        Hstore = new Dictionary<string, string> { { "a", "b" } },
 
                         //SomeComposite = new SomeComposite { SomeNumber = 8, SomeText = "foo" }
                     });
@@ -351,6 +363,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 Assert.Equal(PhysicalAddress.Parse("08-00-2B-01-02-03"), entity.Macaddr);
                 Assert.Equal(new NpgsqlPoint(5.2, 3.3), entity.Point);
                 Assert.Equal(@"{""a"": ""b""}", entity.Jsonb);
+                Assert.Equal(new Dictionary<string, string> { { "a", "b" } }, entity.Hstore);
 
                 //Assert.Equal(new SomeComposite { SomeNumber = 8, SomeText = "foo" }, entity.SomeComposite);
             }
@@ -398,6 +411,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 Assert.Null(entity.Macaddr);
                 Assert.Null(entity.Point);
                 Assert.Null(entity.Jsonb);
+                Assert.Null(entity.Hstore);
 
                 //Assert.Null(entity.SomeComposite);
             }
