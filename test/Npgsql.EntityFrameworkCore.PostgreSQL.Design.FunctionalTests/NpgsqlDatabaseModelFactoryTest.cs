@@ -289,6 +289,12 @@ CREATE SEQUENCE ""CustomSequence_read""
             );
         }
 
+        [Fact]
+        public void DefaultSchemaIsPublic()
+        {
+            Assert.Equal("public", _fixture.CreateModel("SELECT 1").DefaultSchemaName);
+        }
+
         private readonly NpgsqlDatabaseModelFixture _fixture;
 
         public DatabaseModel CreateModel(string createSql, TableSelectionSet selection = null)
