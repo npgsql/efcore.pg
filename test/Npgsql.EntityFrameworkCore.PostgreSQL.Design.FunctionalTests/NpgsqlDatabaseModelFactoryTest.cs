@@ -278,15 +278,32 @@ CREATE SEQUENCE ""CustomSequence_read""
                 });
         }
 
-        // Sequences which belong to a serial column should not get reverse engineered
         [Fact]
-        public void Serial_sequences()
+        public void SequenceSerial()
         {
-            Assert.Empty(
-                CreateModel(@"CREATE TABLE ""SerialSequence"" (""SerialSequenceId"" serial primary key)")
-                .Sequences
-                .Where(s => s.Name == "SerialSequence_SerialSequenceId_seq")
-            );
+            var dbModel = CreateModel(@"CREATE TABLE ""SerialSequence"" (""SerialSequenceId"" serial primary key)");
+
+            // Sequences which belong to a serial column should not get reverse engineered as separate sequences
+            Assert.Empty(dbModel.Sequences.Where(s => s.Name == "SerialSequence_SerialSequenceId_seq"));
+
+            // Now make sure the field itself is properly reverse-engineered.
+            var column = dbModel.Tables.Single(t => t.Name == "SerialSequence").Columns.Single();
+            Assert.Equal(ValueGenerated.OnAdd, column.ValueGenerated);
+            Assert.Null(column.DefaultValue);
+            Assert.True(column.Npgsql().IsSerial);
+        }
+
+        [Fact]
+        public void SequenceNonSerial()
+        {
+            var dbModel = CreateModel(@"
+CREATE SEQUENCE some_sequence;
+CREATE TABLE non_serial_sequence (id integer PRIMARY KEY DEFAULT nextval('some_sequence'))");
+
+            var column = dbModel.Tables.Single(t => t.Name == "non_serial_sequence").Columns.Single();
+            Assert.Equal("nextval('some_sequence'::regclass)", column.DefaultValue);
+            Assert.Equal(ValueGenerated.OnAdd, column.ValueGenerated);
+            Assert.False(column.Npgsql().IsSerial);
         }
 
         [Fact]

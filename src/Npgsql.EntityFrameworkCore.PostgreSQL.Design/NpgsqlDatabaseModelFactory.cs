@@ -193,16 +193,21 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding
                         DefaultValue   = defaultValue
                     };
 
-                    // Somewhat hacky... We identify serial columns by examining their default expression,
-                    // and reverse-engineer these as ValueGenerated.OnAdd
-                    if (defaultValue != null && (
-                          defaultValue == $"nextval('{tableName}_{columnName}_seq'::regclass)" ||
-                          defaultValue == $"nextval('\"{tableName}_{columnName}_seq\"'::regclass)")
-                       )
+                    if (defaultValue != null)
                     {
-                        column.Npgsql().IsSerial = true;
                         column.ValueGenerated = ValueGenerated.OnAdd;
-                        column.DefaultValue = null;
+
+                        // Somewhat hacky... We identify serial columns by examining their default expression,
+                        // and reverse-engineer these as ValueGenerated.OnAdd
+                        if (defaultValue == $"nextval('{tableName}_{columnName}_seq'::regclass)" ||
+                            defaultValue == $"nextval('\"{tableName}_{columnName}_seq\"'::regclass)")
+                        {
+                            // TODO: Scaffold as serial, bigserial, not int...
+                            // But in normal code-first I don't have to set the column type...!
+                            // TODO: Think about composite keys. Do serial magic only for non-composite.
+                            column.Npgsql().IsSerial = true;
+                            column.DefaultValue = null;
+                        }
                     }
 
                     table.Columns.Add(column);

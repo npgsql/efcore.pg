@@ -1,0 +1,29 @@
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
+
+namespace E2ETest.Namespace
+{
+    public partial class ColumnsWithSequences : DbContext
+    {
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            #warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
+            optionsBuilder.UseNpgsql(@"{{connectionString}}");
+        }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<NonSerialSequence>(entity =>
+            {
+                entity.Property(e => e.id)
+                    .HasDefaultValueSql("nextval('some_sequence'::regclass)")
+                    .ValueGeneratedNever();
+            });
+
+            modelBuilder.HasSequence("some_sequence");
+        }
+
+        public virtual DbSet<NonSerialSequence> NonSerialSequence { get; set; }
+        public virtual DbSet<SerialSequence> SerialSequence { get; set; }
+    }
+}

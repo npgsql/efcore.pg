@@ -26,6 +26,7 @@ using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
@@ -78,7 +79,8 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding
             var property = builder.Metadata.FindProperty(GetPropertyName(pkColumns[0]));
             var propertyType = property?.ClrType?.UnwrapNullableType();
 
-            if (propertyType?.IsIntegerForSerial() == true || propertyType == typeof(Guid))
+            if ((propertyType?.IsIntegerForSerial() == true || propertyType == typeof(Guid)) &&
+                !pkColumns[0].ValueGenerated.HasValue)
             {
                 property.ValueGenerated = ValueGenerated.Never;
             }

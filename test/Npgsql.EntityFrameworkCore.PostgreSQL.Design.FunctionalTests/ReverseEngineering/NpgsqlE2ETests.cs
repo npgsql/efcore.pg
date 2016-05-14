@@ -222,6 +222,70 @@ CREATE SEQUENCE ""CyclicalCountByThree""
             }
         }
 
+        [Fact]
+        public void ColumnsWithSequences()
+        {
+            using (var scratch = NpgsqlTestStore.CreateScratch())
+            {
+                scratch.ExecuteNonQuery(@"
+DROP TABLE IF EXISTS ""IDSerialSequence"";
+CREATE TABLE ""IDSerialSequence"" (
+  ""Id"" SERIAL PRIMARY KEY
+);
+
+DROP TABLE IF EXISTS ""IDNonSerialSequence"";
+DROP SEQUENCE IF EXISTS ""IDSomeSequence"";
+CREATE SEQUENCE ""IDSomeSequence"";
+CREATE TABLE ""IDNonSerialSequence"" (
+  ""Id"" INTEGER PRIMARY KEY DEFAULT nextval('""IDSomeSequence""')
+);
+
+DROP TABLE IF EXISTS ""SerialSequence"";
+CREATE TABLE ""SerialSequence"" (
+  ""Id"" INTEGER PRIMARY KEY,
+  ""SomeField"" SERIAL
+);
+
+DROP TABLE IF EXISTS ""NonSerialSequence"";
+DROP SEQUENCE IF EXISTS ""SomeSequence"";
+CREATE SEQUENCE ""SomeSequence"";
+CREATE TABLE ""NonSerialSequence"" (
+  ""Id"" INTEGER PRIMARY KEY,
+  ""SomeField"" INTEGER DEFAULT nextval('""SomeSequence""')
+);");
+
+                var configuration = new ReverseEngineeringConfiguration
+                {
+                    ConnectionString = scratch.Connection.ConnectionString,
+                    ProjectPath = TestProjectDir + Path.DirectorySeparatorChar,
+                    ProjectRootNamespace = TestNamespace,
+                    ContextClassName = "ColumnsWithSequences",
+                };
+                var expectedFileSet = new FileSet(new FileSystemFileService(),
+                    Path.Combine("ReverseEngineering", "ExpectedResults", "ColumnsWithSequences"),
+                    contents => contents.Replace("{{connectionString}}", scratch.Connection.ConnectionString))
+                {
+                    Files = new List<string>
+                    {
+                        "ColumnsWithSequencesContext.expected",
+                        "NonSerialSequence.expected",
+                        "SerialSequence.expected"
+                    }
+                };
+
+                var filePaths = Generator.GenerateAsync(configuration).GetAwaiter().GetResult();
+
+                var actualFileSet = new FileSet(InMemoryFiles, Path.GetFullPath(TestProjectDir))
+                {
+                    Files = new[] { filePaths.ContextFile }.Concat(filePaths.EntityTypeFiles).Select(Path.GetFileName).ToList()
+                };
+
+                throw new Exception(actualFileSet.Contents(0));
+                AssertEqualFileContents(expectedFileSet, actualFileSet);
+                AssertCompile(actualFileSet);
+            }
+        }
+
         protected override ICollection<BuildReference> References { get; } = new List<BuildReference>
         {
 #if NETSTANDARDAPP1_5

@@ -160,6 +160,15 @@
     <None Include="ReverseEngineering\ExpectedResults\E2E_UseAttributesInsteadOfFluentApi\Test_Spaces_Keywords_Table.expected">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="ReverseEngineering\ExpectedResults\ColumnsWithSequences\SerialSequence.expected">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="ReverseEngineering\ExpectedResults\ColumnsWithSequences\NonSerialSequence.expected">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="ReverseEngineering\ExpectedResults\ColumnsWithSequences\ColumnsWithSequencesContext.expected">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="ReverseEngineering\ExpectedResults\SequenceContext.expected">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
