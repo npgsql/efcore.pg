@@ -117,6 +117,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             // this doesn't work for Tinyint. Remap.
             modelBuilder.Entity<MappedDataTypes>().Property(e => e.Tinyint).HasColumnType("smallint");
             modelBuilder.Entity<MappedNullableDataTypes>().Property(e => e.Tinyint).HasColumnType("smallint");
+
+            // Jsonb in .NET is a regular string
+            modelBuilder.Entity<MappedDataTypes>().Property(e => e.Jsonb).HasColumnType("jsonb");
+            modelBuilder.Entity<MappedNullableDataTypes>().Property(e => e.Jsonb).HasColumnType("jsonb");
         }
 
         private static void MapColumnTypes<TEntity>(ModelBuilder modelBuilder) where TEntity : class
@@ -192,6 +196,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         // Types supported only on PostgreSQL
         public PhysicalAddress Macaddr { get; set; }
         public NpgsqlPoint Point { get; set; }
+        public string Jsonb { get; set; }
 
         // Composite
         //public SomeComposite SomeComposite { get; set; }
@@ -268,6 +273,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         // Types supported only on PostgreSQL
         public PhysicalAddress Macaddr { get; set; }
         public NpgsqlPoint? Point { get; set; }
+        public string Jsonb { get; set; }
 
         // Composite
         //public SomeComposite SomeComposite { get; set; }
