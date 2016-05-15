@@ -24,5 +24,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             return new NpgsqlPostgresExtensionBuilder(
                 modelBuilder.Model.Npgsql().GetOrAddPostgresExtension(name, schema));
         }
+
+        public static ModelBuilder HasDatabaseTemplate(
+            [NotNull] this ModelBuilder modelBuilder,
+            [NotNull] string templateDatabaseName)
+        {
+            Check.NotNull(modelBuilder, nameof(modelBuilder));
+            Check.NotEmpty(templateDatabaseName, nameof(templateDatabaseName));
+
+            modelBuilder.Model.Npgsql().DatabaseTemplate = templateDatabaseName;
+            return modelBuilder;
+        }
     }
 }

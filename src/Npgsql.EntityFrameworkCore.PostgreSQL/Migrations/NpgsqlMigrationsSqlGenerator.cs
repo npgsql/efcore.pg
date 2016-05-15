@@ -288,8 +288,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
 
             builder
                 .Append("CREATE SCHEMA IF NOT EXISTS ")
-                .Append(SqlGenerationHelper.DelimitIdentifier(operation.Name))
-                .AppendLine(SqlGenerationHelper.StatementTerminator);
+                .Append(SqlGenerationHelper.DelimitIdentifier(operation.Name));
         }
 
         public virtual void Generate(NpgsqlCreateDatabaseOperation operation, IModel model, RelationalCommandListBuilder builder)
@@ -299,8 +298,14 @@ namespace Microsoft.EntityFrameworkCore.Migrations
 
             builder
                 .Append("CREATE DATABASE ")
-                .Append(SqlGenerationHelper.DelimitIdentifier(operation.Name))
-                .AppendLine(SqlGenerationHelper.StatementTerminator);
+                .Append(SqlGenerationHelper.DelimitIdentifier(operation.Name));
+
+            if (operation.Template != null)
+            {
+                builder
+                    .Append(" TEMPLATE ")
+                    .Append(SqlGenerationHelper.DelimitIdentifier(operation.Template));
+            }
         }
 
         public virtual void Generate(NpgsqlDropDatabaseOperation operation, IModel model, RelationalCommandListBuilder builder)
@@ -321,7 +326,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                     "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '")
                 .Append(operation.Name)
                 .Append("'")
-                .AppendLine(SqlGenerationHelper.StatementTerminator)
+                .EndCommand()
                 .Append("DROP DATABASE ")
                 .Append(dbName);
         }
@@ -348,8 +353,6 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                     .Append(" VERSION ")
                     .Append(SqlGenerationHelper.DelimitIdentifier(operation.Version));
             }
-
-            builder.AppendLine(SqlGenerationHelper.StatementTerminator);
         }
 
         protected override void Generate(DropIndexOperation operation, IModel model, RelationalCommandListBuilder builder)

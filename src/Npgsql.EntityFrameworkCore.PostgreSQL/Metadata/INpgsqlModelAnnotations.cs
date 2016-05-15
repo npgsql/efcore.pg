@@ -30,5 +30,6 @@ namespace Microsoft.EntityFrameworkCore.Metadata
     public interface INpgsqlModelAnnotations : IRelationalModelAnnotations
     {
         IReadOnlyList<IPostgresExtension> PostgresExtensions { get; }
+        string DatabaseTemplate { get; }
     }
 }

@@ -117,7 +117,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
                 ");
 
         IEnumerable<IRelationalCommand> CreateCreateOperations()
-            => _migrationsSqlGenerator.Generate(new[] { new NpgsqlCreateDatabaseOperation { Name = _connection.DbConnection.Database } });
+            => _migrationsSqlGenerator.Generate(new[] { new NpgsqlCreateDatabaseOperation { Name = _connection.DbConnection.Database, Template = Model.Npgsql().DatabaseTemplate } });
 
         /// <summary>
         /// Creates migration operations that should take place immediately after creating the database,

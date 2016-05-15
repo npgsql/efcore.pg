@@ -33,5 +33,6 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Internal
         public const string SequenceSchema = "SequenceSchema";
         public const string IndexMethod = "IndexMethod";
         public const string PostgresExtensionPrefix = "PostgresExtension:";
+        public const string DatabaseTemplate = "DatabaseTemplate";
     }
 }

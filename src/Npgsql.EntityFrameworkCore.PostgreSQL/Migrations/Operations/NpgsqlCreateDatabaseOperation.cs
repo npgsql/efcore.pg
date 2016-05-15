@@ -28,5 +28,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations.Operations
     public class NpgsqlCreateDatabaseOperation : MigrationOperation
     {
         public virtual string Name { get;[param: NotNull] set; }
+        [CanBeNull]
+        public virtual string Template { get; set; }
     }
 }

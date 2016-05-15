@@ -162,6 +162,30 @@ namespace EntityFramework7.Npgsql.Tests.Migrations
                 Sql);
         }
 
+        [Fact]
+        public virtual void CreateDatabaseOperation()
+        {
+            Generate(new NpgsqlCreateDatabaseOperation { Name = "Northwind" });
+
+            Assert.Equal(
+                @"CREATE DATABASE ""Northwind"";" + EOL,
+                Sql);
+        }
+
+        [Fact]
+        public virtual void CreateDatabaseOperation_with_template()
+        {
+            Generate(new NpgsqlCreateDatabaseOperation
+            {
+                Name = "Northwind",
+                Template = "MyTemplate"
+            });
+
+            Assert.Equal(
+                @"CREATE DATABASE ""Northwind"" TEMPLATE ""MyTemplate"";" + EOL,
+                Sql);
+        }
+
         public override void CreateSequenceOperation_with_minValue_and_maxValue()
         {
             base.CreateSequenceOperation_with_minValue_and_maxValue();
