@@ -82,6 +82,7 @@
     <Compile Include="MonsterFixupNpgsqlTest.cs.cs" />
     <Compile Include="NavigationTest.cs" />
     <Compile Include="NorthwindQueryNpgsqlFixture.cs" />
+    <Compile Include="NpgsqlDatabaseCreatorTest.cs" />
     <Compile Include="NpgsqlFixture.cs" />
     <Compile Include="TempInheritanceRelationalFixture.cs" />
     <Compile Include="Utilities\NpgsqlTestStore.cs" />

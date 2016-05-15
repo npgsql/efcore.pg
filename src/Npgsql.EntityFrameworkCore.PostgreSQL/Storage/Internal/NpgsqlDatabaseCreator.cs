@@ -62,6 +62,20 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
 
                 ClearPool();
             }
+
+            CreatePostCreateOperations().ExecuteNonQuery(_connection);
+
+            // The post-creation operations may have create new types (e.g. extension),
+            // reload type definitions
+            _connection.Open();
+            try
+            {
+                ((NpgsqlConnection) _connection.DbConnection).ReloadTypes();
+            }
+            finally
+            {
+                _connection.Close();
+            }
         }
 
         public override async Task CreateAsync(CancellationToken cancellationToken = default(CancellationToken))
@@ -72,6 +86,20 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
 
                 ClearPool();
             }
+
+            CreatePostCreateOperations().ExecuteNonQuery(_connection);
+
+            // The post-creation operations may have create new types (e.g. extension),
+            // reload type definitions
+            _connection.Open();
+            try
+            {
+                ((NpgsqlConnection)_connection.DbConnection).ReloadTypes();
+            }
+            finally
+            {
+                _connection.Close();
+            }
         }
 
         protected override bool HasTables()
@@ -80,7 +108,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
         protected override async Task<bool> HasTablesAsync(CancellationToken cancellationToken = default(CancellationToken))
             => (bool)(await CreateHasTablesCommand().ExecuteScalarAsync(_connection, cancellationToken: cancellationToken));
 
-        private IRelationalCommand CreateHasTablesCommand()
+        IRelationalCommand CreateHasTablesCommand()
             => _rawSqlCommandBuilder
                 .Build(@"
                     SELECT CASE WHEN COUNT(*) = 0 THEN FALSE ELSE TRUE END
@@ -88,8 +116,25 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
                     WHERE table_type = 'BASE TABLE' AND table_schema NOT IN ('pg_catalog', 'information_schema')
                 ");
 
-        private IEnumerable<IRelationalCommand> CreateCreateOperations()
+        IEnumerable<IRelationalCommand> CreateCreateOperations()
             => _migrationsSqlGenerator.Generate(new[] { new NpgsqlCreateDatabaseOperation { Name = _connection.DbConnection.Database } });
+
+        /// <summary>
+        /// Creates migration operations that should take place immediately after creating the database,
+        /// e.g. PostgreSQL extension setup
+        /// </summary>
+        IEnumerable<IRelationalCommand> CreatePostCreateOperations()
+        {
+            var operations = new List<MigrationOperation>();
+            foreach (var extension in Model.Npgsql().PostgresExtensions)
+                operations.Add(new NpgsqlCreatePostgresExtensionOperation
+                {
+                    Name = extension.Name,
+                    Schema = extension.Schema,
+                    Version = extension.Version
+                });
+            return _migrationsSqlGenerator.Generate(operations);
+        }
 
         public override bool Exists()
         {

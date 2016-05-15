@@ -21,17 +21,14 @@
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 #endregion
 
-namespace Microsoft.EntityFrameworkCore.Metadata.Internal
+using System.Collections.Generic;
+using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+
+namespace Microsoft.EntityFrameworkCore.Metadata
 {
-    public static class NpgsqlAnnotationNames
+    public interface INpgsqlModelAnnotations : IRelationalModelAnnotations
     {
-        public const string Prefix = "Npgsql:";
-        public const string Serial = "Serial";
-        public const string DefaultSequenceName = "DefaultSequenceName";
-        public const string DefaultSequenceSchema = "DefaultSequenceSchema";
-        public const string SequenceName = "SequenceName";
-        public const string SequenceSchema = "SequenceSchema";
-        public const string IndexMethod = "IndexMethod";
-        public const string PostgresExtensionPrefix = "PostgresExtension:";
+        IReadOnlyList<IPostgresExtension> PostgresExtensions { get; }
     }
 }

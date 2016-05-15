@@ -56,11 +56,11 @@ namespace Microsoft.EntityFrameworkCore
         public static RelationalKeyAnnotations Npgsql([NotNull] this IMutableKey key)
             => (RelationalKeyAnnotations)Npgsql((IKey)key);
 
-        public static IRelationalModelAnnotations Npgsql([NotNull] this IModel model)
-            => new RelationalModelAnnotations(Check.NotNull(model, nameof(model)), NpgsqlFullAnnotationNames.Instance);
+        public static INpgsqlModelAnnotations Npgsql([NotNull] this IModel model)
+            => new NpgsqlModelAnnotations(Check.NotNull(model, nameof(model)));
 
-        public static RelationalModelAnnotations Npgsql([NotNull] this IMutableModel model)
-            => (RelationalModelAnnotations)Npgsql((IModel)model);
+        public static NpgsqlModelAnnotations Npgsql([NotNull] this IMutableModel model)
+            => (NpgsqlModelAnnotations)Npgsql((IModel)model);
 
         public static IRelationalPropertyAnnotations Npgsql([NotNull] this IProperty property)
             => new RelationalPropertyAnnotations(Check.NotNull(property, nameof(property)), NpgsqlFullAnnotationNames.Instance);

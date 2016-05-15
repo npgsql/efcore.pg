@@ -34,6 +34,7 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Internal
             SequenceName = prefix + NpgsqlAnnotationNames.SequenceName;
             SequenceSchema = prefix + NpgsqlAnnotationNames.SequenceSchema;
             IndexMethod = prefix + NpgsqlAnnotationNames.IndexMethod;
+            PostgresExtensionPrefix = prefix + NpgsqlAnnotationNames.PostgresExtensionPrefix;
         }
 
         public new static NpgsqlFullAnnotationNames Instance { get; } = new NpgsqlFullAnnotationNames(NpgsqlAnnotationNames.Prefix);
@@ -44,5 +45,6 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Internal
         public readonly string SequenceName;
         public readonly string SequenceSchema;
         public readonly string IndexMethod;
+        public readonly string PostgresExtensionPrefix;
     }
 }

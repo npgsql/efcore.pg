@@ -11,6 +11,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Specification.Tests;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Npgsql;
 using NpgsqlTypes;
 using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
@@ -26,12 +28,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         {
             _testStore = NpgsqlTestStore.CreateScratch();
 
-            // TODO: find a better way to do this
-            _testStore.ExecuteNonQuery("CREATE EXTENSION hstore");
-            var npgsqlConn = (NpgsqlConnection)_testStore.Connection;
-            npgsqlConn.ReloadTypes();
-
             /*
+            // TODO: find a better way to do this
             _testStore.ExecuteNonQuery("CREATE TYPE some_composite AS (some_number int, some_text text)");
             var npgsqlConn = (NpgsqlConnection)_testStore.Connection;
             npgsqlConn.ReloadTypes();
@@ -43,15 +41,28 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 .AddSingleton(TestNpgsqlModelSource.GetFactory(OnModelCreating))
                 .BuildServiceProvider();
 
-            _options = new DbContextOptionsBuilder()
+            // We need the database to be created with NpgsqlDatabaseCreator for the
+            // extension migration operations to take place. Drop the database created
+            // above by NpgsqlTestStore and recreate.
+            var tempOptions = new DbContextOptionsBuilder()
                 .UseNpgsql(_testStore.Connection)
                 .UseInternalServiceProvider(serviceProvider)
                 .Options;
 
+            // Close the test store's connection because the database is about to
+            // get dropped (via a different master connection)
+            _testStore.Connection.Close();
+
+            using (var context = new DbContext(tempOptions))
+                context.Database.EnsureDeleted();
+
+            _options = new DbContextOptionsBuilder()
+                .UseNpgsql(_testStore.ConnectionString)
+                .UseInternalServiceProvider(serviceProvider)
+                .Options;
+
             using (var context = new DbContext(_options))
-            {
                 context.Database.EnsureCreated();
-            }
         }
 
         public override DbContext CreateContext()
@@ -64,6 +75,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         public override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.HasPostgresExtension("hstore");
 
             MakeRequired<MappedDataTypes>(modelBuilder);
 

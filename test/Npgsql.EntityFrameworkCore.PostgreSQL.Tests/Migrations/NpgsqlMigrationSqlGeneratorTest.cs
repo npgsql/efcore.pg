@@ -285,6 +285,19 @@ namespace EntityFramework7.Npgsql.Tests.Migrations
                 Sql);
         }
 
+        [Fact]
+        public void CreatePostgresExtension()
+        {
+            var op = new NpgsqlCreatePostgresExtensionOperation {
+                Name = "hstore",
+            };
+            Generate(op);
+
+            Assert.Equal(
+                @"CREATE EXTENSION ""hstore"";" + EOL,
+                Sql);
+        }
+
         #endregion
     }
 }

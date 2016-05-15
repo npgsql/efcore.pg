@@ -29,14 +29,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities
         public static Task<NpgsqlTestStore> CreateScratchAsync(bool createDatabase = true)
         {
             var name = "Npgsql.Scratch_" + Interlocked.Increment(ref _scratchCount);
-            return new NpgsqlTestStore(name).CreateTransientAsync(createDatabase);
+            return new NpgsqlTestStore(NextScratchDatabaseName()).CreateTransientAsync(createDatabase);
         }
 
         public static NpgsqlTestStore CreateScratch(bool createDatabase = true)
         {
-            var name = "Npgsql.Scratch_" + Interlocked.Increment(ref _scratchCount);
-            return new NpgsqlTestStore(name).CreateTransient(createDatabase);
+            return new NpgsqlTestStore(NextScratchDatabaseName()).CreateTransient(createDatabase);
         }
+
+        public static string NextScratchDatabaseName()
+            => "Npgsql.Scratch_" + Interlocked.Increment(ref _scratchCount);
+
+        public static string NextScratchConnectionString()
+            => CreateConnectionString(NextScratchDatabaseName());
 
         private string _connectionString;
         private NpgsqlConnection _connection;

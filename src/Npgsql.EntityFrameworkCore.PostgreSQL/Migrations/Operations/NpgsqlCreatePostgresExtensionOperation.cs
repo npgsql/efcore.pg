@@ -21,17 +21,18 @@
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 #endregion
 
-namespace Microsoft.EntityFrameworkCore.Metadata.Internal
+using JetBrains.Annotations;
+
+namespace Microsoft.EntityFrameworkCore.Migrations.Operations
 {
-    public static class NpgsqlAnnotationNames
+    public class NpgsqlCreatePostgresExtensionOperation : MigrationOperation
     {
-        public const string Prefix = "Npgsql:";
-        public const string Serial = "Serial";
-        public const string DefaultSequenceName = "DefaultSequenceName";
-        public const string DefaultSequenceSchema = "DefaultSequenceSchema";
-        public const string SequenceName = "SequenceName";
-        public const string SequenceSchema = "SequenceSchema";
-        public const string IndexMethod = "IndexMethod";
-        public const string PostgresExtensionPrefix = "PostgresExtension:";
+        public virtual string Name    { get; [param: NotNull] set; }
+
+        [CanBeNull]
+        public virtual string Schema  { get; [CanBeNull] set; }
+
+        [CanBeNull]
+        public virtual string Version { get; [CanBeNull] set; }
     }
 }

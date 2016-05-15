@@ -50,19 +50,27 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             Check.NotNull(builder, nameof(builder));
 
             var createDatabaseOperation = operation as NpgsqlCreateDatabaseOperation;
-            var dropDatabaseOperation = operation as NpgsqlDropDatabaseOperation;
             if (createDatabaseOperation != null)
             {
                 Generate(createDatabaseOperation, model, builder);
+                return;
             }
-            else if (dropDatabaseOperation != null)
+
+            var dropDatabaseOperation = operation as NpgsqlDropDatabaseOperation;
+            if (dropDatabaseOperation != null)
             {
                 Generate(dropDatabaseOperation, model, builder);
+                return;
             }
-            else
+
+            var createExtensionOperation = operation as NpgsqlCreatePostgresExtensionOperation;
+            if (createExtensionOperation != null)
             {
-                base.Generate(operation, model, builder);
+                Generate(createExtensionOperation, model, builder);
+                return;
             }
+
+            base.Generate(operation, model, builder);
         }
 
         protected override void Generate(AlterColumnOperation operation, IModel model, RelationalCommandListBuilder builder)
@@ -316,6 +324,32 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                 .AppendLine(SqlGenerationHelper.StatementTerminator)
                 .Append("DROP DATABASE ")
                 .Append(dbName);
+        }
+
+        public virtual void Generate(NpgsqlCreatePostgresExtensionOperation operation, IModel model, RelationalCommandListBuilder builder)
+        {
+            Check.NotNull(operation, nameof(operation));
+            Check.NotNull(builder, nameof(builder));
+
+            builder
+                .Append("CREATE EXTENSION ")
+                .Append(SqlGenerationHelper.DelimitIdentifier(operation.Name));
+
+            if (operation.Schema != null)
+            {
+                builder
+                    .Append(" SCHEMA ")
+                    .Append(SqlGenerationHelper.DelimitIdentifier(operation.Schema));
+            }
+
+            if (operation.Version != null)
+            {
+                builder
+                    .Append(" VERSION ")
+                    .Append(SqlGenerationHelper.DelimitIdentifier(operation.Version));
+            }
+
+            builder.AppendLine(SqlGenerationHelper.StatementTerminator);
         }
 
         protected override void Generate(DropIndexOperation operation, IModel model, RelationalCommandListBuilder builder)
