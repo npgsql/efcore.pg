@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace E2ETest.Namespace
 {
-    public partial class ColumnsWithSequences : DbContext
+    public partial class ColumnsWithSequencesContext : DbContext
     {
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -13,16 +13,32 @@ namespace E2ETest.Namespace
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<NonSerialSequence>(entity =>
+            modelBuilder.Entity<IDNonSerialSequence>(entity =>
             {
-                entity.Property(e => e.id)
-                    .HasDefaultValueSql("nextval('some_sequence'::regclass)")
-                    .ValueGeneratedNever();
+                entity.Property(e => e.Id).HasDefaultValueSql("nextval('\"IDSomeSequence\"'::regclass)");
             });
 
-            modelBuilder.HasSequence("some_sequence");
+            modelBuilder.Entity<NonSerialSequence>(entity =>
+            {
+                entity.Property(e => e.Id).ValueGeneratedNever();
+
+                entity.Property(e => e.SomeField).HasDefaultValueSql("nextval('\"SomeSequence\"'::regclass)");
+            });
+
+            modelBuilder.Entity<SerialSequence>(entity =>
+            {
+                entity.Property(e => e.Id).ValueGeneratedNever();
+
+                entity.Property(e => e.SomeField).ValueGeneratedOnAdd();
+            });
+
+            modelBuilder.HasSequence("IDSomeSequence");
+
+            modelBuilder.HasSequence("SomeSequence");
         }
 
+        public virtual DbSet<IDNonSerialSequence> IDNonSerialSequence { get; set; }
+        public virtual DbSet<IDSerialSequence> IDSerialSequence { get; set; }
         public virtual DbSet<NonSerialSequence> NonSerialSequence { get; set; }
         public virtual DbSet<SerialSequence> SerialSequence { get; set; }
     }

@@ -259,7 +259,7 @@ CREATE TABLE ""NonSerialSequence"" (
                     ConnectionString = scratch.Connection.ConnectionString,
                     ProjectPath = TestProjectDir + Path.DirectorySeparatorChar,
                     ProjectRootNamespace = TestNamespace,
-                    ContextClassName = "ColumnsWithSequences",
+                    ContextClassName = "ColumnsWithSequencesContext",
                 };
                 var expectedFileSet = new FileSet(new FileSystemFileService(),
                     Path.Combine("ReverseEngineering", "ExpectedResults", "ColumnsWithSequences"),
@@ -268,6 +268,8 @@ CREATE TABLE ""NonSerialSequence"" (
                     Files = new List<string>
                     {
                         "ColumnsWithSequencesContext.expected",
+                        "IDNonSerialSequence.expected",
+                        "IDSerialSequence.expected",
                         "NonSerialSequence.expected",
                         "SerialSequence.expected"
                     }
@@ -280,7 +282,7 @@ CREATE TABLE ""NonSerialSequence"" (
                     Files = new[] { filePaths.ContextFile }.Concat(filePaths.EntityTypeFiles).Select(Path.GetFileName).ToList()
                 };
 
-                throw new Exception(actualFileSet.Contents(0));
+                //throw new Exception(actualFileSet.Contents(0));
                 AssertEqualFileContents(expectedFileSet, actualFileSet);
                 AssertCompile(actualFileSet);
             }
