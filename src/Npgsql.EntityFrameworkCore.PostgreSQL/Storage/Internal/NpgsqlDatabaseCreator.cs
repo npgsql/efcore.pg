@@ -22,6 +22,7 @@
 #endregion
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
@@ -63,18 +64,22 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
                 ClearPool();
             }
 
-            CreatePostCreateOperations().ExecuteNonQuery(_connection);
+            var postCreateOperations = CreatePostCreateOperations();
+            postCreateOperations.ExecuteNonQuery(_connection);
 
-            // The post-creation operations may have create new types (e.g. extension),
-            // reload type definitions
-            _connection.Open();
-            try
+            if (postCreateOperations.Any())
             {
-                ((NpgsqlConnection) _connection.DbConnection).ReloadTypes();
-            }
-            finally
-            {
-                _connection.Close();
+                // The post-creation operations may have create new types (e.g. extension),
+                // reload type definitions
+                _connection.Open();
+                try
+                {
+                    ((NpgsqlConnection)_connection.DbConnection).ReloadTypes();
+                }
+                finally
+                {
+                    _connection.Close();
+                }
             }
         }
 
@@ -87,18 +92,23 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
                 ClearPool();
             }
 
-            CreatePostCreateOperations().ExecuteNonQuery(_connection);
+            var postCreateOperations = CreatePostCreateOperations();
+            await postCreateOperations.ExecuteNonQueryAsync(_connection);
 
-            // The post-creation operations may have create new types (e.g. extension),
-            // reload type definitions
-            _connection.Open();
-            try
+            if (postCreateOperations.Any())
             {
-                ((NpgsqlConnection)_connection.DbConnection).ReloadTypes();
-            }
-            finally
-            {
-                _connection.Close();
+                // The post-creation operations may have create new types (e.g. extension),
+                // reload type definitions
+                _connection.Open();
+                try
+                {
+                    // TODO: This is a non-async operation...
+                    ((NpgsqlConnection)_connection.DbConnection).ReloadTypes();
+                }
+                finally
+                {
+                    _connection.Close();
+                }
             }
         }
 
@@ -123,7 +133,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
         /// Creates migration operations that should take place immediately after creating the database,
         /// e.g. PostgreSQL extension setup
         /// </summary>
-        IEnumerable<IRelationalCommand> CreatePostCreateOperations()
+        List<IRelationalCommand> CreatePostCreateOperations()
         {
             var operations = new List<MigrationOperation>();
             foreach (var extension in Model.Npgsql().PostgresExtensions)
@@ -133,7 +143,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
                     Schema = extension.Schema,
                     Version = extension.Version
                 });
-            return _migrationsSqlGenerator.Generate(operations);
+            return _migrationsSqlGenerator.Generate(operations).ToList();
         }
 
         public override bool Exists()
