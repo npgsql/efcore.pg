@@ -58,6 +58,7 @@
     <Compile Include="Infrastructure\NpgsqlDbContextOptionsBuilder.cs" />
     <Compile Include="Extensions\NpgsqlDbContextOptionsExtensions.cs" />
     <Compile Include="Extensions\NpgsqlServiceCollectionExtensions.cs" />
+    <Compile Include="Internal\NpgsqlModelValidator.cs" />
     <Compile Include="Metadata\INpgsqlModelAnnotations.cs" />
     <Compile Include="Metadata\Internal\NpgsqlAnnotationNames.cs" />
     <Compile Include="Metadata\Internal\NpgsqlFullAnnotationNames.cs" />
@@ -121,6 +122,7 @@
     <Compile Include="Utilities\SharedTypeExtensions.cs" />
     <Compile Include="Utilities\StringBuilderExtensions.cs" />
     <Compile Include="ValueGeneration\Internal\NpgsqlValueGeneratorCache.cs" />
+    <Compile Include="ValueGeneration\Internal\NpgsqlValueGeneratorSelector.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

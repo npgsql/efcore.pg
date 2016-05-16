@@ -24,6 +24,7 @@
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using Microsoft.EntityFrameworkCore.Migrations;
@@ -89,10 +90,11 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddSingleton<NpgsqlModelSource>()
                 .AddSingleton<NpgsqlAnnotationProvider>()
                 .AddSingleton<NpgsqlMigrationsAnnotationProvider>()
-                // TODO: NpgsqlModelValidator
+                .AddScoped<NpgsqlModelValidator>()
                 .AddScoped<NpgsqlConventionSetBuilder>()
                 .AddScoped<NpgsqlUpdateSqlGenerator>()
                 .AddScoped<NpgsqlModificationCommandBatchFactory>()
+                .AddScoped<NpgsqlValueGeneratorSelector>()
                 .AddScoped<NpgsqlDatabaseProviderServices>()
                 .AddScoped<NpgsqlRelationalConnection>()
                 .AddScoped<NpgsqlMigrationsSqlGenerator>()

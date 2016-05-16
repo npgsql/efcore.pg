@@ -26,6 +26,7 @@ using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions.Internal;
@@ -52,9 +53,11 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
         }
 
         public override string InvariantName => GetType().GetTypeInfo().Assembly.GetName().Name;
+        public override IModelValidator ModelValidator => GetService<NpgsqlModelValidator>();
         public override IDatabaseCreator Creator => GetService<NpgsqlDatabaseCreator>();
         public override IRelationalConnection RelationalConnection => GetService<NpgsqlRelationalConnection>();
         public override ISqlGenerationHelper SqlGenerationHelper => GetService<NpgsqlSqlGenerationHelper>();
+        public override IValueGeneratorSelector ValueGeneratorSelector => GetService<NpgsqlValueGeneratorSelector>();
         public override IRelationalDatabaseCreator RelationalDatabaseCreator => GetService<NpgsqlDatabaseCreator>();
         public override IConventionSetBuilder ConventionSetBuilder => GetService<NpgsqlConventionSetBuilder>();
         public override IMigrationsAnnotationProvider MigrationsAnnotationProvider => GetService<NpgsqlMigrationsAnnotationProvider>();
