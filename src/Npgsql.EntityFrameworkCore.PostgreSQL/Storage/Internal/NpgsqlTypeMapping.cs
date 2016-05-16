@@ -50,7 +50,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
         {
             if (StoreType.HasValue)
             {
-                ((NpgsqlParameter) parameter).NpgsqlDbType = StoreType.Value;
+                ((NpgsqlParameter)parameter).NpgsqlDbType = StoreType.Value;
             }
         }
     }

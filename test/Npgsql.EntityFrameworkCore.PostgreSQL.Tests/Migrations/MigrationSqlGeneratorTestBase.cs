@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
+using Microsoft.EntityFrameworkCore.Specification.Tests;
 using Xunit;
 
 namespace Microsoft.EntityFrameworkCore.Relational.Tests.Migrations
@@ -178,6 +179,20 @@ namespace Microsoft.EntityFrameworkCore.Relational.Tests.Migrations
                     Table = "People",
                     Name = "LuckyNumber",
                     ClrType = typeof(int)
+                });
+        }
+
+        [Fact]
+        public virtual void AddColumnOperation_with_maxLength()
+        {
+            Generate(
+                modelBuilder => modelBuilder.Entity("Person").Property<string>("Name").HasMaxLength(30),
+                new AddColumnOperation
+                {
+                    Table = "Person",
+                    Name = "Name",
+                    ClrType = typeof(string),
+                    IsNullable = true
                 });
         }
 
@@ -439,12 +454,20 @@ namespace Microsoft.EntityFrameworkCore.Relational.Tests.Migrations
                 });
         }
 
-        protected virtual void Generate(MigrationOperation operation)
+        protected virtual void Generate(params MigrationOperation[] operation)
+            => Generate(_ => { }, operation);
+
+        protected virtual ModelBuilder CreateModelBuilder() => TestHelpers.Instance.CreateConventionBuilder();
+
+        protected virtual void Generate(Action<ModelBuilder> buildAction, params MigrationOperation[] operation)
         {
-            var batch = SqlGenerator.Generate(new[] { operation });
+            var modelBuilder = CreateModelBuilder();
+            buildAction(modelBuilder);
+
+            var batch = SqlGenerator.Generate(operation, modelBuilder.Model);
 
             Sql = string.Join(
-                EOL + "GO" + EOL + EOL,
+                "GO" + EOL + EOL,
                 batch.Select(b => b.CommandText));
         }
     }

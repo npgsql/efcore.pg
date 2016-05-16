@@ -22,11 +22,14 @@
 #endregion
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Reflection;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Utilities;
 using Npgsql;
 using Npgsql.TypeHandlers;
 
@@ -37,6 +40,9 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
     // TODO: Arrays? But this would conflict with navigation...
     public class NpgsqlTypeMapper : RelationalTypeMapper
     {
+        readonly ConcurrentDictionary<int, RelationalTypeMapping> _boundedStringMappings
+            = new ConcurrentDictionary<int, RelationalTypeMapping>();
+
         readonly Dictionary<string, RelationalTypeMapping> _simpleNameMappings;
         readonly Dictionary<Type, RelationalTypeMapping> _simpleMappings;
 
@@ -93,6 +99,25 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
 
         protected override IReadOnlyDictionary<string, RelationalTypeMapping> GetSimpleNameMappings()
             => _simpleNameMappings;
+
+        [CanBeNull]
+        protected override RelationalTypeMapping FindCustomMapping(IProperty property, bool unicode = true)
+        {
+            Check.NotNull(property, nameof(property));
+
+            if (property.ClrType == typeof(string))
+            {
+                var maxLength = property.GetMaxLength();
+                if (maxLength.HasValue)
+                {
+                    return _boundedStringMappings.GetOrAdd(maxLength.Value,
+                        ml => new NpgsqlTypeMapping($"varchar({maxLength})", typeof(string))
+                    );
+                }
+            }
+
+            return null;
+        }
 
         static Type GetTypeHandlerTypeArgument(Type handler)
         {

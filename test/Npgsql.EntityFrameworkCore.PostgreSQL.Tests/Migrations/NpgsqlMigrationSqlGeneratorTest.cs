@@ -72,6 +72,15 @@ namespace EntityFramework7.Npgsql.Tests.Migrations
                 Sql);
         }
 
+        public override void AddColumnOperation_with_maxLength()
+        {
+            base.AddColumnOperation_with_maxLength();
+
+            Assert.Equal(
+                @"ALTER TABLE ""Person"" ADD ""Name"" varchar(30);" + EOL,
+                Sql);
+        }
+
         public override void AddForeignKeyOperation_with_name()
         {
             base.AddForeignKeyOperation_with_name();
