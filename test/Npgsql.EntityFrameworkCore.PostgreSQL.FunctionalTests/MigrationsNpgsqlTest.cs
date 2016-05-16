@@ -26,8 +26,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 
             Assert.Equal(
                 @"CREATE TABLE ""__EFMigrationsHistory"" (
-    ""MigrationId"" text NOT NULL,
-    ""ProductVersion"" text NOT NULL,
+    ""MigrationId"" varchar(150) NOT NULL,
+    ""ProductVersion"" varchar(32) NOT NULL,
     CONSTRAINT ""PK___EFMigrationsHistory"" PRIMARY KEY (""MigrationId"")
 );
 
