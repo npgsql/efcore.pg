@@ -1,5 +1,5 @@
 ﻿{
-  "version": "1.0.0-rc2-release1",
+  "version": "1.0.0-rc3-ci-*",
   "packOptions": {
     "authors": [ "Shay Rojansky" ],
     "description": "Design-time Entity Framework Core Functionality for PostgreSQL",
