@@ -26,7 +26,7 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Internal
     public static class NpgsqlAnnotationNames
     {
         public const string Prefix = "Npgsql:";
-        public const string Serial = "Serial";
+        public const string ValueGeneratedOnAdd = "ValueGeneratedOnAdd";
         public const string DefaultSequenceName = "DefaultSequenceName";
         public const string DefaultSequenceSchema = "DefaultSequenceSchema";
         public const string SequenceName = "SequenceName";

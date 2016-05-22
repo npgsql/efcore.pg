@@ -28,7 +28,6 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Internal
         protected NpgsqlFullAnnotationNames(string prefix)
             : base(prefix)
         {
-            Serial = prefix + NpgsqlAnnotationNames.Serial;
             DefaultSequenceName = prefix + NpgsqlAnnotationNames.DefaultSequenceName;
             DefaultSequenceSchema = prefix + NpgsqlAnnotationNames.DefaultSequenceSchema;
             SequenceName = prefix + NpgsqlAnnotationNames.SequenceName;
@@ -40,7 +39,6 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Internal
 
         public new static NpgsqlFullAnnotationNames Instance { get; } = new NpgsqlFullAnnotationNames(NpgsqlAnnotationNames.Prefix);
 
-        public readonly string Serial;
         public readonly string DefaultSequenceName;
         public readonly string DefaultSequenceSchema;
         public readonly string SequenceName;

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.EntityFrameworkCore.Migrations;
@@ -327,6 +328,43 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Migrations
 
             Assert.Equal(
                 @"CREATE EXTENSION ""hstore"";" + EOL,
+                Sql);
+        }
+
+        [Fact]
+        public virtual void AddColumnOperation_serial()
+        {
+            Generate(new AddColumnOperation
+            {
+                Table = "People",
+                Name = "foo",
+                ClrType = typeof(int),
+                ColumnType = "int",
+                IsNullable = false,
+                [NpgsqlAnnotationNames.Prefix + NpgsqlAnnotationNames.ValueGeneratedOnAdd] = true
+            });
+
+            Assert.Equal(
+                "ALTER TABLE \"People\" ADD \"foo\" serial NOT NULL;" + EOL,
+                Sql);
+        }
+
+        [Fact]
+        public virtual void AddColumnOperation_with_int_defaultValue_isnt_serial()
+        {
+            Generate(
+                new AddColumnOperation
+                {
+                    Table = "People",
+                    Name = "foo",
+                    ClrType = typeof(int),
+                    ColumnType = "int",
+                    IsNullable = false,
+                    DefaultValue = "8"
+                });
+
+            Assert.Equal(
+                "ALTER TABLE \"People\" ADD \"foo\" int NOT NULL DEFAULT '8';" + EOL,
                 Sql);
         }
 

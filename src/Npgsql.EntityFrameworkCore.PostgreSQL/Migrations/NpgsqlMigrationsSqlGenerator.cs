@@ -91,8 +91,9 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                     : TypeMapper.GetMapping(operation.ClrType).DefaultTypeName;
             }
 
-            var serial = operation.FindAnnotation(NpgsqlAnnotationNames.Prefix + NpgsqlAnnotationNames.Serial);
-            var isSerial = serial != null && (bool)serial.Value;
+            var generatedOnAddAnnotation = operation[NpgsqlAnnotationNames.Prefix + NpgsqlAnnotationNames.ValueGeneratedOnAdd];
+            var isSerial = generatedOnAddAnnotation != null && (bool)generatedOnAddAnnotation &&
+                operation.DefaultValue == null && operation.DefaultValueSql == null;
 
             var identifier = SqlGenerationHelper.DelimitIdentifier(operation.Table, operation.Schema);
             var alterBase = $"ALTER TABLE {identifier} ALTER COLUMN {SqlGenerationHelper.DelimitIdentifier(operation.Name)}";
@@ -142,7 +143,6 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                         break;
                     default:
                         throw new NotImplementedException($"Not supporting creating IsIdentity for {type}");
-
                 }
             }
             else
@@ -382,18 +382,18 @@ namespace Microsoft.EntityFrameworkCore.Migrations
         }
 
         protected override void ColumnDefinition(
-            string schema,
-            string table,
-            string name,
-            Type clrType,
-            string type,
+            [CanBeNull] string schema,
+            [CanBeNull] string table,
+            [NotNull] string name,
+            [NotNull] Type clrType,
+            [CanBeNull] string type,
             bool nullable,
-            object defaultValue,
-            string defaultValueSql,
-            string computedColumnSql,
-            IAnnotatable annotatable,
-            IModel model,
-            RelationalCommandListBuilder builder)
+            [CanBeNull] object defaultValue,
+            [CanBeNull] string defaultValueSql,
+            [CanBeNull] string computedColumnSql,
+            [NotNull] IAnnotatable annotatable,
+            [CanBeNull] IModel model,
+            [NotNull] RelationalCommandListBuilder builder)
         {
             Check.NotEmpty(name, nameof(name));
             Check.NotNull(annotatable, nameof(annotatable));
@@ -408,11 +408,13 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                     : TypeMapper.GetMapping(clrType).DefaultTypeName;
             }
 
-            // TODO: Maybe implement computed columns via functions?
-            // http://stackoverflow.com/questions/11165450/store-common-query-as-column/11166268#11166268
+            // An int-like property marked with OnAdd and without a default value is
+            // treated as a serial column
+            var generatedOnAddAnnotation = annotatable[NpgsqlAnnotationNames.Prefix + NpgsqlAnnotationNames.ValueGeneratedOnAdd];
+            var isSerial = generatedOnAddAnnotation != null && (bool)generatedOnAddAnnotation &&
+                defaultValue == null && defaultValueSql == null;
 
-            var serial = annotatable[NpgsqlAnnotationNames.Prefix + NpgsqlAnnotationNames.Serial];
-            if (serial != null && (bool)serial)
+            if (isSerial)
             {
                 switch (type)
                 {
