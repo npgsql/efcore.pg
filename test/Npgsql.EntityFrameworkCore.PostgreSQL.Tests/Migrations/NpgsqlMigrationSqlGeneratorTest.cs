@@ -8,13 +8,12 @@ using System.Text;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.EntityFrameworkCore.Migrations;
-using Microsoft.EntityFrameworkCore.Relational.Tests.Migrations;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Microsoft.EntityFrameworkCore.Relational.Tests.TestUtilities;
 using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Xunit;
 
-namespace EntityFramework7.Npgsql.Tests.Migrations
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Migrations
 {
     public class MigrationSqlGeneratorTest : MigrationSqlGeneratorTestBase
     {

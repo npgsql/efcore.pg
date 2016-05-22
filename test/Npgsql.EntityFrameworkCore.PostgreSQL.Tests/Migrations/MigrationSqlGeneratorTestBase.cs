@@ -3,12 +3,13 @@
 
 using System;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Microsoft.EntityFrameworkCore.Specification.Tests;
 using Xunit;
 
-namespace Microsoft.EntityFrameworkCore.Relational.Tests.Migrations
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Migrations
 {
     public abstract class MigrationSqlGeneratorTestBase
     {
