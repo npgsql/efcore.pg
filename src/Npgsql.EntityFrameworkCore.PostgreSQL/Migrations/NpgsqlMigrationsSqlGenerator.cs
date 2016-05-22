@@ -78,10 +78,6 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
-            // TODO: There is probably duplication here with other methods. See ColumnDefinition.
-
-            //TODO: this should provide feature parity with the EF6 provider, check if there's anything missing for EF7
-
             var type = operation.ColumnType;
             if (operation.ColumnType == null)
             {
@@ -92,62 +88,76 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             }
 
             var generatedOnAddAnnotation = operation[NpgsqlAnnotationNames.Prefix + NpgsqlAnnotationNames.ValueGeneratedOnAdd];
-            var isSerial = generatedOnAddAnnotation != null && (bool)generatedOnAddAnnotation &&
-                operation.DefaultValue == null && operation.DefaultValueSql == null;
+            var generatedOnAdd = generatedOnAddAnnotation != null && (bool)generatedOnAddAnnotation;
+
+            string sequenceName = null;
+            var defaultValueSql = operation.DefaultValueSql;
+            if (generatedOnAdd && operation.DefaultValue == null && operation.DefaultValueSql == null)
+            {
+                switch (type)
+                {
+                case "int":
+                case "int4":
+                case "bigint":
+                case "int8":
+                case "smallint":
+                case "int2":
+                    sequenceName = $"{operation.Table}_{operation.Name}_seq";
+                    Generate(new CreateSequenceOperation
+                    {
+                        Name = sequenceName,
+                        ClrType = typeof(long)
+                    }, model, builder);
+                    builder.AppendLine(SqlGenerationHelper.StatementTerminator);
+                    defaultValueSql = $@"nextval({SqlGenerationHelper.DelimitIdentifier(sequenceName)})";
+                    // Note: we also need to set the sequence ownership, this is done below
+                    // after the ALTER COLUMN
+                    break;
+                case "uuid":
+                    defaultValueSql = "uuid_generate_v4()";
+                    break;
+                default:
+                    throw new InvalidOperationException($"Column {operation.Name} of type {type} has ValueGenerated.OnAdd but no default value is defined");
+                }
+            }
 
             var identifier = SqlGenerationHelper.DelimitIdentifier(operation.Table, operation.Schema);
-            var alterBase = $"ALTER TABLE {identifier} ALTER COLUMN {SqlGenerationHelper.DelimitIdentifier(operation.Name)}";
+            var alterBase = $"ALTER TABLE {identifier} ALTER COLUMN {SqlGenerationHelper.DelimitIdentifier(operation.Name)} ";
 
             // TYPE
             builder.Append(alterBase)
-                .Append(" TYPE ")
+                .Append("TYPE ")
                 .Append(type)
                 .AppendLine(SqlGenerationHelper.StatementTerminator);
 
             // NOT NULL
             builder.Append(alterBase)
-                .Append(operation.IsNullable ? " DROP NOT NULL" : " SET NOT NULL")
+                .Append(operation.IsNullable ? "DROP NOT NULL" : "SET NOT NULL")
                 .AppendLine(SqlGenerationHelper.StatementTerminator);
 
+            // DEFAULT
             builder.Append(alterBase);
-
-            if (operation.DefaultValue != null)
+            if (operation.DefaultValue != null || defaultValueSql != null)
             {
-                builder.Append(" SET DEFAULT ")
-                    .Append(SqlGenerationHelper.GenerateLiteral((dynamic)operation.DefaultValue))
-                    .AppendLine(SqlGenerationHelper.StatementTerminator);
-            }
-            else if (!string.IsNullOrWhiteSpace(operation.DefaultValueSql))
-            {
-                builder.Append(" SET DEFAULT ")
-                    .Append(operation.DefaultValueSql)
-                    .AppendLine(SqlGenerationHelper.StatementTerminator);
-            }
-            else if (isSerial)
-            {
-                builder.Append(" SET DEFAULT ");
-                switch (type)
-                {
-                    case "smallint":
-                    case "int":
-                    case "bigint":
-                    case "real":
-                    case "double precision":
-                    case "numeric":
-                        //TODO: need function CREATE SEQUENCE IF NOT EXISTS and set to it...
-                        //Until this is resolved changing IsIdentity from false to true
-                        //on types int2, int4 and int8 won't switch to type serial2, serial4 and serial8
-                        throw new NotImplementedException("Not supporting creating sequence for integer types");
-                    case "uuid":
-                        builder.Append("uuid_generate_v4()");
-                        break;
-                    default:
-                        throw new NotImplementedException($"Not supporting creating IsIdentity for {type}");
-                }
+                builder.Append("SET");
+                DefaultValue(operation.DefaultValue, defaultValueSql, builder);
             }
             else
+                builder.Append("DROP DEFAULT");
+
+            // ALTER SEQUENCE
+            if (sequenceName != null)
             {
-                builder.Append(" DROP DEFAULT ");
+                // Terminate the DEFAULT above
+                builder.AppendLine(SqlGenerationHelper.StatementTerminator);
+
+                builder
+                    .Append("ALTER SEQUENCE ")
+                    .Append(SqlGenerationHelper.DelimitIdentifier(sequenceName))
+                    .Append(" OWNED BY ")
+                    .Append(SqlGenerationHelper.DelimitIdentifier(operation.Table))
+                    .Append('.')
+                    .Append(SqlGenerationHelper.DelimitIdentifier(operation.Name));
             }
         }
 
