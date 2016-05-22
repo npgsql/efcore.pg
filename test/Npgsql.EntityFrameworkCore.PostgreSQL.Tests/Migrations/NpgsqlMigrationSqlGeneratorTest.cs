@@ -368,6 +368,24 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Migrations
                 Sql);
         }
 
+        [Fact]
+        public virtual void AddColumnOperation_with_dbgenerated_uuid()
+        {
+            Generate(
+                new AddColumnOperation
+                {
+                    Table = "People",
+                    Name = "foo",
+                    ClrType = typeof(Guid),
+                    ColumnType = "uuid",
+                    [NpgsqlAnnotationNames.Prefix + NpgsqlAnnotationNames.ValueGeneratedOnAdd] = true
+                });
+
+            Assert.Equal(
+                "ALTER TABLE \"People\" ADD \"foo\" uuid NOT NULL DEFAULT (uuid_generate_v4());" + EOL,
+                Sql);
+        }
+
         #endregion
     }
 }

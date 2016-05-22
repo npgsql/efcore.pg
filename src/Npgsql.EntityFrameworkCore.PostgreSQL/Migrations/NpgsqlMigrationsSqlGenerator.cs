@@ -408,13 +408,12 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                     : TypeMapper.GetMapping(clrType).DefaultTypeName;
             }
 
-            // An int-like property marked with OnAdd and without a default value is
-            // treated as a serial column
             var generatedOnAddAnnotation = annotatable[NpgsqlAnnotationNames.Prefix + NpgsqlAnnotationNames.ValueGeneratedOnAdd];
-            var isSerial = generatedOnAddAnnotation != null && (bool)generatedOnAddAnnotation &&
-                defaultValue == null && defaultValueSql == null;
+            var generatedOnAdd = generatedOnAddAnnotation != null && (bool)generatedOnAddAnnotation;
 
-            if (isSerial)
+            // int-like properties marked with OnAdd and without default values are
+            // treated as serial column. Similar for UUID.
+            if (generatedOnAdd && defaultValue == null && defaultValueSql == null)
             {
                 switch (type)
                 {
@@ -430,8 +429,11 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                 case "int2":
                     type = "smallserial";
                     break;
+                case "uuid":
+                    defaultValueSql = "uuid_generate_v4()";
+                    break;
                 default:
-                    throw new InvalidOperationException($"Column {name} of type {type} can't be Identity");
+                    throw new InvalidOperationException($"Column {name} of type {type} has ValueGenerated.OnAdd but no default value is defined");
                 }
             }
 
