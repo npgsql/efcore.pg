@@ -32,6 +32,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                     .BuildServiceProvider();
             }
 
+            protected override void OnModelCreating(ModelBuilder modelBuilder)
+            {
+                modelBuilder.HasPostgresExtension("uuid-ossp");
+
+                base.OnModelCreating(modelBuilder);
+            }
+
             public override NpgsqlTestStore CreateTestStore()
             {
                 return NpgsqlTestStore.GetOrCreateShared(DatabaseName, () =>

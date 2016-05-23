@@ -28,41 +28,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         {
             _testStore = NpgsqlTestStore.CreateScratch();
 
-            /*
-            // TODO: find a better way to do this
-            _testStore.ExecuteNonQuery("CREATE TYPE some_composite AS (some_number int, some_text text)");
-            var npgsqlConn = (NpgsqlConnection)_testStore.Connection;
-            npgsqlConn.ReloadTypes();
-            npgsqlConn.MapComposite<SomeComposite>();
-            */
-
             var serviceProvider = new ServiceCollection()
                 .AddEntityFrameworkNpgsql()
                 .AddSingleton(TestNpgsqlModelSource.GetFactory(OnModelCreating))
                 .BuildServiceProvider();
 
-            // We need the database to be created with NpgsqlDatabaseCreator for the
-            // extension migration operations to take place. Drop the database created
-            // above by NpgsqlTestStore and recreate.
-            var tempOptions = new DbContextOptionsBuilder()
+            _options = new DbContextOptionsBuilder()
                 .UseNpgsql(_testStore.Connection)
                 .UseInternalServiceProvider(serviceProvider)
                 .Options;
 
-            // Close the test store's connection because the database is about to
-            // get dropped (via a different master connection)
-            _testStore.Connection.Close();
-
-            using (var context = new DbContext(tempOptions))
-                context.Database.EnsureDeleted();
-
-            _options = new DbContextOptionsBuilder()
-                .UseNpgsql(_testStore.ConnectionString)
-                .UseInternalServiceProvider(serviceProvider)
-                .Options;
-
             using (var context = new DbContext(_options))
+            {
                 context.Database.EnsureCreated();
+            }
         }
 
         public override DbContext CreateContext()

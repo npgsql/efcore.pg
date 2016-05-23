@@ -22,7 +22,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             using (var context = new ExtensionContext(connString))
             {
                 var creator = context.GetService<IRelationalDatabaseCreator>();
-                creator.Create();
+                creator.EnsureDeleted();
+                creator.EnsureCreated();
 
                 try
                 {

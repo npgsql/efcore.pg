@@ -341,6 +341,8 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                 .Append(dbName);
         }
 
+        #region PostgreSQL extensions
+
         public virtual void Generate(NpgsqlCreatePostgresExtensionOperation operation, IModel model, RelationalCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
@@ -364,6 +366,18 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                     .Append(SqlGenerationHelper.DelimitIdentifier(operation.Version));
             }
         }
+
+        public virtual void Generate(NpgsqlDropPostgresExtensionOperation operation, IModel model, RelationalCommandListBuilder builder)
+        {
+            Check.NotNull(operation, nameof(operation));
+            Check.NotNull(builder, nameof(builder));
+
+            builder
+                .Append("DROP EXTENSION ")
+                .Append(SqlGenerationHelper.DelimitIdentifier(operation.Name));
+        }
+
+        #endregion PostgreSQL extensions
 
         protected override void Generate(DropIndexOperation operation, IModel model, RelationalCommandListBuilder builder)
         {

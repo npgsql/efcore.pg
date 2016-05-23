@@ -70,12 +70,14 @@
     <Compile Include="Metadata\NpgsqlAnnotationProvider.cs" />
     <Compile Include="Metadata\NpgsqlModelAnnotations.cs" />
     <Compile Include="Metadata\PostgresExtension.cs" />
+    <Compile Include="Migrations\Internal\NpgsqlMigrationsModelDiffer.cs" />
     <Compile Include="Migrations\Operations\NpgsqlCreatePostgresExtensionOperation.cs" />
     <Compile Include="Migrations\Operations\NpgsqlCreateDatabaseOperation.cs" />
     <Compile Include="Migrations\Operations\NpgsqlDropDatabaseOperation.cs" />
     <Compile Include="Migrations\Internal\NpgsqlHistoryRepository.cs" />
     <Compile Include="Migrations\Internal\NpgsqlMigrationsAnnotationProvider.cs" />
     <Compile Include="Migrations\NpgsqlMigrationsSqlGenerator.cs" />
+    <Compile Include="Migrations\Operations\NpgsqlDropPostgresExtensionOperation.cs" />
     <Compile Include="NpgsqlModelBuilderExtensions.cs" />
     <Compile Include="NpgsqlPostgresExtensionBuilder.cs" />
     <Compile Include="Query\ExpressionTranslators\Internal\NpgsqlCompositeMemberTranslator.cs" />

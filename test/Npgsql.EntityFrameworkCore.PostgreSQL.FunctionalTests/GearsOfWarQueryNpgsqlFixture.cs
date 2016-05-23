@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Specification.Tests;
 using Microsoft.EntityFrameworkCore.Specification.Tests.TestModels.GearsOfWarModel;
+using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.TestModels;
 using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
@@ -67,6 +68,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             context.Database.UseTransaction(testStore.Transaction);
 
             return context;
+        }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.HasPostgresExtension("uuid-ossp");
+
+            base.OnModelCreating(modelBuilder);
         }
     }
 }
