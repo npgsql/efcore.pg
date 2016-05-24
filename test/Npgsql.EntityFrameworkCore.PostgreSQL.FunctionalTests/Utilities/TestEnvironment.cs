@@ -19,7 +19,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities
                 .GetSection("Test:Npgsql");
         }
 
-        private const string DefaultConnectionString = "Server=localhost;Username=npgsql_tests;Password=npgsql_tests;PersistSecurityInfo=true";
+        const string DefaultConnectionString = "Server=localhost;Username=npgsql_tests;Password=npgsql_tests";
 
         public static string DefaultConnection => Config["DefaultConnection"] ?? DefaultConnectionString;
 

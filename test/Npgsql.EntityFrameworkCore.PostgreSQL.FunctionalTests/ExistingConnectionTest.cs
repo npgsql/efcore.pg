@@ -39,7 +39,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 var closeCount = 0;
                 var disposeCount = 0;
 
-                using (var connection = new NpgsqlConnection(store.Connection.ConnectionString))
+                using (var connection = new NpgsqlConnection(store.ConnectionString))
                 {
                     if (openConnection)
                     {

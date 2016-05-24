@@ -1,7 +1,7 @@
 {
-  "version": "0.0.0",
   "buildOptions": {
-    "embed": {
+    "preserveCompilationContext": true,
+    "copyToOutput": {
       "include": [
         "ReverseEngineering/**/*.expected",
         "ReverseEngineering/**/*.sql"
@@ -9,10 +9,18 @@
     }
   },
   "dependencies": {
+    "dotnet-test-xunit": "1.0.0-*",
+    "Microsoft.NETCore.Platforms": "1.0.1-*",
     "Microsoft.EntityFrameworkCore.Relational.Specification.Tests": "1.0.0-rc2-*",
     "Microsoft.EntityFrameworkCore.Relational.Design.Specification.Tests": "1.0.0-rc2-*",
     "Npgsql.EntityFrameworkCore.PostgreSQL.Design": "1.0.0-*",
-    "Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests": "0.0.0-*"
+    "Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests": "1.0.0"
+  },
+  "publishOptions": {
+    "include": [
+      "ReverseEngineering/**/*.expected",
+      "ReverseEngineering/**/*.sql"
+    ]
   },
   "testRunner": "xunit",
   "frameworks": {

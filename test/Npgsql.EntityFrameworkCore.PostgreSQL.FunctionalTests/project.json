@@ -1,12 +1,13 @@
 {
-  "version": "0.0.0",
   "buildOptions": {
-    "embed": {
-      "include": "**/*.sql"
+    "copyToOutput": {
+      "include": "**/*.sql",
+       "includeFiles": "config.json"
     }
   },
   "dependencies": {
     "dotnet-test-xunit": "1.0.0-*",
+    "Microsoft.NETCore.Platforms": "1.0.1-*",
     "Microsoft.EntityFrameworkCore": "1.0.0-rc2-*",
     "Microsoft.EntityFrameworkCore.Relational": "1.0.0-rc2-*",
     "Microsoft.EntityFrameworkCore.Relational.Specification.Tests": "1.0.0-rc2-*",
@@ -14,6 +15,14 @@
     "Microsoft.Extensions.Configuration.EnvironmentVariables": "1.0.0-*",
     "Npgsql.EntityFrameworkCore.PostgreSQL": "1.0.0-*",
     "Npgsql": "3.1.2"
+  },
+  "publishOptions": {
+    "include": "**/*.sql",
+    "includeFiles": "config.json",
+    "exclude": [
+      "obj/**",
+      "bin/**"
+    ]
   },
   "testRunner": "xunit",
   "frameworks": {

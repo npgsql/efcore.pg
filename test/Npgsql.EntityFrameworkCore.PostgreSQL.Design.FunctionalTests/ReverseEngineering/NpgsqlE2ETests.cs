@@ -53,9 +53,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests.ReverseEn
         {
         }
 
-        string _connectionString = NpgsqlTestStore.CreateConnectionString("NpgsqlReverseEngineerTestE2E");
+        readonly string _connectionString =
+            new NpgsqlConnectionStringBuilder(TestEnvironment.DefaultConnection) {
+                Database = "NpgsqlReverseEngineerTestE2E"
+            }.ConnectionString;
 
-        private static readonly List<string> _expectedEntityTypeFiles = new List<string>
+        static readonly List<string> _expectedEntityTypeFiles = new List<string>
             {
                 "AllDataTypes.expected",
                 "OneToManyDependent.expected",
@@ -97,7 +100,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests.ReverseEn
             };
 
             var expectedFileSet = new FileSet(new FileSystemFileService(),
-                Path.Combine("ReverseEngineering", "ExpectedResults", "E2E_UseAttributesInsteadOfFluentApi"),
+                Path.Combine("ReverseEngineering", "Expected", "Attributes"),
                 contents => contents.Replace("namespace " + TestNamespace, "namespace " + TestNamespace + "." + TestSubDir)
                     .Replace("{{connectionString}}", _connectionString))
             {
@@ -150,7 +153,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests.ReverseEn
             };
 
             var expectedFileSet = new FileSet(new FileSystemFileService(),
-                Path.Combine("ReverseEngineering", "ExpectedResults", "E2E_AllFluentApi"),
+                Path.Combine("ReverseEngineering", "Expected", "AllFluentApi"),
                 inputFile => inputFile.Replace("{{connectionString}}", _connectionString))
             {
                 Files = (new List<string> { "NpgsqlReverseEngineerTestE2EContext.expected" })
@@ -198,14 +201,14 @@ CREATE SEQUENCE ""CyclicalCountByThree""
 
                 var configuration = new ReverseEngineeringConfiguration
                 {
-                    ConnectionString = scratch.Connection.ConnectionString,
+                    ConnectionString = scratch.ConnectionString,
                     ProjectPath = TestProjectDir + Path.DirectorySeparatorChar,
                     ProjectRootNamespace = TestNamespace,
                     ContextClassName = "SequenceContext",
                 };
                 var expectedFileSet = new FileSet(new FileSystemFileService(),
-                    Path.Combine("ReverseEngineering", "ExpectedResults"),
-                    contents => contents.Replace("{{connectionString}}", scratch.Connection.ConnectionString))
+                    Path.Combine("ReverseEngineering", "Expected"),
+                    contents => contents.Replace("{{connectionString}}", scratch.ConnectionString))
                 {
                     Files = new List<string> { "SequenceContext.expected" }
                 };
@@ -256,14 +259,14 @@ CREATE TABLE ""NonSerialSequence"" (
 
                 var configuration = new ReverseEngineeringConfiguration
                 {
-                    ConnectionString = scratch.Connection.ConnectionString,
+                    ConnectionString = scratch.ConnectionString,
                     ProjectPath = TestProjectDir + Path.DirectorySeparatorChar,
                     ProjectRootNamespace = TestNamespace,
                     ContextClassName = "ColumnsWithSequencesContext",
                 };
                 var expectedFileSet = new FileSet(new FileSystemFileService(),
-                    Path.Combine("ReverseEngineering", "ExpectedResults", "ColumnsWithSequences"),
-                    contents => contents.Replace("{{connectionString}}", scratch.Connection.ConnectionString))
+                    Path.Combine("ReverseEngineering", "Expected", "ColumnsWithSequences"),
+                    contents => contents.Replace("{{connectionString}}", scratch.ConnectionString))
                 {
                     Files = new List<string>
                     {
@@ -282,7 +285,6 @@ CREATE TABLE ""NonSerialSequence"" (
                     Files = new[] { filePaths.ContextFile }.Concat(filePaths.EntityTypeFiles).Select(Path.GetFileName).ToList()
                 };
 
-                //throw new Exception(actualFileSet.Contents(0));
                 AssertEqualFileContents(expectedFileSet, actualFileSet);
                 AssertCompile(actualFileSet);
             }

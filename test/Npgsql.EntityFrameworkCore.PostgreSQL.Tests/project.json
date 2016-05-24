@@ -1,6 +1,7 @@
 {
-  "version": "0.0.0",
   "dependencies": {
+    "dotnet-test-xunit": "1.0.0-*",
+    "Microsoft.NETCore.Platforms": "1.0.1-*",
     "Microsoft.Extensions.Logging": "1.0.0-*",
     "Microsoft.EntityFrameworkCore": "1.0.0-rc2-*",
     "Microsoft.EntityFrameworkCore.Relational": "1.0.0-rc2-*",
@@ -10,6 +11,18 @@
   },
   "testRunner": "xunit",
   "frameworks": {
+    "netcoreapp1.0": {
+      "imports": [
+        "dnxcore50",
+        "portable-net452+win81"
+      ],
+      "dependencies": {
+        "Microsoft.NETCore.App": {
+          "version": "1.0.0-*",
+          "type": "platform"
+        }
+      }
+    },
     "net451": {
       "frameworkAssemblies": {
         "System.Threading.Tasks": { "version": "4.0.0.0", "type": "build" }

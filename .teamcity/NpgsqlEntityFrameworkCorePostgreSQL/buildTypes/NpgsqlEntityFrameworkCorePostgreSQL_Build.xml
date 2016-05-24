@@ -6,10 +6,9 @@
     <options>
       <option name="checkoutMode" value="ON_AGENT" />
     </options>
-    <disabled-settings>
-      <setting-ref ref="RUNNER_26" />
-    </disabled-settings>
-    <parameters />
+    <parameters>
+      <param name="env.Test__Npgsql__DefaultConnection" value="Server=localhost;Port=5495;Username=npgsql_tests;Password=npgsql_tests" />
+    </parameters>
     <build-runners>
       <runner id="RUNNER_19" name="Set build number" type="simpleRunner">
         <parameters>

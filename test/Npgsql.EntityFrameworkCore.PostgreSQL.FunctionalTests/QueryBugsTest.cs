@@ -31,7 +31,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 testStore.ExecuteNonQuery(@"CREATE TABLE ""ZeroKey"" (""Id"" int)");
                 testStore.ExecuteNonQuery(@"INSERT INTO ""ZeroKey"" VALUES (NULL)");
 
-                using (var context = new NullKeyContext(testStore.Connection.ConnectionString))
+                using (var context = new NullKeyContext(testStore.ConnectionString))
                 {
                     Assert.Equal(
                         CoreStrings.InvalidKeyValue("ZeroKey"),
