@@ -4,6 +4,7 @@
   <description />
   <settings>
     <options>
+      <option name="artifactRules" value="src\Npgsql.EntityFrameworkCore.PostgreSQL\bin\Release\*.nupkg&#xA;src\Npgsql.EntityFrameworkCore.PostgreSQL.Design\bin\Release\*.nupkg" />
       <option name="checkoutMode" value="ON_AGENT" />
     </options>
     <parameters>
