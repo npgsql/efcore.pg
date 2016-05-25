@@ -13,9 +13,6 @@
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\..\Npgsql.snk</AssemblyOriginatorKeyFile>
     <TargetFrameworkProfile />
-    <!-- The following stops VS from complaining about runtimes in project.json, see
-             https://github.com/Microsoft/msbuild/issues/394 -->
-    <CopyNuGetImplementations>false</CopyNuGetImplementations>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
