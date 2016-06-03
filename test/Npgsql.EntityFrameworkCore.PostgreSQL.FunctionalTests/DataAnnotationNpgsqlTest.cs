@@ -63,9 +63,6 @@ RETURNING ""UniqueNo"";",
                 Sql);
         }
 
-        [Fact(Skip="Npgsql does not support length")]
-        public override void MaxLengthAttribute_throws_while_inserting_value_longer_than_max_length() {}
-
         public override void RequiredAttribute_for_navigation_throws_while_inserting_null_value()
         {
             base.RequiredAttribute_for_navigation_throws_while_inserting_null_value();
@@ -101,11 +98,20 @@ RETURNING ""UniqueNo"";",
                 Sql);
         }
 
-        [Fact(Skip="Npgsql does not support length")]
-        public override void StringLengthAttribute_throws_while_inserting_value_longer_than_max_length() {}
+        public override void StringLengthAttribute_throws_while_inserting_value_longer_than_max_length()
+        {
+            // Npgsql does not support length
+        }
 
-        [Fact(Skip="Npgsql does not support length")]
-        public override void TimestampAttribute_throws_if_value_in_database_changed() {}
+        public override void TimestampAttribute_throws_if_value_in_database_changed()
+        {
+            // Npgsql does not support length
+        }
+
+        public override void MaxLengthAttribute_throws_while_inserting_value_longer_than_max_length()
+        {
+            // Npgsql does not support length            
+        }
 
         private static string Sql => TestSqlLoggerFactory.Sql;
     }
