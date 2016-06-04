@@ -23,6 +23,7 @@
 
 using System;
 using System.Linq;
+using System.Text;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -44,7 +45,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
         {
         }
 
-        protected override void Generate(MigrationOperation operation, IModel model, RelationalCommandListBuilder builder)
+        protected override void Generate(MigrationOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
@@ -70,22 +71,24 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                 return;
             }
 
+            var dropExtensionOperation = operation as NpgsqlDropPostgresExtensionOperation;
+            if (dropExtensionOperation != null)
+            {
+                Generate(dropExtensionOperation, model, builder);
+                return;
+            }
+
             base.Generate(operation, model, builder);
         }
 
-        protected override void Generate(AlterColumnOperation operation, IModel model, RelationalCommandListBuilder builder)
+        #region Standard migrations
+
+        protected override void Generate(AlterColumnOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
-            var type = operation.ColumnType;
-            if (operation.ColumnType == null)
-            {
-                var property = FindProperty(model, operation.Schema, operation.Table, operation.Name);
-                type = property != null
-                    ? TypeMapper.GetMapping(property).DefaultTypeName
-                    : TypeMapper.GetMapping(operation.ClrType).DefaultTypeName;
-            }
+            var type = operation.ColumnType ?? GetColumnType(operation.Schema, operation.Table, operation.Name, operation.ClrType, null, null, false, model);
 
             var generatedOnAddAnnotation = operation[NpgsqlAnnotationNames.Prefix + NpgsqlAnnotationNames.ValueGeneratedOnAdd];
             var generatedOnAdd = generatedOnAddAnnotation != null && (bool)generatedOnAddAnnotation;
@@ -159,9 +162,11 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                     .Append('.')
                     .Append(SqlGenerationHelper.DelimitIdentifier(operation.Name));
             }
+
+            EndStatement(builder);
         }
 
-        protected override void Generate(CreateSequenceOperation operation, IModel model, RelationalCommandListBuilder builder)
+        protected override void Generate(CreateSequenceOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
@@ -178,76 +183,100 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             builder
                 .Append(" START WITH ")
                 .Append(SqlGenerationHelper.GenerateLiteral(operation.StartValue));
+
             SequenceOptions(operation, model, builder);
+
+            builder.AppendLine(SqlGenerationHelper.StatementTerminator);
+
+            EndStatement(builder);
         }
 
-        protected override void Generate(RenameIndexOperation operation, IModel model, RelationalCommandListBuilder builder)
+        protected override void Generate(RenameIndexOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
-            if (operation.NewName != null)
+            var qualifiedName = new StringBuilder();
+            if (operation.Schema != null)
             {
-                Rename(operation.Schema, operation.Name, operation.NewName, "INDEX", builder);
+                qualifiedName
+                    .Append(operation.Schema)
+                    .Append(".");
             }
+            qualifiedName
+                .Append(operation.Table)
+                .Append(".")
+                .Append(operation.Name);
+
+            // TODO: Rename across schema will break, see #44
+            Rename(qualifiedName.ToString(), operation.NewName, "INDEX", builder);
+            EndStatement(builder);
         }
 
-        protected override void Generate(RenameSequenceOperation operation, IModel model, RelationalCommandListBuilder builder)
+        protected override void Generate(RenameSequenceOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
-            var separate = false;
             var name = operation.Name;
             if (operation.NewName != null)
             {
-                Rename(operation.Schema, operation.Name, operation.NewName, "SEQUENCE", builder);
+                var qualifiedName = new StringBuilder();
+                if (operation.Schema != null)
+                {
+                    qualifiedName
+                        .Append(operation.Schema)
+                        .Append(".");
+                }
+                qualifiedName.Append(operation.Name);
 
-                separate = true;
+                Rename(qualifiedName.ToString(), operation.NewName, "SEQUENCE", builder);
+
                 name = operation.NewName;
             }
 
             if (operation.NewSchema != null)
             {
-                if (separate)
-                {
-                    builder.AppendLine(SqlGenerationHelper.StatementTerminator);
-                }
-
                 Transfer(operation.NewSchema, operation.Schema, name, "SEQUENCE", builder);
             }
+
+            EndStatement(builder);
         }
 
-        protected override void Generate(RenameTableOperation operation, IModel model, RelationalCommandListBuilder builder)
+        protected override void Generate(RenameTableOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
-            var separate = false;
             var name = operation.Name;
             if (operation.NewName != null)
             {
-                Rename(operation.Schema, operation.Name, operation.NewName, "TABLE", builder);
+                var qualifiedName = new StringBuilder();
+                if (operation.Schema != null)
+                {
+                    qualifiedName
+                        .Append(operation.Schema)
+                        .Append(".");
+                }
+                qualifiedName.Append(operation.Name);
 
-                separate = true;
+                Rename(qualifiedName.ToString(), operation.NewName, "TABLE", builder);
+
                 name = operation.NewName;
             }
 
             if (operation.NewSchema != null)
             {
-                if (separate)
-                {
-                    builder.AppendLine(SqlGenerationHelper.StatementTerminator);
-                }
-
                 Transfer(operation.NewSchema, operation.Schema, name, "TABLE", builder);
             }
+
+            EndStatement(builder);
         }
 
         protected override void Generate(
             [NotNull] CreateIndexOperation operation,
             [CanBeNull] IModel model,
-            [NotNull] RelationalCommandListBuilder builder)
+            [NotNull] MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
@@ -278,9 +307,13 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                 .Append(" (")
                 .Append(ColumnList(operation.Columns))
                 .Append(")");
+
+            builder.AppendLine(SqlGenerationHelper.StatementTerminator);
+
+            EndStatement(builder);
         }
 
-        protected override void Generate(EnsureSchemaOperation operation, IModel model, RelationalCommandListBuilder builder)
+        protected override void Generate(EnsureSchemaOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
@@ -289,19 +322,22 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             // An attempted workaround by creating a function which checks and creates the schema, and then invoking it, failed because
             // of #641 (pg_temp doesn't exist yet).
             // So the only workaround for pre-9.3 PostgreSQL, at least for now, is to define all tables in the public schema.
+            // TODO: Since Npgsql 3.1 we can now ensure schema with a function in pg_temp
 
             // NOTE: Technically the public schema can be dropped so we should also be ensuring it, but this is a rare case and
             // we want to allow pre-9.3
-            if (operation.Name == "public") {
+            if (operation.Name == "public")
                 return;
-            }
 
             builder
                 .Append("CREATE SCHEMA IF NOT EXISTS ")
-                .Append(SqlGenerationHelper.DelimitIdentifier(operation.Name));
+                .Append(SqlGenerationHelper.DelimitIdentifier(operation.Name))
+                .AppendLine(SqlGenerationHelper.StatementTerminator);
+
+            EndStatement(builder);
         }
 
-        public virtual void Generate(NpgsqlCreateDatabaseOperation operation, IModel model, RelationalCommandListBuilder builder)
+        public virtual void Generate(NpgsqlCreateDatabaseOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
@@ -316,9 +352,13 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                     .Append(" TEMPLATE ")
                     .Append(SqlGenerationHelper.DelimitIdentifier(operation.Template));
             }
+
+            builder.AppendLine(SqlGenerationHelper.StatementTerminator);
+
+            EndStatement(builder, suppressTransaction: true);
         }
 
-        public virtual void Generate(NpgsqlDropDatabaseOperation operation, IModel model, RelationalCommandListBuilder builder)
+        public virtual void Generate(NpgsqlDropDatabaseOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
@@ -336,14 +376,52 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                     "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '")
                 .Append(operation.Name)
                 .Append("'")
-                .EndCommand()
+                .AppendLine(SqlGenerationHelper.StatementTerminator)
+                .EndCommand(suppressTransaction: true)
                 .Append("DROP DATABASE ")
-                .Append(dbName);
+                .Append(dbName)
+                .AppendLine(SqlGenerationHelper.StatementTerminator);
+
+            EndStatement(builder, suppressTransaction: true);
         }
+
+        protected override void Generate(DropIndexOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
+        {
+            Check.NotNull(operation, nameof(operation));
+            Check.NotNull(builder, nameof(builder));
+
+            builder
+                .Append("DROP INDEX ")
+                .Append(SqlGenerationHelper.DelimitIdentifier(operation.Name, operation.Schema))
+                .AppendLine(SqlGenerationHelper.StatementTerminator);
+
+            EndStatement(builder);
+        }
+
+        protected override void Generate(
+            [NotNull] RenameColumnOperation operation,
+            [CanBeNull] IModel model,
+            [NotNull] MigrationCommandListBuilder builder)
+        {
+            Check.NotNull(operation, nameof(operation));
+            Check.NotNull(builder, nameof(builder));
+
+            builder.Append("ALTER TABLE ")
+                .Append(SqlGenerationHelper.DelimitIdentifier(operation.Table, operation.Schema))
+                .Append(" RENAME COLUMN ")
+                .Append(SqlGenerationHelper.DelimitIdentifier(operation.Name))
+                .Append(" TO ")
+                .Append(SqlGenerationHelper.DelimitIdentifier(operation.NewName))
+                .AppendLine(SqlGenerationHelper.StatementTerminator);
+
+            EndStatement(builder);
+        }
+
+        #endregion Standard migrations
 
         #region PostgreSQL extensions
 
-        public virtual void Generate(NpgsqlCreatePostgresExtensionOperation operation, IModel model, RelationalCommandListBuilder builder)
+        public virtual void Generate(NpgsqlCreatePostgresExtensionOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
@@ -365,59 +443,43 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                     .Append(" VERSION ")
                     .Append(SqlGenerationHelper.DelimitIdentifier(operation.Version));
             }
+
+            builder.AppendLine(SqlGenerationHelper.StatementTerminator);
+            EndStatement(builder, suppressTransaction: true);
         }
 
-        public virtual void Generate(NpgsqlDropPostgresExtensionOperation operation, IModel model, RelationalCommandListBuilder builder)
+        public virtual void Generate(NpgsqlDropPostgresExtensionOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
             builder
                 .Append("DROP EXTENSION ")
-                .Append(SqlGenerationHelper.DelimitIdentifier(operation.Name));
+                .Append(SqlGenerationHelper.DelimitIdentifier(operation.Name))
+                .AppendLine(SqlGenerationHelper.StatementTerminator);
+            EndStatement(builder, suppressTransaction: true);
         }
 
         #endregion PostgreSQL extensions
 
-        protected override void Generate(DropIndexOperation operation, IModel model, RelationalCommandListBuilder builder)
-        {
-            Check.NotNull(operation, nameof(operation));
-            Check.NotNull(builder, nameof(builder));
-
-            builder
-                .Append("DROP INDEX ")
-                .Append(SqlGenerationHelper.DelimitIdentifier(operation.Name, operation.Schema));
-        }
-
-        protected override void Generate(
-            [NotNull] RenameColumnOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] RelationalCommandListBuilder builder)
-        {
-            Check.NotNull(operation, nameof(operation));
-            Check.NotNull(builder, nameof(builder));
-
-            builder.Append("ALTER TABLE ")
-                .Append(SqlGenerationHelper.DelimitIdentifier(operation.Table, operation.Schema))
-                .Append(" RENAME COLUMN ")
-                .Append(SqlGenerationHelper.DelimitIdentifier(operation.Name))
-                .Append(" TO ")
-                .Append(SqlGenerationHelper.DelimitIdentifier(operation.NewName));
-        }
+        #region Utilities
 
         protected override void ColumnDefinition(
             [CanBeNull] string schema,
-            [CanBeNull] string table,
+            [NotNull] string table,
             [NotNull] string name,
             [NotNull] Type clrType,
             [CanBeNull] string type,
+            [CanBeNull] bool? unicode,
+            [CanBeNull] int? maxLength,
+            bool rowVersion,
             bool nullable,
             [CanBeNull] object defaultValue,
             [CanBeNull] string defaultValueSql,
             [CanBeNull] string computedColumnSql,
             [NotNull] IAnnotatable annotatable,
             [CanBeNull] IModel model,
-            [NotNull] RelationalCommandListBuilder builder)
+            [NotNull] MigrationCommandListBuilder builder)
         {
             Check.NotEmpty(name, nameof(name));
             Check.NotNull(annotatable, nameof(annotatable));
@@ -425,12 +487,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             Check.NotNull(builder, nameof(builder));
 
             if (type == null)
-            {
-                var property = FindProperty(model, schema, table, name);
-                type = property != null
-                    ? TypeMapper.GetMapping(property).DefaultTypeName
-                    : TypeMapper.GetMapping(clrType).DefaultTypeName;
-            }
+                type = GetColumnType(schema, table, name, clrType, unicode, maxLength, rowVersion, model);
 
             var generatedOnAddAnnotation = annotatable[NpgsqlAnnotationNames.Prefix + NpgsqlAnnotationNames.ValueGeneratedOnAdd];
             var generatedOnAdd = generatedOnAddAnnotation != null && (bool)generatedOnAddAnnotation;
@@ -467,6 +524,9 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                 name,
                 clrType,
                 type,
+                unicode,
+                maxLength,
+                rowVersion,
                 nullable,
                 defaultValue,
                 defaultValueSql,
@@ -477,25 +537,24 @@ namespace Microsoft.EntityFrameworkCore.Migrations
         }
 
         public virtual void Rename(
-            [CanBeNull] string schema,
             [NotNull] string name,
             [NotNull] string newName,
             [NotNull] string type,
-            [NotNull] RelationalCommandListBuilder builder)
+            [NotNull] MigrationCommandListBuilder builder)
         {
             Check.NotEmpty(name, nameof(name));
             Check.NotEmpty(newName, nameof(newName));
             Check.NotEmpty(type, nameof(type));
             Check.NotNull(builder, nameof(builder));
 
-
             builder
                 .Append("ALTER ")
                 .Append(type)
-                .Append(" ")
-                .Append(SqlGenerationHelper.DelimitIdentifier(name, schema))
+                .Append(' ')
+                .Append(SqlGenerationHelper.DelimitIdentifier(name))
                 .Append(" RENAME TO ")
-                .Append(SqlGenerationHelper.DelimitIdentifier(newName));
+                .Append(SqlGenerationHelper.DelimitIdentifier(newName))
+                .AppendLine(SqlGenerationHelper.StatementTerminator);
         }
 
         public virtual void Transfer(
@@ -503,7 +562,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             [CanBeNull] string schema,
             [NotNull] string name,
             [NotNull] string type,
-            [NotNull] RelationalCommandListBuilder builder)
+            [NotNull] MigrationCommandListBuilder builder)
         {
             Check.NotEmpty(newSchema, nameof(newSchema));
             Check.NotEmpty(name, nameof(name));
@@ -519,7 +578,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                 .Append(SqlGenerationHelper.DelimitIdentifier(newSchema));
         }
 
-        protected override void ForeignKeyAction(ReferentialAction referentialAction, RelationalCommandListBuilder builder)
+        protected override void ForeignKeyAction(ReferentialAction referentialAction, MigrationCommandListBuilder builder)
         {
             Check.NotNull(builder, nameof(builder));
 
@@ -534,5 +593,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
         }
 
         string ColumnList(string[] columns) => string.Join(", ", columns.Select(SqlGenerationHelper.DelimitIdentifier));
+
+        #endregion Utilities
     }
 }

@@ -35,21 +35,18 @@ using Npgsql.TypeHandlers;
 
 namespace Microsoft.EntityFrameworkCore.Storage.Internal
 {
-    // TODO: BIT(1) vs. BIT(N)
-    // TODO: Enums - https://github.com/aspnet/EntityFramework/issues/3620
-    // TODO: Arrays? But this would conflict with navigation...
     public class NpgsqlTypeMapper : RelationalTypeMapper
     {
         readonly ConcurrentDictionary<int, RelationalTypeMapping> _boundedStringMappings
             = new ConcurrentDictionary<int, RelationalTypeMapping>();
 
-        readonly Dictionary<string, RelationalTypeMapping> _simpleNameMappings;
-        readonly Dictionary<Type, RelationalTypeMapping> _simpleMappings;
+        readonly Dictionary<string, RelationalTypeMapping> _storeTypeMappings;
+        readonly Dictionary<Type, RelationalTypeMapping> _clrTypeMappings;
 
         public NpgsqlTypeMapper()
         {
             // First, PostgreSQL type name (string) -> RelationalTypeMapping
-            _simpleNameMappings = TypeHandlerRegistry.HandlerTypes.Values
+            _storeTypeMappings = TypeHandlerRegistry.HandlerTypes.Values
                 // Base types
                 .Where(tam => tam.Mapping.NpgsqlDbType.HasValue)
                 .Select(tam => new {
@@ -62,15 +59,15 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
                 //    Mapping = (RelationalTypeMapping)new NpgsqlTypeMapping(kv.Key, ((IEnumHandler)kv.Value).EnumType)
                 //}))
                 // Composites
-                .Concat(TypeHandlerRegistry.GlobalCompositeMappings.Select(kv => new {
-                    Name = kv.Key,
-                    Mapping = (RelationalTypeMapping)new NpgsqlTypeMapping(kv.Key, ((ICompositeHandler)kv.Value).CompositeType)
-                }))
+                //.Concat(TypeHandlerRegistry.GlobalCompositeMappings.Select(kv => new {
+                //    Name = kv.Key,
+                //    Mapping = (RelationalTypeMapping)new NpgsqlTypeMapping(kv.Key, ((ICompositeHandler)kv.Value).CompositeType)
+                //}))
                 // Output
                 .ToDictionary(x => x.Name, x => x.Mapping);
 
             // Second, CLR type -> RelationalTypeMapping
-            _simpleMappings = TypeHandlerRegistry.HandlerTypes.Values
+            _clrTypeMappings = TypeHandlerRegistry.HandlerTypes.Values
                 // Base types
                 .Select(tam => tam.Mapping)
                 .Where(m => m.NpgsqlDbType.HasValue)
@@ -84,24 +81,24 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
                 //    Mapping = (RelationalTypeMapping)new NpgsqlTypeMapping(kv.Key, ((IEnumHandler)kv.Value).EnumType)
                 //}))
                 // Composites
-                .Concat(TypeHandlerRegistry.GlobalCompositeMappings.Select(kv => new {
-                    Type = ((ICompositeHandler)kv.Value).CompositeType,
-                    Mapping = (RelationalTypeMapping)new NpgsqlTypeMapping(kv.Key, ((ICompositeHandler)kv.Value).CompositeType)
-                }))
+                //.Concat(TypeHandlerRegistry.GlobalCompositeMappings.Select(kv => new {
+                //    Type = ((ICompositeHandler)kv.Value).CompositeType,
+                //    Mapping = (RelationalTypeMapping)new NpgsqlTypeMapping(kv.Key, ((ICompositeHandler)kv.Value).CompositeType)
+                //}))
                 // Output
                 .ToDictionary(x => x.Type, x => x.Mapping);
         }
 
         protected override string GetColumnType(IProperty property) => property.Npgsql().ColumnType;
 
-        protected override IReadOnlyDictionary<Type, RelationalTypeMapping> GetSimpleMappings()
-            => _simpleMappings;
+        protected override IReadOnlyDictionary<Type, RelationalTypeMapping> GetClrTypeMappings()
+            => _clrTypeMappings;
 
-        protected override IReadOnlyDictionary<string, RelationalTypeMapping> GetSimpleNameMappings()
-            => _simpleNameMappings;
+        protected override IReadOnlyDictionary<string, RelationalTypeMapping> GetStoreTypeMappings()
+            => _storeTypeMappings;
 
         [CanBeNull]
-        protected override RelationalTypeMapping FindCustomMapping(IProperty property, bool unicode = true)
+        protected override RelationalTypeMapping FindCustomMapping(IProperty property)
         {
             Check.NotNull(property, nameof(property));
 

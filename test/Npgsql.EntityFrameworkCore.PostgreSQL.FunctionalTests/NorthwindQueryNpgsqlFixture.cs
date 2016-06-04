@@ -35,9 +35,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         }
 
         protected DbContextOptions BuildOptions()
-            => new DbContextOptionsBuilder()
-                .EnableSensitiveDataLogging()
-                .UseInternalServiceProvider(_serviceProvider)
+            => ConfigureOptions(
+                new DbContextOptionsBuilder()
+                    .EnableSensitiveDataLogging()
+                    .UseInternalServiceProvider(_serviceProvider))
                 .UseNpgsql(
                     _testStore.ConnectionString,
                     b =>
@@ -46,7 +47,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                         b.ApplyConfiguration();
                     }).Options;
 
-        protected virtual void ConfigureOptions(NpgsqlDbContextOptionsBuilder NpgsqlDbContextOptionsBuilder)
+        protected virtual DbContextOptionsBuilder ConfigureOptions(DbContextOptionsBuilder dbContextOptionsBuilder)
+            => dbContextOptionsBuilder;
+
+        protected virtual void ConfigureOptions(NpgsqlDbContextOptionsBuilder sqlServerDbContextOptionsBuilder)
         {
         }
 

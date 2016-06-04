@@ -182,10 +182,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         public byte[] Bytea { get; set; }
 
         public DateTime Timestamp { get; set; }
-        public DateTime Timestamptz { get; set; }
+        //public DateTime Timestamptz { get; set; }
         public DateTime Date { get; set; }
         public TimeSpan Time { get; set; }
-        public DateTimeOffset Timetz { get; set; }
+        //public DateTimeOffset Timetz { get; set; }
         public TimeSpan Interval { get; set; }
 
         public Guid Uuid { get; set; }

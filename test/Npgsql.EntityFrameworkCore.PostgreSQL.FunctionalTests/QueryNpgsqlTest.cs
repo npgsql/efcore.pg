@@ -75,17 +75,80 @@ FROM ""Employees"" AS ""e2""",
                  Sql);
         }
 
-        public override void Where_query_composition_entity_equality()
+        public override void Where_query_composition_entity_equality_one_element_SingleOrDefault()
         {
-            base.Where_query_composition_entity_equality();
+            base.Where_query_composition_entity_equality_one_element_SingleOrDefault();
 
             Assert.StartsWith(
-                 @"SELECT ""e1"".""EmployeeID"", ""e1"".""City"", ""e1"".""Country"", ""e1"".""FirstName"", ""e1"".""ReportsTo"", ""e1"".""Title""
+                @"SELECT ""e1"".""EmployeeID"", ""e1"".""City"", ""e1"".""Country"", ""e1"".""FirstName"", ""e1"".""ReportsTo"", ""e1"".""Title""
 FROM ""Employees"" AS ""e1""
 
-SELECT ""e2"".""EmployeeID"", ""e2"".""City"", ""e2"".""Country"", ""e2"".""FirstName"", ""e2"".""ReportsTo"", ""e2"".""Title""
-FROM ""Employees"" AS ""e2""",
-                 Sql);
+SELECT ""e20"".""EmployeeID""
+FROM ""Employees"" AS ""e20""",
+                Sql);
+        }
+
+        public override void Where_query_composition_entity_equality_one_element_FirstOrDefault()
+        {
+            base.Where_query_composition_entity_equality_one_element_FirstOrDefault();
+
+            Assert.Equal(
+                @"SELECT ""e1"".""EmployeeID"", ""e1"".""City"", ""e1"".""Country"", ""e1"".""FirstName"", ""e1"".""ReportsTo"", ""e1"".""Title""
+FROM ""Employees"" AS ""e1""
+WHERE (
+    SELECT ""e2"".""EmployeeID""
+    FROM ""Employees"" AS ""e2""
+    WHERE ""e2"".""EmployeeID"" = ""e1"".""ReportsTo""
+    LIMIT 1
+) = 0",
+                Sql);
+        }
+
+        public override void Where_query_composition_entity_equality_no_elements_SingleOrDefault()
+        {
+            base.Where_query_composition_entity_equality_no_elements_SingleOrDefault();
+
+            Assert.StartsWith(
+                @"SELECT ""e1"".""EmployeeID"", ""e1"".""City"", ""e1"".""Country"", ""e1"".""FirstName"", ""e1"".""ReportsTo"", ""e1"".""Title""
+FROM ""Employees"" AS ""e1""
+
+SELECT ""e20"".""EmployeeID""
+FROM ""Employees"" AS ""e20""
+WHERE ""e20"".""EmployeeID"" = 42
+LIMIT 2",
+                Sql);
+        }
+
+        public override void Where_query_composition_entity_equality_no_elements_FirstOrDefault()
+        {
+            base.Where_query_composition_entity_equality_no_elements_FirstOrDefault();
+
+            Assert.Equal(
+                @"SELECT ""e1"".""EmployeeID"", ""e1"".""City"", ""e1"".""Country"", ""e1"".""FirstName"", ""e1"".""ReportsTo"", ""e1"".""Title""
+FROM ""Employees"" AS ""e1""
+WHERE (
+    SELECT ""e2"".""EmployeeID""
+    FROM ""Employees"" AS ""e2""
+    WHERE ""e2"".""EmployeeID"" = 42
+    LIMIT 1
+) = 0",
+                Sql);
+        }
+
+        public override void Where_query_composition_entity_equality_multiple_elements_FirstOrDefault()
+        {
+            base.Where_query_composition_entity_equality_multiple_elements_FirstOrDefault();
+
+            Assert.Equal(
+                @"SELECT ""e1"".""EmployeeID"", ""e1"".""City"", ""e1"".""Country"", ""e1"".""FirstName"", ""e1"".""ReportsTo"", ""e1"".""Title""
+FROM ""Employees"" AS ""e1""
+WHERE (
+    SELECT ""e2"".""EmployeeID""
+    FROM ""Employees"" AS ""e2""
+    WHERE (""e2"".""EmployeeID"" <> ""e1"".""ReportsTo"") OR ""e1"".""ReportsTo"" IS NULL
+    LIMIT 1
+) = 0",
+                Sql);
         }
 
         public override void Where_query_composition2()
@@ -149,8 +212,8 @@ FROM ""Order Details"" AS ""od""
 SELECT ""o0"".""OrderID"", ""o0"".""CustomerID""
 FROM ""Orders"" AS ""o0""
 
-SELECT ""c0"".""CustomerID"", ""c0"".""City""
-FROM ""Customers"" AS ""c0""",
+SELECT ""c2"".""CustomerID"", ""c2"".""City""
+FROM ""Customers"" AS ""c2""",
                 Sql);
         }
 
@@ -158,15 +221,23 @@ FROM ""Customers"" AS ""c0""",
         {
             base.Select_Where_Subquery_Deep_First();
 
-            Assert.StartsWith(
-                @"SELECT ""od"".""OrderID"", ""od"".""ProductID"", ""od"".""Discount"", ""od"".""Quantity"", ""od"".""UnitPrice""
+            Assert.Equal(
+                @"@__p_0: 2
+
+SELECT ""od"".""OrderID"", ""od"".""ProductID"", ""od"".""Discount"", ""od"".""Quantity"", ""od"".""UnitPrice""
 FROM ""Order Details"" AS ""od""
-
-SELECT ""o0"".""OrderID"", ""o0"".""CustomerID""
-FROM ""Orders"" AS ""o0""
-
-SELECT ""c0"".""CustomerID"", ""c0"".""City""
-FROM ""Customers"" AS ""c0""",
+WHERE (
+    SELECT (
+        SELECT ""c"".""City""
+        FROM ""Customers"" AS ""c""
+        WHERE ""o"".""CustomerID"" = ""c"".""CustomerID""
+        LIMIT 1
+    )
+    FROM ""Orders"" AS ""o""
+    WHERE ""od"".""OrderID"" = ""o"".""OrderID""
+    LIMIT 1
+) = 'Seattle'
+LIMIT @__p_0",
                 Sql);
         }
 
@@ -268,13 +339,13 @@ WHERE @__predicate_0 = TRUE",
 FROM ""Employees"" AS ""e""
 WHERE ""e"".""ReportsTo"" IS NULL
 
-@__reportsTo_0: 5
+@__reportsTo_0: 5 (Nullable = true)
 
 SELECT ""e"".""EmployeeID"", ""e"".""City"", ""e"".""Country"", ""e"".""FirstName"", ""e"".""ReportsTo"", ""e"".""Title""
 FROM ""Employees"" AS ""e""
 WHERE ""e"".""ReportsTo"" = @__reportsTo_0
 
-@__reportsTo_0: 2
+@__reportsTo_0: 2 (Nullable = true)
 
 SELECT ""e"".""EmployeeID"", ""e"".""City"", ""e"".""Country"", ""e"".""FirstName"", ""e"".""ReportsTo"", ""e"".""Title""
 FROM ""Employees"" AS ""e""
@@ -287,13 +358,13 @@ WHERE ""e"".""ReportsTo"" = @__reportsTo_0",
             base.Where_simple_closure_via_query_cache_nullable_type();
 
             Assert.Equal(
-                @"@__reportsTo_0: 2
+                @"@__reportsTo_0: 2 (Nullable = true)
 
 SELECT ""e"".""EmployeeID"", ""e"".""City"", ""e"".""Country"", ""e"".""FirstName"", ""e"".""ReportsTo"", ""e"".""Title""
 FROM ""Employees"" AS ""e""
 WHERE ""e"".""ReportsTo"" = @__reportsTo_0
 
-@__reportsTo_0: 5
+@__reportsTo_0: 5 (Nullable = true)
 
 SELECT ""e"".""EmployeeID"", ""e"".""City"", ""e"".""Country"", ""e"".""FirstName"", ""e"".""ReportsTo"", ""e"".""Title""
 FROM ""Employees"" AS ""e""
@@ -443,11 +514,17 @@ WHERE ""c"".""City"" = @__city_InstanceFieldValue_0",
             base.Where_method_call_closure_via_query_cache();
 
             Assert.Equal(
-                @"SELECT ""c"".""CustomerID"", ""c"".""Address"", ""c"".""City"", ""c"".""CompanyName"", ""c"".""ContactName"", ""c"".""ContactTitle"", ""c"".""Country"", ""c"".""Fax"", ""c"".""Phone"", ""c"".""PostalCode"", ""c"".""Region""
-FROM ""Customers"" AS ""c""
+                @"@__GetCity_0: London
 
 SELECT ""c"".""CustomerID"", ""c"".""Address"", ""c"".""City"", ""c"".""CompanyName"", ""c"".""ContactName"", ""c"".""ContactTitle"", ""c"".""Country"", ""c"".""Fax"", ""c"".""Phone"", ""c"".""PostalCode"", ""c"".""Region""
-FROM ""Customers"" AS ""c""",
+FROM ""Customers"" AS ""c""
+WHERE ""c"".""City"" = @__GetCity_0
+
+@__GetCity_0: Seattle
+
+SELECT ""c"".""CustomerID"", ""c"".""Address"", ""c"".""City"", ""c"".""CompanyName"", ""c"".""ContactName"", ""c"".""ContactTitle"", ""c"".""Country"", ""c"".""Fax"", ""c"".""Phone"", ""c"".""PostalCode"", ""c"".""Region""
+FROM ""Customers"" AS ""c""
+WHERE ""c"".""City"" = @__GetCity_0",
                 Sql);
         }
 
@@ -456,13 +533,13 @@ FROM ""Customers"" AS ""c""",
             base.Where_method_call_nullable_type_reverse_closure_via_query_cache();
 
             Assert.Equal(
-                @"@__city_NullableInt_0: 1
+                @"@__city_NullableInt_0: 1 (Nullable = true)
 
 SELECT ""e"".""EmployeeID"", ""e"".""City"", ""e"".""Country"", ""e"".""FirstName"", ""e"".""ReportsTo"", ""e"".""Title""
 FROM ""Employees"" AS ""e""
 WHERE ""e"".""EmployeeID"" > @__city_NullableInt_0
 
-@__city_NullableInt_0: 5
+@__city_NullableInt_0: 5 (Nullable = true)
 
 SELECT ""e"".""EmployeeID"", ""e"".""City"", ""e"".""Country"", ""e"".""FirstName"", ""e"".""ReportsTo"", ""e"".""Title""
 FROM ""Employees"" AS ""e""
@@ -1110,16 +1187,6 @@ FROM ""Customers"" AS ""c""",
                 Sql);
         }
 
-        public override void Select_anonymous_bool_constant_in_expression()
-        {
-            base.Select_anonymous_bool_constant_in_expression();
-
-            Assert.Equal(
-                @"SELECT ""c"".""CustomerID"", LENGTH(""c"".""CustomerID"") + 5
-FROM ""Customers"" AS ""c""",
-                Sql);
-        }
-
         public override void Select_scalar_primitive_after_take()
         {
             base.Select_scalar_primitive_after_take();
@@ -1392,7 +1459,7 @@ WHERE ""e"".""EmployeeID"" = 1",
             Assert.Equal(
                 @"SELECT ""e"".""EmployeeID"", ""e"".""City"", ""e"".""Country"", ""e"".""FirstName"", ""e"".""ReportsTo"", ""e"".""Title""
 FROM ""Employees"" AS ""e""
-WHERE 1 = 0",
+WHERE FALSE = TRUE",
                 Sql);
 
             Assert.True(TestSqlLoggerFactory.Log.Contains(
@@ -1404,7 +1471,7 @@ WHERE 1 = 0",
             base.Where_equals_using_int_overload_on_mismatched_types();
 
             Assert.Equal(
-                @"@__shortPrm_0: 1
+                @"@__shortPrm_0: 1 (DbType = Int32)
 
 SELECT ""e"".""EmployeeID"", ""e"".""City"", ""e"".""Country"", ""e"".""FirstName"", ""e"".""ReportsTo"", ""e"".""Title""
 FROM ""Employees"" AS ""e""
@@ -1438,11 +1505,11 @@ WHERE @__intPrm_0 = ""e"".""ReportsTo""",
             Assert.Equal(
                 @"SELECT ""e"".""EmployeeID"", ""e"".""City"", ""e"".""Country"", ""e"".""FirstName"", ""e"".""ReportsTo"", ""e"".""Title""
 FROM ""Employees"" AS ""e""
-WHERE 1 = 0
+WHERE FALSE = TRUE
 
 SELECT ""e"".""EmployeeID"", ""e"".""City"", ""e"".""Country"", ""e"".""FirstName"", ""e"".""ReportsTo"", ""e"".""Title""
 FROM ""Employees"" AS ""e""
-WHERE 1 = 0",
+WHERE FALSE = TRUE",
                 Sql);
 
             Assert.True(TestSqlLoggerFactory.Log.Contains(
@@ -1459,11 +1526,11 @@ WHERE 1 = 0",
             Assert.Equal(
                 @"SELECT ""e"".""EmployeeID"", ""e"".""City"", ""e"".""Country"", ""e"".""FirstName"", ""e"".""ReportsTo"", ""e"".""Title""
 FROM ""Employees"" AS ""e""
-WHERE 1 = 0
+WHERE FALSE = TRUE
 
 SELECT ""e"".""EmployeeID"", ""e"".""City"", ""e"".""Country"", ""e"".""FirstName"", ""e"".""ReportsTo"", ""e"".""Title""
 FROM ""Employees"" AS ""e""
-WHERE 1 = 0",
+WHERE FALSE = TRUE",
                 Sql);
 
             Assert.True(TestSqlLoggerFactory.Log.Contains(
@@ -1477,19 +1544,7 @@ WHERE 1 = 0",
         {
             base.Where_equals_on_matched_nullable_int_types();
 
-            Assert.Equal(
-                @"@__nullableIntPrm_0: 2
-
-SELECT ""e"".""EmployeeID"", ""e"".""City"", ""e"".""Country"", ""e"".""FirstName"", ""e"".""ReportsTo"", ""e"".""Title""
-FROM ""Employees"" AS ""e""
-WHERE @__nullableIntPrm_0 = ""e"".""ReportsTo""
-
-@__nullableIntPrm_0: 2
-
-SELECT ""e"".""EmployeeID"", ""e"".""City"", ""e"".""Country"", ""e"".""FirstName"", ""e"".""ReportsTo"", ""e"".""Title""
-FROM ""Employees"" AS ""e""
-WHERE ""e"".""ReportsTo"" = @__nullableIntPrm_0",
-                Sql);
+            // TODO: Assert on SQL
         }
 
         public override void Where_equals_on_null_nullable_int_types()
@@ -1497,7 +1552,13 @@ WHERE ""e"".""ReportsTo"" = @__nullableIntPrm_0",
             base.Where_equals_on_null_nullable_int_types();
 
             Assert.Equal(
-                @"",
+                @"SELECT ""e"".""EmployeeID"", ""e"".""City"", ""e"".""Country"", ""e"".""FirstName"", ""e"".""ReportsTo"", ""e"".""Title""
+FROM ""Employees"" AS ""e""
+WHERE ""e"".""ReportsTo"" IS NULL
+
+SELECT ""e"".""EmployeeID"", ""e"".""City"", ""e"".""Country"", ""e"".""FirstName"", ""e"".""ReportsTo"", ""e"".""Title""
+FROM ""Employees"" AS ""e""
+WHERE ""e"".""ReportsTo"" IS NULL",
                 Sql);
         }
 
@@ -1517,7 +1578,7 @@ WHERE LENGTH(""c"".""City"") = 6",
             base.Where_datetime_now();
 
             Assert.Equal(
-                @"@__myDatetime_0: 04/10/2015 00:00:00
+                @"@__myDatetime_0: 04/10/2015 00:00:00 (DbType = DateTime)
 
 SELECT ""c"".""CustomerID"", ""c"".""Address"", ""c"".""City"", ""c"".""CompanyName"", ""c"".""ContactName"", ""c"".""ContactTitle"", ""c"".""Country"", ""c"".""Fax"", ""c"".""Phone"", ""c"".""PostalCode"", ""c"".""Region""
 FROM ""Customers"" AS ""c""
@@ -1530,7 +1591,7 @@ WHERE NOW() <> @__myDatetime_0",
             base.Where_datetime_utcnow();
 
             Assert.Equal(
-                @"@__myDatetime_0: 04/10/2015 00:00:00
+                @"@__myDatetime_0: 04/10/2015 00:00:00 (DbType = DateTime)
 
 SELECT ""c"".""CustomerID"", ""c"".""Address"", ""c"".""City"", ""c"".""CompanyName"", ""c"".""ContactName"", ""c"".""ContactTitle"", ""c"".""Country"", ""c"".""Fax"", ""c"".""Phone"", ""c"".""PostalCode"", ""c"".""Region""
 FROM ""Customers"" AS ""c""
@@ -1566,8 +1627,7 @@ WHERE ""c"".""City"" IS NOT NULL",
 
             Assert.Equal(
                 @"SELECT ""c"".""CustomerID"", ""c"".""Address"", ""c"".""City"", ""c"".""CompanyName"", ""c"".""ContactName"", ""c"".""ContactTitle"", ""c"".""Country"", ""c"".""Fax"", ""c"".""Phone"", ""c"".""PostalCode"", ""c"".""Region""
-FROM ""Customers"" AS ""c""
-WHERE 1 = 1",
+FROM ""Customers"" AS ""c""",
                 Sql);
         }
 
@@ -1578,7 +1638,7 @@ WHERE 1 = 1",
             Assert.Equal(
                 @"SELECT ""c"".""CustomerID"", ""c"".""Address"", ""c"".""City"", ""c"".""CompanyName"", ""c"".""ContactName"", ""c"".""ContactTitle"", ""c"".""Country"", ""c"".""Fax"", ""c"".""Phone"", ""c"".""PostalCode"", ""c"".""Region""
 FROM ""Customers"" AS ""c""
-WHERE 1 = 0",
+WHERE FALSE = TRUE",
                 Sql);
         }
 
@@ -1589,7 +1649,7 @@ WHERE 1 = 0",
             Assert.Equal(
                 @"SELECT ""c"".""CustomerID"", ""c"".""Address"", ""c"".""City"", ""c"".""CompanyName"", ""c"".""ContactName"", ""c"".""ContactTitle"", ""c"".""Country"", ""c"".""Fax"", ""c"".""Phone"", ""c"".""PostalCode"", ""c"".""Region""
 FROM ""Customers"" AS ""c""
-WHERE 1 = 0",
+WHERE FALSE = TRUE",
                 Sql);
         }
 
@@ -1599,8 +1659,7 @@ WHERE 1 = 0",
 
             Assert.Equal(
                 @"SELECT ""c"".""CustomerID"", ""c"".""Address"", ""c"".""City"", ""c"".""CompanyName"", ""c"".""ContactName"", ""c"".""ContactTitle"", ""c"".""Country"", ""c"".""Fax"", ""c"".""Phone"", ""c"".""PostalCode"", ""c"".""Region""
-FROM ""Customers"" AS ""c""
-WHERE 1 = 1",
+FROM ""Customers"" AS ""c""",
                 Sql);
         }
 
@@ -2655,8 +2714,42 @@ ORDER BY ""e1"".""EmployeeID""",
             Assert.Equal(
                 @"SELECT ""c"".""CustomerID"", ""c"".""Address"", ""c"".""City"", ""c"".""CompanyName"", ""c"".""ContactName"", ""c"".""ContactTitle"", ""c"".""Country"", ""c"".""Fax"", ""c"".""Phone"", ""c"".""PostalCode"", ""c"".""Region""
 FROM ""Customers"" AS ""c""
-WHERE 1 = 0",
+WHERE FALSE = TRUE",
                 Sql);
+        }
+
+        public override void Where_concat_string_int_comparison1()
+        {
+            base.Where_concat_string_int_comparison1();
+
+            Assert.Equal(
+                @"@__i_0: 10 (DbType = String)
+
+SELECT ""c"".""CustomerID""
+FROM ""Customers"" AS ""c""
+WHERE ((""c"".""CustomerID"" || CAST(@__i_0 AS text))) = ""c"".""CompanyName""",
+                Sql);
+        }
+
+        public override void Where_concat_string_int_comparison2()
+        {
+            base.Where_concat_string_int_comparison2();
+
+            Assert.Equal(
+                @"@__i_0: 10 (DbType = String)
+
+SELECT ""c"".""CustomerID""
+FROM ""Customers"" AS ""c""
+WHERE ((CAST(@__i_0 AS text) || ""c"".""CustomerID"")) = ""c"".""CompanyName""",
+                Sql);
+        }
+
+        [Fact(Skip="https://github.com/aspnet/EntityFramework/issues/5717")]
+        public override void Where_concat_string_int_comparison3()
+        {
+            base.Where_concat_string_int_comparison3();
+
+            // TODO: Assert on SQL
         }
 
         public override void Where_primitive()
@@ -2760,7 +2853,7 @@ WHERE ""p"".""Discontinued"" = TRUE",
             Assert.Equal(
                 @"SELECT ""p"".""ProductID"", ""p"".""Discontinued"", ""p"".""ProductName"", ""p"".""UnitsInStock""
 FROM ""Products"" AS ""p""
-WHERE ((""p"".""ProductID"" > 100) AND ""p"".""Discontinued"" = TRUE) OR (""p"".""Discontinued"" = TRUE)",
+WHERE ((""p"".""ProductID"" > 100) AND (""p"".""Discontinued"" = TRUE)) OR (""p"".""Discontinued"" = TRUE)",
                 Sql);
         }
 
@@ -2862,7 +2955,7 @@ END",
             Assert.Equal(
                 @"SELECT ""p"".""ProductID"", ""p"".""Discontinued"", ""p"".""ProductName"", ""p"".""UnitsInStock""
 FROM ""Products"" AS ""p""
-WHERE ""p"".""Discontinued"" = FALSE AND (""p"".""ProductID"" >= 20)",
+WHERE (""p"".""Discontinued"" = FALSE) AND (""p"".""ProductID"" >= 20)",
                 Sql);
         }
 
@@ -2873,7 +2966,7 @@ WHERE ""p"".""Discontinued"" = FALSE AND (""p"".""ProductID"" >= 20)",
             Assert.Equal(
                 @"SELECT ""p"".""ProductID"", ""p"".""Discontinued"", ""p"".""ProductName"", ""p"".""UnitsInStock""
 FROM ""Products"" AS ""p""
-WHERE ""p"".""Discontinued"" = FALSE OR (""p"".""ProductID"" >= 20)",
+WHERE (""p"".""Discontinued"" = FALSE) OR (""p"".""ProductID"" >= 20)",
                 Sql);
         }
 
@@ -2884,7 +2977,7 @@ WHERE ""p"".""Discontinued"" = FALSE OR (""p"".""ProductID"" >= 20)",
             Assert.Equal(
                 @"SELECT ""p"".""ProductID"", ""p"".""Discontinued"", ""p"".""ProductName"", ""p"".""UnitsInStock""
 FROM ""Products"" AS ""p""
-WHERE (""p"".""Discontinued"" = FALSE AND (""p"".""ProductID"" < 60)) AND (""p"".""ProductID"" > 30)",
+WHERE ((""p"".""Discontinued"" = FALSE) AND (""p"".""ProductID"" < 60)) AND (""p"".""ProductID"" > 30)",
                 Sql);
         }
 
@@ -2905,8 +2998,7 @@ WHERE ""p"".""UnitsInStock"" > 10",
 
             Assert.Equal(
                 @"SELECT ""c"".""CustomerID"", ""c"".""Address"", ""c"".""City"", ""c"".""CompanyName"", ""c"".""ContactName"", ""c"".""ContactTitle"", ""c"".""Country"", ""c"".""Fax"", ""c"".""Phone"", ""c"".""PostalCode"", ""c"".""Region""
-FROM ""Customers"" AS ""c""
-WHERE 1 = 1",
+FROM ""Customers"" AS ""c""",
                 Sql);
         }
 
@@ -3053,8 +3145,11 @@ WHERE ""c"".""ContactName"" LIKE (""c"".""ContactName"" || '%')",
             base.String_StartsWith_MethodCall();
 
             Assert.Equal(
-                @"SELECT ""c"".""CustomerID"", ""c"".""Address"", ""c"".""City"", ""c"".""CompanyName"", ""c"".""ContactName"", ""c"".""ContactTitle"", ""c"".""Country"", ""c"".""Fax"", ""c"".""Phone"", ""c"".""PostalCode"", ""c"".""Region""
-FROM ""Customers"" AS ""c""",
+                @"@__LocalMethod1_0: M
+
+SELECT ""c"".""CustomerID"", ""c"".""Address"", ""c"".""City"", ""c"".""CompanyName"", ""c"".""ContactName"", ""c"".""ContactTitle"", ""c"".""Country"", ""c"".""Fax"", ""c"".""Phone"", ""c"".""PostalCode"", ""c"".""Region""
+FROM ""Customers"" AS ""c""
+WHERE ""c"".""ContactName"" LIKE (@__LocalMethod1_0 || '%')",
                 Sql);
         }
 
@@ -3097,8 +3192,11 @@ WHERE ""c"".""ContactName"" LIKE ('%' || ""c"".""ContactName"")",
             base.String_EndsWith_MethodCall();
 
             Assert.Equal(
-                @"SELECT ""c"".""CustomerID"", ""c"".""Address"", ""c"".""City"", ""c"".""CompanyName"", ""c"".""ContactName"", ""c"".""ContactTitle"", ""c"".""Country"", ""c"".""Fax"", ""c"".""Phone"", ""c"".""PostalCode"", ""c"".""Region""
-FROM ""Customers"" AS ""c""",
+                @"@__LocalMethod2_0: m
+
+SELECT ""c"".""CustomerID"", ""c"".""Address"", ""c"".""City"", ""c"".""CompanyName"", ""c"".""ContactName"", ""c"".""ContactTitle"", ""c"".""Country"", ""c"".""Fax"", ""c"".""Phone"", ""c"".""PostalCode"", ""c"".""Region""
+FROM ""Customers"" AS ""c""
+WHERE ""c"".""ContactName"" LIKE ('%' || @__LocalMethod2_0)",
                 Sql);
         }
 
@@ -3139,13 +3237,17 @@ WHERE ""c"".""ContactName"" LIKE ((('%' || ""c"".""ContactName"")) || '%')",
 
         public override void String_Contains_MethodCall()
         {
-            AssertQuery<Customer>(
-                cs => cs.Where(c => c.ContactName.Contains(LocalMethod1())),
-                entryCount: 19);
+            // Note: this test differs from the SqlServer version because the SqlServer database is
+            // created with case-insensitive collation (at least in the tests), while PostgreSQL is
+            // always case-sensitive.
+            base.String_Contains_MethodCall();
 
             Assert.Equal(
-                @"SELECT ""c"".""CustomerID"", ""c"".""Address"", ""c"".""City"", ""c"".""CompanyName"", ""c"".""ContactName"", ""c"".""ContactTitle"", ""c"".""Country"", ""c"".""Fax"", ""c"".""Phone"", ""c"".""PostalCode"", ""c"".""Region""
-FROM ""Customers"" AS ""c""",
+                @"@__LocalMethod1_0: M
+
+SELECT ""c"".""CustomerID"", ""c"".""Address"", ""c"".""City"", ""c"".""CompanyName"", ""c"".""ContactName"", ""c"".""ContactTitle"", ""c"".""Country"", ""c"".""Fax"", ""c"".""Phone"", ""c"".""PostalCode"", ""c"".""Region""
+FROM ""Customers"" AS ""c""
+WHERE ""c"".""ContactName"" LIKE ((('%' || @__LocalMethod1_0)) || '%')",
                 Sql);
         }
 
@@ -3231,31 +3333,7 @@ FROM ""Customers"" AS ""c""",
         {
             base.String_Compare_nested();
 
-            Assert.Equal(
-                @"SELECT ""c"".""CustomerID"", ""c"".""Address"", ""c"".""City"", ""c"".""CompanyName"", ""c"".""ContactName"", ""c"".""ContactTitle"", ""c"".""Country"", ""c"".""Fax"", ""c"".""Phone"", ""c"".""PostalCode"", ""c"".""Region""
-FROM ""Customers"" AS ""c""
-WHERE ""c"".""CustomerID"" = ('M' || ""c"".""CustomerID"")
-
-SELECT ""c"".""CustomerID"", ""c"".""Address"", ""c"".""City"", ""c"".""CompanyName"", ""c"".""ContactName"", ""c"".""ContactTitle"", ""c"".""Country"", ""c"".""Fax"", ""c"".""Phone"", ""c"".""PostalCode"", ""c"".""Region""
-FROM ""Customers"" AS ""c""
-WHERE ""c"".""CustomerID"" <> UPPER(""c"".""CustomerID"")
-
-SELECT ""c"".""CustomerID"", ""c"".""Address"", ""c"".""City"", ""c"".""CompanyName"", ""c"".""ContactName"", ""c"".""ContactTitle"", ""c"".""Country"", ""c"".""Fax"", ""c"".""Phone"", ""c"".""PostalCode"", ""c"".""Region""
-FROM ""Customers"" AS ""c""
-WHERE ""c"".""CustomerID"" > REPLACE('ALFKI', UPPER('ALF'), ""c"".""CustomerID"")
-
-SELECT ""c"".""CustomerID"", ""c"".""Address"", ""c"".""City"", ""c"".""CompanyName"", ""c"".""ContactName"", ""c"".""ContactTitle"", ""c"".""Country"", ""c"".""Fax"", ""c"".""Phone"", ""c"".""PostalCode"", ""c"".""Region""
-FROM ""Customers"" AS ""c""
-WHERE ""c"".""CustomerID"" <= ('M' || ""c"".""CustomerID"")
-
-SELECT ""c"".""CustomerID"", ""c"".""Address"", ""c"".""City"", ""c"".""CompanyName"", ""c"".""ContactName"", ""c"".""ContactTitle"", ""c"".""Country"", ""c"".""Fax"", ""c"".""Phone"", ""c"".""PostalCode"", ""c"".""Region""
-FROM ""Customers"" AS ""c""
-WHERE ""c"".""CustomerID"" > UPPER(""c"".""CustomerID"")
-
-SELECT ""c"".""CustomerID"", ""c"".""Address"", ""c"".""City"", ""c"".""CompanyName"", ""c"".""ContactName"", ""c"".""ContactTitle"", ""c"".""Country"", ""c"".""Fax"", ""c"".""Phone"", ""c"".""PostalCode"", ""c"".""Region""
-FROM ""Customers"" AS ""c""
-WHERE ""c"".""CustomerID"" < REPLACE('ALFKI', UPPER('ALF'), ""c"".""CustomerID"")",
-                Sql);
+            // TODO: Assert on SQL
         }
 
         public override void Where_math_abs1()
@@ -3296,9 +3374,11 @@ WHERE ABS(""od"".""UnitPrice"") > 10.0",
             base.Where_math_abs_uncorrelated();
 
             Assert.Equal(
-                @"SELECT ""od"".""OrderID"", ""od"".""ProductID"", ""od"".""Discount"", ""od"".""Quantity"", ""od"".""UnitPrice""
+                @"@__Abs_0: 10
+
+SELECT ""od"".""OrderID"", ""od"".""ProductID"", ""od"".""Discount"", ""od"".""Quantity"", ""od"".""UnitPrice""
 FROM ""Order Details"" AS ""od""
-WHERE ABS(-10) < ""od"".""ProductID""",
+WHERE @__Abs_0 < ""od"".""ProductID""",
                 Sql);
         }
 
@@ -3980,7 +4060,7 @@ WHERE ""c"".""CustomerID"" IN ('ALFKI', 'ABC'')); GO; DROP TABLE Orders; GO; --'
             Assert.Equal(
     @"SELECT ""c"".""CustomerID"", ""c"".""Address"", ""c"".""City"", ""c"".""CompanyName"", ""c"".""ContactName"", ""c"".""ContactTitle"", ""c"".""Country"", ""c"".""Fax"", ""c"".""Phone"", ""c"".""PostalCode"", ""c"".""Region""
 FROM ""Customers"" AS ""c""
-WHERE 1 = 0",
+WHERE 0 = 1",
         Sql);
         }
 

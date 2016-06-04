@@ -148,17 +148,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 Assert.Equal(3, result[1].Orders.Count);
 
                 var expectedSql =
-                    @"SELECT ""c"".""FirstName"", ""c"".""LastName""
+    @"SELECT ""c"".""FirstName"", ""c"".""LastName""
 FROM ""Customer"" AS ""c""
 ORDER BY ""c"".""FirstName"", ""c"".""LastName""
 
 SELECT ""o"".""Id"", ""o"".""CustomerFirstName"", ""o"".""CustomerLastName"", ""o"".""Name""
 FROM ""Order"" AS ""o""
-INNER JOIN (
-    SELECT DISTINCT ""c"".""FirstName"", ""c"".""LastName""
+WHERE EXISTS (
+    SELECT 1
     FROM ""Customer"" AS ""c""
-) AS ""c0"" ON (""o"".""CustomerFirstName"" = ""c0"".""FirstName"") AND (""o"".""CustomerLastName"" = ""c0"".""LastName"")
-ORDER BY ""c0"".""FirstName"", ""c0"".""LastName""";
+    WHERE (""o"".""CustomerFirstName"" = ""c"".""FirstName"") AND (""o"".""CustomerLastName"" = ""c"".""LastName""))
+ORDER BY ""o"".""CustomerFirstName"", ""o"".""CustomerLastName""";
 
                 Assert.Equal(expectedSql, TestSqlLoggerFactory.Sql);
             }
@@ -474,7 +474,7 @@ WHERE (""c"".""FirstName"" = @__firstName_0) AND (""c"".""LastName"" = @__8__loc
                         contextInitializer(context);
                     }
 
-                    TestSqlLoggerFactory.SqlStatements.Clear();
+                    TestSqlLoggerFactory.Reset();
                 }
             });
         }

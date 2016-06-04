@@ -1,11 +1,11 @@
 {
   "dependencies": {
-    "dotnet-test-xunit": "1.0.0-rc2-*",
-    "Microsoft.NETCore.Platforms": "1.0.1-rc2-*",
-    "Microsoft.Extensions.Logging": "1.0.0-rc2-*",
-    "Microsoft.EntityFrameworkCore": "1.0.0-rc2-*",
-    "Microsoft.EntityFrameworkCore.Relational": "1.0.0-rc2-*",
-    "Microsoft.EntityFrameworkCore.Relational.Specification.Tests": "1.0.0-rc2-*",
+    "dotnet-test-xunit": "1.0.0-*",
+    "Microsoft.NETCore.Platforms": "1.0.1-*",
+    "Microsoft.Extensions.Logging": "1.0.0-*",
+    "Microsoft.EntityFrameworkCore": "1.0.0-*",
+    "Microsoft.EntityFrameworkCore.Relational": "1.0.0-*",
+    "Microsoft.EntityFrameworkCore.Relational.Specification.Tests": "1.0.0-*",
     "Npgsql.EntityFrameworkCore.PostgreSQL": "1.0.0-*",
     "Npgsql": "3.1.4-ci-219"
   },
@@ -18,7 +18,7 @@
       ],
       "dependencies": {
         "Microsoft.NETCore.App": {
-          "version": "1.0.0-rc2-*",
+          "version": "1.0.0-*",
           "type": "platform"
         }
       }

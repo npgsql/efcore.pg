@@ -48,9 +48,10 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
             [NotNull] NpgsqlRelationalConnection connection,
             [NotNull] IMigrationsModelDiffer modelDiffer,
             [NotNull] IMigrationsSqlGenerator migrationsSqlGenerator,
+            [NotNull] IMigrationCommandExecutor migrationCommandExecutor,
             [NotNull] IModel model,
             [NotNull] IRawSqlCommandBuilder rawSqlCommandBuilder)
-            : base(model, connection, modelDiffer, migrationsSqlGenerator)
+            : base(model, connection, modelDiffer, migrationsSqlGenerator, migrationCommandExecutor)
         {
             Check.NotNull(rawSqlCommandBuilder, nameof(rawSqlCommandBuilder));
 
@@ -64,7 +65,8 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
         {
             using (var masterConnection = _connection.CreateMasterConnection())
             {
-                CreateCreateOperations().ExecuteNonQuery(masterConnection);
+                MigrationCommandExecutor
+                    .ExecuteNonQuery(CreateCreateOperations(), masterConnection);
 
                 ClearPool();
             }
@@ -74,7 +76,8 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
         {
             using (var masterConnection = _connection.CreateMasterConnection())
             {
-                await CreateCreateOperations().ExecuteNonQueryAsync(masterConnection, cancellationToken);
+                await MigrationCommandExecutor
+                    .ExecuteNonQueryAsync(CreateCreateOperations(), masterConnection, cancellationToken);
 
                 ClearPool();
             }
@@ -94,7 +97,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
                     WHERE table_type = 'BASE TABLE' AND table_schema NOT IN ('pg_catalog', 'information_schema')
                 ");
 
-        IEnumerable<IRelationalCommand> CreateCreateOperations()
+        IReadOnlyList<MigrationCommand> CreateCreateOperations()
             => _migrationsSqlGenerator.Generate(new[] { new NpgsqlCreateDatabaseOperation { Name = _connection.DbConnection.Database, Template = Model.Npgsql().DatabaseTemplate } });
 
         public override bool Exists()
@@ -144,7 +147,8 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
 
             using (var masterConnection = _connection.CreateMasterConnection())
             {
-                CreateDropCommands().ExecuteNonQuery(masterConnection);
+                MigrationCommandExecutor
+                    .ExecuteNonQuery(CreateDropCommands(), masterConnection);
             }
         }
 
@@ -154,7 +158,8 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
 
             using (var masterConnection = _connection.CreateMasterConnection())
             {
-                await CreateDropCommands().ExecuteNonQueryAsync(masterConnection, cancellationToken);
+                await MigrationCommandExecutor
+                    .ExecuteNonQueryAsync(CreateDropCommands(), masterConnection, cancellationToken);
             }
         }
 
@@ -167,12 +172,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
             // Npgsql to reload
             var reloadTypes = operations.Any(o => o is NpgsqlCreatePostgresExtensionOperation);
 
-            using (var transaction = Connection.BeginTransaction())
-            {
-                commands.ExecuteNonQuery(Connection);
-
-                transaction.Commit();
-            }
+            MigrationCommandExecutor.ExecuteNonQuery(commands, Connection);
 
             if (reloadTypes)
             {
@@ -191,12 +191,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
             // Npgsql to reload
             var reloadTypes = operations.Any(o => o is NpgsqlCreatePostgresExtensionOperation);
 
-            using (var transaction = await Connection.BeginTransactionAsync(cancellationToken))
-            {
-                await commands.ExecuteNonQueryAsync(Connection, cancellationToken);
-
-                transaction.Commit();
-            }
+            await MigrationCommandExecutor.ExecuteNonQueryAsync(commands, Connection, cancellationToken);
 
             // TODO: Not async
             if (reloadTypes)
@@ -207,7 +202,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
             }
         }
 
-        IEnumerable<IRelationalCommand> CreateDropCommands()
+        IReadOnlyList<MigrationCommand> CreateDropCommands()
         {
             var operations = new MigrationOperation[]
             {

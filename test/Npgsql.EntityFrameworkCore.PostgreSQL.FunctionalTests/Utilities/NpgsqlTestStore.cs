@@ -323,7 +323,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities
 
             if (_deleteDatabase)
             {
-                DeleteDatabaseAsync(_name).Wait();
+                DeleteDatabase(_name);
             }
         }
 

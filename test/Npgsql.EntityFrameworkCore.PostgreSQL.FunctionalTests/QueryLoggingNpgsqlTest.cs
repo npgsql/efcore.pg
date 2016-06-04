@@ -74,7 +74,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 Assert.NotNull(customers);
                 Assert.StartsWith(@"    Compiling query model: 'value(Microsoft.EntityFrameworkCore.Query.Internal.EntityQueryable`1[Microsoft.EntityFrameworkCore.Specification.Tests.TestModels.Northwind.Customer]) => Include([c].Orders)'
     Optimized query model: 'value(Microsoft.EntityFrameworkCore.Query.Internal.EntityQueryable`1[Microsoft.EntityFrameworkCore.Specification.Tests.TestModels.Northwind.Customer])'
-    Including navigation: 'Microsoft.EntityFrameworkCore.Specification.Tests.TestModels.Northwind.Customer.Orders'
+    Including navigation: 'c.Orders'
     TRACKED: True
 (QueryContext queryContext) => IEnumerable<Customer> _Include(
     queryContext: (RelationalQueryContext) queryContext, 
@@ -97,7 +97,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
     , 
     querySourceRequiresTracking: True
 )",
-                    TestSqlLoggerFactory.Log);
+                TestSqlLoggerFactory.Log);
             }
         }
 

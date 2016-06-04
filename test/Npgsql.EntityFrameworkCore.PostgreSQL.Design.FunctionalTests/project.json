@@ -9,10 +9,10 @@
     }
   },
   "dependencies": {
-    "dotnet-test-xunit": "1.0.0-rc2-*",
-    "Microsoft.NETCore.Platforms": "1.0.1-rc2-*",
-    "Microsoft.EntityFrameworkCore.Relational.Specification.Tests": "1.0.0-rc2-*",
-    "Microsoft.EntityFrameworkCore.Relational.Design.Specification.Tests": "1.0.0-rc2-*",
+    "dotnet-test-xunit": "1.0.0-*",
+    "Microsoft.NETCore.Platforms": "1.0.1-*",
+    "Microsoft.EntityFrameworkCore.Relational.Specification.Tests": "1.0.0-*",
+    "Microsoft.EntityFrameworkCore.Relational.Design.Specification.Tests": "1.0.0-*",
     "Npgsql.EntityFrameworkCore.PostgreSQL.Design": "1.0.0-*",
     "Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests": "1.0.0"
   },

@@ -43,7 +43,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                         NullSemanticsModelInitializer.Seed(context);
                     }
 
-                    TestSqlLoggerFactory.SqlStatements.Clear();
+                    TestSqlLoggerFactory.Reset();
                 }
             });
         }
