@@ -23,7 +23,8 @@
     "Microsoft.EntityFrameworkCore.Relational.Design": "1.0.0-rc2-*",
     "Microsoft.Extensions.DependencyInjection": "1.0.0-rc2-*",
     "Microsoft.Extensions.DependencyInjection.Abstractions": "1.0.0-rc2-*",
-    "Npgsql.EntityFrameworkCore.PostgreSQL": "1.0.0-rc2-release1"
+    "Npgsql.EntityFrameworkCore.PostgreSQL": "1.0.0-rc2-release1",
+    "Npgsql": "3.1.2"
   },
   "frameworks": {
     "net451": {},

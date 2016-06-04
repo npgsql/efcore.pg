@@ -61,6 +61,7 @@
       <Link>Properties\CommonAssemblyInfo.cs</Link>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Utilities\CodeAnnotations.cs" />
     <Compile Include="Utilities\LoggingExtensions.cs" />
     <Compile Include="Utilities\SharedTypeExtensions.cs" />
   </ItemGroup>
