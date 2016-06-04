@@ -1,20 +1,19 @@
 {
   "buildOptions": {
     "copyToOutput": {
-      "include": "**/*.sql",
-       "includeFiles": "config.json"
+      "include": "**/*.sql"
     }
   },
   "dependencies": {
-    "dotnet-test-xunit": "1.0.0-*",
-    "Microsoft.NETCore.Platforms": "1.0.1-*",
+    "dotnet-test-xunit": "1.0.0-rc2-*",
+    "Microsoft.NETCore.Platforms": "1.0.1-rc2-*",
     "Microsoft.EntityFrameworkCore": "1.0.0-rc2-*",
     "Microsoft.EntityFrameworkCore.Relational": "1.0.0-rc2-*",
     "Microsoft.EntityFrameworkCore.Relational.Specification.Tests": "1.0.0-rc2-*",
-    "Microsoft.Extensions.Configuration.Json": "1.0.0-*",
-    "Microsoft.Extensions.Configuration.EnvironmentVariables": "1.0.0-*",
+    "Microsoft.Extensions.Configuration.Json": "1.0.0-rc2-*",
+    "Microsoft.Extensions.Configuration.EnvironmentVariables": "1.0.0-rc2-*",
     "Npgsql.EntityFrameworkCore.PostgreSQL": "1.0.0-*",
-    "Npgsql": "3.1.2"
+    "Npgsql": "3.1.4-ci-219"
   },
   "publishOptions": {
     "include": "**/*.sql",
