@@ -39,8 +39,6 @@ namespace Microsoft.EntityFrameworkCore.Query.Sql.Internal
     public class NpgsqlQuerySqlGenerator : DefaultQuerySqlGenerator
     {
         protected override string ConcatOperator => "||";
-        protected override string TrueLiteral => "TRUE";
-        protected override string FalseLiteral => "FALSE";
         protected override string TypedTrueLiteral => "TRUE::bool";
         protected override string TypedFalseLiteral => "FALSE::bool";
 
@@ -143,62 +141,6 @@ namespace Microsoft.EntityFrameworkCore.Query.Sql.Internal
             }
 
             return base.VisitBinary(binaryExpression);
-        }
-
-        // TODO: VisitConditional only needs to be overridden because of #5722
-        protected override Expression VisitConditional(ConditionalExpression expression)
-        {
-            Check.NotNull(expression, nameof(expression));
-
-            Sql.AppendLine("CASE");
-
-            using (Sql.Indent())
-            {
-                Sql.Append("WHEN ");
-
-                Visit(expression.Test);
-
-                /*
-                if (expression.Test.IsSimpleExpression())
-                {
-                    Sql.Append(" = 1");
-                }*/
-
-                Sql.AppendLine();
-                Sql.Append("THEN ");
-
-                var constantIfTrue = expression.IfTrue as ConstantExpression;
-
-                if (constantIfTrue != null
-                    && constantIfTrue.Type == typeof(bool))
-                {
-                    Sql.Append((bool)constantIfTrue.Value ? TypedTrueLiteral : TypedFalseLiteral);
-                }
-                else
-                {
-                    Visit(expression.IfTrue);
-                }
-
-                Sql.Append(" ELSE ");
-
-                var constantIfFalse = expression.IfFalse as ConstantExpression;
-
-                if (constantIfFalse != null
-                    && constantIfFalse.Type == typeof(bool))
-                {
-                    Sql.Append((bool)constantIfFalse.Value ? TypedTrueLiteral : TypedFalseLiteral);
-                }
-                else
-                {
-                    Visit(expression.IfFalse);
-                }
-
-                Sql.AppendLine();
-            }
-
-            Sql.Append("END");
-
-            return expression;
         }
 
         // See http://www.postgresql.org/docs/current/static/functions-matching.html
