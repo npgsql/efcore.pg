@@ -67,10 +67,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="ReverseEngineering\Expected\ColumnsWithSequences\IDNonSerialSequence.expected">
+    <None Include="ReverseEngineering\Expected\ColumnsWithSequences\IdNonSerialSequence.expected">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="ReverseEngineering\Expected\ColumnsWithSequences\IDSerialSequence.expected">
+    <None Include="ReverseEngineering\Expected\ColumnsWithSequences\IdSerialSequence.expected">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="ReverseEngineering\Expected\AllFluentApi\AllDataTypes.expected">

@@ -7,7 +7,7 @@ namespace E2ETest.Namespace
 {
     public partial class SpecialTypes
     {
-        public int SpecialTypesID { get; set; }
+        public int SpecialTypesId { get; set; }
         public IPAddress IpAddress { get; set; }
         public PhysicalAddress MacAddress { get; set; }
     }

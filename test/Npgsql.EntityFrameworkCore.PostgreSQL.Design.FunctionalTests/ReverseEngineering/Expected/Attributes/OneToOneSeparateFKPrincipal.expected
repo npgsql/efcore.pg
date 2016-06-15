@@ -5,14 +5,18 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace E2ETest.Namespace
 {
-    public partial class OneToOneSeparateFKPrincipal
+    [Table("OneToOneSeparateFKPrincipal")]
+    public partial class OneToOneSeparateFkprincipal
     {
-        public int OneToOneSeparateFKPrincipalID1 { get; set; }
-        public int OneToOneSeparateFKPrincipalID2 { get; set; }
+        [Column("OneToOneSeparateFKPrincipalID1")]
+        public int OneToOneSeparateFkprincipalId1 { get; set; }
+        [Column("OneToOneSeparateFKPrincipalID2")]
+        public int OneToOneSeparateFkprincipalId2 { get; set; }
         [Required]
-        public string SomeOneToOneSeparateFKPrincipalColumn { get; set; }
+        [Column("SomeOneToOneSeparateFKPrincipalColumn")]
+        public string SomeOneToOneSeparateFkprincipalColumn { get; set; }
 
-        [InverseProperty("OneToOneSeparateFKDependentFK")]
-        public virtual OneToOneSeparateFKDependent OneToOneSeparateFKDependent { get; set; }
+        [InverseProperty("OneToOneSeparateFkdependentFk")]
+        public virtual OneToOneSeparateFkdependent OneToOneSeparateFkdependent { get; set; }
     }
 }

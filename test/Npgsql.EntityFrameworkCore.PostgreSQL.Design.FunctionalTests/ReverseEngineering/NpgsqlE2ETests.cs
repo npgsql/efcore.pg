@@ -126,7 +126,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests.ReverseEn
             });
             */
 
-            //throw new Exception(actualFileSet.Contents("Test_Spaces_Keywords_Table.cs"));
             AssertEqualFileContents(expectedFileSet, actualFileSet);
             AssertCompile(actualFileSet);
         }
@@ -152,7 +151,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests.ReverseEn
                 Files = Enumerable.Repeat(filePaths.ContextFile, 1).Concat(filePaths.EntityTypeFiles).Select(Path.GetFileName).ToList()
             };
 
-            var expectedFileSet = new FileSet(new FileSystemFileService(),
+             var expectedFileSet = new FileSet(new FileSystemFileService(),
                 Path.Combine("ReverseEngineering", "Expected", "AllFluentApi"),
                 inputFile => inputFile.Replace("{{connectionString}}", _connectionString))
             {
@@ -231,16 +230,16 @@ CREATE SEQUENCE ""CyclicalCountByThree""
             using (var scratch = NpgsqlTestStore.CreateScratch())
             {
                 scratch.ExecuteNonQuery(@"
-DROP TABLE IF EXISTS ""IDSerialSequence"";
-CREATE TABLE ""IDSerialSequence"" (
+DROP TABLE IF EXISTS ""IdSerialSequence"";
+CREATE TABLE ""IdSerialSequence"" (
   ""Id"" SERIAL PRIMARY KEY
 );
 
-DROP TABLE IF EXISTS ""IDNonSerialSequence"";
-DROP SEQUENCE IF EXISTS ""IDSomeSequence"";
-CREATE SEQUENCE ""IDSomeSequence"";
-CREATE TABLE ""IDNonSerialSequence"" (
-  ""Id"" INTEGER PRIMARY KEY DEFAULT nextval('""IDSomeSequence""')
+DROP TABLE IF EXISTS ""IdNonSerialSequence"";
+DROP SEQUENCE IF EXISTS ""IdSomeSequence"";
+CREATE SEQUENCE ""IdSomeSequence"";
+CREATE TABLE ""IdNonSerialSequence"" (
+  ""Id"" INTEGER PRIMARY KEY DEFAULT nextval('""IdSomeSequence""')
 );
 
 DROP TABLE IF EXISTS ""SerialSequence"";
@@ -271,8 +270,8 @@ CREATE TABLE ""NonSerialSequence"" (
                     Files = new List<string>
                     {
                         "ColumnsWithSequencesContext.expected",
-                        "IDNonSerialSequence.expected",
-                        "IDSerialSequence.expected",
+                        "IdNonSerialSequence.expected",
+                        "IdSerialSequence.expected",
                         "NonSerialSequence.expected",
                         "SerialSequence.expected"
                     }
@@ -285,6 +284,8 @@ CREATE TABLE ""NonSerialSequence"" (
                     Files = new[] { filePaths.ContextFile }.Concat(filePaths.EntityTypeFiles).Select(Path.GetFileName).ToList()
                 };
 
+                foreach (var f in actualFileSet.Files)
+                    File.WriteAllText($@"c:\temp\actual\{f}", actualFileSet.Contents(f));
                 AssertEqualFileContents(expectedFileSet, actualFileSet);
                 AssertCompile(actualFileSet);
             }
