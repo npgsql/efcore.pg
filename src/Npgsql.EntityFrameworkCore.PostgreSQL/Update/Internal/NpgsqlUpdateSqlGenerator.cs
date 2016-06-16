@@ -99,29 +99,6 @@ namespace Microsoft.EntityFrameworkCore.Update.Internal
                 .AppendJoin(operations.Select(c => SqlGenerationHelper.DelimitIdentifier(c.ColumnName)));
         }
 
-        // This function is a temporary workaround for
-        // https://github.com/aspnet/EntityFramework/issues/3023
-        protected override void AppendWhereCondition(
-            [NotNull] StringBuilder commandStringBuilder,
-            [NotNull] ColumnModification columnModification,
-            bool useOriginalValue)
-        {
-            Check.NotNull(commandStringBuilder, nameof(commandStringBuilder));
-            Check.NotNull(columnModification, nameof(columnModification));
-
-            // In PostgreSQL, doing WHERE x = @p doesn't work if @p is null.
-            // IS NOT DISTINCT FROM does the same thing as equality but also returns true for null comparison.
-            // http://www.postgresql.org/docs/current/static/functions-comparison.html
-            commandStringBuilder
-                .Append(SqlGenerationHelper.DelimitIdentifier(columnModification.ColumnName))
-                .Append(" IS NOT DISTINCT FROM ")
-                .Append(
-                    SqlGenerationHelper.GenerateParameterName(
-                        useOriginalValue
-                            ? columnModification.OriginalParameterName
-                            : columnModification.ParameterName));
-        }
-
         public override void AppendBatchHeader(StringBuilder commandStringBuilder)
         {
             Check.NotNull(commandStringBuilder, nameof(commandStringBuilder));
