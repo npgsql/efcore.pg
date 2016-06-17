@@ -22,7 +22,7 @@
     "Microsoft.EntityFrameworkCore.Relational": "1.0.0-*",
     "Microsoft.Extensions.DependencyInjection.Abstractions": "1.0.0-*",
     "Microsoft.Extensions.DependencyInjection": "1.0.0-*",
-    "Npgsql": "3.1.4-ci-219"
+    "Npgsql": "3.1.4"
   },
   "frameworks": {
     "net451": {},
