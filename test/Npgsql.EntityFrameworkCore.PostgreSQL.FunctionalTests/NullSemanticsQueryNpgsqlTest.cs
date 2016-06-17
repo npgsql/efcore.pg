@@ -938,7 +938,7 @@ WHERE ""e"".""NullableBoolA"" IS NULL",
 
 SELECT ""e"".""Id""
 FROM ""NullSemanticsEntity1"" AS ""e""
-WHERE (""e"".""NullableBoolA"" = ""e"".""NullableBoolB"") OR @__prm_0 = TRUE",
+WHERE (""e"".""NullableBoolA"" = ""e"".""NullableBoolB"") OR (@__prm_0 = TRUE)",
                 Sql);
         }
 
@@ -973,7 +973,7 @@ WHERE ""e"".""NullableBoolA"" IS NOT NULL",
 
 SELECT ""e"".""Id""
 FROM ""NullSemanticsEntity1"" AS ""e""
-WHERE (""e"".""NullableBoolA"" <> ""e"".""NullableBoolB"") OR @__prm_0 = TRUE",
+WHERE (""e"".""NullableBoolA"" <> ""e"".""NullableBoolB"") OR (@__prm_0 = TRUE)",
                 Sql);
         }
 
