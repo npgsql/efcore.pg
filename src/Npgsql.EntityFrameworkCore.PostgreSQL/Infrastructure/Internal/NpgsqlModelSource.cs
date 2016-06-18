@@ -27,7 +27,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Conventions.Internal;
 
 namespace Microsoft.EntityFrameworkCore.Infrastructure.Internal
 {
-    public class NpgsqlModelSource : ModelSource
+    public class NpgsqlModelSource : RelationalModelSource
     {
         public NpgsqlModelSource(
             [NotNull] IDbSetFinder setFinder,

@@ -52,6 +52,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
                 => optionsBuilder.UseNpgsql(_connectionString);
 
+            protected override void OnModelCreating(ModelBuilder modelBuilder)
+                => modelBuilder.Entity<ZeroKey>().ToTable("ZeroKey");
+
             public DbSet<ZeroKey> ZeroKeys { get; set; }
 
             public class ZeroKey
