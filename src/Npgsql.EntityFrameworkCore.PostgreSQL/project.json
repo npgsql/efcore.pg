@@ -1,5 +1,5 @@
 ﻿{
-  "version": "1.0.0-ci-*",
+  "version": "1.0.0",
   "packOptions": {
     "authors": [ "Shay Rojansky" ],
     "description" : "PostgreSQL provider for Entity Framework Core",
@@ -22,7 +22,7 @@
     "Microsoft.EntityFrameworkCore.Relational": "1.0.0",
     "Microsoft.Extensions.DependencyInjection.Abstractions": "1.0.0",
     "Microsoft.Extensions.DependencyInjection": "1.0.0",
-    "Npgsql": "3.1.4"
+    "Npgsql": "3.1.5"
   },
   "frameworks": {
     "net451": {},
