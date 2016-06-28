@@ -307,7 +307,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Migrations
             Assert.Equal(
                 @"ALTER TABLE ""dbo"".""People"" ALTER COLUMN ""LuckyNumber"" TYPE int;" + EOL +
                 @"ALTER TABLE ""dbo"".""People"" ALTER COLUMN ""LuckyNumber"" SET NOT NULL;" + EOL +
-                @"ALTER TABLE ""dbo"".""People"" ALTER COLUMN ""LuckyNumber"" SET DEFAULT 7;" + EOL,
+                @"ALTER TABLE ""dbo"".""People"" ALTER COLUMN ""LuckyNumber"" SET DEFAULT 7",
             Sql);
         }
 
@@ -318,7 +318,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Migrations
             Assert.Equal(
                 @"ALTER TABLE ""People"" ALTER COLUMN ""LuckyNumber"" TYPE int4;" + EOL +
                 @"ALTER TABLE ""People"" ALTER COLUMN ""LuckyNumber"" SET NOT NULL;" + EOL +
-                @"ALTER TABLE ""People"" ALTER COLUMN ""LuckyNumber"" DROP DEFAULT;" + EOL,
+                @"ALTER TABLE ""People"" ALTER COLUMN ""LuckyNumber"" DROP DEFAULT",
             Sql);
         }
 
@@ -341,7 +341,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Migrations
                 @"ALTER TABLE ""People"" ALTER COLUMN ""IntKey"" TYPE int;" + EOL +
                 @"ALTER TABLE ""People"" ALTER COLUMN ""IntKey"" SET NOT NULL;" + EOL +
                 @"ALTER TABLE ""People"" ALTER COLUMN ""IntKey"" SET DEFAULT (nextval(""People_IntKey_seq""));" + EOL +
-                @"ALTER SEQUENCE ""People_IntKey_seq"" OWNED BY ""People"".""IntKey"";" + EOL,
+                @"ALTER SEQUENCE ""People_IntKey_seq"" OWNED BY ""People"".""IntKey""",
             Sql);
         }
 
@@ -362,7 +362,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Migrations
             Assert.Equal(
                 @"ALTER TABLE ""People"" ALTER COLUMN ""GuidKey"" TYPE uuid;" + EOL +
                 @"ALTER TABLE ""People"" ALTER COLUMN ""GuidKey"" SET NOT NULL;" + EOL +
-                @"ALTER TABLE ""People"" ALTER COLUMN ""GuidKey"" SET DEFAULT (uuid_generate_v4());" + EOL,
+                @"ALTER TABLE ""People"" ALTER COLUMN ""GuidKey"" SET DEFAULT (uuid_generate_v4())",
             Sql);
         }
 

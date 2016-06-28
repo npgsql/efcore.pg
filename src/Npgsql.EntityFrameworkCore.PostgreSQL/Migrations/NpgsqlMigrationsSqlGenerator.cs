@@ -110,8 +110,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                     {
                         Name = sequenceName,
                         ClrType = typeof(long)
-                    }, model, builder);
-                    builder.AppendLine(SqlGenerationHelper.StatementTerminator);
+                    }, model, builder, false);
                     defaultValueSql = $@"nextval({SqlGenerationHelper.DelimitIdentifier(sequenceName)})";
                     // Note: we also need to set the sequence ownership, this is done below
                     // after the ALTER COLUMN
@@ -168,6 +167,11 @@ namespace Microsoft.EntityFrameworkCore.Migrations
 
         protected override void Generate(CreateSequenceOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
         {
+            Generate(operation, model, builder, true);
+        }
+
+        void Generate(CreateSequenceOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder, bool endStatement)
+        {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
@@ -188,7 +192,8 @@ namespace Microsoft.EntityFrameworkCore.Migrations
 
             builder.AppendLine(SqlGenerationHelper.StatementTerminator);
 
-            EndStatement(builder);
+            if (endStatement)
+                EndStatement(builder);
         }
 
         protected override void Generate(RenameIndexOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
