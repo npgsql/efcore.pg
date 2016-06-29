@@ -8,6 +8,6 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 [assembly: AssemblyTitle("Npgsql.EntityFrameworkCore.PostgreSQL")]
 [assembly: AssemblyDescription("PostgreSQL provider for Entity Framework Core")]
 [assembly: DesignTimeProviderServices(
-    typeName: "Microsoft.EntityFrameworkCore.Scaffolding.NpgsqlDesignTimeServices",
+    typeName: "Microsoft.EntityFrameworkCore.Scaffolding.Internal.NpgsqlDesignTimeServices",
     assemblyName: "Npgsql.EntityFrameworkCore.PostgreSQL.Design",
     packageName: "Npgsql.EntityFrameworkCore.PostgreSQL.Design")]

@@ -45,7 +45,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                             ComplexNavigationsModelInitializer.Seed(context);
                         }
 
-                        TestSqlLoggerFactory.SqlStatements.Clear();
+                        TestSqlLoggerFactory.Reset();
                     }
                 });
 

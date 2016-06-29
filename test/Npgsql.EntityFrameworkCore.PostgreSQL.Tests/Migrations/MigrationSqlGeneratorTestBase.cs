@@ -3,12 +3,13 @@
 
 using System;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Microsoft.EntityFrameworkCore.Specification.Tests;
 using Xunit;
 
-namespace Microsoft.EntityFrameworkCore.Relational.Tests.Migrations
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Migrations
 {
     public abstract class MigrationSqlGeneratorTestBase
     {
@@ -192,6 +193,7 @@ namespace Microsoft.EntityFrameworkCore.Relational.Tests.Migrations
                     Table = "Person",
                     Name = "Name",
                     ClrType = typeof(string),
+                    MaxLength = 30,
                     IsNullable = true
                 });
         }
@@ -322,18 +324,21 @@ namespace Microsoft.EntityFrameworkCore.Relational.Tests.Migrations
                         new AddColumnOperation
                         {
                             Name = "Id",
+                            Table = "People",
                             ClrType = typeof(int),
                             IsNullable = false
                         },
                         new AddColumnOperation
                         {
                             Name = "EmployerId",
+                            Table = "People",
                             ClrType = typeof(int),
                             IsNullable = true
                         },
-                         new AddColumnOperation
+                        new AddColumnOperation
                         {
                             Name = "SSN",
+                            Table = "People",
                             ClrType = typeof(string),
                             ColumnType = "char(11)",
                             IsNullable = true
@@ -466,9 +471,7 @@ namespace Microsoft.EntityFrameworkCore.Relational.Tests.Migrations
 
             var batch = SqlGenerator.Generate(operation, modelBuilder.Model);
 
-            Sql = string.Join(
-                "GO" + EOL + EOL,
-                batch.Select(b => b.CommandText));
+            Sql = string.Join("", batch.Select(b => b.CommandText));
         }
     }
 }

@@ -1,0 +1,330 @@
+using System;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
+
+namespace E2ETest.Namespace
+{
+    public partial class NpgsqlReverseEngineerTestE2EContext : DbContext
+    {
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            #warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
+            optionsBuilder.UseNpgsql(@"Host=localhost;Username=npgsql_tests;Password=npgsql_tests;Database=NpgsqlReverseEngineerTestE2E");
+        }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<AllDataTypes>(entity =>
+            {
+                entity.Property(e => e.AllDataTypesId).HasColumnName("AllDataTypesID");
+
+                entity.Property(e => e.BigintColumn).HasColumnName("bigintColumn");
+
+                entity.Property(e => e.BoolColumn).HasColumnName("boolColumn");
+
+                entity.Property(e => e.ByteaColumn).HasColumnName("byteaColumn");
+
+                entity.Property(e => e.CharColumn)
+                    .HasColumnName("charColumn")
+                    .HasColumnType("bpchar")
+                    .HasMaxLength(1);
+
+                entity.Property(e => e.DateColumn)
+                    .HasColumnName("dateColumn")
+                    .HasColumnType("date");
+
+                entity.Property(e => e.DecimalColumn).HasColumnName("decimalColumn");
+
+                entity.Property(e => e.DoubleColumn).HasColumnName("doubleColumn");
+
+                entity.Property(e => e.IntColumn).HasColumnName("intColumn");
+
+                entity.Property(e => e.MoneyColumn)
+                    .HasColumnName("moneyColumn")
+                    .HasColumnType("money");
+
+                entity.Property(e => e.NumericColumn).HasColumnName("numericColumn");
+
+                entity.Property(e => e.RealColumn).HasColumnName("realColumn");
+
+                entity.Property(e => e.SmallintColumn).HasColumnName("smallintColumn");
+
+                entity.Property(e => e.TextColumn).HasColumnName("textColumn");
+
+                entity.Property(e => e.TimeColumn)
+                    .HasColumnName("timeColumn")
+                    .HasColumnType("time");
+
+                entity.Property(e => e.TimestampColumn).HasColumnName("timestampColumn");
+
+                entity.Property(e => e.TimestampTzColumn)
+                    .HasColumnName("timestampTzColumn")
+                    .HasColumnType("timestamptz");
+
+                entity.Property(e => e.UuidColumn).HasColumnName("uuidColumn");
+
+                entity.Property(e => e.VarcharColumn)
+                    .HasColumnName("varcharColumn")
+                    .HasColumnType("varchar");
+            });
+
+            modelBuilder.Entity<OneToManyDependent>(entity =>
+            {
+                entity.HasKey(e => new { e.OneToManyDependentId1, e.OneToManyDependentId2 })
+                    .HasName("PK_OneToManyDependent");
+
+                entity.Property(e => e.OneToManyDependentId1).HasColumnName("OneToManyDependentID1");
+
+                entity.Property(e => e.OneToManyDependentId2).HasColumnName("OneToManyDependentID2");
+
+                entity.Property(e => e.OneToManyDependentFk1).HasColumnName("OneToManyDependentFK1");
+
+                entity.Property(e => e.OneToManyDependentFk2).HasColumnName("OneToManyDependentFK2");
+
+                entity.Property(e => e.SomeDependentEndColumn).IsRequired();
+
+                entity.HasOne(d => d.OneToManyDependentFk)
+                    .WithMany(p => p.OneToManyDependent)
+                    .HasForeignKey(d => new { d.OneToManyDependentFk1, d.OneToManyDependentFk2 })
+                    .HasConstraintName("FK_OneToManyDependent");
+            });
+
+            modelBuilder.Entity<OneToManyPrincipal>(entity =>
+            {
+                entity.HasKey(e => new { e.OneToManyPrincipalId1, e.OneToManyPrincipalId2 })
+                    .HasName("PK_OneToManyPrincipal");
+
+                entity.Property(e => e.OneToManyPrincipalId1).HasColumnName("OneToManyPrincipalID1");
+
+                entity.Property(e => e.OneToManyPrincipalId2).HasColumnName("OneToManyPrincipalID2");
+
+                entity.Property(e => e.Other).IsRequired();
+            });
+
+            modelBuilder.Entity<OneToOneDependent>(entity =>
+            {
+                entity.HasKey(e => new { e.OneToOneDependentId1, e.OneToOneDependentId2 })
+                    .HasName("PK_OneToOneDependent");
+
+                entity.Property(e => e.OneToOneDependentId1).HasColumnName("OneToOneDependentID1");
+
+                entity.Property(e => e.OneToOneDependentId2).HasColumnName("OneToOneDependentID2");
+
+                entity.Property(e => e.SomeDependentEndColumn).IsRequired();
+
+                entity.HasOne(d => d.OneToOneDependentNavigation)
+                    .WithOne(p => p.OneToOneDependent)
+                    .HasForeignKey<OneToOneDependent>(d => new { d.OneToOneDependentId1, d.OneToOneDependentId2 })
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .HasConstraintName("FK_OneToOneDependent");
+            });
+
+            modelBuilder.Entity<OneToOneFktoUniqueKeyDependent>(entity =>
+            {
+                entity.HasKey(e => new { e.OneToOneFktoUniqueKeyDependentId1, e.OneToOneFktoUniqueKeyDependentId2 })
+                    .HasName("PK_OneToOneFKToUniqueKeyDependent");
+
+                entity.ToTable("OneToOneFKToUniqueKeyDependent");
+
+                entity.HasIndex(e => new { e.OneToOneFktoUniqueKeyDependentFk1, e.OneToOneFktoUniqueKeyDependentFk2 })
+                    .HasName("UK_OneToOneFKToUniqueKeyDependent")
+                    .IsUnique();
+
+                entity.Property(e => e.OneToOneFktoUniqueKeyDependentId1).HasColumnName("OneToOneFKToUniqueKeyDependentID1");
+
+                entity.Property(e => e.OneToOneFktoUniqueKeyDependentId2).HasColumnName("OneToOneFKToUniqueKeyDependentID2");
+
+                entity.Property(e => e.OneToOneFktoUniqueKeyDependentFk1)
+                    .IsRequired()
+                    .HasColumnName("OneToOneFKToUniqueKeyDependentFK1");
+
+                entity.Property(e => e.OneToOneFktoUniqueKeyDependentFk2)
+                    .IsRequired()
+                    .HasColumnName("OneToOneFKToUniqueKeyDependentFK2");
+
+                entity.Property(e => e.SomeColumn).IsRequired();
+
+                entity.HasOne(d => d.OneToOneFktoUniqueKeyDependentFk)
+                    .WithOne(p => p.OneToOneFktoUniqueKeyDependent)
+                    .HasPrincipalKey<OneToOneFktoUniqueKeyPrincipal>(p => new { p.OneToOneFktoUniqueKeyPrincipalUniqueKey1, p.OneToOneFktoUniqueKeyPrincipalUniqueKey2 })
+                    .HasForeignKey<OneToOneFktoUniqueKeyDependent>(d => new { d.OneToOneFktoUniqueKeyDependentFk1, d.OneToOneFktoUniqueKeyDependentFk2 })
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .HasConstraintName("FK_OneToOneFKToUniqueKeyDependent");
+            });
+
+            modelBuilder.Entity<OneToOneFktoUniqueKeyPrincipal>(entity =>
+            {
+                entity.HasKey(e => new { e.OneToOneFktoUniqueKeyPrincipalId1, e.OneToOneFktoUniqueKeyPrincipalId2 })
+                    .HasName("PK_OneToOneFKToUniqueKeyPrincipal");
+
+                entity.ToTable("OneToOneFKToUniqueKeyPrincipal");
+
+                entity.HasIndex(e => new { e.OneToOneFktoUniqueKeyPrincipalUniqueKey1, e.OneToOneFktoUniqueKeyPrincipalUniqueKey2 })
+                    .HasName("UK_OneToOneFKToUniqueKeyPrincipal")
+                    .IsUnique();
+
+                entity.Property(e => e.OneToOneFktoUniqueKeyPrincipalId1).HasColumnName("OneToOneFKToUniqueKeyPrincipalID1");
+
+                entity.Property(e => e.OneToOneFktoUniqueKeyPrincipalId2).HasColumnName("OneToOneFKToUniqueKeyPrincipalID2");
+
+                entity.Property(e => e.OneToOneFktoUniqueKeyPrincipalUniqueKey1).HasColumnName("OneToOneFKToUniqueKeyPrincipalUniqueKey1");
+
+                entity.Property(e => e.OneToOneFktoUniqueKeyPrincipalUniqueKey2).HasColumnName("OneToOneFKToUniqueKeyPrincipalUniqueKey2");
+
+                entity.Property(e => e.SomePrincipalColumn).IsRequired();
+            });
+
+            modelBuilder.Entity<OneToOnePrincipal>(entity =>
+            {
+                entity.HasKey(e => new { e.OneToOnePrincipalId1, e.OneToOnePrincipalId2 })
+                    .HasName("PK_OneToOnePrincipal");
+
+                entity.Property(e => e.OneToOnePrincipalId1).HasColumnName("OneToOnePrincipalID1");
+
+                entity.Property(e => e.OneToOnePrincipalId2).HasColumnName("OneToOnePrincipalID2");
+
+                entity.Property(e => e.SomeOneToOnePrincipalColumn).IsRequired();
+            });
+
+            modelBuilder.Entity<OneToOneSeparateFkdependent>(entity =>
+            {
+                entity.HasKey(e => new { e.OneToOneSeparateFkdependentId1, e.OneToOneSeparateFkdependentId2 })
+                    .HasName("PK_OneToOneSeparateFKDependent");
+
+                entity.ToTable("OneToOneSeparateFKDependent");
+
+                entity.HasIndex(e => new { e.OneToOneSeparateFkdependentFk1, e.OneToOneSeparateFkdependentFk2 })
+                    .HasName("UK_OneToOneSeparateFKDependent")
+                    .IsUnique();
+
+                entity.Property(e => e.OneToOneSeparateFkdependentId1).HasColumnName("OneToOneSeparateFKDependentID1");
+
+                entity.Property(e => e.OneToOneSeparateFkdependentId2).HasColumnName("OneToOneSeparateFKDependentID2");
+
+                entity.Property(e => e.OneToOneSeparateFkdependentFk1)
+                    .IsRequired()
+                    .HasColumnName("OneToOneSeparateFKDependentFK1");
+
+                entity.Property(e => e.OneToOneSeparateFkdependentFk2)
+                    .IsRequired()
+                    .HasColumnName("OneToOneSeparateFKDependentFK2");
+
+                entity.Property(e => e.SomeDependentEndColumn).IsRequired();
+
+                entity.HasOne(d => d.OneToOneSeparateFkdependentFk)
+                    .WithOne(p => p.OneToOneSeparateFkdependent)
+                    .HasForeignKey<OneToOneSeparateFkdependent>(d => new { d.OneToOneSeparateFkdependentFk1, d.OneToOneSeparateFkdependentFk2 })
+                    .OnDelete(DeleteBehavior.Restrict)
+                    .HasConstraintName("FK_OneToOneSeparateFKDependent");
+            });
+
+            modelBuilder.Entity<OneToOneSeparateFkprincipal>(entity =>
+            {
+                entity.HasKey(e => new { e.OneToOneSeparateFkprincipalId1, e.OneToOneSeparateFkprincipalId2 })
+                    .HasName("PK_OneToOneSeparateFKPrincipal");
+
+                entity.ToTable("OneToOneSeparateFKPrincipal");
+
+                entity.Property(e => e.OneToOneSeparateFkprincipalId1).HasColumnName("OneToOneSeparateFKPrincipalID1");
+
+                entity.Property(e => e.OneToOneSeparateFkprincipalId2).HasColumnName("OneToOneSeparateFKPrincipalID2");
+
+                entity.Property(e => e.SomeOneToOneSeparateFkprincipalColumn)
+                    .IsRequired()
+                    .HasColumnName("SomeOneToOneSeparateFKPrincipalColumn");
+            });
+
+            modelBuilder.Entity<PropertyConfiguration>(entity =>
+            {
+                entity.HasIndex(e => new { e.A, e.B })
+                    .HasName("Test_PropertyConfiguration_Index");
+
+                entity.Property(e => e.PropertyConfigurationId).HasColumnName("PropertyConfigurationID");
+
+                entity.Property(e => e.WithDateDefaultExpression).HasDefaultValueSql("now()");
+
+                entity.Property(e => e.WithDateFixedDefault).HasDefaultValueSql("'2015-10-20 11:00:00'::timestamp without time zone");
+
+                entity.Property(e => e.WithDefaultValue).HasDefaultValueSql("'-1'::integer");
+
+                entity.Property(e => e.WithMoneyDefaultValue)
+                    .HasColumnType("money")
+                    .HasDefaultValueSql("0.00");
+
+                entity.Property(e => e.WithVarcharNullDefaultValue).HasColumnType("varchar");
+            });
+
+            modelBuilder.Entity<SelfReferencing>(entity =>
+            {
+                entity.Property(e => e.SelfReferencingId)
+                    .HasColumnName("SelfReferencingID")
+                    .ValueGeneratedNever();
+
+                entity.Property(e => e.Description).IsRequired();
+
+                entity.Property(e => e.Name).IsRequired();
+
+                entity.Property(e => e.SelfReferenceFk).HasColumnName("SelfReferenceFK");
+
+                entity.HasOne(d => d.SelfReferenceFkNavigation)
+                    .WithMany(p => p.InverseSelfReferenceFkNavigation)
+                    .HasForeignKey(d => d.SelfReferenceFk)
+                    .HasConstraintName("FK_SelfReferencing");
+            });
+
+            modelBuilder.Entity<SpecialTypes>(entity =>
+            {
+                entity.Property(e => e.SpecialTypesId)
+                    .HasColumnName("SpecialTypesID")
+                    .ValueGeneratedNever();
+            });
+
+            modelBuilder.Entity<TestSpacesKeywordsTable>(entity =>
+            {
+                entity.ToTable("Test Spaces Keywords Table");
+
+                entity.Property(e => e.TestSpacesKeywordsTableId)
+                    .HasColumnName("Test Spaces Keywords TableID")
+                    .ValueGeneratedNever();
+
+                entity.Property(e => e.Abstract).HasColumnName("abstract");
+
+                entity.Property(e => e.AtSymbolAtStartOfColumn).HasColumnName("@AtSymbolAtStartOfColumn");
+
+                entity.Property(e => e.BackslashesInColumn).HasColumnName("\\Backslashes\\In\\Column");
+
+                entity.Property(e => e.Class).HasColumnName("class");
+
+                entity.Property(e => e.CommasInColumn).HasColumnName("Commas,In,Column");
+
+                entity.Property(e => e.DollarSignColumn).HasColumnName("$Dollar$Sign$Column");
+
+                entity.Property(e => e.DoubleQuotesColumn).HasColumnName("\"Double\"Quotes\"Column");
+
+                entity.Property(e => e.ExclamationMarkColumn).HasColumnName("!Exclamation!Mark!Column");
+
+                entity.Property(e => e.MultipleAtSymbolsInColumn).HasColumnName("@Multiple@At@Symbols@In@Column");
+
+                entity.Property(e => e.SpacesInColumn).HasColumnName("Spaces In Column");
+
+                entity.Property(e => e.TabsInColumn).HasColumnName("Tabs\tIn\tColumn");
+
+                entity.Property(e => e.Volatile).HasColumnName("volatile");
+            });
+        }
+
+        public virtual DbSet<AllDataTypes> AllDataTypes { get; set; }
+        public virtual DbSet<OneToManyDependent> OneToManyDependent { get; set; }
+        public virtual DbSet<OneToManyPrincipal> OneToManyPrincipal { get; set; }
+        public virtual DbSet<OneToOneDependent> OneToOneDependent { get; set; }
+        public virtual DbSet<OneToOneFktoUniqueKeyDependent> OneToOneFktoUniqueKeyDependent { get; set; }
+        public virtual DbSet<OneToOneFktoUniqueKeyPrincipal> OneToOneFktoUniqueKeyPrincipal { get; set; }
+        public virtual DbSet<OneToOnePrincipal> OneToOnePrincipal { get; set; }
+        public virtual DbSet<OneToOneSeparateFkdependent> OneToOneSeparateFkdependent { get; set; }
+        public virtual DbSet<OneToOneSeparateFkprincipal> OneToOneSeparateFkprincipal { get; set; }
+        public virtual DbSet<PropertyConfiguration> PropertyConfiguration { get; set; }
+        public virtual DbSet<SelfReferencing> SelfReferencing { get; set; }
+        public virtual DbSet<SpecialTypes> SpecialTypes { get; set; }
+        public virtual DbSet<TestSpacesKeywordsTable> TestSpacesKeywordsTable { get; set; }
+    }
+}

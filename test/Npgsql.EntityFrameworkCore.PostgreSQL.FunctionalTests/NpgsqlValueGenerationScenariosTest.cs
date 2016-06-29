@@ -64,6 +64,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             {
                 protected override void OnModelCreating(ModelBuilder modelBuilder)
                 {
+                    base.OnModelCreating(modelBuilder);
+
                     modelBuilder
                         .Entity<Blog>()
                         .Property(e => e.Id)
@@ -98,6 +100,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             {
                 protected override void OnModelCreating(ModelBuilder modelBuilder)
                 {
+                    base.OnModelCreating(modelBuilder);
+
                     modelBuilder
                         .Entity<Blog>()
                         .Property(e => e.OtherId)
@@ -132,7 +136,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             {
                 protected override void OnModelCreating(ModelBuilder modelBuilder)
                 {
-                    modelBuilder.HasPostgresExtension("uuid-ossp");
+                    base.OnModelCreating(modelBuilder);
 
                     modelBuilder
                         .Entity<GuidBlog>()
@@ -195,6 +199,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             {
                 var name = GetType().FullName.Substring((GetType().Namespace + nameof(NpgsqlValueGenerationScenariosTest)).Length + 2);
                 optionsBuilder.UseNpgsql(NpgsqlTestStore.CreateConnectionString(name));
+            }
+
+            protected override void OnModelCreating(ModelBuilder modelBuilder)
+            {
+                modelBuilder.HasPostgresExtension("uuid-ossp");
             }
         }
 

@@ -31,7 +31,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 testStore.ExecuteNonQuery(@"CREATE TABLE ""ZeroKey"" (""Id"" int)");
                 testStore.ExecuteNonQuery(@"INSERT INTO ""ZeroKey"" VALUES (NULL)");
 
-                using (var context = new NullKeyContext(testStore.Connection.ConnectionString))
+                using (var context = new NullKeyContext(testStore.ConnectionString))
                 {
                     Assert.Equal(
                         CoreStrings.InvalidKeyValue("ZeroKey"),
@@ -51,6 +51,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 
             protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
                 => optionsBuilder.UseNpgsql(_connectionString);
+
+            protected override void OnModelCreating(ModelBuilder modelBuilder)
+                => modelBuilder.Entity<ZeroKey>().ToTable("ZeroKey");
 
             public DbSet<ZeroKey> ZeroKeys { get; set; }
 
@@ -148,17 +151,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 Assert.Equal(3, result[1].Orders.Count);
 
                 var expectedSql =
-                    @"SELECT ""c"".""FirstName"", ""c"".""LastName""
+    @"SELECT ""c"".""FirstName"", ""c"".""LastName""
 FROM ""Customer"" AS ""c""
 ORDER BY ""c"".""FirstName"", ""c"".""LastName""
 
 SELECT ""o"".""Id"", ""o"".""CustomerFirstName"", ""o"".""CustomerLastName"", ""o"".""Name""
 FROM ""Order"" AS ""o""
-INNER JOIN (
-    SELECT DISTINCT ""c"".""FirstName"", ""c"".""LastName""
+WHERE EXISTS (
+    SELECT 1
     FROM ""Customer"" AS ""c""
-) AS ""c0"" ON (""o"".""CustomerFirstName"" = ""c0"".""FirstName"") AND (""o"".""CustomerLastName"" = ""c0"".""LastName"")
-ORDER BY ""c0"".""FirstName"", ""c0"".""LastName""";
+    WHERE (""o"".""CustomerFirstName"" = ""c"".""FirstName"") AND (""o"".""CustomerLastName"" = ""c"".""LastName""))
+ORDER BY ""o"".""CustomerFirstName"", ""o"".""CustomerLastName""";
 
                 Assert.Equal(expectedSql, TestSqlLoggerFactory.Sql);
             }
@@ -474,7 +477,7 @@ WHERE (""c"".""FirstName"" = @__firstName_0) AND (""c"".""LastName"" = @__8__loc
                         contextInitializer(context);
                     }
 
-                    TestSqlLoggerFactory.SqlStatements.Clear();
+                    TestSqlLoggerFactory.Reset();
                 }
             });
         }

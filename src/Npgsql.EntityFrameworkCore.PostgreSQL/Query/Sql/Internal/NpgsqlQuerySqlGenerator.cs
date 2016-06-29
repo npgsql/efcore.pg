@@ -39,8 +39,6 @@ namespace Microsoft.EntityFrameworkCore.Query.Sql.Internal
     public class NpgsqlQuerySqlGenerator : DefaultQuerySqlGenerator
     {
         protected override string ConcatOperator => "||";
-        protected override string TrueLiteral => "TRUE";
-        protected override string FalseLiteral => "FALSE";
         protected override string TypedTrueLiteral => "TRUE::bool";
         protected override string TypedFalseLiteral => "FALSE::bool";
 
@@ -133,8 +131,8 @@ namespace Microsoft.EntityFrameworkCore.Query.Sql.Internal
             // http://git.postgresql.org/gitweb/?p=postgresql.git&a=commitdiff&h=c6b3c939b7e0f1d35f4ed4996e71420a993810d2
             // As a result we must surround string concatenation with parentheses
             if (binaryExpression.NodeType == ExpressionType.Add &&
-                binaryExpression.Left.Type == typeof (string) &&
-                binaryExpression.Right.Type == typeof (string))
+                binaryExpression.Left.Type == typeof(string) &&
+                binaryExpression.Right.Type == typeof(string))
             {
                 Sql.Append("(");
                 var exp = base.VisitBinary(binaryExpression);

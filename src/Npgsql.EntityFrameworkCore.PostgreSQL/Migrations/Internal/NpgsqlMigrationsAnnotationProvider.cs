@@ -33,15 +33,12 @@ namespace Microsoft.EntityFrameworkCore.Migrations.Internal
     {
         public override IEnumerable<IAnnotation> For(IProperty property)
         {
-            if (property.ValueGenerated == ValueGenerated.OnAdd &&
-                property.ClrType.IsIntegerForSerial()) {
-                yield return new Annotation(NpgsqlAnnotationNames.Prefix + NpgsqlAnnotationNames.Serial, true);
-            }
-
-            // TODO: Named sequences
-
-            // TODO: We don't support ValueGenerated.OnAddOrUpdate, so should we throw an exception?
-            // Other providers don't seem to...
+            // The migrations SQL generator gets the property's DefaultValue and DefaultValueSql.
+            // However, there's no way there to detect properties that have ValueGenerated.OnAdd
+            // *without* defining a default value; these should translate to SERIAL columns.
+            // So we add a custom annotation here to pass the information.
+            if (property.ValueGenerated == ValueGenerated.OnAdd)
+                yield return new Annotation(NpgsqlAnnotationNames.Prefix + NpgsqlAnnotationNames.ValueGeneratedOnAdd, true);
         }
 
         public override IEnumerable<IAnnotation> For(IIndex index)

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.NetworkInformation;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Specification.Tests;
 using NpgsqlTypes;
 using Xunit;
@@ -111,11 +112,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 bool? param17 = true;
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Bool == param17));
 
-                PhysicalAddress param18 = PhysicalAddress.Parse("08-00-2B-01-02-03");
+                var param18 = PhysicalAddress.Parse("08-00-2B-01-02-03");
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Macaddr.Equals(param18)));
 
-                NpgsqlPoint? param19 = new NpgsqlPoint(5.2, 3.3);
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Point == param19));
+                // PostgreSQL doesn't support equality comparison on point
+                // NpgsqlPoint? param19 = new NpgsqlPoint(5.2, 3.3);
+                // Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Point == param19));
 
                 // The following fails because of https://github.com/aspnet/EntityFramework/issues/3617,
                 // or rather https://github.com/aspnet/EntityFramework/issues/4608
@@ -260,6 +262,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 
             using (var context = CreateContext())
             {
+                var connString = context.Database.GetDbConnection().ConnectionString;
                 var entity = context.Set<MappedDataTypes>().Single(e => e.Int == 77);
 
                 Assert.Equal(80, entity.Tinyint);

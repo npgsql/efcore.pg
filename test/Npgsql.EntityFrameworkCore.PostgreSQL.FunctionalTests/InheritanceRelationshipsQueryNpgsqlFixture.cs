@@ -46,7 +46,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                         InheritanceRelationshipsModelInitializer.Seed(context);
                     }
 
-                    TestSqlLoggerFactory.SqlStatements.Clear();
+                    TestSqlLoggerFactory.Reset();
                 }
             });
         }

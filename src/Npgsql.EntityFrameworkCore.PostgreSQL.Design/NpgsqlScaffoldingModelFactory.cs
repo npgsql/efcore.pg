@@ -22,31 +22,28 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Logging;
 
-namespace Microsoft.EntityFrameworkCore.Scaffolding
+namespace Microsoft.EntityFrameworkCore.Scaffolding.Internal
 {
     public class NpgsqlScaffoldingModelFactory : RelationalScaffoldingModelFactory
     {
         public NpgsqlScaffoldingModelFactory(
             [NotNull] ILoggerFactory loggerFactory,
             [NotNull] IRelationalTypeMapper typeMapper,
-            [NotNull] IDatabaseModelFactory databaseModelFactory)
-            : base(loggerFactory, typeMapper, databaseModelFactory)
+            [NotNull] IDatabaseModelFactory databaseModelFactory,
+            [NotNull] CandidateNamingService candidateNamingService)
+            : base(loggerFactory, typeMapper, databaseModelFactory, candidateNamingService)
         {
         }
 
-        public override IModel Create(string connectionString, TableSelectionSet tableSelectionSet)
+        public override IModel Create(string connectionString, [CanBeNull] TableSelectionSet tableSelectionSet)
         {
             var model = base.Create(connectionString, tableSelectionSet);
             model.Scaffolding().UseProviderMethodName = nameof(NpgsqlDbContextOptionsExtensions.UseNpgsql);

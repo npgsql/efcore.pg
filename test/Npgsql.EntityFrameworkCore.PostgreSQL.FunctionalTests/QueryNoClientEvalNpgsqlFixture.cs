@@ -8,7 +8,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
     public class QueryNoClientEvalNpgsqlFixture : NorthwindQueryNpgsqlFixture
     {
-        protected override void ConfigureOptions(NpgsqlDbContextOptionsBuilder NpgsqlDbContextOptionsBuilder)
-            => NpgsqlDbContextOptionsBuilder.QueryClientEvaluationBehavior(QueryClientEvaluationBehavior.Throw);
+        protected override DbContextOptionsBuilder ConfigureOptions(DbContextOptionsBuilder dbContextOptionsBuilder)
+            => dbContextOptionsBuilder.ConfigureWarnings(c => c.Default(WarningBehavior.Throw));
     }
 }

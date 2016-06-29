@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using Xunit;
@@ -15,6 +14,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests.ReverseEngineering
 {
+    [FrameworkSkipCondition(RuntimeFrameworks.CoreCLR, SkipReason = "https://github.com/aspnet/EntityFramework/issues/4841")]
     public class NpgsqlE2ETests : E2ETestBase, IClassFixture<NpgsqlE2EFixture>
     {
         protected override string ProviderName => "Npgsql.EntityFrameworkCore.PostgreSQL.Design";
@@ -53,9 +53,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests.ReverseEn
         {
         }
 
-        string _connectionString = NpgsqlTestStore.CreateConnectionString("NpgsqlReverseEngineerTestE2E");
+        readonly string _connectionString =
+            new NpgsqlConnectionStringBuilder(TestEnvironment.DefaultConnection) {
+                Database = "NpgsqlReverseEngineerTestE2E"
+            }.ConnectionString;
 
-        private static readonly List<string> _expectedEntityTypeFiles = new List<string>
+        static readonly List<string> _expectedEntityTypeFiles = new List<string>
             {
                 "AllDataTypes.expected",
                 "OneToManyDependent.expected",
@@ -75,7 +78,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests.ReverseEn
                 "Test_Spaces_Keywords_Table.expected",
            };
 
-        [Fact]
         [UseCulture("en-US")]
         public void E2ETest_UseAttributesInsteadOfFluentApi()
         {
@@ -97,7 +99,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests.ReverseEn
             };
 
             var expectedFileSet = new FileSet(new FileSystemFileService(),
-                Path.Combine("ReverseEngineering", "ExpectedResults", "E2E_UseAttributesInsteadOfFluentApi"),
+                Path.Combine("ReverseEngineering", "Expected", "Attributes"),
                 contents => contents.Replace("namespace " + TestNamespace, "namespace " + TestNamespace + "." + TestSubDir)
                     .Replace("{{connectionString}}", _connectionString))
             {
@@ -123,7 +125,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests.ReverseEn
             });
             */
 
-            //throw new Exception(actualFileSet.Contents("Test_Spaces_Keywords_Table.cs"));
             AssertEqualFileContents(expectedFileSet, actualFileSet);
             AssertCompile(actualFileSet);
         }
@@ -149,8 +150,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests.ReverseEn
                 Files = Enumerable.Repeat(filePaths.ContextFile, 1).Concat(filePaths.EntityTypeFiles).Select(Path.GetFileName).ToList()
             };
 
-            var expectedFileSet = new FileSet(new FileSystemFileService(),
-                Path.Combine("ReverseEngineering", "ExpectedResults", "E2E_AllFluentApi"),
+             var expectedFileSet = new FileSet(new FileSystemFileService(),
+                Path.Combine("ReverseEngineering", "Expected", "AllFluentApi"),
                 inputFile => inputFile.Replace("{{connectionString}}", _connectionString))
             {
                 Files = (new List<string> { "NpgsqlReverseEngineerTestE2EContext.expected" })
@@ -198,14 +199,14 @@ CREATE SEQUENCE ""CyclicalCountByThree""
 
                 var configuration = new ReverseEngineeringConfiguration
                 {
-                    ConnectionString = scratch.Connection.ConnectionString,
+                    ConnectionString = scratch.ConnectionString,
                     ProjectPath = TestProjectDir + Path.DirectorySeparatorChar,
                     ProjectRootNamespace = TestNamespace,
                     ContextClassName = "SequenceContext",
                 };
                 var expectedFileSet = new FileSet(new FileSystemFileService(),
-                    Path.Combine("ReverseEngineering", "ExpectedResults"),
-                    contents => contents.Replace("{{connectionString}}", scratch.Connection.ConnectionString))
+                    Path.Combine("ReverseEngineering", "Expected"),
+                    contents => contents.Replace("{{connectionString}}", scratch.ConnectionString))
                 {
                     Files = new List<string> { "SequenceContext.expected" }
                 };
@@ -228,16 +229,16 @@ CREATE SEQUENCE ""CyclicalCountByThree""
             using (var scratch = NpgsqlTestStore.CreateScratch())
             {
                 scratch.ExecuteNonQuery(@"
-DROP TABLE IF EXISTS ""IDSerialSequence"";
-CREATE TABLE ""IDSerialSequence"" (
+DROP TABLE IF EXISTS ""IdSerialSequence"";
+CREATE TABLE ""IdSerialSequence"" (
   ""Id"" SERIAL PRIMARY KEY
 );
 
-DROP TABLE IF EXISTS ""IDNonSerialSequence"";
-DROP SEQUENCE IF EXISTS ""IDSomeSequence"";
-CREATE SEQUENCE ""IDSomeSequence"";
-CREATE TABLE ""IDNonSerialSequence"" (
-  ""Id"" INTEGER PRIMARY KEY DEFAULT nextval('""IDSomeSequence""')
+DROP TABLE IF EXISTS ""IdNonSerialSequence"";
+DROP SEQUENCE IF EXISTS ""IdSomeSequence"";
+CREATE SEQUENCE ""IdSomeSequence"";
+CREATE TABLE ""IdNonSerialSequence"" (
+  ""Id"" INTEGER PRIMARY KEY DEFAULT nextval('""IdSomeSequence""')
 );
 
 DROP TABLE IF EXISTS ""SerialSequence"";
@@ -256,20 +257,20 @@ CREATE TABLE ""NonSerialSequence"" (
 
                 var configuration = new ReverseEngineeringConfiguration
                 {
-                    ConnectionString = scratch.Connection.ConnectionString,
+                    ConnectionString = scratch.ConnectionString,
                     ProjectPath = TestProjectDir + Path.DirectorySeparatorChar,
                     ProjectRootNamespace = TestNamespace,
                     ContextClassName = "ColumnsWithSequencesContext",
                 };
                 var expectedFileSet = new FileSet(new FileSystemFileService(),
-                    Path.Combine("ReverseEngineering", "ExpectedResults", "ColumnsWithSequences"),
-                    contents => contents.Replace("{{connectionString}}", scratch.Connection.ConnectionString))
+                    Path.Combine("ReverseEngineering", "Expected", "ColumnsWithSequences"),
+                    contents => contents.Replace("{{connectionString}}", scratch.ConnectionString))
                 {
                     Files = new List<string>
                     {
                         "ColumnsWithSequencesContext.expected",
-                        "IDNonSerialSequence.expected",
-                        "IDSerialSequence.expected",
+                        "IdNonSerialSequence.expected",
+                        "IdSerialSequence.expected",
                         "NonSerialSequence.expected",
                         "SerialSequence.expected"
                     }
@@ -282,7 +283,8 @@ CREATE TABLE ""NonSerialSequence"" (
                     Files = new[] { filePaths.ContextFile }.Concat(filePaths.EntityTypeFiles).Select(Path.GetFileName).ToList()
                 };
 
-                //throw new Exception(actualFileSet.Contents(0));
+                foreach (var f in actualFileSet.Files)
+                    File.WriteAllText($@"c:\temp\actual\{f}", actualFileSet.Contents(f));
                 AssertEqualFileContents(expectedFileSet, actualFileSet);
                 AssertCompile(actualFileSet);
             }

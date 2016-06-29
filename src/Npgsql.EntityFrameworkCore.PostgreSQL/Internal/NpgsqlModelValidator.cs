@@ -33,15 +33,16 @@ namespace Microsoft.EntityFrameworkCore.Internal
                 from e in model.GetEntityTypes()
                 from p in e.GetProperties()
                 where p.ClrType.UnwrapNullableType() == typeof(Guid)
-                let defaultValueSql = (string)_relationalExtensions.For(p).DefaultValueSql
-                where defaultValueSql != null && defaultValueSql.Contains("uuid_generate")
+                let defaultValueSql = _relationalExtensions.For(p).DefaultValueSql
+                where _relationalExtensions.For(p).DefaultValueSql?.StartsWith("uuid_generate") == true ||
+                      p.ValueGenerated == ValueGenerated.OnAdd
                 select p
             ).FirstOrDefault();
 
             if (generatedUuidProperty != null &&
                 model.Npgsql().PostgresExtensions.All(e => e.Name != "uuid-ossp"))
             {
-                ShowError(@"Database-generated UUIDs require the PostgreSQL uuid-ossp extension. Add .HasPostgresExtension(""uuid-ossp"") to your context's OnModelCreating.");
+                ShowError($@"Property {generatedUuidProperty.Name} on type {generatedUuidProperty.DeclaringEntityType.Name} is a database-generated uuid, which requires the PostgreSQL uuid-ossp extension. Add .HasPostgresExtension(""uuid-ossp"") to your context's OnModelCreating.");
             }
         }
     }

@@ -5,16 +5,16 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.EntityFrameworkCore.Migrations;
-using Microsoft.EntityFrameworkCore.Relational.Tests.Migrations;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Microsoft.EntityFrameworkCore.Relational.Tests.TestUtilities;
 using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Xunit;
 
-namespace EntityFramework7.Npgsql.Tests.Migrations
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Migrations
 {
     public class MigrationSqlGeneratorTest : MigrationSqlGeneratorTestBase
     {
@@ -298,20 +298,89 @@ namespace EntityFramework7.Npgsql.Tests.Migrations
                 Sql);
         }
 
+        #region AlterColumn
+
+        public override void AlterColumnOperation()
+        {
+            base.AlterColumnOperation();
+
+            Assert.Equal(
+                @"ALTER TABLE ""dbo"".""People"" ALTER COLUMN ""LuckyNumber"" TYPE int;" + EOL +
+                @"ALTER TABLE ""dbo"".""People"" ALTER COLUMN ""LuckyNumber"" SET NOT NULL;" + EOL +
+                @"ALTER TABLE ""dbo"".""People"" ALTER COLUMN ""LuckyNumber"" SET DEFAULT 7",
+            Sql);
+        }
+
+        public override void AlterColumnOperation_without_column_type()
+        {
+            base.AlterColumnOperation_without_column_type();
+
+            Assert.Equal(
+                @"ALTER TABLE ""People"" ALTER COLUMN ""LuckyNumber"" TYPE int4;" + EOL +
+                @"ALTER TABLE ""People"" ALTER COLUMN ""LuckyNumber"" SET NOT NULL;" + EOL +
+                @"ALTER TABLE ""People"" ALTER COLUMN ""LuckyNumber"" DROP DEFAULT",
+            Sql);
+        }
+
+        [Fact]
+        public void AlterColumnOperation_dbgenerated_int()
+        {
+            Generate(
+                new AlterColumnOperation
+                {
+                    Table = "People",
+                    Name = "IntKey",
+                    ClrType = typeof(int),
+                    ColumnType = "int",
+                    IsNullable = false,
+                    [NpgsqlAnnotationNames.Prefix + NpgsqlAnnotationNames.ValueGeneratedOnAdd] = true
+                });
+
+            Assert.Equal(
+                @"CREATE SEQUENCE ""People_IntKey_seq"" START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE;" + EOL +
+                @"ALTER TABLE ""People"" ALTER COLUMN ""IntKey"" TYPE int;" + EOL +
+                @"ALTER TABLE ""People"" ALTER COLUMN ""IntKey"" SET NOT NULL;" + EOL +
+                @"ALTER TABLE ""People"" ALTER COLUMN ""IntKey"" SET DEFAULT (nextval(""People_IntKey_seq""));" + EOL +
+                @"ALTER SEQUENCE ""People_IntKey_seq"" OWNED BY ""People"".""IntKey""",
+            Sql);
+        }
+
+        [Fact]
+        public void AlterColumnOperation_dbgenerated_uuid()
+        {
+            Generate(
+                new AlterColumnOperation
+                {
+                    Table = "People",
+                    Name = "GuidKey",
+                    ClrType = typeof(int),
+                    ColumnType = "uuid",
+                    IsNullable = false,
+                    [NpgsqlAnnotationNames.Prefix + NpgsqlAnnotationNames.ValueGeneratedOnAdd] = true
+                });
+
+            Assert.Equal(
+                @"ALTER TABLE ""People"" ALTER COLUMN ""GuidKey"" TYPE uuid;" + EOL +
+                @"ALTER TABLE ""People"" ALTER COLUMN ""GuidKey"" SET NOT NULL;" + EOL +
+                @"ALTER TABLE ""People"" ALTER COLUMN ""GuidKey"" SET DEFAULT (uuid_generate_v4())",
+            Sql);
+        }
+
+        #endregion
+
         #region Npgsql-specific
 
         [Fact]
         public void CreateIndexOperation_method()
         {
-            var op = new CreateIndexOperation
+            Generate(new CreateIndexOperation
             {
                 Name = "IX_People_Name",
                 Table = "People",
                 Schema = "dbo",
-                Columns = new[] { "FirstName" }
-            };
-            op.AddAnnotation(NpgsqlAnnotationNames.Prefix + NpgsqlAnnotationNames.IndexMethod, "gin");
-            Generate(op);
+                Columns = new[] { "FirstName" },
+                [NpgsqlAnnotationNames.Prefix + NpgsqlAnnotationNames.IndexMethod] = "gin"
+            });
 
             Assert.Equal(
                 "CREATE INDEX \"IX_People_Name\" ON \"dbo\".\"People\" USING gin (\"FirstName\");" + EOL,
@@ -321,13 +390,68 @@ namespace EntityFramework7.Npgsql.Tests.Migrations
         [Fact]
         public void CreatePostgresExtension()
         {
-            var op = new NpgsqlCreatePostgresExtensionOperation {
+            Generate(new NpgsqlCreatePostgresExtensionOperation
+            {
                 Name = "hstore",
-            };
-            Generate(op);
+            });
 
             Assert.Equal(
                 @"CREATE EXTENSION ""hstore"";" + EOL,
+                Sql);
+        }
+
+        [Fact]
+        public virtual void AddColumnOperation_serial()
+        {
+            Generate(new AddColumnOperation
+            {
+                Table = "People",
+                Name = "foo",
+                ClrType = typeof(int),
+                ColumnType = "int",
+                IsNullable = false,
+                [NpgsqlAnnotationNames.Prefix + NpgsqlAnnotationNames.ValueGeneratedOnAdd] = true
+            });
+
+            Assert.Equal(
+                "ALTER TABLE \"People\" ADD \"foo\" serial NOT NULL;" + EOL,
+                Sql);
+        }
+
+        [Fact]
+        public virtual void AddColumnOperation_with_int_defaultValue_isnt_serial()
+        {
+            Generate(
+                new AddColumnOperation
+                {
+                    Table = "People",
+                    Name = "foo",
+                    ClrType = typeof(int),
+                    ColumnType = "int",
+                    IsNullable = false,
+                    DefaultValue = "8"
+                });
+
+            Assert.Equal(
+                "ALTER TABLE \"People\" ADD \"foo\" int NOT NULL DEFAULT '8';" + EOL,
+                Sql);
+        }
+
+        [Fact]
+        public virtual void AddColumnOperation_with_dbgenerated_uuid()
+        {
+            Generate(
+                new AddColumnOperation
+                {
+                    Table = "People",
+                    Name = "foo",
+                    ClrType = typeof(Guid),
+                    ColumnType = "uuid",
+                    [NpgsqlAnnotationNames.Prefix + NpgsqlAnnotationNames.ValueGeneratedOnAdd] = true
+                });
+
+            Assert.Equal(
+                "ALTER TABLE \"People\" ADD \"foo\" uuid NOT NULL DEFAULT (uuid_generate_v4());" + EOL,
                 Sql);
         }
 

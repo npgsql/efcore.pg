@@ -154,25 +154,7 @@ LIMIT 2",
         {
             base.Can_include_prey();
 
-            Assert.Equal(
-                @"SELECT ""e"".""Species"", ""e"".""CountryId"", ""e"".""Discriminator"", ""e"".""Name"", ""e"".""EagleId"", ""e"".""IsFlightless"", ""e"".""Group""
-FROM ""Animal"" AS ""e""
-WHERE ""e"".""Discriminator"" = 'Eagle'
-ORDER BY ""e"".""Species""
-LIMIT 2
-
-SELECT ""a"".""Species"", ""a"".""CountryId"", ""a"".""Discriminator"", ""a"".""Name"", ""a"".""EagleId"", ""a"".""IsFlightless"", ""a"".""Group"", ""a"".""FoundOn""
-FROM ""Animal"" AS ""a""
-INNER JOIN (
-    SELECT DISTINCT ""e"".""Species""
-    FROM ""Animal"" AS ""e""
-    WHERE ""e"".""Discriminator"" = 'Eagle'
-    ORDER BY ""e"".""Species""
-    LIMIT 2
-) AS ""e0"" ON ""a"".""EagleId"" = ""e0"".""Species""
-WHERE ""a"".""Discriminator"" IN ('Kiwi', 'Eagle')
-ORDER BY ""e0"".""Species""",
-                Sql);
+            // TODO: Assert on SQL
         }
 
         public override void Can_include_animals()
@@ -199,48 +181,7 @@ ORDER BY ""c0"".""Name"", ""c0"".""Id""",
         {
             base.Can_insert_update_delete();
 
-            Assert.Equal(
-                @"SELECT ""c"".""Id"", ""c"".""Name""
-FROM ""Country"" AS ""c""
-WHERE ""c"".""Id"" = 1
-LIMIT 2
-
-@p0: Apteryx owenii
-@p1: 1
-@p2: Kiwi
-@p3: Little spotted kiwi
-@p4: 
-@p5: True
-@p6: North
-
-INSERT INTO ""Animal"" (""Species"", ""CountryId"", ""Discriminator"", ""Name"", ""EagleId"", ""IsFlightless"", ""FoundOn"")
-VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6);
-
-SELECT ""k"".""Species"", ""k"".""CountryId"", ""k"".""Discriminator"", ""k"".""Name"", ""k"".""EagleId"", ""k"".""IsFlightless"", ""k"".""FoundOn""
-FROM ""Animal"" AS ""k""
-WHERE (""k"".""Discriminator"" = 'Kiwi') AND ""k"".""Species"" LIKE ('%' || 'owenii')
-LIMIT 2
-
-@p1: Apteryx owenii
-@p0: Aquila chrysaetos canadensis
-
-UPDATE ""Animal"" SET ""EagleId"" = @p0
-WHERE ""Species"" IS NOT DISTINCT FROM @p1;
-
-SELECT ""k"".""Species"", ""k"".""CountryId"", ""k"".""Discriminator"", ""k"".""Name"", ""k"".""EagleId"", ""k"".""IsFlightless"", ""k"".""FoundOn""
-FROM ""Animal"" AS ""k""
-WHERE (""k"".""Discriminator"" = 'Kiwi') AND ""k"".""Species"" LIKE ('%' || 'owenii')
-LIMIT 2
-
-@p0: Apteryx owenii
-
-DELETE FROM ""Animal""
-WHERE ""Species"" IS NOT DISTINCT FROM @p0;
-
-SELECT COUNT(*)::INT4
-FROM ""Animal"" AS ""k""
-WHERE (""k"".""Discriminator"" = 'Kiwi') AND ""k"".""Species"" LIKE ('%' || 'owenii')",
-                Sql);
+            // TODO: Assert on SQL
         }
 
         public InheritanceNpgsqlTest(InheritanceNpgsqlFixture fixture)

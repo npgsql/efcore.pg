@@ -1,5 +1,5 @@
 ﻿{
-  "version": "1.0.0-rc2-release1",
+  "version": "1.0.0",
   "packOptions": {
     "authors": [ "Shay Rojansky" ],
     "description": "Design-time Entity Framework Core Functionality for PostgreSQL",
@@ -18,12 +18,13 @@
     }
   },
   "dependencies" : {
-    "Microsoft.EntityFrameworkCore": "1.0.0-rc2-*",
-    "Microsoft.EntityFrameworkCore.Relational": "1.0.0-rc2-*",
-    "Microsoft.EntityFrameworkCore.Relational.Design": "1.0.0-rc2-*",
-    "Microsoft.Extensions.DependencyInjection": "1.0.0-rc2-*",
-    "Microsoft.Extensions.DependencyInjection.Abstractions": "1.0.0-rc2-*",
-    "Npgsql.EntityFrameworkCore.PostgreSQL": "1.0.0-rc2-release1"
+    "Microsoft.EntityFrameworkCore": "1.0.0",
+    "Microsoft.EntityFrameworkCore.Relational": "1.0.0",
+    "Microsoft.EntityFrameworkCore.Relational.Design": "1.0.0",
+    "Microsoft.Extensions.DependencyInjection": "1.0.0",
+    "Microsoft.Extensions.DependencyInjection.Abstractions": "1.0.0",
+    "Npgsql.EntityFrameworkCore.PostgreSQL": "1.0.0",
+    "Npgsql": "3.1.5"
   },
   "frameworks": {
     "net451": {},
