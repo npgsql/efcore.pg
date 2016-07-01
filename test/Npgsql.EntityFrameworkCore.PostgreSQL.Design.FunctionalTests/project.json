@@ -10,9 +10,9 @@
   },
   "dependencies": {
     "dotnet-test-xunit": "1.0.0-rc3-000000-00",
-    "Microsoft.EntityFrameworkCore.Relational.Design.Specification.Tests": "1.0.0",
-    "Npgsql.EntityFrameworkCore.PostgreSQL.Design": "1.0.0",
-    "Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests": "1.0.0"
+    "Microsoft.EntityFrameworkCore.Relational.Design.Specification.Tests": "1.1.0-*",
+    "Npgsql.EntityFrameworkCore.PostgreSQL.Design": "1.1.0-*",
+    "Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests": "1.1.0-*"
   },
   "publishOptions": {
     "include": [
