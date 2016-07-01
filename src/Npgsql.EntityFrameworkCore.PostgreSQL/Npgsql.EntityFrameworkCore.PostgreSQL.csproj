@@ -68,6 +68,7 @@
     <Compile Include="Metadata\NpgsqlModelAnnotations.cs" />
     <Compile Include="Metadata\PostgresExtension.cs" />
     <Compile Include="Migrations\Internal\NpgsqlMigrationsModelDiffer.cs" />
+    <Compile Include="Migrations\MigrationBuilderExtensions.cs" />
     <Compile Include="Migrations\Operations\NpgsqlCreatePostgresExtensionOperation.cs" />
     <Compile Include="Migrations\Operations\NpgsqlCreateDatabaseOperation.cs" />
     <Compile Include="Migrations\Operations\NpgsqlDropDatabaseOperation.cs" />

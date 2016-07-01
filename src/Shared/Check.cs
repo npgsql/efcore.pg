@@ -102,7 +102,7 @@ namespace Microsoft.EntityFrameworkCore.Utilities
             return value;
         }
 
-        public static string NullButNotEmpty(string value, [InvokerParameterName] [NotNull] string parameterName)
+        public static string NullButNotEmpty([CanBeNull] string value, [InvokerParameterName] [NotNull] string parameterName)
         {
             if (!ReferenceEquals(value, null)
                 && (value.Length == 0))
