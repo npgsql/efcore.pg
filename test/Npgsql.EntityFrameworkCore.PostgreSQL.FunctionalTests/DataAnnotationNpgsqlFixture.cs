@@ -6,7 +6,11 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Specification.Tests;
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
@@ -26,6 +30,28 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 .AddSingleton(TestNpgsqlModelSource.GetFactory(OnModelCreating))
                 .AddSingleton<ILoggerFactory>(new TestSqlLoggerFactory())
                 .BuildServiceProvider();
+        }
+
+        public override ModelValidator ThrowingValidator
+            => new ThrowingModelValidator(
+                _serviceProvider.GetService<ILogger<RelationalModelValidator>>(),
+                new NpgsqlAnnotationProvider(),
+                new NpgsqlTypeMapper());
+
+        private class ThrowingModelValidator : RelationalModelValidator
+        {
+            public ThrowingModelValidator(
+                ILogger<RelationalModelValidator> loggerFactory,
+                IRelationalAnnotationProvider relationalExtensions,
+                IRelationalTypeMapper typeMapper)
+                : base(loggerFactory, relationalExtensions, typeMapper)
+            {
+            }
+
+            protected override void ShowWarning(string message)
+            {
+                throw new InvalidOperationException(message);
+            }
         }
 
         public override NpgsqlTestStore CreateTestStore()
