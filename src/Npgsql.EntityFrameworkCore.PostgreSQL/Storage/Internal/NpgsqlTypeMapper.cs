@@ -92,6 +92,14 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
                 //}))
                 // Output
                 .ToDictionary(x => x.Type, x => x.Mapping);
+
+            // uint is special: there are three internal system uint types: oid, xid, cid. None are supposed to
+            // be truly user-facing, so we don't want to automatically map uint properties to any of them.
+            // However, if the user explicitly sets the properties store type to oid/xid/cid, we want to allow
+            // that (especially since the xmin system column is important for optimistic concurrency).
+            // EFCore doesn't allow a situation where a CLR type has no default store type, so we arbitrarily
+            // choose oid.
+            _clrTypeMappings[typeof(uint)] = new NpgsqlBaseTypeMapping("oid", typeof(uint), NpgsqlDbType.Oid);
         }
 
         protected override string GetColumnType(IProperty property) => property.Npgsql().ColumnType;

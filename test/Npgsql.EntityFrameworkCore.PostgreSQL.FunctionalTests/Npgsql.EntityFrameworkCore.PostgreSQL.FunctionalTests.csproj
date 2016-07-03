@@ -82,6 +82,7 @@
     <Compile Include="NpgsqlDatabaseCreatorTest.cs" />
     <Compile Include="NpgsqlFixture.cs" />
     <Compile Include="NpgsqlValueGenerationScenariosTest.cs" />
+    <Compile Include="SystemColumnTest.cs" />
     <Compile Include="TempInheritanceRelationalFixture.cs" />
     <Compile Include="Utilities\NpgsqlTestStore.cs" />
     <Compile Include="NullKeysNpgsqlTest.cs" />

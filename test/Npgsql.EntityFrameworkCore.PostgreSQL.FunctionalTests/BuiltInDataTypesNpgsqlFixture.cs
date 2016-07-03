@@ -125,6 +125,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             modelBuilder.Entity<MappedNullableDataTypes>().Property(e => e.PrimitiveArray).HasColumnType("_int4");
             modelBuilder.Entity<MappedDataTypes>().Property(e => e.NonPrimitiveArray).HasColumnType("_macaddr");
             modelBuilder.Entity<MappedNullableDataTypes>().Property(e => e.NonPrimitiveArray).HasColumnType("_macaddr");
+
+            modelBuilder.Entity<MappedDataTypes>().Property(e => e.Xid).HasColumnType("xid");
+            modelBuilder.Entity<MappedNullableDataTypes>().Property(e => e.Xid).HasColumnType("xid");
         }
 
         private static void MapColumnTypes<TEntity>(ModelBuilder modelBuilder) where TEntity : class
@@ -209,6 +212,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         // Array
         public int[] PrimitiveArray { get; set; }
         public PhysicalAddress[] NonPrimitiveArray { get; set; }
+
+        public uint Xid { get; set; }
     }
 
     public class MappedSizedDataTypes
@@ -291,6 +296,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         // Array
         public int[] PrimitiveArray { get; set; }
         public PhysicalAddress[] NonPrimitiveArray { get; set; }
+
+        public uint? Xid { get; set; }
     }
 
     /*
