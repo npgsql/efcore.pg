@@ -20,7 +20,7 @@
       </runner>
       <runner id="RUNNER_25" name="Build Debug" type="simpleRunner">
         <parameters>
-          <param name="script.content"><![CDATA[set KOREBUILD_DOTNET_PACK_OPTIONS=--version-suffix "%build.counter%"
+          <param name="script.content"><![CDATA[set KOREBUILD_DOTNET_PACK_OPTIONS= --version-suffix "%build.counter%"
 set Configuration=Debug
 build compile]]></param>
           <param name="teamcity.step.mode" value="default" />
@@ -36,7 +36,7 @@ build compile]]></param>
       </runner>
       <runner id="RUNNER_27" name="Build Release" type="simpleRunner">
         <parameters>
-          <param name="script.content"><![CDATA[set KOREBUILD_DOTNET_PACK_OPTIONS=--version-suffix "%build.counter%"
+          <param name="script.content"><![CDATA[set KOREBUILD_DOTNET_PACK_OPTIONS= --version-suffix "%build.counter%"
 set Configuration=Release
 build compile]]></param>
           <param name="teamcity.step.mode" value="default" />
