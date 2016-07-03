@@ -119,6 +119,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             // Jsonb in .NET is a regular string
             modelBuilder.Entity<MappedDataTypes>().Property(e => e.Jsonb).HasColumnType("jsonb");
             modelBuilder.Entity<MappedNullableDataTypes>().Property(e => e.Jsonb).HasColumnType("jsonb");
+
+            // Arrays
+            modelBuilder.Entity<MappedDataTypes>().Property(e => e.PrimitiveArray).HasColumnType("_int4");
+            modelBuilder.Entity<MappedNullableDataTypes>().Property(e => e.PrimitiveArray).HasColumnType("_int4");
+            modelBuilder.Entity<MappedDataTypes>().Property(e => e.NonPrimitiveArray).HasColumnType("_macaddr");
+            modelBuilder.Entity<MappedNullableDataTypes>().Property(e => e.NonPrimitiveArray).HasColumnType("_macaddr");
         }
 
         private static void MapColumnTypes<TEntity>(ModelBuilder modelBuilder) where TEntity : class
@@ -199,6 +205,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 
         // Composite
         //public SomeComposite SomeComposite { get; set; }
+
+        // Array
+        public int[] PrimitiveArray { get; set; }
+        public PhysicalAddress[] NonPrimitiveArray { get; set; }
     }
 
     public class MappedSizedDataTypes
@@ -277,6 +287,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 
         // Composite
         //public SomeComposite SomeComposite { get; set; }
+
+        // Array
+        public int[] PrimitiveArray { get; set; }
+        public PhysicalAddress[] NonPrimitiveArray { get; set; }
     }
 
     /*

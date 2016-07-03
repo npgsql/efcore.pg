@@ -22,6 +22,7 @@
 #endregion
 
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
@@ -32,16 +33,20 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Utilities;
 using Npgsql;
 using Npgsql.TypeHandlers;
+using NpgsqlTypes;
 
 namespace Microsoft.EntityFrameworkCore.Storage.Internal
 {
     public class NpgsqlTypeMapper : RelationalTypeMapper
     {
+        readonly Dictionary<string, RelationalTypeMapping> _storeTypeMappings;
+        readonly Dictionary<Type, RelationalTypeMapping> _clrTypeMappings;
+
         readonly ConcurrentDictionary<int, RelationalTypeMapping> _boundedStringMappings
             = new ConcurrentDictionary<int, RelationalTypeMapping>();
 
-        readonly Dictionary<string, RelationalTypeMapping> _storeTypeMappings;
-        readonly Dictionary<Type, RelationalTypeMapping> _clrTypeMappings;
+        readonly ConcurrentDictionary<Type, NpgsqlArrayTypeMapping> _arrayMappings
+            = new ConcurrentDictionary<Type, NpgsqlArrayTypeMapping>();
 
         public NpgsqlTypeMapper()
         {
@@ -51,7 +56,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
                 .Where(tam => tam.Mapping.NpgsqlDbType.HasValue)
                 .Select(tam => new {
                     Name = tam.Mapping.PgName,
-                    Mapping = (RelationalTypeMapping)new NpgsqlTypeMapping(tam.Mapping.PgName, GetTypeHandlerTypeArgument(tam.HandlerType), tam.Mapping.NpgsqlDbType.Value)
+                    Mapping = (RelationalTypeMapping)new NpgsqlBaseTypeMapping(tam.Mapping.PgName, GetTypeHandlerTypeArgument(tam.HandlerType), tam.Mapping.NpgsqlDbType.Value)
                 })
                 // Enums
                 //.Concat(TypeHandlerRegistry.GlobalEnumMappings.Select(kv => new {
@@ -73,7 +78,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
                 .Where(m => m.NpgsqlDbType.HasValue)
                 .SelectMany(m => m.ClrTypes, (m, t) => new {
                     Type = t,
-                    Mapping = (RelationalTypeMapping)new NpgsqlTypeMapping(m.PgName, t, m.NpgsqlDbType.Value)
+                    Mapping = (RelationalTypeMapping)new NpgsqlBaseTypeMapping(m.PgName, t, m.NpgsqlDbType.Value)
                 })
                 // Enums
                 //.Concat(TypeHandlerRegistry.GlobalEnumMappings.Select(kv => new {
@@ -98,17 +103,47 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
             => _storeTypeMappings;
 
         [CanBeNull]
+        public override RelationalTypeMapping FindMapping(Type clrType)
+        {
+            var mapping = base.FindMapping(clrType);
+            if (mapping != null)
+                return mapping;
+
+            // Check if it's an array or generic IList
+            Type arrayElementType = null;
+            if (clrType.IsArray)
+                arrayElementType = clrType.GetElementType();
+            else if (typeof(IList).IsAssignableFrom(clrType) && clrType.GetTypeInfo().IsGenericType)
+                arrayElementType = clrType.GetGenericArguments()[0];
+
+            if (arrayElementType != null)
+            {
+                var elementMapping = (NpgsqlBaseTypeMapping)FindMapping(arrayElementType);
+
+                // If an element isn't supported, neither is its array
+                if (elementMapping?.NpgsqlDbType == null)
+                    return null;
+
+                return _arrayMappings.GetOrAdd(clrType, t => new NpgsqlArrayTypeMapping(clrType, elementMapping));
+            }
+
+            return null;
+        }
+
+        [CanBeNull]
         protected override RelationalTypeMapping FindCustomMapping(IProperty property)
         {
             Check.NotNull(property, nameof(property));
 
-            if (property.ClrType == typeof(string))
+            var clrType = property.ClrType;
+
+            if (clrType == typeof(string))
             {
                 var maxLength = property.GetMaxLength();
                 if (maxLength.HasValue)
                 {
                     return _boundedStringMappings.GetOrAdd(maxLength.Value,
-                        ml => new NpgsqlTypeMapping($"varchar({maxLength})", typeof(string))
+                        ml => new NpgsqlBaseTypeMapping($"varchar({maxLength})", typeof(string))
                     );
                 }
             }
