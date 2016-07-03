@@ -37,15 +37,15 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding
 {
     public class NpgsqlDatabaseModelFactory : IDatabaseModelFactory
     {
-        private NpgsqlConnection _connection;
-        private TableSelectionSet _tableSelectionSet;
-        private DatabaseModel _databaseModel;
-        private Dictionary<string, TableModel> _tables;
-        private Dictionary<string, ColumnModel> _tableColumns;
+        NpgsqlConnection _connection;
+        TableSelectionSet _tableSelectionSet;
+        DatabaseModel _databaseModel;
+        Dictionary<string, TableModel> _tables;
+        Dictionary<string, ColumnModel> _tableColumns;
 
-        private static string TableKey(TableModel table) => TableKey(table.Name, table.SchemaName);
-        private static string TableKey(string name, string schema) => $"\"{schema}\".\"{name}\"";
-        private static string ColumnKey(TableModel table, string columnName) => $"{TableKey(table)}.\"{columnName}\"";
+        static string TableKey(TableModel table) => TableKey(table.Name, table.SchemaName);
+        static string TableKey(string name, string schema) => $"\"{schema}\".\"{name}\"";
+        static string ColumnKey(TableModel table, string columnName) => $"{TableKey(table)}.\"{columnName}\"";
 
         public NpgsqlDatabaseModelFactory([NotNull] ILoggerFactory loggerFactory)
         {
@@ -56,7 +56,7 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding
 
         public virtual ILogger Logger { get; }
 
-        private void ResetState()
+        void ResetState()
         {
             _connection = null;
             _tableSelectionSet = null;
@@ -90,13 +90,13 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding
         }
 
         const string GetTablesQuery = @"
-            SELECT nspname, relname
-            FROM pg_class AS cl
-            JOIN pg_namespace AS ns ON ns.oid = cl.relnamespace
-            WHERE
-              cl.relkind = 'r' AND
-              ns.nspname NOT IN ('pg_catalog', 'information_schema') AND
-              relname <> '" + HistoryRepository.DefaultTableName + "'";
+SELECT nspname, relname
+FROM pg_class AS cl
+JOIN pg_namespace AS ns ON ns.oid = cl.relnamespace
+WHERE
+    cl.relkind = 'r' AND
+    ns.nspname NOT IN ('pg_catalog', 'information_schema') AND
+    relname <> '" + HistoryRepository.DefaultTableName + "'";
 
         void GetTables()
         {
@@ -121,23 +121,23 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding
         }
 
         const string GetColumnsQuery = @"
-            SELECT
-                nspname, relname, attname, typname, attnum, atttypmod,
-                (NOT attnotnull) AS nullable,
-                CASE WHEN atthasdef THEN (SELECT pg_get_expr(adbin, cls.oid) FROM pg_attrdef WHERE adrelid = cls.oid AND adnum = attr.attnum) ELSE NULL END AS default
-            FROM pg_class AS cls
-            JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
-            LEFT OUTER JOIN pg_attribute AS attr ON attrelid = cls.oid
-            LEFT OUTER JOIN pg_type AS typ ON attr.atttypid = typ.oid
-            WHERE
-              atttypid <> 0 AND
-              relkind = 'r' AND
-              nspname NOT IN ('pg_catalog', 'information_schema') AND
-              relname <> '" + HistoryRepository.DefaultTableName + @"' AND
-              attnum > 0
-            ORDER BY attnum";
+SELECT
+    nspname, relname, attname, typname, attnum, atttypmod,
+    (NOT attnotnull) AS nullable,
+    CASE WHEN atthasdef THEN (SELECT pg_get_expr(adbin, cls.oid) FROM pg_attrdef WHERE adrelid = cls.oid AND adnum = attr.attnum) ELSE NULL END AS default
+FROM pg_class AS cls
+JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
+LEFT OUTER JOIN pg_attribute AS attr ON attrelid = cls.oid
+LEFT OUTER JOIN pg_type AS typ ON attr.atttypid = typ.oid
+WHERE
+    atttypid <> 0 AND
+    relkind = 'r' AND
+    nspname NOT IN ('pg_catalog', 'information_schema') AND
+    relname <> '" + HistoryRepository.DefaultTableName + @"' AND
+    attnum > 0
+ORDER BY attnum";
 
-        private void GetColumns()
+        void GetColumns()
         {
             using (var command = new NpgsqlCommand(GetColumnsQuery, _connection))
             using (var reader = command.ExecuteReader())
@@ -217,18 +217,18 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding
         }
 
         const string GetIndexesQuery = @"
-            SELECT
-                nspname, cls.relname, idxcls.relname, indisunique, indkey,
-                CASE WHEN indexprs IS NULL THEN NULL ELSE pg_get_expr(indexprs, cls.oid) END
-            FROM pg_class AS cls
-            JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
-            JOIN pg_index AS idx ON indrelid = cls.oid
-            JOIN pg_class AS idxcls ON idxcls.oid = indexrelid
-            WHERE
-              cls.relkind = 'r' AND
-              nspname NOT IN ('pg_catalog', 'information_schema') AND
-              cls.relname <> '" + HistoryRepository.DefaultTableName + @"' AND
-              NOT indisprimary";
+SELECT
+    nspname, cls.relname, idxcls.relname, indisunique, indkey,
+    CASE WHEN indexprs IS NULL THEN NULL ELSE pg_get_expr(indexprs, cls.oid) END
+FROM pg_class AS cls
+JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
+JOIN pg_index AS idx ON indrelid = cls.oid
+JOIN pg_class AS idxcls ON idxcls.oid = indexrelid
+WHERE
+    cls.relkind = 'r' AND
+    nspname NOT IN ('pg_catalog', 'information_schema') AND
+    cls.relname <> '" + HistoryRepository.DefaultTableName + @"' AND
+    NOT indisprimary";
 
         /// <remarks>
         /// Primary keys are handled as in <see cref="GetConstraints"/>, not here
@@ -286,18 +286,18 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding
         }
 
         const string GetConstraintsQuery = @"
-            SELECT
-                ns.nspname, cls.relname, conname, contype, conkey, frnns.nspname, frncls.relname, confkey, confdeltype
-            FROM pg_class AS cls
-            JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
-            JOIN pg_constraint as con ON con.conrelid = cls.oid
-            LEFT OUTER JOIN pg_class AS frncls ON frncls.oid = con.confrelid
-            LEFT OUTER JOIN pg_namespace as frnns ON frnns.oid = frncls.relnamespace
-            WHERE
-                cls.relkind = 'r' AND
-                ns.nspname NOT IN ('pg_catalog', 'information_schema') AND
-                cls.relname <> '" + HistoryRepository.DefaultTableName + @"' AND
-                con.contype IN ('p', 'f')";
+SELECT
+    ns.nspname, cls.relname, conname, contype, conkey, frnns.nspname, frncls.relname, confkey, confdeltype
+FROM pg_class AS cls
+JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
+JOIN pg_constraint as con ON con.conrelid = cls.oid
+LEFT OUTER JOIN pg_class AS frncls ON frncls.oid = con.confrelid
+LEFT OUTER JOIN pg_namespace as frnns ON frnns.oid = frncls.relnamespace
+WHERE
+    cls.relkind = 'r' AND
+    ns.nspname NOT IN ('pg_catalog', 'information_schema') AND
+    cls.relname <> '" + HistoryRepository.DefaultTableName + @"' AND
+    con.contype IN ('p', 'f')";
 
         void GetConstraints()
         {
@@ -382,19 +382,19 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding
         }
 
         const string GetSequencesQuery = @"
-            SELECT
-                sequence_schema, sequence_name, data_type, start_value::bigint, minimum_value::bigint, maximum_value::bigint, increment::int,
-                CASE WHEN cycle_option = 'YES' THEN TRUE ELSE FALSE END,
-                ownerns.nspname AS owner_schema,
-                tblcls.relname AS owner_table,
-                attname AS owner_column
-            FROM information_schema.sequences
-            JOIN pg_namespace AS seqns ON seqns.nspname = sequence_schema
-            JOIN pg_class AS seqcls ON seqcls.relnamespace = seqns.oid AND seqcls.relname = sequence_name AND seqcls.relkind = 'S'
-            LEFT OUTER JOIN pg_depend AS dep ON dep.objid = seqcls.oid AND deptype='a'
-            LEFT OUTER JOIN pg_class AS tblcls ON tblcls.oid = dep.refobjid
-            LEFT OUTER JOIN pg_attribute AS att ON attrelid = dep.refobjid AND attnum = dep.refobjsubid
-            LEFT OUTER JOIN pg_namespace AS ownerns ON ownerns.oid = tblcls.relnamespace";
+SELECT
+    sequence_schema, sequence_name, data_type, start_value::bigint, minimum_value::bigint, maximum_value::bigint, increment::int,
+    CASE WHEN cycle_option = 'YES' THEN TRUE ELSE FALSE END,
+    ownerns.nspname AS owner_schema,
+    tblcls.relname AS owner_table,
+    attname AS owner_column
+FROM information_schema.sequences
+JOIN pg_namespace AS seqns ON seqns.nspname = sequence_schema
+JOIN pg_class AS seqcls ON seqcls.relnamespace = seqns.oid AND seqcls.relname = sequence_name AND seqcls.relkind = 'S'
+LEFT OUTER JOIN pg_depend AS dep ON dep.objid = seqcls.oid AND deptype='a'
+LEFT OUTER JOIN pg_class AS tblcls ON tblcls.oid = dep.refobjid
+LEFT OUTER JOIN pg_attribute AS att ON attrelid = dep.refobjid AND attnum = dep.refobjsubid
+LEFT OUTER JOIN pg_namespace AS ownerns ON ownerns.oid = tblcls.relnamespace";
 
         void GetSequences()
         {
