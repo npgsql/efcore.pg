@@ -45,17 +45,18 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal
 
         static NpgsqlRegexIsMatchTranslator()
         {
-            IsMatch = typeof (Regex).GetTypeInfo().GetDeclaredMethods("IsMatch").Single(m =>
-                m.GetParameters().Count() == 2 &&
+            IsMatch = typeof (Regex).GetTypeInfo().GetDeclaredMethods(nameof(Regex.IsMatch)).Single(m =>
+                m.GetParameters().Length == 2 &&
                 m.GetParameters().All(p => p.ParameterType == typeof(string))
             );
-            IsMatchWithRegexOptions = typeof(Regex).GetTypeInfo().GetDeclaredMethods("IsMatch").Single(m =>
-               m.GetParameters().Count() == 3 &&
+            IsMatchWithRegexOptions = typeof(Regex).GetTypeInfo().GetDeclaredMethods(nameof(Regex.IsMatch)).Single(m =>
+               m.GetParameters().Length == 3 &&
                m.GetParameters().Take(2).All(p => p.ParameterType == typeof(string)) &&
                m.GetParameters()[2].ParameterType == typeof(RegexOptions)
             );
         }
 
+        [CanBeNull]
         public Expression Translate([NotNull] MethodCallExpression methodCallExpression)
         {
             // Regex.IsMatch(string, string)
@@ -74,16 +75,12 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal
                 var constantExpr = methodCallExpression.Arguments[2] as ConstantExpression;
 
                 if (constantExpr == null)
-                {
                     return null;
-                }
 
-                var options = (RegexOptions) constantExpr.Value;
+                var options = (RegexOptions)constantExpr.Value;
 
                 if ((options & UnsupportedRegexOptions) != 0)
-                {
                     return null;
-                }
 
                 return new RegexMatchExpression(
                     methodCallExpression.Arguments[0],
