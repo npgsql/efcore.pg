@@ -16,9 +16,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
     {
         public static readonly string DatabaseName = "OptimisticConcurrencyTest";
 
-        private readonly IServiceProvider _serviceProvider;
+        readonly IServiceProvider _serviceProvider;
 
-        private readonly string _connectionString = NpgsqlTestStore.CreateConnectionString(DatabaseName);
+        readonly string _connectionString = NpgsqlTestStore.CreateConnectionString(DatabaseName);
 
         public F1NpgsqlFixture()
         {
@@ -60,6 +60,49 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             var context = new F1Context(optionsBuilder.Options);
             context.Database.UseTransaction(testStore.Transaction);
             return context;
+        }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Chassis>(b =>
+            {
+                b.Property<uint>("xmin")
+                    .HasColumnType("xid")
+                    .ValueGeneratedOnAddOrUpdate()
+                    .IsConcurrencyToken();
+            });
+
+            modelBuilder.Entity<Driver>(b =>
+            {
+                b.Property<uint>("xmin")
+                    .HasColumnType("xid")
+                    .ValueGeneratedOnAddOrUpdate()
+                    .IsConcurrencyToken();
+            });
+
+            modelBuilder.Entity<Engine>(b =>
+            {
+                b.Property(e => e.EngineSupplierId).IsConcurrencyToken();
+                b.Property(e => e.Name).IsConcurrencyToken();
+            });
+
+            modelBuilder.Entity<Sponsor>(b =>
+            {
+                b.Property<int?>(Sponsor.ClientTokenPropertyName)
+                    .IsConcurrencyToken();
+            });
+
+            modelBuilder.Ignore<SponsorDetails>();
+
+            modelBuilder.Entity<Team>(b =>
+            {
+                b.Property<uint>("xmin")
+                    .HasColumnType("xid")
+                    .ValueGeneratedOnAddOrUpdate()
+                    .IsConcurrencyToken();
+            });
         }
     }
 }
