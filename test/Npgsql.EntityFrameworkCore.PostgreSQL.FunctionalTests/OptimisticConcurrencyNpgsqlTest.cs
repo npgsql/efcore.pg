@@ -13,10 +13,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
     {
         public OptimisticConcurrencyNpgsqlTest(F1NpgsqlFixture fixture) : base(fixture) {}
 
-        const int StorePodiums = 20;
-
         [Fact]
-        public override async Task Modifying_concurrency_token_only_is_noop()
+        public async Task Modifying_concurrency_token_only_is_noop()
         {
             uint firstVersion;
             using (var context = CreateF1Context())

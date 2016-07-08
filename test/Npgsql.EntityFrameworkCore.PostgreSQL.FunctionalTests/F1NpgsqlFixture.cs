@@ -82,20 +82,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                     .IsConcurrencyToken();
             });
 
-            modelBuilder.Entity<Engine>(b =>
-            {
-                b.Property(e => e.EngineSupplierId).IsConcurrencyToken();
-                b.Property(e => e.Name).IsConcurrencyToken();
-            });
-
-            modelBuilder.Entity<Sponsor>(b =>
-            {
-                b.Property<int?>(Sponsor.ClientTokenPropertyName)
-                    .IsConcurrencyToken();
-            });
-
-            modelBuilder.Ignore<SponsorDetails>();
-
             modelBuilder.Entity<Team>(b =>
             {
                 b.Property<uint>("xmin")
