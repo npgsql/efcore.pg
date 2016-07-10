@@ -124,14 +124,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 // NpgsqlPoint? param19 = new NpgsqlPoint(5.2, 3.3);
                 // Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Point == param19));
 
-                // The following fails because of https://github.com/aspnet/EntityFramework/issues/3617,
-                // or rather https://github.com/aspnet/EntityFramework/issues/4608
-                //var param20 = @"{""a"": ""b""}";
-                //Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Jsonb == param20));
+                var param20 = @"{""a"": ""b""}";
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Jsonb == param20));
 
-                // The following fails because of https://github.com/aspnet/EntityFramework/issues/5365
-                // var param21 = new Dictionary<string, string> { { "a", "b" } };
-                // Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Hstore == param21));
+                var param21 = new Dictionary<string, string> { { "a", "b" } };
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Hstore == param21));
 
                 //SomeComposite param22 = new SomeComposite { SomeNumber = 8, SomeText = "foo" };
                 //Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.SomeComposite.Equals(param20)));
