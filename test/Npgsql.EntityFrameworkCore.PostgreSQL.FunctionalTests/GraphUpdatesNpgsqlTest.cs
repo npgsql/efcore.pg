@@ -20,9 +20,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 
         public class GraphUpdatesNpgsqlFixture : GraphUpdatesFixtureBase
         {
-            private const string DatabaseName = "GraphUpdatesTest";
+            const string DatabaseName = "GraphUpdatesTest";
 
-            private readonly IServiceProvider _serviceProvider;
+            readonly IServiceProvider _serviceProvider;
 
             public GraphUpdatesNpgsqlFixture()
             {

@@ -12,7 +12,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
     public class DefaultValuesTest : IDisposable
     {
-        private readonly IServiceProvider _serviceProvider = new ServiceCollection()
+        readonly IServiceProvider _serviceProvider = new ServiceCollection()
             .AddEntityFrameworkNpgsql()
             .BuildServiceProvider();
 
@@ -48,10 +48,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             }
         }
 
-        private class ChipsContext : DbContext
+        class ChipsContext : DbContext
         {
-            private readonly IServiceProvider _serviceProvider;
-            private readonly string _databaseName;
+            readonly IServiceProvider _serviceProvider;
+            readonly string _databaseName;
 
             public ChipsContext(IServiceProvider serviceProvider, string databaseName)
             {
@@ -73,7 +73,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                     .HasDefaultValue(new DateTime(2035, 9, 25));
         }
 
-        private class KettleChips
+        class KettleChips
         {
             public int Id { get; set; }
             public string Name { get; set; }

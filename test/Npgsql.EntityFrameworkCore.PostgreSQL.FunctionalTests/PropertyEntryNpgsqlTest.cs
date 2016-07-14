@@ -15,23 +15,5 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             : base(fixture)
         {
         }
-
-        public override void Property_entry_original_value_is_set()
-        {
-            base.Property_entry_original_value_is_set();
-
-            Assert.Contains(
-                @"SELECT ""e"".""Id"", ""e"".""EngineSupplierId"", ""e"".""Name""
-FROM ""Engines"" AS ""e""
-LIMIT 1",
-                Sql);
-
-            Assert.Contains(
-                @"UPDATE ""Engines"" SET ""Name"" = @p0
-WHERE ""Id"" = @p1 AND ""EngineSupplierId"" = @p2 AND ""Name"" = @p3",
-                Sql);
-        }
-
-        private static string Sql => TestSqlLoggerFactory.Sql;
     }
 }
