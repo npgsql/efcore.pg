@@ -32,16 +32,6 @@ WHERE ""c"".""ContactName"" LIKE ((('%' || @__LocalMethod1_0)) || '%')",
                 Sql);
         }
 
-        [Fact(Skip="https://github.com/aspnet/EntityFramework/issues/5220")]
-        public override void Substring_with_constant()
-        {
-        }
-
-        [Fact(Skip = "https://github.com/aspnet/EntityFramework/issues/5220")]
-        public override void Substring_with_closure()
-        {
-        }
-
         #region Regular Expressions
 
         [Fact]
