@@ -12,6 +12,7 @@
     "Microsoft.Extensions.Configuration.Json": "1.0.0",
     "Microsoft.Extensions.Configuration.EnvironmentVariables": "1.0.0",
     "Npgsql.EntityFrameworkCore.PostgreSQL": "1.1.0-*",
+    "Npgsql.EntityFrameworkCore.PostgreSQL.Design": "1.1.0-*",
     "Npgsql": "3.1.5"
   },
   "publishOptions": {

@@ -74,5 +74,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             builder.Entity<TProductPhoto>().HasKey(e => e.PhotoId);
             builder.Entity<TProductReview>().HasKey(e => e.ReviewId);
         }
+
+        protected override void EnsureClean(DbContext context)
+            => context.Database.EnsureClean();
     }
 }
