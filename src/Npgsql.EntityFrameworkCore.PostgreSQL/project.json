@@ -1,5 +1,5 @@
 ﻿{
-  "version": "1.0.1-ci-*",
+  "version": "1.0.1",
   "packOptions": {
     "authors": [ "Shay Rojansky" ],
     "description" : "PostgreSQL provider for Entity Framework Core",
