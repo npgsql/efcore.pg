@@ -432,7 +432,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             Check.NotNull(builder, nameof(builder));
 
             builder
-                .Append("CREATE EXTENSION ")
+                .Append("CREATE EXTENSION IF NOT EXISTS ")
                 .Append(SqlGenerationHelper.DelimitIdentifier(operation.Name));
 
             if (operation.Schema != null)
