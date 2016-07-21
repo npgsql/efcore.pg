@@ -2695,6 +2695,7 @@ WHERE ((CAST(@__i_0 AS text) || ""c"".""CustomerID"")) = ""c"".""CompanyName""",
                 Sql);
         }
 
+        [Fact(Skip="https://github.com/aspnet/EntityFramework/issues/5717")]
         public override void Where_concat_string_int_comparison3()
         {
             base.Where_concat_string_int_comparison3();
