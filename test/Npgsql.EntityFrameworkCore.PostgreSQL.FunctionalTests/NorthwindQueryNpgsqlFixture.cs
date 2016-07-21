@@ -16,6 +16,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
     public class NorthwindQueryNpgsqlFixture : NorthwindQueryRelationalFixture, IDisposable
     {
+        private readonly IServiceProvider _serviceProvider;
         private readonly DbContextOptions _options;
 
         private readonly NpgsqlTestStore _testStore = NpgsqlNorthwindContext.GetSharedStore();
@@ -23,18 +24,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 
         public NorthwindQueryNpgsqlFixture()
         {
+            _serviceProvider
+                = new ServiceCollection()
+                    .AddEntityFrameworkNpgsql()
+                    .AddSingleton(TestNpgsqlModelSource.GetFactory(OnModelCreating))
+                    .AddSingleton<ILoggerFactory>(_testSqlLoggerFactory)
+                    .BuildServiceProvider();
+
             _options = BuildOptions();
         }
 
-        public override DbContextOptions BuildOptions(IServiceCollection additionalServices = null)
+        protected DbContextOptions BuildOptions()
             => ConfigureOptions(
                 new DbContextOptionsBuilder()
                     .EnableSensitiveDataLogging()
-                    .UseInternalServiceProvider((additionalServices ?? new ServiceCollection())
-                        .AddEntityFrameworkNpgsql()
-                        .AddSingleton(TestNpgsqlModelSource.GetFactory(OnModelCreating))
-                        .AddSingleton<ILoggerFactory>(_testSqlLoggerFactory)
-                        .BuildServiceProvider()))
+                    .UseInternalServiceProvider(_serviceProvider))
                 .UseNpgsql(
                     _testStore.ConnectionString,
                     b =>
@@ -50,9 +54,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         {
         }
 
-        public override NorthwindContext CreateContext(
-            QueryTrackingBehavior queryTrackingBehavior = QueryTrackingBehavior.TrackAll)
-            => new NpgsqlNorthwindContext(_options, queryTrackingBehavior);
+        public override NorthwindContext CreateContext()
+            => new NpgsqlNorthwindContext(_options);
 
         public void Dispose() => _testStore.Dispose();
 
