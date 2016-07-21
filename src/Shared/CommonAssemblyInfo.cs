@@ -8,6 +8,6 @@ using System.Resources;
 [assembly: AssemblyCopyright("Copyright © 2002 - 2016 Npgsql Development Team")]
 
 // The following version attributes get rewritten by GitVersion as part of the build
-[assembly: AssemblyVersion("1.0.1")]
-[assembly: AssemblyFileVersion("1.0.1")]
-[assembly: AssemblyInformationalVersion("1.0.1")]
+[assembly: AssemblyVersion("1.0.2")]
+[assembly: AssemblyFileVersion("1.0.2")]
+[assembly: AssemblyInformationalVersion("1.0.2-ci")]
