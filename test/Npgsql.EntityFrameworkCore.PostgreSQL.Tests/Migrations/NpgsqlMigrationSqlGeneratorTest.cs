@@ -396,7 +396,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Migrations
             });
 
             Assert.Equal(
-                @"CREATE EXTENSION ""hstore"";" + EOL,
+                @"CREATE EXTENSION IF NOT EXISTS ""hstore"";" + EOL,
                 Sql);
         }
 
