@@ -455,6 +455,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Migrations
                 Sql);
         }
 
+        [Fact]
+        public void RenameIndexOperation()
+        {
+            Generate(
+                new RenameIndexOperation
+                {
+                    Table = "People",
+                    Name = "x",
+                    NewName = "y",
+                    Schema = "myschema"
+                });
+
+            Assert.Equal(
+                "ALTER INDEX \"myschema\".\"x\" RENAME TO \"y\";" + EOL,
+                Sql);
+        }
+
         #endregion
     }
 }

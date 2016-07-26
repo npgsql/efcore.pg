@@ -205,16 +205,13 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             if (operation.Schema != null)
             {
                 qualifiedName
-                    .Append(operation.Schema)
+                    .Append(SqlGenerationHelper.DelimitIdentifier(operation.Schema))
                     .Append(".");
             }
-            qualifiedName
-                .Append(operation.Table)
-                .Append(".")
-                .Append(operation.Name);
+            qualifiedName.Append(SqlGenerationHelper.DelimitIdentifier(operation.Name));
 
             // TODO: Rename across schema will break, see #44
-            Rename(qualifiedName.ToString(), operation.NewName, "INDEX", builder);
+            Rename(qualifiedName.ToString(), SqlGenerationHelper.DelimitIdentifier(operation.NewName), "INDEX", builder);
             EndStatement(builder);
         }
 
@@ -230,12 +227,12 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                 if (operation.Schema != null)
                 {
                     qualifiedName
-                        .Append(operation.Schema)
+                        .Append(SqlGenerationHelper.DelimitIdentifier(operation.Schema))
                         .Append(".");
                 }
-                qualifiedName.Append(operation.Name);
+                qualifiedName.Append(SqlGenerationHelper.DelimitIdentifier(operation.Name));
 
-                Rename(qualifiedName.ToString(), operation.NewName, "SEQUENCE", builder);
+                Rename(qualifiedName.ToString(), SqlGenerationHelper.DelimitIdentifier(operation.NewName), "SEQUENCE", builder);
 
                 name = operation.NewName;
             }
@@ -541,6 +538,13 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                 builder);
         }
 
+        /// <summary>
+        /// Renames a database object such as an index or a sequence.
+        /// </summary>
+        /// <param name="name">An already delimited name of the object to rename</param>
+        /// <param name="newName">An already delimited name of the new name</param>
+        /// <param name="type">The type of the object (e.g. INDEX, SEQUENCE)</param>
+        /// <param name="builder"></param>
         public virtual void Rename(
             [NotNull] string name,
             [NotNull] string newName,
@@ -556,9 +560,9 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                 .Append("ALTER ")
                 .Append(type)
                 .Append(' ')
-                .Append(SqlGenerationHelper.DelimitIdentifier(name))
+                .Append(name)
                 .Append(" RENAME TO ")
-                .Append(SqlGenerationHelper.DelimitIdentifier(newName))
+                .Append(newName)
                 .AppendLine(SqlGenerationHelper.StatementTerminator);
         }
 
