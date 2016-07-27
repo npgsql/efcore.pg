@@ -257,12 +257,12 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                 if (operation.Schema != null)
                 {
                     qualifiedName
-                        .Append(operation.Schema)
+                        .Append(SqlGenerationHelper.DelimitIdentifier(operation.Schema))
                         .Append(".");
                 }
-                qualifiedName.Append(operation.Name);
+                qualifiedName.Append(SqlGenerationHelper.DelimitIdentifier(operation.Name));
 
-                Rename(qualifiedName.ToString(), operation.NewName, "TABLE", builder);
+                Rename(qualifiedName.ToString(), SqlGenerationHelper.DelimitIdentifier(operation.NewName), "TABLE", builder);
 
                 name = operation.NewName;
             }
