@@ -43,10 +43,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Check.cs" />
+    <Compile Include="CodeAnnotations.cs" />
+    <Compile Include="Migrations\Internal\MigrationsModelDifferTestBase.cs" />
     <Compile Include="Migrations\MigrationSqlGeneratorTestBase.cs" />
     <Compile Include="Migrations\NpgsqlMigrationSqlGeneratorTest.cs" />
+    <Compile Include="Migrations\NpgsqlModelDifferTest.cs" />
     <Compile Include="NpgsqlRelationalConnectionTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestAnnotationProvider.cs" />
+    <Compile Include="TestRelationalMetadataExtensions.cs" />
     <Compile Include="TestUtilities\FakeSensitiveDataLogger`.cs" />
   </ItemGroup>
   <ItemGroup>
