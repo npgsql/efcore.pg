@@ -39,21 +39,41 @@ namespace Microsoft.EntityFrameworkCore.Migrations.Internal
             : base(typeMapper, annotations, migrationsAnnotations)
         {}
 
+        static readonly Type[] _dropOperationTypes =
+        {
+            typeof(DropIndexOperation),
+            typeof(DropPrimaryKeyOperation),
+            typeof(DropSequenceOperation),
+            typeof(DropUniqueConstraintOperation),
+            typeof(DropColumnOperation),
+            typeof(DropTableOperation)
+        };
+
         protected override IReadOnlyList<MigrationOperation> Sort(
             [NotNull] IEnumerable<MigrationOperation> operations,
             [NotNull] DiffContext diffContext)
         {
             var ops = base.Sort(operations, diffContext);
 
-            // base.Sort will leave operations it doesn't recognize (Npgsql-specific)
-            // at the end, go get these
-            if (ops.Count > 0 && !ops[ops.Count - 1].IsNpgsqlSpecific())
+            // base.Sort will leave operations it doesn't recognize (Npgsql-specific) at the end
+            if (ops.Any() && !ops.Last().IsNpgsqlSpecific())
                 return ops;
 
-            var newOps = new List<MigrationOperation>();
-            newOps.AddRange(ops.SkipWhile(o => !o.IsNpgsqlSpecific()));
-            newOps.AddRange(ops.TakeWhile(o => !o.IsNpgsqlSpecific()));
-            return newOps;
+            return
+                // Copy all drop operations as-is
+                ops.TakeWhile(o => _dropOperationTypes.Contains(o.GetType()))
+                // Next insert any drop extension operations
+                .Concat(ops.Where(o => o is NpgsqlDropPostgresExtensionOperation))
+                // Next insert any schema ensure operations
+                .Concat(ops.Where(o => o is EnsureSchemaOperation))
+                // Next insert any create extension operations
+                .Concat(ops.Where(o => o is NpgsqlCreatePostgresExtensionOperation))
+                // Finally add the rest
+                .Concat(ops
+                    .SkipWhile(o => _dropOperationTypes.Contains(o.GetType()) || o is EnsureSchemaOperation)
+                    .TakeWhile(o => !o.IsNpgsqlSpecific())
+                )
+                .ToArray();
         }
 
         protected override IEnumerable<MigrationOperation> Diff(
