@@ -37,15 +37,15 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding
 {
     public class NpgsqlDatabaseModelFactory : IDatabaseModelFactory
     {
-        private NpgsqlConnection _connection;
-        private TableSelectionSet _tableSelectionSet;
-        private DatabaseModel _databaseModel;
-        private Dictionary<string, TableModel> _tables;
-        private Dictionary<string, ColumnModel> _tableColumns;
+        NpgsqlConnection _connection;
+        TableSelectionSet _tableSelectionSet;
+        DatabaseModel _databaseModel;
+        Dictionary<string, TableModel> _tables;
+        Dictionary<string, ColumnModel> _tableColumns;
 
-        private static string TableKey(TableModel table) => TableKey(table.Name, table.SchemaName);
-        private static string TableKey(string name, string schema) => $"\"{schema}\".\"{name}\"";
-        private static string ColumnKey(TableModel table, string columnName) => $"{TableKey(table)}.\"{columnName}\"";
+        static string TableKey(TableModel table) => TableKey(table.Name, table.SchemaName);
+        static string TableKey(string name, string schema) => $"\"{schema}\".\"{name}\"";
+        static string ColumnKey(TableModel table, string columnName) => $"{TableKey(table)}.\"{columnName}\"";
 
         public NpgsqlDatabaseModelFactory([NotNull] ILoggerFactory loggerFactory)
         {
@@ -56,7 +56,7 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding
 
         public virtual ILogger Logger { get; }
 
-        private void ResetState()
+        void ResetState()
         {
             _connection = null;
             _tableSelectionSet = null;
@@ -434,6 +434,9 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding
                         IsCyclic = reader.GetBoolean(7)
                     };
 
+                    if (!_tableSelectionSet.Allows(sequence.SchemaName, ""))
+                        continue;
+
                     if (sequence.DataType == "bigint")
                     {
                         long defaultStart, defaultMin, defaultMax;
@@ -449,20 +452,15 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding
                             Debug.Assert(sequence.Max.HasValue);
                             defaultStart = sequence.Max.Value;
                         }
-                        if (sequence.Start == defaultStart) {
+                        if (sequence.Start == defaultStart)
                             sequence.Start = null;
-                        }
-                        if (sequence.Min == defaultMin) {
+                        if (sequence.Min == defaultMin)
                             sequence.Min = null;
-                        }
-                        if (sequence.Max == defaultMax) {
+                        if (sequence.Max == defaultMax)
                             sequence.Max = null;
-                        }
                     }
                     else
-                    {
                         Logger.LogWarning($"Sequence with datatype {sequence.DataType} which isn't the expected bigint.");
-                    }
 
                     _databaseModel.Sequences.Add(sequence);
                 }

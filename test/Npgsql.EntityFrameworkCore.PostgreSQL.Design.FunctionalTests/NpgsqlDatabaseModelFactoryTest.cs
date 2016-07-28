@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Scaffolding;
 using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests.Utilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests;
 using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
 
@@ -306,13 +307,27 @@ CREATE TABLE non_serial_sequence (id integer PRIMARY KEY DEFAULT nextval('some_s
             Assert.False(column.Npgsql().IsSerial);
         }
 
+        [Fact, IssueLink("https://github.com/npgsql/Npgsql.EntityFrameworkCore.PostgreSQL/issues/77")]
+        public void SequencesOnlyFromRequestedSchema()
+        {
+            var dbModel = CreateModel(@"
+CREATE SEQUENCE public.some_sequence2;
+CREATE SCHEMA not_interested;
+CREATE SEQUENCE not_interested.some_other_sequence;
+", new TableSelectionSet(Enumerable.Empty<string>(), new[] { "public" }));
+
+            var sequence = dbModel.Sequences.Single();
+            Assert.Equal("public", sequence.SchemaName);
+            Assert.Equal("some_sequence2", sequence.Name);
+        }
+
         [Fact]
         public void DefaultSchemaIsPublic()
         {
             Assert.Equal("public", _fixture.CreateModel("SELECT 1").DefaultSchemaName);
         }
 
-        private readonly NpgsqlDatabaseModelFixture _fixture;
+        readonly NpgsqlDatabaseModelFixture _fixture;
 
         public DatabaseModel CreateModel(string createSql, TableSelectionSet selection = null)
             => _fixture.CreateModel(createSql, selection);
