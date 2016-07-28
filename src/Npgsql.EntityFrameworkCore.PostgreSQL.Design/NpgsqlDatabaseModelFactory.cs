@@ -434,6 +434,9 @@ LEFT OUTER JOIN pg_namespace AS ownerns ON ownerns.oid = tblcls.relnamespace";
                         IsCyclic = reader.GetBoolean(7)
                     };
 
+                    if (!_tableSelectionSet.Allows(sequence.SchemaName, ""))
+                        continue;
+
                     if (sequence.DataType == "bigint")
                     {
                         long defaultStart, defaultMin, defaultMax;
@@ -449,20 +452,15 @@ LEFT OUTER JOIN pg_namespace AS ownerns ON ownerns.oid = tblcls.relnamespace";
                             Debug.Assert(sequence.Max.HasValue);
                             defaultStart = sequence.Max.Value;
                         }
-                        if (sequence.Start == defaultStart) {
+                        if (sequence.Start == defaultStart)
                             sequence.Start = null;
-                        }
-                        if (sequence.Min == defaultMin) {
+                        if (sequence.Min == defaultMin)
                             sequence.Min = null;
-                        }
-                        if (sequence.Max == defaultMax) {
+                        if (sequence.Max == defaultMax)
                             sequence.Max = null;
-                        }
                     }
                     else
-                    {
                         Logger.LogWarning($"Sequence with datatype {sequence.DataType} which isn't the expected bigint.");
-                    }
 
                     _databaseModel.Sequences.Add(sequence);
                 }
