@@ -23,19 +23,22 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.Common;
 using System.Diagnostics;
 using System.Linq;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Scaffolding.Internal;
 using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
 using Microsoft.EntityFrameworkCore.Utilities;
 using Microsoft.Extensions.Logging;
 using Npgsql;
 
-namespace Microsoft.EntityFrameworkCore.Scaffolding
+namespace Microsoft.EntityFrameworkCore.Scaffolding.Internal
 {
-    public class NpgsqlDatabaseModelFactory : IDatabaseModelFactory
+    public class NpgsqlDatabaseModelFactory : IInternalDatabaseModelFactory
     {
         NpgsqlConnection _connection;
         TableSelectionSet _tableSelectionSet;
@@ -70,11 +73,24 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding
             Check.NotEmpty(connectionString, nameof(connectionString));
             Check.NotNull(tableSelectionSet, nameof(tableSelectionSet));
 
+            using (var connection = new NpgsqlConnection(connectionString))
+            {
+                return Create(connection, tableSelectionSet);
+            }
+        }
+
+        public DatabaseModel Create(DbConnection connection, TableSelectionSet tableSelectionSet)
+        {
             ResetState();
 
-            using (_connection = new NpgsqlConnection(connectionString))
+            var connectionStartedOpen = _connection.State == ConnectionState.Open;
+            if (!connectionStartedOpen)
             {
                 _connection.Open();
+            }
+
+            try
+            {
                 _tableSelectionSet = tableSelectionSet;
 
                 _databaseModel.DatabaseName = _connection.Database;
@@ -86,6 +102,13 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding
                 GetConstraints();
                 GetSequences();
                 return _databaseModel;
+            }
+            finally
+            {
+                if (!connectionStartedOpen)
+                {
+                    _connection.Close();
+                }
             }
         }
 
