@@ -88,7 +88,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
-            var type = operation.ColumnType ?? GetColumnType(operation.Schema, operation.Table, operation.Name, operation.ClrType, null, null, false, model);
+            var type = operation.ColumnType ?? GetColumnType(operation.Schema, operation.Table, operation.Name, operation.ClrType, null, operation.MaxLength, false, model);
 
             var generatedOnAddAnnotation = operation[NpgsqlAnnotationNames.Prefix + NpgsqlAnnotationNames.ValueGeneratedOnAdd];
             var generatedOnAdd = generatedOnAddAnnotation != null && (bool)generatedOnAddAnnotation;

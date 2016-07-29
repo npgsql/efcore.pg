@@ -472,6 +472,25 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Migrations
                 Sql);
         }
 
+        [Fact]
+        public void AlterColumnOperation_with_defaultValue()
+        {
+            Generate(
+                new AlterColumnOperation
+                {
+                    Table = "People",
+                    Name = "Name",
+                    ClrType = typeof(string),
+                    MaxLength = 30
+                });
+
+            Assert.Equal(
+                "ALTER TABLE \"People\" ALTER COLUMN \"Name\" TYPE varchar(30);" + EOL +
+                "ALTER TABLE \"People\" ALTER COLUMN \"Name\" SET NOT NULL;" + EOL +
+                "ALTER TABLE \"People\" ALTER COLUMN \"Name\" DROP DEFAULT",
+                Sql);
+        }
+
         #endregion
     }
 }

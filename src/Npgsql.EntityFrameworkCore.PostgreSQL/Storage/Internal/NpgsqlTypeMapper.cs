@@ -32,6 +32,7 @@ using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Utilities;
 using Npgsql;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage;
 using Npgsql.TypeHandlers;
 using NpgsqlTypes;
 
@@ -42,11 +43,10 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
         readonly Dictionary<string, RelationalTypeMapping> _storeTypeMappings;
         readonly Dictionary<Type, RelationalTypeMapping> _clrTypeMappings;
 
-        readonly ConcurrentDictionary<int, RelationalTypeMapping> _boundedStringMappings
-            = new ConcurrentDictionary<int, RelationalTypeMapping>();
-
         readonly ConcurrentDictionary<Type, NpgsqlArrayTypeMapping> _arrayMappings
             = new ConcurrentDictionary<Type, NpgsqlArrayTypeMapping>();
+
+        public override IStringRelationalTypeMapper StringMapper { get; }
 
         public NpgsqlTypeMapper()
         {
@@ -100,6 +100,8 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
             // EFCore doesn't allow a situation where a CLR type has no default store type, so we arbitrarily
             // choose oid.
             _clrTypeMappings[typeof(uint)] = new NpgsqlBaseTypeMapping("oid", typeof(uint), NpgsqlDbType.Oid);
+
+            StringMapper = new NpgsqlStringRelationalTypeMapper();
         }
 
         protected override string GetColumnType(IProperty property) => property.Npgsql().ColumnType;
@@ -143,20 +145,11 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
         {
             Check.NotNull(property, nameof(property));
 
-            var clrType = property.ClrType;
+            var clrType = property.ClrType.UnwrapNullableType();
 
-            if (clrType == typeof(string))
-            {
-                var maxLength = property.GetMaxLength();
-                if (maxLength.HasValue)
-                {
-                    return _boundedStringMappings.GetOrAdd(maxLength.Value,
-                        ml => new NpgsqlBaseTypeMapping($"varchar({maxLength})", typeof(string))
-                    );
-                }
-            }
-
-            return null;
+            return clrType == typeof(string)
+                ? GetStringMapping(property)
+                : null;
         }
 
         static Type GetTypeHandlerTypeArgument(Type handler)
