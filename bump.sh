@@ -24,6 +24,8 @@ if [[ $v == *"-"* ]]; then
   sed -i 's/AssemblyVersion("[^"]*")/AssemblyVersion("'$without_prerelease'")/' src/Shared/CommonAssemblyInfo.cs
   sed -i 's/AssemblyFileVersion("[^"]*")/AssemblyFileVersion("'$without_prerelease'")/' src/Shared/CommonAssemblyInfo.cs
   sed -i 's/AssemblyInformationalVersion("[^"]*")/AssemblyInformationalVersion("'$v'")/' src/Shared/CommonAssemblyInfo.cs
+
+  sed -i 's/assemblyName: "Npgsql.EntityFrameworkCore.PostgreSQL.Design, Version=[0-9.]*/assemblyName: "Npgsql.EntityFrameworkCore.PostgreSQL.Design, Version='$without_prerelease'.0/' src/Npgsql.EntityFrameworkCore.PostgreSQL/Properties/AssemblyInfo.cs
 else
   # Release version
 
@@ -33,11 +35,14 @@ else
   sed -i 's/AssemblyVersion("[^"]*")/AssemblyVersion("'$v'")/' src/Shared/CommonAssemblyInfo.cs
   sed -i 's/AssemblyFileVersion("[^"]*")/AssemblyFileVersion("'$v'")/' src/Shared/CommonAssemblyInfo.cs
   sed -i 's/AssemblyInformationalVersion("[^"]*")/AssemblyInformationalVersion("'$v'")/' src/Shared/CommonAssemblyInfo.cs
+
+  sed -i 's/assemblyName: "Npgsql.EntityFrameworkCore.PostgreSQL.Design, Version=[0-9.]*/assemblyName: "Npgsql.EntityFrameworkCore.PostgreSQL.Design, Version='$v'.0/' src/Npgsql.EntityFrameworkCore.PostgreSQL/Properties/AssemblyInfo.cs
 fi
 
 git add teamcity_set_version.cmd
 git add src/Npgsql.EntityFrameworkCore.PostgreSQL/project.json
 git add src/Npgsql.EntityFrameworkCore.PostgreSQL.Design/project.json
 git add src/Shared/CommonAssemblyInfo.cs
+git add src/Npgsql.EntityFrameworkCore.PostgreSQL/Properties/AssemblyInfo.cs
 
 git commit -m "Bump version to $v"
