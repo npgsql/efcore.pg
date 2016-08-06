@@ -64,7 +64,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                 return;
             }
 
-            var createExtensionOperation = operation as NpgsqlCreatePostgresExtensionOperation;
+            var createExtensionOperation = operation as NpgsqlEnsurePostgresExtensionOperation;
             if (createExtensionOperation != null)
             {
                 Generate(createExtensionOperation, model, builder);
@@ -423,7 +423,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
 
         #region PostgreSQL extensions
 
-        public virtual void Generate(NpgsqlCreatePostgresExtensionOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
+        public virtual void Generate(NpgsqlEnsurePostgresExtensionOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));

@@ -30,9 +30,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Migrations
                     var createSchemaOperation = Assert.IsType<EnsureSchemaOperation>(operations[0]);
                     Assert.Equal("some_schema", createSchemaOperation.Name);
 
-                    var createPostgresExtensionOperation = Assert.IsType<NpgsqlCreatePostgresExtensionOperation>(operations[1]);
-                    Assert.Equal("some_schema", createPostgresExtensionOperation.Schema);
-                    Assert.Equal("some_extension", createPostgresExtensionOperation.Name);
+                    var ensurePostgresExtensionOperation = Assert.IsType<NpgsqlEnsurePostgresExtensionOperation>(operations[1]);
+                    Assert.Equal("some_schema", ensurePostgresExtensionOperation.Schema);
+                    Assert.Equal("some_extension", ensurePostgresExtensionOperation.Name);
                 });
         }
     }
