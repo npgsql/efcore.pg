@@ -388,9 +388,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Migrations
         }
 
         [Fact]
-        public void CreatePostgresExtension()
+        public void EnsurePostgresExtension()
         {
-            Generate(new NpgsqlCreatePostgresExtensionOperation
+            Generate(new NpgsqlEnsurePostgresExtensionOperation
             {
                 Name = "hstore",
             });

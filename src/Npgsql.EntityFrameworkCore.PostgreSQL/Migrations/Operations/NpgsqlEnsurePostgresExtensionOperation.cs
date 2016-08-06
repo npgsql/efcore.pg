@@ -25,7 +25,7 @@ using JetBrains.Annotations;
 
 namespace Microsoft.EntityFrameworkCore.Migrations.Operations
 {
-    public class NpgsqlCreatePostgresExtensionOperation : MigrationOperation
+    public class NpgsqlEnsurePostgresExtensionOperation : MigrationOperation
     {
         public virtual string Name    { get; [param: NotNull] set; }
 

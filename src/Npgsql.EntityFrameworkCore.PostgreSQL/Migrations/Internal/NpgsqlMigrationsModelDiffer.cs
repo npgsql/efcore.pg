@@ -39,40 +39,35 @@ namespace Microsoft.EntityFrameworkCore.Migrations.Internal
             : base(typeMapper, annotations, migrationsAnnotations)
         {}
 
-        static readonly Type[] _dropOperationTypes =
-        {
-            typeof(DropIndexOperation),
-            typeof(DropPrimaryKeyOperation),
-            typeof(DropSequenceOperation),
-            typeof(DropUniqueConstraintOperation),
-            typeof(DropColumnOperation),
-            typeof(DropTableOperation)
-        };
-
         protected override IReadOnlyList<MigrationOperation> Sort(
             [NotNull] IEnumerable<MigrationOperation> operations,
             [NotNull] DiffContext diffContext)
         {
             var ops = base.Sort(operations, diffContext);
 
-            // base.Sort will leave operations it doesn't recognize (Npgsql-specific) at the end
-            if (ops.Any() && !ops.Last().IsNpgsqlSpecific())
+            // base.Sort will leave operations it doesn't recognize (Npgsql-specific) at the end.
+            // If there's no Npgsql-specific operation, we have nothing to do and just return the list.
+            if (ops.Count > 0 && !(ops[ops.Count - 1] is NpgsqlEnsurePostgresExtensionOperation))
                 return ops;
 
-            return
-                // Copy all drop operations as-is
-                ops.TakeWhile(o => _dropOperationTypes.Contains(o.GetType()))
-                // Next insert any drop extension operations
-                .Concat(ops.Where(o => o is NpgsqlDropPostgresExtensionOperation))
-                // Next insert any schema ensure operations
-                .Concat(ops.Where(o => o is EnsureSchemaOperation))
-                // Next insert any create extension operations
-                .Concat(ops.Where(o => o is NpgsqlCreatePostgresExtensionOperation))
-                // Finally add the rest
-                .Concat(ops
-                    .SkipWhile(o => _dropOperationTypes.Contains(o.GetType()) || o is EnsureSchemaOperation)
-                    .TakeWhile(o => !o.IsNpgsqlSpecific())
-                )
+            if (ops.Any(op => op is EnsureSchemaOperation))
+            {
+                // We have at least one ensure schema operation. This must be ordered before extension
+                // creation operations, since the latter may depend on the former.
+                return ops.TakeWhile(op => !(op is EnsureSchemaOperation))
+                    .Concat(ops.Where(op => op is EnsureSchemaOperation))
+                    .Concat(ops.Where(op => op is NpgsqlEnsurePostgresExtensionOperation))
+                    .Concat(ops
+                        .SkipWhile(op => !(op is EnsureSchemaOperation))
+                        .SkipWhile(op => op is EnsureSchemaOperation)
+                        .TakeWhile(op => !(op is NpgsqlEnsurePostgresExtensionOperation))
+                    )
+                    .ToArray();
+            }
+
+            // No schema creation, just put the ensure extension operations at the beginning
+            return ops.Where(op => op is NpgsqlEnsurePostgresExtensionOperation)
+                .Concat(ops.Where(op => !(op is NpgsqlEnsurePostgresExtensionOperation)))
                 .ToArray();
         }
 
@@ -101,7 +96,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations.Internal
 
         protected virtual IEnumerable<MigrationOperation> Add([NotNull] IPostgresExtension target)
         {
-            yield return new NpgsqlCreatePostgresExtensionOperation
+            yield return new NpgsqlEnsurePostgresExtensionOperation
             {
                 Schema = target.Schema,
                 Name = target.Name,
@@ -109,16 +104,9 @@ namespace Microsoft.EntityFrameworkCore.Migrations.Internal
             };
         }
 
+        // We don't drop PostgreSQL extensions since these may be shared across multiple contexts and
+        // perhaps also non-EFCore managed entities (similar to how EFCore manages schemas).
         protected virtual IEnumerable<MigrationOperation> Remove([NotNull] IPostgresExtension source)
-        {
-            yield return new NpgsqlDropPostgresExtensionOperation { Name = source.Name };
-        }
-    }
-
-    static class MigrationOperationExtensions
-    {
-        internal static bool IsNpgsqlSpecific(this MigrationOperation op)
-            => op is NpgsqlCreatePostgresExtensionOperation ||
-               op is NpgsqlDropPostgresExtensionOperation;
+            => Enumerable.Empty<MigrationOperation>();
     }
 }
