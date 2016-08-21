@@ -42,7 +42,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations.Design
                 return;
             }
 
-            throw new InvalidOperationException(DesignCoreStrings.UnknownOperation(operation.GetType()));
+            throw new InvalidOperationException(DesignStrings.UnknownOperation(operation.GetType()));
         }
 
         protected virtual void Generate([NotNull] NpgsqlEnsurePostgresExtensionOperation operation, [NotNull] IndentedStringBuilder builder)
