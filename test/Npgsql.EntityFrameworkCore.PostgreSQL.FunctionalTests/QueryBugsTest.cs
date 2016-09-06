@@ -63,7 +63,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             }
         }
 
-        [Fact]
+        [Fact(Skip="Flaky")]
         public async Task First_FirstOrDefault_ix_async_bug_603()
         {
             using (var context = new MyContext603(_fixture.ServiceProvider))
