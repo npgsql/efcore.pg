@@ -191,9 +191,6 @@ ORDER BY table_name, ordinal_position
             return builder.ToString();
         }
 
-        [Fact(Skip="Flaky")]
-        public override Task Can_execute_operations() => null;
-
         protected new string Sql => base.Sql;
     }
 }
