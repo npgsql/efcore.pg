@@ -118,8 +118,6 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                 case "uuid":
                     defaultValueSql = "uuid_generate_v4()";
                     break;
-                default:
-                    throw new InvalidOperationException($"Column {operation.Name} of type {type} has ValueGenerated.OnAdd but no default value is defined");
                 }
             }
 
@@ -515,8 +513,6 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                 case "uuid":
                     defaultValueSql = "uuid_generate_v4()";
                     break;
-                default:
-                    throw new InvalidOperationException($"Column {name} of type {type} has ValueGenerated.OnAdd but no default value is defined");
                 }
             }
 
