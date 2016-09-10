@@ -597,8 +597,6 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             }
         }
 
-        string ColumnList(string[] columns) => string.Join(", ", columns.Select(SqlGenerationHelper.DelimitIdentifier));
-
         #endregion Utilities
     }
 }

@@ -24,14 +24,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 
         public override NpgsqlTestStore CreateTestStore()
         {
-            var db = NpgsqlTestStore.CreateScratch();
-
-            using (var context = CreateContext(db))
+            return NpgsqlTestStore.GetOrCreateShared(DatabaseName, false, () =>
             {
-                Seed(context);
-            }
+                var optionsBuilder = new DbContextOptionsBuilder()
+                    .UseNpgsql(NpgsqlTestStore.CreateConnectionString(DatabaseName))
+                    .UseInternalServiceProvider(_serviceProvider);
 
-            return db;
+                using (var context = new DbContext(optionsBuilder.Options))
+                {
+                    context.Database.EnsureClean();
+                }
+            });
         }
 
         public override DbContext CreateContext(NpgsqlTestStore testStore)

@@ -83,6 +83,8 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding.Internal
         {
             ResetState();
 
+            _connection = (NpgsqlConnection)connection;
+
             var connectionStartedOpen = _connection.State == ConnectionState.Open;
             if (!connectionStartedOpen)
             {

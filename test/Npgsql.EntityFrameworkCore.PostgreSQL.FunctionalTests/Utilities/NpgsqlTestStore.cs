@@ -17,10 +17,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities
 
         private static int _scratchCount;
 
+        public static NpgsqlTestStore GetOrCreateShared(string name, bool useTransaction, Action initializeDatabase)
+            => new NpgsqlTestStore(name).CreateShared(initializeDatabase, useTransaction);
+
         public static NpgsqlTestStore GetOrCreateShared(string name, Action initializeDatabase)
-        {
-            return new NpgsqlTestStore(name).CreateShared(initializeDatabase);
-        }
+            => GetOrCreateShared(name, true, initializeDatabase);
 
         /// <summary>
         ///     A non-transactional, transient, isolated test database. Use this in the case
@@ -57,16 +58,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities
             _name = name;
         }
 
-        private NpgsqlTestStore CreateShared(Action initializeDatabase)
+        private NpgsqlTestStore CreateShared(Action initializeDatabase, bool useTransaction)
         {
             CreateShared(typeof(NpgsqlTestStore).Name + _name, initializeDatabase);
 
             _connectionString = CreateConnectionString(_name);
             _connection = new NpgsqlConnection(_connectionString);
 
-            _connection.Open();
+            if (useTransaction)
+            {
+                _connection.Open();
 
-            _transaction = _connection.BeginTransaction();
+                _transaction = _connection.BeginTransaction();
+            }
 
             return this;
         }

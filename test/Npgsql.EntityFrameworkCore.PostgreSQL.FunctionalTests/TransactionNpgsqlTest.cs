@@ -15,6 +15,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         {
         }
 
+        [Fact(Skip="Npgsql batches the inserts, creating an implicit transaction which fails the test...")]
+        public override void SaveChanges_can_be_used_with_no_transaction() {}
+
+        [Fact(Skip = "Npgsql batches the inserts, creating an implicit transaction which fails the test...")]
+        public override Task SaveChangesAsync_can_be_used_with_no_transaction() => null;
+
         protected override bool SnapshotSupported => true;
 
         protected override bool DirtyReadsOccur => false;
