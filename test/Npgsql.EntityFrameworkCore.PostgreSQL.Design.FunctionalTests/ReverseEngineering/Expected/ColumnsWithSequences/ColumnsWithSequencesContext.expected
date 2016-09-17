@@ -6,6 +6,11 @@ namespace E2ETest.Namespace
 {
     public partial class ColumnsWithSequencesContext : DbContext
     {
+        public virtual DbSet<IdNonSerialSequence> IdNonSerialSequence { get; set; }
+        public virtual DbSet<IdSerialSequence> IdSerialSequence { get; set; }
+        public virtual DbSet<NonSerialSequence> NonSerialSequence { get; set; }
+        public virtual DbSet<SerialSequence> SerialSequence { get; set; }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             #warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
@@ -37,10 +42,5 @@ namespace E2ETest.Namespace
 
             modelBuilder.HasSequence("SomeSequence");
         }
-
-        public virtual DbSet<IdNonSerialSequence> IdNonSerialSequence { get; set; }
-        public virtual DbSet<IdSerialSequence> IdSerialSequence { get; set; }
-        public virtual DbSet<NonSerialSequence> NonSerialSequence { get; set; }
-        public virtual DbSet<SerialSequence> SerialSequence { get; set; }
     }
 }

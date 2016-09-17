@@ -78,6 +78,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests.ReverseEn
                 "Test_Spaces_Keywords_Table.expected",
            };
 
+        [Fact]
         [UseCulture("en-US")]
         public void E2ETest_UseAttributesInsteadOfFluentApi()
         {
