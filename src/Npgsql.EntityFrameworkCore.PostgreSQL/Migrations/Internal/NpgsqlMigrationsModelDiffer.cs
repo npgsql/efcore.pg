@@ -108,45 +108,5 @@ namespace Microsoft.EntityFrameworkCore.Migrations.Internal
         // perhaps also non-EFCore managed entities (similar to how EFCore manages schemas).
         protected virtual IEnumerable<MigrationOperation> Remove([NotNull] IPostgresExtension source)
                         => Enumerable.Empty<MigrationOperation>();
-
-        /// <summary>
-        /// Override to prevent generation of migrations for system columns.
-        /// </summary>
-        protected override IEnumerable<MigrationOperation> Add([NotNull] IEntityType target, [NotNull] DiffContext diffContext)
-        {
-            foreach (var op in base.Add(target, diffContext))
-            {
-                var createTableOp = op as CreateTableOperation;
-                if (createTableOp == null)
-                {
-                    yield return op;
-                    continue;
-                }
-
-                createTableOp.Columns.RemoveAll(c => _systemColumnNames.Contains(c.Name));
-                yield return createTableOp;
-            }
-        }
-
-        /// <summary>
-        /// Override to prevent generation of migrations for system columns.
-        /// </summary>
-        protected override IEnumerable<MigrationOperation> Diff(
-            [NotNull] IEnumerable<IProperty> source,
-            [NotNull] IEnumerable<IProperty> target,
-            [NotNull] DiffContext diffContext)
-            => base.Diff(
-                   source.Where(p => !_systemColumnNames.Contains(p.Name)),
-                   target.Where(p => !_systemColumnNames.Contains(p.Name)),
-                   diffContext
-               );
-
-        /// <summary>
-        /// Tables in PostgreSQL implicitly have a set of system columns, which are always there.
-        /// We want to allow users to access these columns (i.e. xmin for optimistic concurrency) but
-        /// they should never generate migration operations.
-        /// </summary>
-        /// <remarks>https://www.postgresql.org/docs/current/static/ddl-system-columns.html</remarks>
-        readonly string[] _systemColumnNames = {"oid", "tableoid", "xmin", "cmin", "xmax", "cmax", "ctid"};
     }
 }

@@ -492,5 +492,74 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Migrations
         }
 
         #endregion
+
+        #region System columns
+
+        [Fact]
+        public void CreateTableOperation_with_system_column()
+        {
+            Generate(new CreateTableOperation
+            {
+                Name = "foo",
+                Schema = "public",
+                Columns = {
+                    new AddColumnOperation {
+                        Name = "id",
+                        Table = "foo",
+                        ClrType = typeof(int),
+                        IsNullable = false
+                    },
+                    new AddColumnOperation {
+                        Name = "xmin",
+                        Table = "foo",
+                        ClrType = typeof(uint),
+                        IsNullable = false
+                    }
+                },
+                PrimaryKey = new AddPrimaryKeyOperation
+                {
+                    Columns = new[] { "id" }
+                }
+            });
+
+            Assert.Equal(
+                "CREATE TABLE \"public\".\"foo\" (" + EOL +
+                "    \"id\" int4 NOT NULL," + EOL +
+                "    PRIMARY KEY (\"id\")" + EOL +
+                ");" + EOL,
+                Sql);
+        }
+
+        [Fact]
+        public void DropColumnOperation_with_system_column()
+        {
+            Generate(new DropColumnOperation
+            {
+                Table = "foo",
+                Schema = "public",
+                Name = "xmin"
+            });
+
+            Assert.Empty(Sql);
+        }
+
+        [Fact]
+        public void AlterColumnOperation_with_system_column()
+        {
+            Generate(new AlterColumnOperation
+                {
+                    Table = "foo",
+                    Schema = "public",
+                    Name = "xmin",
+                    ClrType = typeof(int),
+                    ColumnType = "int",
+                    IsNullable = false,
+                    DefaultValue = 7
+                });
+
+            Assert.Empty(Sql);
+        }
+
+        #endregion
     }
 }

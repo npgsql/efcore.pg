@@ -83,10 +83,51 @@ namespace Microsoft.EntityFrameworkCore.Migrations
 
         #region Standard migrations
 
-        protected override void Generate(AlterColumnOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
+        protected override void Generate(
+            CreateTableOperation operation,
+            IModel model,
+            MigrationCommandListBuilder builder,
+            bool terminate)
+        {
+            // Filter out any system columns
+            if (operation.Columns.Any(c => IsSystemColumn(c.Name)))
+            {
+                var filteredOperation = new CreateTableOperation
+                {
+                    Name = operation.Name,
+                    Schema = operation.Schema,
+                    PrimaryKey = operation.PrimaryKey,
+                };
+                filteredOperation.Columns.AddRange(operation.Columns.Where(c => !_systemColumnNames.Contains(c.Name)));
+                filteredOperation.ForeignKeys.AddRange(operation.ForeignKeys);
+                filteredOperation.UniqueConstraints.AddRange(operation.UniqueConstraints);
+                operation = filteredOperation;
+            }
+
+            base.Generate(operation, model, builder, terminate);
+        }
+
+        protected override void Generate(
+            DropColumnOperation operation,
+            IModel model,
+            MigrationCommandListBuilder builder,
+            bool terminate)
+        {
+            // Never touch system columns
+            if (IsSystemColumn(operation.Name))
+                return;
+
+            base.Generate(operation, model, builder, terminate);
+        }
+
+        protected override void Generate(AlterColumnOperation operation, IModel model, MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
+
+            // Never touch system columns
+            if (IsSystemColumn(operation.Name))
+                return;
 
             var type = operation.ColumnType ?? GetColumnType(operation.Schema, operation.Table, operation.Name, operation.ClrType, null, operation.MaxLength, false, model);
 
@@ -598,5 +639,17 @@ namespace Microsoft.EntityFrameworkCore.Migrations
         }
 
         #endregion Utilities
+
+        bool IsSystemColumn(string name) => _systemColumnNames.Contains(name);
+
+        /// <summary>
+        /// Tables in PostgreSQL implicitly have a set of system columns, which are always there.
+        /// We want to allow users to access these columns (i.e. xmin for optimistic concurrency) but
+        /// they should never generate migration operations.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/static/ddl-system-columns.html
+        /// </remarks>
+        readonly string[] _systemColumnNames = { "oid", "tableoid", "xmin", "cmin", "xmax", "cmax", "ctid" };
     }
 }
