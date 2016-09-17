@@ -24,7 +24,10 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
@@ -125,6 +128,15 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
 
                 throw;
             }
+            catch (NpgsqlException e) when (
+                e.InnerException is IOException &&
+                e.InnerException.InnerException is SocketException &&
+                ((SocketException)e.InnerException.InnerException).SocketErrorCode == SocketError.ConnectionReset
+            )
+            {
+                // Pretty awful hack around #104
+                return false;
+            }
         }
 
         public override async Task<bool> ExistsAsync(CancellationToken cancellationToken = default(CancellationToken))
@@ -151,6 +163,15 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
                 }
 
                 throw;
+            }
+            catch (NpgsqlException e) when (
+                e.InnerException is IOException &&
+                e.InnerException.InnerException is SocketException &&
+                ((SocketException)e.InnerException.InnerException).SocketErrorCode == SocketError.ConnectionReset
+            )
+            {
+                // Pretty awful hack around #104
+                return false;
             }
         }
 
