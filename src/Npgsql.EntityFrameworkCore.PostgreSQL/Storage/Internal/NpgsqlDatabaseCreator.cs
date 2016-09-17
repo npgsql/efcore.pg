@@ -104,8 +104,16 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
         {
             try
             {
-                _connection.Open();
-                _connection.Close();
+                // When checking whether a database exists, pooling must be off, otherwise we may
+                // attempt to reuse a pooled connection, which may be broken (this happened in the tests).
+                var unpooledCsb = new NpgsqlConnectionStringBuilder(_connection.ConnectionString) { Pooling = false };
+                var unpooledConn = ((NpgsqlConnection)_connection.DbConnection).CloneWith(unpooledCsb.ToString());
+                using (unpooledConn)
+                {
+                    unpooledConn.Open();
+                    unpooledConn.Close();
+                }
+
                 return true;
             }
             catch (PostgresException e)
@@ -123,8 +131,16 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
         {
             try
             {
-                await _connection.OpenAsync(cancellationToken);
-                _connection.Close();
+                // When checking whether a database exists, pooling must be off, otherwise we may
+                // attempt to reuse a pooled connection, which may be broken (this happened in the tests).
+                var unpooledCsb = new NpgsqlConnectionStringBuilder(_connection.ConnectionString) { Pooling = false };
+                var unpooledConn = ((NpgsqlConnection)_connection.DbConnection).CloneWith(unpooledCsb.ToString());
+                using (unpooledConn)
+                {
+                    await unpooledConn.OpenAsync(cancellationToken);
+                    unpooledConn.Close();
+                }
+
                 return true;
             }
             catch (PostgresException e)
