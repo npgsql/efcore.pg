@@ -21,10 +21,12 @@
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 #endregion
 
+using System;
 using JetBrains.Annotations;
 
 namespace Microsoft.EntityFrameworkCore.Migrations.Operations
 {
+    [Obsolete("See the Npgsql 1.1.0 migration notes on PostgreSQL extensions")]
     public class NpgsqlEnsurePostgresExtensionOperation : MigrationOperation
     {
         public virtual string Name    { get; [param: NotNull] set; }

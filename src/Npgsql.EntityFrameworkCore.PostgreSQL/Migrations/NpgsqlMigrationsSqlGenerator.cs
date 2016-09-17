@@ -64,20 +64,6 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                 return;
             }
 
-            var createExtensionOperation = operation as NpgsqlEnsurePostgresExtensionOperation;
-            if (createExtensionOperation != null)
-            {
-                Generate(createExtensionOperation, model, builder);
-                return;
-            }
-
-            var dropExtensionOperation = operation as NpgsqlDropPostgresExtensionOperation;
-            if (dropExtensionOperation != null)
-            {
-                Generate(dropExtensionOperation, model, builder);
-                return;
-            }
-
             base.Generate(operation, model, builder);
         }
 
@@ -426,6 +412,39 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             EndStatement(builder, suppressTransaction: true);
         }
 
+        protected override void Generate(
+            AlterDatabaseOperation operation,
+            IModel model,
+            MigrationCommandListBuilder builder)
+        {
+            Check.NotNull(operation, nameof(operation));
+            Check.NotNull(builder, nameof(builder));
+
+            foreach (var extension in PostgresExtension.GetPostgresExtensions(operation))
+            {
+                builder
+                    .Append("CREATE EXTENSION IF NOT EXISTS ")
+                    .Append(SqlGenerationHelper.DelimitIdentifier(extension.Name));
+
+                if (extension.Schema != null)
+                {
+                    builder
+                        .Append(" SCHEMA ")
+                        .Append(SqlGenerationHelper.DelimitIdentifier(extension.Schema));
+                }
+
+                if (extension.Version != null)
+                {
+                    builder
+                        .Append(" VERSION ")
+                        .Append(SqlGenerationHelper.DelimitIdentifier(extension.Version));
+                }
+
+                builder.AppendLine(SqlGenerationHelper.StatementTerminator);
+                EndStatement(builder, suppressTransaction: true);
+            }
+        }
+
         protected override void Generate(DropIndexOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
@@ -459,49 +478,6 @@ namespace Microsoft.EntityFrameworkCore.Migrations
         }
 
         #endregion Standard migrations
-
-        #region PostgreSQL extensions
-
-        public virtual void Generate(NpgsqlEnsurePostgresExtensionOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
-        {
-            Check.NotNull(operation, nameof(operation));
-            Check.NotNull(builder, nameof(builder));
-
-            builder
-                .Append("CREATE EXTENSION IF NOT EXISTS ")
-                .Append(SqlGenerationHelper.DelimitIdentifier(operation.Name));
-
-            if (operation.Schema != null)
-            {
-                builder
-                    .Append(" SCHEMA ")
-                    .Append(SqlGenerationHelper.DelimitIdentifier(operation.Schema));
-            }
-
-            if (operation.Version != null)
-            {
-                builder
-                    .Append(" VERSION ")
-                    .Append(SqlGenerationHelper.DelimitIdentifier(operation.Version));
-            }
-
-            builder.AppendLine(SqlGenerationHelper.StatementTerminator);
-            EndStatement(builder, suppressTransaction: true);
-        }
-
-        public virtual void Generate(NpgsqlDropPostgresExtensionOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
-        {
-            Check.NotNull(operation, nameof(operation));
-            Check.NotNull(builder, nameof(builder));
-
-            builder
-                .Append("DROP EXTENSION ")
-                .Append(SqlGenerationHelper.DelimitIdentifier(operation.Name))
-                .AppendLine(SqlGenerationHelper.StatementTerminator);
-            EndStatement(builder, suppressTransaction: true);
-        }
-
-        #endregion PostgreSQL extensions
 
         #region Utilities
 

@@ -78,11 +78,6 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             Check.NotNull(services, nameof(services));
 
-            services.TryAdd(new ServiceCollection()
-                .AddScoped<NpgsqlMigrationsModelDiffer>()
-                .AddScoped<IMigrationsModelDiffer, NpgsqlMigrationsModelDiffer>()
-            );
-
             services.AddRelational();
 
             services.TryAddEnumerable(ServiceDescriptor

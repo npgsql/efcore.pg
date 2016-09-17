@@ -390,13 +390,25 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Migrations
         [Fact]
         public void EnsurePostgresExtension()
         {
-            Generate(new NpgsqlEnsurePostgresExtensionOperation
-            {
-                Name = "hstore",
-            });
+            var op = new AlterDatabaseOperation();
+            PostgresExtension.GetOrAddPostgresExtension(op, "hstore");
+            Generate(op);
 
             Assert.Equal(
                 @"CREATE EXTENSION IF NOT EXISTS ""hstore"";" + EOL,
+                Sql);
+        }
+
+        [Fact]
+        public void EnsurePostgresExtension_with_schema()
+        {
+            var op = new AlterDatabaseOperation();
+            var extension = PostgresExtension.GetOrAddPostgresExtension(op, "hstore");
+            extension.Schema = "myschema";
+            Generate(op);
+
+            Assert.Equal(
+                @"CREATE EXTENSION IF NOT EXISTS ""hstore"" SCHEMA ""myschema"";" + EOL,
                 Sql);
         }
 

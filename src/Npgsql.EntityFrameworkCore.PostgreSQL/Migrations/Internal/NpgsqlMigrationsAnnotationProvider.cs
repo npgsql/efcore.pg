@@ -23,6 +23,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
@@ -50,5 +51,8 @@ namespace Microsoft.EntityFrameworkCore.Migrations.Internal
                      index.Npgsql().Method);
             }
         }
+
+        public override IEnumerable<IAnnotation> For(IModel model)
+            => model.GetAnnotations().Where(a => a.Name.StartsWith(NpgsqlFullAnnotationNames.Instance.PostgresExtensionPrefix, StringComparison.Ordinal));
     }
 }

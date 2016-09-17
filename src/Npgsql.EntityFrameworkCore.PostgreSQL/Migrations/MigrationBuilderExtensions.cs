@@ -12,8 +12,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
 {
     public static class MigrationBuilderExtensions
     {
-        static readonly string NpgsqlProviderName = typeof(MigrationBuilderExtensions).GetTypeInfo().Assembly.GetName().Name;
-
+        [Obsolete("See the Npgsql 1.1.0 migration notes on PostgreSQL extensions")]
         public static OperationBuilder<NpgsqlEnsurePostgresExtensionOperation> EnsurePostgresExtension(
             this MigrationBuilder builder,
             [NotNull] string name,
@@ -25,20 +24,15 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             Check.NullButNotEmpty(schema, nameof(schema));
             Check.NullButNotEmpty(version, nameof(schema));
 
-            var operation = new NpgsqlEnsurePostgresExtensionOperation
+            return new OperationBuilder<NpgsqlEnsurePostgresExtensionOperation>(new NpgsqlEnsurePostgresExtensionOperation
             {
                 Name = name,
                 Schema = schema,
                 Version = version
-            };
-
-            if (builder.ActiveProvider == NpgsqlProviderName)
-                builder.Operations.Add(operation);
-
-            return new OperationBuilder<NpgsqlEnsurePostgresExtensionOperation>(operation);
+            });
         }
 
-        [Obsolete("Use EnsurePostgresExtension instead")]
+        [Obsolete("See the Npgsql 1.1.0 migration notes on PostgreSQL extensions")]
         public static OperationBuilder<NpgsqlEnsurePostgresExtensionOperation> CreatePostgresExtension(
             this MigrationBuilder builder,
             [NotNull] string name,
@@ -47,6 +41,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
         )
             => EnsurePostgresExtension(builder, name, schema, version);
 
+        [Obsolete("See the Npgsql 1.1.0 migration notes on PostgreSQL extensions")]
         public static OperationBuilder<NpgsqlDropPostgresExtensionOperation> DropPostgresExtension(
             this MigrationBuilder builder,
             [NotNull] string name
@@ -54,12 +49,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
         {
             Check.NotEmpty(name, nameof(name));
 
-            var operation = new NpgsqlDropPostgresExtensionOperation { Name = name };
-
-            if (builder.ActiveProvider == NpgsqlProviderName)
-                builder.Operations.Add(operation);
-
-            return new OperationBuilder<NpgsqlDropPostgresExtensionOperation>(operation);
+            return new OperationBuilder<NpgsqlDropPostgresExtensionOperation>(new NpgsqlDropPostgresExtensionOperation { Name = name });
         }
     }
 }

@@ -52,7 +52,6 @@
     <Compile Include="Metadata\NpgsqlIndexModelAnnotations.cs" />
     <Compile Include="Metadata\NpgsqlColumnModelAnnotations.cs" />
     <Compile Include="Metadata\NpgsqlDatabaseModelAnnotationNames.cs" />
-    <Compile Include="Migrations\Design\NpgsqlCSharpMigrationOperationGenerator.cs" />
     <Compile Include="Internal\NpgsqlDatabaseModelFactory.cs" />
     <Compile Include="Internal\NpgsqlDesignTimeServices.cs" />
     <Compile Include="Internal\NpgsqlScaffoldingModelFactory.cs" />

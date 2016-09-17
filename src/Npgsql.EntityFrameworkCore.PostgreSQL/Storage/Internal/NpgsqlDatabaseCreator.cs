@@ -170,7 +170,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
 
             // Adding a PostgreSQL extension might define new types (e.g. hstore), which we
             // Npgsql to reload
-            var reloadTypes = operations.Any(o => o is NpgsqlEnsurePostgresExtensionOperation);
+            var reloadTypes = operations.Any(o => o is AlterDatabaseOperation && PostgresExtension.GetPostgresExtensions(o).Any());
 
             MigrationCommandExecutor.ExecuteNonQuery(commands, Connection);
 
@@ -189,7 +189,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
 
             // Adding a PostgreSQL extension might define new types (e.g. hstore), which we
             // Npgsql to reload
-            var reloadTypes = operations.Any(o => o is NpgsqlEnsurePostgresExtensionOperation);
+            var reloadTypes = operations.Any(o => o is AlterDatabaseOperation && PostgresExtension.GetPostgresExtensions(o).Any());
 
             await MigrationCommandExecutor.ExecuteNonQueryAsync(commands, Connection, cancellationToken);
 

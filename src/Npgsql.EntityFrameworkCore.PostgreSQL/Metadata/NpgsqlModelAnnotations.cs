@@ -22,14 +22,17 @@ namespace Microsoft.EntityFrameworkCore.Metadata
         {
         }
 
-        public virtual PostgresExtension GetOrAddPostgresExtension([CanBeNull] string name, [CanBeNull] string schema = null)
-            => PostgresExtension.GetOrAddPostgresExtension((IMutableModel)Model,
-                NpgsqlFullAnnotationNames.Instance.PostgresExtensionPrefix,
-                name,
-                schema);
+        #region PostgreSQL Extensions
+
+        public virtual PostgresExtension GetOrAddPostgresExtension([NotNull] string name)
+            => PostgresExtension.GetOrAddPostgresExtension((IMutableModel)Model, name);
 
         public virtual IReadOnlyList<IPostgresExtension> PostgresExtensions
-            => PostgresExtension.GetPostgresExtensions(Model, NpgsqlFullAnnotationNames.Instance.PostgresExtensionPrefix).ToList();
+            => PostgresExtension.GetPostgresExtensions(Model).ToList();
+
+        #endregion
+
+        #region Database Template
 
         public virtual string DatabaseTemplate
         {
@@ -43,5 +46,7 @@ namespace Microsoft.EntityFrameworkCore.Metadata
                 NpgsqlFullAnnotationNames.Instance.DatabaseTemplate,
                 null,
                 Check.NullButNotEmpty(value, nameof(value)));
+
+        #endregion
     }
 }

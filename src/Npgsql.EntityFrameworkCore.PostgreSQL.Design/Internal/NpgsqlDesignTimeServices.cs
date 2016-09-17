@@ -37,7 +37,6 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding.Internal
                 .AddSingleton<IScaffoldingModelFactory, NpgsqlScaffoldingModelFactory>()
                 .AddSingleton<IRelationalAnnotationProvider, NpgsqlAnnotationProvider>()
                 .AddSingleton<IRelationalTypeMapper, NpgsqlTypeMapper>()
-                .AddSingleton<CSharpMigrationOperationGenerator, NpgsqlCSharpMigrationOperationGenerator>()
                 .AddSingleton<IDatabaseModelFactory, NpgsqlDatabaseModelFactory>();
     }
 }

@@ -21,6 +21,13 @@ namespace Microsoft.EntityFrameworkCore.Metadata
 
         public virtual PostgresExtension Metadata => _postgresExtension;
 
+        public virtual NpgsqlPostgresExtensionBuilder Schema(string schema)
+        {
+            _postgresExtension.Schema = schema;
+
+            return this;
+        }
+
         public virtual NpgsqlPostgresExtensionBuilder Version(string version)
         {
             _postgresExtension.Version = version;
