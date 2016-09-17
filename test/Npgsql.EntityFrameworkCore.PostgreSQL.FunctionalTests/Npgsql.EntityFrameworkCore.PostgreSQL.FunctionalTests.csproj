@@ -80,7 +80,6 @@
     <Compile Include="NavigationTest.cs" />
     <Compile Include="NorthwindQueryNpgsqlFixture.cs" />
     <Compile Include="NpgsqlDatabaseCleaner.cs" />
-    <Compile Include="NpgsqlDatabaseCreatorTest.cs" />
     <Compile Include="NpgsqlDatabaseFacadeExtensions.cs" />
     <Compile Include="NpgsqlFixture.cs" />
     <Compile Include="NpgsqlValueGenerationScenariosTest.cs" />
