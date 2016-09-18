@@ -12,9 +12,13 @@ using Microsoft.EntityFrameworkCore.Scaffolding.Internal;
 using Microsoft.EntityFrameworkCore.Specification.Tests.TestUtilities.Xunit;
 using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
 
+#if NETCOREAPP1_0
+using System.Reflection;
+using Microsoft.CodeAnalysis;
+#endif
+
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests.ReverseEngineering
 {
-    [FrameworkSkipCondition(RuntimeFrameworks.CoreCLR, SkipReason = "https://github.com/aspnet/EntityFramework/issues/4841")]
     public class NpgsqlE2ETests : E2ETestBase, IClassFixture<NpgsqlE2EFixture>
     {
         protected override string ProviderName => "Npgsql.EntityFrameworkCore.PostgreSQL.Design";
@@ -283,8 +287,6 @@ CREATE TABLE ""NonSerialSequence"" (
                     Files = new[] { filePaths.ContextFile }.Concat(filePaths.EntityTypeFiles).Select(Path.GetFileName).ToList()
                 };
 
-                foreach (var f in actualFileSet.Files)
-                    File.WriteAllText($@"c:\temp\actual\{f}", actualFileSet.Contents(f));
                 AssertEqualFileContents(expectedFileSet, actualFileSet);
                 AssertCompile(actualFileSet);
             }
@@ -292,24 +294,30 @@ CREATE TABLE ""NonSerialSequence"" (
 
         protected override ICollection<BuildReference> References { get; } = new List<BuildReference>
         {
-#if NETSTANDARDAPP1_5
+#if NETCOREAPP1_0
             BuildReference.ByName("System.Collections"),
             BuildReference.ByName("System.Data.Common"),
             BuildReference.ByName("System.Linq.Expressions"),
             BuildReference.ByName("System.Reflection"),
             BuildReference.ByName("System.ComponentModel.Annotations"),
+            BuildReference.ByName("System.Net.Primitives", depContextAssembly: typeof(NpgsqlE2ETests).GetTypeInfo().Assembly),
+            BuildReference.ByName("System.Net.NetworkInformation", depContextAssembly: typeof(NpgsqlE2ETests).GetTypeInfo().Assembly),
             BuildReference.ByName("Npgsql.EntityFrameworkCore.PostgreSQL", depContextAssembly: typeof(NpgsqlE2ETests).GetTypeInfo().Assembly),
+            BuildReference.ByName("Microsoft.EntityFrameworkCore", depContextAssembly: typeof(NpgsqlE2ETests).GetTypeInfo().Assembly),
+            BuildReference.ByName("Microsoft.EntityFrameworkCore.Relational", depContextAssembly: typeof(NpgsqlE2ETests).GetTypeInfo().Assembly),
+            BuildReference.ByName("Microsoft.Extensions.Caching.Abstractions", depContextAssembly: typeof(NpgsqlE2ETests).GetTypeInfo().Assembly),
+            BuildReference.ByName("Microsoft.Extensions.Logging.Abstractions", depContextAssembly: typeof(NpgsqlE2ETests).GetTypeInfo().Assembly)
 #else
             BuildReference.ByName("System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
             BuildReference.ByName("System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
             BuildReference.ByName("System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
             BuildReference.ByName("System.ComponentModel.DataAnnotations, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35"),
             BuildReference.ByName("Npgsql.EntityFrameworkCore.PostgreSQL"),
-#endif
             BuildReference.ByName("Microsoft.EntityFrameworkCore"),
             BuildReference.ByName("Microsoft.EntityFrameworkCore.Relational"),
             BuildReference.ByName("Microsoft.Extensions.Caching.Abstractions"),
             BuildReference.ByName("Microsoft.Extensions.Logging.Abstractions")
+#endif
         };
     }
 }
