@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests.ReverseEngineering
 {
+    [FrameworkSkipCondition(RuntimeFrameworks.CoreCLR, SkipReason = "https://github.com/xunit/xunit/issues/978")]
     public class NpgsqlE2ETests : E2ETestBase, IClassFixture<NpgsqlE2EFixture>
     {
         protected override string ProviderName => "Npgsql.EntityFrameworkCore.PostgreSQL.Design";
