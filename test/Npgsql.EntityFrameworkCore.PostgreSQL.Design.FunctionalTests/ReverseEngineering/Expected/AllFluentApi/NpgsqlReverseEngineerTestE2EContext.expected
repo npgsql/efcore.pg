@@ -23,7 +23,7 @@ namespace E2ETest.Namespace
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             #warning To protect potentially sensitive information in your connection string, you should move it out of source code. See http://go.microsoft.com/fwlink/?LinkId=723263 for guidance on storing connection strings.
-            optionsBuilder.UseNpgsql(@"Host=localhost;Username=npgsql_tests;Password=npgsql_tests;Database=NpgsqlReverseEngineerTestE2E");
+            optionsBuilder.UseNpgsql(@"{{connectionString}}");
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
