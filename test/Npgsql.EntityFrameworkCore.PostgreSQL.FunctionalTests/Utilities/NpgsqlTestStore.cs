@@ -105,7 +105,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities
                     var exists = DatabaseExists(name);
                     if (exists && (recreateIfAlreadyExists || !TablesExist(name)))
                     {
-                        command.CommandText = GetDeleteDatabaseSql(name);
+                        command.CommandText = GetDisconnectDatabaseSql(name);
+                        command.ExecuteNonQuery();
+                        command.CommandText = GetDropDatabaseSql(name);
                         command.ExecuteNonQuery();
                         NpgsqlConnection.ClearAllPools();
                     }
@@ -247,8 +249,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities
                 {
                     command.CommandTimeout = CommandTimeout; // Query will take a few seconds if (and only if) there are active connections
 
-                    command.CommandText = GetDeleteDatabaseSql(name);
+                    command.CommandText = GetDisconnectDatabaseSql(name);
                     command.ExecuteNonQuery();
+                    command.CommandText = GetDropDatabaseSql(name);
+                    command.ExecuteNonQuery();
+
                     NpgsqlConnection.ClearAllPools();
                 }
             }
@@ -256,12 +261,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities
 
         // Kill all connection to the database
         // TODO: Pre-9.2 PG has column name procid instead of pid
-        static string GetDeleteDatabaseSql(string name) => $@"
+        static string GetDisconnectDatabaseSql(string name) => $@"
 REVOKE CONNECT ON DATABASE ""{name}"" FROM PUBLIC;
 SELECT pg_terminate_backend (pg_stat_activity.pid)
    FROM pg_stat_activity
-   WHERE datname = '{name}';
-DROP DATABASE ""{name}""";
+   WHERE datname = '{name}'";
+
+        static string GetDropDatabaseSql(string name) => $@"DROP DATABASE ""{name}""";
 
         public override DbConnection Connection => _connection;
 
