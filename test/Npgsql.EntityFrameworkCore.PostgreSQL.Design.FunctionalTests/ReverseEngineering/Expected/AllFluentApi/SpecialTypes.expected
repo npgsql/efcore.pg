@@ -10,5 +10,6 @@ namespace E2ETest.Namespace
         public int SpecialTypesId { get; set; }
         public IPAddress IpAddress { get; set; }
         public PhysicalAddress MacAddress { get; set; }
+        public Int32[] IntArray { get; set; }
     }
 }

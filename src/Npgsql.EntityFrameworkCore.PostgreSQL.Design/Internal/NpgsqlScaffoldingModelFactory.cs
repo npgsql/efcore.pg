@@ -22,13 +22,17 @@
 #endregion
 
 using System;
+using System.Diagnostics;
 using System.Linq;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Storage.Internal;
+using Microsoft.EntityFrameworkCore.Utilities;
 using Microsoft.Extensions.Logging;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Design.Metadata;
 
 namespace Microsoft.EntityFrameworkCore.Scaffolding.Internal
 {
@@ -96,6 +100,42 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding.Internal
             }
 
             return base.VisitIndex(builder, index);
+        }
+
+        [CanBeNull]
+        protected override RelationalTypeMapping GetTypeMapping(ColumnModel column)
+        {
+            Check.NotNull(column, nameof(column));
+
+            var postgresType = column.Npgsql().PostgresTypeType;
+            switch (postgresType)
+            {
+            case PostgresTypeType.Base:
+                return base.GetTypeMapping(column);
+            case PostgresTypeType.Array:
+                return GetArrayTypeMapping(column);
+            case PostgresTypeType.Range:
+            case PostgresTypeType.Enum:
+            case PostgresTypeType.Composite:
+            default:
+                Logger.LogWarning($"Can't scaffold PostgreSQL {postgresType} for column '{column.Name}' of type '{column.DataType}'");
+                return null;
+            }
+        }
+
+        NpgsqlArrayTypeMapping GetArrayTypeMapping(ColumnModel column)
+        {
+            Debug.Assert(column.Npgsql().ElementDataType != null);
+            var elementMapping = TypeMapper.FindMapping(column.Npgsql().ElementDataType);
+
+            var elementClrType = elementMapping?.ClrType;
+            if (elementClrType == null)
+            {
+                Logger.LogWarning($"Could not find type mapping for array column '{column.Name}' with data type '{column.DataType}' - array of unknown element type {column.Npgsql().ElementDataType}. Skipping column.");
+                return null;
+            }
+
+            return (NpgsqlArrayTypeMapping)TypeMapper.FindMapping(elementClrType.MakeArrayType());
         }
     }
 }

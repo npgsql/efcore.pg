@@ -32,7 +32,9 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding.Metadata
     class NpgsqlDatabaseModelAnnotationNames
     {
         public const string Prefix = "NpgsqlDatabaseModel:";
-        public const string IsSerial = Prefix + "IsSerial";
-        public const string Expression = Prefix + "Expression";
+        public const string IsSerial = Prefix + nameof(IsSerial);
+        public const string Expression = Prefix + nameof(Expression);
+        internal const string PostgresTypeType = Prefix + nameof(PostgresTypeType);
+        internal const string ElementDataType = Prefix + nameof(ElementDataType);
     }
 }

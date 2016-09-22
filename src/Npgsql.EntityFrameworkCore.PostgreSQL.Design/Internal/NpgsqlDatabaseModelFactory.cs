@@ -35,6 +35,7 @@ using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
 using Microsoft.EntityFrameworkCore.Utilities;
 using Microsoft.Extensions.Logging;
 using Npgsql;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Design.Metadata;
 
 namespace Microsoft.EntityFrameworkCore.Scaffolding.Internal
 {
@@ -147,13 +148,20 @@ WHERE
 
         const string GetColumnsQuery = @"
 SELECT
-    nspname, relname, attname, typname, attnum, atttypmod,
+    nspname, relname, attname, typ.typname, attnum, atttypmod,
+    CASE WHEN pg_proc.proname='array_recv' THEN 'a' ELSE typ.typtype END AS typtype,
+    CASE
+      WHEN pg_proc.proname='array_recv' THEN elemtyp.typname
+      ELSE NULL
+    END AS elemtypname,
     (NOT attnotnull) AS nullable,
     CASE WHEN atthasdef THEN (SELECT pg_get_expr(adbin, cls.oid) FROM pg_attrdef WHERE adrelid = cls.oid AND adnum = attr.attnum) ELSE NULL END AS default
 FROM pg_class AS cls
 JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
 LEFT OUTER JOIN pg_attribute AS attr ON attrelid = cls.oid
 LEFT OUTER JOIN pg_type AS typ ON attr.atttypid = typ.oid
+LEFT OUTER JOIN pg_proc ON pg_proc.oid = typ.typreceive
+LEFT OUTER JOIN pg_type AS elemtyp ON (elemtyp.oid = typ.typelem)
 WHERE
     atttypid <> 0 AND
     relkind = 'r' AND
@@ -180,11 +188,13 @@ ORDER BY attnum";
                     var dataType = reader.GetString(3);
                     var ordinal = reader.GetInt32(4) - 1;
                     var typeModifier = reader.GetInt32(5);
-                    var isNullable = reader.GetBoolean(6);
+                    var typeChar = reader.GetChar(6);
+                    var elemDataType = reader.IsDBNull(7) ? null : reader.GetString(7);
+                    var isNullable = reader.GetBoolean(8);
                     int? maxLength = null;
                     int? precision = null;
                     int? scale = null;
-                    var defaultValue = reader.IsDBNull(7) ? null : reader.GetString(7);
+                    var defaultValue = reader.IsDBNull(9) ? null : reader.GetString(9);
 
                     if (typeModifier != -1)
                     {
@@ -233,6 +243,26 @@ ORDER BY attnum";
                             column.Npgsql().IsSerial = true;
                             column.DefaultValue = null;
                         }
+                    }
+
+                    switch (typeChar)
+                    {
+                    case 'b':
+                        // Base (regular), is the default
+                        break;
+                    case 'a':
+                        column.Npgsql().PostgresTypeType = PostgresTypeType.Array;
+                        column.Npgsql().ElementDataType = elemDataType;
+                        break;
+                    case 'r':
+                        column.Npgsql().PostgresTypeType = PostgresTypeType.Range;
+                        break;
+                    case 'e':
+                        column.Npgsql().PostgresTypeType = PostgresTypeType.Enum;
+                        break;
+                    default:
+                        Logger.LogWarning($"Can't scaffold column '{columnName}' of type '{dataType}': unknown type char '{typeChar}'");
+                        continue;
                     }
 
                     table.Columns.Add(column);
