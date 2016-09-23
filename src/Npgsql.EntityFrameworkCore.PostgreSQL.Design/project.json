@@ -25,7 +25,7 @@
     "Microsoft.Extensions.DependencyInjection": "1.0.0",
     "Microsoft.Extensions.DependencyInjection.Abstractions": "1.0.0",
     "Npgsql.EntityFrameworkCore.PostgreSQL": "1.0.2-*",
-    "Npgsql": "3.1.5"
+    "Npgsql": "3.1.8"
   },
   "frameworks": {
     "net451": {},

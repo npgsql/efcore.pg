@@ -6,7 +6,7 @@
     "Microsoft.EntityFrameworkCore.Relational": "1.0.1",
     "Microsoft.EntityFrameworkCore.Relational.Specification.Tests": "1.0.1",
     "Npgsql.EntityFrameworkCore.PostgreSQL": "1.0.2-*",
-    "Npgsql": "3.1.5"
+    "Npgsql": "3.1.8"
   },
   "testRunner": "xunit",
   "frameworks": {
