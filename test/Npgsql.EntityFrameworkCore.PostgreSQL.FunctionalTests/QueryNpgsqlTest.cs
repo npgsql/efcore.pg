@@ -99,23 +99,6 @@ WHERE ""c"".""ContactName"" LIKE ((('%' || @__LocalMethod1_0)) || '%')",
 
         #endregion
 
-        #region Skip
-
-        [Fact(Skip= "https://github.com/aspnet/EntityFramework/pull/6512")]
-        public override void Bitwise_or_with_boolean_operators_in_predicate() {}
-        [Fact(Skip = "https://github.com/aspnet/EntityFramework/pull/6512")]
-        public override void Bitwise_and_with_boolean_operators_in_predicate() {}
-        [Fact(Skip = "https://github.com/aspnet/EntityFramework/pull/6512")]
-        public override void Bitwise_or_with_boolean_operators_in_projection() {}
-        [Fact(Skip = "https://github.com/aspnet/EntityFramework/pull/6512")]
-        public override void Bitwise_or_multiple_with_boolean_operators_in_projection() {}
-        [Fact(Skip = "https://github.com/aspnet/EntityFramework/pull/6512")]
-        public override void Bitwise_and_with_boolean_operators_in_projection() {}
-        [Fact(Skip = "https://github.com/aspnet/EntityFramework/pull/6512")]
-        public override void Bitwise_and_or_with_boolean_operators_in_projection() {}
-
-        #endregion
-
         const string FileLineEnding = @"
 ";
         protected override void ClearLog() => TestSqlLoggerFactory.Reset();

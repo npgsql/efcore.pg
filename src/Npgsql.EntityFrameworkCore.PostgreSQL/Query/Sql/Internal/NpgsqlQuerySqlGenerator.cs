@@ -194,5 +194,22 @@ namespace Microsoft.EntityFrameworkCore.Query.Sql.Internal
             Sql.Append('\'');
             return atTimeZoneExpression;
         }
+
+        protected override string GenerateOperator(Expression expression)
+        {
+            switch (expression.NodeType)
+            {
+            case ExpressionType.And:
+                if (expression.Type == typeof(bool))
+                    return " AND ";
+                goto default;
+            case ExpressionType.Or:
+                if (expression.Type == typeof(bool))
+                    return " OR ";
+                goto default;
+            default:
+                return base.GenerateOperator(expression);
+            }
+        }
     }
 }
