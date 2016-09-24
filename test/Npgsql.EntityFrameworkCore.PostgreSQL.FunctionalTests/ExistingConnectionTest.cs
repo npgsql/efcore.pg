@@ -27,7 +27,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             await Can_use_an_existing_closed_connection_test(openConnection: true);
         }
 
-        private static async Task Can_use_an_existing_closed_connection_test(bool openConnection)
+        static async Task Can_use_an_existing_closed_connection_test(bool openConnection)
         {
             var serviceProvider = new ServiceCollection()
                 .AddEntityFrameworkNpgsql()
@@ -84,10 +84,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             }
         }
 
-        private class NorthwindContext : DbContext
+        class NorthwindContext : DbContext
         {
-            private readonly IServiceProvider _serviceProvider;
-            private readonly NpgsqlConnection _connection;
+            readonly IServiceProvider _serviceProvider;
+            readonly NpgsqlConnection _connection;
 
             public NorthwindContext(IServiceProvider serviceProvider, NpgsqlConnection connection)
             {
@@ -110,7 +110,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 });
         }
 
-        private class Customer
+        class Customer
         {
             public string CustomerID { get; set; }
             public string CompanyName { get; set; }

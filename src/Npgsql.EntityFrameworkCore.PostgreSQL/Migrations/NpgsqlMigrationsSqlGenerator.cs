@@ -64,7 +64,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                 return;
             }
 
-            var createExtensionOperation = operation as NpgsqlCreatePostgresExtensionOperation;
+            var createExtensionOperation = operation as NpgsqlEnsurePostgresExtensionOperation;
             if (createExtensionOperation != null)
             {
                 Generate(createExtensionOperation, model, builder);
@@ -88,7 +88,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
-            var type = operation.ColumnType ?? GetColumnType(operation.Schema, operation.Table, operation.Name, operation.ClrType, null, null, false, model);
+            var type = operation.ColumnType ?? GetColumnType(operation.Schema, operation.Table, operation.Name, operation.ClrType, null, operation.MaxLength, false, model);
 
             var generatedOnAddAnnotation = operation[NpgsqlAnnotationNames.Prefix + NpgsqlAnnotationNames.ValueGeneratedOnAdd];
             var generatedOnAdd = generatedOnAddAnnotation != null && (bool)generatedOnAddAnnotation;
@@ -118,8 +118,6 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                 case "uuid":
                     defaultValueSql = "uuid_generate_v4()";
                     break;
-                default:
-                    throw new InvalidOperationException($"Column {operation.Name} of type {type} has ValueGenerated.OnAdd but no default value is defined");
                 }
             }
 
@@ -205,16 +203,13 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             if (operation.Schema != null)
             {
                 qualifiedName
-                    .Append(operation.Schema)
+                    .Append(SqlGenerationHelper.DelimitIdentifier(operation.Schema))
                     .Append(".");
             }
-            qualifiedName
-                .Append(operation.Table)
-                .Append(".")
-                .Append(operation.Name);
+            qualifiedName.Append(SqlGenerationHelper.DelimitIdentifier(operation.Name));
 
             // TODO: Rename across schema will break, see #44
-            Rename(qualifiedName.ToString(), operation.NewName, "INDEX", builder);
+            Rename(qualifiedName.ToString(), SqlGenerationHelper.DelimitIdentifier(operation.NewName), "INDEX", builder);
             EndStatement(builder);
         }
 
@@ -230,12 +225,12 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                 if (operation.Schema != null)
                 {
                     qualifiedName
-                        .Append(operation.Schema)
+                        .Append(SqlGenerationHelper.DelimitIdentifier(operation.Schema))
                         .Append(".");
                 }
-                qualifiedName.Append(operation.Name);
+                qualifiedName.Append(SqlGenerationHelper.DelimitIdentifier(operation.Name));
 
-                Rename(qualifiedName.ToString(), operation.NewName, "SEQUENCE", builder);
+                Rename(qualifiedName.ToString(), SqlGenerationHelper.DelimitIdentifier(operation.NewName), "SEQUENCE", builder);
 
                 name = operation.NewName;
             }
@@ -260,12 +255,12 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                 if (operation.Schema != null)
                 {
                     qualifiedName
-                        .Append(operation.Schema)
+                        .Append(SqlGenerationHelper.DelimitIdentifier(operation.Schema))
                         .Append(".");
                 }
-                qualifiedName.Append(operation.Name);
+                qualifiedName.Append(SqlGenerationHelper.DelimitIdentifier(operation.Name));
 
-                Rename(qualifiedName.ToString(), operation.NewName, "TABLE", builder);
+                Rename(qualifiedName.ToString(), SqlGenerationHelper.DelimitIdentifier(operation.NewName), "TABLE", builder);
 
                 name = operation.NewName;
             }
@@ -378,7 +373,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                 .AppendLine(SqlGenerationHelper.StatementTerminator)
                 // TODO: For PG <= 9.1, the column name is prodpic, not pid (see http://stackoverflow.com/questions/5408156/how-to-drop-a-postgresql-database-if-there-are-active-connections-to-it)
                 .Append(
-                    "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '")
+                    "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE datname = '")
                 .Append(operation.Name)
                 .Append("'")
                 .AppendLine(SqlGenerationHelper.StatementTerminator)
@@ -426,7 +421,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
 
         #region PostgreSQL extensions
 
-        public virtual void Generate(NpgsqlCreatePostgresExtensionOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
+        public virtual void Generate(NpgsqlEnsurePostgresExtensionOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
@@ -518,8 +513,6 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                 case "uuid":
                     defaultValueSql = "uuid_generate_v4()";
                     break;
-                default:
-                    throw new InvalidOperationException($"Column {name} of type {type} has ValueGenerated.OnAdd but no default value is defined");
                 }
             }
 
@@ -541,6 +534,13 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                 builder);
         }
 
+        /// <summary>
+        /// Renames a database object such as an index or a sequence.
+        /// </summary>
+        /// <param name="name">An already delimited name of the object to rename</param>
+        /// <param name="newName">An already delimited name of the new name</param>
+        /// <param name="type">The type of the object (e.g. INDEX, SEQUENCE)</param>
+        /// <param name="builder"></param>
         public virtual void Rename(
             [NotNull] string name,
             [NotNull] string newName,
@@ -556,9 +556,9 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                 .Append("ALTER ")
                 .Append(type)
                 .Append(' ')
-                .Append(SqlGenerationHelper.DelimitIdentifier(name))
+                .Append(name)
                 .Append(" RENAME TO ")
-                .Append(SqlGenerationHelper.DelimitIdentifier(newName))
+                .Append(newName)
                 .AppendLine(SqlGenerationHelper.StatementTerminator);
         }
 

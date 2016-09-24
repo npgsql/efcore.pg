@@ -69,7 +69,7 @@
     <Compile Include="Metadata\PostgresExtension.cs" />
     <Compile Include="Migrations\Internal\NpgsqlMigrationsModelDiffer.cs" />
     <Compile Include="Migrations\MigrationBuilderExtensions.cs" />
-    <Compile Include="Migrations\Operations\NpgsqlCreatePostgresExtensionOperation.cs" />
+    <Compile Include="Migrations\Operations\NpgsqlEnsurePostgresExtensionOperation.cs" />
     <Compile Include="Migrations\Operations\NpgsqlCreateDatabaseOperation.cs" />
     <Compile Include="Migrations\Operations\NpgsqlDropDatabaseOperation.cs" />
     <Compile Include="Migrations\Internal\NpgsqlHistoryRepository.cs" />
@@ -90,6 +90,7 @@
     <Compile Include="Infrastructure\Internal\NpgsqlOptionsExtension.cs" />
     <Compile Include="Storage\Internal\NpgsqlTypeMapper.cs" />
     <Compile Include="Storage\Internal\NpgsqlTypeMapping.cs" />
+    <Compile Include="Storage\NpgsqlStringRelationalTypeMapper.cs" />
     <Compile Include="Update\Internal\NpgsqlUpdateSqlGenerator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="..\Shared\CommonAssemblyInfo.cs">

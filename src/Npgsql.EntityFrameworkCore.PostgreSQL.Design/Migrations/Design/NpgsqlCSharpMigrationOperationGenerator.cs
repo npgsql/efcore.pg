@@ -28,7 +28,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations.Design
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
-            var asCreateExtensionOperation = operation as NpgsqlCreatePostgresExtensionOperation;
+            var asCreateExtensionOperation = operation as NpgsqlEnsurePostgresExtensionOperation;
             if (asCreateExtensionOperation != null)
             {
                 Generate(asCreateExtensionOperation, builder);
@@ -45,12 +45,12 @@ namespace Microsoft.EntityFrameworkCore.Migrations.Design
             throw new InvalidOperationException(DesignCoreStrings.UnknownOperation(operation.GetType()));
         }
 
-        protected virtual void Generate([NotNull] NpgsqlCreatePostgresExtensionOperation operation, [NotNull] IndentedStringBuilder builder)
+        protected virtual void Generate([NotNull] NpgsqlEnsurePostgresExtensionOperation operation, [NotNull] IndentedStringBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
-            builder.Append(".CreatePostgresExtension(");
+            builder.Append(".EnsurePostgresExtension(");
 
             if (operation.Schema == null && operation.Version == null)
             {

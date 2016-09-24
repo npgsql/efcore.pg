@@ -388,15 +388,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Migrations
         }
 
         [Fact]
-        public void CreatePostgresExtension()
+        public void EnsurePostgresExtension()
         {
-            Generate(new NpgsqlCreatePostgresExtensionOperation
+            Generate(new NpgsqlEnsurePostgresExtensionOperation
             {
                 Name = "hstore",
             });
 
             Assert.Equal(
-                @"CREATE EXTENSION ""hstore"";" + EOL,
+                @"CREATE EXTENSION IF NOT EXISTS ""hstore"";" + EOL,
                 Sql);
         }
 
@@ -452,6 +452,42 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Migrations
 
             Assert.Equal(
                 "ALTER TABLE \"People\" ADD \"foo\" uuid NOT NULL DEFAULT (uuid_generate_v4());" + EOL,
+                Sql);
+        }
+
+        [Fact]
+        public void RenameIndexOperation()
+        {
+            Generate(
+                new RenameIndexOperation
+                {
+                    Table = "People",
+                    Name = "x",
+                    NewName = "y",
+                    Schema = "myschema"
+                });
+
+            Assert.Equal(
+                "ALTER INDEX \"myschema\".\"x\" RENAME TO \"y\";" + EOL,
+                Sql);
+        }
+
+        [Fact]
+        public void AlterColumnOperation_with_defaultValue()
+        {
+            Generate(
+                new AlterColumnOperation
+                {
+                    Table = "People",
+                    Name = "Name",
+                    ClrType = typeof(string),
+                    MaxLength = 30
+                });
+
+            Assert.Equal(
+                "ALTER TABLE \"People\" ALTER COLUMN \"Name\" TYPE varchar(30);" + EOL +
+                "ALTER TABLE \"People\" ALTER COLUMN \"Name\" SET NOT NULL;" + EOL +
+                "ALTER TABLE \"People\" ALTER COLUMN \"Name\" DROP DEFAULT",
                 Sql);
         }
 

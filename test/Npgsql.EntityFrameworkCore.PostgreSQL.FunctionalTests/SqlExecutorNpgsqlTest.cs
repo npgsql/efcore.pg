@@ -11,33 +11,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
     public class SqlExecutorNpgsqlTest : SqlExecutorTestBase<NorthwindQueryNpgsqlFixture>
     {
-        public override void Executes_stored_procedure()
-        {
-            base.Executes_stored_procedure();
-
-            Assert.Equal(
-                TenMostExpensiveProductsSproc,
-                Sql);
-        }
-
-        public override void Executes_stored_procedure_with_parameter()
-        {
-            base.Executes_stored_procedure_with_parameter();
-
-            // TODO: Assert on SQL
-        }
-
-        public override void Executes_stored_procedure_with_generated_parameter()
-        {
-            base.Executes_stored_procedure_with_generated_parameter();
-
-            Assert.Equal(
-                @"@p0: ALFKI
-
-SELECT * FROM ""CustOrderHist""(@p0)",
-                Sql);
-        }
-
         public SqlExecutorNpgsqlTest(NorthwindQueryNpgsqlFixture fixture)
             : base(fixture)
         {

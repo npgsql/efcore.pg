@@ -20,62 +20,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         {
         }
 
-        public override void Can_generate_up_scripts()
-        {
-            base.Can_generate_up_scripts();
-
-            Assert.Equal(
-                @"CREATE TABLE ""__EFMigrationsHistory"" (
-    ""MigrationId"" varchar(150) NOT NULL,
-    ""ProductVersion"" varchar(32) NOT NULL,
-    CONSTRAINT ""PK___EFMigrationsHistory"" PRIMARY KEY (""MigrationId"")
-);
-
-CREATE TABLE ""Table1"" (
-    ""Id"" int4 NOT NULL,
-    CONSTRAINT ""PK_Table1"" PRIMARY KEY (""Id"")
-);
-
-INSERT INTO ""__EFMigrationsHistory"" (""MigrationId"", ""ProductVersion"")
-VALUES ('00000000000001_Migration1', '7.0.0-test');
-
-ALTER TABLE ""Table1"" RENAME TO ""Table2"";
-
-INSERT INTO ""__EFMigrationsHistory"" (""MigrationId"", ""ProductVersion"")
-VALUES ('00000000000002_Migration2', '7.0.0-test');
-
-INSERT INTO ""__EFMigrationsHistory"" (""MigrationId"", ""ProductVersion"")
-VALUES ('00000000000003_Migration3', '7.0.0-test');
-
-",
-                Sql);
-        }
-
         public override void Can_generate_idempotent_up_scripts()
         {
             Assert.Throws<NotSupportedException>(() => base.Can_generate_idempotent_up_scripts());
-        }
-
-        public override void Can_generate_down_scripts()
-        {
-            base.Can_generate_down_scripts();
-
-            Assert.Equal(
-                @"DELETE FROM ""__EFMigrationsHistory""
-WHERE ""MigrationId"" = '00000000000003_Migration3';
-
-ALTER TABLE ""Table2"" RENAME TO ""Table1"";
-
-DELETE FROM ""__EFMigrationsHistory""
-WHERE ""MigrationId"" = '00000000000002_Migration2';
-
-DROP TABLE ""Table1"";
-
-DELETE FROM ""__EFMigrationsHistory""
-WHERE ""MigrationId"" = '00000000000001_Migration1';
-
-",
-                Sql);
         }
 
         public override void Can_generate_idempotent_down_scripts()

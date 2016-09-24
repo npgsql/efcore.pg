@@ -13,9 +13,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities
 {
     public class NpgsqlTestStore : RelationalTestStore
     {
-        public const int CommandTimeout = 30;
+        public const int CommandTimeout = 90;
 
-        private static int _scratchCount;
+#if NETCOREAPP1_0
+        static string BaseDirectory => AppContext.BaseDirectory;
+#else
+        static string BaseDirectory => AppDomain.CurrentDomain.BaseDirectory;
+#endif
 
         public static NpgsqlTestStore GetOrCreateShared(string name, Action initializeDatabase)
         {
@@ -27,37 +31,38 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities
         ///     where transactions are not appropriate.
         /// </summary>
         public static Task<NpgsqlTestStore> CreateScratchAsync(bool createDatabase = true)
-        {
-            var name = "Npgsql.Scratch_" + Interlocked.Increment(ref _scratchCount);
-            return new NpgsqlTestStore(NextScratchDatabaseName()).CreateTransientAsync(createDatabase);
-        }
+            => new NpgsqlTestStore(GetScratchDbName()).CreateTransientAsync(createDatabase);
 
         public static NpgsqlTestStore CreateScratch(bool createDatabase = true)
-        {
-            return new NpgsqlTestStore(NextScratchDatabaseName()).CreateTransient(createDatabase);
-        }
+            => new NpgsqlTestStore(GetScratchDbName()).CreateTransient(createDatabase);
 
-        public static string NextScratchDatabaseName()
-            => "Npgsql.Scratch_" + Interlocked.Increment(ref _scratchCount);
-
-        public static string NextScratchConnectionString()
-            => CreateConnectionString(NextScratchDatabaseName());
-
-        private string _connectionString;
-        private NpgsqlConnection _connection;
-        private NpgsqlTransaction _transaction;
-        private readonly string _name;
-        private bool _deleteDatabase;
+        string _connectionString;
+        NpgsqlConnection _connection;
+        NpgsqlTransaction _transaction;
+        readonly string _name;
+        bool _deleteDatabase;
 
         public override string ConnectionString => _connectionString;
 
         // Use async static factory method
-        private NpgsqlTestStore(string name)
+        NpgsqlTestStore(string name)
         {
             _name = name;
         }
 
-        private NpgsqlTestStore CreateShared(Action initializeDatabase)
+        static string GetScratchDbName()
+        {
+            string name;
+            do
+            {
+                name = "Scratch_" + Guid.NewGuid();
+            }
+            while (DatabaseExists(name));
+
+            return name;
+        }
+
+        NpgsqlTestStore CreateShared(Action initializeDatabase)
         {
             CreateShared(typeof(NpgsqlTestStore).Name + _name, initializeDatabase);
 
@@ -76,18 +81,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities
         /// </summary>
         /// <remarks>
         /// In PostgreSQL (unlike other DBs) a connection is always to a single database - you can't switch
-        /// databases retaining the same connection. Therefore, a single SQL script drop and create the database
-        /// like with Npgsql, for example.
+        /// databases retaining the same connection. Therefore, a single SQL script can't drop and create the database
+        /// like with SqlServer, for example.
         /// </remarks>
-        /// <param name="name"></param>
-        /// <param name="scriptPath"></param>
-        /// <param name="recreateIfAlreadyExists"></param>
         public static void CreateDatabase(string name, string scriptPath = null, bool recreateIfAlreadyExists = false)
         {
             // If a script is specified we always drop and recreate an existing database
-            if (scriptPath != null) {
+            if (scriptPath != null)
                 recreateIfAlreadyExists = true;
-            }
 
             using (var master = new NpgsqlConnection(CreateAdminConnectionString()))
             {
@@ -96,15 +97,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities
                 using (var command = master.CreateCommand())
                 {
                     command.CommandTimeout = CommandTimeout;
-                    command.CommandText
-                        = $@"SELECT COUNT(*) FROM pg_database WHERE datname = '{name}'";
 
-                    var exists = (long)command.ExecuteScalar() > 0;
-
-                    if (exists && recreateIfAlreadyExists)
+                    var exists = DatabaseExists(name);
+                    if (exists && (recreateIfAlreadyExists || !TablesExist(name)))
                     {
-                        command.CommandText = $@"DROP DATABASE ""{name}""";
+                        command.CommandText = GetDeleteDatabaseSql(name);
                         command.ExecuteNonQuery();
+                        NpgsqlConnection.ClearAllPools();
                     }
 
                     if (!exists || recreateIfAlreadyExists)
@@ -124,32 +123,34 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities
                     //executing in VS - so path is relative to bin\<config> dir
                     scriptPath = @"..\..\" + scriptPath;
                 }
-
-                var script = File.ReadAllText(scriptPath);
+                else
+                {
+                    scriptPath = Path.Combine(BaseDirectory, scriptPath);
+                }
 
                 using (var conn = new NpgsqlConnection(CreateConnectionString(name)))
                 {
                     conn.Open();
                     using (var command = new NpgsqlCommand("", conn))
-                    {
-                        foreach (var batch
-                            in
-                            new Regex("^GO", RegexOptions.IgnoreCase | RegexOptions.Multiline,
-                                TimeSpan.FromMilliseconds(1000.0))
-                                .Split(script))
-                        {
-                            command.CommandText = batch;
-                            command.ExecuteNonQuery();
-                        }
-                    }
+                        ExecuteScript(scriptPath, command);
                 }
             }
         }
 
-        private async Task<NpgsqlTestStore> CreateTransientAsync(bool createDatabase)
+        static void ExecuteScript(string scriptPath, NpgsqlCommand scriptCommand)
         {
-            await DeleteDatabaseAsync(_name);
+            var script = File.ReadAllText(scriptPath);
+            foreach (var batch in new Regex("^GO", RegexOptions.IgnoreCase | RegexOptions.Multiline, TimeSpan.FromMilliseconds(1000.0))
+                .Split(script).Where(b => !string.IsNullOrEmpty(b)))
+            {
+                scriptCommand.CommandText = batch;
 
+                scriptCommand.ExecuteNonQuery();
+            }
+        }
+
+        async Task<NpgsqlTestStore> CreateTransientAsync(bool createDatabase)
+        {
             _connectionString = CreateConnectionString(_name);
             _connection = new NpgsqlConnection(_connectionString);
 
@@ -160,22 +161,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities
                     await master.OpenAsync();
                     using (var command = master.CreateCommand())
                     {
+                        command.CommandTimeout = CommandTimeout;
                         command.CommandText = $@"{Environment.NewLine}CREATE DATABASE ""{_name}""";
-
                         await command.ExecuteNonQueryAsync();
                     }
                 }
                 await _connection.OpenAsync();
             }
 
-            _deleteDatabase = createDatabase;
+            _deleteDatabase = true;
             return this;
         }
 
-        private NpgsqlTestStore CreateTransient(bool createDatabase)
+        NpgsqlTestStore CreateTransient(bool createDatabase)
         {
-            DeleteDatabase(_name);
-
             _connectionString = CreateConnectionString(_name);
             _connection = new NpgsqlConnection(_connectionString);
 
@@ -186,44 +185,55 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities
                     master.Open();
                     using (var command = master.CreateCommand())
                     {
-                        command.CommandText = string.Format(@"{0}CREATE DATABASE ""{1}""", Environment.NewLine, _name);
-
+                        command.CommandTimeout = CommandTimeout;
+                        command.CommandText = $@"{Environment.NewLine}CREATE DATABASE ""{_name}""";
                         command.ExecuteNonQuery();
                     }
                 }
                 _connection.Open();
             }
 
-            _deleteDatabase = createDatabase;
+            _deleteDatabase = true;
             return this;
         }
 
-        private async Task DeleteDatabaseAsync(string name)
+        static bool DatabaseExists(string name)
         {
             using (var master = new NpgsqlConnection(CreateAdminConnectionString()))
             {
-                await master.OpenAsync();
+                master.Open();
 
                 using (var command = master.CreateCommand())
                 {
-                    command.CommandTimeout = CommandTimeout; // Query will take a few seconds if (and only if) there are active connections
+                    command.CommandTimeout = CommandTimeout;
+                    command.CommandText = $@"SELECT COUNT(*) FROM pg_database WHERE datname = '{name}'";
 
-                    // Kill all connection to the database
-                    // TODO: Pre-9.2 PG has column name procid instead of pid
-                    command.CommandText = $@"
-                      SELECT pg_terminate_backend (pg_stat_activity.pid)
-                      FROM pg_stat_activity
-                      WHERE pg_stat_activity.datname = '{name}'
-                    ";
-                    await command.ExecuteNonQueryAsync();
-
-                    command.CommandText = $@"DROP DATABASE IF EXISTS ""{name}""";
-                    await command.ExecuteNonQueryAsync();
+                    return (long)command.ExecuteScalar() > 0;
                 }
             }
         }
 
-        private void DeleteDatabase(string name)
+        static bool TablesExist(string name)
+        {
+            using (var connection = new NpgsqlConnection(CreateConnectionString(name)))
+            {
+                connection.Open();
+
+                using (var command = connection.CreateCommand())
+                {
+                    command.CommandTimeout = CommandTimeout;
+
+                    command.CommandText =
+                        @"SELECT CASE WHEN COUNT(*) = 0 THEN FALSE ELSE TRUE END
+                          FROM information_schema.tables
+                          WHERE table_type = 'BASE TABLE' AND table_schema NOT IN('pg_catalog', 'information_schema')";
+
+                    return (bool)command.ExecuteScalar();
+                }
+            }
+        }
+
+        void DeleteDatabase(string name)
         {
             using (var master = new NpgsqlConnection(CreateAdminConnectionString()))
             {
@@ -233,21 +243,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities
                 {
                     command.CommandTimeout = CommandTimeout; // Query will take a few seconds if (and only if) there are active connections
 
-                    // Kill all connection to the database
-                    // TODO: Pre-9.2 PG has column name procid instead of pid
-                    command.CommandText = $@"
-                      SELECT pg_terminate_backend (pg_stat_activity.pid)
-                      FROM pg_stat_activity
-                      WHERE pg_stat_activity.datname = '{name}'
-                    ";
+                    command.CommandText = GetDeleteDatabaseSql(name);
                     command.ExecuteNonQuery();
-
-                    command.CommandText = $@"DROP DATABASE IF EXISTS ""{name}""";
-
-                    command.ExecuteNonQuery();
+                    NpgsqlConnection.ClearAllPools();
                 }
             }
         }
+
+        // Kill all connection to the database
+        // TODO: Pre-9.2 PG has column name procid instead of pid
+        static string GetDeleteDatabaseSql(string name) => $@"
+REVOKE CONNECT ON DATABASE ""{name}"" FROM PUBLIC;
+SELECT pg_terminate_backend (pg_stat_activity.pid)
+   FROM pg_stat_activity
+   WHERE datname = '{name}';
+DROP DATABASE ""{name}""";
 
         public override DbConnection Connection => _connection;
 

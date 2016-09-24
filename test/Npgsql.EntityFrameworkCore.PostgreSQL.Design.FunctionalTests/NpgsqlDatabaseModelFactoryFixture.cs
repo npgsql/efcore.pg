@@ -19,7 +19,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests
 
         public DatabaseModel CreateModel(string createSql, TableSelectionSet selection = null, ILogger logger = null)
         {
-            TestStore.ExecuteNonQuery(createSql);
+            TestStore.ExecuteNonQuery("DROP SCHEMA public CASCADE; CREATE SCHEMA public; " + createSql);
 
             return new NpgsqlDatabaseModelFactory(new TestLoggerFactory(logger))
                 .Create(TestStore.ConnectionString, selection ?? TableSelectionSet.All);
@@ -31,9 +31,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests
 
         public void Dispose() => TestStore.Dispose();
 
-        private class TestLoggerFactory : ILoggerFactory
+        class TestLoggerFactory : ILoggerFactory
         {
-            private readonly ILogger _logger;
+            readonly ILogger _logger;
 
             public TestLoggerFactory(ILogger logger)
             {
@@ -51,7 +51,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests
             }
         }
 
-        private class NullScope : IDisposable
+        class NullScope : IDisposable
         {
             public static readonly NullScope Instance = new NullScope();
 

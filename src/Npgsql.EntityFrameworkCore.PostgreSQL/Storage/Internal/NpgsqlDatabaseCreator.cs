@@ -24,7 +24,10 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
@@ -104,8 +107,16 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
         {
             try
             {
-                _connection.Open();
-                _connection.Close();
+                // When checking whether a database exists, pooling must be off, otherwise we may
+                // attempt to reuse a pooled connection, which may be broken (this happened in the tests).
+                var unpooledCsb = new NpgsqlConnectionStringBuilder(_connection.ConnectionString) { Pooling = false };
+                var unpooledConn = ((NpgsqlConnection)_connection.DbConnection).CloneWith(unpooledCsb.ToString());
+                using (unpooledConn)
+                {
+                    unpooledConn.Open();
+                    unpooledConn.Close();
+                }
+
                 return true;
             }
             catch (PostgresException e)
@@ -116,6 +127,15 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
                 }
 
                 throw;
+            }
+            catch (NpgsqlException e) when (
+                e.InnerException is IOException &&
+                e.InnerException.InnerException is SocketException &&
+                ((SocketException)e.InnerException.InnerException).SocketErrorCode == SocketError.ConnectionReset
+            )
+            {
+                // Pretty awful hack around #104
+                return false;
             }
         }
 
@@ -123,8 +143,16 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
         {
             try
             {
-                await _connection.OpenAsync(cancellationToken);
-                _connection.Close();
+                // When checking whether a database exists, pooling must be off, otherwise we may
+                // attempt to reuse a pooled connection, which may be broken (this happened in the tests).
+                var unpooledCsb = new NpgsqlConnectionStringBuilder(_connection.ConnectionString) { Pooling = false };
+                var unpooledConn = ((NpgsqlConnection)_connection.DbConnection).CloneWith(unpooledCsb.ToString());
+                using (unpooledConn)
+                {
+                    await unpooledConn.OpenAsync(cancellationToken);
+                    unpooledConn.Close();
+                }
+
                 return true;
             }
             catch (PostgresException e)
@@ -135,6 +163,15 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
                 }
 
                 throw;
+            }
+            catch (NpgsqlException e) when (
+                e.InnerException is IOException &&
+                e.InnerException.InnerException is SocketException &&
+                ((SocketException)e.InnerException.InnerException).SocketErrorCode == SocketError.ConnectionReset
+            )
+            {
+                // Pretty awful hack around #104
+                return false;
             }
         }
 
@@ -170,7 +207,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
 
             // Adding a PostgreSQL extension might define new types (e.g. hstore), which we
             // Npgsql to reload
-            var reloadTypes = operations.Any(o => o is NpgsqlCreatePostgresExtensionOperation);
+            var reloadTypes = operations.Any(o => o is NpgsqlEnsurePostgresExtensionOperation);
 
             MigrationCommandExecutor.ExecuteNonQuery(commands, Connection);
 
@@ -189,7 +226,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
 
             // Adding a PostgreSQL extension might define new types (e.g. hstore), which we
             // Npgsql to reload
-            var reloadTypes = operations.Any(o => o is NpgsqlCreatePostgresExtensionOperation);
+            var reloadTypes = operations.Any(o => o is NpgsqlEnsurePostgresExtensionOperation);
 
             await MigrationCommandExecutor.ExecuteNonQueryAsync(commands, Connection, cancellationToken);
 

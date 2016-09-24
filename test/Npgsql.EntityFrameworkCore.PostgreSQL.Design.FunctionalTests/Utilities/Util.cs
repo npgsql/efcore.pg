@@ -1,17 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
-namespace EntityFramework7.Npgsql.Design.FunctionalTests.Utilities
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests.Utilities
 {
-    internal static class Util
+    /// <summary>
+    /// Semantic attribute that points to an issue linked with this test (e.g. this
+    /// test reproduces the issue)
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
+    public class IssueLink : Attribute
     {
-        internal static string ToUnixNewlines(this string s)
+        public string LinkAddress { get; private set; }
+        public IssueLink(string linkAddress)
         {
-            return s.Replace("\r\n", "\n");
+            LinkAddress = linkAddress;
         }
     }
 }

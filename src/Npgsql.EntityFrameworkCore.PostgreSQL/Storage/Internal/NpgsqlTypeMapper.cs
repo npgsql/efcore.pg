@@ -31,17 +31,17 @@ using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Utilities;
 using Npgsql;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage;
 using Npgsql.TypeHandlers;
 
 namespace Microsoft.EntityFrameworkCore.Storage.Internal
 {
     public class NpgsqlTypeMapper : RelationalTypeMapper
     {
-        readonly ConcurrentDictionary<int, RelationalTypeMapping> _boundedStringMappings
-            = new ConcurrentDictionary<int, RelationalTypeMapping>();
-
         readonly Dictionary<string, RelationalTypeMapping> _storeTypeMappings;
         readonly Dictionary<Type, RelationalTypeMapping> _clrTypeMappings;
+
+        public override IStringRelationalTypeMapper StringMapper { get; }
 
         public NpgsqlTypeMapper()
         {
@@ -87,6 +87,8 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
                 //}))
                 // Output
                 .ToDictionary(x => x.Type, x => x.Mapping);
+
+            StringMapper = new NpgsqlStringRelationalTypeMapper();
         }
 
         protected override string GetColumnType(IProperty property) => property.Npgsql().ColumnType;
@@ -102,18 +104,11 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
         {
             Check.NotNull(property, nameof(property));
 
-            if (property.ClrType == typeof(string))
-            {
-                var maxLength = property.GetMaxLength();
-                if (maxLength.HasValue)
-                {
-                    return _boundedStringMappings.GetOrAdd(maxLength.Value,
-                        ml => new NpgsqlTypeMapping($"varchar({maxLength})", typeof(string))
-                    );
-                }
-            }
+            var clrType = property.ClrType.UnwrapNullableType();
 
-            return null;
+            return clrType == typeof(string)
+                ? GetStringMapping(property)
+                : null;
         }
 
         static Type GetTypeHandlerTypeArgument(Type handler)

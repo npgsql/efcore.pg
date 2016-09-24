@@ -14,7 +14,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
     {
         static readonly string NpgsqlProviderName = typeof(MigrationBuilderExtensions).GetTypeInfo().Assembly.GetName().Name;
 
-        public static OperationBuilder<NpgsqlCreatePostgresExtensionOperation> CreatePostgresExtension(
+        public static OperationBuilder<NpgsqlEnsurePostgresExtensionOperation> EnsurePostgresExtension(
             this MigrationBuilder builder,
             [NotNull] string name,
             string schema = null,
@@ -25,7 +25,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             Check.NullButNotEmpty(schema, nameof(schema));
             Check.NullButNotEmpty(version, nameof(schema));
 
-            var operation = new NpgsqlCreatePostgresExtensionOperation
+            var operation = new NpgsqlEnsurePostgresExtensionOperation
             {
                 Name = name,
                 Schema = schema,
@@ -35,8 +35,17 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             if (builder.ActiveProvider == NpgsqlProviderName)
                 builder.Operations.Add(operation);
 
-            return new OperationBuilder<NpgsqlCreatePostgresExtensionOperation>(operation);
+            return new OperationBuilder<NpgsqlEnsurePostgresExtensionOperation>(operation);
         }
+
+        [Obsolete("Use EnsurePostgresExtension instead")]
+        public static OperationBuilder<NpgsqlEnsurePostgresExtensionOperation> CreatePostgresExtension(
+            this MigrationBuilder builder,
+            [NotNull] string name,
+            string schema = null,
+            string version = null
+        )
+            => EnsurePostgresExtension(builder, name, schema, version);
 
         public static OperationBuilder<NpgsqlDropPostgresExtensionOperation> DropPostgresExtension(
             this MigrationBuilder builder,
