@@ -94,7 +94,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PropertyEntryNpgsqlTest.cs" />
     <Compile Include="QueryBugsTest.cs" />
-    <Compile Include="QueryLoggingNpgsqlTest.cs" />
     <Compile Include="QueryNavigationsNpgsqlTest.cs" />
     <Compile Include="QueryNoClientEvalNpgsqlFixture.cs" />
     <Compile Include="QueryNoClientEvalNpgsqlTest.cs" />

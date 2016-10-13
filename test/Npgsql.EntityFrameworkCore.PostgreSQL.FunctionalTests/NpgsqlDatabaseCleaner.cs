@@ -13,7 +13,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             => new NpgsqlDatabaseModelFactory(loggerFactory);
 
         protected override bool AcceptIndex(IndexModel index)
-            => !index.Name.StartsWith("PK_", StringComparison.Ordinal)
-               && !index.Name.StartsWith("AK_", StringComparison.Ordinal);
+            => false;
     }
 }

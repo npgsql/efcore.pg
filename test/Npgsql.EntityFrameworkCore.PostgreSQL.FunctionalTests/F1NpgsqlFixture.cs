@@ -39,12 +39,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 
                 using (var context = new F1Context(optionsBuilder.Options))
                 {
-                    // TODO: Delete DB if model changed
-                    context.Database.EnsureDeleted();
-                    if (context.Database.EnsureCreated())
-                    {
-                        ConcurrencyModelInitializer.Seed(context);
-                    }
+                    context.Database.EnsureCreated();
+                    ConcurrencyModelInitializer.Seed(context);
 
                     TestSqlLoggerFactory.Reset();
                 }
@@ -54,7 +50,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         public override F1Context CreateContext(NpgsqlTestStore testStore)
         {
             var optionsBuilder = new DbContextOptionsBuilder()
-                .UseNpgsql(testStore.Connection)
+                .UseNpgsql(testStore.Connection, b => b.ApplyConfiguration())
                 .UseInternalServiceProvider(_serviceProvider);
 
             var context = new F1Context(optionsBuilder.Options);

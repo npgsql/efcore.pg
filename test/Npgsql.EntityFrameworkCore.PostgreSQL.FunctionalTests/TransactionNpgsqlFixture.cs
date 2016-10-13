@@ -24,7 +24,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 
         public override NpgsqlTestStore CreateTestStore()
         {
-            return NpgsqlTestStore.GetOrCreateShared(DatabaseName, false, () =>
+            return NpgsqlTestStore.GetOrCreateShared(DatabaseName, () =>
             {
                 var optionsBuilder = new DbContextOptionsBuilder()
                     .UseNpgsql(NpgsqlTestStore.CreateConnectionString(DatabaseName))

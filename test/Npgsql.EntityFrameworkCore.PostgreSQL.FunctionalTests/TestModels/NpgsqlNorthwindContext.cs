@@ -22,10 +22,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.TestModels
         }
 
         public static NpgsqlTestStore GetSharedStore()
-        {
-            return NpgsqlTestStore.GetOrCreateShared(
+            => NpgsqlTestStore.GetOrCreateShared(
                 DatabaseName,
-                () => NpgsqlTestStore.CreateDatabase(DatabaseName, scriptPath: "Northwind.sql")); // relative from bin/<config>
-        }
+                () => NpgsqlTestStore.ExecuteScript(DatabaseName, @"Northwind.sql"),
+                cleanDatabase: false);
     }
 }
