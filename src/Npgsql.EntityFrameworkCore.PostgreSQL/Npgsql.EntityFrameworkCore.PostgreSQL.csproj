@@ -55,7 +55,6 @@
     <Compile Include="Infrastructure\NpgsqlDbContextOptionsBuilder.cs" />
     <Compile Include="Extensions\NpgsqlDbContextOptionsExtensions.cs" />
     <Compile Include="Extensions\NpgsqlServiceCollectionExtensions.cs" />
-    <Compile Include="Internal\NpgsqlModelValidator.cs" />
     <Compile Include="Metadata\INpgsqlModelAnnotations.cs" />
     <Compile Include="Metadata\Internal\NpgsqlAnnotationNames.cs" />
     <Compile Include="Metadata\Internal\NpgsqlFullAnnotationNames.cs" />

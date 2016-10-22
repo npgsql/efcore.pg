@@ -23,11 +23,13 @@ namespace Microsoft.EntityFrameworkCore.ValueGeneration.Internal
             Check.NotNull(property, nameof(property));
             Check.NotNull(entityType, nameof(entityType));
 
+            // Generate temporary values if the user specified a default value (to allow
+            // generating server-side with uuid-ossp or whatever)
             return property.ClrType.UnwrapNullableType() == typeof(Guid)
                 ? property.ValueGenerated == ValueGenerated.Never
                   || property.Npgsql().DefaultValueSql != null
-                    ? (ValueGenerator)new TemporaryGuidValueGenerator()
-                    : new SequentialGuidValueGenerator()
+                    ? new TemporaryGuidValueGenerator()
+                    : new GuidValueGenerator()
                 : base.Create(property, entityType);
         }
     }

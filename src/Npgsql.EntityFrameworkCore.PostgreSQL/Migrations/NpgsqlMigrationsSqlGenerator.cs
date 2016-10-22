@@ -142,9 +142,6 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                     // Note: we also need to set the sequence ownership, this is done below
                     // after the ALTER COLUMN
                     break;
-                case "uuid":
-                    defaultValueSql = "uuid_generate_v4()";
-                    break;
                 }
             }
 
@@ -510,7 +507,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             var generatedOnAdd = generatedOnAddAnnotation != null && (bool)generatedOnAddAnnotation;
 
             // int-like properties marked with OnAdd and without default values are
-            // treated as serial column. Similar for UUID.
+            // treated as serial column.
             if (generatedOnAdd && defaultValue == null && defaultValueSql == null)
             {
                 switch (type)
@@ -526,9 +523,6 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                 case "smallint":
                 case "int2":
                     type = "smallserial";
-                    break;
-                case "uuid":
-                    defaultValueSql = "uuid_generate_v4()";
                     break;
                 }
             }

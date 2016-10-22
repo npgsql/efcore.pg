@@ -13,76 +13,85 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
     public class NpgsqlValueGenerationScenariosTest
     {
-        public class SequenceId : TestBase<SequenceId.BlogContext>
+        static readonly string DatabaseName = "NpgsqlValueGenerationScenariosTest";
+
+        [Fact]
+        public void Insert_with_sequence_id()
         {
-            [Fact]
-            public void Insert_with_sequence_id()
+            using (var testStore = NpgsqlTestStore.Create(DatabaseName))
             {
-                int afterSave;
-
-                using (var context = new BlogContext())
+                using (var context = new BlogContextSequence(testStore.Name))
                 {
-                    var blog = context.Add(new Blog { Name = "One Unicorn" }).Entity;
-                    var beforeSave = blog.Id;
+                    context.Database.EnsureCreated();
+
+                    context.AddRange(new Blog { Name = "One Unicorn" }, new Blog { Name = "Two Unicorns" });
+
                     context.SaveChanges();
-                    afterSave = blog.Id;
-                    Assert.NotEqual(beforeSave, afterSave);
                 }
 
-                using (var context = new BlogContext())
+                using (var context = new BlogContextSequence(testStore.Name))
                 {
-                    Assert.Equal(afterSave, context.Blogs.Single().Id);
-                }
-            }
+                    var blogs = context.Blogs.OrderBy(e => e.Id).ToList();
 
-            public class BlogContext : ContextBase {}
-        }
-
-        public class NonSequenceId : TestBase<NonSequenceId.BlogContext>
-        {
-            [Fact]
-            public void Insert_with_non_sequence_id()
-            {
-                int afterSave;
-
-                using (var context = new BlogContext())
-                {
-                    var blog = context.Add(new Blog { Name = "One Unicorn" }).Entity;
-                    var beforeSave = blog.Id;
-                    context.SaveChanges();
-                    afterSave = blog.Id;
-                    Assert.Equal(beforeSave, afterSave);
-                }
-
-                using (var context = new BlogContext())
-                {
-                    Assert.Equal(afterSave, context.Blogs.Single().Id);
-                }
-            }
-
-            public class BlogContext : ContextBase
-            {
-                protected override void OnModelCreating(ModelBuilder modelBuilder)
-                {
-                    base.OnModelCreating(modelBuilder);
-
-                    modelBuilder
-                        .Entity<Blog>()
-                        .Property(e => e.Id)
-                        .ValueGeneratedNever();
+                    Assert.Equal(1, blogs[0].Id);
+                    Assert.Equal(2, blogs[1].Id);
                 }
             }
         }
 
-        public class SequenceNonId : TestBase<SequenceNonId.BlogContext>
+        public class BlogContextSequence : ContextBase
         {
-            [Fact]
-            public void Insert_with_sequence_non_id()
+            public BlogContextSequence(string databaseName) : base(databaseName) { }
+        }
+
+        [Fact]
+        public void Insert_with_explicit_non_default_keys()
+        {
+            using (var testStore = NpgsqlTestStore.Create(DatabaseName))
+            {
+                using (var context = new BlogContextNoKeyGeneration(testStore.Name))
+                {
+                    context.Database.EnsureCreated();
+
+                    context.AddRange(new Blog { Id = 66, Name = "One Unicorn" }, new Blog { Id = 67, Name = "Two Unicorns" });
+
+                    context.SaveChanges();
+                }
+
+                using (var context = new BlogContextNoKeyGeneration(testStore.Name))
+                {
+                    var blogs = context.Blogs.OrderBy(e => e.Id).ToList();
+
+                    Assert.Equal(66, blogs[0].Id);
+                    Assert.Equal(67, blogs[1].Id);
+                }
+            }
+        }
+
+        public class BlogContextNoKeyGeneration : ContextBase
+        {
+            public BlogContextNoKeyGeneration(string databaseName) : base(databaseName) {}
+
+            protected override void OnModelCreating(ModelBuilder modelBuilder)
+            {
+                modelBuilder
+                    .Entity<Blog>()
+                    .Property(e => e.Id)
+                    .ValueGeneratedNever();
+            }
+        }
+
+        [Fact]
+        public void Insert_with_sequence_non_id()
+        {
+            using (var testStore = NpgsqlTestStore.Create(DatabaseName))
             {
                 int afterSave;
 
-                using (var context = new BlogContext())
+                using (var context = new BlogContextSequenceNonId(testStore.Name))
                 {
+                    context.Database.EnsureCreated();
+
                     var blog = context.Add(new Blog { Name = "One Unicorn" }).Entity;
                     var beforeSave = blog.OtherId;
                     context.SaveChanges();
@@ -90,59 +99,102 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                     Assert.NotEqual(beforeSave, afterSave);
                 }
 
-                using (var context = new BlogContext())
+                using (var context = new BlogContextSequenceNonId(testStore.Name))
                 {
                     Assert.Equal(afterSave, context.Blogs.Single().OtherId);
                 }
             }
+        }
 
-            public class BlogContext : ContextBase
+        public class BlogContextSequenceNonId : ContextBase
+        {
+            public BlogContextSequenceNonId(string databaseName) : base(databaseName) { }
+
+            protected override void OnModelCreating(ModelBuilder modelBuilder)
             {
-                protected override void OnModelCreating(ModelBuilder modelBuilder)
-                {
-                    base.OnModelCreating(modelBuilder);
+                base.OnModelCreating(modelBuilder);
 
-                    modelBuilder
-                        .Entity<Blog>()
-                        .Property(e => e.OtherId)
-                        .ValueGeneratedOnAdd();
-                }
+                modelBuilder
+                    .Entity<Blog>()
+                    .Property(e => e.OtherId)
+                    .ValueGeneratedOnAdd();
             }
         }
 
-        public class ServerGuidKey : TestBase<ServerGuidKey.BlogContext>
+        [Fact]
+        public void Insert_with_client_generated_GUID_key()
         {
-            [Fact]
-            public void Insert_with_server_generated_GUID_key()
+            using (var testStore = NpgsqlTestStore.Create(DatabaseName))
             {
                 Guid afterSave;
-
-                using (var context = new BlogContext())
+                using (var context = new BlogContext(testStore.Name))
                 {
+                    context.Database.EnsureCreated();
+
                     var blog = context.Add(new GuidBlog { Name = "One Unicorn" }).Entity;
+
                     var beforeSave = blog.Id;
+
                     context.SaveChanges();
+
                     afterSave = blog.Id;
-                    Assert.NotEqual(beforeSave, afterSave);
+
+                    Assert.Equal(beforeSave, afterSave);
                 }
 
-                using (var context = new BlogContext())
+                using (var context = new BlogContext(testStore.Name))
                 {
                     Assert.Equal(afterSave, context.GuidBlogs.Single().Id);
                 }
             }
+        }
 
-            public class BlogContext : ContextBase
+        public class BlogContext : ContextBase
+        {
+            public BlogContext(string databaseName) : base(databaseName) {}
+        }
+
+        [Fact]
+        public void Insert_with_server_generated_GUID_key()
+        {
+            using (var testStore = NpgsqlTestStore.Create(DatabaseName))
             {
-                protected override void OnModelCreating(ModelBuilder modelBuilder)
+                Guid afterSave;
+                using (var context = new BlogContextServerGuidKey(testStore.Name))
                 {
-                    base.OnModelCreating(modelBuilder);
+                    context.Database.EnsureCreated();
 
-                    modelBuilder
-                        .Entity<GuidBlog>()
-                        .Property(e => e.Id)
-                        .HasDefaultValueSql("uuid_generate_v4()");
+                    var blog = context.Add(new GuidBlog { Name = "One Unicorn" }).Entity;
+
+                    var beforeSave = blog.Id;
+
+                    context.SaveChanges();
+
+                    afterSave = blog.Id;
+
+                    Assert.NotEqual(beforeSave, afterSave);
                 }
+
+                using (var context = new BlogContextServerGuidKey(testStore.Name))
+                {
+                    Assert.Equal(afterSave, context.GuidBlogs.Single().Id);
+                }
+            }
+        }
+
+        public class BlogContextServerGuidKey : ContextBase
+        {
+            public BlogContextServerGuidKey(string databaseName)
+                : base(databaseName)
+            {
+            }
+
+            protected override void OnModelCreating(ModelBuilder modelBuilder)
+            {
+                modelBuilder
+                    .Entity<GuidBlog>()
+                    .Property(e => e.Id)
+                    .HasDefaultValueSql("uuid_generate_v4()");
             }
         }
 
@@ -184,22 +236,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 
         public abstract class ContextBase : DbContext
         {
+            readonly string _databaseName;
+
+            protected ContextBase(string databaseName)
+            {
+                _databaseName = databaseName;
+            }
+
             public DbSet<Blog> Blogs { get; set; }
             public DbSet<NullableKeyBlog> NullableKeyBlogs { get; set; }
             public DbSet<FullNameBlog> FullNameBlogs { get; set; }
             public DbSet<GuidBlog> GuidBlogs { get; set; }
             public DbSet<ConcurrentBlog> ConcurrentBlogs { get; set; }
 
-            protected ContextBase()
-            {
-                Database.EnsureCreated();
-            }
-
             protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-            {
-                var name = GetType().FullName.Substring((GetType().Namespace + nameof(NpgsqlValueGenerationScenariosTest)).Length + 2);
-                optionsBuilder.UseNpgsql(NpgsqlTestStore.CreateConnectionString(name));
-            }
+            => optionsBuilder.UseNpgsql(NpgsqlTestStore.CreateConnectionString(_databaseName), b => b.ApplyConfiguration());
 
             protected override void OnModelCreating(ModelBuilder modelBuilder)
             {

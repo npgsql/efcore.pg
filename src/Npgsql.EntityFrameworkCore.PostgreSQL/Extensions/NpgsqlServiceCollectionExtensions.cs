@@ -90,7 +90,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddSingleton<NpgsqlModelSource>()
                 .AddSingleton<NpgsqlAnnotationProvider>()
                 .AddSingleton<NpgsqlMigrationsAnnotationProvider>()
-                .AddScoped<NpgsqlModelValidator>()
                 .AddScoped<NpgsqlConventionSetBuilder>()
                 .AddScoped<NpgsqlUpdateSqlGenerator>()
                 .AddScoped<NpgsqlModificationCommandBatchFactory>()
