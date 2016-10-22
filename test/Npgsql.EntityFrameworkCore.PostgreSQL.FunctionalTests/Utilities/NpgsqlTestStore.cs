@@ -178,6 +178,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities
 
         void DeleteDatabase(string name)
         {
+            if (!DatabaseExists(name))
+                return;
             using (var master = new NpgsqlConnection(CreateAdminConnectionString()))
             {
                 ExecuteNonQuery(master, GetDisconnectDatabaseSql(name));
