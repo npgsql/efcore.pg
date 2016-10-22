@@ -62,29 +62,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<Chassis>(b =>
-            {
-                b.Property<uint>("xmin")
-                    .HasColumnType("xid")
-                    .ValueGeneratedOnAddOrUpdate()
-                    .IsConcurrencyToken();
-            });
-
-            modelBuilder.Entity<Driver>(b =>
-            {
-                b.Property<uint>("xmin")
-                    .HasColumnType("xid")
-                    .ValueGeneratedOnAddOrUpdate()
-                    .IsConcurrencyToken();
-            });
-
-            modelBuilder.Entity<Team>(b =>
-            {
-                b.Property<uint>("xmin")
-                    .HasColumnType("xid")
-                    .ValueGeneratedOnAddOrUpdate()
-                    .IsConcurrencyToken();
-            });
+            modelBuilder.Entity<Chassis>().ForNpgsqlUseXminAsConcurrencyToken();
+            modelBuilder.Entity<Driver>().ForNpgsqlUseXminAsConcurrencyToken();
+            modelBuilder.Entity<Team>().ForNpgsqlUseXminAsConcurrencyToken();
         }
     }
 }

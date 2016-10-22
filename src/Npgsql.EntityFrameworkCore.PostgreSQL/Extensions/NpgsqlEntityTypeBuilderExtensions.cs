@@ -71,5 +71,23 @@ namespace Microsoft.EntityFrameworkCore
             [CanBeNull] string schema)
             where TEntity : class
             => (EntityTypeBuilder<TEntity>)ForNpgsqlToTable((EntityTypeBuilder)entityTypeBuilder, name, schema);
+
+        public static EntityTypeBuilder ForNpgsqlUseXminAsConcurrencyToken(
+            [NotNull] this EntityTypeBuilder entityTypeBuilder)
+        {
+            Check.NotNull(entityTypeBuilder, nameof(entityTypeBuilder));
+
+            entityTypeBuilder.Property<uint>("xmin")
+                .HasColumnType("xid")
+                .ValueGeneratedOnAddOrUpdate()
+                .IsConcurrencyToken();
+
+            return entityTypeBuilder;
+        }
+
+        public static EntityTypeBuilder<TEntity> ForNpgsqlUseXminAsConcurrencyToken<TEntity>(
+            [NotNull] this EntityTypeBuilder<TEntity> entityTypeBuilder)
+            where TEntity : class
+            => (EntityTypeBuilder<TEntity>)ForNpgsqlUseXminAsConcurrencyToken((EntityTypeBuilder)entityTypeBuilder);
     }
 }
