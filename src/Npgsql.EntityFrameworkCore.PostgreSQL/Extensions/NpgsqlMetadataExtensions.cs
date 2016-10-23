@@ -47,7 +47,7 @@ namespace Microsoft.EntityFrameworkCore
         public static INpgsqlIndexAnnotations Npgsql([NotNull] this IIndex index)
             => new NpgsqlIndexAnnotations(Check.NotNull(index, nameof(index)));
 
-        public static RelationalIndexAnnotations Npgsql([NotNull] this IMutableIndex index)
+        public static NpgsqlIndexAnnotations Npgsql([NotNull] this IMutableIndex index)
             => (NpgsqlIndexAnnotations)Npgsql((IIndex)index);
 
         public static IRelationalKeyAnnotations Npgsql([NotNull] this IKey key)
@@ -62,10 +62,10 @@ namespace Microsoft.EntityFrameworkCore
         public static NpgsqlModelAnnotations Npgsql([NotNull] this IMutableModel model)
             => (NpgsqlModelAnnotations)Npgsql((IModel)model);
 
-        public static IRelationalPropertyAnnotations Npgsql([NotNull] this IProperty property)
-            => new RelationalPropertyAnnotations(Check.NotNull(property, nameof(property)), NpgsqlFullAnnotationNames.Instance);
+        public static INpgsqlPropertyAnnotations Npgsql([NotNull] this IProperty property)
+            => new NpgsqlPropertyAnnotations(Check.NotNull(property, nameof(property)));
 
-        public static RelationalPropertyAnnotations Npgsql([NotNull] this IMutableProperty property)
-            => (RelationalPropertyAnnotations)Npgsql((IProperty)property);
+        public static NpgsqlPropertyAnnotations Npgsql([NotNull] this IMutableProperty property)
+            => (NpgsqlPropertyAnnotations)Npgsql((IProperty)property);
     }
 }

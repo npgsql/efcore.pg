@@ -34,12 +34,12 @@ namespace Microsoft.EntityFrameworkCore.Migrations.Internal
     {
         public override IEnumerable<IAnnotation> For(IProperty property)
         {
-            // The migrations SQL generator gets the property's DefaultValue and DefaultValueSql.
-            // However, there's no way there to detect properties that have ValueGenerated.OnAdd
-            // *without* defining a default value; these should translate to SERIAL columns.
-            // So we add a custom annotation here to pass the information.
-            if (property.ValueGenerated == ValueGenerated.OnAdd)
-                yield return new Annotation(NpgsqlAnnotationNames.Prefix + NpgsqlAnnotationNames.ValueGeneratedOnAdd, true);
+            if (property.Npgsql().ValueGenerationStrategy == NpgsqlValueGenerationStrategy.SerialColumn)
+            {
+                yield return new Annotation(
+                    NpgsqlFullAnnotationNames.Instance.ValueGenerationStrategy,
+                    NpgsqlValueGenerationStrategy.SerialColumn);
+            }
         }
 
         public override IEnumerable<IAnnotation> For(IIndex index)

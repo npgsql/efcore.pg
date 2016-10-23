@@ -323,7 +323,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Migrations
         }
 
         [Fact]
-        public void AlterColumnOperation_dbgenerated_int()
+        public void AlterColumnOperation_to_serial()
         {
             Generate(
                 new AlterColumnOperation
@@ -333,7 +333,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Migrations
                     ClrType = typeof(int),
                     ColumnType = "int",
                     IsNullable = false,
-                    [NpgsqlAnnotationNames.Prefix + NpgsqlAnnotationNames.ValueGeneratedOnAdd] = true
+                    [NpgsqlFullAnnotationNames.Instance.ValueGenerationStrategy] = NpgsqlValueGenerationStrategy.SerialColumn
                 });
 
             Assert.Equal(
@@ -342,27 +342,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Migrations
                 @"ALTER TABLE ""People"" ALTER COLUMN ""IntKey"" SET NOT NULL;" + EOL +
                 @"ALTER TABLE ""People"" ALTER COLUMN ""IntKey"" SET DEFAULT (nextval(""People_IntKey_seq""));" + EOL +
                 @"ALTER SEQUENCE ""People_IntKey_seq"" OWNED BY ""People"".""IntKey""",
-            Sql);
-        }
-
-        [Fact]
-        public void AlterColumnOperation_dbgenerated_uuid()
-        {
-            Generate(
-                new AlterColumnOperation
-                {
-                    Table = "People",
-                    Name = "GuidKey",
-                    ClrType = typeof(int),
-                    ColumnType = "uuid",
-                    IsNullable = false,
-                    [NpgsqlAnnotationNames.Prefix + NpgsqlAnnotationNames.ValueGeneratedOnAdd] = true
-                });
-
-            Assert.Equal(
-                @"ALTER TABLE ""People"" ALTER COLUMN ""GuidKey"" TYPE uuid;" + EOL +
-                @"ALTER TABLE ""People"" ALTER COLUMN ""GuidKey"" SET NOT NULL;" + EOL +
-                @"ALTER TABLE ""People"" ALTER COLUMN ""GuidKey"" SET DEFAULT (uuid_generate_v4())",
             Sql);
         }
 
@@ -422,8 +401,28 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Migrations
                 ClrType = typeof(int),
                 ColumnType = "int",
                 IsNullable = false,
-                [NpgsqlAnnotationNames.Prefix + NpgsqlAnnotationNames.ValueGeneratedOnAdd] = true
+                [NpgsqlFullAnnotationNames.Instance.ValueGenerationStrategy] = NpgsqlValueGenerationStrategy.SerialColumn
             });
+
+            Assert.Equal(
+                "ALTER TABLE \"People\" ADD \"foo\" serial NOT NULL;" + EOL,
+                Sql);
+        }
+
+        [Fact]
+        public virtual void AddColumnOperation_serial_old_annotation()
+        {
+#pragma warning disable 618
+            Generate(new AddColumnOperation
+            {
+                Table = "People",
+                Name = "foo",
+                ClrType = typeof(int),
+                ColumnType = "int",
+                IsNullable = false,
+                [NpgsqlFullAnnotationNames.Instance.ValueGeneratedOnAdd] = true
+            });
+#pragma warning restore 618
 
             Assert.Equal(
                 "ALTER TABLE \"People\" ADD \"foo\" serial NOT NULL;" + EOL,
@@ -446,24 +445,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Migrations
 
             Assert.Equal(
                 "ALTER TABLE \"People\" ADD \"foo\" int NOT NULL DEFAULT '8';" + EOL,
-                Sql);
-        }
-
-        [Fact]
-        public virtual void AddColumnOperation_with_dbgenerated_uuid()
-        {
-            Generate(
-                new AddColumnOperation
-                {
-                    Table = "People",
-                    Name = "foo",
-                    ClrType = typeof(Guid),
-                    ColumnType = "uuid",
-                    [NpgsqlAnnotationNames.Prefix + NpgsqlAnnotationNames.ValueGeneratedOnAdd] = true
-                });
-
-            Assert.Equal(
-                "ALTER TABLE \"People\" ADD \"foo\" uuid NOT NULL DEFAULT (uuid_generate_v4());" + EOL,
                 Sql);
         }
 

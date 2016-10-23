@@ -117,12 +117,9 @@ namespace Microsoft.EntityFrameworkCore.Migrations
 
             var type = operation.ColumnType ?? GetColumnType(operation.Schema, operation.Table, operation.Name, operation.ClrType, null, operation.MaxLength, false, model);
 
-            var generatedOnAddAnnotation = operation[NpgsqlAnnotationNames.Prefix + NpgsqlAnnotationNames.ValueGeneratedOnAdd];
-            var generatedOnAdd = generatedOnAddAnnotation != null && (bool)generatedOnAddAnnotation;
-
             string sequenceName = null;
             var defaultValueSql = operation.DefaultValueSql;
-            if (generatedOnAdd && operation.DefaultValue == null && operation.DefaultValueSql == null)
+            if (IsSerial(operation, operation.ClrType, operation.DefaultValue, operation.DefaultValueSql))           
             {
                 switch (type)
                 {
@@ -503,12 +500,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             if (type == null)
                 type = GetColumnType(schema, table, name, clrType, unicode, maxLength, rowVersion, model);
 
-            var generatedOnAddAnnotation = annotatable[NpgsqlAnnotationNames.Prefix + NpgsqlAnnotationNames.ValueGeneratedOnAdd];
-            var generatedOnAdd = generatedOnAddAnnotation != null && (bool)generatedOnAddAnnotation;
-
-            // int-like properties marked with OnAdd and without default values are
-            // treated as serial column.
-            if (generatedOnAdd && defaultValue == null && defaultValueSql == null)
+            if (IsSerial(annotatable, clrType, defaultValue, defaultValueSql))
             {
                 switch (type)
                 {
@@ -543,6 +535,23 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                 annotatable,
                 model,
                 builder);
+        }
+
+        static bool IsSerial([NotNull] IAnnotatable annotatable, [NotNull] Type clrType,
+            [CanBeNull] object defaultValue, [CanBeNull] string defaultValueSql)
+        {
+            if (defaultValue != null || defaultValueSql != null)
+                return false;
+
+            var valueGenerationStrategy = annotatable[NpgsqlFullAnnotationNames.Instance.ValueGenerationStrategy] as NpgsqlValueGenerationStrategy?;
+
+            // Version 1.0 used to generated a ValueGeneratedOnAdd annotation, check for that as well
+#pragma warning disable 618
+            var oldValueGeneratedOnAdd = annotatable[NpgsqlFullAnnotationNames.Instance.ValueGeneratedOnAdd] as bool?;
+#pragma warning restore 618
+
+            return (valueGenerationStrategy == NpgsqlValueGenerationStrategy.SerialColumn ||
+                oldValueGeneratedOnAdd == true) && clrType.IsIntegerForSerial();
         }
 
         /// <summary>

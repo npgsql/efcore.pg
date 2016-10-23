@@ -35,7 +35,7 @@ namespace Microsoft.EntityFrameworkCore
     public static class NpgsqlDbContextOptionsExtensions
     {
         /// <summary>
-        ///     Configures the context to connect to a Microsoft SQL Server database.
+        ///     Configures the context to connect to a PostgreSQL database.
         /// </summary>
         /// <param name="optionsBuilder"> A builder for setting options on the context. </param>
         /// <param name="connectionString"> The connection string of the database to connect to. </param>

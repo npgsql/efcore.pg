@@ -45,6 +45,131 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         }
 
         [Fact]
+        public void Insert_with_sequence_HiLo()
+        {
+            using (var testStore = NpgsqlTestStore.Create(DatabaseName))
+            {
+                using (var context = new BlogContextHiLo(testStore.Name))
+                {
+                    context.Database.EnsureCreated();
+
+                    context.AddRange(new Blog { Name = "One Unicorn" }, new Blog { Name = "Two Unicorns" });
+
+                    context.SaveChanges();
+                }
+
+                using (var context = new BlogContextHiLo(testStore.Name))
+                {
+                    var blogs = context.Blogs.OrderBy(e => e.Id).ToList();
+
+                    Assert.Equal(1, blogs[0].Id);
+                    Assert.Equal(2, blogs[1].Id);
+                }
+            }
+        }
+
+        public class BlogContextHiLo : ContextBase
+        {
+            public BlogContextHiLo(string databaseName)
+                : base(databaseName)
+            {
+            }
+
+            protected override void OnModelCreating(ModelBuilder modelBuilder)
+                => modelBuilder.ForNpgsqlUseSequenceHiLo();
+        }
+
+        [Fact]
+        public void Insert_with_default_value_from_sequence()
+        {
+            using (var testStore = NpgsqlTestStore.Create(DatabaseName))
+            {
+                using (var context = new BlogContextDefaultValue(testStore.Name))
+                {
+                    context.Database.EnsureCreated();
+
+                    context.AddRange(new Blog { Name = "One Unicorn" }, new Blog { Name = "Two Unicorns" });
+
+                    context.SaveChanges();
+                }
+
+                using (var context = new BlogContextDefaultValue(testStore.Name))
+                {
+                    var blogs = context.Blogs.OrderBy(e => e.Id).ToList();
+
+                    Assert.Equal(77, blogs[0].Id);
+                    Assert.Equal(78, blogs[1].Id);
+                }
+            }
+        }
+
+        public class BlogContextDefaultValue : ContextBase
+        {
+            public BlogContextDefaultValue(string databaseName)
+                : base(databaseName)
+            {
+            }
+
+            protected override void OnModelCreating(ModelBuilder modelBuilder)
+            {
+                modelBuilder
+                    .HasSequence("MySequence")
+                    .StartsAt(77);
+
+                modelBuilder
+                    .Entity<Blog>()
+                    .Property(e => e.Id)
+                    .HasDefaultValueSql("nextval('\"MySequence\"')");
+            }
+        }
+
+        [Fact]
+        public void Insert_with_key_default_value_from_sequence()
+        {
+            using (var testStore = NpgsqlTestStore.Create(DatabaseName))
+            {
+                using (var context = new BlogContextKeyColumnWithDefaultValue(testStore.Name))
+                {
+                    context.Database.EnsureCreated();
+
+                    context.AddRange(new Blog { Name = "One Unicorn" }, new Blog { Name = "Two Unicorns" });
+
+                    context.SaveChanges();
+                }
+
+                using (var context = new BlogContextKeyColumnWithDefaultValue(testStore.Name))
+                {
+                    var blogs = context.Blogs.OrderBy(e => e.Id).ToList();
+
+                    Assert.Equal(77, blogs[0].Id);
+                    Assert.Equal(78, blogs[1].Id);
+                }
+            }
+        }
+
+        public class BlogContextKeyColumnWithDefaultValue : ContextBase
+        {
+            public BlogContextKeyColumnWithDefaultValue(string databaseName)
+                : base(databaseName)
+            {
+            }
+
+            protected override void OnModelCreating(ModelBuilder modelBuilder)
+            {
+                modelBuilder
+                    .HasSequence("MySequence")
+                    .StartsAt(77);
+
+                // TODO: Nested closure for Metadata
+                modelBuilder
+                    .Entity<Blog>()
+                    .Property(e => e.Id)
+                    .HasDefaultValueSql("nextval('\"MySequence\"')")
+                    .Metadata.IsReadOnlyBeforeSave = true;
+            }
+        }
+
+        [Fact]
         public void Insert_with_explicit_non_default_keys()
         {
             using (var testStore = NpgsqlTestStore.Create(DatabaseName))
@@ -82,7 +207,172 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         }
 
         [Fact]
-        public void Insert_with_sequence_non_id()
+        public void Insert_with_explicit_with_default_keys()
+        {
+            using (var testStore = NpgsqlTestStore.Create(DatabaseName))
+            {
+                using (var context = new BlogContextNoKeyGenerationNullableKey(testStore.Name))
+                {
+                    context.Database.EnsureCreated();
+
+                    context.AddRange(
+                        new NullableKeyBlog { Id = 0, Name = "One Unicorn" },
+                        new NullableKeyBlog { Id = 1, Name = "Two Unicorns" });
+
+                    context.SaveChanges();
+                }
+
+                using (var context = new BlogContextNoKeyGenerationNullableKey(testStore.Name))
+                {
+                    var blogs = context.NullableKeyBlogs.OrderBy(e => e.Id).ToList();
+
+                    Assert.Equal(0, blogs[0].Id);
+                    Assert.Equal(1, blogs[1].Id);
+                }
+            }
+        }
+
+        public class BlogContextNoKeyGenerationNullableKey : ContextBase
+        {
+            public BlogContextNoKeyGenerationNullableKey(string databaseName)
+                : base(databaseName)
+            {
+            }
+
+            protected override void OnModelCreating(ModelBuilder modelBuilder)
+            {
+                modelBuilder
+                    .Entity<NullableKeyBlog>()
+                    .Property(e => e.Id)
+                    .ValueGeneratedNever();
+            }
+        }
+
+        [Fact]
+        public void Insert_with_non_key_default_value()
+        {
+            using (var testStore = NpgsqlTestStore.Create(DatabaseName))
+            {
+                using (var context = new BlogContextNonKeyDefaultValue(testStore.Name))
+                {
+                    context.Database.EnsureCreated();
+
+                    var blogs = new List<Blog>
+                    {
+                        new Blog { Name = "One Unicorn" },
+                        new Blog { Name = "Two Unicorns", CreatedOn = new DateTime(1969, 8, 3, 0, 10, 0) }
+                    };
+
+                    context.AddRange(blogs);
+
+                    context.SaveChanges();
+
+                    Assert.NotEqual(new DateTime(), blogs[0].CreatedOn);
+                    Assert.NotEqual(new DateTime(), blogs[1].CreatedOn);
+                }
+
+                using (var context = new BlogContextNonKeyDefaultValue(testStore.Name))
+                {
+                    var blogs = context.Blogs.OrderBy(e => e.Name).ToList();
+
+                    Assert.NotEqual(new DateTime(), blogs[0].CreatedOn);
+                    Assert.Equal(new DateTime(1969, 8, 3, 0, 10, 0), blogs[1].CreatedOn);
+
+                    blogs[0].CreatedOn = new DateTime(1973, 9, 3, 0, 10, 0);
+                    blogs[1].Name = "Zwo Unicorns";
+
+                    context.SaveChanges();
+                }
+
+                using (var context = new BlogContextNonKeyDefaultValue(testStore.Name))
+                {
+                    var blogs = context.Blogs.OrderBy(e => e.Name).ToList();
+
+                    Assert.Equal(new DateTime(1969, 8, 3, 0, 10, 0), blogs[1].CreatedOn);
+                    Assert.Equal(new DateTime(1973, 9, 3, 0, 10, 0), blogs[0].CreatedOn);
+                }
+            }
+        }
+
+        public class BlogContextNonKeyDefaultValue : ContextBase
+        {
+            public BlogContextNonKeyDefaultValue(string databaseName)
+                : base(databaseName)
+            {
+            }
+
+            protected override void OnModelCreating(ModelBuilder modelBuilder)
+            {
+                modelBuilder.Entity<Blog>()
+                    .Property(e => e.CreatedOn)
+                    .ValueGeneratedOnAdd()
+                    .HasDefaultValueSql("now()");
+            }
+        }
+
+        [Fact]
+        public void Insert_with_non_key_default_value_readonly()
+        {
+            using (var testStore = NpgsqlTestStore.Create(DatabaseName))
+            {
+                using (var context = new BlogContextNonKeyReadOnlyDefaultValue(testStore.Name))
+                {
+                    context.Database.EnsureCreated();
+
+                    context.AddRange(
+                        new Blog { Name = "One Unicorn" },
+                        new Blog { Name = "Two Unicorns" });
+
+                    context.SaveChanges();
+
+                    Assert.NotEqual(new DateTime(), context.Blogs.ToList()[0].CreatedOn);
+                }
+
+                DateTime dateTime0;
+
+                using (var context = new BlogContextNonKeyReadOnlyDefaultValue(testStore.Name))
+                {
+                    var blogs = context.Blogs.OrderBy(e => e.Id).ToList();
+
+                    dateTime0 = blogs[0].CreatedOn;
+
+                    Assert.NotEqual(new DateTime(), dateTime0);
+                    Assert.NotEqual(new DateTime(), blogs[1].CreatedOn);
+
+                    blogs[0].Name = "One Pegasus";
+                    blogs[1].CreatedOn = new DateTime(1973, 9, 3, 0, 10, 0);
+
+                    context.SaveChanges();
+                }
+
+                using (var context = new BlogContextNonKeyReadOnlyDefaultValue(testStore.Name))
+                {
+                    var blogs = context.Blogs.OrderBy(e => e.Id).ToList();
+
+                    Assert.Equal(dateTime0, blogs[0].CreatedOn);
+                    Assert.Equal(new DateTime(1973, 9, 3, 0, 10, 0), blogs[1].CreatedOn);
+                }
+            }
+        }
+
+        public class BlogContextNonKeyReadOnlyDefaultValue : ContextBase
+        {
+            public BlogContextNonKeyReadOnlyDefaultValue(string databaseName)
+                : base(databaseName)
+            {
+            }
+
+            protected override void OnModelCreating(ModelBuilder modelBuilder)
+            {
+                modelBuilder.Entity<Blog>()
+                    .Property(e => e.CreatedOn)
+                    .HasDefaultValueSql("now()")
+                    .Metadata.IsReadOnlyBeforeSave = true;
+            }
+        }
+
+        [Fact]
+        public void Insert_with_serial_non_id()
         {
             using (var testStore = NpgsqlTestStore.Create(DatabaseName))
             {

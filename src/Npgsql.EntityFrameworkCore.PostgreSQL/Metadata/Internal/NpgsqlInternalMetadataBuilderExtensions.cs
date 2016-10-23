@@ -27,15 +27,15 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Internal
 {
     public static class NpgsqlInternalMetadataBuilderExtensions
     {
-        public static RelationalModelBuilderAnnotations Npgsql(
+        public static NpgsqlModelBuilderAnnotations Npgsql(
             [NotNull] this InternalModelBuilder builder,
             ConfigurationSource configurationSource)
-            => new RelationalModelBuilderAnnotations(builder, configurationSource, NpgsqlFullAnnotationNames.Instance);
+            => new NpgsqlModelBuilderAnnotations(builder, configurationSource);
 
-        public static RelationalPropertyBuilderAnnotations Npgsql(
+        public static NpgsqlPropertyBuilderAnnotations Npgsql(
             [NotNull] this InternalPropertyBuilder builder,
             ConfigurationSource configurationSource)
-            => new RelationalPropertyBuilderAnnotations(builder, configurationSource, NpgsqlFullAnnotationNames.Instance);
+            => new NpgsqlPropertyBuilderAnnotations(builder, configurationSource);
 
         public static RelationalEntityTypeBuilderAnnotations Npgsql(
             [NotNull] this InternalEntityTypeBuilder builder,

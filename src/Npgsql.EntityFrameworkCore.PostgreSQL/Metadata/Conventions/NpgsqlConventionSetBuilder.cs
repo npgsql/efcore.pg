@@ -25,6 +25,7 @@ using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Utilities;
 
 namespace Microsoft.EntityFrameworkCore.Metadata.Conventions
 {
@@ -38,6 +39,19 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Conventions
         {
         }
 
-        // TODO: SqlServer has identity here, do we need something?
+        public override ConventionSet AddConventions(ConventionSet conventionSet)
+        {
+            Check.NotNull(conventionSet, nameof(conventionSet));
+
+            base.AddConventions(conventionSet);
+
+            var valueGenerationStrategyConvention = new NpgsqlValueGenerationStrategyConvention();
+            conventionSet.ModelInitializedConventions.Add(valueGenerationStrategyConvention);
+
+            ReplaceConvention(conventionSet.PropertyAddedConventions, (DatabaseGeneratedAttributeConvention)valueGenerationStrategyConvention);
+            ReplaceConvention(conventionSet.PropertyFieldChangedConventions, (DatabaseGeneratedAttributeConvention)valueGenerationStrategyConvention);
+
+            return conventionSet;
+        }
     }
 }

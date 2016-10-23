@@ -64,7 +64,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
         public override IMigrationsSqlGenerator MigrationsSqlGenerator => GetService<NpgsqlMigrationsSqlGenerator>();
         public override IModelSource ModelSource => GetService<NpgsqlModelSource>();
         public override IUpdateSqlGenerator UpdateSqlGenerator => GetService<NpgsqlUpdateSqlGenerator>();
-        public override IValueGeneratorCache ValueGeneratorCache => GetService<NpgsqlValueGeneratorCache>();
+        public override IValueGeneratorCache ValueGeneratorCache => GetService<INpgsqlValueGeneratorCache>();
         public override IRelationalTypeMapper TypeMapper => GetService<NpgsqlTypeMapper>();
         public override IModificationCommandBatchFactory ModificationCommandBatchFactory => GetService<NpgsqlModificationCommandBatchFactory>();
         public override IRelationalValueBufferFactoryFactory ValueBufferFactoryFactory => GetService<TypedRelationalValueBufferFactoryFactory>();

@@ -99,6 +99,13 @@ namespace Microsoft.EntityFrameworkCore.Update.Internal
                 .AppendJoin(operations.Select(c => SqlGenerationHelper.DelimitIdentifier(c.ColumnName)));
         }
 
+        public override void AppendNextSequenceValueOperation(StringBuilder commandStringBuilder, string name, string schema)
+        {
+            commandStringBuilder.Append("SELECT nextval('");
+            SqlGenerationHelper.DelimitIdentifier(commandStringBuilder, Check.NotNull(name, nameof(name)), schema);
+            commandStringBuilder.Append("')");
+        }
+
         public override void AppendBatchHeader(StringBuilder commandStringBuilder)
         {
             Check.NotNull(commandStringBuilder, nameof(commandStringBuilder));
