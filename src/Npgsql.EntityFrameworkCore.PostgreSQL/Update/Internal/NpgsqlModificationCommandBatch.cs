@@ -51,17 +51,25 @@ namespace Microsoft.EntityFrameworkCore.Update.Internal
     /// </remarks>
     public class NpgsqlModificationCommandBatch : ReaderModificationCommandBatch
     {
+        const int DefaultBatchSize = 1000;
+        readonly int _maxBatchSize;
+
         public NpgsqlModificationCommandBatch(
             [NotNull] IRelationalCommandBuilderFactory commandBuilderFactory,
             [NotNull] ISqlGenerationHelper sqlGenerationHelper,
             [NotNull] IUpdateSqlGenerator updateSqlGenerator,
-            [NotNull] IRelationalValueBufferFactoryFactory valueBufferFactoryFactory)
+            [NotNull] IRelationalValueBufferFactoryFactory valueBufferFactoryFactory,
+            [CanBeNull] int? maxBatchSize)
             : base(commandBuilderFactory, sqlGenerationHelper, updateSqlGenerator, valueBufferFactoryFactory)
         {
+            if (maxBatchSize.HasValue && maxBatchSize.Value <= 0)
+                throw new ArgumentOutOfRangeException(nameof(maxBatchSize), RelationalStrings.InvalidMaxBatchSize);
+
+            _maxBatchSize = maxBatchSize ?? DefaultBatchSize;
         }
 
         protected override bool CanAddCommand(ModificationCommand modificationCommand)
-            => true;
+            => ModificationCommands.Count < _maxBatchSize;
 
         protected override bool IsCommandTextValid()
             => true;

@@ -58,6 +58,8 @@
     <Compile Include="TestAnnotationProvider.cs" />
     <Compile Include="TestRelationalMetadataExtensions.cs" />
     <Compile Include="TestUtilities\FakeSensitiveDataLogger`.cs" />
+    <Compile Include="Update\NpgsqlModificationCommandBatchFactoryTest.cs" />
+    <Compile Include="Update\NpgsqlModificationCommandBatchTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
