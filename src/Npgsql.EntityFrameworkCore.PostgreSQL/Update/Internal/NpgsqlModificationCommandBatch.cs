@@ -53,6 +53,7 @@ namespace Microsoft.EntityFrameworkCore.Update.Internal
     {
         const int DefaultBatchSize = 1000;
         readonly int _maxBatchSize;
+        long _parameterCount;
 
         public NpgsqlModificationCommandBatch(
             [NotNull] IRelationalCommandBuilderFactory commandBuilderFactory,
@@ -68,8 +69,21 @@ namespace Microsoft.EntityFrameworkCore.Update.Internal
             _maxBatchSize = maxBatchSize ?? DefaultBatchSize;
         }
 
+        protected override int GetParameterCount() => (int)_parameterCount;
+
         protected override bool CanAddCommand(ModificationCommand modificationCommand)
-            => ModificationCommands.Count < _maxBatchSize;
+        {
+            if (ModificationCommands.Count >= _maxBatchSize)
+                return false;
+
+            var newParamCount = _parameterCount + modificationCommand.ColumnModifications.Count;
+
+            if (newParamCount > int.MaxValue)
+                return false;
+
+            _parameterCount = newParamCount;
+            return true;
+        }
 
         protected override bool IsCommandTextValid()
             => true;
