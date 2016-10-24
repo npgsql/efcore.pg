@@ -24,7 +24,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests.ReverseEn
     {
         protected override string ProviderName => "Npgsql.EntityFrameworkCore.PostgreSQL.Design";
 
-        protected override IServiceCollection ConfigureDesignTimeServices(IServiceCollection services)
+        protected override void ConfigureDesignTimeServices(IServiceCollection services)
             => new NpgsqlDesignTimeServices().ConfigureDesignTimeServices(services);
 
         public virtual string TestNamespace => "E2ETest.Namespace";
