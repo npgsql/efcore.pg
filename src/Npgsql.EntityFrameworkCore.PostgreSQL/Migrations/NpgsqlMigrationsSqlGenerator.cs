@@ -22,6 +22,7 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using JetBrains.Annotations;
@@ -90,7 +91,72 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                 operation = filteredOperation;
             }
 
-            base.Generate(operation, model, builder, terminate);
+            base.Generate(operation, model, builder, false);
+
+            var storageParameters = GetStorageParameters(operation);
+            if (storageParameters.Count > 0)
+            {
+                builder
+                    .AppendLine()
+                    .Append("WITH (")
+                    .Append(string.Join(", ", storageParameters.Select(p => $"{p.Key}={p.Value}")))
+                    .Append(')');
+            }
+
+            if (terminate)
+            {
+                builder.AppendLine(SqlGenerationHelper.StatementTerminator);
+                EndStatement(builder);
+            }
+        }
+
+        protected override void Generate(AlterTableOperation operation, IModel model, MigrationCommandListBuilder builder)
+        {
+            var oldStorageParameters = GetStorageParameters(operation.OldTable);
+            var newStorageParameters = GetStorageParameters(operation);
+
+            var newOrChanged = newStorageParameters.Where(p =>
+                    !oldStorageParameters.ContainsKey(p.Key) ||
+                    oldStorageParameters[p.Key] != p.Value
+            ).ToList();
+
+            if (newOrChanged.Count > 0)
+            {
+                builder
+                    .Append("ALTER TABLE ")
+                    .Append(SqlGenerationHelper.DelimitIdentifier(operation.Name, operation.Schema));
+
+                builder
+                    .Append(" SET (")
+                    .Append(string.Join(", ", newOrChanged.Select(p => $"{p.Key}={p.Value}")))
+                    .Append(")");
+
+                builder.AppendLine(SqlGenerationHelper.StatementTerminator);
+                EndStatement(builder);
+            }
+
+            var removed = oldStorageParameters
+                .Select(p => p.Key)
+                .Where(pn => !newStorageParameters.ContainsKey(pn))
+                .ToList();
+
+            if (removed.Count > 0)
+            {
+                builder
+                    .Append("ALTER TABLE ")
+                    .Append(SqlGenerationHelper.DelimitIdentifier(operation.Name, operation.Schema));
+
+                builder
+                    .Append(" RESET (")
+                    .Append(string.Join(", ", removed))
+                    .Append(")");
+
+                builder.AppendLine(SqlGenerationHelper.StatementTerminator);
+                EndStatement(builder);
+            }
+
+
+            base.Generate(operation, model, builder);
         }
 
         protected override void Generate(
@@ -619,6 +685,8 @@ namespace Microsoft.EntityFrameworkCore.Migrations
 
         #endregion Utilities
 
+        #region System column utilities
+
         bool IsSystemColumn(string name) => _systemColumnNames.Contains(name);
 
         /// <summary>
@@ -630,5 +698,28 @@ namespace Microsoft.EntityFrameworkCore.Migrations
         /// https://www.postgresql.org/docs/current/static/ddl-system-columns.html
         /// </remarks>
         readonly string[] _systemColumnNames = { "oid", "tableoid", "xmin", "cmin", "xmax", "cmax", "ctid" };
+
+        #endregion System column utilities
+
+        #region Storage parameter utilities
+
+        Dictionary<string, string> GetStorageParameters(Annotatable annotatable)
+            => annotatable.GetAnnotations()
+                .Where(a => a.Name.StartsWith(NpgsqlFullAnnotationNames.Instance.StorageParameterPrefix))
+                .ToDictionary(
+                    a => a.Name.Substring(NpgsqlFullAnnotationNames.Instance.StorageParameterPrefix.Length),
+                    a => GenerateStorageParameterValue(a.Value)
+                );
+
+        static string GenerateStorageParameterValue(object value)
+        {
+            if (value is bool)
+                return (bool)value ? "true" : "false";
+            if (value is string)
+                return $"'{value}'";
+            return value.ToString();
+        }
+
+        #endregion Storage parameter utilities
     }
 }

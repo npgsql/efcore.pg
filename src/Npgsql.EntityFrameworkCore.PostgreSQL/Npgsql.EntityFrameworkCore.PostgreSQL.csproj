@@ -62,6 +62,7 @@
     <Compile Include="Extensions\NpgsqlDbContextOptionsExtensions.cs" />
     <Compile Include="Extensions\NpgsqlServiceCollectionExtensions.cs" />
     <Compile Include="Metadata\Conventions\Internal\NpgsqlValueGenerationStrategyConvention.cs" />
+    <Compile Include="Metadata\INpgsqlEntityTypeAnnotations.cs" />
     <Compile Include="Metadata\INpgsqlModelAnnotations.cs" />
     <Compile Include="Metadata\INpgsqlPropertyAnnotations.cs" />
     <Compile Include="Metadata\Internal\NpgsqlAnnotationNames.cs" />
@@ -71,6 +72,7 @@
     <Compile Include="Metadata\Internal\NpgsqlModelBuilderAnnotations.cs" />
     <Compile Include="Metadata\Internal\NpgsqlPropertyBuilderAnnotations.cs" />
     <Compile Include="Metadata\IPostgresExtension.cs" />
+    <Compile Include="Metadata\NpgsqlEntityTypeAnnotations.cs" />
     <Compile Include="Metadata\NpgsqlExtensionBuilder.cs" />
     <Compile Include="Metadata\NpgsqlIndexAnnotations.cs" />
     <Compile Include="Metadata\NpgsqlAnnotationProvider.cs" />

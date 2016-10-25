@@ -1412,6 +1412,27 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Metadata
                 .ForNpgsqlHasConstraintName("Simon");
         }
 
+        #region Npgsql-specific
+
+        [Fact]
+        public void Can_set_storage_parameter()
+        {
+            var modelBuilder = CreateConventionModelBuilder();
+
+            modelBuilder
+                .Entity<Customer>()
+                .ForNpgsqlSetStorageParameter("fillfactor", 80);
+
+            var entityType = modelBuilder.Model.FindEntityType(typeof(Customer));
+
+            var storageParams = entityType.Npgsql().GetStorageParameters();
+            Assert.Equal(1, storageParams.Count);
+            Assert.Equal("fillfactor", storageParams.Single().Key);
+            Assert.Equal(80, storageParams.Single().Value);
+        }
+
+        #endregion
+
         private void AssertIsGeneric(EntityTypeBuilder<Customer> _)
         {
         }

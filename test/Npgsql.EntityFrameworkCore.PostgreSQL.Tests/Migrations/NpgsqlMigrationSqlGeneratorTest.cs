@@ -486,6 +486,75 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Migrations
 
         #endregion
 
+        #region PostgreSQL Storage Parameters
+
+        [Fact]
+        public void CreateTableOperation_with_storage_parameter()
+        {
+            Generate(
+                new CreateTableOperation
+                {
+                    Name = "People",
+                    Schema = "dbo",
+                    Columns =
+                    {
+                        new AddColumnOperation
+                        {
+                            Name = "Id",
+                            Table = "People",
+                            ClrType = typeof(int),
+                            IsNullable = false
+                        },
+                    },
+                    PrimaryKey = new AddPrimaryKeyOperation
+                    {
+                        Columns = new[] { "Id" }
+                    },
+                    [NpgsqlFullAnnotationNames.Instance.StorageParameterPrefix + "fillfactor"] = 70,
+                    [NpgsqlFullAnnotationNames.Instance.StorageParameterPrefix + "user_catalog_table"] = true,
+                    ["some_bogus_name"] = 0
+                });
+
+            Assert.Equal(
+                "CREATE TABLE \"dbo\".\"People\" (" + EOL +
+                "    \"Id\" int4 NOT NULL," + EOL +
+                "    PRIMARY KEY (\"Id\")" + EOL +
+                ")" + EOL +
+                "WITH (fillfactor=70, user_catalog_table=true);" + EOL,
+                Sql);
+        }
+
+        [Fact]
+        public void AlterTable_change_storage_parameters()
+        {
+            Generate(
+                new AlterTableOperation
+                {
+                    Name="People",
+                    Schema="dbo",
+                    OldTable = new Annotatable
+                    {
+                        [NpgsqlFullAnnotationNames.Instance.StorageParameterPrefix + "fillfactor"] = 70,
+                        [NpgsqlFullAnnotationNames.Instance.StorageParameterPrefix + "user_catalog_table"] = true,
+                        [NpgsqlFullAnnotationNames.Instance.StorageParameterPrefix + "parallel_workers"] = 8
+                    },
+                    // Add parameter
+                    [NpgsqlFullAnnotationNames.Instance.StorageParameterPrefix + "autovacuum_enabled"] = true,
+                    // Change parameter
+                    [NpgsqlFullAnnotationNames.Instance.StorageParameterPrefix + "fillfactor"] = 80,
+                    // Drop parameter user_catalog
+                    // Leave parameter unchanged
+                    [NpgsqlFullAnnotationNames.Instance.StorageParameterPrefix + "parallel_workers"] = 8
+                });
+
+            Assert.Equal(
+                "ALTER TABLE \"dbo\".\"People\" SET (autovacuum_enabled=true, fillfactor=80);" + EOL +
+                "ALTER TABLE \"dbo\".\"People\" RESET (user_catalog_table);" + EOL,
+                Sql);
+        }
+
+        #endregion
+
         #region System columns
 
         [Fact]

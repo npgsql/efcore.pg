@@ -32,11 +32,11 @@ namespace Microsoft.EntityFrameworkCore
 {
     public static class NpgsqlMetadataExtensions
     {
-        public static IRelationalEntityTypeAnnotations Npgsql([NotNull] this IEntityType entityType)
-            => new RelationalEntityTypeAnnotations(Check.NotNull(entityType, nameof(entityType)), NpgsqlFullAnnotationNames.Instance);
+        public static INpgsqlEntityTypeAnnotations Npgsql([NotNull] this IEntityType entityType)
+            => new NpgsqlEntityTypeAnnotations(Check.NotNull(entityType, nameof(entityType)));
 
-        public static RelationalEntityTypeAnnotations Npgsql([NotNull] this IMutableEntityType entityType)
-            => (RelationalEntityTypeAnnotations)Npgsql((IEntityType)entityType);
+        public static NpgsqlEntityTypeAnnotations Npgsql([NotNull] this IMutableEntityType entityType)
+            => (NpgsqlEntityTypeAnnotations)Npgsql((IEntityType)entityType);
 
         public static IRelationalForeignKeyAnnotations Npgsql([NotNull] this IForeignKey foreignKey)
             => new RelationalForeignKeyAnnotations(Check.NotNull(foreignKey, nameof(foreignKey)), NpgsqlFullAnnotationNames.Instance);
