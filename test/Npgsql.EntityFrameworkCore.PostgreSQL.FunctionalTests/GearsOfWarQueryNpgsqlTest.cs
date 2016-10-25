@@ -23,5 +23,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         {
             base.Optional_Navigation_Null_Coalesce_To_Clr_Type();
         }
+
+        [Fact(Skip = "https://github.com/aspnet/EntityFramework/issues/5723")]
+        public override void Include_with_nested_navigation_in_order_by() {}
     }
 }
