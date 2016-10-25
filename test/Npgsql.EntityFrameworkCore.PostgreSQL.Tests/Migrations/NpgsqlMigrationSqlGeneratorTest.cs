@@ -409,28 +409,28 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Migrations
                 Sql);
         }
 
-        [Fact]
-        public virtual void AddColumnOperation_serial_old_annotation()
-        {
 #pragma warning disable 618
-            Generate(new AddColumnOperation
-            {
-                Table = "People",
-                Name = "foo",
-                ClrType = typeof(int),
-                ColumnType = "int",
-                IsNullable = false,
-                [NpgsqlFullAnnotationNames.Instance.ValueGeneratedOnAdd] = true
-            });
+        [Fact]
+        public virtual void AddColumnOperation_serial_old_annotation_throws()
+        {
+            Assert.Throws<NotSupportedException>(() =>
+                Generate(new AddColumnOperation
+                {
+                    Table = "People",
+                    Name = "foo",
+                    ClrType = typeof(int),
+                    ColumnType = "int",
+                    IsNullable = false,
+                    [NpgsqlFullAnnotationNames.Instance.ValueGeneratedOnAdd] = true
+                }));
+        }
 #pragma warning restore 618
 
-            Assert.Equal(
-                "ALTER TABLE \"People\" ADD \"foo\" serial NOT NULL;" + EOL,
-                Sql);
-        }
-
+        // EFCore will add a default in some cases, e.g. adding a non-nullable column
+        // to an existing table. This shouldn't affect serial column creation.
+        // See #68
         [Fact]
-        public virtual void AddColumnOperation_with_int_defaultValue_isnt_serial()
+        public void AddColumnOperation_serial_with_default()
         {
             Generate(
                 new AddColumnOperation
@@ -439,12 +439,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Migrations
                     Name = "foo",
                     ClrType = typeof(int),
                     ColumnType = "int",
-                    IsNullable = false,
-                    DefaultValue = "8"
+                    DefaultValue = 0,
+                    [NpgsqlFullAnnotationNames.Instance.ValueGenerationStrategy] = NpgsqlValueGenerationStrategy.SerialColumn
                 });
 
             Assert.Equal(
-                "ALTER TABLE \"People\" ADD \"foo\" int NOT NULL DEFAULT '8';" + EOL,
+                @"ALTER TABLE ""People"" ADD ""foo"" serial NOT NULL DEFAULT 0;" + EOL,
                 Sql);
         }
 

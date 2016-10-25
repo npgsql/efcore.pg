@@ -185,7 +185,10 @@ namespace Microsoft.EntityFrameworkCore.Migrations
 
             string sequenceName = null;
             var defaultValueSql = operation.DefaultValueSql;
-            if (IsSerial(operation, operation.ClrType, operation.DefaultValue, operation.DefaultValueSql))           
+
+            CheckForOldAnnotation(operation);
+            var valueGenerationStrategy = operation[NpgsqlFullAnnotationNames.Instance.ValueGenerationStrategy] as NpgsqlValueGenerationStrategy?;
+            if (valueGenerationStrategy == NpgsqlValueGenerationStrategy.SerialColumn)
             {
                 switch (type)
                 {
@@ -566,7 +569,9 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             if (type == null)
                 type = GetColumnType(schema, table, name, clrType, unicode, maxLength, rowVersion, model);
 
-            if (IsSerial(annotatable, clrType, defaultValue, defaultValueSql))
+            CheckForOldAnnotation(annotatable);
+            var valueGenerationStrategy = annotatable[NpgsqlFullAnnotationNames.Instance.ValueGenerationStrategy] as NpgsqlValueGenerationStrategy?;
+            if (valueGenerationStrategy == NpgsqlValueGenerationStrategy.SerialColumn)
             {
                 switch (type)
                 {
@@ -603,22 +608,15 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                 builder);
         }
 
-        static bool IsSerial([NotNull] IAnnotatable annotatable, [NotNull] Type clrType,
-            [CanBeNull] object defaultValue, [CanBeNull] string defaultValueSql)
-        {
-            if (defaultValue != null || defaultValueSql != null)
-                return false;
-
-            var valueGenerationStrategy = annotatable[NpgsqlFullAnnotationNames.Instance.ValueGenerationStrategy] as NpgsqlValueGenerationStrategy?;
-
-            // Version 1.0 used to generated a ValueGeneratedOnAdd annotation, check for that as well
 #pragma warning disable 618
-            var oldValueGeneratedOnAdd = annotatable[NpgsqlFullAnnotationNames.Instance.ValueGeneratedOnAdd] as bool?;
-#pragma warning restore 618
-
-            return (valueGenerationStrategy == NpgsqlValueGenerationStrategy.SerialColumn ||
-                oldValueGeneratedOnAdd == true) && clrType.IsIntegerForSerial();
+        // Version 1.0 had a bad strategy for expressing serial columns, which depended on a
+        // ValueGeneratedOnAdd annotation. Detect that and throw.
+        static void CheckForOldAnnotation([NotNull] IAnnotatable annotatable)
+        {
+            if (annotatable.FindAnnotation(NpgsqlFullAnnotationNames.Instance.ValueGeneratedOnAdd) != null)
+                throw new NotSupportedException("The Npgsql:ValueGeneratedOnAdd annotation has been found in your migrations, but is no longer supported. Please replace it with '.Annotation(\"Npgsql:ValueGenerationStrategy\", NpgsqlValueGenerationStrategy.SerialColumn)' where you want PostgreSQL serial (autoincrement) columns, and remove it in all other cases.");
         }
+#pragma warning restore 618
 
         /// <summary>
         /// Renames a database object such as an index or a sequence.
