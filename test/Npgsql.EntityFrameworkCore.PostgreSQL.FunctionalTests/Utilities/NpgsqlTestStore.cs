@@ -27,13 +27,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities
 #endif
 
         public static NpgsqlTestStore GetOrCreateShared(string name, Action initializeDatabase, bool cleanDatabase = true)
-            => new NpgsqlTestStore(name, cleanDatabase: cleanDatabase).CreateShared(initializeDatabase);
+            => new NpgsqlTestStore(name, cleanDatabase).CreateShared(initializeDatabase);
 
         public static NpgsqlTestStore Create(string name)
             => new NpgsqlTestStore(name).CreateTransient(true, false);
 
-        public static NpgsqlTestStore CreateScratch(bool createDatabase = true, bool useFileName = false)
-            => new NpgsqlTestStore(GetScratchDbName(), useFileName).CreateTransient(createDatabase, true);
+        public static NpgsqlTestStore CreateScratch(bool createDatabase = true)
+            => new NpgsqlTestStore(GetScratchDbName()).CreateTransient(createDatabase, true);
 
         string _connectionString;
         NpgsqlConnection _connection;
