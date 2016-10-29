@@ -481,6 +481,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 
             protected override void OnModelCreating(ModelBuilder modelBuilder)
             {
+                modelBuilder.HasPostgresExtension("uuid-ossp");
                 modelBuilder
                     .Entity<GuidBlog>()
                     .Property(e => e.Id)
