@@ -20,7 +20,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities
     {
         public const int CommandTimeout = 90;
 
-#if NETCOREAPP1_0
+#if NETCOREAPP1_1
         static string BaseDirectory => AppContext.BaseDirectory;
 #else
         static string BaseDirectory => AppDomain.CurrentDomain.BaseDirectory;
