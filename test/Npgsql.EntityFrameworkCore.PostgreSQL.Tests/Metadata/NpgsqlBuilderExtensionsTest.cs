@@ -536,7 +536,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Metadata
         }
 
         [Fact]
-        public void Can_set_index_clustering()
+        public void Can_set_index_method()
         {
             var modelBuilder = CreateConventionModelBuilder();
 
