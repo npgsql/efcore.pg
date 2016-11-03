@@ -84,45 +84,31 @@ namespace Microsoft.EntityFrameworkCore.Query.Sql.Internal
             }
         }
 
-        public override Expression VisitCount(CountExpression countExpression)
+        public override Expression VisitSqlFunction(SqlFunctionExpression sqlFunctionExpression)
         {
-            Check.NotNull(countExpression, nameof(countExpression));
+            var expr = base.VisitSqlFunction(sqlFunctionExpression);
 
             // Note that PostgreSQL COUNT(*) is BIGINT (64-bit). For 32-bit Count() expressions we cast.
-            if (countExpression.Type == typeof(long))
+            if (sqlFunctionExpression.FunctionName == "COUNT"
+                && sqlFunctionExpression.Type == typeof(int))
             {
-                Sql.Append("COUNT(*)");
+                Sql.Append("::INT4");
+                return expr;
             }
-            else if (countExpression.Type == typeof(int))
-            {
-                Sql.Append("COUNT(*)::INT4");
-            }
-            else throw new NotSupportedException($"Count expression with type {countExpression.Type} not supported");
-
-            return countExpression;
-        }
-
-        public override Expression VisitSum(SumExpression sumExpression)
-        {
-            base.VisitSum(sumExpression);
 
             // In PostgreSQL SUM() doesn't return the same type as its argument for smallint, int and bigint.
             // Cast to get the same type.
             // http://www.postgresql.org/docs/current/static/functions-aggregate.html
-            if (sumExpression.Type == typeof(short))
+            if (sqlFunctionExpression.FunctionName == "SUM")
             {
-                Sql.Append("::INT2");
-            }
-            else if (sumExpression.Type == typeof (int))
-            {
-                Sql.Append("::INT4");
-            }
-            else if (sumExpression.Type == typeof(long))
-            {
-                Sql.Append("::INT8");
+                if (sqlFunctionExpression.Type == typeof(int))
+                    Sql.Append("::INT4");
+                else if (sqlFunctionExpression.Type == typeof(short))
+                    Sql.Append("::INT2");
+                return expr;
             }
 
-            return sumExpression;
+            return expr;
         }
 
         protected override Expression VisitBinary(BinaryExpression binaryExpression)
