@@ -132,7 +132,6 @@
     <Compile Include="Query\Sql\Internal\NpgsqlQuerySqlGeneratorFactory.cs" />
     <Compile Include="Update\Internal\NpgsqlModificationCommandBatch.cs" />
     <Compile Include="Update\Internal\NpgsqlModificationCommandBatchFactory.cs" />
-    <Compile Include="Utilities\AsyncEnumerableExtensions.cs" />
     <Compile Include="Utilities\EnumerableExtensions.cs" />
     <Compile Include="Utilities\SharedTypeExtensions.cs" />
     <Compile Include="Utilities\StringBuilderExtensions.cs" />
