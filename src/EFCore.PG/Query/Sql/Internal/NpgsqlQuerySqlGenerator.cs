@@ -23,6 +23,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -103,23 +104,79 @@ namespace Microsoft.EntityFrameworkCore.Query.Sql.Internal
             return expr;
         }
 
-        protected override Expression VisitBinary(BinaryExpression binaryExpression)
+        protected override Expression VisitBinary(BinaryExpression expression)
         {
-            // PostgreSQL 9.4 and below has some weird operator precedence fixed in 9.5 and described here:
-            // http://git.postgresql.org/gitweb/?p=postgresql.git&a=commitdiff&h=c6b3c939b7e0f1d35f4ed4996e71420a993810d2
-            // As a result we must surround string concatenation with parentheses
-            if (binaryExpression.NodeType == ExpressionType.Add &&
-                binaryExpression.Left.Type == typeof(string) &&
-                binaryExpression.Right.Type == typeof(string))
+            switch (expression.NodeType)
             {
-                Sql.Append("(");
-                var exp = base.VisitBinary(binaryExpression);
-                Sql.Append(")");
-                return exp;
+            case ExpressionType.Add:
+            {
+                // PostgreSQL 9.4 and below has some weird operator precedence fixed in 9.5 and described here:
+                // http://git.postgresql.org/gitweb/?p=postgresql.git&a=commitdiff&h=c6b3c939b7e0f1d35f4ed4996e71420a993810d2
+                // As a result we must surround string concatenation with parentheses
+                if (expression.Left.Type == typeof(string) &&
+                    expression.Right.Type == typeof(string))
+                {
+                    Sql.Append("(");
+                    var exp = base.VisitBinary(expression);
+                    Sql.Append(")");
+                    return exp;
+                }
+                break;
             }
 
-            return base.VisitBinary(binaryExpression);
+            case ExpressionType.ArrayIndex:
+                return VisitArrayIndex(expression);
+            }
+
+            return base.VisitBinary(expression);
         }
+
+        protected override Expression VisitUnary(UnaryExpression expression)
+        {
+            if (expression.NodeType == ExpressionType.ArrayLength)
+            {
+                VisitSqlFunction(new SqlFunctionExpression("array_length", typeof(int), new[] { expression.Operand, Expression.Constant(1) }));
+                return expression;
+            }
+
+            return base.VisitUnary(expression);
+        }
+
+        public Expression VisitArrayIndex([NotNull] BinaryExpression expression)
+        {
+            Debug.Assert(expression.NodeType == ExpressionType.ArrayIndex);
+
+            if (expression.Left.Type == typeof(byte[]))
+            {
+                // bytea cannot be subscripted, but there's get_byte
+                return VisitSqlFunction(new SqlFunctionExpression("get_byte", typeof(byte),
+                    new[] { expression.Left, expression.Right }));
+            }
+
+            if (expression.Left.Type == typeof(string))
+            {
+                // text cannot be subscripted, use substr
+                // PostgreSQL substr() is 1-based.
+
+                return VisitSqlFunction(new SqlFunctionExpression("substr", typeof(char),
+                    new[] { expression.Left, expression.Right, Expression.Constant(1) }));
+            }
+
+            // Regular array from here
+            Visit(expression.Left);
+            Sql.Append('[');
+            Visit(GenerateOneBasedIndexExpression(expression.Right));
+            Sql.Append(']');
+
+            return expression;
+        }
+
+        // PostgreSQL array indexing is 1-based. If the index happens to be a constant,
+        // just increment it. Otherwise, append a +1 in the SQL.
+        Expression GenerateOneBasedIndexExpression(Expression expression)
+            => expression is ConstantExpression constantExpression
+                ? Expression.Constant(Convert.ToInt32(constantExpression.Value) + 1)
+                : (Expression)Expression.Add(expression, Expression.Constant(1));
 
         // See http://www.postgresql.org/docs/current/static/functions-matching.html
         public Expression VisitRegexMatch([NotNull] RegexMatchExpression regexMatchExpression)

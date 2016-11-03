@@ -28,8 +28,9 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal
 {
     public class NpgsqlCompositeMethodCallTranslator : RelationalCompositeMethodCallTranslator
     {
-        private static readonly IMethodCallTranslator[] _methodCallTranslators =
+        static readonly IMethodCallTranslator[] _methodCallTranslators =
         {
+            new NpgsqlArraySequenceEqualTranslator(),
             new NpgsqlConvertTranslator(),
             new NpgsqlStringSubstringTranslator(),
             new NpgsqlLikeTranslator(),
@@ -46,7 +47,7 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal
             new NpgsqlStringTrimTranslator(),
             new NpgsqlStringTrimEndTranslator(),
             new NpgsqlStringTrimStartTranslator(),
-            new NpgsqlRegexIsMatchTranslator(),
+            new NpgsqlRegexIsMatchTranslator()
         };
 
         public NpgsqlCompositeMethodCallTranslator(
