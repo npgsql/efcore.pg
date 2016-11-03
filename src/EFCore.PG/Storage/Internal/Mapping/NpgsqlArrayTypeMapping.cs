@@ -26,6 +26,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
+using System.Text;
 using JetBrains.Annotations;
 using Npgsql;
 using NpgsqlTypes;
@@ -49,6 +50,23 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
             => new NpgsqlTypeMapping(storeType, ClrType, NpgsqlDbType);
 
         protected override string GenerateNonNullSqlLiteral(object value)
-            => throw new NotSupportedException("Can't generate array literals (yet)");
+        {
+            // Only support one-dimensional arrays (at least for now)
+            var arr = (Array)value;
+
+            if (arr.Rank != 1)
+                throw new NotSupportedException("Multidimensional array literals aren't supported yet");
+
+            var sb = new StringBuilder();
+            sb.Append("ARRAY[");
+            for (var i = 0; i < arr.Length; i++)
+            {
+                sb.Append(ElementMapping.GenerateSqlLiteral(arr.GetValue(i)));
+                if (i < arr.Length - 1)
+                    sb.Append(",");
+            }
+            sb.Append("]");
+            return sb.ToString();
+        }
     }
 }

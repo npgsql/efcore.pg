@@ -51,10 +51,8 @@ namespace Microsoft.EntityFrameworkCore.Query.Expressions.Internal
         {
             Check.NotNull(visitor, nameof(visitor));
 
-            var specificVisitor = visitor as NpgsqlQuerySqlGenerator;
-
-            return specificVisitor != null
-                ? specificVisitor.VisitAtTimeZone(this)
+            return visitor is NpgsqlQuerySqlGenerator npgsqlGenerator
+                ? npgsqlGenerator.VisitAtTimeZone(this)
                 : base.Accept(visitor);
         }
 
