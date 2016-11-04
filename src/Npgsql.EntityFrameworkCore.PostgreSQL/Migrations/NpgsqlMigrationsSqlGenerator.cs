@@ -204,7 +204,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                         Name = sequenceName,
                         ClrType = typeof(long)
                     }, model, builder, false);
-                    defaultValueSql = $@"nextval({SqlGenerationHelper.DelimitIdentifier(sequenceName)})";
+                    defaultValueSql = $@"nextval('{SqlGenerationHelper.DelimitIdentifier(sequenceName)}')";
                     // Note: we also need to set the sequence ownership, this is done below
                     // after the ALTER COLUMN
                     break;
