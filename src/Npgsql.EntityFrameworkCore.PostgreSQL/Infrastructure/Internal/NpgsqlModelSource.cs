@@ -33,8 +33,9 @@ namespace Microsoft.EntityFrameworkCore.Infrastructure.Internal
             [NotNull] IDbSetFinder setFinder,
             [NotNull] ICoreConventionSetBuilder coreConventionSetBuilder,
             [NotNull] IModelCustomizer modelCustomizer,
-            [NotNull] IModelCacheKeyFactory modelCacheKeyFactory)
-            : base(setFinder, coreConventionSetBuilder, modelCustomizer, modelCacheKeyFactory)
+            [NotNull] IModelCacheKeyFactory modelCacheKeyFactory,
+            [NotNull] CoreModelValidator coreModelValidator)
+            : base(setFinder, coreConventionSetBuilder, modelCustomizer, modelCacheKeyFactory, coreModelValidator)
         {
         }
     }

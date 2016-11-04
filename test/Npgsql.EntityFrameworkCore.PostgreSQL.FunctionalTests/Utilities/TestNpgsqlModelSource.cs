@@ -20,10 +20,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities
         public TestNpgsqlModelSource(
             Action<ModelBuilder> onModelCreating,
             IDbSetFinder setFinder,
-            ICoreConventionSetBuilder coreConventionSetBuilder)
-            : base(setFinder, coreConventionSetBuilder, new ModelCustomizer(), new ModelCacheKeyFactory())
+            ICoreConventionSetBuilder coreConventionSetBuilder,
+            CoreModelValidator coreModelValidator)
+            : base(setFinder, coreConventionSetBuilder, new ModelCustomizer(), new ModelCacheKeyFactory(), coreModelValidator)
         {
-            _testModelSource = new TestModelSource(onModelCreating, setFinder, coreConventionSetBuilder, new ModelCustomizer(), new ModelCacheKeyFactory());
+            _testModelSource = new TestModelSource(onModelCreating, setFinder, coreConventionSetBuilder, new ModelCustomizer(), new ModelCacheKeyFactory(), coreModelValidator);
         }
 
         public override IModel GetModel(DbContext context, IConventionSetBuilder conventionSetBuilder, IModelValidator validator)
@@ -33,6 +34,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities
             => p => new TestNpgsqlModelSource(
                 onModelCreating,
                 p.GetRequiredService<IDbSetFinder>(),
-                p.GetRequiredService<ICoreConventionSetBuilder>());
+                p.GetRequiredService<ICoreConventionSetBuilder>(),
+                p.GetRequiredService<CoreModelValidator>());
     }
 }

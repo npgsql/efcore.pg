@@ -32,28 +32,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 .BuildServiceProvider();
         }
 
-        public override ModelValidator ThrowingValidator
-            => new ThrowingModelValidator(
-                _serviceProvider.GetService<ILogger<RelationalModelValidator>>(),
-                new NpgsqlAnnotationProvider(),
-                new NpgsqlTypeMapper());
-
-        private class ThrowingModelValidator : RelationalModelValidator
-        {
-            public ThrowingModelValidator(
-                ILogger<RelationalModelValidator> loggerFactory,
-                IRelationalAnnotationProvider relationalExtensions,
-                IRelationalTypeMapper typeMapper)
-                : base(loggerFactory, relationalExtensions, typeMapper)
-            {
-            }
-
-            protected override void ShowWarning(string message)
-            {
-                throw new InvalidOperationException(message);
-            }
-        }
-
         public override NpgsqlTestStore CreateTestStore()
         {
             return NpgsqlTestStore.GetOrCreateShared(DatabaseName, () =>
