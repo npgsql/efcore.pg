@@ -1,11 +1,11 @@
 {
   "dependencies": {
     "dotnet-test-xunit": "2.2.0-*",
-    "Microsoft.Extensions.Logging": "1.1.0-*",
-    "Microsoft.EntityFrameworkCore": "1.1.0-*",
-    "Microsoft.EntityFrameworkCore.Relational": "1.1.0-*",
-    "Microsoft.EntityFrameworkCore.Relational.Specification.Tests": "1.1.0-*",
-    "Npgsql.EntityFrameworkCore.PostgreSQL": "1.1.0-*",
+    "Microsoft.Extensions.Logging": "1.2.0-*",
+    "Microsoft.EntityFrameworkCore": "1.2.0-*",
+    "Microsoft.EntityFrameworkCore.Relational": "1.2.0-*",
+    "Microsoft.EntityFrameworkCore.Relational.Specification.Tests": "1.2.0-*",
+    "Npgsql.EntityFrameworkCore.PostgreSQL": "1.2.0-*",
     "Npgsql": "3.1.5"
   },
   "testRunner": "xunit",
