@@ -18,25 +18,25 @@ Following is an example project.json using Npgsql EF Core:
     "emitEntryPoint": true
   },
   "dependencies": {
-    "Npgsql.EntityFrameworkCore.PostgreSQL": "1.0.2",
+    "Npgsql.EntityFrameworkCore.PostgreSQL": "1.1.0",
     "Microsoft.EntityFrameworkCore.Design": {
-      "version": "1.0.0-preview2-final",
+      "version": "1.1.0",
       "type": "build"
     }
   },
   "frameworks": {
-    "netcoreapp1.0": {
+    "netcoreapp1.1": {
       "dependencies": {
         "Microsoft.NETCore.App": {
           "type": "platform",
-          "version": "1.0.1"
+          "version": "1.1.0"
         }
       },
       "imports": "dnxcore50"
     }
   },
   "tools": {
-    "Microsoft.EntityFrameworkCore.Tools": "1.0.0-preview2-final"
+    "Microsoft.EntityFrameworkCore.Tools": "1.1.0-preview4-final"
   }
 }
 ```
@@ -46,7 +46,7 @@ Following is an example project.json using Npgsql EF Core:
 The Npgsql EF Core provider also supports reverse-engineering a code model from an existing PostgreSQL database ("database-first"). To do so, add a dependency on Npgsql.EntityFrameworkCore.PostgreSQL.Design. Then, execute the following if you're using dotnet cli:
 
 ```bash
-Scaffold-DbContext "Host=localhost;Database=mydatabase;Username=myuser;Password=mypassword" Npgsql.EntityFrameworkCore.PostgreSQL
+dotnet ef dbcontext scaffold "Host=localhost;Database=mydatabase;Username=myuser;Password=mypassword" Npgsql.EntityFrameworkCore.PostgreSQL
 ```
 
 Or with Powershell:
