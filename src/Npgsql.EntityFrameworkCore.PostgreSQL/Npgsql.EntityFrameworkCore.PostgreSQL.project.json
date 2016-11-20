@@ -1,10 +1,10 @@
 ﻿{
   "dependencies" : {
-    "Microsoft.EntityFrameworkCore": "1.1.0-*",
-    "Microsoft.EntityFrameworkCore.Relational": "1.1.0-*",
-    "Microsoft.Extensions.DependencyInjection.Abstractions": "1.1.0-*",
-    "Microsoft.Extensions.DependencyInjection": "1.1.0-*",
-    "Npgsql": "3.1.5"
+    "Microsoft.EntityFrameworkCore": "1.1.0",
+    "Microsoft.EntityFrameworkCore.Relational": "1.1.0",
+    "Microsoft.Extensions.DependencyInjection.Abstractions": "1.1.0",
+    "Microsoft.Extensions.DependencyInjection": "1.1.0",
+    "Npgsql": "3.1.9"
   },
   "frameworks": {
     "net451": {}
