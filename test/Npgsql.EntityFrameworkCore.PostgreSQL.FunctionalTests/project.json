@@ -5,14 +5,15 @@
     }
   },
   "dependencies": {
-    "dotnet-test-xunit": "1.0.0-rc3-000000-01",
-    "Microsoft.EntityFrameworkCore": "1.0.1",
-    "Microsoft.EntityFrameworkCore.Relational": "1.0.1",
-    "Microsoft.EntityFrameworkCore.Relational.Specification.Tests": "1.0.1",
-    "Microsoft.Extensions.Configuration.Json": "1.0.0",
-    "Microsoft.Extensions.Configuration.EnvironmentVariables": "1.0.0",
-    "Npgsql.EntityFrameworkCore.PostgreSQL": "1.0.2-*",
-    "Npgsql": "3.1.8"
+    "dotnet-test-xunit": "2.2.0-*",
+    "Microsoft.EntityFrameworkCore": "1.1.0",
+    "Microsoft.EntityFrameworkCore.Relational": "1.1.0",
+    "Microsoft.EntityFrameworkCore.Relational.Specification.Tests": "1.1.0",
+    "Microsoft.Extensions.Configuration.Json": "1.1.0",
+    "Microsoft.Extensions.Configuration.EnvironmentVariables": "1.1.0",
+    "Npgsql.EntityFrameworkCore.PostgreSQL": "1.1.0",
+    "Npgsql.EntityFrameworkCore.PostgreSQL.Design": "1.1.0",
+    "Npgsql": "3.1.9"
   },
   "publishOptions": {
     "include": "**/*.sql",
@@ -24,14 +25,10 @@
   },
   "testRunner": "xunit",
   "frameworks": {
-    "netcoreapp1.0": {
-      "imports": [
-        "dnxcore50",
-        "portable-net45+win8"
-      ],
+    "netcoreapp1.1": {
       "dependencies": {
         "Microsoft.NETCore.App": {
-          "version": "1.0.1",
+          "version": "1.1.0",
           "type": "platform"
         }
       }

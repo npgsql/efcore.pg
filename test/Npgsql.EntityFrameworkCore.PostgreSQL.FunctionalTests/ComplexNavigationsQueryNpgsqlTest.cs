@@ -17,5 +17,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             : base(fixture)
         {
         }
+
+        [Fact(Skip="PostgreSQL sorts nulls first (#50)")]
+        public override void OrderBy_nav_prop_reference_optional() {}
     }
 }

@@ -79,8 +79,12 @@
     <Compile Include="MonsterFixupNpgsqlTest.cs.cs" />
     <Compile Include="NavigationTest.cs" />
     <Compile Include="NorthwindQueryNpgsqlFixture.cs" />
+    <Compile Include="NpgsqlDatabaseCleaner.cs" />
+    <Compile Include="NpgsqlDatabaseCreatorTest.cs" />
+    <Compile Include="NpgsqlDatabaseFacadeExtensions.cs" />
     <Compile Include="NpgsqlFixture.cs" />
     <Compile Include="NpgsqlValueGenerationScenariosTest.cs" />
+    <Compile Include="SystemColumnTest.cs" />
     <Compile Include="TempInheritanceRelationalFixture.cs" />
     <Compile Include="Utilities\NpgsqlTestStore.cs" />
     <Compile Include="NullKeysNpgsqlTest.cs" />
@@ -91,7 +95,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PropertyEntryNpgsqlTest.cs" />
     <Compile Include="QueryBugsTest.cs" />
-    <Compile Include="QueryLoggingNpgsqlTest.cs" />
     <Compile Include="QueryNavigationsNpgsqlTest.cs" />
     <Compile Include="QueryNoClientEvalNpgsqlFixture.cs" />
     <Compile Include="QueryNoClientEvalNpgsqlTest.cs" />
@@ -109,6 +112,10 @@
     <None Include="app.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\Npgsql.EntityFrameworkCore.PostgreSQL.Design\Npgsql.EntityFrameworkCore.PostgreSQL.Design.csproj">
+      <Project>{8edced17-2d1d-45be-9b61-0f715876da94}</Project>
+      <Name>Npgsql.EntityFrameworkCore.PostgreSQL.Design</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\src\Npgsql.EntityFrameworkCore.PostgreSQL\Npgsql.EntityFrameworkCore.PostgreSQL.csproj">
       <Project>{FADDA2D1-03B4-4DEF-8D24-DD1CA4E81F4A}</Project>
       <Name>Npgsql.EntityFrameworkCore.PostgreSQL</Name>

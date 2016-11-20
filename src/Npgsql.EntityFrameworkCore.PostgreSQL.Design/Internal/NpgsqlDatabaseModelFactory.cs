@@ -23,19 +23,23 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.Common;
 using System.Diagnostics;
 using System.Linq;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Scaffolding.Internal;
 using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
 using Microsoft.EntityFrameworkCore.Utilities;
 using Microsoft.Extensions.Logging;
 using Npgsql;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Design.Metadata;
 
-namespace Microsoft.EntityFrameworkCore.Scaffolding
+namespace Microsoft.EntityFrameworkCore.Scaffolding.Internal
 {
-    public class NpgsqlDatabaseModelFactory : IDatabaseModelFactory
+    public class NpgsqlDatabaseModelFactory : IInternalDatabaseModelFactory
     {
         NpgsqlConnection _connection;
         TableSelectionSet _tableSelectionSet;
@@ -70,11 +74,26 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding
             Check.NotEmpty(connectionString, nameof(connectionString));
             Check.NotNull(tableSelectionSet, nameof(tableSelectionSet));
 
+            using (var connection = new NpgsqlConnection(connectionString))
+            {
+                return Create(connection, tableSelectionSet);
+            }
+        }
+
+        public DatabaseModel Create(DbConnection connection, TableSelectionSet tableSelectionSet)
+        {
             ResetState();
 
-            using (_connection = new NpgsqlConnection(connectionString))
+            _connection = (NpgsqlConnection)connection;
+
+            var connectionStartedOpen = _connection.State == ConnectionState.Open;
+            if (!connectionStartedOpen)
             {
                 _connection.Open();
+            }
+
+            try
+            {
                 _tableSelectionSet = tableSelectionSet;
 
                 _databaseModel.DatabaseName = _connection.Database;
@@ -87,16 +106,23 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding
                 GetSequences();
                 return _databaseModel;
             }
+            finally
+            {
+                if (!connectionStartedOpen)
+                {
+                    _connection.Close();
+                }
+            }
         }
 
         const string GetTablesQuery = @"
-            SELECT nspname, relname
-            FROM pg_class AS cl
-            JOIN pg_namespace AS ns ON ns.oid = cl.relnamespace
-            WHERE
-              cl.relkind = 'r' AND
-              ns.nspname NOT IN ('pg_catalog', 'information_schema') AND
-              relname <> '" + HistoryRepository.DefaultTableName + "'";
+SELECT nspname, relname
+FROM pg_class AS cl
+JOIN pg_namespace AS ns ON ns.oid = cl.relnamespace
+WHERE
+    cl.relkind = 'r' AND
+    ns.nspname NOT IN ('pg_catalog', 'information_schema') AND
+    relname <> '" + HistoryRepository.DefaultTableName + "'";
 
         void GetTables()
         {
@@ -121,23 +147,30 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding
         }
 
         const string GetColumnsQuery = @"
-            SELECT
-                nspname, relname, attname, typname, attnum, atttypmod,
-                (NOT attnotnull) AS nullable,
-                CASE WHEN atthasdef THEN (SELECT pg_get_expr(adbin, cls.oid) FROM pg_attrdef WHERE adrelid = cls.oid AND adnum = attr.attnum) ELSE NULL END AS default
-            FROM pg_class AS cls
-            JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
-            LEFT OUTER JOIN pg_attribute AS attr ON attrelid = cls.oid
-            LEFT OUTER JOIN pg_type AS typ ON attr.atttypid = typ.oid
-            WHERE
-              atttypid <> 0 AND
-              relkind = 'r' AND
-              nspname NOT IN ('pg_catalog', 'information_schema') AND
-              relname <> '" + HistoryRepository.DefaultTableName + @"' AND
-              attnum > 0
-            ORDER BY attnum";
+SELECT
+    nspname, relname, attname, typ.typname, attnum, atttypmod,
+    CASE WHEN pg_proc.proname='array_recv' THEN 'a' ELSE typ.typtype END AS typtype,
+    CASE
+      WHEN pg_proc.proname='array_recv' THEN elemtyp.typname
+      ELSE NULL
+    END AS elemtypname,
+    (NOT attnotnull) AS nullable,
+    CASE WHEN atthasdef THEN (SELECT pg_get_expr(adbin, cls.oid) FROM pg_attrdef WHERE adrelid = cls.oid AND adnum = attr.attnum) ELSE NULL END AS default
+FROM pg_class AS cls
+JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
+LEFT OUTER JOIN pg_attribute AS attr ON attrelid = cls.oid
+LEFT OUTER JOIN pg_type AS typ ON attr.atttypid = typ.oid
+LEFT OUTER JOIN pg_proc ON pg_proc.oid = typ.typreceive
+LEFT OUTER JOIN pg_type AS elemtyp ON (elemtyp.oid = typ.typelem)
+WHERE
+    atttypid <> 0 AND
+    relkind = 'r' AND
+    nspname NOT IN ('pg_catalog', 'information_schema') AND
+    relname <> '" + HistoryRepository.DefaultTableName + @"' AND
+    attnum > 0
+ORDER BY attnum";
 
-        private void GetColumns()
+        void GetColumns()
         {
             using (var command = new NpgsqlCommand(GetColumnsQuery, _connection))
             using (var reader = command.ExecuteReader())
@@ -155,11 +188,13 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding
                     var dataType = reader.GetString(3);
                     var ordinal = reader.GetInt32(4) - 1;
                     var typeModifier = reader.GetInt32(5);
-                    var isNullable = reader.GetBoolean(6);
+                    var typeChar = reader.GetChar(6);
+                    var elemDataType = reader.IsDBNull(7) ? null : reader.GetString(7);
+                    var isNullable = reader.GetBoolean(8);
                     int? maxLength = null;
                     int? precision = null;
                     int? scale = null;
-                    var defaultValue = reader.IsDBNull(7) ? null : reader.GetString(7);
+                    var defaultValue = reader.IsDBNull(9) ? null : reader.GetString(9);
 
                     if (typeModifier != -1)
                     {
@@ -210,6 +245,26 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding
                         }
                     }
 
+                    switch (typeChar)
+                    {
+                    case 'b':
+                        // Base (regular), is the default
+                        break;
+                    case 'a':
+                        column.Npgsql().PostgresTypeType = PostgresTypeType.Array;
+                        column.Npgsql().ElementDataType = elemDataType;
+                        break;
+                    case 'r':
+                        column.Npgsql().PostgresTypeType = PostgresTypeType.Range;
+                        break;
+                    case 'e':
+                        column.Npgsql().PostgresTypeType = PostgresTypeType.Enum;
+                        break;
+                    default:
+                        Logger.LogWarning($"Can't scaffold column '{columnName}' of type '{dataType}': unknown type char '{typeChar}'");
+                        continue;
+                    }
+
                     table.Columns.Add(column);
                     _tableColumns.Add(ColumnKey(table, column.Name), column);
                 }
@@ -217,18 +272,18 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding
         }
 
         const string GetIndexesQuery = @"
-            SELECT
-                nspname, cls.relname, idxcls.relname, indisunique, indkey,
-                CASE WHEN indexprs IS NULL THEN NULL ELSE pg_get_expr(indexprs, cls.oid) END
-            FROM pg_class AS cls
-            JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
-            JOIN pg_index AS idx ON indrelid = cls.oid
-            JOIN pg_class AS idxcls ON idxcls.oid = indexrelid
-            WHERE
-              cls.relkind = 'r' AND
-              nspname NOT IN ('pg_catalog', 'information_schema') AND
-              cls.relname <> '" + HistoryRepository.DefaultTableName + @"' AND
-              NOT indisprimary";
+SELECT
+    nspname, cls.relname, idxcls.relname, indisunique, indkey,
+    CASE WHEN indexprs IS NULL THEN NULL ELSE pg_get_expr(indexprs, cls.oid) END
+FROM pg_class AS cls
+JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
+JOIN pg_index AS idx ON indrelid = cls.oid
+JOIN pg_class AS idxcls ON idxcls.oid = indexrelid
+WHERE
+    cls.relkind = 'r' AND
+    nspname NOT IN ('pg_catalog', 'information_schema') AND
+    cls.relname <> '" + HistoryRepository.DefaultTableName + @"' AND
+    NOT indisprimary";
 
         /// <remarks>
         /// Primary keys are handled as in <see cref="GetConstraints"/>, not here
@@ -286,18 +341,18 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding
         }
 
         const string GetConstraintsQuery = @"
-            SELECT
-                ns.nspname, cls.relname, conname, contype, conkey, frnns.nspname, frncls.relname, confkey, confdeltype
-            FROM pg_class AS cls
-            JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
-            JOIN pg_constraint as con ON con.conrelid = cls.oid
-            LEFT OUTER JOIN pg_class AS frncls ON frncls.oid = con.confrelid
-            LEFT OUTER JOIN pg_namespace as frnns ON frnns.oid = frncls.relnamespace
-            WHERE
-                cls.relkind = 'r' AND
-                ns.nspname NOT IN ('pg_catalog', 'information_schema') AND
-                cls.relname <> '" + HistoryRepository.DefaultTableName + @"' AND
-                con.contype IN ('p', 'f')";
+SELECT
+    ns.nspname, cls.relname, conname, contype, conkey, frnns.nspname, frncls.relname, confkey, confdeltype
+FROM pg_class AS cls
+JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
+JOIN pg_constraint as con ON con.conrelid = cls.oid
+LEFT OUTER JOIN pg_class AS frncls ON frncls.oid = con.confrelid
+LEFT OUTER JOIN pg_namespace as frnns ON frnns.oid = frncls.relnamespace
+WHERE
+    cls.relkind = 'r' AND
+    ns.nspname NOT IN ('pg_catalog', 'information_schema') AND
+    cls.relname <> '" + HistoryRepository.DefaultTableName + @"' AND
+    con.contype IN ('p', 'f')";
 
         void GetConstraints()
         {
@@ -382,19 +437,19 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding
         }
 
         const string GetSequencesQuery = @"
-            SELECT
-                sequence_schema, sequence_name, data_type, start_value::bigint, minimum_value::bigint, maximum_value::bigint, increment::int,
-                CASE WHEN cycle_option = 'YES' THEN TRUE ELSE FALSE END,
-                ownerns.nspname AS owner_schema,
-                tblcls.relname AS owner_table,
-                attname AS owner_column
-            FROM information_schema.sequences
-            JOIN pg_namespace AS seqns ON seqns.nspname = sequence_schema
-            JOIN pg_class AS seqcls ON seqcls.relnamespace = seqns.oid AND seqcls.relname = sequence_name AND seqcls.relkind = 'S'
-            LEFT OUTER JOIN pg_depend AS dep ON dep.objid = seqcls.oid AND deptype='a'
-            LEFT OUTER JOIN pg_class AS tblcls ON tblcls.oid = dep.refobjid
-            LEFT OUTER JOIN pg_attribute AS att ON attrelid = dep.refobjid AND attnum = dep.refobjsubid
-            LEFT OUTER JOIN pg_namespace AS ownerns ON ownerns.oid = tblcls.relnamespace";
+SELECT
+    sequence_schema, sequence_name, data_type, start_value::bigint, minimum_value::bigint, maximum_value::bigint, increment::int,
+    CASE WHEN cycle_option = 'YES' THEN TRUE ELSE FALSE END,
+    ownerns.nspname AS owner_schema,
+    tblcls.relname AS owner_table,
+    attname AS owner_column
+FROM information_schema.sequences
+JOIN pg_namespace AS seqns ON seqns.nspname = sequence_schema
+JOIN pg_class AS seqcls ON seqcls.relnamespace = seqns.oid AND seqcls.relname = sequence_name AND seqcls.relkind = 'S'
+LEFT OUTER JOIN pg_depend AS dep ON dep.objid = seqcls.oid AND deptype='a'
+LEFT OUTER JOIN pg_class AS tblcls ON tblcls.oid = dep.refobjid
+LEFT OUTER JOIN pg_attribute AS att ON attrelid = dep.refobjid AND attnum = dep.refobjsubid
+LEFT OUTER JOIN pg_namespace AS ownerns ON ownerns.oid = tblcls.relnamespace";
 
         void GetSequences()
         {

@@ -16,9 +16,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
     {
         public static readonly string DatabaseName = "OptimisticConcurrencyTest";
 
-        private readonly IServiceProvider _serviceProvider;
+        readonly IServiceProvider _serviceProvider;
 
-        private readonly string _connectionString = NpgsqlTestStore.CreateConnectionString(DatabaseName);
+        readonly string _connectionString = NpgsqlTestStore.CreateConnectionString(DatabaseName);
 
         public F1NpgsqlFixture()
         {
@@ -39,12 +39,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 
                 using (var context = new F1Context(optionsBuilder.Options))
                 {
-                    // TODO: Delete DB if model changed
-                    context.Database.EnsureDeleted();
-                    if (context.Database.EnsureCreated())
-                    {
-                        ConcurrencyModelInitializer.Seed(context);
-                    }
+                    context.Database.EnsureCreated();
+                    ConcurrencyModelInitializer.Seed(context);
 
                     TestSqlLoggerFactory.Reset();
                 }
@@ -54,12 +50,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         public override F1Context CreateContext(NpgsqlTestStore testStore)
         {
             var optionsBuilder = new DbContextOptionsBuilder()
-                .UseNpgsql(testStore.Connection)
+                .UseNpgsql(testStore.Connection, b => b.ApplyConfiguration())
                 .UseInternalServiceProvider(_serviceProvider);
 
             var context = new F1Context(optionsBuilder.Options);
             context.Database.UseTransaction(testStore.Transaction);
             return context;
+        }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Chassis>().ForNpgsqlUseXminAsConcurrencyToken();
+            modelBuilder.Entity<Driver>().ForNpgsqlUseXminAsConcurrencyToken();
+            modelBuilder.Entity<Team>().ForNpgsqlUseXminAsConcurrencyToken();
         }
     }
 }

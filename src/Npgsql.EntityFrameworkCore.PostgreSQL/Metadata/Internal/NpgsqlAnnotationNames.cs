@@ -21,18 +21,22 @@
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 #endregion
 
+using System;
+
 namespace Microsoft.EntityFrameworkCore.Metadata.Internal
 {
     public static class NpgsqlAnnotationNames
     {
         public const string Prefix = "Npgsql:";
-        public const string ValueGeneratedOnAdd = "ValueGeneratedOnAdd";
-        public const string DefaultSequenceName = "DefaultSequenceName";
-        public const string DefaultSequenceSchema = "DefaultSequenceSchema";
-        public const string SequenceName = "SequenceName";
-        public const string SequenceSchema = "SequenceSchema";
+        public const string ValueGenerationStrategy = "ValueGenerationStrategy";
+        public const string HiLoSequenceName = "HiLoSequenceName";
+        public const string HiLoSequenceSchema = "HiLoSequenceSchema";
         public const string IndexMethod = "IndexMethod";
         public const string PostgresExtensionPrefix = "PostgresExtension:";
         public const string DatabaseTemplate = "DatabaseTemplate";
+        public const string StorageParameterPrefix = "StorageParameter:";
+
+        [Obsolete("Replaced by ValueGenerationStrategy.SerialColumn")]
+        public const string ValueGeneratedOnAdd = "ValueGeneratedOnAdd";
     }
 }

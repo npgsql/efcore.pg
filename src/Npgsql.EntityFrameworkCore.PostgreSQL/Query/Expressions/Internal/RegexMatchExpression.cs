@@ -54,11 +54,7 @@ namespace Microsoft.EntityFrameworkCore.Query.Expressions.Internal
         {
             Check.NotNull(visitor, nameof(visitor));
 
-            var specificVisitor = visitor as NpgsqlQuerySqlGenerator;
-
-            return specificVisitor != null
-                ? specificVisitor.VisitRegexMatch(this)
-                : base.Accept(visitor);
+            return (visitor as NpgsqlQuerySqlGenerator)?.VisitRegexMatch(this) ?? base.Accept(visitor);
         }
 
         protected override Expression VisitChildren(ExpressionVisitor visitor)

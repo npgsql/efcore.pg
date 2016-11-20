@@ -22,6 +22,7 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using JetBrains.Annotations;
@@ -64,38 +65,130 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                 return;
             }
 
-            var createExtensionOperation = operation as NpgsqlEnsurePostgresExtensionOperation;
-            if (createExtensionOperation != null)
-            {
-                Generate(createExtensionOperation, model, builder);
-                return;
-            }
-
-            var dropExtensionOperation = operation as NpgsqlDropPostgresExtensionOperation;
-            if (dropExtensionOperation != null)
-            {
-                Generate(dropExtensionOperation, model, builder);
-                return;
-            }
-
             base.Generate(operation, model, builder);
         }
 
         #region Standard migrations
 
-        protected override void Generate(AlterColumnOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
+        protected override void Generate(
+            CreateTableOperation operation,
+            IModel model,
+            MigrationCommandListBuilder builder,
+            bool terminate)
+        {
+            // Filter out any system columns
+            if (operation.Columns.Any(c => IsSystemColumn(c.Name)))
+            {
+                var filteredOperation = new CreateTableOperation
+                {
+                    Name = operation.Name,
+                    Schema = operation.Schema,
+                    PrimaryKey = operation.PrimaryKey,
+                };
+                filteredOperation.Columns.AddRange(operation.Columns.Where(c => !_systemColumnNames.Contains(c.Name)));
+                filteredOperation.ForeignKeys.AddRange(operation.ForeignKeys);
+                filteredOperation.UniqueConstraints.AddRange(operation.UniqueConstraints);
+                operation = filteredOperation;
+            }
+
+            base.Generate(operation, model, builder, false);
+
+            var storageParameters = GetStorageParameters(operation);
+            if (storageParameters.Count > 0)
+            {
+                builder
+                    .AppendLine()
+                    .Append("WITH (")
+                    .Append(string.Join(", ", storageParameters.Select(p => $"{p.Key}={p.Value}")))
+                    .Append(')');
+            }
+
+            if (terminate)
+            {
+                builder.AppendLine(SqlGenerationHelper.StatementTerminator);
+                EndStatement(builder);
+            }
+        }
+
+        protected override void Generate(AlterTableOperation operation, IModel model, MigrationCommandListBuilder builder)
+        {
+            var oldStorageParameters = GetStorageParameters(operation.OldTable);
+            var newStorageParameters = GetStorageParameters(operation);
+
+            var newOrChanged = newStorageParameters.Where(p =>
+                    !oldStorageParameters.ContainsKey(p.Key) ||
+                    oldStorageParameters[p.Key] != p.Value
+            ).ToList();
+
+            if (newOrChanged.Count > 0)
+            {
+                builder
+                    .Append("ALTER TABLE ")
+                    .Append(SqlGenerationHelper.DelimitIdentifier(operation.Name, operation.Schema));
+
+                builder
+                    .Append(" SET (")
+                    .Append(string.Join(", ", newOrChanged.Select(p => $"{p.Key}={p.Value}")))
+                    .Append(")");
+
+                builder.AppendLine(SqlGenerationHelper.StatementTerminator);
+                EndStatement(builder);
+            }
+
+            var removed = oldStorageParameters
+                .Select(p => p.Key)
+                .Where(pn => !newStorageParameters.ContainsKey(pn))
+                .ToList();
+
+            if (removed.Count > 0)
+            {
+                builder
+                    .Append("ALTER TABLE ")
+                    .Append(SqlGenerationHelper.DelimitIdentifier(operation.Name, operation.Schema));
+
+                builder
+                    .Append(" RESET (")
+                    .Append(string.Join(", ", removed))
+                    .Append(")");
+
+                builder.AppendLine(SqlGenerationHelper.StatementTerminator);
+                EndStatement(builder);
+            }
+
+
+            base.Generate(operation, model, builder);
+        }
+
+        protected override void Generate(
+            DropColumnOperation operation,
+            IModel model,
+            MigrationCommandListBuilder builder,
+            bool terminate)
+        {
+            // Never touch system columns
+            if (IsSystemColumn(operation.Name))
+                return;
+
+            base.Generate(operation, model, builder, terminate);
+        }
+
+        protected override void Generate(AlterColumnOperation operation, IModel model, MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
-            var type = operation.ColumnType ?? GetColumnType(operation.Schema, operation.Table, operation.Name, operation.ClrType, null, operation.MaxLength, false, model);
+            // Never touch system columns
+            if (IsSystemColumn(operation.Name))
+                return;
 
-            var generatedOnAddAnnotation = operation[NpgsqlAnnotationNames.Prefix + NpgsqlAnnotationNames.ValueGeneratedOnAdd];
-            var generatedOnAdd = generatedOnAddAnnotation != null && (bool)generatedOnAddAnnotation;
+            var type = operation.ColumnType ?? GetColumnType(operation.Schema, operation.Table, operation.Name, operation.ClrType, null, operation.MaxLength, false, model);
 
             string sequenceName = null;
             var defaultValueSql = operation.DefaultValueSql;
-            if (generatedOnAdd && operation.DefaultValue == null && operation.DefaultValueSql == null)
+
+            CheckForOldAnnotation(operation);
+            var valueGenerationStrategy = operation[NpgsqlFullAnnotationNames.Instance.ValueGenerationStrategy] as NpgsqlValueGenerationStrategy?;
+            if (valueGenerationStrategy == NpgsqlValueGenerationStrategy.SerialColumn)
             {
                 switch (type)
                 {
@@ -111,12 +204,9 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                         Name = sequenceName,
                         ClrType = typeof(long)
                     }, model, builder, false);
-                    defaultValueSql = $@"nextval({SqlGenerationHelper.DelimitIdentifier(sequenceName)})";
+                    defaultValueSql = $@"nextval('{SqlGenerationHelper.DelimitIdentifier(sequenceName)}')";
                     // Note: we also need to set the sequence ownership, this is done below
                     // after the ALTER COLUMN
-                    break;
-                case "uuid":
-                    defaultValueSql = "uuid_generate_v4()";
                     break;
                 }
             }
@@ -385,6 +475,39 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             EndStatement(builder, suppressTransaction: true);
         }
 
+        protected override void Generate(
+            AlterDatabaseOperation operation,
+            IModel model,
+            MigrationCommandListBuilder builder)
+        {
+            Check.NotNull(operation, nameof(operation));
+            Check.NotNull(builder, nameof(builder));
+
+            foreach (var extension in PostgresExtension.GetPostgresExtensions(operation))
+            {
+                builder
+                    .Append("CREATE EXTENSION IF NOT EXISTS ")
+                    .Append(SqlGenerationHelper.DelimitIdentifier(extension.Name));
+
+                if (extension.Schema != null)
+                {
+                    builder
+                        .Append(" SCHEMA ")
+                        .Append(SqlGenerationHelper.DelimitIdentifier(extension.Schema));
+                }
+
+                if (extension.Version != null)
+                {
+                    builder
+                        .Append(" VERSION ")
+                        .Append(SqlGenerationHelper.DelimitIdentifier(extension.Version));
+                }
+
+                builder.AppendLine(SqlGenerationHelper.StatementTerminator);
+                EndStatement(builder, suppressTransaction: true);
+            }
+        }
+
         protected override void Generate(DropIndexOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
@@ -419,49 +542,6 @@ namespace Microsoft.EntityFrameworkCore.Migrations
 
         #endregion Standard migrations
 
-        #region PostgreSQL extensions
-
-        public virtual void Generate(NpgsqlEnsurePostgresExtensionOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
-        {
-            Check.NotNull(operation, nameof(operation));
-            Check.NotNull(builder, nameof(builder));
-
-            builder
-                .Append("CREATE EXTENSION IF NOT EXISTS ")
-                .Append(SqlGenerationHelper.DelimitIdentifier(operation.Name));
-
-            if (operation.Schema != null)
-            {
-                builder
-                    .Append(" SCHEMA ")
-                    .Append(SqlGenerationHelper.DelimitIdentifier(operation.Schema));
-            }
-
-            if (operation.Version != null)
-            {
-                builder
-                    .Append(" VERSION ")
-                    .Append(SqlGenerationHelper.DelimitIdentifier(operation.Version));
-            }
-
-            builder.AppendLine(SqlGenerationHelper.StatementTerminator);
-            EndStatement(builder, suppressTransaction: true);
-        }
-
-        public virtual void Generate(NpgsqlDropPostgresExtensionOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
-        {
-            Check.NotNull(operation, nameof(operation));
-            Check.NotNull(builder, nameof(builder));
-
-            builder
-                .Append("DROP EXTENSION ")
-                .Append(SqlGenerationHelper.DelimitIdentifier(operation.Name))
-                .AppendLine(SqlGenerationHelper.StatementTerminator);
-            EndStatement(builder, suppressTransaction: true);
-        }
-
-        #endregion PostgreSQL extensions
-
         #region Utilities
 
         protected override void ColumnDefinition(
@@ -489,12 +569,9 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             if (type == null)
                 type = GetColumnType(schema, table, name, clrType, unicode, maxLength, rowVersion, model);
 
-            var generatedOnAddAnnotation = annotatable[NpgsqlAnnotationNames.Prefix + NpgsqlAnnotationNames.ValueGeneratedOnAdd];
-            var generatedOnAdd = generatedOnAddAnnotation != null && (bool)generatedOnAddAnnotation;
-
-            // int-like properties marked with OnAdd and without default values are
-            // treated as serial column. Similar for UUID.
-            if (generatedOnAdd && defaultValue == null && defaultValueSql == null)
+            CheckForOldAnnotation(annotatable);
+            var valueGenerationStrategy = annotatable[NpgsqlFullAnnotationNames.Instance.ValueGenerationStrategy] as NpgsqlValueGenerationStrategy?;
+            if (valueGenerationStrategy == NpgsqlValueGenerationStrategy.SerialColumn)
             {
                 switch (type)
                 {
@@ -509,9 +586,6 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                 case "smallint":
                 case "int2":
                     type = "smallserial";
-                    break;
-                case "uuid":
-                    defaultValueSql = "uuid_generate_v4()";
                     break;
                 }
             }
@@ -533,6 +607,16 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                 model,
                 builder);
         }
+
+#pragma warning disable 618
+        // Version 1.0 had a bad strategy for expressing serial columns, which depended on a
+        // ValueGeneratedOnAdd annotation. Detect that and throw.
+        static void CheckForOldAnnotation([NotNull] IAnnotatable annotatable)
+        {
+            if (annotatable.FindAnnotation(NpgsqlFullAnnotationNames.Instance.ValueGeneratedOnAdd) != null)
+                throw new NotSupportedException("The Npgsql:ValueGeneratedOnAdd annotation has been found in your migrations, but is no longer supported. Please replace it with '.Annotation(\"Npgsql:ValueGenerationStrategy\", NpgsqlValueGenerationStrategy.SerialColumn)' where you want PostgreSQL serial (autoincrement) columns, and remove it in all other cases.");
+        }
+#pragma warning restore 618
 
         /// <summary>
         /// Renames a database object such as an index or a sequence.
@@ -597,8 +681,43 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             }
         }
 
-        string ColumnList(string[] columns) => string.Join(", ", columns.Select(SqlGenerationHelper.DelimitIdentifier));
-
         #endregion Utilities
+
+        #region System column utilities
+
+        bool IsSystemColumn(string name) => _systemColumnNames.Contains(name);
+
+        /// <summary>
+        /// Tables in PostgreSQL implicitly have a set of system columns, which are always there.
+        /// We want to allow users to access these columns (i.e. xmin for optimistic concurrency) but
+        /// they should never generate migration operations.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/static/ddl-system-columns.html
+        /// </remarks>
+        readonly string[] _systemColumnNames = { "oid", "tableoid", "xmin", "cmin", "xmax", "cmax", "ctid" };
+
+        #endregion System column utilities
+
+        #region Storage parameter utilities
+
+        Dictionary<string, string> GetStorageParameters(Annotatable annotatable)
+            => annotatable.GetAnnotations()
+                .Where(a => a.Name.StartsWith(NpgsqlFullAnnotationNames.Instance.StorageParameterPrefix))
+                .ToDictionary(
+                    a => a.Name.Substring(NpgsqlFullAnnotationNames.Instance.StorageParameterPrefix.Length),
+                    a => GenerateStorageParameterValue(a.Value)
+                );
+
+        static string GenerateStorageParameterValue(object value)
+        {
+            if (value is bool)
+                return (bool)value ? "true" : "false";
+            if (value is string)
+                return $"'{value}'";
+            return value.ToString();
+        }
+
+        #endregion Storage parameter utilities
     }
 }

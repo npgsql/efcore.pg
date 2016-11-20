@@ -29,6 +29,9 @@ namespace Microsoft.EntityFrameworkCore.Metadata
 {
     public interface INpgsqlModelAnnotations : IRelationalModelAnnotations
     {
+        NpgsqlValueGenerationStrategy? ValueGenerationStrategy { get; }
+        string HiLoSequenceName { get; }
+        string HiLoSequenceSchema { get; }
         IReadOnlyList<IPostgresExtension> PostgresExtensions { get; }
         string DatabaseTemplate { get; }
     }

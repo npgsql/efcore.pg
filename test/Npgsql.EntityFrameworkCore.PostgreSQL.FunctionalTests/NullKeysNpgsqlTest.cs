@@ -18,25 +18,31 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         {
         }
 
-        public class NullKeysNpgsqlFixture : NullKeysFixtureBase
+        public class NullKeysNpgsqlFixture : NullKeysFixtureBase, IDisposable
         {
             private readonly DbContextOptions _options;
+            private readonly NpgsqlTestStore _testStore;
 
             public NullKeysNpgsqlFixture()
             {
+                var name = "StringsContext";
+                var connectionString = NpgsqlTestStore.CreateConnectionString(name);
+
                 _options = new DbContextOptionsBuilder()
-                    .UseNpgsql(NpgsqlTestStore.CreateConnectionString("StringsContext"))
+                    .UseNpgsql(connectionString, b => b.ApplyConfiguration())
                     .UseInternalServiceProvider(new ServiceCollection()
                         .AddEntityFrameworkNpgsql()
                         .AddSingleton(TestNpgsqlModelSource.GetFactory(OnModelCreating))
                         .BuildServiceProvider())
                     .Options;
 
-                EnsureCreated();
+                _testStore = NpgsqlTestStore.GetOrCreateShared(name, EnsureCreated);
             }
 
             public override DbContext CreateContext()
                 => new DbContext(_options);
+
+            public void Dispose() => _testStore.Dispose();
         }
     }
 }

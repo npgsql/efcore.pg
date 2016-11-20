@@ -23,7 +23,6 @@
 
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations.Design;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Microsoft.Extensions.DependencyInjection;
@@ -37,7 +36,6 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding.Internal
                 .AddSingleton<IScaffoldingModelFactory, NpgsqlScaffoldingModelFactory>()
                 .AddSingleton<IRelationalAnnotationProvider, NpgsqlAnnotationProvider>()
                 .AddSingleton<IRelationalTypeMapper, NpgsqlTypeMapper>()
-                .AddSingleton<CSharpMigrationOperationGenerator, NpgsqlCSharpMigrationOperationGenerator>()
                 .AddSingleton<IDatabaseModelFactory, NpgsqlDatabaseModelFactory>();
     }
 }

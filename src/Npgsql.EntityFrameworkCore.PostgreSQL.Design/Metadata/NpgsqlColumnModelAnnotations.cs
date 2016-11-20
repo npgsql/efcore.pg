@@ -29,6 +29,7 @@ using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Utilities;
 using Npgsql;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Design.Metadata;
 
 namespace Microsoft.EntityFrameworkCore.Scaffolding.Metadata
 {
@@ -59,6 +60,40 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding.Metadata
             }
             [param: CanBeNull]
             set { _column[NpgsqlDatabaseModelAnnotationNames.IsSerial] = value; }
+        }
+
+        /// <summary>
+        /// Identifies the type of the PostgreSQL type of this column (e.g. array, range, base).
+        /// </summary>
+        /// <remarks>
+        /// See http://www.postgresql.org/docs/current/static/datatype-numeric.html
+        /// </remarks>
+        internal PostgresTypeType PostgresTypeType
+        {
+            get
+            {
+                var value = _column[NpgsqlDatabaseModelAnnotationNames.PostgresTypeType];
+                return (PostgresTypeType?)value ?? PostgresTypeType.Base;
+            }
+            [param: CanBeNull]
+            set { _column[NpgsqlDatabaseModelAnnotationNames.PostgresTypeType] = value; }
+        }
+
+        /// <summary>
+        /// If this column's data type is an array, contains the data type of its elements.
+        /// Otherwise null.
+        /// </summary>
+        /// <remarks>
+        /// See http://www.postgresql.org/docs/current/static/datatype-numeric.html
+        /// </remarks>
+        internal string ElementDataType
+        {
+            get
+            {
+                return (string)_column[NpgsqlDatabaseModelAnnotationNames.ElementDataType];
+            }
+            [param: CanBeNull]
+            set { _column[NpgsqlDatabaseModelAnnotationNames.ElementDataType] = value; }
         }
     }
 }

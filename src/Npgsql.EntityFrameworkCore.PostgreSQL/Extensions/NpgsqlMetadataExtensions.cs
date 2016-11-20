@@ -32,11 +32,11 @@ namespace Microsoft.EntityFrameworkCore
 {
     public static class NpgsqlMetadataExtensions
     {
-        public static IRelationalEntityTypeAnnotations Npgsql([NotNull] this IEntityType entityType)
-            => new RelationalEntityTypeAnnotations(Check.NotNull(entityType, nameof(entityType)), NpgsqlFullAnnotationNames.Instance);
+        public static INpgsqlEntityTypeAnnotations Npgsql([NotNull] this IEntityType entityType)
+            => new NpgsqlEntityTypeAnnotations(Check.NotNull(entityType, nameof(entityType)));
 
-        public static RelationalEntityTypeAnnotations Npgsql([NotNull] this IMutableEntityType entityType)
-            => (RelationalEntityTypeAnnotations)Npgsql((IEntityType)entityType);
+        public static NpgsqlEntityTypeAnnotations Npgsql([NotNull] this IMutableEntityType entityType)
+            => (NpgsqlEntityTypeAnnotations)Npgsql((IEntityType)entityType);
 
         public static IRelationalForeignKeyAnnotations Npgsql([NotNull] this IForeignKey foreignKey)
             => new RelationalForeignKeyAnnotations(Check.NotNull(foreignKey, nameof(foreignKey)), NpgsqlFullAnnotationNames.Instance);
@@ -47,7 +47,7 @@ namespace Microsoft.EntityFrameworkCore
         public static INpgsqlIndexAnnotations Npgsql([NotNull] this IIndex index)
             => new NpgsqlIndexAnnotations(Check.NotNull(index, nameof(index)));
 
-        public static RelationalIndexAnnotations Npgsql([NotNull] this IMutableIndex index)
+        public static NpgsqlIndexAnnotations Npgsql([NotNull] this IMutableIndex index)
             => (NpgsqlIndexAnnotations)Npgsql((IIndex)index);
 
         public static IRelationalKeyAnnotations Npgsql([NotNull] this IKey key)
@@ -62,10 +62,10 @@ namespace Microsoft.EntityFrameworkCore
         public static NpgsqlModelAnnotations Npgsql([NotNull] this IMutableModel model)
             => (NpgsqlModelAnnotations)Npgsql((IModel)model);
 
-        public static IRelationalPropertyAnnotations Npgsql([NotNull] this IProperty property)
-            => new RelationalPropertyAnnotations(Check.NotNull(property, nameof(property)), NpgsqlFullAnnotationNames.Instance);
+        public static INpgsqlPropertyAnnotations Npgsql([NotNull] this IProperty property)
+            => new NpgsqlPropertyAnnotations(Check.NotNull(property, nameof(property)));
 
-        public static RelationalPropertyAnnotations Npgsql([NotNull] this IMutableProperty property)
-            => (RelationalPropertyAnnotations)Npgsql((IProperty)property);
+        public static NpgsqlPropertyAnnotations Npgsql([NotNull] this IMutableProperty property)
+            => (NpgsqlPropertyAnnotations)Npgsql((IProperty)property);
     }
 }

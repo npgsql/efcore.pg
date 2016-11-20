@@ -4,91 +4,80 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Microsoft.EntityFrameworkCore.Utilities;
 
 namespace Microsoft.EntityFrameworkCore.Metadata
 {
     public class PostgresExtension : IPostgresExtension
     {
-        readonly IModel _model;
+        readonly IAnnotatable _annotatable;
         readonly string _annotationName;
 
-        PostgresExtension(
-            [NotNull] IMutableModel model,
-            [NotNull] string annotationPrefix,
-            [NotNull] string name,
-            [CanBeNull] string schema = null)
-            : this(model, BuildAnnotationName(annotationPrefix, name, schema))
+        PostgresExtension(IAnnotatable annotatable, string annotationName)
         {
-            Check.NotNull(model, nameof(model));
-            Check.NotEmpty(annotationPrefix, nameof(annotationPrefix));
-            Check.NotEmpty(name, nameof(name));
-            Check.NullButNotEmpty(schema, nameof(schema));
-
-            SetData(new PostgresExtensionData
-            {
-                Name = name,
-                Schema = schema
-            });
-        }
-
-        PostgresExtension(IModel model, string annotationName)
-        {
-            _model = model;
+            _annotatable = annotatable;
             _annotationName = annotationName;
         }
 
         public static PostgresExtension GetOrAddPostgresExtension(
-            [NotNull] IMutableModel model,
-            [NotNull] string annotationPrefix,
-            [NotNull] string name,
-            [CanBeNull] string schema = null)
-            => FindPostgresExtension(model, annotationPrefix, name, schema) ?? new PostgresExtension(model, annotationPrefix, name, schema);
+            [NotNull] IMutableAnnotatable annotatable,
+            [NotNull] string name)
+        {
+            var extension = (PostgresExtension)FindPostgresExtension(annotatable, name);
+            if (extension != null)
+                return extension;
 
-        public static PostgresExtension FindPostgresExtension(
-            [NotNull] IMutableModel model,
-            [NotNull] string annotationPrefix,
-            [NotNull] string name,
-            [CanBeNull] string schema = null)
-            => (PostgresExtension)FindPostgresExtension((IModel)model, annotationPrefix, name, schema);
+            extension = new PostgresExtension(annotatable, BuildAnnotationName(name));
+            extension.SetData(new PostgresExtensionData { Name = name });
+            return extension;
+        }
 
         public static IPostgresExtension FindPostgresExtension(
-            [NotNull] IModel model,
-            [NotNull] string annotationPrefix,
-            [NotNull] string name,
-            [CanBeNull] string schema = null)
+            [NotNull] IAnnotatable annotatable,
+            [NotNull] string name)
         {
-            Check.NotNull(model, nameof(model));
+            Check.NotNull(annotatable, nameof(annotatable));
             Check.NotEmpty(name, nameof(name));
-            Check.NullButNotEmpty(schema, nameof(schema));
 
-            var annotationName = BuildAnnotationName(annotationPrefix, name, schema);
+            var annotationName = BuildAnnotationName(name);
 
-            return model[annotationName] == null ? null : new PostgresExtension(model, annotationName);
+            return annotatable[annotationName] == null ? null : new PostgresExtension(annotatable, annotationName);
         }
 
-        static string BuildAnnotationName(string annotationPrefix, string name, string schema)
-            => annotationPrefix + schema + "." + name;
+        static string BuildAnnotationName(string name)
+            => NpgsqlFullAnnotationNames.Instance.PostgresExtensionPrefix + name;
 
-        public static IEnumerable<IPostgresExtension> GetPostgresExtensions([NotNull] IModel model, [NotNull] string annotationPrefix)
+        public static IEnumerable<IPostgresExtension> GetPostgresExtensions([NotNull] IAnnotatable annotatable)
         {
-            Check.NotNull(model, nameof(model));
-            Check.NotEmpty(annotationPrefix, nameof(annotationPrefix));
+            Check.NotNull(annotatable, nameof(annotatable));
 
-            return model.GetAnnotations()
-                .Where(a => a.Name.StartsWith(annotationPrefix, StringComparison.Ordinal))
-                .Select(a => new PostgresExtension(model, a.Name));
+            return annotatable.GetAnnotations()
+                .Where(a => a.Name.StartsWith(NpgsqlFullAnnotationNames.Instance.PostgresExtensionPrefix, StringComparison.Ordinal))
+                .Select(a => new PostgresExtension(annotatable, a.Name));
         }
 
-        public virtual Model Model => (Model)_model;
+        public Annotatable Annotatable => (Annotatable)_annotatable;
 
-        public virtual string Name => GetData().Name;
+        public string Name => GetData().Name;
 
-        public virtual string Schema => GetData().Schema ?? Model.Relational().DefaultSchema;
+        [CanBeNull]
+        public string Schema
+        {
+            get { return GetData().Schema; }
+            set
+            {
+                var data = GetData();
+                data.Schema = value;
+                SetData(data);
+            }
+        }
 
-        public virtual string Version
+        [CanBeNull]
+        public string Version
         {
             get { return GetData().Version; }
             set
@@ -99,14 +88,14 @@ namespace Microsoft.EntityFrameworkCore.Metadata
             }
         }
 
-        PostgresExtensionData GetData() => PostgresExtensionData.Deserialize((string)Model[_annotationName]);
+        PostgresExtensionData GetData() => PostgresExtensionData.Deserialize((string)Annotatable[_annotationName]);
 
         void SetData(PostgresExtensionData data)
         {
-            Model[_annotationName] = data.Serialize();
+            Annotatable[_annotationName] = data.Serialize();
         }
 
-        IModel IPostgresExtension.Model => _model;
+        IAnnotatable IPostgresExtension.Annotatable => _annotatable;
 
         public override string ToString()
         {

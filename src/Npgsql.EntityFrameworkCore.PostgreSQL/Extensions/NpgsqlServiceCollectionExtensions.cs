@@ -78,26 +78,21 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             Check.NotNull(services, nameof(services));
 
-            services.TryAdd(new ServiceCollection()
-                .AddScoped<NpgsqlMigrationsModelDiffer>()
-                .AddScoped<IMigrationsModelDiffer, NpgsqlMigrationsModelDiffer>()
-            );
-
             services.AddRelational();
 
             services.TryAddEnumerable(ServiceDescriptor
                 .Singleton<IDatabaseProvider, DatabaseProvider<NpgsqlDatabaseProviderServices, NpgsqlOptionsExtension>>());
 
             services.TryAdd(new ServiceCollection()
-                .AddSingleton<NpgsqlValueGeneratorCache>()
+                .AddSingleton<INpgsqlValueGeneratorCache, NpgsqlValueGeneratorCache>()
                 .AddSingleton<NpgsqlTypeMapper>()
                 .AddSingleton<NpgsqlSqlGenerationHelper>()
                 .AddSingleton<NpgsqlModelSource>()
                 .AddSingleton<NpgsqlAnnotationProvider>()
                 .AddSingleton<NpgsqlMigrationsAnnotationProvider>()
-                .AddScoped<NpgsqlModelValidator>()
                 .AddScoped<NpgsqlConventionSetBuilder>()
                 .AddScoped<NpgsqlUpdateSqlGenerator>()
+                .AddScoped<INpgsqlSequenceValueGeneratorFactory, NpgsqlSequenceValueGeneratorFactory>()
                 .AddScoped<NpgsqlModificationCommandBatchFactory>()
                 .AddScoped<NpgsqlValueGeneratorSelector>()
                 .AddScoped<NpgsqlDatabaseProviderServices>()

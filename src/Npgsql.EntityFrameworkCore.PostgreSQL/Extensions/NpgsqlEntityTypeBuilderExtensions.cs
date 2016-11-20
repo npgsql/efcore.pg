@@ -71,5 +71,58 @@ namespace Microsoft.EntityFrameworkCore
             [CanBeNull] string schema)
             where TEntity : class
             => (EntityTypeBuilder<TEntity>)ForNpgsqlToTable((EntityTypeBuilder)entityTypeBuilder, name, schema);
+
+        public static EntityTypeBuilder ForNpgsqlUseXminAsConcurrencyToken(
+            [NotNull] this EntityTypeBuilder entityTypeBuilder)
+        {
+            Check.NotNull(entityTypeBuilder, nameof(entityTypeBuilder));
+
+            entityTypeBuilder.Property<uint>("xmin")
+                .HasColumnType("xid")
+                .ValueGeneratedOnAddOrUpdate()
+                .IsConcurrencyToken();
+
+            return entityTypeBuilder;
+        }
+
+        public static EntityTypeBuilder<TEntity> ForNpgsqlUseXminAsConcurrencyToken<TEntity>(
+            [NotNull] this EntityTypeBuilder<TEntity> entityTypeBuilder)
+            where TEntity : class
+            => (EntityTypeBuilder<TEntity>)ForNpgsqlUseXminAsConcurrencyToken((EntityTypeBuilder)entityTypeBuilder);
+
+        /// <summary>
+        /// Sets a PostgreSQL storage parameter on the table created for this entity.
+        /// </summary>
+        /// <remarks>
+        /// See https://www.postgresql.org/docs/current/static/sql-createtable.html#SQL-CREATETABLE-STORAGE-PARAMETERS
+        /// </remarks>
+        /// <param name="entityTypeBuilder"> The builder for the entity type being configured. </param>
+        /// <param name="parameterName"> The name of the storage parameter. </param>
+        /// <param name="parameterValue"> The value of the storage parameter. </param>
+        /// <returns> The same builder instance so that multiple calls can be chained. </returns>
+        public static EntityTypeBuilder ForNpgsqlSetStorageParameter(
+            [NotNull] this EntityTypeBuilder entityTypeBuilder, string parameterName, object parameterValue)
+        {
+            Check.NotNull(entityTypeBuilder, nameof(entityTypeBuilder));
+
+            entityTypeBuilder.Metadata.Npgsql().SetStorageParameter(parameterName, parameterValue);
+
+            return entityTypeBuilder;
+        }
+
+        /// <summary>
+        /// Sets a PostgreSQL storage parameter on the table created for this entity.
+        /// </summary>
+        /// <remarks>
+        /// See https://www.postgresql.org/docs/current/static/sql-createtable.html#SQL-CREATETABLE-STORAGE-PARAMETERS
+        /// </remarks>
+        /// <param name="entityTypeBuilder"> The builder for the entity type being configured. </param>
+        /// <param name="parameterName"> The name of the storage parameter. </param>
+        /// <param name="parameterValue"> The value of the storage parameter. </param>
+        /// <returns> The same builder instance so that multiple calls can be chained. </returns>
+        public static EntityTypeBuilder<TEntity> ForNpgsqlSetStorageParameter<TEntity>(
+            [NotNull] this EntityTypeBuilder<TEntity> entityTypeBuilder, string parameterName, object parameterValue)
+            where TEntity : class
+            => (EntityTypeBuilder<TEntity>)ForNpgsqlSetStorageParameter((EntityTypeBuilder)entityTypeBuilder, parameterName, parameterValue);
     }
 }

@@ -16,14 +16,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         public QueryNpgsqlTest(NorthwindQueryNpgsqlFixture fixture)
             : base(fixture) { }
 
-        [Fact(Skip="https://github.com/aspnet/EntityFramework/issues/5220")]
-        public override void Substring_with_constant()
+        public override void String_Contains_MethodCall()
         {
-        }
+            // Note: this test differs from the SqlServer version because the SqlServer database is
+            // created with case-insensitive collation (at least in the tests), while PostgreSQL is
+            // always case-sensitive.
+            base.String_Contains_MethodCall();
 
-        [Fact(Skip = "https://github.com/aspnet/EntityFramework/issues/5220")]
-        public override void Substring_with_closure()
-        {
+            Assert.Equal(
+                @"@__LocalMethod1_0: M
+
+SELECT ""c"".""CustomerID"", ""c"".""Address"", ""c"".""City"", ""c"".""CompanyName"", ""c"".""ContactName"", ""c"".""ContactTitle"", ""c"".""Country"", ""c"".""Fax"", ""c"".""Phone"", ""c"".""PostalCode"", ""c"".""Region""
+FROM ""Customers"" AS ""c""
+WHERE ""c"".""ContactName"" LIKE ((('%' || @__LocalMethod1_0)) || '%')",
+                Sql);
         }
 
         #region Regular Expressions
@@ -95,6 +101,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 
         const string FileLineEnding = @"
 ";
+        protected override void ClearLog() => TestSqlLoggerFactory.Reset();
+
         static string Sql => TestSqlLoggerFactory.Sql.Replace(Environment.NewLine, FileLineEnding);
     }
 }

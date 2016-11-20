@@ -15,15 +15,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.TestModels
         public static readonly string DatabaseName = StoreName;
         public static readonly string ConnectionString = NpgsqlTestStore.CreateConnectionString(DatabaseName);
 
-        public NpgsqlNorthwindContext(DbContextOptions options)
-            : base(options)
+        public NpgsqlNorthwindContext(DbContextOptions options,
+            QueryTrackingBehavior queryTrackingBehavior = QueryTrackingBehavior.TrackAll)
+            : base(options, queryTrackingBehavior)
         {
         }
+
         public static NpgsqlTestStore GetSharedStore()
-        {
-            return NpgsqlTestStore.GetOrCreateShared(
+            => NpgsqlTestStore.GetOrCreateShared(
                 DatabaseName,
-                () => NpgsqlTestStore.CreateDatabase(DatabaseName, scriptPath: "Northwind.sql")); // relative from bin/<config>
-        }
+                () => NpgsqlTestStore.ExecuteScript(DatabaseName, @"Northwind.sql"),
+                cleanDatabase: false);
     }
 }

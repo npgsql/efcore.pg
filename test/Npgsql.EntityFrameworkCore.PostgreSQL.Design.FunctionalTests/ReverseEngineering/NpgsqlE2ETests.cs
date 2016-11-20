@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Scaffolding.Internal;
 using Microsoft.EntityFrameworkCore.Specification.Tests.TestUtilities.Xunit;
 using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
 
-#if NETCOREAPP1_0
+#if NETCOREAPP1_1
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 #endif
@@ -24,7 +24,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests.ReverseEn
     {
         protected override string ProviderName => "Npgsql.EntityFrameworkCore.PostgreSQL.Design";
 
-        protected override IServiceCollection ConfigureDesignTimeServices(IServiceCollection services)
+        protected override void ConfigureDesignTimeServices(IServiceCollection services)
             => new NpgsqlDesignTimeServices().ConfigureDesignTimeServices(services);
 
         public virtual string TestNamespace => "E2ETest.Namespace";
@@ -296,7 +296,7 @@ CREATE TABLE ""NonSerialSequence"" (
 
         protected override ICollection<BuildReference> References { get; } = new List<BuildReference>
         {
-#if NETCOREAPP1_0
+#if NETCOREAPP1_1
             BuildReference.ByName("System.Collections"),
             BuildReference.ByName("System.Data.Common"),
             BuildReference.ByName("System.Linq.Expressions"),

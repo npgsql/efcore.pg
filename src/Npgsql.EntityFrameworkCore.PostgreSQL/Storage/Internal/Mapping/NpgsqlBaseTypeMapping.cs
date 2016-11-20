@@ -32,26 +32,12 @@ using NpgsqlTypes;
 
 namespace Microsoft.EntityFrameworkCore.Storage.Internal
 {
-    public class NpgsqlTypeMapping : RelationalTypeMapping
+    public sealed class NpgsqlBaseTypeMapping : NpgsqlTypeMapping
     {
-        public new NpgsqlDbType? StoreType { get; }
+        internal NpgsqlBaseTypeMapping([NotNull] string storeType, [NotNull] Type clrType, NpgsqlDbType npgsqlDbType)
+            : base(storeType, clrType, npgsqlDbType) { }
 
-        internal NpgsqlTypeMapping([NotNull] string defaultTypeName, [NotNull] Type clrType, NpgsqlDbType storeType)
-            : base(defaultTypeName, clrType)
-        {
-            StoreType = storeType;
-        }
-
-        internal NpgsqlTypeMapping([NotNull] string defaultTypeName, [NotNull] Type clrType)
-            : base(defaultTypeName, clrType)
-        { }
-
-        protected override void ConfigureParameter([NotNull] DbParameter parameter)
-        {
-            if (StoreType.HasValue)
-            {
-                ((NpgsqlParameter)parameter).NpgsqlDbType = StoreType.Value;
-            }
-        }
+        internal NpgsqlBaseTypeMapping([NotNull] string storeType, [NotNull] Type clrType)
+            : base(storeType, clrType) {}
     }
 }

@@ -14,15 +14,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
     {
         public static NpgsqlPostgresExtensionBuilder HasPostgresExtension(
             [NotNull] this ModelBuilder modelBuilder,
-            [NotNull] string name,
-            [CanBeNull] string schema = null)
+            [NotNull] string name)
         {
             Check.NotNull(modelBuilder, nameof(modelBuilder));
             Check.NotEmpty(name, nameof(name));
-            Check.NullButNotEmpty(schema, nameof(schema));
 
             return new NpgsqlPostgresExtensionBuilder(
-                modelBuilder.Model.Npgsql().GetOrAddPostgresExtension(name, schema));
+                modelBuilder.Model.Npgsql().GetOrAddPostgresExtension(name));
         }
 
         public static ModelBuilder HasDatabaseTemplate(

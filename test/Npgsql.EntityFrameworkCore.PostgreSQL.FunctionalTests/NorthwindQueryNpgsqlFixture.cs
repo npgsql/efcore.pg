@@ -16,7 +16,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
     public class NorthwindQueryNpgsqlFixture : NorthwindQueryRelationalFixture, IDisposable
     {
-        private readonly IServiceProvider _serviceProvider;
         private readonly DbContextOptions _options;
 
         private readonly NpgsqlTestStore _testStore = NpgsqlNorthwindContext.GetSharedStore();
@@ -24,21 +23,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 
         public NorthwindQueryNpgsqlFixture()
         {
-            _serviceProvider
-                = new ServiceCollection()
-                    .AddEntityFrameworkNpgsql()
-                    .AddSingleton(TestNpgsqlModelSource.GetFactory(OnModelCreating))
-                    .AddSingleton<ILoggerFactory>(_testSqlLoggerFactory)
-                    .BuildServiceProvider();
-
             _options = BuildOptions();
         }
 
-        protected DbContextOptions BuildOptions()
+        public override DbContextOptions BuildOptions(IServiceCollection additionalServices = null)
             => ConfigureOptions(
                 new DbContextOptionsBuilder()
                     .EnableSensitiveDataLogging()
-                    .UseInternalServiceProvider(_serviceProvider))
+                    .UseInternalServiceProvider((additionalServices ?? new ServiceCollection())
+                        .AddEntityFrameworkNpgsql()
+                        .AddSingleton(TestNpgsqlModelSource.GetFactory(OnModelCreating))
+                        .AddSingleton<ILoggerFactory>(_testSqlLoggerFactory)
+                        .BuildServiceProvider()))
                 .UseNpgsql(
                     _testStore.ConnectionString,
                     b =>
@@ -50,12 +46,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         protected virtual DbContextOptionsBuilder ConfigureOptions(DbContextOptionsBuilder dbContextOptionsBuilder)
             => dbContextOptionsBuilder;
 
-        protected virtual void ConfigureOptions(NpgsqlDbContextOptionsBuilder sqlServerDbContextOptionsBuilder)
+        protected virtual void ConfigureOptions(NpgsqlDbContextOptionsBuilder npgsqlDbContextOptionsBuilder)
         {
         }
 
-        public override NorthwindContext CreateContext()
-            => new NpgsqlNorthwindContext(_options);
+        public override NorthwindContext CreateContext(
+            QueryTrackingBehavior queryTrackingBehavior = QueryTrackingBehavior.TrackAll)
+            => new NpgsqlNorthwindContext(_options, queryTrackingBehavior);
 
         public void Dispose() => _testStore.Dispose();
 

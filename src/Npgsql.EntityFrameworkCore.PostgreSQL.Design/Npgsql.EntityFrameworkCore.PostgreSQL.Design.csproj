@@ -52,11 +52,11 @@
     <Compile Include="Metadata\NpgsqlIndexModelAnnotations.cs" />
     <Compile Include="Metadata\NpgsqlColumnModelAnnotations.cs" />
     <Compile Include="Metadata\NpgsqlDatabaseModelAnnotationNames.cs" />
-    <Compile Include="Migrations\Design\NpgsqlCSharpMigrationOperationGenerator.cs" />
-    <Compile Include="NpgsqlDatabaseModelFactory.cs" />
-    <Compile Include="NpgsqlDesignTimeServices.cs" />
-    <Compile Include="NpgsqlScaffoldingModelFactory.cs" />
-    <Compile Include="NpgsqlTableSelectionSetExtensions.cs" />
+    <Compile Include="Metadata\PostgresTypeType.cs" />
+    <Compile Include="Internal\NpgsqlDatabaseModelFactory.cs" />
+    <Compile Include="Internal\NpgsqlDesignTimeServices.cs" />
+    <Compile Include="Internal\NpgsqlScaffoldingModelFactory.cs" />
+    <Compile Include="Internal\NpgsqlTableSelectionSetExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="..\Shared\CommonAssemblyInfo.cs">
       <Link>Properties\CommonAssemblyInfo.cs</Link>

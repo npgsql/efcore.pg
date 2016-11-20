@@ -24,6 +24,7 @@
 using System.Linq;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Utilities;
 
@@ -59,11 +60,14 @@ namespace Microsoft.EntityFrameworkCore.Update.Internal
 
         public virtual ModificationCommandBatch Create()
         {
+            var optionsExtension = _options.Extensions.OfType<NpgsqlOptionsExtension>().FirstOrDefault();
+
             return new NpgsqlModificationCommandBatch(
                 _commandBuilderFactory,
                 _sqlGenerationHelper,
                 _updateSqlGenerator,
-                _valueBufferFactoryFactory);
+                _valueBufferFactoryFactory,
+                optionsExtension?.MaxBatchSize);
         }
     }
 }

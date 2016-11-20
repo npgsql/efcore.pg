@@ -323,7 +323,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Migrations
         }
 
         [Fact]
-        public void AlterColumnOperation_dbgenerated_int()
+        public void AlterColumnOperation_to_serial()
         {
             Generate(
                 new AlterColumnOperation
@@ -333,36 +333,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Migrations
                     ClrType = typeof(int),
                     ColumnType = "int",
                     IsNullable = false,
-                    [NpgsqlAnnotationNames.Prefix + NpgsqlAnnotationNames.ValueGeneratedOnAdd] = true
+                    [NpgsqlFullAnnotationNames.Instance.ValueGenerationStrategy] = NpgsqlValueGenerationStrategy.SerialColumn
                 });
 
             Assert.Equal(
                 @"CREATE SEQUENCE ""People_IntKey_seq"" START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE;" + EOL +
                 @"ALTER TABLE ""People"" ALTER COLUMN ""IntKey"" TYPE int;" + EOL +
                 @"ALTER TABLE ""People"" ALTER COLUMN ""IntKey"" SET NOT NULL;" + EOL +
-                @"ALTER TABLE ""People"" ALTER COLUMN ""IntKey"" SET DEFAULT (nextval(""People_IntKey_seq""));" + EOL +
+                @"ALTER TABLE ""People"" ALTER COLUMN ""IntKey"" SET DEFAULT (nextval('""People_IntKey_seq""'));" + EOL +
                 @"ALTER SEQUENCE ""People_IntKey_seq"" OWNED BY ""People"".""IntKey""",
-            Sql);
-        }
-
-        [Fact]
-        public void AlterColumnOperation_dbgenerated_uuid()
-        {
-            Generate(
-                new AlterColumnOperation
-                {
-                    Table = "People",
-                    Name = "GuidKey",
-                    ClrType = typeof(int),
-                    ColumnType = "uuid",
-                    IsNullable = false,
-                    [NpgsqlAnnotationNames.Prefix + NpgsqlAnnotationNames.ValueGeneratedOnAdd] = true
-                });
-
-            Assert.Equal(
-                @"ALTER TABLE ""People"" ALTER COLUMN ""GuidKey"" TYPE uuid;" + EOL +
-                @"ALTER TABLE ""People"" ALTER COLUMN ""GuidKey"" SET NOT NULL;" + EOL +
-                @"ALTER TABLE ""People"" ALTER COLUMN ""GuidKey"" SET DEFAULT (uuid_generate_v4())",
             Sql);
         }
 
@@ -390,13 +369,25 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Migrations
         [Fact]
         public void EnsurePostgresExtension()
         {
-            Generate(new NpgsqlEnsurePostgresExtensionOperation
-            {
-                Name = "hstore",
-            });
+            var op = new AlterDatabaseOperation();
+            PostgresExtension.GetOrAddPostgresExtension(op, "hstore");
+            Generate(op);
 
             Assert.Equal(
                 @"CREATE EXTENSION IF NOT EXISTS ""hstore"";" + EOL,
+                Sql);
+        }
+
+        [Fact]
+        public void EnsurePostgresExtension_with_schema()
+        {
+            var op = new AlterDatabaseOperation();
+            var extension = PostgresExtension.GetOrAddPostgresExtension(op, "hstore");
+            extension.Schema = "myschema";
+            Generate(op);
+
+            Assert.Equal(
+                @"CREATE EXTENSION IF NOT EXISTS ""hstore"" SCHEMA ""myschema"";" + EOL,
                 Sql);
         }
 
@@ -410,7 +401,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Migrations
                 ClrType = typeof(int),
                 ColumnType = "int",
                 IsNullable = false,
-                [NpgsqlAnnotationNames.Prefix + NpgsqlAnnotationNames.ValueGeneratedOnAdd] = true
+                [NpgsqlFullAnnotationNames.Instance.ValueGenerationStrategy] = NpgsqlValueGenerationStrategy.SerialColumn
             });
 
             Assert.Equal(
@@ -418,8 +409,28 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Migrations
                 Sql);
         }
 
+#pragma warning disable 618
         [Fact]
-        public virtual void AddColumnOperation_with_int_defaultValue_isnt_serial()
+        public virtual void AddColumnOperation_serial_old_annotation_throws()
+        {
+            Assert.Throws<NotSupportedException>(() =>
+                Generate(new AddColumnOperation
+                {
+                    Table = "People",
+                    Name = "foo",
+                    ClrType = typeof(int),
+                    ColumnType = "int",
+                    IsNullable = false,
+                    [NpgsqlFullAnnotationNames.Instance.ValueGeneratedOnAdd] = true
+                }));
+        }
+#pragma warning restore 618
+
+        // EFCore will add a default in some cases, e.g. adding a non-nullable column
+        // to an existing table. This shouldn't affect serial column creation.
+        // See #68
+        [Fact]
+        public void AddColumnOperation_serial_with_default()
         {
             Generate(
                 new AddColumnOperation
@@ -428,30 +439,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Migrations
                     Name = "foo",
                     ClrType = typeof(int),
                     ColumnType = "int",
-                    IsNullable = false,
-                    DefaultValue = "8"
+                    DefaultValue = 0,
+                    [NpgsqlFullAnnotationNames.Instance.ValueGenerationStrategy] = NpgsqlValueGenerationStrategy.SerialColumn
                 });
 
             Assert.Equal(
-                "ALTER TABLE \"People\" ADD \"foo\" int NOT NULL DEFAULT '8';" + EOL,
-                Sql);
-        }
-
-        [Fact]
-        public virtual void AddColumnOperation_with_dbgenerated_uuid()
-        {
-            Generate(
-                new AddColumnOperation
-                {
-                    Table = "People",
-                    Name = "foo",
-                    ClrType = typeof(Guid),
-                    ColumnType = "uuid",
-                    [NpgsqlAnnotationNames.Prefix + NpgsqlAnnotationNames.ValueGeneratedOnAdd] = true
-                });
-
-            Assert.Equal(
-                "ALTER TABLE \"People\" ADD \"foo\" uuid NOT NULL DEFAULT (uuid_generate_v4());" + EOL,
+                @"ALTER TABLE ""People"" ADD ""foo"" serial NOT NULL DEFAULT 0;" + EOL,
                 Sql);
         }
 
@@ -489,6 +482,144 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Migrations
                 "ALTER TABLE \"People\" ALTER COLUMN \"Name\" SET NOT NULL;" + EOL +
                 "ALTER TABLE \"People\" ALTER COLUMN \"Name\" DROP DEFAULT",
                 Sql);
+        }
+
+        #endregion
+
+        #region PostgreSQL Storage Parameters
+
+        [Fact]
+        public void CreateTableOperation_with_storage_parameter()
+        {
+            Generate(
+                new CreateTableOperation
+                {
+                    Name = "People",
+                    Schema = "dbo",
+                    Columns =
+                    {
+                        new AddColumnOperation
+                        {
+                            Name = "Id",
+                            Table = "People",
+                            ClrType = typeof(int),
+                            IsNullable = false
+                        },
+                    },
+                    PrimaryKey = new AddPrimaryKeyOperation
+                    {
+                        Columns = new[] { "Id" }
+                    },
+                    [NpgsqlFullAnnotationNames.Instance.StorageParameterPrefix + "fillfactor"] = 70,
+                    [NpgsqlFullAnnotationNames.Instance.StorageParameterPrefix + "user_catalog_table"] = true,
+                    ["some_bogus_name"] = 0
+                });
+
+            Assert.Equal(
+                "CREATE TABLE \"dbo\".\"People\" (" + EOL +
+                "    \"Id\" int4 NOT NULL," + EOL +
+                "    PRIMARY KEY (\"Id\")" + EOL +
+                ")" + EOL +
+                "WITH (fillfactor=70, user_catalog_table=true);" + EOL,
+                Sql);
+        }
+
+        [Fact]
+        public void AlterTable_change_storage_parameters()
+        {
+            Generate(
+                new AlterTableOperation
+                {
+                    Name="People",
+                    Schema="dbo",
+                    OldTable = new Annotatable
+                    {
+                        [NpgsqlFullAnnotationNames.Instance.StorageParameterPrefix + "fillfactor"] = 70,
+                        [NpgsqlFullAnnotationNames.Instance.StorageParameterPrefix + "user_catalog_table"] = true,
+                        [NpgsqlFullAnnotationNames.Instance.StorageParameterPrefix + "parallel_workers"] = 8
+                    },
+                    // Add parameter
+                    [NpgsqlFullAnnotationNames.Instance.StorageParameterPrefix + "autovacuum_enabled"] = true,
+                    // Change parameter
+                    [NpgsqlFullAnnotationNames.Instance.StorageParameterPrefix + "fillfactor"] = 80,
+                    // Drop parameter user_catalog
+                    // Leave parameter unchanged
+                    [NpgsqlFullAnnotationNames.Instance.StorageParameterPrefix + "parallel_workers"] = 8
+                });
+
+            Assert.Equal(
+                "ALTER TABLE \"dbo\".\"People\" SET (autovacuum_enabled=true, fillfactor=80);" + EOL +
+                "ALTER TABLE \"dbo\".\"People\" RESET (user_catalog_table);" + EOL,
+                Sql);
+        }
+
+        #endregion
+
+        #region System columns
+
+        [Fact]
+        public void CreateTableOperation_with_system_column()
+        {
+            Generate(new CreateTableOperation
+            {
+                Name = "foo",
+                Schema = "public",
+                Columns = {
+                    new AddColumnOperation {
+                        Name = "id",
+                        Table = "foo",
+                        ClrType = typeof(int),
+                        IsNullable = false
+                    },
+                    new AddColumnOperation {
+                        Name = "xmin",
+                        Table = "foo",
+                        ClrType = typeof(uint),
+                        IsNullable = false
+                    }
+                },
+                PrimaryKey = new AddPrimaryKeyOperation
+                {
+                    Columns = new[] { "id" }
+                }
+            });
+
+            Assert.Equal(
+                "CREATE TABLE \"public\".\"foo\" (" + EOL +
+                "    \"id\" int4 NOT NULL," + EOL +
+                "    PRIMARY KEY (\"id\")" + EOL +
+                ");" + EOL,
+                Sql);
+        }
+
+        [Fact]
+        public void DropColumnOperation_with_system_column()
+        {
+            Generate(new DropColumnOperation
+            {
+                Table = "foo",
+                Schema = "public",
+                Name = "xmin"
+            });
+
+            Assert.Empty(Sql);
+        }
+
+        [Fact]
+        public void AlterColumnOperation_with_system_column()
+        {
+            Generate(new AlterColumnOperation
+                {
+                    Table = "foo",
+                    Schema = "public",
+                    Name = "xmin",
+                    ClrType = typeof(int),
+                    ColumnType = "int",
+                    IsNullable = false,
+                    DefaultValue = 7
+                });
+
+            Assert.Empty(Sql);
         }
 
         #endregion

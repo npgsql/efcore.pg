@@ -218,5 +218,6 @@ DROP TABLE IF EXISTS "SpecialTypes";
 CREATE TABLE "SpecialTypes" (
   "SpecialTypesID" int PRIMARY KEY,
   "IpAddress" inet,
-  "MacAddress" macaddr
+  "MacAddress" macaddr,
+  "IntArray" int[]
 );

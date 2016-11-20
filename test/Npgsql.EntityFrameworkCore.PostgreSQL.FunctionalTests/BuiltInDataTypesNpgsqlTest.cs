@@ -52,6 +52,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                         Hstore = new Dictionary<string, string> { {"a", "b"} },
 
                         //SomeComposite = new SomeComposite { SomeNumber = 8, SomeText = "foo" }
+
+                        PrimitiveArray = new[] { 2, 3 },
+                        NonPrimitiveArray = new[] { PhysicalAddress.Parse("08-00-2B-01-02-03"), PhysicalAddress.Parse("08-00-2B-01-02-04") },
+
+                        Xid = (uint)int.MaxValue + 1,
                     });
 
                 Assert.Equal(1, context.SaveChanges());
@@ -127,6 +132,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 
                 //SomeComposite param22 = new SomeComposite { SomeNumber = 8, SomeText = "foo" };
                 //Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.SomeComposite.Equals(param20)));
+
+                var param23 = new[] { 2, 3 };
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.PrimitiveArray == param23));
+
+                var param24 = new[] { PhysicalAddress.Parse("08-00-2B-01-02-03"), PhysicalAddress.Parse("08-00-2B-01-02-04") };
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.NonPrimitiveArray == param24));
+
+                var param25 = (uint)int.MaxValue + 1;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Xid == param25));
             }
         }
 
@@ -213,6 +227,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 
                 //SomeComposite param22 = null;
                 //Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.SomeComposite == param20));
+
+                int[] param23 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.PrimitiveArray == param23));
+
+                PhysicalAddress[] param24 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.NonPrimitiveArray == param24));
+
+                uint? param25 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.Xid == param25));
             }
         }
 
@@ -251,8 +274,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                         Jsonb = @"{""a"": ""b""}",
                         Hstore = new Dictionary<string, string> { { "a", "b" } },
 
-                //SomeComposite = new SomeComposite { SomeNumber = 8, SomeText = "foo" }
-            });
+                        //SomeComposite = new SomeComposite { SomeNumber = 8, SomeText = "foo" }
+                        PrimitiveArray = new[] { 2, 3 },
+                        NonPrimitiveArray = new[] { PhysicalAddress.Parse("08-00-2B-01-02-03"), PhysicalAddress.Parse("08-00-2B-01-02-04") },
+
+                        Xid = (uint)int.MaxValue + 1,
+                    });
 
                 Assert.Equal(1, context.SaveChanges());
             }
@@ -290,6 +317,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 Assert.Equal(new Dictionary<string, string> { { "a", "b" } }, entity.Hstore);
 
                 //Assert.Equal(new SomeComposite { SomeNumber = 8, SomeText = "foo" }, entity.SomeComposite);
+                Assert.Equal(new[] { 2, 3 }, entity.PrimitiveArray);
+                Assert.Equal(new[] { PhysicalAddress.Parse("08-00-2B-01-02-03"), PhysicalAddress.Parse("08-00-2B-01-02-04") }, entity.NonPrimitiveArray);
+                Assert.Equal((uint)int.MaxValue + 1, entity.Xid);
             }
         }
 
@@ -329,6 +359,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                         Hstore = new Dictionary<string, string> { { "a", "b" } },
 
                         //SomeComposite = new SomeComposite { SomeNumber = 8, SomeText = "foo" }
+                        PrimitiveArray = new[] { 2, 3 },
+                        NonPrimitiveArray = new[] { PhysicalAddress.Parse("08-00-2B-01-02-03"), PhysicalAddress.Parse("08-00-2B-01-02-04") },
+                        Xid = (uint)int.MaxValue + 1,
                     });
 
                 Assert.Equal(1, context.SaveChanges());
@@ -366,6 +399,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 Assert.Equal(new Dictionary<string, string> { { "a", "b" } }, entity.Hstore);
 
                 //Assert.Equal(new SomeComposite { SomeNumber = 8, SomeText = "foo" }, entity.SomeComposite);
+
+                Assert.Equal(new[] { 2, 3 }, entity.PrimitiveArray);
+                Assert.Equal(new[] { PhysicalAddress.Parse("08-00-2B-01-02-03"), PhysicalAddress.Parse("08-00-2B-01-02-04") }, entity.NonPrimitiveArray);
+                Assert.Equal((uint)int.MaxValue + 1, entity.Xid);
             }
         }
 
@@ -414,6 +451,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 Assert.Null(entity.Hstore);
 
                 //Assert.Null(entity.SomeComposite);
+                Assert.Null(entity.PrimitiveArray);
+                Assert.Null(entity.NonPrimitiveArray);
+                Assert.Null(entity.Xid);
             }
         }
 

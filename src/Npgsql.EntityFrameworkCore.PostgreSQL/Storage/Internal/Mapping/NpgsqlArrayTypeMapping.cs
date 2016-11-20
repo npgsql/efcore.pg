@@ -21,18 +21,28 @@
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 #endregion
 
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.Common;
+using System.Linq;
 using JetBrains.Annotations;
+using Npgsql;
+using NpgsqlTypes;
 
-namespace Microsoft.EntityFrameworkCore.Migrations.Operations
+namespace Microsoft.EntityFrameworkCore.Storage.Internal
 {
-    public class NpgsqlEnsurePostgresExtensionOperation : MigrationOperation
+    public sealed class NpgsqlArrayTypeMapping : NpgsqlTypeMapping
     {
-        public virtual string Name    { get; [param: NotNull] set; }
+        public NpgsqlTypeMapping ElementMapping { get; private set; }
 
-        [CanBeNull]
-        public virtual string Schema  { get; [CanBeNull] set; }
+        internal NpgsqlArrayTypeMapping(Type arrayClrType, NpgsqlTypeMapping elementMapping)
+            : base('_' + elementMapping.StoreType, arrayClrType)
+        {
+            ElementMapping = elementMapping;
 
-        [CanBeNull]
-        public virtual string Version { get; [CanBeNull] set; }
+            if (elementMapping.NpgsqlDbType.HasValue)
+                NpgsqlDbType = elementMapping.NpgsqlDbType.Value | NpgsqlTypes.NpgsqlDbType.Array;
+        }
     }
 }

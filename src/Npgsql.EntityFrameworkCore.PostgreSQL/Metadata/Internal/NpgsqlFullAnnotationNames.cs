@@ -21,6 +21,8 @@
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 #endregion
 
+using System;
+
 namespace Microsoft.EntityFrameworkCore.Metadata.Internal
 {
     public class NpgsqlFullAnnotationNames : RelationalFullAnnotationNames
@@ -28,23 +30,29 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Internal
         protected NpgsqlFullAnnotationNames(string prefix)
             : base(prefix)
         {
-            DefaultSequenceName = prefix + NpgsqlAnnotationNames.DefaultSequenceName;
-            DefaultSequenceSchema = prefix + NpgsqlAnnotationNames.DefaultSequenceSchema;
-            SequenceName = prefix + NpgsqlAnnotationNames.SequenceName;
-            SequenceSchema = prefix + NpgsqlAnnotationNames.SequenceSchema;
+            ValueGenerationStrategy = prefix + NpgsqlAnnotationNames.ValueGenerationStrategy;
+            HiLoSequenceName = prefix + NpgsqlAnnotationNames.HiLoSequenceName;
+            HiLoSequenceSchema = prefix + NpgsqlAnnotationNames.HiLoSequenceSchema;
             IndexMethod = prefix + NpgsqlAnnotationNames.IndexMethod;
             PostgresExtensionPrefix = prefix + NpgsqlAnnotationNames.PostgresExtensionPrefix;
             DatabaseTemplate = prefix + NpgsqlAnnotationNames.DatabaseTemplate;
+            StorageParameterPrefix = prefix + NpgsqlAnnotationNames.StorageParameterPrefix;
+#pragma warning disable 618
+            ValueGeneratedOnAdd = prefix + NpgsqlAnnotationNames.ValueGeneratedOnAdd;
+#pragma warning restore 618
         }
 
         public new static NpgsqlFullAnnotationNames Instance { get; } = new NpgsqlFullAnnotationNames(NpgsqlAnnotationNames.Prefix);
 
-        public readonly string DefaultSequenceName;
-        public readonly string DefaultSequenceSchema;
-        public readonly string SequenceName;
-        public readonly string SequenceSchema;
+        public readonly string ValueGenerationStrategy;
+        public readonly string HiLoSequenceName;
+        public readonly string HiLoSequenceSchema;
         public readonly string IndexMethod;
         public readonly string PostgresExtensionPrefix;
         public readonly string DatabaseTemplate;
+        public readonly string StorageParameterPrefix;
+
+        [Obsolete("Replaced by ValueGenerationStrategy.SerialColumn")]
+        public readonly string ValueGeneratedOnAdd;
     }
 }
