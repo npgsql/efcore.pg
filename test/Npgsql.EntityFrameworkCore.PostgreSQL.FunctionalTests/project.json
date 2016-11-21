@@ -13,7 +13,7 @@
     "Microsoft.Extensions.Configuration.EnvironmentVariables": "1.2.0-*",
     "Npgsql.EntityFrameworkCore.PostgreSQL": "1.2.0-*",
     "Npgsql.EntityFrameworkCore.PostgreSQL.Design": "1.2.0-*",
-    "Npgsql": "3.1.5"
+    "Npgsql": "3.1.9"
   },
   "publishOptions": {
     "include": "**/*.sql",

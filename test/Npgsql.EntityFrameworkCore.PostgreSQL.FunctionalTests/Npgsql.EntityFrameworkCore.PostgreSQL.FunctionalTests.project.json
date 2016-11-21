@@ -5,7 +5,7 @@
     "Microsoft.EntityFrameworkCore.Relational.Specification.Tests": "1.2.0-*",
     "Microsoft.Extensions.Configuration.Json": "1.2.0-*",
     "Microsoft.Extensions.Configuration.EnvironmentVariables": "1.2.0-*",
-    "Npgsql": "3.1.5"
+    "Npgsql": "3.1.9"
   },
   "frameworks": {
     "net451": {}
