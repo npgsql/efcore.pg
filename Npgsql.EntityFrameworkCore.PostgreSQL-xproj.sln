@@ -15,29 +15,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{ED612DB1-A
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Npgsql.EntityFrameworkCore.PostgreSQL", "src\Npgsql.EntityFrameworkCore.PostgreSQL\Npgsql.EntityFrameworkCore.PostgreSQL.xproj", "{A6370FDF-2140-4780-9671-FFCE9688A1AB}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.EntityFrameworkCore", "..\EntityFramework\src\Microsoft.EntityFrameworkCore\Microsoft.EntityFrameworkCore.xproj", "{45C6A6D2-AD42-4CFE-BF5C-A56ECB8563BD}"
-EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.EntityFrameworkCore.Relational", "..\EntityFramework\src\Microsoft.EntityFrameworkCore.Relational\Microsoft.EntityFrameworkCore.Relational.xproj", "{539436BC-9F4B-4492-8ECC-4451E0C3FDEC}"
-EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Npgsql.EntityFrameworkCore.PostgreSQL.Design", "src\Npgsql.EntityFrameworkCore.PostgreSQL.Design\Npgsql.EntityFrameworkCore.PostgreSQL.Design.xproj", "{180FC3CA-E92E-4B89-8A3A-81302F088F2E}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.EntityFrameworkCore.Design.Core", "..\EntityFramework\src\Microsoft.EntityFrameworkCore.Design.Core\Microsoft.EntityFrameworkCore.Design.Core.xproj", "{6C155372-A8A1-4E3B-8808-E875AFE452C8}"
-EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.EntityFrameworkCore.Relational.Design", "..\EntityFramework\src\Microsoft.EntityFrameworkCore.Relational.Design\Microsoft.EntityFrameworkCore.Relational.Design.xproj", "{0B4B5871-2017-40CA-B190-AEDB974D843D}"
-EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Npgsql.EntityFrameworkCore.PostgreSQL.Tests", "test\Npgsql.EntityFrameworkCore.PostgreSQL.Tests\Npgsql.EntityFrameworkCore.PostgreSQL.Tests.xproj", "{6584213E-212A-4262-810D-E121A7E737F1}"
-EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.EntityFrameworkCore.InMemory", "..\EntityFramework\src\Microsoft.EntityFrameworkCore.InMemory\Microsoft.EntityFrameworkCore.InMemory.xproj", "{B082A621-EF4B-415B-B8C2-BE4EEE791B52}"
-EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.EntityFrameworkCore.Relational.Specification.Tests", "..\EntityFramework\src\Microsoft.EntityFrameworkCore.Relational.Specification.Tests\Microsoft.EntityFrameworkCore.Relational.Specification.Tests.xproj", "{E2703F17-D2F9-43F7-A379-D0A8833AEE1E}"
-EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.EntityFrameworkCore.Specification.Tests", "..\EntityFramework\src\Microsoft.EntityFrameworkCore.Specification.Tests\Microsoft.EntityFrameworkCore.Specification.Tests.xproj", "{AAB3C3CD-0BDD-494B-83AD-F3295AAA13CF}"
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests", "test\Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests\Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.xproj", "{2FF9C05F-BBF1-4AE0-AB73-017751DEF4DE}"
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests", "test\Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests\Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests.xproj", "{67553B48-F896-4D76-9210-95AAE6707F60}"
-EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Microsoft.EntityFrameworkCore.Relational.Design.Specification.Tests", "..\EntityFramework\src\Microsoft.EntityFrameworkCore.Relational.Design.Specification.Tests\Microsoft.EntityFrameworkCore.Relational.Design.Specification.Tests.xproj", "{88796EE8-B48B-434D-AC55-FAFFC9BE0D77}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -49,42 +33,14 @@ Global
 		{A6370FDF-2140-4780-9671-FFCE9688A1AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A6370FDF-2140-4780-9671-FFCE9688A1AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A6370FDF-2140-4780-9671-FFCE9688A1AB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{45C6A6D2-AD42-4CFE-BF5C-A56ECB8563BD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{45C6A6D2-AD42-4CFE-BF5C-A56ECB8563BD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{45C6A6D2-AD42-4CFE-BF5C-A56ECB8563BD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{45C6A6D2-AD42-4CFE-BF5C-A56ECB8563BD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{539436BC-9F4B-4492-8ECC-4451E0C3FDEC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{539436BC-9F4B-4492-8ECC-4451E0C3FDEC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{539436BC-9F4B-4492-8ECC-4451E0C3FDEC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{539436BC-9F4B-4492-8ECC-4451E0C3FDEC}.Release|Any CPU.Build.0 = Release|Any CPU
 		{180FC3CA-E92E-4B89-8A3A-81302F088F2E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{180FC3CA-E92E-4B89-8A3A-81302F088F2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{180FC3CA-E92E-4B89-8A3A-81302F088F2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{180FC3CA-E92E-4B89-8A3A-81302F088F2E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6C155372-A8A1-4E3B-8808-E875AFE452C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6C155372-A8A1-4E3B-8808-E875AFE452C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6C155372-A8A1-4E3B-8808-E875AFE452C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6C155372-A8A1-4E3B-8808-E875AFE452C8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0B4B5871-2017-40CA-B190-AEDB974D843D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0B4B5871-2017-40CA-B190-AEDB974D843D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0B4B5871-2017-40CA-B190-AEDB974D843D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0B4B5871-2017-40CA-B190-AEDB974D843D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6584213E-212A-4262-810D-E121A7E737F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6584213E-212A-4262-810D-E121A7E737F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6584213E-212A-4262-810D-E121A7E737F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6584213E-212A-4262-810D-E121A7E737F1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B082A621-EF4B-415B-B8C2-BE4EEE791B52}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B082A621-EF4B-415B-B8C2-BE4EEE791B52}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B082A621-EF4B-415B-B8C2-BE4EEE791B52}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B082A621-EF4B-415B-B8C2-BE4EEE791B52}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E2703F17-D2F9-43F7-A379-D0A8833AEE1E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E2703F17-D2F9-43F7-A379-D0A8833AEE1E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E2703F17-D2F9-43F7-A379-D0A8833AEE1E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E2703F17-D2F9-43F7-A379-D0A8833AEE1E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{AAB3C3CD-0BDD-494B-83AD-F3295AAA13CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AAB3C3CD-0BDD-494B-83AD-F3295AAA13CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AAB3C3CD-0BDD-494B-83AD-F3295AAA13CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AAB3C3CD-0BDD-494B-83AD-F3295AAA13CF}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2FF9C05F-BBF1-4AE0-AB73-017751DEF4DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2FF9C05F-BBF1-4AE0-AB73-017751DEF4DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2FF9C05F-BBF1-4AE0-AB73-017751DEF4DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -93,10 +49,6 @@ Global
 		{67553B48-F896-4D76-9210-95AAE6707F60}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{67553B48-F896-4D76-9210-95AAE6707F60}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{67553B48-F896-4D76-9210-95AAE6707F60}.Release|Any CPU.Build.0 = Release|Any CPU
-		{88796EE8-B48B-434D-AC55-FAFFC9BE0D77}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{88796EE8-B48B-434D-AC55-FAFFC9BE0D77}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{88796EE8-B48B-434D-AC55-FAFFC9BE0D77}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{88796EE8-B48B-434D-AC55-FAFFC9BE0D77}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
