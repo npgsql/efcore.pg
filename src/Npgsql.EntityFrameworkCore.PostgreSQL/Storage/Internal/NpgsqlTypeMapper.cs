@@ -128,7 +128,10 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
 
             if (arrayElementType != null)
             {
-                var elementMapping = (NpgsqlBaseTypeMapping)FindMapping(arrayElementType);
+                // At least for now, we only support arrays of base (scalar) types.
+                // Notably, arrays of arrays aren't supported (as opposed to multidimensional arrays) because PostgreSQL
+                // doesn't support them.
+                var elementMapping = FindMapping(arrayElementType) as NpgsqlBaseTypeMapping;
 
                 // If an element isn't supported, neither is its array
                 if (elementMapping?.NpgsqlDbType == null)
