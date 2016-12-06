@@ -31,12 +31,11 @@ Following is an example project.json using Npgsql EF Core:
           "type": "platform",
           "version": "1.1.0"
         }
-      },
-      "imports": "dnxcore50"
+      }
     }
   },
   "tools": {
-    "Microsoft.EntityFrameworkCore.Tools": "1.1.0-preview4-final"
+    "Microsoft.EntityFrameworkCore.Tools.DotNet": "1.1.0-preview4-final"
   }
 }
 ```
