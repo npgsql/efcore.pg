@@ -407,6 +407,39 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Metadata
         }
 
         [Fact]
+        public void Can_get_and_set_index_filter()
+        {
+            var modelBuilder = new ModelBuilder(new ConventionSet());
+
+            var index = modelBuilder
+                .Entity<Customer>()
+                .HasIndex(e => e.Id)
+                .Metadata;
+
+            Assert.Null(index.Relational().Filter);
+            Assert.Null(index.Npgsql().Filter);
+            Assert.Null(((IIndex) index).Npgsql().Filter);
+
+            index.Relational().Name = "Generic expression";
+
+            Assert.Equal("Generic expression", index.Relational().Name);
+            Assert.Equal("Generic expression", index.Npgsql().Name);
+            Assert.Equal("Generic expression", ((IIndex) index).Npgsql().Name);
+
+            index.Npgsql().Name = "PostgreSQL-specific expression";
+
+            Assert.Equal("Generic expression", index.Relational().Name);
+            Assert.Equal("PostgreSQL-specific expression", index.Npgsql().Name);
+            Assert.Equal("PostgreSQL-specific expression", ((IIndex) index).Npgsql().Name);
+
+            index.Npgsql().Name = null;
+
+            Assert.Null(index.Relational().Filter);
+            Assert.Null(index.Npgsql().Filter);
+            Assert.Null(((IIndex) index).Npgsql().Filter);
+        }
+
+        [Fact]
         public void Can_get_and_set_sequence()
         {
             var modelBuilder = new ModelBuilder(new ConventionSet());
