@@ -41,10 +41,9 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
     public class NpgsqlTypeMapper : RelationalTypeMapper
     {
         readonly Dictionary<string, RelationalTypeMapping> _storeTypeMappings;
-        readonly Dictionary<Type, RelationalTypeMapping> _clrTypeMappings;
 
-        readonly ConcurrentDictionary<Type, NpgsqlArrayTypeMapping> _arrayMappings
-            = new ConcurrentDictionary<Type, NpgsqlArrayTypeMapping>();
+        readonly Dictionary<Type, RelationalTypeMapping> _baseClrMappings;
+        readonly ConcurrentDictionary<Type, RelationalTypeMapping> _extraClrMappings;
 
         public override IStringRelationalTypeMapper StringMapper { get; }
 
@@ -72,7 +71,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
                 .ToDictionary(x => x.Name, x => x.Mapping);
 
             // Second, CLR type -> RelationalTypeMapping
-            _clrTypeMappings = TypeHandlerRegistry.HandlerTypes.Values
+            _baseClrMappings = TypeHandlerRegistry.HandlerTypes.Values
                 // Base types
                 .Select(tam => tam.Mapping)
                 .Where(m => m.NpgsqlDbType.HasValue)
@@ -99,7 +98,9 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
             // that (especially since the xmin system column is important for optimistic concurrency).
             // EFCore doesn't allow a situation where a CLR type has no default store type, so we arbitrarily
             // choose oid.
-            _clrTypeMappings[typeof(uint)] = new NpgsqlBaseTypeMapping("oid", typeof(uint), NpgsqlDbType.Oid);
+            _baseClrMappings[typeof(uint)] = new NpgsqlBaseTypeMapping("oid", typeof(uint), NpgsqlDbType.Oid);
+
+            _extraClrMappings = new ConcurrentDictionary<Type, RelationalTypeMapping>();
 
             StringMapper = new NpgsqlStringRelationalTypeMapper();
         }
@@ -107,7 +108,10 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
         protected override string GetColumnType(IProperty property) => property.Npgsql().ColumnType;
 
         protected override IReadOnlyDictionary<Type, RelationalTypeMapping> GetClrTypeMappings()
-            => _clrTypeMappings;
+        {
+            // Too limiting, we simply reimplement FindMapping
+            throw new NotSupportedException();
+        }
 
         protected override IReadOnlyDictionary<string, RelationalTypeMapping> GetStoreTypeMappings()
             => _storeTypeMappings;
@@ -115,16 +119,23 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
         [CanBeNull]
         public override RelationalTypeMapping FindMapping(Type clrType)
         {
-            var mapping = base.FindMapping(clrType);
-            if (mapping != null)
+            Check.NotNull(clrType, nameof(clrType));
+
+            var unwrappedType = clrType.UnwrapNullableType().UnwrapEnumType();
+            RelationalTypeMapping mapping;
+            if (_baseClrMappings.TryGetValue(unwrappedType, out mapping))
                 return mapping;
+            if (_extraClrMappings.TryGetValue(unwrappedType, out mapping))
+                return mapping;
+
+            // Type hasn't been seen before - we may need to add a mapping (e.g. array)
 
             // Check if it's an array or generic IList
             Type arrayElementType = null;
-            if (clrType.IsArray)
-                arrayElementType = clrType.GetElementType();
-            else if (typeof(IList).IsAssignableFrom(clrType) && clrType.GetTypeInfo().IsGenericType)
-                arrayElementType = clrType.GetGenericArguments()[0];
+            if (unwrappedType.IsArray)
+                arrayElementType = unwrappedType.GetElementType();
+            else if (typeof(IList).IsAssignableFrom(unwrappedType) && unwrappedType.GetTypeInfo().IsGenericType)
+                arrayElementType = unwrappedType.GetGenericArguments()[0];
 
             if (arrayElementType != null)
             {
@@ -137,7 +148,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
                 if (elementMapping?.NpgsqlDbType == null)
                     return null;
 
-                return _arrayMappings.GetOrAdd(clrType, t => new NpgsqlArrayTypeMapping(clrType, elementMapping));
+                return _extraClrMappings.GetOrAdd(unwrappedType, t => new NpgsqlArrayTypeMapping(unwrappedType, elementMapping));
             }
 
             return null;
