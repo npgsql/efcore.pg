@@ -32,14 +32,18 @@ namespace Microsoft.EntityFrameworkCore.Migrations.Internal
 {
     public class NpgsqlMigrationsAnnotationProvider : MigrationsAnnotationProvider
     {
+        public override IEnumerable<IAnnotation> For(IEntityType entityType)
+        {
+            if (entityType.Npgsql().Comment != null)
+                yield return new Annotation(NpgsqlFullAnnotationNames.Instance.Comment, entityType.Npgsql().Comment);
+        }
+
         public override IEnumerable<IAnnotation> For(IProperty property)
         {
             if (property.Npgsql().ValueGenerationStrategy == NpgsqlValueGenerationStrategy.SerialColumn)
-            {
-                yield return new Annotation(
-                    NpgsqlFullAnnotationNames.Instance.ValueGenerationStrategy,
-                    NpgsqlValueGenerationStrategy.SerialColumn);
-            }
+                yield return new Annotation(NpgsqlFullAnnotationNames.Instance.ValueGenerationStrategy, NpgsqlValueGenerationStrategy.SerialColumn);
+            if (property.Npgsql().Comment != null)
+                yield return new Annotation(NpgsqlFullAnnotationNames.Instance.Comment, property.Npgsql().Comment);
         }
 
         public override IEnumerable<IAnnotation> For(IIndex index)

@@ -35,6 +35,7 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Internal
         public const string PostgresExtensionPrefix = "PostgresExtension:";
         public const string DatabaseTemplate = "DatabaseTemplate";
         public const string StorageParameterPrefix = "StorageParameter:";
+        public const string Comment = "Comment";
 
         [Obsolete("Replaced by ValueGenerationStrategy.SerialColumn")]
         public const string ValueGeneratedOnAdd = "ValueGeneratedOnAdd";

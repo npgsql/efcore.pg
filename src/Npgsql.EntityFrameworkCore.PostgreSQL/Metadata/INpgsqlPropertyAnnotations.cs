@@ -12,5 +12,6 @@ namespace Microsoft.EntityFrameworkCore.Metadata
         string HiLoSequenceName { get; }
         string HiLoSequenceSchema { get; }
         ISequence FindHiLoSequence();
+        string Comment { get; }
     }
 }

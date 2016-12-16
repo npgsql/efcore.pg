@@ -277,5 +277,17 @@ namespace Microsoft.EntityFrameworkCore.Metadata
 
             base.ClearAllServerGeneratedValues();
         }
+
+        public virtual string Comment
+        {
+            get { return (string)Annotations.GetAnnotation(NpgsqlFullAnnotationNames.Instance.Comment, null); }
+            [param: CanBeNull] set { SetComment(value); }
+        }
+
+        protected virtual bool SetComment([CanBeNull] string value)
+            => Annotations.SetAnnotation(
+                NpgsqlFullAnnotationNames.Instance.Comment,
+                null,
+                Check.NullButNotEmpty(value, nameof(value)));
     }
 }

@@ -1449,6 +1449,37 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Metadata
             Assert.Equal(80, storageParams.Single().Value);
         }
 
+        [Fact]
+        public void Can_set_table_comment()
+        {
+            var modelBuilder = CreateConventionModelBuilder();
+
+            modelBuilder
+                .Entity<Customer>()
+                .ForNpgsqlHasComment("Some comment");
+
+            var entityType = modelBuilder.Model.FindEntityType(typeof(Customer));
+
+            Assert.Equal("Some comment", entityType.Npgsql().Comment);
+        }
+
+        [Fact]
+        public void Can_set_property_comment()
+        {
+            var modelBuilder = CreateConventionModelBuilder();
+
+            modelBuilder
+                .Entity(typeof(Customer))
+                .Property(typeof(int), "Id")
+                .ForNpgsqlHasComment("Some comment");
+
+            var property = modelBuilder.Model
+                .FindEntityType(typeof(Customer))
+                .FindProperty("Id");
+
+            Assert.Equal("Some comment", property.Npgsql().Comment);
+        }
+
         #endregion
 
         private void AssertIsGeneric(EntityTypeBuilder<Customer> _)

@@ -623,5 +623,178 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Migrations
         }
 
         #endregion
+
+        #region PostgreSQL comments
+
+        [Fact]
+        public void CreateTableOperation_with_comment()
+        {
+            Generate(
+                new CreateTableOperation
+                {
+                    Name = "People",
+                    Schema = "dbo",
+                    Columns =
+                    {
+                        new AddColumnOperation
+                        {
+                            Name = "Id",
+                            Table = "People",
+                            ClrType = typeof(int),
+                            IsNullable = false
+                        },
+                    },
+                    PrimaryKey = new AddPrimaryKeyOperation
+                    {
+                        Columns = new[] { "Id" }
+                    },
+                    [NpgsqlFullAnnotationNames.Instance.Comment] = "Some comment",
+                });
+
+            Assert.Equal(
+                "CREATE TABLE \"dbo\".\"People\" (" + EOL +
+                "    \"Id\" int4 NOT NULL," + EOL +
+                "    PRIMARY KEY (\"Id\")" + EOL +
+                ");" + EOL +
+                "COMMENT ON TABLE \"dbo\".\"People\" IS 'Some comment';" + EOL,
+                Sql);
+        }
+
+        [Fact]
+        public void CreateTableOperation_with_comment_on_column()
+        {
+            Generate(
+                new CreateTableOperation
+                {
+                    Name = "People",
+                    Schema = "dbo",
+                    Columns =
+                    {
+                        new AddColumnOperation
+                        {
+                            Name = "Id",
+                            Table = "People",
+                            ClrType = typeof(int),
+                            IsNullable = false,
+                            [NpgsqlFullAnnotationNames.Instance.Comment] = "Some comment",
+                        }
+                    },
+                    PrimaryKey = new AddPrimaryKeyOperation
+                    {
+                        Columns = new[] { "Id" }
+                    }
+                });
+
+            Assert.Equal(
+                "CREATE TABLE \"dbo\".\"People\" (" + EOL +
+                "    \"Id\" int4 NOT NULL," + EOL +
+                "    PRIMARY KEY (\"Id\")" + EOL +
+                ");" + EOL +
+                "COMMENT ON COLUMN \"dbo\".\"People\".\"Id\" IS 'Some comment';" + EOL,
+                Sql);
+        }
+
+        [Fact]
+        public void AlterTable_change_comment()
+        {
+            Generate(
+                new AlterTableOperation
+                {
+                    Name="People",
+                    Schema="dbo",
+                    OldTable = new Annotatable { [NpgsqlFullAnnotationNames.Instance.Comment] = "Old comment" },
+                    [NpgsqlFullAnnotationNames.Instance.Comment] = "New comment"
+                });
+
+            Assert.Equal(
+                "COMMENT ON TABLE \"dbo\".\"People\" IS 'New comment';" + EOL,
+                Sql);
+        }
+
+        [Fact]
+        public void AlterTable_remove_comment()
+        {
+            Generate(
+                new AlterTableOperation
+                {
+                    Name="People",
+                    Schema="dbo",
+                    OldTable = new Annotatable { [NpgsqlFullAnnotationNames.Instance.Comment] = "New comment" }
+                });
+            Assert.Equal(
+                "COMMENT ON TABLE \"dbo\".\"People\" IS NULL;" + EOL,
+                Sql);
+        }
+
+        [Fact]
+        public void AddColumnOperation_with_comment()
+        {
+            Generate(new AddColumnOperation
+            {
+                Schema = "dbo",
+                Table = "People",
+                Name = "foo",
+                ClrType = typeof(int),
+                ColumnType = "int",
+                IsNullable = false,
+                [NpgsqlFullAnnotationNames.Instance.Comment] = "Some comment",
+            });
+
+            Assert.Equal(
+                "ALTER TABLE \"dbo\".\"People\" ADD \"foo\" int NOT NULL;" + EOL +
+                "COMMENT ON COLUMN \"dbo\".\"People\".\"foo\" IS 'Some comment';" + EOL,
+                Sql);
+        }
+
+        [Fact]
+        public void AlterColumn_change_comment()
+        {
+            Generate(
+                new AlterColumnOperation
+                {
+                    Table = "People",
+                    Schema = "dbo",
+                    Name = "LuckyNumber",
+                    ClrType = typeof(int),
+                    ColumnType = "int",
+                    IsNullable = false,
+                    DefaultValue = 7,
+                    OldColumn = new ColumnOperation { [NpgsqlFullAnnotationNames.Instance.Comment] = "Old comment" },
+                    [NpgsqlFullAnnotationNames.Instance.Comment] = "New comment"
+                });
+
+            Assert.Equal(
+                @"ALTER TABLE ""dbo"".""People"" ALTER COLUMN ""LuckyNumber"" TYPE int;" + EOL +
+                @"ALTER TABLE ""dbo"".""People"" ALTER COLUMN ""LuckyNumber"" SET NOT NULL;" + EOL +
+                @"ALTER TABLE ""dbo"".""People"" ALTER COLUMN ""LuckyNumber"" SET DEFAULT 7;" + EOL +
+                "COMMENT ON COLUMN \"dbo\".\"People\".\"LuckyNumber\" IS 'New comment'",
+                Sql);
+        }
+
+        [Fact]
+        public void AlterColumn_remove_comment()
+        {
+            Generate(
+                new AlterColumnOperation
+                {
+                    Table = "People",
+                    Schema = "dbo",
+                    Name = "LuckyNumber",
+                    ClrType = typeof(int),
+                    ColumnType = "int",
+                    IsNullable = false,
+                    DefaultValue = 7,
+                    OldColumn = new ColumnOperation { [NpgsqlFullAnnotationNames.Instance.Comment] = "Old comment" }
+                });
+
+            Assert.Equal(
+                @"ALTER TABLE ""dbo"".""People"" ALTER COLUMN ""LuckyNumber"" TYPE int;" + EOL +
+                @"ALTER TABLE ""dbo"".""People"" ALTER COLUMN ""LuckyNumber"" SET NOT NULL;" + EOL +
+                @"ALTER TABLE ""dbo"".""People"" ALTER COLUMN ""LuckyNumber"" SET DEFAULT 7;" + EOL +
+                "COMMENT ON COLUMN \"dbo\".\"People\".\"LuckyNumber\" IS NULL",
+                Sql);
+        }
+
+        #endregion
     }
 }

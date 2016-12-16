@@ -23,6 +23,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using JetBrains.Annotations;
@@ -103,6 +104,36 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                     .Append(')');
             }
 
+            // Comment on the table
+            var comment = operation[NpgsqlFullAnnotationNames.Instance.Comment] as string;
+            if (comment != null)
+            {
+                builder.AppendLine(SqlGenerationHelper.StatementTerminator);
+                EndStatement(builder);
+
+                builder
+                    .Append("COMMENT ON TABLE ")
+                    .Append(SqlGenerationHelper.DelimitIdentifier(operation.Name, operation.Schema))
+                    .Append(" IS ")
+                    .Append(SqlGenerationHelper.GenerateLiteral(comment));
+            }
+
+            // Comments on the columns
+            foreach (var columnOp in operation.Columns.Where(c => c[NpgsqlFullAnnotationNames.Instance.Comment] != null))
+            {
+                var columnComment = columnOp[NpgsqlFullAnnotationNames.Instance.Comment];
+                builder.AppendLine(SqlGenerationHelper.StatementTerminator);
+                EndStatement(builder);
+
+                builder
+                    .Append("COMMENT ON COLUMN ")
+                    .Append(SqlGenerationHelper.DelimitIdentifier(operation.Name, operation.Schema))
+                    .Append('.')
+                    .Append(SqlGenerationHelper.DelimitIdentifier(columnOp.Name))
+                    .Append(" IS ")
+                    .Append(SqlGenerationHelper.GenerateLiteral(columnComment));
+            }
+
             if (terminate)
             {
                 builder.AppendLine(SqlGenerationHelper.StatementTerminator);
@@ -112,6 +143,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
 
         protected override void Generate(AlterTableOperation operation, IModel model, MigrationCommandListBuilder builder)
         {
+            // Storage parameters
             var oldStorageParameters = GetStorageParameters(operation.OldTable);
             var newStorageParameters = GetStorageParameters(operation);
 
@@ -155,6 +187,22 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                 EndStatement(builder);
             }
 
+            // Comment
+            var oldComment = operation.OldTable[NpgsqlFullAnnotationNames.Instance.Comment] as string;
+            var newComment = operation[NpgsqlFullAnnotationNames.Instance.Comment] as string;
+
+            if (oldComment != newComment)
+            {
+                builder
+                    .Append("COMMENT ON TABLE ")
+                    .Append(SqlGenerationHelper.DelimitIdentifier(operation.Name, operation.Schema))
+                    .Append(" IS ")
+                    .Append(SqlGenerationHelper.GenerateLiteral(newComment));
+
+                builder.AppendLine(SqlGenerationHelper.StatementTerminator);
+                EndStatement(builder);
+            }
+
 
             base.Generate(operation, model, builder);
         }
@@ -170,6 +218,36 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                 return;
 
             base.Generate(operation, model, builder, terminate);
+        }
+
+        protected override void Generate(
+            AddColumnOperation operation,
+            IModel model,
+            MigrationCommandListBuilder builder,
+            bool terminate)
+        {
+            base.Generate(operation, model, builder, terminate: false);
+
+            var comment = operation[NpgsqlFullAnnotationNames.Instance.Comment] as string;
+            if (comment != null)
+            {
+                builder.AppendLine(SqlGenerationHelper.StatementTerminator);
+                EndStatement(builder);
+
+                builder
+                    .Append("COMMENT ON COLUMN ")
+                    .Append(SqlGenerationHelper.DelimitIdentifier(operation.Table, operation.Schema))
+                    .Append('.')
+                    .Append(SqlGenerationHelper.DelimitIdentifier(operation.Name))
+                    .Append(" IS ")
+                    .Append(SqlGenerationHelper.GenerateLiteral(comment));
+            }
+
+            if (terminate)
+            {
+                builder.AppendLine(SqlGenerationHelper.StatementTerminator);
+                EndStatement(builder);
+            }
         }
 
         protected override void Generate(AlterColumnOperation operation, IModel model, MigrationCommandListBuilder builder)
@@ -248,6 +326,23 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                     .Append(SqlGenerationHelper.DelimitIdentifier(operation.Table))
                     .Append('.')
                     .Append(SqlGenerationHelper.DelimitIdentifier(operation.Name));
+            }
+
+            // Comment
+            var oldComment = operation.OldColumn[NpgsqlFullAnnotationNames.Instance.Comment] as string;
+            var newComment = operation[NpgsqlFullAnnotationNames.Instance.Comment] as string;
+
+            if (oldComment != newComment)
+            {
+                builder.AppendLine(SqlGenerationHelper.StatementTerminator);
+
+                builder
+                    .Append("COMMENT ON COLUMN ")
+                    .Append(SqlGenerationHelper.DelimitIdentifier(operation.Table, operation.Schema))
+                    .Append('.')
+                    .Append(SqlGenerationHelper.DelimitIdentifier(operation.Name))
+                    .Append(" IS ")
+                    .Append(SqlGenerationHelper.GenerateLiteral(newComment));
             }
 
             EndStatement(builder);

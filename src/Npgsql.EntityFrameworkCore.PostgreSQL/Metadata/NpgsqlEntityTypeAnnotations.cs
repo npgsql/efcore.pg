@@ -3,6 +3,7 @@ using System.Linq;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.EntityFrameworkCore.Utilities;
 
 namespace Microsoft.EntityFrameworkCore.Metadata
 {
@@ -28,5 +29,17 @@ namespace Microsoft.EntityFrameworkCore.Metadata
                     a => a.Name.Substring(NpgsqlFullAnnotationNames.Instance.StorageParameterPrefix.Length),
                     a => a.Value
                 );
+
+        public virtual string Comment
+        {
+            get { return (string)Annotations.GetAnnotation(NpgsqlFullAnnotationNames.Instance.Comment, null); }
+            [param: CanBeNull] set { SetComment(value); }
+        }
+
+        protected virtual bool SetComment([CanBeNull] string value)
+            => Annotations.SetAnnotation(
+                NpgsqlFullAnnotationNames.Instance.Comment,
+                null,
+                Check.NullButNotEmpty(value, nameof(value)));
     }
 }

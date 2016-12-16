@@ -37,6 +37,7 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Internal
             PostgresExtensionPrefix = prefix + NpgsqlAnnotationNames.PostgresExtensionPrefix;
             DatabaseTemplate = prefix + NpgsqlAnnotationNames.DatabaseTemplate;
             StorageParameterPrefix = prefix + NpgsqlAnnotationNames.StorageParameterPrefix;
+            Comment = prefix + NpgsqlAnnotationNames.Comment;
 #pragma warning disable 618
             ValueGeneratedOnAdd = prefix + NpgsqlAnnotationNames.ValueGeneratedOnAdd;
 #pragma warning restore 618
@@ -51,6 +52,7 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Internal
         public readonly string PostgresExtensionPrefix;
         public readonly string DatabaseTemplate;
         public readonly string StorageParameterPrefix;
+        public readonly string Comment;
 
         [Obsolete("Replaced by ValueGenerationStrategy.SerialColumn")]
         public readonly string ValueGeneratedOnAdd;
