@@ -219,5 +219,6 @@ CREATE TABLE "SpecialTypes" (
   "SpecialTypesID" int PRIMARY KEY,
   "IpAddress" inet,
   "MacAddress" macaddr,
-  "IntArray" int[]
+  "IntArray" int[],
+  "IntRange" int4range
 );
