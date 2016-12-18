@@ -527,12 +527,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Metadata
                 .Entity<Customer>()
                 .HasIndex(e => e.Id)
                 .HasFilter("Generic expression")
-                .ForSqlServerHasFilter("SqlServer-specific expression");
+                .ForNpgsqlHasFilter("PostgreSQL-specific expression");
 
             var index = modelBuilder.Model.FindEntityType(typeof(Customer)).GetIndexes().Single();
 
             Assert.Equal("Generic expression", index.Relational().Filter);
-            Assert.Equal("SqlServer-specific expression", index.Npgsql().Filter);
+            Assert.Equal("PostgreSQL-specific expression", index.Npgsql().Filter);
         }
 
 
