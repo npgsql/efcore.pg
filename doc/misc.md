@@ -17,10 +17,18 @@ Entity Framework supports the concept of optimistic concurrency - a property on 
 
 Although applications can update concurrency tokens themselves, we frequently rely on the database automatically updating a column on update - a "last modified" timestamp, an SQL Server `rowversion`, etc. Unfortunately PostgreSQL doesn't have such auto-updating columns - but there is one feature that can be used for concurrency token. All PostgreSQL have a set of [implicit and hidden system columns](https://www.postgresql.org/docs/current/static/ddl-system-columns.htm://www.postgresql.org/docs/current/static/ddl-system-columns.html), among which `xmin` holds the ID of the latest updating transaction. Since this value automatically gets updated every time the row is changed, it is ideal for use as a concurrency token.
 
-To enable this feature on an entity, insert the following code into your models' `OnModelCreating` method:
+To enable this feature on an entity, insert the following code into your model's `OnModelCreating` method:
 
 ```c#
 modelBuilder.Entity<MyEntity>().ForNpgsqlUseXminAsConcurrencyToken();
+```
+
+## Comments
+
+PostgreSQL allows you to [attach comments](https://www.postgresql.org/docs/current/static/sql-syntax.html) to database objects, which can help explain their purpose for someone examining the schema. The EF Core provider supports this for tables or columns, simply set the comment in your model's `OnModelCreating` as follows:
+
+```c#
+modelBuilder.Entity<MyEntity>().ForNpgsqlHasComment("Some comment");
 ```
 
 ## Using a database template
