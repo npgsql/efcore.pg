@@ -7,7 +7,7 @@
     "licenseUrl": "https://raw.githubusercontent.com/npgsql/Npgsql.EntityFrameworkCore.PostgreSQL/dev/LICENSE.txt",
     "repository": {
       "type": "git",
-      "url": "git://github.com/npgsql/npgsql"
+      "url": "git://github.com/npgsql/Npgsql.EntityFrameworkCore.PostgreSQL"
     }
   },
   "buildOptions": {
@@ -22,14 +22,12 @@
     "Microsoft.EntityFrameworkCore.Relational": "1.2.0-*",
     "Microsoft.Extensions.DependencyInjection.Abstractions": "1.2.0-*",
     "Microsoft.Extensions.DependencyInjection": "1.2.0-*",
-    "Npgsql": "3.1.8"
+    "Npgsql": "3.1.8",
+    "NETStandard.Library": "1.6.2-*"
   },
   "frameworks": {
     "net451": {},
     "netstandard13": {
-      "imports": [
-        "portable-net452+win81"
-      ],
       "dependencies": {
       }
     }

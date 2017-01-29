@@ -362,7 +362,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                         .UseInternalServiceProvider(new ServiceCollection()
                             .AddEntityFrameworkNpgsql()
                             //.AddScoped<NpgsqlExecutionStrategyFactory, TestNpgsqlExecutionStrategyFactory>()
-                            .AddScoped<NpgsqlDatabaseCreator, TestDatabaseCreator>().BuildServiceProvider()).Options))
+                            .AddScoped<IRelationalDatabaseCreator, TestDatabaseCreator>().BuildServiceProvider()).Options))
                 .Instance;
 
         private static IRelationalDatabaseCreator GetDatabaseCreator(NpgsqlTestStore testStore)

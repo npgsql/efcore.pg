@@ -31,22 +31,11 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
 {
     public class NpgsqlRelationalConnection : RelationalConnection
     {
-        public NpgsqlRelationalConnection(
-            [NotNull] IDbContextOptions options,
-            // ReSharper disable once SuggestBaseTypeForParameter
-            [NotNull] ILogger<NpgsqlConnection> logger)
-            : base(options, logger)
+        public NpgsqlRelationalConnection([NotNull] RelationalConnectionDependencies dependencies)
+            : base(dependencies)
         {
         }
 
-        private NpgsqlRelationalConnection(
-            [NotNull] IDbContextOptions options, [NotNull] ILogger logger)
-            : base(options, logger)
-        {
-        }
-
-        // TODO: Consider using DbProviderFactory to create connection instance
-        // Issue #774
         protected override DbConnection CreateDbConnection() => new NpgsqlConnection(ConnectionString);
 
         public NpgsqlRelationalConnection CreateMasterConnection()
@@ -58,7 +47,8 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
             var masterConn = ((NpgsqlConnection)DbConnection).CloneWith(csb.ToString());
             var optionsBuilder = new DbContextOptionsBuilder();
             optionsBuilder.UseNpgsql(masterConn);
-            return new NpgsqlRelationalConnection(optionsBuilder.Options, Logger);
+
+            return new NpgsqlRelationalConnection(Dependencies.With(optionsBuilder.Options));
         }
     }
 }

@@ -39,7 +39,13 @@ namespace Microsoft.EntityFrameworkCore.Infrastructure.Internal
         {
         }
 
-        public override void ApplyServices(IServiceCollection services)
-            => Check.NotNull(services, nameof(services)).AddEntityFrameworkNpgsql();
+        public override bool ApplyServices(IServiceCollection services)
+        {
+            Check.NotNull(services, nameof(services));
+
+            services.AddEntityFrameworkNpgsql();
+
+            return true;
+        }
     }
 }

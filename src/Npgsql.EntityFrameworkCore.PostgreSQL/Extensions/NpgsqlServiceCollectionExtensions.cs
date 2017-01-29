@@ -27,15 +27,21 @@ using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions.Internal;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Migrations.Internal;
+using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
 using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal;
 using Microsoft.EntityFrameworkCore.Query.Internal;
+using Microsoft.EntityFrameworkCore.Query.Sql;
 using Microsoft.EntityFrameworkCore.Query.Sql.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.Internal;
+using Microsoft.EntityFrameworkCore.Update;
 using Microsoft.EntityFrameworkCore.Update.Internal;
 using Microsoft.EntityFrameworkCore.Utilities;
+using Microsoft.EntityFrameworkCore.ValueGeneration;
 using Microsoft.EntityFrameworkCore.ValueGeneration.Internal;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -70,39 +76,45 @@ namespace Microsoft.Extensions.DependencyInjection
         ///         }
         ///     </code>
         /// </example>
-        /// <param name="services"> The <see cref="IServiceCollection" /> to add services to. </param>
+        /// <param name="serviceCollection"> The <see cref="IServiceCollection" /> to add services to. </param>
         /// <returns>
         ///     A builder that allows further Entity Framework specific setup of the <see cref="IServiceCollection" />.
         /// </returns>
-        public static IServiceCollection AddEntityFrameworkNpgsql([NotNull] this IServiceCollection services)
+        public static IServiceCollection AddEntityFrameworkNpgsql([NotNull] this IServiceCollection serviceCollection)
         {
-            Check.NotNull(services, nameof(services));
+            Check.NotNull(serviceCollection, nameof(serviceCollection));
 
-            services.AddRelational();
+            serviceCollection.TryAddEnumerable(
+                ServiceDescriptor.Singleton<IDatabaseProvider, DatabaseProvider<NpgsqlOptionsExtension>>());
 
-            services.TryAddEnumerable(ServiceDescriptor
-                .Singleton<IDatabaseProvider, DatabaseProvider<NpgsqlDatabaseProviderServices, NpgsqlOptionsExtension>>());
-
-            services.TryAdd(new ServiceCollection()
+            serviceCollection.TryAdd(new ServiceCollection()
                 .AddSingleton<INpgsqlValueGeneratorCache, NpgsqlValueGeneratorCache>()
-                .AddSingleton<NpgsqlTypeMapper>()
-                .AddSingleton<NpgsqlSqlGenerationHelper>()
-                .AddSingleton<NpgsqlModelSource>()
-                .AddSingleton<NpgsqlAnnotationProvider>()
-                .AddSingleton<NpgsqlMigrationsAnnotationProvider>()
-                .AddScoped<NpgsqlConventionSetBuilder>()
+                .AddSingleton<IValueGeneratorCache>(p => p.GetService<INpgsqlValueGeneratorCache>())
+                .AddSingleton<IRelationalTypeMapper, NpgsqlTypeMapper>()
+                .AddSingleton<ISqlGenerationHelper, NpgsqlSqlGenerationHelper>()
+                .AddSingleton<IRelationalAnnotationProvider, NpgsqlAnnotationProvider>()
+                .AddSingleton<IMigrationsAnnotationProvider, NpgsqlMigrationsAnnotationProvider>()
+                .AddScoped<IRelationalValueBufferFactoryFactory, TypedRelationalValueBufferFactoryFactory>()
+                .AddScoped<IConventionSetBuilder, NpgsqlConventionSetBuilder>()
                 .AddScoped<NpgsqlUpdateSqlGenerator>()
+                .AddScoped<IUpdateSqlGenerator>(p => p.GetService<NpgsqlUpdateSqlGenerator>())
                 .AddScoped<INpgsqlSequenceValueGeneratorFactory, NpgsqlSequenceValueGeneratorFactory>()
-                .AddScoped<NpgsqlModificationCommandBatchFactory>()
-                .AddScoped<NpgsqlValueGeneratorSelector>()
-                .AddScoped<NpgsqlDatabaseProviderServices>()
+                .AddScoped<IModificationCommandBatchFactory, NpgsqlModificationCommandBatchFactory>()
+                .AddScoped<IValueGeneratorSelector, NpgsqlValueGeneratorSelector>()
                 .AddScoped<NpgsqlRelationalConnection>()
-                .AddScoped<NpgsqlMigrationsSqlGenerator>()
-                .AddScoped<NpgsqlDatabaseCreator>()
-                .AddScoped<NpgsqlHistoryRepository>()
+                .AddScoped<IRelationalConnection>(p => p.GetService<NpgsqlRelationalConnection>())
+                .AddScoped<IMigrationsSqlGenerator, NpgsqlMigrationsSqlGenerator>()
+                .AddScoped<IRelationalDatabaseCreator, NpgsqlDatabaseCreator>()
+                .AddScoped<IHistoryRepository, NpgsqlHistoryRepository>()
+                .AddScoped<IQueryCompilationContextFactory, NpgsqlQueryCompilationContextFactory>()
+                .AddScoped<IMemberTranslator, NpgsqlCompositeMemberTranslator>()
+                .AddScoped<IMethodCallTranslator, NpgsqlCompositeMethodCallTranslator>()
+                .AddScoped<IQuerySqlGeneratorFactory, NpgsqlQuerySqlGeneratorFactory>()
                 .AddQuery());
 
-            return services;
+            ServiceCollectionRelationalProviderInfrastructure.TryAddDefaultRelationalServices(serviceCollection);
+
+            return serviceCollection;
         }
 
         private static IServiceCollection AddQuery(this IServiceCollection serviceCollection)

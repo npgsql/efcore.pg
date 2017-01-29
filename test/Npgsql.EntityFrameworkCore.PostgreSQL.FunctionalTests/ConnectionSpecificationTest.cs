@@ -1,15 +1,13 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-
-using System;
+﻿using System;
 using System.Linq;
-using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.TestModels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
+using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.TestModels;
+using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
 using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
@@ -48,9 +46,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         private class StringInOnConfiguringContext : NorthwindContextBase
         {
             protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-            {
-                optionsBuilder.UseNpgsql(NpgsqlNorthwindContext.ConnectionString);
-            }
+                => optionsBuilder.UseNpgsql(NpgsqlNorthwindContext.ConnectionString, b => b.ApplyConfiguration());
         }
 
         [Fact]
@@ -92,9 +88,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             }
 
             protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-            {
-                optionsBuilder.UseNpgsql(_connection);
-            }
+                => optionsBuilder.UseNpgsql(_connection, b => b.ApplyConfiguration());
 
             public override void Dispose()
             {
@@ -106,9 +100,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         private class StringInConfigContext : NorthwindContextBase
         {
             protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-            {
-                optionsBuilder.UseNpgsql("Database=Crunchie");
-            }
+                => optionsBuilder.UseNpgsql("Database=Crunchie", b => b.ApplyConfiguration());
         }
 
         [Fact]
@@ -143,107 +135,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 
         private class NoUseNpgsqlContext : NorthwindContextBase
         {
-        }
-
-        [Fact]
-        public void Can_select_appropriate_provider_when_multiple_registered()
-        {
-            var serviceProvider
-                = new ServiceCollection()
-                    .AddScoped<SomeService>()
-                    .AddDbContext<MultipleProvidersContext>()
-                    .BuildServiceProvider();
-
-            using (NpgsqlNorthwindContext.GetSharedStore())
-            {
-                MultipleProvidersContext context1;
-                MultipleProvidersContext context2;
-
-                using (var serviceScope = serviceProvider.GetRequiredService<IServiceScopeFactory>().CreateScope())
-                {
-                    using (context1 = serviceScope.ServiceProvider.GetRequiredService<MultipleProvidersContext>())
-                    {
-                        context1.UseNpgsql = true;
-
-                        Assert.True(context1.Customers.Any());
-                    }
-
-                    using (var context1B = serviceScope.ServiceProvider.GetRequiredService<MultipleProvidersContext>())
-                    {
-                        Assert.Same(context1, context1B);
-                    }
-
-                    var someService = serviceScope.ServiceProvider.GetRequiredService<SomeService>();
-                    Assert.Same(context1, someService.Context);
-                }
-                using (var serviceScope = serviceProvider.GetRequiredService<IServiceScopeFactory>().CreateScope())
-                {
-                    using (context2 = serviceScope.ServiceProvider.GetRequiredService<MultipleProvidersContext>())
-                    {
-                        context2.UseNpgsql = false;
-
-                        Assert.False(context2.Customers.Any());
-                    }
-
-                    using (var context2B = serviceScope.ServiceProvider.GetRequiredService<MultipleProvidersContext>())
-                    {
-                        Assert.Same(context2, context2B);
-                    }
-
-                    var someService = serviceScope.ServiceProvider.GetRequiredService<SomeService>();
-                    Assert.Same(context2, someService.Context);
-                }
-
-                Assert.NotSame(context1, context2);
-            }
-        }
-
-        [Fact]
-        public void Can_select_appropriate_provider_when_multiple_registered_with_default_service_provider()
-        {
-            using (NpgsqlNorthwindContext.GetSharedStore())
-            {
-                using (var context = new MultipleProvidersContext())
-                {
-                    context.UseNpgsql = true;
-
-                    Assert.True(context.Customers.Any());
-                }
-
-                using (var context = new MultipleProvidersContext())
-                {
-                    context.UseNpgsql = false;
-
-                    Assert.False(context.Customers.Any());
-                }
-            }
-        }
-
-        private class MultipleProvidersContext : NorthwindContextBase
-        {
-            public bool UseNpgsql { get; set; }
-
-            protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-            {
-                if (UseNpgsql)
-                {
-                    optionsBuilder.UseNpgsql(NpgsqlNorthwindContext.ConnectionString);
-                }
-                else
-                {
-                    optionsBuilder.UseInMemoryDatabase();
-                }
-            }
-        }
-
-        private class SomeService
-        {
-            public SomeService(MultipleProvidersContext context)
-            {
-                Context = context;
-            }
-
-            public MultipleProvidersContext Context { get; }
         }
 
         [Fact]
@@ -294,7 +185,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             {
                 Assert.Same(_options, optionsBuilder.Options);
 
-                optionsBuilder.UseNpgsql(_connection);
+                optionsBuilder.UseNpgsql(_connection, b => b.ApplyConfiguration());
 
                 Assert.NotSame(_options, optionsBuilder.Options);
             }
@@ -303,85 +194,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             {
                 _connection.Dispose();
                 base.Dispose();
-            }
-        }
-
-        [Fact]
-        public void Can_register_multiple_context_types()
-        {
-            var serviceProvider = new ServiceCollection()
-                .AddDbContext<MultipleContext1>()
-                .AddDbContext<MultipleContext2>()
-                .BuildServiceProvider();
-
-            using (NpgsqlNorthwindContext.GetSharedStore())
-            {
-                using (var context = serviceProvider.GetRequiredService<MultipleContext1>())
-                {
-                    Assert.True(context.Customers.Any());
-                }
-
-                using (var context = serviceProvider.GetRequiredService<MultipleContext2>())
-                {
-                    Assert.False(context.Customers.Any());
-                }
-            }
-        }
-
-        [Fact]
-        public void Can_register_multiple_context_types_with_default_service_provider()
-        {
-            using (NpgsqlNorthwindContext.GetSharedStore())
-            {
-                using (var context = new MultipleContext1(new DbContextOptions<MultipleContext1>()))
-                {
-                    Assert.True(context.Customers.Any());
-                }
-
-                using (var context = new MultipleContext2(new DbContextOptions<MultipleContext2>()))
-                {
-                    Assert.False(context.Customers.Any());
-                }
-            }
-        }
-
-        private class MultipleContext1 : NorthwindContextBase
-        {
-            private readonly DbContextOptions<MultipleContext1> _options;
-
-            public MultipleContext1(DbContextOptions<MultipleContext1> options)
-                : base(options)
-            {
-                _options = options;
-            }
-
-            protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-            {
-                Assert.Same(_options, optionsBuilder.Options);
-
-                optionsBuilder.UseNpgsql(NpgsqlNorthwindContext.ConnectionString);
-
-                Assert.NotSame(_options, optionsBuilder.Options);
-            }
-        }
-
-        private class MultipleContext2 : NorthwindContextBase
-        {
-            private readonly DbContextOptions<MultipleContext2> _options;
-
-            public MultipleContext2(DbContextOptions<MultipleContext2> options)
-                : base(options)
-            {
-                _options = options;
-            }
-
-            protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-            {
-                Assert.Same(_options, optionsBuilder.Options);
-
-                optionsBuilder.UseInMemoryDatabase();
-
-                Assert.NotSame(_options, optionsBuilder.Options);
             }
         }
 
@@ -428,7 +240,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             {
                 Assert.Same(_options, optionsBuilder.Options);
 
-                optionsBuilder.UseNpgsql(NpgsqlNorthwindContext.ConnectionString);
+                optionsBuilder.UseNpgsql(NpgsqlNorthwindContext.ConnectionString, b => b.ApplyConfiguration());
 
                 Assert.NotSame(_options, optionsBuilder.Options);
             }

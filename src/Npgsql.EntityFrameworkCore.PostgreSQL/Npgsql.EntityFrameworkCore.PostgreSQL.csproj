@@ -96,9 +96,7 @@
     <Compile Include="Storage\Internal\NpgsqlSqlGenerationHelper.cs" />
     <Compile Include="Storage\Internal\NpgsqlRelationalConnection.cs" />
     <Compile Include="Storage\Internal\NpgsqlDatabaseCreator.cs" />
-    <Compile Include="Storage\Internal\NpgsqlDatabaseProviderServices.cs" />
     <Compile Include="Extensions\NpgsqlMetadataExtensions.cs" />
-    <Compile Include="Infrastructure\Internal\NpgsqlModelSource.cs" />
     <Compile Include="Infrastructure\Internal\NpgsqlOptionsExtension.cs" />
     <Compile Include="Storage\Internal\NpgsqlTypeMapper.cs" />
     <Compile Include="Storage\Internal\Mapping\NpgsqlBaseTypeMapping.cs" />

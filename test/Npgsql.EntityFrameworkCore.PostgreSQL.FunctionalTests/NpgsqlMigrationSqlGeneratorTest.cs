@@ -1,40 +1,19 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
-using Microsoft.EntityFrameworkCore.Relational.Tests.TestUtilities;
-using Microsoft.EntityFrameworkCore.Storage.Internal;
+using Microsoft.EntityFrameworkCore.Relational.Specification.Tests;
 using Xunit;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Migrations
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
-    public class MigrationSqlGeneratorTest : MigrationSqlGeneratorTestBase
+    class NpgsqlMigrationSqlGeneratorTest : MigrationSqlGeneratorTestBase
     {
-        protected override IMigrationsSqlGenerator SqlGenerator
-        {
-            get
-            {
-                var typeMapper = new NpgsqlTypeMapper();
-
-                return new NpgsqlMigrationsSqlGenerator(
-                    new RelationalCommandBuilderFactory(
-                        new FakeSensitiveDataLogger<RelationalCommandBuilderFactory>(),
-                        new DiagnosticListener("Fake"),
-                        typeMapper),
-                    new NpgsqlSqlGenerationHelper(),
-                    typeMapper,
-                    new NpgsqlAnnotationProvider());
-            }
-        }
-
         public override void AddColumnOperation_with_defaultValue()
         {
             base.AddColumnOperation_with_defaultValue();
@@ -530,8 +509,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Migrations
             Generate(
                 new AlterTableOperation
                 {
-                    Name="People",
-                    Schema="dbo",
+                    Name = "People",
+                    Schema = "dbo",
                     OldTable = new Annotatable
                     {
                         [NpgsqlFullAnnotationNames.Instance.StorageParameterPrefix + "fillfactor"] = 70,
@@ -609,15 +588,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Migrations
         public void AlterColumnOperation_with_system_column()
         {
             Generate(new AlterColumnOperation
-                {
-                    Table = "foo",
-                    Schema = "public",
-                    Name = "xmin",
-                    ClrType = typeof(int),
-                    ColumnType = "int",
-                    IsNullable = false,
-                    DefaultValue = 7
-                });
+            {
+                Table = "foo",
+                Schema = "public",
+                Name = "xmin",
+                ClrType = typeof(int),
+                ColumnType = "int",
+                IsNullable = false,
+                DefaultValue = 7
+            });
 
             Assert.Empty(Sql);
         }
@@ -700,8 +679,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Migrations
             Generate(
                 new AlterTableOperation
                 {
-                    Name="People",
-                    Schema="dbo",
+                    Name = "People",
+                    Schema = "dbo",
                     OldTable = new Annotatable { [NpgsqlFullAnnotationNames.Instance.Comment] = "Old comment" },
                     [NpgsqlFullAnnotationNames.Instance.Comment] = "New comment"
                 });
@@ -717,8 +696,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Migrations
             Generate(
                 new AlterTableOperation
                 {
-                    Name="People",
-                    Schema="dbo",
+                    Name = "People",
+                    Schema = "dbo",
                     OldTable = new Annotatable { [NpgsqlFullAnnotationNames.Instance.Comment] = "New comment" }
                 });
             Assert.Equal(
@@ -796,5 +775,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Migrations
         }
 
         #endregion
+
+        public NpgsqlMigrationSqlGeneratorTest()
+            : base(NpgsqlTestHelpers.Instance)
+        {
+        }
     }
 }

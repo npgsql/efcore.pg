@@ -119,10 +119,18 @@ namespace Microsoft.EntityFrameworkCore.Metadata
                 var propertyType = Property.ClrType;
 
                 if (value == NpgsqlValueGenerationStrategy.SerialColumn && !propertyType.IsIntegerForSerial())
-                    throw new ArgumentException($"Serial value generation cannot be used for the property '{Property.Name}' on entity type '{Property.DeclaringEntityType.DisplayName()}' because the property type is '{propertyType.ShortDisplayName()}'. Serial columns can only be of type short, int or long.");
+                {
+                    if (ShouldThrowOnInvalidConfiguration)
+                        throw new ArgumentException($"Serial value generation cannot be used for the property '{Property.Name}' on entity type '{Property.DeclaringEntityType.DisplayName()}' because the property type is '{propertyType.ShortDisplayName()}'. Serial columns can only be of type short, int or long.");
+                    return false;
+                }
 
                 if (value == NpgsqlValueGenerationStrategy.SequenceHiLo && !propertyType.IsInteger())
-                    throw new ArgumentException($"PostgreSQL sequences cannot be used to generate values for the property '{Property.Name}' on entity type '{Property.DeclaringEntityType.DisplayName()}' because the property type is '{propertyType.ShortDisplayName()}'. Sequences can only be used with integer properties.");
+                {
+                    if (ShouldThrowOnInvalidConfiguration)
+                        throw new ArgumentException($"PostgreSQL sequences cannot be used to generate values for the property '{Property.Name}' on entity type '{Property.DeclaringEntityType.DisplayName()}' because the property type is '{propertyType.ShortDisplayName()}'. Sequences can only be used with integer properties.");
+                    return false;
+                }
             }
 
             if (!CanSetValueGenerationStrategy(value))

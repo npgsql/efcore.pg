@@ -49,10 +49,7 @@
     <Compile Include="Metadata\NpgsqlBuilderExtensionsTest.cs" />
     <Compile Include="Metadata\NpgsqlInternalMetadataBuilderExtensionsTest.cs" />
     <Compile Include="Metadata\NpgsqlMetadataExtensionsTest.cs" />
-    <Compile Include="Migrations\MigrationSqlGeneratorTestBase.cs" />
-    <Compile Include="Migrations\NpgsqlMigrationSqlGeneratorTest.cs" />
     <Compile Include="NpgsqlRelationalConnectionTest.cs" />
-    <Compile Include="NpgsqlTestHelpers.cs" />
     <Compile Include="NpgsqlValueGeneratorSelectorTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestAnnotationProvider.cs" />
@@ -69,6 +66,13 @@
       <Project>{fadda2d1-03b4-4def-8d24-dd1ca4e81f4a}</Project>
       <Name>Npgsql.EntityFrameworkCore.PostgreSQL</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests\Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.csproj">
+      <Project>{05A7D0B7-4AE1-4BC8-A1BE-2389F1593B2D}</Project>
+      <Name>Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Migrations\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

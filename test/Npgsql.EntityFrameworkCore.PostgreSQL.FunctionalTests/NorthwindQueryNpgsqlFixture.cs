@@ -32,7 +32,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                     .EnableSensitiveDataLogging()
                     .UseInternalServiceProvider((additionalServices ?? new ServiceCollection())
                         .AddEntityFrameworkNpgsql()
-                        .AddSingleton(TestNpgsqlModelSource.GetFactory(OnModelCreating))
+                        .AddSingleton(TestModelSource.GetFactory(OnModelCreating))
                         .AddSingleton<ILoggerFactory>(_testSqlLoggerFactory)
                         .BuildServiceProvider()))
                 .UseNpgsql(

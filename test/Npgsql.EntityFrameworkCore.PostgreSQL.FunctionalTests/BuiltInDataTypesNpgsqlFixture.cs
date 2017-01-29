@@ -13,6 +13,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.Internal;
+using Microsoft.Extensions.Logging;
 using Npgsql;
 using NpgsqlTypes;
 using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
@@ -23,18 +24,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
     {
         private readonly DbContextOptions _options;
         private readonly NpgsqlTestStore _testStore;
+        private readonly TestSqlLoggerFactory _testSqlLoggerFactory = new TestSqlLoggerFactory();
 
         public BuiltInDataTypesNpgsqlFixture()
         {
-            _testStore = NpgsqlTestStore.CreateScratch();
+            _testStore = NpgsqlTestStore.Create("BuiltInDataTypes");
 
             var serviceProvider = new ServiceCollection()
                 .AddEntityFrameworkNpgsql()
-                .AddSingleton(TestNpgsqlModelSource.GetFactory(OnModelCreating))
+                .AddSingleton(TestModelSource.GetFactory(OnModelCreating))
+                .AddSingleton<ILoggerFactory>(_testSqlLoggerFactory)
                 .BuildServiceProvider();
 
             _options = new DbContextOptionsBuilder()
-                .UseNpgsql(_testStore.Connection)
+                .UseNpgsql(_testStore.Connection, b => b.ApplyConfiguration())
+                .EnableSensitiveDataLogging()
                 .UseInternalServiceProvider(serviceProvider)
                 .Options;
 

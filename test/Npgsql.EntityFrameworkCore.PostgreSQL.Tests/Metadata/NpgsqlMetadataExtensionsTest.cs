@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests;
 using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Metadata
@@ -640,53 +641,49 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Metadata
         [Fact]
         public void Can_get_and_set_value_generation_on_property()
         {
-            var modelBuilder = new ModelBuilder(new ConventionSet());
+            var modelBuilder = GetModelBuilder();
+            modelBuilder.Model.Npgsql().ValueGenerationStrategy = null;
 
             var property = modelBuilder
                 .Entity<Customer>()
                 .Property(e => e.Id)
-                .ValueGeneratedOnAdd()
                 .Metadata;
 
             Assert.Null(property.Npgsql().ValueGenerationStrategy);
-            Assert.False(property.RequiresValueGenerator);
+            Assert.Equal(ValueGenerated.OnAdd, property.ValueGenerated);
 
             property.Npgsql().ValueGenerationStrategy = NpgsqlValueGenerationStrategy.SequenceHiLo;
 
             Assert.Equal(NpgsqlValueGenerationStrategy.SequenceHiLo, property.Npgsql().ValueGenerationStrategy);
             Assert.Equal(NpgsqlValueGenerationStrategy.SequenceHiLo, ((IProperty)property).Npgsql().ValueGenerationStrategy);
-            Assert.False(property.RequiresValueGenerator);
+            Assert.Equal(ValueGenerated.OnAdd, property.ValueGenerated);
 
             property.Npgsql().ValueGenerationStrategy = null;
 
             Assert.Null(property.Npgsql().ValueGenerationStrategy);
-            Assert.False(property.RequiresValueGenerator);
+            Assert.Equal(ValueGenerated.OnAdd, property.ValueGenerated);
         }
 
         [Fact]
         public void Can_get_and_set_value_generation_on_nullable_property()
         {
-            var modelBuilder = new ModelBuilder(new ConventionSet());
+            var modelBuilder = GetModelBuilder();
 
             var property = modelBuilder
                 .Entity<Customer>()
                 .Property(e => e.NullableInt)
-                .ValueGeneratedOnAdd()
                 .Metadata;
 
             Assert.Null(property.Npgsql().ValueGenerationStrategy);
-            Assert.False(property.RequiresValueGenerator);
 
             property.Npgsql().ValueGenerationStrategy = NpgsqlValueGenerationStrategy.SequenceHiLo;
 
             Assert.Equal(NpgsqlValueGenerationStrategy.SequenceHiLo, property.Npgsql().ValueGenerationStrategy);
             Assert.Equal(NpgsqlValueGenerationStrategy.SequenceHiLo, ((IProperty)property).Npgsql().ValueGenerationStrategy);
-            Assert.False(property.RequiresValueGenerator);
 
             property.Npgsql().ValueGenerationStrategy = null;
 
             Assert.Null(property.Npgsql().ValueGenerationStrategy);
-            Assert.False(property.RequiresValueGenerator);
         }
 
         [Fact]
@@ -988,6 +985,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Metadata
             Assert.Equal("R", property.Npgsql().FindHiLoSequence().Schema);
             Assert.Equal("R", ((IProperty)property).Npgsql().FindHiLoSequence().Schema);
         }
+
+        private static ModelBuilder GetModelBuilder() => NpgsqlTestHelpers.Instance.CreateConventionBuilder();
 
         private class Customer
         {

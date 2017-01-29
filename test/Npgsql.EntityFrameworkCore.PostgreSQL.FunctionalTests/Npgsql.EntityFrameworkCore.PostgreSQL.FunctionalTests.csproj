@@ -83,6 +83,8 @@
     <Compile Include="NpgsqlDatabaseCreatorTest.cs" />
     <Compile Include="NpgsqlDatabaseFacadeExtensions.cs" />
     <Compile Include="NpgsqlFixture.cs" />
+    <Compile Include="NpgsqlMigrationSqlGeneratorTest.cs" />
+    <Compile Include="NpgsqlTestHelpers.cs" />
     <Compile Include="NpgsqlValueGenerationScenariosTest.cs" />
     <Compile Include="SystemColumnTest.cs" />
     <Compile Include="TempInheritanceRelationalFixture.cs" />
@@ -94,7 +96,6 @@
     <Compile Include="OptimisticConcurrencyNpgsqlTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PropertyEntryNpgsqlTest.cs" />
-    <Compile Include="QueryBugsTest.cs" />
     <Compile Include="QueryNavigationsNpgsqlTest.cs" />
     <Compile Include="QueryNoClientEvalNpgsqlFixture.cs" />
     <Compile Include="QueryNoClientEvalNpgsqlTest.cs" />
@@ -102,7 +103,6 @@
     <Compile Include="StoreGeneratedNpgsqlTest.cs" />
     <Compile Include="SqlExecutorNpgsqlTest.cs" />
     <Compile Include="TestModels\NpgsqlNorthwindContext.cs" />
-    <Compile Include="Utilities\TestNpgsqlModelSource.cs" />
     <Compile Include="TransactionNpgsqlFixture.cs" />
     <Compile Include="TransactionNpgsqlTest.cs" />
     <Compile Include="Utilities\DbContextOptionsBuilderExtensions.cs" />

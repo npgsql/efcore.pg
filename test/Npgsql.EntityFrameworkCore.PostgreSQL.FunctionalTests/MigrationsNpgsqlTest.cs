@@ -15,6 +15,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
     public class MigrationsNpgsqlTest : MigrationsTestBase<MigrationsNpgsqlFixture>
     {
+        private const string FileLineEnding = @"
+";
+
         public MigrationsNpgsqlTest(MigrationsNpgsqlFixture fixture)
             : base(fixture)
         {
@@ -40,7 +43,7 @@ CreatedTable
     ColumnWithDefaultToDrop int4 NULL DEFAULT 0
     ColumnWithDefaultToAlter int4 NULL DEFAULT 1
 ",
-                sql);
+                sql.Replace(Environment.NewLine, FileLineEnding));
         }
 
         protected override void BuildSecondMigration(MigrationBuilder migrationBuilder)
@@ -68,7 +71,7 @@ CreatedTable
     ColumnWithDefaultToDrop int4 NULL DEFAULT 0
     ColumnWithDefaultToAlter int4 NULL DEFAULT 1
 ",
-                sql);
+                sql.Replace(Environment.NewLine, FileLineEnding));
         }
 
         private string GetDatabaseSchemaAsync(DbConnection connection)
@@ -137,7 +140,5 @@ ORDER BY table_name, ordinal_position
 
             return builder.ToString();
         }
-
-        protected new string Sql => base.Sql;
     }
 }

@@ -18,15 +18,22 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 
         private readonly IServiceProvider _serviceProvider;
 
+        private readonly DbContextOptions _options;
+
         private readonly string _connectionString = NpgsqlTestStore.CreateConnectionString(DatabaseName);
 
         public ComplexNavigationsQueryNpgsqlFixture()
         {
             _serviceProvider = new ServiceCollection()
                 .AddEntityFrameworkNpgsql()
-                .AddSingleton(TestNpgsqlModelSource.GetFactory(OnModelCreating))
+                .AddSingleton(TestModelSource.GetFactory(OnModelCreating))
                 .AddSingleton<ILoggerFactory>(new TestSqlLoggerFactory())
                 .BuildServiceProvider();
+
+            _options = new DbContextOptionsBuilder()
+                .EnableSensitiveDataLogging()
+                .UseNpgsql(_connectionString, b => b.ApplyConfiguration())
+                .UseInternalServiceProvider(_serviceProvider).Options;
         }
 
         public override NpgsqlTestStore CreateTestStore() =>

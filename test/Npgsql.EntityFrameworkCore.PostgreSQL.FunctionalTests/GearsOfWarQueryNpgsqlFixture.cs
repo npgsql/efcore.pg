@@ -25,7 +25,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         {
             _serviceProvider = new ServiceCollection()
                 .AddEntityFrameworkNpgsql()
-                .AddSingleton(TestNpgsqlModelSource.GetFactory(OnModelCreating))
+                .AddSingleton(TestModelSource.GetFactory(OnModelCreating))
                 .AddSingleton<ILoggerFactory>(new TestSqlLoggerFactory())
                 .BuildServiceProvider();
         }

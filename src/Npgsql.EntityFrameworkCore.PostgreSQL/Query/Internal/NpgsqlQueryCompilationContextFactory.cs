@@ -38,15 +38,15 @@ namespace Microsoft.EntityFrameworkCore.Query.Internal
             [NotNull] ISensitiveDataLogger<NpgsqlQueryCompilationContextFactory> logger,
             [NotNull] IEntityQueryModelVisitorFactory entityQueryModelVisitorFactory,
             [NotNull] IRequiresMaterializationExpressionVisitorFactory requiresMaterializationExpressionVisitorFactory,
-            [NotNull] MethodInfoBasedNodeTypeRegistry methodInfoBasedNodeTypeRegistry,
+            [NotNull] INodeTypeProviderFactory nodeTypeProviderFactory,
             [NotNull] ICurrentDbContext currentContext)
             : base(
-                Check.NotNull(model, nameof(model)),
-                Check.NotNull(logger, nameof(logger)),
-                Check.NotNull(entityQueryModelVisitorFactory, nameof(entityQueryModelVisitorFactory)),
-                Check.NotNull(requiresMaterializationExpressionVisitorFactory, nameof(requiresMaterializationExpressionVisitorFactory)),
-                Check.NotNull(methodInfoBasedNodeTypeRegistry, nameof(methodInfoBasedNodeTypeRegistry)),
-                Check.NotNull(currentContext, nameof(currentContext)))
+                model,
+                logger,
+                entityQueryModelVisitorFactory,
+                requiresMaterializationExpressionVisitorFactory,
+                nodeTypeProviderFactory,
+                currentContext)
         {
         }
 

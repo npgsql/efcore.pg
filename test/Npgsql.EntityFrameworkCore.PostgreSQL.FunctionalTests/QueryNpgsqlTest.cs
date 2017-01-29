@@ -32,6 +32,9 @@ WHERE ""c"".""ContactName"" LIKE ((('%' || @__LocalMethod1_0)) || '%')",
                 Sql);
         }
 
+        [Fact(Skip = "https://github.com/aspnet/EntityFramework/issues/7512")]
+        public override void OrderBy_skip_take_distinct() { }
+
         #region Regular Expressions
 
         [Fact]

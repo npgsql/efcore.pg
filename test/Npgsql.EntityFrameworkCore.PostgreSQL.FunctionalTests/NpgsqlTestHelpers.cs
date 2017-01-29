@@ -1,17 +1,16 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Tests;
+using Microsoft.EntityFrameworkCore.Specification.Tests;
 using Microsoft.Extensions.DependencyInjection;
-using Npgsql;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
-    public class NpgsqlTestHelpers : RelationalTestHelpers
+    public class NpgsqlTestHelpers : TestHelpers
     {
         protected NpgsqlTestHelpers()
         {
         }
 
-        public new static NpgsqlTestHelpers Instance { get; } = new NpgsqlTestHelpers();
+        public static NpgsqlTestHelpers Instance { get; } = new NpgsqlTestHelpers();
 
         public override IServiceCollection AddProviderServices(IServiceCollection services)
             => services.AddEntityFrameworkNpgsql();
