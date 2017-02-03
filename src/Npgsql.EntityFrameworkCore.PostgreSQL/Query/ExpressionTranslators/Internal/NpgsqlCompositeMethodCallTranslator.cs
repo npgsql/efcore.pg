@@ -30,6 +30,7 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal
     {
         private static readonly IMethodCallTranslator[] _methodCallTranslators =
         {
+            new NpgsqlConvertTranslator(),
             new NpgsqlStringSubstringTranslator(),
             new NpgsqlMathAbsTranslator(),
             new NpgsqlMathCeilingTranslator(),

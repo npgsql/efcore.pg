@@ -92,6 +92,7 @@
     <Compile Include="Query\ExpressionTranslators\Internal\NpgsqlCompositeMethodCallTranslator.cs" />
     <Compile Include="Metadata\Conventions\NpgsqlConventionSetBuilder.cs" />
     <Compile Include="Storage\Internal\INpgsqlRelationalConnection.cs" />
+    <Compile Include="Query\ExpressionTranslators\Internal\NpgsqlConvertTranslator.cs" />
     <Compile Include="Storage\Internal\Mapping\NpgsqlArrayTypeMapping.cs" />
     <Compile Include="Storage\Internal\Mapping\NpgsqlTypeMapping.cs" />
     <Compile Include="Storage\Internal\NpgsqlSqlGenerationHelper.cs" />
