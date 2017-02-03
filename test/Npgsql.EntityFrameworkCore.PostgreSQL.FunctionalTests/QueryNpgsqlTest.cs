@@ -19,6 +19,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         [Fact(Skip = "https://github.com/aspnet/EntityFramework/issues/7512")]
         public override void OrderBy_skip_take_distinct() { }
 
+        #region Inherited
+
         public override void String_Contains_Literal()
         {
             base.String_Contains_Literal();
@@ -36,6 +38,28 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             base.String_EndsWith_Literal();
             Assert.Contains("WHERE RIGHT(\"c\".\"ContactName\", LENGTH('b')) = 'b'", Sql);
         }
+
+        public override void Trim_in_predicate()
+        {
+            base.TrimEnd_in_predicate();
+            Assert.Contains("WHERE REGEXP_REPLACE(\"c\".\"ContactTitle\", '\\s*$', '') = 'Owner'", Sql);
+        }
+
+        public override void TrimStart_in_predicate()
+        {
+            base.TrimStart_in_predicate();
+            Assert.Contains("WHERE REGEXP_REPLACE(\"c\".\"ContactTitle\", '^\\s*', '') = 'Owner'", Sql);
+        }
+
+        public override void TrimEnd_in_predicate()
+        {
+            base.TrimEnd_in_predicate();
+            Assert.Contains("WHERE REGEXP_REPLACE(\"c\".\"ContactTitle\", '\\s*$', '') = 'Owner'", Sql);
+        }
+
+        #endregion
+
+        // From here on we test Npgsql-specific capabilities
 
         #region Regular Expressions
 
@@ -100,6 +124,37 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 cs => cs.Where(c => Regex.IsMatch(c.CompanyName, "^A", RegexOptions.RightToLeft)),
                 entryCount: 4);
             Assert.DoesNotContain("WHERE \"c\".\"CompanyName\" ~ ", Sql);
+        }
+
+        #endregion
+
+        #region Trim
+
+        [Fact]
+        public void Trim_with_chars()
+        {
+            AssertQuery<Customer>(
+                cs => cs.Where(c => c.ContactName.Trim('M', 's') == "aria Ander"),
+                entryCount: 1);
+            Assert.Contains("WHERE BTRIM(\"c\".\"ContactName\", 'Ms')", Sql);
+        }
+
+        [Fact]
+        public void TrimStart_with_chars()
+        {
+            AssertQuery<Customer>(
+                cs => cs.Where(c => c.ContactName.TrimStart('M') == "aria Anders"),
+                entryCount: 1);
+            Assert.Contains("WHERE LTRIM(\"c\".\"ContactName\", 'M')", Sql);
+        }
+
+        [Fact]
+        public void TrimEnd_with_chars()
+        {
+            AssertQuery<Customer>(
+                cs => cs.Where(c => c.ContactName.TrimEnd('s') == "Maria Ander"),
+                entryCount: 1);
+            Assert.Contains("WHERE RTRIM(\"c\".\"ContactName\", 's')", Sql);
         }
 
         #endregion

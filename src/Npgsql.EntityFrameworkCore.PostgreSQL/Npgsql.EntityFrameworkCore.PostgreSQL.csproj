@@ -96,6 +96,9 @@
     <Compile Include="Query\ExpressionTranslators\Internal\NpgsqlStringContainsTranslator.cs" />
     <Compile Include="Query\ExpressionTranslators\Internal\NpgsqlStringEndsWithTranslator.cs" />
     <Compile Include="Query\ExpressionTranslators\Internal\NpgsqlStringStartsWithTranslator.cs" />
+    <Compile Include="Query\ExpressionTranslators\Internal\NpgsqlStringTrimEndTranslator.cs" />
+    <Compile Include="Query\ExpressionTranslators\Internal\NpgsqlStringTrimStartTranslator.cs" />
+    <Compile Include="Query\ExpressionTranslators\Internal\NpgsqlStringTrimTranslator.cs" />
     <Compile Include="Storage\Internal\Mapping\NpgsqlArrayTypeMapping.cs" />
     <Compile Include="Storage\Internal\Mapping\NpgsqlTypeMapping.cs" />
     <Compile Include="Storage\Internal\NpgsqlSqlGenerationHelper.cs" />
