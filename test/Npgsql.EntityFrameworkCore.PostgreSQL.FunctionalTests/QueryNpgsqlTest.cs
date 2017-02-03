@@ -57,6 +57,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             Assert.Contains("WHERE REGEXP_REPLACE(\"c\".\"ContactTitle\", '\\s*$', '') = 'Owner'", Sql);
         }
 
+        public override void IsNullOrWhiteSpace_in_predicate()
+        {
+            base.IsNullOrWhiteSpace_in_predicate();
+            Assert.Contains("WHERE \"c\".\"Region\" IS NULL OR \"c\".\"Region\" ~ '^\\s*$'", Sql);
+        }
+
+        [Fact]
+        public void IsNullOrWhiteSpace_in_predicate_with_newline()
+        {
+            using (var context = CreateContext())
+            {
+                var query = context.Set<Customer>()
+                    .FirstOrDefault(c => string.IsNullOrWhiteSpace("\n"));
+                Assert.NotNull(query);
+            }
+        }
+
         #endregion
 
         // From here on we test Npgsql-specific capabilities

@@ -95,6 +95,7 @@
     <Compile Include="Query\ExpressionTranslators\Internal\NpgsqlConvertTranslator.cs" />
     <Compile Include="Query\ExpressionTranslators\Internal\NpgsqlStringContainsTranslator.cs" />
     <Compile Include="Query\ExpressionTranslators\Internal\NpgsqlStringEndsWithTranslator.cs" />
+    <Compile Include="Query\ExpressionTranslators\Internal\NpgsqlStringIsNullOrWhiteSpaceTranslator.cs" />
     <Compile Include="Query\ExpressionTranslators\Internal\NpgsqlStringStartsWithTranslator.cs" />
     <Compile Include="Query\ExpressionTranslators\Internal\NpgsqlStringTrimEndTranslator.cs" />
     <Compile Include="Query\ExpressionTranslators\Internal\NpgsqlStringTrimStartTranslator.cs" />
