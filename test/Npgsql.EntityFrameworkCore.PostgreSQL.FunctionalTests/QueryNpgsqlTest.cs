@@ -16,24 +16,26 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         public QueryNpgsqlTest(NorthwindQueryNpgsqlFixture fixture)
             : base(fixture) { }
 
-        public override void String_Contains_MethodCall()
-        {
-            // Note: this test differs from the SqlServer version because the SqlServer database is
-            // created with case-insensitive collation (at least in the tests), while PostgreSQL is
-            // always case-sensitive.
-            base.String_Contains_MethodCall();
-
-            Assert.Equal(
-                @"@__LocalMethod1_0: M
-
-SELECT ""c"".""CustomerID"", ""c"".""Address"", ""c"".""City"", ""c"".""CompanyName"", ""c"".""ContactName"", ""c"".""ContactTitle"", ""c"".""Country"", ""c"".""Fax"", ""c"".""Phone"", ""c"".""PostalCode"", ""c"".""Region""
-FROM ""Customers"" AS ""c""
-WHERE ""c"".""ContactName"" LIKE ((('%' || @__LocalMethod1_0)) || '%')",
-                Sql);
-        }
-
         [Fact(Skip = "https://github.com/aspnet/EntityFramework/issues/7512")]
         public override void OrderBy_skip_take_distinct() { }
+
+        public override void String_Contains_Literal()
+        {
+            base.String_Contains_Literal();
+            Assert.Contains("WHERE STRPOS(\"c\".\"ContactName\", 'M') > 0", Sql);
+        }
+
+        public override void String_StartsWith_Literal()
+        {
+            base.String_StartsWith_Literal();
+            Assert.Contains("WHERE STRPOS(\"c\".\"ContactName\", 'M') = 1", Sql);
+        }
+
+        public override void String_EndsWith_Literal()
+        {
+            base.String_EndsWith_Literal();
+            Assert.Contains("WHERE RIGHT(\"c\".\"ContactName\", LENGTH('b')) = 'b'", Sql);
+        }
 
         #region Regular Expressions
 
