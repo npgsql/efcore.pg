@@ -9,7 +9,7 @@
     "Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests": {
       "target": "project"
     },
-    "Npgsql": "3.1.9"
+    "Npgsql": "3.2.0"
   },
   "testRunner": "xunit",
   "frameworks": {
