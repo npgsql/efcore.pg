@@ -93,6 +93,7 @@
     <Compile Include="Metadata\Conventions\NpgsqlConventionSetBuilder.cs" />
     <Compile Include="Storage\Internal\INpgsqlRelationalConnection.cs" />
     <Compile Include="Query\ExpressionTranslators\Internal\NpgsqlConvertTranslator.cs" />
+    <Compile Include="Query\ExpressionTranslators\Internal\NpgsqlObjectToStringTranslator.cs" />
     <Compile Include="Query\ExpressionTranslators\Internal\NpgsqlStringContainsTranslator.cs" />
     <Compile Include="Query\ExpressionTranslators\Internal\NpgsqlStringEndsWithTranslator.cs" />
     <Compile Include="Query\ExpressionTranslators\Internal\NpgsqlStringIsNullOrWhiteSpaceTranslator.cs" />

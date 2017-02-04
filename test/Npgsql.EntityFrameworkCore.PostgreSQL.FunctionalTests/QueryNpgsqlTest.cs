@@ -74,6 +74,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             }
         }
 
+        public override void Query_expression_with_to_string_and_contains()
+        {
+            base.Query_expression_with_to_string_and_contains();
+            Assert.Contains("STRPOS(CAST(\"o\".\"EmployeeID\" AS text), '10') > 0", Sql);
+        }
+
         #endregion
 
         // From here on we test Npgsql-specific capabilities
