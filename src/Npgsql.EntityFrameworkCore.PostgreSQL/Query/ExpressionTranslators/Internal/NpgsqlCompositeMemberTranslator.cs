@@ -29,13 +29,11 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal
     {
         public NpgsqlCompositeMemberTranslator()
         {
-            var npgsqlTranslators = new List<IMemberTranslator>
+            AddTranslators(new List<IMemberTranslator>
             {
                 new NpgsqlStringLengthTranslator(),
-                new NpgsqlDateTimeNowTranslator()
-            };
-
-            AddTranslators(npgsqlTranslators);
+                new NpgsqlDateTimeMemberTranslator()
+            });
         }
     }
 }

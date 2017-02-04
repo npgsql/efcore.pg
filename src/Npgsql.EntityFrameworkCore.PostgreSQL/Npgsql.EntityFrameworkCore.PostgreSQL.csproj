@@ -94,6 +94,7 @@
     <Compile Include="Storage\Internal\INpgsqlRelationalConnection.cs" />
     <Compile Include="Query\ExpressionTranslators\Internal\NpgsqlConvertTranslator.cs" />
     <Compile Include="Query\ExpressionTranslators\Internal\NpgsqlObjectToStringTranslator.cs" />
+    <Compile Include="Query\ExpressionTranslators\Internal\NpgsqlDateTimeMemberTranslator.cs" />
     <Compile Include="Query\ExpressionTranslators\Internal\NpgsqlStringContainsTranslator.cs" />
     <Compile Include="Query\ExpressionTranslators\Internal\NpgsqlStringEndsWithTranslator.cs" />
     <Compile Include="Query\ExpressionTranslators\Internal\NpgsqlStringIsNullOrWhiteSpaceTranslator.cs" />
@@ -119,7 +120,6 @@
     </Compile>
     <Compile Include="Query\Expressions\Internal\AtTimeZoneExpression.cs" />
     <Compile Include="Query\Expressions\Internal\RegexMatchExpression.cs" />
-    <Compile Include="Query\ExpressionTranslators\Internal\NpgsqlDateTimeNowTranslator.cs" />
     <Compile Include="Query\ExpressionTranslators\Internal\NpgsqlMathAbsTranslator.cs" />
     <Compile Include="Query\ExpressionTranslators\Internal\NpgsqlMathCeilingTranslator.cs" />
     <Compile Include="Query\ExpressionTranslators\Internal\NpgsqlMathFloorTranslator.cs" />

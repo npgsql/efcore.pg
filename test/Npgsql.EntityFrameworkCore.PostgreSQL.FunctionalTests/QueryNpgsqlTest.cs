@@ -80,6 +80,73 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             Assert.Contains("STRPOS(CAST(\"o\".\"EmployeeID\" AS text), '10') > 0", Sql);
         }
 
+        public override void Where_datetime_now()
+        {
+            base.Where_datetime_now();
+            Assert.Contains("WHERE NOW() <>", Sql);
+        }
+
+        public override void Where_datetime_utcnow()
+        {
+            base.Where_datetime_utcnow();
+            Assert.Contains("WHERE NOW() AT TIME ZONE 'UTC' <>", Sql);
+        }
+
+        public override void Where_datetime_date_component()
+        {
+            base.Where_datetime_date_component();
+            Assert.Contains("WHERE DATE_TRUNC('day', \"o\".\"OrderDate\")", Sql);
+        }
+
+        public override void Where_datetime_year_component()
+        {
+            base.Where_datetime_year_component();
+            Assert.Contains("DATE_PART('year', \"o\".\"OrderDate\")", Sql);
+        }
+
+        public override void Where_datetime_month_component()
+        {
+            base.Where_datetime_month_component();
+            Assert.Contains("DATE_PART('month', \"o\".\"OrderDate\")", Sql);
+        }
+
+        public override void Where_datetime_dayOfYear_component()
+        {
+            base.Where_datetime_dayOfYear_component();
+            Assert.Contains("DATE_PART('doy', \"o\".\"OrderDate\")", Sql);
+        }
+
+        public override void Where_datetime_day_component()
+        {
+            base.Where_datetime_day_component();
+            Assert.Contains("DATE_PART('day', \"o\".\"OrderDate\")", Sql);
+        }
+
+        public override void Where_datetime_hour_component()
+        {
+            base.Where_datetime_hour_component();
+            Assert.Contains("DATE_PART('hour', \"o\".\"OrderDate\")", Sql);
+        }
+
+        public override void Where_datetime_minute_component()
+        {
+            base.Where_datetime_minute_component();
+            Assert.Contains("DATE_PART('minute', \"o\".\"OrderDate\")", Sql);
+        }
+
+        public override void Where_datetime_second_component()
+        {
+            base.Where_datetime_second_component();
+            Assert.Contains("DATE_PART('second', \"o\".\"OrderDate\")", Sql);
+        }
+
+        // ReSharper disable once RedundantOverriddenMember
+        public override void Where_datetime_millisecond_component()
+        {
+            // SQL translation not implemented, too annoying
+            base.Where_datetime_millisecond_component();
+        }
+
         #endregion
 
         // From here on we test Npgsql-specific capabilities
@@ -181,6 +248,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         }
 
         #endregion
+
+        #region Date/Time
+
+        [Fact]
+        public void Where_datetime_dayOfWeek_component()
+        {
+            AssertQuery<Order>(
+                oc => oc.Where(o =>
+                        o.OrderDate.Value.DayOfWeek == DayOfWeek.Tuesday),
+                entryCount: 168);
+            Assert.Contains("WHERE CAST(FLOOR(DATE_PART('dow', \"o\".\"OrderDate\")) AS int4)", Sql);
+        }
+
+        #endregion Date/Time
 
         const string FileLineEnding = @"
 ";
