@@ -130,13 +130,8 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
 
             // Type hasn't been seen before - we may need to add a mapping (e.g. array)
 
-            // Check if it's an array or generic IList
-            Type arrayElementType = null;
-            if (unwrappedType.IsArray)
-                arrayElementType = unwrappedType.GetElementType();
-            else if (typeof(IList).IsAssignableFrom(unwrappedType) && unwrappedType.GetTypeInfo().IsGenericType)
-                arrayElementType = unwrappedType.GetGenericArguments()[0];
-
+            // Try to see if it is an array type
+            var arrayElementType = GetArrayElementType(unwrappedType);
             if (arrayElementType != null)
             {
                 // At least for now, we only support arrays of base (scalar) types.
@@ -178,6 +173,23 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
             }
 
             return handler.GetGenericArguments()[0];
+        }
+
+        [CanBeNull]
+        static Type GetArrayElementType(Type type)
+        {
+            var typeInfo = type.GetTypeInfo();
+            if (typeInfo.IsArray)
+                return type.GetElementType();
+
+            var ilist = typeInfo.ImplementedInterfaces.FirstOrDefault(x => x.GetTypeInfo().IsGenericType && x.GetGenericTypeDefinition() == typeof(IList<>));
+            if (ilist != null)
+                return ilist.GetGenericArguments()[0];
+
+            if (typeof(IList).IsAssignableFrom(type))
+                throw new NotSupportedException("Non-generic IList is a supported parameter, but the NpgsqlDbType parameter must be set on the parameter");
+
+            return null;
         }
     }
 }
