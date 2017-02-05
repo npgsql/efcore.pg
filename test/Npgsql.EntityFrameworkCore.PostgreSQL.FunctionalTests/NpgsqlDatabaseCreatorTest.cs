@@ -399,7 +399,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         public class TestDatabaseCreator : NpgsqlDatabaseCreator
         {
             public TestDatabaseCreator(
-                NpgsqlRelationalConnection connection,
+                INpgsqlRelationalConnection connection,
                 IMigrationsModelDiffer modelDiffer,
                 IMigrationsSqlGenerator sqlGenerator,
                 IMigrationCommandExecutor migrationCommandExecutor,

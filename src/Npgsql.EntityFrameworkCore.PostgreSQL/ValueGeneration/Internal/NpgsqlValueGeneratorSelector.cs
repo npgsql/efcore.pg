@@ -13,12 +13,12 @@ namespace Microsoft.EntityFrameworkCore.ValueGeneration.Internal
     {
         readonly INpgsqlSequenceValueGeneratorFactory _sequenceFactory;
 
-        readonly NpgsqlRelationalConnection _connection;
+        readonly INpgsqlRelationalConnection _connection;
 
         public NpgsqlValueGeneratorSelector(
             [NotNull] IValueGeneratorCache cache,
             [NotNull] INpgsqlSequenceValueGeneratorFactory sequenceFactory,
-            [NotNull] NpgsqlRelationalConnection connection,
+            [NotNull] INpgsqlRelationalConnection connection,
             [NotNull] IRelationalAnnotationProvider relationalExtensions)
             : base(cache, relationalExtensions)
         {

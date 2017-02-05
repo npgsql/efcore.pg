@@ -29,7 +29,7 @@ using Npgsql;
 
 namespace Microsoft.EntityFrameworkCore.Storage.Internal
 {
-    public class NpgsqlRelationalConnection : RelationalConnection
+    public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationalConnection
     {
         public NpgsqlRelationalConnection([NotNull] RelationalConnectionDependencies dependencies)
             : base(dependencies)
@@ -38,7 +38,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
 
         protected override DbConnection CreateDbConnection() => new NpgsqlConnection(ConnectionString);
 
-        public NpgsqlRelationalConnection CreateMasterConnection()
+        public INpgsqlRelationalConnection CreateMasterConnection()
         {
             var csb = new NpgsqlConnectionStringBuilder(ConnectionString) {
                 Database = "postgres",

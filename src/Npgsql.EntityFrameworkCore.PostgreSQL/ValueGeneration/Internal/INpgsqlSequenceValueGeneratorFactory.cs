@@ -23,6 +23,6 @@ namespace Microsoft.EntityFrameworkCore.ValueGeneration.Internal
         ValueGenerator Create(
             [NotNull] IProperty property,
             [NotNull] NpgsqlSequenceValueGeneratorState generatorState,
-            [NotNull] NpgsqlRelationalConnection connection);
+            [NotNull] INpgsqlRelationalConnection connection);
     }
 }

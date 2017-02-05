@@ -34,14 +34,14 @@ namespace Microsoft.EntityFrameworkCore.Update.Internal
     {
         private readonly IRelationalCommandBuilderFactory _commandBuilderFactory;
         private readonly ISqlGenerationHelper _sqlGenerationHelper;
-        private readonly NpgsqlUpdateSqlGenerator _updateSqlGenerator;
+        private readonly IUpdateSqlGenerator _updateSqlGenerator;
         private readonly IRelationalValueBufferFactoryFactory _valueBufferFactoryFactory;
         private readonly IDbContextOptions _options;
 
         public NpgsqlModificationCommandBatchFactory(
             [NotNull] IRelationalCommandBuilderFactory commandBuilderFactory,
             [NotNull] ISqlGenerationHelper sqlGenerationHelper,
-            [NotNull] NpgsqlUpdateSqlGenerator updateSqlGenerator,
+            [NotNull] IUpdateSqlGenerator updateSqlGenerator,
             [NotNull] IRelationalValueBufferFactoryFactory valueBufferFactoryFactory,
             [NotNull] IDbContextOptions options)
         {

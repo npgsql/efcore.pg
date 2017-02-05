@@ -289,7 +289,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 {
                     using (var context = new ConnectionInOnConfiguringContext(conn))
                     {
-                        var relationalConn = context.GetService<NpgsqlRelationalConnection>();
+                        var relationalConn = context.GetService<INpgsqlRelationalConnection>();
                         using (var masterConn = relationalConn.CreateMasterConnection())
                         {
                             masterConn.Open();

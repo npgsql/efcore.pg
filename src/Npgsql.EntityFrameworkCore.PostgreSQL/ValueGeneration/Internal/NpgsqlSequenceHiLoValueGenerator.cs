@@ -9,6 +9,7 @@ using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.Internal;
+using Microsoft.EntityFrameworkCore.Update;
 using Microsoft.EntityFrameworkCore.Update.Internal;
 using Microsoft.EntityFrameworkCore.Utilities;
 
@@ -21,8 +22,8 @@ namespace Microsoft.EntityFrameworkCore.ValueGeneration.Internal
     public class NpgsqlSequenceHiLoValueGenerator<TValue> : HiLoValueGenerator<TValue>
     {
         readonly IRawSqlCommandBuilder _rawSqlCommandBuilder;
-        readonly NpgsqlUpdateSqlGenerator _sqlGenerator;
-        readonly NpgsqlRelationalConnection _connection;
+        readonly IUpdateSqlGenerator _sqlGenerator;
+        readonly INpgsqlRelationalConnection _connection;
         readonly ISequence _sequence;
 
         /// <summary>
@@ -31,9 +32,9 @@ namespace Microsoft.EntityFrameworkCore.ValueGeneration.Internal
         /// </summary>
         public NpgsqlSequenceHiLoValueGenerator(
             [NotNull] IRawSqlCommandBuilder rawSqlCommandBuilder,
-            [NotNull] NpgsqlUpdateSqlGenerator sqlGenerator,
+            [NotNull] IUpdateSqlGenerator sqlGenerator,
             [NotNull] NpgsqlSequenceValueGeneratorState generatorState,
-            [NotNull] NpgsqlRelationalConnection connection)
+            [NotNull] INpgsqlRelationalConnection connection)
             : base(generatorState)
         {
             Check.NotNull(rawSqlCommandBuilder, nameof(rawSqlCommandBuilder));

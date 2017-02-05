@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.Internal;
+using Microsoft.EntityFrameworkCore.Update;
 using Microsoft.EntityFrameworkCore.Update.Internal;
 using Microsoft.EntityFrameworkCore.Utilities;
 
@@ -17,7 +18,7 @@ namespace Microsoft.EntityFrameworkCore.ValueGeneration.Internal
     public class NpgsqlSequenceValueGeneratorFactory : INpgsqlSequenceValueGeneratorFactory
     {
         private readonly IRawSqlCommandBuilder _rawSqlCommandBuilder;
-        private readonly NpgsqlUpdateSqlGenerator _sqlGenerator;
+        private readonly IUpdateSqlGenerator _sqlGenerator;
 
         /// <summary>
         ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
@@ -25,7 +26,7 @@ namespace Microsoft.EntityFrameworkCore.ValueGeneration.Internal
         /// </summary>
         public NpgsqlSequenceValueGeneratorFactory(
             [NotNull] IRawSqlCommandBuilder rawSqlCommandBuilder,
-            [NotNull] NpgsqlUpdateSqlGenerator sqlGenerator)
+            [NotNull] IUpdateSqlGenerator sqlGenerator)
         {
             Check.NotNull(rawSqlCommandBuilder, nameof(rawSqlCommandBuilder));
             Check.NotNull(sqlGenerator, nameof(sqlGenerator));
@@ -38,7 +39,7 @@ namespace Microsoft.EntityFrameworkCore.ValueGeneration.Internal
         ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
         ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
-        public virtual ValueGenerator Create(IProperty property, NpgsqlSequenceValueGeneratorState generatorState, NpgsqlRelationalConnection connection)
+        public virtual ValueGenerator Create(IProperty property, NpgsqlSequenceValueGeneratorState generatorState, INpgsqlRelationalConnection connection)
         {
             Check.NotNull(property, nameof(property));
             Check.NotNull(generatorState, nameof(generatorState));
