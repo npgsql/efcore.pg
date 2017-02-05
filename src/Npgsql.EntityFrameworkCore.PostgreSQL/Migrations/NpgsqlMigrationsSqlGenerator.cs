@@ -226,6 +226,10 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             MigrationCommandListBuilder builder,
             bool terminate)
         {
+            // Never touch system columns
+            if (IsSystemColumn(operation.Name))
+                return;
+
             base.Generate(operation, model, builder, terminate: false);
 
             var comment = operation[NpgsqlFullAnnotationNames.Instance.Comment] as string;

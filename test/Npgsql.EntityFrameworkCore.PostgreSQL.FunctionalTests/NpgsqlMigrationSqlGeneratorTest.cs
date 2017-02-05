@@ -572,6 +572,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         }
 
         [Fact]
+        public void AddColumnOperation_with_system_column()
+        {
+            Generate(new AddColumnOperation
+            {
+                Table = "foo",
+                Schema = "public",
+                Name = "xmin"
+            });
+
+            Assert.Empty(Sql);
+        }
+
+        [Fact]
         public void DropColumnOperation_with_system_column()
         {
             Generate(new DropColumnOperation
