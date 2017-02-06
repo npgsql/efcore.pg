@@ -24,6 +24,7 @@
 using System.Data.Common;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
 using Microsoft.Extensions.Logging;
 using Npgsql;
 
@@ -31,7 +32,8 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
 {
     public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationalConnection
     {
-        public NpgsqlRelationalConnection([NotNull] RelationalConnectionDependencies dependencies)
+        public NpgsqlRelationalConnection(
+            [NotNull] RelationalConnectionDependencies dependencies)
             : base(dependencies)
         {
         }
@@ -40,8 +42,10 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
 
         public INpgsqlRelationalConnection CreateMasterConnection()
         {
+            var adminDb = Dependencies.ContextOptions.FindExtension<NpgsqlOptionsExtension>()?.AdminDatabase
+                          ?? "postgres";
             var csb = new NpgsqlConnectionStringBuilder(ConnectionString) {
-                Database = "postgres",
+                Database = adminDb,
                 Pooling = false
             };
             var masterConn = ((NpgsqlConnection)DbConnection).CloneWith(csb.ToString());

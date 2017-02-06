@@ -37,6 +37,24 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests
             }
         }
 
+        [Fact]
+        public void Can_create_master_connection_string_with_alternate_admin_db()
+        {
+            var options = new DbContextOptionsBuilder()
+                .UseNpgsql(
+                    @"Host=localhost;Database=NpgsqlConnectionTest;Username=some_user;Password=some_password",
+                    b => b.UseAdminDatabase("template0"))
+                .Options;
+
+            using (var connection = new NpgsqlRelationalConnection(CreateDependencies(options)))
+            {
+                using (var master = connection.CreateMasterConnection())
+                {
+                    Assert.Equal(@"Host=localhost;Database=template0;Username=some_user;Password=some_password;Pooling=False", master.ConnectionString);
+                }
+            }
+        }
+
         public static RelationalConnectionDependencies CreateDependencies(DbContextOptions options = null)
         {
             options = options

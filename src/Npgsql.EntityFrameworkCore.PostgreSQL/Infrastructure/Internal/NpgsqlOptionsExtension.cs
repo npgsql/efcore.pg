@@ -30,13 +30,18 @@ namespace Microsoft.EntityFrameworkCore.Infrastructure.Internal
 {
     public class NpgsqlOptionsExtension : RelationalOptionsExtension
     {
+        string _adminDatabase;
+
         public NpgsqlOptionsExtension()
         {
         }
 
+        // NB: When adding new options, make sure to update the copy ctor below.
+
         public NpgsqlOptionsExtension([NotNull] NpgsqlOptionsExtension copyFrom)
             : base(copyFrom)
         {
+            _adminDatabase = copyFrom.AdminDatabase;
         }
 
         public override bool ApplyServices(IServiceCollection services)
@@ -46,6 +51,12 @@ namespace Microsoft.EntityFrameworkCore.Infrastructure.Internal
             services.AddEntityFrameworkNpgsql();
 
             return true;
+        }
+
+        public virtual string AdminDatabase
+        {
+            get { return _adminDatabase; }
+            set { _adminDatabase = value; }
         }
     }
 }

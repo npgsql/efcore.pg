@@ -31,6 +31,20 @@ PostgreSQL allows you to [attach comments](https://www.postgresql.org/docs/curre
 modelBuilder.Entity<MyEntity>().ForNpgsqlHasComment("Some comment");
 ```
 
+## Specifying the administrative db
+
+When the Npgsql EF Core provider creates or deletes a database (EnsureCreated(), EnsureDeleted()), it must connect to an administrative database which already exists (with PostgreSQL you always have to be connected to some database, even when creating/deleting another database). Up to now the `postgres` database was used, which is supposed to always be present.
+
+However, there are some PostgreSQL-like databases where the postgres database isn't available. For these cases you can specify the administrative database as follows:
+
+```c#
+protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+{
+    optionsBuilder.UseNpgsql("<connection_string>",
+        b => b.UseAdminDatabase("<admin_db>"));
+}
+```
+
 ## Using a database template
 
 When creating a new database,
