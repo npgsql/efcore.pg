@@ -32,6 +32,15 @@ namespace Microsoft.EntityFrameworkCore.Migrations.Internal
 {
     public class NpgsqlMigrationsAnnotationProvider : MigrationsAnnotationProvider
     {
+        public override IEnumerable<IAnnotation> For(IEntityType entityType)
+        {
+            foreach (var storageParamAnnotation in entityType.GetAnnotations()
+                .Where(a => a.Name.StartsWith(NpgsqlFullAnnotationNames.Instance.StorageParameterPrefix)))
+            {
+                yield return storageParamAnnotation;
+            }
+        }
+
         public override IEnumerable<IAnnotation> For(IProperty property)
         {
             if (property.Npgsql().ValueGenerationStrategy == NpgsqlValueGenerationStrategy.SerialColumn)
