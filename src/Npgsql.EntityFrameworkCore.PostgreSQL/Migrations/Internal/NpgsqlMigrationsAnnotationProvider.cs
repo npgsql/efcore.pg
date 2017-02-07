@@ -36,6 +36,11 @@ namespace Microsoft.EntityFrameworkCore.Migrations.Internal
         {
             if (entityType.Npgsql().Comment != null)
                 yield return new Annotation(NpgsqlFullAnnotationNames.Instance.Comment, entityType.Npgsql().Comment);
+            foreach (var storageParamAnnotation in entityType.GetAnnotations()
+                .Where(a => a.Name.StartsWith(NpgsqlFullAnnotationNames.Instance.StorageParameterPrefix)))
+            {
+                yield return storageParamAnnotation;
+            }
         }
 
         public override IEnumerable<IAnnotation> For(IProperty property)
