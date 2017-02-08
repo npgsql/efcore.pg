@@ -30,7 +30,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         public override void String_StartsWith_Literal()
         {
             base.String_StartsWith_Literal();
-            Assert.Contains("WHERE STRPOS(\"c\".\"ContactName\", 'M') = 1", Sql);
+            Assert.Contains("WHERE \"c\".\"ContactName\" LIKE 'M%'", Sql);
+        }
+
+        [Fact]
+        public void String_StartsWith_Literal_with_escaping()
+        {
+            AssertQuery<Customer>(cs => cs.Where(c => c.ContactName.StartsWith(@"_a%b\c")));
+            Assert.Contains(@"WHERE ""c"".""ContactName"" LIKE '\_a\%b\\c%'", Sql);
+        }
+
+        public override void String_StartsWith_Column()
+        {
+            AssertQuery<Customer>(cs => cs.Where(c => c.ContactName.StartsWith(c.City)));
+            Assert.Contains(@"WHERE ""c"".""ContactName"" LIKE (""c"".""City"" || '%') AND (LEFT(""c"".""ContactName"", LENGTH(""c"".""City"")) = ""c"".""City"")", Sql);
         }
 
         public override void String_EndsWith_Literal()
@@ -45,16 +58,43 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             Assert.Contains("WHERE REGEXP_REPLACE(\"c\".\"ContactTitle\", '\\s*$', '') = 'Owner'", Sql);
         }
 
+        [Fact]
+        public void Trim_with_chars()
+        {
+            AssertQuery<Customer>(
+                cs => cs.Where(c => c.ContactName.Trim('M', 's') == "aria Ander"),
+                entryCount: 1);
+            Assert.Contains("WHERE BTRIM(\"c\".\"ContactName\", 'Ms')", Sql);
+        }
+
         public override void TrimStart_in_predicate()
         {
             base.TrimStart_in_predicate();
             Assert.Contains("WHERE REGEXP_REPLACE(\"c\".\"ContactTitle\", '^\\s*', '') = 'Owner'", Sql);
         }
 
+        [Fact]
+        public void TrimStart_with_chars()
+        {
+            AssertQuery<Customer>(
+                cs => cs.Where(c => c.ContactName.TrimStart('M') == "aria Anders"),
+                entryCount: 1);
+            Assert.Contains("WHERE LTRIM(\"c\".\"ContactName\", 'M')", Sql);
+        }
+
         public override void TrimEnd_in_predicate()
         {
             base.TrimEnd_in_predicate();
             Assert.Contains("WHERE REGEXP_REPLACE(\"c\".\"ContactTitle\", '\\s*$', '') = 'Owner'", Sql);
+        }
+
+        [Fact]
+        public void TrimEnd_with_chars()
+        {
+            AssertQuery<Customer>(
+                cs => cs.Where(c => c.ContactName.TrimEnd('s') == "Maria Ander"),
+                entryCount: 1);
+            Assert.Contains("WHERE RTRIM(\"c\".\"ContactName\", 's')", Sql);
         }
 
         public override void IsNullOrWhiteSpace_in_predicate()
@@ -147,9 +187,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             base.Where_datetime_millisecond_component();
         }
 
-        #endregion
+        [Fact]
+        public void Where_datetime_dayOfWeek_component()
+        {
+            AssertQuery<Order>(
+                oc => oc.Where(o =>
+                        o.OrderDate.Value.DayOfWeek == DayOfWeek.Tuesday),
+                entryCount: 168);
+            Assert.Contains("WHERE CAST(FLOOR(DATE_PART('dow', \"o\".\"OrderDate\")) AS int4)", Sql);
+        }
 
-        // From here on we test Npgsql-specific capabilities
+        #endregion
 
         #region Regular Expressions
 
@@ -217,51 +265,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         }
 
         #endregion
-
-        #region Trim
-
-        [Fact]
-        public void Trim_with_chars()
-        {
-            AssertQuery<Customer>(
-                cs => cs.Where(c => c.ContactName.Trim('M', 's') == "aria Ander"),
-                entryCount: 1);
-            Assert.Contains("WHERE BTRIM(\"c\".\"ContactName\", 'Ms')", Sql);
-        }
-
-        [Fact]
-        public void TrimStart_with_chars()
-        {
-            AssertQuery<Customer>(
-                cs => cs.Where(c => c.ContactName.TrimStart('M') == "aria Anders"),
-                entryCount: 1);
-            Assert.Contains("WHERE LTRIM(\"c\".\"ContactName\", 'M')", Sql);
-        }
-
-        [Fact]
-        public void TrimEnd_with_chars()
-        {
-            AssertQuery<Customer>(
-                cs => cs.Where(c => c.ContactName.TrimEnd('s') == "Maria Ander"),
-                entryCount: 1);
-            Assert.Contains("WHERE RTRIM(\"c\".\"ContactName\", 's')", Sql);
-        }
-
-        #endregion
-
-        #region Date/Time
-
-        [Fact]
-        public void Where_datetime_dayOfWeek_component()
-        {
-            AssertQuery<Order>(
-                oc => oc.Where(o =>
-                        o.OrderDate.Value.DayOfWeek == DayOfWeek.Tuesday),
-                entryCount: 168);
-            Assert.Contains("WHERE CAST(FLOOR(DATE_PART('dow', \"o\".\"OrderDate\")) AS int4)", Sql);
-        }
-
-        #endregion Date/Time
 
         const string FileLineEnding = @"
 ";
