@@ -112,14 +112,5 @@ namespace Microsoft.Extensions.DependencyInjection
 
             return serviceCollection;
         }
-
-        private static IServiceCollection AddQuery(this IServiceCollection serviceCollection)
-        {
-            return serviceCollection
-                .AddScoped<NpgsqlQueryCompilationContextFactory>()
-                .AddScoped<NpgsqlCompositeMemberTranslator>()
-                .AddScoped<NpgsqlCompositeMethodCallTranslator>()
-                .AddScoped<NpgsqlQuerySqlGeneratorFactory>();
-        }
     }
 }
