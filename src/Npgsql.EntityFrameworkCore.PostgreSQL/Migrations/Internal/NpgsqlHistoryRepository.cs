@@ -85,22 +85,33 @@ namespace Microsoft.EntityFrameworkCore.Migrations.Internal
 
         public override string GetCreateIfNotExistsScript()
         {
-            return GetCreateScript();
+            var script = GetCreateScript();
+            return script.Insert(script.IndexOf("CREATE TABLE", StringComparison.Ordinal) + 12, " IF NOT EXISTS");
         }
 
         public override string GetBeginIfNotExistsScript(string migrationId)
         {
-            throw new NotSupportedException("Generating idempotent scripts for migration is not currently supported by Npgsql");
+            string tableId = SqlGenerationHelper.DelimitIdentifier(TableName, TableSchema);
+            return $@"
+DO $$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM {tableId} WHERE ""{MigrationIdColumnName}"" = '{migrationId}') THEN";
         }
 
         public override string GetBeginIfExistsScript(string migrationId)
         {
-            throw new NotSupportedException("Generating idempotent scripts for migration is not currently supported by Npgsql");
+            string tableId = SqlGenerationHelper.DelimitIdentifier(TableName, TableSchema);
+            return $@"
+DO $$
+BEGIN
+    IF EXISTS(SELECT 1 FROM {tableId} WHERE ""{MigrationIdColumnName}"" = '{migrationId}') THEN";
         }
 
         public override string GetEndIfScript()
         {
-            throw new NotSupportedException("Generating idempotent scripts for migration is not currently supported by Npgsql");
+            return 
+@"    END IF;
+END $$;";
         }
     }
 }
