@@ -89,23 +89,15 @@ namespace Microsoft.EntityFrameworkCore.Migrations.Internal
             return script.Insert(script.IndexOf("CREATE TABLE", StringComparison.Ordinal) + 12, " IF NOT EXISTS");
         }
 
-        public override string GetBeginIfNotExistsScript(string migrationId)
-        {
-            string tableId = SqlGenerationHelper.DelimitIdentifier(TableName, TableSchema);
-            return $@"
+        public override string GetBeginIfNotExistsScript(string migrationId) => $@"
 DO $$
 BEGIN
-    IF NOT EXISTS(SELECT 1 FROM {tableId} WHERE ""{MigrationIdColumnName}"" = '{migrationId}') THEN";
-        }
+    IF NOT EXISTS(SELECT 1 FROM {SqlGenerationHelper.DelimitIdentifier(TableName, TableSchema)} WHERE ""{MigrationIdColumnName}"" = '{migrationId}') THEN";
 
-        public override string GetBeginIfExistsScript(string migrationId)
-        {
-            string tableId = SqlGenerationHelper.DelimitIdentifier(TableName, TableSchema);
-            return $@"
+        public override string GetBeginIfExistsScript(string migrationId) => $@"
 DO $$
 BEGIN
-    IF EXISTS(SELECT 1 FROM {tableId} WHERE ""{MigrationIdColumnName}"" = '{migrationId}') THEN";
-        }
+    IF EXISTS(SELECT 1 FROM {SqlGenerationHelper.DelimitIdentifier(TableName, TableSchema)} WHERE ""{MigrationIdColumnName}"" = '{migrationId}') THEN";
 
         public override string GetEndIfScript()
         {
