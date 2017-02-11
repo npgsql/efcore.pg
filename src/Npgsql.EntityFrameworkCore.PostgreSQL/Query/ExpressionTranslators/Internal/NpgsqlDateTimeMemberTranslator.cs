@@ -92,9 +92,9 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal
 
         Expression TranslateStatic(MemberExpression e)
         {
-            if (e.Member == Now)
+            if (e.Member.Equals(Now))
                 return new SqlFunctionExpression("NOW", e.Type);
-            if (e.Member == UtcNow)
+            if (e.Member.Equals(UtcNow))
                 return new AtTimeZoneExpression(new SqlFunctionExpression("NOW", e.Type), "UTC");
             return null;
         }

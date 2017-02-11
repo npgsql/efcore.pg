@@ -12,7 +12,7 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal
             = typeof(string).GetRuntimeMethod(nameof(string.IsNullOrWhiteSpace), new[] { typeof(string) });
 
         public virtual Expression Translate(MethodCallExpression methodCallExpression)
-            => _methodInfo == methodCallExpression.Method
+            => _methodInfo.Equals(methodCallExpression.Method)
                 ? Expression.MakeBinary(
                     ExpressionType.OrElse,
                     new IsNullExpression(methodCallExpression.Arguments[0]),

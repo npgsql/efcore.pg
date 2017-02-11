@@ -13,7 +13,7 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal
 
         public virtual Expression Translate(MethodCallExpression methodCallExpression)
         {
-            if (methodCallExpression.Method != _trimEnd)
+            if (!methodCallExpression.Method.Equals(_trimEnd))
                 return null;
 
             var constantTrimChars = methodCallExpression.Arguments[0] as ConstantExpression;

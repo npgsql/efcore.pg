@@ -19,7 +19,7 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal
 
         public virtual Expression Translate(MethodCallExpression methodCallExpression)
         {
-            if (methodCallExpression.Method == _trim)
+            if (methodCallExpression.Method.Equals(_trim))
             {
                 return new SqlFunctionExpression(
                     "REGEXP_REPLACE",
@@ -32,7 +32,7 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal
                     });
             }
 
-            if (methodCallExpression.Method == _trimWithChars)
+            if (methodCallExpression.Method.Equals(_trimWithChars))
             {
                 var constantTrimChars = methodCallExpression.Arguments[0] as ConstantExpression;
                 if (constantTrimChars == null)

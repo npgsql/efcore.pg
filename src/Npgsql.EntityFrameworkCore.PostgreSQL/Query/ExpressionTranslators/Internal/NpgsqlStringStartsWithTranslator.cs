@@ -15,7 +15,7 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal
 
         public virtual Expression Translate(MethodCallExpression e)
         {
-            if (e.Method != _methodInfo || e.Object == null)
+            if (!e.Method.Equals(_methodInfo) || e.Object == null)
                 return null;
 
             var constantPatternExpr = e.Arguments[0] as ConstantExpression;

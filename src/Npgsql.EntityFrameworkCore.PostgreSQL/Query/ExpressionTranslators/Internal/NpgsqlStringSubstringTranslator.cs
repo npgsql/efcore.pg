@@ -31,7 +31,7 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal
 {
     public class NpgsqlStringSubstringTranslator : IMethodCallTranslator
     {
-        private static readonly MethodInfo _methodInfo = typeof(string).GetTypeInfo()
+        static readonly MethodInfo _methodInfo = typeof(string).GetTypeInfo()
             .GetDeclaredMethods(nameof(string.Substring))
             .Single(m => m.GetParameters().Length == 2);
 
@@ -41,7 +41,7 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal
         /// </summary>
         [CanBeNull]
         public virtual Expression Translate(MethodCallExpression methodCallExpression)
-            => methodCallExpression.Method == _methodInfo
+            => methodCallExpression.Method.Equals(_methodInfo)
                 ? new SqlFunctionExpression(
                     "SUBSTRING",
                     methodCallExpression.Type,

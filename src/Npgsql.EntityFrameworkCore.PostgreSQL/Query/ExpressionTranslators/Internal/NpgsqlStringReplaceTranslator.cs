@@ -31,19 +31,16 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal
 {
     public class NpgsqlStringReplaceTranslator : IMethodCallTranslator
     {
-        private static readonly MethodInfo _methodInfo = typeof(string).GetTypeInfo().GetDeclaredMethods(nameof(string.Replace))
-            .Where(m => m.GetParameters()[0].ParameterType == typeof(string))
-            .Single();
+        static readonly MethodInfo _methodInfo = typeof(string).GetTypeInfo()
+            .GetDeclaredMethods(nameof(string.Replace))
+            .Single(m => m.GetParameters()[0].ParameterType == typeof(string));
 
         public virtual Expression Translate([NotNull] MethodCallExpression methodCallExpression)
-        {
-            if (methodCallExpression.Method == _methodInfo)
-            {
-                var sqlArguments = new[] { methodCallExpression.Object }.Concat(methodCallExpression.Arguments);
-                return new SqlFunctionExpression("REPLACE", methodCallExpression.Type, sqlArguments);
-            }
-
-            return null;
-        }
+            => _methodInfo.Equals(methodCallExpression.Method)
+                ? new SqlFunctionExpression(
+                    "REPLACE",
+                    methodCallExpression.Type,
+                    new[] { methodCallExpression.Object }.Concat(methodCallExpression.Arguments))
+                : null;
     }
 }

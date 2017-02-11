@@ -33,16 +33,13 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal
 {
     public class NpgsqlMathTruncateTranslator : IMethodCallTranslator
     {
-        private static readonly IEnumerable<MethodInfo> _methodInfos = typeof(Math).GetTypeInfo().GetDeclaredMethods(nameof(Math.Truncate));
+        static readonly IEnumerable<MethodInfo> _methodInfos
+            = typeof(Math).GetTypeInfo().GetDeclaredMethods(nameof(Math.Truncate));
 
         public virtual Expression Translate([NotNull] MethodCallExpression methodCallExpression)
-        {
-            if (_methodInfos.Contains(methodCallExpression.Method))
-            {
-                return new SqlFunctionExpression("TRUNC", methodCallExpression.Type, new[] { methodCallExpression.Arguments[0] });
-            }
-
-            return null;
-        }
+            => _methodInfos.Contains(methodCallExpression.Method)
+                ? new SqlFunctionExpression("TRUNC", methodCallExpression.Type,
+                    new[] { methodCallExpression.Arguments[0] })
+                : null;
     }
 }

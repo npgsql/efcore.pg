@@ -15,7 +15,7 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal
             = typeof(string).GetRuntimeMethod(nameof(string.Contains), new[] { typeof(string) });
 
         public virtual Expression Translate(MethodCallExpression methodCallExpression)
-            => ReferenceEquals(methodCallExpression.Method, _methodInfo)
+            => methodCallExpression.Method.Equals(_methodInfo)
                 ? Expression.GreaterThan(
                     new SqlFunctionExpression("STRPOS", typeof(int), new[]
                     {

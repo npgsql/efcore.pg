@@ -26,7 +26,7 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal
     public class NpgsqlStringToLowerTranslator : ParameterlessInstanceMethodCallTranslator
     {
         public NpgsqlStringToLowerTranslator()
-            : base(declaringType: typeof(string), clrMethodName: "ToLower", sqlFunctionName: "LOWER")
+            : base(typeof(string), "ToLower", "LOWER")
         {
         }
     }

@@ -26,7 +26,7 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal
     public class NpgsqlStringToUpperTranslator : ParameterlessInstanceMethodCallTranslator
     {
         public NpgsqlStringToUpperTranslator()
-            : base(declaringType: typeof(string), clrMethodName: "ToUpper", sqlFunctionName: "UPPER")
+            : base(typeof(string), "ToUpper", "UPPER")
         {
         }
     }

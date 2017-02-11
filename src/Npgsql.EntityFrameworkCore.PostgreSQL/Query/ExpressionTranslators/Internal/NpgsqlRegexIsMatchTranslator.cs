@@ -38,29 +38,19 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal
     /// </remarks>
     public class NpgsqlRegexIsMatchTranslator : IMethodCallTranslator
     {
-        static readonly MethodInfo IsMatch;
-        static readonly MethodInfo IsMatchWithRegexOptions;
+        static readonly MethodInfo IsMatch =
+            typeof(Regex).GetRuntimeMethod(nameof(Regex.IsMatch), new[] { typeof(string), typeof(string) });
+
+        static readonly MethodInfo IsMatchWithRegexOptions =
+            typeof(Regex).GetRuntimeMethod(nameof(Regex.IsMatch), new [] { typeof(string), typeof(string), typeof(RegexOptions) });
 
         const RegexOptions UnsupportedRegexOptions = RegexOptions.RightToLeft | RegexOptions.ECMAScript;
-
-        static NpgsqlRegexIsMatchTranslator()
-        {
-            IsMatch = typeof (Regex).GetTypeInfo().GetDeclaredMethods(nameof(Regex.IsMatch)).Single(m =>
-                m.GetParameters().Length == 2 &&
-                m.GetParameters().All(p => p.ParameterType == typeof(string))
-            );
-            IsMatchWithRegexOptions = typeof(Regex).GetTypeInfo().GetDeclaredMethods(nameof(Regex.IsMatch)).Single(m =>
-               m.GetParameters().Length == 3 &&
-               m.GetParameters().Take(2).All(p => p.ParameterType == typeof(string)) &&
-               m.GetParameters()[2].ParameterType == typeof(RegexOptions)
-            );
-        }
 
         [CanBeNull]
         public Expression Translate([NotNull] MethodCallExpression methodCallExpression)
         {
             // Regex.IsMatch(string, string)
-            if (methodCallExpression.Method == IsMatch)
+            if (methodCallExpression.Method.Equals(IsMatch))
             {
                 return new RegexMatchExpression(
                     methodCallExpression.Arguments[0],
@@ -70,7 +60,7 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal
             }
 
             // Regex.IsMatch(string, string, RegexOptions)
-            if (methodCallExpression.Method == IsMatchWithRegexOptions)
+            if (methodCallExpression.Method.Equals(IsMatchWithRegexOptions))
             {
                 var constantExpr = methodCallExpression.Arguments[2] as ConstantExpression;
 

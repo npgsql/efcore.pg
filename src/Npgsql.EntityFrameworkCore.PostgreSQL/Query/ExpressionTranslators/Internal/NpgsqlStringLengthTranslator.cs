@@ -22,6 +22,7 @@
 #endregion
 
 using System.Linq.Expressions;
+using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
 
@@ -30,15 +31,10 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal
     public class NpgsqlStringLengthTranslator : IMemberTranslator
     {
         public virtual Expression Translate([NotNull] MemberExpression memberExpression)
-        {
-            if (memberExpression.Expression != null
-                && memberExpression.Expression.Type == typeof(string)
-                && memberExpression.Member.Name == "Length")
-            {
-                return new SqlFunctionExpression("LENGTH", memberExpression.Type, new[] { memberExpression.Expression });
-            }
-
-            return null;
-        }
+            => (memberExpression.Expression != null)
+               && (memberExpression.Expression.Type == typeof(string))
+               && (memberExpression.Member.Name == nameof(string.Length))
+                ? new SqlFunctionExpression("LENGTH", memberExpression.Type, new[] { memberExpression.Expression })
+                : null;
     }
 }
