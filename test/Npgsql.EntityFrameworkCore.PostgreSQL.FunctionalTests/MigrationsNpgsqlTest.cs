@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -126,7 +126,7 @@ CreatedTable
     ColumnWithDefaultToDrop int4 NULL DEFAULT 0
     ColumnWithDefaultToAlter int4 NULL DEFAULT 1
 ",
-                sql);
+                sql.Replace(Environment.NewLine, FileLineEnding));
         }
 
         protected override void BuildSecondMigration(MigrationBuilder migrationBuilder)
@@ -154,7 +154,7 @@ CreatedTable
     ColumnWithDefaultToDrop int4 NULL DEFAULT 0
     ColumnWithDefaultToAlter int4 NULL DEFAULT 1
 ",
-                sql);
+                sql.Replace(Environment.NewLine, FileLineEnding));
         }
 
         private string GetDatabaseSchemaAsync(DbConnection connection)
