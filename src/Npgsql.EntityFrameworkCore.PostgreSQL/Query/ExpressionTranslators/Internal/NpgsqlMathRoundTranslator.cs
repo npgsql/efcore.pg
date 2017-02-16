@@ -42,8 +42,8 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal
             if (_methodInfos.Contains(methodCallExpression.Method))
             {
                 var arguments = methodCallExpression.Arguments.Count == 1
-                    ? new[] { methodCallExpression.Arguments[0], Expression.Constant(0) }
-                    : new[] { methodCallExpression.Arguments[1], methodCallExpression.Arguments[1] };
+                    ? new[] { methodCallExpression.Arguments[0] }
+                    : new[] { methodCallExpression.Arguments[0], methodCallExpression.Arguments[1] };
 
                 return new SqlFunctionExpression("ROUND", methodCallExpression.Type, arguments);
             }
