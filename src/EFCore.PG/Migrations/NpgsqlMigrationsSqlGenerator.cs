@@ -312,12 +312,12 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             else
                 builder.Append("DROP DEFAULT");
 
+            // Terminate the DEFAULT above
+            builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
+
             // ALTER SEQUENCE
             if (sequenceName != null)
             {
-                // Terminate the DEFAULT above
-                builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
-
                 builder
                     .Append("ALTER SEQUENCE ")
                     .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(sequenceName))
@@ -333,8 +333,6 @@ namespace Microsoft.EntityFrameworkCore.Migrations
 
             if (oldComment != newComment)
             {
-                builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
-
                 builder
                     .Append("COMMENT ON COLUMN ")
                     .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Table, operation.Schema))
