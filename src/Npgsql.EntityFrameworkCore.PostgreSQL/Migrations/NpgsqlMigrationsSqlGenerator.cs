@@ -248,12 +248,12 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             else
                 builder.Append("DROP DEFAULT");
 
+            // Terminate the DEFAULT above
+            builder.AppendLine(SqlGenerationHelper.StatementTerminator);
+
             // ALTER SEQUENCE
             if (sequenceName != null)
             {
-                // Terminate the DEFAULT above
-                builder.AppendLine(SqlGenerationHelper.StatementTerminator);
-
                 builder
                     .Append("ALTER SEQUENCE ")
                     .Append(SqlGenerationHelper.DelimitIdentifier(sequenceName))
