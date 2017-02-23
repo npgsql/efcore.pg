@@ -1,128 +1,34 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{05A7D0B7-4AE1-4BC8-A1BE-2389F1593B2D}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests</RootNamespace>
-    <AssemblyName>Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests</AssemblyName>
-    <RestorePackages>true</RestorePackages>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
+    <TargetFrameworks>net452;netcoreapp1.1</TargetFrameworks>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>NET451;DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>NET451;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Collections.Concurrent" />
-    <Reference Include="System.ComponentModel.DataAnnotations" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Transactions" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
-    <Reference Include="WindowsBase" />
+    <Content Include="**\*.sql" Exclude="obj\**;bin\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="config.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
   </ItemGroup>
+
   <ItemGroup>
-    <Compile Include="AsNoTrackingNpgsqlTest.cs" />
-    <Compile Include="AsTrackingNpgsqlTest.cs" />
-    <Compile Include="AsyncFromSqlQueryNpgsqlTest.cs" />
-    <Compile Include="AsyncQueryNpgsqlTest.cs" />
-    <Compile Include="BatchingTest.cs" />
-    <Compile Include="BuiltInDataTypesNpgsqlFixture.cs" />
-    <Compile Include="BuiltInDataTypesNpgsqlTest.cs" />
-    <Compile Include="ChangeTrackingNpgsqlTest.cs" />
-    <Compile Include="ComplexNavigationsQueryNpgsqlFixture.cs" />
-    <Compile Include="ComplexNavigationsQueryNpgsqlTest.cs" />
-    <Compile Include="ConnectionSpecificationTest.cs" />
-    <Compile Include="DataAnnotationNpgsqlFixture.cs" />
-    <Compile Include="DataAnnotationNpgsqlTest.cs" />
-    <Compile Include="DefaultValuesTest.cs" />
-    <Compile Include="ExistingConnectionTest.cs" />
-    <Compile Include="F1NpgsqlFixture.cs" />
-    <Compile Include="FromSqlQueryNpgsqlTest.cs" />
-    <Compile Include="GearsOfWarQueryNpgsqlFixture.cs" />
-    <Compile Include="GearsOfWarQueryNpgsqlTest.cs" />
-    <Compile Include="GraphUpdatesNpgsqlTest.cs" />
-    <Compile Include="IncludeAsyncNpgsqlTest.cs" />
-    <Compile Include="IncludeNpgsqlTest.cs" />
-    <Compile Include="IncludeOneToOneNpgsqlTest.cs" />
-    <Compile Include="InheritanceNpgsqlFixture.cs" />
-    <Compile Include="InheritanceNpgsqlTest.cs" />
-    <Compile Include="InheritanceRelationshipsQueryNpgsqlFixture.cs" />
-    <Compile Include="InheritanceRelationshipsQueryNpgsqlTest.cs" />
-    <Compile Include="MappingQueryNpgsqlFixture.cs" />
-    <Compile Include="MappingQueryNpgsqlTest.cs" />
-    <Compile Include="MigrationsNpgsqlFixture.cs" />
-    <Compile Include="MigrationsNpgsqlTest.cs" />
-    <Compile Include="MonsterFixupNpgsqlTest.cs.cs" />
-    <Compile Include="NavigationTest.cs" />
-    <Compile Include="NorthwindQueryNpgsqlFixture.cs" />
-    <Compile Include="NpgsqlDatabaseCleaner.cs" />
-    <Compile Include="NpgsqlDatabaseCreatorTest.cs" />
-    <Compile Include="NpgsqlDatabaseFacadeExtensions.cs" />
-    <Compile Include="NpgsqlFixture.cs" />
-    <Compile Include="NpgsqlMigrationSqlGeneratorTest.cs" />
-    <Compile Include="NpgsqlTestHelpers.cs" />
-    <Compile Include="NpgsqlValueGenerationScenariosTest.cs" />
-    <Compile Include="SystemColumnTest.cs" />
-    <Compile Include="TempInheritanceRelationalFixture.cs" />
-    <Compile Include="Utilities\NpgsqlTestStore.cs" />
-    <Compile Include="NullKeysNpgsqlTest.cs" />
-    <Compile Include="NullSemanticsQueryNpgsqlFixture.cs" />
-    <Compile Include="NullSemanticsQueryNpgsqlTest.cs" />
-    <Compile Include="OneToOneQueryNpgsqlFixture.cs" />
-    <Compile Include="OptimisticConcurrencyNpgsqlTest.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="PropertyEntryNpgsqlTest.cs" />
-    <Compile Include="QueryNavigationsNpgsqlTest.cs" />
-    <Compile Include="QueryNoClientEvalNpgsqlFixture.cs" />
-    <Compile Include="QueryNoClientEvalNpgsqlTest.cs" />
-    <Compile Include="QueryNpgsqlTest.cs" />
-    <Compile Include="StoreGeneratedNpgsqlTest.cs" />
-    <Compile Include="SqlExecutorNpgsqlTest.cs" />
-    <Compile Include="TestModels\NpgsqlNorthwindContext.cs" />
-    <Compile Include="TransactionNpgsqlFixture.cs" />
-    <Compile Include="TransactionNpgsqlTest.cs" />
-    <Compile Include="Utilities\DbContextOptionsBuilderExtensions.cs" />
-    <Compile Include="Utilities\TestEnvironment.cs" />
+    <ProjectReference Include="..\..\src\Npgsql.EntityFrameworkCore.PostgreSQL\Npgsql.EntityFrameworkCore.PostgreSQL.csproj" />
+    <ProjectReference Include="..\..\src\Npgsql.EntityFrameworkCore.PostgreSQL.Design\Npgsql.EntityFrameworkCore.PostgreSQL.Design.csproj" />
   </ItemGroup>
+
   <ItemGroup>
-    <None Include="app.config" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.0.0-*" />
+    <PackageReference Include="xunit" Version="2.2.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.2.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="1.2.0-*" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="1.2.0-*" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational.Specification.Tests" Version="1.2.0-*" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="1.2.0-*" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="1.2.0-*" />
+    <PackageReference Include="Npgsql" Version="3.2.0" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\Npgsql.EntityFrameworkCore.PostgreSQL.Design\Npgsql.EntityFrameworkCore.PostgreSQL.Design.csproj">
-      <Project>{8edced17-2d1d-45be-9b61-0f715876da94}</Project>
-      <Name>Npgsql.EntityFrameworkCore.PostgreSQL.Design</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\src\Npgsql.EntityFrameworkCore.PostgreSQL\Npgsql.EntityFrameworkCore.PostgreSQL.csproj">
-      <Project>{FADDA2D1-03B4-4DEF-8D24-DD1CA4E81F4A}</Project>
-      <Name>Npgsql.EntityFrameworkCore.PostgreSQL</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Northwind.sql" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+
 </Project>

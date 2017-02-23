@@ -1,191 +1,28 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{1410D291-C519-4E74-AE3D-6BC6C4A7C1DC}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests</RootNamespace>
-    <AssemblyName>Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests</AssemblyName>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
+    <TargetFrameworks>net452;netcoreapp1.1</TargetFrameworks>
+    <PreserveCompilationContext>true</PreserveCompilationContext>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>NET451;DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>NET451;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="System.Collections.Concurrent" />
-    <Reference Include="System" />
-    <Reference Include="System.ComponentModel.DataAnnotations" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Transactions" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
-    <Reference Include="WindowsBase" />
+    <None Include="App.config" />
+    <Content Include="ReverseEngineering\**\*.expected;ReverseEngineering\**\*.sql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
   </ItemGroup>
+
   <ItemGroup>
-    <Compile Include="NpgsqlDatabaseModelFactoryFixture.cs" />
-    <Compile Include="NpgsqlDatabaseModelFactoryTest.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ReverseEngineering\NpgsqlE2ETests.cs" />
-    <Compile Include="ReverseEngineering\NpgsqlE2EFixture.cs" />
-    <Compile Include="Utilities\Util.cs" />
+    <ProjectReference Include="..\..\src\Npgsql.EntityFrameworkCore.PostgreSQL.Design\Npgsql.EntityFrameworkCore.PostgreSQL.Design.csproj" />
+    <ProjectReference Include="..\Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests\Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.csproj" />
   </ItemGroup>
+
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Npgsql.EntityFrameworkCore.PostgreSQL.Design\Npgsql.EntityFrameworkCore.PostgreSQL.Design.csproj">
-      <Project>{8edced17-2d1d-45be-9b61-0f715876da94}</Project>
-      <Name>Npgsql.EntityFrameworkCore.PostgreSQL.Design</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\src\Npgsql.EntityFrameworkCore.PostgreSQL\Npgsql.EntityFrameworkCore.PostgreSQL.csproj">
-      <Project>{fadda2d1-03b4-4def-8d24-dd1ca4e81f4a}</Project>
-      <Name>Npgsql.EntityFrameworkCore.PostgreSQL</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests\Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.csproj">
-      <Project>{05a7d0b7-4ae1-4bc8-a1be-2389f1593b2d}</Project>
-      <Name>Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests</Name>
-    </ProjectReference>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.0.0-*" />
+    <PackageReference Include="xunit" Version="2.2.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.2.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational.Design.Specification.Tests" Version="1.2.0-*" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="app.config" />
-    <None Include="ReverseEngineering\Expected\ColumnsWithSequences\IdNonSerialSequence.expected">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="ReverseEngineering\Expected\ColumnsWithSequences\IdSerialSequence.expected">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="ReverseEngineering\Expected\AllFluentApi\AllDataTypes.expected">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="ReverseEngineering\Expected\AllFluentApi\OneToManyDependent.expected">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="ReverseEngineering\Expected\AllFluentApi\OneToManyPrincipal.expected">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="ReverseEngineering\Expected\AllFluentApi\OneToOneDependent.expected">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="ReverseEngineering\Expected\AllFluentApi\OneToOneFKToUniqueKeyDependent.expected">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="ReverseEngineering\Expected\AllFluentApi\OneToOneFKToUniqueKeyPrincipal.expected">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="ReverseEngineering\Expected\AllFluentApi\OneToOnePrincipal.expected">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="ReverseEngineering\Expected\AllFluentApi\OneToOneSeparateFKDependent.expected">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="ReverseEngineering\Expected\AllFluentApi\OneToOneSeparateFKPrincipal.expected">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="ReverseEngineering\Expected\AllFluentApi\PropertyConfiguration.expected">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="ReverseEngineering\Expected\AllFluentApi\ReferredToByTableWithUnmappablePrimaryKeyColumn.expected">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="ReverseEngineering\Expected\AllFluentApi\SpecialTypes.expected">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="ReverseEngineering\Expected\AllFluentApi\SelfReferencing.expected">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="ReverseEngineering\Expected\AllFluentApi\NpgsqlReverseEngineerTestE2EContext.expected">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="ReverseEngineering\Expected\AllFluentApi\Test_Spaces_Keywords_Table.expected">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="ReverseEngineering\Expected\Attributes\AllDataTypes.expected">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="ReverseEngineering\Expected\Attributes\AttributesContext.expected">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="ReverseEngineering\Expected\Attributes\OneToManyDependent.expected">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="ReverseEngineering\Expected\Attributes\OneToManyPrincipal.expected">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="ReverseEngineering\Expected\Attributes\OneToOneDependent.expected">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="ReverseEngineering\Expected\Attributes\OneToOneFKToUniqueKeyDependent.expected">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="ReverseEngineering\Expected\Attributes\OneToOneFKToUniqueKeyPrincipal.expected">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="ReverseEngineering\Expected\Attributes\OneToOnePrincipal.expected">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="ReverseEngineering\Expected\Attributes\OneToOneSeparateFKDependent.expected">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="ReverseEngineering\Expected\Attributes\OneToOneSeparateFKPrincipal.expected">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="ReverseEngineering\Expected\Attributes\PropertyConfiguration.expected">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="ReverseEngineering\Expected\Attributes\ReferredToByTableWithUnmappablePrimaryKeyColumn.expected">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="ReverseEngineering\Expected\Attributes\SelfReferencing.expected">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="ReverseEngineering\Expected\Attributes\SpecialTypes.expected">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="ReverseEngineering\Expected\Attributes\Test_Spaces_Keywords_Table.expected">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="ReverseEngineering\Expected\ColumnsWithSequences\SerialSequence.expected">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="ReverseEngineering\Expected\ColumnsWithSequences\NonSerialSequence.expected">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="ReverseEngineering\Expected\ColumnsWithSequences\ColumnsWithSequencesContext.expected">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="ReverseEngineering\Expected\SequenceContext.expected">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="ReverseEngineering\E2E.sql" />
-  </ItemGroup>
-  <ItemGroup />
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+
 </Project>
