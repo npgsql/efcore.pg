@@ -1,156 +1,33 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{FADDA2D1-03B4-4DEF-8D24-DD1CA4E81F4A}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Npgsql.EntityFrameworkCore.PostgreSQL</RootNamespace>
-    <AssemblyName>Npgsql.EntityFrameworkCore.PostgreSQL</AssemblyName>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
+    <VersionPrefix>1.1.1</VersionPrefix>
+    <TargetFrameworks>net451;netstandard1.3</TargetFrameworks>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <AssemblyOriginatorKeyFile>../../Npgsql.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>..\..\Npgsql.snk</AssemblyOriginatorKeyFile>
-    <TargetFrameworkProfile />
+    <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
+    <Description>PostgreSQL/Npgsql provider for Entity Framework Core.</Description>
+    <Authors>Shay Rojansky</Authors>
+    <Company>Npgsql</Company>
+    <PackageTags>npgsql;postgresql;postgres;Entity Framework Core;entity-framework-core;ef;efcore;orm;sql</PackageTags>
+    <Copyright>Copyright 2017 &#169; The Npgsql Development Team</Copyright>
+    <PackageIconUrl>http://www.npgsql.org/img/postgresql.gif</PackageIconUrl>
+    <PackageLicenseUrl>https://raw.githubusercontent.com/npgsql/Npgsql.EntityFrameworkCore.PostgreSQL/dev/LICENSE.txt</PackageLicenseUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>git://github.com/npgsql/Npgsql.EntityFrameworkCore.PostgreSQL</RepositoryUrl>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Debug\Npgsql.EntityFrameworkCore.PostgreSQL.xml</DocumentationFile>
-    <NoWarn>1591</NoWarn>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Release\Npgsql.EntityFrameworkCore.PostgreSQL.xml</DocumentationFile>
-  </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Collections.Concurrent" />
-    <Reference Include="System.ComponentModel.DataAnnotations" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Transactions" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
+    <Compile Include="..\Shared\*.cs" />
   </ItemGroup>
+
   <ItemGroup>
-    <Compile Include="..\Shared\Check.cs">
-      <Link>Check.cs</Link>
-    </Compile>
-    <Compile Include="Extensions\NpgsqlEntityTypeBuilderExtensions.cs" />
-    <Compile Include="Extensions\NpgsqlIndexBuilderExtensions.cs" />
-    <Compile Include="Extensions\NpgsqlKeyBuilderExtensions.cs" />
-    <Compile Include="Extensions\NpgsqlModelBuilderExtensions.cs" />
-    <Compile Include="Extensions\NpgsqlPropertyBuilderExtensions.cs" />
-    <Compile Include="Extensions\NpgsqlReferenceCollectionBuilderExtensions.cs" />
-    <Compile Include="Extensions\NpgsqlReferenceReferenceBuilderExtensions.cs" />
-    <Compile Include="Infrastructure\NpgsqlDbContextOptionsBuilder.cs" />
-    <Compile Include="Extensions\NpgsqlDbContextOptionsExtensions.cs" />
-    <Compile Include="Extensions\NpgsqlServiceCollectionExtensions.cs" />
-    <Compile Include="Metadata\Conventions\Internal\NpgsqlValueGenerationStrategyConvention.cs" />
-    <Compile Include="Metadata\INpgsqlEntityTypeAnnotations.cs" />
-    <Compile Include="Metadata\INpgsqlModelAnnotations.cs" />
-    <Compile Include="Metadata\INpgsqlPropertyAnnotations.cs" />
-    <Compile Include="Metadata\Internal\NpgsqlAnnotationNames.cs" />
-    <Compile Include="Metadata\Internal\NpgsqlFullAnnotationNames.cs" />
-    <Compile Include="Metadata\Internal\NpgsqlInternalMetadataBuilderExtensions.cs" />
-    <Compile Include="Metadata\INpgsqlIndexAnnotations.cs" />
-    <Compile Include="Metadata\Internal\NpgsqlModelBuilderAnnotations.cs" />
-    <Compile Include="Metadata\Internal\NpgsqlPropertyBuilderAnnotations.cs" />
-    <Compile Include="Metadata\IPostgresExtension.cs" />
-    <Compile Include="Metadata\NpgsqlEntityTypeAnnotations.cs" />
-    <Compile Include="Metadata\NpgsqlExtensionBuilder.cs" />
-    <Compile Include="Metadata\NpgsqlIndexAnnotations.cs" />
-    <Compile Include="Metadata\NpgsqlAnnotationProvider.cs" />
-    <Compile Include="Metadata\NpgsqlModelAnnotations.cs" />
-    <Compile Include="Metadata\NpgsqlPropertyAnnotations.cs" />
-    <Compile Include="Metadata\NpgsqlValueGenerationStrategy.cs" />
-    <Compile Include="Metadata\PostgresExtension.cs" />
-    <Compile Include="Migrations\MigrationBuilderExtensions.cs" />
-    <Compile Include="Migrations\Operations\NpgsqlCreateDatabaseOperation.cs" />
-    <Compile Include="Migrations\Operations\NpgsqlDropDatabaseOperation.cs" />
-    <Compile Include="Migrations\Internal\NpgsqlHistoryRepository.cs" />
-    <Compile Include="Migrations\Internal\NpgsqlMigrationsAnnotationProvider.cs" />
-    <Compile Include="Migrations\NpgsqlMigrationsSqlGenerator.cs" />
-    <Compile Include="NpgsqlModelBuilderExtensions.cs" />
-    <Compile Include="NpgsqlPostgresExtensionBuilder.cs" />
-    <Compile Include="Query\ExpressionTranslators\Internal\NpgsqlCompositeMemberTranslator.cs" />
-    <Compile Include="Query\ExpressionTranslators\Internal\NpgsqlCompositeMethodCallTranslator.cs" />
-    <Compile Include="Metadata\Conventions\NpgsqlConventionSetBuilder.cs" />
-    <Compile Include="Storage\Internal\Mapping\NpgsqlArrayTypeMapping.cs" />
-    <Compile Include="Storage\Internal\Mapping\NpgsqlTypeMapping.cs" />
-    <Compile Include="Storage\Internal\NpgsqlSqlGenerationHelper.cs" />
-    <Compile Include="Storage\Internal\NpgsqlRelationalConnection.cs" />
-    <Compile Include="Storage\Internal\NpgsqlDatabaseCreator.cs" />
-    <Compile Include="Storage\Internal\NpgsqlDatabaseProviderServices.cs" />
-    <Compile Include="Extensions\NpgsqlMetadataExtensions.cs" />
-    <Compile Include="Infrastructure\Internal\NpgsqlModelSource.cs" />
-    <Compile Include="Infrastructure\Internal\NpgsqlOptionsExtension.cs" />
-    <Compile Include="Storage\Internal\NpgsqlTypeMapper.cs" />
-    <Compile Include="Storage\Internal\Mapping\NpgsqlBaseTypeMapping.cs" />
-    <Compile Include="Storage\NpgsqlStringRelationalTypeMapper.cs" />
-    <Compile Include="Update\Internal\NpgsqlUpdateSqlGenerator.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="..\Shared\CommonAssemblyInfo.cs">
-      <Link>Properties\CommonAssemblyInfo.cs</Link>
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Query\Expressions\Internal\AtTimeZoneExpression.cs" />
-    <Compile Include="Query\Expressions\Internal\RegexMatchExpression.cs" />
-    <Compile Include="Query\ExpressionTranslators\Internal\NpgsqlDateTimeNowTranslator.cs" />
-    <Compile Include="Query\ExpressionTranslators\Internal\NpgsqlMathAbsTranslator.cs" />
-    <Compile Include="Query\ExpressionTranslators\Internal\NpgsqlMathCeilingTranslator.cs" />
-    <Compile Include="Query\ExpressionTranslators\Internal\NpgsqlMathFloorTranslator.cs" />
-    <Compile Include="Query\ExpressionTranslators\Internal\NpgsqlMathPowerTranslator.cs" />
-    <Compile Include="Query\ExpressionTranslators\Internal\NpgsqlMathRoundTranslator.cs" />
-    <Compile Include="Query\ExpressionTranslators\Internal\NpgsqlMathTruncateTranslator.cs" />
-    <Compile Include="Query\ExpressionTranslators\Internal\NpgsqlRegexIsMatchTranslator.cs" />
-    <Compile Include="Query\ExpressionTranslators\Internal\NpgsqlStringLengthTranslator.cs" />
-    <Compile Include="Query\ExpressionTranslators\Internal\NpgsqlStringReplaceTranslator.cs" />
-    <Compile Include="Query\ExpressionTranslators\Internal\NpgsqlStringSubstringTranslator.cs" />
-    <Compile Include="Query\ExpressionTranslators\Internal\NpgsqlStringToLowerTranslator.cs" />
-    <Compile Include="Query\ExpressionTranslators\Internal\NpgsqlStringToUpperTranslator.cs" />
-    <Compile Include="Query\Internal\NpgsqlQueryCompilationContext.cs" />
-    <Compile Include="Query\Internal\NpgsqlQueryCompilationContextFactory.cs" />
-    <Compile Include="Query\Sql\Internal\NpgsqlQuerySqlGenerator.cs" />
-    <Compile Include="Query\Sql\Internal\NpgsqlQuerySqlGeneratorFactory.cs" />
-    <Compile Include="Update\Internal\NpgsqlModificationCommandBatch.cs" />
-    <Compile Include="Update\Internal\NpgsqlModificationCommandBatchFactory.cs" />
-    <Compile Include="Utilities\AsyncEnumerableExtensions.cs" />
-    <Compile Include="Utilities\EnumerableExtensions.cs" />
-    <Compile Include="Utilities\SharedTypeExtensions.cs" />
-    <Compile Include="Utilities\StringBuilderExtensions.cs" />
-    <Compile Include="ValueGeneration\Internal\INpgsqlSequenceValueGeneratorFactory.cs" />
-    <Compile Include="ValueGeneration\Internal\INpgsqlValueGeneratorCache.cs" />
-    <Compile Include="ValueGeneration\Internal\NpgsqlSequenceHiLoValueGenerator.cs" />
-    <Compile Include="ValueGeneration\Internal\NpgsqlSequenceValueGeneratorFactory.cs" />
-    <Compile Include="ValueGeneration\Internal\NpgsqlSequenceValueGeneratorState.cs" />
-    <Compile Include="ValueGeneration\Internal\NpgsqlValueGeneratorCache.cs" />
-    <Compile Include="ValueGeneration\Internal\NpgsqlValueGeneratorSelector.cs" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="1.1.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="1.1.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="1.1.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="1.1.0" />
+    <PackageReference Include="Npgsql" Version="3.2.1" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="app.config" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+
 </Project>
