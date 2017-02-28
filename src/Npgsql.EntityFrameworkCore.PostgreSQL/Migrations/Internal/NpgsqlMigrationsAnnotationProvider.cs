@@ -24,6 +24,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
@@ -32,6 +33,11 @@ namespace Microsoft.EntityFrameworkCore.Migrations.Internal
 {
     public class NpgsqlMigrationsAnnotationProvider : MigrationsAnnotationProvider
     {
+        public NpgsqlMigrationsAnnotationProvider([NotNull] MigrationsAnnotationProviderDependencies dependencies)
+            : base(dependencies)
+        {
+        }
+
         public override IEnumerable<IAnnotation> For(IEntityType entityType)
         {
             if (entityType.Npgsql().Comment != null)

@@ -18,10 +18,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Update
                 new RelationalCommandBuilderFactory(
                     new FakeSensitiveDataLogger<RelationalCommandBuilderFactory>(),
                     new DiagnosticListener("Fake"),
-                    new NpgsqlTypeMapper()),
-                new NpgsqlSqlGenerationHelper(),
-                new NpgsqlUpdateSqlGenerator(new NpgsqlSqlGenerationHelper()),
-                new TypedRelationalValueBufferFactoryFactory(),
+                    new NpgsqlTypeMapper(new RelationalTypeMapperDependencies())),
+                new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
+                new NpgsqlUpdateSqlGenerator(
+                    new UpdateSqlGeneratorDependencies(
+                        new NpgsqlSqlGenerationHelper(
+                            new RelationalSqlGenerationHelperDependencies()))
+                    ),
+                new TypedRelationalValueBufferFactoryFactory(
+                    new RelationalValueBufferFactoryDependencies()),
                 1);
 
             Assert.True(batch.AddCommand(new ModificationCommand("T1", null, new ParameterNameGenerator().GenerateNext, p => p.Npgsql())));

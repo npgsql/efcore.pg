@@ -43,25 +43,15 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
     public class NpgsqlDatabaseCreator : RelationalDatabaseCreator
     {
         readonly INpgsqlRelationalConnection _connection;
-        readonly IMigrationsSqlGenerator _migrationsSqlGenerator;
         readonly IRawSqlCommandBuilder _rawSqlCommandBuilder;
-        readonly IMigrationsModelDiffer _modelDiffer;
 
         public NpgsqlDatabaseCreator(
+            [NotNull] RelationalDatabaseCreatorDependencies dependencies,
             [NotNull] INpgsqlRelationalConnection connection,
-            [NotNull] IMigrationsModelDiffer modelDiffer,
-            [NotNull] IMigrationsSqlGenerator migrationsSqlGenerator,
-            [NotNull] IMigrationCommandExecutor migrationCommandExecutor,
-            [NotNull] IModel model,
-            [NotNull] IRawSqlCommandBuilder rawSqlCommandBuilder,
-            [NotNull] IExecutionStrategyFactory executionStrategyFactory)
-            : base(model, connection, modelDiffer, migrationsSqlGenerator, migrationCommandExecutor, executionStrategyFactory)
+            [NotNull] IRawSqlCommandBuilder rawSqlCommandBuilder)
+            : base(dependencies)
         {
-            Check.NotNull(rawSqlCommandBuilder, nameof(rawSqlCommandBuilder));
-
             _connection = connection;
-            _modelDiffer = modelDiffer;
-            _migrationsSqlGenerator = migrationsSqlGenerator;
             _rawSqlCommandBuilder = rawSqlCommandBuilder;
         }
 
@@ -69,7 +59,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
         {
             using (var masterConnection = _connection.CreateMasterConnection())
             {
-                MigrationCommandExecutor
+                Dependencies.MigrationCommandExecutor
                     .ExecuteNonQuery(CreateCreateOperations(), masterConnection);
 
                 ClearPool();
@@ -80,7 +70,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
         {
             using (var masterConnection = _connection.CreateMasterConnection())
             {
-                await MigrationCommandExecutor
+                await Dependencies.MigrationCommandExecutor
                     .ExecuteNonQueryAsync(CreateCreateOperations(), masterConnection, cancellationToken);
 
                 ClearPool();
@@ -102,7 +92,13 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
                 ");
 
         IReadOnlyList<MigrationCommand> CreateCreateOperations()
-            => _migrationsSqlGenerator.Generate(new[] { new NpgsqlCreateDatabaseOperation { Name = _connection.DbConnection.Database, Template = Model.Npgsql().DatabaseTemplate } });
+            => Dependencies.MigrationsSqlGenerator.Generate(new[]
+            {
+                new NpgsqlCreateDatabaseOperation
+                {
+                    Name = _connection.DbConnection.Database, Template = Dependencies.Model.Npgsql().DatabaseTemplate
+                }
+            });
 
         public override bool Exists()
         {
@@ -185,7 +181,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
 
             using (var masterConnection = _connection.CreateMasterConnection())
             {
-                MigrationCommandExecutor
+                Dependencies.MigrationCommandExecutor
                     .ExecuteNonQuery(CreateDropCommands(), masterConnection);
             }
         }
@@ -196,25 +192,25 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
 
             using (var masterConnection = _connection.CreateMasterConnection())
             {
-                await MigrationCommandExecutor
+                await Dependencies.MigrationCommandExecutor
                     .ExecuteNonQueryAsync(CreateDropCommands(), masterConnection, cancellationToken);
             }
         }
 
         public override void CreateTables()
         {
-            var operations = _modelDiffer.GetDifferences(null, Model);
-            var commands = _migrationsSqlGenerator.Generate(operations, Model);
+            var operations = Dependencies.ModelDiffer.GetDifferences(null, Dependencies.Model);
+            var commands = Dependencies.MigrationsSqlGenerator.Generate(operations, Dependencies.Model);
 
             // Adding a PostgreSQL extension might define new types (e.g. hstore), which we
             // Npgsql to reload
             var reloadTypes = operations.Any(o => o is AlterDatabaseOperation && PostgresExtension.GetPostgresExtensions(o).Any());
 
-            MigrationCommandExecutor.ExecuteNonQuery(commands, Connection);
+            Dependencies.MigrationCommandExecutor.ExecuteNonQuery(commands, _connection);
 
             if (reloadTypes)
             {
-                var npgsqlConn = (NpgsqlConnection)Connection.DbConnection;
+                var npgsqlConn = (NpgsqlConnection)_connection.DbConnection;
                 if (npgsqlConn.FullState == ConnectionState.Open)
                     npgsqlConn.ReloadTypes();
             }
@@ -222,19 +218,19 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
 
         public override async Task CreateTablesAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            var operations = _modelDiffer.GetDifferences(null, Model);
-            var commands = _migrationsSqlGenerator.Generate(operations, Model);
+            var operations = Dependencies.ModelDiffer.GetDifferences(null, Dependencies.Model);
+            var commands = Dependencies.MigrationsSqlGenerator.Generate(operations, Dependencies.Model);
 
             // Adding a PostgreSQL extension might define new types (e.g. hstore), which we
             // Npgsql to reload
             var reloadTypes = operations.Any(o => o is AlterDatabaseOperation && PostgresExtension.GetPostgresExtensions(o).Any());
 
-            await MigrationCommandExecutor.ExecuteNonQueryAsync(commands, Connection, cancellationToken);
+            await Dependencies.MigrationCommandExecutor.ExecuteNonQueryAsync(commands, _connection, cancellationToken);
 
             // TODO: Not async
             if (reloadTypes)
             {
-                var npgsqlConn = (NpgsqlConnection)Connection.DbConnection;
+                var npgsqlConn = (NpgsqlConnection)_connection.DbConnection;
                 if (npgsqlConn.FullState == ConnectionState.Open)
                     npgsqlConn.ReloadTypes();
             }
@@ -249,8 +245,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
                 new NpgsqlDropDatabaseOperation { Name = _connection.DbConnection.Database }
             };
 
-            var masterCommands = _migrationsSqlGenerator.Generate(operations);
-            return masterCommands;
+            return Dependencies.MigrationsSqlGenerator.Generate(operations);
         }
 
         // Clear connection pools in case there are active connections that are pooled

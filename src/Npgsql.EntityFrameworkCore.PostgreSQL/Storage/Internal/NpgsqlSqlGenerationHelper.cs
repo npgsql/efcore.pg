@@ -24,12 +24,18 @@
 using System;
 using System.Globalization;
 using System.Text;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Utilities;
 
 namespace Microsoft.EntityFrameworkCore.Storage.Internal
 {
     public class NpgsqlSqlGenerationHelper : RelationalSqlGenerationHelper
     {
+        public NpgsqlSqlGenerationHelper([NotNull] RelationalSqlGenerationHelperDependencies dependencies)
+            : base(dependencies)
+        {
+        }
+
         public override string EscapeIdentifier(string identifier)
             => Check.NotEmpty(identifier, nameof(identifier)).Replace("\"", "\"\"");
 

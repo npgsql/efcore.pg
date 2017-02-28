@@ -47,7 +47,8 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
 
         public override IStringRelationalTypeMapper StringMapper { get; }
 
-        public NpgsqlTypeMapper()
+        public NpgsqlTypeMapper([NotNull] RelationalTypeMapperDependencies dependencies)
+            : base(dependencies)
         {
             // First, PostgreSQL type name (string) -> RelationalTypeMapping
             _storeTypeMappings = TypeHandlerRegistry.HandlerTypes.Values

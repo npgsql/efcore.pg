@@ -31,11 +31,8 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Conventions
 {
     public class NpgsqlConventionSetBuilder : RelationalConventionSetBuilder
     {
-        public NpgsqlConventionSetBuilder(
-            [NotNull] IRelationalTypeMapper typeMapper,
-            [CanBeNull] ICurrentDbContext currentContext,
-            [CanBeNull] IDbSetFinder setFinder)
-            : base(typeMapper, currentContext, setFinder)
+        public NpgsqlConventionSetBuilder([NotNull] RelationalConventionSetBuilderDependencies dependencies)
+            : base(dependencies)
         {
         }
 

@@ -16,11 +16,10 @@ namespace Microsoft.EntityFrameworkCore.ValueGeneration.Internal
         readonly INpgsqlRelationalConnection _connection;
 
         public NpgsqlValueGeneratorSelector(
-            [NotNull] IValueGeneratorCache cache,
+            [NotNull] ValueGeneratorSelectorDependencies dependencies,
             [NotNull] INpgsqlSequenceValueGeneratorFactory sequenceFactory,
-            [NotNull] INpgsqlRelationalConnection connection,
-            [NotNull] IRelationalAnnotationProvider relationalExtensions)
-            : base(cache, relationalExtensions)
+            [NotNull] INpgsqlRelationalConnection connection)
+            : base(dependencies)
         {
             _sequenceFactory = sequenceFactory;
             _connection = connection;

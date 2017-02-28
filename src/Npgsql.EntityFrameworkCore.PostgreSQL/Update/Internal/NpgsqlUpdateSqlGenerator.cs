@@ -35,8 +35,8 @@ namespace Microsoft.EntityFrameworkCore.Update.Internal
 {
     public class NpgsqlUpdateSqlGenerator : UpdateSqlGenerator
     {
-        public NpgsqlUpdateSqlGenerator([NotNull] ISqlGenerationHelper sqlGenerationHelper)
-            : base(sqlGenerationHelper)
+        public NpgsqlUpdateSqlGenerator([NotNull] UpdateSqlGeneratorDependencies dependencies)
+            : base(dependencies)
         {
         }
 

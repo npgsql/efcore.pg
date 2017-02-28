@@ -399,14 +399,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         public class TestDatabaseCreator : NpgsqlDatabaseCreator
         {
             public TestDatabaseCreator(
+                RelationalDatabaseCreatorDependencies dependencies,
                 INpgsqlRelationalConnection connection,
-                IMigrationsModelDiffer modelDiffer,
-                IMigrationsSqlGenerator sqlGenerator,
-                IMigrationCommandExecutor migrationCommandExecutor,
-                IModel model,
-                IRawSqlCommandBuilder rawSqlCommandBuilder,
-                IExecutionStrategyFactory executionStrategyFactory)
-                : base(connection, modelDiffer, sqlGenerator, migrationCommandExecutor, model, rawSqlCommandBuilder, executionStrategyFactory)
+                IRawSqlCommandBuilder rawSqlCommandBuilder)
+                : base(dependencies, connection, rawSqlCommandBuilder)
             {
             }
 
@@ -415,7 +411,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             public Task<bool> HasTablesAsyncBase(CancellationToken cancellationToken = default(CancellationToken))
                 => HasTablesAsync(cancellationToken);
 
-            public new IExecutionStrategyFactory ExecutionStrategyFactory => base.ExecutionStrategyFactory;
+            public IExecutionStrategyFactory ExecutionStrategyFactory => Dependencies.ExecutionStrategyFactory;
         }
     }
 }

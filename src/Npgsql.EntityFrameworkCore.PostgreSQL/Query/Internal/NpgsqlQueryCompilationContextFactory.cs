@@ -34,41 +34,27 @@ namespace Microsoft.EntityFrameworkCore.Query.Internal
     public class NpgsqlQueryCompilationContextFactory : RelationalQueryCompilationContextFactory
     {
         public NpgsqlQueryCompilationContextFactory(
-            [NotNull] IModel model,
-            [NotNull] ISensitiveDataLogger<NpgsqlQueryCompilationContextFactory> logger,
-            [NotNull] IEntityQueryModelVisitorFactory entityQueryModelVisitorFactory,
-            [NotNull] IRequiresMaterializationExpressionVisitorFactory requiresMaterializationExpressionVisitorFactory,
-            [NotNull] INodeTypeProviderFactory nodeTypeProviderFactory,
-            [NotNull] ICurrentDbContext currentContext)
-            : base(
-                model,
-                logger,
-                entityQueryModelVisitorFactory,
-                requiresMaterializationExpressionVisitorFactory,
-                nodeTypeProviderFactory,
-                currentContext)
+            [NotNull] QueryCompilationContextDependencies dependencies,
+            [NotNull] RelationalQueryCompilationContextDependencies relationalDependencies)
+            : base(dependencies, relationalDependencies)
         {
         }
 
+        /// <summary>
+        ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
+        ///     directly from your code. This API may change or be removed in future releases.
+        /// </summary>
         public override QueryCompilationContext Create(bool async)
             => async
                 ? new NpgsqlQueryCompilationContext(
-                    Model,
-                    (ISensitiveDataLogger)Logger,
-                    EntityQueryModelVisitorFactory,
-                    RequiresMaterializationExpressionVisitorFactory,
+                    Dependencies,
                     new AsyncLinqOperatorProvider(),
                     new AsyncQueryMethodProvider(),
-                    ContextType,
                     TrackQueryResults)
                 : new NpgsqlQueryCompilationContext(
-                    Model,
-                    (ISensitiveDataLogger)Logger,
-                    EntityQueryModelVisitorFactory,
-                    RequiresMaterializationExpressionVisitorFactory,
+                    Dependencies,
                     new LinqOperatorProvider(),
                     new QueryMethodProvider(),
-                    ContextType,
                     TrackQueryResults);
     }
 }

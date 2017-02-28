@@ -22,12 +22,14 @@
 #endregion
 
 using System.Collections.Generic;
+using JetBrains.Annotations;
 
 namespace Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal
 {
     public class NpgsqlCompositeMemberTranslator : RelationalCompositeMemberTranslator
     {
-        public NpgsqlCompositeMemberTranslator()
+        public NpgsqlCompositeMemberTranslator([NotNull] RelationalCompositeMemberTranslatorDependencies dependencies)
+            : base(dependencies)
         {
             AddTranslators(new List<IMemberTranslator>
             {

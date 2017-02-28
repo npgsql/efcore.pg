@@ -52,8 +52,9 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal
             new NpgsqlRegexIsMatchTranslator(),
         };
 
-        public NpgsqlCompositeMethodCallTranslator([NotNull] ILogger<NpgsqlCompositeMethodCallTranslator> logger)
-            : base(logger)
+        public NpgsqlCompositeMethodCallTranslator(
+            [NotNull] RelationalCompositeMethodCallTranslatorDependencies dependencies)
+            : base(dependencies)
         {
             // ReSharper disable once DoNotCallOverridableMethodsInConstructor
             AddTranslators(_methodCallTranslators);

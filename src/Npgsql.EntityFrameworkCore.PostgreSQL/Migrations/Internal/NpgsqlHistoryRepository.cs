@@ -35,24 +35,8 @@ namespace Microsoft.EntityFrameworkCore.Migrations.Internal
 {
     public class NpgsqlHistoryRepository : HistoryRepository
     {
-        public NpgsqlHistoryRepository(
-            [NotNull] IDatabaseCreator databaseCreator,
-            [NotNull] IRawSqlCommandBuilder rawSqlCommandBuilder,
-            [NotNull] INpgsqlRelationalConnection connection,
-            [NotNull] IDbContextOptions options,
-            [NotNull] IMigrationsModelDiffer modelDiffer,
-            [NotNull] IMigrationsSqlGenerator migrationsSqlGenerator,
-            [NotNull] IRelationalAnnotationProvider annotations,
-            [NotNull] ISqlGenerationHelper sqlGenerationHelper)
-            : base(
-                  databaseCreator,
-                  rawSqlCommandBuilder,
-                  connection,
-                  options,
-                  modelDiffer,
-                  migrationsSqlGenerator,
-                  annotations,
-                  sqlGenerationHelper)
+        public NpgsqlHistoryRepository([NotNull] HistoryRepositoryDependencies dependencies)
+            : base(dependencies)
         {
         }
 

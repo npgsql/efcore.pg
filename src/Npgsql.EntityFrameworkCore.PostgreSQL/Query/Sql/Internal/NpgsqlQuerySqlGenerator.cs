@@ -43,17 +43,9 @@ namespace Microsoft.EntityFrameworkCore.Query.Sql.Internal
         protected override string TypedFalseLiteral => "FALSE::bool";
 
         public NpgsqlQuerySqlGenerator(
-            [NotNull] IRelationalCommandBuilderFactory relationalCommandBuilderFactory,
-            [NotNull] ISqlGenerationHelper sqlGenerationHelper,
-            [NotNull] IParameterNameGeneratorFactory parameterNameGeneratorFactory,
-            [NotNull] IRelationalTypeMapper relationalTypeMapper,
+            [NotNull] QuerySqlGeneratorDependencies dependencies,
             [NotNull] SelectExpression selectExpression)
-            : base(
-                  relationalCommandBuilderFactory,
-                  sqlGenerationHelper,
-                  parameterNameGeneratorFactory,
-                  relationalTypeMapper,
-                  selectExpression)
+            : base(dependencies, selectExpression)
         {
         }
 

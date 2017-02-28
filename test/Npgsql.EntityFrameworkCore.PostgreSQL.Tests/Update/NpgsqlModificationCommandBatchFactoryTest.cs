@@ -24,10 +24,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Update
                 new RelationalCommandBuilderFactory(
                     new FakeSensitiveDataLogger<RelationalCommandBuilderFactory>(),
                     new DiagnosticListener("Fake"),
-                    new NpgsqlTypeMapper()),
-                new NpgsqlSqlGenerationHelper(),
-                new NpgsqlUpdateSqlGenerator(new NpgsqlSqlGenerationHelper()),
-                new UntypedRelationalValueBufferFactoryFactory(),
+                    new NpgsqlTypeMapper(new RelationalTypeMapperDependencies())),
+                new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
+                new NpgsqlUpdateSqlGenerator(
+                    new UpdateSqlGeneratorDependencies(
+                        new NpgsqlSqlGenerationHelper(
+                            new RelationalSqlGenerationHelperDependencies()))
+                    ),
+                new TypedRelationalValueBufferFactoryFactory(
+                    new RelationalValueBufferFactoryDependencies()),
                 optionsBuilder.Options);
 
             var batch = factory.Create();
@@ -46,10 +51,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Update
                 new RelationalCommandBuilderFactory(
                     new FakeSensitiveDataLogger<RelationalCommandBuilderFactory>(),
                     new DiagnosticListener("Fake"),
-                    new NpgsqlTypeMapper()),
-                new NpgsqlSqlGenerationHelper(),
-                new NpgsqlUpdateSqlGenerator(new NpgsqlSqlGenerationHelper()),
-                new UntypedRelationalValueBufferFactoryFactory(),
+                    new NpgsqlTypeMapper(new RelationalTypeMapperDependencies())),
+                new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
+                new NpgsqlUpdateSqlGenerator(
+                    new UpdateSqlGeneratorDependencies(
+                        new NpgsqlSqlGenerationHelper(
+                            new RelationalSqlGenerationHelperDependencies()))
+                    ),
+                new TypedRelationalValueBufferFactoryFactory(
+                    new RelationalValueBufferFactoryDependencies()),
                 optionsBuilder.Options);
 
             var batch = factory.Create();
