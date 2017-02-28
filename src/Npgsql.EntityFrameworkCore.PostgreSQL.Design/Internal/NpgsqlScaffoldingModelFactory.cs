@@ -25,6 +25,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
@@ -42,8 +43,9 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding.Internal
             [NotNull] ILoggerFactory loggerFactory,
             [NotNull] IRelationalTypeMapper typeMapper,
             [NotNull] IDatabaseModelFactory databaseModelFactory,
-            [NotNull] CandidateNamingService candidateNamingService)
-            : base(loggerFactory, typeMapper, databaseModelFactory, candidateNamingService)
+            [NotNull] CandidateNamingService candidateNamingService,
+            [NotNull] IPluralizer pluralizer)
+            : base(loggerFactory, typeMapper, databaseModelFactory, candidateNamingService, pluralizer)
         {
         }
 
