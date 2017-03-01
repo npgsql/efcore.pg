@@ -302,13 +302,13 @@ CREATE TABLE ""NonSerialSequence"" (
             BuildReference.ByName("System.Linq.Expressions"),
             BuildReference.ByName("System.Reflection"),
             BuildReference.ByName("System.ComponentModel.Annotations"),
-            BuildReference.ByName("System.Net.Primitives", depContextAssembly: typeof(NpgsqlE2ETests).GetTypeInfo().Assembly),
-            BuildReference.ByName("System.Net.NetworkInformation", depContextAssembly: typeof(NpgsqlE2ETests).GetTypeInfo().Assembly),
-            BuildReference.ByName("Npgsql.EntityFrameworkCore.PostgreSQL", depContextAssembly: typeof(NpgsqlE2ETests).GetTypeInfo().Assembly),
-            BuildReference.ByName("Microsoft.EntityFrameworkCore", depContextAssembly: typeof(NpgsqlE2ETests).GetTypeInfo().Assembly),
-            BuildReference.ByName("Microsoft.EntityFrameworkCore.Relational", depContextAssembly: typeof(NpgsqlE2ETests).GetTypeInfo().Assembly),
-            BuildReference.ByName("Microsoft.Extensions.Caching.Abstractions", depContextAssembly: typeof(NpgsqlE2ETests).GetTypeInfo().Assembly),
-            BuildReference.ByName("Microsoft.Extensions.Logging.Abstractions", depContextAssembly: typeof(NpgsqlE2ETests).GetTypeInfo().Assembly)
+            BuildReference.ByName("System.Net.Primitives"),
+            BuildReference.ByName("System.Net.NetworkInformation"),
+            BuildReference.ByName("Npgsql.EntityFrameworkCore.PostgreSQL"),
+            BuildReference.ByName("Microsoft.EntityFrameworkCore"),
+            BuildReference.ByName("Microsoft.EntityFrameworkCore.Relational"),
+            BuildReference.ByName("Microsoft.Extensions.Caching.Abstractions"),
+            BuildReference.ByName("Microsoft.Extensions.Logging.Abstractions")
 #else
             BuildReference.ByName("System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
             BuildReference.ByName("System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
