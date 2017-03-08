@@ -21,6 +21,8 @@
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 #endregion
 
+using System;
+using System.Linq.Expressions;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Utilities;
@@ -90,17 +92,31 @@ namespace Microsoft.EntityFrameworkCore
             where TEntity : class
             => (EntityTypeBuilder<TEntity>)ForNpgsqlUseXminAsConcurrencyToken((EntityTypeBuilder)entityTypeBuilder);
 
-        /// <summary>
-        /// Sets a PostgreSQL storage parameter on the table created for this entity.
-        /// </summary>
-        /// <remarks>
-        /// See https://www.postgresql.org/docs/current/static/sql-createtable.html#SQL-CREATETABLE-STORAGE-PARAMETERS
-        /// </remarks>
-        /// <param name="entityTypeBuilder"> The builder for the entity type being configured. </param>
-        /// <param name="parameterName"> The name of the storage parameter. </param>
-        /// <param name="parameterValue"> The value of the storage parameter. </param>
-        /// <returns> The same builder instance so that multiple calls can be chained. </returns>
-        public static EntityTypeBuilder ForNpgsqlSetStorageParameter(
+       public static EntityTypeBuilder<TEntity> ForNpgsqlUseXminAsConcurrencyToken<TEntity>(
+            [NotNull] this EntityTypeBuilder<TEntity> entityTypeBuilder,
+            Expression<Func<TEntity, uint>> toProperty)
+            where TEntity : class
+        {
+            entityTypeBuilder.Property(toProperty)
+                    .HasColumnName("xmin")
+                    .HasColumnType("xid")
+                    .ValueGeneratedOnAddOrUpdate()
+                    .IsConcurrencyToken();
+
+           return entityTypeBuilder;
+        }
+
+	    /// <summary>
+		/// Sets a PostgreSQL storage parameter on the table created for this entity.
+		/// </summary>
+		/// <remarks>
+		/// See https://www.postgresql.org/docs/current/static/sql-createtable.html#SQL-CREATETABLE-STORAGE-PARAMETERS
+		/// </remarks>
+		/// <param name="entityTypeBuilder"> The builder for the entity type being configured. </param>
+		/// <param name="parameterName"> The name of the storage parameter. </param>
+		/// <param name="parameterValue"> The value of the storage parameter. </param>
+		/// <returns> The same builder instance so that multiple calls can be chained. </returns>
+		public static EntityTypeBuilder ForNpgsqlSetStorageParameter(
             [NotNull] this EntityTypeBuilder entityTypeBuilder, string parameterName, object parameterValue)
         {
             Check.NotNull(entityTypeBuilder, nameof(entityTypeBuilder));
