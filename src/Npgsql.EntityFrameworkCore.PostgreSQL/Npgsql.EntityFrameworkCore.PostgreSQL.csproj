@@ -27,7 +27,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="1.2.0-*" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="1.2.0-*" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="1.2.0-*" />
-    <PackageReference Include="Npgsql" Version="3.2.0" />
+    <PackageReference Include="Npgsql" Version="3.2.1" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.4.0-*" />
   </ItemGroup>
 
