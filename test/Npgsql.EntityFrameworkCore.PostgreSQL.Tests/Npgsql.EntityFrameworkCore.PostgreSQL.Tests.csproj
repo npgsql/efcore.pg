@@ -21,6 +21,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="1.2.0-*" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="1.2.0-*" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational.Specification.Tests" Version="1.2.0-*" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.3.0" />
     <PackageReference Include="Npgsql" Version="3.2.1" />
   </ItemGroup>
 
