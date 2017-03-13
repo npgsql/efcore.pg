@@ -3,6 +3,8 @@
   <PropertyGroup>
     <TargetFrameworks>net452;netcoreapp1.1</TargetFrameworks>
     <PreserveCompilationContext>true</PreserveCompilationContext>
+    <AssemblyName>Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests</AssemblyName>
+    <RootNamespace>Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,8 +16,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Npgsql.EntityFrameworkCore.PostgreSQL.Design\Npgsql.EntityFrameworkCore.PostgreSQL.Design.csproj" />
-    <ProjectReference Include="..\Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests\Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.csproj" />
+    <ProjectReference Include="..\..\src\EFCore.PG.Design\EFCore.PG.Design.csproj" />
+    <ProjectReference Include="..\EFCore.PG.FunctionalTests\EFCore.PG.FunctionalTests.csproj" />
   </ItemGroup>
 
   <ItemGroup>

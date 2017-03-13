@@ -2,25 +2,34 @@
 
   <PropertyGroup>
     <TargetFrameworks>net452;netcoreapp1.1</TargetFrameworks>
+    <AssemblyName>Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests</AssemblyName>
+    <RootNamespace>Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="App.config" />
+    <Content Include="**\*.sql" Exclude="obj\**;bin\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="config.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Npgsql.EntityFrameworkCore.PostgreSQL\Npgsql.EntityFrameworkCore.PostgreSQL.csproj" />
-    <ProjectReference Include="..\Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests\Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.csproj" />
+    <ProjectReference Include="..\..\src\EFCore.PG\EFCore.PG.csproj" />
+    <ProjectReference Include="..\..\src\EFCore.PG.Design\EFCore.PG.Design.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.0.0" />
     <PackageReference Include="xunit" Version="2.2.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.2.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="1.2.0-*" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="1.2.0-*" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="1.2.0-*" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational.Specification.Tests" Version="1.2.0-*" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="1.2.0-*" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="1.2.0-*" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.3.0" />
     <PackageReference Include="Npgsql" Version="3.2.2-*" />
   </ItemGroup>

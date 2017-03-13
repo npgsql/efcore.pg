@@ -3,6 +3,8 @@
   <PropertyGroup>
     <VersionPrefix>1.2.0-ci</VersionPrefix>
     <TargetFrameworks>net451;netstandard1.3</TargetFrameworks>
+    <AssemblyName>Npgsql.EntityFrameworkCore.PostgreSQL.Design</AssemblyName>
+    <RootNamespace>Microsoft.EntityFrameworkCore</RootNamespace>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <AssemblyOriginatorKeyFile>../../Npgsql.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
@@ -23,12 +25,17 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\EFCore.PG\EFCore.PG.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="1.2.0-*" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="1.2.0-*" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="1.2.0-*" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational.Design" Version="1.2.0-*" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="1.2.0-*" />
-    <PackageReference Include="Npgsql" Version="3.2.2-*" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="1.2.0-*" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.3.0" />
+    <PackageReference Include="Npgsql" Version="3.2.2-*" />
   </ItemGroup>
 
 </Project>
