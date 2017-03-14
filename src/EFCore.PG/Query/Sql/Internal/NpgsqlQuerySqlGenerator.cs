@@ -38,7 +38,6 @@ namespace Microsoft.EntityFrameworkCore.Query.Sql.Internal
 {
     public class NpgsqlQuerySqlGenerator : DefaultQuerySqlGenerator
     {
-        protected override string ConcatOperator => "||";
         protected override string TypedTrueLiteral => "TRUE::bool";
         protected override string TypedFalseLiteral => "FALSE::bool";
 
@@ -177,6 +176,10 @@ namespace Microsoft.EntityFrameworkCore.Query.Sql.Internal
         {
             switch (expression.NodeType)
             {
+            case ExpressionType.Add:
+                if (expression.Type == typeof(string))
+                    return " || ";
+                goto default;
             case ExpressionType.And:
                 if (expression.Type == typeof(bool))
                     return " AND ";
