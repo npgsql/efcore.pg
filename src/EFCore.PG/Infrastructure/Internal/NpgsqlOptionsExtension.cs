@@ -30,7 +30,9 @@ namespace Microsoft.EntityFrameworkCore.Infrastructure.Internal
 {
     public class NpgsqlOptionsExtension : RelationalOptionsExtension
     {
-        string _adminDatabase;
+        //string _adminDatabase;
+
+        public string AdminDatabase { get; private set; }
 
         public NpgsqlOptionsExtension()
         {
@@ -41,8 +43,10 @@ namespace Microsoft.EntityFrameworkCore.Infrastructure.Internal
         public NpgsqlOptionsExtension([NotNull] NpgsqlOptionsExtension copyFrom)
             : base(copyFrom)
         {
-            _adminDatabase = copyFrom.AdminDatabase;
+            AdminDatabase = copyFrom.AdminDatabase;
         }
+
+        protected override RelationalOptionsExtension Clone() => new NpgsqlOptionsExtension(this);
 
         public override bool ApplyServices(IServiceCollection services)
         {
@@ -53,10 +57,13 @@ namespace Microsoft.EntityFrameworkCore.Infrastructure.Internal
             return true;
         }
 
-        public virtual string AdminDatabase
+        public virtual NpgsqlOptionsExtension WithAdminDatabase(string adminDatabase)
         {
-            get { return _adminDatabase; }
-            set { _adminDatabase = value; }
+            var clone = (NpgsqlOptionsExtension)Clone();
+
+            clone.AdminDatabase = adminDatabase;
+
+            return clone;
         }
     }
 }

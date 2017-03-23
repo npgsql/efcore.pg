@@ -34,13 +34,10 @@ namespace Microsoft.EntityFrameworkCore.Infrastructure
         {
         }
 
-        protected override NpgsqlOptionsExtension CloneExtension()
-            => new NpgsqlOptionsExtension(OptionsBuilder.Options.GetExtension<NpgsqlOptionsExtension>());
-
         /// <summary>
         /// Connect to this database for administrative operations (creating/dropping databases).
         /// Defaults to 'postgres'.
         /// </summary>
-        public virtual void UseAdminDatabase(string dbName) => SetOption(e => e.AdminDatabase = dbName);
+        public virtual void UseAdminDatabase(string dbName) => WithOption(e => e.WithAdminDatabase(dbName));
     }
 }
