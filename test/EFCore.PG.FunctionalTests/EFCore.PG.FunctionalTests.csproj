@@ -30,7 +30,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational.Specification.Tests" Version="1.2.0-*" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="1.2.0-*" />
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="1.2.0-*" />
-    <PackageReference Include="Npgsql" Version="3.2.2-*" />
+    <PackageReference Include="Npgsql" Version="3.2.2" />
   </ItemGroup>
 
 </Project>
