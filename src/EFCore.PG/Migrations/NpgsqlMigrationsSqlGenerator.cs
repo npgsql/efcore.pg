@@ -105,7 +105,6 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             if (comment != null)
             {
                 builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
-                EndStatement(builder);
 
                 builder
                     .Append("COMMENT ON TABLE ")
@@ -119,7 +118,6 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             {
                 var columnComment = columnOp[NpgsqlFullAnnotationNames.Instance.Comment];
                 builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
-                EndStatement(builder);
 
                 builder
                     .Append("COMMENT ON COLUMN ")
@@ -139,6 +137,8 @@ namespace Microsoft.EntityFrameworkCore.Migrations
 
         protected override void Generate(AlterTableOperation operation, IModel model, MigrationCommandListBuilder builder)
         {
+            var madeChanges = false;
+
             // Storage parameters
             var oldStorageParameters = GetStorageParameters(operation.OldTable);
             var newStorageParameters = GetStorageParameters(operation);
@@ -160,7 +160,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                     .Append(")");
 
                 builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
-                EndStatement(builder);
+                madeChanges = true;
             }
 
             var removed = oldStorageParameters
@@ -180,7 +180,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                     .Append(")");
 
                 builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
-                EndStatement(builder);
+                madeChanges = true;
             }
 
             // Comment
@@ -196,11 +196,11 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                     .Append(Dependencies.SqlGenerationHelper.GenerateLiteral(newComment));
 
                 builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
-                EndStatement(builder);
+                madeChanges = true;
             }
 
-
-            base.Generate(operation, model, builder);
+            if (madeChanges)
+                EndStatement(builder);
         }
 
         protected override void Generate(
@@ -232,7 +232,6 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             if (comment != null)
             {
                 builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
-                EndStatement(builder);
 
                 builder
                     .Append("COMMENT ON COLUMN ")

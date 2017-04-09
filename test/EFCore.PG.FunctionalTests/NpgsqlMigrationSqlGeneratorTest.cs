@@ -3,16 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Microsoft.EntityFrameworkCore.Relational.Specification.Tests;
+using Microsoft.EntityFrameworkCore.Specification.Tests;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
-    class NpgsqlMigrationSqlGeneratorTest : MigrationSqlGeneratorTestBase
+    public class NpgsqlMigrationSqlGeneratorTest : MigrationSqlGeneratorTestBase
     {
         public override void AddColumnOperation_with_defaultValue()
         {
@@ -119,7 +123,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             base.AlterSequenceOperation_with_minValue_and_maxValue();
 
             Assert.Equal(
-                "ALTER SEQUENCE \"dbo\".\"DefaultSequence\" INCREMENT BY 1 MINVALUE 2 MAXVALUE 816 CYCLE;" + EOL,
+                "ALTER SEQUENCE \"dbo\".\"EntityFrameworkHiLoSequence\" INCREMENT BY 1 MINVALUE 2 MAXVALUE 816 CYCLE;" + EOL,
                 Sql);
         }
 
@@ -128,7 +132,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             base.AlterSequenceOperation_without_minValue_and_maxValue();
 
             Assert.Equal(
-                "ALTER SEQUENCE \"DefaultSequence\" INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE;" + EOL,
+                "ALTER SEQUENCE \"EntityFrameworkHiLoSequence\" INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE;" + EOL,
                 Sql);
         }
 
@@ -179,7 +183,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             base.CreateSequenceOperation_with_minValue_and_maxValue();
 
             Assert.Equal(
-                "CREATE SEQUENCE \"dbo\".\"DefaultSequence\" START WITH 3 INCREMENT BY 1 MINVALUE 2 MAXVALUE 816 CYCLE;" + EOL,
+                "CREATE SEQUENCE \"dbo\".\"EntityFrameworkHiLoSequence\" START WITH 3 INCREMENT BY 1 MINVALUE 2 MAXVALUE 816 CYCLE;" + EOL,
                 Sql);
         }
 
@@ -194,7 +198,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             base.CreateSequenceOperation_without_minValue_and_maxValue();
 
             Assert.Equal(
-                "CREATE SEQUENCE \"DefaultSequence\" START WITH 3 INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE;" + EOL,
+                "CREATE SEQUENCE \"EntityFrameworkHiLoSequence\" START WITH 3 INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE;" + EOL,
                 Sql);
         }
 
@@ -246,7 +250,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             base.DropSequenceOperation();
 
             Assert.Equal(
-                "DROP SEQUENCE \"dbo\".\"DefaultSequence\";" + EOL,
+                "DROP SEQUENCE \"dbo\".\"EntityFrameworkHiLoSequence\";" + EOL,
                 Sql);
         }
 
@@ -265,15 +269,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 
             Assert.Equal(
                 "ALTER TABLE \"dbo\".\"People\" DROP CONSTRAINT \"AK_People_SSN\";" + EOL,
-                Sql);
-        }
-
-        public override void SqlOperation()
-        {
-            base.SqlOperation();
-
-            Assert.Equal(
-                "-- I <3 DDL;" + EOL,
                 Sql);
         }
 
