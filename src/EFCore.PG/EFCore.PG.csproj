@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <VersionPrefix>1.2.0-ci</VersionPrefix>
-    <TargetFrameworks>net451;netstandard1.3</TargetFrameworks>
+    <TargetFrameworks>net46;netstandard1.3</TargetFrameworks>
     <AssemblyName>Npgsql.EntityFrameworkCore.PostgreSQL</AssemblyName>
     <RootNamespace>Microsoft.EntityFrameworkCore</RootNamespace>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
