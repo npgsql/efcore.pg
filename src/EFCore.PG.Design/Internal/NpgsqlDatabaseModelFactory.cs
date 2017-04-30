@@ -104,6 +104,13 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding.Internal
                 GetIndexes();
                 GetConstraints();
                 GetSequences();
+
+                // We may have dropped columns. We load these because constraints take them into
+                // account when referencing columns, but must now get rid of them before returning
+                // the database model.
+                foreach (var table in _databaseModel.Tables)
+                    while (table.Columns.Remove(null)) {}
+
                 return _databaseModel;
             }
             finally
@@ -148,7 +155,7 @@ WHERE
 
         const string GetColumnsQuery = @"
 SELECT
-    nspname, relname, attname, typ.typname, attnum, atttypmod,
+    nspname, relname, attisdropped, attname, typ.typname, attnum, atttypmod,
     CASE WHEN pg_proc.proname='array_recv' THEN 'a' ELSE typ.typtype END AS typtype,
     CASE
       WHEN pg_proc.proname='array_recv' THEN elemtyp.typname
@@ -163,7 +170,6 @@ LEFT OUTER JOIN pg_type AS typ ON attr.atttypid = typ.oid
 LEFT OUTER JOIN pg_proc ON pg_proc.oid = typ.typreceive
 LEFT OUTER JOIN pg_type AS elemtyp ON (elemtyp.oid = typ.typelem)
 WHERE
-    atttypid <> 0 AND
     relkind = 'r' AND
     nspname NOT IN ('pg_catalog', 'information_schema') AND
     relname <> '" + HistoryRepository.DefaultTableName + @"' AND
@@ -180,21 +186,30 @@ ORDER BY attnum";
                     var schemaName = reader.GetString(0);
                     var tableName = reader.GetString(1);
                     if (!_tableSelectionSet.Allows(schemaName, tableName))
+                        continue;
+
+                    var table = _tables[TableKey(tableName, schemaName)];
+
+                    // We need to know about dropped columns because constraints take them into
+                    // account when referencing columns. We'll get rid of them before returning the model.
+                    var isDropped = reader.GetBoolean(2);
+                    if (isDropped)
                     {
+                        table.Columns.Add(null);
                         continue;
                     }
 
-                    var columnName = reader.GetString(2);
-                    var dataType = reader.GetString(3);
-                    var ordinal = reader.GetInt32(4) - 1;
-                    var typeModifier = reader.GetInt32(5);
-                    var typeChar = reader.GetChar(6);
-                    var elemDataType = reader.IsDBNull(7) ? null : reader.GetString(7);
-                    var isNullable = reader.GetBoolean(8);
+                    var columnName = reader.GetString(3);
+                    var dataType = reader.GetString(4);
+                    var ordinal = reader.GetInt32(5) - 1;
+                    var typeModifier = reader.GetInt32(6);
+                    var typeChar = reader.GetChar(7);
+                    var elemDataType = reader.IsDBNull(8) ? null : reader.GetString(8);
+                    var isNullable = reader.GetBoolean(9);
                     int? maxLength = null;
                     int? precision = null;
                     int? scale = null;
-                    var defaultValue = reader.IsDBNull(9) ? null : reader.GetString(9);
+                    var defaultValue = reader.IsDBNull(10) ? null : reader.GetString(10);
 
                     if (typeModifier != -1)
                     {
@@ -214,7 +229,6 @@ ORDER BY attnum";
                         }
                     }
 
-                    var table = _tables[TableKey(tableName, schemaName)];
                     var column = new ColumnModel
                     {
                         Table          = table,
