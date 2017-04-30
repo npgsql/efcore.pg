@@ -31,9 +31,8 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal
 {
     public class NpgsqlStringReplaceTranslator : IMethodCallTranslator
     {
-        static readonly MethodInfo _methodInfo = typeof(string).GetTypeInfo()
-            .GetDeclaredMethods(nameof(string.Replace))
-            .Single(m => m.GetParameters()[0].ParameterType == typeof(string));
+        static readonly MethodInfo _methodInfo
+            = typeof(string).GetRuntimeMethod(nameof(string.Replace), new[] { typeof(string), typeof(string) });
 
         public virtual Expression Translate([NotNull] MethodCallExpression methodCallExpression)
             => _methodInfo.Equals(methodCallExpression.Method)
