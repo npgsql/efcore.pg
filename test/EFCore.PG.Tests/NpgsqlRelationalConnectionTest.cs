@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Microsoft.Extensions.Logging;
@@ -62,7 +63,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests
                           .UseNpgsql(@"Host=localhost;Database=NpgsqlConnectionTest;Username=some_user;Password=some_password")
                           .Options;
 
-            return new RelationalConnectionDependencies(options, new Logger<NpgsqlRelationalConnection>(new LoggerFactory()), new DiagnosticListener("Fake"));
+            return new RelationalConnectionDependencies(
+                options,
+                new InterceptingLogger<LoggerCategory.Database.Transaction>(new LoggerFactory(), new LoggingOptions()),
+                new InterceptingLogger<LoggerCategory.Database.Connection>(new LoggerFactory(), new LoggingOptions()),
+                new DiagnosticListener("Fake"));
         }
     }
 }

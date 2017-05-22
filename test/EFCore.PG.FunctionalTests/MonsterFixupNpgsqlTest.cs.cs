@@ -50,8 +50,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 {
                     context.Database.EnsureCreated();
                     seed(context);
-
-                    TestSqlLoggerFactory.Reset();
                 }
             });
         }

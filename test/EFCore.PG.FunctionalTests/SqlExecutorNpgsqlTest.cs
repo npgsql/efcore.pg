@@ -28,7 +28,5 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         protected override string CustomerOrderHistorySproc => @"SELECT * FROM ""CustOrderHist""(@CustomerID)";
 
         protected override string CustomerOrderHistoryWithGeneratedParameterSproc => @"SELECT * FROM ""CustOrderHist""({0})";
-
-        private static string Sql => TestSqlLoggerFactory.Sql;
     }
 }

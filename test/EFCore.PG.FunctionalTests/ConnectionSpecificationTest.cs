@@ -5,8 +5,6 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Microsoft.Extensions.DependencyInjection;
-using Npgsql;
-using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.TestModels;
 using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
 using Xunit;
 
@@ -22,7 +20,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                     .AddDbContext<StringInOnConfiguringContext>()
                     .BuildServiceProvider();
 
-            using (NpgsqlNorthwindContext.GetSharedStore())
+            using (NpgsqlTestStore.GetNorthwindStore())
             {
                 using (var context = serviceProvider.GetRequiredService<StringInOnConfiguringContext>())
                 {
@@ -34,7 +32,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         [Fact]
         public void Can_specify_connection_string_in_OnConfiguring_with_default_service_provider()
         {
-            using (NpgsqlNorthwindContext.GetSharedStore())
+            using (NpgsqlTestStore.GetNorthwindStore())
             {
                 using (var context = new StringInOnConfiguringContext())
                 {
@@ -46,7 +44,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         private class StringInOnConfiguringContext : NorthwindContextBase
         {
             protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-                => optionsBuilder.UseNpgsql(NpgsqlNorthwindContext.ConnectionString, b => b.ApplyConfiguration());
+                => optionsBuilder.UseNpgsql(NpgsqlTestStore.NorthwindConnectionString, b => b.ApplyConfiguration());
         }
 
         [Fact]
@@ -54,10 +52,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         {
             var serviceProvider
                 = new ServiceCollection()
-                    .AddScoped(p => new NpgsqlConnection(NpgsqlNorthwindContext.ConnectionString))
+                    .AddScoped(p => new NpgsqlConnection(NpgsqlTestStore.NorthwindConnectionString))
                     .AddDbContext<ConnectionInOnConfiguringContext>().BuildServiceProvider();
 
-            using (NpgsqlNorthwindContext.GetSharedStore())
+            using (NpgsqlTestStore.GetNorthwindStore())
             {
                 using (var context = serviceProvider.GetRequiredService<ConnectionInOnConfiguringContext>())
                 {
@@ -69,9 +67,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         [Fact]
         public void Can_specify_connection_in_OnConfiguring_with_default_service_provider()
         {
-            using (NpgsqlNorthwindContext.GetSharedStore())
+            using (NpgsqlTestStore.GetNorthwindStore())
             {
-                using (var context = new ConnectionInOnConfiguringContext(new NpgsqlConnection(NpgsqlNorthwindContext.ConnectionString)))
+                using (var context = new ConnectionInOnConfiguringContext(new NpgsqlConnection(NpgsqlTestStore.NorthwindConnectionString)))
                 {
                     Assert.True(context.Customers.Any());
                 }
@@ -142,11 +140,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         {
             var serviceProvider
                 = new ServiceCollection()
-                    .AddScoped(p => new NpgsqlConnection(NpgsqlNorthwindContext.ConnectionString))
+                    .AddScoped(p => new NpgsqlConnection(NpgsqlTestStore.NorthwindConnectionString))
                     .AddDbContext<OptionsContext>()
                     .BuildServiceProvider();
 
-            using (NpgsqlNorthwindContext.GetSharedStore())
+            using (NpgsqlTestStore.GetNorthwindStore())
             {
                 using (var context = serviceProvider.GetRequiredService<OptionsContext>())
                 {
@@ -158,11 +156,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         [Fact]
         public void Can_depend_on_DbContextOptions_with_default_service_provider()
         {
-            using (NpgsqlNorthwindContext.GetSharedStore())
+            using (NpgsqlTestStore.GetNorthwindStore())
             {
                 using (var context = new OptionsContext(
                     new DbContextOptions<OptionsContext>(),
-                    new NpgsqlConnection(NpgsqlNorthwindContext.ConnectionString)))
+                    new NpgsqlConnection(NpgsqlTestStore.NorthwindConnectionString)))
                 {
                     Assert.True(context.Customers.Any());
                 }
@@ -205,7 +203,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                     .AddDbContext<NonGenericOptionsContext>()
                     .BuildServiceProvider();
 
-            using (NpgsqlNorthwindContext.GetSharedStore())
+            using (NpgsqlTestStore.GetNorthwindStore())
             {
                 using (var context = serviceProvider.GetRequiredService<NonGenericOptionsContext>())
                 {
@@ -217,7 +215,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         [Fact]
         public void Can_depend_on_non_generic_options_when_only_one_context_with_default_service_provider()
         {
-            using (NpgsqlNorthwindContext.GetSharedStore())
+            using (NpgsqlTestStore.GetNorthwindStore())
             {
                 using (var context = new NonGenericOptionsContext(new DbContextOptions<DbContext>()))
                 {
@@ -240,7 +238,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             {
                 Assert.Same(_options, optionsBuilder.Options);
 
-                optionsBuilder.UseNpgsql(NpgsqlNorthwindContext.ConnectionString, b => b.ApplyConfiguration());
+                optionsBuilder.UseNpgsql(NpgsqlTestStore.NorthwindConnectionString, b => b.ApplyConfiguration());
 
                 Assert.NotSame(_options, optionsBuilder.Options);
             }
@@ -281,11 +279,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         [Fact]
         public void Can_specify_connection_in_OnConfiguring_and_create_master_connection()
         {
-            using (var conn = new NpgsqlConnection(NpgsqlNorthwindContext.ConnectionString))
+            using (var conn = new NpgsqlConnection(NpgsqlTestStore.NorthwindConnectionString))
             {
                 conn.Open();
 
-                using (NpgsqlNorthwindContext.GetSharedStore())
+                using (NpgsqlTestStore.GetNorthwindStore())
                 {
                     using (var context = new ConnectionInOnConfiguringContext(conn))
                     {

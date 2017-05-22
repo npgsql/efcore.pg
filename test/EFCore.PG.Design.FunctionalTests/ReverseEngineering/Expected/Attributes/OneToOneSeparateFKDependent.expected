@@ -14,10 +14,8 @@ namespace E2ETest.Namespace
         public int OneToOneSeparateFkdependentId2 { get; set; }
         [Required]
         public string SomeDependentEndColumn { get; set; }
-        [Required]
         [Column("OneToOneSeparateFKDependentFK1")]
         public int? OneToOneSeparateFkdependentFk1 { get; set; }
-        [Required]
         [Column("OneToOneSeparateFKDependentFK2")]
         public int? OneToOneSeparateFkdependentFk2 { get; set; }
 

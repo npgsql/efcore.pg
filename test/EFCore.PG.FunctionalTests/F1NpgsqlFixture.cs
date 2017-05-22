@@ -20,6 +20,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 
         readonly string _connectionString = NpgsqlTestStore.CreateConnectionString(DatabaseName);
 
+        public TestSqlLoggerFactory TestSqlLoggerFactory { get; } = new TestSqlLoggerFactory();
+
         public F1NpgsqlFixture()
         {
             _serviceProvider = new ServiceCollection()
@@ -34,15 +36,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             return NpgsqlTestStore.GetOrCreateShared(DatabaseName, () =>
             {
                 var optionsBuilder = new DbContextOptionsBuilder()
-                    .UseNpgsql(_connectionString)
+                    .UseNpgsql(_connectionString, b => b.ApplyConfiguration())
                     .UseInternalServiceProvider(_serviceProvider);
 
                 using (var context = new F1Context(optionsBuilder.Options))
                 {
                     context.Database.EnsureCreated();
                     ConcurrencyModelInitializer.Seed(context);
-
-                    TestSqlLoggerFactory.Reset();
                 }
             });
         }

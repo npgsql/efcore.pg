@@ -6,9 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Specification.Tests;
-using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.TestModels;
 using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
@@ -25,7 +23,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 .AddSingleton<ILoggerFactory>(new TestSqlLoggerFactory())
                 .BuildServiceProvider();
 
-            _testDatabase = NpgsqlNorthwindContext.GetSharedStore();
+            _testDatabase = NpgsqlTestStore.GetNorthwindStore();
 
             _options = new DbContextOptionsBuilder()
                 .UseModel(CreateModel())

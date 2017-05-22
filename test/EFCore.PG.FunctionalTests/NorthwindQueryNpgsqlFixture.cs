@@ -7,55 +7,44 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Specification.Tests;
-using Microsoft.EntityFrameworkCore.Specification.Tests.TestModels.Northwind;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.TestModels;
 using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
     public class NorthwindQueryNpgsqlFixture : NorthwindQueryRelationalFixture, IDisposable
     {
-        private readonly DbContextOptions _options;
+        private readonly NpgsqlTestStore _testStore = NpgsqlTestStore.GetNorthwindStore();
 
-        private readonly NpgsqlTestStore _testStore = NpgsqlNorthwindContext.GetSharedStore();
-        private readonly TestSqlLoggerFactory _testSqlLoggerFactory = new TestSqlLoggerFactory();
-
-        public NorthwindQueryNpgsqlFixture()
-        {
-            _options = BuildOptions();
-        }
+        public TestSqlLoggerFactory TestSqlLoggerFactory { get; } = new TestSqlLoggerFactory();
 
         public override DbContextOptions BuildOptions(IServiceCollection additionalServices = null)
             => ConfigureOptions(
-                new DbContextOptionsBuilder()
-                    .EnableSensitiveDataLogging()
-                    .UseInternalServiceProvider((additionalServices ?? new ServiceCollection())
-                        .AddEntityFrameworkNpgsql()
-                        .AddSingleton(TestModelSource.GetFactory(OnModelCreating))
-                        .AddSingleton<ILoggerFactory>(_testSqlLoggerFactory)
-                        .BuildServiceProvider()))
+                    new DbContextOptionsBuilder()
+                        .EnableSensitiveDataLogging()
+                        .UseInternalServiceProvider(
+                            (additionalServices ?? new ServiceCollection())
+                            .AddEntityFrameworkNpgsql()
+                            .AddSingleton(TestModelSource.GetFactory(OnModelCreating))
+                            .AddSingleton<ILoggerFactory>(TestSqlLoggerFactory)
+                            .BuildServiceProvider()))
                 .UseNpgsql(
                     _testStore.ConnectionString,
                     b =>
                     {
+                        b.ApplyConfiguration();
                         ConfigureOptions(b);
                         b.ApplyConfiguration();
-                    }).Options;
+                    })
+                .Options;
 
         protected virtual DbContextOptionsBuilder ConfigureOptions(DbContextOptionsBuilder dbContextOptionsBuilder)
             => dbContextOptionsBuilder;
 
-        protected virtual void ConfigureOptions(NpgsqlDbContextOptionsBuilder npgsqlDbContextOptionsBuilder)
+        protected virtual void ConfigureOptions(NpgsqlDbContextOptionsBuilder NpgsqlDbContextOptionsBuilder)
         {
         }
 
-        public override NorthwindContext CreateContext(
-            QueryTrackingBehavior queryTrackingBehavior = QueryTrackingBehavior.TrackAll)
-            => new NpgsqlNorthwindContext(_options, queryTrackingBehavior);
-
         public void Dispose() => _testStore.Dispose();
-
-        public override CancellationToken CancelQuery() => _testSqlLoggerFactory.CancelQuery();
     }
 }

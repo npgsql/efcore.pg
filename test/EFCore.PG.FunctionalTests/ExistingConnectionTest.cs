@@ -7,8 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
-using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.TestModels;
+using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
@@ -33,7 +32,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 .AddEntityFrameworkNpgsql()
                 .BuildServiceProvider();
 
-            using (var store = NpgsqlNorthwindContext.GetSharedStore())
+            using (var store = NpgsqlTestStore.GetNorthwindStore())
             {
                 var openCount = 0;
                 var closeCount = 0;

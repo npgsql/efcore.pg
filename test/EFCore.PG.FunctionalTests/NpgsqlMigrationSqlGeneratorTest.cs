@@ -32,7 +32,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             base.AddColumnOperation_with_defaultValueSql();
 
             Assert.Equal(
-                "ALTER TABLE \"People\" ADD \"Birthday\" date DEFAULT (CURRENT_TIMESTAMP);" + EOL,
+                "ALTER TABLE \"People\" ADD \"Birthday\" date NULL DEFAULT (CURRENT_TIMESTAMP);" + EOL,
                 Sql);
         }
 
@@ -42,7 +42,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             base.AddColumnOperation_with_computed_column_SQL();
 
             Assert.Equal(
-                "ALTER TABLE \"People\" ADD \"Birthday\" date;" + EOL,
+                "ALTER TABLE \"People\" ADD \"Birthday\" date NULL;" + EOL,
                 Sql);
         }
 
@@ -60,7 +60,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             base.AddColumnOperation_with_maxLength();
 
             Assert.Equal(
-                @"ALTER TABLE ""Person"" ADD ""Name"" varchar(30);" + EOL,
+                @"ALTER TABLE ""Person"" ADD ""Name"" varchar(30) NULL;" + EOL,
                 Sql);
         }
 
@@ -209,8 +209,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             Assert.Equal(
                 "CREATE TABLE \"dbo\".\"People\" (" + EOL +
                 "    \"Id\" int4 NOT NULL," + EOL +
-                "    \"EmployerId\" int4," + EOL +
-                "    \"SSN\" char(11)," + EOL +
+                "    \"EmployerId\" int4 NULL," + EOL +
+                "    \"SSN\" char(11) NULL," + EOL +
                 "    PRIMARY KEY (\"Id\")," + EOL +
                 "    UNIQUE (\"SSN\")," + EOL +
                 "    FOREIGN KEY (\"EmployerId\") REFERENCES \"Companies\" (\"Id\")" + EOL +

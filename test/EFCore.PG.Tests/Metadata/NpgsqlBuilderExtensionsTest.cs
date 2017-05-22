@@ -372,7 +372,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Metadata
             var property = model.FindEntityType(typeof(Customer)).FindProperty(nameof(Customer.Id));
 
             Assert.Equal(NpgsqlValueGenerationStrategy.SerialColumn, property.Npgsql().ValueGenerationStrategy);
-            Assert.Equal(ValueGenerated.OnAddOrUpdate, property.ValueGenerated);
+            Assert.Equal(ValueGenerated.OnAdd, property.ValueGenerated);
             Assert.Null(property.Relational().DefaultValue);
             Assert.Null(property.Npgsql().DefaultValue);
             Assert.Null(property.Relational().DefaultValueSql);

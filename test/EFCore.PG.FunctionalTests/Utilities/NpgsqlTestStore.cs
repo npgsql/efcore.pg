@@ -18,13 +18,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities
 {
     public class NpgsqlTestStore : RelationalTestStore
     {
+        private const string Northwind = "Northwind";
+
         public const int CommandTimeout = 90;
 
-#if NETCOREAPP1_1
-        static string BaseDirectory => AppContext.BaseDirectory;
-#else
-        static string BaseDirectory => AppDomain.CurrentDomain.BaseDirectory;
-#endif
+        private static string BaseDirectory => AppContext.BaseDirectory;
+
+        public static readonly string NorthwindConnectionString = CreateConnectionString(Northwind);
+
+        public static NpgsqlTestStore GetNorthwindStore()
+            => GetOrCreateShared(
+                Northwind,
+                () => ExecuteScript(Northwind, "Northwind.sql"),
+                cleanDatabase: false);
 
         public static NpgsqlTestStore GetOrCreateShared(string name, Action initializeDatabase, bool cleanDatabase = true)
             => new NpgsqlTestStore(name, cleanDatabase).CreateShared(initializeDatabase);

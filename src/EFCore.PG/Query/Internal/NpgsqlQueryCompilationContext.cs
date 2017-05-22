@@ -46,5 +46,7 @@ namespace Microsoft.EntityFrameworkCore.Query.Internal
         }
 
         public override bool IsLateralJoinSupported => true;
+
+        public override int MaxTableAliasLength => 63;
     }
 }

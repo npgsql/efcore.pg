@@ -13,35 +13,30 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
-    public class InheritanceNpgsqlFixture : TempInheritanceRelationalFixture
+    public class InheritanceNpgsqlFixture : InheritanceRelationalFixture
     {
-        private readonly DbContextOptions _options;
-        private readonly NpgsqlTestStore _testStore;
+        public TestSqlLoggerFactory TestSqlLoggerFactory { get; } = new TestSqlLoggerFactory();
 
-        public InheritanceNpgsqlFixture()
+        protected override void ClearLog()
         {
-            var serviceProvider = new ServiceCollection()
-                .AddEntityFrameworkNpgsql()
-                .AddSingleton(TestModelSource.GetFactory(OnModelCreating))
-                .AddSingleton<ILoggerFactory>(new TestSqlLoggerFactory())
-                .BuildServiceProvider();
-
-            _testStore = NpgsqlTestStore.CreateScratch();
-
-            _options = new DbContextOptionsBuilder()
-                .EnableSensitiveDataLogging()
-                .UseNpgsql(_testStore.Connection)
-                .UseInternalServiceProvider(serviceProvider)
-                .Options;
-
-            using (var context = CreateContext())
-            {
-                context.Database.EnsureCreated();
-                SeedData(context);
-            }
+            TestSqlLoggerFactory.Clear();
         }
 
-        public override InheritanceContext CreateContext() => new InheritanceContext(_options);
-        public void Dispose() => _testStore.Dispose();
+        public override DbContextOptions BuildOptions()
+        {
+            return
+                new DbContextOptionsBuilder()
+                    .EnableSensitiveDataLogging()
+                    .UseNpgsql(
+                        NpgsqlTestStore.CreateConnectionString("InheritanceNpgsqlTest"),
+                        b => b.ApplyConfiguration())
+                    .UseInternalServiceProvider(
+                        new ServiceCollection()
+                            .AddEntityFrameworkNpgsql()
+                            .AddSingleton(TestModelSource.GetFactory(OnModelCreating))
+                            .AddSingleton<ILoggerFactory>(TestSqlLoggerFactory)
+                            .BuildServiceProvider())
+                    .Options;
+        }
     }
 }

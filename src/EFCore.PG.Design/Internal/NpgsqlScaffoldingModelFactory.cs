@@ -40,12 +40,12 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding.Internal
     public class NpgsqlScaffoldingModelFactory : RelationalScaffoldingModelFactory
     {
         public NpgsqlScaffoldingModelFactory(
-            [NotNull] ILoggerFactory loggerFactory,
+            [NotNull] IInterceptingLogger<LoggerCategory.Scaffolding> logger,
             [NotNull] IRelationalTypeMapper typeMapper,
             [NotNull] IDatabaseModelFactory databaseModelFactory,
             [NotNull] CandidateNamingService candidateNamingService,
             [NotNull] IPluralizer pluralizer)
-            : base(loggerFactory, typeMapper, databaseModelFactory, candidateNamingService, pluralizer)
+            : base(logger, typeMapper, databaseModelFactory, candidateNamingService, pluralizer)
         {
         }
 
@@ -78,7 +78,7 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding.Internal
                 return keyBuilder;
             }
 
-            // TODO 
+            // TODO
             var property = builder.Metadata.FindProperty(GetPropertyName(pkColumns[0]));
             var propertyType = property?.ClrType?.UnwrapNullableType();
 

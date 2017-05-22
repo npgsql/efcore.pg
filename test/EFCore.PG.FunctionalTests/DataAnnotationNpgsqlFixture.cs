@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Specification.Tests;
@@ -19,49 +20,49 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
     {
         public static readonly string DatabaseName = "DataAnnotations";
 
-        private readonly IServiceProvider _serviceProvider;
-
         private readonly string _connectionString = NpgsqlTestStore.CreateConnectionString(DatabaseName);
+        private readonly DbContextOptions _options;
 
+        public TestSqlLoggerFactory TestSqlLoggerFactory { get; } = new TestSqlLoggerFactory();
         public DataAnnotationNpgsqlFixture()
         {
-            _serviceProvider = new ServiceCollection()
+            var serviceProvider = new ServiceCollection()
                 .AddEntityFrameworkNpgsql()
                 .AddSingleton(TestModelSource.GetFactory(OnModelCreating))
-                .AddSingleton<ILoggerFactory>(new TestSqlLoggerFactory())
+                .AddSingleton<ILoggerFactory>(TestSqlLoggerFactory)
                 .BuildServiceProvider();
+
+            _options = new DbContextOptionsBuilder()
+                .EnableSensitiveDataLogging()
+                .UseInternalServiceProvider(serviceProvider)
+                .ConfigureWarnings(w =>
+                {
+                    w.Default(WarningBehavior.Throw);
+                    w.Ignore(CoreEventId.SensitiveDataLoggingEnabledWarning);
+                }).Options;
         }
 
         public override NpgsqlTestStore CreateTestStore()
-        {
-            return NpgsqlTestStore.GetOrCreateShared(DatabaseName, () =>
+            => NpgsqlTestStore.GetOrCreateShared(DatabaseName, () =>
             {
-                var optionsBuilder = new DbContextOptionsBuilder()
-                    .UseNpgsql(_connectionString)
-                    .UseInternalServiceProvider(_serviceProvider);
+                var options = new DbContextOptionsBuilder(_options)
+                    .UseNpgsql(_connectionString, b => b.ApplyConfiguration())
+                    .Options;
 
-                using (var context = new DataAnnotationContext(optionsBuilder.Options))
+                using (var context = new DataAnnotationContext(options))
                 {
-                    // TODO: Delete DB if model changed
-                    context.Database.EnsureDeleted();
-                    if (context.Database.EnsureCreated())
-                    {
-                        DataAnnotationModelInitializer.Seed(context);
-                    }
-
-                    TestSqlLoggerFactory.Reset();
+                    context.Database.EnsureCreated();
+                    DataAnnotationModelInitializer.Seed(context);
                 }
             });
-        }
 
         public override DataAnnotationContext CreateContext(NpgsqlTestStore testStore)
         {
-            var optionsBuilder = new DbContextOptionsBuilder()
-                .EnableSensitiveDataLogging()
-                .UseNpgsql(testStore.Connection)
-                .UseInternalServiceProvider(_serviceProvider);
+            var options = new DbContextOptionsBuilder(_options)
+                .UseNpgsql(testStore.Connection, b => b.ApplyConfiguration())
+                .Options;
 
-            var context = new DataAnnotationContext(optionsBuilder.Options);
+            var context = new DataAnnotationContext(options);
             context.Database.UseTransaction(testStore.Transaction);
             return context;
         }

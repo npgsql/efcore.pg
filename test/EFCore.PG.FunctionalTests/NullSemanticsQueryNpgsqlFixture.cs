@@ -15,53 +15,54 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
     {
         public static readonly string DatabaseName = "NullSemanticsQueryTest";
 
-        private readonly IServiceProvider _serviceProvider;
+        private readonly DbContextOptions _options;
 
         private readonly string _connectionString = NpgsqlTestStore.CreateConnectionString(DatabaseName);
 
+        public TestSqlLoggerFactory TestSqlLoggerFactory { get; } = new TestSqlLoggerFactory();
+
         public NullSemanticsQueryNpgsqlFixture()
         {
-            _serviceProvider = new ServiceCollection()
+            var serviceProvider = new ServiceCollection()
                 .AddEntityFrameworkNpgsql()
                 .AddSingleton(TestModelSource.GetFactory(OnModelCreating))
-                .AddSingleton<ILoggerFactory>(new TestSqlLoggerFactory())
+                .AddSingleton<ILoggerFactory>(TestSqlLoggerFactory)
                 .BuildServiceProvider();
+
+            _options = new DbContextOptionsBuilder()
+                .EnableSensitiveDataLogging()
+                .UseInternalServiceProvider(serviceProvider)
+                .Options;
         }
 
         public override NpgsqlTestStore CreateTestStore()
         {
             return NpgsqlTestStore.GetOrCreateShared(DatabaseName, () =>
             {
-                using (var context = new NullSemanticsContext(new DbContextOptionsBuilder()
-                    .UseNpgsql(_connectionString)
-                    .UseInternalServiceProvider(_serviceProvider).Options))
+                using (var context = new NullSemanticsContext(new DbContextOptionsBuilder(_options)
+                    .UseNpgsql(_connectionString, b => b.ApplyConfiguration()).Options))
                 {
-                    // TODO: Delete DB if model changed
-
-                    if (context.Database.EnsureCreated())
-                    {
-                        NullSemanticsModelInitializer.Seed(context);
-                    }
-
-                    TestSqlLoggerFactory.Reset();
+                    context.Database.EnsureCreated();
+                    NullSemanticsModelInitializer.Seed(context);
                 }
             });
         }
 
         public override NullSemanticsContext CreateContext(NpgsqlTestStore testStore, bool useRelationalNulls)
         {
-            var context = new NullSemanticsContext(new DbContextOptionsBuilder()
-                .EnableSensitiveDataLogging()
-                .UseInternalServiceProvider(_serviceProvider)
+            var options = new DbContextOptionsBuilder(_options)
                 .UseNpgsql(
                     testStore.Connection,
                     b =>
                     {
+                        b.ApplyConfiguration();
                         if (useRelationalNulls)
                         {
                             b.UseRelationalNulls();
                         }
-                    }).Options);
+                    }).Options;
+
+            var context = new NullSemanticsContext(options);
 
             context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
 

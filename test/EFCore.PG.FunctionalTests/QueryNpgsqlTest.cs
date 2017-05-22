@@ -16,46 +16,46 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         public QueryNpgsqlTest(NorthwindQueryNpgsqlFixture fixture)
             : base(fixture) { }
 
-        [Fact(Skip = "https://github.com/aspnet/EntityFramework/issues/7512")]
-        public override void OrderBy_skip_take_distinct() { }
+        [Fact(Skip = "https://github.com/aspnet/EntityFramework/issues/8606")]
+        public override void OrderBy_coalesce_skip_take_distinct_take() { }
 
         #region Inherited
 
         public override void String_Contains_Literal()
         {
             base.String_Contains_Literal();
-            Assert.Contains("WHERE STRPOS(\"c\".\"ContactName\", 'M') > 0", Sql);
+            AssertContainsInSql("WHERE STRPOS(\"c\".\"ContactName\", 'M') > 0");
         }
 
         public override void String_StartsWith_Literal()
         {
             base.String_StartsWith_Literal();
-            Assert.Contains("WHERE \"c\".\"ContactName\" LIKE 'M%'", Sql);
+            AssertContainsInSql("WHERE \"c\".\"ContactName\" LIKE 'M%'");
         }
 
         [Fact]
         public void String_StartsWith_Literal_with_escaping()
         {
             AssertQuery<Customer>(cs => cs.Where(c => c.ContactName.StartsWith(@"_a%b\c")));
-            Assert.Contains(@"WHERE ""c"".""ContactName"" LIKE '\_a\%b\\c%'", Sql);
+            AssertContainsInSql(@"WHERE ""c"".""ContactName"" LIKE '\_a\%b\\c%'");
         }
 
         public override void String_StartsWith_Column()
         {
             AssertQuery<Customer>(cs => cs.Where(c => c.ContactName.StartsWith(c.City)));
-            Assert.Contains(@"WHERE ""c"".""ContactName"" LIKE (""c"".""City"" || '%') AND (LEFT(""c"".""ContactName"", LENGTH(""c"".""City"")) = ""c"".""City"")", Sql);
+            AssertContainsInSql(@"WHERE ""c"".""ContactName"" LIKE (""c"".""City"" || '%') AND (LEFT(""c"".""ContactName"", LENGTH(""c"".""City"")) = ""c"".""City"")");
         }
 
         public override void String_EndsWith_Literal()
         {
             base.String_EndsWith_Literal();
-            Assert.Contains("WHERE RIGHT(\"c\".\"ContactName\", LENGTH('b')) = 'b'", Sql);
+            AssertContainsInSql("WHERE RIGHT(\"c\".\"ContactName\", LENGTH('b')) = 'b'");
         }
 
         public override void Trim_in_predicate()
         {
             base.TrimEnd_in_predicate();
-            Assert.Contains("WHERE REGEXP_REPLACE(\"c\".\"ContactTitle\", '\\s*$', '') = 'Owner'", Sql);
+            AssertContainsInSql("WHERE REGEXP_REPLACE(\"c\".\"ContactTitle\", '\\s*$', '') = 'Owner'");
         }
 
         [Fact]
@@ -64,13 +64,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             AssertQuery<Customer>(
                 cs => cs.Where(c => c.ContactName.Trim('M', 's') == "aria Ander"),
                 entryCount: 1);
-            Assert.Contains("WHERE BTRIM(\"c\".\"ContactName\", 'Ms')", Sql);
+            AssertContainsInSql("WHERE BTRIM(\"c\".\"ContactName\", 'Ms')");
         }
 
         public override void TrimStart_in_predicate()
         {
             base.TrimStart_in_predicate();
-            Assert.Contains("WHERE REGEXP_REPLACE(\"c\".\"ContactTitle\", '^\\s*', '') = 'Owner'", Sql);
+            AssertContainsInSql("WHERE REGEXP_REPLACE(\"c\".\"ContactTitle\", '^\\s*', '') = 'Owner'");
         }
 
         [Fact]
@@ -79,13 +79,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             AssertQuery<Customer>(
                 cs => cs.Where(c => c.ContactName.TrimStart('M') == "aria Anders"),
                 entryCount: 1);
-            Assert.Contains("WHERE LTRIM(\"c\".\"ContactName\", 'M')", Sql);
+            AssertContainsInSql("WHERE LTRIM(\"c\".\"ContactName\", 'M')");
         }
 
         public override void TrimEnd_in_predicate()
         {
             base.TrimEnd_in_predicate();
-            Assert.Contains("WHERE REGEXP_REPLACE(\"c\".\"ContactTitle\", '\\s*$', '') = 'Owner'", Sql);
+            AssertContainsInSql("WHERE REGEXP_REPLACE(\"c\".\"ContactTitle\", '\\s*$', '') = 'Owner'");
         }
 
         [Fact]
@@ -94,13 +94,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             AssertQuery<Customer>(
                 cs => cs.Where(c => c.ContactName.TrimEnd('s') == "Maria Ander"),
                 entryCount: 1);
-            Assert.Contains("WHERE RTRIM(\"c\".\"ContactName\", 's')", Sql);
+            AssertContainsInSql("WHERE RTRIM(\"c\".\"ContactName\", 's')");
         }
 
         public override void IsNullOrWhiteSpace_in_predicate()
         {
             base.IsNullOrWhiteSpace_in_predicate();
-            Assert.Contains("WHERE \"c\".\"Region\" IS NULL OR \"c\".\"Region\" ~ '^\\s*$'", Sql);
+            AssertContainsInSql("WHERE \"c\".\"Region\" IS NULL OR (\"c\".\"Region\" ~ '^\\s*$' = TRUE)");
         }
 
         [Fact]
@@ -117,67 +117,67 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         public override void Query_expression_with_to_string_and_contains()
         {
             base.Query_expression_with_to_string_and_contains();
-            Assert.Contains("STRPOS(CAST(\"o\".\"EmployeeID\" AS text), '10') > 0", Sql);
+            AssertContainsInSql("STRPOS(CAST(\"o\".\"EmployeeID\" AS text), '10') > 0");
         }
 
         public override void Where_datetime_now()
         {
             base.Where_datetime_now();
-            Assert.Contains("WHERE NOW() <>", Sql);
+            AssertContainsInSql("WHERE NOW() <>");
         }
 
         public override void Where_datetime_utcnow()
         {
             base.Where_datetime_utcnow();
-            Assert.Contains("WHERE NOW() AT TIME ZONE 'UTC' <>", Sql);
+            AssertContainsInSql("WHERE NOW() AT TIME ZONE 'UTC' <>");
         }
 
         public override void Where_datetime_date_component()
         {
             base.Where_datetime_date_component();
-            Assert.Contains("WHERE DATE_TRUNC('day', \"o\".\"OrderDate\")", Sql);
+            AssertContainsInSql("WHERE DATE_TRUNC('day', \"o\".\"OrderDate\")");
         }
 
         public override void Where_datetime_year_component()
         {
             base.Where_datetime_year_component();
-            Assert.Contains("DATE_PART('year', \"o\".\"OrderDate\")", Sql);
+            AssertContainsInSql("DATE_PART('year', \"o\".\"OrderDate\")");
         }
 
         public override void Where_datetime_month_component()
         {
             base.Where_datetime_month_component();
-            Assert.Contains("DATE_PART('month', \"o\".\"OrderDate\")", Sql);
+            AssertContainsInSql("DATE_PART('month', \"o\".\"OrderDate\")");
         }
 
         public override void Where_datetime_dayOfYear_component()
         {
             base.Where_datetime_dayOfYear_component();
-            Assert.Contains("DATE_PART('doy', \"o\".\"OrderDate\")", Sql);
+            AssertContainsInSql("DATE_PART('doy', \"o\".\"OrderDate\")");
         }
 
         public override void Where_datetime_day_component()
         {
             base.Where_datetime_day_component();
-            Assert.Contains("DATE_PART('day', \"o\".\"OrderDate\")", Sql);
+            AssertContainsInSql("DATE_PART('day', \"o\".\"OrderDate\")");
         }
 
         public override void Where_datetime_hour_component()
         {
             base.Where_datetime_hour_component();
-            Assert.Contains("DATE_PART('hour', \"o\".\"OrderDate\")", Sql);
+            AssertContainsInSql("DATE_PART('hour', \"o\".\"OrderDate\")");
         }
 
         public override void Where_datetime_minute_component()
         {
             base.Where_datetime_minute_component();
-            Assert.Contains("DATE_PART('minute', \"o\".\"OrderDate\")", Sql);
+            AssertContainsInSql("DATE_PART('minute', \"o\".\"OrderDate\")");
         }
 
         public override void Where_datetime_second_component()
         {
             base.Where_datetime_second_component();
-            Assert.Contains("DATE_PART('second', \"o\".\"OrderDate\")", Sql);
+            AssertContainsInSql("DATE_PART('second', \"o\".\"OrderDate\")");
         }
 
         // ReSharper disable once RedundantOverriddenMember
@@ -194,7 +194,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 oc => oc.Where(o =>
                         o.OrderDate.Value.DayOfWeek == DayOfWeek.Tuesday),
                 entryCount: 168);
-            Assert.Contains("WHERE CAST(FLOOR(DATE_PART('dow', \"o\".\"OrderDate\")) AS int4)", Sql);
+            AssertContainsInSql("WHERE CAST(FLOOR(DATE_PART('dow', \"o\".\"OrderDate\")) AS int4)");
         }
 
         #endregion
@@ -207,7 +207,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             AssertQuery<Customer>(
                 cs => cs.Where(c => Regex.IsMatch(c.CompanyName, "^A")),
                 entryCount: 4);
-            Assert.Contains("WHERE \"c\".\"CompanyName\" ~ ('(?p)' || '^A')", Sql);
+            AssertContainsInSql("WHERE \"c\".\"CompanyName\" ~ ('(?p)' || '^A')");
         }
 
         [Fact]
@@ -216,7 +216,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             AssertQuery<Customer>(
                 cs => cs.Where(c => Regex.IsMatch(c.CompanyName, "^A", RegexOptions.None)),
                 entryCount: 4);
-            Assert.Contains("WHERE \"c\".\"CompanyName\" ~ ('(?p)' || '^A')", Sql);
+            AssertContainsInSql("WHERE \"c\".\"CompanyName\" ~ ('(?p)' || '^A')");
         }
 
         [Fact]
@@ -225,7 +225,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             AssertQuery<Customer>(
                 cs => cs.Where(c => Regex.IsMatch(c.CompanyName, "^a", RegexOptions.IgnoreCase)),
                 entryCount: 4);
-            Assert.Contains("WHERE \"c\".\"CompanyName\" ~ ('(?ip)' || '^a')", Sql);
+            AssertContainsInSql("WHERE \"c\".\"CompanyName\" ~ ('(?ip)' || '^a')");
         }
 
         [Fact]
@@ -234,7 +234,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             AssertQuery<Customer>(
                 cs => cs.Where(c => Regex.IsMatch(c.CompanyName, "^A", RegexOptions.Multiline)),
                 entryCount: 4);
-            Assert.Contains("WHERE \"c\".\"CompanyName\" ~ ('(?n)' || '^A')", Sql);
+            AssertContainsInSql("WHERE \"c\".\"CompanyName\" ~ ('(?n)' || '^A')");
         }
 
         [Fact]
@@ -243,7 +243,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             AssertQuery<Customer>(
                 cs => cs.Where(c => Regex.IsMatch(c.CompanyName, "^A", RegexOptions.Singleline)),
                 entryCount: 4);
-            Assert.Contains("WHERE \"c\".\"CompanyName\" ~ '^A'", Sql);
+            AssertContainsInSql("WHERE \"c\".\"CompanyName\" ~ '^A'");
         }
 
         [Fact]
@@ -252,7 +252,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             AssertQuery<Customer>(
                 cs => cs.Where(c => Regex.IsMatch(c.CompanyName, "^ A", RegexOptions.IgnorePatternWhitespace)),
                 entryCount: 4);
-            Assert.Contains("WHERE \"c\".\"CompanyName\" ~ ('(?px)' || '^ A')", Sql);
+            AssertContainsInSql("WHERE \"c\".\"CompanyName\" ~ ('(?px)' || '^ A')");
         }
 
         [Fact]
@@ -261,15 +261,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             AssertQuery<Customer>(
                 cs => cs.Where(c => Regex.IsMatch(c.CompanyName, "^A", RegexOptions.RightToLeft)),
                 entryCount: 4);
-            Assert.DoesNotContain("WHERE \"c\".\"CompanyName\" ~ ", Sql);
+            Assert.DoesNotContain("WHERE \"c\".\"CompanyName\" ~ ", Fixture.TestSqlLoggerFactory.Sql);
         }
 
         #endregion
 
-        const string FileLineEnding = @"
-";
-        protected override void ClearLog() => TestSqlLoggerFactory.Reset();
+        private void AssertContainsInSql(string expected)
+            => Assert.Contains(expected, Fixture.TestSqlLoggerFactory.Sql);
 
-        static string Sql => TestSqlLoggerFactory.Sql.Replace(Environment.NewLine, FileLineEnding);
+        protected override void ClearLog()
+            => Fixture.TestSqlLoggerFactory.Clear();
     }
 }

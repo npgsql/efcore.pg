@@ -20,12 +20,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 
         private readonly string _connectionString = NpgsqlTestStore.CreateConnectionString(DatabaseName);
 
+        public TestSqlLoggerFactory TestSqlLoggerFactory { get; } = new TestSqlLoggerFactory();
+
         public InheritanceRelationshipsQueryNpgsqlFixture()
         {
             _serviceProvider = new ServiceCollection()
                 .AddEntityFrameworkNpgsql()
                 .AddSingleton(TestModelSource.GetFactory(OnModelCreating))
-                .AddSingleton<ILoggerFactory>(new TestSqlLoggerFactory())
+                .AddSingleton<ILoggerFactory>(TestSqlLoggerFactory)
                 .BuildServiceProvider();
         }
 
@@ -34,19 +36,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             return NpgsqlTestStore.GetOrCreateShared(DatabaseName, () =>
             {
                 var optionsBuilder = new DbContextOptionsBuilder()
-                    .UseNpgsql(_connectionString)
+                    .UseNpgsql(_connectionString, b => b.ApplyConfiguration())
                     .UseInternalServiceProvider(_serviceProvider);
 
                 using (var context = new InheritanceRelationshipsContext(optionsBuilder.Options))
                 {
-                    // TODO: Delete DB if model changed
-                    context.Database.EnsureDeleted();
-                    if (context.Database.EnsureCreated())
-                    {
-                        InheritanceRelationshipsModelInitializer.Seed(context);
-                    }
-
-                    TestSqlLoggerFactory.Reset();
+                    context.Database.EnsureCreated();
+                    InheritanceRelationshipsModelInitializer.Seed(context);
                 }
             });
         }
@@ -54,7 +50,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         public override InheritanceRelationshipsContext CreateContext(NpgsqlTestStore testStore)
         {
             var optionsBuilder = new DbContextOptionsBuilder()
-                .UseNpgsql(testStore.Connection)
+                .UseNpgsql(testStore.Connection, b => b.ApplyConfiguration())
                 .UseInternalServiceProvider(_serviceProvider);
 
             var context = new InheritanceRelationshipsContext(optionsBuilder.Options);
