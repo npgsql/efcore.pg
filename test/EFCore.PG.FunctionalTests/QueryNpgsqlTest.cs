@@ -19,6 +19,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         [Fact(Skip = "https://github.com/aspnet/EntityFramework/issues/8606")]
         public override void OrderBy_coalesce_skip_take_distinct_take() { }
 
+        [Fact(Skip = "Support in PG only for numerics")]
+        public override void Where_math_log_new_base() { }
+
         #region Inherited
 
         public override void String_Contains_Literal()

@@ -32,12 +32,7 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal
         {
             new NpgsqlConvertTranslator(),
             new NpgsqlStringSubstringTranslator(),
-            new NpgsqlMathAbsTranslator(),
-            new NpgsqlMathCeilingTranslator(),
-            new NpgsqlMathFloorTranslator(),
-            new NpgsqlMathPowerTranslator(),
-            new NpgsqlMathRoundTranslator(),
-            new NpgsqlMathTruncateTranslator(),
+            new NpgsqlMathTranslator(),
             new NpgsqlObjectToStringTranslator(),
             new NpgsqlStringEndsWithTranslator(),
             new NpgsqlStringStartsWithTranslator(),
