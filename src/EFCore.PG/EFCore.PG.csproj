@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <VersionPrefix>1.2.0-ci</VersionPrefix>
+    <VersionPrefix>2.0.0-preview1</VersionPrefix>
     <TargetFrameworks>net46;netstandard1.3</TargetFrameworks>
     <AssemblyName>Npgsql.EntityFrameworkCore.PostgreSQL</AssemblyName>
     <RootNamespace>Microsoft.EntityFrameworkCore</RootNamespace>
@@ -25,10 +25,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="1.2.0-*" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="1.2.0-*" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="1.2.0-*" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="1.2.0-*" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.0.0-preview1-*" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="2.0.0-preview1-*" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.0.0-preview1-*" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.0.0-preview1-*" />
     <PackageReference Include="Npgsql" Version="3.2.2" />
   </ItemGroup>
 
