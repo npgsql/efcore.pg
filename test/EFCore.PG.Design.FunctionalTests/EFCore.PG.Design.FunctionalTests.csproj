@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net46;netcoreapp1.1</TargetFrameworks>
+    <TargetFrameworks>net46;netcoreapp2.0</TargetFrameworks>
     <PreserveCompilationContext>true</PreserveCompilationContext>
     <AssemblyName>Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests</AssemblyName>
     <RootNamespace>Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests</RootNamespace>
