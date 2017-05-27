@@ -1,5 +1,5 @@
 image: Visual Studio 2017
-version: 1.2.0-{build}
+version: 2.0.0-preview1-{build}
 services:
   - postgresql
 environment:
