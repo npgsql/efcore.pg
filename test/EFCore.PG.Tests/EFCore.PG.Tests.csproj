@@ -7,10 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="App.config" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\src\EFCore.PG\EFCore.PG.csproj" />
     <ProjectReference Include="..\EFCore.PG.FunctionalTests\EFCore.PG.FunctionalTests.csproj" />
   </ItemGroup>

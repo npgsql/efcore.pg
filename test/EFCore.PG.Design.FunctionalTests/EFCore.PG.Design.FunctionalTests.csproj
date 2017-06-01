@@ -8,7 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="App.config" />
     <Content Include="ReverseEngineering\**\*.expected;ReverseEngineering\**\*.sql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
