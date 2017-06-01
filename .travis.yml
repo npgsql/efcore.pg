@@ -1,0 +1,26 @@
+language: csharp
+solution: EFCore.PG.sln
+dist: trusty
+sudo: false
+mono: none
+dotnet: 2.0.0-preview1-005977
+
+services:
+  - postgresql
+addons:
+  postgresql: "9.6"
+
+env:
+  - Test__Npgsql__DefaultConnection: '"Host=localhost;Database=postgres;Username=postgres;Password="'
+
+before_script:
+  - dotnet restore -v Minimal
+script:
+  - dotnet test "test/EFCore.PG.Tests/EFCore.PG.Tests.csproj" -c Debug -f netcoreapp2.0
+  - dotnet test "test/EFCore.PG.FunctionalTests/EFCore.PG.FunctionalTests.csproj" -c Debug -f netcoreapp2.0
+  - dotnet test "test/EFCore.PG.Design.FunctionalTests/EFCore.PG.Design.FunctionalTests.csproj" -c Debug -f netcoreapp2.0
+
+cache:
+  directories:
+    - $HOME/.nuget/packages
+
