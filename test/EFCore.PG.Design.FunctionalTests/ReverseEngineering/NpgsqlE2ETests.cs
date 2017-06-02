@@ -296,7 +296,13 @@ CREATE TABLE ""NonSerialSequence"" (
 
         protected override ICollection<BuildReference> References { get; } = new List<BuildReference>
         {
-#if NETCOREAPP1_1
+#if NET46
+            BuildReference.ByName("System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
+            BuildReference.ByName("System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
+            BuildReference.ByName("System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
+            BuildReference.ByName("System.ComponentModel.DataAnnotations, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35"),
+#elif NETCOREAPP2_0
+            BuildReference.ByName("netstandard"),
             BuildReference.ByName("System.Collections"),
             BuildReference.ByName("System.Data.Common"),
             BuildReference.ByName("System.Linq.Expressions"),
@@ -304,22 +310,14 @@ CREATE TABLE ""NonSerialSequence"" (
             BuildReference.ByName("System.ComponentModel.Annotations"),
             BuildReference.ByName("System.Net.Primitives"),
             BuildReference.ByName("System.Net.NetworkInformation"),
-            BuildReference.ByName("Npgsql.EntityFrameworkCore.PostgreSQL"),
-            BuildReference.ByName("Microsoft.EntityFrameworkCore"),
-            BuildReference.ByName("Microsoft.EntityFrameworkCore.Relational"),
-            BuildReference.ByName("Microsoft.Extensions.Caching.Abstractions"),
-            BuildReference.ByName("Microsoft.Extensions.Logging.Abstractions")
 #else
-            BuildReference.ByName("System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
-            BuildReference.ByName("System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
-            BuildReference.ByName("System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
-            BuildReference.ByName("System.ComponentModel.DataAnnotations, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35"),
-            BuildReference.ByName("Npgsql.EntityFrameworkCore.PostgreSQL"),
+#error target frameworks need to be updated.
+#endif
             BuildReference.ByName("Microsoft.EntityFrameworkCore"),
             BuildReference.ByName("Microsoft.EntityFrameworkCore.Relational"),
             BuildReference.ByName("Microsoft.Extensions.Caching.Abstractions"),
-            BuildReference.ByName("Microsoft.Extensions.Logging.Abstractions")
-#endif
+            BuildReference.ByName("Microsoft.Extensions.Logging.Abstractions"),
+            BuildReference.ByName("Npgsql.EntityFrameworkCore.PostgreSQL")
         };
     }
 }
