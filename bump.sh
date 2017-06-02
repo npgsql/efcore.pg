@@ -13,8 +13,10 @@ fi
 
 sed -i 's/^version: .*/version: '$v'-{build}/' .appveyor.yml
 sed -i 's/<VersionPrefix>[^<]*<\/VersionPrefix>/<VersionPrefix>'$v'<\/VersionPrefix>/' {src,test}/*/*.csproj
+sed -i 's/Version=[^,]*,/Version='$v',/' src/EFCore.PG/Properties/AssemblyInfo.cs
 
 git add .appveyor.yml
 git add {src,test}/*/*.csproj
+git add src/EFCore.PG/Properties/AssemblyInfo.cs
 
 git commit -m "Bump version to $v"
