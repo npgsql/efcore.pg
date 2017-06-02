@@ -287,6 +287,33 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 
         #endregion
 
+        [Fact]
+        public void String_IndexOf_String()
+        {
+            AssertQuery<Customer>(
+                cs => cs.Where(c => c.CompanyName.IndexOf("ar") > 5),
+                entryCount: 13);
+            AssertContainsInSql("WHERE (STRPOS(\"c\".\"CompanyName\", 'ar') - 1) > 5");
+        }
+
+        [Fact]
+        public void String_IndexOf_not_found()
+        {
+            AssertQuery<Customer>(
+                cs => cs.Where(c => c.CompanyName.IndexOf("[") == -1),
+                entryCount: 91);
+            AssertContainsInSql("WHERE (STRPOS(\"c\".\"CompanyName\", '[') - 1) = -1");
+        }
+
+        [Fact]
+        public void String_IndexOf_Char()
+        {
+            AssertQuery<Customer>(
+                cs => cs.Where(c => c.CompanyName.IndexOf('A') > 5),
+                entryCount: 9);
+            AssertContainsInSql("WHERE (STRPOS(\"c\".\"CompanyName\", 'A') - 1) > 5");
+        }
+
         private void AssertContainsInSql(string expected)
             => Assert.Contains(expected, Fixture.TestSqlLoggerFactory.Sql);
 
