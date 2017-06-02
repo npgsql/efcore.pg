@@ -17,6 +17,10 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal
         static readonly MethodInfo _trimWithChars
             = typeof(string).GetRuntimeMethod(nameof(string.Trim), new[] { typeof(char[]) });
 
+        // The following exists as an optimization in netcoreapp20
+        static readonly MethodInfo _trimWithSingleChar
+            = typeof(string).GetRuntimeMethod(nameof(string.Trim), new[] { typeof(char) });
+
         public virtual Expression Translate(MethodCallExpression methodCallExpression)
         {
             if (methodCallExpression.Method.Equals(_trim))
@@ -45,6 +49,22 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal
                     {
                         methodCallExpression.Object,
                         Expression.Constant(new string((char[])constantTrimChars.Value))
+                    });
+            }
+
+            if (methodCallExpression.Method.Equals(_trimWithSingleChar))
+            {
+                var constantTrimChar = methodCallExpression.Arguments[0] as ConstantExpression;
+                if (constantTrimChar == null)
+                    return null;
+
+                return new SqlFunctionExpression(
+                    "BTRIM",
+                    typeof(string),
+                    new[]
+                    {
+                        methodCallExpression.Object,
+                        Expression.Constant(new string((char)constantTrimChar.Value, 1))
                     });
             }
 

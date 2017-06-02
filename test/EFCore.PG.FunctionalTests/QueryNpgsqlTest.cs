@@ -61,13 +61,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             AssertContainsInSql("WHERE REGEXP_REPLACE(\"c\".\"ContactTitle\", '\\s*$', '') = 'Owner'");
         }
 
+        public override void Trim_with_arguments_in_predicate()
+        {
+            base.Trim_with_arguments_in_predicate();
+            AssertContainsInSql("WHERE BTRIM(\"c\".\"ContactTitle\", 'Or')");
+        }
+
         [Fact]
-        public void Trim_with_chars()
+        public void Trim_with_argument_in_predicate()
         {
             AssertQuery<Customer>(
-                cs => cs.Where(c => c.ContactName.Trim('M', 's') == "aria Ander"),
-                entryCount: 1);
-            AssertContainsInSql("WHERE BTRIM(\"c\".\"ContactName\", 'Ms')");
+                cs => cs.Where(c => c.ContactTitle.Trim('O') == "wner"),
+                entryCount: 17);
+            AssertContainsInSql("WHERE BTRIM(\"c\".\"ContactTitle\", 'O')");
         }
 
         public override void TrimStart_in_predicate()
@@ -76,13 +82,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             AssertContainsInSql("WHERE REGEXP_REPLACE(\"c\".\"ContactTitle\", '^\\s*', '') = 'Owner'");
         }
 
+        public override void TrimStart_with_arguments_in_predicate()
+        {
+            base.TrimStart_with_arguments_in_predicate();
+            AssertContainsInSql("WHERE LTRIM(\"c\".\"ContactTitle\", 'Ow')");
+        }
+
         [Fact]
-        public void TrimStart_with_chars()
+        public void TrimStart_with_argument_in_predicate()
         {
             AssertQuery<Customer>(
-                cs => cs.Where(c => c.ContactName.TrimStart('M') == "aria Anders"),
-                entryCount: 1);
-            AssertContainsInSql("WHERE LTRIM(\"c\".\"ContactName\", 'M')");
+                cs => cs.Where(c => c.ContactTitle.TrimStart('O') == "wner"),
+                entryCount: 17);
+            AssertContainsInSql("WHERE LTRIM(\"c\".\"ContactTitle\", 'O')");
         }
 
         public override void TrimEnd_in_predicate()
@@ -91,13 +103,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             AssertContainsInSql("WHERE REGEXP_REPLACE(\"c\".\"ContactTitle\", '\\s*$', '') = 'Owner'");
         }
 
+        public override void TrimEnd_with_arguments_in_predicate()
+        {
+            base.TrimEnd_with_arguments_in_predicate();
+            AssertContainsInSql("WHERE RTRIM(\"c\".\"ContactTitle\", 'er')");
+        }
+
         [Fact]
-        public void TrimEnd_with_chars()
+        public void TrimEnd_with_argument_in_predicate()
         {
             AssertQuery<Customer>(
-                cs => cs.Where(c => c.ContactName.TrimEnd('s') == "Maria Ander"),
-                entryCount: 1);
-            AssertContainsInSql("WHERE RTRIM(\"c\".\"ContactName\", 's')");
+                cs => cs.Where(c => c.ContactTitle.TrimEnd('r') == "Owne"),
+                entryCount: 17);
+            AssertContainsInSql("WHERE RTRIM(\"c\".\"ContactTitle\", 'r')");
         }
 
         public override void IsNullOrWhiteSpace_in_predicate()
