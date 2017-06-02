@@ -5,9 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
-using Microsoft.EntityFrameworkCore.Specification.Tests;
-using Microsoft.EntityFrameworkCore.Specification.Tests.TestModels.GearsOfWarModel;
-using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
+using Microsoft.EntityFrameworkCore.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
@@ -32,5 +30,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 
         [Fact(Skip = "PostgreSQL sorts nulls first (#50)")]
         public override void Include_on_GroupJoin_SelectMany_DefaultIfEmpty_with_conditional_result() { }
+
+        [Fact(Skip = "PostgreSQL sorts nulls first (#50)")]
+        public override void Select_null_propagation_negative3() {}
+
+        [Fact(Skip = "PostgreSQL sorts nulls first (#50)")]
+        public override void Select_null_propagation_negative4() { }
+
+        [Fact(Skip = "PostgreSQL sorts nulls first (#50)")]
+        public override void Select_null_propagation_negative5() { }
     }
 }

@@ -29,12 +29,12 @@ namespace Microsoft.EntityFrameworkCore.Metadata
     public class NpgsqlIndexAnnotations : RelationalIndexAnnotations, INpgsqlIndexAnnotations
     {
         public NpgsqlIndexAnnotations([NotNull] IIndex index)
-            : base(index, NpgsqlFullAnnotationNames.Instance)
+            : base(index)
         {
         }
 
         protected NpgsqlIndexAnnotations([NotNull] RelationalAnnotations annotations)
-            : base(annotations, NpgsqlFullAnnotationNames.Instance)
+            : base(annotations)
         {
         }
 
@@ -46,8 +46,8 @@ namespace Microsoft.EntityFrameworkCore.Metadata
         /// </remarks>
         public string Method
         {
-            get { return (string) Annotations.GetAnnotation(NpgsqlFullAnnotationNames.Instance.IndexMethod, null); }
-            set { Annotations.SetAnnotation(NpgsqlFullAnnotationNames.Instance.IndexMethod, null, value); }
+            get { return (string) Annotations.GetAnnotation(NpgsqlAnnotationNames.IndexMethod); }
+            set { Annotations.SetAnnotation(NpgsqlAnnotationNames.IndexMethod, value); }
         }
     }
 }

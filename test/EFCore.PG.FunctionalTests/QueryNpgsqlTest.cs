@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Microsoft.EntityFrameworkCore.Specification.Tests;
-using Microsoft.EntityFrameworkCore.Specification.Tests.TestModels.Northwind;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.TestModels.Northwind;
 using Xunit;
-
-#if NETSTANDARDAPP1_5
-using System.Threading;
-#endif
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
@@ -57,8 +53,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 
         public override void Trim_in_predicate()
         {
-            base.TrimEnd_in_predicate();
-            AssertContainsInSql("WHERE REGEXP_REPLACE(\"c\".\"ContactTitle\", '\\s*$', '') = 'Owner'");
+            base.Trim_in_predicate();
+            AssertContainsInSql(@"WHERE REGEXP_REPLACE(""c"".""ContactTitle"", '^\s*(.*?)\s*$', '\1') = 'Owner'");
         }
 
         public override void Trim_with_arguments_in_predicate()

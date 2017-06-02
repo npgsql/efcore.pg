@@ -28,18 +28,18 @@ using System.Data.Common;
 using System.Diagnostics;
 using System.Linq;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.EntityFrameworkCore.Migrations;
-using Microsoft.EntityFrameworkCore.Scaffolding.Internal;
 using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
 using Microsoft.EntityFrameworkCore.Utilities;
 using Microsoft.Extensions.Logging;
 using Npgsql;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Design.Metadata;
 
 namespace Microsoft.EntityFrameworkCore.Scaffolding.Internal
 {
-    public class NpgsqlDatabaseModelFactory : IInternalDatabaseModelFactory
+    public class NpgsqlDatabaseModelFactory : IDatabaseModelFactory
     {
         NpgsqlConnection _connection;
         TableSelectionSet _tableSelectionSet;
@@ -51,14 +51,14 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding.Internal
         static string TableKey(string name, string schema) => $"\"{schema}\".\"{name}\"";
         static string ColumnKey(TableModel table, string columnName) => $"{TableKey(table)}.\"{columnName}\"";
 
-        public NpgsqlDatabaseModelFactory([NotNull] ILoggerFactory loggerFactory)
+        public NpgsqlDatabaseModelFactory([NotNull] IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
         {
-            Check.NotNull(loggerFactory, nameof(loggerFactory));
+            Check.NotNull(logger, nameof(logger));
 
-            Logger = loggerFactory.CreateCommandsLogger();
+            Logger = logger;
         }
 
-        public virtual ILogger Logger { get; }
+        public virtual IDiagnosticsLogger<DbLoggerCategory.Scaffolding> Logger { get; }
 
         void ResetState()
         {
@@ -69,18 +69,19 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding.Internal
             _tableColumns = new Dictionary<string, ColumnModel>(StringComparer.OrdinalIgnoreCase);
         }
 
-        public DatabaseModel Create(string connectionString, TableSelectionSet tableSelectionSet)
+        public virtual DatabaseModel Create(string connectionString, IEnumerable<string> tables, IEnumerable<string> schemas)
         {
             Check.NotEmpty(connectionString, nameof(connectionString));
-            Check.NotNull(tableSelectionSet, nameof(tableSelectionSet));
+            Check.NotNull(tables, nameof(tables));
+            Check.NotNull(schemas, nameof(schemas));
 
             using (var connection = new NpgsqlConnection(connectionString))
             {
-                return Create(connection, tableSelectionSet);
+                return Create(connection, tables, schemas);
             }
         }
 
-        public DatabaseModel Create(DbConnection connection, TableSelectionSet tableSelectionSet)
+        public virtual DatabaseModel Create(DbConnection connection, IEnumerable<string> tables, IEnumerable<string> schemas)
         {
             ResetState();
 
@@ -94,7 +95,7 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding.Internal
 
             try
             {
-                _tableSelectionSet = tableSelectionSet;
+                _tableSelectionSet = new TableSelectionSet(tables, schemas);
 
                 _databaseModel.DatabaseName = _connection.Database;
                 _databaseModel.DefaultSchemaName = "public";
@@ -140,8 +141,8 @@ WHERE
                 {
                     var table = new TableModel
                     {
-                        SchemaName = reader.GetString(0),
-                        Name = reader.GetString(1)
+                        SchemaName = reader.GetValueOrDefault<string>("nspname"),
+                        Name = reader.GetValueOrDefault<string>("relname")
                     };
 
                     if (_tableSelectionSet.Allows(table.SchemaName, table.Name))
@@ -183,8 +184,8 @@ ORDER BY attnum";
             {
                 while (reader.Read())
                 {
-                    var schemaName = reader.GetString(0);
-                    var tableName = reader.GetString(1);
+                    var schemaName = reader.GetValueOrDefault<string>("nspname");
+                    var tableName = reader.GetValueOrDefault<string>("relname");
                     if (!_tableSelectionSet.Allows(schemaName, tableName))
                         continue;
 
@@ -192,60 +193,39 @@ ORDER BY attnum";
 
                     // We need to know about dropped columns because constraints take them into
                     // account when referencing columns. We'll get rid of them before returning the model.
-                    var isDropped = reader.GetBoolean(2);
+                    var isDropped = reader.GetValueOrDefault<bool>("attisdropped");
                     if (isDropped)
                     {
                         table.Columns.Add(null);
                         continue;
                     }
 
-                    var columnName = reader.GetString(3);
-                    var dataType = reader.GetString(4);
-                    var ordinal = reader.GetInt32(5) - 1;
-                    var typeModifier = reader.GetInt32(6);
-                    var typeChar = reader.GetChar(7);
-                    var elemDataType = reader.IsDBNull(8) ? null : reader.GetString(8);
-                    var isNullable = reader.GetBoolean(9);
-                    int? maxLength = null;
-                    int? precision = null;
-                    int? scale = null;
-                    var defaultValue = reader.IsDBNull(10) ? null : reader.GetString(10);
+                    var columnName = reader.GetValueOrDefault<string>("attname");
+                    var dataType = reader.GetValueOrDefault<string>("typname");
+                    var ordinal = reader.GetValueOrDefault<int>("attnum") - 1;
+                    var typeModifier = reader.GetValueOrDefault<int>("atttypmod");
+                    var typeChar = reader.GetValueOrDefault<char>("typtype");
+                    var elemDataType = reader.GetValueOrDefault<string>("elemtypname");
+                    var isNullable = reader.GetValueOrDefault<bool>("nullable");
+                    var defaultValue = reader.GetValueOrDefault<string>("default");
 
-                    if (typeModifier != -1)
-                    {
-                        switch (dataType)
-                        {
-                        case "bpchar":
-                        case "char":
-                        case "varchar":
-                            maxLength = typeModifier - 4;
-                            break;
-                        case "numeric":
-                        case "decimal":
-                            // See http://stackoverflow.com/questions/3350148/where-are-numeric-precision-and-scale-for-a-field-found-in-the-pg-catalog-tables
-                            precision = ((typeModifier - 4) >> 16) & 65535;
-                            scale = (typeModifier - 4) & 65535;
-                            break;
-                        }
-                    }
+                    // bpchar is just an internal name for char
+                    if (dataType == "bpchar")
+                        dataType = "char";
 
                     var column = new ColumnModel
                     {
-                        Table          = table,
-                        Name           = columnName,
-                        DataType       = dataType,
-                        Ordinal        = ordinal,
-                        IsNullable     = isNullable,
-                        MaxLength      = maxLength,
-                        Precision      = precision,
-                        Scale          = scale,
-                        DefaultValue   = defaultValue
+                        Table               = table,
+                        Name                = columnName,
+                        StoreType           = GetStoreType(dataType, typeModifier),
+                        UnderlyingStoreType = null,
+                        Ordinal             = ordinal,
+                        IsNullable          = isNullable,
+                        DefaultValue        = defaultValue
                     };
 
                     if (defaultValue != null)
                     {
-                        column.ValueGenerated = ValueGenerated.OnAdd;
-
                         // Somewhat hacky... We identify serial columns by examining their default expression,
                         // and reverse-engineer these as ValueGenerated.OnAdd
                         if (defaultValue == $"nextval('{tableName}_{columnName}_seq'::regclass)" ||
@@ -254,7 +234,7 @@ ORDER BY attnum";
                             // TODO: Scaffold as serial, bigserial, not int...
                             // But in normal code-first I don't have to set the column type...!
                             // TODO: Think about composite keys. Do serial magic only for non-composite.
-                            column.Npgsql().IsSerial = true;
+                            column.ValueGenerated = ValueGenerated.OnAdd;
                             column.DefaultValue = null;
                         }
                     }
@@ -265,17 +245,17 @@ ORDER BY attnum";
                         // Base (regular), is the default
                         break;
                     case 'a':
-                        column.Npgsql().PostgresTypeType = PostgresTypeType.Array;
-                        column.Npgsql().ElementDataType = elemDataType;
+                        column[NpgsqlAnnotationNames.PostgresTypeType] = PostgresTypeType.Array;
+                        column[NpgsqlAnnotationNames.ElementDataType] = elemDataType;
                         break;
                     case 'r':
-                        column.Npgsql().PostgresTypeType = PostgresTypeType.Range;
+                        column[NpgsqlAnnotationNames.PostgresTypeType] = PostgresTypeType.Range;
                         break;
                     case 'e':
-                        column.Npgsql().PostgresTypeType = PostgresTypeType.Enum;
+                        column[NpgsqlAnnotationNames.PostgresTypeType] = PostgresTypeType.Enum;
                         break;
                     default:
-                        Logger.LogWarning($"Can't scaffold column '{columnName}' of type '{dataType}': unknown type char '{typeChar}'");
+                        Logger.Logger.LogWarning($"Can't scaffold column '{columnName}' of type '{dataType}': unknown type char '{typeChar}'");
                         continue;
                     }
 
@@ -285,10 +265,34 @@ ORDER BY attnum";
             }
         }
 
+        string GetStoreType(string dataTypeName, int typeModifier)
+        {
+            if (typeModifier == -1)
+                return dataTypeName;
+
+            switch (dataTypeName)
+            {
+            case "bpchar":
+            case "char":
+            case "varchar":
+                return $"{dataTypeName}({typeModifier - 4})";  // Max length
+            case "numeric":
+            case "decimal":
+                // See http://stackoverflow.com/questions/3350148/where-are-numeric-precision-and-scale-for-a-field-found-in-the-pg-catalog-tables
+                var precision = ((typeModifier - 4) >> 16) & 65535;
+                var scale = (typeModifier - 4) & 65535;
+                return $"{dataTypeName}({precision}, {scale})";
+            // TODO: Support for precision-only for timestamp, time, interval
+            default:
+                Logger.Logger.LogWarning($"Don't know how to interpret type modifier {typeModifier} for datatype {dataTypeName}'");
+                return dataTypeName;
+            }
+        }
+
         const string GetIndexesQuery = @"
 SELECT
-    nspname, cls.relname, idxcls.relname, indisunique, indkey,
-    CASE WHEN indexprs IS NULL THEN NULL ELSE pg_get_expr(indexprs, cls.oid) END
+    nspname, cls.relname AS cls_relname, idxcls.relname AS idx_relname, indisunique, indkey,
+    CASE WHEN indexprs IS NULL THEN NULL ELSE pg_get_expr(indexprs, cls.oid) END AS expr
 FROM pg_class AS cls
 JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
 JOIN pg_index AS idx ON indrelid = cls.oid
@@ -309,9 +313,9 @@ WHERE
             {
                 while (reader.Read())
                 {
-                    var schemaName = reader.GetString(0);
-                    var tableName = reader.GetString(1);
-                    var indexName = reader.GetString(2);
+                    var schemaName = reader.GetValueOrDefault<string>("nspname");
+                    var tableName = reader.GetValueOrDefault<string>("cls_relname");
+                    var indexName = reader.GetValueOrDefault<string>("idx_relname");
 
                     if (!_tableSelectionSet.Allows(schemaName, tableName))
                         continue;
@@ -324,17 +328,17 @@ WHERE
                     {
                         Table = table,
                         Name = indexName,
-                        IsUnique = reader.GetBoolean(3)
+                        IsUnique = reader.GetValueOrDefault<bool>("indisunique")
                     };
 
                     table.Indexes.Add(index);
 
-                    var columnIndices = reader.GetFieldValue<short[]>(4);
+                    var columnIndices = reader.GetValueOrDefault<short[]>("indkey");
                     if (columnIndices.Any(i => i == 0))
                     {
-                        if (reader.IsDBNull(5))
+                        if (reader.IsDBNull(reader.GetOrdinal("expr")))
                             throw new Exception($"Seen 0 in indkey for index {indexName} but indexprs is null");
-                        index.Npgsql().Expression = reader.GetString(5);
+                        index[NpgsqlAnnotationNames.IndexExpression] = reader.GetValueOrDefault<string>("expr");
                     }
                     else
                     {
@@ -356,7 +360,7 @@ WHERE
 
         const string GetConstraintsQuery = @"
 SELECT
-    ns.nspname, cls.relname, conname, contype, conkey, frnns.nspname, frncls.relname, confkey, confdeltype
+    ns.nspname, cls.relname, conname, contype, conkey, frnns.nspname AS fr_nspname, frncls.relname AS fr_relname, confkey, confdeltype
 FROM pg_class AS cls
 JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
 JOIN pg_constraint as con ON con.conrelid = cls.oid
@@ -375,29 +379,28 @@ WHERE
             {
                 while (reader.Read())
                 {
-                    var schemaName = reader.GetString(0);
-                    var tableName = reader.GetString(1);
+                    var schemaName = reader.GetValueOrDefault<string>("nspname");
+                    var tableName = reader.GetValueOrDefault<string>("relname");
 
                     if (!_tableSelectionSet.Allows(schemaName, tableName))
                         continue;
                     var table = _tables[TableKey(tableName, schemaName)];
                     var columns = (List<ColumnModel>)table.Columns;
 
-                    var constraintName = reader.GetString(2);
-                    var constraintType = reader.GetChar(3);
+                    var constraintName = reader.GetValueOrDefault<string>("conname");
+                    var constraintType = reader.GetValueOrDefault<char>("contype");
                     switch (constraintType)
                     {
                     case 'p':
-                        var pkColumnIndices = reader.GetFieldValue<short[]>(4);
+                        var pkColumnIndices = reader.GetValueOrDefault<short[]>("conkey");
                         for (var i = 0; i < pkColumnIndices.Length; i++)
                             columns[pkColumnIndices[i] - 1].PrimaryKeyOrdinal = i + 1;
                         continue;
 
                     case 'f':
-                        var foreignSchemaName = reader.GetString(5);
-                        var foreignTableName = reader.GetString(6);
-                        TableModel principalTable;
-                        if (!_tables.TryGetValue(TableKey(foreignTableName, foreignSchemaName), out principalTable))
+                        var foreignSchemaName = reader.GetValueOrDefault<string>("fr_nspname");
+                        var foreignTableName = reader.GetValueOrDefault<string>("fr_relname");
+                        if (!_tables.TryGetValue(TableKey(foreignTableName, foreignSchemaName), out var principalTable))
                             continue;
 
                         var fkInfo = new ForeignKeyModel
@@ -405,11 +408,11 @@ WHERE
                             Name = constraintName,
                             Table = table,
                             PrincipalTable = principalTable,
-                            OnDelete = ConvertToReferentialAction(reader.GetChar(8))
+                            OnDelete = ConvertToReferentialAction(reader.GetValueOrDefault<char>("confdeltype"))
                         };
 
-                        var columnIndices = reader.GetFieldValue<short[]>(4);
-                        var principalColumnIndices = reader.GetFieldValue<short[]>(7);
+                        var columnIndices = reader.GetValueOrDefault<short[]>("conkey");
+                        var principalColumnIndices = reader.GetValueOrDefault<short[]>("confkey");
                         if (columnIndices.Length != principalColumnIndices.Length)
                             throw new Exception("Got varying lengths for column and principal column indices");
 
@@ -453,7 +456,7 @@ WHERE
         const string GetSequencesQuery = @"
 SELECT
     sequence_schema, sequence_name, data_type, start_value::bigint, minimum_value::bigint, maximum_value::bigint, increment::int,
-    CASE WHEN cycle_option = 'YES' THEN TRUE ELSE FALSE END,
+    CASE WHEN cycle_option = 'YES' THEN TRUE ELSE FALSE END AS is_cyclic,
     ownerns.nspname AS owner_schema,
     tblcls.relname AS owner_table,
     attname AS owner_column
@@ -475,15 +478,15 @@ LEFT OUTER JOIN pg_namespace AS ownerns ON ownerns.oid = tblcls.relnamespace";
                     // If the sequence is OWNED BY a column which is a serial, we skip it. The sequence will be created implicitly.
                     if (!reader.IsDBNull(10))
                     {
-                        var ownerSchema = reader.GetString(8);
-                        var ownerTable = reader.GetString(9);
-                        var ownerColumn = reader.GetString(10);
+                        var ownerSchema = reader.GetValueOrDefault<string>("owner_schema");
+                        var ownerTable = reader.GetValueOrDefault<string>("owner_table");
+                        var ownerColumn = reader.GetValueOrDefault<string>("owner_column");
 
                         TableModel ownerTableModel;
                         ColumnModel ownerColumnModel;
                         if (_tables.TryGetValue(TableKey(ownerTable, ownerSchema), out ownerTableModel) &&
                             _tableColumns.TryGetValue(ColumnKey(ownerTableModel, ownerColumn), out ownerColumnModel) &&
-                            ownerColumnModel.Npgsql().IsSerial)
+                            ownerColumnModel.ValueGenerated == ValueGenerated.OnAdd)
                         {
                             // Don't reverse-engineer sequences which drive serial columns, these are implicitly
                             // reverse-engineered by the serial column.
@@ -493,14 +496,14 @@ LEFT OUTER JOIN pg_namespace AS ownerns ON ownerns.oid = tblcls.relnamespace";
 
                     var sequence = new SequenceModel
                     {
-                        SchemaName = reader.GetString(0),
-                        Name = reader.GetString(1),
-                        DataType = reader.GetString(2),
-                        Start = reader.GetInt64(3),
-                        Min = reader.GetInt64(4),
-                        Max = reader.GetInt64(5),
-                        IncrementBy = reader.GetInt32(6),
-                        IsCyclic = reader.GetBoolean(7)
+                        SchemaName = reader.GetValueOrDefault<string>("sequence_schema"),
+                        Name = reader.GetValueOrDefault<string>("sequence_name"),
+                        DataType = reader.GetValueOrDefault<string>("data_type"),
+                        Start = reader.GetValueOrDefault<long>("start_value"),
+                        Min = reader.GetValueOrDefault<long>("minimum_value"),
+                        Max = reader.GetValueOrDefault<long>("maximum_value"),
+                        IncrementBy = reader.GetValueOrDefault<int>("increment"),
+                        IsCyclic = reader.GetValueOrDefault<bool>("is_cyclic")
                     };
 
                     if (!_tableSelectionSet.Allows(sequence.SchemaName, ""))
@@ -529,7 +532,7 @@ LEFT OUTER JOIN pg_namespace AS ownerns ON ownerns.oid = tblcls.relnamespace";
                             sequence.Max = null;
                     }
                     else
-                        Logger.LogWarning($"Sequence with datatype {sequence.DataType} which isn't the expected bigint.");
+                        Logger.Logger.LogWarning($"Sequence with datatype {sequence.DataType} which isn't the expected bigint.");
 
                     _databaseModel.Sequences.Add(sequence);
                 }

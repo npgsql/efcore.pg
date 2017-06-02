@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
@@ -25,6 +24,7 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal
         {
             if (methodCallExpression.Method.Equals(_trim))
             {
+                // Note that PostgreSQL TRIM() does spaces only, not all whitespace, so we use a regex
                 return new SqlFunctionExpression(
                     "REGEXP_REPLACE",
                     typeof(string),

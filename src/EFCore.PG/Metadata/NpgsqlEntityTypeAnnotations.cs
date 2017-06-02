@@ -10,36 +10,35 @@ namespace Microsoft.EntityFrameworkCore.Metadata
     public class NpgsqlEntityTypeAnnotations : RelationalEntityTypeAnnotations, INpgsqlEntityTypeAnnotations
     {
         public NpgsqlEntityTypeAnnotations([NotNull] IEntityType entityType)
-            : base(entityType, NpgsqlFullAnnotationNames.Instance)
+            : base(entityType)
         {
         }
 
         public NpgsqlEntityTypeAnnotations([NotNull] RelationalAnnotations annotations)
-            : base(annotations, NpgsqlFullAnnotationNames.Instance)
+            : base(annotations)
         {
         }
 
         public bool SetStorageParameter(string parameterName, object parameterValue)
-            => Annotations.SetAnnotation(NpgsqlFullAnnotationNames.Instance.StorageParameterPrefix + parameterName, null, parameterValue);
+            => Annotations.SetAnnotation(NpgsqlAnnotationNames.StorageParameterPrefix + parameterName, parameterValue);
 
         public Dictionary<string, object> GetStorageParameters()
             => Annotations.Metadata.GetAnnotations()
-                .Where(a => a.Name.StartsWith(NpgsqlFullAnnotationNames.Instance.StorageParameterPrefix))
+                .Where(a => a.Name.StartsWith(NpgsqlAnnotationNames.StorageParameterPrefix))
                 .ToDictionary(
-                    a => a.Name.Substring(NpgsqlFullAnnotationNames.Instance.StorageParameterPrefix.Length),
+                    a => a.Name.Substring(NpgsqlAnnotationNames.StorageParameterPrefix.Length),
                     a => a.Value
                 );
 
         public virtual string Comment
         {
-            get { return (string)Annotations.GetAnnotation(NpgsqlFullAnnotationNames.Instance.Comment, null); }
+            get { return (string)Annotations.GetAnnotation(NpgsqlAnnotationNames.Comment); }
             [param: CanBeNull] set { SetComment(value); }
         }
 
         protected virtual bool SetComment([CanBeNull] string value)
             => Annotations.SetAnnotation(
-                NpgsqlFullAnnotationNames.Instance.Comment,
-                null,
+                NpgsqlAnnotationNames.Comment,
                 Check.NullButNotEmpty(value, nameof(value)));
     }
 }

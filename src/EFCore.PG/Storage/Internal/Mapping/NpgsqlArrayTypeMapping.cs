@@ -34,15 +34,20 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
 {
     public sealed class NpgsqlArrayTypeMapping : NpgsqlTypeMapping
     {
-        public NpgsqlTypeMapping ElementMapping { get; private set; }
+        //readonly NpgsqlDbType? _npgsqlDbType;
 
-        internal NpgsqlArrayTypeMapping(Type arrayClrType, NpgsqlTypeMapping elementMapping)
+        public RelationalTypeMapping ElementMapping { get; private set; }
+
+        internal NpgsqlArrayTypeMapping(Type arrayClrType, RelationalTypeMapping elementMapping)
             : base('_' + elementMapping.StoreType, arrayClrType)
         {
             ElementMapping = elementMapping;
 
-            if (elementMapping.NpgsqlDbType.HasValue)
-                NpgsqlDbType = elementMapping.NpgsqlDbType.Value | NpgsqlTypes.NpgsqlDbType.Array;
+            //if (elementMapping.NpgsqlDbType.HasValue)
+            //    _npgsqlDbType = elementMapping.NpgsqlDbType.Value | NpgsqlTypes.NpgsqlDbType.Array;
         }
+
+        //public override RelationalTypeMapping CreateCopy(string storeType, int? size)
+        //    => new NpgsqlArrayTypeMapping(storeType, DbType);
     }
 }

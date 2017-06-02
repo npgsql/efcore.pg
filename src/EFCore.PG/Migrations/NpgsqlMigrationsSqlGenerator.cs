@@ -101,23 +101,27 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             }
 
             // Comment on the table
-            var comment = operation[NpgsqlFullAnnotationNames.Instance.Comment] as string;
+            var comment = operation[NpgsqlAnnotationNames.Comment] as string;
             if (comment != null)
             {
                 builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
+
+                var stringTypeMapping = Dependencies.TypeMapper.GetMapping(typeof(string));
 
                 builder
                     .Append("COMMENT ON TABLE ")
                     .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name, operation.Schema))
                     .Append(" IS ")
-                    .Append(Dependencies.SqlGenerationHelper.GenerateLiteral(comment));
+                    .Append(stringTypeMapping.GenerateSqlLiteral(comment));
             }
 
             // Comments on the columns
-            foreach (var columnOp in operation.Columns.Where(c => c[NpgsqlFullAnnotationNames.Instance.Comment] != null))
+            foreach (var columnOp in operation.Columns.Where(c => c[NpgsqlAnnotationNames.Comment] != null))
             {
-                var columnComment = columnOp[NpgsqlFullAnnotationNames.Instance.Comment];
+                var columnComment = columnOp[NpgsqlAnnotationNames.Comment];
                 builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
+
+                var stringTypeMapping = Dependencies.TypeMapper.GetMapping(typeof(string));
 
                 builder
                     .Append("COMMENT ON COLUMN ")
@@ -125,7 +129,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                     .Append('.')
                     .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(columnOp.Name))
                     .Append(" IS ")
-                    .Append(Dependencies.SqlGenerationHelper.GenerateLiteral(columnComment));
+                    .Append(stringTypeMapping.GenerateSqlLiteral(columnComment));
             }
 
             if (terminate)
@@ -184,16 +188,18 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             }
 
             // Comment
-            var oldComment = operation.OldTable[NpgsqlFullAnnotationNames.Instance.Comment] as string;
-            var newComment = operation[NpgsqlFullAnnotationNames.Instance.Comment] as string;
+            var oldComment = operation.OldTable[NpgsqlAnnotationNames.Comment] as string;
+            var newComment = operation[NpgsqlAnnotationNames.Comment] as string;
 
             if (oldComment != newComment)
             {
+                var stringTypeMapping = Dependencies.TypeMapper.GetMapping(typeof(string));
+
                 builder
                     .Append("COMMENT ON TABLE ")
                     .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name, operation.Schema))
                     .Append(" IS ")
-                    .Append(Dependencies.SqlGenerationHelper.GenerateLiteral(newComment));
+                    .Append(stringTypeMapping.GenerateSqlLiteral(newComment));
 
                 builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
                 madeChanges = true;
@@ -228,10 +234,12 @@ namespace Microsoft.EntityFrameworkCore.Migrations
 
             base.Generate(operation, model, builder, terminate: false);
 
-            var comment = operation[NpgsqlFullAnnotationNames.Instance.Comment] as string;
+            var comment = operation[NpgsqlAnnotationNames.Comment] as string;
             if (comment != null)
             {
                 builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
+
+                var stringTypeMapping = Dependencies.TypeMapper.GetMapping(typeof(string));
 
                 builder
                     .Append("COMMENT ON COLUMN ")
@@ -239,7 +247,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                     .Append('.')
                     .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name))
                     .Append(" IS ")
-                    .Append(Dependencies.SqlGenerationHelper.GenerateLiteral(comment));
+                    .Append(stringTypeMapping.GenerateSqlLiteral(comment));
             }
 
             if (terminate)
@@ -264,7 +272,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             var defaultValueSql = operation.DefaultValueSql;
 
             CheckForOldAnnotation(operation);
-            var valueGenerationStrategy = operation[NpgsqlFullAnnotationNames.Instance.ValueGenerationStrategy] as NpgsqlValueGenerationStrategy?;
+            var valueGenerationStrategy = operation[NpgsqlAnnotationNames.ValueGenerationStrategy] as NpgsqlValueGenerationStrategy?;
             if (valueGenerationStrategy == NpgsqlValueGenerationStrategy.SerialColumn)
             {
                 switch (type)
@@ -328,18 +336,20 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             }
 
             // Comment
-            var oldComment = operation.OldColumn[NpgsqlFullAnnotationNames.Instance.Comment] as string;
-            var newComment = operation[NpgsqlFullAnnotationNames.Instance.Comment] as string;
+            var oldComment = operation.OldColumn[NpgsqlAnnotationNames.Comment] as string;
+            var newComment = operation[NpgsqlAnnotationNames.Comment] as string;
 
             if (oldComment != newComment)
             {
+                var stringTypeMapping = Dependencies.TypeMapper.GetMapping(typeof(string));
+
                 builder
                     .Append("COMMENT ON COLUMN ")
                     .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Table, operation.Schema))
                     .Append('.')
                     .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name))
                     .Append(" IS ")
-                    .Append(Dependencies.SqlGenerationHelper.GenerateLiteral(newComment));
+                    .Append(stringTypeMapping.GenerateSqlLiteral(newComment));
             }
 
             EndStatement(builder);
@@ -356,9 +366,9 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             Check.NotNull(builder, nameof(builder));
 
             if (operation.ClrType != typeof(long))
-            {
                 throw new NotSupportedException("PostgreSQL sequences can only be bigint (long)");
-            }
+
+            var typeMapping = Dependencies.TypeMapper.GetMapping(operation.ClrType);
 
             builder
                 .Append("CREATE SEQUENCE ")
@@ -366,7 +376,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
 
             builder
                 .Append(" START WITH ")
-                .Append(Dependencies.SqlGenerationHelper.GenerateLiteral(operation.StartValue));
+                .Append(typeMapping.GenerateSqlLiteral(operation.StartValue));
 
             SequenceOptions(operation, model, builder);
 
@@ -662,7 +672,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                 type = GetColumnType(schema, table, name, clrType, unicode, maxLength, rowVersion, model);
 
             CheckForOldAnnotation(annotatable);
-            var valueGenerationStrategy = annotatable[NpgsqlFullAnnotationNames.Instance.ValueGenerationStrategy] as NpgsqlValueGenerationStrategy?;
+            var valueGenerationStrategy = annotatable[NpgsqlAnnotationNames.ValueGenerationStrategy] as NpgsqlValueGenerationStrategy?;
             if (valueGenerationStrategy == NpgsqlValueGenerationStrategy.SerialColumn)
             {
                 switch (type)
@@ -705,7 +715,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
         // ValueGeneratedOnAdd annotation. Detect that and throw.
         static void CheckForOldAnnotation([NotNull] IAnnotatable annotatable)
         {
-            if (annotatable.FindAnnotation(NpgsqlFullAnnotationNames.Instance.ValueGeneratedOnAdd) != null)
+            if (annotatable.FindAnnotation(NpgsqlAnnotationNames.ValueGeneratedOnAdd) != null)
                 throw new NotSupportedException("The Npgsql:ValueGeneratedOnAdd annotation has been found in your migrations, but is no longer supported. Please replace it with '.Annotation(\"Npgsql:ValueGenerationStrategy\", NpgsqlValueGenerationStrategy.SerialColumn)' where you want PostgreSQL serial (autoincrement) columns, and remove it in all other cases.");
         }
 #pragma warning restore 618
@@ -795,9 +805,9 @@ namespace Microsoft.EntityFrameworkCore.Migrations
 
         Dictionary<string, string> GetStorageParameters(Annotatable annotatable)
             => annotatable.GetAnnotations()
-                .Where(a => a.Name.StartsWith(NpgsqlFullAnnotationNames.Instance.StorageParameterPrefix))
+                .Where(a => a.Name.StartsWith(NpgsqlAnnotationNames.StorageParameterPrefix))
                 .ToDictionary(
-                    a => a.Name.Substring(NpgsqlFullAnnotationNames.Instance.StorageParameterPrefix.Length),
+                    a => a.Name.Substring(NpgsqlAnnotationNames.StorageParameterPrefix.Length),
                     a => GenerateStorageParameterValue(a.Value)
                 );
 

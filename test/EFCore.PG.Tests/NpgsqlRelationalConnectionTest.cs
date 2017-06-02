@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -55,7 +56,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests
                 }
             }
         }
-
+        
         public static RelationalConnectionDependencies CreateDependencies(DbContextOptions options = null)
         {
             options = options
@@ -65,9 +66,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests
 
             return new RelationalConnectionDependencies(
                 options,
-                new InterceptingLogger<LoggerCategory.Database.Transaction>(new LoggerFactory(), new LoggingOptions()),
-                new InterceptingLogger<LoggerCategory.Database.Connection>(new LoggerFactory(), new LoggingOptions()),
-                new DiagnosticListener("Fake"));
+                new DiagnosticsLogger<DbLoggerCategory.Database.Transaction>(
+                    new LoggerFactory(),
+                    new LoggingOptions(),
+                    new DiagnosticListener("FakeDiagnosticListener")),
+                new DiagnosticsLogger<DbLoggerCategory.Database.Connection>(
+                    new LoggerFactory(),
+                    new LoggingOptions(),
+                    new DiagnosticListener("FakeDiagnosticListener")),
+                new NamedConnectionStringResolver(options));
         }
     }
 }

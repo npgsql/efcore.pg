@@ -87,9 +87,8 @@ namespace Microsoft.Extensions.DependencyInjection
             var builder = new EntityFrameworkRelationalServicesBuilder(serviceCollection)
                 .TryAdd<IDatabaseProvider, DatabaseProvider<NpgsqlOptionsExtension>>()
                 .TryAdd<IValueGeneratorCache>(p => p.GetService<INpgsqlValueGeneratorCache>())
-                .TryAdd<IRelationalTypeMapper, NpgsqlTypeMapper>()
-                .TryAdd<ISqlGenerationHelper, NpgsqlSqlGenerationHelper>()
-                .TryAdd<IRelationalAnnotationProvider, NpgsqlAnnotationProvider>()
+                .TryAdd<IRelationalTypeMapper, NpgsqlEFTypeMapper>()
+                .TryAdd<ISqlGenerationHelper, RelationalSqlGenerationHelper>()
                 .TryAdd<IMigrationsAnnotationProvider, NpgsqlMigrationsAnnotationProvider>()
                 .TryAdd<IRelationalValueBufferFactoryFactory, TypedRelationalValueBufferFactoryFactory>()
                 .TryAdd<IConventionSetBuilder, NpgsqlConventionSetBuilder>()
@@ -102,38 +101,13 @@ namespace Microsoft.Extensions.DependencyInjection
                 .TryAdd<IHistoryRepository, NpgsqlHistoryRepository>()
                 .TryAdd<IQueryCompilationContextFactory, NpgsqlQueryCompilationContextFactory>()
                 .TryAdd<IMemberTranslator, NpgsqlCompositeMemberTranslator>()
-                .TryAdd<IMethodCallTranslator, NpgsqlCompositeMethodCallTranslator>()
+                .TryAdd<ICompositeMethodCallTranslator, NpgsqlCompositeMethodCallTranslator>()
                 .TryAdd<IQuerySqlGeneratorFactory, NpgsqlQuerySqlGeneratorFactory>()
                 .TryAddProviderSpecificServices(b => b
                     .TryAddSingleton<INpgsqlValueGeneratorCache, NpgsqlValueGeneratorCache>()
-                    //.TryAddScoped<INpgsqlUpdateSqlGenerator, NpgsqlUpdateSqlGenerator>()
                     .TryAddScoped<INpgsqlSequenceValueGeneratorFactory, NpgsqlSequenceValueGeneratorFactory>()
                     .TryAddScoped<INpgsqlRelationalConnection, NpgsqlRelationalConnection>());
 
-            /*
-            .TryAddSingletonEnumerable<IDatabaseProvider, DatabaseProvider<NpgsqlOptionsExtension>>()
-            .TryAddSingleton<INpgsqlValueGeneratorCache, NpgsqlValueGeneratorCache>()
-            .TryAddSingleton<IValueGeneratorCache>(p => p.GetService<INpgsqlValueGeneratorCache>())
-            .TryAddSingleton<IRelationalTypeMapper, NpgsqlTypeMapper>()
-            .TryAddSingleton<ISqlGenerationHelper, NpgsqlSqlGenerationHelper>()
-            .TryAddSingleton<IRelationalAnnotationProvider, NpgsqlAnnotationProvider>()
-            .TryAddSingleton<IMigrationsAnnotationProvider, NpgsqlMigrationsAnnotationProvider>()
-            .TryAddScoped<IRelationalValueBufferFactoryFactory, TypedRelationalValueBufferFactoryFactory>()
-            .TryAddScoped<IConventionSetBuilder, NpgsqlConventionSetBuilder>()
-            .TryAddScoped<IUpdateSqlGenerator, NpgsqlUpdateSqlGenerator>()
-            .TryAddScoped<INpgsqlSequenceValueGeneratorFactory, NpgsqlSequenceValueGeneratorFactory>()
-            .TryAddScoped<IModificationCommandBatchFactory, NpgsqlModificationCommandBatchFactory>()
-            .TryAddScoped<IValueGeneratorSelector, NpgsqlValueGeneratorSelector>()
-            .TryAddScoped<INpgsqlRelationalConnection, NpgsqlRelationalConnection>()
-            .TryAddScoped<IRelationalConnection>(p => p.GetService<INpgsqlRelationalConnection>())
-            .TryAddScoped<IMigrationsSqlGenerator, NpgsqlMigrationsSqlGenerator>()
-            .TryAddScoped<IRelationalDatabaseCreator, NpgsqlDatabaseCreator>()
-            .TryAddScoped<IHistoryRepository, NpgsqlHistoryRepository>()
-            .TryAddScoped<IQueryCompilationContextFactory, NpgsqlQueryCompilationContextFactory>()
-            .TryAddScoped<IMemberTranslator, NpgsqlCompositeMemberTranslator>()
-            .TryAddScoped<IMethodCallTranslator, NpgsqlCompositeMethodCallTranslator>()
-            .TryAddScoped<IQuerySqlGeneratorFactory, NpgsqlQuerySqlGeneratorFactory>();
-            */
             builder.TryAddCoreServices();
 
             return serviceCollection;

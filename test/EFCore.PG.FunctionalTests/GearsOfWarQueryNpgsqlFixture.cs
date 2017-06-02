@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Specification.Tests;
-using Microsoft.EntityFrameworkCore.Specification.Tests.TestModels.GearsOfWarModel;
-using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.TestModels.GearsOfWarModel;
+using Microsoft.EntityFrameworkCore.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
@@ -32,6 +32,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 
             _options = new DbContextOptionsBuilder()
                 .EnableSensitiveDataLogging()
+                .ConfigureWarnings(w => w.Log(CoreEventId.IncludeIgnoredWarning))
                 .UseInternalServiceProvider(serviceProvider)
                 .Options;
         }

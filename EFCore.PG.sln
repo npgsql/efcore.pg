@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26206.0
+VisualStudioVersion = 15.0.26621.2
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4A5A60DD-41B6-40BF-B677-227A921ECCC8}"
 	ProjectSection(SolutionItems) = preProject
@@ -12,15 +12,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{8537E50E-CF7
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{ED612DB1-AB32-4603-95E7-891BACA71C39}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EFCore.PG", "src\EFCore.PG\EFCore.PG.csproj", "{FADDA2D1-03B4-4DEF-8D24-DD1CA4E81F4A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.PG", "src\EFCore.PG\EFCore.PG.csproj", "{FADDA2D1-03B4-4DEF-8D24-DD1CA4E81F4A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EFCore.PG.Design", "src\EFCore.PG.Design\EFCore.PG.Design.csproj", "{8EDCED17-2D1D-45BE-9B61-0F715876DA94}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.PG.Tests", "test\EFCore.PG.Tests\EFCore.PG.Tests.csproj", "{E1D99AD4-D88B-42BA-86DF-90B98B2E9A01}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EFCore.PG.Tests", "test\EFCore.PG.Tests\EFCore.PG.Tests.csproj", "{E1D99AD4-D88B-42BA-86DF-90B98B2E9A01}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.PG.FunctionalTests", "test\EFCore.PG.FunctionalTests\EFCore.PG.FunctionalTests.csproj", "{05A7D0B7-4AE1-4BC8-A1BE-2389F1593B2D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EFCore.PG.FunctionalTests", "test\EFCore.PG.FunctionalTests\EFCore.PG.FunctionalTests.csproj", "{05A7D0B7-4AE1-4BC8-A1BE-2389F1593B2D}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EFCore.PG.Design.FunctionalTests", "test\EFCore.PG.Design.FunctionalTests\EFCore.PG.Design.FunctionalTests.csproj", "{1410D291-C519-4E74-AE3D-6BC6C4A7C1DC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.PG.Design.FunctionalTests", "test\EFCore.PG.Design.FunctionalTests\EFCore.PG.Design.FunctionalTests.csproj", "{1410D291-C519-4E74-AE3D-6BC6C4A7C1DC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -40,14 +38,6 @@ Global
 		{FADDA2D1-03B4-4DEF-8D24-DD1CA4E81F4A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{FADDA2D1-03B4-4DEF-8D24-DD1CA4E81F4A}.Release|x64.ActiveCfg = Release|Any CPU
 		{FADDA2D1-03B4-4DEF-8D24-DD1CA4E81F4A}.Release|x86.ActiveCfg = Release|Any CPU
-		{8EDCED17-2D1D-45BE-9B61-0F715876DA94}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8EDCED17-2D1D-45BE-9B61-0F715876DA94}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8EDCED17-2D1D-45BE-9B61-0F715876DA94}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{8EDCED17-2D1D-45BE-9B61-0F715876DA94}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{8EDCED17-2D1D-45BE-9B61-0F715876DA94}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8EDCED17-2D1D-45BE-9B61-0F715876DA94}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8EDCED17-2D1D-45BE-9B61-0F715876DA94}.Release|x64.ActiveCfg = Release|Any CPU
-		{8EDCED17-2D1D-45BE-9B61-0F715876DA94}.Release|x86.ActiveCfg = Release|Any CPU
 		{E1D99AD4-D88B-42BA-86DF-90B98B2E9A01}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E1D99AD4-D88B-42BA-86DF-90B98B2E9A01}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E1D99AD4-D88B-42BA-86DF-90B98B2E9A01}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -78,10 +68,12 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{FADDA2D1-03B4-4DEF-8D24-DD1CA4E81F4A} = {8537E50E-CF7F-49CB-B4EF-3E2A1B11F050}
-		{8EDCED17-2D1D-45BE-9B61-0F715876DA94} = {8537E50E-CF7F-49CB-B4EF-3E2A1B11F050}
 		{E1D99AD4-D88B-42BA-86DF-90B98B2E9A01} = {ED612DB1-AB32-4603-95E7-891BACA71C39}
 		{05A7D0B7-4AE1-4BC8-A1BE-2389F1593B2D} = {ED612DB1-AB32-4603-95E7-891BACA71C39}
 		{1410D291-C519-4E74-AE3D-6BC6C4A7C1DC} = {ED612DB1-AB32-4603-95E7-891BACA71C39}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F4EAAE6D-758C-4184-9D8C-7113384B61A8}
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		StartupItem = Npgsql.csproj

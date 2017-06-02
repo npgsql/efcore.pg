@@ -38,22 +38,22 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Metadata
             property.Npgsql().ColumnName = "MyNameIs";
 
             Assert.Equal("Name", property.Name);
-            Assert.Equal("Eman", property.Relational().ColumnName);
+            Assert.Equal("MyNameIs", property.Relational().ColumnName);
             Assert.Equal("MyNameIs", property.Npgsql().ColumnName);
             Assert.Equal("MyNameIs", ((IProperty)property).Npgsql().ColumnName);
 
             property.Npgsql().ColumnName = null;
 
             Assert.Equal("Name", property.Name);
-            Assert.Equal("Eman", property.Relational().ColumnName);
-            Assert.Equal("Eman", property.Npgsql().ColumnName);
-            Assert.Equal("Eman", ((IProperty)property).Npgsql().ColumnName);
+            Assert.Equal("Name", property.Relational().ColumnName);
+            Assert.Equal("Name", property.Npgsql().ColumnName);
+            Assert.Equal("Name", ((IProperty)property).Npgsql().ColumnName);
         }
 
         [Fact]
         public void Can_get_and_set_table_name()
         {
-            var modelBuilder = new ModelBuilder(new ConventionSet());
+            var modelBuilder = GetModelBuilder();
 
             var entityType = modelBuilder
                 .Entity<Customer>()
@@ -72,16 +72,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Metadata
             entityType.Npgsql().TableName = "Custardizer";
 
             Assert.Equal("Customer", entityType.DisplayName());
-            Assert.Equal("Customizer", entityType.Relational().TableName);
+            Assert.Equal("Custardizer", entityType.Relational().TableName);
             Assert.Equal("Custardizer", entityType.Npgsql().TableName);
             Assert.Equal("Custardizer", ((IEntityType)entityType).Npgsql().TableName);
 
             entityType.Npgsql().TableName = null;
 
             Assert.Equal("Customer", entityType.DisplayName());
-            Assert.Equal("Customizer", entityType.Relational().TableName);
-            Assert.Equal("Customizer", entityType.Npgsql().TableName);
-            Assert.Equal("Customizer", ((IEntityType)entityType).Npgsql().TableName);
+            Assert.Equal("Customer", entityType.Relational().TableName);
+            Assert.Equal("Customer", entityType.Npgsql().TableName);
+            Assert.Equal("Customer", ((IEntityType)entityType).Npgsql().TableName);
         }
 
         [Fact]
@@ -105,15 +105,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Metadata
 
             entityType.Npgsql().Schema = "dbOh";
 
-            Assert.Equal("db0", entityType.Relational().Schema);
+            Assert.Equal("dbOh", entityType.Relational().Schema);
             Assert.Equal("dbOh", entityType.Npgsql().Schema);
             Assert.Equal("dbOh", ((IEntityType)entityType).Npgsql().Schema);
 
             entityType.Npgsql().Schema = null;
 
-            Assert.Equal("db0", entityType.Relational().Schema);
-            Assert.Equal("db0", entityType.Npgsql().Schema);
-            Assert.Equal("db0", ((IEntityType)entityType).Npgsql().Schema);
+            Assert.Null(entityType.Relational().Schema);
+            Assert.Null(entityType.Npgsql().Schema);
+            Assert.Null(((IEntityType)entityType).Npgsql().Schema);
         }
 
         [Fact]
@@ -138,21 +138,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Metadata
 
             property.Npgsql().ColumnType = "nvarchar(verstappen)";
 
-            Assert.Equal("nvarchar(max)", property.Relational().ColumnType);
+            Assert.Equal("nvarchar(verstappen)", property.Relational().ColumnType);
             Assert.Equal("nvarchar(verstappen)", property.Npgsql().ColumnType);
             Assert.Equal("nvarchar(verstappen)", ((IProperty)property).Npgsql().ColumnType);
 
             property.Npgsql().ColumnType = null;
 
-            Assert.Equal("nvarchar(max)", property.Relational().ColumnType);
-            Assert.Equal("nvarchar(max)", property.Npgsql().ColumnType);
-            Assert.Equal("nvarchar(max)", ((IProperty)property).Npgsql().ColumnType);
+            Assert.Null(property.Relational().ColumnType);
+            Assert.Null(property.Npgsql().ColumnType);
+            Assert.Null(((IProperty)property).Npgsql().ColumnType);
         }
 
         [Fact]
         public void Can_get_and_set_column_default_expression()
         {
-            var modelBuilder = new ModelBuilder(new ConventionSet());
+            var modelBuilder = GetModelBuilder();
 
             var property = modelBuilder
                 .Entity<Customer>()
@@ -171,21 +171,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Metadata
 
             property.Npgsql().DefaultValueSql = "expressyourself()";
 
-            Assert.Equal("newsequentialid()", property.Relational().DefaultValueSql);
+            Assert.Equal("expressyourself()", property.Relational().DefaultValueSql);
             Assert.Equal("expressyourself()", property.Npgsql().DefaultValueSql);
             Assert.Equal("expressyourself()", ((IProperty)property).Npgsql().DefaultValueSql);
 
             property.Npgsql().DefaultValueSql = null;
 
-            Assert.Equal("newsequentialid()", property.Relational().DefaultValueSql);
-            Assert.Equal("newsequentialid()", property.Npgsql().DefaultValueSql);
-            Assert.Equal("newsequentialid()", ((IProperty)property).Npgsql().DefaultValueSql);
+            Assert.Null(property.Relational().DefaultValueSql);
+            Assert.Null(property.Npgsql().DefaultValueSql);
+            Assert.Null(((IProperty)property).Npgsql().DefaultValueSql);
         }
 
         [Fact]
         public void Can_get_and_set_column_computed_expression()
         {
-            var modelBuilder = new ModelBuilder(new ConventionSet());
+            var modelBuilder = GetModelBuilder();
 
             var property = modelBuilder
                 .Entity<Customer>()
@@ -204,21 +204,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Metadata
 
             property.Npgsql().ComputedColumnSql = "expressyourself()";
 
-            Assert.Equal("newsequentialid()", property.Relational().ComputedColumnSql);
+            Assert.Equal("expressyourself()", property.Relational().ComputedColumnSql);
             Assert.Equal("expressyourself()", property.Npgsql().ComputedColumnSql);
             Assert.Equal("expressyourself()", ((IProperty)property).Npgsql().ComputedColumnSql);
 
             property.Npgsql().ComputedColumnSql = null;
 
-            Assert.Equal("newsequentialid()", property.Relational().ComputedColumnSql);
-            Assert.Equal("newsequentialid()", property.Npgsql().ComputedColumnSql);
-            Assert.Equal("newsequentialid()", ((IProperty)property).Npgsql().ComputedColumnSql);
+            Assert.Null(property.Relational().ComputedColumnSql);
+            Assert.Null(property.Npgsql().ComputedColumnSql);
+            Assert.Null(((IProperty)property).Npgsql().ComputedColumnSql);
         }
 
         [Fact]
         public void Can_get_and_set_column_default_value()
         {
-            var modelBuilder = new ModelBuilder(new ConventionSet());
+            var modelBuilder = GetModelBuilder();
 
             var property = modelBuilder
                 .Entity<Customer>()
@@ -237,15 +237,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Metadata
 
             property.Npgsql().DefaultValue = new byte[] { 69, 70, 32, 83, 79, 67, 75, 83 };
 
-            Assert.Equal(new byte[] { 69, 70, 32, 82, 79, 67, 75, 83 }, property.Relational().DefaultValue);
+            Assert.Equal(new byte[] { 69, 70, 32, 83, 79, 67, 75, 83 }, property.Relational().DefaultValue);
             Assert.Equal(new byte[] { 69, 70, 32, 83, 79, 67, 75, 83 }, property.Npgsql().DefaultValue);
             Assert.Equal(new byte[] { 69, 70, 32, 83, 79, 67, 75, 83 }, ((IProperty)property).Npgsql().DefaultValue);
 
             property.Npgsql().DefaultValue = null;
 
-            Assert.Equal(new byte[] { 69, 70, 32, 82, 79, 67, 75, 83 }, property.Relational().DefaultValue);
-            Assert.Equal(new byte[] { 69, 70, 32, 82, 79, 67, 75, 83 }, property.Npgsql().DefaultValue);
-            Assert.Equal(new byte[] { 69, 70, 32, 82, 79, 67, 75, 83 }, ((IProperty)property).Npgsql().DefaultValue);
+            Assert.Null(property.Relational().DefaultValue);
+            Assert.Null(property.Npgsql().DefaultValue);
+            Assert.Null(((IProperty)property).Npgsql().DefaultValue);
         }
 
         [Theory]
@@ -305,7 +305,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Metadata
         [Fact]
         public void Can_get_and_set_column_key_name()
         {
-            var modelBuilder = new ModelBuilder(new ConventionSet());
+            var modelBuilder = GetModelBuilder();
 
             var key = modelBuilder
                 .Entity<Customer>()
@@ -324,21 +324,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Metadata
 
             key.Npgsql().Name = "PrimarySchool";
 
-            Assert.Equal("PrimaryKey", key.Relational().Name);
+            Assert.Equal("PrimarySchool", key.Relational().Name);
             Assert.Equal("PrimarySchool", key.Npgsql().Name);
             Assert.Equal("PrimarySchool", ((IKey)key).Npgsql().Name);
 
             key.Npgsql().Name = null;
 
-            Assert.Equal("PrimaryKey", key.Relational().Name);
-            Assert.Equal("PrimaryKey", key.Npgsql().Name);
-            Assert.Equal("PrimaryKey", ((IKey)key).Npgsql().Name);
+            Assert.Equal("PK_Customer", key.Relational().Name);
+            Assert.Equal("PK_Customer", key.Npgsql().Name);
+            Assert.Equal("PK_Customer", ((IKey)key).Npgsql().Name);
         }
 
         [Fact]
         public void Can_get_and_set_column_foreign_key_name()
         {
-            var modelBuilder = new ModelBuilder(new ConventionSet());
+            var modelBuilder = GetModelBuilder();
 
             modelBuilder
                 .Entity<Customer>()
@@ -352,32 +352,28 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Metadata
                 .Metadata;
 
             Assert.Equal("FK_Order_Customer_CustomerId", foreignKey.Relational().Name);
-            Assert.Equal("FK_Order_Customer_CustomerId", foreignKey.Npgsql().Name);
-            Assert.Equal("FK_Order_Customer_CustomerId", ((IForeignKey)foreignKey).Npgsql().Name);
+            Assert.Equal("FK_Order_Customer_CustomerId", ((IForeignKey)foreignKey).Relational().Name);
 
             foreignKey.Relational().Name = "FK";
 
             Assert.Equal("FK", foreignKey.Relational().Name);
-            Assert.Equal("FK", foreignKey.Npgsql().Name);
-            Assert.Equal("FK", ((IForeignKey)foreignKey).Npgsql().Name);
+            Assert.Equal("FK", ((IForeignKey)foreignKey).Relational().Name);
 
-            foreignKey.Npgsql().Name = "KFC";
+            foreignKey.Relational().Name = "KFC";
 
-            Assert.Equal("FK", foreignKey.Relational().Name);
-            Assert.Equal("KFC", foreignKey.Npgsql().Name);
-            Assert.Equal("KFC", ((IForeignKey)foreignKey).Npgsql().Name);
+            Assert.Equal("KFC", foreignKey.Relational().Name);
+            Assert.Equal("KFC", ((IForeignKey)foreignKey).Relational().Name);
 
-            foreignKey.Npgsql().Name = null;
+            foreignKey.Relational().Name = null;
 
-            Assert.Equal("FK", foreignKey.Relational().Name);
-            Assert.Equal("FK", foreignKey.Npgsql().Name);
-            Assert.Equal("FK", ((IForeignKey)foreignKey).Npgsql().Name);
+            Assert.Equal("FK_Order_Customer_CustomerId", foreignKey.Relational().Name);
+            Assert.Equal("FK_Order_Customer_CustomerId", ((IForeignKey)foreignKey).Relational().Name);
         }
 
         [Fact]
         public void Can_get_and_set_index_name()
         {
-            var modelBuilder = new ModelBuilder(new ConventionSet());
+            var modelBuilder = GetModelBuilder();
 
             var index = modelBuilder
                 .Entity<Customer>()
@@ -385,26 +381,22 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Metadata
                 .Metadata;
 
             Assert.Equal("IX_Customer_Id", index.Relational().Name);
-            Assert.Equal("IX_Customer_Id", index.Npgsql().Name);
-            Assert.Equal("IX_Customer_Id", ((IIndex)index).Npgsql().Name);
+            Assert.Equal("IX_Customer_Id", ((IIndex)index).Relational().Name);
 
             index.Relational().Name = "MyIndex";
 
             Assert.Equal("MyIndex", index.Relational().Name);
-            Assert.Equal("MyIndex", index.Npgsql().Name);
-            Assert.Equal("MyIndex", ((IIndex)index).Npgsql().Name);
+            Assert.Equal("MyIndex", ((IIndex)index).Relational().Name);
 
             index.Npgsql().Name = "DexKnows";
 
-            Assert.Equal("MyIndex", index.Relational().Name);
-            Assert.Equal("DexKnows", index.Npgsql().Name);
-            Assert.Equal("DexKnows", ((IIndex)index).Npgsql().Name);
+            Assert.Equal("DexKnows", index.Relational().Name);
+            Assert.Equal("DexKnows", ((IIndex)index).Relational().Name);
 
             index.Npgsql().Name = null;
 
-            Assert.Equal("MyIndex", index.Relational().Name);
-            Assert.Equal("MyIndex", index.Npgsql().Name);
-            Assert.Equal("MyIndex", ((IIndex)index).Npgsql().Name);
+            Assert.Equal("IX_Customer_Id", index.Relational().Name);
+            Assert.Equal("IX_Customer_Id", ((IIndex)index).Relational().Name);
         }
 
         [Fact]
@@ -429,7 +421,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Metadata
 
             index.Npgsql().Name = "PostgreSQL-specific expression";
 
-            Assert.Equal("Generic expression", index.Relational().Name);
+            Assert.Equal("PostgreSQL-specific expression", index.Relational().Name);
             Assert.Equal("PostgreSQL-specific expression", index.Npgsql().Name);
             Assert.Equal("PostgreSQL-specific expression", ((IIndex) index).Npgsql().Name);
 
@@ -443,7 +435,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Metadata
         [Fact]
         public void Can_get_and_set_sequence()
         {
-            var modelBuilder = new ModelBuilder(new ConventionSet());
+            var modelBuilder = GetModelBuilder();
             var model = modelBuilder.Model;
 
             Assert.Null(model.Relational().FindSequence("Foo"));
@@ -452,7 +444,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Metadata
 
             var sequence = model.Npgsql().GetOrAddSequence("Foo");
 
-            Assert.Null(model.Relational().FindSequence("Foo"));
+            Assert.Equal("Foo", model.Relational().FindSequence("Foo").Name);
+            Assert.Equal("Foo", ((IModel)model).Relational().FindSequence("Foo").Name);
             Assert.Equal("Foo", model.Npgsql().FindSequence("Foo").Name);
             Assert.Equal("Foo", ((IModel)model).Npgsql().FindSequence("Foo").Name);
 
@@ -464,7 +457,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Metadata
             Assert.Null(sequence.MaxValue);
             Assert.Same(typeof(long), sequence.ClrType);
 
-            Assert.Null(model.Relational().FindSequence("Foo"));
+            Assert.NotNull(model.Relational().FindSequence("Foo"));
 
             var sequence2 = model.Npgsql().FindSequence("Foo");
 
@@ -494,7 +487,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Metadata
         [Fact]
         public void Can_get_and_set_sequence_with_schema_name()
         {
-            var modelBuilder = new ModelBuilder(new ConventionSet());
+            var modelBuilder = GetModelBuilder();
             var model = modelBuilder.Model;
 
             Assert.Null(model.Relational().FindSequence("Foo", "Smoo"));
@@ -503,7 +496,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Metadata
 
             var sequence = model.Npgsql().GetOrAddSequence("Foo", "Smoo");
 
-            Assert.Null(model.Relational().FindSequence("Foo", "Smoo"));
+            Assert.Equal("Foo", model.Relational().FindSequence("Foo", "Smoo").Name);
+            Assert.Equal("Foo", ((IModel)model).Relational().FindSequence("Foo", "Smoo").Name);
             Assert.Equal("Foo", model.Npgsql().FindSequence("Foo", "Smoo").Name);
             Assert.Equal("Foo", ((IModel)model).Npgsql().FindSequence("Foo", "Smoo").Name);
 
@@ -515,7 +509,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Metadata
             Assert.Null(sequence.MaxValue);
             Assert.Same(typeof(long), sequence.ClrType);
 
-            Assert.Null(model.Relational().FindSequence("Foo", "Smoo"));
+            Assert.NotNull(model.Relational().FindSequence("Foo", "Smoo"));
 
             var sequence2 = model.Npgsql().FindSequence("Foo", "Smoo");
 

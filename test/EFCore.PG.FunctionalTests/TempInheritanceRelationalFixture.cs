@@ -4,8 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Specification.Tests;
-using Microsoft.EntityFrameworkCore.Specification.Tests.TestModels.Inheritance;
+using Microsoft.EntityFrameworkCore.TestModels.Inheritance;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {

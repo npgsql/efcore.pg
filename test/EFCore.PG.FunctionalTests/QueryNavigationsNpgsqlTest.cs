@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore.Specification.Tests;
+using Microsoft.EntityFrameworkCore;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -17,6 +17,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         {
             fixture.TestSqlLoggerFactory.Clear();
         }
+
+        [Fact(Skip="https://github.com/aspnet/EntityFramework/issues/9039")]
+        public override void Select_collection_navigation_simple() {}
+
+        [Fact(Skip = "https://github.com/aspnet/EntityFramework/issues/9039")]
+        public override void Select_collection_navigation_multi_part() {}
 
         protected override void ClearLog()
             => Fixture.TestSqlLoggerFactory.Clear();

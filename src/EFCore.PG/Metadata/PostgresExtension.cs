@@ -49,14 +49,14 @@ namespace Microsoft.EntityFrameworkCore.Metadata
         }
 
         static string BuildAnnotationName(string name)
-            => NpgsqlFullAnnotationNames.Instance.PostgresExtensionPrefix + name;
+            => NpgsqlAnnotationNames.PostgresExtensionPrefix + name;
 
         public static IEnumerable<IPostgresExtension> GetPostgresExtensions([NotNull] IAnnotatable annotatable)
         {
             Check.NotNull(annotatable, nameof(annotatable));
 
             return annotatable.GetAnnotations()
-                .Where(a => a.Name.StartsWith(NpgsqlFullAnnotationNames.Instance.PostgresExtensionPrefix, StringComparison.Ordinal))
+                .Where(a => a.Name.StartsWith(NpgsqlAnnotationNames.PostgresExtensionPrefix, StringComparison.Ordinal))
                 .Select(a => new PostgresExtension(annotatable, a.Name));
         }
 

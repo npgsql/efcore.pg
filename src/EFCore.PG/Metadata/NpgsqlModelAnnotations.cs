@@ -15,12 +15,12 @@ namespace Microsoft.EntityFrameworkCore.Metadata
         public const string DefaultHiLoSequenceName = "EntityFrameworkHiLoSequence";
 
         public NpgsqlModelAnnotations([NotNull] IModel model)
-            : base(model, NpgsqlFullAnnotationNames.Instance)
+            : base(model)
         {
         }
 
         public NpgsqlModelAnnotations([NotNull] RelationalAnnotations annotations)
-            : base(annotations, NpgsqlFullAnnotationNames.Instance)
+            : base(annotations)
         {
         }
 
@@ -28,28 +28,26 @@ namespace Microsoft.EntityFrameworkCore.Metadata
 
         public virtual string HiLoSequenceName
         {
-            get { return (string)Annotations.GetAnnotation(NpgsqlFullAnnotationNames.Instance.HiLoSequenceName, null); }
+            get { return (string)Annotations.GetAnnotation(NpgsqlAnnotationNames.HiLoSequenceName); }
             [param: CanBeNull]
             set { SetHiLoSequenceName(value); }
         }
 
         protected virtual bool SetHiLoSequenceName([CanBeNull] string value)
             => Annotations.SetAnnotation(
-                NpgsqlFullAnnotationNames.Instance.HiLoSequenceName,
-                null,
+                NpgsqlAnnotationNames.HiLoSequenceName,
                 Check.NullButNotEmpty(value, nameof(value)));
 
         public virtual string HiLoSequenceSchema
         {
-            get { return (string)Annotations.GetAnnotation(NpgsqlFullAnnotationNames.Instance.HiLoSequenceSchema, null); }
+            get { return (string)Annotations.GetAnnotation(NpgsqlAnnotationNames.HiLoSequenceSchema); }
             [param: CanBeNull]
             set { SetHiLoSequenceSchema(value); }
         }
 
         protected virtual bool SetHiLoSequenceSchema([CanBeNull] string value)
             => Annotations.SetAnnotation(
-                NpgsqlFullAnnotationNames.Instance.HiLoSequenceSchema,
-                null,
+                NpgsqlAnnotationNames.HiLoSequenceSchema,
                 Check.NullButNotEmpty(value, nameof(value)));
 
         #endregion
@@ -61,16 +59,13 @@ namespace Microsoft.EntityFrameworkCore.Metadata
             get
             {
                 return (NpgsqlValueGenerationStrategy?)Annotations.GetAnnotation(
-                    NpgsqlFullAnnotationNames.Instance.ValueGenerationStrategy,
-                    null);
+                    NpgsqlAnnotationNames.ValueGenerationStrategy);
             }
             set { SetValueGenerationStrategy(value); }
         }
 
         protected virtual bool SetValueGenerationStrategy(NpgsqlValueGenerationStrategy? value)
-            => Annotations.SetAnnotation(NpgsqlFullAnnotationNames.Instance.ValueGenerationStrategy,
-                null,
-                value);
+            => Annotations.SetAnnotation(NpgsqlAnnotationNames.ValueGenerationStrategy, value);
 
         #endregion
 
@@ -88,15 +83,14 @@ namespace Microsoft.EntityFrameworkCore.Metadata
 
         public virtual string DatabaseTemplate
         {
-            get { return (string)Annotations.GetAnnotation(NpgsqlFullAnnotationNames.Instance.DatabaseTemplate, null); }
+            get { return (string)Annotations.GetAnnotation(NpgsqlAnnotationNames.DatabaseTemplate); }
             [param: CanBeNull]
             set { SetDatabaseTemplate(value); }
         }
 
         protected virtual bool SetDatabaseTemplate([CanBeNull] string value)
             => Annotations.SetAnnotation(
-                NpgsqlFullAnnotationNames.Instance.DatabaseTemplate,
-                null,
+                NpgsqlAnnotationNames.DatabaseTemplate,
                 Check.NullButNotEmpty(value, nameof(value)));
 
         #endregion

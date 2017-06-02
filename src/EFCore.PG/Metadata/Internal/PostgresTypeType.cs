@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Metadata
+namespace Microsoft.EntityFrameworkCore.Metadata.Internal
 {
     enum PostgresTypeType
     {

@@ -25,9 +25,8 @@ namespace E2ETest.Namespace
         public decimal NumericColumn { get; set; }
         [Column("moneyColumn", TypeName = "money")]
         public decimal MoneyColumn { get; set; }
-        [Column("charColumn", TypeName = "bpchar")]
-        [MaxLength(1)]
-        public string CharColumn { get; set; }
+        [Column("charColumn", TypeName = "char(1)")]
+        public char? CharColumn { get; set; }
         [Column("textColumn")]
         public string TextColumn { get; set; }
         [Column("varcharColumn", TypeName = "varchar")]

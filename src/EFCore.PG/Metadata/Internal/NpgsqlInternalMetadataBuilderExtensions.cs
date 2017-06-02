@@ -40,21 +40,21 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Internal
         public static RelationalEntityTypeBuilderAnnotations Npgsql(
             [NotNull] this InternalEntityTypeBuilder builder,
             ConfigurationSource configurationSource)
-            => new RelationalEntityTypeBuilderAnnotations(builder, configurationSource, NpgsqlFullAnnotationNames.Instance);
+            => new RelationalEntityTypeBuilderAnnotations(builder, configurationSource);
 
         public static RelationalKeyBuilderAnnotations Npgsql(
             [NotNull] this InternalKeyBuilder builder,
             ConfigurationSource configurationSource)
-            => new RelationalKeyBuilderAnnotations(builder, configurationSource, NpgsqlFullAnnotationNames.Instance);
+            => new RelationalKeyBuilderAnnotations(builder, configurationSource);
 
         public static RelationalIndexBuilderAnnotations Npgsql(
             [NotNull] this InternalIndexBuilder builder,
             ConfigurationSource configurationSource)
-            => new RelationalIndexBuilderAnnotations(builder, configurationSource, NpgsqlFullAnnotationNames.Instance);
+            => new RelationalIndexBuilderAnnotations(builder, configurationSource);
 
         public static RelationalForeignKeyBuilderAnnotations Npgsql(
             [NotNull] this InternalRelationshipBuilder builder,
             ConfigurationSource configurationSource)
-            => new RelationalForeignKeyBuilderAnnotations(builder, configurationSource, NpgsqlFullAnnotationNames.Instance);
+            => new RelationalForeignKeyBuilderAnnotations(builder, configurationSource);
     }
 }

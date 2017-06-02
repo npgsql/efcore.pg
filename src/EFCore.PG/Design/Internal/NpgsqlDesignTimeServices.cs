@@ -21,20 +21,22 @@
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 #endregion
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.Scaffolding;
+using Microsoft.EntityFrameworkCore.Scaffolding.Internal;
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Storage.Internal;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace Microsoft.EntityFrameworkCore.Scaffolding.Metadata
+namespace Microsoft.EntityFrameworkCore.Design.Internal
 {
-    class NpgsqlDatabaseModelAnnotationNames
+    public class NpgsqlDesignTimeServices : IDesignTimeServices
     {
-        public const string Prefix = "NpgsqlDatabaseModel:";
-        public const string IsSerial = Prefix + nameof(IsSerial);
-        public const string Expression = Prefix + nameof(Expression);
-        internal const string PostgresTypeType = Prefix + nameof(PostgresTypeType);
-        internal const string ElementDataType = Prefix + nameof(ElementDataType);
+        public virtual void ConfigureDesignTimeServices([NotNull] IServiceCollection serviceCollection)
+            => serviceCollection
+                .AddSingleton<IRelationalTypeMapper, NpgsqlEFTypeMapper>()
+                .AddSingleton<IDatabaseModelFactory, NpgsqlDatabaseModelFactory>()
+                .AddSingleton<IScaffoldingProviderCodeGenerator, NpgsqlScaffoldingCodeGenerator>()
+                .AddSingleton<IAnnotationCodeGenerator, NpgsqlAnnotationCodeGenerator>();
     }
 }

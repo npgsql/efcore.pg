@@ -6,10 +6,8 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Xunit;
-using Microsoft.EntityFrameworkCore.Specification.Tests;
-using Microsoft.EntityFrameworkCore.Specification.Tests.TestModels.ConcurrencyModel;
 using Microsoft.EntityFrameworkCore.Storage;
-using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
+using Microsoft.EntityFrameworkCore.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
@@ -22,7 +20,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         {
             using (var c = CreateF1Context())
             {
-                await c.Database.CreateExecutionStrategy().ExecuteAsync(async context =>
+                await c.Database.CreateExecutionStrategy().ExecuteAsync(c, async context =>
                 {
                     using (var transaction = context.Database.BeginTransaction())
                     {
@@ -51,7 +49,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                             }
                         }
                     }
-                }, c);
+                });
             }
         }
 

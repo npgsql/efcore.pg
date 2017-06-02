@@ -39,7 +39,7 @@ namespace Microsoft.EntityFrameworkCore
             => (NpgsqlEntityTypeAnnotations)Npgsql((IEntityType)entityType);
 
         public static IRelationalForeignKeyAnnotations Npgsql([NotNull] this IForeignKey foreignKey)
-            => new RelationalForeignKeyAnnotations(Check.NotNull(foreignKey, nameof(foreignKey)), NpgsqlFullAnnotationNames.Instance);
+            => new RelationalForeignKeyAnnotations(Check.NotNull(foreignKey, nameof(foreignKey)));
 
         public static RelationalForeignKeyAnnotations Npgsql([NotNull] this IMutableForeignKey foreignKey)
             => (RelationalForeignKeyAnnotations)Npgsql((IForeignKey)foreignKey);
@@ -51,7 +51,7 @@ namespace Microsoft.EntityFrameworkCore
             => (NpgsqlIndexAnnotations)Npgsql((IIndex)index);
 
         public static IRelationalKeyAnnotations Npgsql([NotNull] this IKey key)
-            => new RelationalKeyAnnotations(Check.NotNull(key, nameof(key)), NpgsqlFullAnnotationNames.Instance);
+            => new RelationalKeyAnnotations(Check.NotNull(key, nameof(key)));
 
         public static RelationalKeyAnnotations Npgsql([NotNull] this IMutableKey key)
             => (RelationalKeyAnnotations)Npgsql((IKey)key);

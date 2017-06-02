@@ -48,7 +48,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Metadata
             Assert.Equal("Splow", typeBuilder.Metadata.Npgsql().TableName);
 
             Assert.Equal(1, typeBuilder.Metadata.GetAnnotations().Count(
-                a => a.Name.StartsWith(NpgsqlAnnotationNames.Prefix, StringComparison.Ordinal)));
+                a => a.Name.StartsWith(RelationalAnnotationNames.Prefix, StringComparison.Ordinal)));
         }
 
         [Fact]
@@ -80,16 +80,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Metadata
             var relationshipBuilder = entityTypeBuilder.HasForeignKey("Splot", new[] { "Id" }, ConfigurationSource.Convention);
 
             Assert.True(relationshipBuilder.Npgsql(ConfigurationSource.Convention).HasConstraintName("Splew"));
-            Assert.Equal("Splew", relationshipBuilder.Metadata.Npgsql().Name);
+            Assert.Equal("Splew", relationshipBuilder.Metadata.Relational().Name);
 
             Assert.True(relationshipBuilder.Npgsql(ConfigurationSource.DataAnnotation).HasConstraintName("Splow"));
-            Assert.Equal("Splow", relationshipBuilder.Metadata.Npgsql().Name);
+            Assert.Equal("Splow", relationshipBuilder.Metadata.Relational().Name);
 
             Assert.False(relationshipBuilder.Npgsql(ConfigurationSource.Convention).HasConstraintName("Splod"));
-            Assert.Equal("Splow", relationshipBuilder.Metadata.Npgsql().Name);
+            Assert.Equal("Splow", relationshipBuilder.Metadata.Relational().Name);
 
             Assert.Equal(1, relationshipBuilder.Metadata.GetAnnotations().Count(
-                a => a.Name.StartsWith(NpgsqlAnnotationNames.Prefix, StringComparison.Ordinal)));
+                a => a.Name.StartsWith(RelationalAnnotationNames.Prefix, StringComparison.Ordinal)));
         }
 
         private class Splot

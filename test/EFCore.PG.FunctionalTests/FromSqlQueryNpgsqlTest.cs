@@ -5,9 +5,6 @@ using System;
 using System.Data.Common;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Internal;
-using Microsoft.EntityFrameworkCore.Specification.Tests;
-using Microsoft.EntityFrameworkCore.Specification.Tests.TestModels.Northwind;
 using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests

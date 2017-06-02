@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Specification.Tests;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {

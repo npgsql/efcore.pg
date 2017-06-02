@@ -3,9 +3,9 @@ using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Internal;
-using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Microsoft.Extensions.DependencyInjection;
-using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
+using Microsoft.EntityFrameworkCore.Utilities;
+using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
@@ -262,7 +262,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 modelBuilder.Entity<Customer>(b =>
                 {
                     b.HasKey(c => c.CustomerID);
-                    b.ForNpgsqlToTable("Customers");
+                    b.ToTable("Customers");
                 });
             }
         }

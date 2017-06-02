@@ -3,7 +3,7 @@
 
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities
+namespace Microsoft.EntityFrameworkCore.Utilities
 {
     public static class DbContextOptionsBuilderExtensions
     {

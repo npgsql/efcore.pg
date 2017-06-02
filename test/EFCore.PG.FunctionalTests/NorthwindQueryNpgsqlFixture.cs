@@ -6,14 +6,25 @@ using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Specification.Tests;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
+using Microsoft.EntityFrameworkCore.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
     public class NorthwindQueryNpgsqlFixture : NorthwindQueryRelationalFixture, IDisposable
     {
+        private readonly Func<Action<ModelBuilder>, Func<IServiceProvider, IModelSource>> _modelSourceFactory;
+
+        public NorthwindQueryNpgsqlFixture() : this(TestModelSource.GetFactory)
+        {
+        }
+
+        protected NorthwindQueryNpgsqlFixture(Func<Action<ModelBuilder>, Func<IServiceProvider, IModelSource>> modelSourceFactory)
+        {
+            _modelSourceFactory = modelSourceFactory;
+        }
+
         private readonly NpgsqlTestStore _testStore = NpgsqlTestStore.GetNorthwindStore();
 
         public TestSqlLoggerFactory TestSqlLoggerFactory { get; } = new TestSqlLoggerFactory();
@@ -21,11 +32,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         public override DbContextOptions BuildOptions(IServiceCollection additionalServices = null)
             => ConfigureOptions(
                     new DbContextOptionsBuilder()
+                        .ConfigureWarnings(w => w.Log(CoreEventId.IncludeIgnoredWarning))
                         .EnableSensitiveDataLogging()
                         .UseInternalServiceProvider(
                             (additionalServices ?? new ServiceCollection())
                             .AddEntityFrameworkNpgsql()
-                            .AddSingleton(TestModelSource.GetFactory(OnModelCreating))
+                            .AddSingleton(_modelSourceFactory(OnModelCreating))
                             .AddSingleton<ILoggerFactory>(TestSqlLoggerFactory)
                             .BuildServiceProvider()))
                 .UseNpgsql(

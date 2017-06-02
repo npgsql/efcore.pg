@@ -5,21 +5,15 @@ using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.EntityFrameworkCore.Relational.Design.Specification.Tests.ReverseEngineering;
-using Microsoft.EntityFrameworkCore.Relational.Design.Specification.Tests.TestUtilities;
-using Microsoft.EntityFrameworkCore.Scaffolding;
+using Microsoft.EntityFrameworkCore.Design.Internal;
+using Microsoft.EntityFrameworkCore.ReverseEngineering;
 using Microsoft.EntityFrameworkCore.Scaffolding.Internal;
-using Microsoft.EntityFrameworkCore.Specification.Tests.TestUtilities.Xunit;
-using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
-
-#if NETCOREAPP1_1
-using System.Reflection;
-using Microsoft.CodeAnalysis;
-#endif
+using Microsoft.EntityFrameworkCore.TestUtilities;
+using Microsoft.EntityFrameworkCore.TestUtilities.Xunit;
+using Microsoft.EntityFrameworkCore.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests.ReverseEngineering
 {
-    [FrameworkSkipCondition(RuntimeFrameworks.CoreCLR, SkipReason = "https://github.com/xunit/xunit/issues/978")]
     public class NpgsqlE2ETests : E2ETestBase, IClassFixture<NpgsqlE2EFixture>
     {
         protected override string ProviderName => "Npgsql.EntityFrameworkCore.PostgreSQL.Design";
@@ -32,8 +26,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests.ReverseEn
         public virtual string TestSubDir => "SubDir";
         public virtual string CustomizedTemplateDir => Path.Combine("E2ETest", "CustomizedTemplate", "Dir");
 
-        public static TableSelectionSet Filter
-            => new TableSelectionSet(new List<string>{
+        public static IEnumerable<string> Tables
+            => new List<string>
+            {
                 "AllDataTypes",
                 "PropertyConfiguration",
                 "Test Spaces Keywords Table",
@@ -51,7 +46,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests.ReverseEn
                 */
                 "SelfReferencing",
                 "SpecialTypes"
-            });
+            };
 
         public NpgsqlE2ETests(NpgsqlE2EFixture fixture, ITestOutputHelper output)
             : base(output)
@@ -87,17 +82,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests.ReverseEn
         [UseCulture("en-US")]
         public void E2ETest_UseAttributesInsteadOfFluentApi()
         {
-            var configuration = new ReverseEngineeringConfiguration
-            {
-                ConnectionString = _connectionString,
-                ContextClassName = "AttributesContext",
-                ProjectPath = TestProjectDir + Path.DirectorySeparatorChar, // tests that ending DirectorySeparatorChar does not affect namespace
-                ProjectRootNamespace = TestNamespace,
-                OutputPath = TestSubDir,
-                TableSelectionSet = Filter,
-            };
-
-            var filePaths = Generator.GenerateAsync(configuration).GetAwaiter().GetResult();
+            var filePaths = Generator.Generate(
+                _connectionString,
+                Tables,
+                Enumerable.Empty<string>(),
+                TestProjectDir + Path.DirectorySeparatorChar, // tests that ending DirectorySeparatorChar does not affect namespace
+                TestSubDir,
+                TestNamespace,
+                contextName: "AttributesContext",
+                useDataAnnotations: true,
+                overwriteFiles: false);
 
             var actualFileSet = new FileSet(InMemoryFiles, Path.GetFullPath(Path.Combine(TestProjectDir, TestSubDir)))
             {
@@ -139,17 +133,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests.ReverseEn
         [UseCulture("en-US")]
         public void E2ETest_AllFluentApi()
         {
-            var configuration = new ReverseEngineeringConfiguration
-            {
-                ConnectionString = _connectionString,
-                ProjectPath = TestProjectDir,
-                ProjectRootNamespace = TestNamespace,
-                OutputPath = null, // not used for this test
-                UseFluentApiOnly = true,
-                TableSelectionSet = Filter,
-            };
-
-            var filePaths = Generator.GenerateAsync(configuration).GetAwaiter().GetResult();
+            var filePaths = Generator.Generate(
+                _connectionString,
+                Tables,
+                Enumerable.Empty<string>(),
+                TestProjectDir,
+                outputPath: null, // not used for this test
+                rootNamespace: TestNamespace,
+                contextName: null,
+                useDataAnnotations: false,
+                overwriteFiles: false);
 
             var actualFileSet = new FileSet(InMemoryFiles, Path.GetFullPath(TestProjectDir))
             {
@@ -203,13 +196,6 @@ CREATE SEQUENCE ""CyclicalCountByThree""
     MINVALUE 0
     CYCLE;");
 
-                var configuration = new ReverseEngineeringConfiguration
-                {
-                    ConnectionString = scratch.ConnectionString,
-                    ProjectPath = TestProjectDir + Path.DirectorySeparatorChar,
-                    ProjectRootNamespace = TestNamespace,
-                    ContextClassName = "SequenceContext",
-                };
                 var expectedFileSet = new FileSet(new FileSystemFileService(),
                     Path.Combine("ReverseEngineering", "Expected"),
                     contents => contents.Replace("{{connectionString}}", scratch.ConnectionString))
@@ -217,7 +203,16 @@ CREATE SEQUENCE ""CyclicalCountByThree""
                     Files = new List<string> { "SequenceContext.expected" }
                 };
 
-                var filePaths = Generator.GenerateAsync(configuration).GetAwaiter().GetResult();
+                var filePaths = Generator.Generate(
+                    scratch.ConnectionString,
+                    Enumerable.Empty<string>(),
+                    Enumerable.Empty<string>(),
+                    TestProjectDir + Path.DirectorySeparatorChar,
+                    outputPath: null, // not used for this test
+                    rootNamespace: TestNamespace,
+                    contextName: "SequenceContext",
+                    useDataAnnotations: false,
+                    overwriteFiles: false);
 
                 var actualFileSet = new FileSet(InMemoryFiles, Path.GetFullPath(TestProjectDir))
                 {
@@ -261,13 +256,6 @@ CREATE TABLE ""NonSerialSequence"" (
   ""SomeField"" INTEGER DEFAULT nextval('""SomeSequence""')
 );");
 
-                var configuration = new ReverseEngineeringConfiguration
-                {
-                    ConnectionString = scratch.ConnectionString,
-                    ProjectPath = TestProjectDir + Path.DirectorySeparatorChar,
-                    ProjectRootNamespace = TestNamespace,
-                    ContextClassName = "ColumnsWithSequencesContext",
-                };
                 var expectedFileSet = new FileSet(new FileSystemFileService(),
                     Path.Combine("ReverseEngineering", "Expected", "ColumnsWithSequences"),
                     contents => contents.Replace("{{connectionString}}", scratch.ConnectionString))
@@ -282,7 +270,16 @@ CREATE TABLE ""NonSerialSequence"" (
                     }
                 };
 
-                var filePaths = Generator.GenerateAsync(configuration).GetAwaiter().GetResult();
+                var filePaths = Generator.Generate(
+                    scratch.ConnectionString,
+                    Enumerable.Empty<string>(),
+                    Enumerable.Empty<string>(),
+                    TestProjectDir + Path.DirectorySeparatorChar,
+                    outputPath: null, // not used for this test
+                    rootNamespace: TestNamespace,
+                    contextName: "ColumnsWithSequencesContext",
+                    useDataAnnotations: false,
+                    overwriteFiles: false);
 
                 var actualFileSet = new FileSet(InMemoryFiles, Path.GetFullPath(TestProjectDir))
                 {
@@ -296,28 +293,13 @@ CREATE TABLE ""NonSerialSequence"" (
 
         protected override ICollection<BuildReference> References { get; } = new List<BuildReference>
         {
-#if NET46
-            BuildReference.ByName("System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
-            BuildReference.ByName("System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
-            BuildReference.ByName("System.Data, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"),
-            BuildReference.ByName("System.ComponentModel.DataAnnotations, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35"),
-#elif NETCOREAPP2_0
-            BuildReference.ByName("netstandard"),
-            BuildReference.ByName("System.Collections"),
-            BuildReference.ByName("System.Data.Common"),
-            BuildReference.ByName("System.Linq.Expressions"),
-            BuildReference.ByName("System.Reflection"),
-            BuildReference.ByName("System.ComponentModel.Annotations"),
-            BuildReference.ByName("System.Net.Primitives"),
-            BuildReference.ByName("System.Net.NetworkInformation"),
-#else
-#error target frameworks need to be updated.
-#endif
+            BuildReference.ByName("Npgsql.EntityFrameworkCore.PostgreSQL"),
             BuildReference.ByName("Microsoft.EntityFrameworkCore"),
             BuildReference.ByName("Microsoft.EntityFrameworkCore.Relational"),
-            BuildReference.ByName("Microsoft.Extensions.Caching.Abstractions"),
-            BuildReference.ByName("Microsoft.Extensions.Logging.Abstractions"),
-            BuildReference.ByName("Npgsql.EntityFrameworkCore.PostgreSQL")
+#if NETCOREAPP2_0
+            BuildReference.ByName("System.Net.Primitives"),
+            BuildReference.ByName("System.Net.NetworkInformation"),
+#endif
         };
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -8,27 +9,33 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal
 {
     public class NpgsqlStringTrimStartTranslator : IMethodCallTranslator
     {
-        static readonly MethodInfo _trimStart
+        static readonly MethodInfo TrimStartWithChars
             = typeof(string).GetRuntimeMethod(nameof(string.TrimStart), new[] { typeof(char[]) });
 
         // The following exists as an optimization in netcoreapp20
-        static readonly MethodInfo _trimStartSingleChar
+        static readonly MethodInfo TrimStartNoParam
+            = typeof(string).GetRuntimeMethod(nameof(string.TrimStart), new Type[0]);
+
+        // The following exists as an optimization in netcoreapp20
+        static readonly MethodInfo TrimStartSingleChar
             = typeof(string).GetRuntimeMethod(nameof(string.TrimStart), new[] { typeof(char) });
 
         public virtual Expression Translate(MethodCallExpression methodCallExpression)
         {
-            if (!methodCallExpression.Method.Equals(_trimStart) &&
-                !methodCallExpression.Method.Equals(_trimStartSingleChar))
+            if (!methodCallExpression.Method.Equals(TrimStartWithChars) &&
+                !methodCallExpression.Method.Equals(TrimStartNoParam) &&
+                !methodCallExpression.Method.Equals(TrimStartSingleChar))
             {
                 return null;
             }
 
-            var constantTrimChars = methodCallExpression.Arguments[0] as ConstantExpression;
-            if (constantTrimChars == null)
-                return null;
+            char[] trimChars;
 
-            if (methodCallExpression.Method.Equals(_trimStartSingleChar))
+            if (methodCallExpression.Method.Equals(TrimStartSingleChar))
             {
+                var constantTrimChars = methodCallExpression.Arguments[0] as ConstantExpression;
+                if (constantTrimChars == null)
+                    return null;  // Don't translate if trim chars isn't a constant
                 var trimChar = (char)constantTrimChars.Value;
                 return new SqlFunctionExpression(
                     "LTRIM",
@@ -40,7 +47,19 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal
                     });
             }
 
-            var trimChars = (char[])constantTrimChars.Value;
+            if (methodCallExpression.Method.Equals(TrimStartNoParam))
+            {
+                trimChars = null;
+            }
+            else if (methodCallExpression.Method.Equals(TrimStartWithChars))
+            {
+                var constantTrimChars = methodCallExpression.Arguments[0] as ConstantExpression;
+                if (constantTrimChars == null)
+                    return null; // Don't translate if trim chars isn't a constant
+                trimChars = (char[])constantTrimChars.Value;
+            }
+            else
+                throw new Exception($"{nameof(NpgsqlStringTrimStartTranslator)} does not support {methodCallExpression}");
 
             if (trimChars == null || trimChars.Length == 0)
             {

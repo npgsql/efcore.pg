@@ -8,7 +8,6 @@ using System.Net.NetworkInformation;
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Specification.Tests;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -16,7 +15,7 @@ using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Microsoft.Extensions.Logging;
 using Npgsql;
 using NpgsqlTypes;
-using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
+using Microsoft.EntityFrameworkCore.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
@@ -70,6 +69,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 b.Ignore(dt => dt.TestUnsignedInt64);
                 b.Ignore(dt => dt.TestCharacter);
                 b.Ignore(dt => dt.TestSignedByte);
+                b.Ignore(dt => dt.TestDateTimeOffset);
+                b.Ignore(dt => dt.TestByte);
             });
 
             modelBuilder.Entity<BuiltInNullableDataTypes>(b =>
@@ -79,6 +80,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 b.Ignore(dt => dt.TestNullableUnsignedInt64);
                 b.Ignore(dt => dt.TestNullableCharacter);
                 b.Ignore(dt => dt.TestNullableSignedByte);
+                b.Ignore(dt => dt.TestNullableDateTimeOffset);
                 b.Ignore(dt => dt.TestNullableByte);
             });
 

@@ -4,10 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Specification.Tests;
-using Microsoft.EntityFrameworkCore.Specification.Tests.TestModels.UpdatesModel;
+using Microsoft.EntityFrameworkCore.TestModels.UpdatesModel;
 using Microsoft.Extensions.DependencyInjection;
-using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
+using Microsoft.EntityFrameworkCore.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
@@ -55,7 +54,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<Product>()
-                .Property(p => p.Price).ForNpgsqlHasColumnType("decimal(18,2)");
+                .Property(p => p.Price).HasColumnType("decimal(18,2)");
         }
     }
 }

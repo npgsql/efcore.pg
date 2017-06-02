@@ -5,9 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
-using Microsoft.EntityFrameworkCore.Specification.Tests;
-using Microsoft.EntityFrameworkCore.Specification.Tests.TestModels.ComplexNavigationsModel;
-using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
+using Microsoft.EntityFrameworkCore.Utilities;
 using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
@@ -30,6 +28,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         public override void OrderBy_nav_prop_reference_optional_via_DefaultIfEmpty() {}
 
         [Fact(Skip = "PostgreSQL sorts nulls first (#50)")]
-        public override void GroupJoin_on_right_side_being_a_subquery() { }
+        public override void GroupJoin_on_right_side_being_a_subquery() {}
+
+        [Fact(Skip = "PostgreSQL sorts nulls first (#50)")]
+        public override void Query_source_materialization_bug_4547() {}
+
+        [Fact(Skip = "PostgreSQL sorts nulls first (#50)")]
+        public override void Optional_navigation_take_optional_navigation() {}
     }
 }

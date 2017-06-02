@@ -12,39 +12,37 @@ namespace Microsoft.EntityFrameworkCore.Metadata
     public class NpgsqlPropertyAnnotations : RelationalPropertyAnnotations, INpgsqlPropertyAnnotations
     {
         public NpgsqlPropertyAnnotations([NotNull] IProperty property)
-            : base(property, NpgsqlFullAnnotationNames.Instance)
+            : base(property)
         {
         }
 
         protected NpgsqlPropertyAnnotations([NotNull] RelationalAnnotations annotations)
-            : base(annotations, NpgsqlFullAnnotationNames.Instance)
+            : base(annotations)
         {
         }
 
         public virtual string HiLoSequenceName
         {
-            get { return (string)Annotations.GetAnnotation(NpgsqlFullAnnotationNames.Instance.HiLoSequenceName, null); }
+            get { return (string)Annotations.GetAnnotation(NpgsqlAnnotationNames.HiLoSequenceName); }
             [param: CanBeNull]
             set { SetHiLoSequenceName(value); }
         }
 
         protected virtual bool SetHiLoSequenceName([CanBeNull] string value)
             => Annotations.SetAnnotation(
-                NpgsqlFullAnnotationNames.Instance.HiLoSequenceName,
-                null,
+                NpgsqlAnnotationNames.HiLoSequenceName,
                 Check.NullButNotEmpty(value, nameof(value)));
 
         public virtual string HiLoSequenceSchema
         {
-            get { return (string)Annotations.GetAnnotation(NpgsqlFullAnnotationNames.Instance.HiLoSequenceSchema, null); }
+            get { return (string)Annotations.GetAnnotation(NpgsqlAnnotationNames.HiLoSequenceSchema); }
             [param: CanBeNull]
             set { SetHiLoSequenceSchema(value); }
         }
 
         protected virtual bool SetHiLoSequenceSchema([CanBeNull] string value)
             => Annotations.SetAnnotation(
-                NpgsqlFullAnnotationNames.Instance.HiLoSequenceSchema,
-                null,
+                NpgsqlAnnotationNames.HiLoSequenceSchema,
                 Check.NullButNotEmpty(value, nameof(value)));
 
         public virtual ISequence FindHiLoSequence()
@@ -83,8 +81,7 @@ namespace Microsoft.EntityFrameworkCore.Metadata
             }
 
             var value = (NpgsqlValueGenerationStrategy?)Annotations.GetAnnotation(
-                NpgsqlFullAnnotationNames.Instance.ValueGenerationStrategy,
-                null);
+                NpgsqlAnnotationNames.ValueGenerationStrategy);
 
             if (value != null)
             {
@@ -145,7 +142,7 @@ namespace Microsoft.EntityFrameworkCore.Metadata
                 ClearAllServerGeneratedValues();
             }
 
-            return Annotations.SetAnnotation(NpgsqlFullAnnotationNames.Instance.ValueGenerationStrategy, null, value);
+            return Annotations.SetAnnotation(NpgsqlAnnotationNames.ValueGenerationStrategy, value);
         }
 
         protected virtual bool CanSetValueGenerationStrategy(NpgsqlValueGenerationStrategy? value)
@@ -155,7 +152,7 @@ namespace Microsoft.EntityFrameworkCore.Metadata
                 return true;
             }
 
-            if (!Annotations.CanSetAnnotation(NpgsqlFullAnnotationNames.Instance.ValueGenerationStrategy, null, value))
+            if (!Annotations.CanSetAnnotation(NpgsqlAnnotationNames.ValueGenerationStrategy, value))
             {
                 return false;
             }
@@ -288,14 +285,13 @@ namespace Microsoft.EntityFrameworkCore.Metadata
 
         public virtual string Comment
         {
-            get { return (string)Annotations.GetAnnotation(NpgsqlFullAnnotationNames.Instance.Comment, null); }
+            get { return (string)Annotations.GetAnnotation(NpgsqlAnnotationNames.Comment); }
             [param: CanBeNull] set { SetComment(value); }
         }
 
         protected virtual bool SetComment([CanBeNull] string value)
             => Annotations.SetAnnotation(
-                NpgsqlFullAnnotationNames.Instance.Comment,
-                null,
+                NpgsqlAnnotationNames.Comment,
                 Check.NullButNotEmpty(value, nameof(value)));
     }
 }

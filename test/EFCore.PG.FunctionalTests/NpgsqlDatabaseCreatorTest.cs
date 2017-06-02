@@ -15,7 +15,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
+using Microsoft.EntityFrameworkCore.Utilities;
 using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
@@ -82,16 +82,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         {
             using (var testDatabase = NpgsqlTestStore.CreateScratch(createDatabase: false))
             {
-                await ((TestDatabaseCreator)GetDatabaseCreator(testDatabase)).ExecutionStrategyFactory.Create()
-                    .ExecuteAsync(async creator =>
-                    {
-                        var ex = async
-                            ? await Assert.ThrowsAsync<PostgresException>(() => creator.HasTablesAsyncBase())
-                            : Assert.Throws<PostgresException>(() => creator.HasTablesBase());
-                        Assert.Equal(
-                            "3D000", // Login failed error number
-                            ex.SqlState);
-                    }, (TestDatabaseCreator)GetDatabaseCreator(testDatabase));
+                await ((NpgsqlDatabaseCreatorTest.TestDatabaseCreator)NpgsqlDatabaseCreatorTest.GetDatabaseCreator(testDatabase)).ExecutionStrategyFactory.Create()
+                    .ExecuteAsync(
+                        (NpgsqlDatabaseCreatorTest.TestDatabaseCreator)NpgsqlDatabaseCreatorTest.GetDatabaseCreator(testDatabase),
+                        async creator =>
+                        {
+                            var sqlState = async
+                                ? (await Assert.ThrowsAsync<PostgresException>(() => creator.HasTablesAsyncBase())).SqlState
+                                : Assert.Throws<PostgresException>(() => creator.HasTablesBase()).SqlState;
+
+                            Assert.Equal(
+                                "3D000", // Login failed error number
+                                sqlState);
+                        });
             }
         }
 

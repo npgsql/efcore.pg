@@ -1,10 +1,9 @@
-﻿using System.Diagnostics;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Relational.Tests.TestUtilities;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Microsoft.EntityFrameworkCore.Update;
 using Microsoft.EntityFrameworkCore.Update.Internal;
+using Microsoft.EntityFrameworkCore.TestUtilities;
 using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Update
@@ -16,21 +15,24 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Update
         {
             var batch = new NpgsqlModificationCommandBatch(
                 new RelationalCommandBuilderFactory(
-                    new FakeInterceptingLogger<LoggerCategory.Database.Sql>(),
-                    new DiagnosticListener("Fake"),
-                    new NpgsqlTypeMapper(new RelationalTypeMapperDependencies())),
-                new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
+                    new FakeDiagnosticsLogger<DbLoggerCategory.Database.Command>(),
+                    new NpgsqlEFTypeMapper(new RelationalTypeMapperDependencies())),
+                new RelationalSqlGenerationHelper(
+                    new RelationalSqlGenerationHelperDependencies()),
                 new NpgsqlUpdateSqlGenerator(
                     new UpdateSqlGeneratorDependencies(
-                        new NpgsqlSqlGenerationHelper(
-                            new RelationalSqlGenerationHelperDependencies()))
-                    ),
+                        new RelationalSqlGenerationHelper(
+                            new RelationalSqlGenerationHelperDependencies()))),
                 new TypedRelationalValueBufferFactoryFactory(
                     new RelationalValueBufferFactoryDependencies()),
                 1);
 
-            Assert.True(batch.AddCommand(new ModificationCommand("T1", null, new ParameterNameGenerator().GenerateNext, p => p.Npgsql())));
-            Assert.False(batch.AddCommand(new ModificationCommand("T1", null, new ParameterNameGenerator().GenerateNext, p => p.Npgsql())));
+            Assert.True(
+                batch.AddCommand(
+                    new ModificationCommand("T1", null, new ParameterNameGenerator().GenerateNext, false, null)));
+            Assert.False(
+                batch.AddCommand(
+                    new ModificationCommand("T1", null, new ParameterNameGenerator().GenerateNext, false, null)));
         }
     }
 }

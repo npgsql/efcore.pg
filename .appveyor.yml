@@ -1,4 +1,4 @@
-image: Visual Studio 2017
+image: Visual Studio 2017 Preview
 version: 2.0.0-preview2-{build}
 services:
   - postgresql
@@ -18,7 +18,6 @@ build_script:
   - msbuild /p:Configuration=Debug
   - msbuild /p:Configuration=Release
   - dotnet pack src\EFCore.PG\EFCore.PG.csproj -c Release --version-suffix ci-%PADDED_BUILD_NUMBER%
-  - dotnet pack src\EFCore.PG.Design\EFCore.PG.Design.csproj -c Release --version-suffix ci-%PADDED_BUILD_NUMBER%
 test_script:
   - dotnet test test\EFCore.PG.Tests\EFCore.PG.Tests.csproj
   - dotnet test test\EFCore.PG.FunctionalTests\EFCore.PG.FunctionalTests.csproj

@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Specification.Tests;
+﻿using Microsoft.EntityFrameworkCore;
 using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests

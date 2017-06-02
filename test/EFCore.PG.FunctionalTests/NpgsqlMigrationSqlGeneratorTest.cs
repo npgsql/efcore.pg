@@ -9,8 +9,6 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
-using Microsoft.EntityFrameworkCore.Relational.Specification.Tests;
-using Microsoft.EntityFrameworkCore.Specification.Tests;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -307,7 +305,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                     ClrType = typeof(int),
                     ColumnType = "int",
                     IsNullable = false,
-                    [NpgsqlFullAnnotationNames.Instance.ValueGenerationStrategy] = NpgsqlValueGenerationStrategy.SerialColumn
+                    [NpgsqlAnnotationNames.ValueGenerationStrategy] = NpgsqlValueGenerationStrategy.SerialColumn
                 });
 
             Assert.Equal(
@@ -375,7 +373,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 ClrType = typeof(int),
                 ColumnType = "int",
                 IsNullable = false,
-                [NpgsqlFullAnnotationNames.Instance.ValueGenerationStrategy] = NpgsqlValueGenerationStrategy.SerialColumn
+                [NpgsqlAnnotationNames.ValueGenerationStrategy] = NpgsqlValueGenerationStrategy.SerialColumn
             });
 
             Assert.Equal(
@@ -395,7 +393,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                     ClrType = typeof(int),
                     ColumnType = "int",
                     IsNullable = false,
-                    [NpgsqlFullAnnotationNames.Instance.ValueGeneratedOnAdd] = true
+                    [NpgsqlAnnotationNames.ValueGeneratedOnAdd] = true
                 }));
         }
 #pragma warning restore 618
@@ -414,7 +412,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                     ClrType = typeof(int),
                     ColumnType = "int",
                     DefaultValue = 0,
-                    [NpgsqlFullAnnotationNames.Instance.ValueGenerationStrategy] = NpgsqlValueGenerationStrategy.SerialColumn
+                    [NpgsqlAnnotationNames.ValueGenerationStrategy] = NpgsqlValueGenerationStrategy.SerialColumn
                 });
 
             Assert.Equal(
@@ -484,8 +482,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                     {
                         Columns = new[] { "Id" }
                     },
-                    [NpgsqlFullAnnotationNames.Instance.StorageParameterPrefix + "fillfactor"] = 70,
-                    [NpgsqlFullAnnotationNames.Instance.StorageParameterPrefix + "user_catalog_table"] = true,
+                    [NpgsqlAnnotationNames.StorageParameterPrefix + "fillfactor"] = 70,
+                    [NpgsqlAnnotationNames.StorageParameterPrefix + "user_catalog_table"] = true,
                     ["some_bogus_name"] = 0
                 });
 
@@ -508,17 +506,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                     Schema = "dbo",
                     OldTable = new Annotatable
                     {
-                        [NpgsqlFullAnnotationNames.Instance.StorageParameterPrefix + "fillfactor"] = 70,
-                        [NpgsqlFullAnnotationNames.Instance.StorageParameterPrefix + "user_catalog_table"] = true,
-                        [NpgsqlFullAnnotationNames.Instance.StorageParameterPrefix + "parallel_workers"] = 8
+                        [NpgsqlAnnotationNames.StorageParameterPrefix + "fillfactor"] = 70,
+                        [NpgsqlAnnotationNames.StorageParameterPrefix + "user_catalog_table"] = true,
+                        [NpgsqlAnnotationNames.StorageParameterPrefix + "parallel_workers"] = 8
                     },
                     // Add parameter
-                    [NpgsqlFullAnnotationNames.Instance.StorageParameterPrefix + "autovacuum_enabled"] = true,
+                    [NpgsqlAnnotationNames.StorageParameterPrefix + "autovacuum_enabled"] = true,
                     // Change parameter
-                    [NpgsqlFullAnnotationNames.Instance.StorageParameterPrefix + "fillfactor"] = 80,
+                    [NpgsqlAnnotationNames.StorageParameterPrefix + "fillfactor"] = 80,
                     // Drop parameter user_catalog
                     // Leave parameter unchanged
-                    [NpgsqlFullAnnotationNames.Instance.StorageParameterPrefix + "parallel_workers"] = 8
+                    [NpgsqlAnnotationNames.StorageParameterPrefix + "parallel_workers"] = 8
                 });
 
             Assert.Equal(
@@ -635,7 +633,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                     {
                         Columns = new[] { "Id" }
                     },
-                    [NpgsqlFullAnnotationNames.Instance.Comment] = "Some comment",
+                    [NpgsqlAnnotationNames.Comment] = "Some comment",
                 });
 
             Assert.Equal(
@@ -663,7 +661,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                             Table = "People",
                             ClrType = typeof(int),
                             IsNullable = false,
-                            [NpgsqlFullAnnotationNames.Instance.Comment] = "Some comment",
+                            [NpgsqlAnnotationNames.Comment] = "Some comment",
                         }
                     },
                     PrimaryKey = new AddPrimaryKeyOperation
@@ -689,8 +687,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 {
                     Name = "People",
                     Schema = "dbo",
-                    OldTable = new Annotatable { [NpgsqlFullAnnotationNames.Instance.Comment] = "Old comment" },
-                    [NpgsqlFullAnnotationNames.Instance.Comment] = "New comment"
+                    OldTable = new Annotatable { [NpgsqlAnnotationNames.Comment] = "Old comment" },
+                    [NpgsqlAnnotationNames.Comment] = "New comment"
                 });
 
             Assert.Equal(
@@ -706,7 +704,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 {
                     Name = "People",
                     Schema = "dbo",
-                    OldTable = new Annotatable { [NpgsqlFullAnnotationNames.Instance.Comment] = "New comment" }
+                    OldTable = new Annotatable { [NpgsqlAnnotationNames.Comment] = "New comment" }
                 });
             Assert.Equal(
                 "COMMENT ON TABLE \"dbo\".\"People\" IS NULL;" + EOL,
@@ -724,7 +722,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 ClrType = typeof(int),
                 ColumnType = "int",
                 IsNullable = false,
-                [NpgsqlFullAnnotationNames.Instance.Comment] = "Some comment",
+                [NpgsqlAnnotationNames.Comment] = "Some comment",
             });
 
             Assert.Equal(
@@ -746,8 +744,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                     ColumnType = "int",
                     IsNullable = false,
                     DefaultValue = 7,
-                    OldColumn = new ColumnOperation { [NpgsqlFullAnnotationNames.Instance.Comment] = "Old comment" },
-                    [NpgsqlFullAnnotationNames.Instance.Comment] = "New comment"
+                    OldColumn = new ColumnOperation { [NpgsqlAnnotationNames.Comment] = "Old comment" },
+                    [NpgsqlAnnotationNames.Comment] = "New comment"
                 });
 
             Assert.Equal(
@@ -771,7 +769,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                     ColumnType = "int",
                     IsNullable = false,
                     DefaultValue = 7,
-                    OldColumn = new ColumnOperation { [NpgsqlFullAnnotationNames.Instance.Comment] = "Old comment" }
+                    OldColumn = new ColumnOperation { [NpgsqlAnnotationNames.Comment] = "Old comment" }
                 });
 
             Assert.Equal(

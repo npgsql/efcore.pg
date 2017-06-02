@@ -41,9 +41,9 @@ namespace Microsoft.EntityFrameworkCore.Migrations.Internal
         public override IEnumerable<IAnnotation> For(IEntityType entityType)
         {
             if (entityType.Npgsql().Comment != null)
-                yield return new Annotation(NpgsqlFullAnnotationNames.Instance.Comment, entityType.Npgsql().Comment);
+                yield return new Annotation(NpgsqlAnnotationNames.Comment, entityType.Npgsql().Comment);
             foreach (var storageParamAnnotation in entityType.GetAnnotations()
-                .Where(a => a.Name.StartsWith(NpgsqlFullAnnotationNames.Instance.StorageParameterPrefix)))
+                .Where(a => a.Name.StartsWith(NpgsqlAnnotationNames.StorageParameterPrefix)))
             {
                 yield return storageParamAnnotation;
             }
@@ -52,9 +52,9 @@ namespace Microsoft.EntityFrameworkCore.Migrations.Internal
         public override IEnumerable<IAnnotation> For(IProperty property)
         {
             if (property.Npgsql().ValueGenerationStrategy == NpgsqlValueGenerationStrategy.SerialColumn)
-                yield return new Annotation(NpgsqlFullAnnotationNames.Instance.ValueGenerationStrategy, NpgsqlValueGenerationStrategy.SerialColumn);
+                yield return new Annotation(NpgsqlAnnotationNames.ValueGenerationStrategy, NpgsqlValueGenerationStrategy.SerialColumn);
             if (property.Npgsql().Comment != null)
-                yield return new Annotation(NpgsqlFullAnnotationNames.Instance.Comment, property.Npgsql().Comment);
+                yield return new Annotation(NpgsqlAnnotationNames.Comment, property.Npgsql().Comment);
         }
 
         public override IEnumerable<IAnnotation> For(IIndex index)
@@ -68,6 +68,6 @@ namespace Microsoft.EntityFrameworkCore.Migrations.Internal
         }
 
         public override IEnumerable<IAnnotation> For(IModel model)
-            => model.GetAnnotations().Where(a => a.Name.StartsWith(NpgsqlFullAnnotationNames.Instance.PostgresExtensionPrefix, StringComparison.Ordinal));
+            => model.GetAnnotations().Where(a => a.Name.StartsWith(NpgsqlAnnotationNames.PostgresExtensionPrefix, StringComparison.Ordinal));
     }
 }

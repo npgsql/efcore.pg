@@ -1,13 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Scaffolding;
 using Microsoft.EntityFrameworkCore.Scaffolding.Internal;
 using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
+using Microsoft.EntityFrameworkCore.TestUtilities;
+using Microsoft.EntityFrameworkCore.Utilities;
 using Microsoft.Extensions.Logging;
-using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests
 {
@@ -18,12 +22,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests
             TestStore = NpgsqlTestStore.CreateScratch();
         }
 
-        public DatabaseModel CreateModel(string createSql, TableSelectionSet selection = null, ILogger logger = null)
+        public TestDesignLoggerFactory TestDesignLoggerFactory { get; } = new TestDesignLoggerFactory();
+
+        public DatabaseModel CreateModel(string createSql, IEnumerable<string> tables = null, ILogger logger = null)
         {
             TestStore.ExecuteNonQuery("DROP SCHEMA public CASCADE; CREATE SCHEMA public; " + createSql);
 
-            return new NpgsqlDatabaseModelFactory(new TestLoggerFactory(logger))
-                .Create(TestStore.ConnectionString, selection ?? TableSelectionSet.All);
+            return new NpgsqlDatabaseModelFactory(
+                    new DiagnosticsLogger<DbLoggerCategory.Scaffolding>(
+                        TestDesignLoggerFactory,
+                        new LoggingOptions(),
+                        new DiagnosticListener("Fake")))
+                .Create(TestStore.ConnectionString, tables ?? Enumerable.Empty<string>(), Enumerable.Empty<string>());
         }
 
         public NpgsqlTestStore TestStore { get; }

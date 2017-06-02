@@ -3,9 +3,9 @@
 
 using System;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Internal;
-using Microsoft.EntityFrameworkCore.Specification.Tests;
 using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Microsoft.EntityFrameworkCore;
-using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
+using Microsoft.EntityFrameworkCore.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
@@ -56,9 +56,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                             closeCount++;
                         }
                     };
-#if NET451
                     connection.Disposed += (_, __) => disposeCount++;
-#endif
 
                     using (var context = new NorthwindContext(serviceProvider, connection))
                     {
@@ -105,7 +103,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 => modelBuilder.Entity<Customer>(b =>
                 {
                     b.HasKey(c => c.CustomerID);
-                    b.ForNpgsqlToTable("Customers");
+                    b.ToTable("Customers");
                 });
         }
 

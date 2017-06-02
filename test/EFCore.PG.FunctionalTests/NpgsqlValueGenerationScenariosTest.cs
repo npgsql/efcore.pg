@@ -5,8 +5,9 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Internal;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.Extensions.DependencyInjection;
-using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
+using Microsoft.EntityFrameworkCore.Utilities;
 using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
@@ -160,12 +161,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                     .HasSequence("MySequence")
                     .StartsAt(77);
 
-                // TODO: Nested closure for Metadata
                 modelBuilder
                     .Entity<Blog>()
                     .Property(e => e.Id)
                     .HasDefaultValueSql("nextval('\"MySequence\"')")
-                    .Metadata.IsReadOnlyBeforeSave = true;
+                    .Metadata.BeforeSaveBehavior = PropertySaveBehavior.Throw;
             }
         }
 
@@ -367,7 +367,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 modelBuilder.Entity<Blog>()
                     .Property(e => e.CreatedOn)
                     .HasDefaultValueSql("now()")
-                    .Metadata.IsReadOnlyBeforeSave = true;
+                    .Metadata.BeforeSaveBehavior = PropertySaveBehavior.Throw;
             }
         }
 

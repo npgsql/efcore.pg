@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Diagnostics;
+using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
@@ -16,7 +17,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Metadata.Conventions
 
             Assert.Equal(1, model.GetAnnotations().Count());
 
-            Assert.Equal(NpgsqlFullAnnotationNames.Instance.ValueGenerationStrategy, model.GetAnnotations().Single().Name);
+            Assert.Equal(NpgsqlAnnotationNames.ValueGenerationStrategy, model.GetAnnotations().Single().Name);
             Assert.Equal(NpgsqlValueGenerationStrategy.SerialColumn, model.GetAnnotations().Single().Value);
         }
 
@@ -30,18 +31,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Metadata.Conventions
             var annotations = model.GetAnnotations().OrderBy(a => a.Name);
             Assert.Equal(3, annotations.Count());
 
-            Assert.Equal(NpgsqlFullAnnotationNames.Instance.HiLoSequenceName, annotations.ElementAt(0).Name);
+            // Note that the annotation order is different with Npgsql than the SqlServer (N vs. S...)
+            Assert.Equal(NpgsqlAnnotationNames.HiLoSequenceName, annotations.ElementAt(0).Name);
             Assert.Equal(NpgsqlModelAnnotations.DefaultHiLoSequenceName, annotations.ElementAt(0).Value);
 
+            Assert.Equal(NpgsqlAnnotationNames.ValueGenerationStrategy, annotations.ElementAt(1).Name);
+            Assert.Equal(NpgsqlValueGenerationStrategy.SequenceHiLo, annotations.ElementAt(1).Value);
+
             Assert.Equal(
-                NpgsqlFullAnnotationNames.Instance.SequencePrefix +
+                RelationalAnnotationNames.SequencePrefix +
                 "." +
                 NpgsqlModelAnnotations.DefaultHiLoSequenceName,
-                annotations.ElementAt(1).Name);
-            Assert.NotNull(annotations.ElementAt(1).Value);
-
-            Assert.Equal(NpgsqlFullAnnotationNames.Instance.ValueGenerationStrategy, annotations.ElementAt(2).Name);
-            Assert.Equal(NpgsqlValueGenerationStrategy.SequenceHiLo, annotations.ElementAt(2).Value);
+                annotations.ElementAt(2).Name);
+            Assert.NotNull(annotations.ElementAt(2).Value);
         }
     }
 }

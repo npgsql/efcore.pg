@@ -45,9 +45,6 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Conventions
             var valueGenerationStrategyConvention = new NpgsqlValueGenerationStrategyConvention();
             conventionSet.ModelInitializedConventions.Add(valueGenerationStrategyConvention);
 
-            ReplaceConvention(conventionSet.PropertyAddedConventions, (DatabaseGeneratedAttributeConvention)valueGenerationStrategyConvention);
-            ReplaceConvention(conventionSet.PropertyFieldChangedConventions, (DatabaseGeneratedAttributeConvention)valueGenerationStrategyConvention);
-
             return conventionSet;
         }
     }

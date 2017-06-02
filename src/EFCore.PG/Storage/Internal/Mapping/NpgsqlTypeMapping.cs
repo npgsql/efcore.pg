@@ -14,13 +14,14 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
     public class NpgsqlTypeMapping : RelationalTypeMapping
     {
         internal NpgsqlTypeMapping([NotNull] string storeType, [NotNull] Type clrType, NpgsqlDbType npgsqlDbType)
-            : base(storeType, clrType)
+            : base(storeType, clrType, unicode: false, size: null, dbType: null)
         {
             NpgsqlDbType = npgsqlDbType;
         }
 
         internal NpgsqlTypeMapping([NotNull] string storeType, [NotNull] Type clrType)
-            : base(storeType, clrType) {}
+            : base(storeType, clrType, unicode: false, size: null, dbType: null)
+        {}
 
         public NpgsqlDbType? NpgsqlDbType { get; protected set; }
 

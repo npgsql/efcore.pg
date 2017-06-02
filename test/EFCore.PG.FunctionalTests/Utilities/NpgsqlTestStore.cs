@@ -8,13 +8,13 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Specification.Tests;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
+using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities
+namespace Microsoft.EntityFrameworkCore.Utilities
 {
     public class NpgsqlTestStore : RelationalTestStore
     {
@@ -205,22 +205,13 @@ SELECT pg_terminate_backend (pg_stat_activity.pid)
 
         static string GetDropDatabaseSql(string name) => $@"DROP DATABASE ""{name}""";
 
-        public static IExecutionStrategy GetExecutionStrategy()
-            => (IExecutionStrategy)NoopExecutionStrategy.Instance;
-
         public override DbConnection Connection => _connection;
 
         public override DbTransaction Transaction => null;
 
-        public override void OpenConnection()
-        {
-            GetExecutionStrategy().Execute(connection => connection.Open(), _connection);
-        }
+        public override void OpenConnection() => _connection.Open();
 
-        public Task OpenConnectionAsync()
-        {
-            return GetExecutionStrategy().ExecuteAsync(connection => connection.OpenAsync(), _connection);
-        }
+        public Task OpenConnectionAsync() => _connection.OpenAsync();
 
         public T ExecuteScalar<T>(string sql, params object[] parameters)
             => ExecuteScalar<T>(_connection, sql, parameters);
@@ -281,74 +272,82 @@ SELECT pg_terminate_backend (pg_stat_activity.pid)
             }, sql, false, parameters);
 
         private static T Execute<T>(
-                NpgsqlConnection connection, Func<DbCommand, T> execute, string sql, bool useTransaction = false, object[] parameters = null)
-            => GetExecutionStrategy().Execute(state =>
-            {
-                if (state.connection.State != ConnectionState.Closed)
-                {
-                    state.connection.Close();
-                }
-                state.connection.Open();
-                try
-                {
-                    using (var transaction = useTransaction ? state.connection.BeginTransaction() : null)
-                    {
-                        T result;
-                        using (var command = CreateCommand(state.connection, sql, parameters))
-                        {
-                            command.Transaction = transaction;
-                            result = execute(command);
-                        }
-                        transaction?.Commit();
+            NpgsqlConnection connection, Func<DbCommand, T> execute, string sql,
+            bool useTransaction = false, object[] parameters = null)
+            =>  ExecuteCommand(connection, execute, sql, useTransaction, parameters);
 
-                        return result;
-                    }
-                }
-                finally
+        private static T ExecuteCommand<T>(
+            NpgsqlConnection connection, Func<DbCommand, T> execute, string sql, bool useTransaction, object[] parameters)
+        {
+            if (connection.State != ConnectionState.Closed)
+            {
+                connection.Close();
+            }
+            connection.Open();
+            try
+            {
+                using (var transaction = useTransaction ? connection.BeginTransaction() : null)
                 {
-                    if (state.State == ConnectionState.Closed
-                        && state.connection.State != ConnectionState.Closed)
+                    T result;
+                    using (var command = CreateCommand(connection, sql, parameters))
                     {
-                        state.connection.Close();
+                        command.Transaction = transaction;
+                        result = execute(command);
                     }
+                    transaction?.Commit();
+
+                    return result;
                 }
-            }, new { connection, connection.State });
+            }
+            finally
+            {
+                if (connection.State == ConnectionState.Closed
+                    && connection.State != ConnectionState.Closed)
+                {
+                    connection.Close();
+                }
+            }
+        }
 
         private static Task<T> ExecuteAsync<T>(
-                NpgsqlConnection connection, Func<DbCommand, Task<T>> executeAsync, string sql, bool useTransaction, object[] parameters = null)
-            => GetExecutionStrategy().ExecuteAsync(async state =>
+            NpgsqlConnection connection, Func<DbCommand, Task<T>> executeAsync, string sql,
+            bool useTransaction = false, IReadOnlyList<object> parameters = null)
+            => ExecuteCommandAsync(connection, executeAsync, sql, useTransaction, parameters);
+
+        private static async Task<T> ExecuteCommandAsync<T>(
+            NpgsqlConnection connection, Func<DbCommand, Task<T>> executeAsync, string sql, bool useTransaction, IReadOnlyList<object> parameters)
+        {
+            if (connection.State != ConnectionState.Closed)
             {
-                if (state.connection.State != ConnectionState.Closed)
+                connection.Close();
+            }
+            await connection.OpenAsync();
+            try
+            {
+                using (var transaction = useTransaction ? connection.BeginTransaction() : null)
                 {
-                    state.connection.Close();
-                }
-                await state.connection.OpenAsync();
-                try
-                {
-                    using (var transaction = useTransaction ? state.connection.BeginTransaction() : null)
+                    T result;
+                    using (var command = CreateCommand(connection, sql, parameters))
                     {
-                        T result;
-                        using (var command = CreateCommand(state.connection, sql, parameters))
-                        {
-                            result = await executeAsync(command);
-                        }
-                        transaction?.Commit();
-
-                        return result;
+                        result = await executeAsync(command);
                     }
+                    transaction?.Commit();
+
+                    return result;
                 }
-                finally
+            }
+            finally
+            {
+                if (connection.State == ConnectionState.Closed
+                    && connection.State != ConnectionState.Closed)
                 {
-                    if (state.State == ConnectionState.Closed
-                        && state.connection.State != ConnectionState.Closed)
-                    {
-                        state.connection.Close();
-                    }
+                    connection.Close();
                 }
-            }, new { connection, connection.State });
+            }
+        }
 
-
-        static DbCommand CreateCommand(NpgsqlConnection connection, string commandText, object[] parameters = null)
+        private static DbCommand CreateCommand(
+            NpgsqlConnection connection, string commandText, IReadOnlyList<object> parameters = null)
         {
             var command = connection.CreateCommand();
 
@@ -357,7 +356,7 @@ SELECT pg_terminate_backend (pg_stat_activity.pid)
 
             if (parameters != null)
             {
-                for (var i = 0; i < parameters.Length; i++)
+                for (var i = 0; i < parameters.Count; i++)
                 {
                     command.Parameters.AddWithValue("p" + i, parameters[i]);
                 }

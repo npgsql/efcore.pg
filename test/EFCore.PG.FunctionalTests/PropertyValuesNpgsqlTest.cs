@@ -4,9 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Specification.Tests;
 using Microsoft.Extensions.DependencyInjection;
-using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests.Utilities;
+using Microsoft.EntityFrameworkCore.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
@@ -51,10 +50,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 base.OnModelCreating(modelBuilder);
 
                 modelBuilder.Entity<Building>()
-                    .Property(b => b.Value).ForNpgsqlHasColumnType("decimal(18,2)");
+                    .Property(b => b.Value).HasColumnType("decimal(18,2)");
 
                 modelBuilder.Entity<CurrentEmployee>()
-                    .Property(ce => ce.LeaveBalance).ForNpgsqlHasColumnType("decimal(18,2)");
+                    .Property(ce => ce.LeaveBalance).HasColumnType("decimal(18,2)");
             }
 
             public override DbContext CreateContext(NpgsqlTestStore testStore)
