@@ -8,36 +8,24 @@ Development happens in the [Npgsql.EntityFrameworkCore.PostgreSQL](https://githu
 
 To use the Npgsql EF Core provider, simply add a dependency on `Npgsql.EntityFrameworkCore.PostgreSQL`. You can follow the instructions in the general [EF Core Getting Started docs](https://docs.microsoft.com/en-us/ef/core/get-started/).
 
-Following is an example project.json using Npgsql EF Core:
+Following is an example (new-style) csproj using Npgsql EF Core:
 
-```json
-{
-  "version": "1.0.0-*",
-  "buildOptions": {
-    "debugType": "portable",
-    "emitEntryPoint": true
-  },
-  "dependencies": {
-    "Npgsql.EntityFrameworkCore.PostgreSQL": "1.1.0",
-    "Microsoft.EntityFrameworkCore.Design": {
-      "version": "1.1.0",
-      "type": "build"
-    }
-  },
-  "frameworks": {
-    "netcoreapp1.1": {
-      "dependencies": {
-        "Microsoft.NETCore.App": {
-          "type": "platform",
-          "version": "1.1.0"
-        }
-      }
-    }
-  },
-  "tools": {
-    "Microsoft.EntityFrameworkCore.Tools.DotNet": "1.1.0-preview4-final"
-  }
-}
+```xml
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp1.1</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="1.1.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="1.1.2" PrivateAssets="All" />
+    <!-- For scaffolding support -->
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.Design" Version="1.1.0" PrivateAssets="All" />
+  </ItemGroup>
+  <ItemGroup>
+    <DotNetCliToolReference Include="Microsoft.EntityFrameworkCore.Tools.DotNet" Version="1.0.1" />
+  </ItemGroup>
+</Project>
 ```
 
 ## Using an Existing Database (Database-First)
