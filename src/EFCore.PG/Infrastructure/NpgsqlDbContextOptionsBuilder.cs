@@ -21,13 +21,17 @@
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 #endregion
 
+using System;
+using System.Collections.Generic;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
+using Microsoft.EntityFrameworkCore.Storage;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore.Infrastructure
 {
-    public class NpgsqlDbContextOptionsBuilder : RelationalDbContextOptionsBuilder<NpgsqlDbContextOptionsBuilder, NpgsqlOptionsExtension>
+    public class NpgsqlDbContextOptionsBuilder
+        : RelationalDbContextOptionsBuilder<NpgsqlDbContextOptionsBuilder, NpgsqlOptionsExtension>
     {
         public NpgsqlDbContextOptionsBuilder([NotNull] DbContextOptionsBuilder optionsBuilder)
             : base(optionsBuilder)
@@ -39,5 +43,33 @@ namespace Microsoft.EntityFrameworkCore.Infrastructure
         /// Defaults to 'postgres'.
         /// </summary>
         public virtual void UseAdminDatabase(string dbName) => WithOption(e => e.WithAdminDatabase(dbName));
+
+        #region Retrying execution strategy
+
+        /// <summary>
+        ///     Configures the context to use the default retrying <see cref="IExecutionStrategy" />.
+        /// </summary>
+        public virtual NpgsqlDbContextOptionsBuilder EnableRetryOnFailure()
+            => ExecutionStrategy(c => new NpgsqlRetryingExecutionStrategy(c));
+
+        /// <summary>
+        ///     Configures the context to use the default retrying <see cref="IExecutionStrategy" />.
+        /// </summary>
+        public virtual NpgsqlDbContextOptionsBuilder EnableRetryOnFailure(int maxRetryCount)
+            => ExecutionStrategy(c => new NpgsqlRetryingExecutionStrategy(c, maxRetryCount));
+
+        /// <summary>
+        ///     Configures the context to use the default retrying <see cref="IExecutionStrategy" />.
+        /// </summary>
+        /// <param name="maxRetryCount"> The maximum number of retry attempts. </param>
+        /// <param name="maxRetryDelay"> The maximum delay between retries. </param>
+        /// <param name="errorCodesToAdd"> Additional error codes that should be considered transient. </param>
+        public virtual NpgsqlDbContextOptionsBuilder EnableRetryOnFailure(
+            int maxRetryCount,
+            TimeSpan maxRetryDelay,
+            [NotNull] ICollection<string> errorCodesToAdd)
+            => ExecutionStrategy(c => new NpgsqlRetryingExecutionStrategy(c, maxRetryCount, maxRetryDelay, errorCodesToAdd));
+
+        #endregion Retrying execution strategy
     }
 }

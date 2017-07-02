@@ -99,6 +99,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .TryAdd<IMigrationsSqlGenerator, NpgsqlMigrationsSqlGenerator>()
                 .TryAdd<IRelationalDatabaseCreator, NpgsqlDatabaseCreator>()
                 .TryAdd<IHistoryRepository, NpgsqlHistoryRepository>()
+                .TryAdd<IExecutionStrategyFactory, NpgsqlExecutionStrategyFactory>()
                 .TryAdd<IQueryCompilationContextFactory, NpgsqlQueryCompilationContextFactory>()
                 .TryAdd<IMemberTranslator, NpgsqlCompositeMemberTranslator>()
                 .TryAdd<ICompositeMethodCallTranslator, NpgsqlCompositeMethodCallTranslator>()

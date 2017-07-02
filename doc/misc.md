@@ -23,6 +23,18 @@ To enable this feature on an entity, insert the following code into your model's
 modelBuilder.Entity<MyEntity>().ForNpgsqlUseXminAsConcurrencyToken();
 ```
 
+## Execution Strategy
+
+Since 2.0.0, the Npgsql provider provides a retrying execution strategy, which will attempt to detect most transient PostgreSQL/network errors and will automatically retry your operation. To enable, place the following code in your context's `OnModelConfiguring`:
+
+```c#
+.UseNpgsql(
+    "<connection string>",
+    options => options.EnableRetryOnFailure());
+```
+
+This strategy relies on NpgsqlException's `IsTransient` property. Both this property and the retrying strategy are new and should be considered somewhat experimental - please report any issues.
+
 ## Comments
 
 PostgreSQL allows you to [attach comments](https://www.postgresql.org/docs/current/static/sql-syntax.html) to database objects, which can help explain their purpose for someone examining the schema. The EF Core provider supports this for tables or columns, simply set the comment in your model's `OnModelCreating` as follows:
