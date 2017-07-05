@@ -5,6 +5,7 @@ using System;
 using System.Data.Common;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using Xunit;
 
 namespace Microsoft.EntityFrameworkCore.Query

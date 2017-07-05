@@ -308,7 +308,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 Assert.Equal(new TimeSpan(11, 15, 12), entity.Interval);
 
                 Assert.Equal(new Guid("a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"), entity.Uuid);
-                Assert.Equal(true, entity.Bool);
+                Assert.True(entity.Bool);
 
                 Assert.Equal(PhysicalAddress.Parse("08-00-2B-01-02-03"), entity.Macaddr);
                 Assert.Equal(new NpgsqlPoint(5.2, 3.3), entity.Point);
@@ -390,7 +390,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 Assert.Equal(new TimeSpan(11, 15, 12), entity.Interval);
 
                 Assert.Equal(new Guid("a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"), entity.Uuid);
-                Assert.Equal(true, entity.Bool);
+                Assert.True(entity.Bool);
 
                 Assert.Equal(PhysicalAddress.Parse("08-00-2B-01-02-03"), entity.Macaddr);
                 Assert.Equal(new NpgsqlPoint(5.2, 3.3), entity.Point);

@@ -4,6 +4,7 @@
     <TargetFrameworks>net461;netcoreapp2.0</TargetFrameworks>
     <AssemblyName>Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests</AssemblyName>
     <RootNamespace>Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests</RootNamespace>
+    <NoWarn>xUnit1004;xUnit1013</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

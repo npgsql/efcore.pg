@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Xunit;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -22,12 +24,12 @@ CREATE TABLE public.denali (id int);";
             Assert.Collection(dbModel.Tables.OrderBy(t => t.Name),
                 d =>
                 {
-                    Assert.Equal("public", d.SchemaName);
+                    Assert.Equal("public", d.Schema);
                     Assert.Equal("denali", d.Name);
                 },
                 e =>
                 {
-                    Assert.Equal("public", e.SchemaName);
+                    Assert.Equal("public", e.Schema);
                     Assert.Equal("everest", e.Name);
                 });
         }
@@ -42,12 +44,12 @@ CREATE TABLE public.denali (id int);";
 
             var fk = Assert.Single(dbModel.Tables.Single(t => t.ForeignKeys.Count > 0).ForeignKeys);
 
-            Assert.Equal("db2", fk.Table.SchemaName);
+            Assert.Equal("db2", fk.Table.Schema);
             Assert.Equal("mountains", fk.Table.Name);
-            Assert.Equal("public", fk.PrincipalTable.SchemaName);
+            Assert.Equal("public", fk.PrincipalTable.Schema);
             Assert.Equal("ranges", fk.PrincipalTable.Name);
-            Assert.Equal("range_id", fk.Columns.Single().Column.Name);
-            Assert.Equal("id", fk.Columns.Single().PrincipalColumn.Name);
+            Assert.Equal("range_id", fk.Columns.Single().Name);
+            Assert.Equal("id", fk.PrincipalColumns.Single().Name);
             Assert.Equal(ReferentialAction.Cascade, fk.OnDelete);
         }
 
@@ -61,12 +63,12 @@ CREATE TABLE public.denali (id int);";
 
             var fk = Assert.Single(dbModel.Tables.Single(t => t.ForeignKeys.Count > 0).ForeignKeys);
 
-            Assert.Equal("db3", fk.Table.SchemaName);
+            Assert.Equal("db3", fk.Table.Schema);
             Assert.Equal("mountains1", fk.Table.Name);
-            Assert.Equal("public", fk.PrincipalTable.SchemaName);
+            Assert.Equal("public", fk.PrincipalTable.Schema);
             Assert.Equal("ranges1", fk.PrincipalTable.Name);
-            Assert.Equal(new[] { "range_id", "range_alt_id" }, fk.Columns.Select(c => c.Column.Name).ToArray());
-            Assert.Equal(new[] { "id", "alt_id" }, fk.Columns.Select(c => c.PrincipalColumn.Name).ToArray());
+            Assert.Equal(new[] { "range_id", "range_alt_id" }, fk.Columns.Select(c => c.Name).ToArray());
+            Assert.Equal(new[] { "id", "alt_id" }, fk.PrincipalColumns.Select(c => c.Name).ToArray());
             Assert.Equal(ReferentialAction.NoAction, fk.OnDelete);
         }
 
@@ -81,7 +83,7 @@ CREATE TABLE public.denali (id int);";
 
             Assert.All(indexes, c =>
             {
-                Assert.Equal("public", c.Table.SchemaName);
+                Assert.Equal("public", c.Table.Schema);
                 Assert.Equal("place", c.Table.Name);
             });
 
@@ -89,13 +91,13 @@ CREATE TABLE public.denali (id int);";
                 unique =>
                 {
                     Assert.True(unique.IsUnique);
-                    Assert.Equal("name", unique.IndexColumns.Single().Column.Name);
+                    Assert.Equal("name", unique.Columns.Single().Name);
                 },
                 composite =>
                 {
                     Assert.Equal("IX_name_location", composite.Name);
                     Assert.False(composite.IsUnique);
-                    Assert.Equal(new List<string> { "name", "location" }, composite.IndexColumns.Select(c => c.Column.Name).ToList());
+                    Assert.Equal(new List<string> { "name", "location" }, composite.Columns.Select(c => c.Name).ToList());
                 });
         }
 
@@ -113,11 +115,11 @@ CREATE TABLE public.mountains_columns (
 );";
             var dbModel = CreateModel(sql, new List<string> { "mountains_columns" });
 
-            var columns = dbModel.Tables.Single().Columns.OrderBy(c => c.Ordinal);
+            var columns = dbModel.Tables.Single().Columns;
 
             Assert.All(columns, c =>
             {
-                Assert.Equal("public", c.Table.SchemaName);
+                Assert.Equal("public", c.Table.Schema);
                 Assert.Equal("mountains_columns", c.Table.Name);
             });
 
@@ -127,46 +129,36 @@ CREATE TABLE public.mountains_columns (
                     {
                         Assert.Equal("id", id.Name);
                         Assert.Equal("int4", id.StoreType);
-                        Assert.Equal(2, id.PrimaryKeyOrdinal);
                         Assert.False(id.IsNullable);
-                        Assert.Equal(0, id.Ordinal);
-                        Assert.Null(id.DefaultValue);
+                        Assert.Null(id.DefaultValueSql);
                     },
                 name =>
                     {
                         Assert.Equal("name", name.Name);
                         Assert.Equal("varchar(100)", name.StoreType);
-                        Assert.Equal(1, name.PrimaryKeyOrdinal);
                         Assert.False(name.IsNullable);
-                        Assert.Equal(1, name.Ordinal);
-                        Assert.Null(name.DefaultValue);
+                        Assert.Null(name.DefaultValueSql);
                     },
                 lat =>
                     {
                         Assert.Equal("latitude", lat.Name);
                         Assert.Equal("numeric(5, 2)", lat.StoreType);
-                        Assert.Null(lat.PrimaryKeyOrdinal);
                         Assert.True(lat.IsNullable);
-                        Assert.Equal(2, lat.Ordinal);
-                        Assert.Equal("0.0", lat.DefaultValue);
+                        Assert.Equal("0.0", lat.DefaultValueSql);
                     },
                 created =>
                     {
                         Assert.Equal("created", created.Name);
                         Assert.Equal("timestamp", created.StoreType);
-                        Assert.Null(created.PrimaryKeyOrdinal);
                         Assert.True(created.IsNullable);
-                        Assert.Equal(3, created.Ordinal);
-                        Assert.Equal("now()", created.DefaultValue);
+                        Assert.Equal("now()", created.DefaultValueSql);
                     },
                 discovered =>
                     {
                         Assert.Equal("discovered_date", discovered.Name);
                         Assert.Equal("numeric", discovered.StoreType);
-                        Assert.Null(discovered.PrimaryKeyOrdinal);
                         Assert.True(discovered.IsNullable);
-                        Assert.Equal(4, discovered.Ordinal);
-                        Assert.Null(discovered.DefaultValue);
+                        Assert.Null(discovered.DefaultValueSql);
                     });
         }
 
@@ -183,24 +175,17 @@ CREATE TABLE public.mountains_columns (
         }
 
         [Fact]
-        public void It_reads_pk()
+        public void It_reads_primary_key()
         {
-            var dbModel = CreateModel(
-                "CREATE TABLE pks (id int PRIMARY KEY, non_id int)",
-                new List<string> { "pks" });
+            var sql = "CREATE TABLE place (id int PRIMARY KEY, name int UNIQUE, location int);" +
+                      "CREATE INDEX ix_location_name ON place (location, name);";
 
-            var columns = dbModel.Tables.Single().Columns.OrderBy(c => c.Ordinal);
-            Assert.Collection(columns,
-                id =>
-                {
-                    Assert.Equal("id", id.Name);
-                    Assert.Equal(1, id.PrimaryKeyOrdinal);
-                },
-                nonId =>
-                {
-                    Assert.Equal("non_id", nonId.Name);
-                    Assert.Null(nonId.PrimaryKeyOrdinal);
-                });
+            var dbModel = CreateModel(sql);
+
+            var pkIndex = dbModel.Tables.Single().PrimaryKey;
+
+            Assert.Equal("place", pkIndex.Table.Name);
+            Assert.Equal(new List<string> { "id" }, pkIndex.Columns.Select(ic => ic.Name).ToList());
         }
 
         [Fact]
@@ -237,36 +222,36 @@ CREATE SEQUENCE ""CustomSequence_read""
             Assert.Collection(dbModel.Sequences.Where(s => s.Name.EndsWith("_read")).OrderBy(s => s.Name),
                 c =>
                     {
-                        Assert.Equal(c.Name, "CustomSequence_read");
-                        Assert.Equal(c.SchemaName, "public");
-                        Assert.Equal(c.DataType, "bigint");
-                        Assert.Equal(1, c.Start);
+                        Assert.Equal("CustomSequence_read", c.Name);
+                        Assert.Equal("public", c.Schema);
+                        Assert.Equal("bigint", c.StoreType);
+                        Assert.Equal(1, c.StartValue);
                         Assert.Equal(2, c.IncrementBy);
-                        Assert.Equal(8, c.Max);
-                        Assert.Equal(-3, c.Min);
+                        Assert.Equal(8, c.MaxValue);
+                        Assert.Equal(-3, c.MinValue);
                         Assert.True(c.IsCyclic);
                     },
                 da =>
                     {
-                        Assert.Equal(da.Name, "DefaultValues_ascending_read");
-                        Assert.Equal(da.SchemaName, "public");
-                        Assert.Equal(da.DataType, "bigint");
+                        Assert.Equal("DefaultValues_ascending_read", da.Name);
+                        Assert.Equal("public", da.Schema);
+                        Assert.Equal("bigint", da.StoreType);
                         Assert.Equal(1, da.IncrementBy);
                         Assert.False(da.IsCyclic);
-                        Assert.Null(da.Max);
-                        Assert.Null(da.Min);
-                        Assert.Null(da.Start);
+                        Assert.Null(da.MaxValue);
+                        Assert.Null(da.MinValue);
+                        Assert.Null(da.StartValue);
                     },
                 dd =>
                 {
-                    Assert.Equal(dd.Name, "DefaultValues_descending_read");
-                    Assert.Equal(dd.SchemaName, "public");
-                    Assert.Equal(dd.DataType, "bigint");
+                    Assert.Equal("DefaultValues_descending_read", dd.Name);
+                    Assert.Equal("public", dd.Schema);
+                    Assert.Equal("bigint", dd.StoreType);
                     Assert.Equal(-1, dd.IncrementBy);
                     Assert.False(dd.IsCyclic);
-                    Assert.Null(dd.Max);
-                    Assert.Null(dd.Min);
-                    Assert.Null(dd.Start);
+                    Assert.Null(dd.MaxValue);
+                    Assert.Null(dd.MinValue);
+                    Assert.Null(dd.StartValue);
                 });
         }
 
@@ -281,7 +266,7 @@ CREATE SEQUENCE ""CustomSequence_read""
             // Now make sure the field itself is properly reverse-engineered.
             var column = dbModel.Tables.Single(t => t.Name == "SerialSequence").Columns.Single();
             Assert.Equal(ValueGenerated.OnAdd, column.ValueGenerated);
-            Assert.Null(column.DefaultValue);
+            Assert.Null(column.DefaultValueSql);
             //Assert.True(column.Npgsql().IsSerial);
         }
 
@@ -293,7 +278,7 @@ CREATE SEQUENCE some_sequence;
 CREATE TABLE non_serial_sequence (id integer PRIMARY KEY DEFAULT nextval('some_sequence'))");
 
             var column = dbModel.Tables.Single(t => t.Name == "non_serial_sequence").Columns.Single();
-            Assert.Equal("nextval('some_sequence'::regclass)", column.DefaultValue);
+            Assert.Equal("nextval('some_sequence'::regclass)", column.DefaultValueSql);
             // Npgsql has special identification for serial columns (scaffolding them with ValueGenerated.OnAdd
             // and removing the default), but not for non-serial sequence-driven columns, which are scaffolded
             // with a DefaultValue. This is consistent with the SqlServer scaffolding behavior.
@@ -311,13 +296,13 @@ CREATE SEQUENCE not_interested.some_other_sequence;
 ", new TableSelectionSet(Enumerable.Empty<string>(), new[] { "public" }));
 
             var sequence = dbModel.Sequences.Single();
-            Assert.Equal("public", sequence.SchemaName);
+            Assert.Equal("public", sequence.Schema);
             Assert.Equal("some_sequence2", sequence.Name);
         }*/
 
         [Fact]
         public void DefaultSchemaIsPublic()
-            => Assert.Equal("public", _fixture.CreateModel("SELECT 1").DefaultSchemaName);
+            => Assert.Equal("public", _fixture.CreateModel("SELECT 1").DefaultSchema);
 
         readonly NpgsqlDatabaseModelFixture _fixture;
 

@@ -51,67 +51,58 @@ namespace Microsoft.EntityFrameworkCore.Query
             AssertContainsInSql("WHERE RIGHT(\"c\".\"ContactName\", LENGTH('b')) = 'b'");
         }
 
-        public override void Trim_in_predicate()
+        public override void Trim_without_argument_in_predicate()
         {
-            base.Trim_in_predicate();
+            base.Trim_without_argument_in_predicate();
             AssertContainsInSql(@"WHERE REGEXP_REPLACE(""c"".""ContactTitle"", '^\s*(.*?)\s*$', '\1') = 'Owner'");
         }
 
-        public override void Trim_with_arguments_in_predicate()
+        public override void Trim_with_char_argument_in_predicate()
         {
-            base.Trim_with_arguments_in_predicate();
-            AssertContainsInSql("WHERE BTRIM(\"c\".\"ContactTitle\", 'Or')");
-        }
-
-        [Fact]
-        public void Trim_with_argument_in_predicate()
-        {
-            AssertQuery<Customer>(
-                cs => cs.Where(c => c.ContactTitle.Trim('O') == "wner"),
-                entryCount: 17);
+            base.Trim_with_char_argument_in_predicate();
             AssertContainsInSql("WHERE BTRIM(\"c\".\"ContactTitle\", 'O')");
         }
 
-        public override void TrimStart_in_predicate()
+        public override void Trim_with_char_array_argument_in_predicate()
         {
-            base.TrimStart_in_predicate();
+            base.Trim_with_char_array_argument_in_predicate();
+            AssertContainsInSql("WHERE BTRIM(\"c\".\"ContactTitle\", 'Or')");
+        }
+
+        public override void TrimStart_without_arguments_in_predicate()
+        {
+            base.TrimStart_without_arguments_in_predicate();
             AssertContainsInSql("WHERE REGEXP_REPLACE(\"c\".\"ContactTitle\", '^\\s*', '') = 'Owner'");
         }
 
-        public override void TrimStart_with_arguments_in_predicate()
+        public override void TrimStart_with_char_argument_in_predicate()
         {
-            base.TrimStart_with_arguments_in_predicate();
-            AssertContainsInSql("WHERE LTRIM(\"c\".\"ContactTitle\", 'Ow')");
-        }
-
-        [Fact]
-        public void TrimStart_with_argument_in_predicate()
-        {
-            AssertQuery<Customer>(
-                cs => cs.Where(c => c.ContactTitle.TrimStart('O') == "wner"),
-                entryCount: 17);
+            base.TrimStart_with_char_argument_in_predicate();
             AssertContainsInSql("WHERE LTRIM(\"c\".\"ContactTitle\", 'O')");
         }
 
-        public override void TrimEnd_in_predicate()
+        public override void TrimStart_with_char_array_argument_in_predicate()
         {
-            base.TrimEnd_in_predicate();
+            base.TrimStart_with_char_array_argument_in_predicate();
+            AssertContainsInSql("WHERE LTRIM(\"c\".\"ContactTitle\", 'Ow')");
+        }
+
+        public override void TrimEnd_without_arguments_in_predicate()
+        {
+            base.TrimEnd_without_arguments_in_predicate();
             AssertContainsInSql("WHERE REGEXP_REPLACE(\"c\".\"ContactTitle\", '\\s*$', '') = 'Owner'");
         }
 
-        public override void TrimEnd_with_arguments_in_predicate()
+        public override void TrimEnd_with_char_argument_in_predicate()
         {
-            base.TrimEnd_with_arguments_in_predicate();
-            AssertContainsInSql("WHERE RTRIM(\"c\".\"ContactTitle\", 'er')");
+            base.TrimEnd_with_char_argument_in_predicate();
+            AssertContainsInSql("WHERE RTRIM(\"c\".\"ContactTitle\", 'r')");
         }
 
-        [Fact]
-        public void TrimEnd_with_argument_in_predicate()
+        public override void TrimEnd_with_char_array_argument_in_predicate()
         {
-            AssertQuery<Customer>(
-                cs => cs.Where(c => c.ContactTitle.TrimEnd('r') == "Owne"),
-                entryCount: 17);
-            AssertContainsInSql("WHERE RTRIM(\"c\".\"ContactTitle\", 'r')");
+            base.TrimEnd_with_char_array_argument_in_predicate();
+            AssertContainsInSql("WHERE RTRIM(\"c\".\"ContactTitle\", 'er')");
         }
 
         public override void IsNullOrWhiteSpace_in_predicate()
@@ -312,6 +303,15 @@ namespace Microsoft.EntityFrameworkCore.Query
 
         private void AssertContainsInSql(string expected)
             => Assert.Contains(expected, Fixture.TestSqlLoggerFactory.Sql);
+
+        protected void AssertQuery<TItem1>(
+            Func<IQueryable<TItem1>, IQueryable<object>> query,
+            Func<dynamic, object> elementSorter = null,
+            Action<dynamic, dynamic> elementAsserter = null,
+            bool assertOrder = false,
+            int entryCount = 0)
+            where TItem1 : class
+            => AssertQuery(query, query, elementSorter, elementAsserter, assertOrder, entryCount);
 
         protected override void ClearLog()
             => Fixture.TestSqlLoggerFactory.Clear();

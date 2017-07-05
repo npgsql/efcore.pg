@@ -91,7 +91,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests.ReverseEn
                 TestNamespace,
                 contextName: "AttributesContext",
                 useDataAnnotations: true,
-                overwriteFiles: false);
+                overwriteFiles: false,
+                useDatabaseNames: false);
 
             var actualFileSet = new FileSet(InMemoryFiles, Path.GetFullPath(Path.Combine(TestProjectDir, TestSubDir)))
             {
@@ -142,7 +143,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests.ReverseEn
                 rootNamespace: TestNamespace,
                 contextName: null,
                 useDataAnnotations: false,
-                overwriteFiles: false);
+                overwriteFiles: false,
+                useDatabaseNames: false);
 
             var actualFileSet = new FileSet(InMemoryFiles, Path.GetFullPath(TestProjectDir))
             {
@@ -212,7 +214,8 @@ CREATE SEQUENCE ""CyclicalCountByThree""
                     rootNamespace: TestNamespace,
                     contextName: "SequenceContext",
                     useDataAnnotations: false,
-                    overwriteFiles: false);
+                    overwriteFiles: false,
+                    useDatabaseNames: false);
 
                 var actualFileSet = new FileSet(InMemoryFiles, Path.GetFullPath(TestProjectDir))
                 {
@@ -279,7 +282,8 @@ CREATE TABLE ""NonSerialSequence"" (
                     rootNamespace: TestNamespace,
                     contextName: "ColumnsWithSequencesContext",
                     useDataAnnotations: false,
-                    overwriteFiles: false);
+                    overwriteFiles: false,
+                    useDatabaseNames: false);
 
                 var actualFileSet = new FileSet(InMemoryFiles, Path.GetFullPath(TestProjectDir))
                 {

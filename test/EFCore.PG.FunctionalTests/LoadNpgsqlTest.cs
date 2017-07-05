@@ -20,9 +20,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             fixture.TestSqlLoggerFactory.Clear();
         }
 
-        public override void ClearLog() => Fixture.TestSqlLoggerFactory.Clear();
+        protected override void ClearLog() => Fixture.TestSqlLoggerFactory.Clear();
 
-        public override void RecordLog() => Sql = Fixture.TestSqlLoggerFactory.Sql.Replace(Environment.NewLine, FileLineEnding);
+        protected override void RecordLog() => Sql = Fixture.TestSqlLoggerFactory.Sql.Replace(Environment.NewLine, FileLineEnding);
 
         private const string FileLineEnding = @"
 ";
