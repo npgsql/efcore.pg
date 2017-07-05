@@ -18,7 +18,7 @@ namespace Microsoft.EntityFrameworkCore.Utilities
                     new LoggingOptions(),
                     new DiagnosticListener("Fake")));
 
-        protected override bool AcceptIndex(IndexModel index)
+        protected override bool AcceptIndex(DatabaseIndex index)
             => false;
     }
 }
