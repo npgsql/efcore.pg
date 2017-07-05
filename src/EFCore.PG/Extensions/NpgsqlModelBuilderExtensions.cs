@@ -1,7 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-
-using System;
+﻿using System;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Utilities;
@@ -65,6 +62,28 @@ namespace Microsoft.EntityFrameworkCore
             property.Npgsql().HiLoSequenceName = null;
             property.Npgsql().HiLoSequenceSchema = null;
 
+            return modelBuilder;
+        }
+
+        public static NpgsqlPostgresExtensionBuilder HasPostgresExtension(
+            [NotNull] this ModelBuilder modelBuilder,
+            [NotNull] string name)
+        {
+            Check.NotNull(modelBuilder, nameof(modelBuilder));
+            Check.NotEmpty(name, nameof(name));
+
+            return new NpgsqlPostgresExtensionBuilder(
+                modelBuilder.Model.Npgsql().GetOrAddPostgresExtension(name));
+        }
+
+        public static ModelBuilder HasDatabaseTemplate(
+            [NotNull] this ModelBuilder modelBuilder,
+            [NotNull] string templateDatabaseName)
+        {
+            Check.NotNull(modelBuilder, nameof(modelBuilder));
+            Check.NotEmpty(templateDatabaseName, nameof(templateDatabaseName));
+
+            modelBuilder.Model.Npgsql().DatabaseTemplate = templateDatabaseName;
             return modelBuilder;
         }
     }
