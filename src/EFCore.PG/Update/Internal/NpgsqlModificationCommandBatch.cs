@@ -88,9 +88,9 @@ namespace Microsoft.EntityFrameworkCore.Update.Internal
         protected override bool IsCommandTextValid()
             => true;
 
-        protected override void Consume(DbDataReader reader)
+        protected override void Consume(RelationalDataReader reader)
         {
-            var npgsqlReader = (NpgsqlDataReader)reader;
+            var npgsqlReader = (NpgsqlDataReader)reader.DbDataReader;
             Debug.Assert(npgsqlReader.Statements.Count == ModificationCommands.Count, $"Reader has {npgsqlReader.Statements.Count} statements, expected {ModificationCommands.Count}");
             var commandIndex = 0;
 
@@ -120,7 +120,7 @@ namespace Microsoft.EntityFrameworkCore.Update.Internal
 
                     if (nextPropagating == ModificationCommands.Count)
                     {
-                        Debug.Assert(!reader.NextResult(), "Expected less resultsets");
+                        Debug.Assert(!npgsqlReader.NextResult(), "Expected less resultsets");
                         break;
                     }
 
@@ -136,9 +136,9 @@ namespace Microsoft.EntityFrameworkCore.Update.Internal
                     }
 
                     var valueBufferFactory = CreateValueBufferFactory(modificationCommand.ColumnModifications);
-                    modificationCommand.PropagateResults(valueBufferFactory.Create(reader));
+                    modificationCommand.PropagateResults(valueBufferFactory.Create(npgsqlReader));
 
-                    reader.NextResult();
+                    npgsqlReader.NextResult();
                 }
             }
             catch (DbUpdateException)
@@ -155,10 +155,10 @@ namespace Microsoft.EntityFrameworkCore.Update.Internal
         }
 
         protected override async Task ConsumeAsync(
-            DbDataReader reader,
+            RelationalDataReader reader,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            var npgsqlReader = (NpgsqlDataReader)reader;
+            var npgsqlReader = (NpgsqlDataReader)reader.DbDataReader;
             Debug.Assert(npgsqlReader.Statements.Count == ModificationCommands.Count, $"Reader has {npgsqlReader.Statements.Count} statements, expected {ModificationCommands.Count}");
             var commandIndex = 0;
 
@@ -189,7 +189,7 @@ namespace Microsoft.EntityFrameworkCore.Update.Internal
 
                     if (nextPropagating == ModificationCommands.Count)
                     {
-                        Debug.Assert(!(await reader.NextResultAsync(cancellationToken)), "Expected less resultsets");
+                        Debug.Assert(!(await npgsqlReader.NextResultAsync(cancellationToken)), "Expected less resultsets");
                         break;
                     }
 
@@ -206,9 +206,9 @@ namespace Microsoft.EntityFrameworkCore.Update.Internal
                     }
 
                     var valueBufferFactory = CreateValueBufferFactory(modificationCommand.ColumnModifications);
-                    modificationCommand.PropagateResults(valueBufferFactory.Create(reader));
+                    modificationCommand.PropagateResults(valueBufferFactory.Create(npgsqlReader));
 
-                    await reader.NextResultAsync(cancellationToken);
+                    await npgsqlReader.NextResultAsync(cancellationToken);
                 }
             }
             catch (DbUpdateException)
