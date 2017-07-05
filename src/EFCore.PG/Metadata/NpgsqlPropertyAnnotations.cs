@@ -23,9 +23,9 @@ namespace Microsoft.EntityFrameworkCore.Metadata
 
         public virtual string HiLoSequenceName
         {
-            get { return (string)Annotations.GetAnnotation(NpgsqlAnnotationNames.HiLoSequenceName); }
+            get => (string)Annotations.Metadata[NpgsqlAnnotationNames.HiLoSequenceName];
             [param: CanBeNull]
-            set { SetHiLoSequenceName(value); }
+            set => SetHiLoSequenceName(value);
         }
 
         protected virtual bool SetHiLoSequenceName([CanBeNull] string value)
@@ -35,9 +35,9 @@ namespace Microsoft.EntityFrameworkCore.Metadata
 
         public virtual string HiLoSequenceSchema
         {
-            get { return (string)Annotations.GetAnnotation(NpgsqlAnnotationNames.HiLoSequenceSchema); }
+            get => (string)Annotations.Metadata[NpgsqlAnnotationNames.HiLoSequenceSchema];
             [param: CanBeNull]
-            set { SetHiLoSequenceSchema(value); }
+            set => SetHiLoSequenceSchema(value);
         }
 
         protected virtual bool SetHiLoSequenceSchema([CanBeNull] string value)
@@ -80,9 +80,7 @@ namespace Microsoft.EntityFrameworkCore.Metadata
                 return null;
             }
 
-            var value = (NpgsqlValueGenerationStrategy?)Annotations.GetAnnotation(
-                NpgsqlAnnotationNames.ValueGenerationStrategy);
-
+            var value = (NpgsqlValueGenerationStrategy?)Annotations.Metadata[NpgsqlAnnotationNames.ValueGenerationStrategy];
             if (value != null)
             {
                 return value;
@@ -285,8 +283,9 @@ namespace Microsoft.EntityFrameworkCore.Metadata
 
         public virtual string Comment
         {
-            get { return (string)Annotations.GetAnnotation(NpgsqlAnnotationNames.Comment); }
-            [param: CanBeNull] set { SetComment(value); }
+            get => (string)Annotations.Metadata[NpgsqlAnnotationNames.Comment];
+            [param: CanBeNull]
+            set => SetComment(value);
         }
 
         protected virtual bool SetComment([CanBeNull] string value)

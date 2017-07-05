@@ -46,8 +46,12 @@ namespace Microsoft.EntityFrameworkCore.Metadata
         /// </remarks>
         public string Method
         {
-            get { return (string) Annotations.GetAnnotation(NpgsqlAnnotationNames.IndexMethod); }
-            set { Annotations.SetAnnotation(NpgsqlAnnotationNames.IndexMethod, value); }
+            get => (string) Annotations.Metadata[NpgsqlAnnotationNames.IndexMethod];
+            set => SetMethod(value);
         }
+
+        protected virtual bool SetMethod(string value)
+            => Annotations.SetAnnotation(NpgsqlAnnotationNames.IndexMethod, value);
+
     }
 }

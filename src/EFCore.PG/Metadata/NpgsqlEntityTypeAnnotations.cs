@@ -32,8 +32,8 @@ namespace Microsoft.EntityFrameworkCore.Metadata
 
         public virtual string Comment
         {
-            get { return (string)Annotations.GetAnnotation(NpgsqlAnnotationNames.Comment); }
-            [param: CanBeNull] set { SetComment(value); }
+            get => (string)Annotations.Metadata[NpgsqlAnnotationNames.Comment];
+            [param: CanBeNull] set => SetComment(value);
         }
 
         protected virtual bool SetComment([CanBeNull] string value)

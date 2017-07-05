@@ -28,9 +28,9 @@ namespace Microsoft.EntityFrameworkCore.Metadata
 
         public virtual string HiLoSequenceName
         {
-            get { return (string)Annotations.GetAnnotation(NpgsqlAnnotationNames.HiLoSequenceName); }
+            get => (string)Annotations.Metadata[NpgsqlAnnotationNames.HiLoSequenceName];
             [param: CanBeNull]
-            set { SetHiLoSequenceName(value); }
+            set => SetHiLoSequenceName(value);
         }
 
         protected virtual bool SetHiLoSequenceName([CanBeNull] string value)
@@ -40,9 +40,9 @@ namespace Microsoft.EntityFrameworkCore.Metadata
 
         public virtual string HiLoSequenceSchema
         {
-            get { return (string)Annotations.GetAnnotation(NpgsqlAnnotationNames.HiLoSequenceSchema); }
+            get => (string)Annotations.Metadata[NpgsqlAnnotationNames.HiLoSequenceSchema];
             [param: CanBeNull]
-            set { SetHiLoSequenceSchema(value); }
+            set => SetHiLoSequenceSchema(value);
         }
 
         protected virtual bool SetHiLoSequenceSchema([CanBeNull] string value)
@@ -56,12 +56,8 @@ namespace Microsoft.EntityFrameworkCore.Metadata
 
         public virtual NpgsqlValueGenerationStrategy? ValueGenerationStrategy
         {
-            get
-            {
-                return (NpgsqlValueGenerationStrategy?)Annotations.GetAnnotation(
-                    NpgsqlAnnotationNames.ValueGenerationStrategy);
-            }
-            set { SetValueGenerationStrategy(value); }
+            get => (NpgsqlValueGenerationStrategy?)Annotations.Metadata[NpgsqlAnnotationNames.ValueGenerationStrategy];
+            set => SetValueGenerationStrategy(value);
         }
 
         protected virtual bool SetValueGenerationStrategy(NpgsqlValueGenerationStrategy? value)
@@ -83,9 +79,9 @@ namespace Microsoft.EntityFrameworkCore.Metadata
 
         public virtual string DatabaseTemplate
         {
-            get { return (string)Annotations.GetAnnotation(NpgsqlAnnotationNames.DatabaseTemplate); }
+            get => (string)Annotations.Metadata[NpgsqlAnnotationNames.DatabaseTemplate];
             [param: CanBeNull]
-            set { SetDatabaseTemplate(value); }
+            set => SetDatabaseTemplate(value);
         }
 
         protected virtual bool SetDatabaseTemplate([CanBeNull] string value)
