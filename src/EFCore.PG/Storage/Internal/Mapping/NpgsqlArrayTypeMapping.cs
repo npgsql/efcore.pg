@@ -34,20 +34,21 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
 {
     public sealed class NpgsqlArrayTypeMapping : NpgsqlTypeMapping
     {
-        //readonly NpgsqlDbType? _npgsqlDbType;
-
         public RelationalTypeMapping ElementMapping { get; private set; }
 
         internal NpgsqlArrayTypeMapping(Type arrayClrType, RelationalTypeMapping elementMapping)
-            : base('_' + elementMapping.StoreType, arrayClrType)
+            : base(elementMapping.StoreType + "[]", arrayClrType)
         {
             ElementMapping = elementMapping;
 
-            //if (elementMapping.NpgsqlDbType.HasValue)
-            //    _npgsqlDbType = elementMapping.NpgsqlDbType.Value | NpgsqlTypes.NpgsqlDbType.Array;
+            if (elementMapping is NpgsqlTypeMapping m && m.NpgsqlDbType.HasValue)
+                NpgsqlDbType = m.NpgsqlDbType.Value | NpgsqlTypes.NpgsqlDbType.Array;
         }
 
-        //public override RelationalTypeMapping CreateCopy(string storeType, int? size)
-        //    => new NpgsqlArrayTypeMapping(storeType, DbType);
+        public override RelationalTypeMapping Clone(string storeType, int? size)
+            => new NpgsqlTypeMapping(storeType, ClrType, NpgsqlDbType);
+
+        protected override string GenerateNonNullSqlLiteral(object value)
+            => throw new NotSupportedException("Can't generate array literals (yet)");
     }
 }

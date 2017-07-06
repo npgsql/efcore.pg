@@ -242,8 +242,10 @@ ORDER BY attnum";
                         // Base (regular), is the default
                         break;
                     case 'a':
-                        column[NpgsqlAnnotationNames.PostgresTypeType] = PostgresTypeType.Array;
-                        column[NpgsqlAnnotationNames.ElementDataType] = elemDataType;
+                        // PG array types in pg_type start with underscores (_int for array of int), but the type name
+                        // PG accepts when creating columns is int[], translate.
+                        if (column.StoreType.StartsWith("_"))
+                            column.StoreType = column.StoreType.Substring(1) + "[]";
                         break;
                     case 'r':
                         column[NpgsqlAnnotationNames.PostgresTypeType] = PostgresTypeType.Range;

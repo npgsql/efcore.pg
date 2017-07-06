@@ -73,6 +73,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
             StringMapper = new NpgsqlStringRelationalTypeMapper();
 
             AddCustomizedMappings();
+            AddArrayStoreMappings();
         }
 
         void AddCustomizedMappings()
@@ -110,6 +111,15 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
             // EFCore doesn't allow a situation where a CLR type has no default store type, so we arbitrarily
             // choose oid.
             _baseClrMappings[typeof(uint)] = new NpgsqlBaseTypeMapping("oid", typeof(uint), NpgsqlDbType.Oid);
+        }
+
+        void AddArrayStoreMappings()
+        {
+            foreach (var elementMapping in _storeTypeMappings.Values.ToList())
+            {
+                var arrayMapping = new NpgsqlArrayTypeMapping(elementMapping.ClrType.MakeArrayType(), elementMapping);
+                _storeTypeMappings[arrayMapping.StoreType] = arrayMapping;
+            }
         }
 
         protected override string GetColumnType(IProperty property) => property.Npgsql().ColumnType;

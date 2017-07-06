@@ -15,12 +15,9 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
     {
         public NpgsqlDbType? NpgsqlDbType { get; protected set; }
 
-        readonly Type _type;
-
         internal NpgsqlTypeMapping([NotNull] string storeType, [NotNull] Type clrType, NpgsqlDbType? npgsqlDbType = null)
             : base(storeType, clrType, unicode: false, size: null, dbType: null)
         {
-            _type = clrType;
             NpgsqlDbType = npgsqlDbType;
         }
 
@@ -31,6 +28,6 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
         }
 
         public override RelationalTypeMapping Clone(string storeType, int? size)
-            => new NpgsqlTypeMapping(storeType, _type, NpgsqlDbType);
+            => new NpgsqlTypeMapping(storeType, ClrType, NpgsqlDbType);
     }
 }
