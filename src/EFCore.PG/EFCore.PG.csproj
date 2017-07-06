@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <VersionPrefix>2.0.0-preview2</VersionPrefix>
+    <VersionPrefix>2.0.0-preview2-final</VersionPrefix>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <AssemblyName>Npgsql.EntityFrameworkCore.PostgreSQL</AssemblyName>
     <RootNamespace>Microsoft.EntityFrameworkCore</RootNamespace>
