@@ -1,3 +1,3 @@
 using Microsoft.EntityFrameworkCore.Design;
 
-[assembly: DesignTimeProviderServices("Microsoft.EntityFrameworkCore.Scaffolding.Internal.NpgsqlDesignTimeServices")]
+[assembly: DesignTimeProviderServices("Microsoft.EntityFrameworkCore.Design.Internal.NpgsqlDesignTimeServices")]
