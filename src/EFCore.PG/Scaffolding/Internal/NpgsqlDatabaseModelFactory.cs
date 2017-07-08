@@ -148,8 +148,6 @@ WHERE
                         Name = reader.GetValueOrDefault<string>("relname")
                     };
 
-                    File.AppendAllText(@"c:\temp\bla.txt", $"Doing table: {table.Name}\n");
-
                     if (_tableSelectionSet.Allows(table.Schema, table.Name))
                     {
                         _databaseModel.Tables.Add(table);
