@@ -304,15 +304,6 @@ namespace Microsoft.EntityFrameworkCore.Query
         private void AssertContainsInSql(string expected)
             => Assert.Contains(expected, Fixture.TestSqlLoggerFactory.Sql);
 
-        protected void AssertQuery<TItem1>(
-            Func<IQueryable<TItem1>, IQueryable<object>> query,
-            Func<dynamic, object> elementSorter = null,
-            Action<dynamic, dynamic> elementAsserter = null,
-            bool assertOrder = false,
-            int entryCount = 0)
-            where TItem1 : class
-            => AssertQuery(query, query, elementSorter, elementAsserter, assertOrder, entryCount);
-
         protected override void ClearLog()
             => Fixture.TestSqlLoggerFactory.Clear();
     }
