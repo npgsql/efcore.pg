@@ -38,7 +38,7 @@ WHERE ""c"".""ContactName"" LIKE '%M%'",
             Assert.Equal(
                 @"SELECT COUNT(*)::INT4
 FROM ""Customers"" AS ""c""
-WHERE ""c"".""ContactName"" LIKE ""c"".""ContactName""",
+WHERE ""c"".""ContactName"" LIKE ""c"".""ContactName"" ESCAPE ''",
                 Sql);
         }
 
@@ -50,6 +50,23 @@ WHERE ""c"".""ContactName"" LIKE ""c"".""ContactName""",
                 @"SELECT COUNT(*)::INT4
 FROM ""Customers"" AS ""c""
 WHERE ""c"".""ContactName"" LIKE '!%' ESCAPE '!'",
+                Sql);
+        }
+
+        [Fact]
+        public void String_Like_Literal_With_Backslash()
+        {
+            using (var context = CreateContext())
+            {
+                var count = context.Customers.Count(c => EF.Functions.Like(c.ContactName, "\\"));
+
+                Assert.Equal(0, count);
+            }
+
+            Assert.Equal(
+                @"SELECT COUNT(*)::INT4
+FROM ""Customers"" AS ""c""
+WHERE ""c"".""ContactName"" LIKE '\' ESCAPE ''",
                 Sql);
         }
 
