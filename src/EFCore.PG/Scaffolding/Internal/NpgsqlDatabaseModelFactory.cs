@@ -26,6 +26,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -125,9 +126,10 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding.Internal
         }
 
         const string GetTablesQuery = @"
-SELECT nspname, relname
+SELECT nspname, relname, description
 FROM pg_class AS cl
 JOIN pg_namespace AS ns ON ns.oid = cl.relnamespace
+LEFT OUTER JOIN pg_description AS des ON des.objoid = cl.oid AND des.objsubid=0
 WHERE
     cl.relkind = 'r' AND
     ns.nspname NOT IN ('pg_catalog', 'information_schema') AND
@@ -146,18 +148,24 @@ WHERE
                         Name = reader.GetValueOrDefault<string>("relname")
                     };
 
+                    File.AppendAllText(@"c:\temp\bla.txt", $"Doing table: {table.Name}\n");
+
                     if (_tableSelectionSet.Allows(table.Schema, table.Name))
                     {
                         _databaseModel.Tables.Add(table);
                         _tables[TableKey(table)] = table;
                     }
+
+                    var comment = reader.GetValueOrDefault<string>("description");
+                    if (comment != null)
+                        table[NpgsqlAnnotationNames.Comment] = comment;
                 }
             }
         }
 
         const string GetColumnsQuery = @"
 SELECT
-    nspname, relname, attisdropped, attname, typ.typname, atttypmod,
+    nspname, relname, attisdropped, attname, typ.typname, atttypmod, description,
     CASE WHEN pg_proc.proname='array_recv' THEN 'a' ELSE typ.typtype END AS typtype,
     CASE
       WHEN pg_proc.proname='array_recv' THEN elemtyp.typname
@@ -171,6 +179,7 @@ LEFT OUTER JOIN pg_attribute AS attr ON attrelid = cls.oid
 LEFT OUTER JOIN pg_type AS typ ON attr.atttypid = typ.oid
 LEFT OUTER JOIN pg_proc ON pg_proc.oid = typ.typreceive
 LEFT OUTER JOIN pg_type AS elemtyp ON (elemtyp.oid = typ.typelem)
+LEFT OUTER JOIN pg_description AS des ON des.objoid = cls.oid AND des.objsubid = attnum
 WHERE
     relkind = 'r' AND
     nspname NOT IN ('pg_catalog', 'information_schema') AND
@@ -258,6 +267,10 @@ ORDER BY attnum";
                         Logger.Logger.LogWarning($"Can't scaffold column '{columnName}' of type '{dataType}': unknown type char '{typeChar}'");
                         continue;
                     }
+
+                    var comment = reader.GetValueOrDefault<string>("description");
+                    if (comment != null)
+                        column[NpgsqlAnnotationNames.Comment] = comment;
 
                     table.Columns.Add(column);
                     _tableColumns.Add(ColumnKey(table, column.Name), column);

@@ -61,6 +61,34 @@ namespace Microsoft.EntityFrameworkCore.Design.Internal
             return null;
         }
 
+        public override string GenerateFluentApi(IEntityType entityType, IAnnotation annotation, string language)
+        {
+            Check.NotNull(entityType, nameof(entityType));
+            Check.NotNull(annotation, nameof(annotation));
+            Check.NotNull(language, nameof(language));
+
+            if (language != "CSharp")
+                return null;
+
+            return annotation.Name == NpgsqlAnnotationNames.Comment
+                ? $".{nameof(NpgsqlEntityTypeBuilderExtensions.ForNpgsqlHasComment)}(\"{annotation.Value}\")"
+                : null;
+        }
+
+        public override string GenerateFluentApi(IProperty property, IAnnotation annotation, string language)
+        {
+            Check.NotNull(property, nameof(property));
+            Check.NotNull(annotation, nameof(annotation));
+            Check.NotNull(language, nameof(language));
+
+            if (language != "CSharp")
+                return null;
+
+            return annotation.Name == NpgsqlAnnotationNames.Comment
+                ? $".{nameof(NpgsqlPropertyBuilderExtensions.ForNpgsqlHasComment)}(\"{annotation.Value}\")"
+                : null;
+        }
+
         public override string GenerateFluentApi(IIndex index, IAnnotation annotation, string language)
         {
             Check.NotNull(index, nameof(index));

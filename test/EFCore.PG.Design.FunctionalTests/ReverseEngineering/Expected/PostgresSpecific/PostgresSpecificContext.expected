@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace E2ETest.Namespace
 {
-    public partial class IndexMethodsContext : DbContext
+    public partial class PostgresSpecificContext : DbContext
     {
         public virtual DbSet<Foo> Foo { get; set; }
 
@@ -19,9 +19,14 @@ namespace E2ETest.Namespace
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.HasPostgresExtension("pgcrypto")
+                .HasPostgresExtension("uuid-ossp");
+
             modelBuilder.Entity<Foo>(entity =>
             {
                 entity.ToTable("foo");
+
+                entity.ForNpgsqlHasComment("foo comment");
 
                 entity.HasIndex(e => e.A)
                     .HasName("ix_a");
@@ -36,7 +41,9 @@ namespace E2ETest.Namespace
 
                 entity.Property(e => e.A).HasColumnName("a");
 
-                entity.Property(e => e.B).HasColumnName("b");
+                entity.Property(e => e.B)
+                    .HasColumnName("b")
+                    .ForNpgsqlHasComment("b comment");
             });
         }
     }

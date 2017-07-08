@@ -300,59 +300,33 @@ CREATE TABLE ""NonSerialSequence"" (
         #endregion Sequences
 
         [Fact]
-        public void PostgresExtensions()
+        public void PostgresSpecific()
         {
-            using (var scratch = NpgsqlTestStore.CreateScratch())
-            {
-                scratch.ExecuteNonQuery(@"CREATE EXTENSION ""uuid-ossp""; CREATE EXTENSION ""pgcrypto"";");
-
-                var expectedFileSet = new FileSet(new FileSystemFileService(),
-                    Path.Combine("ReverseEngineering", "Expected"),
-                    contents => contents.Replace("{{connectionString}}", scratch.ConnectionString))
-                {
-                    Files = new List<string> { "PostgresExtensionsContext.expected" }
-                };
-
-                var filePaths = Generator.Generate(
-                    scratch.ConnectionString,
-                    Enumerable.Empty<string>(),
-                    Enumerable.Empty<string>(),
-                    TestProjectDir + Path.DirectorySeparatorChar,
-                    outputPath: null, // not used for this test
-                    rootNamespace: TestNamespace,
-                    contextName: "PostgresExtensionsContext",
-                    useDataAnnotations: false,
-                    overwriteFiles: false,
-                    useDatabaseNames: false);
-
-                var actualFileSet = new FileSet(InMemoryFiles, Path.GetFullPath(TestProjectDir))
-                {
-                    Files = new[] { filePaths.ContextFile }.Concat(filePaths.EntityTypeFiles).Select(Path.GetFileName).ToList()
-                };
-
-                AssertEqualFileContents(expectedFileSet, actualFileSet);
-                AssertCompile(actualFileSet);
-            }
-        }
-
-        [Fact]
-        public void IndexMethods()
-        {
+            // Tests scaffolding a bundle of PostgreSQL-specific features:
+            // * Extensions
+            // * Index methods
+            // * Table comments
             using (var scratch = NpgsqlTestStore.CreateScratch())
             {
                 scratch.ExecuteNonQuery(@"
+CREATE EXTENSION ""uuid-ossp"";
+CREATE EXTENSION ""pgcrypto"";
+
 CREATE TABLE foo (id INT PRIMARY KEY, a INT, b INT);
 CREATE INDEX ix_a ON foo (a);
 CREATE INDEX ix_b ON foo USING hash (b);
+
+COMMENT ON TABLE foo IS 'foo comment';
+COMMENT ON COLUMN foo.b IS 'b comment';
 ");
 
                 var expectedFileSet = new FileSet(new FileSystemFileService(),
-                    Path.Combine("ReverseEngineering", "Expected", "IndexMethods"),
+                    Path.Combine("ReverseEngineering", "Expected", "PostgresSpecific"),
                     contents => contents.Replace("{{connectionString}}", scratch.ConnectionString))
                 {
                     Files = new List<string>
                     {
-                        "IndexMethodsContext.expected",
+                        "PostgresSpecificContext.expected",
                         "Foo.expected"
                     }
                 };
@@ -364,7 +338,7 @@ CREATE INDEX ix_b ON foo USING hash (b);
                     TestProjectDir + Path.DirectorySeparatorChar,
                     outputPath: null, // not used for this test
                     rootNamespace: TestNamespace,
-                    contextName: "IndexMethodsContext",
+                    contextName: "PostgresSpecificContext",
                     useDataAnnotations: false,
                     overwriteFiles: false,
                     useDatabaseNames: false);
