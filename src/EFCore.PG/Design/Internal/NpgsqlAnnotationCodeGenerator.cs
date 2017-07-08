@@ -30,6 +30,20 @@ namespace Microsoft.EntityFrameworkCore.Design.Internal
             return false;
         }
 
+        public override bool IsHandledByConvention(IIndex index, IAnnotation annotation)
+        {
+            Check.NotNull(index, nameof(index));
+            Check.NotNull(annotation, nameof(annotation));
+
+            if (annotation.Name == NpgsqlAnnotationNames.IndexMethod
+                && string.Equals("btree", (string)annotation.Value))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         public override string GenerateFluentApi(IModel model, IAnnotation annotation, string language)
         {
             Check.NotNull(model, nameof(model));
@@ -47,6 +61,18 @@ namespace Microsoft.EntityFrameworkCore.Design.Internal
             return null;
         }
 
-        // TODO: Implement GenerateFluentApi for Npgsql-specific stuff (index method)
+        public override string GenerateFluentApi(IIndex index, IAnnotation annotation, string language)
+        {
+            Check.NotNull(index, nameof(index));
+            Check.NotNull(annotation, nameof(annotation));
+            Check.NotNull(language, nameof(language));
+
+            if (language != "CSharp")
+                return null;
+
+            return annotation.Name == NpgsqlAnnotationNames.IndexMethod
+                ? $".{nameof(NpgsqlIndexBuilderExtensions.ForNpgsqlHasMethod)}(\"{annotation.Value}\")"
+                : null;
+        }
     }
 }

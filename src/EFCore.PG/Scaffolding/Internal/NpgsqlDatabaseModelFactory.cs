@@ -291,12 +291,13 @@ ORDER BY attnum";
 
         const string GetIndexesQuery = @"
 SELECT
-    nspname, cls.relname AS cls_relname, idxcls.relname AS idx_relname, indisunique, indkey,
+    nspname, cls.relname AS cls_relname, idxcls.relname AS idx_relname, indisunique, indkey, amname,
     CASE WHEN indexprs IS NULL THEN NULL ELSE pg_get_expr(indexprs, cls.oid) END AS expr
 FROM pg_class AS cls
 JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
 JOIN pg_index AS idx ON indrelid = cls.oid
 JOIN pg_class AS idxcls ON idxcls.oid = indexrelid
+JOIN pg_am AS am ON am.oid = idxcls.relam
 WHERE
     cls.relkind = 'r' AND
     nspname NOT IN ('pg_catalog', 'information_schema') AND
@@ -331,8 +332,6 @@ WHERE
                         IsUnique = reader.GetValueOrDefault<bool>("indisunique")
                     };
 
-                    table.Indexes.Add(index);
-
                     var columnIndices = reader.GetValueOrDefault<short[]>("indkey");
                     if (columnIndices.Any(i => i == 0))
                     {
@@ -349,6 +348,10 @@ WHERE
                             index.Columns.Add(columns[columnIndex]);
                         }
                     }
+
+                    index[NpgsqlAnnotationNames.IndexMethod] = reader.GetValueOrDefault<string>("amname");
+
+                    table.Indexes.Add(index);
                 }
             }
         }

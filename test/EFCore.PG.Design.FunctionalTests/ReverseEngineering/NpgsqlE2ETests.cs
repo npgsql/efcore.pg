@@ -335,6 +335,50 @@ CREATE TABLE ""NonSerialSequence"" (
             }
         }
 
+        [Fact]
+        public void IndexMethods()
+        {
+            using (var scratch = NpgsqlTestStore.CreateScratch())
+            {
+                scratch.ExecuteNonQuery(@"
+CREATE TABLE foo (id INT PRIMARY KEY, a INT, b INT);
+CREATE INDEX ix_a ON foo (a);
+CREATE INDEX ix_b ON foo USING hash (b);
+");
+
+                var expectedFileSet = new FileSet(new FileSystemFileService(),
+                    Path.Combine("ReverseEngineering", "Expected", "IndexMethods"),
+                    contents => contents.Replace("{{connectionString}}", scratch.ConnectionString))
+                {
+                    Files = new List<string>
+                    {
+                        "IndexMethodsContext.expected",
+                        "Foo.expected"
+                    }
+                };
+
+                var filePaths = Generator.Generate(
+                    scratch.ConnectionString,
+                    Enumerable.Empty<string>(),
+                    Enumerable.Empty<string>(),
+                    TestProjectDir + Path.DirectorySeparatorChar,
+                    outputPath: null, // not used for this test
+                    rootNamespace: TestNamespace,
+                    contextName: "IndexMethodsContext",
+                    useDataAnnotations: false,
+                    overwriteFiles: false,
+                    useDatabaseNames: false);
+
+                var actualFileSet = new FileSet(InMemoryFiles, Path.GetFullPath(TestProjectDir))
+                {
+                    Files = new[] { filePaths.ContextFile }.Concat(filePaths.EntityTypeFiles).Select(Path.GetFileName).ToList()
+                };
+
+                AssertEqualFileContents(expectedFileSet, actualFileSet);
+                AssertCompile(actualFileSet);
+            }
+        }
+
         protected override ICollection<BuildReference> References { get; } = new List<BuildReference>
         {
             BuildReference.ByName("Npgsql.EntityFrameworkCore.PostgreSQL"),
