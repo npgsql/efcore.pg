@@ -181,6 +181,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests.ReverseEn
             AssertCompile(actualFileSet);
         }
 
+        #region Sequences
+
         [Fact]
         public void Sequences()
         {
@@ -281,6 +283,44 @@ CREATE TABLE ""NonSerialSequence"" (
                     outputPath: null, // not used for this test
                     rootNamespace: TestNamespace,
                     contextName: "ColumnsWithSequencesContext",
+                    useDataAnnotations: false,
+                    overwriteFiles: false,
+                    useDatabaseNames: false);
+
+                var actualFileSet = new FileSet(InMemoryFiles, Path.GetFullPath(TestProjectDir))
+                {
+                    Files = new[] { filePaths.ContextFile }.Concat(filePaths.EntityTypeFiles).Select(Path.GetFileName).ToList()
+                };
+
+                AssertEqualFileContents(expectedFileSet, actualFileSet);
+                AssertCompile(actualFileSet);
+            }
+        }
+
+        #endregion Sequences
+
+        [Fact]
+        public void PostgresExtensions()
+        {
+            using (var scratch = NpgsqlTestStore.CreateScratch())
+            {
+                scratch.ExecuteNonQuery(@"CREATE EXTENSION ""uuid-ossp""; CREATE EXTENSION ""pgcrypto"";");
+
+                var expectedFileSet = new FileSet(new FileSystemFileService(),
+                    Path.Combine("ReverseEngineering", "Expected"),
+                    contents => contents.Replace("{{connectionString}}", scratch.ConnectionString))
+                {
+                    Files = new List<string> { "PostgresExtensionsContext.expected" }
+                };
+
+                var filePaths = Generator.Generate(
+                    scratch.ConnectionString,
+                    Enumerable.Empty<string>(),
+                    Enumerable.Empty<string>(),
+                    TestProjectDir + Path.DirectorySeparatorChar,
+                    outputPath: null, // not used for this test
+                    rootNamespace: TestNamespace,
+                    contextName: "PostgresExtensionsContext",
                     useDataAnnotations: false,
                     overwriteFiles: false,
                     useDatabaseNames: false);

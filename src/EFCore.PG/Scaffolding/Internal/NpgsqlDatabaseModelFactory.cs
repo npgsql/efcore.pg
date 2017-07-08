@@ -105,6 +105,7 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding.Internal
                 GetIndexes();
                 GetConstraints();
                 GetSequences();
+                GetExtensions();
 
                 // We may have dropped columns. We load these because constraints take them into
                 // account when referencing columns, but must now get rid of them before returning
@@ -536,6 +537,28 @@ LEFT OUTER JOIN pg_namespace AS ownerns ON ownerns.oid = tblcls.relnamespace";
                         Logger.Logger.LogWarning($"Sequence with datatype {sequence.StoreType} which isn't the expected bigint.");
 
                     _databaseModel.Sequences.Add(sequence);
+                }
+            }
+        }
+
+        void GetExtensions()
+        {
+            using (var command = new NpgsqlCommand("SELECT name,default_version,installed_version FROM pg_available_extensions", _connection))
+            using (var reader = command.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    var name = reader.GetString(reader.GetOrdinal("name"));
+                    var defaultVersion = reader.GetValueOrDefault<string>("default_version");
+                    var installedVersion = reader.GetValueOrDefault<string>("installed_version");
+
+                    if (installedVersion == null)
+                        continue;
+
+                    if (name == "plpgsql")   // Implicitly installed in all PG databases
+                        continue;
+
+                    PostgresExtension.GetOrAddPostgresExtension(_databaseModel, name);
                 }
             }
         }

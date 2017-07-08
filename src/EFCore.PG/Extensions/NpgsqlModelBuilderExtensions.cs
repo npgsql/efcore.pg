@@ -66,15 +66,15 @@ namespace Microsoft.EntityFrameworkCore
             return modelBuilder;
         }
 
-        public static NpgsqlPostgresExtensionBuilder HasPostgresExtension(
+        public static ModelBuilder HasPostgresExtension(
             [NotNull] this ModelBuilder modelBuilder,
             [NotNull] string name)
         {
             Check.NotNull(modelBuilder, nameof(modelBuilder));
             Check.NotEmpty(name, nameof(name));
 
-            return new NpgsqlPostgresExtensionBuilder(
-                modelBuilder.Model.Npgsql().GetOrAddPostgresExtension(name));
+            modelBuilder.Model.Npgsql().GetOrAddPostgresExtension(name);
+            return modelBuilder;
         }
 
         public static ModelBuilder HasDatabaseTemplate(

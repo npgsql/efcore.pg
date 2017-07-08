@@ -17,7 +17,7 @@ namespace Microsoft.EntityFrameworkCore.Metadata
         readonly IAnnotatable _annotatable;
         readonly string _annotationName;
 
-        PostgresExtension(IAnnotatable annotatable, string annotationName)
+        internal PostgresExtension(IAnnotatable annotatable, string annotationName)
         {
             _annotatable = annotatable;
             _annotationName = annotationName;
@@ -25,14 +25,14 @@ namespace Microsoft.EntityFrameworkCore.Metadata
 
         public static PostgresExtension GetOrAddPostgresExtension(
             [NotNull] IMutableAnnotatable annotatable,
-            [NotNull] string name)
+            [NotNull] string extensionName)
         {
-            var extension = (PostgresExtension)FindPostgresExtension(annotatable, name);
+            var extension = (PostgresExtension)FindPostgresExtension(annotatable, extensionName);
             if (extension != null)
                 return extension;
 
-            extension = new PostgresExtension(annotatable, BuildAnnotationName(name));
-            extension.SetData(new PostgresExtensionData { Name = name });
+            extension = new PostgresExtension(annotatable, BuildAnnotationName(extensionName));
+            extension.SetData(new PostgresExtensionData { Name = extensionName });
             return extension;
         }
 
@@ -67,7 +67,7 @@ namespace Microsoft.EntityFrameworkCore.Metadata
         [CanBeNull]
         public string Schema
         {
-            get { return GetData().Schema; }
+            get => GetData().Schema;
             set
             {
                 var data = GetData();
@@ -79,7 +79,7 @@ namespace Microsoft.EntityFrameworkCore.Metadata
         [CanBeNull]
         public string Version
         {
-            get { return GetData().Version; }
+            get => GetData().Version;
             set
             {
                 var data = GetData();
@@ -91,9 +91,7 @@ namespace Microsoft.EntityFrameworkCore.Metadata
         PostgresExtensionData GetData() => PostgresExtensionData.Deserialize((string)Annotatable[_annotationName]);
 
         void SetData(PostgresExtensionData data)
-        {
-            Annotatable[_annotationName] = data.Serialize();
-        }
+            => Annotatable[_annotationName] = data.Serialize();
 
         IAnnotatable IPostgresExtension.Annotatable => _annotatable;
 
