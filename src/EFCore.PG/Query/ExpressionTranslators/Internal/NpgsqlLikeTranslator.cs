@@ -2,30 +2,49 @@
 using System.Linq.Expressions;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
+using Microsoft.EntityFrameworkCore.Query.Expressions.Internal;
 using Microsoft.EntityFrameworkCore.Utilities;
 
 namespace Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal
 {
     public class NpgsqlLikeTranslator : IMethodCallTranslator
     {
-        private static readonly MethodInfo _methodInfo
+        private static readonly MethodInfo _like
             = typeof(DbFunctionsExtensions).GetRuntimeMethod(
                 nameof(DbFunctionsExtensions.Like),
                 new[] { typeof(DbFunctions), typeof(string), typeof(string) });
 
-        private static readonly MethodInfo _methodInfoWithEscape
+        private static readonly MethodInfo _likeWithEscape
             = typeof(DbFunctionsExtensions).GetRuntimeMethod(
                 nameof(DbFunctionsExtensions.Like),
+                new[] { typeof(DbFunctions), typeof(string), typeof(string), typeof(string) });
+
+        private static readonly MethodInfo _iLike
+            = typeof(NpgsqlDbFunctionsExtensions).GetRuntimeMethod(
+                nameof(NpgsqlDbFunctionsExtensions.ILike),
+                new[] { typeof(DbFunctions), typeof(string), typeof(string) });
+
+        private static readonly MethodInfo _iLikeWithEscape
+            = typeof(NpgsqlDbFunctionsExtensions).GetRuntimeMethod(
+                nameof(NpgsqlDbFunctionsExtensions.ILike),
                 new[] { typeof(DbFunctions), typeof(string), typeof(string), typeof(string) });
 
         public virtual Expression Translate(MethodCallExpression methodCallExpression)
         {
             Check.NotNull(methodCallExpression, nameof(methodCallExpression));
 
-            if (Equals(methodCallExpression.Method, _methodInfoWithEscape))
+            if (Equals(methodCallExpression.Method, _likeWithEscape))
                 return new LikeExpression(methodCallExpression.Arguments[1], methodCallExpression.Arguments[2], methodCallExpression.Arguments[3]);
 
-            if (!Equals(methodCallExpression.Method, _methodInfo))
+            if (Equals(methodCallExpression.Method, _iLikeWithEscape))
+                return new ILikeExpression(methodCallExpression.Arguments[1], methodCallExpression.Arguments[2], methodCallExpression.Arguments[3]);
+
+            bool sensitive;
+            if (Equals(methodCallExpression.Method, _like))
+                sensitive = true;
+            else if (Equals(methodCallExpression.Method, _iLike))
+                sensitive = false;
+            else
                 return null;
 
             // PostgreSQL has backslash as the default LIKE escape character, but EF Core expects
@@ -39,10 +58,14 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal
                 constantPattern.Value is string pattern &&
                 !pattern.Contains("\\"))
             {
-                return new LikeExpression(methodCallExpression.Arguments[1], methodCallExpression.Arguments[2]);
+                return sensitive
+                    ? new LikeExpression(methodCallExpression.Arguments[1], methodCallExpression.Arguments[2])
+                    : (Expression)new ILikeExpression(methodCallExpression.Arguments[1], methodCallExpression.Arguments[2]);
             }
 
-            return new LikeExpression(methodCallExpression.Arguments[1], methodCallExpression.Arguments[2], Expression.Constant(string.Empty));
+            return sensitive
+                ? new LikeExpression(methodCallExpression.Arguments[1], methodCallExpression.Arguments[2], Expression.Constant(string.Empty))
+                : (Expression)new ILikeExpression(methodCallExpression.Arguments[1], methodCallExpression.Arguments[2], Expression.Constant(string.Empty));
         }
     }
 }

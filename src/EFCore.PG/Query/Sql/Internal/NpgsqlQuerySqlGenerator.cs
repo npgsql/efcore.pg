@@ -25,6 +25,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Internal;
@@ -170,6 +171,30 @@ namespace Microsoft.EntityFrameworkCore.Query.Sql.Internal
             Sql.Append(atTimeZoneExpression.TimeZone);
             Sql.Append('\'');
             return atTimeZoneExpression;
+        }
+
+        public virtual Expression VisitILike(ILikeExpression iLikeExpression)
+        {
+            Check.NotNull(iLikeExpression, nameof(iLikeExpression));
+
+            //var parentTypeMapping = _typeMapping;
+            //_typeMapping = InferTypeMappingFromColumn(iLikeExpression.Match) ?? parentTypeMapping;
+
+            Visit(iLikeExpression.Match);
+
+            Sql.Append(" ILIKE ");
+
+            Visit(iLikeExpression.Pattern);
+
+            if (iLikeExpression.EscapeChar != null)
+            {
+                Sql.Append(" ESCAPE ");
+                Visit(iLikeExpression.EscapeChar);
+            }
+
+            //_typeMapping = parentTypeMapping;
+
+            return iLikeExpression;
         }
 
         protected override string GenerateOperator(Expression expression)
