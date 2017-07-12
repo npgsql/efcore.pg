@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -781,6 +782,50 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         }
 
         #endregion
+
+        #region CockroachDB interleave-in-parent
+
+        [Fact]
+        public void CreateTableOperation_with_cockroach_interleave_in_parent()
+        {
+            var op = 
+                new CreateTableOperation
+                {
+                    Name = "People",
+                    Schema = "dbo",
+                    Columns =
+                    {
+                        new AddColumnOperation
+                        {
+                            Name = "Id",
+                            Table = "People",
+                            ClrType = typeof(int),
+                            IsNullable = false
+                        },
+                    },
+                    PrimaryKey = new AddPrimaryKeyOperation
+                    {
+                        Columns = new[] { "Id" }
+                    }
+                };
+
+            var interleaveInParent = new CockroachDbInterleaveInParent(op);
+            interleaveInParent.ParentTableSchema = "my_schema";
+            interleaveInParent.ParentTableName = "my_parent";
+            interleaveInParent.InterleavePrefix = new List<string> { "col_a", "col_b" };
+
+            Generate(op);
+
+            Assert.Equal(
+                "CREATE TABLE \"dbo\".\"People\" (" + EOL +
+                "    \"Id\" int4 NOT NULL," + EOL +
+                "    PRIMARY KEY (\"Id\")" + EOL +
+                ")" + EOL +
+                "INTERLEAVE IN PARENT \"my_schema\".\"my_parent\" (\"col_a\", \"col_b\");" + EOL,
+                Sql);
+        }
+
+        #endregion CockroachDB interleave-in-parent
 
         public NpgsqlMigrationSqlGeneratorTest()
             : base(NpgsqlTestHelpers.Instance)

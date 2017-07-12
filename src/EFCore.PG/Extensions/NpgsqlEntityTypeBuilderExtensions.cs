@@ -21,7 +21,11 @@
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 #endregion
 
+using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Utilities;
 
@@ -31,6 +35,8 @@ namespace Microsoft.EntityFrameworkCore
 {
     public static class NpgsqlEntityTypeBuilderExtensions
     {
+        #region xmin
+
         public static EntityTypeBuilder ForNpgsqlUseXminAsConcurrencyToken(
             [NotNull] this EntityTypeBuilder entityTypeBuilder)
         {
@@ -48,6 +54,10 @@ namespace Microsoft.EntityFrameworkCore
             [NotNull] this EntityTypeBuilder<TEntity> entityTypeBuilder)
             where TEntity : class
             => (EntityTypeBuilder<TEntity>)ForNpgsqlUseXminAsConcurrencyToken((EntityTypeBuilder)entityTypeBuilder);
+
+        #endregion xmin
+
+        #region Storage parameters
 
         /// <summary>
         /// Sets a PostgreSQL storage parameter on the table created for this entity.
@@ -84,6 +94,10 @@ namespace Microsoft.EntityFrameworkCore
             where TEntity : class
             => (EntityTypeBuilder<TEntity>)ForNpgsqlSetStorageParameter((EntityTypeBuilder)entityTypeBuilder, parameterName, parameterValue);
 
+        #endregion Storage parameters
+
+        #region Comment
+
         /// <summary>
         ///     Configures the comment set on the table when targeting Npgsql.
         /// </summary>
@@ -114,5 +128,39 @@ namespace Microsoft.EntityFrameworkCore
             [CanBeNull] string comment)
             where TEntity : class
         => (EntityTypeBuilder<TEntity>)ForNpgsqlHasComment((EntityTypeBuilder)entityTypeBuilder, comment);
+
+        #endregion Comment
+
+        #region CockroachDB Interleave-in-parent
+
+        public static EntityTypeBuilder ForCockroachDbInterleaveInParent(
+            [NotNull] this EntityTypeBuilder entityTypeBuilder,
+            [NotNull] Type parentTableType,
+            [NotNull] List<string> interleavePrefix)
+        {
+            Check.NotNull(entityTypeBuilder, nameof(entityTypeBuilder));
+            Check.NotNull(parentTableType, nameof(parentTableType));
+            Check.NotNull(interleavePrefix, nameof(interleavePrefix));
+
+            var parentEntity = entityTypeBuilder.Metadata.Model.FindEntityType(parentTableType);
+            if (parentEntity == null)
+                throw new Exception("Entity not found in model: " + parentTableType);
+
+            var interleaveInParent = entityTypeBuilder.Metadata.Npgsql().CockroachDbInterleaveInParent;
+            interleaveInParent.ParentTableSchema = parentEntity.Relational().Schema;
+            interleaveInParent.ParentTableName = parentEntity.Relational().TableName;
+            interleaveInParent.InterleavePrefix = interleavePrefix;
+
+            return entityTypeBuilder;
+        }
+
+        public static EntityTypeBuilder<TEntity> ForCockroachDbInterleaveInParent<TEntity>(
+            [NotNull] this EntityTypeBuilder<TEntity> entityTypeBuilder,
+            [NotNull] Type parentTableType,
+            [NotNull] List<string> interleavePrefix)
+            where TEntity : class
+            => (EntityTypeBuilder<TEntity>)ForCockroachDbInterleaveInParent((EntityTypeBuilder)entityTypeBuilder, parentTableType, interleavePrefix);
+
+        #endregion CockroachDB Interleave-in-parent
     }
 }

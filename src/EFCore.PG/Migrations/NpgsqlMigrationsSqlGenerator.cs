@@ -90,6 +90,24 @@ namespace Microsoft.EntityFrameworkCore.Migrations
 
             base.Generate(operation, model, builder, false);
 
+            // CockroachDB "interleave in parent" (https://www.cockroachlabs.com/docs/stable/interleave-in-parent.html)
+            var interleaveInParentStr = operation[CockroachDbAnnotationNames.InterleaveInParent] as string;
+            if (interleaveInParentStr != null)
+            {
+                var interleaveInParent = new CockroachDbInterleaveInParent(operation);
+                var parentTableSchema = interleaveInParent.ParentTableSchema;
+                var parentTableName = interleaveInParent.ParentTableName;
+                var interleavePrefix = interleaveInParent.InterleavePrefix;
+
+                builder
+                    .AppendLine()
+                    .Append("INTERLEAVE IN PARENT ")
+                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(parentTableName, parentTableSchema))
+                    .Append(" (")
+                    .Append(string.Join(", ", interleavePrefix.Select(c => Dependencies.SqlGenerationHelper.DelimitIdentifier(c))))
+                    .Append(')');
+            }
+
             var storageParameters = GetStorageParameters(operation);
             if (storageParameters.Count > 0)
             {

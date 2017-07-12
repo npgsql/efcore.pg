@@ -66,3 +66,12 @@ which will be copied as the basis for the new one. This can be useful for includ
 ```c#
 modelBuilder.HasDatabaseTemplate("my_template_db");
 ```
+
+# CockroachDB Interleave In Parent
+
+If you're using CockroachDB, the Npgsql provider exposes its ["interleave in parent" feature](https://www.cockroachlabs.com/docs/stable/interleave-in-parent.html). Use the following code:
+
+```c#
+modelBuilder.Entity<Customer>()
+    .ForCockroachDbInterleaveInParent(typeof(ParentEntityType), new List<string> { "prefix_column_1", "prefix_column_2" });
+```

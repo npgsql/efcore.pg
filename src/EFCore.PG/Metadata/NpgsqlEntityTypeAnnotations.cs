@@ -40,5 +40,8 @@ namespace Microsoft.EntityFrameworkCore.Metadata
             => Annotations.SetAnnotation(
                 NpgsqlAnnotationNames.Comment,
                 Check.NullButNotEmpty(value, nameof(value)));
+
+        public virtual CockroachDbInterleaveInParent CockroachDbInterleaveInParent
+            => new CockroachDbInterleaveInParent(EntityType);
     }
 }
