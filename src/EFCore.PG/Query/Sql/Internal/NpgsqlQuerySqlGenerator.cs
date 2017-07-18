@@ -171,6 +171,23 @@ namespace Microsoft.EntityFrameworkCore.Query.Sql.Internal
             return expression;
         }
 
+        public override Expression VisitIn(InExpression inExpression)
+        {
+            if (inExpression.Values == null || inExpression.Values.Count != 1 ||
+                !inExpression.Values[0].Type.IsArray)
+            {
+                return base.VisitIn(inExpression);
+            }
+
+            Visit(inExpression.Operand);
+
+            Sql.Append(" = ANY (");
+            Visit(inExpression.Values[0]);
+            Sql.Append(")");
+
+            return inExpression;
+        }
+
         // PostgreSQL array indexing is 1-based. If the index happens to be a constant,
         // just increment it. Otherwise, append a +1 in the SQL.
         Expression GenerateOneBasedIndexExpression(Expression expression)

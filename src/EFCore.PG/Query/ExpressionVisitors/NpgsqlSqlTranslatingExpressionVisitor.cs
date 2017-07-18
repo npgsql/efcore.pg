@@ -33,20 +33,27 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionVisitors
             if (result != null)
                 return result;
 
-            // The following is to allow us to translate CLR array's .Length
             var subQueryModel = expression.QueryModel;
 
-            // We want to only translate array length when it occurs on a property
+            // The following is to allow us to translate CLR array Length, Contains()
+            // Note that we want to only translate these when they occurs on a property
             // of an EF entity
             if (subQueryModel.IsIdentityQuery()
                 && subQueryModel.ResultOperators.Count == 1
-                && subQueryModel.ResultOperators.First() is CountResultOperator
                 && subQueryModel.MainFromClause.FromExpression is MemberExpression memberExpression
                 && memberExpression.Type.IsArray
                 && memberExpression.Expression is QuerySourceReferenceExpression
-                )
+            )
             {
-                return Expression.ArrayLength(Visit(memberExpression));
+                if (subQueryModel.ResultOperators.First() is CountResultOperator)
+                    return Expression.ArrayLength(Visit(memberExpression));
+
+                if (subQueryModel.ResultOperators.First() is ContainsResultOperator contains)
+                {
+                    var containsItem = Visit(contains.Item);
+                    if (containsItem != null)
+                        return new InExpression(containsItem, new[] { Visit(subQueryModel.MainFromClause.FromExpression) });
+                }
             }
 
             return null;

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Utilities;
@@ -74,6 +75,40 @@ namespace Microsoft.EntityFrameworkCore.Query
                 var x = ctx.SomeEntities.Single(e => e.SomeArray.SequenceEqual(new[] { 3, 4 }));
                 Assert.Equal(new[] { 3, 4 }, x.SomeArray);
                 AssertContainsInSql(@"WHERE ""e"".""SomeArray"" = ARRAY[3,4]");
+            }
+        }
+
+        [Fact]
+        public void Contains_with_literal()
+        {
+            using (var ctx = CreateContext())
+            {
+                var x = ctx.SomeEntities.Single(e => e.SomeArray.Contains(3));
+                Assert.Equal(new[] { 3, 4 }, x.SomeArray);
+                AssertContainsInSql(@"WHERE 3 = ANY (""e"".""SomeArray"")");
+            }
+        }
+
+        [Fact]
+        public void Contains_with_parameter()
+        {
+            using (var ctx = CreateContext())
+            {
+                var p = 3;
+                var x = ctx.SomeEntities.Single(e => e.SomeArray.Contains(p));
+                Assert.Equal(new[] { 3, 4 }, x.SomeArray);
+                AssertContainsInSql(@"WHERE @__p_0 = ANY (""e"".""SomeArray"")");
+            }
+        }
+
+        [Fact]
+        public void Contains_with_column()
+        {
+            using (var ctx = CreateContext())
+            {
+                var x = ctx.SomeEntities.Single(e => e.SomeArray.Contains(e.Id + 2));
+                Assert.Equal(new[] { 3, 4 }, x.SomeArray);
+                AssertContainsInSql(@"WHERE ""e"".""Id"" + 2 = ANY (""e"".""SomeArray"")");
             }
         }
 
