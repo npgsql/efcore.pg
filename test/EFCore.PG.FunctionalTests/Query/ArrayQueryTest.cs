@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Utilities;
@@ -123,6 +122,28 @@ namespace Microsoft.EntityFrameworkCore.Query
             }
         }
 
+        [Fact]
+        public void Length_on_EF_Property()
+        {
+            using (var ctx = CreateContext())
+            {
+                // TODO: This fails
+                var x = ctx.SomeEntities.Single(e => EF.Property<int[]>(e, nameof(SomeEntity.SomeArray)).Length == 2);
+                Assert.Equal(new[] { 3, 4 }, x.SomeArray);
+                AssertContainsInSql(@"WHERE array_length(""e"".""SomeArray"", 1) = 2");
+            }
+        }
+
+        [Fact]
+        public void Length_on_literal_not_translated()
+        {
+            using (var ctx = CreateContext())
+            {
+                var x = ctx.SomeEntities.Where(e => new[] { 1, 2, 3 }.Length == e.Id).ToList();
+                AssertDoesNotContainInSql("array_length");
+            }
+        }
+
         #region Support
 
         ArrayFixture Fixture { get; }
@@ -130,12 +151,16 @@ namespace Microsoft.EntityFrameworkCore.Query
         public ArrayQueryTest(ArrayFixture fixture)
         {
             Fixture = fixture;
+            Fixture.TestSqlLoggerFactory.Clear();
         }
 
         ArrayContext CreateContext() => Fixture.CreateContext();
 
         void AssertContainsInSql(string expected)
             => Assert.Contains(expected, Fixture.TestSqlLoggerFactory.Sql);
+
+        void AssertDoesNotContainInSql(string expected)
+            => Assert.DoesNotContain(expected, Fixture.TestSqlLoggerFactory.Sql);
 
         #endregion Support
     }

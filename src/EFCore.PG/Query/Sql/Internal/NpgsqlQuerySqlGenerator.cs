@@ -167,21 +167,12 @@ namespace Microsoft.EntityFrameworkCore.Query.Sql.Internal
             Sql.Append(']');
         }
 
-        public override Expression VisitIn(InExpression inExpression)
+        public void GenerateArrayAny(ArrayAnyExpression arrayAnyExpression)
         {
-            if (inExpression.Values == null || inExpression.Values.Count != 1 ||
-                !inExpression.Values[0].Type.IsArray)
-            {
-                return base.VisitIn(inExpression);
-            }
-
-            Visit(inExpression.Operand);
-
+            Visit(arrayAnyExpression.Operand);
             Sql.Append(" = ANY (");
-            Visit(inExpression.Values[0]);
+            Visit(arrayAnyExpression.Array);
             Sql.Append(")");
-
-            return inExpression;
         }
 
         // PostgreSQL array indexing is 1-based. If the index happens to be a constant,
