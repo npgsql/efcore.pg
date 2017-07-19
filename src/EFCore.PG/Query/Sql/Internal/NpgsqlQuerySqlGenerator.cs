@@ -138,7 +138,7 @@ namespace Microsoft.EntityFrameworkCore.Query.Sql.Internal
             return base.VisitUnary(expression);
         }
 
-        public void GenerateArrayIndex([NotNull] BinaryExpression expression)
+        void GenerateArrayIndex([NotNull] BinaryExpression expression)
         {
             Debug.Assert(expression.NodeType == ExpressionType.ArrayIndex);
 
@@ -167,12 +167,13 @@ namespace Microsoft.EntityFrameworkCore.Query.Sql.Internal
             Sql.Append(']');
         }
 
-        public void GenerateArrayAny(ArrayAnyExpression arrayAnyExpression)
+        public Expression VisitArrayAny(ArrayAnyExpression arrayAnyExpression)
         {
             Visit(arrayAnyExpression.Operand);
             Sql.Append(" = ANY (");
             Visit(arrayAnyExpression.Array);
             Sql.Append(")");
+            return arrayAnyExpression;
         }
 
         // PostgreSQL array indexing is 1-based. If the index happens to be a constant,
@@ -183,7 +184,7 @@ namespace Microsoft.EntityFrameworkCore.Query.Sql.Internal
                 : (Expression)Expression.Add(expression, Expression.Constant(1));
 
         // See http://www.postgresql.org/docs/current/static/functions-matching.html
-        public void GenerateRegexMatch([NotNull] RegexMatchExpression regexMatchExpression)
+        public Expression VisitRegexMatch([NotNull] RegexMatchExpression regexMatchExpression)
         {
             Check.NotNull(regexMatchExpression, nameof(regexMatchExpression));
             var options = regexMatchExpression.Options;
@@ -195,7 +196,7 @@ namespace Microsoft.EntityFrameworkCore.Query.Sql.Internal
             if (options == RegexOptions.Singleline)
             {
                 Visit(regexMatchExpression.Pattern);
-                return;
+                return regexMatchExpression;
             }
 
             Sql.Append("('(?");
@@ -219,9 +220,11 @@ namespace Microsoft.EntityFrameworkCore.Query.Sql.Internal
             Sql.Append(")' || ");
             Visit(regexMatchExpression.Pattern);
             Sql.Append(')');
+
+            return regexMatchExpression;
         }
 
-        public void GenerateAtTimeZone([NotNull] AtTimeZoneExpression atTimeZoneExpression)
+        public Expression VisitAtTimeZone([NotNull] AtTimeZoneExpression atTimeZoneExpression)
         {
             Check.NotNull(atTimeZoneExpression, nameof(atTimeZoneExpression));
 
@@ -230,6 +233,8 @@ namespace Microsoft.EntityFrameworkCore.Query.Sql.Internal
             Sql.Append(" AT TIME ZONE '");
             Sql.Append(atTimeZoneExpression.TimeZone);
             Sql.Append('\'');
+
+            return atTimeZoneExpression;
         }
 
         public virtual Expression VisitILike(ILikeExpression iLikeExpression)

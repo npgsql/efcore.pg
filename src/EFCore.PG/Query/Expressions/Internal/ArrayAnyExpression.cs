@@ -90,13 +90,9 @@ namespace Microsoft.EntityFrameworkCore.Query.Expressions.Internal
         {
             Check.NotNull(visitor, nameof(visitor));
 
-            if (visitor is NpgsqlQuerySqlGenerator npsgqlGenerator)
-            {
-                npsgqlGenerator.GenerateArrayAny(this);
-                return this;
-            }
-
-            return base.Accept(visitor);
+            return visitor is NpgsqlQuerySqlGenerator npsgqlGenerator
+                ? npsgqlGenerator.VisitArrayAny(this)
+                : base.Accept(visitor);
         }
 
         /// <summary>

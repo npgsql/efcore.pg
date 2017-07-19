@@ -51,13 +51,9 @@ namespace Microsoft.EntityFrameworkCore.Query.Expressions.Internal
         {
             Check.NotNull(visitor, nameof(visitor));
 
-            if (visitor is NpgsqlQuerySqlGenerator npgsqlGenerator)
-            {
-                npgsqlGenerator.GenerateAtTimeZone(this);
-                return this;
-            }
-
-            return base.Accept(visitor);
+            return visitor is NpgsqlQuerySqlGenerator npgsqlGenerator
+                ? npgsqlGenerator.VisitAtTimeZone(this)
+                : base.Accept(visitor);
         }
 
         protected override Expression VisitChildren(ExpressionVisitor visitor)
