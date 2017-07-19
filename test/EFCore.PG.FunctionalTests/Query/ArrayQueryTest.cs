@@ -122,7 +122,7 @@ namespace Microsoft.EntityFrameworkCore.Query
             }
         }
 
-        [Fact]
+        [Fact(Skip="https://github.com/aspnet/EntityFramework/issues/9183#issuecomment-316539178")]
         public void Length_on_EF_Property()
         {
             using (var ctx = CreateContext())
