@@ -4,6 +4,8 @@ using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
 using Microsoft.EntityFrameworkCore.Query.Expressions.Internal;
 using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors.Internal;
+using Microsoft.EntityFrameworkCore.Utilities;
+using Remotion.Linq;
 using Remotion.Linq.Clauses.Expressions;
 using Remotion.Linq.Clauses.ResultOperators;
 
@@ -24,60 +26,12 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionVisitors
             _queryModelVisitor = queryModelVisitor;
         }
 
-        protected override Expression VisitSubQuery(SubQueryExpression expression)
-        {
-            // Prefer the default EF Core translation if one exists
-            var result = base.VisitSubQuery(expression);
-            if (result != null)
-                return result;
-
-            var subQueryModel = expression.QueryModel;
-            var fromExpression = subQueryModel.MainFromClause.FromExpression;
-
-            var properties = MemberAccessBindingExpressionVisitor.GetPropertyPath(
-                fromExpression, _queryModelVisitor.QueryCompilationContext, out var qsre);
-
-            if (properties.Count == 0)
-                return null;
-            var lastProperty = properties[properties.Count - 1];
-            if (lastProperty.ClrType.IsArray)
-            {
-                // Translate someArray.Length
-                if (subQueryModel.ResultOperators.First() is CountResultOperator)
-                    return Expression.ArrayLength(Visit(fromExpression));
-
-                // Translate someArray.Contains(someValue)
-                if (subQueryModel.ResultOperators.First() is ContainsResultOperator contains)
-                {
-                    var containsItem = Visit(contains.Item);
-                    if (containsItem != null)
-                        return new ArrayAnyExpression(containsItem, Visit(fromExpression));
-                }
-            }
-
-            return null;
-        }
-
         protected override Expression VisitBinary(BinaryExpression expression)
         {
-            if (expression.NodeType == ExpressionType.ArrayIndex)
-            {
-                var properties = MemberAccessBindingExpressionVisitor.GetPropertyPath(
-                    expression.Left, _queryModelVisitor.QueryCompilationContext, out var qsre);
-                if (properties.Count == 0)
-                    return base.VisitBinary(expression);
-                var lastProperty = properties[properties.Count - 1];
-                if (lastProperty.ClrType.IsArray)
-                {
-                    var left = Visit(expression.Left);
-                    var right = Visit(expression.Right);
-
-                    return left != null && right != null
-                        ? Expression.MakeBinary(ExpressionType.ArrayIndex, left, right)
-                        : null;
-                }
-            }
-            return base.VisitBinary(expression);
+            // This gets called after the optimization step, and base.VisitBinary() still
+            // returns null for array operations, which aren't supported in regular EF Core.
+            var translated = base.VisitBinary(expression);
+            return translated;
         }
     }
 }
