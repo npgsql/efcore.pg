@@ -22,18 +22,14 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics;
 using System.Linq.Expressions;
-using System.Reflection;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
 using Microsoft.EntityFrameworkCore.Query.Expressions.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Utilities;
-using Remotion.Linq.Parsing;
 
 namespace Microsoft.EntityFrameworkCore.Query.Sql.Internal
 {
@@ -49,12 +45,12 @@ namespace Microsoft.EntityFrameworkCore.Query.Sql.Internal
         {
         }
 
-        protected override void GenerateTop([NotNull]SelectExpression selectExpression)
+        protected override void GenerateTop(SelectExpression selectExpression)
         {
             // No TOP() in PostgreSQL, see GenerateLimitOffset
         }
 
-        protected override void GenerateLimitOffset([NotNull] SelectExpression selectExpression)
+        protected override void GenerateLimitOffset(SelectExpression selectExpression)
         {
             Check.NotNull(selectExpression, nameof(selectExpression));
 
@@ -103,23 +99,89 @@ namespace Microsoft.EntityFrameworkCore.Query.Sql.Internal
             return expr;
         }
 
-        protected override Expression VisitBinary(BinaryExpression binaryExpression)
+        protected override Expression VisitBinary(BinaryExpression expression)
         {
-            // PostgreSQL 9.4 and below has some weird operator precedence fixed in 9.5 and described here:
-            // http://git.postgresql.org/gitweb/?p=postgresql.git&a=commitdiff&h=c6b3c939b7e0f1d35f4ed4996e71420a993810d2
-            // As a result we must surround string concatenation with parentheses
-            if (binaryExpression.NodeType == ExpressionType.Add &&
-                binaryExpression.Left.Type == typeof(string) &&
-                binaryExpression.Right.Type == typeof(string))
+            switch (expression.NodeType)
             {
-                Sql.Append("(");
-                var exp = base.VisitBinary(binaryExpression);
-                Sql.Append(")");
-                return exp;
+            case ExpressionType.Add:
+            {
+                // PostgreSQL 9.4 and below has some weird operator precedence fixed in 9.5 and described here:
+                // http://git.postgresql.org/gitweb/?p=postgresql.git&a=commitdiff&h=c6b3c939b7e0f1d35f4ed4996e71420a993810d2
+                // As a result we must surround string concatenation with parentheses
+                if (expression.Left.Type == typeof(string) &&
+                    expression.Right.Type == typeof(string))
+                {
+                    Sql.Append("(");
+                    var exp = base.VisitBinary(expression);
+                    Sql.Append(")");
+                    return exp;
+                }
+                break;
             }
 
-            return base.VisitBinary(binaryExpression);
+            case ExpressionType.ArrayIndex:
+                GenerateArrayIndex(expression);
+                return expression;
+            }
+
+            return base.VisitBinary(expression);
         }
+
+        protected override Expression VisitUnary(UnaryExpression expression)
+        {
+            if (expression.NodeType == ExpressionType.ArrayLength)
+            {
+                VisitSqlFunction(new SqlFunctionExpression("array_length", typeof(int), new[] { expression.Operand, Expression.Constant(1) }));
+                return expression;
+            }
+
+            return base.VisitUnary(expression);
+        }
+
+        void GenerateArrayIndex([NotNull] BinaryExpression expression)
+        {
+            Debug.Assert(expression.NodeType == ExpressionType.ArrayIndex);
+
+            if (expression.Left.Type == typeof(byte[]))
+            {
+                // bytea cannot be subscripted, but there's get_byte
+                VisitSqlFunction(new SqlFunctionExpression("get_byte", typeof(byte),
+                    new[] { expression.Left, expression.Right }));
+                return;
+            }
+
+            if (expression.Left.Type == typeof(string))
+            {
+                // text cannot be subscripted, use substr
+                // PostgreSQL substr() is 1-based.
+
+                VisitSqlFunction(new SqlFunctionExpression("substr", typeof(char),
+                    new[] { expression.Left, expression.Right, Expression.Constant(1) }));
+                return;
+            }
+
+            // Regular array from here
+            Visit(expression.Left);
+            Sql.Append('[');
+            Visit(GenerateOneBasedIndexExpression(expression.Right));
+            Sql.Append(']');
+        }
+
+        public Expression VisitArrayAny(ArrayAnyExpression arrayAnyExpression)
+        {
+            Visit(arrayAnyExpression.Operand);
+            Sql.Append(" = ANY (");
+            Visit(arrayAnyExpression.Array);
+            Sql.Append(")");
+            return arrayAnyExpression;
+        }
+
+        // PostgreSQL array indexing is 1-based. If the index happens to be a constant,
+        // just increment it. Otherwise, append a +1 in the SQL.
+        Expression GenerateOneBasedIndexExpression(Expression expression)
+            => expression is ConstantExpression constantExpression
+                ? Expression.Constant(Convert.ToInt32(constantExpression.Value) + 1)
+                : (Expression)Expression.Add(expression, Expression.Constant(1));
 
         // See http://www.postgresql.org/docs/current/static/functions-matching.html
         public Expression VisitRegexMatch([NotNull] RegexMatchExpression regexMatchExpression)
@@ -158,6 +220,7 @@ namespace Microsoft.EntityFrameworkCore.Query.Sql.Internal
             Sql.Append(")' || ");
             Visit(regexMatchExpression.Pattern);
             Sql.Append(')');
+
             return regexMatchExpression;
         }
 
@@ -170,6 +233,7 @@ namespace Microsoft.EntityFrameworkCore.Query.Sql.Internal
             Sql.Append(" AT TIME ZONE '");
             Sql.Append(atTimeZoneExpression.TimeZone);
             Sql.Append('\'');
+
             return atTimeZoneExpression;
         }
 
