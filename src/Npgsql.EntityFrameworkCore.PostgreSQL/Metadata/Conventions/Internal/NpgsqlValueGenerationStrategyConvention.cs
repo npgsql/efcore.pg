@@ -7,23 +7,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Microsoft.EntityFrameworkCore.Metadata.Conventions.Internal
 {
-    /// <summary>
-    ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
-    ///     directly from your code. This API may change or be removed in future releases.
-    /// </summary>
-    public class NpgsqlValueGenerationStrategyConvention : DatabaseGeneratedAttributeConvention, IModelConvention
+    public class NpgsqlValueGenerationStrategyConvention : IModelConvention
     {
-        public override InternalPropertyBuilder Apply(
-            InternalPropertyBuilder propertyBuilder, DatabaseGeneratedAttribute attribute, MemberInfo clrMember)
-        {
-            propertyBuilder.Npgsql(ConfigurationSource.DataAnnotation).ValueGenerationStrategy(
-                attribute.DatabaseGeneratedOption == DatabaseGeneratedOption.Identity
-                    ? NpgsqlValueGenerationStrategy.SerialColumn
-                    : (NpgsqlValueGenerationStrategy?)null);
-
-            return base.Apply(propertyBuilder, attribute, clrMember);
-        }
-
         /// <summary>
         ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
         ///     directly from your code. This API may change or be removed in future releases.
