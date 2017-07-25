@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -15,6 +15,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
     public class MigrationsNpgsqlTest : MigrationsTestBase<MigrationsNpgsqlFixture>
     {
+
+        private const string FileLineEnding = @"
+";
+
         public MigrationsNpgsqlTest(MigrationsNpgsqlFixture fixture)
             : base(fixture)
         {
@@ -22,12 +26,94 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 
         public override void Can_generate_idempotent_up_scripts()
         {
-            Assert.Throws<NotSupportedException>(() => base.Can_generate_idempotent_up_scripts());
+            base.Can_generate_idempotent_up_scripts();
+
+            Assert.Equal(
+@"CREATE TABLE IF NOT EXISTS ""__EFMigrationsHistory"" (
+    ""MigrationId"" varchar(150) NOT NULL,
+    ""ProductVersion"" varchar(32) NOT NULL,
+    CONSTRAINT ""PK___EFMigrationsHistory"" PRIMARY KEY (""MigrationId"")
+);
+
+
+DO $$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM ""__EFMigrationsHistory"" WHERE ""MigrationId"" = '00000000000001_Migration1') THEN
+    CREATE TABLE ""Table1"" (
+        ""Id"" int4 NOT NULL,
+        CONSTRAINT ""PK_Table1"" PRIMARY KEY (""Id"")
+    );
+    END IF;
+END $$;
+
+DO $$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM ""__EFMigrationsHistory"" WHERE ""MigrationId"" = '00000000000001_Migration1') THEN
+    INSERT INTO ""__EFMigrationsHistory"" (""MigrationId"", ""ProductVersion"")
+    VALUES ('00000000000001_Migration1', '7.0.0-test');
+    END IF;
+END $$;
+
+DO $$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM ""__EFMigrationsHistory"" WHERE ""MigrationId"" = '00000000000002_Migration2') THEN
+    ALTER TABLE ""Table1"" RENAME TO ""Table2"";
+    END IF;
+END $$;
+
+DO $$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM ""__EFMigrationsHistory"" WHERE ""MigrationId"" = '00000000000002_Migration2') THEN
+    INSERT INTO ""__EFMigrationsHistory"" (""MigrationId"", ""ProductVersion"")
+    VALUES ('00000000000002_Migration2', '7.0.0-test');
+    END IF;
+END $$;
+
+DO $$
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM ""__EFMigrationsHistory"" WHERE ""MigrationId"" = '00000000000003_Migration3') THEN
+    INSERT INTO ""__EFMigrationsHistory"" (""MigrationId"", ""ProductVersion"")
+    VALUES ('00000000000003_Migration3', '7.0.0-test');
+    END IF;
+END $$;
+", Sql.Replace(Environment.NewLine, FileLineEnding));
         }
 
         public override void Can_generate_idempotent_down_scripts()
         {
-            Assert.Throws<NotSupportedException>(() => base.Can_generate_idempotent_down_scripts());
+            base.Can_generate_idempotent_down_scripts();
+
+            Assert.Equal(@"
+DO $$
+BEGIN
+    IF EXISTS(SELECT 1 FROM ""__EFMigrationsHistory"" WHERE ""MigrationId"" = '00000000000002_Migration2') THEN
+    ALTER TABLE ""Table2"" RENAME TO ""Table1"";
+    END IF;
+END $$;
+
+DO $$
+BEGIN
+    IF EXISTS(SELECT 1 FROM ""__EFMigrationsHistory"" WHERE ""MigrationId"" = '00000000000002_Migration2') THEN
+    DELETE FROM ""__EFMigrationsHistory""
+    WHERE ""MigrationId"" = '00000000000002_Migration2';
+    END IF;
+END $$;
+
+DO $$
+BEGIN
+    IF EXISTS(SELECT 1 FROM ""__EFMigrationsHistory"" WHERE ""MigrationId"" = '00000000000001_Migration1') THEN
+    DROP TABLE ""Table1"";
+    END IF;
+END $$;
+
+DO $$
+BEGIN
+    IF EXISTS(SELECT 1 FROM ""__EFMigrationsHistory"" WHERE ""MigrationId"" = '00000000000001_Migration1') THEN
+    DELETE FROM ""__EFMigrationsHistory""
+    WHERE ""MigrationId"" = '00000000000001_Migration1';
+    END IF;
+END $$;
+", Sql.Replace(Environment.NewLine, FileLineEnding));
         }
 
         protected override void AssertFirstMigration(DbConnection connection)
@@ -40,7 +126,7 @@ CreatedTable
     ColumnWithDefaultToDrop int4 NULL DEFAULT 0
     ColumnWithDefaultToAlter int4 NULL DEFAULT 1
 ",
-                sql);
+                sql.Replace(Environment.NewLine, FileLineEnding));
         }
 
         protected override void BuildSecondMigration(MigrationBuilder migrationBuilder)
@@ -68,7 +154,7 @@ CreatedTable
     ColumnWithDefaultToDrop int4 NULL DEFAULT 0
     ColumnWithDefaultToAlter int4 NULL DEFAULT 1
 ",
-                sql);
+                sql.Replace(Environment.NewLine, FileLineEnding));
         }
 
         private string GetDatabaseSchemaAsync(DbConnection connection)

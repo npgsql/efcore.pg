@@ -22,6 +22,7 @@
 #endregion
 
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.Internal;
@@ -29,9 +30,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.EntityFrameworkCore.Scaffolding.Internal
 {
-    public class NpgsqlDesignTimeServices
+    public class NpgsqlDesignTimeServices : IDesignTimeServices
     {
-        public virtual IServiceCollection ConfigureDesignTimeServices([NotNull] IServiceCollection serviceCollection)
+        public virtual void ConfigureDesignTimeServices([NotNull] IServiceCollection serviceCollection)
             => serviceCollection
                 .AddSingleton<IScaffoldingModelFactory, NpgsqlScaffoldingModelFactory>()
                 .AddSingleton<IRelationalAnnotationProvider, NpgsqlAnnotationProvider>()

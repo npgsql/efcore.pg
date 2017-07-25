@@ -37,5 +37,31 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         {
             // Npgsql does not support length            
         }
+
+        [Fact]
+        public override ModelBuilder DatabaseGeneratedOption_configures_the_property_correctly()
+        {
+            var modelBuilder = CreateModelBuilder();
+
+            modelBuilder.Entity<GeneratedEntity>();
+
+            var entity = modelBuilder.Model.FindEntityType(typeof(GeneratedEntity));
+
+            var id = entity.FindProperty(nameof(GeneratedEntity.Id));
+            Assert.Equal(ValueGenerated.Never, id.ValueGenerated);
+            Assert.False(id.RequiresValueGenerator);
+
+            var identity = entity.FindProperty(nameof(GeneratedEntity.Identity));
+            Assert.Equal(ValueGenerated.OnAdd, identity.ValueGenerated);
+            Assert.False(identity.RequiresValueGenerator);
+
+            var version = entity.FindProperty(nameof(GeneratedEntity.Version));
+            Assert.Equal(ValueGenerated.OnAddOrUpdate, version.ValueGenerated);
+            Assert.False(version.RequiresValueGenerator);
+
+            Validate(modelBuilder);
+
+            return modelBuilder;
+        }
     }
 }

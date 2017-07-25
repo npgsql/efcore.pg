@@ -307,7 +307,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Migrations
             Assert.Equal(
                 @"ALTER TABLE ""dbo"".""People"" ALTER COLUMN ""LuckyNumber"" TYPE int;" + EOL +
                 @"ALTER TABLE ""dbo"".""People"" ALTER COLUMN ""LuckyNumber"" SET NOT NULL;" + EOL +
-                @"ALTER TABLE ""dbo"".""People"" ALTER COLUMN ""LuckyNumber"" SET DEFAULT 7",
+                @"ALTER TABLE ""dbo"".""People"" ALTER COLUMN ""LuckyNumber"" SET DEFAULT 7;" + EOL,
             Sql);
         }
 
@@ -318,7 +318,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Migrations
             Assert.Equal(
                 @"ALTER TABLE ""People"" ALTER COLUMN ""LuckyNumber"" TYPE int4;" + EOL +
                 @"ALTER TABLE ""People"" ALTER COLUMN ""LuckyNumber"" SET NOT NULL;" + EOL +
-                @"ALTER TABLE ""People"" ALTER COLUMN ""LuckyNumber"" DROP DEFAULT",
+                @"ALTER TABLE ""People"" ALTER COLUMN ""LuckyNumber"" DROP DEFAULT;" + EOL,
             Sql);
         }
 
@@ -480,7 +480,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Migrations
             Assert.Equal(
                 "ALTER TABLE \"People\" ALTER COLUMN \"Name\" TYPE varchar(30);" + EOL +
                 "ALTER TABLE \"People\" ALTER COLUMN \"Name\" SET NOT NULL;" + EOL +
-                "ALTER TABLE \"People\" ALTER COLUMN \"Name\" DROP DEFAULT",
+                "ALTER TABLE \"People\" ALTER COLUMN \"Name\" DROP DEFAULT;" + EOL,
                 Sql);
         }
 
@@ -590,6 +590,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Migrations
                 "    PRIMARY KEY (\"id\")" + EOL +
                 ");" + EOL,
                 Sql);
+        }
+
+        [Fact]
+        public void AddColumnOperation_with_system_column()
+        {
+            Generate(new AddColumnOperation
+            {
+                Table = "foo",
+                Schema = "public",
+                Name = "xmin"
+            });
+
+            Assert.Empty(Sql);
         }
 
         [Fact]

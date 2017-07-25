@@ -160,6 +160,19 @@ namespace Microsoft.EntityFrameworkCore.Migrations
         }
 
         protected override void Generate(
+            AddColumnOperation operation,
+            IModel model,
+            MigrationCommandListBuilder builder,
+            bool terminate)
+        {
+            // Never touch system columns
+            if (IsSystemColumn(operation.Name))
+                return;
+
+            base.Generate(operation, model, builder, terminate);
+        }
+
+        protected override void Generate(
             DropColumnOperation operation,
             IModel model,
             MigrationCommandListBuilder builder,
@@ -235,12 +248,12 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             else
                 builder.Append("DROP DEFAULT");
 
+            // Terminate the DEFAULT above
+            builder.AppendLine(SqlGenerationHelper.StatementTerminator);
+
             // ALTER SEQUENCE
             if (sequenceName != null)
             {
-                // Terminate the DEFAULT above
-                builder.AppendLine(SqlGenerationHelper.StatementTerminator);
-
                 builder
                     .Append("ALTER SEQUENCE ")
                     .Append(SqlGenerationHelper.DelimitIdentifier(sequenceName))
