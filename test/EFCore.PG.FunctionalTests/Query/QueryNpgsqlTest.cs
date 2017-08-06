@@ -10,7 +10,10 @@ namespace Microsoft.EntityFrameworkCore.Query
     public class QueryNpgsqlTest : QueryTestBase<NorthwindQueryNpgsqlFixture>
     {
         public QueryNpgsqlTest(NorthwindQueryNpgsqlFixture fixture)
-            : base(fixture) { }
+            : base(fixture)
+        {
+            Fixture.TestSqlLoggerFactory.Clear();
+        }
 
         [Fact(Skip = "https://github.com/aspnet/EntityFramework/issues/8606")]
         public override void OrderBy_coalesce_skip_take_distinct_take() { }
