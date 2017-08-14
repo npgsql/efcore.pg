@@ -3,7 +3,7 @@ solution: EFCore.PG.sln
 dist: trusty
 sudo: false
 mono: none
-dotnet: 2.0.0-preview1-005977
+dotnet: 2.0.0
 
 services:
   - postgresql
