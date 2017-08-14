@@ -13,6 +13,7 @@ shallow_clone: true
 install:
   - ps: $env:padded_build_number = $env:appveyor_build_number.PadLeft(5, '0')
 before_build:
+  - choco install dotnetcore -version 2.0.0
   - appveyor-retry dotnet restore -v Minimal
 build_script:
   - msbuild /p:Configuration=Debug
