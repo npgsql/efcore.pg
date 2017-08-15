@@ -13,8 +13,6 @@ shallow_clone: true
 install:
   - ps: $env:padded_build_number = $env:appveyor_build_number.PadLeft(5, '0')
 before_build:
-  -  Invoke-WebRequest -Uri "https://raw.githubusercontent.com/dotnet/cli/master/scripts/obtain/dotnet-install.ps1" -OutFile "install-dotnet.ps1"
-  - .\install-dotnet.ps1
   - appveyor-retry dotnet restore -v Minimal
 build_script:
   - msbuild /p:Configuration=Debug
