@@ -1,5 +1,5 @@
 image: Visual Studio 2017 Preview
-version: 2.0.0-preview3-{build}
+version: 2.0.0-{build}
 services:
   - postgresql
 environment:
@@ -12,8 +12,10 @@ cache:
 shallow_clone: true
 install:
   - ps: $env:padded_build_number = $env:appveyor_build_number.PadLeft(5, '0')
+  # Install .NET Core 2.0
+  - ps: Invoke-WebRequest -Uri "https://raw.githubusercontent.com/dotnet/cli/master/scripts/obtain/dotnet-install.ps1" -OutFile "install-dotnet.ps1"
+  - ps: .\install-dotnet.ps1
 before_build:
-  - choco install dotnetcore -version 2.0.0
   - appveyor-retry dotnet restore -v Minimal
 build_script:
   - msbuild /p:Configuration=Debug
