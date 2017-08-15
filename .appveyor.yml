@@ -23,9 +23,9 @@ build_script:
   - msbuild /p:Configuration=Release
   - dotnet pack src\EFCore.PG\EFCore.PG.csproj -c Release --version-suffix ci-%PADDED_BUILD_NUMBER%
 test_script:
-  - dotnet xunit test\EFCore.PG.Tests\EFCore.PG.Tests.csproj
-  - dotnet xunit test\EFCore.PG.FunctionalTests\EFCore.PG.FunctionalTests.csproj
-  - dotnet xunit test\EFCore.PG.Design.FunctionalTests\EFCore.PG.Design.FunctionalTests.csproj
+  - cd test\EFCore.PG.Tests && dotnet xunit && cd ..\..\
+  - cd test\EFCore.PG.FunctionalTests && dotnet xunit && cd ..\..\
+  - cd test\EFCore.PG.Design.FunctionalTests && dotnet xunit && cd ..\..\
 artifacts:
   - path: 'src\EFCore.PG\bin\**\*.nupkg'
   - path: 'src\EFCore.PG.Design\bin\**\*.nupkg'
