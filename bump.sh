@@ -11,38 +11,10 @@ if [[ $v == *"-" ]]; then
   exit 1
 fi
 
-echo "echo ##teamcity[buildNumber '$v-%1']" > teamcity_set_version.cmd
+sed -i 's/^version: .*/version: '$v'-{build}/' .appveyor.yml
+sed -i 's/<VersionPrefix>[^<]*<\/VersionPrefix>/<VersionPrefix>'$v'<\/VersionPrefix>/' {src,test}/*/*.csproj
 
-if [[ $v == *"-"* ]]; then
-  # Prerelease version
-
-  without_prerelease=`echo $v | cut -d- -f1`
-
-  sed -i 's/^\(\s*\)"version": "[^"]*"/\1"version": "'$v'-*"/' src/Npgsql.EntityFrameworkCore.PostgreSQL/project.json
-  sed -i 's/^\(\s*\)"version": "[^"]*"/\1"version": "'$v'-*"/' src/Npgsql.EntityFrameworkCore.PostgreSQL.Design/project.json
-
-  sed -i 's/AssemblyVersion("[^"]*")/AssemblyVersion("'$without_prerelease'")/' src/Shared/CommonAssemblyInfo.cs
-  sed -i 's/AssemblyFileVersion("[^"]*")/AssemblyFileVersion("'$without_prerelease'")/' src/Shared/CommonAssemblyInfo.cs
-  sed -i 's/AssemblyInformationalVersion("[^"]*")/AssemblyInformationalVersion("'$v'")/' src/Shared/CommonAssemblyInfo.cs
-
-  sed -i 's/assemblyName: "Npgsql.EntityFrameworkCore.PostgreSQL.Design, Version=[0-9.]*/assemblyName: "Npgsql.EntityFrameworkCore.PostgreSQL.Design, Version='$without_prerelease'.0/' src/Npgsql.EntityFrameworkCore.PostgreSQL/Properties/AssemblyInfo.cs
-else
-  # Release version
-
-  sed -i 's/^\(\s*\)"version": "[^"]*"/\1"version": "'$v'"/' src/Npgsql.EntityFrameworkCore.PostgreSQL/project.json
-  sed -i 's/^\(\s*\)"version": "[^"]*"/\1"version": "'$v'"/' src/Npgsql.EntityFrameworkCore.PostgreSQL.Design/project.json
-
-  sed -i 's/AssemblyVersion("[^"]*")/AssemblyVersion("'$v'")/' src/Shared/CommonAssemblyInfo.cs
-  sed -i 's/AssemblyFileVersion("[^"]*")/AssemblyFileVersion("'$v'")/' src/Shared/CommonAssemblyInfo.cs
-  sed -i 's/AssemblyInformationalVersion("[^"]*")/AssemblyInformationalVersion("'$v'")/' src/Shared/CommonAssemblyInfo.cs
-
-  sed -i 's/assemblyName: "Npgsql.EntityFrameworkCore.PostgreSQL.Design, Version=[0-9.]*/assemblyName: "Npgsql.EntityFrameworkCore.PostgreSQL.Design, Version='$v'.0/' src/Npgsql.EntityFrameworkCore.PostgreSQL/Properties/AssemblyInfo.cs
-fi
-
-git add teamcity_set_version.cmd
-git add src/Npgsql.EntityFrameworkCore.PostgreSQL/project.json
-git add src/Npgsql.EntityFrameworkCore.PostgreSQL.Design/project.json
-git add src/Shared/CommonAssemblyInfo.cs
-git add src/Npgsql.EntityFrameworkCore.PostgreSQL/Properties/AssemblyInfo.cs
+git add .appveyor.yml
+git add {src,test}/*/*.csproj
 
 git commit -m "Bump version to $v"

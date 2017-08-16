@@ -1,0 +1,12 @@
+﻿using System;
+using System.Collections.Generic;
+
+namespace E2ETest.Namespace
+{
+    public partial class Foo
+    {
+        public int Id { get; set; }
+        public int? A { get; set; }
+        public int? B { get; set; }
+    }
+}

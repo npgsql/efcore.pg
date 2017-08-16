@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net461;netcoreapp2.0</TargetFrameworks>
+    <PreserveCompilationContext>true</PreserveCompilationContext>
+    <AssemblyName>Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests</AssemblyName>
+    <RootNamespace>Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="ReverseEngineering\**\*.expected;ReverseEngineering\**\*.sql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EFCore.PG.FunctionalTests\EFCore.PG.FunctionalTests.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.3.0-*" />
+    <PackageReference Include="xunit.core" Version="2.3.0-*" />
+    <DotNetCliToolReference Include="dotnet-xunit" Version="2.3.0-*" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational.Design.Specification.Tests" Version="2.0.0" />
+  </ItemGroup>
+
+</Project>
