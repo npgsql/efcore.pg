@@ -3,7 +3,7 @@ solution: EFCore.PG.sln
 dist: trusty
 sudo: false
 mono: none
-dotnet: 2.0.0-preview1-005977
+dotnet: 2.0.0
 
 services:
   - postgresql
@@ -16,9 +16,9 @@ env:
 before_script:
   - dotnet restore -v Minimal
 script:
-  - dotnet test "test/EFCore.PG.Tests/EFCore.PG.Tests.csproj" -c Debug -f netcoreapp2.0
-  - dotnet test "test/EFCore.PG.FunctionalTests/EFCore.PG.FunctionalTests.csproj" -c Debug -f netcoreapp2.0
-  - dotnet test "test/EFCore.PG.Design.FunctionalTests/EFCore.PG.Design.FunctionalTests.csproj" -c Debug -f netcoreapp2.0
+  - cd test/EFCore.PG.Tests && dotnet xunit && cd ../../
+  - cd test/EFCore.PG.FunctionalTests && dotnet xunit && cd ../../
+  - cd test/EFCore.PG.Design.FunctionalTests && dotnet xunit && cd ../../
 
 cache:
   directories:

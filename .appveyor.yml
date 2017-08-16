@@ -1,5 +1,5 @@
 image: Visual Studio 2017 Preview
-version: 2.0.0-preview3-{build}
+version: 2.0.0-{build}
 services:
   - postgresql
 environment:
@@ -12,16 +12,20 @@ cache:
 shallow_clone: true
 install:
   - ps: $env:padded_build_number = $env:appveyor_build_number.PadLeft(5, '0')
+  # Install .NET Core 2.0
+  - ps: Invoke-WebRequest -Uri "https://raw.githubusercontent.com/dotnet/cli/master/scripts/obtain/dotnet-install.ps1" -OutFile "install-dotnet.ps1"
+  - ps: .\install-dotnet.ps1 -Version 2.0.0
 before_build:
+  - dotnet --info
   - appveyor-retry dotnet restore -v Minimal
 build_script:
   - msbuild /p:Configuration=Debug
   - msbuild /p:Configuration=Release
   - dotnet pack src\EFCore.PG\EFCore.PG.csproj -c Release --version-suffix ci-%PADDED_BUILD_NUMBER%
 test_script:
-  - dotnet test test\EFCore.PG.Tests\EFCore.PG.Tests.csproj
-  - dotnet test test\EFCore.PG.FunctionalTests\EFCore.PG.FunctionalTests.csproj
-  - dotnet test test\EFCore.PG.Design.FunctionalTests\EFCore.PG.Design.FunctionalTests.csproj
+  - cd test\EFCore.PG.Tests && dotnet xunit && cd ..\..\
+  - cd test\EFCore.PG.FunctionalTests && dotnet xunit && cd ..\..\
+  - cd test\EFCore.PG.Design.FunctionalTests && dotnet xunit && cd ..\..\
 artifacts:
   - path: 'src\EFCore.PG\bin\**\*.nupkg'
   - path: 'src\EFCore.PG.Design\bin\**\*.nupkg'
