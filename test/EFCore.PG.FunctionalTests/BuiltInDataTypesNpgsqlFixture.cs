@@ -134,6 +134,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 
             modelBuilder.Entity<MappedDataTypes>().Property(e => e.Xid).HasColumnType("xid");
             modelBuilder.Entity<MappedNullableDataTypes>().Property(e => e.Xid).HasColumnType("xid");
+
+            // TimeTz
+            modelBuilder.Entity<MappedDataTypes>().Property(e => e.Timetz).HasColumnType("timetz");
+            modelBuilder.Entity<MappedNullableDataTypes>().Property(e => e.Timetz).HasColumnType("timetz");
         }
 
         private static void MapColumnTypes<TEntity>(ModelBuilder modelBuilder) where TEntity : class
@@ -197,10 +201,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         public byte[] Bytea { get; set; }
 
         public DateTime Timestamp { get; set; }
-        //public DateTime Timestamptz { get; set; }
+        public DateTime Timestamptz { get; set; }
         public DateTime Date { get; set; }
         public TimeSpan Time { get; set; }
-        //public DateTimeOffset Timetz { get; set; }
+        public DateTimeOffset Timetz { get; set; }
         public TimeSpan Interval { get; set; }
 
         public Guid Uuid { get; set; }

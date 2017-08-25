@@ -36,10 +36,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                         Bytea = new byte[] { 86 },
 
                         Timestamp = new DateTime(2015, 1, 2, 10, 11, 12),
-                        //Timestamptz = new DateTime(2016, 1, 2, 11, 11, 12, DateTimeKind.Utc),
+                        Timestamptz = new DateTime(2016, 1, 2, 11, 11, 12, DateTimeKind.Utc),
                         Date = new DateTime(2015, 1, 2, 0, 0, 0),
                         Time = new TimeSpan(11, 15, 12),
-                        //Timetz = new DateTimeOffset(0, 0, 0, 12, 0, 0, TimeSpan.FromHours(2)),
+                        Timetz = new DateTimeOffset(1, 1, 1, 12, 0, 0, TimeSpan.FromHours(2)),
                         Interval = new TimeSpan(11, 15, 12),
 
                         Uuid = new Guid("a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"),
@@ -95,8 +95,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 DateTime? param10 = new DateTime(2015, 1, 2, 10, 11, 12);
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Timestamp == param10));
 
-                //DateTime? param11 = new DateTime(2019, 1, 2, 14, 11, 12, DateTimeKind.Utc);
-                //Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Timestamptz == param11));
+                DateTime? param11 = new DateTime(2016, 1, 2, 11, 11, 12, DateTimeKind.Utc);
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Timestamptz == param11));
 
                 DateTime? param12 = new DateTime(2015, 1, 2, 0, 0, 0);
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Date == param12));
@@ -104,8 +104,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 TimeSpan? param13 = new TimeSpan(11, 15, 12);
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Time == param13));
 
-                //DateTimeOffset? param14 = new DateTimeOffset(0, 0, 0, 12, 0, 0, TimeSpan.FromHours(2));
-                //Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Timetz == param14));
+                DateTimeOffset? param14 = new DateTimeOffset(1, 1, 1, 12, 0, 0, TimeSpan.FromHours(2));
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Timetz == param14));
 
                 TimeSpan? param15 = new TimeSpan(11, 15, 12);
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Interval == param15));
@@ -259,10 +259,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                         Bytea = new byte[] { 86 },
 
                         Timestamp = new DateTime(2016, 1, 2, 11, 11, 12),
-                        //Timestamptz = new DateTime(2016, 1, 2, 11, 11, 12, DateTimeKind.Utc),
+                        Timestamptz = new DateTime(2016, 1, 2, 11, 11, 12, DateTimeKind.Utc),
                         Date = new DateTime(2015, 1, 2, 10, 11, 12),
                         Time = new TimeSpan(11, 15, 12),
-                        //Timetz = new DateTimeOffset(0, 0, 0, 12, 0, 0, TimeSpan.FromHours(2)),
+                        Timetz = new DateTimeOffset(1, 1, 1, 12, 0, 0, TimeSpan.FromHours(2)),
                         Interval = new TimeSpan(11, 15, 12),
 
                         Uuid = new Guid("a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"),
@@ -301,10 +301,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 Assert.Equal(new byte[] { 86 }, entity.Bytea);
 
                 Assert.Equal(new DateTime(2016, 1, 2, 11, 11, 12), entity.Timestamp);
-                //Assert.Equal(new DateTime(2016, 1, 2, 11, 11, 12), entity.Timestamptz);
+                Assert.Equal(new DateTime(2016, 1, 2, 11, 11, 12), entity.Timestamptz);
                 Assert.Equal(new DateTime(2015, 1, 2, 0, 0, 0), entity.Date);
                 Assert.Equal(new TimeSpan(11, 15, 12), entity.Time);
-                //Assert.Equal(new DateTimeOffset(0, 0, 0, 12, 0, 0, TimeSpan.FromHours(2)), entity.Timetz);
+                Assert.Equal(new DateTimeOffset(1, 1, 1, 12, 0, 0, TimeSpan.FromHours(2)), entity.Timetz);
                 Assert.Equal(new TimeSpan(11, 15, 12), entity.Interval);
 
                 Assert.Equal(new Guid("a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"), entity.Uuid);
@@ -343,10 +343,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                         Bytea = new byte[] { 86 },
 
                         Timestamp = new DateTime(2016, 1, 2, 11, 11, 12),
-                        //Timestamptz = new DateTime(2016, 1, 2, 11, 11, 12, DateTimeKind.Utc),
+                        Timestamptz = new DateTime(2016, 1, 2, 11, 11, 12, DateTimeKind.Utc),
                         Date = new DateTime(2015, 1, 2, 10, 11, 12),
                         Time = new TimeSpan(11, 15, 12),
-                        //Timetz = new DateTimeOffset(0, 0, 0, 12, 0, 0, TimeSpan.FromHours(2)),
+                        Timetz = new DateTimeOffset(1, 1, 1, 12, 0, 0, TimeSpan.FromHours(2)),
                         Interval = new TimeSpan(11, 15, 12),
 
                         Uuid = new Guid("a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"),
@@ -383,10 +383,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 Assert.Equal(new byte[] { 86 }, entity.Bytea);
 
                 Assert.Equal(new DateTime(2016, 1, 2, 11, 11, 12), entity.Timestamp);
-                //Assert.Equal(new DateTime(2016, 1, 2, 11, 11, 12), entity.Timestamptz);
+                Assert.Equal(new DateTime(2016, 1, 2, 11, 11, 12), entity.Timestamptz);
                 Assert.Equal(new DateTime(2015, 1, 2, 0, 0, 0), entity.Date);
                 Assert.Equal(new TimeSpan(11, 15, 12), entity.Time);
-                //Assert.Equal(new DateTimeOffset(0, 0, 0, 12, 0, 0, TimeSpan.FromHours(2)), entity.Timetz);
+                Assert.Equal(new DateTimeOffset(1, 1, 1, 12, 0, 0, TimeSpan.FromHours(2)), entity.Timetz);
                 Assert.Equal(new TimeSpan(11, 15, 12), entity.Interval);
 
                 Assert.Equal(new Guid("a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"), entity.Uuid);
