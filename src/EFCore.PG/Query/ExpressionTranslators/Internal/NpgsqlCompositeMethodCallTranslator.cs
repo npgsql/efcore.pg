@@ -47,7 +47,9 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal
             new NpgsqlStringTrimTranslator(),
             new NpgsqlStringTrimEndTranslator(),
             new NpgsqlStringTrimStartTranslator(),
-            new NpgsqlRegexIsMatchTranslator()
+            new NpgsqlRegexIsMatchTranslator(),
+            new NpgsqlDictionaryIndexTranslator(),
+            new NpgsqlHStoreKeysTranslator()
         };
 
         public NpgsqlCompositeMethodCallTranslator(

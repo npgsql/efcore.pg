@@ -136,5 +136,15 @@ namespace Microsoft.EntityFrameworkCore
                 RegexOptions.Singleline,
                 _regexTimeout);
         }
+
+        public static string[] HStoreKeys([CanBeNull] this DbFunctions _, [NotNull] IDictionary<string, string> hstore)
+        {
+            return hstore.Keys.ToArray();
+        }
+
+        public static string[] HStoreValues([CanBeNull] this DbFunctions _, [NotNull] IDictionary<string, string> hstore)
+        {
+            return hstore.Values.ToArray();
+        }
     }
 }

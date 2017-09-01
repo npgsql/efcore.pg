@@ -30,6 +30,7 @@ using Microsoft.EntityFrameworkCore.Query.Expressions;
 using Microsoft.EntityFrameworkCore.Query.Expressions.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Utilities;
+using System.Collections.Generic;
 
 namespace Microsoft.EntityFrameworkCore.Query.Sql.Internal
 {
@@ -138,6 +139,21 @@ namespace Microsoft.EntityFrameworkCore.Query.Sql.Internal
             return base.VisitUnary(expression);
         }
 
+        protected override Expression VisitIndex(IndexExpression expression)
+        {
+            if (expression.Indexer.Name == "Item"
+                && typeof(IDictionary<string, string>).IsAssignableFrom(expression.Object.Type))
+            {
+                Debug.Assert(expression.Arguments.Count == 1);
+                var expr = Visit(expression.Object);
+                Sql.Append(" -> ");
+                Visit(expression.Arguments[0]);
+                return null;
+            }
+
+            return base.VisitIndex(expression);
+        }
+
         void GenerateArrayIndex([NotNull] BinaryExpression expression)
         {
             Debug.Assert(expression.NodeType == ExpressionType.ArrayIndex);
@@ -174,6 +190,15 @@ namespace Microsoft.EntityFrameworkCore.Query.Sql.Internal
             Visit(arrayAnyExpression.Array);
             Sql.Append(")");
             return arrayAnyExpression;
+        }
+
+        public Expression VisitDictionaryContainsKey(DictionaryContainsKeyExpression expr)
+        {
+            Visit(expr.Dictionary);
+            Sql.Append(" ? ");
+            Visit(expr.Key);
+
+            return expr;
         }
 
         // PostgreSQL array indexing is 1-based. If the index happens to be a constant,
