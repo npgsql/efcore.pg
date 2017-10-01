@@ -14,20 +14,35 @@ Following is an example (new-style) csproj using Npgsql EF Core:
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp1.1</TargetFramework>
+    <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="1.1.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="1.1.2" PrivateAssets="All" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="2.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="2.0.0" />
     <!-- For scaffolding support -->
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.Design" Version="1.1.0" PrivateAssets="All" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL.Design" Version="1.1.1" />
   </ItemGroup>
   <ItemGroup>
-    <DotNetCliToolReference Include="Microsoft.EntityFrameworkCore.Tools.DotNet" Version="1.0.1" />
+    <DotNetCliToolReference Include="Microsoft.EntityFrameworkCore.Tools.DotNet" Version="2.0.0" />
   </ItemGroup>
 </Project>
 ```
 
+## Using the Npgsql provider
+
+    public class BlogContext : DbContext
+    {
+        // When used with ASP.net core, add these lines to Startup.cs
+        //   var connectionString = Configuration.GetConnectionString("BlogContext");
+        //   services.AddEntityFrameworkNpgsql().AddDbContext<BlogContext>(options => options.UseNpgsql(connectionString));
+        // and add this to appSettings.json
+        // "ConnectionStrings": { "BlogContext": "Server=localhost;Database=blog" }
+        
+        public BlogContext(DbContextOptions<BlogContext> options) : base(options) { }
+        
+        public DbSet<BlogPost> BlogPosts { get; set; }     
+    }
+    
 ## Using an Existing Database (Database-First)
 
 The Npgsql EF Core provider also supports reverse-engineering a code model from an existing PostgreSQL database ("database-first"). To do so, add a dependency on Npgsql.EntityFrameworkCore.PostgreSQL.Design. Then, execute the following if you're using dotnet cli:
