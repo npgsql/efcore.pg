@@ -47,6 +47,5 @@ Below are some Npgsql-specific translations, many additional standard ones are s
 | .Where(c => c.SomeArray.SequenceEqual(new[] { 1, 2, 3 }) | [WHERE "c"."SomeArray" = ARRAY[1, 2, 3])](https://www.postgresql.org/docs/current/static/arrays.html)
 | .Where(c => c.SomeArray.Contains(3))                     | [WHERE 3 = ANY("c"."SomeArray")](https://www.postgresql.org/docs/current/static/functions-comparisons.html#AEN21104)
 | .Where(c => c.SomeArray.Length == 3)                     | [WHERE array_length("c"."SomeArray, 1) == 3](https://www.postgresql.org/docs/current/static/functions-array.html#ARRAY-FUNCTIONS-TABLE)
-| .Where(c => EF.Functions.Like(c.Name, "Foo%")            | [WHERE "c"."Name" LIKE 'foo%'](https://www.postgresql.org/docs/current/static/functions-matching.html#FUNCTIONS-LIKE)
-| .Where(c => EF.Functions.ILike(c.Name, "Foo%")           | [WHERE "c"."Name" ILIKE 'foo%'](https://www.postgresql.org/docs/current/static/functions-matching.html#FUNCTIONS-LIKE) (case-insensitive LIKE)
-
+| .Where(c => EF.Functions.Like(c.Name, "foo%")            | [WHERE "c"."Name" LIKE 'foo%'](https://www.postgresql.org/docs/current/static/functions-matching.html#FUNCTIONS-LIKE)
+| .Where(c => EF.Functions.ILike(c.Name, "foo%")           | [WHERE "c"."Name" ILIKE 'foo%'](https://www.postgresql.org/docs/current/static/functions-matching.html#FUNCTIONS-LIKE) (case-insensitive LIKE)
