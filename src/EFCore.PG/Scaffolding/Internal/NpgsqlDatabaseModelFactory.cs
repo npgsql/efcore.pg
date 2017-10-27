@@ -163,7 +163,7 @@ WHERE
 
         const string GetColumnsQuery = @"
 SELECT
-    nspname, relname, attisdropped, attname, typ.typname, atttypmod, description,
+    nspname, relname, attisdropped, attname, typ.typname, atttypmod, description, basetyp.typname AS domtypname,
     CASE WHEN pg_proc.proname='array_recv' THEN 'a' ELSE typ.typtype END AS typtype,
     CASE
       WHEN pg_proc.proname='array_recv' THEN elemtyp.typname
@@ -177,6 +177,7 @@ LEFT OUTER JOIN pg_attribute AS attr ON attrelid = cls.oid
 LEFT OUTER JOIN pg_type AS typ ON attr.atttypid = typ.oid
 LEFT OUTER JOIN pg_proc ON pg_proc.oid = typ.typreceive
 LEFT OUTER JOIN pg_type AS elemtyp ON (elemtyp.oid = typ.typelem)
+LEFT OUTER JOIN pg_type AS basetyp ON (basetyp.oid = typ.typbasetype)
 LEFT OUTER JOIN pg_description AS des ON des.objoid = cls.oid AND des.objsubid = attnum
 WHERE
     relkind = 'r' AND
@@ -260,6 +261,9 @@ ORDER BY attnum";
                         break;
                     case 'e':
                         column[NpgsqlAnnotationNames.PostgresTypeType] = PostgresTypeType.Enum;
+                        break;
+                    case 'd':
+                        column.StoreType = GetStoreType(reader.GetValueOrDefault<string>("domtypname"), typeModifier);
                         break;
                     default:
                         Logger.Logger.LogWarning($"Can't scaffold column '{columnName}' of type '{dataType}': unknown type char '{typeChar}'");

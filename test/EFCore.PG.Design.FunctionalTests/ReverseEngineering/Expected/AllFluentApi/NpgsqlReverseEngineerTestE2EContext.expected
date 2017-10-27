@@ -51,6 +51,8 @@ namespace E2ETest.Namespace
 
                 entity.Property(e => e.DecimalColumn).HasColumnName("decimalColumn");
 
+                entity.Property(e => e.DomainColumn).HasColumnName("domainColumn");
+
                 entity.Property(e => e.DoubleColumn).HasColumnName("doubleColumn");
 
                 entity.Property(e => e.IntColumn).HasColumnName("intColumn");

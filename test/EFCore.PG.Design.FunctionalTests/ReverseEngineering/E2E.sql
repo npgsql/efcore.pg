@@ -1,4 +1,8 @@
 ﻿DROP TABLE IF EXISTS "AllDataTypes";
+
+DROP DOMAIN IF EXISTS domain_type;
+CREATE DOMAIN domain_type AS smallint CONSTRAINT domain_type_check CHECK (((VALUE >= (-50)) AND (VALUE <= 50)));
+
 CREATE TABLE "AllDataTypes" (
 	"AllDataTypesID"    serial    PRIMARY KEY,
 
@@ -22,7 +26,9 @@ CREATE TABLE "AllDataTypes" (
 								            
 	"byteaColumn"       bytea               NULL,
 	"boolColumn"        boolean             NOT NULL,
-	"uuidColumn"        uuid                NULL
+	"uuidColumn"        uuid                NULL,
+
+	"domainColumn"      domain_type         NOT NULL
 );
 
 DROP TABLE IF EXISTS "PropertyConfiguration";

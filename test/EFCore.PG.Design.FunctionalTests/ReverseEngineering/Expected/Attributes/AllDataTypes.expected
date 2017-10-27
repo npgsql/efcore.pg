@@ -45,5 +45,7 @@ namespace E2ETest.Namespace
         public bool BoolColumn { get; set; }
         [Column("uuidColumn")]
         public Guid? UuidColumn { get; set; }
+        [Column("domainColumn")]
+        public short DomainColumn { get; set; }
     }
 }
