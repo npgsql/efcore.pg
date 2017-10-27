@@ -73,9 +73,7 @@ namespace E2ETest.Namespace
 
                 entity.Property(e => e.TimestampColumn).HasColumnName("timestampColumn");
 
-                entity.Property(e => e.TimestampTzColumn)
-                    .HasColumnName("timestampTzColumn")
-                    .HasColumnType("timestamptz");
+                entity.Property(e => e.TimestampTzColumn).HasColumnName("timestampTzColumn");
 
                 entity.Property(e => e.UuidColumn).HasColumnName("uuidColumn");
 

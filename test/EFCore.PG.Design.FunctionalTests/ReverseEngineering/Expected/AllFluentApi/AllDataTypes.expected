@@ -19,7 +19,7 @@ namespace E2ETest.Namespace
         public string VarcharColumn { get; set; }
         public DateTime DateColumn { get; set; }
         public DateTime? TimestampColumn { get; set; }
-        public DateTime? TimestampTzColumn { get; set; }
+        public DateTimeOffset? TimestampTzColumn { get; set; }
         public TimeSpan? TimeColumn { get; set; }
         public byte[] ByteaColumn { get; set; }
         public bool BoolColumn { get; set; }
