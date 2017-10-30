@@ -33,6 +33,7 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Internal
         public const string HiLoSequenceName = Prefix + "HiLoSequenceName";
         public const string HiLoSequenceSchema = Prefix + "HiLoSequenceSchema";
         public const string IndexMethod = Prefix + "IndexMethod";
+        public const string IndexOperators = Prefix + "IndexOperator";
         public const string PostgresExtensionPrefix = Prefix + "PostgresExtension:";
         public const string DatabaseTemplate = Prefix + "DatabaseTemplate";
         public const string StorageParameterPrefix = Prefix + "StorageParameter:";

@@ -21,6 +21,7 @@
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 #endregion
 
+using System.Linq;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
@@ -52,6 +53,35 @@ namespace Microsoft.EntityFrameworkCore.Metadata
 
         protected virtual bool SetMethod(string value)
             => Annotations.SetAnnotation(NpgsqlAnnotationNames.IndexMethod, value);
+
+        /// <summary>
+        /// The PostgreSQL operators to be used with each index field.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/static/indexes-opclass.html
+        /// </remarks>
+        public string[] Operators
+        {
+            get => GetOperators();
+            set => SetOperators(value);
+        }
+
+        protected virtual string[] GetOperators() {
+            var value = (string)Annotations.Metadata[NpgsqlAnnotationNames.IndexOperators];
+            if (value != null) {
+                return value.Split(' ');
+            }
+            return null;
+        }
+
+        protected virtual bool SetOperators(string[] operators) {
+            if (operators != null && operators.Count > 0) {
+                Annotations.SetAnnotation(NpgsqlAnnotationNames.IndexMethod, operators.Join(' '));
+            }
+            else {
+                Annotations.SetAnnotation(NpgsqlAnnotationNames.IndexMethod, null);
+            }
+        }
 
     }
 }

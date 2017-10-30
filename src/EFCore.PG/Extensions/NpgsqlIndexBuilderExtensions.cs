@@ -31,5 +31,23 @@ namespace Microsoft.EntityFrameworkCore
 
             return indexBuilder;
         }
+
+        /// <summary>
+        /// The PostgreSQL operators for each index field.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/static/indexes-opclass.html
+        /// </remarks>
+        /// <param name="indexBuilder"> The builder for the index being configured. </param>
+        /// <param name="operators"> Operators for index fields. </param>
+        /// <returns> A builder to further configure the index. </returns>
+        public static IndexBuilder ForNpgsqlHasOperators([NotNull] this IndexBuilder indexBuilder, [CanBeNull] string[] operators)
+        {
+            Check.NotNull(indexBuilder, nameof(indexBuilder));
+
+            indexBuilder.Metadata.Npgsql().Operators = operators;
+
+            return indexBuilder;
+        }
     }
 }
