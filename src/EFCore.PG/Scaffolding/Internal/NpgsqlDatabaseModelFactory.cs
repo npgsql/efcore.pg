@@ -539,7 +539,10 @@ LEFT OUTER JOIN pg_namespace AS ownerns ON ownerns.oid = tblcls.relnamespace";
                             Debug.Assert(sequence.MinValue.HasValue);
                             defaultStart = sequence.MinValue.Value;
                         } else {
-                            defaultMin = long.MinValue + 1;
+                            // PostgreSQL 10 changed the default minvalue for a descending sequence, see #264
+                            defaultMin = _connection.PostgreSqlVersion >= new Version(10,0)
+                                ? long.MinValue
+                                : long.MinValue + 1;
                             defaultMax = -1;
                             Debug.Assert(sequence.MaxValue.HasValue);
                             defaultStart = sequence.MaxValue.Value;
