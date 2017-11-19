@@ -180,7 +180,7 @@ CREATE TABLE public.mountains_columns (
             var sql = "CREATE TABLE place (id int PRIMARY KEY, name int UNIQUE, location int);" +
                       "CREATE INDEX ix_location_name ON place (location, name);";
 
-            var dbModel = CreateModel(sql);
+            var dbModel = CreateModel(sql, new List<string> { "place" });
 
             var pkIndex = dbModel.Tables.Single().PrimaryKey;
 
