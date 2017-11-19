@@ -16,9 +16,9 @@ env:
 before_script:
   - dotnet restore -v Minimal
 script:
-  - cd test/EFCore.PG.Tests && dotnet xunit -framework netcoreapp2.0 && cd ../../
-  - cd test/EFCore.PG.FunctionalTests && dotnet xunit -framework netcoreapp2.0 && cd ../../
-  - cd test/EFCore.PG.Design.FunctionalTests && dotnet xunit -framework netcoreapp2.0 && cd ../../
+  - dotnet test test/EFCore.PG.Tests/EFCore.PG.Tests.csproj
+  - dotnet test test/EFCore.PG.FunctionalTests/EFCore.PG.FunctionalTests.csproj
+  - dotnet test test/EFCore.PG.Design.FunctionalTests/EFCore.PG.Design.FunctionalTests.csproj
 
 cache:
   directories:
