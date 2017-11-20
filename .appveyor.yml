@@ -28,7 +28,6 @@ test_script:
   - dotnet test test\EFCore.PG.Design.FunctionalTests\EFCore.PG.Design.FunctionalTests.csproj
 artifacts:
   - path: 'src\EFCore.PG\bin\**\*.nupkg'
-  - path: 'src\EFCore.PG.Design\bin\**\*.nupkg'
 deploy:
   - provider: NuGet
     server: https://www.myget.org/F/npgsql-unstable/api/v2/package
