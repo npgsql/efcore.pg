@@ -21,6 +21,9 @@ namespace Microsoft.EntityFrameworkCore.Query
         [Fact(Skip = "Support in PG only for numerics")]
         public override void Where_math_log_new_base() { }
 
+        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/10352")]
+        public override void DefaultIfEmpty_in_subquery_nested() {}
+
         #region Inherited
 
         public override void String_Contains_Literal()
