@@ -492,6 +492,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             Check.NotNull(builder, nameof(builder));
 
             var method = (string)operation[NpgsqlAnnotationNames.Prefix + NpgsqlAnnotationNames.IndexMethod];
+            var operators = (string)operation[NpgsqlAnnotationNames.Prefix + NpgsqlAnnotationNames.IndexOperators];
 
             builder.Append("CREATE ");
 
@@ -513,10 +514,27 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                     .Append(method);
             }
 
-            builder
-                .Append(" (")
-                .Append(ColumnList(operation.Columns))
-                .Append(")");
+            if (operators == null) {
+                builder
+                    .Append(" (")
+                    .Append(ColumnList(operation.Columns))
+                    .Append(")");
+            }
+            else {
+                var operatorList = operators.Split(' ');
+                var columnList = new List<string>();
+                for (var k = 0; k < operation.Columns.Count - 1; ++k) {
+                    var columnWithOperator = ColumnList(operation.Columns[k]);
+                    if (k < operatorList.Count) {
+                        columnWithOperator += ' ' + operatorList[k];
+                    }
+                    columnList.Add(columnWithOperator);
+                }
+                builder
+                    .Append(" (")
+                    .Append(columnList.Join(", "))
+                    .Append(")");
+            }
 
             builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
 

@@ -65,6 +65,12 @@ namespace Microsoft.EntityFrameworkCore.Migrations.Internal
                      NpgsqlAnnotationNames.Prefix + NpgsqlAnnotationNames.IndexMethod,
                      index.Npgsql().Method);
             }
+            if (index.Npgsql().Operators != null)
+            {
+                yield return new Annotation(
+                     NpgsqlAnnotationNames.Prefix + NpgsqlAnnotationNames.IndexOperators,
+                     index.Npgsql().Operators.Join(' '));
+            }
         }
 
         public override IEnumerable<IAnnotation> For(IModel model)

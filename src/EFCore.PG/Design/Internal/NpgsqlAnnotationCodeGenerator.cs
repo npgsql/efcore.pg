@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -98,9 +99,17 @@ namespace Microsoft.EntityFrameworkCore.Design.Internal
             if (language != "CSharp")
                 return null;
 
-            return annotation.Name == NpgsqlAnnotationNames.IndexMethod
-                ? $".{nameof(NpgsqlIndexBuilderExtensions.ForNpgsqlHasMethod)}(\"{annotation.Value}\")"
-                : null;
+            if (annotation.Name == NpgsqlAnnotationNames.IndexMethod) {
+                return $".{nameof(NpgsqlIndexBuilderExtensions.ForNpgsqlHasMethod)}(\"{annotation.Value}\")";
+            }
+
+            if (annotation.Name == NpgsqlAnnotationNames.IndexOperators) {
+                var value = (string)annotation.Value;
+                var operatorList = value.Split(' ').Select(o => $"\"{o}\"").Join(", ");
+                return $".{nameof(NpgsqlIndexBuilderExtensions.ForNpgsqlHasOperators)}({operatorList})";
+            }
+
+            return null;
         }
     }
 }
