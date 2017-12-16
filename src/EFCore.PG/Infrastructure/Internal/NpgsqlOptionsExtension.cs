@@ -30,8 +30,6 @@ namespace Microsoft.EntityFrameworkCore.Infrastructure.Internal
 {
     public class NpgsqlOptionsExtension : RelationalOptionsExtension
     {
-        //string _adminDatabase;
-
         public string AdminDatabase { get; private set; }
 
         public NpgsqlOptionsExtension()

@@ -23,9 +23,7 @@
 
 using System.Data.Common;
 using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
-using Microsoft.Extensions.Logging;
 using Npgsql;
 
 namespace Microsoft.EntityFrameworkCore.Storage.Internal
