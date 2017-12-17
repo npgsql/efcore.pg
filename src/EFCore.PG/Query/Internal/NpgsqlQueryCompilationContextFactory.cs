@@ -22,12 +22,6 @@
 #endregion
 
 using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Internal;
-using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors.Internal;
-using Microsoft.EntityFrameworkCore.Utilities;
-using Remotion.Linq.Parsing.Structure.NodeTypeProviders;
 
 namespace Microsoft.EntityFrameworkCore.Query.Internal
 {

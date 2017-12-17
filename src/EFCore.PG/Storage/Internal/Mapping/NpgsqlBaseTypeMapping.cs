@@ -22,12 +22,7 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Data.Common;
-using System.Linq;
 using JetBrains.Annotations;
-using Npgsql;
 using NpgsqlTypes;
 
 namespace Microsoft.EntityFrameworkCore.Storage.Internal

@@ -48,15 +48,13 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
-            var createDatabaseOperation = operation as NpgsqlCreateDatabaseOperation;
-            if (createDatabaseOperation != null)
+            if (operation is NpgsqlCreateDatabaseOperation createDatabaseOperation)
             {
                 Generate(createDatabaseOperation, model, builder);
                 return;
             }
 
-            var dropDatabaseOperation = operation as NpgsqlDropDatabaseOperation;
-            if (dropDatabaseOperation != null)
+            if (operation is NpgsqlDropDatabaseOperation dropDatabaseOperation)
             {
                 Generate(dropDatabaseOperation, model, builder);
                 return;

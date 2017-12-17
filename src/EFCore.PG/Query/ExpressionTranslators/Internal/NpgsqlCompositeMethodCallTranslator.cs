@@ -22,7 +22,6 @@
 #endregion
 
 using JetBrains.Annotations;
-using Microsoft.Extensions.Logging;
 
 namespace Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal
 {

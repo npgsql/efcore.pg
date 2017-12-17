@@ -22,8 +22,6 @@
 #endregion
 
 using System.Collections.Generic;
-using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace Microsoft.EntityFrameworkCore.Metadata
 {
