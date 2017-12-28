@@ -1,18 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Utilities;
+﻿using Microsoft.EntityFrameworkCore;
+using Xunit;
+using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
-    public class UpdatesNpgsqlTest : UpdatesRelationalTestBase<UpdatesNpgsqlFixture, NpgsqlTestStore>
+    public class UpdatesNpgsqlTest : UpdatesRelationalTestBase<UpdatesNpgsqlFixture>
     {
-        public UpdatesNpgsqlTest(UpdatesNpgsqlFixture fixture)
+        public UpdatesNpgsqlTest(UpdatesNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
         {
+            Fixture.TestSqlLoggerFactory.Clear();
+        }
+
+        [Fact(Skip = "Not implemented")]
+        public override void Identifiers_are_generated_correctly()
+        {
+            throw new System.NotImplementedException();
         }
     }
 }

@@ -1,17 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore.Utilities;
 using Xunit;
+using Microsoft.EntityFrameworkCore.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
-    public abstract class FindNpgsqlTest : FindTestBase<NpgsqlTestStore, FindNpgsqlTest.FindNpgsqlFixture>
+    public abstract class FindNpgsqlTest : FindTestBase<FindNpgsqlTest.FindNpgsqlFixture>
     {
         protected FindNpgsqlTest(FindNpgsqlFixture fixture)
             : base(fixture)
@@ -63,40 +60,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 
         public class FindNpgsqlFixture : FindFixtureBase
         {
-            private const string DatabaseName = "FindTest";
-            private readonly DbContextOptions _options;
-
-            public TestSqlLoggerFactory TestSqlLoggerFactory { get; } = new TestSqlLoggerFactory();
-
-            public FindNpgsqlFixture()
-            {
-                var serviceProvider = new ServiceCollection()
-                    .AddEntityFrameworkNpgsql()
-                    .AddSingleton(TestModelSource.GetFactory(OnModelCreating))
-                    .AddSingleton<ILoggerFactory>(TestSqlLoggerFactory)
-                    .BuildServiceProvider();
-
-                _options = new DbContextOptionsBuilder()
-                    .UseNpgsql(NpgsqlTestStore.CreateConnectionString(DatabaseName), b => b.ApplyConfiguration())
-                    .UseInternalServiceProvider(serviceProvider)
-                    .EnableSensitiveDataLogging()
-                    .Options;
-            }
-
-            public override NpgsqlTestStore CreateTestStore()
-            {
-                return NpgsqlTestStore.GetOrCreateShared(DatabaseName, () =>
-                {
-                    using (var context = new FindContext(_options))
-                    {
-                        context.Database.EnsureCreated();
-                        Seed(context);
-                    }
-                });
-            }
-
-            public override DbContext CreateContext(NpgsqlTestStore testStore)
-                => new FindContext(_options);
+            public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ServiceProvider.GetRequiredService<ILoggerFactory>();
+            protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
         }
     }
 }

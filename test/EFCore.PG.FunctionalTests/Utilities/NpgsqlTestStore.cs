@@ -4,15 +4,13 @@ using System.Data;
 using System.Data.Common;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.EntityFrameworkCore.Storage.Internal;
+using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
-using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests;
 
 namespace Microsoft.EntityFrameworkCore.Utilities
 {
@@ -20,40 +18,88 @@ namespace Microsoft.EntityFrameworkCore.Utilities
     {
         private const string Northwind = "Northwind";
 
-        public const int CommandTimeout = 90;
+        public const int CommandTimeout = 600;
 
         private static string BaseDirectory => AppContext.BaseDirectory;
 
         public static readonly string NorthwindConnectionString = CreateConnectionString(Northwind);
 
         public static NpgsqlTestStore GetNorthwindStore()
-            => GetOrCreateShared(
-                Northwind,
-                () => ExecuteScript(Northwind, "Northwind.sql"),
-                cleanDatabase: false);
+            => (NpgsqlTestStore)NpgsqlNorthwindTestStoreFactory.Instance
+                .GetOrCreate(NpgsqlNorthwindTestStoreFactory.Name).Initialize(null, (Func<DbContext>)null, null);
 
-        public static NpgsqlTestStore GetOrCreateShared(string name, Action initializeDatabase, bool cleanDatabase = true)
-            => new NpgsqlTestStore(name, cleanDatabase).CreateShared(initializeDatabase);
+        public static NpgsqlTestStore GetOrCreate(string name)
+             => new NpgsqlTestStore(name);
 
-        public static NpgsqlTestStore Create(string name)
-            => new NpgsqlTestStore(name).CreateTransient(true, false);
+        public static NpgsqlTestStore GetOrCreateInitialized(string name)
+            => new NpgsqlTestStore(name).InitializeNpgsql(null, (Func<DbContext>)null, null);
+
+        public static NpgsqlTestStore GetOrCreate(string name, string scriptPath)
+            => new NpgsqlTestStore(name, scriptPath: scriptPath);
+
+        public static NpgsqlTestStore Create(string name, bool useFileName = false)
+            => new NpgsqlTestStore(name, useFileName, shared: false);
+
+        public static NpgsqlTestStore CreateInitialized(string name, bool useFileName = false, bool? multipleActiveResultSets = null)
+            => new NpgsqlTestStore(name, useFileName, shared: false, multipleActiveResultSets: multipleActiveResultSets)
+                .InitializeNpgsql(null, (Func<DbContext>)null, null);
 
         public static NpgsqlTestStore CreateScratch(bool createDatabase = true)
             => new NpgsqlTestStore(GetScratchDbName()).CreateTransient(createDatabase, true);
 
-        string _connectionString;
-        NpgsqlConnection _connection;
         readonly bool _cleanDatabase;
-        bool _deleteDatabase;
 
-        public string Name { get; }
-        public override string ConnectionString => _connectionString;
+        private readonly string _fileName;
+        private readonly string _scriptPath;
 
-        NpgsqlTestStore(string name, bool cleanDatabase = true)
+        private NpgsqlTestStore(
+            string name,
+            bool useFileName = false,
+            bool? multipleActiveResultSets = null,
+            string scriptPath = null,
+            bool shared = true)
+            : base(name, shared)
         {
             Name = name;
-            _cleanDatabase = cleanDatabase;
+            if (scriptPath != null)
+            {
+                _scriptPath = Path.Combine(Path.GetDirectoryName(typeof(NpgsqlTestStore).GetTypeInfo().Assembly.Location), scriptPath);
+            }
+
+            ConnectionString = CreateConnectionString(Name);
+            Connection = new NpgsqlConnection(ConnectionString);
         }
+
+        public NpgsqlTestStore InitializeNpgsql(
+           IServiceProvider serviceProvider, Func<DbContext> createContext, Action<DbContext> seed)
+           => (NpgsqlTestStore)Initialize(serviceProvider, createContext, seed);
+
+        public NpgsqlTestStore InitializeNpgsql(
+            IServiceProvider serviceProvider, Func<NpgsqlTestStore, DbContext> createContext, Action<DbContext> seed)
+            => InitializeNpgsql(serviceProvider, () => createContext(this), seed);
+
+        protected override void Initialize(Func<DbContext> createContext, Action<DbContext> seed)
+        {
+            if (CreateDatabase())
+            {
+                if (_scriptPath != null)
+                {
+                    ExecuteScript(_scriptPath);
+                }
+                else
+                {
+                    using (var context = createContext())
+                    {
+                        context.Database.EnsureCreated();
+                        seed(context);
+                    }
+                }
+            }
+        }
+
+        public override DbContextOptionsBuilder AddProviderOptions(DbContextOptionsBuilder builder)
+            => builder.UseNpgsql(Connection, b => b.ApplyConfiguration().CommandTimeout(CommandTimeout));
+
 
         static string GetScratchDbName()
         {
@@ -67,46 +113,68 @@ namespace Microsoft.EntityFrameworkCore.Utilities
             return name;
         }
 
-        NpgsqlTestStore CreateShared(Action initializeDatabase)
-        {
-            _connectionString = CreateConnectionString(Name);
-            _connection = new NpgsqlConnection(_connectionString);
-
-            CreateShared(typeof(NpgsqlTestStore).Name + Name,
-                () =>
-                {
-                    if (CreateDatabase())
-                    {
-                        initializeDatabase?.Invoke();
-                    }
-                });
-
-            return this;
-        }
-
-        bool CreateDatabase()
+        private bool CreateDatabase()
         {
             using (var master = new NpgsqlConnection(CreateAdminConnectionString()))
             {
                 if (DatabaseExists(Name))
                 {
-                    if (!_cleanDatabase)
+                    if (_scriptPath != null)
                     {
                         return false;
                     }
 
-                    Clean(Name);
+                    using (var context = new DbContext(AddProviderOptions(new DbContextOptionsBuilder()).Options))
+                    {
+                        Clean(context);
+                        return true;
+                    }
                 }
-                else
-                {
-                    ExecuteNonQuery(master, GetCreateDatabaseStatement(Name));
-                }
+
+                ExecuteNonQuery(master, GetCreateDatabaseStatement(Name));
+                WaitForExists((NpgsqlConnection)Connection);
             }
 
             return true;
         }
 
-        public static void ExecuteScript(string databaseName, string scriptPath)
+        private static void WaitForExists(NpgsqlConnection connection)
+        {
+            WaitForExistsImplementation(connection);
+        }
+
+        private static void WaitForExistsImplementation(NpgsqlConnection connection)
+        {
+            var retryCount = 0;
+            while (true)
+            {
+                try
+                {
+                    if (connection.State != ConnectionState.Closed)
+                    {
+                        connection.Close();
+                    }
+
+                    NpgsqlConnection.ClearPool(connection);
+
+                    connection.Open();
+                    connection.Close();
+                    return;
+                }
+                catch (NpgsqlException e)
+                {
+                    if (++retryCount >= 30
+                        || e.ErrorCode != 233 && e.ErrorCode != -2 && e.ErrorCode != 4060 && e.ErrorCode != 1832 && e.ErrorCode != 5120)
+                    {
+                        throw;
+                    }
+
+                    Thread.Sleep(100);
+                }
+            }
+        }
+
+        public void ExecuteScript(string scriptPath)
         {
             // HACK: Probe for script file as current dir
             // is different between k build and VS run.
@@ -121,21 +189,24 @@ namespace Microsoft.EntityFrameworkCore.Utilities
             }
 
             var script = File.ReadAllText(scriptPath);
-            using (var connection = new NpgsqlConnection(CreateConnectionString(databaseName)))
-            {
-                Execute(connection, command =>
-                {
-                    foreach (var batch in
+            Execute(
+               Connection, command =>
+               {
+                   foreach (var batch in
                         new Regex("^GO", RegexOptions.IgnoreCase | RegexOptions.Multiline, TimeSpan.FromMilliseconds(1000.0))
                             .Split(script).Where(b => !string.IsNullOrEmpty(b)))
-                    {
-                        command.CommandText = batch;
-                        command.ExecuteNonQuery();
-                    }
-                    return 0;
-                }, "");
-            }
+                   {
+                       command.CommandText = batch;
+                       command.ExecuteNonQuery();
+                   }
+                   return 0;
+               }, "");
+
         }
+
+        NpgsqlConnection _connection;
+        string _connectionString;
+        bool _deleteDatabase;
 
         NpgsqlTestStore CreateTransient(bool createDatabase, bool deleteDatabase)
         {
@@ -150,7 +221,7 @@ namespace Microsoft.EntityFrameworkCore.Utilities
             }
             else if (DatabaseExists(Name))
             {
-                DeleteDatabase(Name);
+                DeleteDatabase();
             }
 
             _deleteDatabase = deleteDatabase;
@@ -182,14 +253,14 @@ namespace Microsoft.EntityFrameworkCore.Utilities
                 return ExecuteScalar<long>(master, $@"SELECT COUNT(*) FROM pg_database WHERE datname = '{name}'") > 0;
         }
 
-        void DeleteDatabase(string name)
+        void DeleteDatabase()
         {
-            if (!DatabaseExists(name))
+            if (!DatabaseExists(Name))
                 return;
             using (var master = new NpgsqlConnection(CreateAdminConnectionString()))
             {
-                ExecuteNonQuery(master, GetDisconnectDatabaseSql(name));
-                ExecuteNonQuery(master, GetDropDatabaseSql(name));
+                ExecuteNonQuery(master, GetDisconnectDatabaseSql(Name));
+                ExecuteNonQuery(master, GetDropDatabaseSql(Name));
 
                 NpgsqlConnection.ClearAllPools();
             }
@@ -205,42 +276,38 @@ SELECT pg_terminate_backend (pg_stat_activity.pid)
 
         static string GetDropDatabaseSql(string name) => $@"DROP DATABASE ""{name}""";
 
-        public override DbConnection Connection => _connection;
+        public override void OpenConnection() => Connection.Open();
 
-        public override DbTransaction Transaction => null;
-
-        public override void OpenConnection() => _connection.Open();
-
-        public Task OpenConnectionAsync() => _connection.OpenAsync();
+        public Task OpenConnectionAsync() => Connection.OpenAsync();
 
         public T ExecuteScalar<T>(string sql, params object[] parameters)
-            => ExecuteScalar<T>(_connection, sql, parameters);
+            => ExecuteScalar<T>(Connection, sql, parameters);
 
-        private static T ExecuteScalar<T>(NpgsqlConnection connection, string sql, params object[] parameters)
+        private static T ExecuteScalar<T>(DbConnection connection, string sql, params object[] parameters)
             => Execute(connection, command => (T)command.ExecuteScalar(), sql, false, parameters);
 
         public Task<T> ExecuteScalarAsync<T>(string sql, params object[] parameters)
-            => ExecuteScalarAsync<T>(_connection, sql, parameters);
+            => ExecuteScalarAsync<T>(Connection, sql, parameters);
 
-        private static Task<T> ExecuteScalarAsync<T>(NpgsqlConnection connection, string sql, object[] parameters = null)
+        private static Task<T> ExecuteScalarAsync<T>(DbConnection connection, string sql, object[] parameters = null)
             => ExecuteAsync(connection, async command => (T)await command.ExecuteScalarAsync(), sql, false, parameters);
 
         public int ExecuteNonQuery(string sql, params object[] parameters)
-            => ExecuteNonQuery(_connection, sql, parameters);
+            => ExecuteNonQuery(Connection, sql, parameters);
 
-        private static int ExecuteNonQuery(NpgsqlConnection connection, string sql, object[] parameters = null)
+        private static int ExecuteNonQuery(DbConnection connection, string sql, object[] parameters = null)
             => Execute(connection, command => command.ExecuteNonQuery(), sql, false, parameters);
 
         public Task<int> ExecuteNonQueryAsync(string sql, params object[] parameters)
-            => ExecuteNonQueryAsync(_connection, sql, parameters);
+            => ExecuteNonQueryAsync(Connection, sql, parameters);
 
-        private static Task<int> ExecuteNonQueryAsync(NpgsqlConnection connection, string sql, object[] parameters = null)
+        private static Task<int> ExecuteNonQueryAsync(DbConnection connection, string sql, object[] parameters = null)
             => ExecuteAsync(connection, command => command.ExecuteNonQueryAsync(), sql, false, parameters);
 
         public IEnumerable<T> Query<T>(string sql, params object[] parameters)
-            => Query<T>(_connection, sql, parameters);
+            => Query<T>(Connection, sql, parameters);
 
-        private static IEnumerable<T> Query<T>(NpgsqlConnection connection, string sql, object[] parameters = null)
+        private static IEnumerable<T> Query<T>(DbConnection connection, string sql, object[] parameters = null)
             => Execute(connection, command =>
             {
                 using (var dataReader = command.ExecuteReader())
@@ -255,9 +322,9 @@ SELECT pg_terminate_backend (pg_stat_activity.pid)
             }, sql, false, parameters);
 
         public Task<IEnumerable<T>> QueryAsync<T>(string sql, params object[] parameters)
-            => QueryAsync<T>(_connection, sql, parameters);
+            => QueryAsync<T>(Connection, sql, parameters);
 
-        private static Task<IEnumerable<T>> QueryAsync<T>(NpgsqlConnection connection, string sql, object[] parameters = null)
+        private static Task<IEnumerable<T>> QueryAsync<T>(DbConnection connection, string sql, object[] parameters = null)
             => ExecuteAsync(connection, async command =>
             {
                 using (var dataReader = await command.ExecuteReaderAsync())
@@ -272,12 +339,12 @@ SELECT pg_terminate_backend (pg_stat_activity.pid)
             }, sql, false, parameters);
 
         private static T Execute<T>(
-            NpgsqlConnection connection, Func<DbCommand, T> execute, string sql,
+            DbConnection connection, Func<DbCommand, T> execute, string sql,
             bool useTransaction = false, object[] parameters = null)
-            =>  ExecuteCommand(connection, execute, sql, useTransaction, parameters);
+            => ExecuteCommand(connection, execute, sql, useTransaction, parameters);
 
         private static T ExecuteCommand<T>(
-            NpgsqlConnection connection, Func<DbCommand, T> execute, string sql, bool useTransaction, object[] parameters)
+            DbConnection connection, Func<DbCommand, T> execute, string sql, bool useTransaction, object[] parameters)
         {
             if (connection.State != ConnectionState.Closed)
             {
@@ -310,12 +377,12 @@ SELECT pg_terminate_backend (pg_stat_activity.pid)
         }
 
         private static Task<T> ExecuteAsync<T>(
-            NpgsqlConnection connection, Func<DbCommand, Task<T>> executeAsync, string sql,
+            DbConnection connection, Func<DbCommand, Task<T>> executeAsync, string sql,
             bool useTransaction = false, IReadOnlyList<object> parameters = null)
             => ExecuteCommandAsync(connection, executeAsync, sql, useTransaction, parameters);
 
         private static async Task<T> ExecuteCommandAsync<T>(
-            NpgsqlConnection connection, Func<DbCommand, Task<T>> executeAsync, string sql, bool useTransaction, IReadOnlyList<object> parameters)
+            DbConnection connection, Func<DbCommand, Task<T>> executeAsync, string sql, bool useTransaction, IReadOnlyList<object> parameters)
         {
             if (connection.State != ConnectionState.Closed)
             {
@@ -347,9 +414,9 @@ SELECT pg_terminate_backend (pg_stat_activity.pid)
         }
 
         private static DbCommand CreateCommand(
-            NpgsqlConnection connection, string commandText, IReadOnlyList<object> parameters = null)
+            DbConnection connection, string commandText, IReadOnlyList<object> parameters = null)
         {
-            var command = connection.CreateCommand();
+            var command = (NpgsqlCommand)connection.CreateCommand();
 
             command.CommandText = commandText;
             command.CommandTimeout = CommandTimeout;
@@ -367,19 +434,25 @@ SELECT pg_terminate_backend (pg_stat_activity.pid)
 
         public override void Dispose()
         {
-            _connection.Dispose();
+            base.Dispose();
+
+            _connection?.Dispose();
 
             if (_deleteDatabase)
             {
-                DeleteDatabase(Name);
+                DeleteDatabase();
             }
         }
 
         public static string CreateConnectionString(string name)
-            => new NpgsqlConnectionStringBuilder(TestEnvironment.DefaultConnection) {
+            => new NpgsqlConnectionStringBuilder(TestEnvironment.DefaultConnection)
+            {
                 Database = name
             }.ConnectionString;
 
         static string CreateAdminConnectionString() => CreateConnectionString("postgres");
+
+        public override void Clean(DbContext context)
+            => context.Database.EnsureClean();
     }
 }

@@ -8,11 +8,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Utilities;
+using Microsoft.EntityFrameworkCore.TestUtilities;
+using Microsoft.Extensions.Logging;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
     public class GraphUpdatesNpgsqlTest
-        : GraphUpdatesTestBase<NpgsqlTestStore, GraphUpdatesNpgsqlTest.GraphUpdatesNpgsqlFixture>
+        : GraphUpdatesTestBase<GraphUpdatesNpgsqlTest.GraphUpdatesNpgsqlFixture>
     {
         public GraphUpdatesNpgsqlTest(GraphUpdatesNpgsqlFixture fixture)
             : base(fixture)
@@ -24,54 +26,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 
         public class GraphUpdatesNpgsqlFixture : GraphUpdatesFixtureBase
         {
-            const string DatabaseName = "GraphUpdatesTest";
+            protected override string StoreName { get; } = "GraphIdentityUpdatesTest";
 
-            readonly IServiceProvider _serviceProvider;
-
-            public GraphUpdatesNpgsqlFixture()
-            {
-                _serviceProvider = new ServiceCollection()
-                    .AddEntityFrameworkNpgsql()
-                    .AddSingleton(TestModelSource.GetFactory(OnModelCreating))
-                    .BuildServiceProvider();
-            }
-
-            protected override void OnModelCreating(ModelBuilder modelBuilder)
-            {
-                modelBuilder.HasPostgresExtension("uuid-ossp");
-
-                base.OnModelCreating(modelBuilder);
-            }
-
-            public override NpgsqlTestStore CreateTestStore()
-            {
-                return NpgsqlTestStore.GetOrCreateShared(DatabaseName, () =>
-                {
-                    var optionsBuilder = new DbContextOptionsBuilder()
-                        .UseNpgsql(NpgsqlTestStore.CreateConnectionString(DatabaseName))
-                        .UseInternalServiceProvider(_serviceProvider);
-
-                    using (var context = new GraphUpdatesContext(optionsBuilder.Options))
-                    {
-                        context.Database.EnsureDeleted();
-                        if (context.Database.EnsureCreated())
-                        {
-                            Seed(context);
-                        }
-                    }
-                });
-            }
-
-            public override DbContext CreateContext(NpgsqlTestStore testStore)
-            {
-                var optionsBuilder = new DbContextOptionsBuilder()
-                    .UseNpgsql(testStore.Connection)
-                    .UseInternalServiceProvider(_serviceProvider);
-
-                var context = new GraphUpdatesContext(optionsBuilder.Options);
-                context.Database.UseTransaction(testStore.Transaction);
-                return context;
-            }
+            public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ServiceProvider.GetRequiredService<ILoggerFactory>();
+            protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
         }
     }
 }

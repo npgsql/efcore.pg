@@ -4,22 +4,29 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.TestUtilities;
+using Microsoft.EntityFrameworkCore.Utilities;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.EntityFrameworkCore.Query
 {
-    public class IncludeOneToOneNpgsqlTest : IncludeOneToOneTestBase, IClassFixture<OneToOneQueryNpgsqlFixture>
+    public class IncludeOneToOneNpgsqlTest : IncludeOneToOneTestBase<IncludeOneToOneNpgsqlTest.OneToOneQueryNpgsqlFixture>
     {
-        readonly OneToOneQueryNpgsqlFixture _fixture;
-
-        public IncludeOneToOneNpgsqlTest(OneToOneQueryNpgsqlFixture fixture)
+        public IncludeOneToOneNpgsqlTest(OneToOneQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
+            : base(fixture)
         {
-            _fixture = fixture;
+            fixture.TestSqlLoggerFactory.Clear();
         }
 
-        protected override DbContext CreateContext()
+        private string Sql => Fixture.TestSqlLoggerFactory.SqlStatements.Last();
+
+        public class OneToOneQueryNpgsqlFixture : OneToOneQueryFixtureBase
         {
-            return _fixture.CreateContext();
+            protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+            public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ServiceProvider.GetRequiredService<ILoggerFactory>();
         }
     }
 }

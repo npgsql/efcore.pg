@@ -39,30 +39,47 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
 {
     public class NpgsqlEFTypeMapper : RelationalTypeMapper
     {
-        readonly Dictionary<string, RelationalTypeMapping> _storeTypeMappings;
-
-        readonly Dictionary<Type, RelationalTypeMapping> _baseClrMappings;
-        readonly ConcurrentDictionary<Type, RelationalTypeMapping> _extraClrMappings;
+        private readonly Dictionary<string, IList<RelationalTypeMapping>> _storeTypeMappings;
+        private readonly Dictionary<Type, RelationalTypeMapping> _clrTypeMappings;
+        private readonly ConcurrentDictionary<Type, RelationalTypeMapping> _extraClrMappings;
 
         public override IStringRelationalTypeMapper StringMapper { get; }
 
-        public NpgsqlEFTypeMapper([NotNull] RelationalTypeMapperDependencies dependencies)
-            : base(dependencies)
+        private readonly UIntTypeMapping _uint = new UIntTypeMapping(
+            "oid",
+            new ValueConverter<uint, int>(v => (int)v, v => (uint)v),
+            DbType.Int16);
+
+        private readonly UShortTypeMapping _ushort = new UShortTypeMapping(
+            "int4",
+            new ValueConverter<ushort, int>(v => v, v => (ushort)v),
+            DbType.Int32);
+
+        private readonly ULongTypeMapping _ulong = new ULongTypeMapping(
+            "int8",
+            new ValueConverter<ulong, long>(v => (long)v, v => (ulong)v),
+            DbType.Int64);
+
+        public NpgsqlEFTypeMapper(
+            [NotNull] CoreTypeMapperDependencies coreDependencies,
+            [NotNull] RelationalTypeMapperDependencies dependencies)
+            : base(coreDependencies, dependencies)
         {
-            // First, PostgreSQL type name (string) -> RelationalTypeMapping
+
             _storeTypeMappings = TypeHandlerRegistry.HandlerTypes.Values
-                .Where(tam => tam.Mapping.NpgsqlDbType.HasValue)
-                .Select(tam => new {
-                    Name = tam.Mapping.PgName,
-                    Mapping = (RelationalTypeMapping)new NpgsqlBaseTypeMapping(tam.Mapping.PgName, GetTypeHandlerTypeArgument(tam.HandlerType), tam.Mapping.NpgsqlDbType.Value)
-                })
-                .ToDictionary(x => x.Name, x => x.Mapping);
+                    .Where(tam => tam.Mapping.NpgsqlDbType.HasValue)
+                    .Select(tam => new
+                    {
+                        Name = tam.Mapping.PgName,
+                        Mapping = (IList< RelationalTypeMapping>) new List<RelationalTypeMapping> { new NpgsqlBaseTypeMapping(tam.Mapping.PgName, GetTypeHandlerTypeArgument(tam.HandlerType), tam.Mapping.NpgsqlDbType.Value) }
+                    }).ToDictionary(x => x.Name, x => x.Mapping);
 
             // Second, CLR type -> RelationalTypeMapping
-            _baseClrMappings = TypeHandlerRegistry.HandlerTypes.Values
+            _clrTypeMappings = TypeHandlerRegistry.HandlerTypes.Values
                 .Select(tam => tam.Mapping)
                 .Where(m => m.NpgsqlDbType.HasValue)
-                .SelectMany(m => m.ClrTypes, (m, t) => new {
+                .SelectMany(m => m.ClrTypes, (m, t) => new
+                {
                     Type = t,
                     Mapping = (RelationalTypeMapping)new NpgsqlBaseTypeMapping(m.PgName, t, m.NpgsqlDbType.Value)
                 })
@@ -72,37 +89,54 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
 
             StringMapper = new NpgsqlStringRelationalTypeMapper();
 
+            AddCustomizedStoreMappings();
             AddCustomizedMappings();
             AddArrayStoreMappings();
+        }
+
+        void AddCustomizedStoreMappings()
+        {
+            //Custom Mappings Store
+            _storeTypeMappings["text"] = new List<RelationalTypeMapping> { new NpgsqlStringTypeMapping("text", NpgsqlDbType.Text) };
+            _storeTypeMappings["varchar"] = new List<RelationalTypeMapping> { new NpgsqlStringTypeMapping("varchar", NpgsqlDbType.Varchar) };
+            _storeTypeMappings["citext"] = new List<RelationalTypeMapping> { new NpgsqlStringTypeMapping("citext", NpgsqlDbType.Citext) };
+            _storeTypeMappings["json"] = new List<RelationalTypeMapping> { new NpgsqlStringTypeMapping("json", NpgsqlDbType.Json) };
+            _storeTypeMappings["jsonb"] = new List<RelationalTypeMapping> { new NpgsqlStringTypeMapping("jsonb", NpgsqlDbType.Jsonb) };
+            _storeTypeMappings["timestamp"] = new List<RelationalTypeMapping> { new DateTimeTypeMapping("timestamp", DbType.DateTime) };
+            _storeTypeMappings["timestamptz"] = new List<RelationalTypeMapping> { new NpgsqlDateTimeOffsetTypeMapping("timestamptz", DbType.DateTimeOffset) };
+            _storeTypeMappings["bool"] = new List<RelationalTypeMapping> { new NpgsqlBoolTypeMapping() };
+            _storeTypeMappings["uuid"] = new List<RelationalTypeMapping> { new GuidTypeMapping("uuid", DbType.Guid) };
+            _storeTypeMappings["bytea"] = new List<RelationalTypeMapping> { new NpgsqlByteArrayTypeMapping() };
+            _storeTypeMappings["int2"] = new List<RelationalTypeMapping> { new ShortTypeMapping("int2", DbType.Int16) };
+            _storeTypeMappings["int4"] = new List<RelationalTypeMapping> { new IntTypeMapping("int4", DbType.Int32) };
+            _storeTypeMappings["int8"] = new List<RelationalTypeMapping> { new LongTypeMapping("int8", DbType.Int64) };
         }
 
         void AddCustomizedMappings()
         {
             // Mappings where we need literal string generation
-            _baseClrMappings[typeof(string)] = _storeTypeMappings["text"] = new NpgsqlStringTypeMapping("text", NpgsqlDbType.Text);
-            _storeTypeMappings["varchar"] = new NpgsqlStringTypeMapping("varchar", NpgsqlDbType.Varchar);
-            _storeTypeMappings["citext"] = new NpgsqlStringTypeMapping("citext", NpgsqlDbType.Citext);
-            _storeTypeMappings["json"] = new NpgsqlStringTypeMapping("json", NpgsqlDbType.Json);
-            _storeTypeMappings["jsonb"] = new NpgsqlStringTypeMapping("jsonb", NpgsqlDbType.Jsonb);
+            _clrTypeMappings[typeof(string)] = _storeTypeMappings["text"][0];
+            _clrTypeMappings[typeof(char)] = new CharTypeMapping("text", DbType.String);
+            _clrTypeMappings[typeof(DateTime)] = _storeTypeMappings["timestamp"][0];
+            _clrTypeMappings[typeof(DateTimeOffset)] = _storeTypeMappings["timestamptz"][0];
+            _clrTypeMappings[typeof(bool)] = _storeTypeMappings["bool"][0];
 
-            _baseClrMappings[typeof(char)] = new CharTypeMapping("text", DbType.String);
-            _baseClrMappings[typeof(DateTime)] = _storeTypeMappings["timestamp"] = new DateTimeTypeMapping("timestamp", DbType.DateTime);
-            _baseClrMappings[typeof(DateTimeOffset)] = _storeTypeMappings["timestamptz"] = new NpgsqlDateTimeOffsetTypeMapping("timestamptz", DbType.DateTimeOffset);
-            _baseClrMappings[typeof(bool)] = _storeTypeMappings["bool"] = new NpgsqlBoolTypeMapping();
-
-            _baseClrMappings[typeof(decimal)] = new DecimalTypeMapping("numeric", DbType.Decimal);
+            _clrTypeMappings[typeof(decimal)] = new DecimalTypeMapping("numeric", DbType.Decimal);
             // Note that "decimal" in PostgreSQL is just an alias for numeric, PostgreSQL itself always reports numeric for column types.
 
-            _baseClrMappings[typeof(Guid)] = _storeTypeMappings["uuid"] = new GuidTypeMapping("uuid", DbType.Guid);
-            _baseClrMappings[typeof(byte[])] = _storeTypeMappings["bytea"] = new NpgsqlByteArrayTypeMapping();
+            _clrTypeMappings[typeof(Guid)] = _storeTypeMappings["uuid"][0];
+            _clrTypeMappings[typeof(byte[])] = _storeTypeMappings["bytea"][0];
 
             // The following isn't necessary for int itself - a simple ToString() (the default) produces the right
             // literal representation. However, with an explicit int mapping the standard mapping would be returned
             // for enums, and there a simple ToString produces the enum *name*.
             // Example for test for enum literal: InheritanceNpgsqlTest.Can_query_just_roses
-            _baseClrMappings[typeof(short)] = _storeTypeMappings["int2"] = new ShortTypeMapping("int2", DbType.Int16);
-            _baseClrMappings[typeof(int)] = _storeTypeMappings["int4"] = new IntTypeMapping("int4", DbType.Int32);
-            _baseClrMappings[typeof(long)] = _storeTypeMappings["int8"] = new LongTypeMapping("int8", DbType.Int64);
+            _clrTypeMappings[typeof(short)] = _storeTypeMappings["int2"][0];
+            _clrTypeMappings[typeof(int)] = _storeTypeMappings["int4"][0];
+            _clrTypeMappings[typeof(long)] = _storeTypeMappings["int8"][0];
+
+            _clrTypeMappings[typeof(ushort)] = _ushort;
+            _clrTypeMappings[typeof(ulong)] = _ulong;
 
             // uint is special: there are three internal system uint types: oid, xid, cid. None are supposed to
             // be truly user-facing, so we don't want to automatically map uint properties to any of them.
@@ -110,44 +144,43 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
             // that (especially since the xmin system column is important for optimistic concurrency).
             // EFCore doesn't allow a situation where a CLR type has no default store type, so we arbitrarily
             // choose oid.
-            _baseClrMappings[typeof(uint)] = new NpgsqlBaseTypeMapping("oid", typeof(uint), NpgsqlDbType.Oid);
+            _clrTypeMappings[typeof(uint)] = _uint;// new NpgsqlBaseTypeMapping("oid", typeof(uint), NpgsqlDbType.Oid);
         }
 
         void AddArrayStoreMappings()
         {
             foreach (var elementMapping in _storeTypeMappings.Values.ToList())
             {
-                var arrayMapping = new NpgsqlArrayTypeMapping(elementMapping.ClrType.MakeArrayType(), elementMapping);
-                _storeTypeMappings[arrayMapping.StoreType] = arrayMapping;
+                var arrayMapping = new NpgsqlArrayTypeMapping(elementMapping[0].ClrType.MakeArrayType(), elementMapping[0]);
+                _storeTypeMappings[arrayMapping.StoreType] = new List<RelationalTypeMapping> { arrayMapping };
             }
         }
 
         protected override string GetColumnType(IProperty property) => property.Npgsql().ColumnType;
 
         protected override IReadOnlyDictionary<Type, RelationalTypeMapping> GetClrTypeMappings()
-        {
-            // Too limiting, we simply reimplement FindMapping
-            throw new NotSupportedException();
-        }
+            => _clrTypeMappings;
 
-        protected override IReadOnlyDictionary<string, RelationalTypeMapping> GetStoreTypeMappings()
+        protected override IReadOnlyDictionary<string, IList<RelationalTypeMapping>> GetMultipleStoreTypeMappings()
             => _storeTypeMappings;
+
 
         [CanBeNull]
         public override RelationalTypeMapping FindMapping(Type clrType)
         {
             Check.NotNull(clrType, nameof(clrType));
 
-            var unwrappedType = clrType.UnwrapNullableType().UnwrapEnumType();
             RelationalTypeMapping mapping;
-            if (_baseClrMappings.TryGetValue(unwrappedType, out mapping))
+            var unwrappedType = clrType.UnwrapNullableType().UnwrapEnumType();
+
+            if (_clrTypeMappings.TryGetValue(unwrappedType, out mapping))
                 return mapping;
             if (_extraClrMappings.TryGetValue(unwrappedType, out mapping))
                 return mapping;
 
             // Type hasn't been seen before - we may need to add a mapping (e.g. array)
-
             // Try to see if it is an array type
+
             var arrayElementType = GetArrayElementType(unwrappedType);
             if (arrayElementType != null)
             {
@@ -166,6 +199,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
 
             return null;
         }
+
 
         [CanBeNull]
         protected override RelationalTypeMapping FindCustomMapping(IProperty property)

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.EntityFrameworkCore.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -204,7 +204,7 @@ namespace Microsoft.EntityFrameworkCore.Query
         {
             _testStore = NpgsqlTestStore.CreateScratch();
             _options = new DbContextOptionsBuilder()
-                .UseNpgsql(_testStore.Connection, b => b.ApplyConfiguration())
+                .UseNpgsql(_testStore.ConnectionString, b => b.ApplyConfiguration())
                 .UseInternalServiceProvider(
                     new ServiceCollection()
                         .AddEntityFrameworkNpgsql()

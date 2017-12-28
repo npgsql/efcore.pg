@@ -8,11 +8,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore.Utilities;
 using Xunit;
+using Microsoft.EntityFrameworkCore.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
     public class LoadNpgsqlTest
-        : LoadTestBase<NpgsqlTestStore, LoadNpgsqlTest.LoadNpgsqlFixture>
+        : LoadTestBase<LoadNpgsqlTest.LoadNpgsqlFixture>
     {
         public LoadNpgsqlTest(LoadNpgsqlFixture fixture)
             : base(fixture)
@@ -31,40 +32,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 
         public class LoadNpgsqlFixture : LoadFixtureBase
         {
-            private const string DatabaseName = "LoadTest";
-            private readonly DbContextOptions _options;
+            protected override string StoreName { get; } = "LoadTest";
 
-            public TestSqlLoggerFactory TestSqlLoggerFactory { get; } = new TestSqlLoggerFactory();
-
-            public LoadNpgsqlFixture()
-            {
-                var serviceProvider = new ServiceCollection()
-                    .AddEntityFrameworkNpgsql()
-                    .AddSingleton(TestModelSource.GetFactory(OnModelCreating))
-                    .AddSingleton<ILoggerFactory>(TestSqlLoggerFactory)
-                    .BuildServiceProvider();
-
-                _options = new DbContextOptionsBuilder()
-                    .UseNpgsql(NpgsqlTestStore.CreateConnectionString(DatabaseName), b => b.ApplyConfiguration())
-                    .UseInternalServiceProvider(serviceProvider)
-                    .EnableSensitiveDataLogging()
-                    .Options;
-            }
-
-            public override NpgsqlTestStore CreateTestStore()
-            {
-                return NpgsqlTestStore.GetOrCreateShared(DatabaseName, () =>
-                {
-                    using (var context = new LoadContext(_options))
-                    {
-                        context.Database.EnsureCreated();
-                        Seed(context);
-                    }
-                });
-            }
-
-            public override DbContext CreateContext(NpgsqlTestStore testStore)
-                => new LoadContext(_options);
+            public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ServiceProvider.GetRequiredService<ILoggerFactory>();
+            protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
         }
     }
 }

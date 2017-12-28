@@ -3,17 +3,20 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.TestUtilities;
 using Xunit;
 
 namespace Microsoft.EntityFrameworkCore.Query
 {
-    public class AsyncQueryNpgsqlTest : AsyncQueryTestBase<NorthwindQueryNpgsqlFixture>
+    public class AsyncQueryNpgsqlTest : AsyncSimpleQueryTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
     {
-        public AsyncQueryNpgsqlTest(NorthwindQueryNpgsqlFixture fixture)
-            : base(fixture) {}
+        public AsyncQueryNpgsqlTest(NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture)
+            : base(fixture)
+        {
+            Fixture.TestSqlLoggerFactory.Clear();
+        }
 
         #region Skipped tests
-
         [Fact(Skip = "Test skipped in EFCore (SqlServer/Sqlite)")]
         public override Task Projection_when_arithmetic_expressions() => null;
 

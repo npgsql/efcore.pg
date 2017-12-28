@@ -42,6 +42,7 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Conventions
 
             var valueGenerationStrategyConvention = new NpgsqlValueGenerationStrategyConvention();
             conventionSet.ModelInitializedConventions.Add(valueGenerationStrategyConvention);
+            conventionSet.ModelInitializedConventions.Add(new RelationalMaxIdentifierLengthConvention(64));
 
             return conventionSet;
         }

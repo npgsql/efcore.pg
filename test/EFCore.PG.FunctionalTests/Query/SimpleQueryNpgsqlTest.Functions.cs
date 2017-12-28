@@ -1,120 +1,102 @@
 ﻿using System;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestModels.Northwind;
 using Xunit;
 
 namespace Microsoft.EntityFrameworkCore.Query
 {
-    public class QueryNpgsqlTest : QueryTestBase<NorthwindQueryNpgsqlFixture>
+    public partial class SimpleQueryNpgsqlTest
     {
-        public QueryNpgsqlTest(NorthwindQueryNpgsqlFixture fixture)
-            : base(fixture)
-        {
-            Fixture.TestSqlLoggerFactory.Clear();
-        }
-
-        [Fact(Skip = "https://github.com/aspnet/EntityFramework/issues/8606")]
-        public override void OrderBy_coalesce_skip_take_distinct_take() { }
-
-        [Fact(Skip = "Support in PG only for numerics")]
-        public override void Where_math_log_new_base() { }
-
-        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/10352")]
-        public override void DefaultIfEmpty_in_subquery_nested() {}
-
-        #region Inherited
-
         public override void String_Contains_Literal()
         {
             base.String_Contains_Literal();
-            AssertContainsInSql("WHERE STRPOS(\"c\".\"ContactName\", 'M') > 0");
+            AssertContainsSql("WHERE STRPOS(\"c\".\"ContactName\", 'M') > 0");
         }
 
         public override void String_StartsWith_Literal()
         {
             base.String_StartsWith_Literal();
-            AssertContainsInSql("WHERE \"c\".\"ContactName\" LIKE 'M%'");
+            AssertContainsSql("WHERE \"c\".\"ContactName\" LIKE 'M%'");
         }
 
         [Fact]
         public void String_StartsWith_Literal_with_escaping()
         {
             AssertQuery<Customer>(cs => cs.Where(c => c.ContactName.StartsWith(@"_a%b\c")));
-            AssertContainsInSql(@"WHERE ""c"".""ContactName"" LIKE '\_a\%b\\c%'");
+            AssertContainsSql(@"WHERE ""c"".""ContactName"" LIKE '\_a\%b\\c%'");
         }
 
         public override void String_StartsWith_Column()
         {
             AssertQuery<Customer>(cs => cs.Where(c => c.ContactName.StartsWith(c.City)));
-            AssertContainsInSql(@"WHERE ""c"".""ContactName"" LIKE (""c"".""City"" || '%') AND (LEFT(""c"".""ContactName"", LENGTH(""c"".""City"")) = ""c"".""City"")");
+            AssertContainsSql(@"WHERE ""c"".""ContactName"" LIKE (""c"".""City"" || '%') AND (LEFT(""c"".""ContactName"", LENGTH(""c"".""City"")) = ""c"".""City"")");
         }
 
         public override void String_EndsWith_Literal()
         {
             base.String_EndsWith_Literal();
-            AssertContainsInSql("WHERE RIGHT(\"c\".\"ContactName\", LENGTH('b')) = 'b'");
+            AssertContainsSql("WHERE RIGHT(\"c\".\"ContactName\", LENGTH('b')) = 'b'");
         }
 
         public override void Trim_without_argument_in_predicate()
         {
             base.Trim_without_argument_in_predicate();
-            AssertContainsInSql(@"WHERE REGEXP_REPLACE(""c"".""ContactTitle"", '^\s*(.*?)\s*$', '\1') = 'Owner'");
+            AssertContainsSql(@"WHERE REGEXP_REPLACE(""c"".""ContactTitle"", '^\s*(.*?)\s*$', '\1') = 'Owner'");
         }
 
         public override void Trim_with_char_argument_in_predicate()
         {
             base.Trim_with_char_argument_in_predicate();
-            AssertContainsInSql("WHERE BTRIM(\"c\".\"ContactTitle\", 'O')");
+            AssertContainsSql("WHERE BTRIM(\"c\".\"ContactTitle\", 'O')");
         }
 
         public override void Trim_with_char_array_argument_in_predicate()
         {
             base.Trim_with_char_array_argument_in_predicate();
-            AssertContainsInSql("WHERE BTRIM(\"c\".\"ContactTitle\", 'Or')");
+            AssertContainsSql("WHERE BTRIM(\"c\".\"ContactTitle\", 'Or')");
         }
 
         public override void TrimStart_without_arguments_in_predicate()
         {
             base.TrimStart_without_arguments_in_predicate();
-            AssertContainsInSql("WHERE REGEXP_REPLACE(\"c\".\"ContactTitle\", '^\\s*', '') = 'Owner'");
+            AssertContainsSql("WHERE REGEXP_REPLACE(\"c\".\"ContactTitle\", '^\\s*', '') = 'Owner'");
         }
 
         public override void TrimStart_with_char_argument_in_predicate()
         {
             base.TrimStart_with_char_argument_in_predicate();
-            AssertContainsInSql("WHERE LTRIM(\"c\".\"ContactTitle\", 'O')");
+            AssertContainsSql("WHERE LTRIM(\"c\".\"ContactTitle\", 'O')");
         }
 
         public override void TrimStart_with_char_array_argument_in_predicate()
         {
             base.TrimStart_with_char_array_argument_in_predicate();
-            AssertContainsInSql("WHERE LTRIM(\"c\".\"ContactTitle\", 'Ow')");
+            AssertContainsSql("WHERE LTRIM(\"c\".\"ContactTitle\", 'Ow')");
         }
 
         public override void TrimEnd_without_arguments_in_predicate()
         {
             base.TrimEnd_without_arguments_in_predicate();
-            AssertContainsInSql("WHERE REGEXP_REPLACE(\"c\".\"ContactTitle\", '\\s*$', '') = 'Owner'");
+            AssertContainsSql("WHERE REGEXP_REPLACE(\"c\".\"ContactTitle\", '\\s*$', '') = 'Owner'");
         }
 
         public override void TrimEnd_with_char_argument_in_predicate()
         {
             base.TrimEnd_with_char_argument_in_predicate();
-            AssertContainsInSql("WHERE RTRIM(\"c\".\"ContactTitle\", 'r')");
+            AssertContainsSql("WHERE RTRIM(\"c\".\"ContactTitle\", 'r')");
         }
 
         public override void TrimEnd_with_char_array_argument_in_predicate()
         {
             base.TrimEnd_with_char_array_argument_in_predicate();
-            AssertContainsInSql("WHERE RTRIM(\"c\".\"ContactTitle\", 'er')");
+            AssertContainsSql("WHERE RTRIM(\"c\".\"ContactTitle\", 'er')");
         }
 
         public override void IsNullOrWhiteSpace_in_predicate()
         {
             base.IsNullOrWhiteSpace_in_predicate();
-            AssertContainsInSql("WHERE \"c\".\"Region\" IS NULL OR (\"c\".\"Region\" ~ '^\\s*$' = TRUE)");
+            AssertContainsSql("WHERE \"c\".\"Region\" IS NULL OR (\"c\".\"Region\" ~ '^\\s*$' = TRUE)");
         }
 
         [Fact]
@@ -131,67 +113,67 @@ namespace Microsoft.EntityFrameworkCore.Query
         public override void Query_expression_with_to_string_and_contains()
         {
             base.Query_expression_with_to_string_and_contains();
-            AssertContainsInSql("STRPOS(CAST(\"o\".\"EmployeeID\" AS text), '10') > 0");
+            AssertContainsSql("STRPOS(CAST(\"o\".\"EmployeeID\" AS text), '10') > 0");
         }
 
         public override void Where_datetime_now()
         {
             base.Where_datetime_now();
-            AssertContainsInSql("WHERE NOW() <>");
+            AssertContainsSql("WHERE NOW() <>");
         }
 
         public override void Where_datetime_utcnow()
         {
             base.Where_datetime_utcnow();
-            AssertContainsInSql("WHERE NOW() AT TIME ZONE 'UTC' <>");
+            AssertContainsSql("WHERE NOW() AT TIME ZONE 'UTC' <>");
         }
 
         public override void Where_datetime_date_component()
         {
             base.Where_datetime_date_component();
-            AssertContainsInSql("WHERE DATE_TRUNC('day', \"o\".\"OrderDate\")");
+            AssertContainsSql("WHERE DATE_TRUNC('day', \"o\".\"OrderDate\")");
         }
 
         public override void Where_datetime_year_component()
         {
             base.Where_datetime_year_component();
-            AssertContainsInSql("DATE_PART('year', \"o\".\"OrderDate\")");
+            AssertContainsSql("DATE_PART('year', \"o\".\"OrderDate\")");
         }
 
         public override void Where_datetime_month_component()
         {
             base.Where_datetime_month_component();
-            AssertContainsInSql("DATE_PART('month', \"o\".\"OrderDate\")");
+            AssertContainsSql("DATE_PART('month', \"o\".\"OrderDate\")");
         }
 
         public override void Where_datetime_dayOfYear_component()
         {
             base.Where_datetime_dayOfYear_component();
-            AssertContainsInSql("DATE_PART('doy', \"o\".\"OrderDate\")");
+            AssertContainsSql("DATE_PART('doy', \"o\".\"OrderDate\")");
         }
 
         public override void Where_datetime_day_component()
         {
             base.Where_datetime_day_component();
-            AssertContainsInSql("DATE_PART('day', \"o\".\"OrderDate\")");
+            AssertContainsSql("DATE_PART('day', \"o\".\"OrderDate\")");
         }
 
         public override void Where_datetime_hour_component()
         {
             base.Where_datetime_hour_component();
-            AssertContainsInSql("DATE_PART('hour', \"o\".\"OrderDate\")");
+            AssertContainsSql("DATE_PART('hour', \"o\".\"OrderDate\")");
         }
 
         public override void Where_datetime_minute_component()
         {
             base.Where_datetime_minute_component();
-            AssertContainsInSql("DATE_PART('minute', \"o\".\"OrderDate\")");
+            AssertContainsSql("DATE_PART('minute', \"o\".\"OrderDate\")");
         }
 
         public override void Where_datetime_second_component()
         {
             base.Where_datetime_second_component();
-            AssertContainsInSql("DATE_PART('second', \"o\".\"OrderDate\")");
+            AssertContainsSql("DATE_PART('second', \"o\".\"OrderDate\")");
         }
 
         // ReSharper disable once RedundantOverriddenMember
@@ -208,12 +190,8 @@ namespace Microsoft.EntityFrameworkCore.Query
                 oc => oc.Where(o =>
                         o.OrderDate.Value.DayOfWeek == DayOfWeek.Tuesday),
                 entryCount: 168);
-            AssertContainsInSql("WHERE CAST(FLOOR(DATE_PART('dow', \"o\".\"OrderDate\")) AS int4)");
-        }
-
-        #endregion
-
-        #region Regular Expressions
+            AssertContainsSql("WHERE CAST(FLOOR(DATE_PART('dow', \"o\".\"OrderDate\")) AS int4)");
+        } 
 
         [Fact]
         public void Regex_IsMatch()
@@ -221,7 +199,7 @@ namespace Microsoft.EntityFrameworkCore.Query
             AssertQuery<Customer>(
                 cs => cs.Where(c => Regex.IsMatch(c.CompanyName, "^A")),
                 entryCount: 4);
-            AssertContainsInSql("WHERE \"c\".\"CompanyName\" ~ ('(?p)' || '^A')");
+            AssertContainsSql("WHERE \"c\".\"CompanyName\" ~ ('(?p)' || '^A')");
         }
 
         [Fact]
@@ -230,7 +208,7 @@ namespace Microsoft.EntityFrameworkCore.Query
             AssertQuery<Customer>(
                 cs => cs.Where(c => Regex.IsMatch(c.CompanyName, "^A", RegexOptions.None)),
                 entryCount: 4);
-            AssertContainsInSql("WHERE \"c\".\"CompanyName\" ~ ('(?p)' || '^A')");
+            AssertContainsSql("WHERE \"c\".\"CompanyName\" ~ ('(?p)' || '^A')");
         }
 
         [Fact]
@@ -239,7 +217,7 @@ namespace Microsoft.EntityFrameworkCore.Query
             AssertQuery<Customer>(
                 cs => cs.Where(c => Regex.IsMatch(c.CompanyName, "^a", RegexOptions.IgnoreCase)),
                 entryCount: 4);
-            AssertContainsInSql("WHERE \"c\".\"CompanyName\" ~ ('(?ip)' || '^a')");
+            AssertContainsSql("WHERE \"c\".\"CompanyName\" ~ ('(?ip)' || '^a')");
         }
 
         [Fact]
@@ -248,7 +226,7 @@ namespace Microsoft.EntityFrameworkCore.Query
             AssertQuery<Customer>(
                 cs => cs.Where(c => Regex.IsMatch(c.CompanyName, "^A", RegexOptions.Multiline)),
                 entryCount: 4);
-            AssertContainsInSql("WHERE \"c\".\"CompanyName\" ~ ('(?n)' || '^A')");
+            AssertContainsSql("WHERE \"c\".\"CompanyName\" ~ ('(?n)' || '^A')");
         }
 
         [Fact]
@@ -257,7 +235,7 @@ namespace Microsoft.EntityFrameworkCore.Query
             AssertQuery<Customer>(
                 cs => cs.Where(c => Regex.IsMatch(c.CompanyName, "^A", RegexOptions.Singleline)),
                 entryCount: 4);
-            AssertContainsInSql("WHERE \"c\".\"CompanyName\" ~ '^A'");
+            AssertContainsSql("WHERE \"c\".\"CompanyName\" ~ '^A'");
         }
 
         [Fact]
@@ -266,7 +244,7 @@ namespace Microsoft.EntityFrameworkCore.Query
             AssertQuery<Customer>(
                 cs => cs.Where(c => Regex.IsMatch(c.CompanyName, "^ A", RegexOptions.IgnorePatternWhitespace)),
                 entryCount: 4);
-            AssertContainsInSql("WHERE \"c\".\"CompanyName\" ~ ('(?px)' || '^ A')");
+            AssertContainsSql("WHERE \"c\".\"CompanyName\" ~ ('(?px)' || '^ A')");
         }
 
         [Fact]
@@ -277,40 +255,5 @@ namespace Microsoft.EntityFrameworkCore.Query
                 entryCount: 4);
             Assert.DoesNotContain("WHERE \"c\".\"CompanyName\" ~ ", Fixture.TestSqlLoggerFactory.Sql);
         }
-
-        #endregion
-
-        [Fact]
-        public void String_IndexOf_String()
-        {
-            AssertQuery<Customer>(
-                cs => cs.Where(c => c.CompanyName.IndexOf("ar") > 5),
-                entryCount: 13);
-            AssertContainsInSql("WHERE (STRPOS(\"c\".\"CompanyName\", 'ar') - 1) > 5");
-        }
-
-        [Fact]
-        public void String_IndexOf_not_found()
-        {
-            AssertQuery<Customer>(
-                cs => cs.Where(c => c.CompanyName.IndexOf("[") == -1),
-                entryCount: 91);
-            AssertContainsInSql("WHERE (STRPOS(\"c\".\"CompanyName\", '[') - 1) = -1");
-        }
-
-        [Fact]
-        public void String_IndexOf_Char()
-        {
-            AssertQuery<Customer>(
-                cs => cs.Where(c => c.CompanyName.IndexOf('A') > 5),
-                entryCount: 9);
-            AssertContainsInSql("WHERE (STRPOS(\"c\".\"CompanyName\", 'A') - 1) > 5");
-        }
-
-        private void AssertContainsInSql(string expected)
-            => Assert.Contains(expected, Fixture.TestSqlLoggerFactory.Sql);
-
-        protected override void ClearLog()
-            => Fixture.TestSqlLoggerFactory.Clear();
     }
 }

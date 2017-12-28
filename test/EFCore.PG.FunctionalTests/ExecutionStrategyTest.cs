@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.Internal;
+using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.EntityFrameworkCore.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -220,7 +221,7 @@ namespace Microsoft.EntityFrameworkCore
             {
                 var connection = (TestNpgsqlConnection)context1.GetService<INpgsqlRelationalConnection>();
 
-                using (var context2 = CreateContext(connection.DbConnection))
+                using (var context2 = CreateContext())
                 {
                     connection.CommitFailures.Enqueue(new bool?[] { realFailure });
 
@@ -348,13 +349,7 @@ namespace Microsoft.EntityFrameworkCore
         public ExecutionStrategyTest(ExecutionStrategyFixture fixture)
         {
             Fixture = fixture;
-            TestStore = NpgsqlTestStore.GetOrCreateShared(DatabaseName, () =>
-            {
-                using (var context = CreateContext())
-                {
-                    context.Database.EnsureCreated();
-                }
-            });
+            Fixture.TestStore.CloseConnection();
         }
 
         protected ExecutionStrategyFixture Fixture { get; }
@@ -365,49 +360,30 @@ namespace Microsoft.EntityFrameworkCore
         protected virtual ExecutionStrategyContext CreateContext()
             => (ExecutionStrategyContext)Fixture.CreateContext();
 
-        protected virtual ExecutionStrategyContext CreateContext(DbConnection connection)
-            => (ExecutionStrategyContext)Fixture.CreateContext(connection);
 
-        public class ExecutionStrategyFixture
+        public class ExecutionStrategyFixture : SharedStoreFixtureBase<DbContext>
         {
-            private readonly DbContextOptions _baseOptions;
-            private readonly DbContextOptions _options;
+            protected override string StoreName { get; } = nameof(ExecutionStrategyTest);
+            protected override bool UsePooling => false;
+            public new RelationalTestStore TestStore => (RelationalTestStore)base.TestStore;
+            public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ServiceProvider.GetRequiredService<ILoggerFactory>();
+            protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+            protected override Type ContextType { get; } = typeof(ExecutionStrategyContext);
 
-            public TestSqlLoggerFactory TestSqlLoggerFactory { get; } = new TestSqlLoggerFactory();
-
-            public ExecutionStrategyFixture()
+            protected override IServiceCollection AddServices(IServiceCollection serviceCollection)
             {
-                var serviceProvider = new ServiceCollection()
-                    .AddEntityFrameworkNpgsql()
-                    .AddSingleton<ILoggerFactory>(TestSqlLoggerFactory)
-                    .AddScoped<INpgsqlRelationalConnection, TestNpgsqlConnection>()
-                    .AddScoped<IRelationalCommandBuilderFactory, TestRelationalCommandBuilderFactory>()
-                    .BuildServiceProvider();
-
-                _baseOptions = new DbContextOptionsBuilder()
-                    .UseInternalServiceProvider(serviceProvider)
-                    .EnableSensitiveDataLogging()
-                    .Options;
-
-                _options = new DbContextOptionsBuilder(_baseOptions)
-                    .UseNpgsql(NpgsqlTestStore.CreateConnectionString(DatabaseName), ApplyNpgsqlOptions)
-                    .Options;
+                return base.AddServices(serviceCollection)
+                    .AddSingleton<IRelationalTransactionFactory, TestRelationalTransactionFactory>()
+                    .AddScoped<INpgsqlRelationalConnection, NpgsqlRelationalConnection>()
+                    .AddScoped<IRelationalCommandBuilderFactory, TestRelationalCommandBuilderFactory>();
             }
 
-            private static void ApplyNpgsqlOptions(NpgsqlDbContextOptionsBuilder b)
+            public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
             {
-                b.ApplyConfiguration();
-                b.MaxBatchSize(1);
+                var options = base.AddOptions(builder);
+                new NpgsqlDbContextOptionsBuilder(options).MaxBatchSize(1);
+                return options;
             }
-
-            public virtual DbContext CreateContext()
-                => new ExecutionStrategyContext(_options);
-
-            public virtual DbContext CreateContext(DbConnection connection)
-                => new ExecutionStrategyContext(
-                    new DbContextOptionsBuilder(_baseOptions)
-                        .UseNpgsql(connection, ApplyNpgsqlOptions)
-                        .Options);
         }
 
         private void CleanContext()

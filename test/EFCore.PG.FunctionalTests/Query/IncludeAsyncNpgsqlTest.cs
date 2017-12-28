@@ -7,9 +7,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Microsoft.EntityFrameworkCore.Query
 {
-    public class IncludeAsyncNpgsqlTest : IncludeAsyncTestBase<NorthwindQueryNpgsqlFixture>
+    public class IncludeAsyncNpgsqlTest : IncludeAsyncTestBase<IncludeNpgsqlFixture>
     {
-        public IncludeAsyncNpgsqlTest(NorthwindQueryNpgsqlFixture fixture)
+        public IncludeAsyncNpgsqlTest(IncludeNpgsqlFixture fixture)
             : base(fixture)
         {
         }

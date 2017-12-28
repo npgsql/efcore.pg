@@ -3,65 +3,53 @@
 
 using System;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
-using Microsoft.EntityFrameworkCore.TestModels;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore.Utilities;
+using Microsoft.EntityFrameworkCore.TestUtilities;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
-    public class MonsterFixupNpgsqlTest : MonsterFixupTestBase, IDisposable
+    public class MonsterFixupChangedChangingNpgsqlTest :
+        MonsterFixupTestBase<MonsterFixupChangedChangingNpgsqlTest.MonsterFixupChangedChangingNpgsqlFixture>
     {
-        protected override IServiceProvider CreateServiceProvider(bool throwingStateManager = false)
+        public MonsterFixupChangedChangingNpgsqlTest(MonsterFixupChangedChangingNpgsqlFixture fixture)
+            : base(fixture)
         {
-            var serviceCollection = new ServiceCollection()
-                .AddEntityFrameworkNpgsql();
+        }
 
-            if (throwingStateManager)
+        public class MonsterFixupChangedChangingNpgsqlFixture : MonsterFixupChangedChangingFixtureBase
+        {
+            protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+
+            public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
+                => base.AddOptions(builder).ConfigureWarnings(w => w.Log(RelationalEventId.QueryClientEvaluationWarning));
+
+            protected override void OnModelCreating<TMessage, TProduct, TProductPhoto, TProductReview, TComputerDetail, TDimensions>(
+                ModelBuilder builder)
             {
-                serviceCollection.AddScoped<IStateManager, ThrowingMonsterStateManager>();
+                base.OnModelCreating<TMessage, TProduct, TProductPhoto, TProductReview, TComputerDetail, TDimensions>(builder);
+
+                builder.Entity<TMessage>().Property(e => e.MessageId).UseNpgsqlSerialColumn();
+
+                builder.Entity<TProduct>()
+                    .OwnsOne(c => (TDimensions)c.Dimensions, db =>
+                    {
+                        db.Property(d => d.Depth).HasColumnType("decimal(18,2)");
+                        db.Property(d => d.Width).HasColumnType("decimal(18,2)");
+                        db.Property(d => d.Height).HasColumnType("decimal(18,2)");
+                    });
+
+                builder.Entity<TProductPhoto>().Property(e => e.PhotoId).UseNpgsqlSerialColumn();
+                builder.Entity<TProductReview>().Property(e => e.ReviewId).UseNpgsqlSerialColumn();
+
+                builder.Entity<TComputerDetail>()
+                    .OwnsOne(c => (TDimensions)c.Dimensions, db =>
+                    {
+                        db.Property(d => d.Depth).HasColumnType("decimal(18,2)");
+                        db.Property(d => d.Width).HasColumnType("decimal(18,2)");
+                        db.Property(d => d.Height).HasColumnType("decimal(18,2)");
+                    });
             }
-
-            return serviceCollection.BuildServiceProvider();
-        }
-
-        protected override DbContextOptions CreateOptions(string databaseName)
-        {
-            var optionsBuilder = new DbContextOptionsBuilder();
-            optionsBuilder.UseNpgsql(CreateConnectionString(databaseName), b => b.ApplyConfiguration());
-
-            return optionsBuilder.Options;
-        }
-
-        private static string CreateConnectionString(string name)
-            => new NpgsqlConnectionStringBuilder(TestEnvironment.DefaultConnection)
-            {
-                Database = name
-            }.ConnectionString;
-
-        private NpgsqlTestStore _testStore;
-
-        protected override void CreateAndSeedDatabase(string databaseName, Func<MonsterContext> createContext, Action<MonsterContext> seed)
-        {
-            _testStore = NpgsqlTestStore.GetOrCreateShared(databaseName, () =>
-            {
-                using (var context = createContext())
-                {
-                    context.Database.EnsureCreated();
-                    seed(context);
-                }
-            });
-        }
-
-        public virtual void Dispose() => _testStore?.Dispose();
-
-        protected override void OnModelCreating<TMessage, TProductPhoto, TProductReview>(ModelBuilder builder)
-        {
-            base.OnModelCreating<TMessage, TProductPhoto, TProductReview>(builder);
-
-            builder.Entity<TMessage>().HasKey(e => e.MessageId);
-            builder.Entity<TProductPhoto>().HasKey(e => e.PhotoId);
-            builder.Entity<TProductReview>().HasKey(e => e.ReviewId);
         }
     }
 }

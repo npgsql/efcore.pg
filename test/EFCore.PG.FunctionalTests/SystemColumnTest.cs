@@ -55,7 +55,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             _testStore = NpgsqlTestStore.CreateScratch();
 
             _options = new DbContextOptionsBuilder()
-                .UseNpgsql(_testStore.Connection)
+                .UseNpgsql(_testStore.ConnectionString)
                 .Options;
 
             using (var context = CreateContext())
@@ -65,7 +65,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         SystemColumnContext CreateContext()
         {
             var context = new SystemColumnContext(_options);
-            context.Database.UseTransaction(_testStore.Transaction);
+            context.Database.UseTransaction(_testStore.BeginTransaction());
             return context;
         }
 
