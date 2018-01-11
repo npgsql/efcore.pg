@@ -35,8 +35,8 @@ namespace E2ETest.Namespace
         public DateTime DateColumn { get; set; }
         [Column("timestampColumn")]
         public DateTime? TimestampColumn { get; set; }
-        [Column("timestampTzColumn", TypeName = "timestamptz")]
-        public DateTime? TimestampTzColumn { get; set; }
+        [Column("timestampTzColumn")]
+        public DateTimeOffset? TimestampTzColumn { get; set; }
         [Column("timeColumn", TypeName = "time")]
         public TimeSpan? TimeColumn { get; set; }
         [Column("byteaColumn")]
@@ -45,5 +45,7 @@ namespace E2ETest.Namespace
         public bool BoolColumn { get; set; }
         [Column("uuidColumn")]
         public Guid? UuidColumn { get; set; }
+        [Column("domainColumn")]
+        public short DomainColumn { get; set; }
     }
 }

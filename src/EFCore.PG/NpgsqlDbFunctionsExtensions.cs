@@ -20,7 +20,7 @@ namespace Microsoft.EntityFrameworkCore
             [CanBeNull] this DbFunctions _,
             [CanBeNull] string matchExpression,
             [CanBeNull] string pattern)
-            => LikeCore(matchExpression, pattern, escapeCharacter: null);
+            => ILikeCore(matchExpression, pattern, escapeCharacter: null);
 
         /// <summary>
         ///     An implementation of the PostgreSQL ILIKE operation, which is an insensitive LIKE.
@@ -38,7 +38,7 @@ namespace Microsoft.EntityFrameworkCore
             [CanBeNull] string matchExpression,
             [CanBeNull] string pattern,
             [CanBeNull] string escapeCharacter)
-            => LikeCore(matchExpression, pattern, escapeCharacter);
+            => ILikeCore(matchExpression, pattern, escapeCharacter);
 
         // Regex special chars defined here:
         // https://msdn.microsoft.com/en-us/library/4edbef7e(v=vs.110).aspx
@@ -56,7 +56,7 @@ namespace Microsoft.EntityFrameworkCore
             return string.Join("|", regexSpecialChars.Select(c => @"\" + c));
         }
 
-        private static bool LikeCore(string matchExpression, string pattern, string escapeCharacter)
+        private static bool ILikeCore(string matchExpression, string pattern, string escapeCharacter)
         {
             //TODO: this fixes https://github.com/aspnet/EntityFramework/issues/8656 by insisting that
             // the "escape character" is a string but just using the first character of that string,
@@ -133,7 +133,7 @@ namespace Microsoft.EntityFrameworkCore
             return Regex.IsMatch(
                 matchExpression,
                 @"\A" + regexPattern + @"\s*\z",
-                RegexOptions.Singleline,
+                RegexOptions.IgnoreCase | RegexOptions.Singleline,
                 _regexTimeout);
         }
     }

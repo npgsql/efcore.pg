@@ -787,20 +787,6 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                 .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(newSchema));
         }
 
-        protected override void ForeignKeyAction(ReferentialAction referentialAction, MigrationCommandListBuilder builder)
-        {
-            Check.NotNull(builder, nameof(builder));
-
-            if (referentialAction == ReferentialAction.Restrict)
-            {
-                builder.Append("NO ACTION");
-            }
-            else
-            {
-                base.ForeignKeyAction(referentialAction, builder);
-            }
-        }
-
         #endregion Utilities
 
         #region System column utilities
