@@ -34,7 +34,12 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal
             => methodCallExpression.Method.Name == nameof(ToString) &&
                methodCallExpression.Arguments.Count == 0 &&
                methodCallExpression.Object != null &&
-               SupportedTypes.Contains(methodCallExpression.Object.Type.UnwrapNullableType().UnwrapEnumType())
+               SupportedTypes.Contains(
+                   AppContext.TryGetSwitch("Microsoft.EntityFrameworkCore.Issue9894", out var enabled)
+                   && enabled
+                       ? methodCallExpression.Object.Type.UnwrapNullableType().UnwrapEnumType()
+                       : methodCallExpression.Object.Type.UnwrapNullableType()
+               )
                 ? new ExplicitCastExpression(methodCallExpression.Object, typeof(string))
                 : null;
     }

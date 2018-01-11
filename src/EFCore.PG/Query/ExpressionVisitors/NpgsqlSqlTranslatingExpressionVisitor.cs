@@ -40,7 +40,7 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionVisitors
             if (properties.Count == 0)
                 return null;
             var lastPropertyType = properties[properties.Count - 1].ClrType;
-            if (lastPropertyType.IsArray && lastPropertyType.GetArrayRank() == 1)
+            if (lastPropertyType.IsArray && lastPropertyType.GetArrayRank() == 1 && subQueryModel.ResultOperators.Count > 0)
             {
                 // Translate someArray.Length
                 if (subQueryModel.ResultOperators.First() is CountResultOperator)

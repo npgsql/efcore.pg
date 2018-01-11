@@ -30,5 +30,8 @@ namespace Microsoft.EntityFrameworkCore.Query
 
         [Fact(Skip = "PostgreSQL sorts nulls first (#50)")]
         public override void Optional_navigation_take_optional_navigation() {}
+
+        [Fact(Skip = "PostgreSQL sorts nulls first (#50)")]
+        public override void Include_reference_collection_order_by_reference_navigation() { }
     }
 }
