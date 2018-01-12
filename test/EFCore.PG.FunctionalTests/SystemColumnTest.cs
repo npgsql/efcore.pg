@@ -29,7 +29,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             }
         }
 
-        class SystemColumnContext : DbContext
+        private class SystemColumnContext : DbContext
         {
             internal SystemColumnContext(DbContextOptions options) : base(options) {}
 
@@ -50,8 +50,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 
         public SystemColumnTest()
         {
-            //_testStore = NpgsqlTestStore.GetOrCreateShared("Crap",
-            //    () => NpgsqlTestStore.CreateDatabase("Crap"));
             _testStore = NpgsqlTestStore.CreateScratch();
 
             _options = new DbContextOptionsBuilder()
@@ -59,18 +57,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 .Options;
 
             using (var context = CreateContext())
+            {
                 context.Database.EnsureCreated();
+            }
         }
 
         SystemColumnContext CreateContext()
         {
             var context = new SystemColumnContext(_options);
-            context.Database.UseTransaction(_testStore.BeginTransaction());
             return context;
         }
 
-        readonly DbContextOptions _options;
-        readonly NpgsqlTestStore _testStore;
+        private readonly DbContextOptions _options;
+        private readonly NpgsqlTestStore _testStore;
 
         public void Dispose() => _testStore.Dispose();
     }

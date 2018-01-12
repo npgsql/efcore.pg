@@ -24,6 +24,7 @@
 using System;
 using System.Data.Common;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.Storage.Converters;
 using Npgsql;
 using NpgsqlTypes;
 
@@ -39,13 +40,28 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
             NpgsqlDbType = npgsqlDbType;
         }
 
-        protected override void ConfigureParameter([NotNull] DbParameter parameter)
+        /// <param name="dbType"> The <see cref="DbType" /> to be used. </param>
+        public NpgsqlTypeMapping(
+            [NotNull] string storeType,
+            [CanBeNull] ValueConverter converter,
+            NpgsqlDbType? dbType = null)
+            : base(storeType, typeof(object))
         {
-            if (NpgsqlDbType.HasValue)
-                ((NpgsqlParameter)parameter).NpgsqlDbType = NpgsqlDbType.Value;
+            NpgsqlDbType = dbType;
         }
 
         public override RelationalTypeMapping Clone(string storeType, int? size)
-            => new NpgsqlTypeMapping(storeType, ClrType, NpgsqlDbType);
+            => new NpgsqlTypeMapping(storeType, Converter, NpgsqlDbType);
+
+        public override CoreTypeMapping Clone(ValueConverter converter)
+            => new NpgsqlTypeMapping(StoreType, ComposeConverter(converter), NpgsqlDbType);
+
+        protected override void ConfigureParameter([NotNull] DbParameter parameter)
+        {
+            base.ConfigureParameter(parameter);
+
+            if (NpgsqlDbType.HasValue)
+                ((NpgsqlParameter)parameter).NpgsqlDbType = NpgsqlDbType.Value;
+        }
     }
 }

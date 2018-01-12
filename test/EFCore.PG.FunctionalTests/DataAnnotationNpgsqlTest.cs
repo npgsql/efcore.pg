@@ -1,20 +1,15 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Internal;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.EntityFrameworkCore.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Xunit;
-using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
+    // Part 2 of Migration 2.1-preview1
+    /*
     public class DataAnnotationNpgsqlTest : DataAnnotationTestBase<DataAnnotationNpgsqlTest.DataAnnotationNpgsqlFixture>
     {
         public DataAnnotationNpgsqlTest(DataAnnotationNpgsqlFixture fixture)
@@ -37,7 +32,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 
         public override void MaxLengthAttribute_throws_while_inserting_value_longer_than_max_length()
         {
-            // Npgsql does not support length            
+            // Npgsql does not support length
         }
 
         public class DataAnnotationNpgsqlFixture : DataAnnotationFixtureBase
@@ -45,5 +40,5 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
             public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ServiceProvider.GetRequiredService<ILoggerFactory>();
         }
-    }
+    }*/
 }

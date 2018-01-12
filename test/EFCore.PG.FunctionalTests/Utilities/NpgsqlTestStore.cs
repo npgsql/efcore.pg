@@ -16,6 +16,8 @@ namespace Microsoft.EntityFrameworkCore.Utilities
 {
     public class NpgsqlTestStore : RelationalTestStore
     {
+        private readonly string _scriptPath;
+
         private const string Northwind = "Northwind";
 
         public const int CommandTimeout = 600;
@@ -46,11 +48,6 @@ namespace Microsoft.EntityFrameworkCore.Utilities
 
         public static NpgsqlTestStore CreateScratch(bool createDatabase = true)
             => new NpgsqlTestStore(GetScratchDbName()).CreateTransient(createDatabase, true);
-
-        readonly bool _cleanDatabase;
-
-        private readonly string _fileName;
-        private readonly string _scriptPath;
 
         private NpgsqlTestStore(
             string name,
@@ -101,7 +98,7 @@ namespace Microsoft.EntityFrameworkCore.Utilities
             => builder.UseNpgsql(Connection, b => b.ApplyConfiguration().CommandTimeout(CommandTimeout));
 
 
-        static string GetScratchDbName()
+        private static string GetScratchDbName()
         {
             string name;
             do
@@ -161,10 +158,10 @@ namespace Microsoft.EntityFrameworkCore.Utilities
                     connection.Close();
                     return;
                 }
-                catch (NpgsqlException e)
+                catch (PostgresException e)
                 {
                     if (++retryCount >= 30
-                        || e.ErrorCode != 233 && e.ErrorCode != -2 && e.ErrorCode != 4060 && e.ErrorCode != 1832 && e.ErrorCode != 5120)
+                        || e.SqlState != "08001" && e.SqlState != "08000" && e.SqlState != "08006")
                     {
                         throw;
                     }
@@ -204,9 +201,9 @@ namespace Microsoft.EntityFrameworkCore.Utilities
 
         }
 
-        NpgsqlConnection _connection;
-        string _connectionString;
-        bool _deleteDatabase;
+        private NpgsqlConnection _connection;
+        private string _connectionString;
+        private bool _deleteDatabase;
 
         NpgsqlTestStore CreateTransient(bool createDatabase, bool deleteDatabase)
         {
@@ -278,7 +275,7 @@ SELECT pg_terminate_backend (pg_stat_activity.pid)
 
         public override void OpenConnection() => Connection.Open();
 
-        public Task OpenConnectionAsync() => Connection.OpenAsync();
+        public override Task OpenConnectionAsync() => Connection.OpenAsync();
 
         public T ExecuteScalar<T>(string sql, params object[] parameters)
             => ExecuteScalar<T>(Connection, sql, parameters);

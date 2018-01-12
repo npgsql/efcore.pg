@@ -13,74 +13,74 @@ using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.EntityFrameworkCore.Utilities;
 using Microsoft.Extensions.Logging;
 
-//namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests
-//{
-//    public class NpgsqlDatabaseModelFixture : IDisposable
-//    {
-//        public NpgsqlDatabaseModelFixture()
-//        {
-//            TestStore = NpgsqlTestStore.CreateScratch();
-//        }
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests
+{
+    public class NpgsqlDatabaseModelFixture : IDisposable
+    {
+        public NpgsqlDatabaseModelFixture()
+        {
+            TestStore = NpgsqlTestStore.CreateScratch();
+        }
 
-//        public TestDesignLoggerFactory TestDesignLoggerFactory { get; } = new TestDesignLoggerFactory();
+        public TestDesignLoggerFactory TestDesignLoggerFactory { get; } = new TestDesignLoggerFactory();
 
-//        public DatabaseModel CreateModel(string createSql, IEnumerable<string> tables = null, ILogger logger = null)
-//        {
-//            TestStore.ExecuteNonQuery("DROP SCHEMA public CASCADE; CREATE SCHEMA public; " + createSql);
+        public DatabaseModel CreateModel(string createSql, IEnumerable<string> tables = null, ILogger logger = null)
+        {
+            TestStore.ExecuteNonQuery("DROP SCHEMA public CASCADE; CREATE SCHEMA public; " + createSql);
 
-//            return new NpgsqlDatabaseModelFactory(
-//                    new DiagnosticsLogger<DbLoggerCategory.Scaffolding>(
-//                        TestDesignLoggerFactory,
-//                        new LoggingOptions(),
-//                        new DiagnosticListener("Fake")))
-//                .Create(TestStore.ConnectionString, tables ?? Enumerable.Empty<string>(), Enumerable.Empty<string>());
-//        }
+            return new NpgsqlDatabaseModelFactory(
+                    new DiagnosticsLogger<DbLoggerCategory.Scaffolding>(
+                        TestDesignLoggerFactory,
+                        new LoggingOptions(),
+                        new DiagnosticListener("Fake")))
+                .Create(TestStore.ConnectionString, tables ?? Enumerable.Empty<string>(), Enumerable.Empty<string>());
+        }
 
-//        public NpgsqlTestStore TestStore { get; }
+        public NpgsqlTestStore TestStore { get; }
 
-//        public void ExecuteNonQuery(string sql) => TestStore.ExecuteNonQuery(sql);
+        public void ExecuteNonQuery(string sql) => TestStore.ExecuteNonQuery(sql);
 
-//        public void Dispose() => TestStore.Dispose();
+        public void Dispose() => TestStore.Dispose();
 
-//        class TestLoggerFactory : ILoggerFactory
-//        {
-//            readonly ILogger _logger;
+        class TestLoggerFactory : ILoggerFactory
+        {
+            readonly ILogger _logger;
 
-//            public TestLoggerFactory(ILogger logger)
-//            {
-//                _logger = logger ?? new TestLogger();
-//            }
+            public TestLoggerFactory(ILogger logger)
+            {
+                _logger = logger ?? new TestLogger();
+            }
 
-//            public void AddProvider(ILoggerProvider provider)
-//            {
-//            }
+            public void AddProvider(ILoggerProvider provider)
+            {
+            }
 
-//            public ILogger CreateLogger(string categoryName) => _logger;
+            public ILogger CreateLogger(string categoryName) => _logger;
 
-//            public void Dispose()
-//            {
-//            }
-//        }
+            public void Dispose()
+            {
+            }
+        }
 
-//        class NullScope : IDisposable
-//        {
-//            public static readonly NullScope Instance = new NullScope();
+        class NullScope : IDisposable
+        {
+            public static readonly NullScope Instance = new NullScope();
 
-//            public void Dispose()
-//            {
-//            }
-//        }
+            public void Dispose()
+            {
+            }
+        }
 
-//        public class TestLogger : ILogger
-//        {
-//            public IDisposable BeginScope<TState>(TState state) => NullScope.Instance;
+        public class TestLogger : ILogger
+        {
+            public IDisposable BeginScope<TState>(TState state) => NullScope.Instance;
 
-//            public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
-//                => Items.Add(new { logLevel, eventId, state, exception });
+            public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+                => Items.Add(new { logLevel, eventId, state, exception });
 
-//            public bool IsEnabled(LogLevel logLevel) => true;
+            public bool IsEnabled(LogLevel logLevel) => true;
 
-//            public ICollection<dynamic> Items = new List<dynamic>();
-//        }
-//    }
-//}
+            public ICollection<dynamic> Items = new List<dynamic>();
+        }
+    }
+}

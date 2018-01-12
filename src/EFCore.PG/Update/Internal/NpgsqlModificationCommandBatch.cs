@@ -152,7 +152,7 @@ namespace Microsoft.EntityFrameworkCore.Update.Internal
 
         protected override async Task ConsumeAsync(
             RelationalDataReader reader,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             var npgsqlReader = (NpgsqlDataReader)reader.DbDataReader;
             Debug.Assert(npgsqlReader.Statements.Count == ModificationCommands.Count, $"Reader has {npgsqlReader.Statements.Count} statements, expected {ModificationCommands.Count}");

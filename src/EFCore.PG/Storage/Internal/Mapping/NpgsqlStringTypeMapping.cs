@@ -24,6 +24,7 @@
 using System.Data;
 using System.Data.Common;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.Storage.Converters;
 using Npgsql;
 using NpgsqlTypes;
 
@@ -32,7 +33,6 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
     public class NpgsqlStringTypeMapping : StringTypeMapping
     {
         readonly NpgsqlDbType? _npgsqlDbType;
-
 
         public NpgsqlStringTypeMapping(
             [NotNull] string storeType,
@@ -58,20 +58,15 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
         protected override void ConfigureParameter([NotNull] DbParameter parameter)
             => ((NpgsqlParameter)parameter).NpgsqlDbType = (NpgsqlDbType)_npgsqlDbType;
 
+        public override RelationalTypeMapping Clone(string storeType, int? size)
+            => new NpgsqlStringTypeMapping(storeType, Converter, _npgsqlDbType, IsUnicode, size);
+
+        public override CoreTypeMapping Clone(ValueConverter converter)
+            => new NpgsqlStringTypeMapping(StoreType, ComposeConverter(converter), _npgsqlDbType, IsUnicode, Size);
 
         protected override string GenerateNonNullSqlLiteral(object value)
             => IsUnicode
                 ? $"N'{EscapeSqlLiteral((string)value)}'" // Interpolation okay; strings
                 : $"'{EscapeSqlLiteral((string)value)}'";
-
-        /// <summary>
-        ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
-        public override RelationalTypeMapping Clone(string storeType, int? size)
-            => new NpgsqlStringTypeMapping(storeType, Converter, (NpgsqlDbType)DbType, IsUnicode, size);
-
-        public override CoreTypeMapping Clone(ValueConverter converter)
-            => new NpgsqlStringTypeMapping(StoreType, ComposeConverter(converter), (NpgsqlDbType)DbType, IsUnicode, Size);
     }
 }

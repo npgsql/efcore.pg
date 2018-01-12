@@ -36,7 +36,6 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
-using Microsoft.EntityFrameworkCore.Scaffolding.Metadata.Internal;
 using Microsoft.EntityFrameworkCore.Utilities;
 using Microsoft.Extensions.Logging;
 using Npgsql;
@@ -137,14 +136,15 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding.Internal
         {
             var commandText = @"
 SELECT nspname, relname, description
-FROM pg_class AS cl
-JOIN pg_namespace AS ns ON ns.oid = cl.relnamespace
-LEFT OUTER JOIN pg_description AS des ON des.objoid = cl.oid AND des.objsubid=0
+FROM pg_class AS cls
+JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
+LEFT OUTER JOIN pg_description AS des ON des.objoid = cls.oid AND des.objsubid=0
 WHERE
-    cl.relkind = 'r' AND
-    ns.nspname NOT IN ('pg_catalog', 'information_schema') AND ";
+    cls.relkind = 'r'
+AND
+    ns.nspname NOT IN ('pg_catalog', 'information_schema') ";
 
-            var filter = $"relname <> '{HistoryRepository.DefaultTableName}' {(tableFilter != null ? $" AND {tableFilter("nspname", "relname")}" : "")}";
+            var filter = $"AND cls.relname <> '{HistoryRepository.DefaultTableName}' {(tableFilter != null ? $" AND {tableFilter("nspname", "relname")}" : "")}";
 
             using (var command = connection.CreateCommand())
             {
@@ -207,13 +207,9 @@ LEFT OUTER JOIN pg_type AS basetyp ON (basetyp.oid = typ.typbasetype)
 LEFT OUTER JOIN pg_description AS des ON des.objoid = cls.oid AND des.objsubid = attnum
 WHERE
     relkind = 'r' AND
-    nspname NOT IN ('pg_catalog', 'information_schema') AND
-    relname <> '" + HistoryRepository.DefaultTableName + @"' AND
-    attnum > 0
-ORDER BY attnum";// +tableFilter;
-
-                //                commandText += @"
-                //ORDER BY [table_schema], [table_name], [c].[column_id]";
+    nspname NOT IN ('pg_catalog', 'information_schema')
+AND
+    attnum > 0 " + tableFilter + " ORDER BY attnum";
 
                 command.CommandText = commandText;
 
@@ -301,9 +297,10 @@ JOIN pg_class AS idxcls ON idxcls.oid = indexrelid
 JOIN pg_am AS am ON am.oid = idxcls.relam
 WHERE
     cls.relkind = 'r' AND
-    nspname NOT IN ('pg_catalog', 'information_schema') AND
-    cls.relname <> '" + HistoryRepository.DefaultTableName + @"' AND
-    NOT indisprimary"; ;
+    nspname NOT IN ('pg_catalog', 'information_schema')
+AND
+    NOT indisprimary
+" + tableFilter;
 
                 command.CommandText = getColumnsQuery;
 
@@ -382,9 +379,10 @@ LEFT OUTER JOIN pg_class AS frncls ON frncls.oid = con.confrelid
 LEFT OUTER JOIN pg_namespace as frnns ON frnns.oid = frncls.relnamespace
 WHERE
     cls.relkind = 'r' AND
-    ns.nspname NOT IN ('pg_catalog', 'information_schema') AND
-    cls.relname <> '" + HistoryRepository.DefaultTableName + @"' AND
-    con.contype = 'p'";
+    ns.nspname NOT IN ('pg_catalog', 'information_schema')
+AND
+    con.contype = 'p'
+"+ tableFilter;
 
             var command = connection.CreateCommand();
             command.CommandText = getKeys;
@@ -450,9 +448,10 @@ LEFT OUTER JOIN pg_class AS frncls ON frncls.oid = con.confrelid
 LEFT OUTER JOIN pg_namespace as frnns ON frnns.oid = frncls.relnamespace
 WHERE
     cls.relkind = 'r' AND
-    ns.nspname NOT IN ('pg_catalog', 'information_schema') AND
-    cls.relname <> '" + HistoryRepository.DefaultTableName + @"' AND
-    con.contype = 'f'";
+    ns.nspname NOT IN ('pg_catalog', 'information_schema')
+AND
+    con.contype = 'f'
+" + tableFilter;
 
             var command = connection.CreateCommand();
             command.CommandText = getConstraints;
@@ -588,9 +587,6 @@ LEFT OUTER JOIN pg_namespace AS ownerns ON ownerns.oid = tblcls.relnamespace";
                             IncrementBy = reader.GetValueOrDefault<int>("increment"),
                             IsCyclic = reader.GetValueOrDefault<bool>("is_cyclic")
                         };
-
-                        //if (!_tableSelectionSet.Allows(sequence.Schema, ""))
-                        //    continue;
 
                         if (sequence.StoreType == "bigint")
                         {

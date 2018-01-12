@@ -1,6 +1,5 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests;
 using Xunit;
 
 namespace Microsoft.EntityFrameworkCore.Query

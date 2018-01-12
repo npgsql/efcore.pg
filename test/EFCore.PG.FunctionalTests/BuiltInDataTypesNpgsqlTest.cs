@@ -488,6 +488,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                     b.Ignore(dt => dt.TestSignedByte);
                     b.Ignore(dt => dt.TestDateTimeOffset);
                     b.Ignore(dt => dt.TestByte);
+                    //b.Ignore(dt => dt.EnumU16);
+                    //b.Ignore(dt => dt.EnumU32);
+                    //b.Ignore(dt => dt.EnumU64);
+                    //b.Ignore(dt => dt.EnumS8);
                 });
 
                 modelBuilder.Entity<BuiltInNullableDataTypes>(b =>
@@ -499,6 +503,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                     b.Ignore(dt => dt.TestNullableSignedByte);
                     b.Ignore(dt => dt.TestNullableDateTimeOffset);
                     b.Ignore(dt => dt.TestNullableByte);
+                    //b.Ignore(dt => dt.EnumU16);
+                    //b.Ignore(dt => dt.EnumU32);
+                    //b.Ignore(dt => dt.EnumU64);
+                    //b.Ignore(dt => dt.EnumS8);
                 });
 
                 modelBuilder.Entity<MappedDataTypes>(b =>
@@ -603,7 +611,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 {
                     entityType.GetOrAddProperty(propertyInfo).Relational().ColumnType = propertyInfo.Name.Replace('_', ' ') + "(5, 2)";
                 }
-            } 
+            }
         }
 
         public class MappedDataTypes
