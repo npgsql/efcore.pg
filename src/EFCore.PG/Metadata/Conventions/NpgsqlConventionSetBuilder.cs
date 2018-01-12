@@ -50,23 +50,5 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Conventions
 
             return conventionSet;
         }
-
-        public static ConventionSet Build()
-        {
-            var NpgsqlTypeMapper = new NpgsqlEFTypeMapper(
-                new CoreTypeMapperDependencies(
-                    new ValueConverterSelector(
-                        new ValueConverterSelectorDependencies())),
-                new RelationalTypeMapperDependencies());
-
-            return new NpgsqlConventionSetBuilder(
-                new RelationalConventionSetBuilderDependencies(NpgsqlTypeMapper, currentContext: null, setFinder: null))
-                .AddConventions(
-                    new CoreConventionSetBuilder(
-                        new CoreConventionSetBuilderDependencies(
-                            NpgsqlTypeMapper,
-                            new ConstructorBindingFactory()))
-                        .CreateConventionSet());
-        }
     }
 }

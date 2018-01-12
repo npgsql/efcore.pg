@@ -29,35 +29,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.1.0-preview1-28069" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="2.1.0-preview1-28069" />
     <PackageReference Include="Npgsql" Version="3.2.5" />
     <PackageReference Include="System.Collections" Version="4.3.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="Microsoft.EntityFrameworkCore">
-      <HintPath>..\..\..\EntityFrameworkCore\EF\OraleDeveloper\src\EFCore.Relational\bin\Debug\netstandard2.0\Microsoft.EntityFrameworkCore.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.EntityFrameworkCore.Attributes">
-      <HintPath>..\..\..\EntityFrameworkCore\EF\OraleDeveloper\src\EFCore.Relational\bin\Debug\netstandard2.0\Microsoft.EntityFrameworkCore.Attributes.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.EntityFrameworkCore.Relational">
-      <HintPath>..\..\..\EntityFrameworkCore\EF\OraleDeveloper\src\EFCore.Relational\bin\Debug\netstandard2.0\Microsoft.EntityFrameworkCore.Relational.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Extensions.DependencyInjection">
-      <HintPath>..\..\..\EntityFrameworkCore\EF\OraleDeveloper\src\EFCore.Specification.Tests\bin\Debug\net461\Microsoft.Extensions.DependencyInjection.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions">
-      <HintPath>..\..\..\EntityFrameworkCore\EF\OraleDeveloper\src\EFCore.Specification.Tests\bin\Debug\net461\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Extensions.Logging">
-      <HintPath>..\..\..\EntityFrameworkCore\EF\OraleDeveloper\src\EFCore.Specification.Tests\bin\Debug\net461\Microsoft.Extensions.Logging.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Extensions.Logging.Abstractions">
-      <HintPath>..\..\..\EntityFrameworkCore\EF\OraleDeveloper\src\EFCore.Specification.Tests\bin\Debug\net461\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Extensions.Options">
-      <HintPath>..\..\..\EntityFrameworkCore\EF\OraleDeveloper\src\EFCore.Specification.Tests\bin\Debug\net461\Microsoft.Extensions.Options.dll</HintPath>
-    </Reference>
     <Reference Include="Remotion.Linq">
       <HintPath>..\..\..\EntityFrameworkCore\EF\DateDiff\src\EFCore.Design\bin\Debug\net461\Remotion.Linq.dll</HintPath>
     </Reference>
