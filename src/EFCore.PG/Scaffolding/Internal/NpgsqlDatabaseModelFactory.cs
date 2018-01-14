@@ -57,7 +57,9 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding.Internal
                 RegexOptions.Compiled,
                 TimeSpan.FromMilliseconds(1000.0));
 
-        private readonly IDiagnosticsLogger<DbLoggerCategory.Scaffolding> _logger;
+        readonly IDiagnosticsLogger<DbLoggerCategory.Scaffolding> _logger;
+
+        NpgsqlConnection _connection;
 
         public NpgsqlDatabaseModelFactory([NotNull] IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
         {
@@ -72,26 +74,26 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding.Internal
             Check.NotNull(tables, nameof(tables));
             Check.NotNull(schemas, nameof(schemas));
 
-            using (var connection = new NpgsqlConnection(connectionString))
+            using (var _connection = new NpgsqlConnection(connectionString))
             {
-                return Create(connection, tables, schemas);
+                return Create(_connection, tables, schemas);
             }
         }
 
         public virtual DatabaseModel Create(DbConnection connection, IEnumerable<string> tables, IEnumerable<string> schemas)
         {
-            var connectionNpgsql = (NpgsqlConnection)connection;
-            var connectionStartedOpen = connectionNpgsql.State == ConnectionState.Open;
+            _connection = (NpgsqlConnection)connection;
+            var connectionStartedOpen = _connection.State == ConnectionState.Open;
             if (!connectionStartedOpen)
             {
-                connectionNpgsql.Open();
+                _connection.Open();
             }
 
             try
             {
                 var databaseModel = new DatabaseModel
                 {
-                    DatabaseName = connectionNpgsql.Database,
+                    DatabaseName = _connection.Database,
                     DefaultSchema = "public"
                 };
 
@@ -100,7 +102,7 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding.Internal
                 var tableList = tables.ToList();
                 var tableFilter = GenerateTableFilter(tableList.Select(Parse).ToList(), schemaFilter);
 
-                foreach (var table in GetTables(connectionNpgsql, tableFilter))
+                foreach (var table in GetTables(_connection, tableFilter))
                 {
                     table.Database = databaseModel;
                     databaseModel.Tables.Add(table);
@@ -111,13 +113,13 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding.Internal
                     while (table.Columns.Remove(null)) { }
                 }
 
-                foreach (var sequence in GetSequences(connectionNpgsql, databaseModel.Tables, schemaFilter))
+                foreach (var sequence in GetSequences(_connection, databaseModel.Tables, schemaFilter))
                 {
                     sequence.Database = databaseModel;
                     databaseModel.Sequences.Add(sequence);
                 }
 
-                GetExtensions(connectionNpgsql, databaseModel);
+                GetExtensions(_connection, databaseModel);
 
                 return databaseModel;
             }

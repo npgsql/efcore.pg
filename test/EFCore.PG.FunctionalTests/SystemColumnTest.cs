@@ -53,9 +53,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 .Options;
 
             using (var context = CreateContext())
-            {
                 context.Database.EnsureCreated();
-            }
         }
 
         SystemColumnContext CreateContext()
