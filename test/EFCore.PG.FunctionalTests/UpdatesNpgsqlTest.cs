@@ -1,4 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.TestModels.UpdatesModel;
+using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -12,10 +14,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             Fixture.TestSqlLoggerFactory.Clear();
         }
 
-        [Fact(Skip = "Not implemented")]
         public override void Identifiers_are_generated_correctly()
         {
-            throw new System.NotImplementedException();
+            using (var context = CreateContext())
+            {
+                var entityType = context.Model.FindEntityType(typeof(
+                    LoginEntityTypeWithAnExtremelyLongAndOverlyConvolutedNameThatIsUsedToVerifyThatTheStoreIdentifierGenerationLengthLimitIsWorkingCorrectly));
+                Assert.Equal("LoginEntityTypeWithAnExtremelyLongAndOverlyConvolutedNameThatIs~", entityType.Relational().TableName);
+                Assert.Equal("PK_LoginEntityTypeWithAnExtremelyLongAndOverlyConvolutedNameTha~", entityType.GetKeys().Single().Relational().Name);
+                Assert.Equal("FK_LoginEntityTypeWithAnExtremelyLongAndOverlyConvolutedNameTha~", entityType.GetForeignKeys().Single().Relational().Name);
+                Assert.Equal("IX_LoginEntityTypeWithAnExtremelyLongAndOverlyConvolutedNameTha~", entityType.GetIndexes().Single().Relational().Name);
+            }
         }
     }
 }

@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Utilities;
 using Xunit;
@@ -68,8 +64,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             return context;
         }
 
-        private readonly DbContextOptions _options;
-        private readonly NpgsqlTestStore _testStore;
+        readonly DbContextOptions _options;
+        readonly NpgsqlTestStore _testStore;
 
         public void Dispose() => _testStore.Dispose();
     }

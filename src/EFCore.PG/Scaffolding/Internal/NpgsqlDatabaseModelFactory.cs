@@ -187,7 +187,7 @@ AND
         {
             using (var command = connection.CreateCommand())
             {
-                var commandText = @"
+                var commandText = $@"
 SELECT
     nspname, relname, attisdropped, attname, typ.typname, atttypmod, description, basetyp.typname AS domtypname,
     CASE WHEN pg_proc.proname='array_recv' THEN 'a' ELSE typ.typtype END AS typtype,
@@ -209,7 +209,7 @@ WHERE
     relkind = 'r' AND
     nspname NOT IN ('pg_catalog', 'information_schema')
 AND
-    attnum > 0 " + tableFilter + " ORDER BY attnum";
+    attnum > 0 {tableFilter} ORDER BY attnum";
 
                 command.CommandText = commandText;
 
@@ -237,12 +237,12 @@ AND
                             string computedValue = null;
                             var comment = dataRecord.GetValueOrDefault<string>("description");
 
-                            var storeType = GetStoreType(dataTypeName, typeModifier);
-
                             if (dataTypeName == "bpchar")
                             {
                                 dataTypeName = "char";
                             }
+
+                            var storeType = GetStoreType(dataTypeName, typeModifier);
 
                             var column = new DatabaseColumn
                             {
@@ -677,20 +677,20 @@ LEFT OUTER JOIN pg_namespace AS ownerns ON ownerns.oid = tblcls.relnamespace";
 
             switch (dataTypeName)
             {
-                case "bpchar":
-                case "char":
-                case "varchar":
-                    return $"{dataTypeName}({typeModifier - 4})";  // Max length
-                case "numeric":
-                case "decimal":
-                    // See http://stackoverflow.com/questions/3350148/where-are-numeric-precision-and-scale-for-a-field-found-in-the-pg-catalog-tables
-                    var precision = ((typeModifier - 4) >> 16) & 65535;
-                    var scale = (typeModifier - 4) & 65535;
-                    return $"{dataTypeName}({precision}, {scale})";
-                // TODO: Support for precision-only for timestamp, time, interval
-                default:
-                    //Logger.Logger.LogWarning($"Don't know how to interpret type modifier {typeModifier} for datatype {dataTypeName}'");
-                    return dataTypeName;
+            case "bpchar":
+            case "char":
+            case "varchar":
+                return $"{dataTypeName}({typeModifier - 4})";  // Max length
+            case "numeric":
+            case "decimal":
+                // See http://stackoverflow.com/questions/3350148/where-are-numeric-precision-and-scale-for-a-field-found-in-the-pg-catalog-tables
+                var precision = ((typeModifier - 4) >> 16) & 65535;
+                var scale = (typeModifier - 4) & 65535;
+                return $"{dataTypeName}({precision}, {scale})";
+            // TODO: Support for precision-only for timestamp, time, interval
+            default:
+                //Logger.Logger.LogWarning($"Don't know how to interpret type modifier {typeModifier} for datatype {dataTypeName}'");
+                return dataTypeName;
             }
         }
 

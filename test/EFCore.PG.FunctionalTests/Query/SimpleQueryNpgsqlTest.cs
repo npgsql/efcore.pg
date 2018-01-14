@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Text.RegularExpressions;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestModels.Northwind;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Xunit;

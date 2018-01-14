@@ -43,19 +43,6 @@ namespace Microsoft.EntityFrameworkCore.Migrations
         {
         }
 
-        // Hack - Discuss this!!
-        // Issue - https://github.com/npgsql/Npgsql.EntityFrameworkCore.PostgreSQL/issues/268
-        // This is horrible, but we'll stay until we solve it!
-        private static string TruncateBigName(string name)
-        {
-            if(name?.Length>64)
-            {
-                name = name.Substring(0, 32) + Guid.NewGuid().ToString("N");
-            }
-
-            return name;
-        }
-
         protected override void Generate(MigrationOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
@@ -96,12 +83,6 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                 filteredOperation.ForeignKeys.AddRange(operation.ForeignKeys);
                 filteredOperation.UniqueConstraints.AddRange(operation.UniqueConstraints);
                 operation = filteredOperation;
-            }
-
-            //hack - Issue (#268)
-            foreach (var item in operation.ForeignKeys)
-            {
-                item.Name = TruncateBigName(item.Name);
             }
 
             base.Generate(operation, model, builder, false);
@@ -311,22 +292,22 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             {
                 switch (type)
                 {
-                    case "int":
-                    case "int4":
-                    case "bigint":
-                    case "int8":
-                    case "smallint":
-                    case "int2":
-                        sequenceName = $"{operation.Table}_{operation.Name}_seq";
-                        Generate(new CreateSequenceOperation
-                        {
-                            Name = sequenceName,
-                            ClrType = typeof(long)
-                        }, model, builder, false);
-                        defaultValueSql = $@"nextval('{Dependencies.SqlGenerationHelper.DelimitIdentifier(sequenceName)}')";
-                        // Note: we also need to set the sequence ownership, this is done below
-                        // after the ALTER COLUMN
-                        break;
+                case "int":
+                case "int4":
+                case "bigint":
+                case "int8":
+                case "smallint":
+                case "int2":
+                    sequenceName = $"{operation.Table}_{operation.Name}_seq";
+                    Generate(new CreateSequenceOperation
+                    {
+                        Name = sequenceName,
+                        ClrType = typeof(long)
+                    }, model, builder, false);
+                    defaultValueSql = $@"nextval('{Dependencies.SqlGenerationHelper.DelimitIdentifier(sequenceName)}')";
+                    // Note: we also need to set the sequence ownership, this is done below
+                    // after the ALTER COLUMN
+                    break;
                 }
             }
 
@@ -711,18 +692,18 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             {
                 switch (type)
                 {
-                    case "int":
-                    case "int4":
-                        type = "serial";
-                        break;
-                    case "bigint":
-                    case "int8":
-                        type = "bigserial";
-                        break;
-                    case "smallint":
-                    case "int2":
-                        type = "smallserial";
-                        break;
+                case "int":
+                case "int4":
+                    type = "serial";
+                    break;
+                case "bigint":
+                case "int8":
+                    type = "bigserial";
+                    break;
+                case "smallint":
+                case "int2":
+                    type = "smallserial";
+                    break;
                 }
             }
 

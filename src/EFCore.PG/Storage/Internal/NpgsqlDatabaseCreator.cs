@@ -40,8 +40,8 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
 {
     public class NpgsqlDatabaseCreator : RelationalDatabaseCreator
     {
-        private readonly INpgsqlRelationalConnection _connection;
-        private readonly IRawSqlCommandBuilder _rawSqlCommandBuilder;
+        readonly INpgsqlRelationalConnection _connection;
+        readonly IRawSqlCommandBuilder _rawSqlCommandBuilder;
 
         public NpgsqlDatabaseCreator(
             [NotNull] RelationalDatabaseCreatorDependencies dependencies,
