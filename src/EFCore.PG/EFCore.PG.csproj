@@ -26,21 +26,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.1.0-preview1-28070" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="2.1.0-preview1-28070" />
-    <PackageReference Include="Npgsql" Version="3.2.5" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="Remotion.Linq">
-      <HintPath>..\..\..\EntityFrameworkCore\EF\DateDiff\src\EFCore.Design\bin\Debug\net461\Remotion.Linq.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Collections.Immutable">
-      <HintPath>..\..\..\EntityFrameworkCore\EF\DateDiff\src\EFCore.Relational.Specification.Tests\bin\Debug\net461\System.Collections.Immutable.dll</HintPath>
-    </Reference>
-    <Reference Include="System.ComponentModel.Annotations">
-      <HintPath>..\..\..\EntityFrameworkCore\EF\DateDiff\src\EFCore.Relational.Specification.Tests\bin\Debug\net461\System.ComponentModel.Annotations.dll</HintPath>
-    </Reference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.1.0-*" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="2.1.0-*" />
+    <PackageReference Include="Npgsql" Version="3.2.6" />
   </ItemGroup>
 
 </Project>
