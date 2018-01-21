@@ -53,6 +53,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                 Generate(createDatabaseOperation, model, builder);
                 return;
             }
+
             if (operation is NpgsqlDropDatabaseOperation dropDatabaseOperation)
             {
                 Generate(dropDatabaseOperation, model, builder);

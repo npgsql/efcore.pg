@@ -1,6 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Utilities;
-using Xunit.Abstractions;
+﻿using Xunit.Abstractions;
 
 namespace Microsoft.EntityFrameworkCore.Query
 {

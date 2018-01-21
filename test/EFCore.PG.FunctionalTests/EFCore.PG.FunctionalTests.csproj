@@ -4,8 +4,7 @@
     <TargetFrameworks>net461;netcoreapp2.0</TargetFrameworks>
     <TargetFrameworks Condition="'$(OS)' != 'Windows_NT' OR '$(CoreOnly)' == 'True'">netcoreapp2.0</TargetFrameworks>
     <AssemblyName>Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests</AssemblyName>
-    <RootNamespace>Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests</RootNamespace>
-    <NoWarn>xUnit1004;xUnit1013</NoWarn>
+    <RootNamespace>Microsoft.EntityFrameworkCore</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -26,12 +25,8 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.1.0-*" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="2.1.0-*" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational.Specification.Tests" Version="2.1.0-*" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.3.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.1.0-preview1-27942" />
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="2.1.0-preview1-27942" />
-    <PackageReference Include="Npgsql" Version="3.2.6" />
-    <PackageReference Include="xunit.assert" Version="2.3.1" />
-    <PackageReference Include="xunit.core" Version="2.3.1" />
   </ItemGroup>
 
 </Project>

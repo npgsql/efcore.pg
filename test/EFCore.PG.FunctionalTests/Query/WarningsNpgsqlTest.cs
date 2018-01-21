@@ -9,7 +9,7 @@ namespace Microsoft.EntityFrameworkCore.Query
         public WarningsNpgsqlTest(WarningsNpgsqlFixture fixture)
             : base(fixture)
         {
-            Fixture.TestSqlLoggerFactory.Clear();
+            fixture.TestSqlLoggerFactory.Clear();
         }
 
         public override void Does_not_throw_for_top_level_single()
@@ -70,9 +70,6 @@ LIMIT 2",
             Assert.Contains(CoreStrings.LogPossibleUnintendedReferenceComparison.GenerateMessage("[c].Orders", "[c].Orders"), Fixture.TestSqlLoggerFactory.Log);
         }
 
-        private const string FileLineEnding = @"
-";
-
-        private string Sql => Fixture.TestSqlLoggerFactory.Sql.Replace(Environment.NewLine, FileLineEnding);
+        private string Sql => Fixture.TestSqlLoggerFactory.Sql;
     }
 }

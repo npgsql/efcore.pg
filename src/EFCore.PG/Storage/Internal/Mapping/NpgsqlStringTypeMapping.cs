@@ -32,24 +32,22 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
 {
     public class NpgsqlStringTypeMapping : StringTypeMapping
     {
-        readonly NpgsqlDbType? _npgsqlDbType;
+        readonly NpgsqlDbType _npgsqlDbType;
 
         public NpgsqlStringTypeMapping(
             [NotNull] string storeType,
-            NpgsqlDbType? dbType,
-            bool unicode = false,
+            NpgsqlDbType npgsqlDbType,
             int? size = null)
-            : this(storeType, null, dbType, unicode, size)
-            => _npgsqlDbType = dbType;
+            : this(storeType, null, npgsqlDbType, size)
+        {}
 
         public NpgsqlStringTypeMapping(
             [NotNull] string storeType,
             [CanBeNull] ValueConverter converter,
-            NpgsqlDbType? dbType,
-            bool unicode = false,
+            NpgsqlDbType npgsqlDbType,
             int? size = null)
-            : base(storeType, converter, (DbType?)dbType, unicode, size)
-            => _npgsqlDbType = dbType;
+            : base(storeType, converter, (DbType?)npgsqlDbType, false, size)
+            => _npgsqlDbType = npgsqlDbType;
 
         public NpgsqlStringTypeMapping(string storeType, NpgsqlDbType npgsqlDbType)
             : base(storeType)
@@ -59,14 +57,9 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
             => ((NpgsqlParameter)parameter).NpgsqlDbType = (NpgsqlDbType)_npgsqlDbType;
 
         public override RelationalTypeMapping Clone(string storeType, int? size)
-            => new NpgsqlStringTypeMapping(storeType, Converter, _npgsqlDbType, IsUnicode, size);
+            => new NpgsqlStringTypeMapping(storeType, Converter, _npgsqlDbType, size);
 
         public override CoreTypeMapping Clone(ValueConverter converter)
-            => new NpgsqlStringTypeMapping(StoreType, ComposeConverter(converter), _npgsqlDbType, IsUnicode, Size);
-
-        protected override string GenerateNonNullSqlLiteral(object value)
-            => IsUnicode
-                ? $"N'{EscapeSqlLiteral((string)value)}'" // Interpolation okay; strings
-                : $"'{EscapeSqlLiteral((string)value)}'";
+            => new NpgsqlStringTypeMapping(StoreType, ComposeConverter(converter), _npgsqlDbType, Size);
     }
 }

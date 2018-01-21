@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.Logging;
 
-namespace Microsoft.EntityFrameworkCore.Utilities
+namespace Microsoft.EntityFrameworkCore.TestUtilities
 {
     public class NpgsqlDatabaseCleaner : RelationalDatabaseCleaner
     {

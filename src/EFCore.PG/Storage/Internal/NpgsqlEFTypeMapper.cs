@@ -51,7 +51,6 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
             [NotNull] RelationalTypeMapperDependencies dependencies)
             : base(coreDependencies, dependencies)
         {
-
             _storeTypeMappings = TypeHandlerRegistry.HandlerTypes.Values
                     .Where(tam => tam.Mapping.NpgsqlDbType.HasValue)
                     .Select(tam => new
@@ -157,7 +156,6 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
         protected override IReadOnlyDictionary<string, IList<RelationalTypeMapping>> GetMultipleStoreTypeMappings()
             => _storeTypeMappings;
 
-
         [CanBeNull]
         public override RelationalTypeMapping FindMapping(Type clrType)
         {
@@ -192,7 +190,6 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
 
             return null;
         }
-
 
         [CanBeNull]
         protected override RelationalTypeMapping FindCustomMapping(IProperty property)

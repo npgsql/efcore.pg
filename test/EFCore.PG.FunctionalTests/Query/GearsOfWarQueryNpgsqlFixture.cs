@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Utilities;
-using Microsoft.EntityFrameworkCore.TestUtilities;
+﻿using Microsoft.EntityFrameworkCore.TestUtilities;
 
 namespace Microsoft.EntityFrameworkCore.Query
 {

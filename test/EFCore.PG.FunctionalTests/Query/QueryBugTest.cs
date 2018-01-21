@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore.Utilities;
-using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests;
 using Xunit;
 using Xunit.Abstractions;
+using Microsoft.EntityFrameworkCore.TestUtilities;
 
 namespace Microsoft.EntityFrameworkCore.Query
 {
@@ -16,19 +12,19 @@ namespace Microsoft.EntityFrameworkCore.Query
         public QueryBugsTest(NpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
         {
             Fixture = fixture;
-            //Fixture.TestSqlLoggerFactory.Clear();
+            Fixture.TestSqlLoggerFactory.Clear();
             //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
         protected NpgsqlFixture Fixture { get; }
 
+        #region Bug278
+
         [Fact]
         public async Task Bug278()
         {
             using (var testStore = NpgsqlTestStore.CreateScratch())
-            using (var context = new Bug278Context(new DbContextOptionsBuilder()
-                .UseNpgsql(testStore.Connection)
-                .Options))
+            using (var context = new Bug278Context(Fixture.CreateOptions(testStore)))
             {
                 context.Database.EnsureCreated();
                 context.Entities.Add(new Bug278Entity { ChannelCodes = new[] { 1, 1 } });
@@ -56,5 +52,7 @@ namespace Microsoft.EntityFrameworkCore.Query
             public Bug278Context(DbContextOptions options) : base(options) {}
             public DbSet<Bug278Entity> Entities { get; set; }
         }
+
+        #endregion Bug278
     }
 }

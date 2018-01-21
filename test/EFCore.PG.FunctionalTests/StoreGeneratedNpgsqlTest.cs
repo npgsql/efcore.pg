@@ -1,15 +1,8 @@
-// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-
-using System;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.EntityFrameworkCore.Utilities;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
+namespace Microsoft.EntityFrameworkCore
 {
     public class StoreGeneratedNpgsqlTest
         : StoreGeneratedTestBase<StoreGeneratedNpgsqlTest.StoreGeneratedNpgsqlFixture>
@@ -24,7 +17,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 
         public class StoreGeneratedNpgsqlFixture : StoreGeneratedFixtureBase
         {
-            protected override string StoreName { get; } = "StoreGeneratedTest"; 
+            protected override string StoreName { get; } = "StoreGeneratedTest";
             protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
 
             protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)

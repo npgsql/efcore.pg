@@ -1,21 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+using System.Diagnostics;
 using Xunit;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Scaffolding.Internal;
 using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests.Utilities;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
+using Microsoft.EntityFrameworkCore.TestUtilities;
+using Microsoft.Extensions.Logging;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests
 {
-    public class NpgsqlDatabaseModelFactoryTest : IClassFixture<NpgsqlDatabaseModelFixture>
+    public class NpgsqlDatabaseModelFactoryTest : IClassFixture<NpgsqlDatabaseModelFactoryTest.NpgsqlDatabaseModelFixture>
     {
+        protected NpgsqlDatabaseModelFixture Fixture { get; }
+
+        public NpgsqlDatabaseModelFactoryTest(NpgsqlDatabaseModelFixture fixture) => Fixture = fixture;
+
         [Fact]
         public void It_reads_tables()
         {
@@ -307,31 +310,44 @@ CREATE SEQUENCE not_interested.some_other_sequence;
         public void DefaultSchemaIsPublic()
             => Assert.Equal("public", _fixture.CreateModel("SELECT 1").DefaultSchema);
 
-        readonly NpgsqlDatabaseModelFixture _fixture;
+        private readonly List<(LogLevel Level, EventId Id, string Message)> _log = new List<(LogLevel Level, EventId Id, string Message)>();
 
-        public DatabaseModel CreateModel(string createSql, IEnumerable<string> tables = null)
-            => _fixture.CreateModel(createSql, tables);
-
-        public NpgsqlDatabaseModelFactoryTest(NpgsqlDatabaseModelFixture fixture)
+        private void Test(string createSql, IEnumerable<string> tables, IEnumerable<string> schemas, Action<DatabaseModel> asserter, string cleanupSql)
         {
-            _fixture = fixture;
+            Fixture.TestStore.ExecuteNonQuery(createSql);
+
+            try
+            {
+                var databaseModelFactory = new NpgsqlDatabaseModelFactory(
+                    new DiagnosticsLogger<DbLoggerCategory.Scaffolding>(
+                        new ListLoggerFactory(_log),
+                        new LoggingOptions(),
+                        new DiagnosticListener("Fake")));
+
+                var databaseModel = databaseModelFactory.Create(Fixture.TestStore.ConnectionString, tables, schemas);
+                Assert.NotNull(databaseModel);
+                asserter(databaseModel);
+            }
+            finally
+            {
+                if (!string.IsNullOrEmpty(cleanupSql))
+                {
+                    Fixture.TestStore.ExecuteNonQuery(cleanupSql);
+                }
+            }
         }
 
-        [Fact]
-        public void Test_Scaffolding_2_1()
+        public class NpgsqlDatabaseModelFixture : SharedStoreFixtureBase<DbContext>
         {
-            var appServiceProivder = new ServiceCollection()
-                .AddDbContext<PostgreSQL.FunctionalTests.NpgsqlValueGenerationScenariosTest.ContextBase>()
-                .BuildServiceProvider();
+            protected override string StoreName { get; } = nameof(NpgsqlDatabaseModelFactoryTest);
+            protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+            public new NpgsqlTestStore TestStore => (NpgsqlTestStore)base.TestStore;
 
-            var serviceScope = appServiceProivder
-                  .GetRequiredService<IServiceScopeFactory>()
-                  .CreateScope();
-
-            var context = serviceScope.ServiceProvider.GetService<PostgreSQL.FunctionalTests.NpgsqlValueGenerationScenariosTest.ContextBase>();
-            var logger = context.GetService<Microsoft.EntityFrameworkCore.Diagnostics.IDiagnosticsLogger<Microsoft.EntityFrameworkCore.DbLoggerCategory.Scaffolding>>();
-            var test = new NpgsqlDatabaseModelFactory(logger);
-            var ret = test.Create(context.Database.GetDbConnection(), new List<string> { "Orders" }, new List<string> { "public" });
+            public NpgsqlDatabaseModelFixture()
+            {
+                //TestStore.ExecuteNonQuery("CREATE SCHEMA db2");
+                //TestStore.ExecuteNonQuery("CREATE SCHEMA [db.2]");
+            }
         }
     }
 }

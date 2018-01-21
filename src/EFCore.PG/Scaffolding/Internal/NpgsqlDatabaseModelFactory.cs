@@ -59,8 +59,6 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding.Internal
 
         readonly IDiagnosticsLogger<DbLoggerCategory.Scaffolding> _logger;
 
-        NpgsqlConnection _connection;
-
         public NpgsqlDatabaseModelFactory([NotNull] IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
         {
             Check.NotNull(logger, nameof(logger));
@@ -74,26 +72,26 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding.Internal
             Check.NotNull(tables, nameof(tables));
             Check.NotNull(schemas, nameof(schemas));
 
-            using (var _connection = new NpgsqlConnection(connectionString))
+            using (var connection = new NpgsqlConnection(connectionString))
             {
-                return Create(_connection, tables, schemas);
+                return Create(connection, tables, schemas);
             }
         }
 
-        public virtual DatabaseModel Create(DbConnection connection, IEnumerable<string> tables, IEnumerable<string> schemas)
+        public virtual DatabaseModel Create(DbConnection dbConnection, IEnumerable<string> tables, IEnumerable<string> schemas)
         {
-            _connection = (NpgsqlConnection)connection;
-            var connectionStartedOpen = _connection.State == ConnectionState.Open;
+            var connection = (NpgsqlConnection)dbConnection;
+            var connectionStartedOpen = connection.State == ConnectionState.Open;
             if (!connectionStartedOpen)
             {
-                _connection.Open();
+                connection.Open();
             }
 
             try
             {
                 var databaseModel = new DatabaseModel
                 {
-                    DatabaseName = _connection.Database,
+                    DatabaseName = connection.Database,
                     DefaultSchema = "public"
                 };
 
@@ -102,7 +100,7 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding.Internal
                 var tableList = tables.ToList();
                 var tableFilter = GenerateTableFilter(tableList.Select(Parse).ToList(), schemaFilter);
 
-                foreach (var table in GetTables(_connection, tableFilter))
+                foreach (var table in GetTables(connection, tableFilter))
                 {
                     table.Database = databaseModel;
                     databaseModel.Tables.Add(table);
@@ -113,13 +111,13 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding.Internal
                     while (table.Columns.Remove(null)) { }
                 }
 
-                foreach (var sequence in GetSequences(_connection, databaseModel.Tables, schemaFilter))
+                foreach (var sequence in GetSequences(connection, databaseModel.Tables, schemaFilter))
                 {
                     sequence.Database = databaseModel;
                     databaseModel.Sequences.Add(sequence);
                 }
 
-                GetExtensions(_connection, databaseModel);
+                GetExtensions(connection, databaseModel);
 
                 return databaseModel;
             }
@@ -240,9 +238,7 @@ AND
                             var comment = dataRecord.GetValueOrDefault<string>("description");
 
                             if (dataTypeName == "bpchar")
-                            {
                                 dataTypeName = "char";
-                            }
 
                             var storeType = GetStoreType(dataTypeName, typeModifier);
 

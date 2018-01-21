@@ -22,6 +22,7 @@
 #endregion
 
 using System;
+using System.Data;
 using System.Data.Common;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Storage.Converters;
@@ -34,27 +35,31 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
     {
         public NpgsqlDbType? NpgsqlDbType { get; protected set; }
 
-        internal NpgsqlTypeMapping([NotNull] string storeType, [NotNull] Type clrType, NpgsqlDbType? npgsqlDbType = null)
-            : base(storeType, clrType, unicode: false, size: null, dbType: null)
+        internal NpgsqlTypeMapping(
+            [NotNull] string storeType,
+            [NotNull] Type clrType,
+            NpgsqlDbType? npgsqlDbType = null)
+            : base(storeType, clrType)
         {
             NpgsqlDbType = npgsqlDbType;
         }
 
-        /// <param name="dbType"> The <see cref="DbType" /> to be used. </param>
         public NpgsqlTypeMapping(
             [NotNull] string storeType,
+            [NotNull] Type clrType,
             [CanBeNull] ValueConverter converter,
-            NpgsqlDbType? dbType = null)
-            : base(storeType, typeof(object))
+            NpgsqlDbType? npgsqlDbType = null)
+            : base(storeType, clrType, converter)
         {
-            NpgsqlDbType = dbType;
+            Console.WriteLine($"Instantiating with converter: {converter.GetType().Name}");
+            NpgsqlDbType = npgsqlDbType;
         }
 
         public override RelationalTypeMapping Clone(string storeType, int? size)
-            => new NpgsqlTypeMapping(storeType, Converter, NpgsqlDbType);
+            => new NpgsqlTypeMapping(storeType, ClrType, Converter, NpgsqlDbType);
 
         public override CoreTypeMapping Clone(ValueConverter converter)
-            => new NpgsqlTypeMapping(StoreType, ComposeConverter(converter), NpgsqlDbType);
+            => new NpgsqlTypeMapping(StoreType, ClrType, ComposeConverter(converter), NpgsqlDbType);
 
         protected override void ConfigureParameter([NotNull] DbParameter parameter)
         {

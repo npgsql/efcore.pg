@@ -8,6 +8,8 @@ namespace Microsoft.EntityFrameworkCore.Query
 {
     public partial class SimpleQueryNpgsqlTest
     {
+        #region Inherited
+
         public override void String_Contains_Literal()
         {
             base.String_Contains_Literal();
@@ -99,17 +101,6 @@ namespace Microsoft.EntityFrameworkCore.Query
             AssertContainsSql("WHERE \"c\".\"Region\" IS NULL OR (\"c\".\"Region\" ~ '^\\s*$' = TRUE)");
         }
 
-        [Fact]
-        public void IsNullOrWhiteSpace_in_predicate_with_newline()
-        {
-            using (var context = CreateContext())
-            {
-                var query = context.Set<Customer>()
-                    .FirstOrDefault(c => string.IsNullOrWhiteSpace("\n"));
-                Assert.NotNull(query);
-            }
-        }
-
         public override void Query_expression_with_to_string_and_contains()
         {
             base.Query_expression_with_to_string_and_contains();
@@ -183,6 +174,8 @@ namespace Microsoft.EntityFrameworkCore.Query
             base.Where_datetime_millisecond_component();
         }
 
+        #endregion Inherited
+
         [Fact]
         public void Where_datetime_dayOfWeek_component()
         {
@@ -191,7 +184,9 @@ namespace Microsoft.EntityFrameworkCore.Query
                         o.OrderDate.Value.DayOfWeek == DayOfWeek.Tuesday),
                 entryCount: 168);
             AssertContainsSql("WHERE CAST(FLOOR(DATE_PART('dow', \"o\".\"OrderDate\")) AS int4)");
-        } 
+        }
+
+        #region Regex
 
         [Fact]
         public void Regex_IsMatch()
@@ -255,5 +250,10 @@ namespace Microsoft.EntityFrameworkCore.Query
                 entryCount: 4);
             Assert.DoesNotContain("WHERE \"c\".\"CompanyName\" ~ ", Fixture.TestSqlLoggerFactory.Sql);
         }
+
+        #endregion Regex
+
+        void AssertContainsSql(params string[] expected)
+            => Fixture.TestSqlLoggerFactory.AssertBaseline(expected, assertOrder: false);
     }
 }

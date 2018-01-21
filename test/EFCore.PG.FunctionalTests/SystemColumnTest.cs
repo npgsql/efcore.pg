@@ -1,9 +1,8 @@
 ﻿using System;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Utilities;
+using Microsoft.EntityFrameworkCore.TestUtilities;
 using Xunit;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
+namespace Microsoft.EntityFrameworkCore
 {
     public class SystemColumnTest : IDisposable
     {
@@ -56,11 +55,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 context.Database.EnsureCreated();
         }
 
-        SystemColumnContext CreateContext()
-        {
-            var context = new SystemColumnContext(_options);
-            return context;
-        }
+        SystemColumnContext CreateContext() => new SystemColumnContext(_options);
 
         readonly DbContextOptions _options;
         readonly NpgsqlTestStore _testStore;

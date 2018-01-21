@@ -1,6 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
-
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
+﻿
+namespace Microsoft.EntityFrameworkCore
 {
     public class DatabindingNpgsqlTest : DatabindingTestBase<F1NpgsqlFixture>
     {
