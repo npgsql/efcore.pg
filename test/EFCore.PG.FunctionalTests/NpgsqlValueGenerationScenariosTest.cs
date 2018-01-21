@@ -19,7 +19,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         [Fact]
         public void Insert_with_sequence_id()
         {
-            using (var testStore = NpgsqlTestStore.Create(DatabaseName))
+            using (var testStore = NpgsqlTestStore.CreateInitialized(DatabaseName))
             {
                 using (var context = new BlogContextSequence(testStore.Name))
                 {
@@ -48,7 +48,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         [Fact]
         public void Insert_with_sequence_HiLo()
         {
-            using (var testStore = NpgsqlTestStore.Create(DatabaseName))
+            using (var testStore = NpgsqlTestStore.CreateInitialized(DatabaseName))
             {
                 using (var context = new BlogContextHiLo(testStore.Name))
                 {
@@ -83,7 +83,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         [Fact]
         public void Insert_with_default_value_from_sequence()
         {
-            using (var testStore = NpgsqlTestStore.Create(DatabaseName))
+            using (var testStore = NpgsqlTestStore.CreateInitialized(DatabaseName))
             {
                 using (var context = new BlogContextDefaultValue(testStore.Name))
                 {
@@ -127,7 +127,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         [Fact]
         public void Insert_with_key_default_value_from_sequence()
         {
-            using (var testStore = NpgsqlTestStore.Create(DatabaseName))
+            using (var testStore = NpgsqlTestStore.CreateInitialized(DatabaseName))
             {
                 using (var context = new BlogContextKeyColumnWithDefaultValue(testStore.Name))
                 {
@@ -172,7 +172,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         [Fact]
         public void Insert_with_explicit_non_default_keys()
         {
-            using (var testStore = NpgsqlTestStore.Create(DatabaseName))
+            using (var testStore = NpgsqlTestStore.CreateInitialized(DatabaseName))
             {
                 using (var context = new BlogContextNoKeyGeneration(testStore.Name))
                 {
@@ -209,7 +209,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         [Fact]
         public void Insert_with_explicit_with_default_keys()
         {
-            using (var testStore = NpgsqlTestStore.Create(DatabaseName))
+            using (var testStore = NpgsqlTestStore.CreateInitialized(DatabaseName))
             {
                 using (var context = new BlogContextNoKeyGenerationNullableKey(testStore.Name))
                 {
@@ -251,7 +251,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         [Fact]
         public void Insert_with_non_key_default_value()
         {
-            using (var testStore = NpgsqlTestStore.Create(DatabaseName))
+            using (var testStore = NpgsqlTestStore.CreateInitialized(DatabaseName))
             {
                 using (var context = new BlogContextNonKeyDefaultValue(testStore.Name))
                 {
@@ -313,7 +313,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         [Fact]
         public void Insert_with_non_key_default_value_readonly()
         {
-            using (var testStore = NpgsqlTestStore.Create(DatabaseName))
+            using (var testStore = NpgsqlTestStore.CreateInitialized(DatabaseName))
             {
                 using (var context = new BlogContextNonKeyReadOnlyDefaultValue(testStore.Name))
                 {
@@ -374,7 +374,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         [Fact]
         public void Insert_with_serial_non_id()
         {
-            using (var testStore = NpgsqlTestStore.Create(DatabaseName))
+            using (var testStore = NpgsqlTestStore.CreateInitialized(DatabaseName))
             {
                 int afterSave;
 
@@ -414,7 +414,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         [Fact]
         public void Insert_with_client_generated_GUID_key()
         {
-            using (var testStore = NpgsqlTestStore.Create(DatabaseName))
+            using (var testStore = NpgsqlTestStore.CreateInitialized(DatabaseName))
             {
                 Guid afterSave;
                 using (var context = new BlogContext(testStore.Name))
@@ -447,7 +447,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         [Fact]
         public void Insert_with_server_generated_GUID_key()
         {
-            using (var testStore = NpgsqlTestStore.Create(DatabaseName))
+            using (var testStore = NpgsqlTestStore.CreateInitialized(DatabaseName))
             {
                 Guid afterSave;
                 using (var context = new BlogContextServerGuidKey(testStore.Name))

@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Utilities;
 using Xunit;
@@ -29,7 +25,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             }
         }
 
-        class SystemColumnContext : DbContext
+        private class SystemColumnContext : DbContext
         {
             internal SystemColumnContext(DbContextOptions options) : base(options) {}
 
@@ -50,12 +46,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 
         public SystemColumnTest()
         {
-            //_testStore = NpgsqlTestStore.GetOrCreateShared("Crap",
-            //    () => NpgsqlTestStore.CreateDatabase("Crap"));
             _testStore = NpgsqlTestStore.CreateScratch();
 
             _options = new DbContextOptionsBuilder()
-                .UseNpgsql(_testStore.Connection)
+                .UseNpgsql(_testStore.ConnectionString)
                 .Options;
 
             using (var context = CreateContext())
@@ -65,7 +59,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         SystemColumnContext CreateContext()
         {
             var context = new SystemColumnContext(_options);
-            context.Database.UseTransaction(_testStore.Transaction);
             return context;
         }
 

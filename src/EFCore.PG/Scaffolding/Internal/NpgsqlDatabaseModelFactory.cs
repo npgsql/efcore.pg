@@ -26,7 +26,10 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -41,32 +44,28 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding.Internal
 {
     public class NpgsqlDatabaseModelFactory : IDatabaseModelFactory
     {
-        NpgsqlConnection _connection;
-        TableSelectionSet _tableSelectionSet;
-        DatabaseModel _databaseModel;
-        Dictionary<string, DatabaseTable> _tables;
-        Dictionary<string, DatabaseColumn> _tableColumns;
+        private const string NamePartRegex
+            = @"(?:(?:\[(?<part{0}>(?:(?:\]\])|[^\]])+)\])|(?<part{0}>[^\.\[\]]+))";
 
-        static string TableKey(DatabaseTable table) => TableKey(table.Name, table.Schema);
-        static string TableKey(string name, string schema) => $"\"{schema}\".\"{name}\"";
-        static string ColumnKey(DatabaseTable table, string columnName) => $"{TableKey(table)}.\"{columnName}\"";
+        private static readonly Regex _partExtractor
+            = new Regex(
+                string.Format(
+                    CultureInfo.InvariantCulture,
+                    @"^{0}(?:\.{1})?$",
+                    string.Format(CultureInfo.InvariantCulture, NamePartRegex, 1),
+                    string.Format(CultureInfo.InvariantCulture, NamePartRegex, 2)),
+                RegexOptions.Compiled,
+                TimeSpan.FromMilliseconds(1000.0));
+
+        readonly IDiagnosticsLogger<DbLoggerCategory.Scaffolding> _logger;
+
+        NpgsqlConnection _connection;
 
         public NpgsqlDatabaseModelFactory([NotNull] IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
         {
             Check.NotNull(logger, nameof(logger));
 
-            Logger = logger;
-        }
-
-        public virtual IDiagnosticsLogger<DbLoggerCategory.Scaffolding> Logger { get; }
-
-        void ResetState()
-        {
-            _connection = null;
-            _tableSelectionSet = null;
-            _databaseModel = new DatabaseModel();
-            _tables = new Dictionary<string, DatabaseTable>();
-            _tableColumns = new Dictionary<string, DatabaseColumn>(StringComparer.OrdinalIgnoreCase);
+            _logger = logger;
         }
 
         public virtual DatabaseModel Create(string connectionString, IEnumerable<string> tables, IEnumerable<string> schemas)
@@ -75,18 +74,15 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding.Internal
             Check.NotNull(tables, nameof(tables));
             Check.NotNull(schemas, nameof(schemas));
 
-            using (var connection = new NpgsqlConnection(connectionString))
+            using (var _connection = new NpgsqlConnection(connectionString))
             {
-                return Create(connection, tables, schemas);
+                return Create(_connection, tables, schemas);
             }
         }
 
         public virtual DatabaseModel Create(DbConnection connection, IEnumerable<string> tables, IEnumerable<string> schemas)
         {
-            ResetState();
-
             _connection = (NpgsqlConnection)connection;
-
             var connectionStartedOpen = _connection.State == ConnectionState.Open;
             if (!connectionStartedOpen)
             {
@@ -95,78 +91,111 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding.Internal
 
             try
             {
-                _tableSelectionSet = new TableSelectionSet(tables, schemas);
+                var databaseModel = new DatabaseModel
+                {
+                    DatabaseName = _connection.Database,
+                    DefaultSchema = "public"
+                };
 
-                _databaseModel.DatabaseName = _connection.Database;
-                _databaseModel.DefaultSchema = "public";
+                var schemaList = schemas.ToList();
+                var schemaFilter = GenerateSchemaFilter(schemaList);
+                var tableList = tables.ToList();
+                var tableFilter = GenerateTableFilter(tableList.Select(Parse).ToList(), schemaFilter);
 
-                GetTables();
-                GetColumns();
-                GetIndexes();
-                GetConstraints();
-                GetSequences();
-                GetExtensions();
+                foreach (var table in GetTables(_connection, tableFilter))
+                {
+                    table.Database = databaseModel;
+                    databaseModel.Tables.Add(table);
+                }
 
-                // We may have dropped columns. We load these because constraints take them into
-                // account when referencing columns, but must now get rid of them before returning
-                // the database model.
-                foreach (var table in _databaseModel.Tables)
-                    while (table.Columns.Remove(null)) {}
+                foreach (var table in databaseModel.Tables)
+                {
+                    while (table.Columns.Remove(null)) { }
+                }
 
-                return _databaseModel;
+                foreach (var sequence in GetSequences(_connection, databaseModel.Tables, schemaFilter))
+                {
+                    sequence.Database = databaseModel;
+                    databaseModel.Sequences.Add(sequence);
+                }
+
+                GetExtensions(_connection, databaseModel);
+
+                return databaseModel;
             }
             finally
             {
                 if (!connectionStartedOpen)
                 {
-                    _connection.Close();
+                    connection.Close();
                 }
             }
         }
 
-        const string GetTablesQuery = @"
-SELECT nspname, relname, description
-FROM pg_class AS cl
-JOIN pg_namespace AS ns ON ns.oid = cl.relnamespace
-LEFT OUTER JOIN pg_description AS des ON des.objoid = cl.oid AND des.objsubid=0
-WHERE
-    cl.relkind = 'r' AND
-    ns.nspname NOT IN ('pg_catalog', 'information_schema') AND
-    relname <> '" + HistoryRepository.DefaultTableName + "'";
-
-        void GetTables()
+        private IEnumerable<DatabaseTable> GetTables(
+            NpgsqlConnection connection,
+            Func<string, string, string> tableFilter)
         {
-            using (var command = new NpgsqlCommand(GetTablesQuery, _connection))
-            using (var reader = command.ExecuteReader())
+            var commandText = @"
+SELECT nspname, relname, description
+FROM pg_class AS cls
+JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
+LEFT OUTER JOIN pg_description AS des ON des.objoid = cls.oid AND des.objsubid=0
+WHERE
+    cls.relkind = 'r'
+AND
+    ns.nspname NOT IN ('pg_catalog', 'information_schema') ";
+
+            var filter = $"AND cls.relname <> '{HistoryRepository.DefaultTableName}' {(tableFilter != null ? $" AND {tableFilter("nspname", "relname")}" : "")}";
+
+            using (var command = connection.CreateCommand())
             {
-                while (reader.Read())
+                command.CommandText = commandText + filter;
+
+                var tables = new List<DatabaseTable>();
+
+                using (var reader = command.ExecuteReader())
                 {
-                    var table = new DatabaseTable
+                    while (reader.Read())
                     {
-                        Schema = reader.GetValueOrDefault<string>("nspname"),
-                        Name = reader.GetValueOrDefault<string>("relname")
-                    };
+                        var table = new DatabaseTable
+                        {
+                            Schema = reader.GetValueOrDefault<string>("nspname"),
+                            Name = reader.GetValueOrDefault<string>("relname")
+                        };
 
-                    if (_tableSelectionSet.Allows(table.Schema, table.Name))
-                    {
-                        _databaseModel.Tables.Add(table);
-                        _tables[TableKey(table)] = table;
+                        var comment = reader.GetValueOrDefault<string>("description");
+                        if (comment != null)
+                        {
+                            table[NpgsqlAnnotationNames.Comment] = comment;
+                        }
+                        tables.Add(table);
                     }
-
-                    var comment = reader.GetValueOrDefault<string>("description");
-                    if (comment != null)
-                        table[NpgsqlAnnotationNames.Comment] = comment;
                 }
+
+                GetColumns(connection, tables, filter);
+                GetIndexes(connection, tables, filter);
+                GetKeys(connection, tables, filter);
+                GetConstraints(connection, tables, filter);
+
+                return tables;
             }
         }
 
-        const string GetColumnsQuery = @"
+        private void GetColumns(
+            NpgsqlConnection connection,
+            IReadOnlyList<DatabaseTable> tables,
+            string tableFilter)
+        {
+            using (var command = connection.CreateCommand())
+            {
+                var commandText = $@"
 SELECT
     nspname, relname, attisdropped, attname, typ.typname, atttypmod, description, basetyp.typname AS domtypname,
     CASE WHEN pg_proc.proname='array_recv' THEN 'a' ELSE typ.typtype END AS typtype,
     CASE
-      WHEN pg_proc.proname='array_recv' THEN elemtyp.typname
-      ELSE NULL
+        WHEN pg_proc.proname='array_recv' THEN elemtyp.typname
+        ELSE NULL
     END AS elemtypname,
     (NOT attnotnull) AS nullable,
     CASE WHEN atthasdef THEN (SELECT pg_get_expr(adbin, cls.oid) FROM pg_attrdef WHERE adrelid = cls.oid AND adnum = attr.attnum) ELSE NULL END AS default
@@ -180,106 +209,470 @@ LEFT OUTER JOIN pg_type AS basetyp ON (basetyp.oid = typ.typbasetype)
 LEFT OUTER JOIN pg_description AS des ON des.objoid = cls.oid AND des.objsubid = attnum
 WHERE
     relkind = 'r' AND
-    nspname NOT IN ('pg_catalog', 'information_schema') AND
-    relname <> '" + HistoryRepository.DefaultTableName + @"' AND
-    attnum > 0
-ORDER BY attnum";
+    nspname NOT IN ('pg_catalog', 'information_schema')
+AND
+    attnum > 0 {tableFilter} ORDER BY attnum";
 
-        void GetColumns()
-        {
-            using (var command = new NpgsqlCommand(GetColumnsQuery, _connection))
-            using (var reader = command.ExecuteReader())
-            {
-                while (reader.Read())
+                command.CommandText = commandText;
+
+                using (var reader = command.ExecuteReader())
                 {
-                    var schemaName = reader.GetValueOrDefault<string>("nspname");
-                    var tableName = reader.GetValueOrDefault<string>("relname");
-                    if (!_tableSelectionSet.Allows(schemaName, tableName))
-                        continue;
+                    var tableColumnGroups = reader.Cast<DbDataRecord>()
+                        .GroupBy(
+                            ddr => (tableSchema: ddr.GetValueOrDefault<string>("nspname"),
+                                tableName: ddr.GetValueOrDefault<string>("relname")));
 
-                    var table = _tables[TableKey(tableName, schemaName)];
-
-                    // We need to know about dropped columns because constraints take them into
-                    // account when referencing columns. We'll get rid of them before returning the model.
-                    var isDropped = reader.GetValueOrDefault<bool>("attisdropped");
-                    if (isDropped)
+                    foreach (var tableColumnGroup in tableColumnGroups)
                     {
-                        table.Columns.Add(null);
-                        continue;
-                    }
+                        var tableSchema = tableColumnGroup.Key.tableSchema;
+                        var tableName = tableColumnGroup.Key.tableName;
 
-                    var columnName = reader.GetValueOrDefault<string>("attname");
-                    var dataType = reader.GetValueOrDefault<string>("typname");
-                    var typeModifier = reader.GetValueOrDefault<int>("atttypmod");
-                    var typeChar = reader.GetValueOrDefault<char>("typtype");
-                    var elemDataType = reader.GetValueOrDefault<string>("elemtypname");
-                    var isNullable = reader.GetValueOrDefault<bool>("nullable");
-                    var defaultValue = reader.GetValueOrDefault<string>("default");
+                        var table = tables.Single(t => t.Schema == tableSchema && t.Name == tableName);
 
-                    // bpchar is just an internal name for char
-                    if (dataType == "bpchar")
-                        dataType = "char";
-
-                    var column = new DatabaseColumn
-                    {
-                        Table               = table,
-                        Name                = columnName,
-                        StoreType           = GetStoreType(dataType, typeModifier),
-                        IsNullable          = isNullable,
-                        DefaultValueSql     = defaultValue
-                    };
-
-                    if (defaultValue != null)
-                    {
-                        // Somewhat hacky... We identify serial columns by examining their default expression,
-                        // and reverse-engineer these as ValueGenerated.OnAdd
-                        if (defaultValue == $"nextval('{tableName}_{columnName}_seq'::regclass)" ||
-                            defaultValue == $"nextval('\"{tableName}_{columnName}_seq\"'::regclass)")
+                        foreach (var dataRecord in tableColumnGroup)
                         {
-                            // TODO: Scaffold as serial, bigserial, not int...
-                            // But in normal code-first I don't have to set the column type...!
-                            // TODO: Think about composite keys. Do serial magic only for non-composite.
-                            column.ValueGenerated = ValueGenerated.OnAdd;
-                            column.DefaultValueSql = null;
+                            var typeModifier = dataRecord.GetValueOrDefault<int>("atttypmod");
+                            var columnName = dataRecord.GetValueOrDefault<string>("attname");
+                            var dataTypeName = dataRecord.GetValueOrDefault<string>("typname");
+                            var nullable = dataRecord.GetValueOrDefault<bool>("nullable");
+                            var defaultValue = dataRecord.GetValueOrDefault<string>("default");
+                            string computedValue = null;
+                            var comment = dataRecord.GetValueOrDefault<string>("description");
+
+                            if (dataTypeName == "bpchar")
+                            {
+                                dataTypeName = "char";
+                            }
+
+                            var storeType = GetStoreType(dataTypeName, typeModifier);
+
+                            var column = new DatabaseColumn
+                            {
+                                Table = table,
+                                Name = columnName,
+                                StoreType = storeType,
+                                IsNullable = nullable,
+                                DefaultValueSql = defaultValue,
+                                ComputedColumnSql = computedValue
+                            };
+
+                            if (defaultValue != null)
+                            {
+                                // Somewhat hacky... We identify serial columns by examining their default expression,
+                                // and reverse-engineer these as ValueGenerated.OnAdd
+                                if (defaultValue == $"nextval('{tableName}_{columnName}_seq'::regclass)" ||
+                                    defaultValue == $"nextval('\"{tableName}_{columnName}_seq\"'::regclass)")
+                                {
+                                    // TODO: Scaffold as serial, bigserial, not int...
+                                    // But in normal code-first I don't have to set the column type...!
+                                    // TODO: Think about composite keys. Do serial magic only for non-composite.
+                                    column.ValueGenerated = ValueGenerated.OnAdd;
+                                    column.DefaultValueSql = null;
+                                }
+                                else
+                                {
+                                    column.ValueGenerated = default(ValueGenerated?);
+                                }
+                            }
+                            table.Columns.Add(column);
                         }
                     }
-
-                    switch (typeChar)
-                    {
-                    case 'b':
-                        // Base (regular), is the default
-                        break;
-                    case 'a':
-                        // PG array types in pg_type start with underscores (_int for array of int), but the type name
-                        // PG accepts when creating columns is int[], translate.
-                        if (column.StoreType.StartsWith("_"))
-                            column.StoreType = column.StoreType.Substring(1) + "[]";
-                        break;
-                    case 'r':
-                        column[NpgsqlAnnotationNames.PostgresTypeType] = PostgresTypeType.Range;
-                        break;
-                    case 'e':
-                        column[NpgsqlAnnotationNames.PostgresTypeType] = PostgresTypeType.Enum;
-                        break;
-                    case 'd':
-                        column.StoreType = GetStoreType(reader.GetValueOrDefault<string>("domtypname"), typeModifier);
-                        break;
-                    default:
-                        Logger.Logger.LogWarning($"Can't scaffold column '{columnName}' of type '{dataType}': unknown type char '{typeChar}'");
-                        continue;
-                    }
-
-                    var comment = reader.GetValueOrDefault<string>("description");
-                    if (comment != null)
-                        column[NpgsqlAnnotationNames.Comment] = comment;
-
-                    table.Columns.Add(column);
-                    _tableColumns.Add(ColumnKey(table, column.Name), column);
                 }
             }
         }
 
-        string GetStoreType(string dataTypeName, int typeModifier)
+        private void GetIndexes(
+            NpgsqlConnection connection,
+            IReadOnlyList<DatabaseTable> tables,
+            string tableFilter)
+        {
+            using (var command = connection.CreateCommand())
+            {
+                var getColumnsQuery = @"
+SELECT
+    nspname, cls.relname AS cls_relname, idxcls.relname AS idx_relname, indisunique, indkey, amname,
+    CASE WHEN indexprs IS NULL THEN NULL ELSE pg_get_expr(indexprs, cls.oid) END AS expr
+FROM pg_class AS cls
+JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
+JOIN pg_index AS idx ON indrelid = cls.oid
+JOIN pg_class AS idxcls ON idxcls.oid = indexrelid
+JOIN pg_am AS am ON am.oid = idxcls.relam
+WHERE
+    cls.relkind = 'r' AND
+    nspname NOT IN ('pg_catalog', 'information_schema')
+AND
+    NOT indisprimary
+" + tableFilter;
+
+                command.CommandText = getColumnsQuery;
+
+                using (var reader = command.ExecuteReader())
+                {
+                    var tableIndexGroups = reader.Cast<DbDataRecord>()
+                        .GroupBy(
+                            ddr => (tableSchema: ddr.GetValueOrDefault<string>("nspname"),
+                                tableName: ddr.GetValueOrDefault<string>("cls_relname")));
+
+                    foreach (var tableIndexGroup in tableIndexGroups)
+                    {
+                        var tableSchema = tableIndexGroup.Key.tableSchema;
+                        var tableName = tableIndexGroup.Key.tableName;
+
+                        var table = tables.Single(t => t.Schema == tableSchema && t.Name == tableName);
+
+                        var indexGroups = tableIndexGroup
+                            .GroupBy(
+                                ddr =>
+                                    (Name: ddr.GetValueOrDefault<string>("idx_relname"),
+                                    IsUnique: ddr.GetValueOrDefault<bool>("indisunique")))
+                            .ToArray();
+
+                        foreach (var indexGroup in indexGroups)
+                        {
+                            var index = new DatabaseIndex
+                            {
+                                Table = table,
+                                Name = indexGroup.Key.Name,
+                                IsUnique = indexGroup.Key.IsUnique
+                            };
+
+                            foreach (var dataRecord in indexGroup)
+                            {
+                                var columnIndices = dataRecord.GetValueOrDefault<short[]>("indkey");
+                                if (columnIndices.Any(i => i == 0))
+                                {
+                                    if (dataRecord.IsDBNull(dataRecord.GetOrdinal("expr")))
+                                        throw new Exception($"Seen 0 in indkey for index {index.Name} but indexprs is null");
+                                    index[NpgsqlAnnotationNames.IndexExpression] = dataRecord.GetValueOrDefault<string>("expr");
+                                }
+                                else
+                                {
+                                    var columns = (List<DatabaseColumn>)table.Columns;
+                                    for (var ordinal = 0; ordinal < columnIndices.Length; ordinal++)
+                                    {
+                                        var columnIndex = columnIndices[ordinal] - 1;
+                                        index.Columns.Add(columns[columnIndex]);
+                                    }
+                                }
+
+                                index[NpgsqlAnnotationNames.IndexMethod] = dataRecord.GetValueOrDefault<string>("amname");
+                            }
+
+                            table.Indexes.Add(index);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void GetKeys(
+            NpgsqlConnection connection,
+            IReadOnlyList<DatabaseTable> tables,
+            string tableFilter)
+        {
+
+            var getKeys = @"
+SELECT
+    ns.nspname, cls.relname, conname, contype, conkey, frnns.nspname AS fr_nspname, frncls.relname AS fr_relname, confkey, confdeltype
+FROM pg_class AS cls
+JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
+JOIN pg_constraint as con ON con.conrelid = cls.oid
+LEFT OUTER JOIN pg_class AS frncls ON frncls.oid = con.confrelid
+LEFT OUTER JOIN pg_namespace as frnns ON frnns.oid = frncls.relnamespace
+WHERE
+    cls.relkind = 'r' AND
+    ns.nspname NOT IN ('pg_catalog', 'information_schema')
+AND
+    con.contype = 'p'
+"+ tableFilter;
+
+            var command = connection.CreateCommand();
+            command.CommandText = getKeys;
+
+            using (var reader = command.ExecuteReader())
+            {
+                var tableKeyGroups = reader.Cast<DbDataRecord>()
+                    .GroupBy(
+                        ddr => (tableSchema: ddr.GetValueOrDefault<string>("nspname"),
+                            tableName: ddr.GetValueOrDefault<string>("relname")));
+
+                foreach (var tableKeyGroup in tableKeyGroups)
+                {
+                    var tableSchema = tableKeyGroup.Key.tableSchema;
+                    var tableName = tableKeyGroup.Key.tableName;
+
+                    var table = tables.Single(t => t.Schema == tableSchema && t.Name == tableName);
+
+                    var primaryKeyGroups = tableKeyGroup
+                        .GroupBy(
+                            c => (Name: c.GetValueOrDefault<string>("conname"),
+                                PrincipalTableSchema: c.GetValueOrDefault<string>("nspname"),
+                                PrincipalTableName: c.GetValueOrDefault<string>("relname")))
+                                .ToArray();
+
+
+                    if (primaryKeyGroups.Length == 1)
+                    {
+                        var primaryKeyGroup = primaryKeyGroups[0];
+                        var primaryKey = new DatabasePrimaryKey
+                        {
+                            Table = table,
+                            Name = primaryKeyGroup.Key.Name
+                        };
+
+                        foreach (var dataRecord in primaryKeyGroup)
+                        {
+                            var pkColumnIndices = dataRecord.GetValueOrDefault<short[]>("conkey");
+                            foreach (var pkColumnIndex in pkColumnIndices)
+                            {
+                                primaryKey.Columns.Add(table.Columns[pkColumnIndex - 1]);
+                            }
+                        }
+                        table.PrimaryKey = primaryKey;
+                    }
+                }
+            }
+        }
+
+        private void GetConstraints(
+            NpgsqlConnection connection,
+            IReadOnlyList<DatabaseTable> tables,
+            string tableFilter)
+        {
+
+            var getConstraints = @"
+SELECT
+    ns.nspname, cls.relname, conname, contype, conkey, frnns.nspname AS fr_nspname, frncls.relname AS fr_relname, confkey, confdeltype
+FROM pg_class AS cls
+JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
+JOIN pg_constraint as con ON con.conrelid = cls.oid
+LEFT OUTER JOIN pg_class AS frncls ON frncls.oid = con.confrelid
+LEFT OUTER JOIN pg_namespace as frnns ON frnns.oid = frncls.relnamespace
+WHERE
+    cls.relkind = 'r' AND
+    ns.nspname NOT IN ('pg_catalog', 'information_schema')
+AND
+    con.contype = 'f'
+" + tableFilter;
+
+            var command = connection.CreateCommand();
+            command.CommandText = getConstraints;
+
+            using (var reader = command.ExecuteReader())
+            {
+                var tableForeignKeyGroups = reader.Cast<DbDataRecord>()
+                    .GroupBy(
+                        ddr => (tableSchema: ddr.GetValueOrDefault<string>("nspname"),
+                            tableName: ddr.GetValueOrDefault<string>("relname")));
+
+                foreach (var tableForeignKeyGroup in tableForeignKeyGroups)
+                {
+                    var tableSchema = tableForeignKeyGroup.Key.tableSchema;
+                    var tableName = tableForeignKeyGroup.Key.tableName;
+
+                    var table = tables.Single(t => t.Schema == tableSchema && t.Name == tableName);
+
+                    var foreignKeyGroups = tableForeignKeyGroup
+                        .GroupBy(
+                            c => (Name: c.GetValueOrDefault<string>("conname"),
+                                PrincipalTableSchema: c.GetValueOrDefault<string>("fr_nspname"),
+                                PrincipalTableName: c.GetValueOrDefault<string>("fr_relname"),
+                                OnDeleteAction: c.GetValueOrDefault<char>("confdeltype"),
+                                ConstraintType: c.GetValueOrDefault<char>("contype")));
+
+                    foreach (var foreignKeyGroup in foreignKeyGroups)
+                    {
+                        var fkName = foreignKeyGroup.Key.Name;
+                        var principalTableSchema = foreignKeyGroup.Key.PrincipalTableSchema;
+                        var principalTableName = foreignKeyGroup.Key.PrincipalTableName;
+                        var onDeleteAction = foreignKeyGroup.Key.OnDeleteAction;
+                        var constraintType = foreignKeyGroup.Key.ConstraintType;
+
+                        var principalTable = tables.FirstOrDefault(
+                                                 t => t.Schema == principalTableSchema
+                                                      && t.Name == principalTableName)
+                                             ?? tables.FirstOrDefault(
+                                                 t => t.Schema.Equals(principalTableSchema, StringComparison.OrdinalIgnoreCase)
+                                                      && t.Name.Equals(principalTableName, StringComparison.OrdinalIgnoreCase));
+
+                        if (principalTable == null)
+                        {
+                            continue;
+                        }
+
+                        var foreignKey = new DatabaseForeignKey
+                        {
+                            Name = fkName,
+                            Table = table,
+                            PrincipalTable = principalTable,
+                            OnDelete = ConvertToReferentialAction(onDeleteAction)
+                        };
+
+                        foreach (var dataRecord in foreignKeyGroup)
+                        {
+                            var columnIndices = dataRecord.GetValueOrDefault<short[]>("conkey");
+                            var principalColumnIndices = dataRecord.GetValueOrDefault<short[]>("confkey");
+                            if (columnIndices.Length != principalColumnIndices.Length)
+                                throw new Exception("Got varying lengths for column and principal column indices");
+
+                            var principalColumns = (List<DatabaseColumn>)principalTable.Columns;
+
+                            for (var i = 0; i < columnIndices.Length; i++)
+                            {
+                                foreignKey.Columns.Add(table.Columns[columnIndices[i] - 1]);
+                                foreignKey.PrincipalColumns.Add(principalColumns[principalColumnIndices[i] - 1]);
+                            }
+                        }
+
+                        table.ForeignKeys.Add(foreignKey);
+                    }
+                }
+            }
+        }
+
+        private IEnumerable<DatabaseSequence> GetSequences(
+           NpgsqlConnection connection,
+           IList<DatabaseTable> tables,
+           Func<string, string> schemaFilter)
+        {
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = @"
+SELECT
+    sequence_schema, sequence_name, data_type, start_value::bigint, minimum_value::bigint, maximum_value::bigint, increment::int,
+    CASE WHEN cycle_option = 'YES' THEN TRUE ELSE FALSE END AS is_cyclic,
+    ownerns.nspname AS owner_schema,
+    tblcls.relname AS owner_table,
+    attname AS owner_column
+FROM information_schema.sequences
+JOIN pg_namespace AS seqns ON seqns.nspname = sequence_schema
+JOIN pg_class AS seqcls ON seqcls.relnamespace = seqns.oid AND seqcls.relname = sequence_name AND seqcls.relkind = 'S'
+LEFT OUTER JOIN pg_depend AS dep ON dep.objid = seqcls.oid AND deptype='a'
+LEFT OUTER JOIN pg_class AS tblcls ON tblcls.oid = dep.refobjid
+LEFT OUTER JOIN pg_attribute AS att ON attrelid = dep.refobjid AND attnum = dep.refobjsubid
+LEFT OUTER JOIN pg_namespace AS ownerns ON ownerns.oid = tblcls.relnamespace";
+
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        // If the sequence is OWNED BY a column which is a serial, we skip it. The sequence will be created implicitly.
+                        if (!reader.IsDBNull(10))
+                        {
+                            var ownerSchema = reader.GetValueOrDefault<string>("owner_schema");
+                            var ownerTable = reader.GetValueOrDefault<string>("owner_table");
+                            var ownerColumn = reader.GetValueOrDefault<string>("owner_column");
+
+                            var ownerDatabaseTable = tables
+                                .FirstOrDefault(t => t.Name == ownerTable && t.Schema == ownerSchema);
+
+                            var ownerDatabaseColumn = ownerDatabaseTable
+                                .Columns
+                                .FirstOrDefault(t => t.Name == ownerColumn);
+
+                            if (ownerDatabaseTable != null && ownerDatabaseColumn?.ValueGenerated == ValueGenerated.OnAdd)
+                            {
+                                // Don't reverse-engineer sequences which drive serial columns, these are implicitly
+                                // reverse-engineered by the serial column.
+                                continue;
+                            }
+                        }
+
+                        var sequence = new DatabaseSequence
+                        {
+                            Schema = reader.GetValueOrDefault<string>("sequence_schema"),
+                            Name = reader.GetValueOrDefault<string>("sequence_name"),
+                            StoreType = reader.GetValueOrDefault<string>("data_type"),
+                            StartValue = reader.GetValueOrDefault<long>("start_value"),
+                            MinValue = reader.GetValueOrDefault<long>("minimum_value"),
+                            MaxValue = reader.GetValueOrDefault<long>("maximum_value"),
+                            IncrementBy = reader.GetValueOrDefault<int>("increment"),
+                            IsCyclic = reader.GetValueOrDefault<bool>("is_cyclic")
+                        };
+
+                        if (sequence.StoreType == "bigint")
+                        {
+                            long defaultStart, defaultMin, defaultMax;
+                            if (sequence.IncrementBy > 0)
+                            {
+                                defaultMin = 1;
+                                defaultMax = long.MaxValue;
+                                Debug.Assert(sequence.MinValue.HasValue);
+                                defaultStart = sequence.MinValue.Value;
+                            }
+                            else
+                            {
+                                // PostgreSQL 10 changed the default minvalue for a descending sequence, see #264
+                                defaultMin = connection.PostgreSqlVersion >= new Version(10, 0)
+                                    ? long.MinValue
+                                    : long.MinValue + 1;
+                                defaultMax = -1;
+                                Debug.Assert(sequence.MaxValue.HasValue);
+                                defaultStart = sequence.MaxValue.Value;
+                            }
+                            if (sequence.StartValue == defaultStart)
+                                sequence.StartValue = null;
+                            if (sequence.MinValue == defaultMin)
+                                sequence.MinValue = null;
+                            if (sequence.MaxValue == defaultMax)
+                                sequence.MaxValue = null;
+                        }
+                        else
+                        {
+                            _logger.Logger.LogWarning($"Sequence with datatype {sequence.StoreType} which isn't the expected bigint.");
+                        }
+
+                        yield return sequence;
+                    }
+                }
+            }
+        }
+
+        private void GetExtensions(NpgsqlConnection connection, DatabaseModel databaseModel)
+        {
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = "SELECT name,default_version,installed_version FROM pg_available_extensions";
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        var name = reader.GetString(reader.GetOrdinal("name"));
+                        var defaultVersion = reader.GetValueOrDefault<string>("default_version");
+                        var installedVersion = reader.GetValueOrDefault<string>("installed_version");
+
+                        if (installedVersion == null)
+                            continue;
+
+                        if (name == "plpgsql")   // Implicitly installed in all PG databases
+                            continue;
+
+                        PostgresExtension.GetOrAddPostgresExtension(databaseModel, name);
+                    }
+                }
+            }
+        }
+
+        private static ReferentialAction? ConvertToReferentialAction(char onDeleteAction)
+        {
+            switch (onDeleteAction)
+            {
+                case 'a':
+                    return ReferentialAction.NoAction;
+                case 'r':
+                    return ReferentialAction.Restrict;
+                case 'c':
+                    return ReferentialAction.Cascade;
+                case 'n':
+                    return ReferentialAction.SetNull;
+                case 'd':
+                    return ReferentialAction.SetDefault;
+                default:
+                    throw new ArgumentOutOfRangeException($"Unknown value {onDeleteAction} for foreign key deletion action code");
+            }
+        }
+
+        private static string GetStoreType(string dataTypeName, int typeModifier)
         {
             if (typeModifier == -1)
                 return dataTypeName;
@@ -298,289 +691,119 @@ ORDER BY attnum";
                 return $"{dataTypeName}({precision}, {scale})";
             // TODO: Support for precision-only for timestamp, time, interval
             default:
-                Logger.Logger.LogWarning($"Don't know how to interpret type modifier {typeModifier} for datatype {dataTypeName}'");
+                //Logger.Logger.LogWarning($"Don't know how to interpret type modifier {typeModifier} for datatype {dataTypeName}'");
                 return dataTypeName;
             }
         }
 
-        const string GetIndexesQuery = @"
-SELECT
-    nspname, cls.relname AS cls_relname, idxcls.relname AS idx_relname, indisunique, indkey, amname,
-    CASE WHEN indexprs IS NULL THEN NULL ELSE pg_get_expr(indexprs, cls.oid) END AS expr
-FROM pg_class AS cls
-JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
-JOIN pg_index AS idx ON indrelid = cls.oid
-JOIN pg_class AS idxcls ON idxcls.oid = indexrelid
-JOIN pg_am AS am ON am.oid = idxcls.relam
-WHERE
-    cls.relkind = 'r' AND
-    nspname NOT IN ('pg_catalog', 'information_schema') AND
-    cls.relname <> '" + HistoryRepository.DefaultTableName + @"' AND
-    NOT indisprimary";
-
-        /// <remarks>
-        /// Primary keys are handled as in <see cref="GetConstraints"/>, not here
-        /// </remarks>
-        void GetIndexes()
+        private static Func<string, string> GenerateSchemaFilter(IReadOnlyList<string> schemas)
         {
-            using (var command = new NpgsqlCommand(GetIndexesQuery, _connection))
-            using (var reader = command.ExecuteReader())
+            if (schemas.Any())
             {
-                while (reader.Read())
+                return s =>
                 {
-                    var schemaName = reader.GetValueOrDefault<string>("nspname");
-                    var tableName = reader.GetValueOrDefault<string>("cls_relname");
-                    var indexName = reader.GetValueOrDefault<string>("idx_relname");
+                    var schemaFilterBuilder = new StringBuilder();
+                    schemaFilterBuilder.Append(s);
+                    schemaFilterBuilder.Append(" IN (");
+                    schemaFilterBuilder.Append(string.Join(", ", schemas.Select(EscapeLiteral)));
+                    schemaFilterBuilder.Append(")");
+                    return schemaFilterBuilder.ToString();
+                };
+            }
 
-                    if (!_tableSelectionSet.Allows(schemaName, tableName))
-                        continue;
+            return null;
+        }
 
-                    DatabaseTable table;
-                    if (!_tables.TryGetValue(TableKey(tableName, schemaName), out table))
-                        continue;
+        private static (string Schema, string Table) Parse(string table)
+        {
+            var match = _partExtractor.Match(table.Trim());
 
-                    var index = new DatabaseIndex
+            if (!match.Success)
+            {
+                throw new InvalidOperationException();
+            }
+
+            var part1 = match.Groups["part1"].Value;
+            var part2 = match.Groups["part2"].Value;
+
+            return string.IsNullOrEmpty(part2) ? (null, part1) : (part1, part2);
+        }
+
+        private static Func<string, string, string> GenerateTableFilter(
+            IReadOnlyList<(string Schema, string Table)> tables,
+            Func<string, string> schemaFilter)
+        {
+            if (schemaFilter != null
+                || tables.Any())
+            {
+                return (s, t) =>
+                {
+                    var tableFilterBuilder = new StringBuilder();
+
+                    var openBracket = false;
+                    if (schemaFilter != null)
                     {
-                        Table = table,
-                        Name = indexName,
-                        IsUnique = reader.GetValueOrDefault<bool>("indisunique")
-                    };
-
-                    var columnIndices = reader.GetValueOrDefault<short[]>("indkey");
-                    if (columnIndices.Any(i => i == 0))
-                    {
-                        if (reader.IsDBNull(reader.GetOrdinal("expr")))
-                            throw new Exception($"Seen 0 in indkey for index {indexName} but indexprs is null");
-                        index[NpgsqlAnnotationNames.IndexExpression] = reader.GetValueOrDefault<string>("expr");
+                        tableFilterBuilder
+                            .Append("(")
+                            .Append(schemaFilter(s));
+                        openBracket = true;
                     }
-                    else
+
+                    if (tables.Any())
                     {
-                        var columns = (List<DatabaseColumn>)table.Columns;
-                        for (var ordinal = 0; ordinal < columnIndices.Length; ordinal++)
+                        if (openBracket)
                         {
-                            var columnIndex = columnIndices[ordinal] - 1;
-                            index.Columns.Add(columns[columnIndex]);
+                            tableFilterBuilder
+                                .AppendLine()
+                                .Append("OR ");
+                        }
+                        else
+                        {
+                            tableFilterBuilder.Append("(");
+                            openBracket = true;
+                        }
+
+                        var tablesWithoutSchema = tables.Where(e => string.IsNullOrEmpty(e.Schema)).ToList();
+                        if (tablesWithoutSchema.Any())
+                        {
+                            tableFilterBuilder.Append(t);
+                            tableFilterBuilder.Append(" IN (");
+                            tableFilterBuilder.Append(string.Join(", ", tablesWithoutSchema.Select(e => EscapeLiteral(e.Table))));
+                            tableFilterBuilder.Append(")");
+                        }
+
+                        var tablesWithSchema = tables.Where(e => !string.IsNullOrEmpty(e.Schema)).ToList();
+                        if (tablesWithSchema.Any())
+                        {
+                            if (tablesWithoutSchema.Any())
+                            {
+                                tableFilterBuilder.Append(" OR ");
+                            }
+                            tableFilterBuilder.Append(t);
+                            tableFilterBuilder.Append(" IN (");
+                            tableFilterBuilder.Append(string.Join(", ", tablesWithSchema.Select(e => EscapeLiteral(e.Table))));
+                            tableFilterBuilder.Append(") AND CONCAT(");
+                            tableFilterBuilder.Append(s);
+                            tableFilterBuilder.Append(", N'.', ");
+                            tableFilterBuilder.Append(t);
+                            tableFilterBuilder.Append(") IN (");
+                            tableFilterBuilder.Append(string.Join(", ", tablesWithSchema.Select(e => EscapeLiteral($"{e.Schema}.{e.Table}"))));
+                            tableFilterBuilder.Append(")");
                         }
                     }
 
-                    index[NpgsqlAnnotationNames.IndexMethod] = reader.GetValueOrDefault<string>("amname");
-
-                    table.Indexes.Add(index);
-                }
-            }
-        }
-
-        const string GetConstraintsQuery = @"
-SELECT
-    ns.nspname, cls.relname, conname, contype, conkey, frnns.nspname AS fr_nspname, frncls.relname AS fr_relname, confkey, confdeltype
-FROM pg_class AS cls
-JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
-JOIN pg_constraint as con ON con.conrelid = cls.oid
-LEFT OUTER JOIN pg_class AS frncls ON frncls.oid = con.confrelid
-LEFT OUTER JOIN pg_namespace as frnns ON frnns.oid = frncls.relnamespace
-WHERE
-    cls.relkind = 'r' AND
-    ns.nspname NOT IN ('pg_catalog', 'information_schema') AND
-    cls.relname <> '" + HistoryRepository.DefaultTableName + @"' AND
-    con.contype IN ('p', 'f')";
-
-        void GetConstraints()
-        {
-            using (var command = new NpgsqlCommand(GetConstraintsQuery, _connection))
-            using (var reader = command.ExecuteReader())
-            {
-                while (reader.Read())
-                {
-                    var schemaName = reader.GetValueOrDefault<string>("nspname");
-                    var tableName = reader.GetValueOrDefault<string>("relname");
-
-                    if (!_tableSelectionSet.Allows(schemaName, tableName))
-                        continue;
-                    var table = _tables[TableKey(tableName, schemaName)];
-                    var columns = (List<DatabaseColumn>)table.Columns;
-
-                    var constraintName = reader.GetValueOrDefault<string>("conname");
-                    var constraintType = reader.GetValueOrDefault<char>("contype");
-                    switch (constraintType)
+                    if (openBracket)
                     {
-                    case 'p':
-                        var primaryKey = new DatabasePrimaryKey
-                        {
-                            Table = table,
-                            Name = constraintName
-                        };
-                        var pkColumnIndices = reader.GetValueOrDefault<short[]>("conkey");
-                        foreach (var pkColumnIndex in pkColumnIndices)
-                                primaryKey.Columns.Add(columns[pkColumnIndex-1]);
-                        Debug.Assert(table.PrimaryKey == null);
-                        table.PrimaryKey = primaryKey;
-                        continue;
-
-                    case 'f':
-                        var foreignSchemaName = reader.GetValueOrDefault<string>("fr_nspname");
-                        var foreignTableName = reader.GetValueOrDefault<string>("fr_relname");
-                        if (!_tables.TryGetValue(TableKey(foreignTableName, foreignSchemaName), out var principalTable))
-                            continue;
-
-                        var foreignKey = new DatabaseForeignKey
-                        {
-                            Name = constraintName,
-                            Table = table,
-                            PrincipalTable = principalTable,
-                            OnDelete = ConvertToReferentialAction(reader.GetValueOrDefault<char>("confdeltype"))
-                        };
-
-                        var columnIndices = reader.GetValueOrDefault<short[]>("conkey");
-                        var principalColumnIndices = reader.GetValueOrDefault<short[]>("confkey");
-                        if (columnIndices.Length != principalColumnIndices.Length)
-                            throw new Exception("Got varying lengths for column and principal column indices");
-
-                        var principalColumns = (List<DatabaseColumn>)principalTable.Columns;
-
-                        for (var i = 0; i < columnIndices.Length; i++)
-                        {
-                            foreignKey.Columns.Add(columns[columnIndices[i] - 1]);
-                            foreignKey.PrincipalColumns.Add(principalColumns[principalColumnIndices[i] - 1]);
-                        }
-
-                        table.ForeignKeys.Add(foreignKey);
-                        break;
-
-                    default:
-                        throw new NotSupportedException($"Unknown constraint type code {constraintType} for constraint {constraintName}");
-                    }
-                }
-            }
-        }
-
-        static ReferentialAction? ConvertToReferentialAction(char onDeleteAction)
-        {
-            switch (onDeleteAction)
-            {
-            case 'a':
-                return ReferentialAction.NoAction;
-            case 'r':
-                return ReferentialAction.Restrict;
-            case 'c':
-                return ReferentialAction.Cascade;
-            case 'n':
-                return ReferentialAction.SetNull;
-            case 'd':
-                return ReferentialAction.SetDefault;
-            default:
-                throw new ArgumentOutOfRangeException($"Unknown value {onDeleteAction} for foreign key deletion action code");
-            }
-        }
-
-        const string GetSequencesQuery = @"
-SELECT
-    sequence_schema, sequence_name, data_type, start_value::bigint, minimum_value::bigint, maximum_value::bigint, increment::int,
-    CASE WHEN cycle_option = 'YES' THEN TRUE ELSE FALSE END AS is_cyclic,
-    ownerns.nspname AS owner_schema,
-    tblcls.relname AS owner_table,
-    attname AS owner_column
-FROM information_schema.sequences
-JOIN pg_namespace AS seqns ON seqns.nspname = sequence_schema
-JOIN pg_class AS seqcls ON seqcls.relnamespace = seqns.oid AND seqcls.relname = sequence_name AND seqcls.relkind = 'S'
-LEFT OUTER JOIN pg_depend AS dep ON dep.objid = seqcls.oid AND deptype='a'
-LEFT OUTER JOIN pg_class AS tblcls ON tblcls.oid = dep.refobjid
-LEFT OUTER JOIN pg_attribute AS att ON attrelid = dep.refobjid AND attnum = dep.refobjsubid
-LEFT OUTER JOIN pg_namespace AS ownerns ON ownerns.oid = tblcls.relnamespace";
-
-        void GetSequences()
-        {
-            using (var command = new NpgsqlCommand(GetSequencesQuery, _connection))
-            using (var reader = command.ExecuteReader())
-            {
-                while (reader.Read())
-                {
-                    // If the sequence is OWNED BY a column which is a serial, we skip it. The sequence will be created implicitly.
-                    if (!reader.IsDBNull(10))
-                    {
-                        var ownerSchema = reader.GetValueOrDefault<string>("owner_schema");
-                        var ownerTable = reader.GetValueOrDefault<string>("owner_table");
-                        var ownerColumn = reader.GetValueOrDefault<string>("owner_column");
-
-                        DatabaseTable ownerDatabaseTable;
-                        DatabaseColumn ownerDatabaseColumn;
-                        if (_tables.TryGetValue(TableKey(ownerTable, ownerSchema), out ownerDatabaseTable) &&
-                            _tableColumns.TryGetValue(ColumnKey(ownerDatabaseTable, ownerColumn), out ownerDatabaseColumn) &&
-                            ownerDatabaseColumn.ValueGenerated == ValueGenerated.OnAdd)
-                        {
-                            // Don't reverse-engineer sequences which drive serial columns, these are implicitly
-                            // reverse-engineered by the serial column.
-                            continue;
-                        }
+                        tableFilterBuilder.Append(")");
                     }
 
-                    var sequence = new DatabaseSequence
-                    {
-                        Schema = reader.GetValueOrDefault<string>("sequence_schema"),
-                        Name = reader.GetValueOrDefault<string>("sequence_name"),
-                        StoreType = reader.GetValueOrDefault<string>("data_type"),
-                        StartValue = reader.GetValueOrDefault<long>("start_value"),
-                        MinValue = reader.GetValueOrDefault<long>("minimum_value"),
-                        MaxValue = reader.GetValueOrDefault<long>("maximum_value"),
-                        IncrementBy = reader.GetValueOrDefault<int>("increment"),
-                        IsCyclic = reader.GetValueOrDefault<bool>("is_cyclic")
-                    };
-
-                    if (!_tableSelectionSet.Allows(sequence.Schema, ""))
-                        continue;
-
-                    if (sequence.StoreType == "bigint")
-                    {
-                        long defaultStart, defaultMin, defaultMax;
-                        if (sequence.IncrementBy > 0)
-                        {
-                            defaultMin = 1;
-                            defaultMax = long.MaxValue;
-                            Debug.Assert(sequence.MinValue.HasValue);
-                            defaultStart = sequence.MinValue.Value;
-                        } else {
-                            // PostgreSQL 10 changed the default minvalue for a descending sequence, see #264
-                            defaultMin = _connection.PostgreSqlVersion >= new Version(10,0)
-                                ? long.MinValue
-                                : long.MinValue + 1;
-                            defaultMax = -1;
-                            Debug.Assert(sequence.MaxValue.HasValue);
-                            defaultStart = sequence.MaxValue.Value;
-                        }
-                        if (sequence.StartValue == defaultStart)
-                            sequence.StartValue = null;
-                        if (sequence.MinValue == defaultMin)
-                            sequence.MinValue = null;
-                        if (sequence.MaxValue == defaultMax)
-                            sequence.MaxValue = null;
-                    }
-                    else
-                        Logger.Logger.LogWarning($"Sequence with datatype {sequence.StoreType} which isn't the expected bigint.");
-
-                    _databaseModel.Sequences.Add(sequence);
-                }
+                    return tableFilterBuilder.ToString();
+                };
             }
+
+            return null;
         }
 
-        void GetExtensions()
-        {
-            using (var command = new NpgsqlCommand("SELECT name,default_version,installed_version FROM pg_available_extensions", _connection))
-            using (var reader = command.ExecuteReader())
-            {
-                while (reader.Read())
-                {
-                    var name = reader.GetString(reader.GetOrdinal("name"));
-                    var defaultVersion = reader.GetValueOrDefault<string>("default_version");
-                    var installedVersion = reader.GetValueOrDefault<string>("installed_version");
-
-                    if (installedVersion == null)
-                        continue;
-
-                    if (name == "plpgsql")   // Implicitly installed in all PG databases
-                        continue;
-
-                    PostgresExtension.GetOrAddPostgresExtension(_databaseModel, name);
-                }
-            }
-        }
+        private static string EscapeLiteral(string s) => $"N'{s}'";
     }
 }

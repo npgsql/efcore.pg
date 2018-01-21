@@ -17,6 +17,8 @@ namespace Microsoft.EntityFrameworkCore.Utilities
 
             Config = configBuilder.Build()
                 .GetSection("Test:Npgsql");
+
+            System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
         }
 
         const string DefaultConnectionString = "Server=localhost;Username=npgsql_tests;Password=npgsql_tests";

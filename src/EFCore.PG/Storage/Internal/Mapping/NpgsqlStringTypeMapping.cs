@@ -21,8 +21,10 @@
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 #endregion
 
+using System.Data;
 using System.Data.Common;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.Storage.Converters;
 using Npgsql;
 using NpgsqlTypes;
 
@@ -30,15 +32,41 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
 {
     public class NpgsqlStringTypeMapping : StringTypeMapping
     {
-        readonly NpgsqlDbType _npgsqlDbType;
+        readonly NpgsqlDbType? _npgsqlDbType;
+
+        public NpgsqlStringTypeMapping(
+            [NotNull] string storeType,
+            NpgsqlDbType? dbType,
+            bool unicode = false,
+            int? size = null)
+            : this(storeType, null, dbType, unicode, size)
+            => _npgsqlDbType = dbType;
+
+        public NpgsqlStringTypeMapping(
+            [NotNull] string storeType,
+            [CanBeNull] ValueConverter converter,
+            NpgsqlDbType? dbType,
+            bool unicode = false,
+            int? size = null)
+            : base(storeType, converter, (DbType?)dbType, unicode, size)
+            => _npgsqlDbType = dbType;
 
         public NpgsqlStringTypeMapping(string storeType, NpgsqlDbType npgsqlDbType)
             : base(storeType)
-        {
-            _npgsqlDbType = npgsqlDbType;
-        }
+             => _npgsqlDbType = npgsqlDbType;
 
         protected override void ConfigureParameter([NotNull] DbParameter parameter)
-            => ((NpgsqlParameter)parameter).NpgsqlDbType = _npgsqlDbType;
+            => ((NpgsqlParameter)parameter).NpgsqlDbType = (NpgsqlDbType)_npgsqlDbType;
+
+        public override RelationalTypeMapping Clone(string storeType, int? size)
+            => new NpgsqlStringTypeMapping(storeType, Converter, _npgsqlDbType, IsUnicode, size);
+
+        public override CoreTypeMapping Clone(ValueConverter converter)
+            => new NpgsqlStringTypeMapping(StoreType, ComposeConverter(converter), _npgsqlDbType, IsUnicode, Size);
+
+        protected override string GenerateNonNullSqlLiteral(object value)
+            => IsUnicode
+                ? $"N'{EscapeSqlLiteral((string)value)}'" // Interpolation okay; strings
+                : $"'{EscapeSqlLiteral((string)value)}'";
     }
 }

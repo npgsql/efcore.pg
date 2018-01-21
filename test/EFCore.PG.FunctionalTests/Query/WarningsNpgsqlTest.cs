@@ -1,6 +1,5 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests;
 using Xunit;
 
 namespace Microsoft.EntityFrameworkCore.Query
@@ -10,7 +9,7 @@ namespace Microsoft.EntityFrameworkCore.Query
         public WarningsNpgsqlTest(WarningsNpgsqlFixture fixture)
             : base(fixture)
         {
-            fixture.TestSqlLoggerFactory.Clear();
+            Fixture.TestSqlLoggerFactory.Clear();
         }
 
         public override void Does_not_throw_for_top_level_single()

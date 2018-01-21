@@ -30,8 +30,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
 {
     public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationalConnection
     {
-        public NpgsqlRelationalConnection(
-            [NotNull] RelationalConnectionDependencies dependencies)
+        public NpgsqlRelationalConnection([NotNull] RelationalConnectionDependencies dependencies)
             : base(dependencies)
         {
         }

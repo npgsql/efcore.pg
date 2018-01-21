@@ -6,7 +6,6 @@ using Xunit;
 using Xunit.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore.Design.Internal;
-using Microsoft.EntityFrameworkCore.ReverseEngineering;
 using Microsoft.EntityFrameworkCore.Scaffolding.Internal;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.EntityFrameworkCore.TestUtilities.Xunit;
@@ -14,6 +13,7 @@ using Microsoft.EntityFrameworkCore.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests.ReverseEngineering
 {
+
     public class NpgsqlE2ETests : E2ETestBase, IClassFixture<NpgsqlE2EFixture>
     {
         protected override string ProviderName => "Npgsql.EntityFrameworkCore.PostgreSQL.Design";
@@ -29,23 +29,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests.ReverseEn
         public static IEnumerable<string> Tables
             => new List<string>
             {
-                "AllDataTypes",
-                "PropertyConfiguration",
-                "Test Spaces Keywords Table",
-                "OneToManyDependent",
-                "OneToManyPrincipal",
-                "OneToOneDependent",
-                "OneToOnePrincipal",
-                "OneToOneSeparateFKDependent",
-                "OneToOneSeparateFKPrincipal",
-                "OneToOneFKToUniqueKeyDependent",
-                "OneToOneFKToUniqueKeyPrincipal",
-                /*
-                "ReferredToByTableWithUnmappablePrimaryKeyColumn",
-                "TableWithUnmappablePrimaryKeyColumn",
-                */
-                "SelfReferencing",
-                "SpecialTypes"
+                    "AllDataTypes",
+                    "PropertyConfiguration",
+                    "Test Spaces Keywords Table",
+                    "OneToManyDependent",
+                    "OneToManyPrincipal",
+                    "OneToOneDependent",
+                    "OneToOnePrincipal",
+                    "OneToOneSeparateFKDependent",
+                    "OneToOneSeparateFKPrincipal",
+                    "OneToOneFKToUniqueKeyDependent",
+                    "OneToOneFKToUniqueKeyPrincipal",
+                    /*
+                    "ReferredToByTableWithUnmappablePrimaryKeyColumn",
+                    "TableWithUnmappablePrimaryKeyColumn",
+                    */
+                    "SelfReferencing",
+                    "SpecialTypes"
             };
 
         public NpgsqlE2ETests(NpgsqlE2EFixture fixture, ITestOutputHelper output)
@@ -54,29 +54,30 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests.ReverseEn
         }
 
         readonly string _connectionString =
-            new NpgsqlConnectionStringBuilder(TestEnvironment.DefaultConnection) {
+            new NpgsqlConnectionStringBuilder(TestEnvironment.DefaultConnection)
+            {
                 Database = "NpgsqlReverseEngineerTestE2E"
             }.ConnectionString;
 
         static readonly List<string> _expectedEntityTypeFiles = new List<string>
-            {
-                "AllDataTypes.expected",
-                "OneToManyDependent.expected",
-                "OneToManyPrincipal.expected",
-                "OneToOneDependent.expected",
-                "OneToOneFKToUniqueKeyDependent.expected",
-                "OneToOneFKToUniqueKeyPrincipal.expected",
-                "OneToOnePrincipal.expected",
-                "OneToOneSeparateFKDependent.expected",
-                "OneToOneSeparateFKPrincipal.expected",
-                "PropertyConfiguration.expected",
-                /*
-                "ReferredToByTableWithUnmappablePrimaryKeyColumn.expected",
-                */
-                "SelfReferencing.expected",
-                "SpecialTypes.expected",
-                "Test_Spaces_Keywords_Table.expected",
-           };
+                {
+                    "AllDataTypes.expected",
+                    "OneToManyDependent.expected",
+                    "OneToManyPrincipal.expected",
+                    "OneToOneDependent.expected",
+                    "OneToOneFKToUniqueKeyDependent.expected",
+                    "OneToOneFKToUniqueKeyPrincipal.expected",
+                    "OneToOnePrincipal.expected",
+                    "OneToOneSeparateFKDependent.expected",
+                    "OneToOneSeparateFKPrincipal.expected",
+                    "PropertyConfiguration.expected",
+                    /*
+                    "ReferredToByTableWithUnmappablePrimaryKeyColumn.expected",
+                    */
+                    "SelfReferencing.expected",
+                    "SpecialTypes.expected",
+                    "Test_Spaces_Keywords_Table.expected",
+               };
 
         [Fact]
         [UseCulture("en-US")]
@@ -151,12 +152,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests.ReverseEn
                 Files = Enumerable.Repeat(filePaths.ContextFile, 1).Concat(filePaths.EntityTypeFiles).Select(Path.GetFileName).ToList()
             };
 
-             var expectedFileSet = new FileSet(new FileSystemFileService(),
-                Path.Combine("ReverseEngineering", "Expected", "AllFluentApi"),
-                inputFile => inputFile.Replace("{{connectionString}}", _connectionString))
+            var expectedFileSet = new FileSet(new FileSystemFileService(),
+               Path.Combine("ReverseEngineering", "Expected", "AllFluentApi"),
+               inputFile => inputFile.Replace("{{connectionString}}", _connectionString))
             {
                 Files = (new List<string> { "NpgsqlReverseEngineerTestE2EContext.expected" })
-                    .Concat(_expectedEntityTypeFiles).ToList()
+                   .Concat(_expectedEntityTypeFiles).ToList()
             };
 
             /*
@@ -189,16 +190,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests.ReverseEn
             using (var scratch = NpgsqlTestStore.CreateScratch())
             {
                 scratch.ExecuteNonQuery(@"
-CREATE SEQUENCE ""CountByTwo""
-    START WITH 1
-    INCREMENT BY 2;
+    CREATE SEQUENCE ""CountByTwo""
+        START WITH 1
+        INCREMENT BY 2;
 
-CREATE SEQUENCE ""CyclicalCountByThree""
-    START WITH 6
-    INCREMENT BY 3
-    MAXVALUE 27
-    MINVALUE 0
-    CYCLE;");
+    CREATE SEQUENCE ""CyclicalCountByThree""
+        START WITH 6
+        INCREMENT BY 3
+        MAXVALUE 27
+        MINVALUE 0
+        CYCLE;");
 
                 var expectedFileSet = new FileSet(new FileSystemFileService(),
                     Path.Combine("ReverseEngineering", "Expected"),
@@ -235,44 +236,44 @@ CREATE SEQUENCE ""CyclicalCountByThree""
             using (var scratch = NpgsqlTestStore.CreateScratch())
             {
                 scratch.ExecuteNonQuery(@"
-DROP TABLE IF EXISTS ""IdSerialSequence"";
-CREATE TABLE ""IdSerialSequence"" (
-  ""Id"" SERIAL PRIMARY KEY
-);
+    DROP TABLE IF EXISTS ""IdSerialSequence"";
+    CREATE TABLE ""IdSerialSequence"" (
+      ""Id"" SERIAL PRIMARY KEY
+    );
 
-DROP TABLE IF EXISTS ""IdNonSerialSequence"";
-DROP SEQUENCE IF EXISTS ""IdSomeSequence"";
-CREATE SEQUENCE ""IdSomeSequence"";
-CREATE TABLE ""IdNonSerialSequence"" (
-  ""Id"" INTEGER PRIMARY KEY DEFAULT nextval('""IdSomeSequence""')
-);
+    DROP TABLE IF EXISTS ""IdNonSerialSequence"";
+    DROP SEQUENCE IF EXISTS ""IdSomeSequence"";
+    CREATE SEQUENCE ""IdSomeSequence"";
+    CREATE TABLE ""IdNonSerialSequence"" (
+      ""Id"" INTEGER PRIMARY KEY DEFAULT nextval('""IdSomeSequence""')
+    );
 
-DROP TABLE IF EXISTS ""SerialSequence"";
-CREATE TABLE ""SerialSequence"" (
-  ""Id"" INTEGER PRIMARY KEY,
-  ""SomeField"" SERIAL
-);
+    DROP TABLE IF EXISTS ""SerialSequence"";
+    CREATE TABLE ""SerialSequence"" (
+      ""Id"" INTEGER PRIMARY KEY,
+      ""SomeField"" SERIAL
+    );
 
-DROP TABLE IF EXISTS ""NonSerialSequence"";
-DROP SEQUENCE IF EXISTS ""SomeSequence"";
-CREATE SEQUENCE ""SomeSequence"";
-CREATE TABLE ""NonSerialSequence"" (
-  ""Id"" INTEGER PRIMARY KEY,
-  ""SomeField"" INTEGER DEFAULT nextval('""SomeSequence""')
-);");
+    DROP TABLE IF EXISTS ""NonSerialSequence"";
+    DROP SEQUENCE IF EXISTS ""SomeSequence"";
+    CREATE SEQUENCE ""SomeSequence"";
+    CREATE TABLE ""NonSerialSequence"" (
+      ""Id"" INTEGER PRIMARY KEY,
+      ""SomeField"" INTEGER DEFAULT nextval('""SomeSequence""')
+    );");
 
                 var expectedFileSet = new FileSet(new FileSystemFileService(),
                     Path.Combine("ReverseEngineering", "Expected", "ColumnsWithSequences"),
                     contents => contents.Replace("{{connectionString}}", scratch.ConnectionString))
                 {
                     Files = new List<string>
-                    {
-                        "ColumnsWithSequencesContext.expected",
-                        "IdNonSerialSequence.expected",
-                        "IdSerialSequence.expected",
-                        "NonSerialSequence.expected",
-                        "SerialSequence.expected"
-                    }
+                        {
+                            "ColumnsWithSequencesContext.expected",
+                            "IdNonSerialSequence.expected",
+                            "IdSerialSequence.expected",
+                            "NonSerialSequence.expected",
+                            "SerialSequence.expected"
+                        }
                 };
 
                 var filePaths = Generator.Generate(
@@ -309,26 +310,26 @@ CREATE TABLE ""NonSerialSequence"" (
             using (var scratch = NpgsqlTestStore.CreateScratch())
             {
                 scratch.ExecuteNonQuery(@"
-CREATE EXTENSION ""uuid-ossp"";
-CREATE EXTENSION ""pgcrypto"";
+    CREATE EXTENSION ""uuid-ossp"";
+    CREATE EXTENSION ""pgcrypto"";
 
-CREATE TABLE foo (id INT PRIMARY KEY, a INT, b INT);
-CREATE INDEX ix_a ON foo (a);
-CREATE INDEX ix_b ON foo USING hash (b);
+    CREATE TABLE foo (id INT PRIMARY KEY, a INT, b INT);
+    CREATE INDEX ix_a ON foo (a);
+    CREATE INDEX ix_b ON foo USING hash (b);
 
-COMMENT ON TABLE foo IS 'foo comment';
-COMMENT ON COLUMN foo.b IS 'b comment';
-");
+    COMMENT ON TABLE foo IS 'foo comment';
+    COMMENT ON COLUMN foo.b IS 'b comment';
+    ");
 
                 var expectedFileSet = new FileSet(new FileSystemFileService(),
                     Path.Combine("ReverseEngineering", "Expected", "PostgresSpecific"),
                     contents => contents.Replace("{{connectionString}}", scratch.ConnectionString))
                 {
                     Files = new List<string>
-                    {
-                        "PostgresSpecificContext.expected",
-                        "Foo.expected"
-                    }
+                        {
+                            "PostgresSpecificContext.expected",
+                            "Foo.expected"
+                        }
                 };
 
                 var filePaths = Generator.Generate(
@@ -354,14 +355,14 @@ COMMENT ON COLUMN foo.b IS 'b comment';
         }
 
         protected override ICollection<BuildReference> References { get; } = new List<BuildReference>
-        {
-            BuildReference.ByName("Npgsql.EntityFrameworkCore.PostgreSQL"),
-            BuildReference.ByName("Microsoft.EntityFrameworkCore"),
-            BuildReference.ByName("Microsoft.EntityFrameworkCore.Relational"),
-#if NETCOREAPP2_0
-            BuildReference.ByName("System.Net.Primitives"),
-            BuildReference.ByName("System.Net.NetworkInformation"),
-#endif
-        };
+            {
+                BuildReference.ByName("Npgsql.EntityFrameworkCore.PostgreSQL"),
+                BuildReference.ByName("Microsoft.EntityFrameworkCore"),
+                BuildReference.ByName("Microsoft.EntityFrameworkCore.Relational"),
+    #if NETCOREAPP2_0
+                BuildReference.ByName("System.Net.Primitives"),
+                BuildReference.ByName("System.Net.NetworkInformation"),
+    #endif
+            };
     }
 }

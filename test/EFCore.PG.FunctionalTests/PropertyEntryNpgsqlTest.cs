@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 {
-    public class PropertyEntryNpgsqlTest : PropertyEntryTestBase<NpgsqlTestStore, F1NpgsqlFixture>
+    public class PropertyEntryNpgsqlTest : PropertyEntryTestBase<F1NpgsqlFixture>
     {
         public PropertyEntryNpgsqlTest(F1NpgsqlFixture fixture)
             : base(fixture)

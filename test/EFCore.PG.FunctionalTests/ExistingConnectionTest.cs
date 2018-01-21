@@ -34,6 +34,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 
             using (var store = NpgsqlTestStore.GetNorthwindStore())
             {
+                store.CloseConnection();
+
                 var openCount = 0;
                 var closeCount = 0;
                 var disposeCount = 0;

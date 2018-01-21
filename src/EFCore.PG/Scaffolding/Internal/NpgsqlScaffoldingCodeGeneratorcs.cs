@@ -23,13 +23,14 @@
 
 namespace Microsoft.EntityFrameworkCore.Scaffolding.Internal
 {
-    public class NpgsqlScaffoldingCodeGenerator : IScaffoldingProviderCodeGenerator
+    public class NpgsqlScaffoldingCodeGenerator : ProviderCodeGenerator
     {
-        public virtual string GenerateUseProvider(string connectionString, string language)
-            => language == "CSharp"
-                ? $".{nameof(NpgsqlDbContextOptionsExtensions.UseNpgsql)}({GenerateVerbatimStringLiteral(connectionString)})"
-                : null;
+        public NpgsqlScaffoldingCodeGenerator(ProviderCodeGeneratorDependencies dependencies)
+            : base(dependencies)
+        {
+        }
 
-        static string GenerateVerbatimStringLiteral(string value) => "@\"" + value.Replace("\"", "\"\"") + "\"";
+        public override string UseProviderMethod
+            => nameof(NpgsqlDbContextOptionsExtensions.UseNpgsql);
     }
 }

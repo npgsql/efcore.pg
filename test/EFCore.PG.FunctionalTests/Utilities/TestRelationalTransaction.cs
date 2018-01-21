@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data.Common;
 using System.Diagnostics;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -9,41 +10,31 @@ using Npgsql;
 
 namespace Microsoft.EntityFrameworkCore.Utilities
 {
-    public class TestRelationalTransaction : IDbContextTransaction, IInfrastructure<DbTransaction>
+    public class TestRelationalTransactionFactory : IRelationalTransactionFactory
     {
-        private readonly IDbContextTransaction _realTransaction;
+        public RelationalTransaction Create(
+            IRelationalConnection connection,
+            DbTransaction transaction,
+            IDiagnosticsLogger<DbLoggerCategory.Database.Transaction> logger,
+            bool transactionOwned)
+            => new TestRelationalTransaction(connection, transaction, logger, transactionOwned);
+    }
+
+    public class TestRelationalTransaction : RelationalTransaction
+    {
         private readonly TestNpgsqlConnection _testConnection;
-        private bool _connectionClosed;
 
         public TestRelationalTransaction(
-            TestNpgsqlConnection connection, DbTransaction transaction, ILoggerFactory loggerFactory, DiagnosticSource diagnosticSource, bool transactionOwned)
-            : this(
-                connection,
-                new RelationalTransaction(
-                    connection,
-                    transaction,
-                    new DiagnosticsLogger<DbLoggerCategory.Database.Transaction>(
-                        loggerFactory, new LoggingOptions(), diagnosticSource),
-                    transactionOwned))
+            IRelationalConnection connection,
+            DbTransaction transaction,
+            IDiagnosticsLogger<DbLoggerCategory.Database.Transaction> logger,
+            bool transactionOwned)
+            : base(connection, transaction, logger, transactionOwned)
         {
+            _testConnection = (TestNpgsqlConnection)connection;
         }
 
-        public virtual Guid TransactionId { get; } = Guid.NewGuid();
-
-        public TestRelationalTransaction(TestNpgsqlConnection connection, IDbContextTransaction transaction)
-        {
-            _testConnection = connection;
-            _realTransaction = transaction;
-        }
-
-        public void Dispose()
-        {
-            _realTransaction.Dispose();
-
-            ClearTransaction();
-        }
-
-        public void Commit()
+        public override void Commit()
         {
             if (_testConnection.CommitFailures.Count > 0)
             {
@@ -52,41 +43,18 @@ namespace Microsoft.EntityFrameworkCore.Utilities
                 {
                     if (fail.Value)
                     {
-                        _realTransaction.GetDbTransaction().Rollback();
+                        this.GetDbTransaction().Rollback();
                     }
                     else
                     {
-                        _realTransaction.GetDbTransaction().Commit();
+                        this.GetDbTransaction().Commit();
                     }
                     _testConnection.DbConnection.Close();
                     throw new PostgresException { SqlState = _testConnection.ErrorCode };
                 }
             }
 
-            _realTransaction.Commit();
-
-            ClearTransaction();
+            base.Commit();
         }
-
-        public void Rollback()
-        {
-            _realTransaction.Rollback();
-
-            ClearTransaction();
-        }
-
-        private void ClearTransaction()
-        {
-            _testConnection.UseTransaction(null);
-
-            if (!_connectionClosed)
-            {
-                _connectionClosed = true;
-
-                _testConnection.Close();
-            }
-        }
-
-        public DbTransaction Instance => _realTransaction.GetDbTransaction();
     }
 }

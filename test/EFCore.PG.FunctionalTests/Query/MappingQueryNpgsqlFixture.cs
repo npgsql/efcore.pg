@@ -8,49 +8,49 @@ using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Utilities;
 
-namespace Microsoft.EntityFrameworkCore.Query
-{
-    public class MappingQueryNpgsqlFixture : MappingQueryFixtureBase
-    {
-        private readonly DbContextOptions _options;
-        private readonly NpgsqlTestStore _testDatabase;
+//namespace Microsoft.EntityFrameworkCore.Query
+//{
+//    public class MappingQueryNpgsqlFixture : MappingQueryFixtureBase
+//    {
+//        private readonly DbContextOptions _options;
+//        private readonly NpgsqlTestStore _testDatabase;
 
-        public MappingQueryNpgsqlFixture()
-        {
-            var serviceProvider = new ServiceCollection()
-                .AddEntityFrameworkNpgsql()
-                .AddSingleton<ILoggerFactory>(new TestSqlLoggerFactory())
-                .BuildServiceProvider();
+//        public MappingQueryNpgsqlFixture()
+//        {
+//            var serviceProvider = new ServiceCollection()
+//                .AddEntityFrameworkNpgsql()
+//                .AddSingleton<ILoggerFactory>(new TestSqlLoggerFactory())
+//                .BuildServiceProvider();
 
-            _testDatabase = NpgsqlTestStore.GetNorthwindStore();
+//            _testDatabase = NpgsqlTestStore.GetNorthwindStore();
 
-            _options = new DbContextOptionsBuilder()
-                .UseModel(CreateModel())
-                .UseNpgsql(_testDatabase.ConnectionString)
-                .UseInternalServiceProvider(serviceProvider)
-                .Options;
-        }
+//            _options = new DbContextOptionsBuilder()
+//                .UseModel(CreateModel())
+//                .UseNpgsql(_testDatabase.ConnectionString)
+//                .UseInternalServiceProvider(serviceProvider)
+//                .Options;
+//        }
 
-        public DbContext CreateContext()
-        {
-            var context = new DbContext(_options);
+//        public DbContext CreateContext()
+//        {
+//            var context = new DbContext(_options);
 
-            context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+//            context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
 
-            return context;
-        }
+//            return context;
+//        }
 
-        public void Dispose() => _testDatabase.Dispose();
+//        public void Dispose() => _testDatabase.Dispose();
 
-        protected override string DatabaseSchema { get; } = null;
+//        protected override string DatabaseSchema { get; } = null;
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<MappingQueryTestBase.MappedCustomer>(e =>
-            {
-                e.Property(c => c.CompanyName2).Metadata.Npgsql().ColumnName = "CompanyName";
-                e.Metadata.Npgsql().TableName = "Customers";
-            });
-        }
-    }
-}
+//        protected override void OnModelCreating(ModelBuilder modelBuilder)
+//        {
+//            modelBuilder.Entity<MappingQueryTestBase.MappedCustomer>(e =>
+//            {
+//                e.Property(c => c.CompanyName2).Metadata.Npgsql().ColumnName = "CompanyName";
+//                e.Metadata.Npgsql().TableName = "Customers";
+//            });
+//        }
+//    }
+//}

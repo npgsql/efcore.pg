@@ -30,19 +30,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
 {
     public class NpgsqlStringRelationalTypeMapper : IStringRelationalTypeMapper
     {
-        static readonly RelationalTypeMapping UnboundedStringMapping
-            = new NpgsqlTypeMapping("text", typeof(string), NpgsqlDbType.Text);
-
-        readonly ConcurrentDictionary<int, RelationalTypeMapping> _boundedStringMappings
+        private readonly ConcurrentDictionary<int, RelationalTypeMapping> _boundedAnsiMappings
             = new ConcurrentDictionary<int, RelationalTypeMapping>();
 
+        private static readonly RelationalTypeMapping _defaultStringMapping
+            = new NpgsqlStringTypeMapping("text", NpgsqlDbType.Text);
+
         public RelationalTypeMapping FindMapping(bool unicode, bool keyOrIndex, int? maxLength)
-        {
-            return maxLength.HasValue
-                ? _boundedStringMappings.GetOrAdd(maxLength.Value,
-                      ml => new NpgsqlTypeMapping($"varchar({maxLength})", typeof(string))
+            => maxLength.HasValue
+                ? _boundedAnsiMappings.GetOrAdd(maxLength.Value,
+                      ml => new NpgsqlStringTypeMapping($"varchar({maxLength})", NpgsqlDbType.Text)
                   )
-                : UnboundedStringMapping;
-        }
+                : _defaultStringMapping;
     }
 }

@@ -5,14 +5,15 @@ using System;
 using System.Data.Common;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.TestUtilities;
 using Npgsql;
 using Xunit;
 
 namespace Microsoft.EntityFrameworkCore.Query
 {
-    public class FromSqlQueryNpgsqlTest : FromSqlQueryTestBase<NorthwindQueryNpgsqlFixture>
+    public class FromSqlQueryNpgsqlTest : FromSqlQueryTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
     {
-        public FromSqlQueryNpgsqlTest(NorthwindQueryNpgsqlFixture fixture)
+        public FromSqlQueryNpgsqlTest(NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture)
             : base(fixture)
         {
         }

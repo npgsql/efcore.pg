@@ -25,7 +25,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         public void Inserts_are_batched_correctly(bool clientPk, bool clientFk, bool clientOrder)
         {
             var optionsBuilder = new DbContextOptionsBuilder();
-            optionsBuilder.UseNpgsql(_testStore.Connection);
+            optionsBuilder.UseNpgsql(_testStore.ConnectionString);
 
             var expectedBlogs = new List<Blog>();
             using (var context = new BloggingContext(_serviceProvider, optionsBuilder.Options))

@@ -242,7 +242,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 
         public CompositeKeyEndToEndTest()
         {
-            TestStore = NpgsqlTestStore.Create("CompositeKeyEndToEndTest");
+            TestStore = NpgsqlTestStore.CreateInitialized("CompositeKeyEndToEndTest");
         }
 
         protected NpgsqlTestStore TestStore { get; }

@@ -35,5 +35,13 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding.Internal
                 ? default(T)
                 : reader.GetFieldValue<T>(idx);
         }
+
+        public static T GetValueOrDefault<T>([NotNull] this DbDataRecord record, [NotNull] string name)
+        {
+            var idx = record.GetOrdinal(name);
+            return record.IsDBNull(idx)
+                ? default
+                : (T)record.GetValue(idx);
+        }
     }
 }

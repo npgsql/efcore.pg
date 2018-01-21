@@ -8,6 +8,9 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Scaffolding.Internal;
 using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests.Utilities;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.FunctionalTests
 {
@@ -312,6 +315,23 @@ CREATE SEQUENCE not_interested.some_other_sequence;
         public NpgsqlDatabaseModelFactoryTest(NpgsqlDatabaseModelFixture fixture)
         {
             _fixture = fixture;
+        }
+
+        [Fact]
+        public void Test_Scaffolding_2_1()
+        {
+            var appServiceProivder = new ServiceCollection()
+                .AddDbContext<PostgreSQL.FunctionalTests.NpgsqlValueGenerationScenariosTest.ContextBase>()
+                .BuildServiceProvider();
+
+            var serviceScope = appServiceProivder
+                  .GetRequiredService<IServiceScopeFactory>()
+                  .CreateScope();
+
+            var context = serviceScope.ServiceProvider.GetService<PostgreSQL.FunctionalTests.NpgsqlValueGenerationScenariosTest.ContextBase>();
+            var logger = context.GetService<Microsoft.EntityFrameworkCore.Diagnostics.IDiagnosticsLogger<Microsoft.EntityFrameworkCore.DbLoggerCategory.Scaffolding>>();
+            var test = new NpgsqlDatabaseModelFactory(logger);
+            var ret = test.Create(context.Database.GetDbConnection(), new List<string> { "Orders" }, new List<string> { "public" });
         }
     }
 }

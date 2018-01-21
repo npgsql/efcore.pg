@@ -4,7 +4,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.EntityFrameworkCore.Query
 {
-    public class FiltersInheritanceNpgsqlTest : FiltersInheritanceTestBase<NpgsqlTestStore, FiltersInheritanceNpgsqlFixture>
+    public class FiltersInheritanceNpgsqlTest : FiltersInheritanceTestBase<FiltersInheritanceNpgsqlFixture>
     {
         public FiltersInheritanceNpgsqlTest(FiltersInheritanceNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
