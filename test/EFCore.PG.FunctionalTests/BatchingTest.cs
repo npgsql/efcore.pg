@@ -229,18 +229,17 @@ namespace Microsoft.EntityFrameworkCore
 
             protected override void OnModelCreating(ModelBuilder modelBuilder)
             {
-                modelBuilder.Entity<Owner>(
-                    b =>
-                        {
-                            b.Property(e => e.Version).IsConcurrencyToken().ValueGeneratedOnAddOrUpdate();
-                            b.Property(e => e.Name).HasColumnType("nvarchar(450)");
-                        });
-                modelBuilder.Entity<Blog>(
-                    b =>
-                        {
-                            b.Property(e => e.Id).HasDefaultValueSql("NEWID()");
-                            b.Property(e => e.Version).IsConcurrencyToken().ValueGeneratedOnAddOrUpdate();
-                        });
+                modelBuilder.Entity<Owner>().Property(o => o.Version)
+                    .HasColumnName("xmin")
+                    .HasColumnType("xid")
+                    .ValueGeneratedOnAddOrUpdate()
+                    .IsConcurrencyToken();
+
+                modelBuilder.Entity<Blog>().Property(b => b.Version)
+                    .HasColumnName("xmin")
+                    .HasColumnType("xid")
+                    .ValueGeneratedOnAddOrUpdate()
+                    .IsConcurrencyToken();
             }
 
             // ReSharper disable once UnusedMember.Local
@@ -254,14 +253,14 @@ namespace Microsoft.EntityFrameworkCore
             public int Order { get; set; }
             public string OwnerId { get; set; }
             public Owner Owner { get; set; }
-            public byte[] Version { get; set; }
+            public uint Version { get; set; }
         }
 
         private class Owner
         {
             public string Id { get; set; }
             public string Name { get; set; }
-            public byte[] Version { get; set; }
+            public uint Version { get; set; }
         }
 
         public class BatchingTestFixture : SharedStoreFixtureBase<DbContext>
@@ -274,10 +273,6 @@ namespace Microsoft.EntityFrameworkCore
             protected override void Seed(DbContext context)
             {
                 context.Database.EnsureCreated();
-                context.Database.ExecuteSqlCommand(
-                    @"
-ALTER TABLE dbo.Owners
-    ALTER COLUMN Name nvarchar(MAX);");
             }
         }
     }

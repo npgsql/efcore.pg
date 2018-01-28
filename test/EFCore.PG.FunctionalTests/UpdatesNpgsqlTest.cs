@@ -20,10 +20,10 @@ namespace Microsoft.EntityFrameworkCore
             {
                 var entityType = context.Model.FindEntityType(typeof(
                     LoginEntityTypeWithAnExtremelyLongAndOverlyConvolutedNameThatIsUsedToVerifyThatTheStoreIdentifierGenerationLengthLimitIsWorkingCorrectly));
-                Assert.Equal("LoginEntityTypeWithAnExtremelyLongAndOverlyConvolutedNameThatIs~", entityType.Relational().TableName);
-                Assert.Equal("PK_LoginEntityTypeWithAnExtremelyLongAndOverlyConvolutedNameTha~", entityType.GetKeys().Single().Relational().Name);
-                Assert.Equal("FK_LoginEntityTypeWithAnExtremelyLongAndOverlyConvolutedNameTha~", entityType.GetForeignKeys().Single().Relational().Name);
-                Assert.Equal("IX_LoginEntityTypeWithAnExtremelyLongAndOverlyConvolutedNameTha~", entityType.GetIndexes().Single().Relational().Name);
+                Assert.Equal("LoginEntityTypeWithAnExtremelyLongAndOverlyConvolutedNameThatI~", entityType.Relational().TableName);
+                Assert.Equal("PK_LoginEntityTypeWithAnExtremelyLongAndOverlyConvolutedNameTh~", entityType.GetKeys().Single().Relational().Name);
+                Assert.Equal("FK_LoginEntityTypeWithAnExtremelyLongAndOverlyConvolutedNameTh~", entityType.GetForeignKeys().Single().Relational().Name);
+                Assert.Equal("IX_LoginEntityTypeWithAnExtremelyLongAndOverlyConvolutedNameTh~", entityType.GetIndexes().Single().Relational().Name);
             }
         }
     }

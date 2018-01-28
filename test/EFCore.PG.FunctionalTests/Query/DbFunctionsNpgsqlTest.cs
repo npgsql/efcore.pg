@@ -25,33 +25,30 @@ namespace Microsoft.EntityFrameworkCore.Query
                 Assert.Equal(19, count);
             }
 
-            Assert.Equal(
+            AssertSql(
                 @"SELECT COUNT(*)::INT4
 FROM ""Customers"" AS ""c""
-WHERE ""c"".""ContactName"" LIKE '%M%'",
-                Sql);
+WHERE ""c"".""ContactName"" LIKE '%M%'");
         }
 
         public override void String_Like_Identity()
         {
             base.String_Like_Identity();
 
-            Assert.Equal(
+            AssertSql(
                 @"SELECT COUNT(*)::INT4
 FROM ""Customers"" AS ""c""
-WHERE ""c"".""ContactName"" LIKE ""c"".""ContactName"" ESCAPE ''",
-                Sql);
+WHERE ""c"".""ContactName"" LIKE ""c"".""ContactName"" ESCAPE ''");
         }
 
         public override void String_Like_Literal_With_Escape()
         {
             base.String_Like_Literal_With_Escape();
 
-            Assert.Equal(
+            AssertSql(
                 @"SELECT COUNT(*)::INT4
 FROM ""Customers"" AS ""c""
-WHERE ""c"".""ContactName"" LIKE '!%' ESCAPE '!'",
-                Sql);
+WHERE ""c"".""ContactName"" LIKE '!%' ESCAPE '!'");
         }
 
         [Fact]
@@ -64,11 +61,10 @@ WHERE ""c"".""ContactName"" LIKE '!%' ESCAPE '!'",
                 Assert.Equal(0, count);
             }
 
-            Assert.Equal(
+            AssertSql(
                 @"SELECT COUNT(*)::INT4
 FROM ""Customers"" AS ""c""
-WHERE ""c"".""ContactName"" LIKE '\' ESCAPE ''",
-                Sql);
+WHERE ""c"".""ContactName"" LIKE '\' ESCAPE ''");
         }
 
         [Fact]
@@ -82,11 +78,10 @@ WHERE ""c"".""ContactName"" LIKE '\' ESCAPE ''",
             }
 
             // For the useless = TRUE below see https://github.com/aspnet/EntityFramework/issues/9143
-            Assert.Equal(
+            AssertSql(
                 @"SELECT COUNT(*)::INT4
 FROM ""Customers"" AS ""c""
-WHERE ""c"".""ContactName"" ILIKE '%M%' = TRUE",
-                Sql);
+WHERE ""c"".""ContactName"" ILIKE '%M%' = TRUE");
         }
 
         [Fact]
@@ -99,13 +94,13 @@ WHERE ""c"".""ContactName"" ILIKE '%M%' = TRUE",
             }
 
             // For the useless = TRUE below see https://github.com/aspnet/EntityFramework/issues/9143
-            Assert.Equal(
+            AssertSql(
                 @"SELECT COUNT(*)::INT4
 FROM ""Customers"" AS ""c""
-WHERE ""c"".""ContactName"" ILIKE '!%' ESCAPE '!' = TRUE",
-                Sql);
+WHERE ""c"".""ContactName"" ILIKE '!%' ESCAPE '!' = TRUE");
         }
 
-        private string Sql => Fixture.TestSqlLoggerFactory.Sql;
+        void AssertSql(params string[] expected)
+            => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
     }
 }

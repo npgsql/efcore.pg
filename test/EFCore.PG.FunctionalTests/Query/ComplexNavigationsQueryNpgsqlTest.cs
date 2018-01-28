@@ -8,6 +8,7 @@ namespace Microsoft.EntityFrameworkCore.Query
         public ComplexNavigationsQueryNpgsqlTest(ComplexNavigationsQueryNpgsqlFixture fixture)
             : base(fixture)
         {
+            Fixture.TestSqlLoggerFactory.Clear();
         }
 
         [Fact(Skip="PostgreSQL sorts nulls first (#50)")]

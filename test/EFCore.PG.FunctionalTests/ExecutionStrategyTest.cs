@@ -1,26 +1,29 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Data.Common;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Microsoft.EntityFrameworkCore.TestUtilities;
-using Microsoft.EntityFrameworkCore.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Xunit;
 
 namespace Microsoft.EntityFrameworkCore
 {
-    public class ExecutionStrategyTest : IClassFixture<ExecutionStrategyTest.ExecutionStrategyFixture>, IDisposable
+    public class ExecutionStrategyTest : IClassFixture<ExecutionStrategyTest.ExecutionStrategyFixture>
     {
+        public ExecutionStrategyTest(ExecutionStrategyFixture fixture)
+        {
+            Fixture = fixture;
+            Fixture.TestStore.CloseConnection();
+            Fixture.TestSqlLoggerFactory.Clear();
+        }
+
+        protected ExecutionStrategyFixture Fixture { get; }
+
         [Fact]
         public void Does_not_throw_or_retry_on_false_commit_failure()
         {
@@ -344,22 +347,20 @@ namespace Microsoft.EntityFrameworkCore
             public string Name { get; set; }
         }
 
-        private const string DatabaseName = nameof(ExecutionStrategyTest);
-
-        public ExecutionStrategyTest(ExecutionStrategyFixture fixture)
-        {
-            Fixture = fixture;
-            Fixture.TestStore.CloseConnection();
-        }
-
-        protected ExecutionStrategyFixture Fixture { get; }
-        protected NpgsqlTestStore TestStore { get; }
-
-        public virtual void Dispose() => TestStore.Dispose();
-
         protected virtual ExecutionStrategyContext CreateContext()
             => (ExecutionStrategyContext)Fixture.CreateContext();
 
+        void CleanContext()
+        {
+            using (var context = CreateContext())
+            {
+                foreach (var product in context.Products.ToList())
+                {
+                    context.Remove(product);
+                    context.SaveChanges();
+                }
+            }
+        }
 
         public class ExecutionStrategyFixture : SharedStoreFixtureBase<DbContext>
         {
@@ -374,7 +375,7 @@ namespace Microsoft.EntityFrameworkCore
             {
                 return base.AddServices(serviceCollection)
                     .AddSingleton<IRelationalTransactionFactory, TestRelationalTransactionFactory>()
-                    .AddScoped<INpgsqlRelationalConnection, NpgsqlRelationalConnection>()
+                    .AddScoped<INpgsqlRelationalConnection, TestNpgsqlConnection>()
                     .AddScoped<IRelationalCommandBuilderFactory, TestRelationalCommandBuilderFactory>();
             }
 
@@ -383,18 +384,6 @@ namespace Microsoft.EntityFrameworkCore
                 var options = base.AddOptions(builder);
                 new NpgsqlDbContextOptionsBuilder(options).MaxBatchSize(1);
                 return options;
-            }
-        }
-
-        private void CleanContext()
-        {
-            using (var context = CreateContext())
-            {
-                foreach (var product in context.Products.ToList())
-                {
-                    context.Remove(product);
-                    context.SaveChanges();
-                }
             }
         }
     }

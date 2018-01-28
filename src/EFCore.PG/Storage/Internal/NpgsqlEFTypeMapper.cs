@@ -132,7 +132,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
             // that (especially since the xmin system column is important for optimistic concurrency).
             // EFCore doesn't allow a situation where a CLR type has no default store type, so we arbitrarily
             // choose oid.
-            _clrTypeMappings[typeof(uint)] = new NpgsqlBaseTypeMapping("oid", typeof(uint), NpgsqlDbType.Oid);
+            //_clrTypeMappings[typeof(uint)] = new NpgsqlBaseTypeMapping("oid", typeof(uint), NpgsqlDbType.Oid);
         }
 
         void AddArrayStoreMappings()

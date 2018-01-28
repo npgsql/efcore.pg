@@ -46,7 +46,8 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Conventions
 
             var valueGenerationStrategyConvention = new NpgsqlValueGenerationStrategyConvention();
             conventionSet.ModelInitializedConventions.Add(valueGenerationStrategyConvention);
-            conventionSet.ModelInitializedConventions.Add(new RelationalMaxIdentifierLengthConvention(64));
+            // TODO: Change to 63 after https://github.com/aspnet/EntityFrameworkCore/issues/10796 is fixed.
+            conventionSet.ModelInitializedConventions.Add(new RelationalMaxIdentifierLengthConvention(62));
 
             return conventionSet;
         }

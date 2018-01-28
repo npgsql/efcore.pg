@@ -21,7 +21,8 @@ namespace Microsoft.EntityFrameworkCore.Query
 FROM ""Orders"" AS ""x""
 WHERE ""x"".""OrderID"" = 10248
 LIMIT 2",
-                Sql);
+                Sql,
+                ignoreLineEndingDifferences: true);
         }
 
         public override void Paging_operation_without_orderby_issues_warning()

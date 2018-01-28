@@ -12,13 +12,13 @@ namespace Microsoft.EntityFrameworkCore
             using (var context = CreateContext())
             {
                 var e = new SomeEntity { Name = "Bart" };
-                context.Add(e);
+                context.Entities.Add(e);
                 context.SaveChanges();
-                var firstVersion = e.xmin;
+                var firstVersion = e.Version;
 
                 e.Name = "Lisa";
                 context.SaveChanges();
-                var secondVersion = e.xmin;
+                var secondVersion = e.Version;
 
                 Assert.NotEqual(firstVersion, secondVersion);
             }
@@ -28,11 +28,14 @@ namespace Microsoft.EntityFrameworkCore
         {
             internal SystemColumnContext(DbContextOptions options) : base(options) {}
 
-            public DbSet<SomeEntity> SomeEntity { get; set; }
+            public DbSet<SomeEntity> Entities { get; set; }
 
             protected override void OnModelCreating(ModelBuilder builder)
             {
-                builder.Entity<SomeEntity>().Property(e => e.xmin).ValueGeneratedOnAddOrUpdate();
+                builder.Entity<SomeEntity>().Property(e => e.Version)
+                    .HasColumnType("xid")
+                    .ValueGeneratedOnAddOrUpdate()
+                    .IsConcurrencyToken();
             }
         }
 
@@ -40,7 +43,7 @@ namespace Microsoft.EntityFrameworkCore
         {
             public int Id { get; set; }
             public string Name { get; set; }
-            public uint xmin { get; set; }
+            public uint Version { get; set; }
         }
 
         public SystemColumnTest()
