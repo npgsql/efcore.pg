@@ -8,8 +8,7 @@ namespace Microsoft.EntityFrameworkCore.Query
         {
             base.Where_string_indexof();
 
-            throw new NotImplementedException();
-            //AssertContainsSql("WHERE (STRPOS(\"c\".\"CompanyName\", 'ar') - 1) > 5");
+            AssertContainsSqlFragment("WHERE (STRPOS(\"c\".\"City\", 'Sea') - 1) <> -1");
         }
     }
 }

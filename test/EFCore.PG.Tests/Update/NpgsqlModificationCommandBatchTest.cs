@@ -16,7 +16,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Update
             var batch = new NpgsqlModificationCommandBatch(
                 new RelationalCommandBuilderFactory(
                     new FakeDiagnosticsLogger<DbLoggerCategory.Database.Command>(),
-                    new NpgsqlEFTypeMapper(new RelationalTypeMapperDependencies())),
+                    new NpgsqlCoreTypeMapper(new RelationalTypeMapperDependencies())),
                 new RelationalSqlGenerationHelper(
                     new RelationalSqlGenerationHelperDependencies()),
                 new NpgsqlUpdateSqlGenerator(

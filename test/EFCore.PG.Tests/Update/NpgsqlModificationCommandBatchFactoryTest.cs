@@ -24,7 +24,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Update
             var factory = new NpgsqlModificationCommandBatchFactory(
                 new RelationalCommandBuilderFactory(
                     new FakeDiagnosticsLogger<DbLoggerCategory.Database.Command>(),
-                    new NpgsqlEFTypeMapper(
+                    new NpgsqlCoreTypeMapper(
                         new RelationalTypeMapperDependencies())),
                 new RelationalSqlGenerationHelper(
                     new RelationalSqlGenerationHelperDependencies()),
@@ -51,7 +51,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Update
             var factory = new NpgsqlModificationCommandBatchFactory(
                 new RelationalCommandBuilderFactory(
                     new FakeDiagnosticsLogger<DbLoggerCategory.Database.Command>(),
-                    new NpgsqlEFTypeMapper(
+                    new NpgsqlCoreTypeMapper(
                         new RelationalTypeMapperDependencies())),
                 new RelationalSqlGenerationHelper(
                     new RelationalSqlGenerationHelperDependencies()),

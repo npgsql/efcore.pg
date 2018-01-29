@@ -21,9 +21,11 @@
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 #endregion
 
+using System;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions.Internal;
 using Microsoft.EntityFrameworkCore.Migrations;
@@ -84,7 +86,9 @@ namespace Microsoft.Extensions.DependencyInjection
             var builder = new EntityFrameworkRelationalServicesBuilder(serviceCollection)
                 .TryAdd<IDatabaseProvider, DatabaseProvider<NpgsqlOptionsExtension>>()
                 .TryAdd<IValueGeneratorCache>(p => p.GetService<INpgsqlValueGeneratorCache>())
-                .TryAdd<IRelationalTypeMapper, NpgsqlEFTypeMapper>()
+                .TryAdd<IRelationalCoreTypeMapper, NpgsqlCoreTypeMapper>()
+                // TODO: Remove after https://github.com/aspnet/EntityFrameworkCore/issues/10803
+                .TryAdd<IRelationalTypeMapper, DummyTypeMapper>()
                 .TryAdd<ISqlGenerationHelper, RelationalSqlGenerationHelper>()
                 .TryAdd<IMigrationsAnnotationProvider, NpgsqlMigrationsAnnotationProvider>()
                 .TryAdd<IRelationalValueBufferFactoryFactory, TypedRelationalValueBufferFactoryFactory>()
@@ -111,5 +115,17 @@ namespace Microsoft.Extensions.DependencyInjection
 
             return serviceCollection;
         }
+    }
+
+    // TODO: Remove after https://github.com/aspnet/EntityFrameworkCore/issues/10803
+    class DummyTypeMapper : IRelationalTypeMapper
+    {
+        public bool IsTypeMapped(Type clrType) => throw new NotImplementedException();
+        public RelationalTypeMapping FindMapping(IProperty property) => throw new NotImplementedException();
+        public RelationalTypeMapping FindMapping(Type clrType) => throw new NotImplementedException();
+        public RelationalTypeMapping FindMapping(string storeType) => throw new NotImplementedException();
+        public void ValidateTypeName(string storeType) => throw new NotImplementedException();
+        public IByteArrayRelationalTypeMapper ByteArrayMapper { get; }
+        public IStringRelationalTypeMapper StringMapper { get; }
     }
 }

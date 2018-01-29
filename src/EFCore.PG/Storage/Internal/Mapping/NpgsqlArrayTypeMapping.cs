@@ -26,21 +26,25 @@ using System.Text;
 
 namespace Microsoft.EntityFrameworkCore.Storage.Internal
 {
-    public sealed class NpgsqlArrayTypeMapping : NpgsqlTypeMapping
+    public sealed class NpgsqlArrayTypeMapping : RelationalTypeMapping
     {
-        public RelationalTypeMapping ElementMapping { get; private set; }
+        public RelationalTypeMapping ElementMapping { get; }
 
-        internal NpgsqlArrayTypeMapping(Type arrayClrType, RelationalTypeMapping elementMapping)
-            : base(elementMapping.StoreType + "[]", arrayClrType)
+        /// <summary>
+        /// Creates the default array mapping (i.e. for the single-dimensional CLR array type)
+        /// </summary>
+        internal NpgsqlArrayTypeMapping(RelationalTypeMapping elementMapping)
+            : this(elementMapping, elementMapping.ClrType.MakeArrayType())
+        {}
+
+        internal NpgsqlArrayTypeMapping(RelationalTypeMapping elementMapping, Type arrayType)
+            : base("_" + elementMapping.StoreType, arrayType)
         {
             ElementMapping = elementMapping;
-
-            if (elementMapping is NpgsqlTypeMapping m && m.NpgsqlDbType.HasValue)
-                NpgsqlDbType = m.NpgsqlDbType.Value | NpgsqlTypes.NpgsqlDbType.Array;
         }
 
         public override RelationalTypeMapping Clone(string storeType, int? size)
-            => new NpgsqlTypeMapping(storeType, ClrType, NpgsqlDbType);
+            => new NpgsqlArrayTypeMapping(ElementMapping);
 
         protected override string GenerateNonNullSqlLiteral(object value)
         {

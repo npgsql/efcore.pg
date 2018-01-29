@@ -54,7 +54,7 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Conventions
 
         public static ConventionSet Build()
         {
-            var npgsqlTypeMapper = new NpgsqlEFTypeMapper(
+            var npgsqlTypeMapper = new NpgsqlCoreTypeMapper(
                 new CoreTypeMapperDependencies(
                     new ValueConverterSelector(
                         new ValueConverterSelectorDependencies())),

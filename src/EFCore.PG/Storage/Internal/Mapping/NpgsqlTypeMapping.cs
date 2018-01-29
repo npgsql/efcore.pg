@@ -33,12 +33,12 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
 {
     public class NpgsqlTypeMapping : RelationalTypeMapping
     {
-        public NpgsqlDbType? NpgsqlDbType { get; protected set; }
+        public NpgsqlDbType NpgsqlDbType { get; }
 
         internal NpgsqlTypeMapping(
             [NotNull] string storeType,
             [NotNull] Type clrType,
-            NpgsqlDbType? npgsqlDbType = null)
+            NpgsqlDbType npgsqlDbType)
             : base(storeType, clrType)
         {
             NpgsqlDbType = npgsqlDbType;
@@ -48,10 +48,9 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
             [NotNull] string storeType,
             [NotNull] Type clrType,
             [CanBeNull] ValueConverter converter,
-            NpgsqlDbType? npgsqlDbType = null)
+            NpgsqlDbType npgsqlDbType)
             : base(storeType, clrType, converter)
         {
-            Console.WriteLine($"Instantiating with converter: {converter.GetType().Name}");
             NpgsqlDbType = npgsqlDbType;
         }
 
@@ -65,8 +64,9 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
         {
             base.ConfigureParameter(parameter);
 
-            if (NpgsqlDbType.HasValue)
-                ((NpgsqlParameter)parameter).NpgsqlDbType = NpgsqlDbType.Value;
+            //if (NpgsqlDbType.HasValue)
+                //((NpgsqlParameter)parameter).NpgsqlDbType = NpgsqlDbType.Value;
+            ((NpgsqlParameter)parameter).NpgsqlDbType = NpgsqlDbType;
         }
     }
 }
