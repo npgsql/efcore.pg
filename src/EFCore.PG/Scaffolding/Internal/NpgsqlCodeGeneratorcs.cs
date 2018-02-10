@@ -23,9 +23,9 @@
 
 namespace Microsoft.EntityFrameworkCore.Scaffolding.Internal
 {
-    public class NpgsqlScaffoldingCodeGenerator : ProviderCodeGenerator
+    public class NpgsqlCodeGenerator : ProviderCodeGenerator
     {
-        public NpgsqlScaffoldingCodeGenerator(ProviderCodeGeneratorDependencies dependencies)
+        public NpgsqlCodeGenerator(ProviderCodeGeneratorDependencies dependencies)
             : base(dependencies)
         {
         }

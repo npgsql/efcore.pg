@@ -36,7 +36,7 @@ namespace Microsoft.EntityFrameworkCore.Design.Internal
             => serviceCollection
                 .AddSingleton<IRelationalCoreTypeMapper, NpgsqlCoreTypeMapper>()
                 .AddSingleton<IDatabaseModelFactory, NpgsqlDatabaseModelFactory>()
-                .AddSingleton<ProviderCodeGenerator, NpgsqlScaffoldingCodeGenerator>()
+                .AddSingleton<ProviderCodeGenerator, NpgsqlCodeGenerator>()
                 .AddSingleton<IAnnotationCodeGenerator, NpgsqlAnnotationCodeGenerator>();
     }
 }

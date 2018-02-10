@@ -71,31 +71,18 @@ namespace Microsoft.EntityFrameworkCore.Internal
 
         /// <summary>
 
-        ///     Found domain with name: {domain} which maps to underlying data type {dataType}.
+        ///     Found column with table: {tableName}, column name: {columnName}, data type: {dataType}, nullable: {isNullable}, default value: {defaultValue}
 
         /// </summary>
 
-        public static readonly EventDefinition<string, string> LogFoundDomain
-            = new EventDefinition<string, string>(
-                NpgsqlEventId.DomainFound,
-                LogLevel.Debug,
-                LoggerMessage.Define<string, string>(
-                    LogLevel.Debug,
-                    NpgsqlEventId.DomainFound,
-                    _resourceManager.GetString("LogFoundDomain")));
-
-
-        /// <summary>
-
-        ///     Found column with table: {tableName}, column name: {columnName}, ordinal: {ordinal}, data type: {dataType}, maximum length: {maxLength}, precision: {precision}, scale: {scale}, nullable: {isNullable}, identity: {isIdentity}, default value: {defaultValue}, computed value: {computedValue}
-
-        /// </summary>
-
-        public static readonly FallbackEventDefinition LogFoundColumn
-            = new FallbackEventDefinition(
+        public static readonly EventDefinition<string, string, string, bool, string> LogFoundColumn
+            = new EventDefinition<string, string, string, bool, string>(
                 NpgsqlEventId.ColumnFound,
                 LogLevel.Debug,
-                _resourceManager.GetString("LogFoundColumn"));
+                LoggerMessage.Define<string, string, string, bool, string>(
+                    LogLevel.Debug,
+                    NpgsqlEventId.ColumnFound,
+                    _resourceManager.GetString("LogFoundColumn")));
 
 
         /// <summary>

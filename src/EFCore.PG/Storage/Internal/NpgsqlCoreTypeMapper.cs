@@ -67,6 +67,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
         readonly NpgsqlJsonbTypeMapping     _jsonb     = new NpgsqlJsonbTypeMapping();
         readonly NpgsqlJsonTypeMapping      _json      = new NpgsqlJsonTypeMapping();
         readonly DateTimeTypeMapping        _timestamp = new DateTimeTypeMapping("timestamp", DbType.DateTime);
+        // TODO: timestamptz
         readonly NpgsqlIntervalTypeMapping  _interval  = new NpgsqlIntervalTypeMapping();
         readonly NpgsqlTimeTzTypeMapping    _timetz    = new NpgsqlTimeTzTypeMapping();
         readonly NpgsqlMacaddrTypeMapping   _macaddr   = new NpgsqlMacaddrTypeMapping();

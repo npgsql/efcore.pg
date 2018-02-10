@@ -44,7 +44,6 @@ namespace Microsoft.EntityFrameworkCore.Diagnostics
             //SequenceNotNamedWarning,
             TableFound,
             //TableSkipped,
-            DomainFound,
             //ForeignKeyTableMissingWarning,
             PrimaryKeyFound,
             UniqueConstraintFound,
@@ -90,12 +89,6 @@ namespace Microsoft.EntityFrameworkCore.Diagnostics
         ///     This event is in the <see cref="DbLoggerCategory.Scaffolding" /> category.
         /// </summary>
         public static readonly EventId ColumnFound = MakeScaffoldingId(Id.ColumnFound);
-
-        /// <summary>
-        ///     A domain was found.
-        ///     This event is in the <see cref="DbLoggerCategory.Scaffolding" /> category.
-        /// </summary>
-        public static readonly EventId DomainFound = MakeScaffoldingId(Id.DomainFound);
 
         /// <summary>
         ///     The database is missing a schema.

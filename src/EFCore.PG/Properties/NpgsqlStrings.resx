@@ -126,13 +126,9 @@
   <data name="NonKeyValueGeneration" xml:space="preserve">
     <value>The property '{property}' on entity type '{entityType}' is configured to use 'SequenceHiLo' value generator, which is only intended for keys. If this was intentional configure an alternate key on the property, otherwise call 'ValueGeneratedNever' or configure store generation for this property.</value>
   </data>
-  <data name="LogFoundDomain" xml:space="preserve">
-    <value>Found domain with name: {domain} which maps to underlying data type {dataType}.</value>
-    <comment>Debug NpgsqlEventId.DomainFound string string</comment>
-  </data>
   <data name="LogFoundColumn" xml:space="preserve">
-    <value>Found column with table: {tableName}, column name: {columnName}, ordinal: {ordinal}, data type: {dataType}, maximum length: {maxLength}, precision: {precision}, scale: {scale}, nullable: {isNullable}, identity: {isIdentity}, default value: {defaultValue}, computed value: {computedValue}</value>
-    <comment>Debug NpgsqlEventId.ColumnFound string string int string int int int bool bool string string</comment>
+    <value>Found column with table: {tableName}, column name: {columnName}, data type: {dataType}, nullable: {isNullable}, default value: {defaultValue}</value>
+    <comment>Debug NpgsqlEventId.ColumnFound string string string bool string</comment>
   </data>
   <data name="LogFoundForeignKey" xml:space="preserve">
     <value>Found foreign key on table: {tableName}, name: {foreignKeyName}, principal table: {principalTableName}, delete action: {deleteAction}.</value>
