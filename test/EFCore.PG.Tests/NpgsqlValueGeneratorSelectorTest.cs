@@ -3,13 +3,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.EntityFrameworkCore.ValueGeneration;
 using Microsoft.EntityFrameworkCore.ValueGeneration.Internal;
 using Microsoft.Extensions.DependencyInjection;
-using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests;
 using Xunit;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests
+namespace Microsoft.EntityFrameworkCore
 {
     public class NpgsqlValueGeneratorSelectorTest
     {

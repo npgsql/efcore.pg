@@ -33,7 +33,7 @@ namespace Microsoft.EntityFrameworkCore
             protected override void OnModelCreating(ModelBuilder builder)
             {
                 builder.Entity<SomeEntity>().Property(e => e.Version)
-                    .HasColumnName("xid")
+                    .HasColumnName("xmin")
                     .HasColumnType("xid")
                     .ValueGeneratedOnAddOrUpdate()
                     .IsConcurrencyToken();

@@ -21,7 +21,7 @@ namespace Microsoft.EntityFrameworkCore.Query
         #region Bug278
 
         [Fact]
-        public async Task Bug278()
+        public void Bug278()
         {
             using (var testStore = NpgsqlTestStore.CreateScratch())
             using (var context = new Bug278Context(Fixture.CreateOptions(testStore)))
@@ -30,10 +30,10 @@ namespace Microsoft.EntityFrameworkCore.Query
                 context.Entities.Add(new Bug278Entity { ChannelCodes = new[] { 1, 1 } });
                 context.SaveChanges();
 
-                var actual = await context.Entities.Select(x => new
+                var actual = context.Entities.Select(x => new
                 {
                     Codes = x.ChannelCodes.Select(c => (ChannelCode)c)
-                }).FirstOrDefaultAsync();
+                }).ToList()[0];
 
                 Assert.Equal(new[] { ChannelCode.Code, ChannelCode.Code }, actual.Codes);
             }

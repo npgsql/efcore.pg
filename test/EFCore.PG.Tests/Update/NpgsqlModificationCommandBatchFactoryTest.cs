@@ -1,17 +1,13 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-
-using System.Diagnostics;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Storage.Converters;
 using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.EntityFrameworkCore.Update;
 using Microsoft.EntityFrameworkCore.Update.Internal;
 using Xunit;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Update
+namespace Microsoft.EntityFrameworkCore.Update
 {
     public class NpgsqlModificationCommandBatchFactoryTest
     {
@@ -21,19 +17,25 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Update
             var optionsBuilder = new DbContextOptionsBuilder();
             optionsBuilder.UseNpgsql("Database=Crunchie", b => b.MaxBatchSize(1));
 
+            var typeMapper = new NpgsqlCoreTypeMapper(
+                new CoreTypeMapperDependencies(
+                    new ValueConverterSelector(new ValueConverterSelectorDependencies())
+                ),
+                new RelationalTypeMapperDependencies()
+            );
             var factory = new NpgsqlModificationCommandBatchFactory(
                 new RelationalCommandBuilderFactory(
                     new FakeDiagnosticsLogger<DbLoggerCategory.Database.Command>(),
-                    new NpgsqlCoreTypeMapper(
-                        new RelationalTypeMapperDependencies())),
+                    typeMapper),
                 new RelationalSqlGenerationHelper(
                     new RelationalSqlGenerationHelperDependencies()),
                 new NpgsqlUpdateSqlGenerator(
                     new UpdateSqlGeneratorDependencies(
                         new RelationalSqlGenerationHelper(
-                            new RelationalSqlGenerationHelperDependencies()))),
+                            new RelationalSqlGenerationHelperDependencies()),
+                        typeMapper)),
                 new TypedRelationalValueBufferFactoryFactory(
-                    new RelationalValueBufferFactoryDependencies()),
+                    new RelationalValueBufferFactoryDependencies(typeMapper)),
                 optionsBuilder.Options);
 
             var batch = factory.Create();
@@ -48,19 +50,25 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Update
             var optionsBuilder = new DbContextOptionsBuilder();
             optionsBuilder.UseNpgsql("Database=Crunchie");
 
+            var typeMapper = new NpgsqlCoreTypeMapper(
+                new CoreTypeMapperDependencies(
+                    new ValueConverterSelector(new ValueConverterSelectorDependencies())
+                ),
+                new RelationalTypeMapperDependencies()
+            );
             var factory = new NpgsqlModificationCommandBatchFactory(
                 new RelationalCommandBuilderFactory(
                     new FakeDiagnosticsLogger<DbLoggerCategory.Database.Command>(),
-                    new NpgsqlCoreTypeMapper(
-                        new RelationalTypeMapperDependencies())),
+                    typeMapper),
                 new RelationalSqlGenerationHelper(
                     new RelationalSqlGenerationHelperDependencies()),
                 new NpgsqlUpdateSqlGenerator(
                     new UpdateSqlGeneratorDependencies(
                         new RelationalSqlGenerationHelper(
-                            new RelationalSqlGenerationHelperDependencies()))),
+                            new RelationalSqlGenerationHelperDependencies()),
+                        typeMapper)),
                 new TypedRelationalValueBufferFactoryFactory(
-                    new RelationalValueBufferFactoryDependencies()),
+                    new RelationalValueBufferFactoryDependencies(typeMapper)),
                 optionsBuilder.Options);
 
             var batch = factory.Create();

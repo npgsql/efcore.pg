@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.EntityFrameworkCore.TestUtilities

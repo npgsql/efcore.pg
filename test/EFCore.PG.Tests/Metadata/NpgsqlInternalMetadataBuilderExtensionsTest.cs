@@ -1,19 +1,13 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-
-using System;
+﻿using System;
 using System.Linq;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Xunit;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Metadata
+namespace Microsoft.EntityFrameworkCore.Metadata
 {
     public class NpgsqlInternalMetadataBuilderExtensionsTest
     {
-        private InternalModelBuilder CreateBuilder()
-            => new InternalModelBuilder(new Model());
+        InternalModelBuilder CreateBuilder() => new InternalModelBuilder(new Model());
 
         [Fact]
         public void Can_access_model()
@@ -92,8 +86,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Metadata
                 a => a.Name.StartsWith(RelationalAnnotationNames.Prefix, StringComparison.Ordinal)));
         }
 
-        private class Splot
-        {
-        }
+        class Splot {}
     }
 }

@@ -74,7 +74,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests
                     new LoggerFactory(),
                     new LoggingOptions(),
                     new DiagnosticListener("FakeDiagnosticListener")),
-                new NamedConnectionStringResolver(options));
+                new NamedConnectionStringResolver(options),
+                new RelationalTransactionFactory(new RelationalTransactionFactoryDependencies()));
         }
     }
 }
