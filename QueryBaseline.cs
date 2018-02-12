@@ -3788,3 +3788,11 @@ WHERE NOW() <> @__myDatetime_0");
 
 
 
+Microsoft.EntityFrameworkCore.Query.AsyncGroupByQuerySqlServerTest.<GroupBy_Composite_Select_Average>d__1.MoveNext() : line 25
+            AssertSql(
+                @"SELECT AVG(CAST(""o"".""OrderID"" AS float8))
+FROM ""Orders"" AS ""o""
+GROUP BY ""o"".""CustomerID"", ""o"".""EmployeeID""");
+
+
+
