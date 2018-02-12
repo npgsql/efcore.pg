@@ -1,12 +1,14 @@
 image: Visual Studio 2017 Preview
 version: 2.1.0-{build}
 services:
-  - postgresql
+  - postgresql101
 environment:
   global:
     DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
     DOTNET_CLI_TELEMETRY_OPTOUT: 1
     Test__Npgsql__DefaultConnection: Host=localhost;Database=postgres;Username=postgres;Password=Password12!
+    PGUSER: postgres
+    PGPASSWORD: Password12!
 cache:
   - '%USERPROFILE%\.nuget\packages -> **\*.csproj'
 shallow_clone: true
