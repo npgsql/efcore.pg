@@ -14,6 +14,7 @@ env:
   - Test__Npgsql__DefaultConnection: '"Host=localhost;Database=postgres;Username=postgres;Password="'
 
 before_script:
+  - psql -c 'CREATE EXTENSION hstore'
   - dotnet restore -v Minimal
 script:
   - dotnet test test/EFCore.PG.Tests/EFCore.PG.Tests.csproj
