@@ -28,6 +28,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.Converters;
 using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Microsoft.EntityFrameworkCore.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.EntityFrameworkCore.Metadata.Conventions
 {
@@ -53,18 +54,18 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Conventions
 
         public static ConventionSet Build()
         {
-            var npgsqlTypeMapper = new NpgsqlCoreTypeMapper(
-                new CoreTypeMapperDependencies(
-                    new ValueConverterSelector(
-                        new ValueConverterSelectorDependencies())),
-                new RelationalTypeMapperDependencies());
+            var serviceProvider = new ServiceCollection()
+                .AddEntityFrameworkNpgsql()
+                .AddDbContext<DbContext>(o => o.UseNpgsql("Server=."))
+                .BuildServiceProvider();
 
-            return new NpgsqlConventionSetBuilder(
-                new RelationalConventionSetBuilderDependencies(npgsqlTypeMapper, null, null, null))
-                .AddConventions(
-                    new CoreConventionSetBuilder(
-                        new CoreConventionSetBuilderDependencies(npgsqlTypeMapper, null, null))
-                        .CreateConventionSet());
+            using (var serviceScope = serviceProvider.GetRequiredService<IServiceScopeFactory>().CreateScope())
+            {
+                using (var context = serviceScope.ServiceProvider.GetService<DbContext>())
+                {
+                    return ConventionSet.CreateConventionSet(context);
+                }
+            }
         }
     }
 }

@@ -21,6 +21,8 @@
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 #endregion
 
+using Microsoft.EntityFrameworkCore.Design;
+
 namespace Microsoft.EntityFrameworkCore.Scaffolding.Internal
 {
     public class NpgsqlCodeGenerator : ProviderCodeGenerator
@@ -30,7 +32,11 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding.Internal
         {
         }
 
-        public override string UseProviderMethod
-            => nameof(NpgsqlDbContextOptionsExtensions.UseNpgsql);
+        /// <summary>
+        ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
+        ///     directly from your code. This API may change or be removed in future releases.
+        /// </summary>
+        public override MethodCallCodeFragment GenerateUseProvider(string connectionString)
+            => new MethodCallCodeFragment(nameof(NpgsqlDbContextOptionsExtensions.UseNpgsql), connectionString);
     }
 }

@@ -10,7 +10,12 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding
         {
             var codeGenerator = new NpgsqlCodeGenerator(new ProviderCodeGeneratorDependencies());
 
-            Assert.Equal("UseNpgsql", codeGenerator.UseProviderMethod);
+            var result = codeGenerator.GenerateUseProvider("Server=test;Username=test;Password=test;Database=test");
+
+            Assert.Equal("UseNpgsql", result.Method);
+            Assert.Collection(
+                result.Arguments,
+                a => Assert.Equal("Server=test;Username=test;Password=test;Database=test", a));
         }
     }
 }
