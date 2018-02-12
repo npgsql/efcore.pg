@@ -25,8 +25,8 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.1.0-*" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="2.1.0-*" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational.Specification.Tests" Version="2.1.0-*" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.1.0-preview1-27942" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="2.1.0-preview1-27942" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.1.0-*" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="2.1.0-*" />
   </ItemGroup>
 
 </Project>
