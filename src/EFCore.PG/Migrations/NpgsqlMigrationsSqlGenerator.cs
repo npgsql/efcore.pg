@@ -304,7 +304,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                     {
                         Name = sequenceName,
                         ClrType = typeof(long)
-                    }, model, builder, false);
+                    }, model, builder);
                     defaultValueSql = $@"nextval('{Dependencies.SqlGenerationHelper.DelimitIdentifier(sequenceName)}')";
                     // Note: we also need to set the sequence ownership, this is done below
                     // after the ALTER COLUMN
@@ -371,6 +371,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             EndStatement(builder);
         }
 
+        /*
         protected override void Generate(CreateSequenceOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
         {
             Generate(operation, model, builder, true);
@@ -400,7 +401,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
 
             if (endStatement)
                 EndStatement(builder);
-        }
+        }*/
 
         protected override void Generate(RenameIndexOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
         {

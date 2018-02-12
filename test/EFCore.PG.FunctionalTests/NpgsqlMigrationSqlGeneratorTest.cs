@@ -821,6 +821,26 @@ namespace Microsoft.EntityFrameworkCore
 
         #endregion CockroachDB interleave-in-parent
 
+        #region Sequence data types
+
+        [Fact]
+        public void CreateSequenceOperation_with_data_type_smallint()
+        {
+            Generate(
+                new CreateSequenceOperation
+                {
+                    Name = "short_sequence",
+                    Schema = "public",
+                    ClrType = typeof(short)
+                });
+
+            Assert.StartsWith(
+                "CREATE SEQUENCE \"public\".\"short_sequence\" AS int2",
+                Sql);
+        }
+
+        #endregion Sequence data types
+
         public NpgsqlMigrationSqlGeneratorTest()
             : base(NpgsqlTestHelpers.Instance)
         {
