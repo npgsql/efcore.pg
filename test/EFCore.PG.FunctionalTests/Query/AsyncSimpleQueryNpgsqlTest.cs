@@ -13,6 +13,16 @@ namespace Microsoft.EntityFrameworkCore.Query
         }
 
         #region Skipped tests
+
+        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/10797, merged for 2.1-preview2")]
+        public override Task Query_with_nav() => Task.CompletedTask;
+
+        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/10797, merged for 2.1-preview2")]
+        public override Task Select_query_where_navigation() => Task.CompletedTask;
+
+        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/10797, merged for 2.1-preview2")]
+        public override Task Select_query_where_navigation_multi_level() => Task.CompletedTask;
+
         [Fact(Skip = "Test skipped in EFCore (SqlServer/Sqlite)")]
         public override Task Projection_when_arithmetic_expressions() => null;
 

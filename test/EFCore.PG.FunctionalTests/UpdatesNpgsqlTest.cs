@@ -14,6 +14,7 @@ namespace Microsoft.EntityFrameworkCore
             Fixture.TestSqlLoggerFactory.Clear();
         }
 
+        [Fact(Skip="https://github.com/aspnet/EntityFrameworkCore/issues/10796, fixed for 2.1.0-preview2")]
         public override void Identifiers_are_generated_correctly()
         {
             using (var context = CreateContext())
