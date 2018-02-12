@@ -1,5 +1,7 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using Microsoft.Extensions.Configuration;
+using Npgsql;
 
 namespace Microsoft.EntityFrameworkCore.TestUtilities
 {
@@ -25,16 +27,20 @@ namespace Microsoft.EntityFrameworkCore.TestUtilities
 
         public static string DefaultConnection => Config["DefaultConnection"] ?? DefaultConnectionString;
 
-        public static bool? GetFlag(string key)
-        {
-            bool flag;
-            return bool.TryParse(Config[key], out flag) ? flag : (bool?)null;
-        }
+        static Version _postgresVersion;
 
-        public static int? GetInt(string key)
+        public static Version PostgresVersion
         {
-            int value;
-            return int.TryParse(Config[key], out value) ? value : (int?)null;
+            get
+            {
+                if (_postgresVersion != null)
+                    return _postgresVersion;
+                using (var conn = new NpgsqlConnection(NpgsqlTestStore.CreateConnectionString("master")))
+                {
+                    conn.Open();
+                    return _postgresVersion = conn.PostgreSqlVersion;
+                }
+            }
         }
     }
 }
