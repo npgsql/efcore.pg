@@ -56,7 +56,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
         readonly NpgsqlByteArrayTypeMapping _bytea     = new NpgsqlByteArrayTypeMapping();
         readonly FloatTypeMapping           _float4    = new FloatTypeMapping("float4", DbType.Single);
         readonly DoubleTypeMapping          _float8    = new DoubleTypeMapping("float8", DbType.Double);
-        readonly DecimalTypeMapping         _decimal   = new DecimalTypeMapping("decimal", DbType.Decimal);
+        readonly DecimalTypeMapping         _numeric   = new DecimalTypeMapping("decimal", DbType.Decimal);
         readonly DecimalTypeMapping         _money     = new DecimalTypeMapping("money");
         readonly GuidTypeMapping            _uuid      = new GuidTypeMapping("uuid", DbType.Guid);
         readonly ShortTypeMapping           _int2      = new ShortTypeMapping("int2", DbType.Int16);
@@ -64,11 +64,13 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
         readonly LongTypeMapping            _int8      = new LongTypeMapping("int8", DbType.Int64);
         readonly StringTypeMapping          _text      = new StringTypeMapping("text", DbType.String);
         readonly StringTypeMapping          _varchar   = new StringTypeMapping("varchar", DbType.String);
+        readonly StringTypeMapping          _char      = new StringTypeMapping("char", DbType.String);
         readonly NpgsqlJsonbTypeMapping     _jsonb     = new NpgsqlJsonbTypeMapping();
         readonly NpgsqlJsonTypeMapping      _json      = new NpgsqlJsonTypeMapping();
         readonly DateTimeTypeMapping        _timestamp = new DateTimeTypeMapping("timestamp", DbType.DateTime);
         // TODO: timestamptz
         readonly NpgsqlIntervalTypeMapping  _interval  = new NpgsqlIntervalTypeMapping();
+        // TODO: time
         readonly NpgsqlTimeTzTypeMapping    _timetz    = new NpgsqlTimeTzTypeMapping();
         readonly NpgsqlMacaddrTypeMapping   _macaddr   = new NpgsqlMacaddrTypeMapping();
         readonly NpgsqlInetTypeMapping      _inet      = new NpgsqlInetTypeMapping();
@@ -88,36 +90,52 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
             [NotNull] RelationalTypeMapperDependencies relationalDependencies)
             : base(dependencies, relationalDependencies)
         {
+            // Note that PostgreSQL has aliases to some built-in types (e.g. int4 for integer),
+            // these are mapped as well.
+            // https://www.postgresql.org/docs/9.5/static/datatype.html#DATATYPE-TABLE
             var storeTypeMappings = new Dictionary<string, RelationalTypeMapping>(StringComparer.OrdinalIgnoreCase)
             {
-                { "bool",      _bool      },
-                { "bytea",     _bytea     },
-                { "float4",    _float4    },
-                { "float8",    _float8    },
-                { "decimal",   _decimal   },
-                { "money",     _money     },
-                { "uuid",      _uuid      },
-                { "int2",      _int2      },
-                { "int4",      _int4      },
-                { "int8",      _int8      },
-                { "text",      _text      },
-                { "jsonb",     _jsonb     },
-                { "json",      _json      },
-                { "varchar",   _varchar   },
-                { "timestamp", _timestamp },
-                { "interval",  _interval  },
-                { "timetz",    _timetz    },
-                { "macaddr",   _macaddr   },
-                { "inet",      _inet      },
-                { "bit",       _bit       },
-                { "varbit",    _varbit    },
-                { "hstore",    _hstore    },
-                { "point",     _point     },
-                { "line",      _line      },
-                { "xid",       _xid       },
-                { "oid",       _oid       },
-                { "cid",       _cid       },
-                { "regtype",   _regtype   },
+                { "boolean",             _bool      },
+                { "bool",                _bool      },
+                { "bytea",               _bytea     },
+                { "real",                _float4    },
+                { "float4",              _float4    },
+                { "double precision",    _float8    },
+                { "float8",              _float8    },
+                { "numeric",             _numeric   },
+                { "decimal",             _numeric   },
+                { "money",               _money     },
+                { "uuid",                _uuid      },
+                { "smallint",            _int2      },
+                { "int2",                _int2      },
+                { "integer",             _int4      },
+                { "int",                 _int4      },
+                { "int4",                _int4      },
+                { "bigint",              _int8      },
+                { "int8",                _int8      },
+                { "text",                _text      },
+                { "jsonb",               _jsonb     },
+                { "json",                _json      },
+                { "character varying",   _varchar   },
+                { "varchar",             _varchar   },
+                { "character",           _char      },
+                { "char",                _char      },
+                { "timestamp",           _timestamp },
+                { "interval",            _interval  },
+                { "time with time zone", _timetz    },
+                { "timetz",              _timetz    },
+                { "macaddr",             _macaddr   },
+                { "inet",                _inet      },
+                { "bit",                 _bit       },
+                { "bit varying",         _varbit    },
+                { "varbit",              _varbit    },
+                { "hstore",              _hstore    },
+                { "point",               _point     },
+                { "line",                _line      },
+                { "xid",                 _xid       },
+                { "oid",                 _oid       },
+                { "cid",                 _cid       },
+                { "regtype",             _regtype   },
             };
 
             var clrTypeMappings = new Dictionary<Type, RelationalTypeMapping>
@@ -126,7 +144,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
                 { typeof(byte[]),                     _bytea     },
                 { typeof(float),                      _float4    },
                 { typeof(double),                     _float8    },
-                { typeof(decimal),                    _decimal   },
+                { typeof(decimal),                    _numeric   },
                 { typeof(Guid),                       _uuid      },
                 { typeof(short),                      _int2      },
                 { typeof(int),                        _int4      },
