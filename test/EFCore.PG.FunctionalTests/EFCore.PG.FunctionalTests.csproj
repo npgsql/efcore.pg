@@ -8,10 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="**\*.sql" Exclude="obj\**;bin\**">
+    <None Update="Northwind.sql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </Content>
+    </None>
+    <None Include="..\xunit.runner.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
