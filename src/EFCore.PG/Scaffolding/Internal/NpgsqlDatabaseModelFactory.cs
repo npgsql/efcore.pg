@@ -207,7 +207,7 @@ AND
             {
                 var commandText = $@"
 SELECT
-    nspname, relname, attisdropped, typ.typname, attname, description,
+    nspname, relname, typ.typname, attname, description, attisdropped,
     format_type(typ.oid, atttypmod) AS formatted_typname, basetyp.typname AS basetypname,
     CASE WHEN pg_proc.proname='array_recv' THEN 'a' ELSE typ.typtype END AS typtype,
     CASE
@@ -225,9 +225,9 @@ LEFT OUTER JOIN pg_type AS elemtyp ON (elemtyp.oid = typ.typelem)
 LEFT OUTER JOIN pg_type AS basetyp ON (basetyp.oid = typ.typbasetype)
 LEFT OUTER JOIN pg_description AS des ON des.objoid = cls.oid AND des.objsubid = attnum
 WHERE
+    NOT attisdropped AND
     relkind = 'r' AND
-    nspname NOT IN ('pg_catalog', 'information_schema')
-AND
+    nspname NOT IN ('pg_catalog', 'information_schema') AND
     attnum > 0 {tableFilter} ORDER BY attnum";
 
                 command.CommandText = commandText;
