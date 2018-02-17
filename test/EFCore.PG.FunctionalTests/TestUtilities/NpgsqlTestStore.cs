@@ -172,32 +172,19 @@ namespace Microsoft.EntityFrameworkCore.TestUtilities
 
         public void ExecuteScript(string scriptPath)
         {
-            // HACK: Probe for script file as current dir
-            // is different between k build and VS run.
-            if (File.Exists(@"..\..\" + scriptPath))
-            {
-                //executing in VS - so path is relative to bin\<config> dir
-                scriptPath = @"..\..\" + scriptPath;
-            }
-            else
-            {
-                scriptPath = Path.Combine(BaseDirectory, scriptPath);
-            }
-
             var script = File.ReadAllText(scriptPath);
             Execute(
-               Connection, command =>
-               {
-                   foreach (var batch in
+                Connection, command =>
+                {
+                    foreach (var batch in
                         new Regex("^GO", RegexOptions.IgnoreCase | RegexOptions.Multiline, TimeSpan.FromMilliseconds(1000.0))
                             .Split(script).Where(b => !string.IsNullOrEmpty(b)))
-                   {
-                       command.CommandText = batch;
-                       command.ExecuteNonQuery();
-                   }
-                   return 0;
-               }, "");
-
+                    {
+                        command.CommandText = batch;
+                        command.ExecuteNonQuery();
+                    }
+                    return 0;
+                }, "");
         }
 
         private NpgsqlConnection _connection;
