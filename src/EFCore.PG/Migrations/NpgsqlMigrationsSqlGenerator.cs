@@ -122,7 +122,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             {
                 builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
 
-                var stringTypeMapping = Dependencies.CoreTypeMapper.GetMapping(typeof(string));
+                var stringTypeMapping = Dependencies.TypeMappingSource.GetMapping(typeof(string));
 
                 builder
                     .Append("COMMENT ON TABLE ")
@@ -137,7 +137,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                 var columnComment = columnOp[NpgsqlAnnotationNames.Comment];
                 builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
 
-                var stringTypeMapping = Dependencies.CoreTypeMapper.GetMapping(typeof(string));
+                var stringTypeMapping = Dependencies.TypeMappingSource.GetMapping(typeof(string));
 
                 builder
                     .Append("COMMENT ON COLUMN ")
@@ -209,7 +209,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
 
             if (oldComment != newComment)
             {
-                var stringTypeMapping = Dependencies.CoreTypeMapper.GetMapping(typeof(string));
+                var stringTypeMapping = Dependencies.TypeMappingSource.GetMapping(typeof(string));
 
                 builder
                     .Append("COMMENT ON TABLE ")
@@ -255,7 +255,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             {
                 builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
 
-                var stringTypeMapping = Dependencies.CoreTypeMapper.GetMapping(typeof(string));
+                var stringTypeMapping = Dependencies.TypeMappingSource.GetMapping(typeof(string));
 
                 builder
                     .Append("COMMENT ON COLUMN ")
@@ -357,7 +357,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
 
             if (oldComment != newComment)
             {
-                var stringTypeMapping = Dependencies.CoreTypeMapper.GetMapping(typeof(string));
+                var stringTypeMapping = Dependencies.TypeMappingSource.GetMapping(typeof(string));
 
                 builder
                     .Append("COMMENT ON COLUMN ")
@@ -385,7 +385,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             if (operation.ClrType != typeof(long))
                 throw new NotSupportedException("PostgreSQL sequences can only be bigint (long)");
 
-            var typeMapping = Dependencies.CoreTypeMapper.GetMapping(operation.ClrType);
+            var typeMapping = Dependencies.TypeMappingSource.GetMapping(operation.ClrType);
 
             builder
                 .Append("CREATE SEQUENCE ")

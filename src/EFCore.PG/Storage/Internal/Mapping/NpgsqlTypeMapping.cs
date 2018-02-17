@@ -25,6 +25,7 @@ using System;
 using System.Data;
 using System.Data.Common;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage.Converters;
 using Npgsql;
 using NpgsqlTypes;
@@ -48,17 +49,18 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
             [NotNull] string storeType,
             [NotNull] Type clrType,
             [CanBeNull] ValueConverter converter,
+            [CanBeNull] ValueComparer comparer,
             NpgsqlDbType npgsqlDbType)
-            : base(storeType, clrType, converter)
+            : base(storeType, clrType, converter, comparer)
         {
             NpgsqlDbType = npgsqlDbType;
         }
 
         public override RelationalTypeMapping Clone(string storeType, int? size)
-            => new NpgsqlTypeMapping(storeType, ClrType, Converter, NpgsqlDbType);
+            => new NpgsqlTypeMapping(storeType, ClrType, Converter, Comparer, NpgsqlDbType);
 
         public override CoreTypeMapping Clone(ValueConverter converter)
-            => new NpgsqlTypeMapping(StoreType, ClrType, ComposeConverter(converter), NpgsqlDbType);
+            => new NpgsqlTypeMapping(StoreType, ClrType, ComposeConverter(converter), Comparer, NpgsqlDbType);
 
         protected override void ConfigureParameter([NotNull] DbParameter parameter)
         {

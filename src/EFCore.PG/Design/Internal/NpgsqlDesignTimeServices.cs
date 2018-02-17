@@ -34,7 +34,7 @@ namespace Microsoft.EntityFrameworkCore.Design.Internal
     {
         public virtual void ConfigureDesignTimeServices([NotNull] IServiceCollection serviceCollection)
             => serviceCollection
-                .AddSingleton<IRelationalCoreTypeMapper, NpgsqlCoreTypeMapper>()
+                .AddSingleton<IRelationalTypeMappingSource, NpgsqlTypeMappingSource>()
                 .AddSingleton<IDatabaseModelFactory, NpgsqlDatabaseModelFactory>()
                 .AddSingleton<ProviderCodeGenerator, NpgsqlCodeGenerator>()
                 .AddSingleton<IAnnotationCodeGenerator, NpgsqlAnnotationCodeGenerator>();

@@ -14,11 +14,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Update
         [Fact]
         public void AddCommand_returns_false_when_max_batch_size_is_reached()
         {
-            var typeMapper = new NpgsqlCoreTypeMapper(
-                new CoreTypeMapperDependencies(
+            var typeMapper = new NpgsqlTypeMappingSource(
+                new TypeMappingSourceDependencies (
                     new ValueConverterSelector(new ValueConverterSelectorDependencies())
                 ),
-                new RelationalTypeMapperDependencies()
+                new RelationalTypeMappingSourceDependencies ()
             );
 
             var batch = new NpgsqlModificationCommandBatch(

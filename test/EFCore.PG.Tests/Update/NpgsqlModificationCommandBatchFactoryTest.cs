@@ -17,11 +17,11 @@ namespace Microsoft.EntityFrameworkCore.Update
             var optionsBuilder = new DbContextOptionsBuilder();
             optionsBuilder.UseNpgsql("Database=Crunchie", b => b.MaxBatchSize(1));
 
-            var typeMapper = new NpgsqlCoreTypeMapper(
-                new CoreTypeMapperDependencies(
+            var typeMapper = new NpgsqlTypeMappingSource(
+                new TypeMappingSourceDependencies (
                     new ValueConverterSelector(new ValueConverterSelectorDependencies())
                 ),
-                new RelationalTypeMapperDependencies()
+                new RelationalTypeMappingSourceDependencies ()
             );
             var factory = new NpgsqlModificationCommandBatchFactory(
                 new RelationalCommandBuilderFactory(
@@ -50,11 +50,11 @@ namespace Microsoft.EntityFrameworkCore.Update
             var optionsBuilder = new DbContextOptionsBuilder();
             optionsBuilder.UseNpgsql("Database=Crunchie");
 
-            var typeMapper = new NpgsqlCoreTypeMapper(
-                new CoreTypeMapperDependencies(
+            var typeMapper = new NpgsqlTypeMappingSource(
+                new TypeMappingSourceDependencies (
                     new ValueConverterSelector(new ValueConverterSelectorDependencies())
                 ),
-                new RelationalTypeMapperDependencies()
+                new RelationalTypeMappingSourceDependencies()
             );
             var factory = new NpgsqlModificationCommandBatchFactory(
                 new RelationalCommandBuilderFactory(

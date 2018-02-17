@@ -86,7 +86,7 @@ namespace Microsoft.Extensions.DependencyInjection
             var builder = new EntityFrameworkRelationalServicesBuilder(serviceCollection)
                 .TryAdd<IDatabaseProvider, DatabaseProvider<NpgsqlOptionsExtension>>()
                 .TryAdd<IValueGeneratorCache>(p => p.GetService<INpgsqlValueGeneratorCache>())
-                .TryAdd<IRelationalCoreTypeMapper, NpgsqlCoreTypeMapper>()
+                .TryAdd<IRelationalTypeMappingSource, NpgsqlTypeMappingSource>()
                 // TODO: Remove after https://github.com/aspnet/EntityFrameworkCore/issues/10803
                 .TryAdd<IRelationalTypeMapper, DummyTypeMapper>()
                 .TryAdd<ISqlGenerationHelper, RelationalSqlGenerationHelper>()
