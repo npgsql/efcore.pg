@@ -54,20 +54,20 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
 
         readonly NpgsqlBoolTypeMapping      _bool      = new NpgsqlBoolTypeMapping();
         readonly NpgsqlByteArrayTypeMapping _bytea     = new NpgsqlByteArrayTypeMapping();
-        readonly FloatTypeMapping           _float4    = new FloatTypeMapping("float4", DbType.Single);
-        readonly DoubleTypeMapping          _float8    = new DoubleTypeMapping("float8", DbType.Double);
-        readonly DecimalTypeMapping         _numeric   = new DecimalTypeMapping("decimal", DbType.Decimal);
+        readonly FloatTypeMapping           _float4    = new FloatTypeMapping("real", DbType.Single);
+        readonly DoubleTypeMapping          _float8    = new DoubleTypeMapping("double precision", DbType.Double);
+        readonly DecimalTypeMapping         _numeric   = new DecimalTypeMapping("numeric", DbType.Decimal);
         readonly DecimalTypeMapping         _money     = new DecimalTypeMapping("money");
         readonly GuidTypeMapping            _uuid      = new GuidTypeMapping("uuid", DbType.Guid);
-        readonly ShortTypeMapping           _int2      = new ShortTypeMapping("int2", DbType.Int16);
-        readonly IntTypeMapping             _int4      = new IntTypeMapping("int4", DbType.Int32);
-        readonly LongTypeMapping            _int8      = new LongTypeMapping("int8", DbType.Int64);
+        readonly ShortTypeMapping           _int2      = new ShortTypeMapping("smallint", DbType.Int16);
+        readonly IntTypeMapping             _int4      = new IntTypeMapping("integer", DbType.Int32);
+        readonly LongTypeMapping            _int8      = new LongTypeMapping("bigint", DbType.Int64);
         readonly StringTypeMapping          _text      = new StringTypeMapping("text", DbType.String);
-        readonly StringTypeMapping          _varchar   = new StringTypeMapping("varchar", DbType.String);
-        readonly StringTypeMapping          _char      = new StringTypeMapping("char", DbType.String);
+        readonly StringTypeMapping          _varchar   = new StringTypeMapping("character varying", DbType.String);
+        readonly StringTypeMapping          _char      = new StringTypeMapping("character", DbType.String);
         readonly NpgsqlJsonbTypeMapping     _jsonb     = new NpgsqlJsonbTypeMapping();
         readonly NpgsqlJsonTypeMapping      _json      = new NpgsqlJsonTypeMapping();
-        readonly DateTimeTypeMapping        _timestamp = new DateTimeTypeMapping("timestamp", DbType.DateTime);
+        readonly DateTimeTypeMapping        _timestamp = new DateTimeTypeMapping("timestamp without time zone", DbType.DateTime);
         // TODO: timestamptz
         readonly NpgsqlIntervalTypeMapping  _interval  = new NpgsqlIntervalTypeMapping();
         // TODO: time
@@ -95,47 +95,48 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
             // https://www.postgresql.org/docs/9.5/static/datatype.html#DATATYPE-TABLE
             var storeTypeMappings = new Dictionary<string, RelationalTypeMapping>(StringComparer.OrdinalIgnoreCase)
             {
-                { "boolean",             _bool      },
-                { "bool",                _bool      },
-                { "bytea",               _bytea     },
-                { "real",                _float4    },
-                { "float4",              _float4    },
-                { "double precision",    _float8    },
-                { "float8",              _float8    },
-                { "numeric",             _numeric   },
-                { "decimal",             _numeric   },
-                { "money",               _money     },
-                { "uuid",                _uuid      },
-                { "smallint",            _int2      },
-                { "int2",                _int2      },
-                { "integer",             _int4      },
-                { "int",                 _int4      },
-                { "int4",                _int4      },
-                { "bigint",              _int8      },
-                { "int8",                _int8      },
-                { "text",                _text      },
-                { "jsonb",               _jsonb     },
-                { "json",                _json      },
-                { "character varying",   _varchar   },
-                { "varchar",             _varchar   },
-                { "character",           _char      },
-                { "char",                _char      },
-                { "timestamp",           _timestamp },
-                { "interval",            _interval  },
-                { "time with time zone", _timetz    },
-                { "timetz",              _timetz    },
-                { "macaddr",             _macaddr   },
-                { "inet",                _inet      },
-                { "bit",                 _bit       },
-                { "bit varying",         _varbit    },
-                { "varbit",              _varbit    },
-                { "hstore",              _hstore    },
-                { "point",               _point     },
-                { "line",                _line      },
-                { "xid",                 _xid       },
-                { "oid",                 _oid       },
-                { "cid",                 _cid       },
-                { "regtype",             _regtype   },
+                { "boolean",                     _bool      },
+                { "bool",                        _bool      },
+                { "bytea",                       _bytea     },
+                { "real",                        _float4    },
+                { "float4",                      _float4    },
+                { "double precision",            _float8    },
+                { "float8",                      _float8    },
+                { "numeric",                     _numeric   },
+                { "decimal",                     _numeric   },
+                { "money",                       _money     },
+                { "uuid",                        _uuid      },
+                { "smallint",                    _int2      },
+                { "int2",                        _int2      },
+                { "integer",                     _int4      },
+                { "int",                         _int4      },
+                { "int4",                        _int4      },
+                { "bigint",                      _int8      },
+                { "int8",                        _int8      },
+                { "text",                        _text      },
+                { "jsonb",                       _jsonb     },
+                { "json",                        _json      },
+                { "character varying",           _varchar   },
+                { "varchar",                     _varchar   },
+                { "character",                   _char      },
+                { "char",                        _char      },
+                { "timestamp without time zone", _timestamp },
+                { "timestamp",                   _timestamp },
+                { "interval",                    _interval  },
+                { "time with time zone",         _timetz    },
+                { "timetz",                      _timetz    },
+                { "macaddr",                     _macaddr   },
+                { "inet",                        _inet      },
+                { "bit",                         _bit       },
+                { "bit varying",                 _varbit    },
+                { "varbit",                      _varbit    },
+                { "hstore",                      _hstore    },
+                { "point",                       _point     },
+                { "line",                        _line      },
+                { "xid",                         _xid       },
+                { "oid",                         _oid       },
+                { "cid",                         _cid       },
+                { "regtype",                     _regtype   },
             };
 
             var clrTypeMappings = new Dictionary<Type, RelationalTypeMapping>

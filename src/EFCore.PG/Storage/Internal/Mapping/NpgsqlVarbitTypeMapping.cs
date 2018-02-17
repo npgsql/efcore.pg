@@ -10,7 +10,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal.Mapping
 {
     public class NpgsqlVarbitTypeMapping : NpgsqlTypeMapping
     {
-        public NpgsqlVarbitTypeMapping() : base("varbit", typeof(BitArray), NpgsqlDbType.Varbit) {}
+        public NpgsqlVarbitTypeMapping() : base("bit varying", typeof(BitArray), NpgsqlDbType.Varbit) {}
 
         protected override string GenerateNonNullSqlLiteral(object value)
             => ((BitArray)value).ToString();
