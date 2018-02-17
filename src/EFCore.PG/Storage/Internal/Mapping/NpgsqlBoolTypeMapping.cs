@@ -25,7 +25,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
 {
     public class NpgsqlBoolTypeMapping : BoolTypeMapping
     {
-        public NpgsqlBoolTypeMapping() : base("bool", System.Data.DbType.Boolean) {}
+        public NpgsqlBoolTypeMapping() : base("boolean", System.Data.DbType.Boolean) {}
 
         protected override string GenerateNonNullSqlLiteral(object value)
             => (bool)value ? "TRUE" : "FALSE";
