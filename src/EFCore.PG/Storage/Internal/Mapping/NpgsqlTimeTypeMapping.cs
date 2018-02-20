@@ -3,9 +3,9 @@ using NpgsqlTypes;
 
 namespace Microsoft.EntityFrameworkCore.Storage.Internal.Mapping
 {
-    public class NpgsqlTimeTzTypeMapping : NpgsqlTypeMapping
+    public class NpgsqlTimeTypeMapping : NpgsqlTypeMapping
     {
-        public NpgsqlTimeTzTypeMapping() : base("time with time zone", typeof(DateTimeOffset), NpgsqlDbType.TimeTZ) {}
+        public NpgsqlTimeTypeMapping() : base("time without time zone", typeof(DateTime), NpgsqlDbType.Time) {}
 
         protected override string GenerateNonNullSqlLiteral(object value)
             => throw new NotImplementedException();
