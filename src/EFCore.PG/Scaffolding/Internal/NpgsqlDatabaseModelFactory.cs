@@ -213,7 +213,7 @@ AND
             {
                 var commandText = $@"
 SELECT
-    nspname, relname, typ.typname, attname, description, attisdropped,
+    nspname, relname, typ.typname, attname, description, attisdropped, attidentity,
     format_type(typ.oid, atttypmod) AS formatted_typname, basetyp.typname AS basetypname,
     CASE WHEN pg_proc.proname='array_recv' THEN 'a' ELSE typ.typtype END AS typtype,
     CASE
@@ -302,6 +302,28 @@ WHERE
                                 systemTypeName = domainBaseTypeName;
                             }
 
+                            var identityChar = record.GetValueOrDefault<char>("attidentity");
+                            if (identityChar == 'a')
+                                column[NpgsqlAnnotationNames.ValueGenerationStrategy] = NpgsqlValueGenerationStrategy.IdentityAlwaysColumn;
+                            else if (identityChar == 'd')
+                                column[NpgsqlAnnotationNames.ValueGenerationStrategy] = NpgsqlValueGenerationStrategy.IdentityByDefaultColumn;
+                            else if (SerialTypes.Contains(systemTypeName) &&
+                                defaultValue == $"nextval('{column.Table.Name}_{column.Name}_seq'::regclass)" ||
+                                defaultValue == $"nextval('\"{column.Table.Name}_{column.Name}_seq\"'::regclass)")
+                            {
+                                // Hacky but necessary...
+                                // We identify serial columns by examining their default expression,
+                                // and reverse-engineer these as ValueGenerated.OnAdd
+                                // TODO: Think about composite keys? Do serial magic only for non-composite.
+                                column.DefaultValueSql = null;
+                                // Serial is the default value generation strategy, so NpgsqlAnnotationCodeGenerator
+                                // makes sure it isn't actually rendered
+                                column[NpgsqlAnnotationNames.ValueGenerationStrategy] = NpgsqlValueGenerationStrategy.SerialColumn;
+                            }
+
+                            if (column[NpgsqlAnnotationNames.ValueGenerationStrategy] != null)
+                                column.ValueGenerated = ValueGenerated.OnAdd;
+
                             AdjustDefaults(column, systemTypeName);
 
                             var comment = record.GetValueOrDefault<string>("description");
@@ -328,19 +350,6 @@ WHERE
 
             if (column.IsNullable)
                 return;
-
-            if (SerialTypes.Contains(systemTypeName) &&
-                defaultValue == $"nextval('{column.Table.Name}_{column.Name}_seq'::regclass)" ||
-                defaultValue == $"nextval('\"{column.Table.Name}_{column.Name}_seq\"'::regclass)")
-            {
-                // Hacky but necessary...
-                // We identify serial columns by examining their default expression,
-                // and reverse-engineer these as ValueGenerated.OnAdd
-                // TODO: Think about composite keys? Do serial magic only for non-composite.
-                column.ValueGenerated = ValueGenerated.OnAdd;
-                column.DefaultValueSql = null;
-                return;
-            }
 
             if (defaultValue == "0")
             {

@@ -16,6 +16,8 @@ namespace Microsoft.EntityFrameworkCore
     /// </summary>
     public static class NpgsqlPropertyBuilderExtensions
     {
+        #region Sequence Hi Lo
+
         /// <summary>
         ///     Configures the property to use a sequence-based hi-lo pattern to generate values for new entities,
         ///     when targeting PostgreSQL. This method sets the property to be <see cref="ValueGenerated.OnAdd" />.
@@ -67,8 +69,12 @@ namespace Microsoft.EntityFrameworkCore
             [CanBeNull] string schema = null)
             => (PropertyBuilder<TProperty>)ForNpgsqlUseSequenceHiLo((PropertyBuilder)propertyBuilder, name, schema);
 
+        #endregion Sequence Hi Lo
+
+        #region Serial
+
         /// <summary>
-        ///     Configures the property to use the PostgreSQL SERIALfeature to generate values for new entities,
+        ///     Configures the property to use the PostgreSQL SERIAL feature to generate values for new entities,
         ///     when targeting PostgreSQL. This method sets the property to be <see cref="ValueGenerated.OnAdd" />.
         /// </summary>
         /// <param name="propertyBuilder"> The builder for the property being configured. </param>
@@ -93,6 +99,107 @@ namespace Microsoft.EntityFrameworkCore
         public static PropertyBuilder<TProperty> UseNpgsqlSerialColumn<TProperty>(
             [NotNull] this PropertyBuilder<TProperty> propertyBuilder)
             => (PropertyBuilder<TProperty>)UseNpgsqlSerialColumn((PropertyBuilder)propertyBuilder);
+
+        #endregion Serial
+
+        #region Identity always
+
+        /// <summary>
+        /// <para>
+        /// Configures the property to use the PostgreSQL IDENTITY feature to generate values for new entities,
+        /// when targeting PostgreSQL. This method sets the property to be <see cref="ValueGenerated.OnAdd" />.
+        /// Values for this property will always be generated as identity, and the application will not be able
+        /// to override this behavior by providing a value.
+        /// </para>
+        /// <para>Available only starting PostgreSQL 10.</para>
+        /// </summary>
+        /// <param name="propertyBuilder"> The builder for the property being configured. </param>
+        /// <returns> The same builder instance so that multiple calls can be chained. </returns>
+        public static PropertyBuilder UseNpgsqlIdentityAlwaysColumn(
+            [NotNull] this PropertyBuilder propertyBuilder)
+        {
+            Check.NotNull(propertyBuilder, nameof(propertyBuilder));
+
+            GetNpgsqlInternalBuilder(propertyBuilder).ValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityAlwaysColumn);
+
+            return propertyBuilder;
+        }
+
+        #endregion Identity always
+
+        #region Identity by default
+
+        /// <summary>
+        /// <para>
+        /// Configures the property to use the PostgreSQL IDENTITY feature to generate values for new entities,
+        /// when targeting PostgreSQL. This method sets the property to be <see cref="ValueGenerated.OnAdd" />.
+        /// Values for this property will be generated as identity by default, but the application will be able
+        /// to override this behavior by providing a value.
+        /// </para>
+        /// <para>Available only starting PostgreSQL 10.</para>
+        /// </summary>
+        /// <param name="propertyBuilder"> The builder for the property being configured. </param>
+        /// <returns> The same builder instance so that multiple calls can be chained. </returns>
+        public static PropertyBuilder UseNpgsqlIdentityByDefaultColumn(
+            [NotNull] this PropertyBuilder propertyBuilder)
+        {
+            Check.NotNull(propertyBuilder, nameof(propertyBuilder));
+
+            GetNpgsqlInternalBuilder(propertyBuilder).ValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+
+            return propertyBuilder;
+        }
+
+        /// <summary>
+        /// <para>
+        /// Configures the property to use the PostgreSQL IDENTITY feature to generate values for new entities,
+        /// when targeting PostgreSQL. This method sets the property to be <see cref="ValueGenerated.OnAdd" />.
+        /// Values for this property will be generated as identity by default, but the application will be able
+        /// to override this behavior by providing a value.
+        /// </para>
+        /// <para>Available only starting PostgreSQL 10.</para>
+        /// </summary>
+        /// <typeparam name="TProperty"> The type of the property being configured. </typeparam>
+        /// <param name="propertyBuilder"> The builder for the property being configured. </param>
+        /// <returns> The same builder instance so that multiple calls can be chained. </returns>
+        public static PropertyBuilder<TProperty> UseNpgsqlIdentityByDefaultColumn<TProperty>(
+            [NotNull] this PropertyBuilder<TProperty> propertyBuilder)
+            => (PropertyBuilder<TProperty>)UseNpgsqlIdentityByDefaultColumn((PropertyBuilder)propertyBuilder);
+
+        /// <summary>
+        /// <para>
+        /// Configures the property to use the PostgreSQL IDENTITY feature to generate values for new entities,
+        /// when targeting PostgreSQL. This method sets the property to be <see cref="ValueGenerated.OnAdd" />.
+        /// Values for this property will be generated as identity by default, but the application will be able
+        /// to override this behavior by providing a value.
+        /// </para>
+        /// <para>Available only starting PostgreSQL 10.</para>
+        /// </summary>
+        /// <param name="propertyBuilder"> The builder for the property being configured. </param>
+        /// <returns> The same builder instance so that multiple calls can be chained. </returns>
+        public static PropertyBuilder UseNpgsqlIdentityColumn(
+            [NotNull] this PropertyBuilder propertyBuilder)
+            => propertyBuilder.UseNpgsqlIdentityByDefaultColumn();
+
+        /// <summary>
+        /// <para>
+        /// Configures the property to use the PostgreSQL IDENTITY feature to generate values for new entities,
+        /// when targeting PostgreSQL. This method sets the property to be <see cref="ValueGenerated.OnAdd" />.
+        /// Values for this property will be generated as identity by default, but the application will be able
+        /// to override this behavior by providing a value.
+        /// </para>
+        /// <para>Available only starting PostgreSQL 10.</para>
+        /// </summary>
+        /// <typeparam name="TProperty"> The type of the property being configured. </typeparam>
+        /// <param name="propertyBuilder"> The builder for the property being configured. </param>
+        /// <returns> The same builder instance so that multiple calls can be chained. </returns>
+        public static PropertyBuilder<TProperty> UseNpgsqlIdentityColumn<TProperty>(
+            [NotNull] this PropertyBuilder<TProperty> propertyBuilder)
+            => propertyBuilder.UseNpgsqlIdentityByDefaultColumn();
+
+        #endregion Identity by default
+
+        #region Comment
 
         /// <summary>
         ///     Configures the comment set on the column when targeting Npgsql.
@@ -124,7 +231,9 @@ namespace Microsoft.EntityFrameworkCore
             [CanBeNull] string comment)
         => (PropertyBuilder<TEntity>)ForNpgsqlHasComment((PropertyBuilder)propertyBuilder, comment);
 
-        private static NpgsqlPropertyBuilderAnnotations GetNpgsqlInternalBuilder(PropertyBuilder propertyBuilder)
+        #endregion Comment
+
+        static NpgsqlPropertyBuilderAnnotations GetNpgsqlInternalBuilder(PropertyBuilder propertyBuilder)
             => propertyBuilder.GetInfrastructure<InternalPropertyBuilder>().Npgsql(ConfigurationSource.Explicit);
     }
 }

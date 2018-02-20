@@ -62,7 +62,7 @@ namespace System
                    || type == typeof(sbyte);
         }
 
-        public static bool IsIntegerForSerial(this Type type)
+        public static bool IsIntegerForIdentityOrSerial(this Type type)
         {
             type = type.UnwrapNullableType();
 

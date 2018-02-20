@@ -64,6 +64,71 @@ namespace Microsoft.EntityFrameworkCore
             return modelBuilder;
         }
 
+        /// <summary>
+        /// <para>
+        /// Configures the model to use the PostgreSQL IDENTITY feature to generate values for properties
+        /// marked as <see cref="ValueGenerated.OnAdd" />, when targeting PostgreSQL. Values for these
+        /// columns will always be generated as identity, and the application will not be able to override
+        /// this behavior by providing a value.
+        /// </para>
+        /// <para>Available only starting PostgreSQL 10.</para>
+        /// </summary>
+        /// <param name="modelBuilder">The model builder.</param>
+        /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+        public static ModelBuilder ForNpgsqlUseIdentityAlwaysColumns(
+            [NotNull] this ModelBuilder modelBuilder)
+        {
+            Check.NotNull(modelBuilder, nameof(modelBuilder));
+
+            var property = modelBuilder.Model;
+
+            property.Npgsql().ValueGenerationStrategy = NpgsqlValueGenerationStrategy.IdentityAlwaysColumn;
+            property.Npgsql().HiLoSequenceName = null;
+            property.Npgsql().HiLoSequenceSchema = null;
+
+            return modelBuilder;
+        }
+
+        /// <summary>
+        /// <para>
+        /// Configures the model to use the PostgreSQL IDENTITY feature to generate values for properties
+        /// marked as <see cref="ValueGenerated.OnAdd" />, when targeting PostgreSQL. Values for these
+        /// columns will be generated as identity by default, but the application will be able to override
+        /// this behavior by providing a value.
+        /// </para>
+        /// <para>Available only starting PostgreSQL 10.</para>
+        /// </summary>
+        /// <param name="modelBuilder">The model builder.</param>
+        /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+        public static ModelBuilder ForNpgsqlUseIdentityByDefaultColumns(
+            [NotNull] this ModelBuilder modelBuilder)
+        {
+            Check.NotNull(modelBuilder, nameof(modelBuilder));
+
+            var property = modelBuilder.Model;
+
+            property.Npgsql().ValueGenerationStrategy = NpgsqlValueGenerationStrategy.IdentityByDefaultColumn;
+            property.Npgsql().HiLoSequenceName = null;
+            property.Npgsql().HiLoSequenceSchema = null;
+
+            return modelBuilder;
+        }
+
+        /// <summary>
+        /// <para>
+        /// Configures the model to use the PostgreSQL IDENTITY feature to generate values for properties
+        /// marked as <see cref="ValueGenerated.OnAdd" />, when targeting PostgreSQL. Values for these
+        /// columns will be generated as identity by default, but the application will be able to override
+        /// this behavior by providing a value.
+        /// </para>
+        /// <para>Available only starting PostgreSQL 10.</para>
+        /// </summary>
+        /// <param name="modelBuilder">The model builder.</param>
+        /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+        public static ModelBuilder ForNpgsqlUseIdentityColumns(
+            [NotNull] this ModelBuilder modelBuilder)
+            => modelBuilder.ForNpgsqlUseIdentityByDefaultColumns();
+
         public static ModelBuilder HasPostgresExtension(
             [NotNull] this ModelBuilder modelBuilder,
             [NotNull] string name)

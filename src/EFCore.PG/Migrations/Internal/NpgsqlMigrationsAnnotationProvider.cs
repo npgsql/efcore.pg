@@ -53,6 +53,10 @@ namespace Microsoft.EntityFrameworkCore.Migrations.Internal
         {
             if (property.Npgsql().ValueGenerationStrategy == NpgsqlValueGenerationStrategy.SerialColumn)
                 yield return new Annotation(NpgsqlAnnotationNames.ValueGenerationStrategy, NpgsqlValueGenerationStrategy.SerialColumn);
+            if (property.Npgsql().ValueGenerationStrategy == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn)
+                yield return new Annotation(NpgsqlAnnotationNames.ValueGenerationStrategy, NpgsqlValueGenerationStrategy.IdentityAlwaysColumn);
+            if (property.Npgsql().ValueGenerationStrategy == NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
+                yield return new Annotation(NpgsqlAnnotationNames.ValueGenerationStrategy, NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
             if (property.Npgsql().Comment != null)
                 yield return new Annotation(NpgsqlAnnotationNames.Comment, property.Npgsql().Comment);
         }

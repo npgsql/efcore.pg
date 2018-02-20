@@ -1,4 +1,6 @@
-﻿using JetBrains.Annotations;
+﻿using System;
+using System.Diagnostics;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
@@ -35,6 +37,24 @@ namespace Microsoft.EntityFrameworkCore.Design.Internal
             if (annotation.Name == NpgsqlAnnotationNames.IndexMethod
                 && string.Equals("btree", (string)annotation.Value))
             {
+                return true;
+            }
+
+            return false;
+        }
+
+        public override bool IsHandledByConvention(IProperty property, IAnnotation annotation)
+        {
+            Check.NotNull(property, nameof(property));
+            Check.NotNull(annotation, nameof(annotation));
+
+            // Serial is the default value generation strategy.
+            // So if ValueGenerated is OnAdd (which it must be if serial is set), make sure
+            // ValueGenerationStrategy.Serial isn't code-generated because it's by-convention.
+            if (annotation.Name == NpgsqlAnnotationNames.ValueGenerationStrategy
+                && (NpgsqlValueGenerationStrategy)annotation.Value == NpgsqlValueGenerationStrategy.SerialColumn)
+            {
+                Debug.Assert(property.ValueGenerated == ValueGenerated.OnAdd);
                 return true;
             }
 
@@ -78,8 +98,24 @@ namespace Microsoft.EntityFrameworkCore.Design.Internal
             Check.NotNull(property, nameof(property));
             Check.NotNull(annotation, nameof(annotation));
 
-            if (annotation.Name == NpgsqlAnnotationNames.Comment)
+            switch (annotation.Name)
             {
+            case NpgsqlAnnotationNames.ValueGenerationStrategy:
+                switch ((NpgsqlValueGenerationStrategy)annotation.Value)
+                {
+                case NpgsqlValueGenerationStrategy.SerialColumn:
+                    return new MethodCallCodeFragment(nameof(NpgsqlPropertyBuilderExtensions.UseNpgsqlSerialColumn));
+                case NpgsqlValueGenerationStrategy.IdentityAlwaysColumn:
+                    return new MethodCallCodeFragment(nameof(NpgsqlPropertyBuilderExtensions.UseNpgsqlIdentityAlwaysColumn));
+                case NpgsqlValueGenerationStrategy.IdentityByDefaultColumn:
+                    return new MethodCallCodeFragment(nameof(NpgsqlPropertyBuilderExtensions.UseNpgsqlIdentityByDefaultColumn));
+                case NpgsqlValueGenerationStrategy.SequenceHiLo:
+                    throw new Exception($"Unexpected {NpgsqlValueGenerationStrategy.SequenceHiLo} value generation strategy when scaffolding");
+                default:
+                    throw new ArgumentOutOfRangeException();
+                }
+
+            case NpgsqlAnnotationNames.Comment:
                 return (bool)annotation.Value == false
                     ? new MethodCallCodeFragment(nameof(NpgsqlPropertyBuilderExtensions.ForNpgsqlHasComment), false)
                     : new MethodCallCodeFragment(nameof(NpgsqlPropertyBuilderExtensions.ForNpgsqlHasComment));
