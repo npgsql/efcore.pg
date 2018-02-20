@@ -9,6 +9,9 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Scaffolding.Internal;
 using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
 using Microsoft.EntityFrameworkCore.Scaffolding.Metadata.Internal;
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Storage.Converters;
+using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.EntityFrameworkCore.TestUtilities.Xunit;
 using Microsoft.Extensions.Logging;
@@ -1524,7 +1527,98 @@ CREATE SEQUENCE ""BigIntSequence"" AS bigint;",
 DROP SEQUENCE ""SmallIntSequence"";
 DROP SEQUENCE ""IntSequence"";
 DROP SEQUENCE ""BigIntSequence"";");
-            throw new NotImplementedException();
+        }
+
+        [Fact]
+        public void Dropped_columns()
+        {
+            Test(
+                @"
+CREATE TABLE foo (id int primary key);
+ALTER TABLE foo DROP COLUMN id;
+ALTER TABLE foo ADD COLUMN id2 int primary key;",
+                Enumerable.Empty<string>(),
+                Enumerable.Empty<string>(),
+                dbModel =>
+                {
+                    Assert.Single(dbModel.Tables.Single().Columns);
+                },
+                "DROP TABLE foo");
+        }
+
+        [Fact]
+        public void Postgres_extensions()
+        {
+            Test(
+                @"
+CREATE EXTENSION hstore;
+CREATE EXTENSION pgcrypto;",
+                Enumerable.Empty<string>(),
+                Enumerable.Empty<string>(),
+                dbModel =>
+                {
+                    var extensions = PostgresExtension.GetPostgresExtensions(dbModel).ToList();
+                    Assert.Equal(2, extensions.Count);
+                    var hstore = extensions.Single(e => e.Name == "hstore");
+                    var pgcrypto = extensions.Single(e => e.Name == "pgcrypto");
+                },
+                @"DROP EXTENSION hstore; DROP EXTENSION pgcrypto");
+        }
+
+        [Fact]
+        public void Column_default_type_names_are_scaffolded()
+        {
+            Test(
+                @"
+CREATE TABLE column_types (
+    smallint smallint,
+    integer integer,
+    bigint bigint,
+    real real,
+    ""double precision"" double precision,
+    money money,
+    numeric numeric,
+    boolean boolean,
+    bytea bytea,
+    uuid uuid,
+    text text,
+    jsonb jsonb,
+    json json,
+    ""character varying"" character varying,
+    ""character(1)"" character,
+    ""timestamp without time zone"" timestamp,
+    ""timestamp with time zone"" timestamptz,
+    ""time without time zone"" time,
+    ""time with time zone"" timetz,
+    interval interval,
+    macaddr macaddr,
+    inet inet,
+    ""bit(1)"" bit,
+    ""bit varying"" varbit,
+    point point,
+    line line
+)",
+                Enumerable.Empty<string>(),
+                Enumerable.Empty<string>(),
+                dbModel =>
+                {
+                    var typeMappingSource = new NpgsqlTypeMappingSource(
+                        new TypeMappingSourceDependencies(
+                            new ValueConverterSelector(new ValueConverterSelectorDependencies())
+                        ),
+                        new RelationalTypeMappingSourceDependencies()
+                    );
+
+                    foreach (var column in dbModel.Tables.Single().Columns)
+                    {
+                        Assert.Equal(column.Name, column.StoreType);
+                        Assert.Equal(
+                            typeMappingSource.FindMapping(column.StoreType).StoreType,
+                            column.StoreType
+                        );
+                    }
+                },
+                "DROP TABLE column_types");
         }
 
         #endregion

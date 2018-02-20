@@ -120,6 +120,12 @@ namespace Microsoft.EntityFrameworkCore.Scaffolding.Internal
 
                 GetExtensions(connection, databaseModel);
 
+                // We may have dropped columns. We load these because constraints take them into
+                // account when referencing columns, but must now get rid of them before returning
+                // the database model.
+                foreach (var table in databaseModel.Tables)
+                    while (table.Columns.Remove(null)) {}
+
                 foreach (var schema in schemaList
                     .Except(
                         databaseModel.Sequences.Select(s => s.Schema)
@@ -225,7 +231,6 @@ LEFT OUTER JOIN pg_type AS elemtyp ON (elemtyp.oid = typ.typelem)
 LEFT OUTER JOIN pg_type AS basetyp ON (basetyp.oid = typ.typbasetype)
 LEFT OUTER JOIN pg_description AS des ON des.objoid = cls.oid AND des.objsubid = attnum
 WHERE
-    NOT attisdropped AND
     relkind = 'r' AND
     nspname NOT IN ('pg_catalog', 'information_schema') AND
     attnum > 0 {tableFilter} ORDER BY attnum";
@@ -253,6 +258,15 @@ WHERE
                             var formattedTypeName = record.GetValueOrDefault<string>("formatted_typname");
                             var nullable = record.GetValueOrDefault<bool>("nullable");
                             var defaultValue = record.GetValueOrDefault<string>("default");
+
+                            // We need to know about dropped columns because constraints take them into
+                            // account when referencing columns. We'll get rid of them before returning the model.
+                            var isDropped = record.GetValueOrDefault<bool>("attisdropped");
+                            if (isDropped)
+                            {
+                                table.Columns.Add(null);
+                                continue;
+                            }
 
                             _logger.ColumnFound(
                                 DisplayName(tableSchema, tableName),
@@ -301,7 +315,7 @@ WHERE
             }
         }
 
-        static readonly string[] SerialTypes = { "integer, smallint, bigint" };
+        static readonly string[] SerialTypes = { "int2", "int4", "int8" };
 
         static void AdjustDefaults(DatabaseColumn column, string systemTypeName)
         {
