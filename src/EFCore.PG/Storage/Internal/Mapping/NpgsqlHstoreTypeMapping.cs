@@ -12,7 +12,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal.Mapping
 
         protected override string GenerateNonNullSqlLiteral(object value)
         {
-            var sb = new StringBuilder("'");
+            var sb = new StringBuilder("HSTORE '");
             foreach (var kv in (Dictionary<string, string>)value)
             {
                 sb.Append('"');
@@ -30,7 +30,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal.Mapping
 
             sb.Remove(sb.Length - 1, 1);
 
-            sb.Append("'::hstore");
+            sb.Append('\'');
             return sb.ToString();
         }
     }

@@ -1,0 +1,71 @@
+﻿using System;
+using Microsoft.EntityFrameworkCore.Storage.Converters;
+using NpgsqlTypes;
+
+namespace Microsoft.EntityFrameworkCore.Storage.Internal.Mapping
+{
+    public class NpgsqlTimestampTypeMapping : NpgsqlTypeMapping
+    {
+        public NpgsqlTimestampTypeMapping() : base("timestamp without time zone", typeof(DateTime), NpgsqlDbType.Timestamp) {}
+
+        protected override string GenerateNonNullSqlLiteral(object value)
+            => $"TIMESTAMP '{(DateTime)value:yyyy-MM-dd HH:mm:ss.FFF}'";
+    }
+
+    public class NpgsqlTimestampTzTypeMapping : NpgsqlTypeMapping
+    {
+        public NpgsqlTimestampTzTypeMapping() : base("timestamp with time zone", typeof(DateTime), NpgsqlDbType.TimestampTZ) {}
+
+        protected override string GenerateNonNullSqlLiteral(object value)
+        {
+            var dt = (DateTime)value;
+            var tz = dt.Kind == DateTimeKind.Local
+                ? $"{dt:zzz}"
+                : " UTC";
+
+            return $"TIMESTAMPTZ '{dt:yyyy-MM-dd HH:mm:ss.FFF}{tz}'";
+        }
+    }
+
+    public class NpgsqlDateTypeMapping : RelationalTypeMapping
+    {
+        public NpgsqlDateTypeMapping()
+            : this(null) {}
+
+        public NpgsqlDateTypeMapping(ValueConverter converter)
+            : base("date", typeof(DateTime), converter, System.Data.DbType.Date) {}
+
+        public override RelationalTypeMapping Clone(string storeType, int? size)
+            => new NpgsqlDateTypeMapping(Converter);
+
+        protected override string GenerateNonNullSqlLiteral(object value)
+            => $"DATE '{(DateTime)value:yyyy-MM-dd}'";
+    }
+
+    public class NpgsqlTimeTypeMapping : NpgsqlTypeMapping
+    {
+        public NpgsqlTimeTypeMapping() : base("time without time zone", typeof(DateTime), NpgsqlDbType.Time) {}
+
+        protected override string GenerateNonNullSqlLiteral(object value)
+            => $"TIME '{(DateTime)value:HH:mm:ss.FFF}'";
+    }
+
+    public class NpgsqlTimeTzTypeMapping : NpgsqlTypeMapping
+    {
+        public NpgsqlTimeTzTypeMapping() : base("time with time zone", typeof(DateTimeOffset), NpgsqlDbType.TimeTZ) {}
+
+        protected override string GenerateNonNullSqlLiteral(object value)
+            => $"TIMETZ '{(DateTimeOffset)value:HH:mm:ss.FFFz}'";
+    }
+
+    public class NpgsqlIntervalTypeMapping : NpgsqlTypeMapping
+    {
+        public NpgsqlIntervalTypeMapping() : base("interval", typeof(TimeSpan), NpgsqlDbType.Interval) {}
+
+        protected override string GenerateNonNullSqlLiteral(object value)
+        {
+            var ts = (TimeSpan)value;
+            return $"INTERVAL '{ts.ToString($@"{(ts < TimeSpan.Zero ? "\\-" : "")}{(ts.Days == 0 ? "" : "d\\ ")}hh\:mm\:ss{(ts.Milliseconds == 0 ? "" : $"\\.FFF")}")}'";
+        }
+    }
+}

@@ -14,7 +14,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal.Mapping
         public NpgsqlJsonTypeMapping() : base("json", typeof(string), NpgsqlDbType.Json) {}
 
         protected override string GenerateNonNullSqlLiteral(object value)
-            => $"'{EscapeSqlLiteral((string)value)}'";
+            => $"JSON '{EscapeSqlLiteral((string)value)}'";
 
         string EscapeSqlLiteral([NotNull] string literal)
             => Check.NotNull(literal, nameof(literal)).Replace("'", "''");
