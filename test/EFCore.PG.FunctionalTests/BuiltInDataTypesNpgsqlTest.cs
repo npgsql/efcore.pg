@@ -54,6 +54,7 @@ namespace Microsoft.EntityFrameworkCore
                         Point = new NpgsqlPoint(5.2, 3.3),
                         Jsonb = @"{""a"": ""b""}",
                         Hstore = new Dictionary<string, string> { { "a", "b" } },
+                        Int4Range = new NpgsqlRange<int>(4, true, 8, false),
 
                         //SomeComposite = new SomeComposite { SomeNumber = 8, SomeText = "foo" }
 
@@ -133,6 +134,9 @@ namespace Microsoft.EntityFrameworkCore
 
                 var param21 = new Dictionary<string, string> { { "a", "b" } };
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Hstore == param21));
+
+                var param22 = new NpgsqlRange<int>(4, true, 8, false);
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Int4Range == param22));
 
                 //SomeComposite param22 = new SomeComposite { SomeNumber = 8, SomeText = "foo" };
                 //Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.SomeComposite.Equals(param20)));
@@ -229,6 +233,9 @@ namespace Microsoft.EntityFrameworkCore
                 Dictionary<string, string> param21 = null;
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.Hstore == param21));
 
+                NpgsqlRange<int>? param22 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.Int4Range == param22));
+
                 //SomeComposite param22 = null;
                 //Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.SomeComposite == param20));
 
@@ -277,6 +284,7 @@ namespace Microsoft.EntityFrameworkCore
                         Point = new NpgsqlPoint(5.2, 3.3),
                         Jsonb = @"{""a"": ""b""}",
                         Hstore = new Dictionary<string, string> { { "a", "b" } },
+                        Int4Range = new NpgsqlRange<int>(4, true, 8, false),
 
                         //SomeComposite = new SomeComposite { SomeNumber = 8, SomeText = "foo" }
                         PrimitiveArray = new[] { 2, 3 },
@@ -319,6 +327,7 @@ namespace Microsoft.EntityFrameworkCore
                 Assert.Equal(new NpgsqlPoint(5.2, 3.3), entity.Point);
                 Assert.Equal(@"{""a"": ""b""}", entity.Jsonb);
                 Assert.Equal(new Dictionary<string, string> { { "a", "b" } }, entity.Hstore);
+                Assert.Equal(new NpgsqlRange<int>(4, true, 8, false), entity.Int4Range);
 
                 //Assert.Equal(new SomeComposite { SomeNumber = 8, SomeText = "foo" }, entity.SomeComposite);
                 Assert.Equal(new[] { 2, 3 }, entity.PrimitiveArray);
@@ -361,6 +370,7 @@ namespace Microsoft.EntityFrameworkCore
                         Point = new NpgsqlPoint(5.2, 3.3),
                         Jsonb = @"{""a"": ""b""}",
                         Hstore = new Dictionary<string, string> { { "a", "b" } },
+                        Int4Range = new NpgsqlRange<int>(4, true, 8, false),
 
                         //SomeComposite = new SomeComposite { SomeNumber = 8, SomeText = "foo" }
                         PrimitiveArray = new[] { 2, 3 },
@@ -401,6 +411,7 @@ namespace Microsoft.EntityFrameworkCore
                 Assert.Equal(new NpgsqlPoint(5.2, 3.3), entity.Point);
                 Assert.Equal(@"{""a"": ""b""}", entity.Jsonb);
                 Assert.Equal(new Dictionary<string, string> { { "a", "b" } }, entity.Hstore);
+                Assert.Equal(new NpgsqlRange<int>(4, true, 8, false), entity.Int4Range);
 
                 //Assert.Equal(new SomeComposite { SomeNumber = 8, SomeText = "foo" }, entity.SomeComposite);
 
@@ -453,6 +464,7 @@ namespace Microsoft.EntityFrameworkCore
                 Assert.Null(entity.Point);
                 Assert.Null(entity.Jsonb);
                 Assert.Null(entity.Hstore);
+                Assert.Null(entity.Int4Range);
 
                 //Assert.Null(entity.SomeComposite);
                 Assert.Null(entity.PrimitiveArray);
@@ -641,6 +653,7 @@ namespace Microsoft.EntityFrameworkCore
             public NpgsqlPoint Point { get; set; }
             public string Jsonb { get; set; }
             public Dictionary<string, string> Hstore { get; set; }
+            public NpgsqlRange<int> Int4Range { get; set; }
 
             // Composite
             //public SomeComposite SomeComposite { get; set; }
@@ -725,6 +738,7 @@ namespace Microsoft.EntityFrameworkCore
             public NpgsqlPoint? Point { get; set; }
             public string Jsonb { get; set; }
             public Dictionary<string, string> Hstore { get; set; }
+            public NpgsqlRange<int>? Int4Range { get; set; }
 
             // Composite
             //public SomeComposite SomeComposite { get; set; }
