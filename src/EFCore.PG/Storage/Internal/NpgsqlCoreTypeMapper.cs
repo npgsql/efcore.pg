@@ -92,12 +92,28 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
         readonly NpgsqlCidTypeMapping          _cid         = new NpgsqlCidTypeMapping();
         readonly NpgsqlRegtypeTypeMapping      _regtype     = new NpgsqlRegtypeTypeMapping();
 
+        // Range mappings
+        readonly NpgsqlRangeTypeMapping<int>      _int4range;
+        readonly NpgsqlRangeTypeMapping<long>     _int8range;
+        readonly NpgsqlRangeTypeMapping<decimal>  _numrange;
+        readonly NpgsqlRangeTypeMapping<DateTime> _tsrange;
+        readonly NpgsqlRangeTypeMapping<DateTime> _tstzrange;
+        readonly NpgsqlRangeTypeMapping<DateTime> _daterange;
+
         #endregion Mappings
 
         public NpgsqlCoreTypeMapper([NotNull] CoreTypeMapperDependencies dependencies,
             [NotNull] RelationalTypeMapperDependencies relationalDependencies)
             : base(dependencies, relationalDependencies)
         {
+            // Initialize some mappings which depend on other mappings
+            _int4range = new NpgsqlRangeTypeMapping<int>("int4range", typeof(NpgsqlRange<int>), _int4, NpgsqlDbType.Integer);
+            _int8range = new NpgsqlRangeTypeMapping<long>("int8range", typeof(NpgsqlRange<long>), _int8, NpgsqlDbType.Bigint);
+            _numrange  = new NpgsqlRangeTypeMapping<decimal>("numrange",  typeof(NpgsqlRange<decimal>), _numeric, NpgsqlDbType.Numeric);
+            _tsrange   = new NpgsqlRangeTypeMapping<DateTime>("tsrange", typeof(NpgsqlRange<DateTime>), _timestamp, NpgsqlDbType.Range | NpgsqlDbType.Timestamp);
+            _tstzrange = new NpgsqlRangeTypeMapping<DateTime>("tstzrange", typeof(NpgsqlRange<DateTime>), _timestamptz, NpgsqlDbType.Range | NpgsqlDbType.TimestampTZ);
+            _daterange = new NpgsqlRangeTypeMapping<DateTime>("daterange", typeof(NpgsqlRange<DateTime>), _timestamptz, NpgsqlDbType.Range | NpgsqlDbType.Date);
+
             // Note that PostgreSQL has aliases to some built-in type name aliases (e.g. int4 for integer),
             // these are mapped as well.
             // https://www.postgresql.org/docs/9.5/static/datatype.html#DATATYPE-TABLE
@@ -157,6 +173,13 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
                 { "oid",                         _oid         },
                 { "cid",                         _cid         },
                 { "regtype",                     _regtype     },
+
+                { "int4range",                   _int4range   },
+                { "int8range",                   _int8range   },
+                { "numrange",                    _numrange    },
+                { "tsrange",                     _tsrange     },
+                { "tstzrange",                   _tstzrange   },
+                { "daterange",                   _daterange   }
             };
 
             var clrTypeMappings = new Dictionary<Type, RelationalTypeMapping>
@@ -184,6 +207,11 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
                 { typeof(NpgsqlPath),                 _path      },
                 { typeof(NpgsqlPolygon),              _polygon   },
                 { typeof(NpgsqlCircle),               _circle    },
+
+                { typeof(NpgsqlRange<int>),           _int4range },
+                { typeof(NpgsqlRange<long>),          _int8range },
+                { typeof(NpgsqlRange<decimal>),       _numrange  },
+                { typeof(NpgsqlRange<DateTime>),      _tsrange   }
             };
 
             _storeTypeMappings = new ConcurrentDictionary<string, RelationalTypeMapping>(storeTypeMappings);

@@ -186,6 +186,42 @@ namespace Microsoft.EntityFrameworkCore.Storage
 
         #endregion Misc
 
+        #region Ranges
+
+        [Fact]
+        public void GenerateSqlLiteral_returns_range_empty_literal()
+        {
+            var value = NpgsqlRange<int>.Empty;
+            var literal = GetMapping("int4range").GenerateSqlLiteral(value);
+            Assert.Equal("'empty'::int4range", literal);
+        }
+
+        [Fact]
+        public void GenerateSqlLiteral_returns_range_inclusive_literal()
+        {
+            var value = new NpgsqlRange<int>(4, 7);
+            var literal = GetMapping("int4range").GenerateSqlLiteral(value);
+            Assert.Equal("'[4,7]'::int4range", literal);
+        }
+
+        [Fact]
+        public void GenerateSqlLiteral_returns_range_inclusive_exclusive_literal()
+        {
+            var value = new NpgsqlRange<int>(4, false, 7, true);
+            var literal = GetMapping("int4range").GenerateSqlLiteral(value);
+            Assert.Equal("'(4,7]'::int4range", literal);
+        }
+
+        [Fact]
+        public void GenerateSqlLiteral_returns_range_infinite_literal()
+        {
+            var value = new NpgsqlRange<int>(0, false, true, 7, true, false);
+            var literal = GetMapping("int4range").GenerateSqlLiteral(value);
+            Assert.Equal("'(,7]'::int4range", literal);
+        }
+
+        #endregion Ranges
+
         #region Support
 
         public static RelationalTypeMapping GetMapping(string storeType)
