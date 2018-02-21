@@ -13,6 +13,14 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal.Mapping
         public NpgsqlBitTypeMapping() : base("bit", typeof(BitArray), NpgsqlDbType.Bit) {}
 
         protected override string GenerateNonNullSqlLiteral(object value)
-            => ((BitArray)value).ToString();
-    }
+        {
+            var bits = (BitArray)value;
+            var sb = new StringBuilder();
+            sb.Append("BIT B'");
+            for (var i = 0; i < bits.Count; i++)
+                sb.Append(bits[i] ? '1' : '0');
+            sb.Append('\'');
+            return sb.ToString();
+
+        }    }
 }

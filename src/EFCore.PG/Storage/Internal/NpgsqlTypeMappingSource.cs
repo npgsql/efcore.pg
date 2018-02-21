@@ -52,45 +52,45 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
 
         #region Mappings
 
-        readonly NpgsqlBoolTypeMapping        _bool        = new NpgsqlBoolTypeMapping();
-        readonly NpgsqlByteArrayTypeMapping   _bytea       = new NpgsqlByteArrayTypeMapping();
-        readonly FloatTypeMapping             _float4      = new FloatTypeMapping("real", DbType.Single);
-        readonly DoubleTypeMapping            _float8      = new DoubleTypeMapping("double precision", DbType.Double);
-        readonly DecimalTypeMapping           _numeric     = new DecimalTypeMapping("numeric", DbType.Decimal);
-        readonly DecimalTypeMapping           _money       = new DecimalTypeMapping("money");
-        readonly GuidTypeMapping              _uuid        = new GuidTypeMapping("uuid", DbType.Guid);
-        readonly ShortTypeMapping             _int2        = new ShortTypeMapping("smallint", DbType.Int16);
-        readonly IntTypeMapping               _int4        = new IntTypeMapping("integer", DbType.Int32);
-        readonly LongTypeMapping              _int8        = new LongTypeMapping("bigint", DbType.Int64);
-        readonly StringTypeMapping            _text        = new StringTypeMapping("text", DbType.String);
-        readonly StringTypeMapping            _varchar     = new StringTypeMapping("character varying", DbType.String);
-        readonly StringTypeMapping            _char        = new StringTypeMapping("character", DbType.String);
-        readonly NpgsqlJsonbTypeMapping       _jsonb       = new NpgsqlJsonbTypeMapping();
-        readonly NpgsqlJsonTypeMapping        _json        = new NpgsqlJsonTypeMapping();
-        readonly NpgsqlDateTypeMapping        _date        = new NpgsqlDateTypeMapping();
-        readonly DateTimeTypeMapping          _timestamp   = new DateTimeTypeMapping("timestamp without time zone", DbType.DateTime);
-        readonly DateTimeTypeMapping          _timestamptz = new DateTimeTypeMapping("timestamp with time zone", DbType.DateTime);
-        readonly NpgsqlIntervalTypeMapping    _interval    = new NpgsqlIntervalTypeMapping();
-        readonly NpgsqlTimeTypeMapping        _time        = new NpgsqlTimeTypeMapping();
-        readonly NpgsqlTimeTzTypeMapping      _timetz      = new NpgsqlTimeTzTypeMapping();
-        readonly NpgsqlMacaddrTypeMapping     _macaddr     = new NpgsqlMacaddrTypeMapping();
-        readonly NpgsqlInetTypeMapping        _inet        = new NpgsqlInetTypeMapping();
-        readonly NpgsqlBitTypeMapping         _bit         = new NpgsqlBitTypeMapping();
-        readonly NpgsqlVarbitTypeMapping      _varbit      = new NpgsqlVarbitTypeMapping();
-        readonly NpgsqlHstoreTypeMapping      _hstore      = new NpgsqlHstoreTypeMapping();
-        readonly NpgsqlPointTypeMapping       _point       = new NpgsqlPointTypeMapping();
-        readonly NpgsqlBoxTypeMapping         _box         = new NpgsqlBoxTypeMapping();
-        readonly NpgsqlLineTypeMapping        _line        = new NpgsqlLineTypeMapping();
-        readonly NpgsqlLineSegmentTypeMapping _lseg        = new NpgsqlLineSegmentTypeMapping();
-        readonly NpgsqlPathTypeMapping        _path        = new NpgsqlPathTypeMapping();
-        readonly NpgsqlPolygonTypeMapping     _polygon     = new NpgsqlPolygonTypeMapping();
-        readonly NpgsqlCircleTypeMapping      _circle      = new NpgsqlCircleTypeMapping();
-        readonly NpgsqlXidTypeMapping         _xid         = new NpgsqlXidTypeMapping();
-        readonly NpgsqlOidTypeMapping         _oid         = new NpgsqlOidTypeMapping();
-        readonly NpgsqlCidTypeMapping         _cid         = new NpgsqlCidTypeMapping();
-        readonly NpgsqlRegtypeTypeMapping     _regtype     = new NpgsqlRegtypeTypeMapping();
-
-        // TODO: PostGIS? But the plugins in vNext...
+        readonly NpgsqlBoolTypeMapping         _bool        = new NpgsqlBoolTypeMapping();
+        readonly NpgsqlByteArrayTypeMapping    _bytea       = new NpgsqlByteArrayTypeMapping();
+        readonly FloatTypeMapping              _float4      = new FloatTypeMapping("real", DbType.Single);
+        readonly DoubleTypeMapping             _float8      = new DoubleTypeMapping("double precision", DbType.Double);
+        readonly DecimalTypeMapping            _numeric     = new DecimalTypeMapping("numeric", DbType.Decimal);
+        readonly DecimalTypeMapping            _money       = new DecimalTypeMapping("money");
+        readonly GuidTypeMapping               _uuid        = new GuidTypeMapping("uuid", DbType.Guid);
+        readonly ShortTypeMapping              _int2        = new ShortTypeMapping("smallint", DbType.Int16);
+        readonly IntTypeMapping                _int4        = new IntTypeMapping("integer", DbType.Int32);
+        readonly LongTypeMapping               _int8        = new LongTypeMapping("bigint", DbType.Int64);
+        readonly StringTypeMapping             _text        = new StringTypeMapping("text", DbType.String);
+        readonly StringTypeMapping             _varchar     = new StringTypeMapping("character varying", DbType.String);
+        readonly StringTypeMapping             _char        = new StringTypeMapping("character", DbType.String);
+        readonly NpgsqlJsonbTypeMapping        _jsonb       = new NpgsqlJsonbTypeMapping();
+        readonly NpgsqlJsonTypeMapping         _json        = new NpgsqlJsonTypeMapping();
+        readonly NpgsqlDateTypeMapping         _date        = new NpgsqlDateTypeMapping();
+        readonly NpgsqlTimestampTypeMapping    _timestamp   = new NpgsqlTimestampTypeMapping();
+        readonly NpgsqlTimestampTzTypeMapping  _timestamptz = new NpgsqlTimestampTzTypeMapping();
+        readonly NpgsqlIntervalTypeMapping     _interval    = new NpgsqlIntervalTypeMapping();
+        readonly NpgsqlTimeTypeMapping         _time        = new NpgsqlTimeTypeMapping();
+        readonly NpgsqlTimeTzTypeMapping       _timetz      = new NpgsqlTimeTzTypeMapping();
+        readonly NpgsqlMacaddrTypeMapping      _macaddr     = new NpgsqlMacaddrTypeMapping();
+        readonly NpgsqlMacaddr8TypeMapping     _macaddr8    = new NpgsqlMacaddr8TypeMapping();
+        readonly NpgsqlInetTypeMapping         _inet        = new NpgsqlInetTypeMapping();
+        readonly NpgsqlCidrTypeMapping         _cidr        = new NpgsqlCidrTypeMapping();
+        readonly NpgsqlBitTypeMapping          _bit         = new NpgsqlBitTypeMapping();
+        readonly NpgsqlVarbitTypeMapping       _varbit      = new NpgsqlVarbitTypeMapping();
+        readonly NpgsqlHstoreTypeMapping       _hstore      = new NpgsqlHstoreTypeMapping();
+        readonly NpgsqlPointTypeMapping        _point       = new NpgsqlPointTypeMapping();
+        readonly NpgsqlBoxTypeMapping          _box         = new NpgsqlBoxTypeMapping();
+        readonly NpgsqlLineTypeMapping         _line        = new NpgsqlLineTypeMapping();
+        readonly NpgsqlLineSegmentTypeMapping  _lseg        = new NpgsqlLineSegmentTypeMapping();
+        readonly NpgsqlPathTypeMapping         _path        = new NpgsqlPathTypeMapping();
+        readonly NpgsqlPolygonTypeMapping      _polygon     = new NpgsqlPolygonTypeMapping();
+        readonly NpgsqlCircleTypeMapping       _circle      = new NpgsqlCircleTypeMapping();
+        readonly NpgsqlXidTypeMapping          _xid         = new NpgsqlXidTypeMapping();
+        readonly NpgsqlOidTypeMapping          _oid         = new NpgsqlOidTypeMapping();
+        readonly NpgsqlCidTypeMapping          _cid         = new NpgsqlCidTypeMapping();
+        readonly NpgsqlRegtypeTypeMapping      _regtype     = new NpgsqlRegtypeTypeMapping();
 
         #endregion Mappings
 
@@ -139,7 +139,9 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
                 { "time with time zone",         _timetz      },
                 { "timetz",                      _timetz      },
                 { "macaddr",                     _macaddr     },
+                { "macaddr8",                    _macaddr8    },
                 { "inet",                        _inet        },
+                { "cidr",                        _cidr        },
                 { "bit",                         _bit         },
                 { "bit varying",                 _varbit      },
                 { "varbit",                      _varbit      },
@@ -186,6 +188,19 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
 
             _storeTypeMappings = new ConcurrentDictionary<string, RelationalTypeMapping>(storeTypeMappings);
             _clrTypeMappings = new ConcurrentDictionary<Type, RelationalTypeMapping>(clrTypeMappings);
+
+            if (typeof(NpgsqlConnection).Assembly.GetName().Version < new Version(3, 3))
+                SetupLegacyPostgisMappings();
+        }
+
+        void SetupLegacyPostgisMappings()
+        {
+            // This mapping is only used in Npgsql 3.2 and below.
+            // Later versions use type plugins to set up mappings, and corresponding EF Core
+            // plugins need to be used.
+            var legacyPostgisMapping = new NpgsqlLegacyPostgisTypeMapping();
+            _storeTypeMappings["geometry"] = legacyPostgisMapping;
+            _clrTypeMappings[typeof(PostgisGeometry)] = legacyPostgisMapping;
         }
 
         protected override RelationalTypeMapping FindMapping(RelationalTypeMappingInfo mappingInfo)

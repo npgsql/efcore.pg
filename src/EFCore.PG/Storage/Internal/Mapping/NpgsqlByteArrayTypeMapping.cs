@@ -38,7 +38,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
 
             var builder = new StringBuilder(bytea.Length * 2 + 6);
 
-            builder.Append("E'\\\\x");
+            builder.Append("BYTEA E'\\\\x");
             foreach (var b in bytea)
                 builder.Append(b.ToString("X2", CultureInfo.InvariantCulture));
             builder.Append('\'');
