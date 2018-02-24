@@ -32,7 +32,7 @@ DO $$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM ""__EFMigrationsHistory"" WHERE ""MigrationId"" = '00000000000001_Migration1') THEN
     CREATE TABLE ""Table1"" (
-        ""Id"" int4 NOT NULL,
+        ""Id"" integer NOT NULL,
         CONSTRAINT ""PK_Table1"" PRIMARY KEY (""Id"")
     );
     END IF;

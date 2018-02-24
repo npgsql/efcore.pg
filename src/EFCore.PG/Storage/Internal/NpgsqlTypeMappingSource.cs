@@ -116,7 +116,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
 
             // Note that PostgreSQL has aliases to some built-in type name aliases (e.g. int4 for integer),
             // these are mapped as well.
-            // https://www.postgresql.org/docs/9.5/static/datatype.html#DATATYPE-TABLE
+            // https://www.postgresql.org/docs/current/static/datatype.html#DATATYPE-TABLE
             var storeTypeMappings = new Dictionary<string, RelationalTypeMapping>(StringComparer.OrdinalIgnoreCase)
             {
                 { "boolean",                     _bool        },
