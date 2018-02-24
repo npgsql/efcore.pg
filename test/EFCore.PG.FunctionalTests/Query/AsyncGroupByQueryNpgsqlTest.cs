@@ -3,20 +3,25 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore.TestModels.Northwind;
 using Microsoft.EntityFrameworkCore.TestUtilities;
+using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.EntityFrameworkCore.Query
 {
-    public class AsyncGroupByQuerySqlServerTest : AsyncGroupByQueryTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
+    public class AsyncGroupByQueryNpgsqlTest : AsyncGroupByQueryTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
     {
         // ReSharper disable once UnusedParameter.Local
-        public AsyncGroupByQuerySqlServerTest(NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture, ITestOutputHelper testOutputHelper)
+        public AsyncGroupByQueryNpgsqlTest(NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
         {
             Fixture.TestSqlLoggerFactory.Clear();
             //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
+
+        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/11064")]
+        public override Task OrderBy_Skip_GroupBy() => Task.CompletedTask;
 
         public override async Task GroupBy_Composite_Select_Average()
         {

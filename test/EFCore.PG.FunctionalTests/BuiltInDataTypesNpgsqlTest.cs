@@ -475,6 +475,13 @@ namespace Microsoft.EntityFrameworkCore
 
         public class BuiltInDataTypesNpgsqlFixture : BuiltInDataTypesFixtureBase
         {
+            public override bool StrictEquality => false;
+
+            public override bool SupportsAnsi => false;
+
+            public override bool SupportsUnicodeToAnsiConversion => false;
+
+            public override bool SupportsLargeStringComparisons => true;
 
             protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
             public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ServiceProvider.GetRequiredService<ILoggerFactory>();
