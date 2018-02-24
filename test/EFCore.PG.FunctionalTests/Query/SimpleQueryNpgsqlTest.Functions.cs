@@ -183,7 +183,7 @@ namespace Microsoft.EntityFrameworkCore.Query
                 oc => oc.Where(o =>
                         o.OrderDate.Value.DayOfWeek == DayOfWeek.Tuesday),
                 entryCount: 168);
-            AssertContainsSqlFragment("WHERE CAST(FLOOR(DATE_PART('dow', \"o\".\"OrderDate\")) AS int4)");
+            AssertContainsSqlFragment("WHERE CAST(FLOOR(DATE_PART('dow', \"o\".\"OrderDate\")) AS integer)");
         }
 
         #region Regex
