@@ -22,6 +22,7 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Text;
 
 namespace Microsoft.EntityFrameworkCore.Storage.Internal
@@ -38,9 +39,38 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
         {}
 
         internal NpgsqlArrayTypeMapping(RelationalTypeMapping elementMapping, Type arrayType)
-            : base("_" + elementMapping.StoreType, arrayType)
+            : base(GenerateArrayTypeName(elementMapping.StoreType), arrayType)
         {
             ElementMapping = elementMapping;
+        }
+
+        static readonly Dictionary<string, string> SpecialArrayTypeNames = new Dictionary<string, string>
+        {
+            { "bigint",            "_int8"                },
+            { "bit varying",       "_varbit"              },
+            { "boolean",           "_bool"                },
+            { "character",         "_char"                },
+            { "character varying", "_varchar"             },
+            { "double precision",  "_float8 "             },
+            { "integer",           "_int4"                },
+            { "int",               "_int4"                },
+            { "numeric",           "_decimal"             },
+            { "real",              "_float4"              },
+            { "smallint",          "_int2"                },
+            { "time with time zone", "_timetz"            },
+            { "time without time zone", "_time"           },
+            { "timestamp with time zone", "_timestamptz"  },
+            { "timestamp without time zone", "_timestamp" }
+        };
+
+        static string GenerateArrayTypeName(string elementTypeName)
+        {
+            // In PostgreSQL, the array type name is the element type name prefixed by an underscore.
+            // However, in some specific cases the user-displayed type name isn't the one used in the array type
+            // (integer -> _int4, decimal -> _numeric) so we use a lookup table
+            return SpecialArrayTypeNames.TryGetValue(elementTypeName, out var specialName)
+                ? specialName
+                : '_' + elementTypeName;
         }
 
         public override RelationalTypeMapping Clone(string storeType, int? size)
