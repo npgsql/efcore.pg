@@ -177,6 +177,23 @@ namespace Microsoft.EntityFrameworkCore.Storage
             }));
 
         [Fact]
+        public void ValueComparer_hstore()
+        {
+            var source = new Dictionary<string, string>
+            {
+                { "k1", "v1"},
+                { "k2", "v2"}
+            };
+            
+            var comparer = GetMapping("hstore").Comparer;
+            var snapshot = (Dictionary<string, string>)comparer.SnapshotFunc(source);
+            Assert.Equal(source, snapshot);
+            Assert.True(comparer.CompareFunc(source, snapshot));
+            snapshot.Remove("k1");
+            Assert.False(comparer.CompareFunc(source, snapshot));
+        }
+
+        [Fact]
         public void GenerateSqlLiteral_returns_jsonb_literal()
             => Assert.Equal(@"JSONB '{""a"":1}'", GetMapping("jsonb").GenerateSqlLiteral(@"{""a"":1}"));
 
