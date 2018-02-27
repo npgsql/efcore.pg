@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.TestUtilities;
+using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.EntityFrameworkCore.Query
@@ -17,6 +18,9 @@ namespace Microsoft.EntityFrameworkCore.Query
             Fixture.TestSqlLoggerFactory.Clear();
             //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
+
+        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/11064")]
+        public override Task OrderBy_Skip_GroupBy() => Task.CompletedTask;
 
         public override async Task GroupBy_Composite_Select_Average()
         {
