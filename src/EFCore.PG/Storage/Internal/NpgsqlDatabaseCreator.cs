@@ -240,9 +240,15 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
 
             if (reloadTypes)
             {
-                var npgsqlConn = (NpgsqlConnection)_connection.DbConnection;
-                if (npgsqlConn.FullState == ConnectionState.Open)
-                    npgsqlConn.ReloadTypes();
+                _connection.Open();
+                try
+                {
+                    ((NpgsqlConnection)_connection.DbConnection).ReloadTypes();
+                }
+                catch
+                {
+                    _connection.Close();
+                }
             }
         }
 
