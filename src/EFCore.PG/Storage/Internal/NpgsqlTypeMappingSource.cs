@@ -31,9 +31,8 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Reflection;
 using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using NpgsqlTypes;
 
@@ -89,6 +88,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         readonly NpgsqlOidTypeMapping          _oid            = new NpgsqlOidTypeMapping();
         readonly NpgsqlCidTypeMapping          _cid            = new NpgsqlCidTypeMapping();
         readonly NpgsqlRegtypeTypeMapping      _regtype        = new NpgsqlRegtypeTypeMapping();
+
+        // Full text search mappings
+        readonly NpgsqlTsQueryTypeMapping   _tsquery           = new NpgsqlTsQueryTypeMapping();
+        readonly NpgsqlTsVectorTypeMapping  _tsvector          = new NpgsqlTsVectorTypeMapping();
+        readonly NpgsqlTsRankingNormalizationTypeMapping _rankingNormalization = new NpgsqlTsRankingNormalizationTypeMapping();
 
         // Range mappings
         readonly NpgsqlRangeTypeMapping<int>      _int4range;
@@ -179,7 +183,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 { "numrange",                    new[] { _numrange                     } },
                 { "tsrange",                     new[] { _tsrange                      } },
                 { "tstzrange",                   new[] { _tstzrange                    } },
-                { "daterange",                   new[] { _daterange                    } }
+                { "daterange",                   new[] { _daterange                    } },
+
+                { "tsquery",                     new[] { _tsquery                      } },
+                { "tsvector",                    new[] { _tsvector                     } }
             };
 
             var clrTypeMappings = new Dictionary<Type, RelationalTypeMapping>
@@ -213,7 +220,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 { typeof(NpgsqlRange<int>),           _int4range      },
                 { typeof(NpgsqlRange<long>),          _int8range      },
                 { typeof(NpgsqlRange<decimal>),       _numrange       },
-                { typeof(NpgsqlRange<DateTime>),      _tsrange        }
+                { typeof(NpgsqlRange<DateTime>),      _tsrange        },
+
+                { typeof(NpgsqlTsQuery),              _tsquery        },
+                { typeof(NpgsqlTsVector),             _tsvector       },
+                { typeof(NpgsqlTsRankingNormalization), _rankingNormalization }
             };
 
             _storeTypeMappings = new ConcurrentDictionary<string, RelationalTypeMapping[]>(storeTypeMappings, StringComparer.OrdinalIgnoreCase);
