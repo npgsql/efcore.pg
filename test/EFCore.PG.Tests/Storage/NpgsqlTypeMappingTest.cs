@@ -177,6 +177,39 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
             => Assert.Equal("ARRAY[3,4]", GetMapping(typeof(int[])).GenerateSqlLiteral(new[] {3, 4}));
 
         [Fact]
+        public void ValueComparer_int_array()
+        {
+            // This exercises array's comparer when the element doesn't have a comparer, but it implements
+            // IEquatable<T>
+            var source = new[] { 2, 3, 4 };
+
+            var comparer = GetMapping(typeof(int[])).Comparer;
+            var snapshot = (int[])comparer.Snapshot(source);
+            Assert.Equal(source, snapshot);
+            Assert.True(comparer.Equals(source, snapshot));
+            snapshot[1] = 8;
+            Assert.False(comparer.Equals(source, snapshot));
+        }
+
+        [Fact]
+        public void ValueComparer_hstore_array()
+        {
+            // This exercises array's comparer when the element has its own non-null comparer
+            var source = new[]
+            {
+                new Dictionary<string, string> { { "k1", "v1"} },
+                new Dictionary<string, string> { { "k2", "v2"} },
+            };
+
+            var comparer = GetMapping(typeof(Dictionary<string, string>[])).Comparer;
+            var snapshot = (Dictionary<string, string>[])comparer.Snapshot(source);
+            Assert.Equal(source, snapshot);
+            Assert.True(comparer.Equals(source, snapshot));
+            snapshot[1]["k2"] = "v8";
+            Assert.False(comparer.Equals(source, snapshot));
+        }
+
+        [Fact]
         public void GenerateSqlLiteral_returns_bytea_literal()
             => Assert.Equal(@"BYTEA E'\\xDEADBEEF'", GetMapping("bytea").GenerateSqlLiteral(new byte[] { 222, 173, 190, 239 }));
 
