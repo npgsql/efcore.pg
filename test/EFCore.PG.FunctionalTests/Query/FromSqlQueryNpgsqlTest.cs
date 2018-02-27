@@ -21,7 +21,7 @@ namespace Microsoft.EntityFrameworkCore.Query
         [Fact(Skip = "https://github.com/aspnet/EntityFramework/issues/6563")]
         public override void Bad_data_error_handling_invalid_cast_no_tracking() {}
 
-        [Fact(Skip="https://github.com/aspnet/EntityFramework/issues/3548")]
+        [Fact(Skip="https://github.com/aspnet/EntityFrameworkCore/pull/11069")]
         public override void From_sql_queryable_simple_projection_composed() {}
 
         protected override DbParameter CreateDbParameter(string name, object value)

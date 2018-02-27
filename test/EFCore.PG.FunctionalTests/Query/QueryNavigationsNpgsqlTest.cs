@@ -12,14 +12,5 @@ namespace Microsoft.EntityFrameworkCore.Query
         {
             fixture.TestSqlLoggerFactory.Clear();
         }
-
-        [Fact(Skip="https://github.com/aspnet/EntityFramework/issues/9039")]
-        public override void Select_collection_navigation_simple() {}
-
-        [Fact(Skip = "https://github.com/aspnet/EntityFramework/issues/9039")]
-        public override void Select_collection_navigation_multi_part() {}
-
-        protected override void ClearLog()
-            => Fixture.TestSqlLoggerFactory.Clear();
     }
 }

@@ -289,7 +289,7 @@ namespace Microsoft.EntityFrameworkCore
             Sql);
         }
 
-        [Fact(Skip="https://github.com/aspnet/EntityFrameworkCore/issues/10942")]
+        [Fact]
         public void AlterColumnOperation_with_defaultValue()
         {
             Generate(
