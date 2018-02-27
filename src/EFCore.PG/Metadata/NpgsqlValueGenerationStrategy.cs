@@ -41,7 +41,7 @@ namespace Microsoft.EntityFrameworkCore.Metadata
         /// Selects the serial column strategy, which is a regular column backed by an auto-created index.
         /// </para>
         /// <para>
-        /// If you are creating a new project on PostgreSQL 10 or above, consider using <see cref="IdentityColumn"/> instead.
+        /// If you are creating a new project on PostgreSQL 10 or above, consider using <see cref="IdentityByDefaultColumn"/> instead.
         /// </para>
         /// </summary>
         SerialColumn,

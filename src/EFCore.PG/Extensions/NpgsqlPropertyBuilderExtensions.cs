@@ -58,7 +58,6 @@ namespace Microsoft.EntityFrameworkCore
         ///     Configures the property to use a sequence-based hi-lo pattern to generate values for new entities,
         ///     when targeting PostgreSQL. This method sets the property to be <see cref="ValueGenerated.OnAdd" />.
         /// </summary>
-        /// <typeparam comment="TProperty"> The type of the property being configured. </typeparam>
         /// <param name="propertyBuilder"> The builder for the property being configured. </param>
         /// <param name="name"> The comment of the sequence. </param>
         /// <param name="schema"> The schema of the sequence. </param>
@@ -222,7 +221,6 @@ namespace Microsoft.EntityFrameworkCore
         /// <summary>
         ///     Configures the comment set on the column when targeting Npgsql.
         /// </summary>
-        /// <typeparam comment="TEntity"> The entity type being configured. </typeparam>
         /// <param name="propertyBuilder"> The builder for the property being configured. </param>
         /// <param name="comment"> The comment of the column. </param>
         /// <returns> The same builder instance so that multiple calls can be chained. </returns>

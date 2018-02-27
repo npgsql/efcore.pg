@@ -34,8 +34,7 @@ namespace Microsoft.EntityFrameworkCore.Update.Internal
 {
     /// <remarks>
     /// The usual ModificationCommandBatch implementation is <see cref="AffectedCountModificationCommandBatch"/>,
-    /// which relies on <see cref="SqlGenerator.AppendSelectAffectedCountCommand"/> to fetch the number of
-    /// rows modified via SQL.
+    /// which selects the number of rows modified via a SQL query.
     ///
     /// PostgreSQL actually has no way of selecting the modified row count.
     /// SQL defines GET DIAGNOSTICS which should provide this, but in PostgreSQL it's only available
