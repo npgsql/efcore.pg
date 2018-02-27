@@ -25,6 +25,7 @@ using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
+using Microsoft.EntityFrameworkCore.Storage;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore.Infrastructure
@@ -42,6 +43,15 @@ namespace Microsoft.EntityFrameworkCore.Infrastructure
         /// Defaults to 'postgres'.
         /// </summary>
         public virtual void UseAdminDatabase(string dbName) => WithOption(e => e.WithAdminDatabase(dbName));
+
+        /// <summary>
+        /// Appends NULLS FIRST to all ORDER BY clauses. This is important for the tests which were written
+        /// for SQL Server. Note that to fully implement null-first ordering indexes also need to be generated
+        /// accordingly, and since this isn't done this feature isn't publicly exposed.
+        /// </summary>
+        /// <param name="orderNullsFirst"></param>
+        internal virtual void OrderNullsFirst(bool orderNullsFirst = true)
+            => WithOption(e => e.WithNullFirstOrdering(orderNullsFirst));
 
         #region Retrying execution strategy
 

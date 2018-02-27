@@ -25,6 +25,7 @@ using System;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions.Internal;
@@ -98,14 +99,17 @@ namespace Microsoft.Extensions.DependencyInjection
                 .TryAdd<IMigrationsSqlGenerator, NpgsqlMigrationsSqlGenerator>()
                 .TryAdd<IRelationalDatabaseCreator, NpgsqlDatabaseCreator>()
                 .TryAdd<IHistoryRepository, NpgsqlHistoryRepository>()
+                .TryAdd<ICompiledQueryCacheKeyGenerator, NpgsqlCompiledQueryCacheKeyGenerator>()
                 .TryAdd<IExecutionStrategyFactory, NpgsqlExecutionStrategyFactory>()
                 .TryAdd<IQueryCompilationContextFactory, NpgsqlQueryCompilationContextFactory>()
                 .TryAdd<IMemberTranslator, NpgsqlCompositeMemberTranslator>()
                 .TryAdd<ICompositeMethodCallTranslator, NpgsqlCompositeMethodCallTranslator>()
                 .TryAdd<IQuerySqlGeneratorFactory, NpgsqlQuerySqlGeneratorFactory>()
                 .TryAdd<ISqlTranslatingExpressionVisitorFactory, NpgsqlSqlTranslatingExpressionVisitorFactory>()
+                .TryAdd<ISingletonOptions, INpgsqlOptions>(p => p.GetService<INpgsqlOptions>())
                 .TryAddProviderSpecificServices(b => b
                     .TryAddSingleton<INpgsqlValueGeneratorCache, NpgsqlValueGeneratorCache>()
+                    .TryAddSingleton<INpgsqlOptions, NpgsqlOptions>()
                     .TryAddScoped<INpgsqlSequenceValueGeneratorFactory, NpgsqlSequenceValueGeneratorFactory>()
                     .TryAddScoped<INpgsqlRelationalConnection, NpgsqlRelationalConnection>());
 

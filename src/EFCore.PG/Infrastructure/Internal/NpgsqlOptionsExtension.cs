@@ -31,6 +31,7 @@ namespace Microsoft.EntityFrameworkCore.Infrastructure.Internal
     public class NpgsqlOptionsExtension : RelationalOptionsExtension
     {
         public string AdminDatabase { get; private set; }
+        public bool? NullFirstOrdering { get; private set; }
 
         public NpgsqlOptionsExtension()
         {
@@ -60,6 +61,15 @@ namespace Microsoft.EntityFrameworkCore.Infrastructure.Internal
             var clone = (NpgsqlOptionsExtension)Clone();
 
             clone.AdminDatabase = adminDatabase;
+
+            return clone;
+        }
+
+        internal virtual NpgsqlOptionsExtension WithNullFirstOrdering(bool nullFirstOrdering)
+        {
+            var clone = (NpgsqlOptionsExtension)Clone();
+
+            clone.NullFirstOrdering = nullFirstOrdering;
 
             return clone;
         }

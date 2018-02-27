@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.TestUtilities;
+﻿using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.TestUtilities;
 
 namespace Microsoft.EntityFrameworkCore.Query
 {
@@ -6,5 +7,12 @@ namespace Microsoft.EntityFrameworkCore.Query
        : ComplexNavigationsQueryRelationalFixtureBase
     {
         protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+
+        public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
+        {
+            var optionsBuilder = base.AddOptions(builder);
+            new NpgsqlDbContextOptionsBuilder(optionsBuilder).OrderNullsFirst();
+            return optionsBuilder;
+        }
     }
 }

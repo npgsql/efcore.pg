@@ -22,6 +22,7 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Text.RegularExpressions;
@@ -30,19 +31,24 @@ using Microsoft.EntityFrameworkCore.Query.Expressions;
 using Microsoft.EntityFrameworkCore.Query.Expressions.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Utilities;
+using Remotion.Linq.Clauses;
 
 namespace Microsoft.EntityFrameworkCore.Query.Sql.Internal
 {
     public class NpgsqlQuerySqlGenerator : DefaultQuerySqlGenerator
     {
+        readonly bool _nullFirstOrderingEnabled;
+
         protected override string TypedTrueLiteral => "TRUE::bool";
         protected override string TypedFalseLiteral => "FALSE::bool";
 
         public NpgsqlQuerySqlGenerator(
             [NotNull] QuerySqlGeneratorDependencies dependencies,
-            [NotNull] SelectExpression selectExpression)
+            [NotNull] SelectExpression selectExpression,
+            bool nullFirstOrderingEnabledEnabled)
             : base(dependencies, selectExpression)
         {
+            _nullFirstOrderingEnabled = nullFirstOrderingEnabledEnabled;
         }
 
         protected override void GenerateTop(SelectExpression selectExpression)
@@ -280,6 +286,13 @@ namespace Microsoft.EntityFrameworkCore.Query.Sql.Internal
             default:
                 return base.GenerateOperator(expression);
             }
+        }
+
+        protected override void GenerateOrdering([NotNull] Ordering ordering)
+        {
+            base.GenerateOrdering(ordering);
+            if (_nullFirstOrderingEnabled)
+                Sql.Append(" NULLS FIRST");
         }
     }
 }

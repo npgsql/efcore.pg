@@ -5,6 +5,9 @@
     <TargetFrameworks Condition="'$(OS)' != 'Windows_NT' OR '$(CoreOnly)' == 'True'">netcoreapp2.0</TargetFrameworks>
     <AssemblyName>Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests</AssemblyName>
     <RootNamespace>Microsoft.EntityFrameworkCore</RootNamespace>
+    <AssemblyOriginatorKeyFile>../../Npgsql.snk</AssemblyOriginatorKeyFile>
+    <SignAssembly>true</SignAssembly>
+    <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
   </PropertyGroup>
 
   <ItemGroup>
