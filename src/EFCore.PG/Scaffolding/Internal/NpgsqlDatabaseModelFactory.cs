@@ -213,7 +213,8 @@ AND
             {
                 var commandText = $@"
 SELECT
-    nspname, relname, typ.typname, attname, description, attisdropped, attidentity,
+    nspname, relname, typ.typname, attname, description, attisdropped,
+    {(connection.PostgreSqlVersion >= new Version(10, 0) ? "attidentity" : "''::\"char\" as attidentity")},
     format_type(typ.oid, atttypmod) AS formatted_typname, basetyp.typname AS basetypname,
     CASE WHEN pg_proc.proname='array_recv' THEN 'a' ELSE typ.typtype END AS typtype,
     CASE
