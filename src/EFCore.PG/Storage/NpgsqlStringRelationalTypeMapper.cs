@@ -31,7 +31,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
     public class NpgsqlStringRelationalTypeMapper : IStringRelationalTypeMapper
     {
         static readonly RelationalTypeMapping UnboundedStringMapping
-            = new NpgsqlTypeMapping("text", typeof(string), NpgsqlDbType.Text);
+            = new NpgsqlStringTypeMapping("text", NpgsqlDbType.Text);
 
         readonly ConcurrentDictionary<int, RelationalTypeMapping> _boundedStringMappings
             = new ConcurrentDictionary<int, RelationalTypeMapping>();
@@ -40,7 +40,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         {
             return maxLength.HasValue
                 ? _boundedStringMappings.GetOrAdd(maxLength.Value,
-                      ml => new NpgsqlTypeMapping($"varchar({maxLength})", typeof(string))
+                      ml => new NpgsqlStringTypeMapping($"varchar({maxLength})", NpgsqlDbType.Varchar)
                   )
                 : UnboundedStringMapping;
         }
