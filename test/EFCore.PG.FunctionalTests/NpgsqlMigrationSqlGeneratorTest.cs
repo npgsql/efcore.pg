@@ -788,7 +788,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         [Fact]
         public void CreateTableOperation_with_cockroach_interleave_in_parent()
         {
-            var op = 
+            var op =
                 new CreateTableOperation
                 {
                     Name = "People",
