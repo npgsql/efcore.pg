@@ -518,6 +518,13 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                 .Append(ColumnList(operation.Columns))
                 .Append(")");
 
+            if (!string.IsNullOrEmpty(operation.Filter))
+            {
+                builder
+                    .Append(" WHERE ")
+                    .Append(operation.Filter);
+            }
+
             builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
 
             EndStatement(builder);
