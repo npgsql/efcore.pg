@@ -50,6 +50,10 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal.Mapping
 
             static bool Compare(Dictionary<string, string> a, Dictionary<string, string> b)
             {
+                if (a == null)
+                    return b == null;
+                if (b == null)
+                    return false;
                 if (a.Count != b.Count)
                     return false;
                 foreach (var kv in a)
@@ -59,7 +63,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal.Mapping
             }
 
             static Dictionary<string, string> Snapshot(Dictionary<string, string> source)
-                => new Dictionary<string, string>(source);
+                => source == null ? null : new Dictionary<string, string>(source);
         }
     }
 }
