@@ -35,11 +35,11 @@ namespace Microsoft.EntityFrameworkCore
     public static class NpgsqlDbContextOptionsExtensions
     {
         /// <summary>
-        ///     Configures the context to connect to a PostgreSQL database.
+        ///     Configures the context to connect to a PostgreSQL database with Npgsql.
         /// </summary>
         /// <param name="optionsBuilder"> A builder for setting options on the context. </param>
         /// <param name="connectionString"> The connection string of the database to connect to. </param>
-        /// <param name="NpgsqlOptionsAction">An optional action to allow additional SQL Server specific configuration.</param>
+        /// <param name="NpgsqlOptionsAction">An optional action to allow additional Npgsql-specific configuration.</param>
         /// <returns> The options builder so that further configuration can be chained. </returns>
         public static DbContextOptionsBuilder UseNpgsql(
             [NotNull] this DbContextOptionsBuilder optionsBuilder,
@@ -57,9 +57,8 @@ namespace Microsoft.EntityFrameworkCore
             return optionsBuilder;
         }
 
-        // Note: Decision made to use DbConnection not SqlConnection: Issue #772
         /// <summary>
-        ///     Configures the context to connect to a Microsoft SQL Server database.
+        ///     Configures the context to connect to a PostgreSQL database with Npgsql.
         /// </summary>
         /// <param name="optionsBuilder"> A builder for setting options on the context. </param>
         /// <param name="connection">
@@ -67,7 +66,7 @@ namespace Microsoft.EntityFrameworkCore
         ///     in the open state then EF will not open or close the connection. If the connection is in the closed
         ///     state then EF will open and close the connection as needed.
         /// </param>
-        /// <param name="NpgsqlOptionsAction">An optional action to allow additional SQL Server specific configuration.</param>
+        /// <param name="NpgsqlOptionsAction">An optional action to allow additional Npgsql-specific configuration.</param>
         /// <returns> The options builder so that further configuration can be chained. </returns>
         public static DbContextOptionsBuilder UseNpgsql(
             [NotNull] this DbContextOptionsBuilder optionsBuilder,
@@ -86,11 +85,11 @@ namespace Microsoft.EntityFrameworkCore
         }
 
         /// <summary>
-        ///     Configures the context to connect to a Microsoft SQL Server database.
+        ///     Configures the context to connect to a PostgreSQL database with Npgsql.
         /// </summary>
         /// <param name="optionsBuilder"> A builder for setting options on the context. </param>
         /// <param name="connectionString"> The connection string of the database to connect to. </param>
-        /// <param name="NpgsqlOptionsAction">An optional action to allow additional SQL Server specific configuration.</param>
+        /// <param name="NpgsqlOptionsAction">An optional action to allow additional Npgsql-configuration.</param>
         /// <returns> The options builder so that further configuration can be chained. </returns>
         public static DbContextOptionsBuilder<TContext> UseNpgsql<TContext>(
             [NotNull] this DbContextOptionsBuilder<TContext> optionsBuilder,
@@ -100,9 +99,8 @@ namespace Microsoft.EntityFrameworkCore
             => (DbContextOptionsBuilder<TContext>)UseNpgsql(
                 (DbContextOptionsBuilder)optionsBuilder, connectionString, NpgsqlOptionsAction);
 
-        // Note: Decision made to use DbConnection not SqlConnection: Issue #772
         /// <summary>
-        ///     Configures the context to connect to a Microsoft SQL Server database.
+        ///     Configures the context to connect to a PostgreSQL database with Npgsql.
         /// </summary>
         /// <param name="optionsBuilder"> A builder for setting options on the context. </param>
         /// <param name="connection">
@@ -110,7 +108,7 @@ namespace Microsoft.EntityFrameworkCore
         ///     in the open state then EF will not open or close the connection. If the connection is in the closed
         ///     state then EF will open and close the connection as needed.
         /// </param>
-        /// <param name="NpgsqlOptionsAction">An optional action to allow additional SQL Server specific configuration.</param>
+        /// <param name="NpgsqlOptionsAction">An optional action to allow additional Npgsql-specific configuration.</param>
         /// <returns> The options builder so that further configuration can be chained. </returns>
         public static DbContextOptionsBuilder<TContext> UseNpgsql<TContext>(
             [NotNull] this DbContextOptionsBuilder<TContext> optionsBuilder,
