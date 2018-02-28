@@ -23,12 +23,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq.Expressions;
 using System.Text;
-using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Microsoft.EntityFrameworkCore.Migrations.Operations;
 
 namespace Microsoft.EntityFrameworkCore.Storage.Internal
 {
@@ -40,13 +35,11 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
         /// Creates the default array mapping (i.e. for the single-dimensional CLR array type)
         /// </summary>
         internal NpgsqlArrayTypeMapping(RelationalTypeMapping elementMapping)
-            : this(elementMapping, elementMapping.ClrType.MakeArrayType()) {}
+            : this(elementMapping, elementMapping.ClrType.MakeArrayType())
+        {}
 
         internal NpgsqlArrayTypeMapping(RelationalTypeMapping elementMapping, Type arrayType)
-            : this(elementMapping, arrayType, CreateComparer(elementMapping, arrayType)) {}
-
-        NpgsqlArrayTypeMapping(RelationalTypeMapping elementMapping, Type arrayType, ValueComparer comparer)
-            : base(GenerateArrayTypeName(elementMapping.StoreType), arrayType, null, comparer)
+            : base(GenerateArrayTypeName(elementMapping.StoreType), arrayType)
         {
             ElementMapping = elementMapping;
         }
@@ -81,7 +74,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
         }
 
         public override RelationalTypeMapping Clone(string storeType, int? size)
-            => new NpgsqlArrayTypeMapping(ElementMapping, ClrType, Comparer);
+            => new NpgsqlArrayTypeMapping(ElementMapping);
 
         protected override string GenerateNonNullSqlLiteral(object value)
         {
@@ -102,145 +95,5 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
             sb.Append("]");
             return sb.ToString();
         }
-
-        #region Value Comparison
-
-        static ValueComparer CreateComparer(RelationalTypeMapping elementMapping, Type arrayType)
-        {
-            Debug.Assert(arrayType.IsArray);
-            var elementType = arrayType.GetElementType();
-
-            // In .NET, single-dimensional arrays implement IList<T> and can therefore be accessed generically
-            // (i.e. efficiently). Multi-dimensional arrays don't, and can only be accessed non-generically via IList.
-
-            if (!typeof(IList<>).MakeGenericType(elementType).IsAssignableFrom(arrayType))
-                return null;   // TODO: Implement multi-dimensional array support (#314)
-
-            // We usee different comparer implementations based on whether we have a non-null element comparer,
-            // and if not, whether the element is IEquatable<TElem>
-
-            if (elementMapping.Comparer != null)
-                return (ValueComparer)Activator.CreateInstance(
-                    typeof(SingleDimComparerWithComparer<>).MakeGenericType(elementType), elementMapping);
-
-            if (typeof(IEquatable<>).MakeGenericType(elementType).IsAssignableFrom(elementType))
-                return (ValueComparer)Activator.CreateInstance(typeof(SingleDimComparerWithIEquatable<>).MakeGenericType(elementType));
-
-            // There's no custom comparer, and the element type doesn't implement IEquatable<TElem>. We have
-            // no choice but to use the non-generic Equals method.
-            return (ValueComparer)Activator.CreateInstance(typeof(SingleDimComparerWithEquals<>).MakeGenericType(elementType));
-        }
-
-        class SingleDimComparerWithComparer<TElem> : ValueComparer<IList<TElem>>
-        {
-            public SingleDimComparerWithComparer(RelationalTypeMapping elementMapping) : base(
-                (a, b) => Compare(a, b, elementMapping.Comparer.CompareFunc),
-                source => Snapshot(source, elementMapping.Comparer.SnapshotFunc)) {}
-
-            static bool Compare(IList<TElem> a, IList<TElem> b, Func<object, object, bool> elementComparer)
-            {
-                if (a.Count != b.Count)
-                    return false;
-
-                // Note: the following currently boxes every element access because ValueComparer isn't really
-                // generic (see https://github.com/aspnet/EntityFrameworkCore/issues/11072)
-                for (var i = 0; i < a.Count; i++)
-                    if (!elementComparer(a[i], b[i]))
-                        return false;
-
-                return true;
-            }
-
-            static IList<TElem> Snapshot(IList<TElem> source, Func<object, object> elementSnapshotFunc)
-            {
-                var snapshot = new TElem[source.Count];
-                // Note: the following currently boxes every element access because ValueComparer isn't really
-                // generic (see https://github.com/aspnet/EntityFrameworkCore/issues/11072)
-                for (var i = 0; i < source.Count; i++)
-                    snapshot[i] = (TElem)elementSnapshotFunc(source[i]);
-                return snapshot;
-            }
-        }
-
-        class SingleDimComparerWithIEquatable<TElem> : ValueComparer<IList<TElem>>
-            where TElem : IEquatable<TElem>
-        {
-            public SingleDimComparerWithIEquatable(): base(
-                (a, b) => Compare(a, b),
-                source => Snapshot(source)) {}
-
-            static bool Compare(IList<TElem> a, IList<TElem> b)
-            {
-                if (a.Count != b.Count)
-                    return false;
-
-                for (var i = 0; i < a.Count; i++)
-                {
-                    var elem1 = a[i];
-                    var elem2 = b[i];
-                    if (elem1 == null)
-                    {
-                        if (elem2 == null)
-                            continue;
-                        return false;
-                    }
-                    if (!elem1.Equals(elem2))
-                        return false;
-                }
-
-                return true;
-            }
-
-            static IList<TElem> Snapshot(IList<TElem> source)
-            {
-                var snapshot = new TElem[source.Count];
-                for (var i = 0; i < source.Count; i++)
-                    snapshot[i] = source[i];
-                return snapshot;
-            }
-        }
-
-        class SingleDimComparerWithEquals<TElem> : ValueComparer<IList<TElem>>
-        {
-            public SingleDimComparerWithEquals() : base(
-                (a, b) => Compare(a, b),
-                source => Snapshot(source)) {}
-
-            static bool Compare(IList<TElem> a, IList<TElem> b)
-            {
-                if (a.Count != b.Count)
-                    return false;
-
-                // Note: the following currently boxes every element access because ValueComparer isn't really
-                // generic (see https://github.com/aspnet/EntityFrameworkCore/issues/11072)
-                for (var i = 0; i < a.Count; i++)
-                {
-                    var elem1 = a[i];
-                    var elem2 = b[i];
-                    if (elem1 == null)
-                    {
-                        if (elem2 == null)
-                            continue;
-                        return false;
-                    }
-                    if (!elem1.Equals(elem2))
-                        return false;
-                }
-
-                return true;
-            }
-
-            static IList<TElem> Snapshot(IList<TElem> source)
-            {
-                var snapshot = new TElem[source.Count];
-                // Note: the following currently boxes every element access because ValueComparer isn't really
-                // generic (see https://github.com/aspnet/EntityFrameworkCore/issues/11072)
-                for (var i = 0; i < source.Count; i++)
-                    snapshot[i] = source[i];
-                return snapshot;
-            }
-        }
-
-        #endregion Value Comparison
     }
 }
