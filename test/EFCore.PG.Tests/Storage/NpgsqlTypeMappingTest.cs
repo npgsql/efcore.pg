@@ -35,7 +35,7 @@ namespace Microsoft.EntityFrameworkCore.Storage
         }
 
         [Fact]
-        public void GenerateSqlLiteral_returns_timestamptz_literal()
+        public void GenerateSqlLiteral_returns_timestamptz_datetime_literal()
         {
             var mapping = GetMapping("timestamptz");
             Assert.Equal("TIMESTAMPTZ '1997-12-17 07:37:16 UTC'",
@@ -50,6 +50,16 @@ namespace Microsoft.EntityFrameworkCore.Storage
 
             Assert.Equal("TIMESTAMPTZ '1997-12-17 07:37:16.345 UTC'",
                 mapping.GenerateSqlLiteral(new DateTime(1997, 12, 17, 7, 37, 16, 345, DateTimeKind.Utc)));
+        }
+
+        [Fact]
+        public void GenerateSqlLiteral_returns_timestamptz_datetimeoffset_literal()
+        {
+            var mapping = GetMapping("timestamptz");
+            Assert.Equal("TIMESTAMPTZ '1997-12-17 07:37:16+02:00'",
+                mapping.GenerateSqlLiteral(new DateTimeOffset(1997, 12, 17, 7, 37, 16, TimeSpan.FromHours(2))));
+            Assert.Equal("TIMESTAMPTZ '1997-12-17 07:37:16.345+02:00'",
+                mapping.GenerateSqlLiteral(new DateTimeOffset(1997, 12, 17, 7, 37, 16, 345, TimeSpan.FromHours(2))));
         }
 
         [Fact]

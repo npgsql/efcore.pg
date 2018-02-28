@@ -18,12 +18,23 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal.Mapping
 
         protected override string GenerateNonNullSqlLiteral(object value)
         {
-            var dt = (DateTime)value;
-            var tz = dt.Kind == DateTimeKind.Local
-                ? $"{dt:zzz}"
-                : " UTC";
+            switch (value)
+            {
+            case DateTime dt:
+                var tz = dt.Kind == DateTimeKind.Local
+                    ? $"{dt:zzz}"
+                    : " UTC";
 
-            return $"TIMESTAMPTZ '{dt:yyyy-MM-dd HH:mm:ss.FFF}{tz}'";
+                return $"TIMESTAMPTZ '{dt:yyyy-MM-dd HH:mm:ss.FFF}{tz}'";
+
+            case DateTimeOffset dto:
+                return $"TIMESTAMPTZ '{dto:yyyy-MM-dd HH:mm:ss.FFFzzz}'";
+
+            default:
+                throw new InvalidCastException(
+                    $"Attempted to generate timestamptz literal for type {value.GetType()}, " +
+                    "only DateTime and DateTimeOffset are supported");
+            }
         }
     }
 
