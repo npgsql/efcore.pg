@@ -21,9 +21,11 @@
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 #endregion
 
+using System.Net.Security;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Utilities;
 using Microsoft.Extensions.DependencyInjection;
+using Npgsql;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore.Infrastructure.Internal
@@ -32,6 +34,8 @@ namespace Microsoft.EntityFrameworkCore.Infrastructure.Internal
     {
         public string AdminDatabase { get; private set; }
         public bool? NullFirstOrdering { get; private set; }
+        public ProvideClientCertificatesCallback ProvideClientCertificatesCallback { get; private set; }
+        public RemoteCertificateValidationCallback RemoteCertificateValidationCallback { get; private set; }
 
         public NpgsqlOptionsExtension()
         {
@@ -43,6 +47,9 @@ namespace Microsoft.EntityFrameworkCore.Infrastructure.Internal
             : base(copyFrom)
         {
             AdminDatabase = copyFrom.AdminDatabase;
+            NullFirstOrdering = copyFrom.NullFirstOrdering;
+            ProvideClientCertificatesCallback = copyFrom.ProvideClientCertificatesCallback;
+            RemoteCertificateValidationCallback = copyFrom.RemoteCertificateValidationCallback;
         }
 
         protected override RelationalOptionsExtension Clone() => new NpgsqlOptionsExtension(this);
@@ -73,5 +80,27 @@ namespace Microsoft.EntityFrameworkCore.Infrastructure.Internal
 
             return clone;
         }
+
+        #region Authentication
+
+        public virtual NpgsqlOptionsExtension WithProvideClientCertificatesCallback(ProvideClientCertificatesCallback callback)
+        {
+            var clone = (NpgsqlOptionsExtension)Clone();
+
+            clone.ProvideClientCertificatesCallback = callback;
+
+            return clone;
+        }
+
+        public virtual NpgsqlOptionsExtension WithRemoteCertificateValidationCallback(RemoteCertificateValidationCallback callback)
+        {
+            var clone = (NpgsqlOptionsExtension)Clone();
+
+            clone.RemoteCertificateValidationCallback = callback;
+
+            return clone;
+        }
+
+        #endregion Authentication
     }
 }

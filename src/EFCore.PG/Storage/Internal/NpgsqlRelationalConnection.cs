@@ -22,6 +22,8 @@
 #endregion
 
 using System.Data.Common;
+using System.Linq;
+using System.Net.Security;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
 using Npgsql;
@@ -30,12 +32,28 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
 {
     public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationalConnection
     {
+        ProvideClientCertificatesCallback ProvideClientCertificatesCallback { get; }
+        RemoteCertificateValidationCallback RemoteCertificateValidationCallback { get; }
+
         public NpgsqlRelationalConnection([NotNull] RelationalConnectionDependencies dependencies)
             : base(dependencies)
         {
+            var npgsqlOptions =
+                dependencies.ContextOptions.Extensions.OfType<NpgsqlOptionsExtension>().FirstOrDefault();
+
+            ProvideClientCertificatesCallback = npgsqlOptions.ProvideClientCertificatesCallback;
+            RemoteCertificateValidationCallback = npgsqlOptions.RemoteCertificateValidationCallback;
         }
 
-        protected override DbConnection CreateDbConnection() => new NpgsqlConnection(ConnectionString);
+        protected override DbConnection CreateDbConnection()
+        {
+            var conn = new NpgsqlConnection(ConnectionString);
+            if (ProvideClientCertificatesCallback != null)
+                conn.ProvideClientCertificatesCallback = ProvideClientCertificatesCallback;
+            if (RemoteCertificateValidationCallback != null)
+                conn.UserCertificateValidationCallback = RemoteCertificateValidationCallback;
+            return conn;
+        }
 
         public INpgsqlRelationalConnection CreateMasterConnection()
         {

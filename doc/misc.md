@@ -56,6 +56,19 @@ PostgreSQL allows you to [attach comments](https://www.postgresql.org/docs/curre
 modelBuilder.Entity<MyEntity>().ForNpgsqlHasComment("Some comment");
 ```
 
+## Certificate authentication
+
+Npgsql allows you to provide a callback for verifying the server-provided certificates, and to provide a callback for providing certificates to the server. The latter, if properly set up on the PostgreSQL side, allows you to do client certificate authentication - see [the Npgsql docs](http://www.npgsql.org/doc/security.html#encryption-ssltls) and also [the PostgreSQL docs](https://www.postgresql.org/docs/current/static/ssl-tcp.html#SSL-CLIENT-CERTIFICATES) on setting this up.
+
+The Npgsql EF Core provider allows you to set these two callbacks on the `DbContextOptionsBuilder` as follows:
+
+```c#
+builder.UseNpgsql("<connection string>", opts => opts.RemoteCertificateValidationCallback(x));
+
+```
+
+You may also consider passing `Trust Server Certificate=true` in your connection string to make Npgsql accept whatever certificate your PostgreSQL provides (useful for self-signed certificates).
+
 ## Specifying the administrative db
 
 When the Npgsql EF Core provider creates or deletes a database (EnsureCreated(), EnsureDeleted()), it must connect to an administrative database which already exists (with PostgreSQL you always have to be connected to some database, even when creating/deleting another database). Up to now the `postgres` database was used, which is supposed to always be present.

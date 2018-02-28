@@ -23,9 +23,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net.Security;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
+using Npgsql;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore.Infrastructure
@@ -52,6 +54,16 @@ namespace Microsoft.EntityFrameworkCore.Infrastructure
         /// <param name="orderNullsFirst"></param>
         internal virtual void OrderNullsFirst(bool orderNullsFirst = true)
             => WithOption(e => e.WithNullFirstOrdering(orderNullsFirst));
+
+        #region Authentication
+
+        public virtual void ProvideClientCertificatesCallback(ProvideClientCertificatesCallback callback)
+            => WithOption(e => e.WithProvideClientCertificatesCallback(callback));
+
+        public virtual void RemoteCertificateValidationCallback(RemoteCertificateValidationCallback callback)
+            => WithOption(e => e.WithRemoteCertificateValidationCallback(callback));
+
+        #endregion Authentication
 
         #region Retrying execution strategy
 
