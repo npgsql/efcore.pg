@@ -28,9 +28,9 @@ namespace Microsoft.EntityFrameworkCore.Query
             await base.GroupBy_Composite_Select_Average();
 
             AssertSql(
-                @"SELECT AVG(CAST(""o"".""OrderID"" AS double precision))
-FROM ""Orders"" AS ""o""
-GROUP BY ""o"".""CustomerID"", ""o"".""EmployeeID""");
+                @"SELECT AVG(CAST(o.""OrderID"" AS double precision))
+FROM ""Orders"" AS o
+GROUP BY o.""CustomerID"", o.""EmployeeID""");
         }
 
         void AssertSql(params string[] expected)

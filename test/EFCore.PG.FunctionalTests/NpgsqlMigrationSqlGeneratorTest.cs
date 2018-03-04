@@ -16,7 +16,7 @@ namespace Microsoft.EntityFrameworkCore
             base.AddColumnOperation_with_defaultValue();
 
             Assert.Equal(
-                "ALTER TABLE \"dbo\".\"People\" ADD \"Name\" varchar(30) NOT NULL DEFAULT 'John Doe';" + EOL,
+                "ALTER TABLE dbo.\"People\" ADD \"Name\" varchar(30) NOT NULL DEFAULT 'John Doe';" + EOL,
                 Sql);
         }
 
@@ -62,7 +62,7 @@ namespace Microsoft.EntityFrameworkCore
             base.AddForeignKeyOperation_with_name();
 
             Assert.Equal(
-                "ALTER TABLE \"dbo\".\"People\" ADD CONSTRAINT \"FK_People_Companies\" FOREIGN KEY (\"EmployerId1\", \"EmployerId2\") REFERENCES \"hr\".\"Companies\" (\"Id1\", \"Id2\") ON DELETE CASCADE;" + EOL,
+                "ALTER TABLE dbo.\"People\" ADD CONSTRAINT \"FK_People_Companies\" FOREIGN KEY (\"EmployerId1\", \"EmployerId2\") REFERENCES hr.\"Companies\" (\"Id1\", \"Id2\") ON DELETE CASCADE;" + EOL,
                 Sql);
         }
 
@@ -80,7 +80,7 @@ namespace Microsoft.EntityFrameworkCore
             base.AddPrimaryKeyOperation_with_name();
 
             Assert.Equal(
-                "ALTER TABLE \"dbo\".\"People\" ADD CONSTRAINT \"PK_People\" PRIMARY KEY (\"Id1\", \"Id2\");" + EOL,
+                "ALTER TABLE dbo.\"People\" ADD CONSTRAINT \"PK_People\" PRIMARY KEY (\"Id1\", \"Id2\");" + EOL,
                 Sql);
         }
 
@@ -98,7 +98,7 @@ namespace Microsoft.EntityFrameworkCore
             base.AddUniqueConstraintOperation_with_name();
 
             Assert.Equal(
-                "ALTER TABLE \"dbo\".\"People\" ADD CONSTRAINT \"AK_People_DriverLicense\" UNIQUE (\"DriverLicense_State\", \"DriverLicense_Number\");" + EOL,
+                "ALTER TABLE dbo.\"People\" ADD CONSTRAINT \"AK_People_DriverLicense\" UNIQUE (\"DriverLicense_State\", \"DriverLicense_Number\");" + EOL,
                 Sql);
         }
 
@@ -116,7 +116,7 @@ namespace Microsoft.EntityFrameworkCore
             base.AlterSequenceOperation_with_minValue_and_maxValue();
 
             Assert.Equal(
-                "ALTER SEQUENCE \"dbo\".\"EntityFrameworkHiLoSequence\" INCREMENT BY 1 MINVALUE 2 MAXVALUE 816 CYCLE;" + EOL,
+                "ALTER SEQUENCE dbo.\"EntityFrameworkHiLoSequence\" INCREMENT BY 1 MINVALUE 2 MAXVALUE 816 CYCLE;" + EOL,
                 Sql);
         }
 
@@ -134,7 +134,7 @@ namespace Microsoft.EntityFrameworkCore
             base.CreateIndexOperation_unique();
 
             Assert.Equal(
-                "CREATE UNIQUE INDEX \"IX_People_Name\" ON \"dbo\".\"People\" (\"FirstName\", \"LastName\");" + EOL,
+                "CREATE UNIQUE INDEX \"IX_People_Name\" ON dbo.\"People\" (\"FirstName\", \"LastName\");" + EOL,
                 Sql);
         }
 
@@ -176,7 +176,7 @@ namespace Microsoft.EntityFrameworkCore
             base.CreateSequenceOperation_with_minValue_and_maxValue();
 
             Assert.Equal(
-                "CREATE SEQUENCE \"dbo\".\"EntityFrameworkHiLoSequence\" START WITH 3 INCREMENT BY 1 MINVALUE 2 MAXVALUE 816 CYCLE;" + EOL,
+                "CREATE SEQUENCE dbo.\"EntityFrameworkHiLoSequence\" START WITH 3 INCREMENT BY 1 MINVALUE 2 MAXVALUE 816 CYCLE;" + EOL,
                 Sql);
         }
 
@@ -200,7 +200,7 @@ namespace Microsoft.EntityFrameworkCore
             base.CreateTableOperation();
 
             Assert.Equal(
-                "CREATE TABLE \"dbo\".\"People\" (" + EOL +
+                "CREATE TABLE dbo.\"People\" (" + EOL +
                 "    \"Id\" integer NOT NULL," + EOL +
                 "    \"EmployerId\" integer NULL," + EOL +
                 "    \"SSN\" char(11) NULL," + EOL +
@@ -216,7 +216,7 @@ namespace Microsoft.EntityFrameworkCore
             base.DropColumnOperation();
 
             Assert.Equal(
-                "ALTER TABLE \"dbo\".\"People\" DROP COLUMN \"LuckyNumber\";" + EOL,
+                "ALTER TABLE dbo.\"People\" DROP COLUMN \"LuckyNumber\";" + EOL,
                 Sql);
         }
 
@@ -225,7 +225,7 @@ namespace Microsoft.EntityFrameworkCore
             base.DropForeignKeyOperation();
 
             Assert.Equal(
-                "ALTER TABLE \"dbo\".\"People\" DROP CONSTRAINT \"FK_People_Companies\";" + EOL,
+                "ALTER TABLE dbo.\"People\" DROP CONSTRAINT \"FK_People_Companies\";" + EOL,
                 Sql);
         }
 
@@ -234,7 +234,7 @@ namespace Microsoft.EntityFrameworkCore
             base.DropPrimaryKeyOperation();
 
             Assert.Equal(
-                "ALTER TABLE \"dbo\".\"People\" DROP CONSTRAINT \"PK_People\";" + EOL,
+                "ALTER TABLE dbo.\"People\" DROP CONSTRAINT \"PK_People\";" + EOL,
                 Sql);
         }
 
@@ -243,7 +243,7 @@ namespace Microsoft.EntityFrameworkCore
             base.DropSequenceOperation();
 
             Assert.Equal(
-                "DROP SEQUENCE \"dbo\".\"EntityFrameworkHiLoSequence\";" + EOL,
+                "DROP SEQUENCE dbo.\"EntityFrameworkHiLoSequence\";" + EOL,
                 Sql);
         }
 
@@ -252,7 +252,7 @@ namespace Microsoft.EntityFrameworkCore
             base.DropTableOperation();
 
             Assert.Equal(
-                "DROP TABLE \"dbo\".\"People\";" + EOL,
+                "DROP TABLE dbo.\"People\";" + EOL,
                 Sql);
         }
 
@@ -261,7 +261,7 @@ namespace Microsoft.EntityFrameworkCore
             base.DropUniqueConstraintOperation();
 
             Assert.Equal(
-                "ALTER TABLE \"dbo\".\"People\" DROP CONSTRAINT \"AK_People_SSN\";" + EOL,
+                "ALTER TABLE dbo.\"People\" DROP CONSTRAINT \"AK_People_SSN\";" + EOL,
                 Sql);
         }
 
@@ -272,9 +272,9 @@ namespace Microsoft.EntityFrameworkCore
             base.AlterColumnOperation();
 
             Assert.Equal(
-                @"ALTER TABLE ""dbo"".""People"" ALTER COLUMN ""LuckyNumber"" TYPE int;" + EOL +
-                @"ALTER TABLE ""dbo"".""People"" ALTER COLUMN ""LuckyNumber"" SET NOT NULL;" + EOL +
-                @"ALTER TABLE ""dbo"".""People"" ALTER COLUMN ""LuckyNumber"" SET DEFAULT 7;" + EOL,
+                @"ALTER TABLE dbo.""People"" ALTER COLUMN ""LuckyNumber"" TYPE int;" + EOL +
+                @"ALTER TABLE dbo.""People"" ALTER COLUMN ""LuckyNumber"" SET NOT NULL;" + EOL +
+                @"ALTER TABLE dbo.""People"" ALTER COLUMN ""LuckyNumber"" SET DEFAULT 7;" + EOL,
             Sql);
         }
 
@@ -326,7 +326,7 @@ namespace Microsoft.EntityFrameworkCore
             });
 
             Assert.Equal(
-                "ALTER TABLE \"People\" ADD \"foo\" serial NOT NULL;" + EOL,
+                "ALTER TABLE \"People\" ADD foo serial NOT NULL;" + EOL,
                 Sql);
         }
 
@@ -348,7 +348,7 @@ namespace Microsoft.EntityFrameworkCore
                 });
 
             Assert.Equal(
-                @"ALTER TABLE ""People"" ADD ""foo"" serial NOT NULL DEFAULT 0;" + EOL,
+                @"ALTER TABLE ""People"" ADD foo serial NOT NULL DEFAULT 0;" + EOL,
                 Sql);
         }
 
@@ -515,7 +515,7 @@ namespace Microsoft.EntityFrameworkCore
             });
 
             Assert.Equal(
-                "CREATE INDEX \"IX_People_Name\" ON \"dbo\".\"People\" USING gin (\"FirstName\");" + EOL,
+                "CREATE INDEX \"IX_People_Name\" ON dbo.\"People\" USING gin (\"FirstName\");" + EOL,
                 Sql);
         }
 
@@ -532,7 +532,7 @@ namespace Microsoft.EntityFrameworkCore
                 });
 
             Assert.Equal(
-                "ALTER INDEX \"myschema\".\"x\" RENAME TO \"y\";" + EOL,
+                "ALTER INDEX myschema.x RENAME TO y;" + EOL,
                 Sql);
         }
 
@@ -548,7 +548,7 @@ namespace Microsoft.EntityFrameworkCore
             Generate(op);
 
             Assert.Equal(
-                @"CREATE EXTENSION IF NOT EXISTS ""hstore"";" + EOL,
+                @"CREATE EXTENSION IF NOT EXISTS hstore;" + EOL,
                 Sql);
         }
 
@@ -561,7 +561,7 @@ namespace Microsoft.EntityFrameworkCore
             Generate(op);
 
             Assert.Equal(
-                @"CREATE EXTENSION IF NOT EXISTS ""hstore"" SCHEMA ""myschema"";" + EOL,
+                @"CREATE EXTENSION IF NOT EXISTS hstore SCHEMA myschema;" + EOL,
                 Sql);
         }
 
@@ -597,7 +597,7 @@ namespace Microsoft.EntityFrameworkCore
                 });
 
             Assert.Equal(
-                "CREATE TABLE \"dbo\".\"People\" (" + EOL +
+                "CREATE TABLE dbo.\"People\" (" + EOL +
                 "    \"Id\" integer NOT NULL," + EOL +
                 "    PRIMARY KEY (\"Id\")" + EOL +
                 ")" + EOL +
@@ -629,8 +629,8 @@ namespace Microsoft.EntityFrameworkCore
                 });
 
             Assert.Equal(
-                "ALTER TABLE \"dbo\".\"People\" SET (autovacuum_enabled=true, fillfactor=80);" + EOL +
-                "ALTER TABLE \"dbo\".\"People\" RESET (user_catalog_table);" + EOL,
+                "ALTER TABLE dbo.\"People\" SET (autovacuum_enabled=true, fillfactor=80);" + EOL +
+                "ALTER TABLE dbo.\"People\" RESET (user_catalog_table);" + EOL,
                 Sql);
         }
 
@@ -666,9 +666,9 @@ namespace Microsoft.EntityFrameworkCore
             });
 
             Assert.Equal(
-                "CREATE TABLE \"public\".\"foo\" (" + EOL +
-                "    \"id\" integer NOT NULL," + EOL +
-                "    PRIMARY KEY (\"id\")" + EOL +
+                "CREATE TABLE public.foo (" + EOL +
+                "    id integer NOT NULL," + EOL +
+                "    PRIMARY KEY (id)" + EOL +
                 ");" + EOL,
                 Sql);
         }
@@ -746,11 +746,11 @@ namespace Microsoft.EntityFrameworkCore
                 });
 
             Assert.Equal(
-                "CREATE TABLE \"dbo\".\"People\" (" + EOL +
+                "CREATE TABLE dbo.\"People\" (" + EOL +
                 "    \"Id\" integer NOT NULL," + EOL +
                 "    PRIMARY KEY (\"Id\")" + EOL +
                 ");" + EOL +
-                "COMMENT ON TABLE \"dbo\".\"People\" IS 'Some comment';" + EOL,
+                "COMMENT ON TABLE dbo.\"People\" IS 'Some comment';" + EOL,
                 Sql);
         }
 
@@ -780,11 +780,11 @@ namespace Microsoft.EntityFrameworkCore
                 });
 
             Assert.Equal(
-                "CREATE TABLE \"dbo\".\"People\" (" + EOL +
+                "CREATE TABLE dbo.\"People\" (" + EOL +
                 "    \"Id\" integer NOT NULL," + EOL +
                 "    PRIMARY KEY (\"Id\")" + EOL +
                 ");" + EOL +
-                "COMMENT ON COLUMN \"dbo\".\"People\".\"Id\" IS 'Some comment';" + EOL,
+                "COMMENT ON COLUMN dbo.\"People\".\"Id\" IS 'Some comment';" + EOL,
                 Sql);
         }
 
@@ -801,7 +801,7 @@ namespace Microsoft.EntityFrameworkCore
                 });
 
             Assert.Equal(
-                "COMMENT ON TABLE \"dbo\".\"People\" IS 'New comment';" + EOL,
+                "COMMENT ON TABLE dbo.\"People\" IS 'New comment';" + EOL,
                 Sql);
         }
 
@@ -816,7 +816,7 @@ namespace Microsoft.EntityFrameworkCore
                     OldTable = new Annotatable { [NpgsqlAnnotationNames.Comment] = "New comment" }
                 });
             Assert.Equal(
-                "COMMENT ON TABLE \"dbo\".\"People\" IS NULL;" + EOL,
+                "COMMENT ON TABLE dbo.\"People\" IS NULL;" + EOL,
                 Sql);
         }
 
@@ -835,8 +835,8 @@ namespace Microsoft.EntityFrameworkCore
             });
 
             Assert.Equal(
-                "ALTER TABLE \"dbo\".\"People\" ADD \"foo\" int NOT NULL;" + EOL +
-                "COMMENT ON COLUMN \"dbo\".\"People\".\"foo\" IS 'Some comment';" + EOL,
+                "ALTER TABLE dbo.\"People\" ADD foo int NOT NULL;" + EOL +
+                "COMMENT ON COLUMN dbo.\"People\".foo IS 'Some comment';" + EOL,
                 Sql);
         }
 
@@ -858,10 +858,10 @@ namespace Microsoft.EntityFrameworkCore
                 });
 
             Assert.Equal(
-                @"ALTER TABLE ""dbo"".""People"" ALTER COLUMN ""LuckyNumber"" TYPE int;" + EOL +
-                @"ALTER TABLE ""dbo"".""People"" ALTER COLUMN ""LuckyNumber"" SET NOT NULL;" + EOL +
-                @"ALTER TABLE ""dbo"".""People"" ALTER COLUMN ""LuckyNumber"" SET DEFAULT 7;" + EOL +
-                "COMMENT ON COLUMN \"dbo\".\"People\".\"LuckyNumber\" IS 'New comment'",
+                @"ALTER TABLE dbo.""People"" ALTER COLUMN ""LuckyNumber"" TYPE int;" + EOL +
+                @"ALTER TABLE dbo.""People"" ALTER COLUMN ""LuckyNumber"" SET NOT NULL;" + EOL +
+                @"ALTER TABLE dbo.""People"" ALTER COLUMN ""LuckyNumber"" SET DEFAULT 7;" + EOL +
+                "COMMENT ON COLUMN dbo.\"People\".\"LuckyNumber\" IS 'New comment'",
                 Sql);
         }
 
@@ -882,10 +882,10 @@ namespace Microsoft.EntityFrameworkCore
                 });
 
             Assert.Equal(
-                @"ALTER TABLE ""dbo"".""People"" ALTER COLUMN ""LuckyNumber"" TYPE int;" + EOL +
-                @"ALTER TABLE ""dbo"".""People"" ALTER COLUMN ""LuckyNumber"" SET NOT NULL;" + EOL +
-                @"ALTER TABLE ""dbo"".""People"" ALTER COLUMN ""LuckyNumber"" SET DEFAULT 7;" + EOL +
-                "COMMENT ON COLUMN \"dbo\".\"People\".\"LuckyNumber\" IS NULL",
+                @"ALTER TABLE dbo.""People"" ALTER COLUMN ""LuckyNumber"" TYPE int;" + EOL +
+                @"ALTER TABLE dbo.""People"" ALTER COLUMN ""LuckyNumber"" SET NOT NULL;" + EOL +
+                @"ALTER TABLE dbo.""People"" ALTER COLUMN ""LuckyNumber"" SET DEFAULT 7;" + EOL +
+                "COMMENT ON COLUMN dbo.\"People\".\"LuckyNumber\" IS NULL",
                 Sql);
         }
 
@@ -925,11 +925,11 @@ namespace Microsoft.EntityFrameworkCore
             Generate(op);
 
             Assert.Equal(
-                "CREATE TABLE \"dbo\".\"People\" (" + EOL +
+                "CREATE TABLE dbo.\"People\" (" + EOL +
                 "    \"Id\" integer NOT NULL," + EOL +
                 "    PRIMARY KEY (\"Id\")" + EOL +
                 ")" + EOL +
-                "INTERLEAVE IN PARENT \"my_schema\".\"my_parent\" (\"col_a\", \"col_b\");" + EOL,
+                "INTERLEAVE IN PARENT my_schema.my_parent (col_a, col_b);" + EOL,
                 Sql);
         }
 
@@ -949,7 +949,7 @@ namespace Microsoft.EntityFrameworkCore
                 });
 
             Assert.StartsWith(
-                "CREATE SEQUENCE \"public\".\"short_sequence\" AS smallint",
+                "CREATE SEQUENCE public.short_sequence AS smallint",
                 Sql);
         }
 
