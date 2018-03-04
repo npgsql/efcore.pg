@@ -17,9 +17,9 @@ namespace Microsoft.EntityFrameworkCore.Query
             base.Does_not_throw_for_top_level_single();
 
             Assert.Equal(
-                @"SELECT ""x"".""OrderID"", ""x"".""CustomerID"", ""x"".""EmployeeID"", ""x"".""OrderDate""
-FROM ""Orders"" AS ""x""
-WHERE ""x"".""OrderID"" = 10248
+                @"SELECT x.""OrderID"", x.""CustomerID"", x.""EmployeeID"", x.""OrderDate""
+FROM ""Orders"" AS x
+WHERE x.""OrderID"" = 10248
 LIMIT 2",
                 Sql,
                 ignoreLineEndingDifferences: true);

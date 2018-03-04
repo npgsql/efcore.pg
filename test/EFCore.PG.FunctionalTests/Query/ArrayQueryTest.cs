@@ -26,7 +26,7 @@ namespace Microsoft.EntityFrameworkCore.Query
             {
                 var actual = ctx.SomeEntities.Where(e => e.SomeArray[0] == 3).ToList();
                 Assert.Equal(1, actual.Count);
-                AssertContainsInSql(@"WHERE (""e"".""SomeArray""[1]) = 3");
+                AssertContainsInSql(@"WHERE (e.""SomeArray""[1]) = 3");
             }
         }
 
@@ -38,7 +38,7 @@ namespace Microsoft.EntityFrameworkCore.Query
                 var x = 0;
                 var actual = ctx.SomeEntities.Where(e => e.SomeArray[x] == 3).ToList();
                 Assert.Equal(1, actual.Count);
-                AssertContainsInSql(@"WHERE (""e"".""SomeArray""[@__x_0 + 1]) = 3");
+                AssertContainsInSql(@"WHERE (e.""SomeArray""[@__x_0 + 1]) = 3");
             }
         }
 
@@ -49,7 +49,7 @@ namespace Microsoft.EntityFrameworkCore.Query
             {
                 var actual = ctx.SomeEntities.Where(e => e.SomeBytea[0] == 3).ToList();
                 Assert.Equal(1, actual.Count);
-                AssertContainsInSql(@"WHERE (get_byte(""e"".""SomeBytea"", 0)) = 3");
+                AssertContainsInSql(@"WHERE (get_byte(e.""SomeBytea"", 0)) = 3");
             }
         }
 
@@ -72,7 +72,7 @@ namespace Microsoft.EntityFrameworkCore.Query
                 var arr = new[] { 3, 4 };
                 var x = ctx.SomeEntities.Single(e => e.SomeArray.SequenceEqual(arr));
                 Assert.Equal(new[] { 3, 4 }, x.SomeArray);
-                AssertContainsInSql(@"WHERE ""e"".""SomeArray"" = @");
+                AssertContainsInSql(@"WHERE e.""SomeArray"" = @");
             }
         }
 
@@ -83,7 +83,7 @@ namespace Microsoft.EntityFrameworkCore.Query
             {
                 var x = ctx.SomeEntities.Single(e => e.SomeArray.SequenceEqual(new[] { 3, 4 }));
                 Assert.Equal(new[] { 3, 4 }, x.SomeArray);
-                AssertContainsInSql(@"WHERE ""e"".""SomeArray"" = ARRAY[3,4]");
+                AssertContainsInSql(@"WHERE e.""SomeArray"" = ARRAY[3,4]");
             }
         }
 
@@ -94,7 +94,7 @@ namespace Microsoft.EntityFrameworkCore.Query
             {
                 var x = ctx.SomeEntities.Single(e => e.SomeArray.Contains(3));
                 Assert.Equal(new[] { 3, 4 }, x.SomeArray);
-                AssertContainsInSql(@"WHERE 3 = ANY (""e"".""SomeArray"")");
+                AssertContainsInSql(@"WHERE 3 = ANY (e.""SomeArray"")");
             }
         }
 
@@ -106,7 +106,7 @@ namespace Microsoft.EntityFrameworkCore.Query
                 var p = 3;
                 var x = ctx.SomeEntities.Single(e => e.SomeArray.Contains(p));
                 Assert.Equal(new[] { 3, 4 }, x.SomeArray);
-                AssertContainsInSql(@"WHERE @__p_0 = ANY (""e"".""SomeArray"")");
+                AssertContainsInSql(@"WHERE @__p_0 = ANY (e.""SomeArray"")");
             }
         }
 
@@ -117,7 +117,7 @@ namespace Microsoft.EntityFrameworkCore.Query
             {
                 var x = ctx.SomeEntities.Single(e => e.SomeArray.Contains(e.Id + 2));
                 Assert.Equal(new[] { 3, 4 }, x.SomeArray);
-                AssertContainsInSql(@"WHERE ""e"".""Id"" + 2 = ANY (""e"".""SomeArray"")");
+                AssertContainsInSql(@"WHERE e.""Id"" + 2 = ANY (e.""SomeArray"")");
             }
         }
 
@@ -128,7 +128,7 @@ namespace Microsoft.EntityFrameworkCore.Query
             {
                 var x = ctx.SomeEntities.Single(e => e.SomeArray.Length == 2);
                 Assert.Equal(new[] { 3, 4 }, x.SomeArray);
-                AssertContainsInSql(@"WHERE array_length(""e"".""SomeArray"", 1) = 2");
+                AssertContainsInSql(@"WHERE array_length(e.""SomeArray"", 1) = 2");
             }
         }
 
@@ -140,7 +140,7 @@ namespace Microsoft.EntityFrameworkCore.Query
                 // TODO: This fails
                 var x = ctx.SomeEntities.Single(e => EF.Property<int[]>(e, nameof(SomeEntity.SomeArray)).Length == 2);
                 Assert.Equal(new[] { 3, 4 }, x.SomeArray);
-                AssertContainsInSql(@"WHERE array_length(""e"".""SomeArray"", 1) = 2");
+                AssertContainsInSql(@"WHERE array_length(e.""SomeArray"", 1) = 2");
             }
         }
 

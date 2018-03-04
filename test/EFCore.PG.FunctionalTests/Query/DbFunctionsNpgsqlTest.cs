@@ -27,8 +27,8 @@ namespace Microsoft.EntityFrameworkCore.Query
 
             AssertSql(
                 @"SELECT COUNT(*)::INT4
-FROM ""Customers"" AS ""c""
-WHERE ""c"".""ContactName"" LIKE '%M%'");
+FROM ""Customers"" AS c
+WHERE c.""ContactName"" LIKE '%M%'");
         }
 
         public override void String_Like_Identity()
@@ -37,8 +37,8 @@ WHERE ""c"".""ContactName"" LIKE '%M%'");
 
             AssertSql(
                 @"SELECT COUNT(*)::INT4
-FROM ""Customers"" AS ""c""
-WHERE ""c"".""ContactName"" LIKE ""c"".""ContactName"" ESCAPE ''");
+FROM ""Customers"" AS c
+WHERE c.""ContactName"" LIKE c.""ContactName"" ESCAPE ''");
         }
 
         public override void String_Like_Literal_With_Escape()
@@ -47,8 +47,8 @@ WHERE ""c"".""ContactName"" LIKE ""c"".""ContactName"" ESCAPE ''");
 
             AssertSql(
                 @"SELECT COUNT(*)::INT4
-FROM ""Customers"" AS ""c""
-WHERE ""c"".""ContactName"" LIKE '!%' ESCAPE '!'");
+FROM ""Customers"" AS c
+WHERE c.""ContactName"" LIKE '!%' ESCAPE '!'");
         }
 
         [Fact]
@@ -63,8 +63,8 @@ WHERE ""c"".""ContactName"" LIKE '!%' ESCAPE '!'");
 
             AssertSql(
                 @"SELECT COUNT(*)::INT4
-FROM ""Customers"" AS ""c""
-WHERE ""c"".""ContactName"" LIKE '\' ESCAPE ''");
+FROM ""Customers"" AS c
+WHERE c.""ContactName"" LIKE '\' ESCAPE ''");
         }
 
         [Fact]
@@ -80,8 +80,8 @@ WHERE ""c"".""ContactName"" LIKE '\' ESCAPE ''");
             // For the useless = TRUE below see https://github.com/aspnet/EntityFramework/issues/9143
             AssertSql(
                 @"SELECT COUNT(*)::INT4
-FROM ""Customers"" AS ""c""
-WHERE ""c"".""ContactName"" ILIKE '%M%' = TRUE");
+FROM ""Customers"" AS c
+WHERE c.""ContactName"" ILIKE '%M%' = TRUE");
         }
 
         [Fact]
@@ -96,8 +96,8 @@ WHERE ""c"".""ContactName"" ILIKE '%M%' = TRUE");
             // For the useless = TRUE below see https://github.com/aspnet/EntityFramework/issues/9143
             AssertSql(
                 @"SELECT COUNT(*)::INT4
-FROM ""Customers"" AS ""c""
-WHERE ""c"".""ContactName"" ILIKE '!%' ESCAPE '!' = TRUE");
+FROM ""Customers"" AS c
+WHERE c.""ContactName"" ILIKE '!%' ESCAPE '!' = TRUE");
         }
 
         void AssertSql(params string[] expected)

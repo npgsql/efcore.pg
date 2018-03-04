@@ -88,7 +88,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .TryAdd<IDatabaseProvider, DatabaseProvider<NpgsqlOptionsExtension>>()
                 .TryAdd<IValueGeneratorCache>(p => p.GetService<INpgsqlValueGeneratorCache>())
                 .TryAdd<IRelationalTypeMappingSource, NpgsqlTypeMappingSource>()
-                .TryAdd<ISqlGenerationHelper, RelationalSqlGenerationHelper>()
+                .TryAdd<ISqlGenerationHelper, NpgsqlSqlGenerationHelper>()
                 .TryAdd<IMigrationsAnnotationProvider, NpgsqlMigrationsAnnotationProvider>()
                 .TryAdd<IRelationalValueBufferFactoryFactory, TypedRelationalValueBufferFactoryFactory>()
                 .TryAdd<IConventionSetBuilder, NpgsqlConventionSetBuilder>()
