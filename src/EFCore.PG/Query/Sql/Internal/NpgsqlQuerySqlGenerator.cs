@@ -267,6 +267,25 @@ namespace Microsoft.EntityFrameworkCore.Query.Sql.Internal
             return iLikeExpression;
         }
 
+        public Expression VisitExplicitStoreTypeCast([NotNull] ExplicitStoreTypeCastExpression castExpression)
+        {
+            Sql.Append("CAST(");
+
+            //var parentTypeMapping = _typeMapping;
+            //_typeMapping = InferTypeMappingFromColumn(castExpression.Operand);
+
+            Visit(castExpression.Operand);
+
+            Sql
+                .Append(" AS ")
+                .Append(castExpression.StoreType)
+                .Append(")");
+
+            //_typeMapping = parentTypeMapping;
+
+            return castExpression;
+        }
+
         protected override string GenerateOperator(Expression expression)
         {
             switch (expression.NodeType)
