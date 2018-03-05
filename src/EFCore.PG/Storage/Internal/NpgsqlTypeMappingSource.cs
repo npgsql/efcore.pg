@@ -68,6 +68,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
         readonly NpgsqlJsonbTypeMapping        _jsonb       = new NpgsqlJsonbTypeMapping();
         readonly NpgsqlJsonTypeMapping         _json        = new NpgsqlJsonTypeMapping();
         readonly NpgsqlXmlTypeMapping          _xml         = new NpgsqlXmlTypeMapping();
+        readonly NpgsqlCitextTypeMapping       _citext      = new NpgsqlCitextTypeMapping();
         readonly NpgsqlDateTypeMapping         _date        = new NpgsqlDateTypeMapping();
         readonly NpgsqlTimestampTypeMapping    _timestamp   = new NpgsqlTimestampTypeMapping();
         readonly NpgsqlTimestampTzTypeMapping  _timestamptz = new NpgsqlTimestampTzTypeMapping();
@@ -142,6 +143,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
                 { "jsonb",                       _jsonb       },
                 { "json",                        _json        },
                 { "xml",                         _xml         },
+                { "citext",                      _citext      },
                 { "character varying",           _varchar     },
                 { "varchar",                     _varchar     },
                 { "character",                   _char        },
