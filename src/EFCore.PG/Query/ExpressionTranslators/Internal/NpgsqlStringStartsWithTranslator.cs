@@ -24,6 +24,7 @@
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
 
 namespace Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal
@@ -56,14 +57,23 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal
             // First run LIKE against the *unescaped* pattern (which will efficiently use indices),
             // but then add another test to filter out false positives.
             var pattern = e.Arguments[0];
+
+            Expression leftExpr = new SqlFunctionExpression("LEFT", typeof(string), new[]
+            {
+                e.Object,
+                new SqlFunctionExpression("LENGTH", typeof(int), new[] { pattern }),
+            });
+
+            // If StartsWith is being invoked on a citext, the LEFT() function above will return a reglar text
+            // and the comparison will be case-sensitive. So we need to explicitly cast LEFT()'s return type
+            // to citext. See #319.
+            if (e.Object.FindProperty(typeof(string))?.GetConfiguredColumnType() == "citext")
+                leftExpr = new ExplicitStoreTypeCastExpression(leftExpr, typeof(string), "citext");
+
             return Expression.AndAlso(
                 new LikeExpression(e.Object, Expression.Add(pattern, Expression.Constant("%"), _concat)),
                 Expression.Equal(
-                    new SqlFunctionExpression("LEFT", typeof(string), new[]
-                    {
-                        e.Object,
-                        new SqlFunctionExpression("LENGTH", typeof(int), new[] { pattern }),
-                    }),
+                    leftExpr,
                     pattern
                 )
             );
