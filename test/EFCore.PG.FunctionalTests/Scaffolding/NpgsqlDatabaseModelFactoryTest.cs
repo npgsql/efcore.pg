@@ -1618,6 +1618,7 @@ CREATE TABLE column_types (
     json json,
     ""character varying"" character varying,
     ""character(1)"" character,
+    ""character(2)"" character(2),
     ""timestamp without time zone"" timestamp,
     ""timestamp with time zone"" timestamptz,
     ""time without time zone"" time,
@@ -1645,8 +1646,8 @@ CREATE TABLE column_types (
                     {
                         Assert.Equal(column.Name, column.StoreType);
                         Assert.Equal(
-                            typeMappingSource.FindMapping(column.StoreType).StoreType,
-                            column.StoreType
+                            column.StoreType,
+                            typeMappingSource.FindMapping(column.StoreType).StoreType
                         );
                     }
                 },
