@@ -240,23 +240,36 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
         {
             RelationalTypeMapping mapping;
 
-            var storeType = mappingInfo.StoreTypeName;
-            if (storeType != null)
-            {
-                if (!_storeTypeMappings.TryGetValue(mappingInfo.StoreTypeName, out mapping))
-                    mapping = FindSizableMapping(storeType);
-                if (mapping != null)
-                    return mapping;
-            }
-
             var clrType = mappingInfo.ProviderClrType;
-            if (clrType == null)
+            var storeTypeName = mappingInfo.StoreTypeName;
+            var storeTypeNameBase = mappingInfo.StoreTypeNameBase;
+
+            if (storeTypeName != null)
             {
-                //Log.Warn($"Received RelationalTypeMappingInfo without {mappingInfo.StoreTypeName} or {mappingInfo.TargetClrType}");
-                return null;
+                if (_storeTypeMappings.TryGetValue(storeTypeName, out mapping))
+                    return clrType == null || mapping.ClrType == clrType
+                        ? mapping
+                        : null;
+
+                if (_storeTypeMappings.TryGetValue(storeTypeNameBase, out mapping))
+                    return clrType == null || mapping.ClrType == clrType
+                        ? mapping.CloneWithFacetedName(mappingInfo)
+                        : null;
             }
 
-            // TODO: Cache sized mappings?
+            if (clrType == null)
+                return null;
+
+            if (!_clrTypeMappings.TryGetValue(clrType, out mapping))
+            {
+                // TODO: range, enum, composite
+
+                // No mapping found which corresponds to the clrType, try to find an array
+                return FindArrayMapping(mappingInfo);
+            }
+
+            // If needed, clone the mapping with the configured length/precision/scale
+            // TODO: Cache size/precision/scale mappings?
             if (mappingInfo.Size.HasValue)
             {
                 if (clrType == typeof(string))
@@ -264,14 +277,25 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
                 if (clrType == typeof(BitArray))
                     return _varbit.Clone($"varbit({mappingInfo.Size})", mappingInfo.Size);
             }
+            else if (mappingInfo.Precision.HasValue)
+            {
+                if (clrType == typeof(decimal))
+                {
+                    return _numeric.Clone(mappingInfo.Scale.HasValue
+                        ? $"numeric({mappingInfo.Precision.Value},{mappingInfo.Scale.Value})"
+                        : $"numeric({mappingInfo.Precision.Value})",
+                        null);
+                }
 
-            if (_clrTypeMappings.TryGetValue(clrType, out mapping))
-                return mapping;
+                if (clrType == typeof(DateTime) ||
+                    clrType == typeof(DateTimeOffset) ||
+                    clrType == typeof(TimeSpan))
+                {
+                    return mapping.Clone($"{mapping.StoreType}({mappingInfo.Precision.Value})", null);
+                }
+            }
 
-            mapping = FindArrayMapping(mappingInfo);
             return mapping;
-
-            // TODO: range, enum, composite
         }
 
         RelationalTypeMapping FindArrayMapping(RelationalTypeMappingInfo mappingInfo)
@@ -304,36 +328,6 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
                     return null;
 
                 return _clrTypeMappings.GetOrAdd(clrType, new NpgsqlArrayTypeMapping(elementMapping, clrType));
-            }
-
-            return null;
-        }
-
-        RelationalTypeMapping FindSizableMapping(string storeType)
-        {
-            var openParen = storeType.IndexOf("(", StringComparison.Ordinal);
-            if (openParen <= 0)
-                return null;
-
-            var baseStoreType = storeType.Substring(0, openParen).ToLower();
-
-            if (!SizableStoreTypes.Contains(baseStoreType))
-                return null;
-
-            // TODO: Shouldn't happen, at least warn
-            if (!_storeTypeMappings.TryGetValue(baseStoreType, out var mapping))
-            {
-                Debug.Fail($"Type is in {nameof(SizableStoreTypes)} but wasn't found in {nameof(_storeTypeMappings)}");
-                return null;
-            }
-
-            var closeParen = storeType.IndexOf(")", openParen + 1, StringComparison.Ordinal);
-
-            // TODO: Cache sized mappings?
-            if (closeParen > openParen
-                && int.TryParse(storeType.Substring(openParen + 1, closeParen - openParen - 1), out var size))
-            {
-                return mapping.Clone(storeType, size);
             }
 
             return null;
