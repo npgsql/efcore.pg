@@ -1479,22 +1479,7 @@ CREATE TABLE identity (
         }
 
         [Fact]
-        public void PostgresExtensions()
-        {
-            Test(
-                @"CREATE EXTENSION ""uuid-ossp"";",
-                Enumerable.Empty<string>(),
-                Enumerable.Empty<string>(),
-                dbModel =>
-                {
-                    Assert.NotNull(PostgresExtension.FindPostgresExtension(dbModel, "uuid-ossp"));
-                    Assert.Null(PostgresExtension.FindPostgresExtension(dbModel, "pgcrypto"));
-                },
-                @"DROP EXTENSION ""uuid-ossp""");
-        }
-
-        [Fact]
-        public void IndexMethod()
+        public void Index_method()
         {
             Test(
                 @"
