@@ -255,6 +255,8 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
                     return clrType == null || mapping.ClrType == clrType
                         ? mapping.CloneWithFacetedName(mappingInfo)
                         : null;
+
+                return FindArrayMapping(mappingInfo);
             }
 
             if (clrType == null)
@@ -302,11 +304,11 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
         {
             // PostgreSQL array types prefix the element type with underscore
             var storeType = mappingInfo.StoreTypeName;
-            if (storeType != null && storeType.StartsWith("_"))
+            if (storeType != null && storeType.EndsWith("[]"))
             {
-                var elementMapping = FindMapping(storeType.Substring(1));
+                var elementMapping = FindMapping(storeType.Substring(0, storeType.Length - 2));
                 if (elementMapping != null)
-                    return _storeTypeMappings.GetOrAdd(storeType, new NpgsqlArrayTypeMapping(elementMapping));
+                    return _storeTypeMappings.GetOrAdd(storeType, new NpgsqlArrayTypeMapping(storeType, elementMapping));
             }
 
             var clrType = mappingInfo.ProviderClrType;

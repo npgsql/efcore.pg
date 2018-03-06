@@ -763,7 +763,8 @@ CREATE TABLE ""NoFacetTypes"" (
     ""inetColumn"" inet,
     ""pointColumn"" point,
     ""lineColumn"" line,
-    ""xidColumn"" xid
+    ""xidColumn"" xid,
+    ""textArrayColumn"" text[]
 )",
                 Enumerable.Empty<string>(),
                 Enumerable.Empty<string>(),
@@ -792,6 +793,7 @@ CREATE TABLE ""NoFacetTypes"" (
                         Assert.Equal("point", columns.Single(c => c.Name == "pointColumn").StoreType);
                         Assert.Equal("line", columns.Single(c => c.Name == "lineColumn").StoreType);
                         Assert.Equal("xid", columns.Single(c => c.Name == "xidColumn").StoreType);
+                        Assert.Equal("text[]", columns.Single(c => c.Name == "textArrayColumn").StoreType);
                     },
                 @"
 DROP TABLE ""NoFacetTypes""");
