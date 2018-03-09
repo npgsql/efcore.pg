@@ -70,9 +70,8 @@ namespace Microsoft.EntityFrameworkCore.Design.Internal
             {
                 var extension = new PostgresExtension(model, annotation.Name);
 
-                return (bool)annotation.Value == false
-                    ? new MethodCallCodeFragment(nameof(NpgsqlModelBuilderExtensions.HasPostgresExtension), extension)
-                    : new MethodCallCodeFragment(nameof(NpgsqlModelBuilderExtensions.HasPostgresExtension));
+                return new MethodCallCodeFragment(nameof(NpgsqlModelBuilderExtensions.HasPostgresExtension),
+                    extension.Name);
             }
 
             return null;
