@@ -44,8 +44,7 @@ namespace Microsoft.EntityFrameworkCore.Storage
                 mapping.GenerateSqlLiteral(new DateTime(1997, 12, 17, 7, 37, 16, DateTimeKind.Unspecified)));
 
             var offset = TimeZoneInfo.Local.BaseUtcOffset.Hours;
-            var offsetStr = offset < 10 ? $"0{offset}" : offset.ToString();
-            Assert.StartsWith($"TIMESTAMPTZ '1997-12-17 07:37:16+{offsetStr}",
+            Assert.StartsWith($"TIMESTAMPTZ '1997-12-17 07:37:16{offset:+00;-00}",
                 mapping.GenerateSqlLiteral(new DateTime(1997, 12, 17, 7, 37, 16, DateTimeKind.Local)));
 
             Assert.Equal("TIMESTAMPTZ '1997-12-17 07:37:16.345 UTC'",
@@ -194,7 +193,7 @@ namespace Microsoft.EntityFrameworkCore.Storage
                 { "k1", "v1"},
                 { "k2", "v2"}
             };
-            
+
             var comparer = GetMapping("hstore").Comparer;
             var snapshot = (Dictionary<string, string>)comparer.SnapshotFunc(source);
             Assert.Equal(source, snapshot);
