@@ -26,8 +26,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.1.0-preview2-30183" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="2.1.0-preview2-30183" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.1.0-preview2-30285" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="2.1.0-preview2-30285" />
     <PackageReference Include="Npgsql" Version="3.2.7" />
   </ItemGroup>
 

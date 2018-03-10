@@ -3,9 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.NetworkInformation;
-using Microsoft.EntityFrameworkCore.Storage.Converters;
 using Microsoft.EntityFrameworkCore.Storage.Internal;
-using Microsoft.EntityFrameworkCore.TestUtilities;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NpgsqlTypes;
 using Xunit;
 
@@ -194,7 +193,7 @@ namespace Microsoft.EntityFrameworkCore.Storage
                 { "k1", "v1"},
                 { "k2", "v2"}
             };
-            
+
             var comparer = GetMapping("hstore").Comparer;
             var snapshot = (Dictionary<string, string>)comparer.SnapshotFunc(source);
             Assert.Equal(source, snapshot);

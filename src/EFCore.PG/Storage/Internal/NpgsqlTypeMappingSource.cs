@@ -240,7 +240,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
         {
             RelationalTypeMapping mapping;
 
-            var clrType = mappingInfo.ProviderClrType;
+            var clrType = mappingInfo.ClrType;
             var storeTypeName = mappingInfo.StoreTypeName;
             var storeTypeNameBase = mappingInfo.StoreTypeNameBase;
 
@@ -311,7 +311,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
                     return _storeTypeMappings.GetOrAdd(storeType, new NpgsqlArrayTypeMapping(storeType, elementMapping));
             }
 
-            var clrType = mappingInfo.ProviderClrType;
+            var clrType = mappingInfo.ClrType;
             if (clrType == null)
                 return null;
 
