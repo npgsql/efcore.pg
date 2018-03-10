@@ -219,7 +219,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
                 { typeof(NpgsqlRange<DateTime>),      _tsrange     }
             };
 
-            _storeTypeMappings = new ConcurrentDictionary<string, RelationalTypeMapping>(storeTypeMappings);
+            _storeTypeMappings = new ConcurrentDictionary<string, RelationalTypeMapping>(storeTypeMappings, StringComparer.OrdinalIgnoreCase);
             _clrTypeMappings = new ConcurrentDictionary<Type, RelationalTypeMapping>(clrTypeMappings);
 
             if (typeof(NpgsqlConnection).Assembly.GetName().Version < new Version(3, 3))

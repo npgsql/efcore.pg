@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NpgsqlTypes;
+using Remotion.Linq.Clauses.Expressions;
 
 namespace Microsoft.EntityFrameworkCore.Storage.Internal.Mapping
 {
@@ -55,10 +56,15 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal.Mapping
 
     public class NpgsqlTimeTypeMapping : NpgsqlTypeMapping
     {
-        public NpgsqlTimeTypeMapping() : base("time without time zone", typeof(DateTime), NpgsqlDbType.Time) {}
+        public NpgsqlTimeTypeMapping() : base("time without time zone", typeof(TimeSpan), NpgsqlDbType.Time) {}
 
         protected override string GenerateNonNullSqlLiteral(object value)
-            => $"TIME '{(DateTime)value:HH:mm:ss.FFF}'";
+        {
+            var ts = (TimeSpan)value;
+            return ts.Milliseconds == 0
+                ? $@"TIME '{(TimeSpan)value:hh\:mm\:ss}'"
+                : $@"TIME '{(TimeSpan)value:hh\:mm\:ss\.FFF}'";
+        }
     }
 
     public class NpgsqlTimeTzTypeMapping : NpgsqlTypeMapping
