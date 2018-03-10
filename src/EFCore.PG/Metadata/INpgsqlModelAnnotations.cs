@@ -32,5 +32,6 @@ namespace Microsoft.EntityFrameworkCore.Metadata
         string HiLoSequenceSchema { get; }
         IReadOnlyList<IPostgresExtension> PostgresExtensions { get; }
         string DatabaseTemplate { get; }
+        string Tablespace { get; }
     }
 }

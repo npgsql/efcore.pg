@@ -171,6 +171,20 @@ namespace Microsoft.EntityFrameworkCore
                 Sql);
         }
 
+        [Fact]
+        public virtual void CreateDatabaseOperation_with_tablespace()
+        {
+            Generate(new NpgsqlCreateDatabaseOperation
+            {
+                Name = "some_db",
+                Tablespace = "MyTablespace"
+            });
+
+            Assert.Equal(
+                @"CREATE DATABASE some_db TABLESPACE ""MyTablespace"";" + EOL,
+                Sql);
+        }
+
         public override void CreateSequenceOperation_with_minValue_and_maxValue()
         {
             base.CreateSequenceOperation_with_minValue_and_maxValue();

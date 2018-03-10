@@ -614,6 +614,13 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                     .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Template));
             }
 
+            if (operation.Tablespace != null)
+            {
+                builder
+                    .Append(" TABLESPACE ")
+                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Tablespace));
+            }
+
             builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
 
             EndStatement(builder, suppressTransaction: true);

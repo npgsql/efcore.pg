@@ -30,5 +30,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations.Operations
         public virtual string Name { get;[param: NotNull] set; }
         [CanBeNull]
         public virtual string Template { get; set; }
+        [CanBeNull]
+        public virtual string Tablespace { get; set; }
     }
 }

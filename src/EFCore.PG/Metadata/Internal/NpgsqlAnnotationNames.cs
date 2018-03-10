@@ -35,6 +35,7 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Internal
         public const string IndexMethod = Prefix + "IndexMethod";
         public const string PostgresExtensionPrefix = Prefix + "PostgresExtension:";
         public const string DatabaseTemplate = Prefix + "DatabaseTemplate";
+        public const string Tablespace = Prefix + "Tablespace";
         public const string StorageParameterPrefix = Prefix + "StorageParameter:";
         public const string Comment = Prefix + "Comment";
 

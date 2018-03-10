@@ -64,6 +64,8 @@ namespace Microsoft.EntityFrameworkCore
             return modelBuilder;
         }
 
+        #region Identity
+
         /// <summary>
         /// <para>
         /// Configures the model to use the PostgreSQL IDENTITY feature to generate values for properties
@@ -129,6 +131,8 @@ namespace Microsoft.EntityFrameworkCore
             [NotNull] this ModelBuilder modelBuilder)
             => modelBuilder.ForNpgsqlUseIdentityByDefaultColumns();
 
+        #endregion Identity
+
         public static ModelBuilder HasPostgresExtension(
             [NotNull] this ModelBuilder modelBuilder,
             [NotNull] string name)
@@ -148,6 +152,17 @@ namespace Microsoft.EntityFrameworkCore
             Check.NotEmpty(templateDatabaseName, nameof(templateDatabaseName));
 
             modelBuilder.Model.Npgsql().DatabaseTemplate = templateDatabaseName;
+            return modelBuilder;
+        }
+
+        public static ModelBuilder ForNpgsqlUseTablespace(
+            [NotNull] this ModelBuilder modelBuilder,
+            [NotNull] string tablespace)
+        {
+            Check.NotNull(modelBuilder, nameof(modelBuilder));
+            Check.NotEmpty(tablespace, nameof(tablespace));
+
+            modelBuilder.Model.Npgsql().Tablespace = tablespace;
             return modelBuilder;
         }
     }

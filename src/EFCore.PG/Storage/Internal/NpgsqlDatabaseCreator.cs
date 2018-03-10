@@ -191,7 +191,9 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
             {
                 new NpgsqlCreateDatabaseOperation
                 {
-                    Name = _connection.DbConnection.Database, Template = Dependencies.Model.Npgsql().DatabaseTemplate
+                    Name = _connection.DbConnection.Database,
+                    Template = Dependencies.Model.Npgsql().DatabaseTemplate,
+                    Tablespace = Dependencies.Model.Npgsql().Tablespace
                 }
             });
 

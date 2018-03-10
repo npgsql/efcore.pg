@@ -109,5 +109,21 @@ namespace Microsoft.EntityFrameworkCore.Metadata
                 Check.NullButNotEmpty(value, nameof(value)));
 
         #endregion
+
+        #region Tablespace
+
+        public virtual string Tablespace
+        {
+            get => (string)Annotations.Metadata[NpgsqlAnnotationNames.Tablespace];
+            [param: CanBeNull]
+            set => SetTablespace(value);
+        }
+
+        protected virtual bool SetTablespace([CanBeNull] string value)
+            => Annotations.SetAnnotation(
+                NpgsqlAnnotationNames.Tablespace,
+                Check.NullButNotEmpty(value, nameof(value)));
+
+        #endregion
     }
 }
