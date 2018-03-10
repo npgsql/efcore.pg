@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Net.NetworkInformation;
 using System.Reflection;
@@ -18,6 +19,54 @@ namespace Microsoft.EntityFrameworkCore
         public BuiltInDataTypesNpgsqlTest(BuiltInDataTypesNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
         {
+            Fixture.TestSqlLoggerFactory.Clear();
+            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        }
+
+        [Fact]
+        public void Sql_translation_uses_type_mapper_when_constant()
+        {
+            using (var context = CreateContext())
+            {
+                var results
+                    = context.Set<MappedNullableDataTypes>()
+                        .Where(e => e.TimeSpanAsTime == new TimeSpan(0, 1, 2))
+                        .Select(e => e.Int)
+                        .ToList();
+
+                Assert.Equal(0, results.Count);
+                Assert.Equal(
+                    @"SELECT e.""Int""
+FROM ""MappedNullableDataTypes"" AS e
+WHERE e.""TimeSpanAsTime"" = TIME '00:01:02'",
+                    Sql,
+                    ignoreLineEndingDifferences: true);
+            }
+        }
+
+        [Fact]
+        public void Sql_translation_uses_type_mapper_when_parameter()
+        {
+            using (var context = CreateContext())
+            {
+                var timeSpan = new TimeSpan(2, 1, 0);
+
+                var results
+                    = context.Set<MappedNullableDataTypes>()
+                        .Where(e => e.TimeSpanAsTime == timeSpan)
+                        .Select(e => e.Int)
+                        .ToList();
+
+                Assert.Equal(0, results.Count);
+                Assert.Equal(
+                    @"@__timeSpan_0='02:01:00' (DbType = Object)
+
+SELECT e.""Int""
+FROM ""MappedNullableDataTypes"" AS e
+WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
+                    Sql,
+                    ignoreLineEndingDifferences: true);
+            }
         }
 
         [Fact]
@@ -28,40 +77,50 @@ namespace Microsoft.EntityFrameworkCore
                 context.Set<MappedNullableDataTypes>().Add(
                     new MappedNullableDataTypes
                     {
-                        Tinyint = 80,
-                        Smallint = 79,
                         Int = 999,
-                        Bigint = 78L,
-                        Real = 84.4f,
-                        Double_precision = 85.5,
+                        LongAsBigint = 78L,
+                        ShortAsSmallint = 79,
+                        UintAsInt = uint.MaxValue,
+                        UlongAsBigint = ulong.MaxValue,
+                        UShortAsSmallint = ushort.MaxValue,
+                        UintAsBigint = uint.MaxValue,
+                        UShortAsInt = ushort.MaxValue,
+
+                        BoolAsBoolean = true,
+
+                        DecimalAsMoney = 81.1m,
                         Decimal = 101.7m,
-                        Numeric = 103.9m,
+                        DecimalAsNumeric = 103.9m,
+                        FloatAsReal = 84.4f,
+                        DoubleAsDoublePrecision = 85.5,
 
-                        Text = "Gumball Rules!",
-                        Bytea = new byte[] { 86 },
+                        DateTimeAsTimestamp = new DateTime(2015, 1, 2, 10, 11, 12),
+                        DateTimeAsTimestamptz = new DateTime(2016, 1, 2, 11, 11, 12, DateTimeKind.Utc),
+                        DateTimeAsDate = new DateTime(2015, 1, 2, 0, 0, 0),
+                        TimeSpanAsTime = new TimeSpan(11, 15, 12),
+                        DateTimeOffsetAsTimetz = new DateTimeOffset(1, 1, 1, 12, 0, 0, TimeSpan.FromHours(2)),
+                        TimeSpanAsInterval = new TimeSpan(11, 15, 12),
 
-                        Timestamp = new DateTime(2015, 1, 2, 10, 11, 12),
-                        Timestamptz = new DateTime(2016, 1, 2, 11, 11, 12, DateTimeKind.Utc),
-                        Date = new DateTime(2015, 1, 2, 0, 0, 0),
-                        Time = new TimeSpan(11, 15, 12),
-                        Timetz = new DateTimeOffset(1, 1, 1, 12, 0, 0, TimeSpan.FromHours(2)),
-                        Interval = new TimeSpan(11, 15, 12),
+                        StringAsText = "Gumball Rules!",
+                        StringAsVarchar = "Gumball Rules OK",
+                        BytesAsBytea = new byte[] { 86 },
 
-                        Uuid = new Guid("a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"),
-                        Bool = true,
+                        GuidAsUuid = new Guid("a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"),
 
-                        Macaddr = PhysicalAddress.Parse("08-00-2B-01-02-03"),
-                        Point = new NpgsqlPoint(5.2, 3.3),
-                        Jsonb = @"{""a"": ""b""}",
-                        Hstore = new Dictionary<string, string> { { "a", "b" } },
-                        Int4Range = new NpgsqlRange<int>(4, true, 8, false),
+                        EnumAsText = StringEnum16.Value4,
+                        EnumAsVarchar = StringEnumU16.Value4,
 
-                        //SomeComposite = new SomeComposite { SomeNumber = 8, SomeText = "foo" }
+                        PhysicalAddressAsMacaddr = PhysicalAddress.Parse("08-00-2B-01-02-03"),
+                        NpgsqlPointAsPoint = new NpgsqlPoint(5.2, 3.3),
+                        StringAsJsonb = @"{""a"": ""b""}",
+                        StringAsJson = @"{""a"": ""b""}",
+                        DictionaryAsHstore = new Dictionary<string, string> { { "a", "b" } },
+                        NpgsqlRangeAsRange = new NpgsqlRange<int>(4, true, 8, false),
 
-                        PrimitiveArray = new[] { 2, 3 },
-                        NonPrimitiveArray = new[] { PhysicalAddress.Parse("08-00-2B-01-02-03"), PhysicalAddress.Parse("08-00-2B-01-02-04") },
+                        IntArrayAsIntArray= new[] { 2, 3 },
+                        PhysicalAddressArrayAsMacaddrArray= new[] { PhysicalAddress.Parse("08-00-2B-01-02-03"), PhysicalAddress.Parse("08-00-2B-01-02-04") },
 
-                        Xid = (uint)int.MaxValue + 1,
+                        UintAsXid = (uint)int.MaxValue + 1,
                     });
 
                 Assert.Equal(1, context.SaveChanges());
@@ -71,86 +130,113 @@ namespace Microsoft.EntityFrameworkCore
             {
                 var entity = context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999);
 
-                byte? param1 = 80;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Tinyint == param1));
+                long? param1 = 78L;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.LongAsBigint == param1));
 
                 short? param2 = 79;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Smallint == param2));
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.ShortAsSmallint == param2));
 
-                long? param3 = 78L;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Bigint == param3));
+                uint? param3 = uint.MaxValue;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.UintAsInt == param3));
 
-                float? param4 = 84.4f;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Real == param4));
+                ulong? param4 = ulong.MaxValue;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.UlongAsBigint == param4));
 
-                double? param5 = 85.5;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Double_precision == param5));
+                ushort? param5 = ushort.MaxValue;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.UShortAsSmallint == param5));
 
-                decimal? param6 = 101.7m;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Decimal == param6));
+                uint? param6 = uint.MaxValue;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.UintAsBigint == param6));
 
-                decimal? param7 = 103.9m;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Numeric == param7));
+                ushort? param7 = ushort.MaxValue;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.UShortAsInt == param7));
 
-                var param8 = "Gumball Rules!";
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Text == param8));
+                bool? param8 = true;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.BoolAsBoolean == param8));
 
-                var param9 = new byte[] { 86 };
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Bytea == param9));
+                // PostgreSQL doesn't support comparing money to decimal
+                //decimal? param9 = 81.1m;
+                //Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.DecimalAsMoney == param9));
 
-                DateTime? param10 = new DateTime(2015, 1, 2, 10, 11, 12);
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Timestamp == param10));
+                decimal? param10 = 101.7m;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Decimal == param10));
 
-                DateTime? param11 = new DateTime(2016, 1, 2, 11, 11, 12, DateTimeKind.Utc);
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Timestamptz == param11));
+                decimal? param11 = 103.9m;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.DecimalAsNumeric == param11));
 
-                DateTime? param12 = new DateTime(2015, 1, 2, 0, 0, 0);
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Date == param12));
+                float? param12 = 84.4f;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.FloatAsReal == param12));
 
-                TimeSpan? param13 = new TimeSpan(11, 15, 12);
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Time == param13));
+                double? param13 = 85.5;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.DoubleAsDoublePrecision == param13));
 
-                DateTimeOffset? param14 = new DateTimeOffset(1, 1, 1, 12, 0, 0, TimeSpan.FromHours(2));
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Timetz == param14));
+                DateTime? param14 = new DateTime(2015, 1, 2, 10, 11, 12);
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.DateTimeAsTimestamp == param14));
 
-                TimeSpan? param15 = new TimeSpan(11, 15, 12);
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Interval == param15));
+                DateTime? param15 = new DateTime(2016, 1, 2, 11, 11, 12, DateTimeKind.Utc);
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.DateTimeAsTimestamptz == param15));
 
-                Guid? param16 = new Guid("a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11");
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Uuid == param16));
+                DateTime? param16 = new DateTime(2015, 1, 2, 0, 0, 0);
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.DateTimeAsDate == param16));
 
-                bool? param17 = true;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Bool == param17));
+                TimeSpan? param17 = new TimeSpan(11, 15, 12);
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.TimeSpanAsTime == param17));
 
-                var param18 = PhysicalAddress.Parse("08-00-2B-01-02-03");
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Macaddr.Equals(param18)));
+                DateTimeOffset? param18 = new DateTimeOffset(1, 1, 1, 12, 0, 0, TimeSpan.FromHours(2));
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.DateTimeOffsetAsTimetz == param18));
+
+                TimeSpan? param19 = new TimeSpan(11, 15, 12);
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.TimeSpanAsInterval == param19));
+
+                var param20 = "Gumball Rules!";
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.StringAsText == param20));
+
+                var param21 = "Gumball Rules OK";
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.StringAsVarchar == param21));
+
+                var param22 = new byte[] { 86 };
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.BytesAsBytea == param22));
+
+                Guid? param23 = new Guid("a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11");
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.GuidAsUuid == param23));
+
+                StringEnum16? param24 = StringEnum16.Value4;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.EnumAsText == param24));
+
+                StringEnumU16? param25 = StringEnumU16.Value4;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.EnumAsVarchar == param25));
+
+                var param26 = PhysicalAddress.Parse("08-00-2B-01-02-03");
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.PhysicalAddressAsMacaddr.Equals(param26)));
 
                 // PostgreSQL doesn't support equality comparison on point
-                // NpgsqlPoint? param19 = new NpgsqlPoint(5.2, 3.3);
-                // Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Point == param19));
+                // NpgsqlPoint? param27 = new NpgsqlPoint(5.2, 3.3);
+                // Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Point == param27));
 
-                var param20 = @"{""a"": ""b""}";
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Jsonb == param20));
+                var param28 = @"{""a"": ""b""}";
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.StringAsJsonb == param28));
 
-                var param21 = new Dictionary<string, string> { { "a", "b" } };
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Hstore == param21));
+                // operator does not exist: json = json (https://stackoverflow.com/questions/32843213/operator-does-not-exist-json-json)
+                // var param29 = @"{""a"": ""b""}";
+                // Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.StringAsJson == param29));
 
-                var param22 = new NpgsqlRange<int>(4, true, 8, false);
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Int4Range == param22));
+                var param30 = new Dictionary<string, string> { { "a", "b" } };
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.DictionaryAsHstore == param30));
 
-                //SomeComposite param22 = new SomeComposite { SomeNumber = 8, SomeText = "foo" };
-                //Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.SomeComposite.Equals(param20)));
+                var param31 = new NpgsqlRange<int>(4, true, 8, false);
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.NpgsqlRangeAsRange == param31));
 
-                var param23 = new[] { 2, 3 };
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.PrimitiveArray == param23));
+                var param32 = new[] { 2, 3 };
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.IntArrayAsIntArray == param32));
 
-                var param24 = new[] { PhysicalAddress.Parse("08-00-2B-01-02-03"), PhysicalAddress.Parse("08-00-2B-01-02-04") };
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.NonPrimitiveArray == param24));
+                var param33 = new[] { PhysicalAddress.Parse("08-00-2B-01-02-03"), PhysicalAddress.Parse("08-00-2B-01-02-04") };
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.PhysicalAddressArrayAsMacaddrArray == param33));
 
-                var param25 = (uint)int.MaxValue + 1;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Xid == param25));
+                var param34 = (uint)int.MaxValue + 1;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.UintAsXid == param34));
             }
         }
+
 
         [Fact]
         public virtual void Can_query_using_any_mapped_data_types_with_nulls()
@@ -170,308 +256,331 @@ namespace Microsoft.EntityFrameworkCore
             {
                 var entity = context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911);
 
-                byte? param1 = null;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.Bigint == param1));
+                long? param1 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.LongAsBigint == param1));
 
                 short? param2 = null;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.Smallint == param2));
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.ShortAsSmallint == param2));
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && (long?)(int?)e.ShortAsSmallint == param2));
 
-                long? param3 = null;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.Bigint == param3));
+                uint? param3 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.UintAsInt == param3));
 
-                float? param4 = null;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.Real == param4));
+                ulong? param4 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.UlongAsBigint == param4));
 
-                double? param5 = null;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.Double_precision == param5));
+                ushort? param5 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.UShortAsSmallint == param5));
 
-                decimal? param6 = null;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.Decimal == param6));
+                uint? param6 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.UintAsBigint == param6));
 
-                decimal? param7 = null;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.Numeric == param7));
+                ushort? param7 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.UShortAsInt == param7));
 
-                string param8 = null;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.Text == param8));
+                bool? param8 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.BoolAsBoolean == param8));
 
-                byte[] param9 = null;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.Bytea == param9));
+                decimal? param9 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.DecimalAsMoney == param9));
 
-                DateTime? param10 = null;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.Timestamp == param10));
+                decimal? param10 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.Decimal == param10));
 
-                DateTime? param11 = null;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.Timestamptz == param11));
+                decimal? param11 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.DecimalAsNumeric == param11));
 
-                DateTime? param12 = null;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.Date == param12));
+                float? param12 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.FloatAsReal == param12));
 
-                TimeSpan? param13 = null;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.Time == param13));
+                double? param13 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.DoubleAsDoublePrecision == param13));
 
-                DateTimeOffset? param14 = null;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.Timetz == param14));
+                DateTime? param14 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.DateTimeAsTimestamp == param14));
 
-                TimeSpan? param15 = null;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.Interval == param15));
+                DateTime? param15 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.DateTimeAsTimestamptz == param15));
 
-                Guid? param16 = null;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.Uuid == param16));
+                DateTime? param16 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.DateTimeAsDate == param16));
 
-                bool? param17 = null;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.Bool == param17));
+                TimeSpan? param17 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.TimeSpanAsTime == param17));
 
-                PhysicalAddress param18 = null;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.Macaddr == param18));
+                DateTimeOffset? param18 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.DateTimeOffsetAsTimetz == param18));
 
-                NpgsqlPoint? param19 = null;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.Point == param19));
+                TimeSpan? param19 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.TimeSpanAsInterval == param19));
 
                 string param20 = null;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.Jsonb == param20));
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.StringAsText == param20));
 
-                Dictionary<string, string> param21 = null;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.Hstore == param21));
+                string param21 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.StringAsVarchar == param21));
 
-                NpgsqlRange<int>? param22 = null;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.Int4Range == param22));
+                byte[] param22 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.BytesAsBytea == param22));
 
-                //SomeComposite param22 = null;
-                //Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.SomeComposite == param20));
+                Guid? param23 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.GuidAsUuid == param23));
 
-                int[] param23 = null;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.PrimitiveArray == param23));
+                StringEnum16? param24 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.EnumAsText == param24));
 
-                PhysicalAddress[] param24 = null;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.NonPrimitiveArray == param24));
+                StringEnumU16? param25 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.EnumAsVarchar == param25));
 
-                uint? param25 = null;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.Xid == param25));
+                PhysicalAddress param26 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.PhysicalAddressAsMacaddr == param26));
+
+                NpgsqlPoint? param27 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.NpgsqlPointAsPoint == param27));
+
+                string param28 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.StringAsJsonb == param28));
+
+                string param29 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.StringAsJson == param29));
+
+                Dictionary<string, string> param30 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.DictionaryAsHstore == param30));
+
+                NpgsqlRange<int>? param31 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.NpgsqlRangeAsRange == param31));
+
+                int[] param32 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.IntArrayAsIntArray == param32));
+
+                PhysicalAddress[] param33 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.PhysicalAddressArrayAsMacaddrArray== param33));
+
+                uint? param34 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.UintAsXid == param34));
             }
         }
 
         [Fact]
         public virtual void Can_insert_and_read_back_all_mapped_data_types()
         {
+            var entity = CreateMappedDataTypes(77);
             using (var context = CreateContext())
             {
-                context.Set<MappedDataTypes>().Add(
-                    new MappedDataTypes
-                    {
-                        Tinyint = 80,
-                        Smallint = 79,
-                        Int = 77,
-                        Bigint = 78L,
-                        Real = 84.4f,
-                        Double_precision = 85.5,
-                        Decimal = 101.1m,
-                        Numeric = 103.3m,
-
-                        Text = "Gumball Rules!",
-                        Bytea = new byte[] { 86 },
-
-                        Timestamp = new DateTime(2016, 1, 2, 11, 11, 12),
-                        Timestamptz = new DateTime(2016, 1, 2, 11, 11, 12, DateTimeKind.Utc),
-                        Date = new DateTime(2015, 1, 2, 10, 11, 12),
-                        Time = new TimeSpan(11, 15, 12),
-                        Timetz = new DateTimeOffset(1, 1, 1, 12, 0, 0, TimeSpan.FromHours(2)),
-                        Interval = new TimeSpan(11, 15, 12),
-
-                        Uuid = new Guid("a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"),
-                        Bool = true,
-
-                        Macaddr = PhysicalAddress.Parse("08-00-2B-01-02-03"),
-                        Point = new NpgsqlPoint(5.2, 3.3),
-                        Jsonb = @"{""a"": ""b""}",
-                        Hstore = new Dictionary<string, string> { { "a", "b" } },
-                        Int4Range = new NpgsqlRange<int>(4, true, 8, false),
-
-                        //SomeComposite = new SomeComposite { SomeNumber = 8, SomeText = "foo" }
-                        PrimitiveArray = new[] { 2, 3 },
-                        NonPrimitiveArray = new[] { PhysicalAddress.Parse("08-00-2B-01-02-03"), PhysicalAddress.Parse("08-00-2B-01-02-04") },
-
-                        Xid = (uint)int.MaxValue + 1,
-                    });
+                context.Set<MappedDataTypes>().Add(entity);
 
                 Assert.Equal(1, context.SaveChanges());
             }
 
-            using (var context = CreateContext())
-            {
-                var connString = context.Database.GetDbConnection().ConnectionString;
-                var entity = context.Set<MappedDataTypes>().Single(e => e.Int == 77);
-
-                Assert.Equal(80, entity.Tinyint);
-                Assert.Equal(79, entity.Smallint);
-                Assert.Equal(77, entity.Int);
-                Assert.Equal(78, entity.Bigint);
-                Assert.Equal(84.4f, entity.Real);
-                Assert.Equal(85.5, entity.Double_precision);
-                Assert.Equal(101.1m, entity.Decimal);
-                Assert.Equal(103.3m, entity.Numeric);
-
-                Assert.Equal("Gumball Rules!", entity.Text);
-                Assert.Equal(new byte[] { 86 }, entity.Bytea);
-
-                Assert.Equal(new DateTime(2016, 1, 2, 11, 11, 12), entity.Timestamp);
-                //Assert.Equal(new DateTime(2016, 1, 2, 11, 11, 12), entity.Timestamptz);
-                Assert.Equal(new DateTime(2015, 1, 2, 0, 0, 0), entity.Date);
-                Assert.Equal(new TimeSpan(11, 15, 12), entity.Time);
-                Assert.Equal(new DateTimeOffset(1, 1, 1, 12, 0, 0, TimeSpan.FromHours(2)), entity.Timetz);
-                Assert.Equal(new TimeSpan(11, 15, 12), entity.Interval);
-
-                Assert.Equal(new Guid("a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"), entity.Uuid);
-                Assert.True(entity.Bool);
-
-                Assert.Equal(PhysicalAddress.Parse("08-00-2B-01-02-03"), entity.Macaddr);
-                Assert.Equal(new NpgsqlPoint(5.2, 3.3), entity.Point);
-                Assert.Equal(@"{""a"": ""b""}", entity.Jsonb);
-                Assert.Equal(new Dictionary<string, string> { { "a", "b" } }, entity.Hstore);
-                Assert.Equal(new NpgsqlRange<int>(4, true, 8, false), entity.Int4Range);
-
-                //Assert.Equal(new SomeComposite { SomeNumber = 8, SomeText = "foo" }, entity.SomeComposite);
-                Assert.Equal(new[] { 2, 3 }, entity.PrimitiveArray);
-                Assert.Equal(new[] { PhysicalAddress.Parse("08-00-2B-01-02-03"), PhysicalAddress.Parse("08-00-2B-01-02-04") }, entity.NonPrimitiveArray);
-                Assert.Equal((uint)int.MaxValue + 1, entity.Xid);
-            }
+            var parameters = DumpParameters();
+            Assert.Equal(
+                @"@p0='77'
+@p1='True'
+@p2='0x56' (Nullable = false)
+@p3='2015-01-02T00:00:00' (DbType = Date)
+@p4='2015-01-02T10:11:12' (DbType = DateTime)
+@p5='2016-01-02T11:11:12' (DbType = DateTimeOffset)
+@p6='0001-01-01T12:00:00.0000000+02:00' (DbType = Object)
+@p7='101.7'
+@p8='81.1'
+@p9='103.9'
+@p10='System.Collections.Generic.Dictionary`2[System.String,System.String]' (Nullable = false) (DbType = Object)
+@p11='85.5'
+@p12='Value4' (Nullable = false)
+@p13='Value4' (Nullable = false)
+@p14='84.4'
+@p15='a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
+@p16='System.Int32[]' (Nullable = false) (DbType = Object)
+@p17='78'
+@p18='(5.2,3.3)' (DbType = Object)
+@p19='[4,8)' (DbType = Object)
+@p20='System.Net.NetworkInformation.PhysicalAddress[]' (Nullable = false) (DbType = Object)
+@p21='08002B010203' (Nullable = false) (DbType = Object)
+@p22='79'
+@p23='{""a"": ""b""}' (Nullable = false)
+@p24='{""a"": ""b""}' (Nullable = false) (DbType = Object)
+@p25='Gumball Rules!' (Nullable = false)
+@p26='Gumball Rules OK' (Nullable = false)
+@p27='11:15:12' (DbType = Object)
+@p28='11:15:12' (DbType = Object)
+@p29='65535'
+@p30='-1'
+@p31='4294967295'
+@p32='-1'
+@p33='2147483648' (DbType = Object)
+@p34='-1'",
+                    parameters,
+                    ignoreLineEndingDifferences: true);
         }
 
-        [Fact]
-        public virtual void Can_insert_and_read_back_all_mapped_nullable_data_types()
+        string DumpParameters()
+            => Fixture.TestSqlLoggerFactory.Parameters.Single().Replace(", ", EOL);
+
+        static void AssertMappedDataTypes(MappedDataTypes entity, int id)
         {
-            using (var context = CreateContext())
-            {
-                context.Set<MappedNullableDataTypes>().Add(
-                    new MappedNullableDataTypes
-                    {
-                        Tinyint = 80,
-                        Smallint = 79,
-                        Int = 77,
-                        Bigint = 78L,
-                        Real = 84.4f,
-                        Double_precision = 85.5,
-                        Decimal = 101.1m,
-                        Numeric = 103.3m,
+            var expected = CreateMappedDataTypes(id);
+            Assert.Equal(id, entity.Int);
+            Assert.Equal(78, entity.LongAsBigint);
+            Assert.Equal(79, entity.ShortAsSmallint);
+            Assert.Equal(uint.MaxValue, entity.UintAsInt);
+            Assert.Equal(ulong.MaxValue, entity.UlongAsBigint);
+            Assert.Equal(ushort.MaxValue, entity.UShortAsSmallint);
+            Assert.Equal(uint.MaxValue, entity.UintAsBigint);
+            Assert.Equal(ushort.MaxValue, entity.UShortAsInt);
 
-                        Text = "Gumball Rules!",
-                        Bytea = new byte[] { 86 },
+            Assert.True(entity.BoolAsBoolean);
 
-                        Timestamp = new DateTime(2016, 1, 2, 11, 11, 12),
-                        Timestamptz = new DateTime(2016, 1, 2, 11, 11, 12, DateTimeKind.Utc),
-                        Date = new DateTime(2015, 1, 2, 10, 11, 12),
-                        Time = new TimeSpan(11, 15, 12),
-                        Timetz = new DateTimeOffset(1, 1, 1, 12, 0, 0, TimeSpan.FromHours(2)),
-                        Interval = new TimeSpan(11, 15, 12),
+            Assert.Equal(81.1m, entity.DecimalAsMoney);
+            Assert.Equal(101.7m, entity.Decimal);
+            Assert.Equal(103.9m, entity.DecimalAsNumeric);
+            Assert.Equal(84.4f, entity.FloatAsReal);
+            Assert.Equal(85.5, entity.DoubleAsDoublePrecision);
 
-                        Uuid = new Guid("a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"),
-                        Bool = true,
+            Assert.Equal(new DateTime(2015, 1, 2, 10, 11, 12), entity.DateTimeAsTimestamp);
+            Assert.Equal(new DateTime(2016, 1, 2, 11, 11, 12, DateTimeKind.Utc), entity.DateTimeAsTimestamptz);
+            Assert.Equal(new DateTime(2015, 1, 2, 0, 0, 0), entity.DateTimeAsDate);
+            Assert.Equal(new TimeSpan(11, 15, 12), entity.TimeSpanAsTime);
+            Assert.Equal(new DateTimeOffset(1, 1, 1, 12, 0, 0, TimeSpan.FromHours(2)), entity.DateTimeOffsetAsTimetz);
+            Assert.Equal(new TimeSpan(11, 15, 12), entity.TimeSpanAsInterval);
 
-                        Macaddr = PhysicalAddress.Parse("08-00-2B-01-02-03"),
-                        Point = new NpgsqlPoint(5.2, 3.3),
-                        Jsonb = @"{""a"": ""b""}",
-                        Hstore = new Dictionary<string, string> { { "a", "b" } },
-                        Int4Range = new NpgsqlRange<int>(4, true, 8, false),
+            Assert.Equal("Gumball Rules!", entity.StringAsText);
+            Assert.Equal("Gumball Rules OK", entity.StringAsVarchar);
+            Assert.Equal(new byte[] { 86 }, entity.BytesAsBytea);
 
-                        //SomeComposite = new SomeComposite { SomeNumber = 8, SomeText = "foo" }
-                        PrimitiveArray = new[] { 2, 3 },
-                        NonPrimitiveArray = new[] { PhysicalAddress.Parse("08-00-2B-01-02-03"), PhysicalAddress.Parse("08-00-2B-01-02-04") },
-                        Xid = (uint)int.MaxValue + 1,
-                    });
+            Assert.Equal(new Guid("a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"), entity.GuidAsUuid);
 
-                Assert.Equal(1, context.SaveChanges());
-            }
+            Assert.Equal(StringEnum16.Value4, entity.EnumAsText);
+            Assert.Equal(StringEnumU16.Value4, entity.EnumAsVarchar);
 
-            using (var context = CreateContext())
-            {
-                var entity = context.Set<MappedNullableDataTypes>().Single(e => e.Int == 77);
+            Assert.Equal(PhysicalAddress.Parse("08-00-2B-01-02-03"), entity.PhysicalAddressAsMacaddr);
+            Assert.Equal(new NpgsqlPoint(5.2, 3.3), entity.NpgsqlPointAsPoint);
+            Assert.Equal(@"{""a"": ""b""}", entity.StringAsJsonb);
+            Assert.Equal(@"{""a"": ""b""}", entity.StringAsJson);
+            Assert.Equal(new Dictionary<string, string> { { "a", "b" } }, entity.DictionaryAsHstore);
+            Assert.Equal(new NpgsqlRange<int>(4, true, 8, false), entity.NpgsqlRangeAsRange);
 
-                Assert.Equal(80, entity.Tinyint.Value);
-                Assert.Equal(79, entity.Smallint.Value);
-                Assert.Equal(77, entity.Int);
-                Assert.Equal(78, entity.Bigint);
-                Assert.Equal(84.4f, entity.Real);
-                Assert.Equal(85.5, entity.Double_precision);
-                Assert.Equal(101.1m, entity.Decimal);
-                Assert.Equal(103.3m, entity.Numeric);
+            Assert.Equal(new[] { 2, 3 }, entity.IntArrayAsIntArray);
+            Assert.Equal(new[] { PhysicalAddress.Parse("08-00-2B-01-02-03"), PhysicalAddress.Parse("08-00-2B-01-02-04") }, entity.PhysicalAddressArrayAsMacaddrArray);
 
-                Assert.Equal("Gumball Rules!", entity.Text);
-                Assert.Equal(new byte[] { 86 }, entity.Bytea);
-
-                Assert.Equal(new DateTime(2016, 1, 2, 11, 11, 12), entity.Timestamp);
-                //Assert.Equal(new DateTime(2016, 1, 2, 11, 11, 12), entity.Timestamptz);
-                Assert.Equal(new DateTime(2015, 1, 2, 0, 0, 0), entity.Date);
-                Assert.Equal(new TimeSpan(11, 15, 12), entity.Time);
-                Assert.Equal(new DateTimeOffset(1, 1, 1, 12, 0, 0, TimeSpan.FromHours(2)), entity.Timetz);
-                Assert.Equal(new TimeSpan(11, 15, 12), entity.Interval);
-
-                Assert.Equal(new Guid("a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"), entity.Uuid);
-                Assert.True(entity.Bool);
-
-                Assert.Equal(PhysicalAddress.Parse("08-00-2B-01-02-03"), entity.Macaddr);
-                Assert.Equal(new NpgsqlPoint(5.2, 3.3), entity.Point);
-                Assert.Equal(@"{""a"": ""b""}", entity.Jsonb);
-                Assert.Equal(new Dictionary<string, string> { { "a", "b" } }, entity.Hstore);
-                Assert.Equal(new NpgsqlRange<int>(4, true, 8, false), entity.Int4Range);
-
-                //Assert.Equal(new SomeComposite { SomeNumber = 8, SomeText = "foo" }, entity.SomeComposite);
-
-                Assert.Equal(new[] { 2, 3 }, entity.PrimitiveArray);
-                Assert.Equal(new[] { PhysicalAddress.Parse("08-00-2B-01-02-03"), PhysicalAddress.Parse("08-00-2B-01-02-04") }, entity.NonPrimitiveArray);
-                Assert.Equal((uint)int.MaxValue + 1, entity.Xid);
-            }
+            Assert.Equal((uint)int.MaxValue + 1, entity.UintAsXid);
         }
+
+        static MappedDataTypes CreateMappedDataTypes(int id)
+            => new MappedDataTypes
+            {
+                Int = id,
+                LongAsBigint = 78L,
+                ShortAsSmallint = 79,
+                UintAsInt = uint.MaxValue,
+                UlongAsBigint = ulong.MaxValue,
+                UShortAsSmallint = ushort.MaxValue,
+                UintAsBigint = uint.MaxValue,
+                UShortAsInt = ushort.MaxValue,
+
+                BoolAsBoolean = true,
+
+                DecimalAsMoney = 81.1m,
+                Decimal = 101.7m,
+                DecimalAsNumeric = 103.9m,
+                FloatAsReal = 84.4f,
+                DoubleAsDoublePrecision = 85.5,
+
+                DateTimeAsTimestamp = new DateTime(2015, 1, 2, 10, 11, 12),
+                DateTimeAsTimestamptz = new DateTime(2016, 1, 2, 11, 11, 12, DateTimeKind.Utc),
+                DateTimeAsDate = new DateTime(2015, 1, 2, 0, 0, 0),
+                TimeSpanAsTime = new TimeSpan(11, 15, 12),
+                DateTimeOffsetAsTimetz = new DateTimeOffset(1, 1, 1, 12, 0, 0, TimeSpan.FromHours(2)),
+                TimeSpanAsInterval = new TimeSpan(11, 15, 12),
+
+                StringAsText = "Gumball Rules!",
+                StringAsVarchar = "Gumball Rules OK",
+                BytesAsBytea = new byte[] { 86 },
+
+                GuidAsUuid = new Guid("a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"),
+
+                EnumAsText = StringEnum16.Value4,
+                EnumAsVarchar = StringEnumU16.Value4,
+
+                PhysicalAddressAsMacaddr = PhysicalAddress.Parse("08-00-2B-01-02-03"),
+                NpgsqlPointAsPoint = new NpgsqlPoint(5.2, 3.3),
+                StringAsJsonb = @"{""a"": ""b""}",
+                StringAsJson = @"{""a"": ""b""}",
+                DictionaryAsHstore = new Dictionary<string, string> { { "a", "b" } },
+                NpgsqlRangeAsRange = new NpgsqlRange<int>(4, true, 8, false),
+
+                IntArrayAsIntArray= new[] { 2, 3 },
+                PhysicalAddressArrayAsMacaddrArray= new[] { PhysicalAddress.Parse("08-00-2B-01-02-03"), PhysicalAddress.Parse("08-00-2B-01-02-04") },
+
+                UintAsXid = (uint)int.MaxValue + 1,
+            };
 
         [Fact]
         public virtual void Can_insert_and_read_back_all_mapped_data_types_set_to_null()
         {
             using (var context = CreateContext())
             {
-                context.Set<MappedNullableDataTypes>().Add(
-                    new MappedNullableDataTypes
-                    {
-                        Int = 78
-                    });
+                context.Set<MappedNullableDataTypes>().Add(new MappedNullableDataTypes { Int = 78 });
 
                 Assert.Equal(1, context.SaveChanges());
             }
 
             using (var context = CreateContext())
             {
-                var entity = context.Set<MappedNullableDataTypes>().Single(e => e.Int == 78);
-
-                Assert.Null(entity.Tinyint);
-                Assert.Null(entity.Smallint);
-                Assert.Null(entity.Bigint);
-                Assert.Null(entity.Real);
-                Assert.Null(entity.Double_precision);
-                Assert.Null(entity.Decimal);
-                Assert.Null(entity.Numeric);
-
-                Assert.Null(entity.Text);
-                Assert.Null(entity.Bytea);
-
-                Assert.Null(entity.Timestamp);
-                Assert.Null(entity.Timestamptz);
-                Assert.Null(entity.Date);
-                Assert.Null(entity.Time);
-                Assert.Null(entity.Timetz);
-                Assert.Null(entity.Interval);
-
-                Assert.Null(entity.Uuid);
-                Assert.Null(entity.Bool);
-
-                Assert.Null(entity.Macaddr);
-                Assert.Null(entity.Point);
-                Assert.Null(entity.Jsonb);
-                Assert.Null(entity.Hstore);
-                Assert.Null(entity.Int4Range);
-
-                //Assert.Null(entity.SomeComposite);
-                Assert.Null(entity.PrimitiveArray);
-                Assert.Null(entity.NonPrimitiveArray);
-                Assert.Null(entity.Xid);
+                AssertNullMappedNullableDataTypes(context.Set<MappedNullableDataTypes>().Single(e => e.Int == 78), 78);
             }
         }
+
+        static void AssertNullMappedNullableDataTypes(MappedNullableDataTypes entity, int id)
+        {
+            Assert.Equal(id, entity.Int);
+            Assert.Null(entity.LongAsBigint);
+            Assert.Null(entity.ShortAsSmallint);
+            Assert.Null(entity.UintAsInt);
+            Assert.Null(entity.UlongAsBigint);
+            Assert.Null(entity.UShortAsSmallint);
+            Assert.Null(entity.UintAsBigint);
+            Assert.Null(entity.UShortAsInt);
+
+            Assert.Null(entity.BoolAsBoolean);
+
+            Assert.Null(entity.DecimalAsMoney);
+            Assert.Null(entity.Decimal);
+            Assert.Null(entity.DecimalAsNumeric);
+            Assert.Null(entity.FloatAsReal);
+            Assert.Null(entity.DoubleAsDoublePrecision);
+
+            Assert.Null(entity.DateTimeAsTimestamp);
+            Assert.Null(entity.DateTimeAsTimestamptz);
+            Assert.Null(entity.DateTimeAsDate);
+            Assert.Null(entity.TimeSpanAsTime);
+            Assert.Null(entity.DateTimeOffsetAsTimetz);
+            Assert.Null(entity.TimeSpanAsInterval);
+
+            Assert.Null(entity.StringAsText);
+            Assert.Null(entity.StringAsVarchar);
+            Assert.Null(entity.BytesAsBytea);
+
+            Assert.Null(entity.GuidAsUuid);
+
+            Assert.Null(entity.EnumAsText);
+            Assert.Null(entity.EnumAsVarchar);
+
+            Assert.Null(entity.PhysicalAddressAsMacaddr);
+            Assert.Null(entity.NpgsqlPointAsPoint);
+            Assert.Null(entity.StringAsJsonb);
+            Assert.Null(entity.StringAsJson);
+            Assert.Null(entity.DictionaryAsHstore);
+            Assert.Null(entity.NpgsqlRangeAsRange);
+
+            Assert.Null(entity.IntArrayAsIntArray);
+            Assert.Null(entity.PhysicalAddressArrayAsMacaddrArray);
+
+            Assert.Null(entity.UintAsXid);
+        }
+
+        string Sql => Fixture.TestSqlLoggerFactory.Sql;
+
+        static readonly string EOL = Environment.NewLine;
 
         public class BuiltInDataTypesNpgsqlFixture : BuiltInDataTypesFixtureBase
         {
@@ -489,8 +598,6 @@ namespace Microsoft.EntityFrameworkCore
             protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
             {
                 base.OnModelCreating(modelBuilder, context);
-
-                MakeRequired<MappedDataTypes>(modelBuilder);
 
                 modelBuilder.HasPostgresExtension("hstore");
 
@@ -526,19 +633,19 @@ namespace Microsoft.EntityFrameworkCore
                     //b.Ignore(dt => dt.EnumS8);
                 });
 
-                modelBuilder.Entity<MappedDataTypes>(b =>
-                {
-                    b.HasKey(e => e.Int);
-                    b.Property(e => e.Int)
-                     .ValueGeneratedNever();
-                });
+                modelBuilder.Entity<MappedDataTypes>(
+                    b =>
+                    {
+                        b.HasKey(e => e.Int);
+                        b.Property(e => e.Int).ValueGeneratedNever();
+                    });
 
-                modelBuilder.Entity<MappedNullableDataTypes>(b =>
-                {
-                    b.HasKey(e => e.Int);
-                    b.Property(e => e.Int)
-                     .ValueGeneratedNever();
-                });
+                modelBuilder.Entity<MappedNullableDataTypes>(
+                    b =>
+                    {
+                        b.HasKey(e => e.Int);
+                        b.Property(e => e.Int).ValueGeneratedNever();
+                    });
 
                 modelBuilder.Entity<MappedSizedDataTypes>()
                     .Property(e => e.Id)
@@ -551,35 +658,6 @@ namespace Microsoft.EntityFrameworkCore
                 modelBuilder.Entity<MappedPrecisionAndScaledDataTypes>()
                     .Property(e => e.Id)
                     .ValueGeneratedNever();
-
-                MapColumnTypes<MappedDataTypes>(modelBuilder);
-                MapColumnTypes<MappedNullableDataTypes>(modelBuilder);
-
-                MapSizedColumnTypes<MappedSizedDataTypes>(modelBuilder);
-                MapSizedColumnTypes<MappedScaledDataTypes>(modelBuilder);
-                MapPreciseColumnTypes<MappedPrecisionAndScaledDataTypes>(modelBuilder);
-
-                // MapColumnTypes automatically mapped column types based on the property name, but
-                // this doesn't work for Tinyint. Remap.
-                modelBuilder.Entity<MappedDataTypes>().Property(e => e.Tinyint).HasColumnType("smallint");
-                modelBuilder.Entity<MappedNullableDataTypes>().Property(e => e.Tinyint).HasColumnType("smallint");
-
-                // Jsonb in .NET is a regular string
-                modelBuilder.Entity<MappedDataTypes>().Property(e => e.Jsonb).HasColumnType("jsonb");
-                modelBuilder.Entity<MappedNullableDataTypes>().Property(e => e.Jsonb).HasColumnType("jsonb");
-
-                // Arrays
-                modelBuilder.Entity<MappedDataTypes>().Property(e => e.PrimitiveArray).HasColumnType("_int4");
-                modelBuilder.Entity<MappedNullableDataTypes>().Property(e => e.PrimitiveArray).HasColumnType("_int4");
-                modelBuilder.Entity<MappedDataTypes>().Property(e => e.NonPrimitiveArray).HasColumnType("_macaddr");
-                modelBuilder.Entity<MappedNullableDataTypes>().Property(e => e.NonPrimitiveArray).HasColumnType("_macaddr");
-
-                modelBuilder.Entity<MappedDataTypes>().Property(e => e.Xid).HasColumnType("xid");
-                modelBuilder.Entity<MappedNullableDataTypes>().Property(e => e.Xid).HasColumnType("xid");
-
-                // TimeTz
-                modelBuilder.Entity<MappedDataTypes>().Property(e => e.Timetz).HasColumnType("timetz");
-                modelBuilder.Entity<MappedNullableDataTypes>().Property(e => e.Timetz).HasColumnType("timetz");
             }
 
             public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
@@ -590,86 +668,142 @@ namespace Microsoft.EntityFrameworkCore
             public override bool SupportsBinaryKeys => true;
 
             public override DateTime DefaultDateTime => new DateTime();
-
-            private static void MapColumnTypes<TEntity>(ModelBuilder modelBuilder) where TEntity : class
-            {
-                var entityType = modelBuilder.Entity<TEntity>().Metadata;
-
-                foreach (var propertyInfo in entityType.ClrType.GetTypeInfo().DeclaredProperties)
-                {
-                    var columnType = propertyInfo.Name;
-
-                    if (columnType.EndsWith("Max"))
-                    {
-                        columnType = columnType.Substring(0, columnType.IndexOf("Max")) + "(max)";
-                    }
-
-                    columnType = columnType.Replace('_', ' ');
-
-                    entityType.GetOrAddProperty(propertyInfo).Relational().ColumnType = columnType;
-                }
-            }
-
-            private static void MapSizedColumnTypes<TEntity>(ModelBuilder modelBuilder) where TEntity : class
-            {
-                var entityType = modelBuilder.Entity<TEntity>().Metadata;
-
-                foreach (var propertyInfo in entityType.ClrType.GetTypeInfo().DeclaredProperties.Where(p => p.Name != "Id"))
-                {
-                    entityType.GetOrAddProperty(propertyInfo).Relational().ColumnType = propertyInfo.Name.Replace('_', ' ') + "(3)";
-                }
-            }
-
-            private static void MapPreciseColumnTypes<TEntity>(ModelBuilder modelBuilder) where TEntity : class
-            {
-                var entityType = modelBuilder.Entity<TEntity>().Metadata;
-
-                foreach (var propertyInfo in entityType.ClrType.GetTypeInfo().DeclaredProperties.Where(p => p.Name != "Id"))
-                {
-                    entityType.GetOrAddProperty(propertyInfo).Relational().ColumnType = propertyInfo.Name.Replace('_', ' ') + "(5, 2)";
-                }
-            }
         }
 
-        public class MappedDataTypes
+        protected enum StringEnum16 : short
         {
-            public byte Tinyint { get; set; }
-            public short Smallint { get; set; }
+            Value1 = 1,
+            Value2 = 2,
+            Value4 = 4
+        }
+
+        protected enum StringEnumU16 : ushort
+        {
+            Value1 = 1,
+            Value2 = 2,
+            Value4 = 4
+        }
+
+        protected class MappedDataTypes
+        {
+            [Column(TypeName = "int")]
             public int Int { get; set; }
-            public long Bigint { get; set; }
-            public float Real { get; set; }
-            public double Double_precision { get; set; }
-            public decimal Decimal { get; set; }
-            public decimal Numeric { get; set; }
 
-            public string Text { get; set; }
-            public byte[] Bytea { get; set; }
+            [Column(TypeName = "bigint")]
+            public long LongAsBigint { get; set; }
 
-            public DateTime Timestamp { get; set; }
-            public DateTime Timestamptz { get; set; }
-            public DateTime Date { get; set; }
-            public TimeSpan Time { get; set; }
-            public DateTimeOffset Timetz { get; set; }
-            public TimeSpan Interval { get; set; }
+            [Column(TypeName = "smallint")]
+            public short ShortAsSmallint { get; set; }
 
-            public Guid Uuid { get; set; }
-            public bool Bool { get; set; }
+            //[Column(TypeName = "tinyint")]
+            //public byte ByteAsTinyint { get; set; }
 
-            // Types supported only on PostgreSQL
-            public PhysicalAddress Macaddr { get; set; }
-            public NpgsqlPoint Point { get; set; }
-            public string Jsonb { get; set; }
-            public Dictionary<string, string> Hstore { get; set; }
-            public NpgsqlRange<int> Int4Range { get; set; }
+            [Column(TypeName = "int")]
+            public uint UintAsInt { get; set; }
 
-            // Composite
-            //public SomeComposite SomeComposite { get; set; }
+            [Column(TypeName = "bigint")]
+            public uint UintAsBigint { get; set; }
 
-            // Array
-            public int[] PrimitiveArray { get; set; }
-            public PhysicalAddress[] NonPrimitiveArray { get; set; }
+            [Column(TypeName = "bigint")]
+            public ulong UlongAsBigint { get; set; }
 
-            public uint Xid { get; set; }
+            [Column(TypeName = "smallint")]
+            public ushort UShortAsSmallint { get; set; }
+
+            [Column(TypeName = "int")]
+            public ushort UShortAsInt { get; set; }
+
+            //[Column(TypeName = "tinyint")]
+            //public sbyte SByteAsTinyint { get; set; }
+
+            [Column(TypeName = "boolean")]
+            public bool BoolAsBoolean { get; set; }
+
+            [Column(TypeName = "numeric")]
+            public decimal Decimal { get; set; }  // decimal is just an alias for numeric
+
+            [Column(TypeName = "numeric")]
+            public decimal DecimalAsNumeric { get; set; }
+
+            [Column(TypeName = "money")]
+            public decimal DecimalAsMoney { get; set; }
+
+            [Column(TypeName = "double precision")]
+            public double DoubleAsDoublePrecision { get; set; }
+
+            [Column(TypeName = "real")]
+            public float FloatAsReal { get; set; }
+
+            [Column(TypeName = "timestamp")]
+            public DateTime DateTimeAsTimestamp { get; set; }
+
+            [Column(TypeName = "timestamptz")]
+            public DateTime DateTimeAsTimestamptz { get; set; }
+
+            [Column(TypeName = "date")]
+            public DateTime DateTimeAsDate { get; set; }
+
+            [Column(TypeName = "time")]
+            public TimeSpan TimeSpanAsTime { get; set; }
+
+            [Column(TypeName = "timetz")]
+            public DateTimeOffset DateTimeOffsetAsTimetz { get; set; }
+
+            [Column(TypeName = "interval")]
+            public TimeSpan TimeSpanAsInterval { get; set; }
+
+            [Column(TypeName = "text")]
+            public string StringAsText { get; set; }
+
+            [Column(TypeName = "varchar")]
+            public string StringAsVarchar { get; set; }
+
+            //[Column(TypeName = "text")]
+            //public char CharAsText { get; set; }
+
+            //[Column(TypeName = "varchar")]
+            //public char CharAsVarchar { get; set; }
+
+            [Column(TypeName = "bytea")]
+            public byte[] BytesAsBytea { get; set; }
+
+            [Column(TypeName = "uuid")]
+            public Guid GuidAsUuid { get; set; }
+
+            [Column(TypeName = "text")]
+            public StringEnum16 EnumAsText { get; set; }
+
+            [Column(TypeName = "varchar")]
+            public StringEnumU16 EnumAsVarchar { get; set; }
+
+            // PostgreSQL-specific types from here
+
+            [Column(TypeName = "macaddr")]
+            public PhysicalAddress PhysicalAddressAsMacaddr { get; set; }
+
+            [Column(TypeName = "point")]
+            public NpgsqlPoint NpgsqlPointAsPoint { get; set; }
+
+            [Column(TypeName = "jsonb")]
+            public string StringAsJsonb { get; set; }
+
+            [Column(TypeName = "json")]
+            public string StringAsJson { get; set; }
+
+            [Column(TypeName = "hstore")]
+            public Dictionary<string, string> DictionaryAsHstore { get; set; }
+
+            [Column(TypeName = "int4range")]
+            public NpgsqlRange<int> NpgsqlRangeAsRange { get; set; }
+
+            [Column(TypeName = "int[]")]
+            public int[] IntArrayAsIntArray { get; set; }
+
+            [Column(TypeName = "macaddr[]")]
+            public PhysicalAddress[] PhysicalAddressArrayAsMacaddrArray { get; set; }
+
+            [Column(TypeName = "xid")]
+            public uint UintAsXid { get; set; }
         }
 
         public class MappedSizedDataTypes
@@ -716,46 +850,126 @@ namespace Microsoft.EntityFrameworkCore
             */
         }
 
-        public class MappedNullableDataTypes
+        protected class MappedNullableDataTypes
         {
-            public byte? Tinyint { get; set; }
-            public short? Smallint { get; set; }
+            [Column(TypeName = "int")]
             public int? Int { get; set; }
-            public long? Bigint { get; set; }
-            public float? Real { get; set; }
-            public double? Double_precision { get; set; }
-            public decimal? Decimal { get; set; }
-            public decimal? Numeric { get; set; }
 
-            public string Text { get; set; }
-            public byte[] Bytea { get; set; }
+            [Column(TypeName = "bigint")]
+            public long? LongAsBigint { get; set; }
 
-            public DateTime? Timestamp { get; set; }
-            public DateTime? Timestamptz { get; set; }
-            public DateTime? Date { get; set; }
-            public TimeSpan? Time { get; set; }
-            public DateTimeOffset? Timetz { get; set; }
-            public TimeSpan? Interval { get; set; }
+            [Column(TypeName = "smallint")]
+            public short? ShortAsSmallint { get; set; }
 
-            public Guid? Uuid { get; set; }
-            public bool? Bool { get; set; }
+            //[Column(TypeName = "tinyint")]
+            //public byte? ByteAsTinyint { get; set; }
 
-            // Types supported only on PostgreSQL
-            public PhysicalAddress Macaddr { get; set; }
-            public NpgsqlPoint? Point { get; set; }
-            public string Jsonb { get; set; }
-            public Dictionary<string, string> Hstore { get; set; }
-            public NpgsqlRange<int>? Int4Range { get; set; }
+            [Column(TypeName = "int")]
+            public uint? UintAsInt { get; set; }
 
-            // Composite
-            //public SomeComposite SomeComposite { get; set; }
+            [Column(TypeName = "bigint")]
+            public uint? UintAsBigint { get; set; }
 
-            // Array
-            public int[] PrimitiveArray { get; set; }
-            public PhysicalAddress[] NonPrimitiveArray { get; set; }
+            [Column(TypeName = "bigint")]
+            public ulong? UlongAsBigint { get; set; }
 
-            public uint? Xid { get; set; }
+            [Column(TypeName = "smallint")]
+            public ushort? UShortAsSmallint { get; set; }
+
+            [Column(TypeName = "int")]
+            public ushort? UShortAsInt { get; set; }
+
+            //[Column(TypeName = "tinyint")]
+            //public sbyte? SByteAsTinyint { get; set; }
+
+            [Column(TypeName = "boolean")]
+            public bool? BoolAsBoolean { get; set; }
+
+            [Column(TypeName = "numeric")]
+            public decimal? Decimal { get; set; }  // decimal is just an alias for numeric
+
+            [Column(TypeName = "numeric")]
+            public decimal? DecimalAsNumeric { get; set; }
+
+            [Column(TypeName = "money")]
+            public decimal? DecimalAsMoney { get; set; }
+
+            [Column(TypeName = "double precision")]
+            public double? DoubleAsDoublePrecision { get; set; }
+
+            [Column(TypeName = "real")]
+            public float? FloatAsReal { get; set; }
+
+            [Column(TypeName = "timestamp")]
+            public DateTime? DateTimeAsTimestamp { get; set; }
+
+            [Column(TypeName = "timestamptz")]
+            public DateTime? DateTimeAsTimestamptz { get; set; }
+
+            [Column(TypeName = "date")]
+            public DateTime? DateTimeAsDate { get; set; }
+
+            [Column(TypeName = "time")]
+            public TimeSpan? TimeSpanAsTime { get; set; }
+
+            [Column(TypeName = "timetz")]
+            public DateTimeOffset? DateTimeOffsetAsTimetz { get; set; }
+
+            [Column(TypeName = "interval")]
+            public TimeSpan? TimeSpanAsInterval { get; set; }
+
+            [Column(TypeName = "text")]
+            public string StringAsText { get; set; }
+
+            [Column(TypeName = "varchar")]
+            public string StringAsVarchar { get; set; }
+
+            //[Column(TypeName = "text")]
+            //public char? CharAsText { get; set; }
+
+            //[Column(TypeName = "varchar")]
+            //public char? CharAsVarchar { get; set; }
+
+            [Column(TypeName = "bytea")]
+            public byte[] BytesAsBytea { get; set; }
+
+            [Column(TypeName = "uuid")]
+            public Guid? GuidAsUuid { get; set; }
+
+            [Column(TypeName = "text")]
+            public StringEnum16? EnumAsText { get; set; }
+
+            [Column(TypeName = "varchar")]
+            public StringEnumU16? EnumAsVarchar { get; set; }
+
+            // PostgreSQL-specific types from here
+
+            [Column(TypeName = "macaddr")]
+            public PhysicalAddress PhysicalAddressAsMacaddr { get; set; }
+
+            [Column(TypeName = "point")]
+            public NpgsqlPoint? NpgsqlPointAsPoint { get; set; }
+
+            [Column(TypeName = "jsonb")]
+            public string StringAsJsonb { get; set; }
+
+            [Column(TypeName = "json")]
+            public string StringAsJson { get; set; }
+
+            [Column(TypeName = "hstore")]
+            public Dictionary<string, string> DictionaryAsHstore { get; set; }
+
+            [Column(TypeName = "int4range")]
+            public NpgsqlRange<int>? NpgsqlRangeAsRange { get; set; }
+
+            [Column(TypeName = "int[]")]
+            public int[] IntArrayAsIntArray { get; set; }
+
+            [Column(TypeName = "macaddr[]")]
+            public PhysicalAddress[] PhysicalAddressArrayAsMacaddrArray { get; set; }
+
+            [Column(TypeName = "xid")]
+            public uint? UintAsXid { get; set; }
         }
-        // TODO: Other tests from NpgsqlBuiltInDataTypesNpgsqlTest?
     }
 }
