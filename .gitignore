@@ -6,6 +6,7 @@
 *.userprefs
 /*.nupkg
 .nuget/
+.idea/
 .vs/
 [Bb]in/
 [Bb]uild/
