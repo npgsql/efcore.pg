@@ -67,8 +67,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         public void GenerateSqlLiteral_returns_time_literal()
         {
             var mapping = GetMapping("time");
-            Assert.Equal("TIME '04:05:06.789'", mapping.GenerateSqlLiteral(new DateTime(2015, 3, 12, 4, 5, 6, 789)));
-            Assert.Equal("TIME '04:05:06'", mapping.GenerateSqlLiteral(new DateTime(2015, 3, 12, 4, 5, 6)));
+            Assert.Equal("TIME '04:05:06.789'", mapping.GenerateSqlLiteral(new TimeSpan(0, 4, 5, 6, 789)));
+            Assert.Equal("TIME '04:05:06'", mapping.GenerateSqlLiteral(new TimeSpan(4, 5, 6)));
         }
 
         [Fact]
