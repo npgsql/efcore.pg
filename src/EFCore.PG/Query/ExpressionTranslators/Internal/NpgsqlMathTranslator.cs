@@ -24,16 +24,17 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.EntityFrameworkCore.Query.Expressions;
-using Microsoft.EntityFrameworkCore.Utilities;
 using System.Reflection;
 using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore.Query.Expressions;
+using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
-namespace Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
     public class NpgsqlMathTranslator : IMethodCallTranslator
     {
-        private static readonly Dictionary<MethodInfo, string> _supportedMethodTranslations = new Dictionary<MethodInfo, string>
+        static readonly Dictionary<MethodInfo, string> _supportedMethodTranslations = new Dictionary<MethodInfo, string>
         {
             { typeof(Math).GetRuntimeMethod(nameof(Math.Abs), new[] { typeof(decimal) }), "ABS" },
             { typeof(Math).GetRuntimeMethod(nameof(Math.Abs), new[] { typeof(double) }), "ABS" },
@@ -69,13 +70,13 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal
             { typeof(Math).GetRuntimeMethod(nameof(Math.Sign), new[] { typeof(short) }), "SIGN" }
         };
 
-        private static readonly IEnumerable<MethodInfo> _truncateMethodInfos = new[]
+        static readonly IEnumerable<MethodInfo> _truncateMethodInfos = new[]
         {
             typeof(Math).GetRuntimeMethod(nameof(Math.Truncate), new[] { typeof(decimal) }),
             typeof(Math).GetRuntimeMethod(nameof(Math.Truncate), new[] { typeof(double) })
         };
 
-        private static readonly IEnumerable<MethodInfo> _roundMethodInfos = new[]
+        static readonly IEnumerable<MethodInfo> _roundMethodInfos = new[]
         {
             typeof(Math).GetRuntimeMethod(nameof(Math.Round), new[] { typeof(decimal) }),
             typeof(Math).GetRuntimeMethod(nameof(Math.Round), new[] { typeof(double) }),

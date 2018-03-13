@@ -29,7 +29,7 @@ using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Internal;
 
-namespace Microsoft.EntityFrameworkCore.Utilities
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Utilities
 {
     [DebuggerStepThrough]
     internal static class Check

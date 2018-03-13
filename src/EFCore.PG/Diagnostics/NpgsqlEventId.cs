@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Diagnostics;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging;
 
-namespace Microsoft.EntityFrameworkCore.Diagnostics
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics
 {
     /// <summary>
     ///     <para>

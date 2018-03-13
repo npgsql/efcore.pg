@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Net.NetworkInformation;
+﻿using System.Collections.Generic;
 using System.Text;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using NpgsqlTypes;
 
-namespace Microsoft.EntityFrameworkCore.Storage.Internal.Mapping
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 {
     public class NpgsqlHstoreTypeMapping : NpgsqlTypeMapping
     {

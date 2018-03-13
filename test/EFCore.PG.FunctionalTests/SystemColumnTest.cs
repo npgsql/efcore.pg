@@ -1,8 +1,9 @@
 ﻿using System;
-using Microsoft.EntityFrameworkCore.TestUtilities;
+using Microsoft.EntityFrameworkCore;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
 
-namespace Microsoft.EntityFrameworkCore
+namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
     public class SystemColumnTest : IDisposable
     {

@@ -1,9 +1,9 @@
 ﻿using System;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NpgsqlTypes;
-using Remotion.Linq.Clauses.Expressions;
 
-namespace Microsoft.EntityFrameworkCore.Storage.Internal.Mapping
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 {
     public class NpgsqlTimestampTypeMapping : NpgsqlTypeMapping
     {

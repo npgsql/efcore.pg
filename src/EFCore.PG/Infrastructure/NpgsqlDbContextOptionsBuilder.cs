@@ -25,12 +25,13 @@ using System;
 using System.Collections.Generic;
 using System.Net.Security;
 using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
-using Npgsql;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 
 // ReSharper disable once CheckNamespace
-namespace Microsoft.EntityFrameworkCore.Infrastructure
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
 {
     public class NpgsqlDbContextOptionsBuilder
         : RelationalDbContextOptionsBuilder<NpgsqlDbContextOptionsBuilder, NpgsqlOptionsExtension>

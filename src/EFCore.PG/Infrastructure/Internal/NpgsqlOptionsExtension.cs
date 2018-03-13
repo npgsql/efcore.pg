@@ -23,12 +23,12 @@
 
 using System.Net.Security;
 using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Utilities;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
-using Npgsql;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 // ReSharper disable once CheckNamespace
-namespace Microsoft.EntityFrameworkCore.Infrastructure.Internal
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
 {
     public class NpgsqlOptionsExtension : RelationalOptionsExtension
     {

@@ -26,11 +26,12 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
-using Npgsql;
+using Microsoft.EntityFrameworkCore.Update;
 
-namespace Microsoft.EntityFrameworkCore.Update.Internal
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
 {
     /// <remarks>
     /// The usual ModificationCommandBatch implementation is <see cref="AffectedCountModificationCommandBatch"/>,

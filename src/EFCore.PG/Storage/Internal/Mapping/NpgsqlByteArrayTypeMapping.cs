@@ -23,9 +23,10 @@
 
 using System.Globalization;
 using System.Text;
-using Microsoft.EntityFrameworkCore.Utilities;
+using Microsoft.EntityFrameworkCore.Storage;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
-namespace Microsoft.EntityFrameworkCore.Storage.Internal
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 {
     public class NpgsqlByteArrayTypeMapping : ByteArrayTypeMapping
     {

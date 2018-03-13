@@ -22,10 +22,12 @@
 #endregion
 
 using System.Text;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Xunit;
 
-namespace Microsoft.EntityFrameworkCore.Storage
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
 {
     public class NpgsqlSqlGenerationHelperTest
     {

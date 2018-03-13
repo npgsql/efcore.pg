@@ -21,15 +21,14 @@
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 #endregion
 
-using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
 using JetBrains.Annotations;
-using Npgsql;
+using Microsoft.EntityFrameworkCore.Storage;
 
-namespace Microsoft.EntityFrameworkCore.Storage.Internal
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 {
     public class NpgsqlSqlGenerationHelper : RelationalSqlGenerationHelper
     {

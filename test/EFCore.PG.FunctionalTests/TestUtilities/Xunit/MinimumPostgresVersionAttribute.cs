@@ -1,6 +1,7 @@
 ﻿using System;
+using Microsoft.EntityFrameworkCore.TestUtilities.Xunit;
 
-namespace Microsoft.EntityFrameworkCore.TestUtilities.Xunit
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities.Xunit
 {
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
     public class MinimumPostgresVersionAttribute : Attribute, ITestCondition

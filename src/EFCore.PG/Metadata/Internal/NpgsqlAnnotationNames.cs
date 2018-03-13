@@ -23,7 +23,7 @@
 
 using System;
 
-namespace Microsoft.EntityFrameworkCore.Metadata.Internal
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
 {
     public static class NpgsqlAnnotationNames
     {

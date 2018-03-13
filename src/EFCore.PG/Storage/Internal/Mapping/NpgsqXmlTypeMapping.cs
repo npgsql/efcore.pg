@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Net.NetworkInformation;
-using System.Text;
-using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Utilities;
+﻿using JetBrains.Annotations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 using NpgsqlTypes;
 
-namespace Microsoft.EntityFrameworkCore.Storage.Internal.Mapping
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 {
     public class NpgsqlXmlTypeMapping : NpgsqlTypeMapping
     {

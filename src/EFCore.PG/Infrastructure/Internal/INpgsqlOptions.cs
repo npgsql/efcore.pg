@@ -1,4 +1,6 @@
-﻿namespace Microsoft.EntityFrameworkCore.Infrastructure.Internal
+﻿using Microsoft.EntityFrameworkCore.Infrastructure;
+
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
 {
     public interface INpgsqlOptions : ISingletonOptions
     {

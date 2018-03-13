@@ -22,8 +22,9 @@
 #endregion
 
 using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore.Metadata;
 
-namespace Microsoft.EntityFrameworkCore.Metadata
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 {
     public interface INpgsqlModelAnnotations : IRelationalModelAnnotations
     {

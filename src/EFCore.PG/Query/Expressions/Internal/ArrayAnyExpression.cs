@@ -25,10 +25,10 @@ using System;
 using System.Diagnostics;
 using System.Linq.Expressions;
 using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Query.Sql.Internal;
-using Microsoft.EntityFrameworkCore.Utilities;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
-namespace Microsoft.EntityFrameworkCore.Query.Expressions.Internal
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
 {
     /// <summary>
     ///     Represents a PostgreSQL ANY expression (e.g. scalar = ANY (array))

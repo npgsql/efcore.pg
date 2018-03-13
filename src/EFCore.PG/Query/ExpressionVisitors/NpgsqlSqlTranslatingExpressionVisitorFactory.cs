@@ -23,10 +23,12 @@
 
 using System.Linq.Expressions;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
-using Microsoft.EntityFrameworkCore.Utilities;
+using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
-namespace Microsoft.EntityFrameworkCore.Query.ExpressionVisitors
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
 {
     public class NpgsqlSqlTranslatingExpressionVisitorFactory : SqlTranslatingExpressionVisitorFactory
     {

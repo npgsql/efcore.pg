@@ -1,4 +1,6 @@
-﻿namespace Microsoft.EntityFrameworkCore.Query
+﻿using Microsoft.EntityFrameworkCore.Query;
+
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     public class InheritanceRelationshipsQueryNpgsqlTest : InheritanceRelationshipsQueryTestBase<InheritanceRelationshipsQueryNpgsqlFixture>
     {

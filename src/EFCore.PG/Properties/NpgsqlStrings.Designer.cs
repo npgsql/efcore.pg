@@ -20,10 +20,11 @@ using System.Resources;
 using JetBrains.Annotations;
 
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics;
 using Microsoft.Extensions.Logging;
 
 
-namespace Microsoft.EntityFrameworkCore.Internal
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
 {
     /// <summary>
     ///		This API supports the Entity Framework Core infrastructure and is not intended to be used
@@ -32,7 +33,7 @@ namespace Microsoft.EntityFrameworkCore.Internal
     public static class NpgsqlStrings
     {
         private static readonly ResourceManager _resourceManager
-            = new ResourceManager("Microsoft.EntityFrameworkCore.Properties.NpgsqlStrings", typeof(NpgsqlStrings).GetTypeInfo().Assembly);
+            = new ResourceManager("Npgsql.EntityFrameworkCore.PostgreSQL.Properties.NpgsqlStrings", typeof(NpgsqlStrings).GetTypeInfo().Assembly);
 
 
         /// <summary>

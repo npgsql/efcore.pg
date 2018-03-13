@@ -1,7 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore.TestModels.NullSemanticsModel;
-using Microsoft.EntityFrameworkCore.Infrastructure;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.TestModels.NullSemanticsModel;
+using Microsoft.EntityFrameworkCore.Query;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 
-namespace Microsoft.EntityFrameworkCore.Query
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     public class NullSemanticsQueryNpgsqlTest : NullSemanticsQueryTestBase<NullSemanticsQueryNpgsqlFixture>
     {

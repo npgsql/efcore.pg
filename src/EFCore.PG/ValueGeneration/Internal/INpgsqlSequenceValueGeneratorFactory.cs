@@ -23,9 +23,10 @@
 
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Storage.Internal;
+using Microsoft.EntityFrameworkCore.ValueGeneration;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
-namespace Microsoft.EntityFrameworkCore.ValueGeneration.Internal
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
 {
     /// <summary>
     ///     This API supports the Entity Framework Core infrastructure and is not intended to be used

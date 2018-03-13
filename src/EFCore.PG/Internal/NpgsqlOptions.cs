@@ -1,8 +1,11 @@
 ﻿using System;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
+using Microsoft.EntityFrameworkCore.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 
-namespace Microsoft.EntityFrameworkCore.Internal
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
 {
     public class NpgsqlOptions : INpgsqlOptions
     {

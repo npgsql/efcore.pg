@@ -23,13 +23,15 @@
 
 using System;
 using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
-using Microsoft.EntityFrameworkCore.Utilities;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
-namespace Microsoft.EntityFrameworkCore.Migrations
+// ReSharper disable once CheckNamespace
+namespace Microsoft.EntityFrameworkCore
 {
-    public static class MigrationBuilderExtensions
+    public static class NpgsqlMigrationBuilderExtensions
     {
         public static MigrationBuilder EnsurePostgresExtension(
             this MigrationBuilder builder,

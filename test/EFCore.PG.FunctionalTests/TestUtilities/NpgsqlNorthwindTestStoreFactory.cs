@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.Logging;
 using Npgsql;
 
-namespace Microsoft.EntityFrameworkCore.TestUtilities
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
 {
     public class NpgsqlNorthwindTestStoreFactory : NpgsqlTestStoreFactory
     {

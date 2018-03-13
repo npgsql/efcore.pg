@@ -22,11 +22,12 @@
 #endregion
 
 using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
-using Microsoft.EntityFrameworkCore.Utilities;
+using Microsoft.EntityFrameworkCore.Query.Sql;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
-namespace Microsoft.EntityFrameworkCore.Query.Sql.Internal
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
 {
     public class NpgsqlQuerySqlGeneratorFactory : QuerySqlGeneratorFactoryBase
     {

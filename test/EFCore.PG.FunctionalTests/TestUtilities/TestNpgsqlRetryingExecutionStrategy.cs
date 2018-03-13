@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
-namespace Microsoft.EntityFrameworkCore.TestUtilities
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
 {
     public class TestNpgsqlRetryingExecutionStrategy : NpgsqlRetryingExecutionStrategy
     {

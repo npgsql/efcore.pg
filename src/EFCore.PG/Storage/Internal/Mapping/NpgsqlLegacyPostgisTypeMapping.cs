@@ -4,7 +4,7 @@ using System.Net.NetworkInformation;
 using System.Text;
 using NpgsqlTypes;
 
-namespace Microsoft.EntityFrameworkCore.Storage.Internal.Mapping
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 {
     /// <remarks>
     /// This mapping is only used in Npgsql 3.2 and below.

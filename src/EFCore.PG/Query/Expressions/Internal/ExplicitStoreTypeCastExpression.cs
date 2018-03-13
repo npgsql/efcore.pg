@@ -24,11 +24,10 @@
 using System;
 using System.Linq.Expressions;
 using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Query.Sql;
-using Microsoft.EntityFrameworkCore.Query.Sql.Internal;
-using Microsoft.EntityFrameworkCore.Utilities;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
-namespace Microsoft.EntityFrameworkCore.Query.Expressions
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
 {
     /// <summary>
     ///     Represents a SQL CAST expression to a store type specified as a string rather than a CLR type.

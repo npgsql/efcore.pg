@@ -25,11 +25,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 
-namespace Microsoft.EntityFrameworkCore.Migrations.Internal
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal
 {
     public class NpgsqlMigrationsAnnotationProvider : MigrationsAnnotationProvider
     {

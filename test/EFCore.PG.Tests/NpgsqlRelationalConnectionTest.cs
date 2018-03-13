@@ -1,20 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Microsoft.Extensions.Logging;
 using Xunit;
-using Npgsql;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests
+namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
     public class NpgsqlRelationalConnectionTest
     {
@@ -56,7 +49,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests
                 }
             }
         }
-        
+
         public static RelationalConnectionDependencies CreateDependencies(DbContextOptions options = null)
         {
             options = options

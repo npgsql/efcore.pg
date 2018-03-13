@@ -1,6 +1,7 @@
-﻿using Xunit.Abstractions;
+﻿using Microsoft.EntityFrameworkCore.Query;
+using Xunit.Abstractions;
 
-namespace Microsoft.EntityFrameworkCore.Query
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     public class FiltersInheritanceNpgsqlTest : FiltersInheritanceTestBase<FiltersInheritanceNpgsqlFixture>
     {

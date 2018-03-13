@@ -7,7 +7,7 @@ using System.Net.NetworkInformation;
 using System.Text;
 using NpgsqlTypes;
 
-namespace Microsoft.EntityFrameworkCore.Storage.Internal.Mapping
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 {
     public class NpgsqlVarbitTypeMapping : NpgsqlTypeMapping
     {

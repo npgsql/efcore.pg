@@ -24,6 +24,7 @@ using JetBrains.Annotations;
     {
 #>
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics;
 using Microsoft.Extensions.Logging;
 <#
     }

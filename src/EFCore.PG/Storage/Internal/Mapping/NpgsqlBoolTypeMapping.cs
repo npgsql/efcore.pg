@@ -21,7 +21,9 @@
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 #endregion
 
-namespace Microsoft.EntityFrameworkCore.Storage.Internal
+using Microsoft.EntityFrameworkCore.Storage;
+
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 {
     public class NpgsqlBoolTypeMapping : BoolTypeMapping
     {

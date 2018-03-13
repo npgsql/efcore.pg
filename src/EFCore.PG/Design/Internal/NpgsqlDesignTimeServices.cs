@@ -22,13 +22,14 @@
 #endregion
 
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.EntityFrameworkCore.Scaffolding;
-using Microsoft.EntityFrameworkCore.Scaffolding.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Microsoft.Extensions.DependencyInjection;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
-namespace Microsoft.EntityFrameworkCore.Design.Internal
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
 {
     public class NpgsqlDesignTimeServices : IDesignTimeServices
     {

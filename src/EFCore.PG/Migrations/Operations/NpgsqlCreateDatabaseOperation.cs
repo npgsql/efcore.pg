@@ -22,8 +22,9 @@
 #endregion
 
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.Migrations.Operations;
 
-namespace Microsoft.EntityFrameworkCore.Migrations.Operations
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Operations
 {
     public class NpgsqlCreateDatabaseOperation : MigrationOperation
     {

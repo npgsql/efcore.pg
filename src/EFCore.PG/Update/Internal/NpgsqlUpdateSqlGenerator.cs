@@ -26,9 +26,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Utilities;
+using Microsoft.EntityFrameworkCore.Update;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
-namespace Microsoft.EntityFrameworkCore.Update.Internal
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
 {
     public class NpgsqlUpdateSqlGenerator : UpdateSqlGenerator
     {

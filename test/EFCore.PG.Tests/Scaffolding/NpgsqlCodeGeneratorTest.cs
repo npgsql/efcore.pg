@@ -1,7 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore.Scaffolding.Internal;
+﻿using Microsoft.EntityFrameworkCore.Scaffolding;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal;
 using Xunit;
 
-namespace Microsoft.EntityFrameworkCore.Scaffolding
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding
 {
     public class SqlServerCodeGeneratorTest
     {

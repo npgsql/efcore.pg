@@ -8,20 +8,22 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.TestUtilities;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
-using Npgsql;
 
-namespace Microsoft.EntityFrameworkCore.TestUtilities
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
 {
     public class NpgsqlTestStore : RelationalTestStore
     {
-        private readonly string _scriptPath;
+        readonly string _scriptPath;
 
-        private const string Northwind = "Northwind";
+        const string Northwind = "Northwind";
 
         public const int CommandTimeout = 600;
 
-        private static string BaseDirectory => AppContext.BaseDirectory;
+        static string BaseDirectory => AppContext.BaseDirectory;
 
         public static readonly string NorthwindConnectionString = CreateConnectionString(Northwind);
 

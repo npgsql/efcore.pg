@@ -21,7 +21,7 @@
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 #endregion
 
-namespace Microsoft.EntityFrameworkCore.Metadata.Internal
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
 {
     enum PostgresTypeType
     {

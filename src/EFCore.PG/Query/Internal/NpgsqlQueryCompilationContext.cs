@@ -22,8 +22,10 @@
 #endregion
 
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 
-namespace Microsoft.EntityFrameworkCore.Query.Internal
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 {
     public class NpgsqlQueryCompilationContext : RelationalQueryCompilationContext
     {

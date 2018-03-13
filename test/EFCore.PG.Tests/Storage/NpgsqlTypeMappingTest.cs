@@ -3,12 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.NetworkInformation;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using NpgsqlTypes;
 using Xunit;
 
-namespace Microsoft.EntityFrameworkCore.Storage
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
 {
     public class NpgsqlTypeMappingTest
     {

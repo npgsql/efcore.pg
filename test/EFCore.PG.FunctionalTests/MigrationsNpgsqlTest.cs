@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Npgsql;
 using Xunit;
 
-namespace Microsoft.EntityFrameworkCore
+namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
     public class MigrationsNpgsqlTest : MigrationsTestBase<MigrationsNpgsqlFixture>
     {

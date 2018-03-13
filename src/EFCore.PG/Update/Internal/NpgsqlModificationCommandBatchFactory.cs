@@ -24,19 +24,20 @@
 using System.Linq;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.EntityFrameworkCore.Utilities;
+using Microsoft.EntityFrameworkCore.Update;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
-namespace Microsoft.EntityFrameworkCore.Update.Internal
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
 {
     public class NpgsqlModificationCommandBatchFactory : IModificationCommandBatchFactory
     {
-        private readonly IRelationalCommandBuilderFactory _commandBuilderFactory;
-        private readonly ISqlGenerationHelper _sqlGenerationHelper;
-        private readonly IUpdateSqlGenerator _updateSqlGenerator;
-        private readonly IRelationalValueBufferFactoryFactory _valueBufferFactoryFactory;
-        private readonly IDbContextOptions _options;
+        readonly IRelationalCommandBuilderFactory _commandBuilderFactory;
+        readonly ISqlGenerationHelper _sqlGenerationHelper;
+        readonly IUpdateSqlGenerator _updateSqlGenerator;
+        readonly IRelationalValueBufferFactoryFactory _valueBufferFactoryFactory;
+        readonly IDbContextOptions _options;
 
         public NpgsqlModificationCommandBatchFactory(
             [NotNull] IRelationalCommandBuilderFactory commandBuilderFactory,

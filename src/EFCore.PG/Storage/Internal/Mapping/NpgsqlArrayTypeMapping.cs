@@ -22,10 +22,10 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
 using System.Text;
+using Microsoft.EntityFrameworkCore.Storage;
 
-namespace Microsoft.EntityFrameworkCore.Storage.Internal
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 {
     public sealed class NpgsqlArrayTypeMapping : RelationalTypeMapping
     {

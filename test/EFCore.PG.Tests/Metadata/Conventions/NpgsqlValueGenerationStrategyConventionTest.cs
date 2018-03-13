@@ -1,9 +1,11 @@
 ﻿using System.Linq;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Microsoft.EntityFrameworkCore.TestUtilities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
 
-namespace Microsoft.EntityFrameworkCore.Metadata.Conventions
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
 {
     public class NpgsqlValueGenerationStrategyConventionTest
     {

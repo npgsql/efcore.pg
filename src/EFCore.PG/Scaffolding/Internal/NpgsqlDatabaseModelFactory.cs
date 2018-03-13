@@ -31,17 +31,19 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Scaffolding;
 using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
-using Microsoft.EntityFrameworkCore.Utilities;
 using Microsoft.Extensions.Logging;
-using Npgsql;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
-namespace Microsoft.EntityFrameworkCore.Scaffolding.Internal
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
 {
     public class NpgsqlDatabaseModelFactory : IDatabaseModelFactory
     {
@@ -432,7 +434,7 @@ AND
 
                         var table = tables.Single(t => t.Schema == tableSchema && t.Name == tableName);
 
-                        foreach (var record in tableGroup) 
+                        foreach (var record in tableGroup)
                         {
                             // Constraints are detected separately (see GetConstraints), and we don't want their
                             // supporting indexes to appear independently.

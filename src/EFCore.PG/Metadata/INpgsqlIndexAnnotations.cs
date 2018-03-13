@@ -21,7 +21,9 @@
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 #endregion
 
-namespace Microsoft.EntityFrameworkCore.Metadata
+using Microsoft.EntityFrameworkCore.Metadata;
+
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 {
     public interface INpgsqlIndexAnnotations : IRelationalIndexAnnotations
     {

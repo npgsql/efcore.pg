@@ -24,8 +24,9 @@
 using System;
 using System.Text;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace Microsoft.EntityFrameworkCore.Migrations.Internal
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal
 {
     public class NpgsqlHistoryRepository : HistoryRepository
     {

@@ -21,9 +21,11 @@
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 #endregion
 
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using Microsoft.EntityFrameworkCore.Scaffolding;
 
-namespace Microsoft.EntityFrameworkCore.Scaffolding.Internal
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
 {
     public class NpgsqlCodeGenerator : ProviderCodeGenerator
     {

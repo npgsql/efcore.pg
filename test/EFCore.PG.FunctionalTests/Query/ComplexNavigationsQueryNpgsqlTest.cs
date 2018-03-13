@@ -1,6 +1,6 @@
-﻿using Xunit;
+﻿using Microsoft.EntityFrameworkCore.Query;
 
-namespace Microsoft.EntityFrameworkCore.Query
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     public class ComplexNavigationsQueryNpgsqlTest
         : ComplexNavigationsQueryTestBase<ComplexNavigationsQueryNpgsqlFixture>

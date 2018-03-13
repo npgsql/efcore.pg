@@ -24,7 +24,7 @@
 using System.Data.Common;
 using JetBrains.Annotations;
 
-namespace Microsoft.EntityFrameworkCore.Scaffolding.Internal
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
 {
     public static class SqlDataReaderExtension
     {
