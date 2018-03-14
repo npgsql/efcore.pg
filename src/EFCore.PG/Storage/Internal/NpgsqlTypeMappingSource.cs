@@ -193,6 +193,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 { typeof(double),                     _float8      },
                 { typeof(decimal),                    _numeric     },
                 { typeof(Guid),                       _uuid        },
+                { typeof(byte),                       _int2        },
                 { typeof(short),                      _int2        },
                 { typeof(int),                        _int4        },
                 { typeof(long),                       _int8        },

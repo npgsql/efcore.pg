@@ -82,6 +82,7 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
                         Int = 999,
                         LongAsBigint = 78L,
                         ShortAsSmallint = 79,
+                        ByteAsSmallint = 80,
                         UintAsInt = uint.MaxValue,
                         UlongAsBigint = ulong.MaxValue,
                         UShortAsSmallint = ushort.MaxValue,
@@ -137,6 +138,9 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
 
                 short? param2 = 79;
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.ShortAsSmallint == param2));
+
+                byte? param2a = 80;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.ByteAsSmallint == param2a));
 
                 uint? param3 = uint.MaxValue;
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.UintAsInt == param3));
@@ -265,6 +269,10 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.ShortAsSmallint == param2));
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && (long?)(int?)e.ShortAsSmallint == param2));
 
+                byte? param2a = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.ByteAsSmallint == param2a));
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && (long?)(int?)e.ByteAsSmallint == param2a));
+
                 uint? param3 = null;
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.UintAsInt == param3));
 
@@ -378,39 +386,40 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
             Assert.Equal(
                 @"@p0='77'
 @p1='True'
-@p2='0x56' (Nullable = false)
-@p3='2015-01-02T00:00:00' (DbType = Date)
-@p4='2015-01-02T10:11:12' (DbType = DateTime)
-@p5='2016-01-02T11:11:12' (DbType = DateTimeOffset)
-@p6='0001-01-01T12:00:00.0000000+02:00' (DbType = Object)
-@p7='101.7'
-@p8='81.1'
-@p9='103.9'
-@p10='System.Collections.Generic.Dictionary`2[System.String,System.String]' (Nullable = false) (DbType = Object)
-@p11='85.5'
-@p12='Value4' (Nullable = false)
+@p2='80'
+@p3='0x56' (Nullable = false)
+@p4='2015-01-02T00:00:00' (DbType = Date)
+@p5='2015-01-02T10:11:12' (DbType = DateTime)
+@p6='2016-01-02T11:11:12' (DbType = DateTimeOffset)
+@p7='0001-01-01T12:00:00.0000000+02:00' (DbType = Object)
+@p8='101.7'
+@p9='81.1'
+@p10='103.9'
+@p11='System.Collections.Generic.Dictionary`2[System.String,System.String]' (Nullable = false) (DbType = Object)
+@p12='85.5'
 @p13='Value4' (Nullable = false)
-@p14='84.4'
-@p15='a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
-@p16='System.Int32[]' (Nullable = false) (DbType = Object)
-@p17='78'
-@p18='(5.2,3.3)' (DbType = Object)
-@p19='[4,8)' (DbType = Object)
-@p20='System.Net.NetworkInformation.PhysicalAddress[]' (Nullable = false) (DbType = Object)
-@p21='08002B010203' (Nullable = false) (DbType = Object)
-@p22='79'
-@p23='{""a"": ""b""}' (Nullable = false)
-@p24='{""a"": ""b""}' (Nullable = false) (DbType = Object)
-@p25='Gumball Rules!' (Nullable = false)
-@p26='Gumball Rules OK' (Nullable = false)
-@p27='11:15:12' (DbType = Object)
+@p14='Value4' (Nullable = false)
+@p15='84.4'
+@p16='a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
+@p17='System.Int32[]' (Nullable = false) (DbType = Object)
+@p18='78'
+@p19='(5.2,3.3)' (DbType = Object)
+@p20='[4,8)' (DbType = Object)
+@p21='System.Net.NetworkInformation.PhysicalAddress[]' (Nullable = false) (DbType = Object)
+@p22='08002B010203' (Nullable = false) (DbType = Object)
+@p23='79'
+@p24='{""a"": ""b""}' (Nullable = false)
+@p25='{""a"": ""b""}' (Nullable = false) (DbType = Object)
+@p26='Gumball Rules!' (Nullable = false)
+@p27='Gumball Rules OK' (Nullable = false)
 @p28='11:15:12' (DbType = Object)
-@p29='65535'
-@p30='-1'
-@p31='4294967295'
-@p32='-1'
-@p33='2147483648' (DbType = Object)
-@p34='-1'",
+@p29='11:15:12' (DbType = Object)
+@p30='65535'
+@p31='-1'
+@p32='4294967295'
+@p33='-1'
+@p34='2147483648' (DbType = Object)
+@p35='-1'",
                     parameters,
                     ignoreLineEndingDifferences: true);
         }
@@ -473,6 +482,7 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
                 Int = id,
                 LongAsBigint = 78L,
                 ShortAsSmallint = 79,
+                ByteAsSmallint = 80,
                 UintAsInt = uint.MaxValue,
                 UlongAsBigint = ulong.MaxValue,
                 UShortAsSmallint = ushort.MaxValue,
@@ -537,6 +547,7 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
             Assert.Equal(id, entity.Int);
             Assert.Null(entity.LongAsBigint);
             Assert.Null(entity.ShortAsSmallint);
+            Assert.Null(entity.ByteAsSmallint);
             Assert.Null(entity.UintAsInt);
             Assert.Null(entity.UlongAsBigint);
             Assert.Null(entity.UShortAsSmallint);
@@ -697,8 +708,8 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
             [Column(TypeName = "smallint")]
             public short ShortAsSmallint { get; set; }
 
-            //[Column(TypeName = "tinyint")]
-            //public byte ByteAsTinyint { get; set; }
+            [Column(TypeName = "smallint")]
+            public byte ByteAsSmallint { get; set; }
 
             [Column(TypeName = "int")]
             public uint UintAsInt { get; set; }
@@ -863,8 +874,8 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
             [Column(TypeName = "smallint")]
             public short? ShortAsSmallint { get; set; }
 
-            //[Column(TypeName = "tinyint")]
-            //public byte? ByteAsTinyint { get; set; }
+            [Column(TypeName = "smallint")]
+            public byte? ByteAsSmallint { get; set; }
 
             [Column(TypeName = "int")]
             public uint? UintAsInt { get; set; }
