@@ -25,6 +25,7 @@ using System;
 using System.Text;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal
 {
@@ -43,18 +44,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal
 
                 builder.Append("SELECT EXISTS (SELECT 1 FROM pg_catalog.pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace WHERE ");
 
+                var stringTypeMapping = Dependencies.TypeMappingSource.GetMapping(typeof(string));
+
                 if (TableSchema != null)
                 {
                     builder
-                        .Append("n.nspname='")
-                        .Append(SqlGenerationHelper.EscapeLiteral(TableSchema))
-                        .Append("' AND ");
+                        .Append("n.nspname=")
+                        .Append(stringTypeMapping.GenerateSqlLiteral(TableSchema))
+                        .Append(" AND ");
                 }
 
                 builder
-                    .Append("c.relname='")
-                    .Append(SqlGenerationHelper.EscapeLiteral(TableName))
-                    .Append("');");
+                    .Append("c.relname=")
+                    .Append(stringTypeMapping.GenerateSqlLiteral(TableName))
+                    .Append(");");
 
                 return builder.ToString();
             }
