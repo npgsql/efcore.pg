@@ -59,6 +59,27 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 Sql);
         }
 
+        [Fact]
+        public void AddColumnOperation_with_huge_varchar()
+        {
+            // PostgreSQL doesn't allow varchar(x) with x > 10485760, so we map this to text.
+            // See #342 and https://www.postgresql.org/message-id/15790.1291824247%40sss.pgh.pa.us
+            Generate(
+                modelBuilder => modelBuilder.Entity("Person").Property<string>("Name").HasMaxLength(10485761),
+                new AddColumnOperation
+                {
+                    Table = "Person",
+                    Name = "Name",
+                    ClrType = typeof(string),
+                    MaxLength = 10485761,
+                    IsNullable = true
+                });
+
+            Assert.Equal(
+                @"ALTER TABLE ""Person"" ADD ""Name"" text NULL;" + EOL,
+                Sql);
+        }
+
         public override void AddForeignKeyOperation_with_name()
         {
             base.AddForeignKeyOperation_with_name();
