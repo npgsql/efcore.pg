@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
 using Microsoft.EntityFrameworkCore.Design;
 
-[assembly: DesignTimeProviderServices("Microsoft.EntityFrameworkCore.Design.Internal.NpgsqlDesignTimeServices")]
+[assembly: DesignTimeProviderServices("Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal.NpgsqlDesignTimeServices")]
 
 [assembly: InternalsVisibleTo("Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests, PublicKey=" +
 "0024000004800000940000000602000000240000525341310004000001000100" +
