@@ -536,7 +536,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
-            var method = (string)operation[NpgsqlAnnotationNames.Prefix + NpgsqlAnnotationNames.IndexMethod];
+            var method = (string)operation[NpgsqlAnnotationNames.IndexMethod];
 
             builder.Append("CREATE ");
 

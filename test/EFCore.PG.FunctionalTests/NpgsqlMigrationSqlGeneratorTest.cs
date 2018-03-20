@@ -548,7 +548,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 Table = "People",
                 Schema = "dbo",
                 Columns = new[] { "FirstName" },
-                [NpgsqlAnnotationNames.Prefix + NpgsqlAnnotationNames.IndexMethod] = "gin"
+                [NpgsqlAnnotationNames.IndexMethod] = "gin"
             });
 
             Assert.Equal(
