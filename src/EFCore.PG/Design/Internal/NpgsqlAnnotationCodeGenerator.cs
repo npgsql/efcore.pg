@@ -86,11 +86,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             Check.NotNull(annotation, nameof(annotation));
 
             if (annotation.Name == NpgsqlAnnotationNames.Comment)
-            {
-                return (bool)annotation.Value == false
-                    ? new MethodCallCodeFragment(nameof(NpgsqlEntityTypeBuilderExtensions.ForNpgsqlHasComment), false)
-                    : new MethodCallCodeFragment(nameof(NpgsqlEntityTypeBuilderExtensions.ForNpgsqlHasComment));
-            }
+                return new MethodCallCodeFragment(nameof(NpgsqlEntityTypeBuilderExtensions.ForNpgsqlHasComment), annotation.Value);
 
             return null;
         }
@@ -118,9 +114,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
                 }
 
             case NpgsqlAnnotationNames.Comment:
-                return (bool)annotation.Value == false
-                    ? new MethodCallCodeFragment(nameof(NpgsqlPropertyBuilderExtensions.ForNpgsqlHasComment), false)
-                    : new MethodCallCodeFragment(nameof(NpgsqlPropertyBuilderExtensions.ForNpgsqlHasComment));
+                return new MethodCallCodeFragment(nameof(NpgsqlPropertyBuilderExtensions.ForNpgsqlHasComment), annotation.Value);
             }
 
             return null;
@@ -129,11 +123,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
         public override MethodCallCodeFragment GenerateFluentApi(IIndex index, IAnnotation annotation)
         {
             if (annotation.Name == NpgsqlAnnotationNames.IndexMethod)
-            {
-                return (bool)annotation.Value == false
-                    ? new MethodCallCodeFragment(nameof(NpgsqlIndexBuilderExtensions.ForNpgsqlHasMethod), false)
-                    : new MethodCallCodeFragment(nameof(NpgsqlIndexBuilderExtensions.ForNpgsqlHasMethod));
-            }
+                return new MethodCallCodeFragment(nameof(NpgsqlIndexBuilderExtensions.ForNpgsqlHasMethod), annotation.Value);
 
             return null;
         }
