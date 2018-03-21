@@ -95,6 +95,24 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 
         #endregion
 
+        #region Enum types
+
+        public virtual PostgresEnum GetOrAddPostgresEnum(
+            [CanBeNull] string schema,
+            [NotNull] string name,
+            [NotNull] IReadOnlyList<string> labels)
+            => PostgresEnum.GetOrAddPostgresEnum((IMutableModel)Model, schema, name, labels);
+
+        public virtual PostgresEnum GetOrAddPostgresEnum(
+            [NotNull] string name,
+            [NotNull] IReadOnlyList<string> labels)
+            => GetOrAddPostgresEnum(null, name, labels);
+
+        public virtual IReadOnlyList<PostgresEnum> PostgresEnums
+            => PostgresEnum.GetPostgresEnums(Model).ToList();
+
+        #endregion Enum types
+
         #region Database Template
 
         public virtual string DatabaseTemplate

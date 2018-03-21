@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
@@ -75,6 +76,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
 
                 return new MethodCallCodeFragment(nameof(NpgsqlModelBuilderExtensions.HasPostgresExtension),
                     extension.Name);
+            }
+
+            if (annotation.Name.StartsWith(NpgsqlAnnotationNames.EnumPrefix))
+            {
+                var enumTypeDef = new PostgresEnum(model, annotation.Name);
+
+                return enumTypeDef.Schema == "public"
+                    ? new MethodCallCodeFragment(nameof(NpgsqlModelBuilderExtensions.ForNpgsqlHasEnum),
+                        enumTypeDef.Name, enumTypeDef.Labels)
+                    : new MethodCallCodeFragment(nameof(NpgsqlModelBuilderExtensions.ForNpgsqlHasEnum),
+                        enumTypeDef.Schema, enumTypeDef.Name, enumTypeDef.Labels);
             }
 
             return null;

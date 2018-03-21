@@ -1587,6 +1587,35 @@ CREATE EXTENSION pgcrypto;",
         }
 
         [Fact]
+        public void Enums()
+        {
+            Test(
+                @"
+CREATE TYPE mood AS ENUM ('happy', 'sad');
+CREATE TYPE db2.mood AS ENUM ('excited', 'depressed');
+CREATE TABLE foo (mood mood);",
+                Enumerable.Empty<string>(),
+                Enumerable.Empty<string>(),
+                dbModel =>
+                {
+                    var enums = PostgresEnum.GetPostgresEnums(dbModel).ToList();
+                    Assert.Equal(2, enums.Count);
+
+                    var mood = enums.Single(e => e.Schema == null);
+                    Assert.Equal("mood", mood.Name);
+                    Assert.Equal(new[] { "happy", "sad" }, mood.Labels);
+
+                    var mood2 = enums.Single(e => e.Schema == "db2");
+                    Assert.Equal("mood", mood2.Name);
+                    Assert.Equal(new[] { "excited", "depressed" }, mood2.Labels);
+
+                    // Enum columns are left out of the model for now (a warning is logged).
+                    Assert.Equal(0, dbModel.Tables.Single().Columns.Count);
+                },
+                "DROP TABLE foo; DROP TYPE mood; DROP TYPE db2.mood;");
+        }
+
+        [Fact]
         public void Column_default_type_names_are_scaffolded()
         {
             Test(

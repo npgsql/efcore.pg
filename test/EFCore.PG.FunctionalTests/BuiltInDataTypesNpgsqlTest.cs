@@ -3,15 +3,18 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Net.NetworkInformation;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.TestUtilities;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
-using NpgsqlTypes;
 using Xunit;
 using Xunit.Abstractions;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.TestUtilities;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+using NpgsqlTypes;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
@@ -126,7 +129,9 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
 
                         SearchQuery = NpgsqlTsQuery.Parse("a & b"),
                         SearchVector = NpgsqlTsVector.Parse("a b"),
-                        RankingNormalization = NpgsqlTsRankingNormalization.DivideByLength
+                        RankingNormalization = NpgsqlTsRankingNormalization.DivideByLength,
+
+                        Mood = Mood.Sad
                     });
 
                 Assert.Equal(1, context.SaveChanges());
@@ -252,6 +257,9 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
 
                 var param37 = NpgsqlTsRankingNormalization.DivideByLength;
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.RankingNormalization == param37));
+
+                var param38 = Mood.Sad;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Mood == param38));
             }
         }
 
@@ -389,6 +397,9 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
 
                 NpgsqlTsRankingNormalization? param37 = null;
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.RankingNormalization == param37));
+
+                Mood? param38 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.Mood == param38));
             }
         }
 
@@ -424,26 +435,27 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
 @p16='a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
 @p17='System.Int32[]' (Nullable = false) (DbType = Object)
 @p18='78'
-@p19='(5.2,3.3)' (DbType = Object)
-@p20='[4,8)' (DbType = Object)
-@p21='System.Net.NetworkInformation.PhysicalAddress[]' (Nullable = false) (DbType = Object)
-@p22='08002B010203' (Nullable = false) (DbType = Object)
-@p23='2'
-@p24=''a' & 'b'' (Nullable = false) (DbType = Object)
-@p25=''a' 'b'' (Nullable = false) (DbType = Object)
-@p26='79'
-@p27='{""a"": ""b""}' (Nullable = false)
-@p28='{""a"": ""b""}' (Nullable = false) (DbType = Object)
-@p29='Gumball Rules!' (Nullable = false)
-@p30='Gumball Rules OK' (Nullable = false)
-@p31='11:15:12' (DbType = Object)
+@p19='Sad' (DbType = Object)
+@p20='(5.2,3.3)' (DbType = Object)
+@p21='[4,8)' (DbType = Object)
+@p22='System.Net.NetworkInformation.PhysicalAddress[]' (Nullable = false) (DbType = Object)
+@p23='08002B010203' (Nullable = false) (DbType = Object)
+@p24='2'
+@p25=''a' & 'b'' (Nullable = false) (DbType = Object)
+@p26=''a' 'b'' (Nullable = false) (DbType = Object)
+@p27='79'
+@p28='{""a"": ""b""}' (Nullable = false)
+@p29='{""a"": ""b""}' (Nullable = false) (DbType = Object)
+@p30='Gumball Rules!' (Nullable = false)
+@p31='Gumball Rules OK' (Nullable = false)
 @p32='11:15:12' (DbType = Object)
-@p33='65535'
-@p34='-1'
-@p35='4294967295'
-@p36='-1'
-@p37='2147483648' (DbType = Object)
-@p38='-1'",
+@p33='11:15:12' (DbType = Object)
+@p34='65535'
+@p35='-1'
+@p36='4294967295'
+@p37='-1'
+@p38='2147483648' (DbType = Object)
+@p39='-1'",
                     parameters,
                     ignoreLineEndingDifferences: true);
         }
@@ -548,14 +560,16 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
                 DictionaryAsHstore = new Dictionary<string, string> { { "a", "b" } },
                 NpgsqlRangeAsRange = new NpgsqlRange<int>(4, true, 8, false),
 
-                IntArrayAsIntArray= new[] { 2, 3 },
-                PhysicalAddressArrayAsMacaddrArray= new[] { PhysicalAddress.Parse("08-00-2B-01-02-03"), PhysicalAddress.Parse("08-00-2B-01-02-04") },
+                IntArrayAsIntArray = new[] { 2, 3 },
+                PhysicalAddressArrayAsMacaddrArray = new[] { PhysicalAddress.Parse("08-00-2B-01-02-03"), PhysicalAddress.Parse("08-00-2B-01-02-04") },
 
                 UintAsXid = (uint)int.MaxValue + 1,
 
                 SearchQuery = NpgsqlTsQuery.Parse("a & b"),
                 SearchVector = NpgsqlTsVector.Parse("a b"),
-                RankingNormalization = NpgsqlTsRankingNormalization.DivideByLength
+                RankingNormalization = NpgsqlTsRankingNormalization.DivideByLength,
+
+                Mood = Mood.Sad
             };
 
         [Fact]
@@ -625,6 +639,8 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
             Assert.Null(entity.SearchQuery);
             Assert.Null(entity.SearchVector);
             Assert.Null(entity.RankingNormalization);
+
+            Assert.Null(entity.Mood);
         }
 
         string Sql => Fixture.TestSqlLoggerFactory.Sql;
@@ -648,7 +664,11 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
             {
                 base.OnModelCreating(modelBuilder, context);
 
+                NpgsqlConnection.GlobalTypeMapper.MapEnum<Mood>();
+                ((NpgsqlTypeMappingSource)context.GetService<ITypeMappingSource>()).ReloadMappings();
+
                 modelBuilder.HasPostgresExtension("hstore");
+                modelBuilder.ForNpgsqlHasEnum("mood", new[] { "happy", "sad" });
 
                 MakeRequired<MappedDataTypes>(modelBuilder);
 
@@ -865,6 +885,9 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
             public NpgsqlTsQuery SearchQuery { get; set; }
             public NpgsqlTsVector SearchVector { get; set; }
             public NpgsqlTsRankingNormalization RankingNormalization { get; set; }
+
+            [Column(TypeName = "mood")]
+            public Mood Mood { get; set; }
         }
 
         public class MappedSizedDataTypes
@@ -1035,6 +1058,11 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
             public NpgsqlTsQuery SearchQuery { get; set; }
             public NpgsqlTsVector SearchVector { get; set; }
             public NpgsqlTsRankingNormalization? RankingNormalization { get; set; }
+
+            [Column(TypeName = "mood")]
+            public Mood? Mood { get; set; }
         }
     }
+
+    public enum Mood { Happy, Sad };
 }

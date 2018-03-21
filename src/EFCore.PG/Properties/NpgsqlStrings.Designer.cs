@@ -277,6 +277,22 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
             => GetString("FreeTextFunctionOnClient");
 
 
+        /// <summary>
+
+        ///     Enum column '{name}' cannot be scaffolded, define a CLR enum type and add the property manually.
+
+        /// </summary>
+
+        public static readonly EventDefinition<string> LogEnumColumnSkipped
+            = new EventDefinition<string>(
+                NpgsqlEventId.EnumColumnSkippedWarning,
+                LogLevel.Warning,
+                LoggerMessage.Define<string>(
+                    LogLevel.Warning,
+                    NpgsqlEventId.EnumColumnSkippedWarning,
+                    _resourceManager.GetString("LogEnumColumnSkipped")));
+
+
         private static string GetString(string name, params string[] formatterNames)
         {
             var value = _resourceManager.GetString(name);

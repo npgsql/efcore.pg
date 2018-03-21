@@ -32,6 +32,7 @@ using System.Threading.Tasks;
 using System.Transactions;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -312,9 +313,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             var operations = Dependencies.ModelDiffer.GetDifferences(null, Dependencies.Model);
             var commands = Dependencies.MigrationsSqlGenerator.Generate(operations, Dependencies.Model);
 
-            // Adding a PostgreSQL extension might define new types (e.g. hstore), which we
-            // Npgsql to reload
-            var reloadTypes = operations.Any(o => o is AlterDatabaseOperation && PostgresExtension.GetPostgresExtensions(o).Any());
+            // If a PostgreSQL extension or enum was added, we want Npgsql to reload all types at the ADO.NET level.
+            var reloadTypes = operations.Any(o => o is AlterDatabaseOperation &&
+                (PostgresExtension.GetPostgresExtensions(o).Any() ||
+                 PostgresEnum.GetPostgresEnums(o).Any()));
 
             try
             {

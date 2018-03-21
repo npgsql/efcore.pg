@@ -34,6 +34,7 @@ using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
+using Npgsql.TypeHandlers;
 using NpgsqlTypes;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
@@ -229,6 +230,40 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
             _storeTypeMappings = new ConcurrentDictionary<string, RelationalTypeMapping[]>(storeTypeMappings, StringComparer.OrdinalIgnoreCase);
             _clrTypeMappings = new ConcurrentDictionary<Type, RelationalTypeMapping>(clrTypeMappings);
+
+            ReloadMappings();
+        }
+
+        /// <summary>
+        /// To be used in case user-defined mappings are added late, after this TypeMappingSource has already been initialized.
+        /// This is basically only for test usage.
+        /// </summary>
+        public void ReloadMappings()
+        {
+            SetupEnumMappings();
+        }
+
+        /// <summary>
+        /// Gets all global enum mappings from the ADO.NET layer and creates mappings for them
+        /// </summary>
+        void SetupEnumMappings()
+        {
+            foreach (var adoMapping in NpgsqlConnection.GlobalTypeMapper.Mappings.Where(m => m.TypeHandlerFactory is IEnumTypeHandlerFactory))
+            {
+                var storeType = adoMapping.PgTypeName;
+                var clrType = adoMapping.ClrTypes.SingleOrDefault();
+                if (clrType == null)
+                {
+                    // TODO: Log skipping the enum
+                    continue;
+                }
+
+                var nameTranslator = ((IEnumTypeHandlerFactory)adoMapping.TypeHandlerFactory).NameTranslator;
+
+                var mapping = new NpgsqlEnumTypeMapping(storeType, clrType, nameTranslator);
+                _clrTypeMappings[clrType] = mapping;
+                _storeTypeMappings[storeType] = new[] { mapping };
+            }
         }
 
         protected override RelationalTypeMapping FindMapping(RelationalTypeMappingInfo mappingInfo)

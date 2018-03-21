@@ -21,7 +21,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Update
                 new TypeMappingSourceDependencies (
                     new ValueConverterSelector(new ValueConverterSelectorDependencies())
                 ),
-                new RelationalTypeMappingSourceDependencies ()
+                new RelationalTypeMappingSourceDependencies()
             );
 
             var batch = new NpgsqlModificationCommandBatch(

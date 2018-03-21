@@ -60,6 +60,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
                 RegexOptions.Compiled,
                 TimeSpan.FromMilliseconds(1000.0));
 
+        readonly HashSet<string> _enums = new HashSet<string>();
+
         readonly IDiagnosticsLogger<DbLoggerCategory.Scaffolding> _logger;
 
         public NpgsqlDatabaseModelFactory([NotNull] IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
@@ -102,6 +104,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
                 var schemaFilter = GenerateSchemaFilter(schemaList);
                 var tableList = tables.ToList();
                 var tableFilter = GenerateTableFilter(tableList.Select(Parse).ToList(), schemaFilter);
+
+                GetEnums(connection, databaseModel);
 
                 foreach (var table in GetTables(connection, tableFilter))
                 {
@@ -268,6 +272,15 @@ WHERE
                             if (isDropped)
                             {
                                 table.Columns.Add(null);
+                                continue;
+                            }
+
+                            // User-defined types (e.g. enums) with capital letters get formatted with quotes, remove.
+                            if (formattedTypeName[0] == '"')
+                                formattedTypeName = formattedTypeName.Substring(1, formattedTypeName.Length - 2);
+                            if (_enums.Contains(formattedTypeName))
+                            {
+                                _logger.EnumColumnSkippedWarning(DisplayName(tableSchema, tableName) + '.' + columnName);
                                 continue;
                             }
 
@@ -752,6 +765,34 @@ LEFT OUTER JOIN pg_namespace AS ownerns ON ownerns.oid = tblcls.relnamespace";
                 sequence.MinValue = null;
             if (sequence.MaxValue == defaultMax)
                 sequence.MaxValue = null;
+        }
+
+        void GetEnums(NpgsqlConnection connection, DatabaseModel databaseModel)
+        {
+            _enums.Clear();
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = @"
+SELECT nspname, typname, array_agg(enumlabel ORDER BY enumsortorder) AS labels
+FROM pg_enum
+JOIN pg_type ON pg_type.oid=enumtypid
+JOIN pg_namespace ON pg_namespace.oid=pg_type.typnamespace
+GROUP BY nspname, typname";
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        var schema = reader.GetValueOrDefault<string>("nspname");
+                        var name = reader.GetValueOrDefault<string>("typname");
+                        var labels = reader.GetValueOrDefault<string[]>("labels");
+
+                        if (schema == "public")
+                            schema = null;
+                        PostgresEnum.GetOrAddPostgresEnum(databaseModel, schema, name, labels);
+                        _enums.Add(name);
+                    }
+                }
+            }
         }
 
         void GetExtensions(NpgsqlConnection connection, DatabaseModel databaseModel)

@@ -34,15 +34,19 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Operations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 {
     public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
     {
+        readonly NpgsqlSqlGenerationHelper _sqlGenerationHelper;
+
         public NpgsqlMigrationsSqlGenerator([NotNull] MigrationsSqlGeneratorDependencies dependencies)
             : base(dependencies)
         {
+            _sqlGenerationHelper = (NpgsqlSqlGenerationHelper)dependencies.SqlGenerationHelper;
         }
 
         protected override void Generate(MigrationOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
@@ -599,7 +603,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             EndStatement(builder);
         }
 
-        public virtual void Generate(NpgsqlCreateDatabaseOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
+        protected virtual void Generate(NpgsqlCreateDatabaseOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
@@ -663,28 +667,76 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             Check.NotNull(builder, nameof(builder));
 
             foreach (var extension in PostgresExtension.GetPostgresExtensions(operation))
+                GenerateCreateExtension(extension, model, builder);
+
+            foreach (var enumType in PostgresEnum.GetPostgresEnums(operation))
+                GenerateCreateEnum(enumType, model, builder);
+            // TODO: Some forms of enum alterations are actually supported...
+            foreach (var enumType in PostgresEnum.GetPostgresEnums(operation.OldDatabase))
+                GenerateDropEnum(enumType, builder);
+            builder.EndCommand();
+        }
+
+        protected virtual void GenerateCreateExtension(
+            IPostgresExtension extension,
+            IModel model,
+            MigrationCommandListBuilder builder)
+        {
+            builder
+                .Append("CREATE EXTENSION IF NOT EXISTS ")
+                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(extension.Name));
+
+            if (extension.Schema != null)
             {
                 builder
-                    .Append("CREATE EXTENSION IF NOT EXISTS ")
-                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(extension.Name));
-
-                if (extension.Schema != null)
-                {
-                    builder
-                        .Append(" SCHEMA ")
-                        .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(extension.Schema));
-                }
-
-                if (extension.Version != null)
-                {
-                    builder
-                        .Append(" VERSION ")
-                        .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(extension.Version));
-                }
-
-                builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
-                EndStatement(builder, suppressTransaction: true);
+                    .Append(" SCHEMA ")
+                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(extension.Schema));
             }
+
+            if (extension.Version != null)
+            {
+                builder
+                    .Append(" VERSION ")
+                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(extension.Version));
+            }
+
+            builder.AppendLine(';');
+        }
+
+        protected virtual void GenerateCreateEnum(
+            PostgresEnum enumType,
+            IModel model,
+            MigrationCommandListBuilder builder)
+        {
+            // Schemas are normally created (or rather ensured) by the model differ, which scans all tables, sequences
+            // and other database objects. However, it isn't aware of enums, so we always ensure schema on enum creation.
+            if (enumType.Schema != null)
+                Generate(new EnsureSchemaOperation { Name=enumType.Schema }, model, builder);
+
+            builder
+                .Append("CREATE TYPE ")
+                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(enumType.Name, enumType.Schema))
+                .Append(" AS ENUM (");
+
+            var stringTypeMapping = Dependencies.TypeMappingSource.GetMapping(typeof(string));
+
+            var labels = enumType.Labels;
+            for (var i = 0; i < labels.Count; i++)
+            {
+                builder.Append(stringTypeMapping.GenerateSqlLiteral(labels[i]));
+                if (i < labels.Count - 1)
+                    builder.Append(", ");
+            }
+
+            builder.AppendLine(");");
+        }
+
+        protected virtual void GenerateDropEnum(PostgresEnum @enum, MigrationCommandListBuilder builder)
+        {
+            builder
+                .Append("DROP TYPE ")
+                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(@enum.Name, @enum.Schema))
+                .AppendLine(";");
         }
 
         protected override void Generate(DropIndexOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
@@ -796,6 +848,42 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 builder.Append(" GENERATED BY DEFAULT AS IDENTITY");
                 break;
             }
+        }
+
+        protected override void ColumnDefinition(
+            [CanBeNull] string schema,
+            [NotNull] string table,
+            [NotNull] string name,
+            [NotNull] Type clrType,
+            [CanBeNull] string type,
+            bool? unicode,
+            int? maxLength,
+            bool? fixedLength,
+            bool rowVersion,
+            bool nullable,
+            [CanBeNull] object defaultValue,
+            [CanBeNull] string defaultValueSql,
+            [CanBeNull] string computedColumnSql,
+            [NotNull] IAnnotatable annotatable,
+            [CanBeNull] IModel model,
+            [NotNull] MigrationCommandListBuilder builder)
+        {
+            Check.NotEmpty(name, nameof(name));
+            Check.NotNull(clrType, nameof(clrType));
+            Check.NotNull(annotatable, nameof(annotatable));
+            Check.NotNull(builder, nameof(builder));
+
+            if (type == null)
+                type = GetColumnType(schema, table, name, clrType, unicode, maxLength, fixedLength, rowVersion, model);
+            type = _sqlGenerationHelper.DelimitStoreTypeName(type);
+            builder
+                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(name))
+                .Append(" ")
+                .Append(type);
+
+            builder.Append(nullable ? " NULL" : " NOT NULL");
+
+            DefaultValue(defaultValue, defaultValueSql, builder);
         }
 
 #pragma warning disable 618

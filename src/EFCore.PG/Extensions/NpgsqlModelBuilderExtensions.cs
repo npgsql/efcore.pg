@@ -1,4 +1,6 @@
-﻿using JetBrains.Annotations;
+﻿using System;
+using System.Collections.Generic;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
@@ -144,6 +146,26 @@ namespace Microsoft.EntityFrameworkCore
             modelBuilder.Model.Npgsql().GetOrAddPostgresExtension(name);
             return modelBuilder;
         }
+
+        public static ModelBuilder ForNpgsqlHasEnum(
+            [NotNull] this ModelBuilder modelBuilder,
+            [CanBeNull] string schema,
+            [NotNull] string name,
+            [NotNull] IReadOnlyList<string> labels)
+        {
+            Check.NotNull(modelBuilder, nameof(modelBuilder));
+            Check.NotEmpty(name, nameof(name));
+            Check.NotNull(labels, nameof(labels));
+
+            modelBuilder.Model.Npgsql().GetOrAddPostgresEnum(schema, name, labels);
+            return modelBuilder;
+        }
+
+        public static ModelBuilder ForNpgsqlHasEnum(
+            [NotNull] this ModelBuilder modelBuilder,
+            [NotNull] string name,
+            [NotNull] IReadOnlyList<string> labels)
+            => modelBuilder.ForNpgsqlHasEnum(null, name, labels);
 
         public static ModelBuilder HasDatabaseTemplate(
             [NotNull] this ModelBuilder modelBuilder,

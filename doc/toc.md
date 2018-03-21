@@ -5,4 +5,5 @@
 ## [2.1](release-notes/2.1.md)
 # [Value Generation](value-generation.md)
 # [Mapping and Translation](mapping-and-translation.md)
+## [Enum](mapping/enum.md)
 # [Miscellaneous](misc.md)

@@ -51,7 +51,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics
             UniqueConstraintFound,
             IndexFound,
             ForeignKeyFound,
-            ForeignKeyPrincipalColumnMissingWarning
+            ForeignKeyPrincipalColumnMissingWarning,
+            EnumColumnSkippedWarning
         }
 
         private static readonly string _validationPrefix = DbLoggerCategory.Model.Validation.Name + ".";
@@ -151,5 +152,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics
         ///     This event is in the <see cref="DbLoggerCategory.Scaffolding" /> category.
         /// </summary>
         public static readonly EventId ForeignKeyPrincipalColumnMissingWarning = MakeScaffoldingId(Id.ForeignKeyPrincipalColumnMissingWarning);
+
+        /// <summary>
+        ///     Enum column cannot be scaffolded, define a CLR enum type and add the property manually.
+        ///     This event is in the <see cref="DbLoggerCategory.Scaffolding" /> category.
+        /// </summary>
+        public static readonly EventId EnumColumnSkippedWarning = MakeScaffoldingId(Id.EnumColumnSkippedWarning);
     }
 }

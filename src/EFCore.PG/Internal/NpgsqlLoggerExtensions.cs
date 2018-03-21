@@ -102,5 +102,22 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
             }
             // No DiagnosticsSource events because these are purely design-time messages
         }
+
+        public static void EnumColumnSkippedWarning(
+            [NotNull] this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
+            [NotNull] string columnName)
+        {
+            var definition = NpgsqlStrings.LogEnumColumnSkipped;
+
+            var warningBehavior = definition.GetLogBehavior(diagnostics);
+            if (warningBehavior != WarningBehavior.Ignore)
+            {
+                definition.Log(
+                    diagnostics,
+                    warningBehavior,
+                    columnName);
+            }
+            // No DiagnosticsSource events because these are purely design-time messages
+        }
     }
 }

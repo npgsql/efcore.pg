@@ -7,6 +7,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
+using Npgsql.NameTranslation;
 using NpgsqlTypes;
 using Xunit;
 
@@ -212,6 +214,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         public void GenerateSqlLiteral_returns_json_literal()
             => Assert.Equal(@"JSON '{""a"":1}'", GetMapping("json").GenerateSqlLiteral(@"{""a"":1}"));
 
+        [Fact]
+        public void GenerateSqlLiteral_returns_enum_literal()
+        {
+            var mapping = new NpgsqlEnumTypeMapping("dummy_enum", typeof(DummyEnum), new NpgsqlSnakeCaseNameTranslator());
+            Assert.Equal("'sad'::dummy_enum", mapping.GenerateSqlLiteral(DummyEnum.Sad));
+        }
+
+        enum DummyEnum { Happy, Sad };
+
         #endregion Misc
 
         #region Ranges
@@ -272,19 +283,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
 
         #region Support
 
-        public static RelationalTypeMapping GetMapping(string storeType)
-            => new NpgsqlTypeMappingSource(
-                    new TypeMappingSourceDependencies (
-                        new ValueConverterSelector(new ValueConverterSelectorDependencies())
-                    ), new RelationalTypeMappingSourceDependencies())
-                .FindMapping(storeType);
+        static readonly NpgsqlTypeMappingSource Mapper = new NpgsqlTypeMappingSource(
+            new TypeMappingSourceDependencies(
+                new ValueConverterSelector(new ValueConverterSelectorDependencies())
+            ),
+            new RelationalTypeMappingSourceDependencies()
+        );
+
+        static RelationalTypeMapping GetMapping(string storeType)
+            => Mapper.FindMapping(storeType);
 
         public static RelationalTypeMapping GetMapping(Type clrType)
-            => (RelationalTypeMapping)new NpgsqlTypeMappingSource(
-                    new TypeMappingSourceDependencies (
-                        new ValueConverterSelector(new ValueConverterSelectorDependencies())
-                    ), new RelationalTypeMappingSourceDependencies())
-                .FindMapping(clrType);
+            => (RelationalTypeMapping)Mapper.FindMapping(clrType);
 
         #endregion Support
     }

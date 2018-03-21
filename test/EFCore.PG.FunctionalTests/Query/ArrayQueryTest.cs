@@ -140,7 +140,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using (var ctx = CreateContext())
             {
                 // TODO: This fails
-                var x = ctx.SomeEntities.Single(e => EF.Property<int[]>(e, nameof(SomeEntity.SomeArray)).Length == 2);
+                var x = ctx.SomeEntities.Single(e => EF.Property<int[]>(e, nameof(SomeArrayEntity.SomeArray)).Length == 2);
                 Assert.Equal(new[] { 3, 4 }, x.SomeArray);
                 AssertContainsInSql(@"WHERE array_length(e.""SomeArray"", 1) = 2");
             }
@@ -179,7 +179,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
     public class ArrayContext : DbContext
     {
-        public DbSet<SomeEntity> SomeEntities { get; set; }
+        public DbSet<SomeArrayEntity> SomeEntities { get; set; }
         public ArrayContext(DbContextOptions options) : base(options) {}
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -187,7 +187,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         }
     }
 
-    public class SomeEntity
+    public class SomeArrayEntity
     {
         public int Id { get; set; }
         public int[] SomeArray { get; set; }
@@ -216,14 +216,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using (var ctx = CreateContext())
             {
                 ctx.Database.EnsureCreated();
-                ctx.SomeEntities.Add(new SomeEntity
+                ctx.SomeEntities.Add(new SomeArrayEntity
                 {
                     Id=1,
                     SomeArray = new[] { 3, 4 },
                     SomeBytea = new byte[] { 3, 4 },
                     SomeMatrix = new[,] { { 5, 6 }, { 7, 8 } }
                 });
-                ctx.SomeEntities.Add(new SomeEntity
+                ctx.SomeEntities.Add(new SomeArrayEntity
                 {
                     Id=2,
                     SomeArray = new[] { 5, 6, 7 },
