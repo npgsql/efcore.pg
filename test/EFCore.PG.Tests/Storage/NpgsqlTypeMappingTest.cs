@@ -197,11 +197,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
             };
 
             var comparer = GetMapping("hstore").Comparer;
-            var snapshot = (Dictionary<string, string>)comparer.SnapshotFunc(source);
+            var snapshot = (Dictionary<string, string>)comparer.Snapshot(source);
             Assert.Equal(source, snapshot);
-            Assert.True(comparer.CompareFunc(source, snapshot));
+            Assert.True(comparer.Equals(source, snapshot));
             snapshot.Remove("k1");
-            Assert.False(comparer.CompareFunc(source, snapshot));
+            Assert.False(comparer.Equals(source, snapshot));
         }
 
         [Fact]

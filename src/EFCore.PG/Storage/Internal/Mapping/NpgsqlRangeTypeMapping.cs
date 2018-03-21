@@ -52,9 +52,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             [NotNull] Type clrType,
             [CanBeNull] ValueConverter converter,
             [CanBeNull] ValueComparer comparer,
+            [CanBeNull] ValueComparer keyComparer,
             RelationalTypeMapping subtypeMapping,
             NpgsqlDbType subtypeNpgsqlDbType)
-            : base(storeType, clrType, converter, comparer, NpgsqlDbType.Range | subtypeNpgsqlDbType)
+            : base(storeType, clrType, converter, comparer, keyComparer, NpgsqlDbType.Range | subtypeNpgsqlDbType)
         {
             SubtypeMapping = subtypeMapping;
             EmptyLiteral = $"'empty'::{storeType}";

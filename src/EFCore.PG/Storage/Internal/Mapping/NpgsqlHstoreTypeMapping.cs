@@ -10,7 +10,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         static readonly HstoreComparer ComparerInstance = new HstoreComparer();
 
         public NpgsqlHstoreTypeMapping()
-            : base("hstore", typeof(Dictionary<string, string>), null, ComparerInstance, NpgsqlDbType.Hstore) {}
+            : base("hstore", typeof(Dictionary<string, string>), null, ComparerInstance, null, NpgsqlDbType.Hstore) {}
 
         protected override string GenerateNonNullSqlLiteral(object value)
         {
@@ -40,7 +40,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         {
             public HstoreComparer() : base(
                 (a, b) => Compare(a,b),
-                source => Snapshot(source))
+                o => o.GetHashCode(),
+                o => o == null ? null : new Dictionary<string, string>(o))
             {}
 
             static bool Compare(Dictionary<string, string> a, Dictionary<string, string> b)
@@ -56,9 +57,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                         return false;
                 return true;
             }
-
-            static Dictionary<string, string> Snapshot(Dictionary<string, string> source)
-                => source == null ? null : new Dictionary<string, string>(source);
         }
     }
 }

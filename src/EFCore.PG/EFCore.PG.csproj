@@ -23,8 +23,9 @@
     <Compile Include="..\Shared\*.cs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.1.0-preview2-30335" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="2.1.0-preview2-30335" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.1.0-preview2-30366" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="2.1.0-preview2-30366" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" Version="2.1.0-preview2-30366" />
     <PackageReference Include="Npgsql" Version="3.2.7" />
   </ItemGroup>
   <ItemGroup>

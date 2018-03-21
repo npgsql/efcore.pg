@@ -20,10 +20,10 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.3.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="2.1.0-preview2-30335" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.1.0-preview2-30335" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="2.1.0-preview2-30335" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational.Specification.Tests" Version="2.1.0-preview2-30335" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="2.1.0-preview2-30366" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.1.0-preview2-30366" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="2.1.0-preview2-30366" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational.Specification.Tests" Version="2.1.0-preview2-30366" />
   </ItemGroup>
 
 </Project>

@@ -51,17 +51,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             [NotNull] Type clrType,
             [CanBeNull] ValueConverter converter,
             [CanBeNull] ValueComparer comparer,
+            [CanBeNull] ValueComparer keyComparer,
             NpgsqlDbType npgsqlDbType)
-            : base(storeType, clrType, converter, comparer)
+            : base(storeType, clrType, converter, comparer, keyComparer)
         {
             NpgsqlDbType = npgsqlDbType;
         }
 
         public override RelationalTypeMapping Clone(string storeType, int? size)
-            => new NpgsqlTypeMapping(storeType, ClrType, Converter, Comparer, NpgsqlDbType);
+            => new NpgsqlTypeMapping(storeType, ClrType, Converter, Comparer, KeyComparer, NpgsqlDbType);
 
         public override CoreTypeMapping Clone(ValueConverter converter)
-            => new NpgsqlTypeMapping(StoreType, ClrType, ComposeConverter(converter), Comparer, NpgsqlDbType);
+            => new NpgsqlTypeMapping(StoreType, ClrType, ComposeConverter(converter), Comparer, KeyComparer, NpgsqlDbType);
 
         protected override void ConfigureParameter([NotNull] DbParameter parameter)
         {

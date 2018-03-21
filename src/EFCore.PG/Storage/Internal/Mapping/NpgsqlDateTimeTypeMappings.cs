@@ -15,7 +15,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
     public class NpgsqlTimestampTzTypeMapping : NpgsqlTypeMapping
     {
-        public NpgsqlTimestampTzTypeMapping() : base("timestamp with time zone", typeof(DateTime), NpgsqlDbType.TimestampTZ) {}
+        public NpgsqlTimestampTzTypeMapping(Type clrType) : base("timestamp with time zone", clrType, NpgsqlDbType.TimestampTZ) {}
 
         protected override string GenerateNonNullSqlLiteral(object value)
         {
@@ -45,7 +45,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             : this(null) {}
 
         public NpgsqlDateTypeMapping(ValueConverter converter)
-            : base("date", typeof(DateTime), converter, null, System.Data.DbType.Date) {}
+            : base("date", typeof(DateTime), converter, null, null, System.Data.DbType.Date) {}
 
         public override RelationalTypeMapping Clone(string storeType, int? size)
             => new NpgsqlDateTypeMapping(Converter);
