@@ -49,3 +49,8 @@ Below are some Npgsql-specific translations, many additional standard ones are s
 | .Where(c => c.SomeArray.Length == 3)                     | [WHERE array_length("c"."SomeArray, 1) == 3](https://www.postgresql.org/docs/current/static/functions-array.html#ARRAY-FUNCTIONS-TABLE)
 | .Where(c => EF.Functions.Like(c.Name, "foo%")            | [WHERE "c"."Name" LIKE 'foo%'](https://www.postgresql.org/docs/current/static/functions-matching.html#FUNCTIONS-LIKE)
 | .Where(c => EF.Functions.ILike(c.Name, "foo%")           | [WHERE "c"."Name" ILIKE 'foo%'](https://www.postgresql.org/docs/current/static/functions-matching.html#FUNCTIONS-LIKE) (case-insensitive LIKE)
+| .Select(c => EF.Functions.ToTsVector("english", c.Name)) | [SELECT to_tsvector('english'::regconfig, "c"."Name")](https://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-DOCUMENTS)
+| .Select(c => EF.Functions.ToTsQuery("english", "pgsql")) | [SELECT to_tsquery('english'::regconfig, 'pgsql')](https://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES)
+| .Where(c => c.SearchVector.Matches("Npgsql"))            | [WHERE "c"."SearchVector" @@ 'Npgsql'](https://www.postgresql.org/docs/current/static/textsearch-intro.html#TEXTSEARCH-MATCHING)
+| .Select(c => EF.Functions.ToTsQuery(c.SearchQuery).ToNegative()) | [SELECT (!! to_tsquery("c"."SearchQuery"))](https://www.postgresql.org/docs/current/static/textsearch-features.html#TEXTSEARCH-MANIPULATE-TSQUERY)
+| .Select(c => EF.Functions.ToTsVector(c.Name).SetWeight(NpgsqlTsVector.Lexeme.Weight.A)) | [SELECT setweight(to_tsvector("c"."Name"), 'A')](https://www.postgresql.org/docs/current/static/textsearch-features.html#TEXTSEARCH-MANIPULATE-TSVECTOR)

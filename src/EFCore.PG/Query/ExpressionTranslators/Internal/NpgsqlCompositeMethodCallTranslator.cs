@@ -23,6 +23,7 @@
 
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
+using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
@@ -47,7 +48,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             new NpgsqlStringTrimTranslator(),
             new NpgsqlStringTrimEndTranslator(),
             new NpgsqlStringTrimStartTranslator(),
-            new NpgsqlRegexIsMatchTranslator()
+            new NpgsqlRegexIsMatchTranslator(),
+            new NpgsqlFullTextSearchMethodTranslator()
         };
 
         public NpgsqlCompositeMethodCallTranslator(

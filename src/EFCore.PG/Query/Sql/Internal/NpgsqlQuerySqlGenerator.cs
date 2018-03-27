@@ -27,6 +27,7 @@ using System.Linq.Expressions;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
+using Microsoft.EntityFrameworkCore.Query.Expressions.Internal;
 using Microsoft.EntityFrameworkCore.Query.Sql;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions;
@@ -313,6 +314,30 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
             base.GenerateOrdering(ordering);
             if (_nullFirstOrderingEnabled)
                 Sql.Append(" NULLS FIRST");
+        }
+
+        public virtual Expression VisitFullTextSearch(FullTextSearchExpression expression)
+        {
+            Check.NotNull(expression, nameof(expression));
+
+            Sql.Append("(");
+            if (expression.Right != null)
+            {
+                Visit(expression.Left);
+                Sql.Append(" ");
+                Sql.Append(expression.Operator);
+                Sql.Append(" ");
+                Visit(expression.Right);
+            }
+            else
+            {
+                Sql.Append(expression.Operator);
+                Sql.Append(" ");
+                Visit(expression.Left);
+            }
+            Sql.Append(")");
+
+            return expression;
         }
     }
 }

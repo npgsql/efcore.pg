@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Net.NetworkInformation;
-using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.TestUtilities;
@@ -124,6 +123,10 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
                         PhysicalAddressArrayAsMacaddrArray= new[] { PhysicalAddress.Parse("08-00-2B-01-02-03"), PhysicalAddress.Parse("08-00-2B-01-02-04") },
 
                         UintAsXid = (uint)int.MaxValue + 1,
+
+                        SearchQuery = NpgsqlTsQuery.Parse("a & b"),
+                        SearchVector = NpgsqlTsVector.Parse("a b"),
+                        RankingNormalization = NpgsqlTsRankingNormalization.DivideByLength
                     });
 
                 Assert.Equal(1, context.SaveChanges());
@@ -240,6 +243,15 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
 
                 var param34 = (uint)int.MaxValue + 1;
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.UintAsXid == param34));
+
+                var param35 = NpgsqlTsQuery.Parse("a & b");
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.SearchQuery == param35));
+
+                var param36 = NpgsqlTsVector.Parse("a b");
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.SearchVector == param36));
+
+                var param37 = NpgsqlTsRankingNormalization.DivideByLength;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.RankingNormalization == param37));
             }
         }
 
@@ -368,6 +380,15 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
 
                 uint? param34 = null;
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.UintAsXid == param34));
+
+                NpgsqlTsQuery param35 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.SearchQuery == param35));
+
+                NpgsqlTsVector param36 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.SearchVector == param36));
+
+                NpgsqlTsRankingNormalization? param37 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.RankingNormalization == param37));
             }
         }
 
@@ -407,19 +428,22 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
 @p20='[4,8)' (DbType = Object)
 @p21='System.Net.NetworkInformation.PhysicalAddress[]' (Nullable = false) (DbType = Object)
 @p22='08002B010203' (Nullable = false) (DbType = Object)
-@p23='79'
-@p24='{""a"": ""b""}' (Nullable = false)
-@p25='{""a"": ""b""}' (Nullable = false) (DbType = Object)
-@p26='Gumball Rules!' (Nullable = false)
-@p27='Gumball Rules OK' (Nullable = false)
-@p28='11:15:12' (DbType = Object)
-@p29='11:15:12' (DbType = Object)
-@p30='65535'
-@p31='-1'
-@p32='4294967295'
-@p33='-1'
-@p34='2147483648' (DbType = Object)
-@p35='-1'",
+@p23='2'
+@p24=''a' & 'b'' (Nullable = false) (DbType = Object)
+@p25=''a' 'b'' (Nullable = false) (DbType = Object)
+@p26='79'
+@p27='{""a"": ""b""}' (Nullable = false)
+@p28='{""a"": ""b""}' (Nullable = false) (DbType = Object)
+@p29='Gumball Rules!' (Nullable = false)
+@p30='Gumball Rules OK' (Nullable = false)
+@p31='11:15:12' (DbType = Object)
+@p32='11:15:12' (DbType = Object)
+@p33='65535'
+@p34='-1'
+@p35='4294967295'
+@p36='-1'
+@p37='2147483648' (DbType = Object)
+@p38='-1'",
                     parameters,
                     ignoreLineEndingDifferences: true);
         }
@@ -474,6 +498,10 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
             Assert.Equal(new[] { PhysicalAddress.Parse("08-00-2B-01-02-03"), PhysicalAddress.Parse("08-00-2B-01-02-04") }, entity.PhysicalAddressArrayAsMacaddrArray);
 
             Assert.Equal((uint)int.MaxValue + 1, entity.UintAsXid);
+
+            Assert.Equal(NpgsqlTsQuery.Parse("a & b").ToString(), entity.SearchQuery.ToString());
+            Assert.Equal(NpgsqlTsVector.Parse("a b").ToString(), entity.SearchVector.ToString());
+            Assert.Equal(NpgsqlTsRankingNormalization.DivideByLength, entity.RankingNormalization);
         }
 
         static MappedDataTypes CreateMappedDataTypes(int id)
@@ -524,6 +552,10 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
                 PhysicalAddressArrayAsMacaddrArray= new[] { PhysicalAddress.Parse("08-00-2B-01-02-03"), PhysicalAddress.Parse("08-00-2B-01-02-04") },
 
                 UintAsXid = (uint)int.MaxValue + 1,
+
+                SearchQuery = NpgsqlTsQuery.Parse("a & b"),
+                SearchVector = NpgsqlTsVector.Parse("a b"),
+                RankingNormalization = NpgsqlTsRankingNormalization.DivideByLength
             };
 
         [Fact]
@@ -589,6 +621,10 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
             Assert.Null(entity.PhysicalAddressArrayAsMacaddrArray);
 
             Assert.Null(entity.UintAsXid);
+
+            Assert.Null(entity.SearchQuery);
+            Assert.Null(entity.SearchVector);
+            Assert.Null(entity.RankingNormalization);
         }
 
         string Sql => Fixture.TestSqlLoggerFactory.Sql;
@@ -671,6 +707,14 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
                 modelBuilder.Entity<MappedPrecisionAndScaledDataTypes>()
                     .Property(e => e.Id)
                     .ValueGeneratedNever();
+
+                // Full text
+                modelBuilder.Entity<MappedDataTypes>().Property(x => x.SearchQuery).HasColumnType("tsquery");
+                modelBuilder.Entity<MappedDataTypes>().Property(x => x.SearchVector).HasColumnType("tsvector");
+                modelBuilder.Entity<MappedDataTypes>().Property(x => x.RankingNormalization).HasColumnType("integer");
+                modelBuilder.Entity<MappedNullableDataTypes>().Property(x => x.SearchQuery).HasColumnType("tsquery");
+                modelBuilder.Entity<MappedNullableDataTypes>().Property(x => x.SearchVector).HasColumnType("tsvector");
+                modelBuilder.Entity<MappedNullableDataTypes>().Property(x => x.RankingNormalization).HasColumnType("integer");
             }
 
             public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
@@ -817,6 +861,10 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
 
             [Column(TypeName = "xid")]
             public uint UintAsXid { get; set; }
+
+            public NpgsqlTsQuery SearchQuery { get; set; }
+            public NpgsqlTsVector SearchVector { get; set; }
+            public NpgsqlTsRankingNormalization RankingNormalization { get; set; }
         }
 
         public class MappedSizedDataTypes
@@ -983,6 +1031,10 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
 
             [Column(TypeName = "xid")]
             public uint? UintAsXid { get; set; }
+
+            public NpgsqlTsQuery SearchQuery { get; set; }
+            public NpgsqlTsVector SearchVector { get; set; }
+            public NpgsqlTsRankingNormalization? RankingNormalization { get; set; }
         }
     }
 }

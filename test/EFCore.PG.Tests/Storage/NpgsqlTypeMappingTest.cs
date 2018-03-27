@@ -3,8 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.NetworkInformation;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using NpgsqlTypes;
@@ -249,6 +249,26 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         }
 
         #endregion Ranges
+
+        #region Full text search
+
+        [Fact]
+        public void GenerateSqlLiteral_returns_tsquery_literal() => Assert.Equal(
+            @"TSQUERY '''a'' & ''b'''",
+            GetMapping("tsquery").GenerateSqlLiteral(NpgsqlTsQuery.Parse("a & b")));
+
+        [Fact]
+        public void GenerateSqlLiteral_returns_tsvector_literal() => Assert.Equal(
+            @"TSVECTOR '''a'' ''b'''",
+            GetMapping("tsvector").GenerateSqlLiteral(NpgsqlTsVector.Parse("a b")));
+
+        [Fact]
+        public void GenerateSqlLiteral_returns_ranking_normalization_literal() => Assert.Equal(
+            $"{(int)NpgsqlTsRankingNormalization.DivideByLength}",
+            GetMapping(typeof(NpgsqlTsRankingNormalization))
+                .GenerateSqlLiteral(NpgsqlTsRankingNormalization.DivideByLength));
+
+        #endregion Full text search
 
         #region Support
 
