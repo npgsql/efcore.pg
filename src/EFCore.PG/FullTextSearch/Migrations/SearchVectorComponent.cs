@@ -21,18 +21,17 @@
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 #endregion
 
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore.Metadata;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Migrations;
-
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 {
-    public interface INpgsqlEntityTypeAnnotations : IRelationalEntityTypeAnnotations
+    public readonly struct SearchVectorComponent
     {
-        bool SetStorageParameter(string parameterName, object parameterValue);
-        Dictionary<string, object> GetStorageParameters();
-        string Comment { get; }
-        CockroachDbInterleaveInParent CockroachDbInterleaveInParent { get; }
-        Dictionary<string, SearchVectorAnnotation> SearchVectors { get; }
+        public string Name { get; }
+        public string DefaultSqlValue { get; }
+
+        public SearchVectorComponent(string name, string defaultSqlValue)
+        {
+            Name = name;
+            DefaultSqlValue = defaultSqlValue ?? string.Empty;
+        }
     }
 }

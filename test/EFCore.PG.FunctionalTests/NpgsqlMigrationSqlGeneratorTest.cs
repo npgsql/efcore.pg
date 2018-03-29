@@ -6,8 +6,10 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Operations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+using NpgsqlTypes;
 using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL
@@ -707,6 +709,220 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             Assert.Equal(
                 "ALTER TABLE dbo.\"People\" SET (autovacuum_enabled=true, fillfactor=80);" + EOL +
                 "ALTER TABLE dbo.\"People\" RESET (user_catalog_table);" + EOL,
+                Sql);
+        }
+
+        #endregion
+
+        #region PostgreSQL Search Vectors
+
+        [Fact]
+        public void CreateTableOperation_with_SearchVector()
+        {
+            var createTable = new CreateTableOperation
+            {
+                Name = "Customers",
+                Schema = "dbo",
+                Columns =
+                {
+                    new AddColumnOperation
+                    {
+                        Name = "Id",
+                        Table = "Customers",
+                        ClrType = typeof(int),
+                        IsNullable = false
+                    },
+                    new AddColumnOperation
+                    {
+                        Name = "Name",
+                        Table = "Customers",
+                        ClrType = typeof(string),
+                        IsNullable = false
+                    },
+                    new AddColumnOperation
+                    {
+                        Name = "SearchVector",
+                        Table = "Customers",
+                        ClrType = typeof(NpgsqlTsVector),
+                        IsNullable = false
+                    }
+                }
+            };
+
+            var searchVectorProperty = new SearchVectorAnnotation
+            {
+                Name = "SearchVector",
+                Config = TextSearchRegconfig.FromRegistered("english"),
+                ComponentGroupsByLabel =
+                {
+                    new SearchVectorComponentGroup('A')
+                    {
+                        Components = new[]
+                        {
+                            new SearchVectorComponent("Name", string.Empty),
+                        }
+                    }
+                }
+            };
+            createTable.AddAnnotation(
+                NpgsqlAnnotationNames.SearchVectorPrefix + searchVectorProperty.Name,
+                searchVectorProperty.Serialize());
+
+            Generate(createTable);
+            Assert.Equal(
+                @"CREATE TABLE dbo.""Customers"" (
+    ""Id"" integer NOT NULL,
+    ""Name"" text NOT NULL,
+    ""SearchVector"" tsvector NOT NULL
+);
+GO
+
+CREATE FUNCTION dbo.customers_searchvector_trigger() RETURNS trigger AS $$
+BEGIN
+    new.""SearchVector"" := 
+        setweight(to_tsvector('english'::regconfig, coalesce(new.""Name"", '')), 'A');
+    return new;
+END
+$$ LANGUAGE plpgsql;
+GO
+
+CREATE TRIGGER customers_searchvector_trigger_update BEFORE INSERT OR UPDATE ON dbo.""Customers"" FOR EACH ROW EXECUTE PROCEDURE dbo.customers_searchvector_trigger();
+GO
+
+UPDATE dbo.""Customers"" SET ""Name"" = ""Name"";",
+                Sql);
+        }
+
+        [Fact]
+        public void AlterTableOperation_with_SearchVector_create()
+        {
+            var alterTable = new AlterTableOperation
+            {
+                Name = "Customers",
+                Schema = "dbo"
+            };
+
+            var searchVectorProperty = new SearchVectorAnnotation
+            {
+                Name = "SearchVector",
+                Config = TextSearchRegconfig.FromRegistered("english"),
+                ComponentGroupsByLabel =
+                {
+                    new SearchVectorComponentGroup('A')
+                    {
+                        Components = new[]
+                        {
+                            new SearchVectorComponent("Name", string.Empty),
+                        }
+                    }
+                }
+            };
+            alterTable.AddAnnotation(
+                NpgsqlAnnotationNames.SearchVectorPrefix + searchVectorProperty.Name,
+                searchVectorProperty.Serialize());
+
+            Generate(alterTable);
+            Assert.Equal(
+                @"CREATE FUNCTION dbo.customers_searchvector_trigger() RETURNS trigger AS $$
+BEGIN
+    new.""SearchVector"" := 
+        setweight(to_tsvector('english'::regconfig, coalesce(new.""Name"", '')), 'A');
+    return new;
+END
+$$ LANGUAGE plpgsql;
+GO
+
+CREATE TRIGGER customers_searchvector_trigger_update BEFORE INSERT OR UPDATE ON dbo.""Customers"" FOR EACH ROW EXECUTE PROCEDURE dbo.customers_searchvector_trigger();
+GO
+
+UPDATE dbo.""Customers"" SET ""Name"" = ""Name"";",
+                Sql);
+        }
+
+        [Fact]
+        public void AlterTableOperation_with_SearchVector_drop()
+        {
+            var alterTable = new AlterTableOperation
+            {
+                Name = "Customers",
+                Schema = "dbo"
+            };
+
+            var searchVectorProperty = new SearchVectorAnnotation
+            {
+                Name = "SearchVector",
+                Config = TextSearchRegconfig.FromRegistered("english"),
+                ComponentGroupsByLabel =
+                {
+                    new SearchVectorComponentGroup('A')
+                    {
+                        Components = new[]
+                        {
+                            new SearchVectorComponent("Name", string.Empty),
+                        }
+                    }
+                }
+            };
+            alterTable.OldTable.AddAnnotation(
+                NpgsqlAnnotationNames.SearchVectorPrefix + searchVectorProperty.Name,
+                searchVectorProperty.Serialize());
+
+            Generate(alterTable);
+            Assert.Equal("DROP FUNCTION IF EXISTS dbo.customers_searchvector_trigger() CASCADE;", Sql.Trim());
+        }
+
+        [Fact]
+        public void AlterTableOperation_with_SearchVector_update()
+        {
+            var alterTable = new AlterTableOperation
+            {
+                Name = "Customers",
+                Schema = "dbo"
+            };
+
+            var searchVectorProperty = new SearchVectorAnnotation
+            {
+                Name = "SearchVector",
+                Config = TextSearchRegconfig.FromRegistered("english"),
+                ComponentGroupsByLabel =
+                {
+                    new SearchVectorComponentGroup('A')
+                    {
+                        Components = new[]
+                        {
+                            new SearchVectorComponent("Address", string.Empty),
+                        }
+                    }
+                }
+            };
+            alterTable.AddAnnotation(
+                NpgsqlAnnotationNames.SearchVectorPrefix + searchVectorProperty.Name,
+                searchVectorProperty.Serialize());
+
+            searchVectorProperty.ComponentGroupsByLabel[0].Components[0] =
+                new SearchVectorComponent("Name", string.Empty);
+            alterTable.OldTable.AddAnnotation(
+                NpgsqlAnnotationNames.SearchVectorPrefix + searchVectorProperty.Name,
+                searchVectorProperty.Serialize());
+
+            Generate(alterTable);
+            Assert.Equal(
+                @"DROP FUNCTION IF EXISTS dbo.customers_searchvector_trigger() CASCADE;
+GO
+
+CREATE FUNCTION dbo.customers_searchvector_trigger() RETURNS trigger AS $$
+BEGIN
+    new.""SearchVector"" := 
+        setweight(to_tsvector('english'::regconfig, coalesce(new.""Address"", '')), 'A');
+    return new;
+END
+$$ LANGUAGE plpgsql;
+GO
+
+CREATE TRIGGER customers_searchvector_trigger_update BEFORE INSERT OR UPDATE ON dbo.""Customers"" FOR EACH ROW EXECUTE PROCEDURE dbo.customers_searchvector_trigger();
+GO
+
+UPDATE dbo.""Customers"" SET ""Address"" = ""Address"";",
                 Sql);
         }
 
