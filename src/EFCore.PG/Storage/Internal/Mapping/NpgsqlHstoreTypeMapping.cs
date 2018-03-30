@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Text;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NpgsqlTypes;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
@@ -10,7 +12,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         static readonly HstoreComparer ComparerInstance = new HstoreComparer();
 
         public NpgsqlHstoreTypeMapping()
-            : base("hstore", typeof(Dictionary<string, string>), null, ComparerInstance, null, NpgsqlDbType.Hstore) {}
+            : base(
+                new RelationalTypeMappingParameters(
+                    new CoreTypeMappingParameters(typeof(Dictionary<string, string>), null, ComparerInstance),
+                    "hstore"
+                ), NpgsqlDbType.Hstore) {}
+
+        protected NpgsqlHstoreTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
+            : base(parameters, npgsqlDbType) {}
+
+        public override RelationalTypeMapping Clone(string storeType, int? size)
+            => new NpgsqlHstoreTypeMapping(Parameters.WithStoreTypeAndSize(storeType, size), NpgsqlDbType);
+
+        public override CoreTypeMapping Clone(ValueConverter converter)
+            => new NpgsqlHstoreTypeMapping(Parameters.WithComposedConverter(converter), NpgsqlDbType);
 
         protected override string GenerateNonNullSqlLiteral(object value)
         {

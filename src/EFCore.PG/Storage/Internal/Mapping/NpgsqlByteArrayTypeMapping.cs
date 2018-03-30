@@ -24,13 +24,23 @@
 using System.Globalization;
 using System.Text;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 {
-    public class NpgsqlByteArrayTypeMapping : ByteArrayTypeMapping
+    public class NpgsqlByteArrayTypeMapping : RelationalTypeMapping
     {
-        public NpgsqlByteArrayTypeMapping() : base("bytea", System.Data.DbType.Binary) {}
+        public NpgsqlByteArrayTypeMapping() : base("bytea", typeof(byte[]), System.Data.DbType.Binary) {}
+
+        protected NpgsqlByteArrayTypeMapping(RelationalTypeMappingParameters parameters)
+            : base(parameters) {}
+
+        public override RelationalTypeMapping Clone(string storeType, int? size)
+            => new NpgsqlByteArrayTypeMapping(Parameters.WithStoreTypeAndSize(storeType, size));
+
+        public override CoreTypeMapping Clone(ValueConverter converter)
+            => new NpgsqlByteArrayTypeMapping(Parameters.WithComposedConverter(converter));
 
         protected override string GenerateNonNullSqlLiteral(object value)
         {

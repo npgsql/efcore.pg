@@ -27,13 +27,15 @@ using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using NpgsqlTypes;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 {
     public class NpgsqlRangeTypeMapping<T> : NpgsqlTypeMapping
     {
         public RelationalTypeMapping SubtypeMapping { get; }
+
         readonly string EmptyLiteral;
 
         internal NpgsqlRangeTypeMapping(
@@ -47,19 +49,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             EmptyLiteral = $"'empty'::{storeType}";
         }
 
-        public NpgsqlRangeTypeMapping(
-            [NotNull] string storeType,
-            [NotNull] Type clrType,
-            [CanBeNull] ValueConverter converter,
-            [CanBeNull] ValueComparer comparer,
-            [CanBeNull] ValueComparer keyComparer,
-            RelationalTypeMapping subtypeMapping,
-            NpgsqlDbType subtypeNpgsqlDbType)
-            : base(storeType, clrType, converter, comparer, keyComparer, NpgsqlDbType.Range | subtypeNpgsqlDbType)
-        {
-            SubtypeMapping = subtypeMapping;
-            EmptyLiteral = $"'empty'::{storeType}";
-        }
+        protected NpgsqlRangeTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
+            : base(parameters, npgsqlDbType) {}
+
+        public override RelationalTypeMapping Clone(string storeType, int? size)
+            => new NpgsqlRangeTypeMapping<T>(Parameters.WithStoreTypeAndSize(storeType, size), NpgsqlDbType);
+
+        public override CoreTypeMapping Clone(ValueConverter converter)
+            => new NpgsqlRangeTypeMapping<T>(Parameters.WithComposedConverter(converter), NpgsqlDbType);
 
         protected override string GenerateNonNullSqlLiteral(object value)
         {

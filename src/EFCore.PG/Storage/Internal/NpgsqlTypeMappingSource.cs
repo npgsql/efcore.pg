@@ -267,11 +267,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 if (_storeTypeMappings.TryGetValue(storeTypeNameBase, out mappings))
                 {
                     if (clrType == null)
-                        return mappings[0].CloneWithFacetedName(mappingInfo);
+                        return mappings[0].Clone(mappingInfo);
 
                     foreach (var m in mappings)
                         if (m.ClrType == clrType)
-                            return m.CloneWithFacetedName(mappingInfo);
+                            return m.Clone(mappingInfo);
 
                     return null;
                 }

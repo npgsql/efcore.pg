@@ -24,20 +24,27 @@
 using System;
 using System.Text;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 {
-    public sealed class NpgsqlArrayTypeMapping : RelationalTypeMapping
+    public class NpgsqlArrayTypeMapping : RelationalTypeMapping
     {
         public RelationalTypeMapping ElementMapping { get; }
 
-        internal NpgsqlArrayTypeMapping(string storeType, RelationalTypeMapping elementMapping)
+        public NpgsqlArrayTypeMapping(string storeType, RelationalTypeMapping elementMapping)
             : this(storeType, elementMapping, elementMapping.ClrType.MakeArrayType())
         {}
 
-        internal NpgsqlArrayTypeMapping(RelationalTypeMapping elementMapping, Type arrayType)
+        public NpgsqlArrayTypeMapping(RelationalTypeMapping elementMapping, Type arrayType)
             : this(elementMapping.StoreType + "[]", elementMapping, arrayType)
         {}
+
+        protected NpgsqlArrayTypeMapping(RelationalTypeMappingParameters parameters, RelationalTypeMapping elementMapping)
+            : base(parameters)
+        {
+            ElementMapping = elementMapping;
+        }
 
         NpgsqlArrayTypeMapping(string storeType, RelationalTypeMapping elementMapping, Type arrayType)
             : base(storeType, arrayType)
@@ -47,6 +54,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
         public override RelationalTypeMapping Clone(string storeType, int? size)
             => new NpgsqlArrayTypeMapping(StoreType, ElementMapping);
+
+        public override CoreTypeMapping Clone(ValueConverter converter)
+            => new NpgsqlArrayTypeMapping(Parameters.WithComposedConverter(converter), ElementMapping);
 
         protected override string GenerateNonNullSqlLiteral(object value)
         {

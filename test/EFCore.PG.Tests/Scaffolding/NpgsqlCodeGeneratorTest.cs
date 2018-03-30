@@ -9,7 +9,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding
         [Fact]
         public virtual void Use_provider_method_is_generated_correctly()
         {
-            var codeGenerator = new NpgsqlCodeGenerator(new ProviderCodeGeneratorDependencies());
+            var codeGenerator = new NpgsqlConfigurationCodeGenerator(new ProviderConfigurationCodeGeneratorDependencies());
 
             var result = codeGenerator.GenerateUseProvider("Server=test;Username=test;Password=test;Database=test");
 

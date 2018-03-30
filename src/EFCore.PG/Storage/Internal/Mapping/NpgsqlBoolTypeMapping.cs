@@ -22,12 +22,22 @@
 #endregion
 
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 {
-    public class NpgsqlBoolTypeMapping : BoolTypeMapping
+    public class NpgsqlBoolTypeMapping : RelationalTypeMapping
     {
-        public NpgsqlBoolTypeMapping() : base("boolean", System.Data.DbType.Boolean) {}
+        public NpgsqlBoolTypeMapping() : base("boolean", typeof(bool), System.Data.DbType.Boolean) {}
+
+        protected NpgsqlBoolTypeMapping(RelationalTypeMappingParameters parameters)
+            : base(parameters) {}
+
+        public override RelationalTypeMapping Clone(string storeType, int? size)
+            => new NpgsqlBoolTypeMapping(Parameters.WithStoreTypeAndSize(storeType, size));
+
+        public override CoreTypeMapping Clone(ValueConverter converter)
+            => new NpgsqlBoolTypeMapping(Parameters.WithComposedConverter(converter));
 
         protected override string GenerateNonNullSqlLiteral(object value)
             => (bool)value ? "TRUE" : "FALSE";

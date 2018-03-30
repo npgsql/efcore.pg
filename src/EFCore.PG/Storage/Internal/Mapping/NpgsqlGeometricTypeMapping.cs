@@ -1,5 +1,7 @@
 ﻿using System.Globalization;
 using System.Text;
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NpgsqlTypes;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
@@ -7,6 +9,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     public class NpgsqlPointTypeMapping : NpgsqlTypeMapping
     {
         public NpgsqlPointTypeMapping() : base("point", typeof(NpgsqlPoint), NpgsqlDbType.Point) {}
+
+        protected NpgsqlPointTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
+            : base(parameters, npgsqlDbType) {}
+
+        public override RelationalTypeMapping Clone(string storeType, int? size)
+            => new NpgsqlPointTypeMapping(Parameters.WithStoreTypeAndSize(storeType, size), NpgsqlDbType);
+
+        public override CoreTypeMapping Clone(ValueConverter converter)
+            => new NpgsqlPointTypeMapping(Parameters.WithComposedConverter(converter), NpgsqlDbType);
 
         protected override string GenerateNonNullSqlLiteral(object value)
         {
@@ -19,6 +30,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     {
         public NpgsqlLineTypeMapping() : base("line", typeof(NpgsqlLine), NpgsqlDbType.Line) {}
 
+        protected NpgsqlLineTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
+            : base(parameters, npgsqlDbType) {}
+
+        public override RelationalTypeMapping Clone(string storeType, int? size)
+            => new NpgsqlLineTypeMapping(Parameters.WithStoreTypeAndSize(storeType, size), NpgsqlDbType);
+
+        public override CoreTypeMapping Clone(ValueConverter converter)
+            => new NpgsqlLineTypeMapping(Parameters.WithComposedConverter(converter), NpgsqlDbType);
+
         protected override string GenerateNonNullSqlLiteral(object value)
         {
             var line = (NpgsqlLine)value;
@@ -29,6 +49,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     public class NpgsqlLineSegmentTypeMapping : NpgsqlTypeMapping
     {
         public NpgsqlLineSegmentTypeMapping() : base("lseg", typeof(NpgsqlLSeg), NpgsqlDbType.LSeg) {}
+
+        protected NpgsqlLineSegmentTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
+            : base(parameters, npgsqlDbType) {}
+
+        public override RelationalTypeMapping Clone(string storeType, int? size)
+            => new NpgsqlLineSegmentTypeMapping(Parameters.WithStoreTypeAndSize(storeType, size), NpgsqlDbType);
+
+        public override CoreTypeMapping Clone(ValueConverter converter)
+            => new NpgsqlLineSegmentTypeMapping(Parameters.WithComposedConverter(converter), NpgsqlDbType);
 
         protected override string GenerateNonNullSqlLiteral(object value)
         {
@@ -45,6 +74,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     {
         public NpgsqlBoxTypeMapping() : base("box", typeof(NpgsqlBox), NpgsqlDbType.Box) {}
 
+        protected NpgsqlBoxTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
+            : base(parameters, npgsqlDbType) {}
+
+        public override RelationalTypeMapping Clone(string storeType, int? size)
+            => new NpgsqlBoxTypeMapping(Parameters.WithStoreTypeAndSize(storeType, size), NpgsqlDbType);
+
+        public override CoreTypeMapping Clone(ValueConverter converter)
+            => new NpgsqlBoxTypeMapping(Parameters.WithComposedConverter(converter), NpgsqlDbType);
+
         protected override string GenerateNonNullSqlLiteral(object value)
         {
             var box = (NpgsqlBox)value;
@@ -59,6 +97,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     public class NpgsqlPathTypeMapping : NpgsqlTypeMapping
     {
         public NpgsqlPathTypeMapping() : base("path", typeof(NpgsqlPath), NpgsqlDbType.Path) {}
+
+        protected NpgsqlPathTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
+            : base(parameters, npgsqlDbType) {}
+
+        public override RelationalTypeMapping Clone(string storeType, int? size)
+            => new NpgsqlPathTypeMapping(Parameters.WithStoreTypeAndSize(storeType, size), NpgsqlDbType);
+
+        public override CoreTypeMapping Clone(ValueConverter converter)
+            => new NpgsqlPathTypeMapping(Parameters.WithComposedConverter(converter), NpgsqlDbType);
 
         protected override string GenerateNonNullSqlLiteral(object value)
         {
@@ -86,6 +133,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     {
         public NpgsqlPolygonTypeMapping() : base("polygon", typeof(NpgsqlPolygon), NpgsqlDbType.Polygon) {}
 
+        protected NpgsqlPolygonTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
+            : base(parameters, npgsqlDbType) {}
+
+        public override RelationalTypeMapping Clone(string storeType, int? size)
+            => new NpgsqlPolygonTypeMapping(Parameters.WithStoreTypeAndSize(storeType, size), NpgsqlDbType);
+
+        public override CoreTypeMapping Clone(ValueConverter converter)
+            => new NpgsqlPolygonTypeMapping(Parameters.WithComposedConverter(converter), NpgsqlDbType);
+
         protected override string GenerateNonNullSqlLiteral(object value)
         {
             var polygon = (NpgsqlPolygon)value;
@@ -109,6 +165,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     public class NpgsqlCircleTypeMapping : NpgsqlTypeMapping
     {
         public NpgsqlCircleTypeMapping() : base("circle", typeof(NpgsqlCircle), NpgsqlDbType.Circle) {}
+
+        protected NpgsqlCircleTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
+            : base(parameters, npgsqlDbType) {}
+
+        public override RelationalTypeMapping Clone(string storeType, int? size)
+            => new NpgsqlCircleTypeMapping(Parameters.WithStoreTypeAndSize(storeType, size), NpgsqlDbType);
+
+        public override CoreTypeMapping Clone(ValueConverter converter)
+            => new NpgsqlCircleTypeMapping(Parameters.WithComposedConverter(converter), NpgsqlDbType);
 
         protected override string GenerateNonNullSqlLiteral(object value)
         {
