@@ -11,7 +11,7 @@ environment:
     PGPASSWORD: Password12!
 cache:
   - '%USERPROFILE%\.nuget\packages -> **\*.csproj'
-shallow_clone: true
+clone_depth: 10
 install:
   - ps: $env:padded_build_number = $env:appveyor_build_number.PadLeft(5, '0')
   # Install .NET Core 2.0
