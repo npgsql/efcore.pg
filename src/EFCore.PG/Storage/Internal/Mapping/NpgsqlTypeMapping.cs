@@ -59,6 +59,4 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             ((NpgsqlParameter)parameter).NpgsqlDbType = NpgsqlDbType;
         }
     }
-
-
 }
