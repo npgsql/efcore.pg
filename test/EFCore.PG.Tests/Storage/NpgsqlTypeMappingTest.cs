@@ -44,9 +44,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
             Assert.Equal("TIMESTAMPTZ '1997-12-17 07:37:16 UTC'",
                 mapping.GenerateSqlLiteral(new DateTime(1997, 12, 17, 7, 37, 16, DateTimeKind.Unspecified)));
 
-            var offset = TimeZoneInfo.Local.BaseUtcOffset.Hours;
-            var offsetStr = offset < 10 ? $"0{offset}" : offset.ToString();
-            Assert.StartsWith($"TIMESTAMPTZ '1997-12-17 07:37:16+{offsetStr}",
+            var offset = TimeZoneInfo.Local.BaseUtcOffset;
+            var offsetStr = (offset < TimeSpan.Zero ? '-' : '+') + offset.ToString(@"hh\:mm");
+            Assert.StartsWith($"TIMESTAMPTZ '1997-12-17 07:37:16{offsetStr}",
                 mapping.GenerateSqlLiteral(new DateTime(1997, 12, 17, 7, 37, 16, DateTimeKind.Local)));
 
             Assert.Equal("TIMESTAMPTZ '1997-12-17 07:37:16.345 UTC'",
