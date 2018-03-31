@@ -13,6 +13,6 @@
     <PackageReference Include="xunit.core" Version="2.3.1" />
     <PackageReference Include="xunit.assert" Version="2.3.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
-    <PackageReference Include="Npgsql" Version="3.2.7" />
+    <PackageReference Include="Npgsql" Version="4.0.0-ci.*" />
   </ItemGroup>
 </Project>

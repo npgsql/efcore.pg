@@ -113,7 +113,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             _int8range = new NpgsqlRangeTypeMapping<long>("int8range", typeof(NpgsqlRange<long>), _int8, NpgsqlDbType.Bigint);
             _numrange  = new NpgsqlRangeTypeMapping<decimal>("numrange",  typeof(NpgsqlRange<decimal>), _numeric, NpgsqlDbType.Numeric);
             _tsrange   = new NpgsqlRangeTypeMapping<DateTime>("tsrange", typeof(NpgsqlRange<DateTime>), _timestamp, NpgsqlDbType.Range | NpgsqlDbType.Timestamp);
-            _tstzrange = new NpgsqlRangeTypeMapping<DateTime>("tstzrange", typeof(NpgsqlRange<DateTime>), _timestamptz, NpgsqlDbType.Range | NpgsqlDbType.TimestampTZ);
+            _tstzrange = new NpgsqlRangeTypeMapping<DateTime>("tstzrange", typeof(NpgsqlRange<DateTime>), _timestamptz, NpgsqlDbType.Range | NpgsqlDbType.TimestampTz);
             _daterange = new NpgsqlRangeTypeMapping<DateTime>("daterange", typeof(NpgsqlRange<DateTime>), _timestamptz, NpgsqlDbType.Range | NpgsqlDbType.Date);
 
             // Note that PostgreSQL has aliases to some built-in type name aliases (e.g. int4 for integer),
@@ -229,19 +229,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
             _storeTypeMappings = new ConcurrentDictionary<string, RelationalTypeMapping[]>(storeTypeMappings, StringComparer.OrdinalIgnoreCase);
             _clrTypeMappings = new ConcurrentDictionary<Type, RelationalTypeMapping>(clrTypeMappings);
-
-            if (typeof(NpgsqlConnection).Assembly.GetName().Version < new Version(3, 3))
-                SetupLegacyPostgisMappings();
-        }
-
-        void SetupLegacyPostgisMappings()
-        {
-            // This mapping is only used in Npgsql 3.2 and below.
-            // Later versions use type plugins to set up mappings, and corresponding EF Core
-            // plugins need to be used.
-            var legacyPostgisMapping = new NpgsqlLegacyPostgisTypeMapping();
-            _storeTypeMappings["geometry"] = new[] { legacyPostgisMapping };
-            _clrTypeMappings[typeof(PostgisGeometry)] = legacyPostgisMapping;
         }
 
         protected override RelationalTypeMapping FindMapping(RelationalTypeMappingInfo mappingInfo)

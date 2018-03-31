@@ -24,7 +24,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
     public class NpgsqlTimestampTzTypeMapping : NpgsqlTypeMapping
     {
-        public NpgsqlTimestampTzTypeMapping(Type clrType) : base("timestamp with time zone", clrType, NpgsqlDbType.TimestampTZ) {}
+        public NpgsqlTimestampTzTypeMapping(Type clrType) : base("timestamp with time zone", clrType, NpgsqlDbType.TimestampTz) {}
 
         protected NpgsqlTimestampTzTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
             : base(parameters, npgsqlDbType) {}
@@ -98,7 +98,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
     public class NpgsqlTimeTzTypeMapping : NpgsqlTypeMapping
     {
-        public NpgsqlTimeTzTypeMapping() : base("time with time zone", typeof(DateTimeOffset), NpgsqlDbType.TimeTZ) {}
+        public NpgsqlTimeTzTypeMapping() : base("time with time zone", typeof(DateTimeOffset), NpgsqlDbType.TimeTz) {}
 
         protected NpgsqlTimeTzTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
             : base(parameters, npgsqlDbType) {}
