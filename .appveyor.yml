@@ -1,4 +1,4 @@
-image: Visual Studio 2017 Preview
+image: Visual Studio 2017
 version: 2.1.0-rc1-{build}
 services:
   - postgresql101
@@ -9,34 +9,35 @@ environment:
     Test__Npgsql__DefaultConnection: Host=localhost;Database=postgres;Username=postgres;Password=Password12!
     PGUSER: postgres
     PGPASSWORD: Password12!
+    NoPackageAnalysis: true  # Suppresses warning about SemVer 2.0.0 version suffixes when packing
 cache:
   - '%USERPROFILE%\.nuget\packages -> **\*.csproj'
 clone_depth: 10
 install:
-  - ps: $env:padded_build_number = $env:appveyor_build_number.PadLeft(5, '0')
+  - powershell .build\setup_appveyor.ps1
   # Install .NET Core 2.0
   - ps: Invoke-WebRequest -Uri "https://raw.githubusercontent.com/dotnet/cli/master/scripts/obtain/dotnet-install.ps1" -OutFile "install-dotnet.ps1"
-  - ps: .\install-dotnet.ps1 -Version 2.0.3
+  - ps: .\install-dotnet.ps1 -Version 2.1.300-preview2-008530
+#  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 before_build:
-  - dotnet --info
   - appveyor-retry dotnet restore -v Minimal
 build_script:
-  - msbuild /p:Configuration=Debug
-  - msbuild /p:Configuration=Release
-  - dotnet pack src\EFCore.PG\EFCore.PG.csproj -c Release --version-suffix ci-%PADDED_BUILD_NUMBER%
+  - dotnet pack src\EFCore.PG\EFCore.PG.csproj -c Release
 test_script:
   - dotnet test test\EFCore.PG.Tests\EFCore.PG.Tests.csproj
   - dotnet test test\EFCore.PG.FunctionalTests\EFCore.PG.FunctionalTests.csproj
-  - dotnet test test\EFCore.PG.Design.FunctionalTests\EFCore.PG.Design.FunctionalTests.csproj
 artifacts:
-  - path: 'src\EFCore.PG\bin\**\*.nupkg'
+  - path: 'src\**\*.nupkg'
 deploy:
-  - provider: NuGet
-    server: https://www.myget.org/F/npgsql-unstable/api/v2/package
-    api_key:
-      secure: kiMn9uBvgMa5EtEmTIhNBFUfyatiATnhkgx5Xj/1EsmKTtEkUv+hJAQs0L3VGzPw
-    artifact: /.*\.nupkg/
-    skip_symbols: true
-    #skip_symbols: false
-    #symbol_server: https://your.symbol.server/feed
-
+  - provider: Environment
+    name: MyGet Unstable
+    on:
+      deploy_myget_unstable: true
+  - provider: Environment
+    name: MyGet Stable
+    on:
+      deploy_myget_stable: true
+  - provider: Environment
+    name: EFCore.PG Github
+    on:
+      deploy_github_release: true
