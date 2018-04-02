@@ -88,6 +88,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
             _baseClrMappings[typeof(char)] = new CharTypeMapping("text", DbType.String);
             _baseClrMappings[typeof(DateTime)] = _storeTypeMappings["timestamp"] = new DateTimeTypeMapping("timestamp", DbType.DateTime);
             _baseClrMappings[typeof(DateTimeOffset)] = _storeTypeMappings["timestamptz"] = new NpgsqlDateTimeOffsetTypeMapping("timestamptz", DbType.DateTimeOffset);
+            _baseClrMappings[typeof(TimeSpan)] = _storeTypeMappings["interval"] = new NpgsqlTimeSpanTypeMapping();
             _baseClrMappings[typeof(bool)] = _storeTypeMappings["bool"] = new NpgsqlBoolTypeMapping();
 
             _baseClrMappings[typeof(decimal)] = new DecimalTypeMapping("numeric", DbType.Decimal);
