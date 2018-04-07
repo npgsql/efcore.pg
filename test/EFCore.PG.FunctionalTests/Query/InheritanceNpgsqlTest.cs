@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public class InheritanceNpgsqlTest : InheritanceTestBase<InheritanceNpgsqlFixture>
+    public class InheritanceNpgsqlTest : InheritanceRelationalTestBase<InheritanceNpgsqlFixture>
     {
         public InheritanceNpgsqlTest(InheritanceNpgsqlFixture fixture)
             : base(fixture)
