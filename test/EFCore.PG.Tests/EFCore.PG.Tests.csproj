@@ -5,6 +5,8 @@
     <TargetFrameworks Condition="'$(OS)' != 'Windows_NT' OR '$(CoreOnly)' == 'True'">netcoreapp2.0</TargetFrameworks>
     <AssemblyName>Npgsql.EntityFrameworkCore.PostgreSQL.Tests</AssemblyName>
     <RootNamespace>Npgsql.EntityFrameworkCore.PostgreSQL</RootNamespace>
+
+    <NoWarn>NU1605</NoWarn>   <!-- REMOVE AFTER 2.1-preview2 release -->
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,10 +22,19 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.3.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="2.1.0-preview2-30478" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.1.0-preview2-30478" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="2.1.0-preview2-30478" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational.Specification.Tests" Version="2.1.0-preview2-30478" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="2.1.0-preview2-final" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.1.0-preview2-final" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="2.1.0-preview2-final" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational.Specification.Tests" Version="2.1.0-preview2-final" />
+
+    <!-- Hacks to get restore to work properly - the MS feeds are in a messy state -->
+    <PackageReference Include="System.Collections.Immutable" Version="1.5.0-preview2-26404-05" />
+    <PackageReference Include="System.ComponentModel.Annotations" Version="4.5.0-preview2-26404-05" />
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="4.5.0-preview2-26404-05" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="2.1.0-preview2-final" />
+    <PackageReference Include="System.Memory" Version="4.5.0-preview2-26404-05" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.5.0-preview2-26404-05" />
+
   </ItemGroup>
 
 </Project>

@@ -27,9 +27,9 @@ using Microsoft.EntityFrameworkCore.Scaffolding;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
 {
-    public class NpgsqlConfigurationCodeGenerator : ProviderConfigurationCodeGenerator
+    public class NpgsqlConfigurationCodeGenerator : ProviderCodeGenerator
     {
-        public NpgsqlConfigurationCodeGenerator(ProviderConfigurationCodeGeneratorDependencies dependencies)
+        public NpgsqlConfigurationCodeGenerator(ProviderCodeGeneratorDependencies dependencies)
             : base(dependencies)
         {
         }

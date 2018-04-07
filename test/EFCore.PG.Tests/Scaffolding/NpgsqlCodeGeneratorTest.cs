@@ -4,12 +4,12 @@ using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding
 {
-    public class SqlServerCodeGeneratorTest
+    public class NpgsqlCodeGeneratorTest
     {
         [Fact]
         public virtual void Use_provider_method_is_generated_correctly()
         {
-            var codeGenerator = new NpgsqlConfigurationCodeGenerator(new ProviderConfigurationCodeGeneratorDependencies());
+            var codeGenerator = new NpgsqlConfigurationCodeGenerator(new ProviderCodeGeneratorDependencies());
 
             var result = codeGenerator.GenerateUseProvider("Server=test;Username=test;Password=test;Database=test");
 
