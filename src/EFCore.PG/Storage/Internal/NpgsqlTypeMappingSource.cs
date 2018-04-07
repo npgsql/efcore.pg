@@ -266,7 +266,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             }
         }
 
-        protected override RelationalTypeMapping FindMapping(RelationalTypeMappingInfo mappingInfo)
+        protected override RelationalTypeMapping FindMapping(in RelationalTypeMappingInfo mappingInfo)
         {
             var clrType = mappingInfo.ClrType;
             var storeTypeName = mappingInfo.StoreTypeName;
@@ -289,11 +289,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 if (_storeTypeMappings.TryGetValue(storeTypeNameBase, out mappings))
                 {
                     if (clrType == null)
-                        return mappings[0].Clone(mappingInfo);
+                        return mappings[0].Clone(in mappingInfo);
 
                     foreach (var m in mappings)
                         if (m.ClrType == clrType)
-                            return m.Clone(mappingInfo);
+                            return m.Clone(in mappingInfo);
 
                     return null;
                 }

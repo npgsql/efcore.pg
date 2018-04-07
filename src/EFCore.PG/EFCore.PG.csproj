@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <VersionPrefix>2.1.0-preview2</VersionPrefix>
+    <VersionPrefix>2.1.0-preview3</VersionPrefix>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <AssemblyName>Npgsql.EntityFrameworkCore.PostgreSQL</AssemblyName>
     <RootNamespace>Npgsql.EntityFrameworkCore.PostgreSQL</RootNamespace>
@@ -18,8 +18,6 @@
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>git://github.com/npgsql/Npgsql.EntityFrameworkCore.PostgreSQL</RepositoryUrl>
     <LangVersion>latest</LangVersion>
-
-    <NoWarn>NU1605</NoWarn>   <!-- REMOVE AFTER 2.1-preview2 release -->
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\Shared\*.cs" />
@@ -27,19 +25,10 @@
   <ItemGroup>
     <!-- PrivateAssets="none" is set to flow the EF Core analyzer to users referencing this package
 	 https://github.com/aspnet/EntityFrameworkCore/pull/11350 -->
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.1.0-preview2-final" PrivateAssets="none" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="2.1.0-preview2-final" PrivateAssets="none" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" Version="2.1.0-preview2-final" PrivateAssets="none" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.1.0-preview3-32161" PrivateAssets="none" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="2.1.0-preview3-32161" PrivateAssets="none" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" Version="2.1.0-preview3-32161" PrivateAssets="none" />
     <PackageReference Include="Npgsql" Version="4.0.0-ci.*" />
-
-    <!-- Hacks to get restore to work properly - the MS feeds are in a messy state -->
-    <PackageReference Include="System.Collections.Immutable" Version="1.5.0-preview2-26404-05" />
-    <PackageReference Include="System.ComponentModel.Annotations" Version="4.5.0-preview2-26404-05" />
-    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="4.5.0-preview2-26404-05" />
-    <PackageReference Include="Microsoft.Extensions.Primitives" Version="2.1.0-preview2-final" />
-    <PackageReference Include="System.Memory" Version="4.5.0-preview2-26404-05" />
-    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.5.0-preview2-26404-05" />
-
   </ItemGroup>
   <ItemGroup>
     <None Update="Properties\NpgsqlStrings.Designer.tt">

@@ -1,5 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFrameworks>net461;netcoreapp2.0</TargetFrameworks>
     <TargetFrameworks Condition="'$(OS)' != 'Windows_NT' OR '$(CoreOnly)' == 'True'">netcoreapp2.0</TargetFrameworks>
@@ -8,10 +7,7 @@
     <AssemblyOriginatorKeyFile>../../Npgsql.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
     <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
-
-    <NoWarn>NU1605</NoWarn>   <!-- REMOVE AFTER 2.1-preview2 release -->
   </PropertyGroup>
-
   <ItemGroup>
     <None Update="Northwind.sql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -20,26 +16,14 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\src\EFCore.PG\EFCore.PG.csproj" />
   </ItemGroup>
-
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.1.0-preview2-final" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="2.1.0-preview2-final" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational.Specification.Tests" Version="2.1.0-preview2-final" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.1.0-preview2-final" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="2.1.0-preview2-final" />
-
-    <!-- Hacks to get restore to work properly - the MS feeds are in a messy state -->
-    <PackageReference Include="System.Collections.Immutable" Version="1.5.0-preview2-26404-05" />
-    <PackageReference Include="System.ComponentModel.Annotations" Version="4.5.0-preview2-26404-05" />
-    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="4.5.0-preview2-26404-05" />
-    <PackageReference Include="Microsoft.Extensions.Primitives" Version="2.1.0-preview2-final" />
-    <PackageReference Include="System.Memory" Version="4.5.0-preview2-26404-05" />
-    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.5.0-preview2-26404-05" />
-
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.1.0-preview3-32161" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="2.1.0-preview3-32161" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational.Specification.Tests" Version="2.1.0-preview3-32161" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.1.0-preview3-32161" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="2.1.0-preview3-32161" />
   </ItemGroup>
-
 </Project>

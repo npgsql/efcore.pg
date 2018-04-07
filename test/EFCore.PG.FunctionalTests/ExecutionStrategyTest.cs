@@ -379,7 +379,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 return base.AddServices(serviceCollection)
                     .AddSingleton<IRelationalTransactionFactory, TestRelationalTransactionFactory>()
                     .AddScoped<INpgsqlRelationalConnection, TestNpgsqlConnection>()
-                    .AddScoped<IRelationalCommandBuilderFactory, TestRelationalCommandBuilderFactory>();
+                    .AddSingleton<IRelationalCommandBuilderFactory, TestRelationalCommandBuilderFactory>();
             }
 
             public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
