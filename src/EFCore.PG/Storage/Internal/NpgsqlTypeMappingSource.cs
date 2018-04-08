@@ -57,9 +57,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         readonly ByteTypeMapping               _int2Byte       = new ByteTypeMapping("smallint", DbType.Byte);
         readonly IntTypeMapping                _int4           = new IntTypeMapping("integer", DbType.Int32);
         readonly LongTypeMapping               _int8           = new LongTypeMapping("bigint", DbType.Int64);
-        readonly StringTypeMapping             _text           = new StringTypeMapping("text", DbType.String);
-        readonly StringTypeMapping             _varchar        = new StringTypeMapping("character varying", DbType.String);
-        readonly StringTypeMapping             _char           = new StringTypeMapping("character", DbType.String);
+        readonly NpgsqlStringTypeMapping       _text           = new NpgsqlStringTypeMapping("text");
+        readonly NpgsqlStringTypeMapping       _varchar        = new NpgsqlStringTypeMapping("character varying");
+        readonly NpgsqlStringTypeMapping       _char           = new NpgsqlStringTypeMapping("character");
         readonly NpgsqlJsonbTypeMapping        _jsonb          = new NpgsqlJsonbTypeMapping();
         readonly NpgsqlJsonTypeMapping         _json           = new NpgsqlJsonTypeMapping();
         readonly NpgsqlXmlTypeMapping          _xml            = new NpgsqlXmlTypeMapping();
