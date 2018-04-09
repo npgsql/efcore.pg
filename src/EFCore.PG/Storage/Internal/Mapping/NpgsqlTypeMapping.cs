@@ -37,7 +37,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     {
         public NpgsqlDbType NpgsqlDbType { get; }
 
-        internal NpgsqlTypeMapping(
+        public NpgsqlTypeMapping(
             [NotNull] string storeType,
             [NotNull] Type clrType,
             NpgsqlDbType npgsqlDbType)
