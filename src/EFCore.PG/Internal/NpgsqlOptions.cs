@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Internal;
@@ -14,6 +15,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
             var npgsqlOptions = options.FindExtension<NpgsqlOptionsExtension>() ?? new NpgsqlOptionsExtension();
 
             NullFirstOrderingEnabled = npgsqlOptions.NullFirstOrdering ?? false;
+            Plugins = npgsqlOptions.Plugins;
         }
 
         public void Validate(IDbContextOptions options)
@@ -30,5 +32,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         }
 
         public virtual bool NullFirstOrderingEnabled { get; private set; }
+
+        public virtual IReadOnlyList<IEntityFrameworkNpgsqlPlugin> Plugins { get; private set; }
     }
 }
