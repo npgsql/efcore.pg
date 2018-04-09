@@ -1618,6 +1618,9 @@ CREATE TABLE foo (mood mood);",
         [Fact]
         public void Column_default_type_names_are_scaffolded()
         {
+            var options = new NpgsqlOptions();
+            options.Initialize(new DbContextOptionsBuilder().Options);
+
             Test(
                 @"
 CREATE TABLE column_types (
@@ -1657,7 +1660,8 @@ CREATE TABLE column_types (
                         new TypeMappingSourceDependencies(
                             new ValueConverterSelector(new ValueConverterSelectorDependencies())
                         ),
-                        new RelationalTypeMappingSourceDependencies()
+                        new RelationalTypeMappingSourceDependencies(),
+                        options
                     );
 
                     foreach (var column in dbModel.Tables.Single().Columns)

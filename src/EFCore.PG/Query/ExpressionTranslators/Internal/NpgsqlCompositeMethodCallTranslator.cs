@@ -21,9 +21,10 @@
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 #endregion
 
+using System.Collections.Generic;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
-using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
@@ -53,11 +54,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         };
 
         public NpgsqlCompositeMethodCallTranslator(
-            [NotNull] RelationalCompositeMethodCallTranslatorDependencies dependencies)
+            [NotNull] RelationalCompositeMethodCallTranslatorDependencies dependencies,
+            [NotNull] INpgsqlOptions npgsqlOptions)
             : base(dependencies)
         {
             // ReSharper disable once DoNotCallOverridableMethodsInConstructor
             AddTranslators(_methodCallTranslators);
+
+            foreach (var plugin in npgsqlOptions.Plugins)
+                plugin.AddMethodCallTranslators(this);
         }
+
+        public new virtual void AddTranslators([NotNull] IEnumerable<IMethodCallTranslator> translators)
+            => base.AddTranslators(translators);
     }
 }

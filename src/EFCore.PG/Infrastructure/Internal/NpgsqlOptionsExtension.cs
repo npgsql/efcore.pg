@@ -21,6 +21,7 @@
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 #endregion
 
+using System.Collections.Generic;
 using System.Net.Security;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -37,9 +38,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         public ProvideClientCertificatesCallback ProvideClientCertificatesCallback { get; private set; }
         public RemoteCertificateValidationCallback RemoteCertificateValidationCallback { get; private set; }
 
-        public NpgsqlOptionsExtension()
-        {
-        }
+        public IReadOnlyList<IEntityFrameworkNpgsqlPlugin> Plugins => _plugins;
+
+        readonly List<IEntityFrameworkNpgsqlPlugin> _plugins = new List<IEntityFrameworkNpgsqlPlugin>();
+
+        public NpgsqlOptionsExtension() {}
 
         // NB: When adding new options, make sure to update the copy ctor below.
 
@@ -61,6 +64,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
             services.AddEntityFrameworkNpgsql();
 
             return true;
+        }
+
+        public virtual NpgsqlOptionsExtension WithPlugin(IEntityFrameworkNpgsqlPlugin plugin)
+        {
+            var clone = (NpgsqlOptionsExtension)Clone();
+
+            clone._plugins.Add(plugin);
+
+            return clone;
         }
 
         public virtual NpgsqlOptionsExtension WithAdminDatabase(string adminDatabase)

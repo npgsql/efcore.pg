@@ -6,6 +6,7 @@ using System.Net.NetworkInformation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using Npgsql.NameTranslation;
@@ -320,7 +321,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
             new TypeMappingSourceDependencies(
                 new ValueConverterSelector(new ValueConverterSelectorDependencies())
             ),
-            new RelationalTypeMappingSourceDependencies()
+            new RelationalTypeMappingSourceDependencies(),
+            new NpgsqlOptions()
         );
 
         static RelationalTypeMapping GetMapping(string storeType)

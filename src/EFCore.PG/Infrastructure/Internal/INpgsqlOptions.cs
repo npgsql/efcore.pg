@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Infrastructure;
+﻿using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
 {
@@ -8,5 +9,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         ///     Reflects the option set by <see cref="NpgsqlDbContextOptionsBuilder.ReverseNullOrdering" />.
         /// </summary>
         bool ReverseNullOrderingEnabled { get; }
+
+        IReadOnlyList<IEntityFrameworkNpgsqlPlugin> Plugins { get; }
     }
 }
