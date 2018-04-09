@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net461;netcoreapp2.1</TargetFrameworks>
+    <TargetFrameworks Condition="'$(OS)' != 'Windows_NT' OR '$(CoreOnly)' == 'True'">netcoreapp2.1</TargetFrameworks>
+    <AssemblyName>Npgsql.EntityFrameworkCore.PostgreSQL.Plugins.FunctionalTests</AssemblyName>
+    <RootNamespace>Npgsql.EntityFrameworkCore.PostgreSQL</RootNamespace>
+    <AssemblyOriginatorKeyFile>../../Npgsql.snk</AssemblyOriginatorKeyFile>
+    <SignAssembly>true</SignAssembly>
+    <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="..\xunit.runner.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\EFCore.PG\EFCore.PG.csproj" />
+    <ProjectReference Include="..\..\src\EFCore.PG.NTS\EFCore.PG.NTS.csproj" />
+    <ProjectReference Include="..\EFCore.PG.FunctionalTests\EFCore.PG.FunctionalTests.csproj" />
+  </ItemGroup>
+</Project>
