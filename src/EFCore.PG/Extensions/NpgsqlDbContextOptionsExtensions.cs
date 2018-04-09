@@ -39,12 +39,12 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="optionsBuilder"> A builder for setting options on the context. </param>
         /// <param name="connectionString"> The connection string of the database to connect to. </param>
-        /// <param name="NpgsqlOptionsAction">An optional action to allow additional Npgsql-specific configuration.</param>
+        /// <param name="npgsqlOptionsAction">An optional action to allow additional Npgsql-specific configuration.</param>
         /// <returns> The options builder so that further configuration can be chained. </returns>
         public static DbContextOptionsBuilder UseNpgsql(
             [NotNull] this DbContextOptionsBuilder optionsBuilder,
             [NotNull] string connectionString,
-            [CanBeNull] Action<NpgsqlDbContextOptionsBuilder> NpgsqlOptionsAction = null)
+            [CanBeNull] Action<NpgsqlDbContextOptionsBuilder> npgsqlOptionsAction = null)
         {
             Check.NotNull(optionsBuilder, nameof(optionsBuilder));
             Check.NotEmpty(connectionString, nameof(connectionString));
@@ -52,7 +52,7 @@ namespace Microsoft.EntityFrameworkCore
             var extension = (NpgsqlOptionsExtension)GetOrCreateExtension(optionsBuilder).WithConnectionString(connectionString);
             ((IDbContextOptionsBuilderInfrastructure)optionsBuilder).AddOrUpdateExtension(extension);
 
-            NpgsqlOptionsAction?.Invoke(new NpgsqlDbContextOptionsBuilder(optionsBuilder));
+            npgsqlOptionsAction?.Invoke(new NpgsqlDbContextOptionsBuilder(optionsBuilder));
 
             return optionsBuilder;
         }
@@ -66,12 +66,12 @@ namespace Microsoft.EntityFrameworkCore
         ///     in the open state then EF will not open or close the connection. If the connection is in the closed
         ///     state then EF will open and close the connection as needed.
         /// </param>
-        /// <param name="NpgsqlOptionsAction">An optional action to allow additional Npgsql-specific configuration.</param>
+        /// <param name="npgsqlOptionsAction">An optional action to allow additional Npgsql-specific configuration.</param>
         /// <returns> The options builder so that further configuration can be chained. </returns>
         public static DbContextOptionsBuilder UseNpgsql(
             [NotNull] this DbContextOptionsBuilder optionsBuilder,
             [NotNull] DbConnection connection,
-            [CanBeNull] Action<NpgsqlDbContextOptionsBuilder> NpgsqlOptionsAction = null)
+            [CanBeNull] Action<NpgsqlDbContextOptionsBuilder> npgsqlOptionsAction = null)
         {
             Check.NotNull(optionsBuilder, nameof(optionsBuilder));
             Check.NotNull(connection, nameof(connection));
@@ -79,7 +79,7 @@ namespace Microsoft.EntityFrameworkCore
             var extension = (NpgsqlOptionsExtension)GetOrCreateExtension(optionsBuilder).WithConnection(connection);
             ((IDbContextOptionsBuilderInfrastructure)optionsBuilder).AddOrUpdateExtension(extension);
 
-            NpgsqlOptionsAction?.Invoke(new NpgsqlDbContextOptionsBuilder(optionsBuilder));
+            npgsqlOptionsAction?.Invoke(new NpgsqlDbContextOptionsBuilder(optionsBuilder));
 
             return optionsBuilder;
         }
@@ -89,15 +89,15 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="optionsBuilder"> A builder for setting options on the context. </param>
         /// <param name="connectionString"> The connection string of the database to connect to. </param>
-        /// <param name="NpgsqlOptionsAction">An optional action to allow additional Npgsql-configuration.</param>
+        /// <param name="npgsqlOptionsAction">An optional action to allow additional Npgsql-configuration.</param>
         /// <returns> The options builder so that further configuration can be chained. </returns>
         public static DbContextOptionsBuilder<TContext> UseNpgsql<TContext>(
             [NotNull] this DbContextOptionsBuilder<TContext> optionsBuilder,
             [NotNull] string connectionString,
-            [CanBeNull] Action<NpgsqlDbContextOptionsBuilder> NpgsqlOptionsAction = null)
+            [CanBeNull] Action<NpgsqlDbContextOptionsBuilder> npgsqlOptionsAction = null)
             where TContext : DbContext
             => (DbContextOptionsBuilder<TContext>)UseNpgsql(
-                (DbContextOptionsBuilder)optionsBuilder, connectionString, NpgsqlOptionsAction);
+                (DbContextOptionsBuilder)optionsBuilder, connectionString, npgsqlOptionsAction);
 
         /// <summary>
         ///     Configures the context to connect to a PostgreSQL database with Npgsql.
@@ -108,15 +108,15 @@ namespace Microsoft.EntityFrameworkCore
         ///     in the open state then EF will not open or close the connection. If the connection is in the closed
         ///     state then EF will open and close the connection as needed.
         /// </param>
-        /// <param name="NpgsqlOptionsAction">An optional action to allow additional Npgsql-specific configuration.</param>
+        /// <param name="npgsqlOptionsAction">An optional action to allow additional Npgsql-specific configuration.</param>
         /// <returns> The options builder so that further configuration can be chained. </returns>
         public static DbContextOptionsBuilder<TContext> UseNpgsql<TContext>(
             [NotNull] this DbContextOptionsBuilder<TContext> optionsBuilder,
             [NotNull] DbConnection connection,
-            [CanBeNull] Action<NpgsqlDbContextOptionsBuilder> NpgsqlOptionsAction = null)
+            [CanBeNull] Action<NpgsqlDbContextOptionsBuilder> npgsqlOptionsAction = null)
             where TContext : DbContext
             => (DbContextOptionsBuilder<TContext>)UseNpgsql(
-                (DbContextOptionsBuilder)optionsBuilder, connection, NpgsqlOptionsAction);
+                (DbContextOptionsBuilder)optionsBuilder, connection, npgsqlOptionsAction);
 
         private static NpgsqlOptionsExtension GetOrCreateExtension(DbContextOptionsBuilder optionsBuilder)
         {
