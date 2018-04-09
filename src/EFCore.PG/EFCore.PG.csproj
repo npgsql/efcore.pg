@@ -20,9 +20,6 @@
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\Shared\*.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <!-- PrivateAssets="none" is set to flow the EF Core analyzer to users referencing this package
 	 https://github.com/aspnet/EntityFrameworkCore/pull/11350 -->
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.1.0-rtm-30736" PrivateAssets="none" />

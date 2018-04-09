@@ -41,6 +41,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         {
         }
 
+        public virtual void UsePlugin(IEntityFrameworkNpgsqlPlugin plugin)
+            => WithOption(e => e.WithPlugin(plugin));
+
         /// <summary>
         /// Connect to this database for administrative operations (creating/dropping databases).
         /// Defaults to 'postgres'.

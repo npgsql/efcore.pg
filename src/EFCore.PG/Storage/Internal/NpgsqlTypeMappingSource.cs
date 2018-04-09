@@ -34,6 +34,8 @@ using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using Npgsql.TypeHandlers;
 using NpgsqlTypes;
@@ -42,8 +44,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 {
     public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
     {
-        readonly ConcurrentDictionary<string, RelationalTypeMapping[]> _storeTypeMappings;
-        readonly ConcurrentDictionary<Type, RelationalTypeMapping> _clrTypeMappings;
+        public ConcurrentDictionary<string, RelationalTypeMapping[]> StoreTypeMappings { get; }
+        public ConcurrentDictionary<Type, RelationalTypeMapping> ClrTypeMappings { get; }
 
         #region Mappings
 
@@ -108,7 +110,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         #endregion Mappings
 
         public NpgsqlTypeMappingSource([NotNull] TypeMappingSourceDependencies dependencies,
-            [NotNull] RelationalTypeMappingSourceDependencies relationalDependencies)
+            [NotNull] RelationalTypeMappingSourceDependencies relationalDependencies,
+            [CanBeNull] INpgsqlOptions npgsqlOptions=null)
             : base(dependencies, relationalDependencies)
         {
             // Initialize some mappings which depend on other mappings
@@ -233,10 +236,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 { typeof(NpgsqlTsRankingNormalization), _rankingNormalization }
             };
 
-            _storeTypeMappings = new ConcurrentDictionary<string, RelationalTypeMapping[]>(storeTypeMappings, StringComparer.OrdinalIgnoreCase);
-            _clrTypeMappings = new ConcurrentDictionary<Type, RelationalTypeMapping>(clrTypeMappings);
+            StoreTypeMappings = new ConcurrentDictionary<string, RelationalTypeMapping[]>(storeTypeMappings, StringComparer.OrdinalIgnoreCase);
+            ClrTypeMappings = new ConcurrentDictionary<Type, RelationalTypeMapping>(clrTypeMappings);
 
             ReloadMappings();
+
+            if (npgsqlOptions?.Plugins != null)
+                foreach (var plugin in npgsqlOptions.Plugins)
+                    plugin.AddMappings(this);
         }
 
         /// <summary>
@@ -266,8 +273,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 var nameTranslator = ((IEnumTypeHandlerFactory)adoMapping.TypeHandlerFactory).NameTranslator;
 
                 var mapping = new NpgsqlEnumTypeMapping(storeType, clrType, nameTranslator);
-                _clrTypeMappings[clrType] = mapping;
-                _storeTypeMappings[storeType] = new[] { mapping };
+                ClrTypeMappings[clrType] = mapping;
+                StoreTypeMappings[storeType] = new[] { mapping };
             }
         }
 
@@ -293,7 +300,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
             if (storeTypeName != null)
             {
-                if (_storeTypeMappings.TryGetValue(storeTypeName, out var mappings))
+                if (StoreTypeMappings.TryGetValue(storeTypeName, out var mappings))
                 {
                     if (clrType == null)
                         return mappings[0];
@@ -305,7 +312,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                     return null;
                 }
 
-                if (_storeTypeMappings.TryGetValue(storeTypeNameBase, out mappings))
+                if (StoreTypeMappings.TryGetValue(storeTypeNameBase, out mappings))
                 {
                     if (clrType == null)
                         return mappings[0].Clone(in mappingInfo);
@@ -323,7 +330,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             if (clrType == null)
                 return null;
 
-            if (!_clrTypeMappings.TryGetValue(clrType, out var mapping))
+            if (!ClrTypeMappings.TryGetValue(clrType, out var mapping))
                 return null;
 
             // If needed, clone the mapping with the configured length/precision/scale
@@ -377,7 +384,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 // (e.g. DateTimeOffset[] vs. DateTime[]
                 var elementMapping = FindMapping(storeType.Substring(0, storeType.Length - 2));
                 if (elementMapping != null)
-                    return _storeTypeMappings.GetOrAdd(storeType,
+                    return StoreTypeMappings.GetOrAdd(storeType,
                         new RelationalTypeMapping[] { new NpgsqlArrayTypeMapping(storeType, elementMapping) })[0];
             }
 
@@ -399,7 +406,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 if (elementMapping is NpgsqlArrayTypeMapping)
                     return null;
 
-                return _clrTypeMappings.GetOrAdd(clrType, new NpgsqlArrayTypeMapping(elementMapping, clrType));
+                return ClrTypeMappings.GetOrAdd(clrType, new NpgsqlArrayTypeMapping(elementMapping, clrType));
             }
 
             if (clrType.IsGenericType && clrType.GetGenericTypeDefinition() == typeof(List<>))
@@ -415,7 +422,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 if (elementMapping is NpgsqlArrayTypeMapping)
                     return null;
 
-                return _clrTypeMappings.GetOrAdd(clrType, new NpgsqlListTypeMapping(elementMapping, clrType));
+                return ClrTypeMappings.GetOrAdd(clrType, new NpgsqlListTypeMapping(elementMapping, clrType));
             }
 
             return null;

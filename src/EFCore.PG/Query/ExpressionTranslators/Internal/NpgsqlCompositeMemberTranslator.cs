@@ -24,12 +24,15 @@
 using System.Collections.Generic;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
     public class NpgsqlCompositeMemberTranslator : RelationalCompositeMemberTranslator
     {
-        public NpgsqlCompositeMemberTranslator([NotNull] RelationalCompositeMemberTranslatorDependencies dependencies)
+        public NpgsqlCompositeMemberTranslator(
+            [NotNull] RelationalCompositeMemberTranslatorDependencies dependencies,
+            [NotNull] INpgsqlOptions npgsqlOptions)
             : base(dependencies)
         {
             AddTranslators(new List<IMemberTranslator>
@@ -37,6 +40,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 new NpgsqlStringLengthTranslator(),
                 new NpgsqlDateTimeMemberTranslator()
             });
+
+            foreach (var plugin in npgsqlOptions.Plugins)
+                plugin.AddMemberTranslators(this);
         }
+
+        public new virtual void AddTranslators([NotNull] IEnumerable<IMemberTranslator> translators)
+            => base.AddTranslators(translators);
     }
 }

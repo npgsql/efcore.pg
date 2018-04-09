@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.EntityFrameworkCore.Update;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal;
@@ -22,7 +23,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update
                 new TypeMappingSourceDependencies (
                     new ValueConverterSelector(new ValueConverterSelectorDependencies())
                 ),
-                new RelationalTypeMappingSourceDependencies ()
+                new RelationalTypeMappingSourceDependencies(),
+                new NpgsqlOptions()
             );
             var factory = new NpgsqlModificationCommandBatchFactory(
                 new RelationalCommandBuilderFactory(
@@ -55,7 +57,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update
                 new TypeMappingSourceDependencies (
                     new ValueConverterSelector(new ValueConverterSelectorDependencies())
                 ),
-                new RelationalTypeMappingSourceDependencies()
+                new RelationalTypeMappingSourceDependencies(),
+                new NpgsqlOptions()
             );
             var factory = new NpgsqlModificationCommandBatchFactory(
                 new RelationalCommandBuilderFactory(
