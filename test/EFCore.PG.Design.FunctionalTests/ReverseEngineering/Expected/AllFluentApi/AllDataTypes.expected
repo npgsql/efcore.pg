@@ -14,7 +14,7 @@ namespace E2ETest.Namespace
         public decimal DecimalColumn { get; set; }
         public decimal NumericColumn { get; set; }
         public decimal MoneyColumn { get; set; }
-        public char? CharColumn { get; set; }
+        public string CharColumn { get; set; }
         public string TextColumn { get; set; }
         public string VarcharColumn { get; set; }
         public DateTime DateColumn { get; set; }

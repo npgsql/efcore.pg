@@ -81,6 +81,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
             // Mappings where we need literal string generation
             _baseClrMappings[typeof(string)] = _storeTypeMappings["text"] = new NpgsqlStringTypeMapping("text", NpgsqlDbType.Text);
             _storeTypeMappings["varchar"] = new NpgsqlStringTypeMapping("varchar", NpgsqlDbType.Varchar);
+            _storeTypeMappings["char"] = new NpgsqlStringTypeMapping("char", NpgsqlDbType.Char);
             _storeTypeMappings["citext"] = new NpgsqlStringTypeMapping("citext", NpgsqlDbType.Citext);
             _storeTypeMappings["json"] = new NpgsqlStringTypeMapping("json", NpgsqlDbType.Json);
             _storeTypeMappings["jsonb"] = new NpgsqlStringTypeMapping("jsonb", NpgsqlDbType.Jsonb);
