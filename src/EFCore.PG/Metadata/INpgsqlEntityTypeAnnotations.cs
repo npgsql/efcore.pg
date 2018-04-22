@@ -7,5 +7,6 @@ namespace Microsoft.EntityFrameworkCore.Metadata
         bool SetStorageParameter(string parameterName, object parameterValue);
         Dictionary<string, object> GetStorageParameters();
         string Comment { get; }
+        CockroachDbInterleaveInParent CockroachDbInterleaveInParent { get; }
     }
 }

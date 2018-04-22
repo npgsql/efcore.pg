@@ -91,8 +91,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             base.Generate(operation, model, builder, false);
 
             // CockroachDB "interleave in parent" (https://www.cockroachlabs.com/docs/stable/interleave-in-parent.html)
-            var interleaveInParentStr = operation[CockroachDbAnnotationNames.InterleaveInParent] as string;
-            if (interleaveInParentStr != null)
+            if (operation[CockroachDbAnnotationNames.InterleaveInParent] is string)
             {
                 var interleaveInParent = new CockroachDbInterleaveInParent(operation);
                 var parentTableSchema = interleaveInParent.ParentTableSchema;
@@ -517,6 +516,13 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                 .Append(" (")
                 .Append(ColumnList(operation.Columns))
                 .Append(")");
+
+            if (!string.IsNullOrEmpty(operation.Filter))
+            {
+                builder
+                    .Append(" WHERE ")
+                    .Append(operation.Filter);
+            }
 
             builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
 

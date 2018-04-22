@@ -81,6 +81,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
             // Mappings where we need literal string generation
             _baseClrMappings[typeof(string)] = _storeTypeMappings["text"] = new NpgsqlStringTypeMapping("text", NpgsqlDbType.Text);
             _storeTypeMappings["varchar"] = new NpgsqlStringTypeMapping("varchar", NpgsqlDbType.Varchar);
+            _storeTypeMappings["char"] = new NpgsqlStringTypeMapping("char", NpgsqlDbType.Char);
             _storeTypeMappings["citext"] = new NpgsqlStringTypeMapping("citext", NpgsqlDbType.Citext);
             _storeTypeMappings["json"] = new NpgsqlStringTypeMapping("json", NpgsqlDbType.Json);
             _storeTypeMappings["jsonb"] = new NpgsqlStringTypeMapping("jsonb", NpgsqlDbType.Jsonb);
@@ -88,6 +89,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
             _baseClrMappings[typeof(char)] = new CharTypeMapping("text", DbType.String);
             _baseClrMappings[typeof(DateTime)] = _storeTypeMappings["timestamp"] = new DateTimeTypeMapping("timestamp", DbType.DateTime);
             _baseClrMappings[typeof(DateTimeOffset)] = _storeTypeMappings["timestamptz"] = new NpgsqlDateTimeOffsetTypeMapping("timestamptz", DbType.DateTimeOffset);
+            _baseClrMappings[typeof(TimeSpan)] = _storeTypeMappings["interval"] = new NpgsqlTimeSpanTypeMapping();
             _baseClrMappings[typeof(bool)] = _storeTypeMappings["bool"] = new NpgsqlBoolTypeMapping();
 
             _baseClrMappings[typeof(decimal)] = new DecimalTypeMapping("numeric", DbType.Decimal);
