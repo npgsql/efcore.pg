@@ -1,5 +1,5 @@
 image: Visual Studio 2017 Preview
-version: 2.1.0-preview3-{build}
+version: 2.1.0-rc1-{build}
 services:
   - postgresql101
 environment:
