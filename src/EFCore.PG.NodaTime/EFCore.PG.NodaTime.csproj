@@ -2,16 +2,16 @@
   <PropertyGroup>
     <VersionPrefix>2.1.0-rtm</VersionPrefix>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <AssemblyName>Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite</AssemblyName>
-    <RootNamespace>Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite</RootNamespace>
+    <AssemblyName>Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime</AssemblyName>
+    <RootNamespace>Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime</RootNamespace>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <AssemblyOriginatorKeyFile>../../Npgsql.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
     <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
-    <Description>NetTopologySuite PostGIS spatial support plugin for PostgreSQL/Npgsql Entity Framework Core provider.</Description>
+    <Description>NodaTime support plugin for PostgreSQL/Npgsql Entity Framework Core provider.</Description>
     <Authors>Shay Rojansky</Authors>
     <Company>Npgsql</Company>
-    <PackageTags>npgsql;postgresql;postgres;Entity Framework Core;entity-framework-core;ef;efcore;orm;sql;spatial;postgis;nts</PackageTags>
+    <PackageTags>npgsql;postgresql;postgres;Entity Framework Core;entity-framework-core;ef;efcore;orm;sql;nodatime</PackageTags>
     <Copyright>Copyright 2017 © The Npgsql Development Team</Copyright>
     <PackageIconUrl>http://www.npgsql.org/img/postgresql.gif</PackageIconUrl>
     <PackageLicenseUrl>https://raw.githubusercontent.com/npgsql/Npgsql.EntityFrameworkCore.PostgreSQL/dev/LICENSE.txt</PackageLicenseUrl>
@@ -26,7 +26,7 @@
     <ProjectReference Include="..\EFCore.PG\EFCore.PG.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Npgsql.NetTopologySuite" Version="1.0.0-ci.*" />
     <PackageReference Include="Npgsql" Version="4.0.0-ci.*" />
+    <PackageReference Include="Npgsql.NodaTime" Version="1.0.0-ci.*" />
   </ItemGroup>
 </Project>
