@@ -38,8 +38,9 @@ LIMIT 2",
         {
             base.FirstOrDefault_without_orderby_and_filter_issues_warning_subquery();
 
-            Assert.Contains(CoreStrings.LogFirstWithoutOrderByAndFilter.GenerateMessage(
-                "(from Order <generated>_1 in [c].Orders select [<generated>_1].OrderID).FirstOrDefault()"), Fixture.TestSqlLoggerFactory.Log);
+            Assert.Contains(
+                CoreStrings.LogFirstWithoutOrderByAndFilter.GenerateMessage(
+                    "(from Order <generated>_1 in [c].Orders select (Nullable<int>)[<generated>_1].OrderID).FirstOrDefaul..."), Fixture.TestSqlLoggerFactory.Log);
         }
 
         public override void FirstOrDefault_without_orderby_but_with_filter_doesnt_issue_warning()

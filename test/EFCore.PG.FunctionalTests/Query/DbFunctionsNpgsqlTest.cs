@@ -15,7 +15,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             Fixture.TestSqlLoggerFactory.Clear();
         }
 
-        public override void String_Like_Literal()
+        public override void Like_literal()
         {
             // PostgreSQL like is case-sensitive, while the EF Core "default" (i.e. SqlServer) is insensitive.
             // So we override and assert only 19 matches unlike the default's 34.
@@ -32,9 +32,9 @@ FROM ""Customers"" AS c
 WHERE c.""ContactName"" LIKE '%M%'");
         }
 
-        public override void String_Like_Identity()
+        public override void Like_identity()
         {
-            base.String_Like_Identity();
+            base.Like_identity();
 
             AssertSql(
                 @"SELECT COUNT(*)::INT4
@@ -42,9 +42,9 @@ FROM ""Customers"" AS c
 WHERE c.""ContactName"" LIKE c.""ContactName"" ESCAPE ''");
         }
 
-        public override void String_Like_Literal_With_Escape()
+        public override void Like_literal_with_escape()
         {
-            base.String_Like_Literal_With_Escape();
+            base.Like_literal_with_escape();
 
             AssertSql(
                 @"SELECT COUNT(*)::INT4
