@@ -39,7 +39,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
 {
     public class NpgsqlQuerySqlGenerator : DefaultQuerySqlGenerator
     {
-        readonly bool _nullFirstOrderingEnabled;
+        readonly bool _reverseNullOrderingEnabled;
 
         protected override string TypedTrueLiteral => "TRUE::bool";
         protected override string TypedFalseLiteral => "FALSE::bool";
@@ -47,10 +47,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
         public NpgsqlQuerySqlGenerator(
             [NotNull] QuerySqlGeneratorDependencies dependencies,
             [NotNull] SelectExpression selectExpression,
-            bool nullFirstOrderingEnabledEnabled)
+            bool reverseNullOrderingEnabled)
             : base(dependencies, selectExpression)
         {
-            _nullFirstOrderingEnabled = nullFirstOrderingEnabledEnabled;
+            _reverseNullOrderingEnabled = reverseNullOrderingEnabled;
         }
 
         protected override void GenerateTop(SelectExpression selectExpression)
@@ -312,8 +312,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
         protected override void GenerateOrdering([NotNull] Ordering ordering)
         {
             base.GenerateOrdering(ordering);
-            if (_nullFirstOrderingEnabled)
-                Sql.Append(" NULLS FIRST");
+
+            if (_reverseNullOrderingEnabled)
+            {
+                Sql.Append(ordering.OrderingDirection == OrderingDirection.Asc
+                           ? " NULLS FIRST" : " NULLS LAST");
+            }
         }
 
         public virtual Expression VisitFullTextSearch(FullTextSearchExpression expression)

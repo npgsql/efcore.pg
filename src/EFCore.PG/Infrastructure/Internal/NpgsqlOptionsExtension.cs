@@ -33,7 +33,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
     public class NpgsqlOptionsExtension : RelationalOptionsExtension
     {
         public string AdminDatabase { get; private set; }
-        public bool? NullFirstOrdering { get; private set; }
+        public bool? ReverseNullOrdering { get; private set; }
         public ProvideClientCertificatesCallback ProvideClientCertificatesCallback { get; private set; }
         public RemoteCertificateValidationCallback RemoteCertificateValidationCallback { get; private set; }
 
@@ -47,7 +47,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
             : base(copyFrom)
         {
             AdminDatabase = copyFrom.AdminDatabase;
-            NullFirstOrdering = copyFrom.NullFirstOrdering;
+            ReverseNullOrdering = copyFrom.ReverseNullOrdering;
             ProvideClientCertificatesCallback = copyFrom.ProvideClientCertificatesCallback;
             RemoteCertificateValidationCallback = copyFrom.RemoteCertificateValidationCallback;
         }
@@ -72,11 +72,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
             return clone;
         }
 
-        internal virtual NpgsqlOptionsExtension WithNullFirstOrdering(bool nullFirstOrdering)
+        internal virtual NpgsqlOptionsExtension WithReverseNullOrdering(bool reverseNullOrdering)
         {
             var clone = (NpgsqlOptionsExtension)Clone();
 
-            clone.NullFirstOrdering = nullFirstOrdering;
+            clone.ReverseNullOrdering = reverseNullOrdering;
 
             return clone;
         }

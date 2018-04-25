@@ -14,7 +14,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
         {
             var optionsBuilder = base.AddOptions(builder);
-            new NpgsqlDbContextOptionsBuilder(optionsBuilder).OrderNullsFirst();
+            new NpgsqlDbContextOptionsBuilder(optionsBuilder).ReverseNullOrdering();
             return optionsBuilder;
         }
     }

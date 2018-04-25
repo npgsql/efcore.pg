@@ -13,22 +13,22 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         {
             var npgsqlOptions = options.FindExtension<NpgsqlOptionsExtension>() ?? new NpgsqlOptionsExtension();
 
-            NullFirstOrderingEnabled = npgsqlOptions.NullFirstOrdering ?? false;
+            ReverseNullOrderingEnabled = npgsqlOptions.ReverseNullOrdering ?? false;
         }
 
         public void Validate(IDbContextOptions options)
         {
             var npgsqlOptions = options.FindExtension<NpgsqlOptionsExtension>() ?? new NpgsqlOptionsExtension();
 
-            if (NullFirstOrderingEnabled != (npgsqlOptions.NullFirstOrdering ?? false))
+            if (ReverseNullOrderingEnabled != (npgsqlOptions.ReverseNullOrdering ?? false))
             {
                 throw new InvalidOperationException(
                     CoreStrings.SingletonOptionChanged(
-                        nameof(NpgsqlDbContextOptionsBuilder.OrderNullsFirst),
+                        nameof(NpgsqlDbContextOptionsBuilder.ReverseNullOrdering),
                         nameof(DbContextOptionsBuilder.UseInternalServiceProvider)));
             }
         }
 
-        public virtual bool NullFirstOrderingEnabled { get; private set; }
+        public virtual bool ReverseNullOrderingEnabled { get; private set; }
     }
 }

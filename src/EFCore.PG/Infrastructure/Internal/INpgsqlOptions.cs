@@ -5,8 +5,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
     public interface INpgsqlOptions : ISingletonOptions
     {
         /// <summary>
-        ///     Reflects the option set by <see cref="NpgsqlDbContextOptionsBuilder.OrderNullsFirst" />.
+        ///     Reflects the option set by <see cref="NpgsqlDbContextOptionsBuilder.ReverseNullOrdering" />.
         /// </summary>
-        bool NullFirstOrderingEnabled { get; }
+        bool ReverseNullOrderingEnabled { get; }
     }
 }

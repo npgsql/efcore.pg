@@ -40,18 +40,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         public override object GenerateCacheKey(Expression query, bool async)
             => new NpgsqlCompiledQueryCacheKey(
                 GenerateCacheKeyCore(query, async),
-                RelationalDependencies.ContextOptions.FindExtension<NpgsqlOptionsExtension>()?.NullFirstOrdering ?? false);
+                RelationalDependencies.ContextOptions.FindExtension<NpgsqlOptionsExtension>()?.ReverseNullOrdering ?? false);
 
         private struct NpgsqlCompiledQueryCacheKey
         {
             private readonly RelationalCompiledQueryCacheKey _relationalCompiledQueryCacheKey;
-            private readonly bool _nullFirstOrdering;
+            private readonly bool _reverseNullOrdering;
 
             public NpgsqlCompiledQueryCacheKey(
-                RelationalCompiledQueryCacheKey relationalCompiledQueryCacheKey, bool nullFirstOrdering)
+                RelationalCompiledQueryCacheKey relationalCompiledQueryCacheKey, bool reverseNullOrdering)
             {
                 _relationalCompiledQueryCacheKey = relationalCompiledQueryCacheKey;
-                _nullFirstOrdering = nullFirstOrdering;
+                _reverseNullOrdering = reverseNullOrdering;
             }
 
             public override bool Equals(object obj)
@@ -61,13 +61,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 
             private bool Equals(NpgsqlCompiledQueryCacheKey other)
                 => _relationalCompiledQueryCacheKey.Equals(other._relationalCompiledQueryCacheKey)
-                   && _nullFirstOrdering == other._nullFirstOrdering;
+                   && _reverseNullOrdering == other._reverseNullOrdering;
 
             public override int GetHashCode()
             {
                 unchecked
                 {
-                    return (_relationalCompiledQueryCacheKey.GetHashCode() * 397) ^ _nullFirstOrdering.GetHashCode();
+                    return (_relationalCompiledQueryCacheKey.GetHashCode() * 397) ^ _reverseNullOrdering.GetHashCode();
                 }
             }
         }

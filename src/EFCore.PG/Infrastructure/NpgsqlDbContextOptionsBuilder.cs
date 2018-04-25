@@ -52,9 +52,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         /// for SQL Server. Note that to fully implement null-first ordering indexes also need to be generated
         /// accordingly, and since this isn't done this feature isn't publicly exposed.
         /// </summary>
-        /// <param name="orderNullsFirst"></param>
-        internal virtual void OrderNullsFirst(bool orderNullsFirst = true)
-            => WithOption(e => e.WithNullFirstOrdering(orderNullsFirst));
+        /// <param name="reverseNullOrdering"></param>
+        internal virtual void ReverseNullOrdering(bool reverseNullOrdering = true)
+            => WithOption(e => e.WithReverseNullOrdering(reverseNullOrdering));
 
         #region Authentication
 
