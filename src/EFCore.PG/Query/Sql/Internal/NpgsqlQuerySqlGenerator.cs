@@ -128,7 +128,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
             }
 
             case ExpressionType.ArrayIndex:
-                GenerateArrayIndex(expression);
+                VisitArrayIndex(expression);
                 return expression;
             }
 
@@ -146,7 +146,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
             return base.VisitUnary(expression);
         }
 
-        void GenerateArrayIndex([NotNull] BinaryExpression expression)
+        protected virtual void VisitArrayIndex([NotNull] BinaryExpression expression)
         {
             Debug.Assert(expression.NodeType == ExpressionType.ArrayIndex);
 
