@@ -430,6 +430,23 @@ LIMIT 1");
         }
 
         [Fact]
+        public void TsVectorConcat()
+        {
+            using (var context = CreateContext())
+            {
+                var tsVector = context.Customers
+                    .Select(c => EF.Functions.ToTsVector("b").Concat(EF.Functions.ToTsVector("c")))
+                    .First();
+                Assert.Equal(NpgsqlTsVector.Parse("b:1 c:2").ToString(), tsVector.ToString());
+            }
+
+            AssertSql(
+                @"SELECT (to_tsvector('b') || to_tsvector('c'))
+FROM ""Customers"" AS c
+LIMIT 1");
+        }
+
+        [Fact]
         public void Setweight_With_Enum()
         {
             using (var context = CreateContext())

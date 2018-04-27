@@ -105,6 +105,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     methodCallExpression.Arguments[0],
                     methodCallExpression.Arguments[1]);
 
+            case nameof(NpgsqlFullTextSearchLinqExtensions.Concat):
+                return FullTextSearchExpression.TsVectorConcat(
+                    methodCallExpression.Arguments[0],
+                    methodCallExpression.Arguments[1]);
+
             default:
                 return null;
             }

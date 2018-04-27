@@ -145,6 +145,15 @@ namespace Microsoft.EntityFrameworkCore
             throw new NotSupportedException();
 
         /// <summary>
+        /// Returns a vector which combines the lexemes and positional information of <paramref name="vector1" />
+        /// and <paramref name="vector2"/> using the || tsvector operator. Positions and weight labels are retained
+        /// during the concatenation.
+        /// https://www.postgresql.org/docs/10/static/textsearch-features.html#TEXTSEARCH-MANIPULATE-TSVECTOR
+        /// </summary>
+        public static NpgsqlTsVector Concat(this NpgsqlTsVector vector1, NpgsqlTsVector vector2) =>
+            throw new NotSupportedException();
+
+        /// <summary>
         /// Assign weight to each element of <paramref name="vector" /> and return a new
         /// weighted tsvector.
         /// http://www.postgresql.org/docs/current/static/textsearch-features.html#TEXTSEARCH-MANIPULATE-TSVECTOR
