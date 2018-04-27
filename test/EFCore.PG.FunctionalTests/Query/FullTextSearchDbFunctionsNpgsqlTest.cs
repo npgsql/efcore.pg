@@ -549,6 +549,23 @@ LIMIT 1");
         }
 
         [Fact]
+        public void Filter()
+        {
+            using (var context = CreateContext())
+            {
+                var tsVector = context.Customers
+                    .Select(c => NpgsqlTsVector.Parse("b:1A c:2B d:3C").Filter(new[] { 'B', 'C' }))
+                    .First();
+                Assert.Equal(NpgsqlTsVector.Parse("c:2B d:3C").ToString(), tsVector.ToString());
+            }
+
+            AssertSql(
+                @"SELECT ts_filter(CAST('b:1A c:2B d:3C' AS tsvector), CAST(ARRAY['B','C'] AS ""char""[]))
+FROM ""Customers"" AS c
+LIMIT 1");
+        }
+
+        [Fact]
         public void GetLength()
         {
             using (var context = CreateContext())

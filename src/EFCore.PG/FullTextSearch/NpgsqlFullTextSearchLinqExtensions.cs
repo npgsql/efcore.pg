@@ -203,6 +203,13 @@ namespace Microsoft.EntityFrameworkCore
             throw new NotSupportedException();
 
         /// <summary>
+        /// Returns a new vector with only lexemes having weights specified in <paramref name="weights" />.
+        /// https://www.postgresql.org/docs/current/static/functions-textsearch.html
+        /// </summary>
+        public static NpgsqlTsVector Filter(this NpgsqlTsVector vector, char[] weights) =>
+            throw new NotSupportedException();
+
+        /// <summary>
         /// Returns the number of lexemes in <paramref name="vector" />.
         /// http://www.postgresql.org/docs/current/static/textsearch-features.html#TEXTSEARCH-MANIPULATE-TSVECTOR
         /// </summary>

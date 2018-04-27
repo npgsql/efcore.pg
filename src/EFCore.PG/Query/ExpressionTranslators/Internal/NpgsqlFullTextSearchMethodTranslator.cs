@@ -207,6 +207,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     methodCallExpression.Method.ReturnType,
                     methodCallExpression.Arguments);
 
+            case nameof(NpgsqlFullTextSearchLinqExtensions.Filter):
+                return new SqlFunctionExpression(
+                    "ts_filter",
+                    methodCallExpression.Method.ReturnType,
+                    new[]
+                    {
+                        methodCallExpression.Arguments[0],
+                        new ExplicitStoreTypeCastExpression(methodCallExpression.Arguments[1], typeof(char[]), "\"char\"[]")
+                    });
+
             case nameof(NpgsqlFullTextSearchLinqExtensions.GetLength):
                 return new SqlFunctionExpression(
                     "length",
