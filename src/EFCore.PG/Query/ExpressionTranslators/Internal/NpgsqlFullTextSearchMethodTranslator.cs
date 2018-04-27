@@ -201,6 +201,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     methodCallExpression.Method.ReturnType,
                     arguments);
 
+            case nameof(NpgsqlFullTextSearchLinqExtensions.Delete):
+                return new SqlFunctionExpression(
+                    "ts_delete",
+                    methodCallExpression.Method.ReturnType,
+                    methodCallExpression.Arguments);
+
             case nameof(NpgsqlFullTextSearchLinqExtensions.GetLength):
                 return new SqlFunctionExpression(
                     "length",

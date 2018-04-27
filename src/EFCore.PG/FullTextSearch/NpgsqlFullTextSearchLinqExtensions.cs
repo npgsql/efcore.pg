@@ -189,6 +189,20 @@ namespace Microsoft.EntityFrameworkCore
             throw new NotSupportedException();
 
         /// <summary>
+        /// Return a new vector with <paramref name="lexeme" /> removed from <paramref name="vector" />
+        /// https://www.postgresql.org/docs/current/static/functions-textsearch.html
+        /// </summary>
+        public static NpgsqlTsVector Delete(this NpgsqlTsVector vector, string lexeme) =>
+            throw new NotSupportedException();
+
+        /// <summary>
+        /// Return a new vector with <paramref name="lexemes" /> removed from <paramref name="vector" />
+        /// https://www.postgresql.org/docs/current/static/functions-textsearch.html
+        /// </summary>
+        public static NpgsqlTsVector Delete(this NpgsqlTsVector vector, string[] lexemes) =>
+            throw new NotSupportedException();
+
+        /// <summary>
         /// Returns the number of lexemes in <paramref name="vector" />.
         /// http://www.postgresql.org/docs/current/static/textsearch-features.html#TEXTSEARCH-MANIPULATE-TSVECTOR
         /// </summary>

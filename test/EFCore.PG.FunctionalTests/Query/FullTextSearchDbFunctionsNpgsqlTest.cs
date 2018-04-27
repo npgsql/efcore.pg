@@ -515,6 +515,40 @@ LIMIT 1");
         }
 
         [Fact]
+        public void Delete_With_Single_Lexeme()
+        {
+            using (var context = CreateContext())
+            {
+                var tsVector = context.Customers
+                    .Select(c => EF.Functions.ToTsVector("b c").Delete("c"))
+                    .First();
+                Assert.Equal(NpgsqlTsVector.Parse("b:1").ToString(), tsVector.ToString());
+            }
+
+            AssertSql(
+                @"SELECT ts_delete(to_tsvector('b c'), 'c')
+FROM ""Customers"" AS c
+LIMIT 1");
+        }
+
+        [Fact]
+        public void Delete_With_Multiple_Lexemes()
+        {
+            using (var context = CreateContext())
+            {
+                var tsVector = context.Customers
+                    .Select(c => EF.Functions.ToTsVector("b c d").Delete(new[] { "c", "d" }))
+                    .First();
+                Assert.Equal(NpgsqlTsVector.Parse("b:1").ToString(), tsVector.ToString());
+            }
+
+            AssertSql(
+                @"SELECT ts_delete(to_tsvector('b c d'), ARRAY['c','d'])
+FROM ""Customers"" AS c
+LIMIT 1");
+        }
+
+        [Fact]
         public void GetLength()
         {
             using (var context = CreateContext())
