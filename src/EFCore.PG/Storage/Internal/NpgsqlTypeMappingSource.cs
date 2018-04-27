@@ -60,6 +60,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         readonly NpgsqlStringTypeMapping       _text           = new NpgsqlStringTypeMapping("text");
         readonly NpgsqlStringTypeMapping       _varchar        = new NpgsqlStringTypeMapping("character varying");
         readonly NpgsqlStringTypeMapping       _char           = new NpgsqlStringTypeMapping("character");
+        readonly CharTypeMapping               _singleChar     = new CharTypeMapping("character(1)", DbType.String);
         readonly NpgsqlJsonbTypeMapping        _jsonb          = new NpgsqlJsonbTypeMapping();
         readonly NpgsqlJsonTypeMapping         _json           = new NpgsqlJsonTypeMapping();
         readonly NpgsqlXmlTypeMapping          _xml            = new NpgsqlXmlTypeMapping();
@@ -149,6 +150,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 { "varchar",                     new[] { _varchar                      } },
                 { "character",                   new[] { _char                         } },
                 { "char",                        new[] { _char                         } },
+                { "char(1)",                     new[] { _singleChar                   } },
+                { "character(1)",                new[] { _singleChar                   } },
                 { "date",                        new[] { _date                         } },
                 { "timestamp without time zone", new[] { _timestamp                    } },
                 { "timestamp",                   new[] { _timestamp                    } },
@@ -203,6 +206,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 { typeof(int),                        _int4           },
                 { typeof(long),                       _int8           },
                 { typeof(string),                     _text           },
+                { typeof(char),                       _singleChar     },
                 { typeof(DateTime),                   _timestamp      },
                 { typeof(TimeSpan),                   _interval       },
                 { typeof(DateTimeOffset),             _timestamptzDto },

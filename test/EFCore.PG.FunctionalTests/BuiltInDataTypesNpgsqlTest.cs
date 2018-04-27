@@ -108,6 +108,9 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
 
                         StringAsText = "Gumball Rules!",
                         StringAsVarchar = "Gumball Rules OK",
+                        CharAsChar1 = 'f',
+                        CharAsText = 'g',
+                        CharAsVarchar = 'h',
                         BytesAsBytea = new byte[] { 86 },
 
                         GuidAsUuid = new Guid("a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"),
@@ -207,6 +210,15 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
 
                 var param21 = "Gumball Rules OK";
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.StringAsVarchar == param21));
+
+                var param21a = 'f';
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.CharAsChar1 == param21a));
+
+                var param21b = 'g';
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.CharAsText == param21b));
+
+                var param21c = 'h';
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.CharAsVarchar == param21c));
 
                 var param22 = new byte[] { 86 };
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.BytesAsBytea == param22));
@@ -350,6 +362,15 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
                 string param21 = null;
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.StringAsVarchar == param21));
 
+                char? param21a = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.CharAsChar1 == param21a));
+
+                char? param21b = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.CharAsText == param21b));
+
+                char? param21c = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.CharAsVarchar == param21c));
+
                 byte[] param22 = null;
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.BytesAsBytea == param22));
 
@@ -420,42 +441,45 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
 @p1='True'
 @p2='80'
 @p3='0x56' (Nullable = false)
-@p4='2015-01-02T00:00:00' (DbType = Date)
-@p5='2015-01-02T10:11:12' (DbType = DateTime)
-@p6='2016-01-02T11:11:12' (DbType = DateTimeOffset)
-@p7='0001-01-01T12:00:00.0000000+02:00' (DbType = Object)
-@p8='101.7'
-@p9='81.1'
-@p10='103.9'
-@p11='System.Collections.Generic.Dictionary`2[System.String,System.String]' (Nullable = false) (DbType = Object)
-@p12='85.5'
-@p13='Value4' (Nullable = false)
-@p14='Value4' (Nullable = false)
-@p15='84.4'
-@p16='a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
-@p17='System.Int32[]' (Nullable = false) (DbType = Object)
-@p18='78'
-@p19='Sad' (DbType = Object)
-@p20='(5.2,3.3)' (DbType = Object)
-@p21='[4,8)' (DbType = Object)
-@p22='System.Net.NetworkInformation.PhysicalAddress[]' (Nullable = false) (DbType = Object)
-@p23='08002B010203' (Nullable = false) (DbType = Object)
-@p24='2'
-@p25=''a' & 'b'' (Nullable = false) (DbType = Object)
-@p26=''a' 'b'' (Nullable = false) (DbType = Object)
-@p27='79'
-@p28='{""a"": ""b""}' (Nullable = false)
-@p29='{""a"": ""b""}' (Nullable = false) (DbType = Object)
-@p30='Gumball Rules!' (Nullable = false)
-@p31='Gumball Rules OK' (Nullable = false)
-@p32='11:15:12' (DbType = Object)
-@p33='11:15:12' (DbType = Object)
-@p34='65535'
-@p35='-1'
-@p36='4294967295'
-@p37='-1'
-@p38='2147483648' (DbType = Object)
-@p39='-1'",
+@p4='f' (DbType = String)
+@p5='g' (Nullable = false) (Size = 1)
+@p6='h' (Nullable = false) (Size = 1)
+@p7='2015-01-02T00:00:00' (DbType = Date)
+@p8='2015-01-02T10:11:12' (DbType = DateTime)
+@p9='2016-01-02T11:11:12' (DbType = DateTimeOffset)
+@p10='0001-01-01T12:00:00.0000000+02:00' (DbType = Object)
+@p11='101.7'
+@p12='81.1'
+@p13='103.9'
+@p14='System.Collections.Generic.Dictionary`2[System.String,System.String]' (Nullable = false) (DbType = Object)
+@p15='85.5'
+@p16='Value4' (Nullable = false)
+@p17='Value4' (Nullable = false)
+@p18='84.4'
+@p19='a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
+@p20='System.Int32[]' (Nullable = false) (DbType = Object)
+@p21='78'
+@p22='Sad' (DbType = Object)
+@p23='(5.2,3.3)' (DbType = Object)
+@p24='[4,8)' (DbType = Object)
+@p25='System.Net.NetworkInformation.PhysicalAddress[]' (Nullable = false) (DbType = Object)
+@p26='08002B010203' (Nullable = false) (DbType = Object)
+@p27='2'
+@p28=''a' & 'b'' (Nullable = false) (DbType = Object)
+@p29=''a' 'b'' (Nullable = false) (DbType = Object)
+@p30='79'
+@p31='{""a"": ""b""}' (Nullable = false)
+@p32='{""a"": ""b""}' (Nullable = false) (DbType = Object)
+@p33='Gumball Rules!' (Nullable = false)
+@p34='Gumball Rules OK' (Nullable = false)
+@p35='11:15:12' (DbType = Object)
+@p36='11:15:12' (DbType = Object)
+@p37='65535'
+@p38='-1'
+@p39='4294967295'
+@p40='-1'
+@p41='2147483648' (DbType = Object)
+@p42='-1'",
                     parameters,
                     ignoreLineEndingDifferences: true);
         }
@@ -492,6 +516,9 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
 
             Assert.Equal("Gumball Rules!", entity.StringAsText);
             Assert.Equal("Gumball Rules OK", entity.StringAsVarchar);
+            Assert.Equal('f', entity.CharAsChar1);
+            Assert.Equal('g', entity.CharAsText);
+            Assert.Equal('h', entity.CharAsVarchar);
             Assert.Equal(new byte[] { 86 }, entity.BytesAsBytea);
 
             Assert.Equal(new Guid("a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"), entity.GuidAsUuid);
@@ -546,6 +573,9 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
 
                 StringAsText = "Gumball Rules!",
                 StringAsVarchar = "Gumball Rules OK",
+                CharAsChar1 = 'f',
+                CharAsText = 'g',
+                CharAsVarchar = 'h',
                 BytesAsBytea = new byte[] { 86 },
 
                 GuidAsUuid = new Guid("a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"),
@@ -617,6 +647,9 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
 
             Assert.Null(entity.StringAsText);
             Assert.Null(entity.StringAsVarchar);
+            Assert.Null(entity.CharAsChar1);
+            Assert.Null(entity.CharAsText);
+            Assert.Null(entity.CharAsVarchar);
             Assert.Null(entity.BytesAsBytea);
 
             Assert.Null(entity.GuidAsUuid);
@@ -835,11 +868,14 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
             [Column(TypeName = "varchar")]
             public string StringAsVarchar { get; set; }
 
-            //[Column(TypeName = "text")]
-            //public char CharAsText { get; set; }
+            [Column(TypeName = "char(1)")]
+            public char? CharAsChar1 { get; set; }
 
-            //[Column(TypeName = "varchar")]
-            //public char CharAsVarchar { get; set; }
+            [Column(TypeName = "text")]
+            public char? CharAsText { get; set; }
+
+            [Column(TypeName = "varchar")]
+            public char? CharAsVarchar { get; set; }
 
             [Column(TypeName = "bytea")]
             public byte[] BytesAsBytea { get; set; }
@@ -1008,11 +1044,14 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
             [Column(TypeName = "varchar")]
             public string StringAsVarchar { get; set; }
 
-            //[Column(TypeName = "text")]
-            //public char? CharAsText { get; set; }
+            [Column(TypeName = "char(1)")]
+            public char? CharAsChar1 { get; set; }
 
-            //[Column(TypeName = "varchar")]
-            //public char? CharAsVarchar { get; set; }
+            [Column(TypeName = "text")]
+            public char? CharAsText { get; set; }
+
+            [Column(TypeName = "varchar")]
+            public char? CharAsVarchar { get; set; }
 
             [Column(TypeName = "bytea")]
             public byte[] BytesAsBytea { get; set; }
