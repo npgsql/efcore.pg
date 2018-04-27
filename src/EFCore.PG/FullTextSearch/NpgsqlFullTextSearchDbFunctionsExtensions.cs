@@ -32,6 +32,13 @@ namespace Microsoft.EntityFrameworkCore
     public static class NpgsqlFullTextSearchDbFunctionsExtensions
     {
         /// <summary>
+        /// Convert <paramref name="lexemes" /> to a tsvector.
+        /// https://www.postgresql.org/docs/current/static/functions-textsearch.html
+        /// </summary>
+        public static NpgsqlTsVector ArrayToTsVector(this DbFunctions _, string[] lexemes) =>
+            throw new NotSupportedException();
+
+        /// <summary>
         /// Reduce <paramref name="document" /> to tsvector.
         /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-DOCUMENTS
         /// </summary>

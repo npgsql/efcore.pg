@@ -47,6 +47,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         static readonly IReadOnlyDictionary<string, string> _sqlNameByMethodName =
             new Dictionary<string, string>
             {
+                [nameof(NpgsqlFullTextSearchDbFunctionsExtensions.ArrayToTsVector)] = "array_to_tsvector",
                 [nameof(NpgsqlFullTextSearchDbFunctionsExtensions.ToTsVector)] = "to_tsvector",
                 [nameof(NpgsqlFullTextSearchDbFunctionsExtensions.PlainToTsQuery)] = "plainto_tsquery",
                 [nameof(NpgsqlFullTextSearchDbFunctionsExtensions.PhraseToTsQuery)] = "phraseto_tsquery",
