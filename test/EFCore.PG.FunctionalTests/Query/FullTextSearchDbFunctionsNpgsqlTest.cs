@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestModels.Northwind;
 using Microsoft.EntityFrameworkCore.TestUtilities;
@@ -30,6 +31,34 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 @"SELECT CAST('a b' AS tsvector)
 FROM ""Customers"" AS c
 LIMIT 1");
+        }
+
+        [Fact]
+        public void ArrayToTsVector()
+        {
+            using (var context = CreateContext())
+            {
+                var tsvector = context.Customers.Select(c => EF.Functions.ArrayToTsVector(new[] { "b", "c", "d" }))
+                    .First();
+                Assert.Equal(NpgsqlTsVector.Parse("b c d").ToString(), tsvector.ToString());
+            }
+
+            AssertSql(
+                @"SELECT array_to_tsvector(ARRAY['b','c','d'])
+FROM ""Customers"" AS c
+LIMIT 1");
+        }
+
+        [Fact]
+        public void ArrayToTsVector_From_Columns_Throws_NotSupportedException()
+        {
+            using (var context = CreateContext())
+            {
+                Assert.Throws<NotSupportedException>(
+                    () => context.Customers
+                        .Select(c => EF.Functions.ArrayToTsVector(new[] { c.CompanyName, c.Address }))
+                        .First());
+            }
         }
 
         [Fact]
@@ -430,6 +459,23 @@ LIMIT 1");
         }
 
         [Fact]
+        public void TsVectorConcat()
+        {
+            using (var context = CreateContext())
+            {
+                var tsVector = context.Customers
+                    .Select(c => EF.Functions.ToTsVector("b").Concat(EF.Functions.ToTsVector("c")))
+                    .First();
+                Assert.Equal(NpgsqlTsVector.Parse("b:1 c:2").ToString(), tsVector.ToString());
+            }
+
+            AssertSql(
+                @"SELECT (to_tsvector('b') || to_tsvector('c'))
+FROM ""Customers"" AS c
+LIMIT 1");
+        }
+
+        [Fact]
         public void Setweight_With_Enum()
         {
             using (var context = CreateContext())
@@ -493,6 +539,57 @@ LIMIT 1");
 
             AssertSql(
                 @"SELECT setweight(to_tsvector('a'), 'A', ARRAY['a'])
+FROM ""Customers"" AS c
+LIMIT 1");
+        }
+
+        [Fact]
+        public void Delete_With_Single_Lexeme()
+        {
+            using (var context = CreateContext())
+            {
+                var tsVector = context.Customers
+                    .Select(c => EF.Functions.ToTsVector("b c").Delete("c"))
+                    .First();
+                Assert.Equal(NpgsqlTsVector.Parse("b:1").ToString(), tsVector.ToString());
+            }
+
+            AssertSql(
+                @"SELECT ts_delete(to_tsvector('b c'), 'c')
+FROM ""Customers"" AS c
+LIMIT 1");
+        }
+
+        [Fact]
+        public void Delete_With_Multiple_Lexemes()
+        {
+            using (var context = CreateContext())
+            {
+                var tsVector = context.Customers
+                    .Select(c => EF.Functions.ToTsVector("b c d").Delete(new[] { "c", "d" }))
+                    .First();
+                Assert.Equal(NpgsqlTsVector.Parse("b:1").ToString(), tsVector.ToString());
+            }
+
+            AssertSql(
+                @"SELECT ts_delete(to_tsvector('b c d'), ARRAY['c','d'])
+FROM ""Customers"" AS c
+LIMIT 1");
+        }
+
+        [Fact]
+        public void Filter()
+        {
+            using (var context = CreateContext())
+            {
+                var tsVector = context.Customers
+                    .Select(c => NpgsqlTsVector.Parse("b:1A c:2B d:3C").Filter(new[] { 'B', 'C' }))
+                    .First();
+                Assert.Equal(NpgsqlTsVector.Parse("c:2B d:3C").ToString(), tsVector.ToString());
+            }
+
+            AssertSql(
+                @"SELECT ts_filter(CAST('b:1A c:2B d:3C' AS tsvector), CAST(ARRAY['B','C'] AS ""char""[]))
 FROM ""Customers"" AS c
 LIMIT 1");
         }

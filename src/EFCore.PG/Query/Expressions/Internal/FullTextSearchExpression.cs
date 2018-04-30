@@ -92,6 +92,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
             return new FullTextSearchExpression("@@", left, right, typeof(bool));
         }
 
+        public static FullTextSearchExpression TsVectorConcat([NotNull] Expression left, [NotNull] Expression right)
+        {
+            ValidateArguments(left, typeof(NpgsqlTsVector), right, typeof(NpgsqlTsVector));
+            return new FullTextSearchExpression("||", left, right, typeof(NpgsqlTsVector));
+        }
+
         private static void ValidateArguments(
             [NotNull] Expression left,
             [NotNull] Type validLeftType,

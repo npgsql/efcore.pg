@@ -47,6 +47,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         static readonly IReadOnlyDictionary<string, string> _sqlNameByMethodName =
             new Dictionary<string, string>
             {
+                [nameof(NpgsqlFullTextSearchDbFunctionsExtensions.ArrayToTsVector)] = "array_to_tsvector",
                 [nameof(NpgsqlFullTextSearchDbFunctionsExtensions.ToTsVector)] = "to_tsvector",
                 [nameof(NpgsqlFullTextSearchDbFunctionsExtensions.PlainToTsQuery)] = "plainto_tsquery",
                 [nameof(NpgsqlFullTextSearchDbFunctionsExtensions.PhraseToTsQuery)] = "phraseto_tsquery",
@@ -102,6 +103,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
             case nameof(NpgsqlFullTextSearchLinqExtensions.Matches):
                 return FullTextSearchExpression.TsVectorMatches(
+                    methodCallExpression.Arguments[0],
+                    methodCallExpression.Arguments[1]);
+
+            case nameof(NpgsqlFullTextSearchLinqExtensions.Concat):
+                return FullTextSearchExpression.TsVectorConcat(
                     methodCallExpression.Arguments[0],
                     methodCallExpression.Arguments[1]);
 
@@ -195,6 +201,22 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     "setweight",
                     methodCallExpression.Method.ReturnType,
                     arguments);
+
+            case nameof(NpgsqlFullTextSearchLinqExtensions.Delete):
+                return new SqlFunctionExpression(
+                    "ts_delete",
+                    methodCallExpression.Method.ReturnType,
+                    methodCallExpression.Arguments);
+
+            case nameof(NpgsqlFullTextSearchLinqExtensions.Filter):
+                return new SqlFunctionExpression(
+                    "ts_filter",
+                    methodCallExpression.Method.ReturnType,
+                    new[]
+                    {
+                        methodCallExpression.Arguments[0],
+                        new ExplicitStoreTypeCastExpression(methodCallExpression.Arguments[1], typeof(char[]), "\"char\"[]")
+                    });
 
             case nameof(NpgsqlFullTextSearchLinqExtensions.GetLength):
                 return new SqlFunctionExpression(
