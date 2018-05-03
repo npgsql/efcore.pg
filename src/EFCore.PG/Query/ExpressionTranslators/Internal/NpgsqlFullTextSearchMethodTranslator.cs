@@ -74,42 +74,30 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             return null;
         }
 
-        static Expression TryTranslateOperator(MethodCallExpression methodCallExpression)
+        static Expression TryTranslateOperator(MethodCallExpression e)
         {
-            switch (methodCallExpression.Method.Name)
+            switch (e.Method.Name)
             {
             case nameof(NpgsqlFullTextSearchLinqExtensions.And):
-                return FullTextSearchExpression.TsQueryAnd(
-                    methodCallExpression.Arguments[0],
-                    methodCallExpression.Arguments[1]);
+                return new CustomBinaryExpression(e.Arguments[0], e.Arguments[1], "&&", typeof(NpgsqlTsQuery));
 
             case nameof(NpgsqlFullTextSearchLinqExtensions.Or):
-                return FullTextSearchExpression.TsQueryOr(
-                    methodCallExpression.Arguments[0],
-                    methodCallExpression.Arguments[1]);
+                return new CustomBinaryExpression(e.Arguments[0], e.Arguments[1], "||", typeof(NpgsqlTsQuery));
 
             case nameof(NpgsqlFullTextSearchLinqExtensions.ToNegative):
-                return FullTextSearchExpression.TsQueryNegate(methodCallExpression.Arguments[0]);
+                return new CustomUnaryExpression(e.Arguments[0], "!!", typeof(NpgsqlTsQuery));
 
             case nameof(NpgsqlFullTextSearchLinqExtensions.Contains):
-                return FullTextSearchExpression.TsQueryContains(
-                    methodCallExpression.Arguments[0],
-                    methodCallExpression.Arguments[1]);
+                return new CustomBinaryExpression(e.Arguments[0], e.Arguments[1], "@>", typeof(bool));
 
             case nameof(NpgsqlFullTextSearchLinqExtensions.IsContainedIn):
-                return FullTextSearchExpression.TsQueryIsContainedIn(
-                    methodCallExpression.Arguments[0],
-                    methodCallExpression.Arguments[1]);
+                return new CustomBinaryExpression(e.Arguments[0], e.Arguments[1], "<@", typeof(bool));
 
             case nameof(NpgsqlFullTextSearchLinqExtensions.Matches):
-                return FullTextSearchExpression.TsVectorMatches(
-                    methodCallExpression.Arguments[0],
-                    methodCallExpression.Arguments[1]);
+                return new CustomBinaryExpression(e.Arguments[0], e.Arguments[1], "@@", typeof(bool));
 
             case nameof(NpgsqlFullTextSearchLinqExtensions.Concat):
-                return FullTextSearchExpression.TsVectorConcat(
-                    methodCallExpression.Arguments[0],
-                    methodCallExpression.Arguments[1]);
+                return new CustomBinaryExpression(e.Arguments[0], e.Arguments[1], "||", typeof(NpgsqlTsVector));
 
             default:
                 return null;

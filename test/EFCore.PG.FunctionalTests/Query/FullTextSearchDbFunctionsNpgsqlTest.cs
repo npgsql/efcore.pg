@@ -208,7 +208,7 @@ LIMIT 1");
             }
 
             AssertSql(
-                @"SELECT (to_tsquery('a & b') && to_tsquery('c & d'))
+                @"SELECT to_tsquery('a & b') && to_tsquery('c & d')
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -225,7 +225,7 @@ LIMIT 1");
             }
 
             AssertSql(
-                @"SELECT (to_tsquery('a & b') || to_tsquery('c & d'))
+                @"SELECT to_tsquery('a & b') || to_tsquery('c & d')
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -242,7 +242,7 @@ LIMIT 1");
             }
 
             AssertSql(
-                @"SELECT (!! to_tsquery('a & b'))
+                @"SELECT !!to_tsquery('a & b')
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -259,7 +259,7 @@ LIMIT 1");
             }
 
             AssertSql(
-                @"SELECT (to_tsquery('a & b') @> to_tsquery('b'))
+                @"SELECT to_tsquery('a & b') @> to_tsquery('b')
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -276,7 +276,7 @@ LIMIT 1");
             }
 
             AssertSql(
-                @"SELECT (to_tsquery('b') <@ to_tsquery('a & b'))
+                @"SELECT to_tsquery('b') <@ to_tsquery('a & b')
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -436,7 +436,7 @@ LIMIT 1");
             }
 
             AssertSql(
-                @"SELECT (to_tsvector('a') @@ 'b')
+                @"SELECT to_tsvector('a') @@ 'b'
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -453,7 +453,7 @@ LIMIT 1");
             }
 
             AssertSql(
-                @"SELECT (to_tsvector('a') @@ to_tsquery('b'))
+                @"SELECT to_tsvector('a') @@ to_tsquery('b')
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -470,7 +470,7 @@ LIMIT 1");
             }
 
             AssertSql(
-                @"SELECT (to_tsvector('b') || to_tsvector('c'))
+                @"SELECT to_tsvector('b') || to_tsvector('c')
 FROM ""Customers"" AS c
 LIMIT 1");
         }
