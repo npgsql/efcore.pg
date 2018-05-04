@@ -45,14 +45,76 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal
         {
             if (entityType.Npgsql().Comment != null)
                 yield return new Annotation(NpgsqlAnnotationNames.Comment, entityType.Npgsql().Comment);
+
             if (entityType[CockroachDbAnnotationNames.InterleaveInParent] != null)
-                yield return new Annotation(CockroachDbAnnotationNames.InterleaveInParent, entityType[CockroachDbAnnotationNames.InterleaveInParent]);
+                yield return new Annotation(
+                    CockroachDbAnnotationNames.InterleaveInParent,
+                    entityType[CockroachDbAnnotationNames.InterleaveInParent]);
+
             foreach (var storageParamAnnotation in entityType.GetAnnotations()
                 .Where(a => a.Name.StartsWith(NpgsqlAnnotationNames.StorageParameterPrefix)))
             {
                 yield return storageParamAnnotation;
             }
+
+            foreach (var annotation in GetSearchVectorAnnotations(entityType))
+            {
+                yield return annotation;
+            }
         }
+
+        static IEnumerable<IAnnotation> GetSearchVectorAnnotations(IEntityType entityType)
+        {
+            var searchVectors = entityType.Npgsql().SearchVectors;
+            foreach (var searchVector in searchVectors)
+            {
+                var translatedSearchVector = new SearchVectorAnnotation
+                {
+                    Name = FindColumnNameOrThrow(entityType, searchVector.Key),
+                    Config = searchVector.Value.Config.IsPropertyOrColumnName
+                        ? new TextSearchRegconfig(
+                            FindColumnNameOrThrow(entityType, searchVector.Value.Config.Name),
+                            true)
+                        : searchVector.Value.Config
+                };
+
+                foreach (var group in searchVector.Value.ComponentGroupsByLabel.Select(
+                    x => new SearchVectorComponentGroup(x.Label)
+                    {
+                        Components = x.Components.Select(
+                            p => new SearchVectorComponent(
+                                FindColumnNameOrThrow(entityType, p.Name),
+                                FindDefaultSqlValueOrThrow(entityType, p.Name))).ToList()
+                    }))
+                {
+                    translatedSearchVector.ComponentGroupsByLabel.Add(group);
+                }
+
+                yield return new Annotation(
+                    NpgsqlAnnotationNames.SearchVectorPrefix + searchVector.Key,
+                    translatedSearchVector.Serialize());
+            }
+        }
+
+        static string FindColumnNameOrThrow(IEntityType entityType, string propertyName) =>
+            FindPropertyOrThrow(entityType, propertyName).Relational().ColumnName;
+
+        static string FindDefaultSqlValueOrThrow(IEntityType entityType, string propertyName)
+        {
+            var property = FindPropertyOrThrow(entityType, propertyName).Relational();
+            if (property.ColumnType.Equals("json", StringComparison.OrdinalIgnoreCase)
+                || property.ColumnType.Equals("jsonb", StringComparison.OrdinalIgnoreCase))
+            {
+                return "{}";
+            }
+
+            return "";
+        }
+
+        static IProperty FindPropertyOrThrow(IEntityType entityType, string propertyName) =>
+            entityType.FindProperty(propertyName)
+            ?? throw new InvalidOperationException(
+                $"Failed to find property '{propertyName}' in entity type '{entityType.Name}'");
 
         public override IEnumerable<IAnnotation> For(IProperty property)
         {

@@ -66,7 +66,72 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 return;
             }
 
+            Dictionary<string, string> oldSearchVectorValuesByPropertyName = null;
+            Dictionary<string, string> newSearchVectorValuesByPropertyName = null;
+            var alterTable = operation as AlterTableOperation;
+            if (alterTable != null)
+            {
+                newSearchVectorValuesByPropertyName = GetSearchVectorValuesByPropertyName(alterTable);
+                oldSearchVectorValuesByPropertyName = GetSearchVectorValuesByPropertyName(alterTable.OldTable);
+
+                foreach (var oldSearchVectorPropertyNameAndValue in oldSearchVectorValuesByPropertyName)
+                {
+                    if (!newSearchVectorValuesByPropertyName.ContainsKey(oldSearchVectorPropertyNameAndValue.Key))
+                    {
+                        DropFullTextSearchVectorTriggerAndFunction(
+                            alterTable.Schema,
+                            alterTable.Name,
+                            SearchVectorAnnotation.Deserialize(oldSearchVectorPropertyNameAndValue.Value),
+                            builder);
+                    }
+                }
+            }
+
             base.Generate(operation, model, builder);
+
+            if (operation is CreateTableOperation createTable)
+            {
+                var searchVectorValuesByPropertyName = GetSearchVectorValuesByPropertyName(createTable);
+
+                foreach (var pair in searchVectorValuesByPropertyName)
+                {
+                    var searchVector = SearchVectorAnnotation.Deserialize(pair.Value);
+                    CreateFullTextSearchVector(createTable.Schema, createTable.Name, searchVector, builder);
+                }
+            }
+
+            if (alterTable != null)
+            {
+                foreach (var newSearchVectorPropertyNameAndValue in newSearchVectorValuesByPropertyName)
+                {
+                    if (!oldSearchVectorValuesByPropertyName.TryGetValue(
+                        newSearchVectorPropertyNameAndValue.Key,
+                        out var oldSearchVectorValue))
+                    {
+                        CreateFullTextSearchVector(
+                            alterTable.Schema,
+                            alterTable.Name,
+                            SearchVectorAnnotation.Deserialize(newSearchVectorPropertyNameAndValue.Value),
+                            builder);
+                    }
+                    else if (!oldSearchVectorValue.Equals(
+                        newSearchVectorPropertyNameAndValue.Value,
+                        StringComparison.OrdinalIgnoreCase))
+                    {
+                        DropFullTextSearchVectorTriggerAndFunction(
+                            alterTable.Schema,
+                            alterTable.Name,
+                            SearchVectorAnnotation.Deserialize(oldSearchVectorValue),
+                            builder);
+
+                        CreateFullTextSearchVector(
+                            alterTable.Schema,
+                            alterTable.Name,
+                            SearchVectorAnnotation.Deserialize(newSearchVectorPropertyNameAndValue.Value),
+                            builder);
+                    }
+                }
+            }
         }
 
         #region Standard migrations
@@ -983,5 +1048,144 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         }
 
         #endregion Storage parameter utilities
+
+        #region Full text search vector utilities
+
+        static Dictionary<string, string> GetSearchVectorValuesByPropertyName(IAnnotatable annotatable) => annotatable
+            .GetAnnotations()
+            .Where(a => a.Name.StartsWith(NpgsqlAnnotationNames.SearchVectorPrefix))
+            .ToDictionary(
+                a => a.Name.Substring(NpgsqlAnnotationNames.SearchVectorPrefix.Length),
+                a => a.Value?.ToString() ?? string.Empty);
+
+        void CreateFullTextSearchVector(
+            string schema,
+            [NotNull] string tableName,
+            [NotNull] SearchVectorAnnotation searchVector,
+            [NotNull] MigrationCommandListBuilder builder)
+        {
+            if (tableName == null) throw new ArgumentNullException(nameof(tableName));
+            if (searchVector == null) throw new ArgumentNullException(nameof(searchVector));
+            if (builder == null) throw new ArgumentNullException(nameof(builder));
+
+            var triggerFunctionName = GetFullTextSearchTriggerFunctionName(tableName, searchVector.Name);
+            CreateTsvectorTrigger(schema, tableName, triggerFunctionName, searchVector, builder);
+        }
+
+        void CreateTsvectorTrigger(
+            string schema,
+            string tableName,
+            string functionName,
+            SearchVectorAnnotation searchVector,
+            MigrationCommandListBuilder builder)
+        {
+            // Trigger function
+            builder.Append("CREATE FUNCTION ");
+            builder.Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(functionName, schema));
+            builder.Append("() RETURNS trigger AS $$");
+            builder.AppendLine();
+            builder.AppendLine("BEGIN");
+
+            using (builder.Indent())
+            {
+                builder.Append("new.");
+                builder.Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(searchVector.Name));
+                builder.Append(" := ");
+                builder.AppendLine();
+
+                using (builder.Indent())
+                {
+                    AppendColumnTsvectorStatements(searchVector, builder);
+                }
+
+                builder.AppendLine(";");
+                builder.AppendLine("return new;");
+            }
+
+            builder.AppendLine("END");
+            builder.AppendLine("$$ LANGUAGE plpgsql;");
+            builder.EndCommand();
+
+            // Trigger
+            builder.Append("CREATE TRIGGER ");
+            builder.Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(functionName + "_update"));
+            builder.Append(" BEFORE INSERT OR UPDATE ON ");
+            builder.Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(tableName, schema));
+            builder.Append(" FOR EACH ROW EXECUTE PROCEDURE ");
+            builder.Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(functionName, schema));
+            builder.AppendLine("();");
+            builder.EndCommand();
+
+            // Update to populate the search vector via the trigger
+            var chosenColumn = searchVector.ComponentGroupsByLabel.First(x => x.Components.Count > 0).Components.First().Name;
+            builder.Append("UPDATE ");
+            builder.Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(tableName, schema));
+            builder.Append(" SET ");
+            builder.Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(chosenColumn));
+            builder.Append(" = ");
+            builder.Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(chosenColumn));
+            builder.Append(";");
+            builder.EndCommand();
+        }
+
+        void AppendColumnTsvectorStatements(SearchVectorAnnotation searchVector, MigrationCommandListBuilder builder)
+        {
+            if (builder == null) throw new ArgumentNullException(nameof(builder));
+
+            const string separator = " || ";
+            var stringBuilder = new StringBuilder();
+
+            var anyFound = false;
+            foreach (var group in searchVector.ComponentGroupsByLabel.Where(x => x.Components != null))
+            {
+                foreach (var column in group.Components)
+                {
+                    var configName = searchVector.Config.Name;
+                    stringBuilder.AppendFormat(
+                        "setweight(to_tsvector({0}::regconfig, coalesce(new.{1}, {2})), {3})",
+                        searchVector.Config.IsPropertyOrColumnName
+                            ? $"new.{Dependencies.SqlGenerationHelper.DelimitIdentifier(searchVector.Config.Name)}"
+                            : GenerateSqlStringLiteral(configName),
+                        Dependencies.SqlGenerationHelper.DelimitIdentifier(column.Name),
+                        GenerateSqlStringLiteral(column.DefaultSqlValue ?? string.Empty),
+                        GenerateSqlStringLiteral(group.Label.ToString()));
+                    stringBuilder.Append(separator);
+                    anyFound = true;
+                }
+            }
+
+            if (!anyFound)
+            {
+                throw new ArgumentException(
+                    "At least one column must be specified in any search vector component group.",
+                    nameof(searchVector));
+            }
+
+            stringBuilder.Length -= separator.Length;
+            builder.Append(stringBuilder.ToString());
+        }
+
+        void DropFullTextSearchVectorTriggerAndFunction(
+            string schema,
+            [NotNull] string tableName,
+            [NotNull] SearchVectorAnnotation searchVector,
+            [NotNull] MigrationCommandListBuilder builder)
+        {
+            var triggerFunctionName = GetFullTextSearchTriggerFunctionName(tableName, searchVector.Name);
+            builder.Append("DROP FUNCTION IF EXISTS ");
+            builder.Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(triggerFunctionName, schema));
+            builder.AppendLine("() CASCADE;");
+            builder.EndCommand();
+        }
+
+        static string GetFullTextSearchTriggerFunctionName(string tableName, string searchVectorColumnName) =>
+            $"{tableName.ToLowerInvariant()}_{searchVectorColumnName.ToLowerInvariant()}_trigger";
+
+        string GenerateSqlStringLiteral(string value)
+        {
+            return Dependencies.TypeMappingSource.GetMapping(typeof(string)).GenerateSqlLiteral(value);
+        }
+
+        #endregion
     }
 }

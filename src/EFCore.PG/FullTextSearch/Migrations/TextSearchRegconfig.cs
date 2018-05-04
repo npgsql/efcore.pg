@@ -21,18 +21,30 @@
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 #endregion
 
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore.Metadata;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Migrations;
+using System;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 {
-    public interface INpgsqlEntityTypeAnnotations : IRelationalEntityTypeAnnotations
+    public struct TextSearchRegconfig
     {
-        bool SetStorageParameter(string parameterName, object parameterValue);
-        Dictionary<string, object> GetStorageParameters();
-        string Comment { get; }
-        CockroachDbInterleaveInParent CockroachDbInterleaveInParent { get; }
-        Dictionary<string, SearchVectorAnnotation> SearchVectors { get; }
+        public string Name { get; }
+        public bool IsPropertyOrColumnName { get; }
+
+        internal TextSearchRegconfig(string name, bool isPropertyOrColumnName)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                throw new ArgumentException("Value cannot be null or whitespace.", nameof(name));
+            }
+
+            Name = name;
+            IsPropertyOrColumnName = isPropertyOrColumnName;
+        }
+
+        public static TextSearchRegconfig FromRegistered(string name) => new TextSearchRegconfig(name, false);
+
+        public static TextSearchRegconfig FromProperty(string propertyName) => new TextSearchRegconfig(propertyName, true);
+
+        public static implicit operator TextSearchRegconfig(string name) => FromRegistered(name);
     }
 }

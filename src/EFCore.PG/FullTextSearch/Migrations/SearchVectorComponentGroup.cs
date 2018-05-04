@@ -22,17 +22,24 @@
 #endregion
 
 using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore.Metadata;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Migrations;
+using System.Collections.ObjectModel;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 {
-    public interface INpgsqlEntityTypeAnnotations : IRelationalEntityTypeAnnotations
+    public class SearchVectorComponentGroup
     {
-        bool SetStorageParameter(string parameterName, object parameterValue);
-        Dictionary<string, object> GetStorageParameters();
-        string Comment { get; }
-        CockroachDbInterleaveInParent CockroachDbInterleaveInParent { get; }
-        Dictionary<string, SearchVectorAnnotation> SearchVectors { get; }
+        public char Label { get; }
+        public IList<SearchVectorComponent> Components { get; set; }
+
+        public SearchVectorComponentGroup(char label)
+        {
+            Label = label;
+            Components = new List<SearchVectorComponent>();
+        }
+
+        internal class KeyedCollection : KeyedCollection<char, SearchVectorComponentGroup>
+        {
+            protected override char GetKeyForItem(SearchVectorComponentGroup item) => item.Label;
+        }
     }
 }

@@ -26,6 +26,7 @@ using System.Linq;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
@@ -35,11 +36,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         public NpgsqlEntityTypeAnnotations([NotNull] IEntityType entityType)
             : base(entityType)
         {
+            SearchVectors = new Dictionary<string, SearchVectorAnnotation>();
         }
 
         public NpgsqlEntityTypeAnnotations([NotNull] RelationalAnnotations annotations)
             : base(annotations)
         {
+            SearchVectors = new Dictionary<string, SearchVectorAnnotation>();
         }
 
         public bool SetStorageParameter(string parameterName, object parameterValue)
@@ -56,8 +59,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         public virtual string Comment
         {
             get => (string)Annotations.Metadata[NpgsqlAnnotationNames.Comment];
-            [param: CanBeNull]
-            set => SetComment(value);
+            [param: CanBeNull] set => SetComment(value);
         }
 
         protected virtual bool SetComment([CanBeNull] string value)
@@ -67,5 +69,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 
         public virtual CockroachDbInterleaveInParent CockroachDbInterleaveInParent
             => new CockroachDbInterleaveInParent(EntityType);
+
+        public Dictionary<string, SearchVectorAnnotation> SearchVectors { get; }
     }
 }
