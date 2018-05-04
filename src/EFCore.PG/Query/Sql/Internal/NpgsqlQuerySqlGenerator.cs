@@ -320,26 +320,33 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
             }
         }
 
-        public virtual Expression VisitFullTextSearch(FullTextSearchExpression expression)
+        public virtual Expression VisitCustomBinary(CustomBinaryExpression expression)
         {
             Check.NotNull(expression, nameof(expression));
 
-            Sql.Append("(");
-            if (expression.Right != null)
+            Visit(expression.Left);
+            Sql.Append(" ");
+            Sql.Append(expression.Operator);
+            Sql.Append(" ");
+            Visit(expression.Right);
+
+            return expression;
+        }
+
+        public virtual Expression VisitCustomUnary(CustomUnaryExpression expression)
+        {
+            Check.NotNull(expression, nameof(expression));
+
+            if (expression.Postfix)
             {
-                Visit(expression.Left);
-                Sql.Append(" ");
+                Visit(expression.Operand);
                 Sql.Append(expression.Operator);
-                Sql.Append(" ");
-                Visit(expression.Right);
             }
             else
             {
                 Sql.Append(expression.Operator);
-                Sql.Append(" ");
-                Visit(expression.Left);
+                Visit(expression.Operand);
             }
-            Sql.Append(")");
 
             return expression;
         }
