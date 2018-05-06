@@ -183,4 +183,8 @@
     <value>Enum column '{name}' cannot be scaffolded, define a CLR enum type and add the property manually.</value>
     <comment>Warning NpgsqlEventId.EnumColumnSkippedWarning string</comment>
   </data>
+  <data name="LogExpressionIndexSkipped" xml:space="preserve">
+    <value>Expression index '{name}' on table {tableName} cannot be scaffolded, expression indices aren't supported and must be added via raw SQL in migrations.</value>
+    <comment>Warning NpgsqlEventId.ExpressionIndexSkippedWarning string string</comment>
+  </data>
 </root>

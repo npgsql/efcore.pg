@@ -293,6 +293,22 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
                     _resourceManager.GetString("LogEnumColumnSkipped")));
 
 
+        /// <summary>
+
+        ///     Expression index '{name}' on table {tableName} cannot be scaffolded, expression indices aren't supported and must be added via raw SQL in migrations.
+
+        /// </summary>
+
+        public static readonly EventDefinition<string, string> LogExpressionIndexSkipped
+            = new EventDefinition<string, string>(
+                NpgsqlEventId.ExpressionIndexSkippedWarning,
+                LogLevel.Warning,
+                LoggerMessage.Define<string, string>(
+                    LogLevel.Warning,
+                    NpgsqlEventId.ExpressionIndexSkippedWarning,
+                    _resourceManager.GetString("LogExpressionIndexSkipped")));
+
+
         private static string GetString(string name, params string[] formatterNames)
         {
             var value = _resourceManager.GetString(name);

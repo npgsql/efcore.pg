@@ -52,7 +52,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics
             IndexFound,
             ForeignKeyFound,
             ForeignKeyPrincipalColumnMissingWarning,
-            EnumColumnSkippedWarning
+            EnumColumnSkippedWarning,
+            ExpressionIndexSkippedWarning,
         }
 
         private static readonly string _validationPrefix = DbLoggerCategory.Model.Validation.Name + ".";
@@ -158,5 +159,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics
         ///     This event is in the <see cref="DbLoggerCategory.Scaffolding" /> category.
         /// </summary>
         public static readonly EventId EnumColumnSkippedWarning = MakeScaffoldingId(Id.EnumColumnSkippedWarning);
+
+        /// <summary>
+        /// Expression index cannot be scaffolded, expression indices aren't supported and must be added via raw SQL in migrations.
+        /// This event is in the <see cref="DbLoggerCategory.Scaffolding" /> category.
+        /// </summary>
+        public static readonly EventId ExpressionIndexSkippedWarning = MakeScaffoldingId(Id.ExpressionIndexSkippedWarning);
     }
 }

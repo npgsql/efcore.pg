@@ -465,11 +465,16 @@ AND
                             var columnIndices = record.GetValueOrDefault<short[]>("indkey");
                             if (columnIndices.Any(i => i == 0))
                             {
-                                // Expression index
+                                // Expression index, not supported
+                                _logger.ExpressionIndexSkippedWarning(index.Name, DisplayName(tableSchema, tableName));
+                                continue;
+
+                                /*
                                 var expressions = record.GetValueOrDefault<string>("exprs");
                                 if (expressions == null)
                                     throw new Exception($"Seen 0 in indkey for index {index.Name} but indexprs is null");
                                 index[NpgsqlAnnotationNames.IndexExpression] = expressions;
+                                */
                             }
                             else
                             {

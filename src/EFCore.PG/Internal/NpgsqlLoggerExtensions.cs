@@ -119,5 +119,24 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
             }
             // No DiagnosticsSource events because these are purely design-time messages
         }
+
+        public static void ExpressionIndexSkippedWarning(
+            [NotNull] this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
+            [NotNull] string indexName,
+            [NotNull] string tableName)
+        {
+            var definition = NpgsqlStrings.LogExpressionIndexSkipped;
+
+            var warningBehavior = definition.GetLogBehavior(diagnostics);
+            if (warningBehavior != WarningBehavior.Ignore)
+            {
+                definition.Log(
+                    diagnostics,
+                    warningBehavior,
+                    indexName,
+                    tableName);
+            }
+            // No DiagnosticsSource events because these are purely design-time messages
+        }
     }
 }
