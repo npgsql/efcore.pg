@@ -23,8 +23,10 @@
 
 using System.Linq.Expressions;
 using System.Reflection;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
 using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
@@ -34,13 +36,31 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             = typeof(string).GetRuntimeMethod(nameof(string.Contains), new[] { typeof(string) });
 
         public virtual Expression Translate(MethodCallExpression methodCallExpression)
-            => methodCallExpression.Method.Equals(_methodInfo)
-                ? Expression.GreaterThan(
-                    new SqlFunctionExpression("STRPOS", typeof(int), new[]
-                    {
-                        methodCallExpression.Object,
-                        methodCallExpression.Arguments[0]
-                    }), Expression.Constant(0))
-                : null;
+        {
+            if (!methodCallExpression.Method.Equals(_methodInfo))
+            {
+                return null;
+            }
+
+            var argument0 = methodCallExpression.Arguments[0];
+
+            // If Contains() is being invoked on a citext, ensure that the string argument is explicitly cast into a
+            // citext (instead of the default text for a CLR string) as otherwise PostgreSQL prefers the text variant of
+            // the ambiguous call STRPOS(citext, text) and the search will be case-sensitive. See #384.
+            if (argument0 != null &&
+                methodCallExpression.Object?.FindProperty(typeof(string))?.GetConfiguredColumnType() == "citext")
+            {
+                argument0 = new ExplicitStoreTypeCastExpression(argument0, typeof(string), "citext");
+            }
+
+            return Expression.GreaterThan(
+                new SqlFunctionExpression("STRPOS", typeof(int), new[]
+                {
+                    methodCallExpression.Object,
+                    argument0
+                }),
+                Expression.Constant(0)
+            );
+        }
     }
 }
