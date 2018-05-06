@@ -13,7 +13,7 @@ public class MyEntity
 }
 ```
 
-Note that mapping array properties to [PostgreSQL arrays](https://www.postgresql.org/docs/current/static/arrays.html) is supported. However, operations such as indexing the array, searching for elements in it, etc. aren't yet translated to SQL and will be evaluated client-side. This will probably be fixed in 1.2.
+Note that mapping array properties to [PostgreSQL arrays](https://www.postgresql.org/docs/current/static/arrays.html) is supported, and some operations on arrays are translated to SQL as well (see table below).
 
 [PostgreSQL composite types](https://www.postgresql.org/docs/current/static/rowtypes.html), while supported at the ADO.NET level, aren't yet supported in the EF Core provider. This is tracked by [#22](https://github.com/npgsql/Npgsql.EntityFrameworkCore.PostgreSQL/issues/22).
 
