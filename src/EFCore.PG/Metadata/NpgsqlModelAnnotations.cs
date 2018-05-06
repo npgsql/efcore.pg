@@ -100,12 +100,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         public virtual PostgresEnum GetOrAddPostgresEnum(
             [CanBeNull] string schema,
             [NotNull] string name,
-            [NotNull] IReadOnlyList<string> labels)
+            [NotNull] string[] labels)
             => PostgresEnum.GetOrAddPostgresEnum((IMutableModel)Model, schema, name, labels);
 
         public virtual PostgresEnum GetOrAddPostgresEnum(
             [NotNull] string name,
-            [NotNull] IReadOnlyList<string> labels)
+            [NotNull] string[] labels)
             => GetOrAddPostgresEnum(null, name, labels);
 
         public virtual IReadOnlyList<PostgresEnum> PostgresEnums

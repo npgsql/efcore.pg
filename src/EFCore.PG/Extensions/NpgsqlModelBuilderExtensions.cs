@@ -151,7 +151,7 @@ namespace Microsoft.EntityFrameworkCore
             [NotNull] this ModelBuilder modelBuilder,
             [CanBeNull] string schema,
             [NotNull] string name,
-            [NotNull] IReadOnlyList<string> labels)
+            [NotNull] string[] labels)
         {
             Check.NotNull(modelBuilder, nameof(modelBuilder));
             Check.NotEmpty(name, nameof(name));
@@ -164,7 +164,7 @@ namespace Microsoft.EntityFrameworkCore
         public static ModelBuilder ForNpgsqlHasEnum(
             [NotNull] this ModelBuilder modelBuilder,
             [NotNull] string name,
-            [NotNull] IReadOnlyList<string> labels)
+            [NotNull] string[] labels)
             => modelBuilder.ForNpgsqlHasEnum(null, name, labels);
 
         public static ModelBuilder HasDatabaseTemplate(

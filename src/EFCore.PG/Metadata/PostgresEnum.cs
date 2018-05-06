@@ -50,7 +50,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             [NotNull] IMutableAnnotatable annotatable,
             [CanBeNull] string schema,
             [NotNull] string name,
-            [NotNull] IReadOnlyList<string> labels)
+            [NotNull] string[] labels)
         {
             var extension = FindPostgresEnum(annotatable, schema, name);
             if (extension != null)
@@ -64,7 +64,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         public static PostgresEnum GetOrAddPostgresEnum(
             [NotNull] IMutableAnnotatable annotatable,
             [NotNull] string name,
-            [NotNull] IReadOnlyList<string> labels)
+            [NotNull] string[] labels)
             => GetOrAddPostgresEnum(annotatable, null, name, labels);
 
         public static PostgresEnum FindPostgresEnum(
@@ -98,29 +98,29 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 
         public string Name => GetData().Name;
 
-        public IReadOnlyList<string> Labels
+        public string[] Labels
         {
             get => GetData().Labels;
             set => SetData(value);
         }
 
-        (string Schema, string Name, List<string> Labels) GetData()
+        (string Schema, string Name, string[] Labels) GetData()
         {
             return !(Annotatable[_annotationName] is string annotationValue)
                 ? (null, null, null)
                 : Deserialize(_annotationName, annotationValue);
         }
 
-        void SetData(IReadOnlyList<string> labels)
+        void SetData(string[] labels)
             => Annotatable[_annotationName] = string.Join(",", labels);
 
-        static (string schema, string name, List<string> labels) Deserialize(
+        static (string schema, string name, string[] labels) Deserialize(
             [NotNull] string annotationName,
             [NotNull] string annotationValue)
         {
             Check.NotEmpty(annotationValue, nameof(annotationValue));
 
-            var labels = annotationValue.Split(',').ToList();
+            var labels = annotationValue.Split(',').ToArray();
 
             // Yes, this doesn't support dots in the schema/enum name, let somebody complain first.
             var schemaAndName = annotationName.Substring(NpgsqlAnnotationNames.EnumPrefix.Length).Split('.');

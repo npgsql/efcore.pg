@@ -721,10 +721,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             var stringTypeMapping = Dependencies.TypeMappingSource.GetMapping(typeof(string));
 
             var labels = enumType.Labels;
-            for (var i = 0; i < labels.Count; i++)
+            for (var i = 0; i < labels.Length; i++)
             {
                 builder.Append(stringTypeMapping.GenerateSqlLiteral(labels[i]));
-                if (i < labels.Count - 1)
+                if (i < labels.Length - 1)
                     builder.Append(", ");
             }
 
