@@ -19,10 +19,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="2.1.0-rc1-30667" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.1.0-rc1-30667" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="2.1.0-rc1-30667" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational.Specification.Tests" Version="2.1.0-rc1-30667" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="2.1.0-rtm-30736" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.1.0-rtm-30736" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="2.1.0-rtm-30736" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational.Specification.Tests" Version="2.1.0-rtm-30736" />
   </ItemGroup>
 
 </Project>

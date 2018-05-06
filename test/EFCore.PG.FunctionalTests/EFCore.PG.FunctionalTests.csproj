@@ -20,10 +20,10 @@
     <ProjectReference Include="..\..\src\EFCore.PG\EFCore.PG.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.1.0-rc1-30667" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="2.1.0-rc1-30667" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational.Specification.Tests" Version="2.1.0-rc1-30667" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.1.0-rc1-30667" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="2.1.0-rc1-30667" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.1.0-rtm-30736" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="2.1.0-rtm-30736" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational.Specification.Tests" Version="2.1.0-rtm-30736" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.1.0-rtm-30736" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="2.1.0-rtm-30736" />
   </ItemGroup>
 </Project>
