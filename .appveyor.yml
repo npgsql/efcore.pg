@@ -17,7 +17,7 @@ install:
   - powershell .build\setup_appveyor.ps1
   # Install .NET Core 2.0
   - ps: Invoke-WebRequest -Uri "https://raw.githubusercontent.com/dotnet/cli/master/scripts/obtain/dotnet-install.ps1" -OutFile "install-dotnet.ps1"
-  - ps: .\install-dotnet.ps1 -Version 2.1.300-preview2-008530
+  - ps: .\install-dotnet.ps1 -Version 2.1.300-rc1-008673
 #  - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 before_build:
   - appveyor-retry dotnet restore -v Minimal
