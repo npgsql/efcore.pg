@@ -32,48 +32,39 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 {
     /// <summary>
-    /// Maps PostgreSQL arrays to .NET arrays. Only single-dimensional arrays are supported.
+    /// Maps PostgreSQL arrays to .NET List{T}.
     /// </summary>
-    /// <remarks>
-    /// Note that mapping PostgreSQL arrays to .NET List{T} is also supported via <see cref="NpgsqlListTypeMapping"/>.
-    /// </remarks>
-    public class NpgsqlArrayTypeMapping : RelationalTypeMapping
+    public class NpgsqlListTypeMapping : RelationalTypeMapping
     {
         public RelationalTypeMapping ElementMapping { get; }
 
         /// <summary>
         /// Creates the default array mapping (i.e. for the single-dimensional CLR array type)
         /// </summary>
-        public NpgsqlArrayTypeMapping(string storeType, RelationalTypeMapping elementMapping)
-            : this(storeType, elementMapping, elementMapping.ClrType.MakeArrayType())
+        public NpgsqlListTypeMapping(RelationalTypeMapping elementMapping, Type listType)
+            : this(elementMapping.StoreType + "[]", elementMapping, listType)
         {}
 
-        /// <summary>
-        /// Creates the default array mapping (i.e. for the single-dimensional CLR array type)
-        /// </summary>
-        public NpgsqlArrayTypeMapping(RelationalTypeMapping elementMapping, Type arrayType)
-            : this(elementMapping.StoreType + "[]", elementMapping, arrayType)
-        {}
-
-        NpgsqlArrayTypeMapping(string storeType, RelationalTypeMapping elementMapping, Type arrayType)
+        NpgsqlListTypeMapping(string storeType, RelationalTypeMapping elementMapping, Type listType)
             : base(new RelationalTypeMappingParameters(
-                new CoreTypeMappingParameters(arrayType, null, CreateComparer(elementMapping, arrayType)), storeType
+                new CoreTypeMappingParameters(listType, null, CreateComparer(elementMapping, listType)), storeType
             ))
         {
             ElementMapping = elementMapping;
         }
 
-        protected NpgsqlArrayTypeMapping(RelationalTypeMappingParameters parameters, RelationalTypeMapping elementMapping)
+        protected NpgsqlListTypeMapping(RelationalTypeMappingParameters parameters, RelationalTypeMapping elementMapping)
             : base(parameters) {}
 
         public override RelationalTypeMapping Clone(string storeType, int? size)
-            => new NpgsqlArrayTypeMapping(StoreType, ElementMapping);
+            => new NpgsqlListTypeMapping(StoreType, ElementMapping, ClrType);
 
         public override CoreTypeMapping Clone(ValueConverter converter)
-            => new NpgsqlArrayTypeMapping(Parameters.WithComposedConverter(converter), ElementMapping);
+            => new NpgsqlListTypeMapping(Parameters.WithComposedConverter(converter), ElementMapping);
 
         protected override string GenerateNonNullSqlLiteral(object value)
         {
+            // TODO: Duplicated from NpgsqlArrayTypeMapping
             var arr = (Array)value;
 
             if (arr.Rank != 1)
@@ -93,14 +84,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
         #region Value Comparison
 
-        static ValueComparer CreateComparer(RelationalTypeMapping elementMapping, Type arrayType)
-        {
-            Debug.Assert(arrayType.IsArray);
-            var elementType = arrayType.GetElementType();
+        // Note that the value comparison code is largely duplicated from NpgsqlAraryTypeMapping.
+        // However, a limitation in EF Core prevents us from merging the code together, see
+        // https://github.com/aspnet/EntityFrameworkCore/issues/11077
 
-            // We currently don't support mapping multi-dimensional arrays.
-            if (arrayType.GetArrayRank() != 1)
-                return null;
+        static ValueComparer CreateComparer(RelationalTypeMapping elementMapping, Type listType)
+        {
+            Debug.Assert(listType.IsGenericType && listType.GetGenericTypeDefinition() == typeof(List<>));
+            var elementType = listType.GetGenericArguments()[0];
 
             // We use different comparer implementations based on whether we have a non-null element comparer,
             // and if not, whether the element is IEquatable<TElem>
@@ -117,44 +108,44 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             return (ValueComparer)Activator.CreateInstance(typeof(SingleDimComparerWithEquals<>).MakeGenericType(elementType));
         }
 
-        class SingleDimComparerWithComparer<TElem> : ValueComparer<TElem[]>
+        class SingleDimComparerWithComparer<TElem> : ValueComparer<List<TElem>>
         {
             public SingleDimComparerWithComparer(RelationalTypeMapping elementMapping) : base(
                 (a, b) => Compare(a, b, (ValueComparer<TElem>)elementMapping.Comparer),
                 o => o.GetHashCode(), // TODO: Need to get hash code of elements...
                 source => Snapshot(source, (ValueComparer<TElem>)elementMapping.Comparer)) {}
 
-            public override Type Type => typeof(TElem[]);
+            public override Type Type => typeof(List<TElem>);
 
-            static bool Compare(TElem[] a, TElem[] b, ValueComparer<TElem> elementComparer)
+            static bool Compare(List<TElem> a, List<TElem> b, ValueComparer<TElem> elementComparer)
             {
-                if (a.Length != b.Length)
+                if (a.Count != b.Count)
                     return false;
 
                 // Note: the following currently boxes every element access because ValueComparer isn't really
                 // generic (see https://github.com/aspnet/EntityFrameworkCore/issues/11072)
-                for (var i = 0; i < a.Length; i++)
+                for (var i = 0; i < a.Count; i++)
                     if (!elementComparer.Equals(a[i], b[i]))
                         return false;
 
                 return true;
             }
 
-            static TElem[] Snapshot(TElem[] source, ValueComparer<TElem> elementComparer)
+            static List<TElem> Snapshot(List<TElem> source, ValueComparer<TElem> elementComparer)
             {
                 if (source == null)
                     return null;
 
-                var snapshot = new TElem[source.Length];
+                var snapshot = new List<TElem>(source.Count);
                 // Note: the following currently boxes every element access because ValueComparer isn't really
                 // generic (see https://github.com/aspnet/EntityFrameworkCore/issues/11072)
-                for (var i = 0; i < source.Length; i++)
-                    snapshot[i] = elementComparer.Snapshot(source[i]);
+                foreach (var e in source)
+                    snapshot.Add(elementComparer.Snapshot(e));
                 return snapshot;
             }
         }
 
-        class SingleDimComparerWithIEquatable<TElem> : ValueComparer<TElem[]>
+        class SingleDimComparerWithIEquatable<TElem> : ValueComparer<List<TElem>>
             where TElem : IEquatable<TElem>
         {
             public SingleDimComparerWithIEquatable(): base(
@@ -162,14 +153,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 o => o.GetHashCode(), // TODO: Need to get hash code of elements...
                 source => DoSnapshot(source)) {}
 
-            public override Type Type => typeof(TElem[]);
+            public override Type Type => typeof(List<TElem>);
 
-            static bool Compare(TElem[] a, TElem[] b)
+            static bool Compare(List<TElem> a, List<TElem> b)
             {
-                if (a.Length != b.Length)
+                if (a.Count != b.Count)
                     return false;
 
-                for (var i = 0; i < a.Length; i++)
+                for (var i = 0; i < a.Count; i++)
                 {
                     var elem1 = a[i];
                     var elem2 = b[i];
@@ -187,34 +178,34 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 return true;
             }
 
-            static TElem[] DoSnapshot(TElem[] source)
+            static List<TElem> DoSnapshot(List<TElem> source)
             {
                 if (source == null)
                     return null;
-                var snapshot = new TElem[source.Length];
-                for (var i = 0; i < source.Length; i++)
-                    snapshot[i] = source[i];
+                var snapshot = new List<TElem>(source.Count);
+                foreach (var e in source)
+                    snapshot.Add(e);
                 return snapshot;
             }
         }
 
-        class SingleDimComparerWithEquals<TElem> : ValueComparer<TElem[]>
+        class SingleDimComparerWithEquals<TElem> : ValueComparer<List<TElem>>
         {
             public SingleDimComparerWithEquals() : base(
                 (a, b) => Compare(a, b),
                 o => o.GetHashCode(), // TODO: Need to get hash code of elements...
                 source => DoSnapshot(source)) {}
 
-            public override Type Type => typeof(TElem[]);
+            public override Type Type => typeof(List<TElem>);
 
-            static bool Compare(TElem[] a, TElem[] b)
+            static bool Compare(List<TElem> a, List<TElem> b)
             {
-                if (a.Length != b.Length)
+                if (a.Count != b.Count)
                     return false;
 
                 // Note: the following currently boxes every element access because ValueComparer isn't really
                 // generic (see https://github.com/aspnet/EntityFrameworkCore/issues/11072)
-                for (var i = 0; i < a.Length; i++)
+                for (var i = 0; i < a.Count; i++)
                 {
                     var elem1 = a[i];
                     var elem2 = b[i];
@@ -231,16 +222,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 return true;
             }
 
-            static TElem[] DoSnapshot(TElem[] source)
+            static List<TElem> DoSnapshot(List<TElem> source)
             {
                 if (source == null)
                     return null;
 
-                var snapshot = new TElem[source.Length];
+                var snapshot = new List<TElem>(source.Count);
                 // Note: the following currently boxes every element access because ValueComparer isn't really
                 // generic (see https://github.com/aspnet/EntityFrameworkCore/issues/11072)
-                for (var i = 0; i < source.Length; i++)
-                    snapshot[i] = source[i];
+                foreach (var e in source)
+                    snapshot.Add(e);
                 return snapshot;
             }
         }

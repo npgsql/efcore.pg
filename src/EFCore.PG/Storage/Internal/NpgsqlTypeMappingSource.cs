@@ -26,6 +26,7 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -272,6 +273,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
         protected override RelationalTypeMapping FindMapping(in RelationalTypeMappingInfo mappingInfo)
         {
+            var baseMapping = FindBaseTypeMapping(mappingInfo);
+            if (baseMapping != null)
+                return baseMapping;
+
+            // We couldn't find a base (simple) type mapping. Try to find an array.
+            var arrayMapping = FindArrayMapping(mappingInfo);
+            if (arrayMapping != null)
+                return arrayMapping;
+
+            return null;
+        }
+
+        protected virtual RelationalTypeMapping FindBaseTypeMapping(in RelationalTypeMappingInfo mappingInfo)
+        {
             var clrType = mappingInfo.ClrType;
             var storeTypeName = mappingInfo.StoreTypeName;
             var storeTypeNameBase = mappingInfo.StoreTypeNameBase;
@@ -302,19 +317,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                     return null;
                 }
 
-                return FindArrayMapping(mappingInfo);
+                return null;
             }
 
             if (clrType == null)
                 return null;
 
             if (!_clrTypeMappings.TryGetValue(clrType, out var mapping))
-            {
-                // TODO: range, enum, composite
-
-                // No mapping found which corresponds to the clrType, try to find an array
-                return FindArrayMapping(mappingInfo);
-            }
+                return null;
 
             // If needed, clone the mapping with the configured length/precision/scale
             // TODO: Cache size/precision/scale mappings?
@@ -352,12 +362,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             return mapping;
         }
 
-        RelationalTypeMapping FindArrayMapping(RelationalTypeMappingInfo mappingInfo)
+        RelationalTypeMapping FindArrayMapping(in RelationalTypeMappingInfo mappingInfo)
         {
             // PostgreSQL array type names are the element plus []
             var storeType = mappingInfo.StoreTypeName;
             if (storeType != null && storeType.EndsWith("[]"))
             {
+                // Note that we scaffold PostgreSQL arrays to C# arrays, not lists (which are also supported)
+
                 // TODO: In theory support the multiple mappings just like we do with scalars above
                 // (e.g. DateTimeOffset[] vs. DateTime[]
                 var elementMapping = FindMapping(storeType.Substring(0, storeType.Length - 2));
@@ -370,13 +382,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             if (clrType == null)
                 return null;
 
-            // Try to see if it is an array type
-            var arrayElementType = GetArrayElementType(clrType);
-            if (arrayElementType != null)
+            if (clrType.IsArray)
             {
-                var elementMapping = (RelationalTypeMapping)FindMapping(arrayElementType);
+                var elementType = clrType.GetElementType();
+                Debug.Assert(elementType != null, "Detected array type but element type is null");
 
                 // If an element isn't supported, neither is its array
+                var elementMapping = (RelationalTypeMapping)FindMapping(elementType);
                 if (elementMapping == null)
                     return null;
 
@@ -387,18 +399,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 return _clrTypeMappings.GetOrAdd(clrType, new NpgsqlArrayTypeMapping(elementMapping, clrType));
             }
 
+            if (clrType.IsGenericType && clrType.GetGenericTypeDefinition() == typeof(List<>))
+            {
+                var elementType = clrType.GetGenericArguments()[0];
+
+                // If an element isn't supported, neither is its array
+                var elementMapping = (RelationalTypeMapping)FindMapping(elementType);
+                if (elementMapping == null)
+                    return null;
+
+                // Arrays of arrays aren't supported (as opposed to multidimensional arrays) by PostgreSQL
+                if (elementMapping is NpgsqlArrayTypeMapping)
+                    return null;
+
+                return _clrTypeMappings.GetOrAdd(clrType, new NpgsqlListTypeMapping(elementMapping, clrType));
+            }
+
             return null;
-        }
-
-        [CanBeNull]
-        static Type GetArrayElementType(Type type)
-        {
-            var typeInfo = type.GetTypeInfo();
-            if (typeInfo.IsArray)
-                return type.GetElementType();
-
-            var ilist = typeInfo.ImplementedInterfaces.FirstOrDefault(x => x.GetTypeInfo().IsGenericType && x.GetGenericTypeDefinition() == typeof(IList<>));
-            return ilist != null ? ilist.GetGenericArguments()[0] : null;
         }
     }
 }

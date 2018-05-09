@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestUtilities;
@@ -18,6 +19,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             {
                 var x = ctx.SomeEntities.Single(e => e.Id == 1);
                 Assert.Equal(new[] { 3, 4 }, x.SomeArray);
+                Assert.Equal(new List<int> { 3, 4 }, x.SomeList);
             }
         }
 
@@ -192,6 +194,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         public int Id { get; set; }
         public int[] SomeArray { get; set; }
         public int[,] SomeMatrix { get; set; }
+        public List<int> SomeList { get; set; }
         public byte[] SomeBytea { get; set; }
         public string SomeText { get; set; }
     }
@@ -221,14 +224,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                     Id=1,
                     SomeArray = new[] { 3, 4 },
                     SomeBytea = new byte[] { 3, 4 },
-                    SomeMatrix = new[,] { { 5, 6 }, { 7, 8 } }
+                    SomeMatrix = new[,] { { 5, 6 }, { 7, 8 } },
+                    SomeList = new List<int> { 3, 4 }
                 });
                 ctx.SomeEntities.Add(new SomeArrayEntity
                 {
                     Id=2,
                     SomeArray = new[] { 5, 6, 7 },
                     SomeBytea = new byte[] { 5, 6, 7 },
-                    SomeMatrix = new[,] { { 10, 11 }, { 12, 13 } }
+                    SomeMatrix = new[,] { { 10, 11 }, { 12, 13 } },
+                    SomeList = new List<int> { 3, 4 }
                 });
                 ctx.SaveChanges();
             }
