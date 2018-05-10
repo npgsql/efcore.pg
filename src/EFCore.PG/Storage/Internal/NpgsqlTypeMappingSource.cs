@@ -366,8 +366,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         {
             // PostgreSQL array type names are the element plus []
             var storeType = mappingInfo.StoreTypeName;
-            if (storeType != null && storeType.EndsWith("[]"))
+            if (storeType != null)
             {
+                if (!storeType.EndsWith("[]"))
+                    return null;
+
                 // Note that we scaffold PostgreSQL arrays to C# arrays, not lists (which are also supported)
 
                 // TODO: In theory support the multiple mappings just like we do with scalars above
