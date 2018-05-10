@@ -56,33 +56,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         }
 
         /// <summary>
-        /// Accepts a type name that may or may not contains a schema, and returns it properly delimited.
-        /// </summary>
-        public string DelimitStoreTypeName(string storeType)
-        {
-            // Somewhat hacky: user-defined types (e.g. enums) may contain uppercase letters, in which case they
-            // need to be quoted. They may also have a schema, in which case the schema and name need to be quoted
-            // separately.
-            // However, we must NOT quote types such as varchar(150).
-            var dot = storeType.IndexOf('.');
-
-            // No schema
-            if (dot == -1)
-                return storeType.Any(char.IsUpper) ? DelimitIdentifier(storeType) : storeType;
-
-            // Schema is present
-            var schema = storeType.Substring(0, dot);
-            if (schema.Any(char.IsUpper))
-                schema = DelimitIdentifier(schema);
-
-            var name = storeType.Substring(dot + 1, storeType.Length - dot - 1);
-            if (name.Any(char.IsUpper))
-                name= DelimitIdentifier(name);
-
-            return schema + '.' + name;
-        }
-
-        /// <summary>
         /// Returns whether the given string can be used as an unquoted identifier in PostgreSQL, without quotes.
         /// </summary>
         static bool RequiresQuoting(string identifier)

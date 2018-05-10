@@ -1031,6 +1031,56 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
         #endregion Sequence data types
 
+        [Fact]
+        public void StoreTypeNames()
+        {
+            Generate(new CreateTableOperation
+                {
+                    Name = "types",
+                    Columns =
+                    {
+                        new AddColumnOperation
+                        {
+                            Name = "text",
+                            Table = "types",
+                            ClrType = typeof(string),
+                            ColumnType = "text"
+                        },
+                        // #396
+                        new AddColumnOperation
+                        {
+                            Name = "text_upper",
+                            Table = "types",
+                            ClrType = typeof(string),
+                            ColumnType = "TEXT"
+                        },
+                        new AddColumnOperation
+                        {
+                            Name = "varchar",
+                            Table = "types",
+                            ClrType = typeof(string),
+                            ColumnType = "varchar(3)"
+                        },
+                        // At least for now, it's the user's responsibility to quote store type name when needed,
+                        // because it seems standard for people to specify either text or TEXT, and both should work.
+                        new AddColumnOperation
+                        {
+                            Name = "SomeCamelCaseEnum",
+                            Table = "types",
+                            ClrType = typeof(string),
+                            ColumnType = "\"SomeCamelCaseEnum\""
+                        },
+                    },
+                });
+
+            Assert.Equal("CREATE TABLE types (" + EOL +
+                         "    text text NOT NULL," + EOL +
+                         "    text_upper TEXT NOT NULL," + EOL +
+                         "    varchar varchar(3) NOT NULL," + EOL +
+                         "    \"SomeCamelCaseEnum\" \"SomeCamelCaseEnum\" NOT NULL" + EOL +
+                         ");" + EOL, Sql);
+        }  // yuval
+
         public NpgsqlMigrationSqlGeneratorTest()
             : base(NpgsqlTestHelpers.Instance)
         {

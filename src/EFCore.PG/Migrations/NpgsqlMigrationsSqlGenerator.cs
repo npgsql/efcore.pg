@@ -875,7 +875,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             if (type == null)
                 type = GetColumnType(schema, table, name, clrType, unicode, maxLength, fixedLength, rowVersion, model);
-            type = _sqlGenerationHelper.DelimitStoreTypeName(type);
             builder
                 .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(name))
                 .Append(" ")

@@ -32,6 +32,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             => new NpgsqlEnumTypeMapping(Parameters.WithComposedConverter(converter), _nameTranslator);
 
         protected override string GenerateNonNullSqlLiteral(object value)
-            => $"'{_nameTranslator.TranslateMemberName(value.ToString())}'::{_sqlGenerationHelper.DelimitStoreTypeName(StoreType)}";
+            => $"'{_nameTranslator.TranslateMemberName(value.ToString())}'::{StoreType}";
     }
 }
