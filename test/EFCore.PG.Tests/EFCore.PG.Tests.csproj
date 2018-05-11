@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net461;netcoreapp2.0</TargetFrameworks>
-    <TargetFrameworks Condition="'$(OS)' != 'Windows_NT' OR '$(CoreOnly)' == 'True'">netcoreapp2.0</TargetFrameworks>
+    <TargetFrameworks>net461;netcoreapp2.1</TargetFrameworks>
+    <TargetFrameworks Condition="'$(OS)' != 'Windows_NT' OR '$(CoreOnly)' == 'True'">netcoreapp2.1</TargetFrameworks>
     <AssemblyName>Npgsql.EntityFrameworkCore.PostgreSQL.Tests</AssemblyName>
     <RootNamespace>Npgsql.EntityFrameworkCore.PostgreSQL</RootNamespace>
   </PropertyGroup>
