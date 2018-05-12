@@ -1672,6 +1672,19 @@ CREATE TABLE column_types (
                 "DROP TABLE column_types");
         }
 
+        [Fact]
+        public void System_tables_are_ignored()
+        {
+            Test(@"CREATE EXTENSION postgis",
+                Enumerable.Empty<string>(),
+                Enumerable.Empty<string>(),
+                dbModel =>
+                {
+                    Assert.Empty(dbModel.Tables);
+                },
+                "DROP EXTENSION postgis");
+        }
+
         #endregion
 
         readonly List<(LogLevel Level, EventId Id, string Message)> _log = new List<(LogLevel Level, EventId Id, string Message)>();

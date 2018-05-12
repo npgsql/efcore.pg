@@ -47,6 +47,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
 {
     public class NpgsqlDatabaseModelFactory : IDatabaseModelFactory
     {
+        /// <summary>
+        /// Tables which are considered to be system tables and should not get scaffolded, e.g. the support table
+        /// created by the PostGIS extension.
+        /// </summary>
+        static readonly string[] SystemTables = new[] { "spatial_ref_sys" };
+
         const string NamePartRegex
             = @"(?:(?:""(?<part{0}>(?:(?:"""")|[^""])+)"")|(?<part{0}>[^\.\[""]+))";
 
@@ -126,11 +132,22 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
 
                 GetExtensions(connection, databaseModel);
 
-                // We may have dropped columns. We load these because constraints take them into
-                // account when referencing columns, but must now get rid of them before returning
-                // the database model.
-                foreach (var table in databaseModel.Tables)
+                for (var i = 0; i < databaseModel.Tables.Count; i++)
+                {
+                    var table = databaseModel.Tables[i];
+
+                    // Remove some tables which shouldn't get scaffolded
+                    if (SystemTables.Contains(table.Name))
+                    {
+                        databaseModel.Tables.RemoveAt(i);
+                        continue;
+                    }
+
+                    // We may have dropped columns. We load these because constraints take them into
+                    // account when referencing columns, but must now get rid of them before returning
+                    // the database model.
                     while (table.Columns.Remove(null)) {}
+                }
 
                 foreach (var schema in schemaList
                     .Except(
