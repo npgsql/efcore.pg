@@ -350,5 +350,61 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
 
             return expression;
         }
+
+        public virtual Expression VisitPgFunction(PgFunctionExpression e)
+        {
+            //var parentTypeMapping = _typeMapping;
+
+            //_typeMapping = null;
+
+            var wroteSchema = false;
+
+            if (e.Instance != null)
+            {
+                Visit(e.Instance);
+
+                Sql.Append(".");
+            }
+            else if (!string.IsNullOrWhiteSpace(e.Schema))
+            {
+                Sql
+                    .Append(SqlGenerator.DelimitIdentifier(e.Schema))
+                    .Append(".");
+
+                wroteSchema = true;
+            }
+
+            Sql
+                .Append(
+                    wroteSchema
+                        ? SqlGenerator.DelimitIdentifier(e.FunctionName)
+                        : e.FunctionName);
+
+            Sql.Append("(");
+
+            //_typeMapping = null;
+
+            GenerateList(e.PositionalArguments);
+
+            if (e.PositionalArguments.Count > 0)
+                Sql.Append(", ");
+
+            var i = 0;
+            foreach (var kv in e.NamedArguments)
+            {
+                Sql
+                    .Append(kv.Key)
+                    .Append(" => ");
+                Visit(kv.Value);
+
+                if (i++ < e.NamedArguments.Count - 1)
+                    Sql.Append(", ");
+            }
+
+            Sql.Append(")");
+            //_typeMapping = parentTypeMapping;
+
+            return e;
+        }
     }
 }

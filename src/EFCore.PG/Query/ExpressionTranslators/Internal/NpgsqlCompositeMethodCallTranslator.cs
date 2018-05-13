@@ -33,6 +33,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         {
             new NpgsqlArraySequenceEqualTranslator(),
             new NpgsqlConvertTranslator(),
+            new NpgsqlDateAddTranslator(),
             new NpgsqlStringSubstringTranslator(),
             new NpgsqlLikeTranslator(),
             new NpgsqlMathTranslator(),
