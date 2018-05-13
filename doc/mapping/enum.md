@@ -1,13 +1,13 @@
-# Mapping Enums
+# Enum Type Mapping
 
 > [!NOTE]
 > This feature is only available in Npgsql EF Core 2.1, which is currently in preview.
 
 By default, any enum properties in your model will be mapped to database integers. EF Core 2.1 also allows you to map these to strings in the database with value converters.
 
-However, the Npgsql provider also allows you to map your CLR enums to [database  enum types](https://www.postgresql.org/docs/current/static/datatype-enum.html). This option, unique to PostgreSQL, provides the best of both worlds: the enum is stored in the database as a number, but is handled like a string and has type safety.
+However, the Npgsql provider also allows you to map your CLR enums to [database enum types](https://www.postgresql.org/docs/current/static/datatype-enum.html). This option, unique to PostgreSQL, provides the best of both worlds: the enum is internally stored in the database as a number (minimal storage), but is handled like a string (more usable, no need to remember numeric values) and has type safety.
 
-## Creating your Database Enum
+## Creating your database enum
 
 First, you must specify the PostgreSQL enum type on your model, just like you would with tables, sequences or other databases objects:
 
@@ -19,7 +19,7 @@ protected override void OnModelCreating(ModelBuilder builder) {
 
 This causes the EF Core provider to create your data enum type, `Mood`, with two labels: `happy` and `sad`. This will cause the appropriate migration to be created.
 
-## Mapping your Enum
+## Mapping your enum
 
 Even if your database enum is created, Npgsql has to know about it, and especially about your CLR enum type that should be mapped to it. This is done by adding the following code, *before* any EF Core operations take place. An appropriate place for this is in the static constructor on your DbContext class:
 
@@ -34,7 +34,7 @@ This code lets Npgsql know that your CLR enum type, `Mood`, should be mapped to 
 
 If you're curious as to inner workings, this code maps the enum with the ADO.NET provider - [see here for the full docs](http://www.npgsql.org/doc/types/enums_and_composites.html). When the Npgsql EF Core first initializes, it calls into the ADO.NET provider to get all mapped enums, and sets everything up internally at the EF Core layer as well.
 
-## Using Enum Properties
+## Using enum properties
 
 Once your enum is mapped and created in the database, you can use your CLR enum type just like any other property:
 
@@ -56,11 +56,11 @@ using (var ctx = new MyDbContext())
 }
 ```
 
-## Changing Enums
+## Altering enum definitions
 
 Although PostgreSQL allows [altering enum types](https://www.postgresql.org/docs/current/static/sql-altertype.html), the Npgsql provider currently does not generate SQL for those operations (beyond creating and dropping the entire type). If you to add, remove or rename enum values, you'll have to include raw SQL in your migrations (this is quite easy to do). As always, test your migrations carefully before running them on production databases.
 
-## Scaffolding from an Existing Database
+## Scaffolding from an existing database
 
 If you're creating your model from an existing database, the provider will recognize enums in your database, and scaffold the appropriate `ForNpgsqlHasEnum()` lines in your model. However, since the scaffolding process has no knowledge of your CLR type, and will therefore skip your enum columns (warnings will be logged). You will have to create the CLR type, add the global mapping and add the properties to your entities.
 

@@ -28,7 +28,7 @@ This will create make all keys and other properties which have `.ValueGeneratedO
 If you set identity for existing columns, or even for your entire existing model, Npgsql will safely migrate you from serial to identity, preserving current sequence values. However, back up your database before you do this and test carefully, as migrating from identity to serial isn't supported at this time.
 
 > [!Warning]
-> There was a significant and breaking change in 1.1. If you are upgrading from 1.0 and have existing migrations, please read the [migration notes](migration/1.1.md).
+> There was a significant and breaking change in 1.1. If you are upgrading from 1.0 and have existing migrations, please read the [release notes](release-notes/1.1.md).
 
 ## Standard Sequence-Driven Columns
 

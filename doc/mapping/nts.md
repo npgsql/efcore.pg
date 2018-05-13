@@ -41,7 +41,7 @@ public class City
 var nearbyCities = context.Cities.Where(c => c.Location.Distance(somePoint) < 100);
 ```
 
-## Operation Translation
+## Operation translation
 
 The following table lists NetTopologySuite operations which are translated to PostGIS SQL operations. This allows you to use these NetTopologySuite methods and members efficiently - evaluation will happen on the server side. Since evaluation happens at the server, table data doesn't need to be transferred to the client (saving bandwidth), and cases indices can be used to speed things up.
 
@@ -85,7 +85,7 @@ Note that the plugin is far from covering all spatial operations. If an operatio
 | .Where(c => c.Point.Y == 3)                              | [WHERE ST_Y(c."Point") = 3](https://postgis.net/docs/manual-2.4/ST_Y.html)
 | .Where(c => c.Point.Z == 3)                              | [WHERE ST_Z(c."Point") = 3](https://postgis.net/docs/manual-2.4/ST_Z.html)
 
-## Geography (geodetic) Support
+## Geography (geodetic) support
 
 PostGIS has two types: `geometry` (for Cartesian coordinates) and `geography` (for geodetic or spherical coordinates). You can read about the geometry/geography distinction [in the PostGIS docs](https://postgis.net/docs/manual-2.4/using_postgis_dbmanagement.html#PostGIS_Geography) or in [this blog post](http://workshops.boundlessgeo.com/postgis-intro/geography.html). In a nutshell, `geography` is much more accurate when doing calculations over long distances, but is more expensive computationally and supports only a small subset of the spatial operations supported by `geometry`.
 

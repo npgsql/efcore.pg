@@ -3,12 +3,15 @@
 > [!NOTE]
 > This feature is only available in Npgsql EF Core 2.1, which is currently in preview.
 
-By default, [the PostgreSQL date/time types](https://www.postgresql.org/docs/current/static/datatype-datetime.html) are mapped to the built-in .NET types (`DateTime`, `TimeSpan`). Unfortunately, these built-in types (`DateTime`, `DateTimeOffset`) are flawed in many ways; regardless of PostgreSQL or databases. The [NodaTime library](http://nodatime.org/) was created to solve many of these problems, and if your application handles dates and times in anything but the most basic way, you should seriously consider using NodaTime. To learn more [read this blog post by Jon Skeet](http://blog.nodatime.org/2011/08/what-wrong-with-datetime-anyway.html).
+# What is NodaTime?
 
-For PostgreSQL specifically, the NodaTime types map more naturally to the database types - everything is simpler and works in a more predictable way.
+By default, [the PostgreSQL date/time types](https://www.postgresql.org/docs/current/static/datatype-datetime.html) are mapped to the built-in .NET types (`DateTime`, `TimeSpan`). Unfortunately, these built-in types are flawed in many ways. The [NodaTime library](http://nodatime.org/) was created to solve many of these problems, and if your application handles dates and times in anything but the most basic way, you should consider using it. To learn more [read this blog post by Jon Skeet](http://blog.nodatime.org/2011/08/what-wrong-with-datetime-anyway.html).
 
-> [!NOTE]
-> This plugin, which works at the Entity Framework Core level, is distinct from [the Npgsql ADO plugin for NodaTime](http://www.npgsql.org/doc/types/nodatime.html); the EF Core plugin references and relies on the ADO plugin.
+Beyond NodaTime's general advantages, some specific advantages NodaTime for PostgreSQL date/time mapping include:
+
+* NodaTime defines some types which are missing from the BCL, such as `LocalDate`, `LocalTime`, and `OffsetTime`. These cleanly correspond to PostgreSQL `date`, `time` and `timetz`.
+* `Period` is much more suitable for mapping PostgreSQL `interval` than `TimeSpan`.
+* NodaTime types can fully represent PostgreSQL's microsecond precision, and can represent dates outside the BCL's date limit (1AD-9999AD).
 
 # Setup
 
@@ -35,7 +38,7 @@ public class Post
 var recentPosts = context.Posts.Where(p => p.CreationTime > someInstant);
 ```
 
-## Member Translation
+## Member translation
 
 Currently, the EF Core provider knows how to translate the most date/time component members of NodaTime's `LocalDateTime`, `LocalDate`, `LocalTime` and `Period`. In other words, the following query will be translated to SQL and evaluated server-side:
 
