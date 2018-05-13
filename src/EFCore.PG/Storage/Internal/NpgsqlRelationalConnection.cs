@@ -36,6 +36,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         ProvideClientCertificatesCallback ProvideClientCertificatesCallback { get; }
         RemoteCertificateValidationCallback RemoteCertificateValidationCallback { get; }
 
+        /// <summary>
+        ///     Indicates whether the store connection supports ambient transactions
+        /// </summary>
+        protected override bool SupportsAmbientTransactions => true;
+
         public NpgsqlRelationalConnection([NotNull] RelationalConnectionDependencies dependencies)
             : base(dependencies)
         {

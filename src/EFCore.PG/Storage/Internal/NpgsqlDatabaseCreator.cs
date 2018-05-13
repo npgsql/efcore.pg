@@ -210,8 +210,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 var unpooledConn = ((NpgsqlConnection)_connection.DbConnection).CloneWith(unpooledCsb.ToString());
                 using (unpooledConn)
                 {
-                    unpooledConn.Open();
-                    unpooledConn.Close();
+                    using (new TransactionScope(TransactionScopeOption.Suppress))
+                    {
+                        unpooledConn.Open();
+                        unpooledConn.Close();
+                    }
                 }
 
                 return true;
