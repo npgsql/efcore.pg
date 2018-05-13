@@ -26,7 +26,7 @@ using JetBrains.Annotations;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
 {
-    public static class SqlDataReaderExtension
+    public static class DbDataReaderExtension
     {
         public static T GetValueOrDefault<T>([NotNull] this DbDataReader reader, [NotNull] string name)
         {

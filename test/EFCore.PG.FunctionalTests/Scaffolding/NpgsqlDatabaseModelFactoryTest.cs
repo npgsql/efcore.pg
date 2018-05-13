@@ -628,34 +628,39 @@ DROP TABLE ""PrincipalTable"";");
         {
             Fixture.TestStore.ExecuteNonQuery(
                 @"
-CREATE DOMAIN public.""TestDomain"" AS text;
-CREATE DOMAIN db2.""TestDomain"" AS int;
+CREATE DOMAIN public.text_domain AS text;
+CREATE DOMAIN db2.text_domain AS int;
+CREATE DOMAIN public.char_domain AS char(3);
 ");
 
             Test(
                 @"
-CREATE TABLE ""Domain"" (
-    ""Id"" int,
-    ""domainColumn"" public.""TestDomain"" NULL
+CREATE TABLE domains (
+    id int,
+    text_domain public.text_domain NULL,
+    char_domain public.char_domain NULL
 )",
                 Enumerable.Empty<string>(),
                 Enumerable.Empty<string>(),
                 dbModel =>
                     {
-                        var domainColumn = Assert.Single(dbModel.Tables.Single().Columns.Where(c => c.Name == "domainColumn"));
-                        // ReSharper disable once PossibleNullReferenceException
-                        Assert.Equal("TestDomain", domainColumn.StoreType);
-                        Assert.Equal("text", domainColumn.GetUnderlyingStoreType());
+                        var textDomainColumn = Assert.Single(dbModel.Tables.Single().Columns.Where(c => c.Name == "text_domain"));
+                        Assert.Equal("text_domain", textDomainColumn.StoreType);
+                        Assert.Equal("text", textDomainColumn.GetUnderlyingStoreType());
 
-                        var nonDomainColumn = Assert.Single(dbModel.Tables.Single().Columns.Where(c => c.Name == "Id"));
-                        // ReSharper disable once PossibleNullReferenceException
+                        var charDomainColumn = Assert.Single(dbModel.Tables.Single().Columns.Where(c => c.Name == "char_domain"));
+                        Assert.Equal("char_domain", charDomainColumn.StoreType);
+                        Assert.Equal("character(3)", charDomainColumn.GetUnderlyingStoreType());
+
+                        var nonDomainColumn = Assert.Single(dbModel.Tables.Single().Columns.Where(c => c.Name == "id"));
                         Assert.Equal("integer", nonDomainColumn.StoreType);
                         Assert.Null(nonDomainColumn.GetUnderlyingStoreType());
                     },
                 @"
-DROP TABLE ""Domain"";
-DROP DOMAIN ""TestDomain"";
-DROP DOMAIN db2.""TestDomain"";");
+DROP TABLE domains;
+DROP DOMAIN public.text_domain;
+DROP DOMAIN public.char_domain;
+DROP DOMAIN db2.text_domain;");
         }
 
         [Fact]

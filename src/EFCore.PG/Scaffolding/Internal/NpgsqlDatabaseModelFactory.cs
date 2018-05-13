@@ -236,9 +236,10 @@ AND
             {
                 var commandText = $@"
 SELECT
-    nspname, relname, typ.typname, attname, description, attisdropped,
+    nspname, relname, typ.typname, basetyp.typname AS basetypname, attname, description, attisdropped,
     {(connection.PostgreSqlVersion >= new Version(10, 0) ? "attidentity" : "''::\"char\" as attidentity")},
-    format_type(typ.oid, atttypmod) AS formatted_typname, basetyp.typname AS basetypname,
+    format_type(typ.oid, atttypmod) AS formatted_typname,
+    format_type(basetyp.oid, typ.typtypmod) AS formatted_basetypname,
     CASE WHEN pg_proc.proname='array_recv' THEN 'a' ELSE typ.typtype END AS typtype,
     CASE
         WHEN pg_proc.proname='array_recv' THEN elemtyp.typname
@@ -277,11 +278,14 @@ WHERE
 
                         foreach (var record in tableGroup)
                         {
-                            var columnName = record.GetValueOrDefault<string>("attname");
-                            var typeName = record.GetValueOrDefault<string>("typname");
-                            var formattedTypeName = record.GetValueOrDefault<string>("formatted_typname");
-                            var nullable = record.GetValueOrDefault<bool>("nullable");
-                            var defaultValue = record.GetValueOrDefault<string>("default");
+                            var column = new DatabaseColumn
+                            {
+                                Table = table,
+                                Name = record.GetValueOrDefault<string>("attname"),
+                                IsNullable = record.GetValueOrDefault<bool>("nullable"),
+                                DefaultValueSql = record.GetValueOrDefault<string>("default"),
+                                ComputedColumnSql = null
+                            };
 
                             // We need to know about dropped columns because constraints take them into
                             // account when referencing columns. We'll get rid of them before returning the model.
@@ -292,57 +296,46 @@ WHERE
                                 continue;
                             }
 
-                            // User-defined types (e.g. enums) with capital letters get formatted with quotes, remove.
-                            if (formattedTypeName[0] == '"')
-                                formattedTypeName = formattedTypeName.Substring(1, formattedTypeName.Length - 2);
-                            if (_enums.Contains(formattedTypeName))
+                            string systemTypeName;
+                            var formattedTypeName = AdjustFormattedTypeName(record.GetValueOrDefault<string>("formatted_typname"));
+                            var formattedBaseTypeName = record.GetValueOrDefault<string>("formatted_basetypname");
+                            if (formattedBaseTypeName == null)
                             {
-                                _logger.EnumColumnSkippedWarning(DisplayName(tableSchema, tableName) + '.' + columnName);
+                                column.StoreType = formattedTypeName;
+                                systemTypeName = record.GetValueOrDefault<string>("typname");
+                            }
+                            else
+                            {
+                                // This is a domain type
+                                column.StoreType = formattedTypeName;
+                                column.SetUnderlyingStoreType(AdjustFormattedTypeName(formattedBaseTypeName));
+                                systemTypeName = record.GetValueOrDefault<string>("basetypname");
+                            }
+
+                            // Enum types cannot be scaffolded for now (nor can domains of enum types),
+                            // skip with an informative message
+                            if (_enums.Contains(formattedTypeName) || _enums.Contains(formattedBaseTypeName))
+                            {
+                                _logger.EnumColumnSkippedWarning(DisplayName(tableSchema, tableName) + '.' + column.Name);
                                 continue;
                             }
 
                             _logger.ColumnFound(
                                 DisplayName(tableSchema, tableName),
-                                columnName,
+                                column.Name,
                                 formattedTypeName,
-                                nullable,
-                                defaultValue);
+                                column.IsNullable,
+                                column.DefaultValueSql);
 
-                            var column = new DatabaseColumn
-                            {
-                                Table = table,
-                                Name = columnName,
-                                IsNullable = nullable,
-                                DefaultValueSql = defaultValue,
-                                ComputedColumnSql = null
-                            };
-
-                            if (formattedTypeName == "bpchar")
-                                formattedTypeName = "char";
-
-                            string systemTypeName;
-                            var domainBaseTypeName = record.GetValueOrDefault<string>("basetypname");
-                            if (domainBaseTypeName == null)
-                            {
-                                column.StoreType = formattedTypeName;
-                                systemTypeName = typeName;
-                            }
-                            else
-                            {
-                                // This is a domain type
-                                column.StoreType = typeName;
-                                column.SetUnderlyingStoreType(domainBaseTypeName);
-                                systemTypeName = domainBaseTypeName;
-                            }
-
+                            // Identify IDENTITY columns, as well as SERIAL ones.
                             var identityChar = record.GetValueOrDefault<char>("attidentity");
                             if (identityChar == 'a')
                                 column[NpgsqlAnnotationNames.ValueGenerationStrategy] = NpgsqlValueGenerationStrategy.IdentityAlwaysColumn;
                             else if (identityChar == 'd')
                                 column[NpgsqlAnnotationNames.ValueGenerationStrategy] = NpgsqlValueGenerationStrategy.IdentityByDefaultColumn;
                             else if (SerialTypes.Contains(systemTypeName) &&
-                                defaultValue == $"nextval('{column.Table.Name}_{column.Name}_seq'::regclass)" ||
-                                defaultValue == $"nextval('\"{column.Table.Name}_{column.Name}_seq\"'::regclass)")
+                                column.DefaultValueSql == $"nextval('{column.Table.Name}_{column.Name}_seq'::regclass)" ||
+                                column.DefaultValueSql == $"nextval('\"{column.Table.Name}_{column.Name}_seq\"'::regclass)")
                             {
                                 // Hacky but necessary...
                                 // We identify serial columns by examining their default expression,
@@ -371,6 +364,21 @@ WHERE
         }
 
         static readonly string[] SerialTypes = { "int2", "int4", "int8" };
+
+        /// <summary>
+        /// Type names as returned by PostgreSQL's format_type need to be cleaned up a bit
+        /// </summary>
+        static string AdjustFormattedTypeName(string formattedTypeName)
+        {
+            // User-defined types (e.g. enums) with capital letters get formatted with quotes, remove.
+            if (formattedTypeName[0] == '"')
+                formattedTypeName = formattedTypeName.Substring(1, formattedTypeName.Length - 2);
+
+            if (formattedTypeName == "bpchar")
+                formattedTypeName = "char";
+
+            return formattedTypeName;
+        }
 
         static void AdjustDefaults(DatabaseColumn column, string systemTypeName)
         {
