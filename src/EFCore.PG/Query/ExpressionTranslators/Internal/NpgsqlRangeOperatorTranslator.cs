@@ -25,24 +25,25 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
-using NpgsqlTypes;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
     /// <summary>
     /// Translates a method call into a PostgreSQL range operator.
     /// </summary>
+    /// <remarks>
+    /// By default, this class supports translation for methods declared on <see cref="NpgsqlRangeExtensions"/>.
+    /// Additional methods can be supported so long as they declare a <see cref="NpgsqlRangeOperatorAttribute"/>.
+    /// </remarks>
     public class NpgsqlRangeOperatorTranslator : IMethodCallTranslator
     {
         /// <summary>
-        /// Constructs a <see cref="CustomBinaryExpression"/> from two arguments.
+        /// Constructs a <see cref="Expression"/> from two arguments.
         /// </summary>
         /// <param name="left">
         /// The left-hand argument.
@@ -51,19 +52,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         /// The left-hand argument.
         /// </param>
         [NotNull]
-        delegate CustomBinaryExpression CustomBinaryExpressionFunction([NotNull] Expression left, [NotNull] Expression right);
+        delegate Expression BinaryExpressionFunction([NotNull] Expression left, [NotNull] Expression right);
 
         /// <summary>
         /// Maps the generic definitions of the methods supported by this translator to the appropriate PostgreSQL operator.
         /// </summary>
-        [NotNull] static readonly Dictionary<MethodInfo, CustomBinaryExpressionFunction> SupportedMethodTranslations;
+        [NotNull] static readonly Dictionary<MethodInfo, BinaryExpressionFunction> SupportedMethodTranslations;
 
         /// <summary>
         /// Initialize the <see cref="SupportedMethodTranslations"/> with extension methods from <see cref="NpgsqlRangeExtensions"/>.
         /// </summary>
         static NpgsqlRangeOperatorTranslator()
         {
-            SupportedMethodTranslations = new Dictionary<MethodInfo, CustomBinaryExpressionFunction>();
+            SupportedMethodTranslations = new Dictionary<MethodInfo, BinaryExpressionFunction>();
 
             foreach (MethodInfo methodInfo in typeof(NpgsqlRangeExtensions).GetRuntimeMethods())
             {
@@ -72,7 +73,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         }
 
         /// <summary>
-        /// Adds a method that can be translated as a PostgreSQL range operator. This method must declare a <see cref="NpgsqlOperatorAttribute"/>.
+        /// Adds a method that can be translated as a PostgreSQL range operator. This method must declare a <see cref="NpgsqlBinaryOperatorAttribute"/>.
         /// </summary>
         /// <param name="methodInfo">
         /// The method to register.
@@ -86,22 +87,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 methodInfo.GetCustomAttribute<NpgsqlRangeOperatorAttribute>();
 
             if (attribute is null)
-                throw new ArgumentException($"{nameof(NpgsqlRangeOperatorAttribute)} is not declared on {methodInfo.Name}.");
+                throw new ArgumentException($"{nameof(NpgsqlRangeOperatorAttribute)} is not declared on the method '{methodInfo.Name}' of {nameof(methodInfo.DeclaringType)}.");
 
-            NpgsqlOperatorAttribute operatorAttribute =
+            NpgsqlBinaryOperatorAttribute operatorAttribute =
                 typeof(NpgsqlRangeOperatorType)
-                    .GetMember(attribute.OperatorType.ToString())
-                    .Single()
-                    .GetCustomAttribute<NpgsqlOperatorAttribute>();
+                    .GetRuntimeField(attribute.OperatorType.ToString())
+                    .GetCustomAttribute<NpgsqlBinaryOperatorAttribute>();
 
             if (operatorAttribute is null)
-                throw new ArgumentException($"{nameof(NpgsqlOperatorAttribute)} is not declared on the member '{attribute.OperatorType}' of {nameof(NpgsqlRangeOperatorType)}");
+                throw new ArgumentException($"{nameof(NpgsqlBinaryOperatorAttribute)} is not declared on the member '{attribute.OperatorType}' of {nameof(NpgsqlRangeOperatorType)}");
 
             SupportedMethodTranslations.Add(methodInfo, (a, b) => operatorAttribute.Create(a, b));
         }
 
         /// <summary>
-        /// Attempts to add a method that can be translated as a PostgreSQL range operator. This method must declare a <see cref="NpgsqlOperatorAttribute"/>.
+        /// Attempts to add a method that can be translated as a PostgreSQL range operator. This method must declare a <see cref="NpgsqlBinaryOperatorAttribute"/>.
         /// </summary>
         /// <param name="methodInfo">
         /// The method to register.
@@ -128,7 +128,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         /// Removes a method from the list of supported translations.
         /// </summary>
         /// <param name="methodInfo">
-        /// The method to register.
+        /// The method to unregister.
         /// </param>
         /// <exception cref="ArgumentException" />
         [UsedImplicitly]
@@ -139,159 +139,51 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             SupportedMethodTranslations.Remove(methodInfo);
         }
 
+        /// <summary>
+        /// Attempts to remove a method from the list of supported translations.
+        /// </summary>
+        /// <param name="methodInfo">
+        /// The method to unregister.
+        /// </param>
+        /// <exception cref="ArgumentException" />
+        [UsedImplicitly]
+        public static bool TryRemoveSupportedMethod([NotNull] MethodInfo methodInfo)
+        {
+            Check.NotNull(methodInfo, nameof(methodInfo));
+
+            try
+            {
+                RemoveSupportedMethod(methodInfo);
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
         /// <inheritdoc />
         [CanBeNull]
         public Expression Translate(MethodCallExpression methodCallExpression) =>
-            TryGetSupportedTranslation(methodCallExpression.Method, out CustomBinaryExpressionFunction operatorFunction)
+            TryGetSupportedTranslation(methodCallExpression.Method, out BinaryExpressionFunction operatorFunction)
                 ? operatorFunction(methodCallExpression.Arguments[0], methodCallExpression.Arguments[1])
                 : null;
 
         /// <summary>
-        /// Tries to find create a <see cref="CustomBinaryExpression"/> by looking up the <see cref="MethodInfo"/> in <see cref="SupportedMethodTranslations"/>.
+        /// Tries to find create a <see cref="Expression"/> by looking up the <see cref="MethodInfo"/> in <see cref="SupportedMethodTranslations"/>.
         /// </summary>
         /// <param name="methodInfo">
         /// The <see cref="MethodInfo"/> for lookup.
         /// </param>
         /// <param name="operatorFunction">
-        /// A delegate that constructs a <see cref="CustomBinaryExpression"/>.
+        /// A delegate that constructs a <see cref="Expression"/>.
         /// </param>
         /// <returns>
         /// True if the <see cref="MethodInfo"/> was found or registered; otherwise false.
         /// </returns>
-        static bool TryGetSupportedTranslation([NotNull] MethodInfo methodInfo, out CustomBinaryExpressionFunction operatorFunction)
-        {
-            MethodInfo info = methodInfo.IsGenericMethod ? methodInfo.GetGenericMethodDefinition() : methodInfo;
-
-            return SupportedMethodTranslations.TryGetValue(info, out operatorFunction);
-        }
-    }
-
-    /// <summary>
-    /// Indicates that a method can be translated to a PostgreSQL range operator.
-    /// </summary>
-    /// <remarks>
-    /// This attribute allows other extension methods to hook into the range operator translations.
-    /// Along with simplifying the code required to identify overloaded generics, this attribute provides
-    /// a transparent way in which to transition from extension methods in the EF Core assembly to
-    /// instance methods on <see cref="NpgsqlRange{T}"/>.
-    /// </remarks>
-    [AttributeUsage(AttributeTargets.Method, Inherited = false)]
-    public class NpgsqlRangeOperatorAttribute : Attribute
-    {
-        /// <summary>
-        /// The operator represented by the method.
-        /// </summary>
-        public NpgsqlRangeOperatorType OperatorType { get; }
-
-        /// <summary>
-        /// Indicates that a method can be translated to a PostgreSQL range operator.
-        /// </summary>
-        /// <param name="operatorType">
-        /// The type of operator the method represents.
-        /// </param>
-        public NpgsqlRangeOperatorAttribute(NpgsqlRangeOperatorType operatorType)
-        {
-            OperatorType = operatorType;
-        }
-    }
-
-    /// <summary>
-    /// Describes the operator type of a range expression.
-    /// </summary>
-    /// <remarks>
-    /// See: https://www.postgresql.org/docs/current/static/functions-range.html
-    /// </remarks>
-    [PublicAPI]
-    public enum NpgsqlRangeOperatorType
-    {
-        /// <summary>
-        /// No operator specified.
-        /// </summary>
-        [NpgsqlOperator] None,
-
-        /// <summary>
-        /// The = operator.
-        /// </summary>
-        [NpgsqlOperator(Symbol = "=", ReturnType = typeof(bool))] Equal,
-
-        /// <summary>
-        /// The &lt;> operator.
-        /// </summary>
-        [NpgsqlOperator(Symbol = "<>", ReturnType = typeof(bool))] NotEqual,
-
-        /// <summary>
-        /// The &lt; operator.
-        /// </summary>
-        [NpgsqlOperator(Symbol = "<", ReturnType = typeof(bool))] LessThan,
-
-        /// <summary>
-        /// The > operator.
-        /// </summary>
-        [NpgsqlOperator(Symbol = ">", ReturnType = typeof(bool))] GreaterThan,
-
-        /// <summary>
-        /// The &lt;= operator.
-        /// </summary>
-        [NpgsqlOperator(Symbol = "<=", ReturnType = typeof(bool))] LessThanOrEqual,
-
-        /// <summary>
-        /// The >= operator.
-        /// </summary>
-        [NpgsqlOperator(Symbol = ">=", ReturnType = typeof(bool))] GreaterThanOrEqual,
-
-        /// <summary>
-        /// The @> operator.
-        /// </summary>
-        [NpgsqlOperator(Symbol = "@>", ReturnType = typeof(bool))] Contains,
-
-        /// <summary>
-        /// The &lt;@ operator.
-        /// </summary>
-        [NpgsqlOperator(Symbol = "<@", ReturnType = typeof(bool))] ContainedBy,
-
-        /// <summary>
-        /// The && operator.
-        /// </summary>
-        [NpgsqlOperator(Symbol = "&&", ReturnType = typeof(bool))] Overlaps,
-
-        /// <summary>
-        /// The &lt;&lt; operator.
-        /// </summary>
-        [NpgsqlOperator(Symbol = "<<", ReturnType = typeof(bool))] IsStrictlyLeftOf,
-
-        /// <summary>
-        /// The >> operator.
-        /// </summary>
-        [NpgsqlOperator(Symbol = ">>", ReturnType = typeof(bool))] IsStrictlyRightOf,
-
-        /// <summary>
-        /// The &amp;&lt; operator.
-        /// </summary>
-        [NpgsqlOperator(Symbol = "&<", ReturnType = typeof(bool))] DoesNotExtendRightOf,
-
-        /// <summary>
-        /// The &amp;&gt; operator.
-        /// </summary>
-        [NpgsqlOperator(Symbol = "&>", ReturnType = typeof(bool))] DoesNotExtendLeftOf,
-
-        /// <summary>
-        /// The -|- operator.
-        /// </summary>
-        [NpgsqlOperator(Symbol = "-|-", ReturnType = typeof(bool))] IsAdjacentTo,
-
-        /// <summary>
-        /// The + operator.
-        /// </summary>
-        [NpgsqlOperator(Symbol = "+", ReturnType = typeof(NpgsqlRange<>))] Union,
-
-        /// <summary>
-        /// The * operator.
-        /// </summary>
-        [NpgsqlOperator(Symbol = "*", ReturnType = typeof(NpgsqlRange<>))] Intersection,
-
-        /// <summary>
-        /// The - operator.
-        /// </summary>
-        [NpgsqlOperator(Symbol = "-", ReturnType = typeof(NpgsqlRange<>))] Difference
+        static bool TryGetSupportedTranslation([NotNull] MethodInfo methodInfo, out BinaryExpressionFunction operatorFunction) =>
+            methodInfo.IsGenericMethod
+                ? SupportedMethodTranslations.TryGetValue(methodInfo.GetGenericMethodDefinition(), out operatorFunction)
+                : SupportedMethodTranslations.TryGetValue(methodInfo, out operatorFunction);
     }
 }

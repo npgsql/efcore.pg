@@ -24,7 +24,7 @@
 #endregion
 
 using System;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators;
 using NpgsqlTypes;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL
