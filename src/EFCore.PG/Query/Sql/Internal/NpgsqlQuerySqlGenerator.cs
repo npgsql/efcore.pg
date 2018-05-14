@@ -109,6 +109,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
 
         protected override Expression VisitBinary(BinaryExpression expression)
         {
+            // We need to intercept some of the standard operators for NpgsqlRange<T>.
+            // This returns a NpgsqlRangeOperatorExpression if both conditions are met:
+            //   1. Both left and right are NpgsqlRange<T>.
+            //   2. The expression node type is one of:
+            //     - Equal
+            //     - NotEqual
+            //     - LessThan
+            //     - GreaterThan
+            //     - LessThanOrEqual
+            //     - GreaterThanOrEqual
+            //
+            // Otherwise, this is null and the method should continue.
+            NpgsqlRangeOperatorExpression rangeOperatorExpression = NpgsqlRangeOperatorExpression.TryVisitBinary(expression);
+
+            if (rangeOperatorExpression != null)
+                return VisitRangeOperator(rangeOperatorExpression);
+
             switch (expression.NodeType)
             {
             case ExpressionType.Add:
@@ -182,6 +199,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
             Visit(arrayAnyExpression.Array);
             Sql.Append(")");
             return arrayAnyExpression;
+        }
+
+        /// <summary>
+        /// Visits a <see cref="NpgsqlRangeOperatorExpression"/> and generates the operator symbols.
+        /// </summary>
+        /// <param name="rangeOperatorExpression">
+        /// The expression to visit.
+        /// </param>
+        /// <returns>
+        /// The visited expression.
+        /// </returns>
+        public Expression VisitRangeOperator(NpgsqlRangeOperatorExpression rangeOperatorExpression)
+        {
+            Visit(rangeOperatorExpression.Left);
+            Sql.Append($" {rangeOperatorExpression.OperatorSymbol} ");
+            Visit(rangeOperatorExpression.Right);
+            return rangeOperatorExpression;
         }
 
         // PostgreSQL array indexing is 1-based. If the index happens to be a constant,
