@@ -23,7 +23,6 @@
 
 #endregion
 
-using System;
 using System.Linq.Expressions;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
@@ -41,70 +40,46 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     {
         /// <inheritdoc />
         [CanBeNull]
-        public Expression Translate(MethodCallExpression methodCallExpression) =>
-            TryTranslateOperator(methodCallExpression);
-
-        /// <summary>
-        /// Attempts to translate the <see cref="MethodCallExpression"/> as a PostgreSQL range operator.
-        /// </summary>
-        /// <param name="expression">The <see cref="MethodCallExpression"/> to be translated.</param>
-        /// <returns>
-        /// The expression if successful; otherwise, null.
-        /// </returns>
-        [CanBeNull]
-        static Expression TryTranslateOperator([NotNull] MethodCallExpression expression)
+        public Expression Translate(MethodCallExpression expression)
         {
             switch (expression.Method.Name)
             {
             case nameof(NpgsqlRangeExtensions.Contains):
-                return MakeBinaryExpression(expression, "@>", typeof(bool));
+                return new CustomBinaryExpression(expression.Arguments[0], expression.Arguments[1], "@>", typeof(bool));
 
             case nameof(NpgsqlRangeExtensions.ContainedBy):
-                return MakeBinaryExpression(expression, "<@", typeof(bool));
+                return new CustomBinaryExpression(expression.Arguments[0], expression.Arguments[1], "<@", typeof(bool));
 
             case nameof(NpgsqlRangeExtensions.Overlaps):
-                return MakeBinaryExpression(expression, "&&", typeof(bool));
+                return new CustomBinaryExpression(expression.Arguments[0], expression.Arguments[1], "&&", typeof(bool));
 
             case nameof(NpgsqlRangeExtensions.IsStrictlyLeftOf):
-                return MakeBinaryExpression(expression, "<<", typeof(bool));
+                return new CustomBinaryExpression(expression.Arguments[0], expression.Arguments[1], "<<", typeof(bool));
 
             case nameof(NpgsqlRangeExtensions.IsStrictlyRightOf):
-                return MakeBinaryExpression(expression, ">>", typeof(bool));
+                return new CustomBinaryExpression(expression.Arguments[0], expression.Arguments[1], ">>", typeof(bool));
 
             case nameof(NpgsqlRangeExtensions.DoesNotExtendRightOf):
-                return MakeBinaryExpression(expression, "&<", typeof(bool));
+                return new CustomBinaryExpression(expression.Arguments[0], expression.Arguments[1], "&<", typeof(bool));
 
             case nameof(NpgsqlRangeExtensions.DoesNotExtendLeftOf):
-                return MakeBinaryExpression(expression, "&>", typeof(bool));
+                return new CustomBinaryExpression(expression.Arguments[0], expression.Arguments[1], "&>", typeof(bool));
 
             case nameof(NpgsqlRangeExtensions.IsAdjacentTo):
-                return MakeBinaryExpression(expression, "-|-", typeof(bool));
+                return new CustomBinaryExpression(expression.Arguments[0], expression.Arguments[1], "-|-", typeof(bool));
 
             case nameof(NpgsqlRangeExtensions.Union):
-                return MakeBinaryExpression(expression, "+", expression.Arguments[0].Type);
+                return new CustomBinaryExpression(expression.Arguments[0], expression.Arguments[1], "+", expression.Arguments[0].Type);
 
             case nameof(NpgsqlRangeExtensions.Intersect):
-                return MakeBinaryExpression(expression, "*", expression.Arguments[0].Type);
+                return new CustomBinaryExpression(expression.Arguments[0], expression.Arguments[1], "*", expression.Arguments[0].Type);
 
             case nameof(NpgsqlRangeExtensions.Except):
-                return MakeBinaryExpression(expression, "-", expression.Arguments[0].Type);
+                return new CustomBinaryExpression(expression.Arguments[0], expression.Arguments[1], "-", expression.Arguments[0].Type);
 
             default:
                 return null;
             }
         }
-
-        /// <summary>
-        /// Constructs a <see cref="CustomBinaryExpression"/>.
-        /// </summary>
-        /// <param name="expression">The <see cref="MethodCallExpression"/> containing two parameters.</param>
-        /// <param name="symbol">The symbolic operator for PostgreSQL.</param>
-        /// <param name="returnType">The return type of the operator.</param>
-        /// <returns>
-        /// A <see cref="CustomBinaryExpression"/>.
-        /// </returns>
-        [NotNull]
-        static Expression MakeBinaryExpression([NotNull] MethodCallExpression expression, [NotNull] string symbol, [NotNull] Type returnType) =>
-            new CustomBinaryExpression(expression.Arguments[0], expression.Arguments[1], symbol, returnType);
     }
 }
