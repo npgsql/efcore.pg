@@ -1690,6 +1690,19 @@ CREATE TABLE column_types (
                 "DROP EXTENSION postgis");
         }
 
+        [Fact]
+        public void System_tables_arent_ignored_if_explicitly_requested()
+        {
+            Test(@"CREATE EXTENSION postgis",
+                new[] {"spatial_ref_sys"},
+                Enumerable.Empty<string>(),
+                dbModel =>
+                {
+                    Assert.Equal("spatial_ref_sys", dbModel.Tables.Single().Name);
+                },
+                "DROP EXTENSION postgis");
+        }
+
         #endregion
 
         readonly List<(LogLevel Level, EventId Id, string Message)> _log = new List<(LogLevel Level, EventId Id, string Message)>();

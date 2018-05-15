@@ -136,8 +136,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
                 {
                     var table = databaseModel.Tables[i];
 
-                    // Remove some tables which shouldn't get scaffolded
-                    if (SystemTables.Contains(table.Name))
+                    // Remove some tables which shouldn't get scaffolded, unless they're explicitly mentioned
+                    // in the table list
+                    if (SystemTables.Contains(table.Name) && !tableList.Contains(table.Name))
                     {
                         databaseModel.Tables.RemoveAt(i);
                         continue;
