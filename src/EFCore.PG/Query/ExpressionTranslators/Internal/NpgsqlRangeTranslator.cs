@@ -42,6 +42,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         [CanBeNull]
         public Expression Translate(MethodCallExpression expression)
         {
+            if (expression.Method.DeclaringType != typeof(NpgsqlRangeExtensions))
+            {
+                return null;
+            }
+
             switch (expression.Method.Name)
             {
             case nameof(NpgsqlRangeExtensions.Contains):
