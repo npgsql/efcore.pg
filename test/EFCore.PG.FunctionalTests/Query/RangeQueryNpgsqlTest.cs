@@ -45,13 +45,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         /// <summary>
         /// Initializes resources for unit tests.
         /// </summary>
-        /// <param name="fixture">
-        /// The fixture of resources for testing.
-        /// </param>
+        /// <param name="fixture">The fixture of resources for testing.</param>
         public RangeQueryNpgsqlTest(RangeQueryNpgsqlFixture fixture)
         {
             Fixture = fixture;
             Fixture.TestSqlLoggerFactory.Clear();
+        }
+
+        /// <summary>
+        /// Asserts that the SQL fragment appears in the logs.
+        /// </summary>
+        /// <param name="sql">The SQL statement or fragment to search for in the logs.</param>
+        public void AssertContainsSql(string sql)
+        {
+            Assert.Contains(sql, Fixture.TestSqlLoggerFactory.Sql);
         }
 
         /// <summary>
@@ -68,7 +75,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => x.Range.Contains(range))
                            .ToArray();
 
-                Assert.Contains("WHERE x.\"Range\" @> @__range_0 = TRUE", Fixture.TestSqlLoggerFactory.Sql);
+                AssertContainsSql("WHERE x.\"Range\" @> @__range_0 = TRUE");
             }
         }
 
@@ -86,7 +93,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => !x.Range.Contains(range))
                            .ToArray();
 
-                Assert.Contains("WHERE NOT (x.\"Range\" @> @__range_0 = TRUE)", Fixture.TestSqlLoggerFactory.Sql);
+                AssertContainsSql("WHERE NOT (x.\"Range\" @> @__range_0 = TRUE)");
             }
         }
 
@@ -104,7 +111,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => x.Range.Contains(value))
                            .ToArray();
 
-                Assert.Contains("WHERE x.\"Range\" @> @__value_0", Fixture.TestSqlLoggerFactory.Sql);
+                AssertContainsSql("WHERE x.\"Range\" @> @__value_0");
             }
         }
 
@@ -122,7 +129,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => !x.Range.Contains(value))
                            .ToArray();
 
-                Assert.Contains("WHERE NOT (x.\"Range\" @> @__value_0 = TRUE)", Fixture.TestSqlLoggerFactory.Sql);
+                AssertContainsSql("WHERE NOT (x.\"Range\" @> @__value_0 = TRUE)");
             }
         }
 
@@ -140,7 +147,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => range.ContainedBy(x.Range))
                            .ToArray();
 
-                Assert.Contains("WHERE @__range_0 <@ x.\"Range\" = TRUE", Fixture.TestSqlLoggerFactory.Sql);
+                AssertContainsSql("WHERE @__range_0 <@ x.\"Range\" = TRUE");
             }
         }
 
@@ -158,7 +165,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => !range.ContainedBy(x.Range))
                            .ToArray();
 
-                Assert.Contains("WHERE NOT (@__range_0 <@ x.\"Range\" = TRUE)", Fixture.TestSqlLoggerFactory.Sql);
+                AssertContainsSql("WHERE NOT (@__range_0 <@ x.\"Range\" = TRUE)");
             }
         }
 
@@ -176,7 +183,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => x.Range == range)
                            .ToArray();
 
-                Assert.Contains("WHERE x.\"Range\" = @__range_0", Fixture.TestSqlLoggerFactory.Sql);
+                AssertContainsSql("WHERE x.\"Range\" = @__range_0");
             }
         }
 
@@ -194,7 +201,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => x.Range.Equals(range))
                            .ToArray();
 
-                Assert.Contains("WHERE x.\"Range\" = @__range_0", Fixture.TestSqlLoggerFactory.Sql);
+                AssertContainsSql("WHERE x.\"Range\" = @__range_0");
             }
         }
 
@@ -212,7 +219,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => x.Range != range)
                            .ToArray();
 
-                Assert.Contains("WHERE x.\"Range\" <> @__range_0", Fixture.TestSqlLoggerFactory.Sql);
+                AssertContainsSql("WHERE x.\"Range\" <> @__range_0");
             }
         }
 
@@ -230,7 +237,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => !x.Range.Equals(range))
                            .ToArray();
 
-                Assert.Contains("WHERE x.\"Range\" <> @__range_0", Fixture.TestSqlLoggerFactory.Sql);
+                AssertContainsSql("WHERE x.\"Range\" <> @__range_0");
             }
         }
 
@@ -248,7 +255,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => x.Range.Overlaps(range))
                            .ToArray();
 
-                Assert.Contains("WHERE x.\"Range\" && @__range_0", Fixture.TestSqlLoggerFactory.Sql);
+                AssertContainsSql("WHERE x.\"Range\" && @__range_0");
             }
         }
 
@@ -266,7 +273,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => !x.Range.Overlaps(range))
                            .ToArray();
 
-                Assert.Contains("WHERE NOT (x.\"Range\" && @__range_0 = TRUE)", Fixture.TestSqlLoggerFactory.Sql);
+                AssertContainsSql("WHERE NOT (x.\"Range\" && @__range_0 = TRUE)");
             }
         }
 
@@ -284,7 +291,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => x.Range.IsStrictlyLeftOf(range))
                            .ToArray();
 
-                Assert.Contains("WHERE x.\"Range\" << @__range_0", Fixture.TestSqlLoggerFactory.Sql);
+                AssertContainsSql("WHERE x.\"Range\" << @__range_0");
             }
         }
 
@@ -302,7 +309,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => !x.Range.IsStrictlyLeftOf(range))
                            .ToArray();
 
-                Assert.Contains("WHERE NOT (x.\"Range\" << @__range_0 = TRUE)", Fixture.TestSqlLoggerFactory.Sql);
+                AssertContainsSql("WHERE NOT (x.\"Range\" << @__range_0 = TRUE)");
             }
         }
 
@@ -320,7 +327,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => x.Range.IsStrictlyRightOf(range))
                            .ToArray();
 
-                Assert.Contains("WHERE x.\"Range\" >> @__range_0", Fixture.TestSqlLoggerFactory.Sql);
+                AssertContainsSql("WHERE x.\"Range\" >> @__range_0");
             }
         }
 
@@ -338,7 +345,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => !x.Range.IsStrictlyRightOf(range))
                            .ToArray();
 
-                Assert.Contains("WHERE NOT (x.\"Range\" >> @__range_0 = TRUE)", Fixture.TestSqlLoggerFactory.Sql);
+                AssertContainsSql("WHERE NOT (x.\"Range\" >> @__range_0 = TRUE)");
             }
         }
 
@@ -356,7 +363,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => x.Range.DoesNotExtendLeftOf(range))
                            .ToArray();
 
-                Assert.Contains("WHERE x.\"Range\" &> @__range_0", Fixture.TestSqlLoggerFactory.Sql);
+                AssertContainsSql("WHERE x.\"Range\" &> @__range_0");
             }
         }
 
@@ -374,7 +381,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => !x.Range.DoesNotExtendLeftOf(range))
                            .ToArray();
 
-                Assert.Contains("WHERE NOT (x.\"Range\" &> @__range_0 = TRUE)", Fixture.TestSqlLoggerFactory.Sql);
+                AssertContainsSql("WHERE NOT (x.\"Range\" &> @__range_0 = TRUE)");
             }
         }
 
@@ -392,7 +399,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => x.Range.DoesNotExtendRightOf(range))
                            .ToArray();
 
-                Assert.Contains("WHERE x.\"Range\" &< @__range_0", Fixture.TestSqlLoggerFactory.Sql);
+                AssertContainsSql("WHERE x.\"Range\" &< @__range_0");
             }
         }
 
@@ -410,7 +417,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => !x.Range.DoesNotExtendRightOf(range))
                            .ToArray();
 
-                Assert.Contains("WHERE NOT (x.\"Range\" &< @__range_0 = TRUE)", Fixture.TestSqlLoggerFactory.Sql);
+                AssertContainsSql("WHERE NOT (x.\"Range\" &< @__range_0 = TRUE)");
             }
         }
 
@@ -428,7 +435,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => x.Range.IsAdjacentTo(range))
                            .ToArray();
 
-                Assert.Contains("WHERE x.\"Range\" -|- @__range_0", Fixture.TestSqlLoggerFactory.Sql);
+                AssertContainsSql("WHERE x.\"Range\" -|- @__range_0");
             }
         }
 
@@ -446,7 +453,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => !x.Range.IsAdjacentTo(range))
                            .ToArray();
 
-                Assert.Contains("WHERE NOT (x.\"Range\" -|- @__range_0 = TRUE)", Fixture.TestSqlLoggerFactory.Sql);
+                AssertContainsSql("WHERE NOT (x.\"Range\" -|- @__range_0 = TRUE)");
             }
         }
 
@@ -464,7 +471,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Select(x => x.Range.Union(range))
                            .ToArray();
 
-                Assert.Contains("SELECT x.\"Range\" + @__range_0", Fixture.TestSqlLoggerFactory.Sql);
+                AssertContainsSql("SELECT x.\"Range\" + @__range_0");
             }
         }
 
@@ -482,7 +489,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Select(x => x.Range.Intersect(range))
                            .ToArray();
 
-                Assert.Contains("SELECT x.\"Range\" * @__range_0", Fixture.TestSqlLoggerFactory.Sql);
+                AssertContainsSql("SELECT x.\"Range\" * @__range_0");
             }
         }
 
@@ -507,7 +514,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                     // ignore: Npgsql.PostgresException : 22000: result of range difference would not be contiguous.
                 }
 
-                Assert.Contains("SELECT x.\"Range\" - @__range_0", Fixture.TestSqlLoggerFactory.Sql);
+                AssertContainsSql("SELECT x.\"Range\" - @__range_0");
             }
         }
     }

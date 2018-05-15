@@ -51,7 +51,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             new NpgsqlStringTrimStartTranslator(),
             new NpgsqlRegexIsMatchTranslator(),
             new NpgsqlFullTextSearchMethodTranslator(),
-            new NpgsqlRangeOperatorTranslator()
+            new NpgsqlRangeTranslator()
         };
 
         public NpgsqlCompositeMethodCallTranslator(
