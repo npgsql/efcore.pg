@@ -51,6 +51,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         /// <returns>
         /// The expression if successful; otherwise, null.
         /// </returns>
+        [CanBeNull]
         static Expression TryTranslateOperator([NotNull] MethodCallExpression expression)
         {
             switch (expression.Method.Name)
@@ -102,6 +103,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         /// <returns>
         /// A <see cref="CustomBinaryExpression"/>.
         /// </returns>
+        [NotNull]
         static Expression MakeBinaryExpression([NotNull] MethodCallExpression expression, [NotNull] string symbol, [NotNull] Type returnType) =>
             new CustomBinaryExpression(expression.Arguments[0], expression.Arguments[1], symbol, returnType);
     }
