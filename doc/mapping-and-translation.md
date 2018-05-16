@@ -64,7 +64,7 @@ Below are some Npgsql-specific translations, many additional standard ones are s
 | `.Where(c => c.SomeRange.IsStrictlyRightOf(otherRange))`   | [`WHERE x."SomeRange" >> @__otherRange_0`](https://www.postgresql.org/docs/current/static/functions-range.html#RANGE-OPERATORS-TABLE)
 | `.Where(c => c.SomeRange.DoesNotExtendLeftOf(otherRange))` | [`WHERE x."SomeRange" &> @__otherRange_0`](https://www.postgresql.org/docs/current/static/functions-range.html#RANGE-OPERATORS-TABLE)
 | `.Where(c => c.SomeRange.DoesNotExtendRightOf(otherRange))`| [`WHERE x."SomeRange" <& @__otherRange_0`](https://www.postgresql.org/docs/current/static/functions-range.html#RANGE-OPERATORS-TABLE)
-| `.Where(c => c.SomeRange.IsAdjacentTo(otherRange))`        | [`WHERE x."SomeRange" -|- @__otherRange_0`](https://www.postgresql.org/docs/current/static/functions-range.html#RANGE-OPERATORS-TABLE)
+| `.Where(c => c.SomeRange.IsAdjacentTo(otherRange))`        | [`WHERE x."SomeRange" -\|- @__otherRange_0`](https://www.postgresql.org/docs/current/static/functions-range.html#RANGE-OPERATORS-TABLE)
 | `.Where(c => c.SomeRange.Union(otherRange))`               | [`WHERE x."SomeRange" + @__otherRange_0`](https://www.postgresql.org/docs/current/static/functions-range.html#RANGE-OPERATORS-TABLE)
 | `.Where(c => c.SomeRange.Intersect(otherRange))`           | [`WHERE x."SomeRange" * @__otherRange_0`](https://www.postgresql.org/docs/current/static/functions-range.html#RANGE-OPERATORS-TABLE)
 | `.Where(c => c.SomeRange.Except(otherRange))`              | [`WHERE x."SomeRange" - @__otherRange_0`](https://www.postgresql.org/docs/current/static/functions-range.html#RANGE-OPERATORS-TABLE)
