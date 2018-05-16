@@ -7,4 +7,5 @@
 # [Mapping and Translation](mapping-and-translation.md)
 ## [Spatial (NTS)](mapping/nts.md)
 ## [Enum](mapping/enum.md)
+## [Range](mapping/range.md)
 # [Miscellaneous](misc.md)

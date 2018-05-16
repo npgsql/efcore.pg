@@ -1,7 +1,7 @@
 ## Spatial Mapping with NetTopologySuite
 
 > [!NOTE]
-> This feature is only available in Npgsql 4.0, which is currently in preview.
+> This feature is only available in Npgsql EF Core 2.1, which is currently in preview.
 
 PostgreSQL supports spatial data and operations via [the PostGIS extension](https://postgis.net/), which is a mature and feature-rich database spatial implementation. .NET doesn't provide a standard spatial library, but [NetTopologySuite](https://github.com/NetTopologySuite/NetTopologySuite) is quite a good candidate. The Npgsql EF Core provider has a plugin which allows you to map NetTopologySuite's types PostGIS columns, and even translate many useful spatial operations to SQL. This is the recommended way to interact with spatial types in Npgsql.
 

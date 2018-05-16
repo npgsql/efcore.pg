@@ -1,7 +1,7 @@
 # Date/Time Mapping with NodaTime
 
 > [!NOTE]
-> This feature is only available in Npgsql 4.0, which is currently in preview.
+> This feature is only available in Npgsql EF Core 2.1, which is currently in preview.
 
 By default, [the PostgreSQL date/time types](https://www.postgresql.org/docs/current/static/datatype-datetime.html) are mapped to the built-in .NET types (`DateTime`, `TimeSpan`). Unfortunately, these built-in types (`DateTime`, `DateTimeOffset`) are flawed in many ways; regardless of PostgreSQL or databases. The [NodaTime library](http://nodatime.org/) was created to solve many of these problems, and if your application handles dates and times in anything but the most basic way, you should seriously consider using NodaTime. To learn more [read this blog post by Jon Skeet](http://blog.nodatime.org/2011/08/what-wrong-with-datetime-anyway.html).
 
