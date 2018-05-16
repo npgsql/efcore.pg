@@ -7,10 +7,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
 {
-    public class NodaTimePlugin : IEntityFrameworkNpgsqlPlugin
+    public class NodaTimePlugin : NpgsqlEntityFrameworkPlugin
     {
-        public string Name => "NodaTime";
-        public string Description => "Plugin to map NodaTime types to PostgreSQL date/time datatypes";
+        public override string Name => "NodaTime";
+        public override string Description => "Plugin to map NodaTime types to PostgreSQL date/time datatypes";
 
         readonly TimestampInstantMapping _timestampInstant = new TimestampInstantMapping();
         readonly TimestampLocalDateTimeMapping _timestampLocalDateTime = new TimestampLocalDateTimeMapping();
@@ -24,7 +24,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
         readonly TimeTzMapping _timetz = new TimeTzMapping();
         readonly IntervalMapping _period = new IntervalMapping();
 
-        public void AddMappings(NpgsqlTypeMappingSource typeMappingSource)
+        public override void AddMappings(NpgsqlTypeMappingSource typeMappingSource)
         {
             typeMappingSource.ClrTypeMappings[typeof(Instant)] = _timestampInstant;
             typeMappingSource.ClrTypeMappings[typeof(LocalDateTime)] = _timestampLocalDateTime;
@@ -58,9 +58,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
             new NodaTimeMemberTranslator()
         };
 
-        public void AddMethodCallTranslators(NpgsqlCompositeMethodCallTranslator compositeMethodCallTranslator) {}
-
-        public void AddMemberTranslators(NpgsqlCompositeMemberTranslator compositeMemberTranslator)
+        public override void AddMemberTranslators(NpgsqlCompositeMemberTranslator compositeMemberTranslator)
             => compositeMemberTranslator.AddTranslators(MemberTranslators);
     }
 }

@@ -8,10 +8,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite
 {
-    public class NetTopologySuitePlugin : IEntityFrameworkNpgsqlPlugin
+    public class NetTopologySuitePlugin : NpgsqlEntityFrameworkPlugin
     {
-        public string Name => "NetTopologySuite";
-        public string Description => "Plugin to map PostGIS types to NetTopologySuite";
+        public override string Name => "NetTopologySuite";
+        public override string Description => "Plugin to map PostGIS types to NetTopologySuite";
 
         #region Geometry mappings
 
@@ -41,7 +41,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite
 
         #endregion Geography mappings
 
-        public void AddMappings(NpgsqlTypeMappingSource typeMappingSource)
+        public override void AddMappings(NpgsqlTypeMappingSource typeMappingSource)
         {
             typeMappingSource.ClrTypeMappings[typeof(Geometry)]           = _geometry;
             typeMappingSource.ClrTypeMappings[typeof(Point)]              = _point;
@@ -72,10 +72,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite
             new NetTopologySuiteMemberTranslator(),
         };
 
-        public void AddMethodCallTranslators(NpgsqlCompositeMethodCallTranslator compositeMethodCallTranslator)
+        public override void AddMethodCallTranslators(NpgsqlCompositeMethodCallTranslator compositeMethodCallTranslator)
             => compositeMethodCallTranslator.AddTranslators(MethodCallTranslators);
 
-        public void AddMemberTranslators(NpgsqlCompositeMemberTranslator compositeMemberTranslator)
+        public override void AddMemberTranslators(NpgsqlCompositeMemberTranslator compositeMemberTranslator)
             => compositeMemberTranslator.AddTranslators(MemberTranslators);
     }
 }

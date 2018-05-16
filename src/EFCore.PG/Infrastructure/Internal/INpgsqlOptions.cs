@@ -10,6 +10,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// </summary>
         bool ReverseNullOrderingEnabled { get; }
 
-        IReadOnlyList<IEntityFrameworkNpgsqlPlugin> Plugins { get; }
+        IReadOnlyList<NpgsqlEntityFrameworkPlugin> Plugins { get; }
     }
 }

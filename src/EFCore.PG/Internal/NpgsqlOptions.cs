@@ -33,6 +33,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
 
         public virtual bool ReverseNullOrderingEnabled { get; private set; }
 
-        public virtual IReadOnlyList<IEntityFrameworkNpgsqlPlugin> Plugins { get; private set; }
+        public virtual IReadOnlyList<NpgsqlEntityFrameworkPlugin> Plugins { get; private set; }
     }
 }

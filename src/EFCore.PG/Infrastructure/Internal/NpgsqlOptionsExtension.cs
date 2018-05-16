@@ -38,9 +38,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         public ProvideClientCertificatesCallback ProvideClientCertificatesCallback { get; private set; }
         public RemoteCertificateValidationCallback RemoteCertificateValidationCallback { get; private set; }
 
-        public IReadOnlyList<IEntityFrameworkNpgsqlPlugin> Plugins => _plugins;
+        public IReadOnlyList<NpgsqlEntityFrameworkPlugin> Plugins => _plugins;
 
-        readonly List<IEntityFrameworkNpgsqlPlugin> _plugins = new List<IEntityFrameworkNpgsqlPlugin>();
+        readonly List<NpgsqlEntityFrameworkPlugin> _plugins = new List<NpgsqlEntityFrameworkPlugin>();
 
         public NpgsqlOptionsExtension() {}
 
@@ -67,7 +67,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
             return true;
         }
 
-        public virtual NpgsqlOptionsExtension WithPlugin(IEntityFrameworkNpgsqlPlugin plugin)
+        public virtual NpgsqlOptionsExtension WithPlugin(NpgsqlEntityFrameworkPlugin plugin)
         {
             var clone = (NpgsqlOptionsExtension)Clone();
 

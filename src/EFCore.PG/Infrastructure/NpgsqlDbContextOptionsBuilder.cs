@@ -41,7 +41,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         {
         }
 
-        public virtual void UsePlugin(IEntityFrameworkNpgsqlPlugin plugin)
+        public virtual void UsePlugin(NpgsqlEntityFrameworkPlugin plugin)
             => WithOption(e => e.WithPlugin(plugin));
 
         /// <summary>
