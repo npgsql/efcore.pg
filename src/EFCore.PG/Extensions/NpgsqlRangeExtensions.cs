@@ -26,7 +26,8 @@
 using System;
 using NpgsqlTypes;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL
+// ReSharper disable once CheckNamespace
+namespace Microsoft.EntityFrameworkCore
 {
     /// <summary>
     /// Provides extension methods for <see cref="NpgsqlRange{T}"/> supporting PostgreSQL translation.

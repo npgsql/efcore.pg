@@ -25,6 +25,7 @@
 
 using System.Linq.Expressions;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 
