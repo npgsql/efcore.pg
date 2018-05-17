@@ -36,7 +36,28 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         #region Tests
 
         /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkAddressExtensions.Contains(IPAddress,IPAddress)"/>.
+        /// Demonstrates parameter duplication.
+        /// </summary>
+        [Fact(Skip = nameof(NetworkAddressQueryNpgsqlTest))]
+        public void Demonstrate_ValueTypeParametersAreDuplicated()
+        {
+            using (NetContext context = Fixture.CreateContext())
+            {
+                NpgsqlInet npgsqlInet = new IPAddress(0);
+
+                bool[] _ =
+                    context.NetTestEntities
+                           .Where(x => EF.Functions.ContainsOrEquals(x.CidrMappedToNpgsqlInet, npgsqlInet))
+                           .Select(x => x.CidrMappedToNpgsqlInet.Equals(npgsqlInet))
+                           .ToArray();
+
+                AssertContainsSql("SELECT x.\"CidrMappedToNpgsqlInet\" = @__npgsqlInet_0");
+                AssertContainsSql("WHERE x.\"CidrMappedToNpgsqlInet\" >>= @__npgsqlInet_0");
+            }
+        }
+
+        /// <summary>
+        /// Tests translation for <see cref="NpgsqlNetworkAddressExtensions.Contains(DbFunctions,IPAddress,IPAddress)"/>.
         /// </summary>
         [Fact]
         public void IPAddressContainsIPAddress()
@@ -47,7 +68,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
                 NetTestEntity[] _ =
                     context.NetTestEntities
-                           .Where(x => x.InetMappedToIPAddress.Contains(address))
+                           .Where(x => EF.Functions.Contains(x.InetMappedToIPAddress, address))
                            .ToArray();
 
                 AssertContainsSql("WHERE x.\"InetMappedToIPAddress\" >> @__address_0");
@@ -55,7 +76,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         }
 
         /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkAddressExtensions.Contains(NpgsqlInet,NpgsqlInet)"/>.
+        /// Tests translation for <see cref="NpgsqlNetworkAddressExtensions.Contains(DbFunctions,NpgsqlInet,NpgsqlInet)"/>.
         /// </summary>
         [Fact]
         public void NpgsqlInetContainsNpgsqlInet()
@@ -66,7 +87,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
                 NetTestEntity[] _ =
                     context.NetTestEntities
-                           .Where(x => x.CidrMappedToNpgsqlInet.Contains(npgsqlInet))
+                           .Where(x => EF.Functions.Contains(x.CidrMappedToNpgsqlInet, npgsqlInet))
                            .ToArray();
 
                 AssertContainsSql("WHERE x.\"CidrMappedToNpgsqlInet\" >> @__npgsqlInet_0");
@@ -74,7 +95,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         }
 
         /// <summary>
-        /// Tests inverse translation for <see cref="NpgsqlNetworkAddressExtensions.Contains(IPAddress,IPAddress)"/>.
+        /// Tests inverse translation for <see cref="NpgsqlNetworkAddressExtensions.Contains(DbFunctions,IPAddress,IPAddress)"/>.
         /// </summary>
         [Fact]
         public void IPAddressDoesNotContainsIPAddress()
@@ -85,7 +106,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
                 NetTestEntity[] _ =
                     context.NetTestEntities
-                           .Where(x => !x.InetMappedToIPAddress.Contains(address))
+                           .Where(x => !EF.Functions.Contains(x.InetMappedToIPAddress, address))
                            .ToArray();
 
                 AssertContainsSql("WHERE NOT (x.\"InetMappedToIPAddress\" >> @__address_0 = TRUE)");
@@ -93,7 +114,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         }
 
         /// <summary>
-        /// Tests inverse translation for <see cref="NpgsqlNetworkAddressExtensions.Contains(NpgsqlInet,NpgsqlInet)"/>.
+        /// Tests inverse translation for <see cref="NpgsqlNetworkAddressExtensions.Contains(DbFunctions,NpgsqlInet,NpgsqlInet)"/>.
         /// </summary>
         [Fact]
         public void NpgsqlInetDoesNotContainNpgsqlInet()
@@ -104,7 +125,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
                 NetTestEntity[] _ =
                     context.NetTestEntities
-                           .Where(x => !x.CidrMappedToNpgsqlInet.Contains(npgsqlInet))
+                           .Where(x => !EF.Functions.Contains(x.CidrMappedToNpgsqlInet, npgsqlInet))
                            .ToArray();
 
                 AssertContainsSql("WHERE NOT (x.\"CidrMappedToNpgsqlInet\" >> @__npgsqlInet_0 = TRUE)");
@@ -112,7 +133,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         }
 
         /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkAddressExtensions.Contains(IPAddress,IPAddress)"/>.
+        /// Tests translation for <see cref="NpgsqlNetworkAddressExtensions.Contains(DbFunctions,IPAddress,IPAddress)"/>.
         /// </summary>
         [Fact]
         public void IPAddressContainOrEqualIPAddress()
@@ -123,7 +144,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
                 NetTestEntity[] _ =
                     context.NetTestEntities
-                           .Where(x => x.InetMappedToIPAddress.ContainsOrEquals(address))
+                           .Where(x => EF.Functions.ContainsOrEquals(x.InetMappedToIPAddress, address))
                            .ToArray();
 
                 AssertContainsSql("WHERE x.\"InetMappedToIPAddress\" >>= @__address_0");
@@ -131,7 +152,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         }
 
         /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkAddressExtensions.Contains(NpgsqlInet,NpgsqlInet)"/>.
+        /// Tests translation for <see cref="NpgsqlNetworkAddressExtensions.Contains(DbFunctions,NpgsqlInet,NpgsqlInet)"/>.
         /// </summary>
         [Fact]
         public void NpgsqlInetContainsOrEqualsNpgsqlInet()
@@ -142,7 +163,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
                 NetTestEntity[] _ =
                     context.NetTestEntities
-                           .Where(x => x.CidrMappedToNpgsqlInet.ContainsOrEquals(npgsqlInet))
+                           .Where(x => EF.Functions.ContainsOrEquals(x.CidrMappedToNpgsqlInet, npgsqlInet))
                            .ToArray();
 
                 AssertContainsSql("WHERE x.\"CidrMappedToNpgsqlInet\" >>= @__npgsqlInet_0");
@@ -150,7 +171,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         }
 
         /// <summary>
-        /// Tests inverse translation for <see cref="NpgsqlNetworkAddressExtensions.Contains(IPAddress,IPAddress)"/>.
+        /// Tests inverse translation for <see cref="NpgsqlNetworkAddressExtensions.Contains(DbFunctions,IPAddress,IPAddress)"/>.
         /// </summary>
         [Fact]
         public void IPAddressDoesNotContainOrEqualIPAddress()
@@ -161,7 +182,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
                 NetTestEntity[] _ =
                     context.NetTestEntities
-                           .Where(x => !x.InetMappedToIPAddress.ContainsOrEquals(address))
+                           .Where(x => !EF.Functions.ContainsOrEquals(x.InetMappedToIPAddress, address))
                            .ToArray();
 
                 AssertContainsSql("WHERE NOT (x.\"InetMappedToIPAddress\" >>= @__address_0 = TRUE)");
@@ -169,7 +190,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         }
 
         /// <summary>
-        /// Tests inverse translation for <see cref="NpgsqlNetworkAddressExtensions.Contains(NpgsqlInet,NpgsqlInet)"/>.
+        /// Tests inverse translation for <see cref="NpgsqlNetworkAddressExtensions.Contains(DbFunctions,NpgsqlInet,NpgsqlInet)"/>.
         /// </summary>
         [Fact]
         public void NpgsqlInetDoesNotContainOrEqualNpgsqlInet()
@@ -180,31 +201,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
                 NetTestEntity[] _ =
                     context.NetTestEntities
-                           .Where(x => !x.CidrMappedToNpgsqlInet.ContainsOrEquals(npgsqlInet))
+                           .Where(x => !EF.Functions.ContainsOrEquals(x.CidrMappedToNpgsqlInet, npgsqlInet))
                            .ToArray();
 
                 AssertContainsSql("WHERE NOT (x.\"CidrMappedToNpgsqlInet\" >>= @__npgsqlInet_0 = TRUE)");
-            }
-        }
-
-        /// <summary>
-        /// Tests inverse translation for <see cref="NpgsqlNetworkAddressExtensions.Contains(NpgsqlInet,NpgsqlInet)"/>.
-        /// </summary>
-        [Fact]
-        public void Demonstrate_ValueTypeParametersAreDuplicated()
-        {
-            using (NetContext context = Fixture.CreateContext())
-            {
-                NpgsqlInet npgsqlInet = new IPAddress(0);
-
-                bool[] _ =
-                    context.NetTestEntities
-                           .Where(x => x.CidrMappedToNpgsqlInet.ContainsOrEquals(npgsqlInet))
-                           .Select(x => x.CidrMappedToNpgsqlInet.Equals(npgsqlInet))
-                           .ToArray();
-
-                AssertContainsSql("SELECT x.\"CidrMappedToNpgsqlInet\" = @__npgsqlInet_0");
-                AssertContainsSql("WHERE x.\"CidrMappedToNpgsqlInet\" >>= @__npgsqlInet_0");
             }
         }
 

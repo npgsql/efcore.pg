@@ -25,9 +25,11 @@
 
 using System;
 using System.Net;
+using JetBrains.Annotations;
 using NpgsqlTypes;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL
+// ReSharper disable once CheckNamespace
+namespace Microsoft.EntityFrameworkCore
 {
     /// <summary>
     /// Provides extension methods supporting PostgreSQL network address operator translation.
@@ -37,41 +39,57 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         /// <summary>
         /// Determines whether an <see cref="IPAddress"/> contains another <see cref="IPAddress"/>.
         /// </summary>
+        /// <param name="_">The DbFunctions instance.</param>
         /// <param name="ipAddress">The IP address to search.</param>
         /// <param name="other">The IP address to locate.</param>
         /// <returns>
         /// <value>true</value> if the <see cref="IPAddress"/> contains the other <see cref="IPAddress"/>; otherwise, <value>false</value>.
         /// </returns>
-        public static bool Contains(this IPAddress ipAddress, IPAddress other) => throw new NotImplementedException();
+        /// <exception cref="NotSupportedException">
+        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
+        /// </exception>
+        public static bool Contains([CanBeNull] this DbFunctions _, [CanBeNull] IPAddress ipAddress, [CanBeNull] IPAddress other) => throw new NotSupportedException();
 
         /// <summary>
         /// Determines whether an <see cref="NpgsqlInet"/> contains another <see cref="NpgsqlInet"/>.
         /// </summary>
+        /// <param name="_">The DbFunctions instance.</param>
         /// <param name="inet">The inet to search.</param>
         /// <param name="other">The inet to locate.</param>
         /// <returns>
         /// <value>true</value> if the <see cref="NpgsqlInet"/> contains the other <see cref="NpgsqlInet"/>; otherwise, <value>false</value>.
         /// </returns>
-        public static bool Contains(this NpgsqlInet inet, NpgsqlInet other) => throw new NotImplementedException();
+        /// <exception cref="NotSupportedException">
+        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
+        /// </exception>
+        public static bool Contains([CanBeNull] this DbFunctions _, NpgsqlInet inet, NpgsqlInet other) => throw new NotSupportedException();
 
         /// <summary>
         /// Determines whether an <see cref="IPAddress"/> contains or is equal to another <see cref="IPAddress"/>.
         /// </summary>
+        /// <param name="_">The DbFunctions instance.</param>
         /// <param name="ipAddress">The IP address to search.</param>
         /// <param name="other">The IP address to locate.</param>
         /// <returns>
         /// <value>true</value> if the <see cref="IPAddress"/> contains or is equal to the other <see cref="IPAddress"/>; otherwise, <value>false</value>.
         /// </returns>
-        public static bool ContainsOrEquals(this IPAddress ipAddress, IPAddress other) => throw new NotImplementedException();
+        /// <exception cref="NotSupportedException">
+        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
+        /// </exception>
+        public static bool ContainsOrEquals([CanBeNull] this DbFunctions _, [CanBeNull] IPAddress ipAddress, [CanBeNull] IPAddress other) => throw new NotSupportedException();
 
         /// <summary>
         /// Determines whether an <see cref="NpgsqlInet"/> contains or is equal to another <see cref="NpgsqlInet"/>.
         /// </summary>
+        /// <param name="_">The DbFunctions instance.</param>
         /// <param name="inet">The inet to search.</param>
         /// <param name="other">The inet to locate.</param>
         /// <returns>
         /// <value>true</value> if the <see cref="NpgsqlInet"/> contains or is equal to the other <see cref="NpgsqlInet"/>; otherwise, <value>false</value>.
         /// </returns>
-        public static bool ContainsOrEquals(this NpgsqlInet inet, NpgsqlInet other) => throw new NotImplementedException();
+        /// <exception cref="NotSupportedException">
+        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
+        /// </exception>
+        public static bool ContainsOrEquals([CanBeNull] this DbFunctions _, NpgsqlInet inet, NpgsqlInet other) => throw new NotSupportedException();
     }
 }
