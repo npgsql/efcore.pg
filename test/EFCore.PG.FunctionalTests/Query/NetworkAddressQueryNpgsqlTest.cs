@@ -187,6 +187,27 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             }
         }
 
+        /// <summary>
+        /// Tests inverse translation for <see cref="NpgsqlNetworkAddressExtensions.Contains(NpgsqlInet,NpgsqlInet)"/>.
+        /// </summary>
+        [Fact]
+        public void Demonstrate_ValueTypeParametersAreDuplicated()
+        {
+            using (NetContext context = Fixture.CreateContext())
+            {
+                NpgsqlInet npgsqlInet = new IPAddress(0);
+
+                bool[] _ =
+                    context.NetTestEntities
+                           .Where(x => x.CidrMappedToNpgsqlInet.ContainsOrEquals(npgsqlInet))
+                           .Select(x => x.CidrMappedToNpgsqlInet.Equals(npgsqlInet))
+                           .ToArray();
+
+                AssertContainsSql("SELECT x.\"CidrMappedToNpgsqlInet\" = @__npgsqlInet_0");
+                AssertContainsSql("WHERE x.\"CidrMappedToNpgsqlInet\" >>= @__npgsqlInet_0");
+            }
+        }
+
         #endregion
 
         #region Fixtures
