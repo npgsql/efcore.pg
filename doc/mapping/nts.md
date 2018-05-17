@@ -9,7 +9,7 @@ Note that the EF Core NetTopologySuite plugin depends on [the Npgsql ADO.NET Net
 
 # Setup
 
-To set up the NetTopologySuite plugin, add the [Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite nuget](https://github.com/packages/Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite) to your project. Then, make the following modification to your `UseNpgsql()` line:
+To set up the NetTopologySuite plugin, add the [Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite nuget](https://www.nuget.org/packages/Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite) to your project. Then, make the following modification to your `UseNpgsql()` line:
 
 ```c#
 protected override void OnConfiguring(DbContextOptionsBuilder builder)
