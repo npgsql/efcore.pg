@@ -62,7 +62,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
     public class NpgsqlCidrTypeMapping : NpgsqlTypeMapping
     {
-        public NpgsqlCidrTypeMapping() : base("cidr", typeof(NpgsqlInet), NpgsqlDbType.Cidr) {}
+        public NpgsqlCidrTypeMapping() : base("cidr", typeof((IPAddress, int)), NpgsqlDbType.Cidr) {}
 
         protected NpgsqlCidrTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
             : base(parameters, npgsqlDbType) {}
@@ -74,6 +74,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             => new NpgsqlCidrTypeMapping(Parameters.WithComposedConverter(converter), NpgsqlDbType);
 
         protected override string GenerateNonNullSqlLiteral(object value)
-            => $"CIDR '{(NpgsqlInet)value}'";
+        {
+            var cidr = ((IPAddress, int))value;
+            return $"CIDR '{cidr.Item1}/{cidr.Item2}'";
+        }
     }
 }

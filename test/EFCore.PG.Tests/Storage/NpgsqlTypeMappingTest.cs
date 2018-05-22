@@ -110,7 +110,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
 
         [Fact]
         public void GenerateSqlLiteral_returns_cidr_literal()
-            => Assert.Equal("CIDR '192.168.1.0/24'", GetMapping("cidr").GenerateSqlLiteral(new NpgsqlInet(IPAddress.Parse("192.168.1.0"), 24)));
+            => Assert.Equal("CIDR '192.168.1.0/24'", GetMapping("cidr").GenerateSqlLiteral((IPAddress.Parse("192.168.1.0"), 24)));
 
         #endregion Networking
 
