@@ -1,4 +1,5 @@
 ﻿#region License
+
 // The PostgreSQL License
 //
 // Copyright (C) 2016 The Npgsql Development Team
@@ -19,15 +20,14 @@
 // AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
 // ON AN "AS IS" BASIS, AND THE NPGSQL DEVELOPMENT TEAM HAS NO OBLIGATIONS
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+
 #endregion
 
 using System;
 using System.Text;
 using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using NpgsqlTypes;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
@@ -35,8 +35,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     public class NpgsqlRangeTypeMapping<T> : NpgsqlTypeMapping
     {
         public RelationalTypeMapping SubtypeMapping { get; }
-
-        readonly string EmptyLiteral;
 
         internal NpgsqlRangeTypeMapping(
             [NotNull] string storeType,
@@ -46,11 +44,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             : base(storeType, clrType, NpgsqlDbType.Range | subtypeNpgsqlDbType)
         {
             SubtypeMapping = subtypeMapping;
-            EmptyLiteral = $"'empty'::{storeType}";
         }
 
         protected NpgsqlRangeTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
-            : base(parameters, npgsqlDbType) {}
+            : base(parameters, npgsqlDbType) { }
 
         public override RelationalTypeMapping Clone(string storeType, int? size)
             => new NpgsqlRangeTypeMapping<T>(Parameters.WithStoreTypeAndSize(storeType, size), NpgsqlDbType);
@@ -61,20 +58,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         protected override string GenerateNonNullSqlLiteral(object value)
         {
             var range = (NpgsqlRange<T>)value;
-            if (range.IsEmpty)
-                return EmptyLiteral;
-
             var sb = new StringBuilder();
             sb.Append('\'');
-            sb.Append(range.LowerBoundIsInclusive ? '[' : '(');
-            if (!range.LowerBoundInfinite)
-                sb.Append(SubtypeMapping.GenerateSqlLiteral(range.LowerBound));
-            sb.Append(',');
-            if (!range.UpperBoundInfinite)
-                sb.Append(SubtypeMapping.GenerateSqlLiteral(range.UpperBound));
-            sb.Append(range.UpperBoundIsInclusive ? ']' : ')');
-            sb.Append('\'');
-            sb.Append("::");
+            sb.Append(range.ToString());
+            sb.Append("'::");
             sb.Append(StoreType);
             return sb.ToString();
         }
