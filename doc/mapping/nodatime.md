@@ -15,7 +15,7 @@ Beyond NodaTime's general advantages, some specific advantages NodaTime for Post
 
 # Setup
 
-To set up the NodaTime plugin, add the [Npgsql.NodaTime nuget](https://www.nuget.org/packages/Npgsql.NodaTime) to your project. Then, make the following modification to your `UseNpgsql()` line:
+To set up the NodaTime plugin, add the [Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime nuget](https://www.nuget.org/packages/Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime) to your project. Then, make the following modification to your `UseNpgsql()` line:
 
 ```c#
 protected override void OnConfiguring(DbContextOptionsBuilder builder)
