@@ -25,6 +25,7 @@
 
 using System.Linq.Expressions;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 
@@ -42,30 +43,59 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         [CanBeNull]
         public Expression Translate(MethodCallExpression expression)
         {
+            if (expression.Method.DeclaringType != typeof(NpgsqlNetworkAddressExtensions))
+                return null;
+
             switch (expression.Method.Name)
             {
             case nameof(NpgsqlNetworkAddressExtensions.Contains):
-                return new CustomBinaryExpression(expression.Arguments[0], expression.Arguments[1], ">>", typeof(bool));
+                return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], ">>", typeof(bool));
 
-            case nameof(NpgsqlNetworkAddressExtensions.ContainsOrEquals):
-                return new CustomBinaryExpression(expression.Arguments[0], expression.Arguments[1], ">>=", typeof(bool));
+            case nameof(NpgsqlNetworkAddressExtensions.ContainsOrEqual):
+                return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], ">>=", typeof(bool));
+
+            case nameof(NpgsqlNetworkAddressExtensions.LessThan):
+                return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], "<", typeof(bool));
+
+            case nameof(NpgsqlNetworkAddressExtensions.LessThanOrEqual):
+                return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], "<=", typeof(bool));
+
+            case nameof(NpgsqlNetworkAddressExtensions.Equal):
+                return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], "=", typeof(bool));
+
+            case nameof(NpgsqlNetworkAddressExtensions.GreaterThanOrEqual):
+                return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], ">=", typeof(bool));
+
+            case nameof(NpgsqlNetworkAddressExtensions.GreaterThan):
+                return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], ">", typeof(bool));
+
+            case nameof(NpgsqlNetworkAddressExtensions.NotEqual):
+                return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], "<>", typeof(bool));
+
+            case nameof(NpgsqlNetworkAddressExtensions.ContainedBy):
+                return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], "<<", typeof(bool));
+
+            case nameof(NpgsqlNetworkAddressExtensions.ContainedByOrEqual):
+                return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], "<<=", typeof(bool));
+
+            case nameof(NpgsqlNetworkAddressExtensions.Not):
+                return new CustomUnaryExpression(expression.Arguments[1], "~", expression.Arguments[1].Type);
+
+            case nameof(NpgsqlNetworkAddressExtensions.And):
+                return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], "&", expression.Arguments[1].Type);
+
+            case nameof(NpgsqlNetworkAddressExtensions.Or):
+                return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], "|", expression.Arguments[1].Type);
+
+            case nameof(NpgsqlNetworkAddressExtensions.Add):
+                return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], "+", expression.Arguments[1].Type);
+
+            case nameof(NpgsqlNetworkAddressExtensions.Subtract):
+                return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], "-", expression.Arguments[1].Type);
 
             default:
                 return null;
             }
         }
-//            [NpgsqlBinaryOperator(Symbol = "<", ReturnType = typeof(bool))] LessThan,
-//            [NpgsqlBinaryOperator(Symbol = "<=", ReturnType = typeof(bool))] LessThanOrEqual,
-//            [NpgsqlBinaryOperator(Symbol = "=", ReturnType = typeof(bool))] Equal,
-//            [NpgsqlBinaryOperator(Symbol = ">=", ReturnType = typeof(bool))] GreaterThanOrEqual,
-//            [NpgsqlBinaryOperator(Symbol = ">", ReturnType = typeof(bool))] GreaterThan,
-//            [NpgsqlBinaryOperator(Symbol = "<>", ReturnType = typeof(bool))] NotEqual,
-//            [NpgsqlBinaryOperator(Symbol = "<<", ReturnType = typeof(bool))] ContainedWithin,
-//            [NpgsqlBinaryOperator(Symbol = "<<=", ReturnType = typeof(bool))] ContainedWithinOrEquals,
-//            [NpgsqlBinaryOperator(Symbol = "~", ReturnType = typeof(bool))] Not,
-//            [NpgsqlBinaryOperator(Symbol = "&", ReturnType = typeof(bool))] And,
-//            [NpgsqlBinaryOperator(Symbol = "|", ReturnType = typeof(bool))] Or,
-//            [NpgsqlBinaryOperator(Symbol = "+", ReturnType = typeof(bool))] Addition,
-//            [NpgsqlBinaryOperator(Symbol = "-", ReturnType = typeof(bool))] Subtraction,
     }
 }
