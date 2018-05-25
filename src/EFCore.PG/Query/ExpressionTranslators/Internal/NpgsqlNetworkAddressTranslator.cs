@@ -50,12 +50,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
             switch (expression.Method.Name)
             {
-            case nameof(NpgsqlNetworkAddressExtensions.Contains):
-                return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], ">>", typeof(bool));
-
-            case nameof(NpgsqlNetworkAddressExtensions.ContainsOrEqual):
-                return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], ">>=", typeof(bool));
-
             case nameof(NpgsqlNetworkAddressExtensions.LessThan):
                 return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], "<", typeof(bool));
 
@@ -79,6 +73,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
             case nameof(NpgsqlNetworkAddressExtensions.ContainedByOrEqual):
                 return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], "<<=", typeof(bool));
+
+            case nameof(NpgsqlNetworkAddressExtensions.Contains):
+                return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], ">>", typeof(bool));
+
+            case nameof(NpgsqlNetworkAddressExtensions.ContainsOrEqual):
+                return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], ">>=", typeof(bool));
+
+            case nameof(NpgsqlNetworkAddressExtensions.ContainsOrContainedBy):
+                return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], "&&", typeof(bool));
 
             case nameof(NpgsqlNetworkAddressExtensions.Not):
                 return new CustomUnaryExpression(expression.Arguments[1], "~", expression.Arguments[1].Type);
