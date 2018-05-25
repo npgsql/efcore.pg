@@ -40,7 +40,7 @@ namespace Microsoft.EntityFrameworkCore
         /// Determines whether an <see cref="IPAddress"/> contains another <see cref="IPAddress"/>.
         /// </summary>
         /// <param name="_">The <see cref="DbFunctions"/> instance.</param>
-        /// <param name="ipAddress">The IP address to search.</param>
+        /// <param name="inet">The IP address to search.</param>
         /// <param name="other">The IP address to locate.</param>
         /// <returns>
         /// True if the <see cref="IPAddress"/> contains the other <see cref="IPAddress"/>; otherwise, false.
@@ -48,7 +48,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <exception cref="ClientEvaluationNotSupportedException">
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
-        public static bool Contains([CanBeNull] this DbFunctions _, IPAddress ipAddress, IPAddress other) => throw new ClientEvaluationNotSupportedException();
+        public static bool Contains([CanBeNull] this DbFunctions _, IPAddress inet, IPAddress other) => throw new ClientEvaluationNotSupportedException();
 
         /// <summary>
         /// Determines whether an (IPAddress Address, int Subnet) contains another (IPAddress Address, int Subnet).
@@ -68,7 +68,7 @@ namespace Microsoft.EntityFrameworkCore
         /// Determines whether an <see cref="IPAddress"/> contains or is equal to another <see cref="IPAddress"/>.
         /// </summary>
         /// <param name="_">The <see cref="DbFunctions"/> instance.</param>
-        /// <param name="ipAddress">The IP address to search.</param>
+        /// <param name="inet">The IP address to search.</param>
         /// <param name="other">The IP address to locate.</param>
         /// <returns>
         /// True if the <see cref="IPAddress"/> contains or is equal to the other <see cref="IPAddress"/>; otherwise, false.
@@ -76,7 +76,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <exception cref="ClientEvaluationNotSupportedException">
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
-        public static bool ContainsOrEqual([CanBeNull] this DbFunctions _, IPAddress ipAddress, IPAddress other) => throw new ClientEvaluationNotSupportedException();
+        public static bool ContainsOrEqual([CanBeNull] this DbFunctions _, IPAddress inet, IPAddress other) => throw new ClientEvaluationNotSupportedException();
 
         /// <summary>
         /// Determines whether an (IPAddress Address, int Subnet) contains or is equal to another (IPAddress Address, int Subnet).
@@ -481,5 +481,323 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static (IPAddress Address, int Subnet) Subtract([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr, (IPAddress Address, int Subnet) other) => throw new ClientEvaluationNotSupportedException();
+
+        /// <summary>
+        /// Returns the abbreviated display format as text.
+        /// </summary>
+        /// <param name="_">The <see cref="DbFunctions"/> instance.</param>
+        /// <param name="inet">The inet to abbreviate.</param>
+        /// <returns>
+        /// The abbreviated display format as text.
+        /// </returns>
+        /// <exception cref="ClientEvaluationNotSupportedException">
+        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
+        /// </exception>
+        public static string Abbreviate([CanBeNull] this DbFunctions _, IPAddress inet) => throw new ClientEvaluationNotSupportedException();
+
+        /// <summary>
+        /// Returns the abbreviated display format as text.
+        /// </summary>
+        /// <param name="_">The <see cref="DbFunctions"/> instance.</param>
+        /// <param name="cidr">The cidr to abbreviate.</param>
+        /// <returns>
+        /// The abbreviated display format as text.
+        /// </returns>
+        /// <exception cref="ClientEvaluationNotSupportedException">
+        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
+        /// </exception>
+        public static string Abbreviate([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr) => throw new ClientEvaluationNotSupportedException();
+
+        /// <summary>
+        /// Returns the broadcast address for a network.
+        /// </summary>
+        /// <param name="_">The <see cref="DbFunctions"/> instance.</param>
+        /// <param name="inet">The inet used to derive the broadcast address.</param>
+        /// <returns>
+        /// The broadcast address for a network.
+        /// </returns>
+        /// <exception cref="ClientEvaluationNotSupportedException">
+        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
+        /// </exception>
+        public static IPAddress Broadcast([CanBeNull] this DbFunctions _, IPAddress inet) => throw new ClientEvaluationNotSupportedException();
+
+        /// <summary>
+        /// Returns the broadcast address for a network.
+        /// </summary>
+        /// <param name="_">The <see cref="DbFunctions"/> instance.</param>
+        /// <param name="cidr">The cidr used to derive the broadcast address.</param>
+        /// <returns>
+        /// The broadcast address for a network.
+        /// </returns>
+        /// <exception cref="ClientEvaluationNotSupportedException">
+        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
+        /// </exception>
+        public static IPAddress Broadcast([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr) => throw new ClientEvaluationNotSupportedException();
+
+        /// <summary>
+        /// Extracts the family of an address; 4 for IPv4, 6 for IPv6.
+        /// </summary>
+        /// <param name="_">The <see cref="DbFunctions"/> instance.</param>
+        /// <param name="inet">The inet used to derive the family.</param>
+        /// <returns>
+        /// The family of an address; 4 for IPv4, 6 for IPv6.
+        /// </returns>
+        /// <exception cref="ClientEvaluationNotSupportedException">
+        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
+        /// </exception>
+        public static int Family([CanBeNull] this DbFunctions _, IPAddress inet) => throw new ClientEvaluationNotSupportedException();
+
+        /// <summary>
+        /// Extracts the family of an address; 4 for IPv4, 6 for IPv6.
+        /// </summary>
+        /// <param name="_">The <see cref="DbFunctions"/> instance.</param>
+        /// <param name="cidr">The cidr used to derive the family.</param>
+        /// <returns>
+        /// The family of an address; 4 for IPv4, 6 for IPv6.
+        /// </returns>
+        /// <exception cref="ClientEvaluationNotSupportedException">
+        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
+        /// </exception>
+        public static int Family([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr) => throw new ClientEvaluationNotSupportedException();
+
+        /// <summary>
+        /// Extracts the host (i.e. the IP address) as text.
+        /// </summary>
+        /// <param name="_">The <see cref="DbFunctions"/> instance.</param>
+        /// <param name="inet">The inet from which to extract the host.</param>
+        /// <returns>
+        /// The host (i.e. the IP address) as text.
+        /// </returns>
+        /// <exception cref="ClientEvaluationNotSupportedException">
+        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
+        /// </exception>
+        public static string Host([CanBeNull] this DbFunctions _, IPAddress inet) => throw new ClientEvaluationNotSupportedException();
+
+        /// <summary>
+        /// Extracts the host (i.e. the IP address) as text.
+        /// </summary>
+        /// <param name="_">The <see cref="DbFunctions"/> instance.</param>
+        /// <param name="cidr">The cidr from which to extract the host.</param>
+        /// <returns>
+        /// The host (i.e. the IP address) as text.
+        /// </returns>
+        /// <exception cref="ClientEvaluationNotSupportedException">
+        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
+        /// </exception>
+        public static string Host([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr) => throw new ClientEvaluationNotSupportedException();
+
+        /// <summary>
+        /// Constructs the host mask for the network.
+        /// </summary>
+        /// <param name="_">The <see cref="DbFunctions"/> instance.</param>
+        /// <param name="inet">The inet used to construct the host mask.</param>
+        /// <returns>
+        /// The constructed host mask.
+        /// </returns>
+        /// <exception cref="ClientEvaluationNotSupportedException">
+        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
+        /// </exception>
+        public static IPAddress HostMask([CanBeNull] this DbFunctions _, IPAddress inet) => throw new ClientEvaluationNotSupportedException();
+
+        /// <summary>
+        /// Constructs the host mask for the network.
+        /// </summary>
+        /// <param name="_">The <see cref="DbFunctions"/> instance.</param>
+        /// <param name="cidr">The cidr used to construct the host mask.</param>
+        /// <returns>
+        /// The constructed host mask.
+        /// </returns>
+        /// <exception cref="ClientEvaluationNotSupportedException">
+        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
+        /// </exception>
+        public static IPAddress HostMask([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr) => throw new ClientEvaluationNotSupportedException();
+
+        /// <summary>
+        /// Extracts the length of the subnet mask.
+        /// </summary>
+        /// <param name="_">The <see cref="DbFunctions"/> instance.</param>
+        /// <param name="inet">The inet used to extract the subnet length.</param>
+        /// <returns>
+        /// The length of the subnet mask.
+        /// </returns>
+        /// <exception cref="ClientEvaluationNotSupportedException">
+        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
+        /// </exception>
+        public static int SubnetLength([CanBeNull] this DbFunctions _, IPAddress inet) => throw new ClientEvaluationNotSupportedException();
+
+        /// <summary>
+        /// Extracts the length of the subnet mask.
+        /// </summary>
+        /// <param name="_">The <see cref="DbFunctions"/> instance.</param>
+        /// <param name="cidr">The cidr used to extract the subnet length.</param>
+        /// <returns>
+        /// The length of the subnet mask.
+        /// </returns>
+        /// <exception cref="ClientEvaluationNotSupportedException">
+        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
+        /// </exception>
+        public static int SubnetLength([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr) => throw new ClientEvaluationNotSupportedException();
+
+        /// <summary>
+        /// Constructs the subnet mask for the network.
+        /// </summary>
+        /// <param name="_">The <see cref="DbFunctions"/> instance.</param>
+        /// <param name="inet">The inet used to construct the subnet mask.</param>
+        /// <returns>
+        /// The subnet mask for the network.
+        /// </returns>
+        /// <exception cref="ClientEvaluationNotSupportedException">
+        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
+        /// </exception>
+        public static IPAddress SubnetMask([CanBeNull] this DbFunctions _, IPAddress inet) => throw new ClientEvaluationNotSupportedException();
+
+        /// <summary>
+        /// Constructs the subnet mask for the network.
+        /// </summary>
+        /// <param name="_">The <see cref="DbFunctions"/> instance.</param>
+        /// <param name="cidr">The cidr used to construct the subnet mask.</param>
+        /// <returns>
+        /// The subnet mask for the network.
+        /// </returns>
+        /// <exception cref="ClientEvaluationNotSupportedException">
+        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
+        /// </exception>
+        public static IPAddress SubnetMask([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr) => throw new ClientEvaluationNotSupportedException();
+
+        /// <summary>
+        /// Extracts the network part of the address.
+        /// </summary>
+        /// <param name="_">The <see cref="DbFunctions"/> instance.</param>
+        /// <param name="inet">The inet used to extract the network.</param>
+        /// <returns>
+        /// The network part of the address.
+        /// </returns>
+        /// <exception cref="ClientEvaluationNotSupportedException">
+        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
+        /// </exception>
+        public static (IPAddress Address, int Subnet) Network([CanBeNull] this DbFunctions _, IPAddress inet) => throw new ClientEvaluationNotSupportedException();
+
+        /// <summary>
+        /// Extracts the network part of the address.
+        /// </summary>
+        /// <param name="_">The <see cref="DbFunctions"/> instance.</param>
+        /// <param name="cidr">The cidr used to extract the network.</param>
+        /// <returns>
+        /// The network part of the address.
+        /// </returns>
+        /// <exception cref="ClientEvaluationNotSupportedException">
+        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
+        /// </exception>
+        public static (IPAddress Address, int Subnet) Network([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr) => throw new ClientEvaluationNotSupportedException();
+
+        /// <summary>
+        /// Sets the length of the subnet mask.
+        /// </summary>
+        /// <param name="_">The <see cref="DbFunctions"/> instance.</param>
+        /// <param name="inet">The inet to modify.</param>
+        /// <param name="length">The subnet mask length to set.</param>
+        /// <returns>
+        /// The network with a subnet mask of the specified length.
+        /// </returns>
+        /// <exception cref="ClientEvaluationNotSupportedException">
+        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
+        /// </exception>
+        public static IPAddress SetSubnetLength([CanBeNull] this DbFunctions _, IPAddress inet, int length) => throw new ClientEvaluationNotSupportedException();
+
+        /// <summary>
+        /// Sets the length of the subnet mask.
+        /// </summary>
+        /// <param name="_">The <see cref="DbFunctions"/> instance.</param>
+        /// <param name="cidr">The cidr to modify.</param>
+        /// <param name="length">The subnet mask length to set.</param>
+        /// <returns>
+        /// The network with a subnet mask of the specified length.
+        /// </returns>
+        /// <exception cref="ClientEvaluationNotSupportedException">
+        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
+        /// </exception>
+        public static (IPAddress Address, int Subnet) SetSubnetLength([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr, int length) => throw new ClientEvaluationNotSupportedException();
+
+        /// <summary>
+        /// Extracts the IP address and subnet mask as text.
+        /// </summary>
+        /// <param name="_">The <see cref="DbFunctions"/> instance.</param>
+        /// <param name="inet">The inet to extract as text.</param>
+        /// <returns>
+        /// The IP address and subnet mask as text.
+        /// </returns>
+        /// <exception cref="ClientEvaluationNotSupportedException">
+        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
+        /// </exception>
+        public static string Text([CanBeNull] this DbFunctions _, IPAddress inet) => throw new ClientEvaluationNotSupportedException();
+
+        /// <summary>
+        /// Extracts the IP address and subnet mask as text.
+        /// </summary>
+        /// <param name="_">The <see cref="DbFunctions"/> instance.</param>
+        /// <param name="cidr">The cidr to extract as text.</param>
+        /// <returns>
+        /// The IP address and subnet mask as text.
+        /// </returns>
+        /// <exception cref="ClientEvaluationNotSupportedException">
+        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
+        /// </exception>
+        public static string Text([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr) => throw new ClientEvaluationNotSupportedException();
+
+        /// <summary>
+        /// Tests if the addresses are in the same family.
+        /// </summary>
+        /// <param name="_">The <see cref="DbFunctions"/> instance.</param>
+        /// <param name="inet">The primary inet.</param>
+        /// <param name="other">The other inet.</param>
+        /// <returns>
+        /// True if the addresses are in the same family; otherwise, false.
+        /// </returns>
+        /// <exception cref="ClientEvaluationNotSupportedException">
+        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
+        /// </exception>
+        public static bool SameFamily([CanBeNull] this DbFunctions _, IPAddress inet, IPAddress other) => throw new ClientEvaluationNotSupportedException();
+
+        /// <summary>
+        /// Tests if the addresses are in the same family.
+        /// </summary>
+        /// <param name="_">The <see cref="DbFunctions"/> instance.</param>
+        /// <param name="cidr">The primary cidr.</param>
+        /// <param name="other">The other cidr.</param>
+        /// <returns>
+        /// True if the addresses are in the same family; otherwise, false.
+        /// </returns>
+        /// <exception cref="ClientEvaluationNotSupportedException">
+        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
+        /// </exception>
+        public static bool SameFamily([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr, (IPAddress Address, int Subnet) other) => throw new ClientEvaluationNotSupportedException();
+
+        /// <summary>
+        /// Constructs the smallest network which includes both of the given networks.
+        /// </summary>
+        /// <param name="_">The <see cref="DbFunctions"/> instance.</param>
+        /// <param name="inet">The first inet.</param>
+        /// <param name="other">The second inet.</param>
+        /// <returns>
+        /// The smallest network which includes both of the given networks.
+        /// </returns>
+        /// <exception cref="ClientEvaluationNotSupportedException">
+        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
+        /// </exception>
+        public static (IPAddress Address, int Subnet) Merge([CanBeNull] this DbFunctions _, IPAddress inet, IPAddress other) => throw new ClientEvaluationNotSupportedException();
+
+        /// <summary>
+        /// Constructs the smallest network which includes both of the given networks.
+        /// </summary>
+        /// <param name="_">The <see cref="DbFunctions"/> instance.</param>
+        /// <param name="cidr">The first cidr.</param>
+        /// <param name="other">The second cidr.</param>
+        /// <returns>
+        /// The smallest network which includes both of the given networks.
+        /// </returns>
+        /// <exception cref="ClientEvaluationNotSupportedException">
+        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
+        /// </exception>
+        public static (IPAddress Address, int Subnet) Merge([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr, (IPAddress Address, int Subnet) other) => throw new ClientEvaluationNotSupportedException();
     }
 }

@@ -24,6 +24,7 @@
 #endregion
 
 using System.Linq.Expressions;
+using System.Net;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
@@ -92,6 +93,42 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
             case nameof(NpgsqlNetworkAddressExtensions.Subtract):
                 return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], "-", expression.Arguments[1].Type);
+
+            case nameof(NpgsqlNetworkAddressExtensions.Abbreviate):
+                return new PgFunctionExpression("abbrev", typeof(string), new[] { expression.Arguments[1] });
+
+            case nameof(NpgsqlNetworkAddressExtensions.Broadcast):
+                return new PgFunctionExpression("broadcast", typeof(IPAddress), new[] { expression.Arguments[1] });
+
+            case nameof(NpgsqlNetworkAddressExtensions.Family):
+                return new PgFunctionExpression("family", typeof(int), new[] { expression.Arguments[1] });
+
+            case nameof(NpgsqlNetworkAddressExtensions.Host):
+                return new PgFunctionExpression("host", typeof(string), new[] { expression.Arguments[1] });
+
+            case nameof(NpgsqlNetworkAddressExtensions.HostMask):
+                return new PgFunctionExpression("hostmask", typeof(IPAddress), new[] { expression.Arguments[1] });
+
+            case nameof(NpgsqlNetworkAddressExtensions.SubnetLength):
+                return new PgFunctionExpression("masklen", typeof(int), new[] { expression.Arguments[1] });
+
+            case nameof(NpgsqlNetworkAddressExtensions.SubnetMask):
+                return new PgFunctionExpression("netmask", typeof(IPAddress), new[] { expression.Arguments[1] });
+
+            case nameof(NpgsqlNetworkAddressExtensions.Network):
+                return new PgFunctionExpression("network", typeof((IPAddress Address, int Subnet)), new[] { expression.Arguments[1] });
+
+            case nameof(NpgsqlNetworkAddressExtensions.SetSubnetLength):
+                return new PgFunctionExpression("set_masklen", expression.Arguments[1].Type, new[] { expression.Arguments[1], expression.Arguments[2] });
+
+            case nameof(NpgsqlNetworkAddressExtensions.Text):
+                return new PgFunctionExpression("text", typeof(string), new[] { expression.Arguments[1] });
+
+            case nameof(NpgsqlNetworkAddressExtensions.SameFamily):
+                return new PgFunctionExpression("inet_same_family", typeof(bool), new[] { expression.Arguments[1], expression.Arguments[2] });
+
+            case nameof(NpgsqlNetworkAddressExtensions.Merge):
+                return new PgFunctionExpression("inet_merge", typeof((IPAddress Address, int Subnet)), new[] { expression.Arguments[1], expression.Arguments[2] });
 
             default:
                 return null;
