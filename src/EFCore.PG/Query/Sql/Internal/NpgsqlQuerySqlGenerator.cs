@@ -1,4 +1,5 @@
 ﻿#region License
+
 // The PostgreSQL License
 //
 // Copyright (C) 2016 The Npgsql Development Team
@@ -19,6 +20,7 @@
 // AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
 // ON AN "AS IS" BASIS, AND THE NPGSQL DEVELOPMENT TEAM HAS NO OBLIGATIONS
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+
 #endregion
 
 using System;
@@ -27,10 +29,8 @@ using System.Linq.Expressions;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
-using Microsoft.EntityFrameworkCore.Query.Expressions.Internal;
 using Microsoft.EntityFrameworkCore.Query.Sql;
 using Microsoft.EntityFrameworkCore.Storage;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 using Remotion.Linq.Clauses;
@@ -70,11 +70,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
 
             if (selectExpression.Offset != null)
             {
-                if (selectExpression.Limit == null) {
+                if (selectExpression.Limit == null)
                     Sql.AppendLine();
-                } else {
+                else
                     Sql.Append(' ');
-                }
+
                 Sql.Append("OFFSET ");
                 Visit(selectExpression.Offset);
             }
@@ -124,6 +124,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
                     Sql.Append(")");
                     return exp;
                 }
+
                 break;
             }
 
@@ -208,22 +209,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
             }
 
             Sql.Append("('(?");
-            if (options.HasFlag(RegexOptions.IgnoreCase)) {
+            if (options.HasFlag(RegexOptions.IgnoreCase))
                 Sql.Append('i');
-            }
 
-            if (options.HasFlag(RegexOptions.Multiline)) {
+            if (options.HasFlag(RegexOptions.Multiline))
                 Sql.Append('n');
-            }
-            else if (!options.HasFlag(RegexOptions.Singleline)) {
+            else if (!options.HasFlag(RegexOptions.Singleline))
                 // In .NET's default mode, . doesn't match newlines but PostgreSQL it does.
                 Sql.Append('p');
-            }
 
             if (options.HasFlag(RegexOptions.IgnorePatternWhitespace))
-            {
                 Sql.Append('x');
-            }
 
             Sql.Append(")' || ");
             Visit(regexMatchExpression.Pattern);
@@ -278,10 +274,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
 
             Visit(castExpression.Operand);
 
-            Sql
-                .Append(" AS ")
-                .Append(castExpression.StoreType)
-                .Append(")");
+            Sql.Append(" AS ")
+               .Append(castExpression.StoreType)
+               .Append(")");
 
             //_typeMapping = parentTypeMapping;
 
@@ -296,28 +291,31 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
                 if (expression.Type == typeof(string))
                     return " || ";
                 goto default;
+
             case ExpressionType.And:
                 if (expression.Type == typeof(bool))
                     return " AND ";
                 goto default;
+
             case ExpressionType.Or:
                 if (expression.Type == typeof(bool))
                     return " OR ";
                 goto default;
+
             default:
                 return base.GenerateOperator(expression);
             }
         }
 
-        protected override void GenerateOrdering([NotNull] Ordering ordering)
+        protected override void GenerateOrdering(Ordering ordering)
         {
             base.GenerateOrdering(ordering);
 
             if (_reverseNullOrderingEnabled)
-            {
-                Sql.Append(ordering.OrderingDirection == OrderingDirection.Asc
-                           ? " NULLS FIRST" : " NULLS LAST");
-            }
+                Sql.Append(
+                    ordering.OrderingDirection == OrderingDirection.Asc
+                        ? " NULLS FIRST"
+                        : " NULLS LAST");
         }
 
         public virtual Expression VisitCustomBinary(CustomBinaryExpression expression)
@@ -367,18 +365,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
             }
             else if (!string.IsNullOrWhiteSpace(e.Schema))
             {
-                Sql
-                    .Append(SqlGenerator.DelimitIdentifier(e.Schema))
-                    .Append(".");
+                Sql.Append(SqlGenerator.DelimitIdentifier(e.Schema))
+                   .Append(".");
 
                 wroteSchema = true;
             }
 
-            Sql
-                .Append(
-                    wroteSchema
-                        ? SqlGenerator.DelimitIdentifier(e.FunctionName)
-                        : e.FunctionName);
+            Sql.Append(
+                wroteSchema
+                    ? SqlGenerator.DelimitIdentifier(e.FunctionName)
+                    : e.FunctionName);
 
             Sql.Append("(");
 
@@ -386,19 +382,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
 
             GenerateList(e.PositionalArguments);
 
-            if (e.PositionalArguments.Count > 0)
-                Sql.Append(", ");
+            bool hasArguments = e.PositionalArguments.Count > 0 && e.NamedArguments.Count > 0;
 
-            var i = 0;
             foreach (var kv in e.NamedArguments)
             {
-                Sql
-                    .Append(kv.Key)
-                    .Append(" => ");
-                Visit(kv.Value);
-
-                if (i++ < e.NamedArguments.Count - 1)
+                if (hasArguments)
                     Sql.Append(", ");
+                else
+                    hasArguments = true;
+
+                Sql.Append(kv.Key)
+                   .Append(" => ");
+
+                Visit(kv.Value);
             }
 
             Sql.Append(")");
