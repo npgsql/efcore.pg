@@ -1,7 +1,9 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Net;
+using System.Net.NetworkInformation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.DependencyInjection;
@@ -630,6 +632,45 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             }
         }
 
+        /// <summary>
+        /// Tests translation for <see cref="NpgsqlNetworkAddressExtensions.Truncate(DbFunctions,PhysicalAddress)"/>.
+        /// </summary>
+        [Fact]
+        public void PhysicalAddress_macaddr_Truncate()
+        {
+            using (NetContext context = Fixture.CreateContext())
+            {
+                var _ =
+                    context.NetTestEntities
+                           .Select(
+                               x => new
+                               {
+                                   macaddr = EF.Functions.Truncate(x.Macaddr),
+                                   macaddr8 = EF.Functions.Truncate(x.Macaddr8)
+                               })
+                           .ToArray();
+
+                AssertContainsSql("SELECT trunc(x.\"Macaddr\") AS macaddr, trunc(x.\"Macaddr8\") AS macaddr8");
+            }
+        }
+
+        /// <summary>
+        /// Tests translation for <see cref="NpgsqlNetworkAddressExtensions.Set7BitMac8(DbFunctions,PhysicalAddress)"/>.
+        /// </summary>
+        [Fact]
+        public void PhysicalAddress_macaddr_Set7BitMac8()
+        {
+            using (NetContext context = Fixture.CreateContext())
+            {
+                PhysicalAddress[] _ =
+                    context.NetTestEntities
+                           .Select(x => EF.Functions.Set7BitMac8(x.Macaddr8))
+                           .ToArray();
+
+                AssertContainsSql("SELECT macaddr8_set7bit(x.\"Macaddr8\")");
+            }
+        }
+
         #endregion
 
         #region Fixtures
@@ -733,6 +774,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             /// The network address.
             /// </summary>
             public (IPAddress Address, int Subnet) Cidr { get; set; }
+
+            /// <summary>
+            /// The MAC address.
+            /// </summary>
+            public PhysicalAddress Macaddr { get; set; }
+
+            /// <summary>
+            /// The MAC address.
+            /// </summary>
+            [Column(TypeName = "macaddr8")]
+            public PhysicalAddress Macaddr8 { get; set; }
         }
 
         /// <summary>

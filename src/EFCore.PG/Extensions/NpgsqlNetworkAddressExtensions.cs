@@ -24,6 +24,7 @@
 #endregion
 
 using System.Net;
+using System.Net.NetworkInformation;
 using JetBrains.Annotations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
@@ -799,5 +800,31 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static (IPAddress Address, int Subnet) Merge([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr, (IPAddress Address, int Subnet) other) => throw new ClientEvaluationNotSupportedException();
+
+        /// <summary>
+        /// Sets the last 3 bytes of the MAC address to zero. For macaddr8, the last 5 bytes are set to zero.
+        /// </summary>
+        /// <param name="_">The <see cref="DbFunctions"/> instance.</param>
+        /// <param name="macAddress">The MAC address to truncate.</param>
+        /// <returns>
+        /// The MAC address with the last 3 bytes set to zero. For macaddr8, the last 5 bytes are set to zero.
+        /// </returns>
+        /// <exception cref="ClientEvaluationNotSupportedException">
+        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
+        /// </exception>
+        public static PhysicalAddress Truncate([CanBeNull] this DbFunctions _, PhysicalAddress macAddress) => throw new ClientEvaluationNotSupportedException();
+
+        /// <summary>
+        /// Sets the 7th bit to one, also known as modified EUI-64, for inclusion in an IPv6 address.
+        /// </summary>
+        /// <param name="_">The <see cref="DbFunctions"/> instance.</param>
+        /// <param name="macAddress">The MAC address to modify.</param>
+        /// <returns>
+        /// The MAC address with the 7th bit set to one.
+        /// </returns>
+        /// <exception cref="ClientEvaluationNotSupportedException">
+        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
+        /// </exception>
+        public static PhysicalAddress Set7BitMac8([CanBeNull] this DbFunctions _, PhysicalAddress macAddress) => throw new ClientEvaluationNotSupportedException();
     }
 }

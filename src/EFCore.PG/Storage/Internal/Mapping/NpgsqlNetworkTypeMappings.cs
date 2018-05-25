@@ -50,7 +50,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
     public class NpgsqlMacaddr8TypeMapping : NpgsqlTypeMapping
     {
-        public NpgsqlMacaddr8TypeMapping() : base("macaddr8", typeof(PhysicalAddress), NpgsqlDbType.MacAddr8) {}
+        public NpgsqlMacaddr8TypeMapping() : base("macaddr8", typeof(PhysicalAddress), NpgsqlDbType.MacAddr8) { }
 
         protected NpgsqlMacaddr8TypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
             : base(parameters, npgsqlDbType) { }

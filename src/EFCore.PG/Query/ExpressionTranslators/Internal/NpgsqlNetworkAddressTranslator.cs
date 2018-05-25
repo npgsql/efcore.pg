@@ -25,6 +25,7 @@
 
 using System.Linq.Expressions;
 using System.Net;
+using System.Net.NetworkInformation;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
@@ -129,6 +130,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
             case nameof(NpgsqlNetworkAddressExtensions.Merge):
                 return new PgFunctionExpression("inet_merge", typeof((IPAddress Address, int Subnet)), new[] { expression.Arguments[1], expression.Arguments[2] });
+
+            case nameof(NpgsqlNetworkAddressExtensions.Truncate):
+                return new PgFunctionExpression("trunc", typeof(PhysicalAddress), new[] { expression.Arguments[1] });
+
+            case nameof(NpgsqlNetworkAddressExtensions.Set7BitMac8):
+                return new PgFunctionExpression("macaddr8_set7bit", typeof(PhysicalAddress), new[] { expression.Arguments[1] });
 
             default:
                 return null;
