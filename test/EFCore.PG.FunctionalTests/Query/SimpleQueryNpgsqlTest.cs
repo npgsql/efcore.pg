@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.TestModels.Northwind;
 using Microsoft.EntityFrameworkCore.TestUtilities;
@@ -20,7 +19,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             base.Select_expression_date_add_year();
 
             AssertSql(
-                @"SELECT o.""OrderDate"" + MAKE_INTERVAL(years => 1) AS ""OrderDate""
+                @"SELECT (o.""OrderDate"" + MAKE_INTERVAL(years => 1)) AS ""OrderDate""
 FROM ""Orders"" AS o
 WHERE o.""OrderDate"" IS NOT NULL");
         }
@@ -42,7 +41,7 @@ WHERE o.""OrderDate"" IS NOT NULL");
             AssertSql(
                 @"@__years_0='2'
 
-SELECT o.""OrderDate"" + MAKE_INTERVAL(years => @__years_0) AS ""OrderDate""
+SELECT (o.""OrderDate"" + MAKE_INTERVAL(years => @__years_0)) AS ""OrderDate""
 FROM ""Orders"" AS o
 WHERE o.""OrderDate"" IS NOT NULL");
         }
@@ -62,7 +61,7 @@ WHERE o.""OrderDate"" IS NOT NULL");
                 e => e.OrderDate);
 
             AssertSql(
-                @"SELECT o.""OrderDate"" + MAKE_INTERVAL(months => 1) AS ""OrderDate""
+                @"SELECT (o.""OrderDate"" + MAKE_INTERVAL(months => 1)) AS ""OrderDate""
 FROM ""Orders"" AS o
 WHERE o.""OrderDate"" IS NOT NULL");
         }
@@ -80,7 +79,7 @@ WHERE o.""OrderDate"" IS NOT NULL");
                 e => e.OrderDate);
 
             AssertSql(
-                @"SELECT o.""OrderDate"" + MAKE_INTERVAL(hours => 1) AS ""OrderDate""
+                @"SELECT (o.""OrderDate"" + MAKE_INTERVAL(hours => 1)) AS ""OrderDate""
 FROM ""Orders"" AS o
 WHERE o.""OrderDate"" IS NOT NULL");
         }
@@ -98,7 +97,7 @@ WHERE o.""OrderDate"" IS NOT NULL");
                 e => e.OrderDate);
 
             AssertSql(
-                @"SELECT o.""OrderDate"" + MAKE_INTERVAL(mins => 1) AS ""OrderDate""
+                @"SELECT (o.""OrderDate"" + MAKE_INTERVAL(mins => 1)) AS ""OrderDate""
 FROM ""Orders"" AS o
 WHERE o.""OrderDate"" IS NOT NULL");
         }
@@ -116,7 +115,7 @@ WHERE o.""OrderDate"" IS NOT NULL");
                 e => e.OrderDate);
 
             AssertSql(
-                @"SELECT o.""OrderDate"" + MAKE_INTERVAL(secs => 1) AS ""OrderDate""
+                @"SELECT (o.""OrderDate"" + MAKE_INTERVAL(secs => 1)) AS ""OrderDate""
 FROM ""Orders"" AS o
 WHERE o.""OrderDate"" IS NOT NULL");
         }
