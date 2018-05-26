@@ -513,7 +513,14 @@ AND
                             if (predicate != null)
                                 index.Filter = predicate;
 
-                            index[NpgsqlAnnotationNames.IndexMethod] = record.GetValueOrDefault<string>("amname");
+                            // It's cleaner to always output the index method on the database model,
+                            // even when it's btree (the default);
+                            // NpgsqlAnnotationCodeGenerator can then omit it as by-convention.
+                            // However, because of https://github.com/aspnet/EntityFrameworkCore/issues/11846 we omit
+                            // the annotation from the model entirely.
+                            var indexMethod = record.GetValueOrDefault<string>("amname");
+                            if (indexMethod != "btree")
+                                index[NpgsqlAnnotationNames.IndexMethod] = indexMethod;
 
                             table.Indexes.Add(index);
                         }

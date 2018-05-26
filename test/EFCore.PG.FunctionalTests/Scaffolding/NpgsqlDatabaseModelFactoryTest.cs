@@ -1505,8 +1505,14 @@ CREATE INDEX ix_b ON ""IndexMethod"" (b);",
                     var methodIndex = table.Indexes.Single(i => i.Name == "ix_a");
                     Assert.Equal("hash", methodIndex.FindAnnotation(NpgsqlAnnotationNames.IndexMethod).Value);
 
+                    // It's cleaner to always output the index method on the database model,
+                    // even when it's btree (the default);
+                    // NpgsqlAnnotationCodeGenerator can then omit it as by-convention.
+                    // However, because of https://github.com/aspnet/EntityFrameworkCore/issues/11846 we omit
+                    // the annotation from the model entirely.
                     var noMethodIndex = table.Indexes.Single(i => i.Name == "ix_b");
-                    Assert.Equal("btree", noMethodIndex.FindAnnotation(NpgsqlAnnotationNames.IndexMethod).Value);
+                    Assert.Null(noMethodIndex.FindAnnotation(NpgsqlAnnotationNames.IndexMethod));
+                    //Assert.Equal("btree", noMethodIndex.FindAnnotation(NpgsqlAnnotationNames.IndexMethod).Value);
                 },
                 @"DROP TABLE ""IndexMethod""");
         }
