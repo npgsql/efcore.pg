@@ -32,13 +32,13 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 namespace Microsoft.EntityFrameworkCore
 {
     /// <summary>
-    /// Provides extension methods supporting PostgreSQL network address operator translation.
+    /// Provides extension methods supporting operator translation for PostgreSQL network types.
     /// </summary>
     /// <remarks>
     /// See: https://www.postgresql.org/docs/current/static/functions-net.html
     /// </remarks>
     [PublicAPI]
-    public static class NpgsqlNetworkAddressExtensions
+    public static class NpgsqlNetworkExtensions
     {
         #region RelationalOperators
 
