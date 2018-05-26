@@ -1,4 +1,5 @@
 #region License
+
 // The PostgreSQL License
 //
 // Copyright (C) 2016 The Npgsql Development Team
@@ -19,6 +20,7 @@
 // AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
 // ON AN "AS IS" BASIS, AND THE NPGSQL DEVELOPMENT TEAM HAS NO OBLIGATIONS
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+
 #endregion
 
 using System;
@@ -30,11 +32,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
-using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using Npgsql.TypeHandlers;
@@ -199,40 +199,41 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
             var clrTypeMappings = new Dictionary<Type, RelationalTypeMapping>
             {
-                { typeof(bool),                       _bool           },
-                { typeof(byte[]),                     _bytea          },
-                { typeof(float),                      _float4         },
-                { typeof(double),                     _float8         },
-                { typeof(decimal),                    _numeric        },
-                { typeof(Guid),                       _uuid           },
-                { typeof(byte),                       _int2Byte       },
-                { typeof(short),                      _int2           },
-                { typeof(int),                        _int4           },
-                { typeof(long),                       _int8           },
-                { typeof(string),                     _text           },
-                { typeof(char),                       _singleChar     },
-                { typeof(DateTime),                   _timestamp      },
-                { typeof(TimeSpan),                   _interval       },
-                { typeof(DateTimeOffset),             _timestamptzDto },
-                { typeof(PhysicalAddress),            _macaddr        },
-                { typeof(IPAddress),                  _inet           },
-                { typeof(BitArray),                   _varbit         },
-                { typeof(Dictionary<string, string>), _hstore         },
-                { typeof(NpgsqlPoint),                _point          },
-                { typeof(NpgsqlBox),                  _box            },
-                { typeof(NpgsqlLine),                 _line           },
-                { typeof(NpgsqlLSeg),                 _lseg           },
-                { typeof(NpgsqlPath),                 _path           },
-                { typeof(NpgsqlPolygon),              _polygon        },
-                { typeof(NpgsqlCircle),               _circle         },
+                { typeof(bool),                         _bool                 },
+                { typeof(byte[]),                       _bytea                },
+                { typeof(float),                        _float4               },
+                { typeof(double),                       _float8               },
+                { typeof(decimal),                      _numeric              },
+                { typeof(Guid),                         _uuid                 },
+                { typeof(byte),                         _int2Byte             },
+                { typeof(short),                        _int2                 },
+                { typeof(int),                          _int4                 },
+                { typeof(long),                         _int8                 },
+                { typeof(string),                       _text                 },
+                { typeof(char),                         _singleChar           },
+                { typeof(DateTime),                     _timestamp            },
+                { typeof(TimeSpan),                     _interval             },
+                { typeof(DateTimeOffset),               _timestamptzDto       },
+                { typeof(PhysicalAddress),              _macaddr              },
+                { typeof(IPAddress),                    _inet                 },
+                { typeof((IPAddress, int)),             _cidr                 },
+                { typeof(BitArray),                     _varbit               },
+                { typeof(Dictionary<string, string>),   _hstore               },
+                { typeof(NpgsqlPoint),                  _point                },
+                { typeof(NpgsqlBox),                    _box                  },
+                { typeof(NpgsqlLine),                   _line                 },
+                { typeof(NpgsqlLSeg),                   _lseg                 },
+                { typeof(NpgsqlPath),                   _path                 },
+                { typeof(NpgsqlPolygon),                _polygon              },
+                { typeof(NpgsqlCircle),                 _circle               },
 
-                { typeof(NpgsqlRange<int>),           _int4range      },
-                { typeof(NpgsqlRange<long>),          _int8range      },
-                { typeof(NpgsqlRange<decimal>),       _numrange       },
-                { typeof(NpgsqlRange<DateTime>),      _tsrange        },
+                { typeof(NpgsqlRange<int>),             _int4range            },
+                { typeof(NpgsqlRange<long>),            _int8range            },
+                { typeof(NpgsqlRange<decimal>),         _numrange             },
+                { typeof(NpgsqlRange<DateTime>),        _tsrange              },
 
-                { typeof(NpgsqlTsQuery),              _tsquery        },
-                { typeof(NpgsqlTsVector),             _tsvector       },
+                { typeof(NpgsqlTsQuery),                _tsquery              },
+                { typeof(NpgsqlTsVector),               _tsvector             },
                 { typeof(NpgsqlTsRankingNormalization), _rankingNormalization }
             };
 
@@ -286,10 +287,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
             // We couldn't find a base (simple) type mapping. Try to find an array.
             var arrayMapping = FindArrayMapping(mappingInfo);
-            if (arrayMapping != null)
-                return arrayMapping;
-
-            return null;
+            return arrayMapping ?? null;
         }
 
         protected virtual RelationalTypeMapping FindBaseTypeMapping(in RelationalTypeMappingInfo mappingInfo)
