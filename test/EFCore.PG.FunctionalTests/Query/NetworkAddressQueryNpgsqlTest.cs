@@ -16,6 +16,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
     /// <summary>
     /// Provides unit tests for network address operator and function translations.
     /// </summary>
+    /// <remarks>
+    /// See: https://www.postgresql.org/docs/current/static/functions-net.html
+    /// </remarks>
     public class NetworkAddressQueryNpgsqlTest : IClassFixture<NetworkAddressQueryNpgsqlTest.NetworkAddressQueryNpgsqlFixture>
     {
         #region Setup
@@ -47,7 +50,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             using (NetContext context = Fixture.CreateContext())
             {
-                (IPAddress Address, int Subnet) cidr = (new IPAddress(0), 0);
+                (IPAddress Address, int Subnet) cidr = (IPAddress.Any, default);
 
                 bool[] _ =
                     context.NetTestEntities
@@ -62,7 +65,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         #endregion
 
-        #region OperatorTests
+        #region RelationalOperatorTests
 
         /// <summary>
         /// Tests inverse translation for <see cref="NpgsqlNetworkAddressExtensions.LessThan(DbFunctions,IPAddress,IPAddress)"/>.
@@ -72,7 +75,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             using (NetContext context = Fixture.CreateContext())
             {
-                IPAddress inet = new IPAddress(0);
+                IPAddress inet = IPAddress.Any;
 
                 NetTestEntity[] _ =
                     context.NetTestEntities
@@ -91,7 +94,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             using (NetContext context = Fixture.CreateContext())
             {
-                (IPAddress Address, int Subnet) cidr = (new IPAddress(0), 0);
+                (IPAddress Address, int Subnet) cidr = (IPAddress.Any, default);
 
                 NetTestEntity[] _ =
                     context.NetTestEntities
@@ -103,6 +106,44 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         }
 
         /// <summary>
+        /// Tests inverse translation for <see cref="NpgsqlNetworkAddressExtensions.LessThan(DbFunctions,PhysicalAddress,PhysicalAddress)"/>.
+        /// </summary>
+        [Fact]
+        public void PhysicalAddress_macaddr_LessThan_macaddr()
+        {
+            using (NetContext context = Fixture.CreateContext())
+            {
+                PhysicalAddress macaddr = new PhysicalAddress(new byte[6]);
+
+                NetTestEntity[] _ =
+                    context.NetTestEntities
+                           .Where(x => EF.Functions.LessThan(x.Macaddr, macaddr))
+                           .ToArray();
+
+                AssertContainsSql("WHERE (x.\"Macaddr\" < @__macaddr_1) = TRUE");
+            }
+        }
+
+        /// <summary>
+        /// Tests inverse translation for <see cref="NpgsqlNetworkAddressExtensions.LessThan(DbFunctions,PhysicalAddress,PhysicalAddress)"/>.
+        /// </summary>
+        [Fact]
+        public void PhysicalAddress_macaddr8_LessThan_macaddr8()
+        {
+            using (NetContext context = Fixture.CreateContext())
+            {
+                PhysicalAddress macaddr8 = new PhysicalAddress(new byte[8]);
+
+                NetTestEntity[] _ =
+                    context.NetTestEntities
+                           .Where(x => EF.Functions.LessThan(x.Macaddr8, macaddr8))
+                           .ToArray();
+
+                AssertContainsSql("WHERE (x.\"Macaddr8\" < @__macaddr8_1) = TRUE");
+            }
+        }
+
+        /// <summary>
         /// Tests inverse translation for <see cref="NpgsqlNetworkAddressExtensions.LessThanOrEqual(DbFunctions,IPAddress,IPAddress)"/>.
         /// </summary>
         [Fact]
@@ -110,7 +151,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             using (NetContext context = Fixture.CreateContext())
             {
-                IPAddress inet = new IPAddress(0);
+                IPAddress inet = IPAddress.Any;
 
                 NetTestEntity[] _ =
                     context.NetTestEntities
@@ -129,7 +170,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             using (NetContext context = Fixture.CreateContext())
             {
-                (IPAddress Address, int Subnet) cidr = (new IPAddress(0), 0);
+                (IPAddress Address, int Subnet) cidr = (IPAddress.Any, default);
 
                 NetTestEntity[] _ =
                     context.NetTestEntities
@@ -141,6 +182,44 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         }
 
         /// <summary>
+        /// Tests inverse translation for <see cref="NpgsqlNetworkAddressExtensions.LessThanOrEqual(DbFunctions,PhysicalAddress,PhysicalAddress)"/>.
+        /// </summary>
+        [Fact]
+        public void PhysicalAddress_macaddr_LessThanOrEqual_macaddr()
+        {
+            using (NetContext context = Fixture.CreateContext())
+            {
+                PhysicalAddress macaddr = new PhysicalAddress(new byte[6]);
+
+                NetTestEntity[] _ =
+                    context.NetTestEntities
+                           .Where(x => EF.Functions.LessThanOrEqual(x.Macaddr, macaddr))
+                           .ToArray();
+
+                AssertContainsSql("WHERE (x.\"Macaddr\" <= @__macaddr_1) = TRUE");
+            }
+        }
+
+        /// <summary>
+        /// Tests inverse translation for <see cref="NpgsqlNetworkAddressExtensions.LessThanOrEqual(DbFunctions,PhysicalAddress,PhysicalAddress)"/>.
+        /// </summary>
+        [Fact]
+        public void PhysicalAddress_macaddr8_LessThanOrEqual_macaddr8()
+        {
+            using (NetContext context = Fixture.CreateContext())
+            {
+                PhysicalAddress macaddr8 = new PhysicalAddress(new byte[8]);
+
+                NetTestEntity[] _ =
+                    context.NetTestEntities
+                           .Where(x => EF.Functions.LessThanOrEqual(x.Macaddr8, macaddr8))
+                           .ToArray();
+
+                AssertContainsSql("WHERE (x.\"Macaddr8\" <= @__macaddr8_1) = TRUE");
+            }
+        }
+
+        /// <summary>
         /// Tests inverse translation for <see cref="NpgsqlNetworkAddressExtensions.Equal(DbFunctions,IPAddress,IPAddress)"/>.
         /// </summary>
         [Fact]
@@ -148,7 +227,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             using (NetContext context = Fixture.CreateContext())
             {
-                IPAddress inet = new IPAddress(0);
+                IPAddress inet = IPAddress.Any;
 
                 NetTestEntity[] _ =
                     context.NetTestEntities
@@ -167,7 +246,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             using (NetContext context = Fixture.CreateContext())
             {
-                (IPAddress Address, int Subnet) cidr = (new IPAddress(0), 0);
+                (IPAddress Address, int Subnet) cidr = (IPAddress.Any, default);
 
                 NetTestEntity[] _ =
                     context.NetTestEntities
@@ -179,6 +258,44 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         }
 
         /// <summary>
+        /// Tests inverse translation for <see cref="NpgsqlNetworkAddressExtensions.Equal(DbFunctions,PhysicalAddress,PhysicalAddress)"/>.
+        /// </summary>
+        [Fact]
+        public void PhysicalAddress_macaddr_Equal_macaddr()
+        {
+            using (NetContext context = Fixture.CreateContext())
+            {
+                PhysicalAddress macaddr = new PhysicalAddress(new byte[6]);
+
+                NetTestEntity[] _ =
+                    context.NetTestEntities
+                           .Where(x => EF.Functions.Equal(x.Macaddr, macaddr))
+                           .ToArray();
+
+                AssertContainsSql("WHERE (x.\"Macaddr\" = @__macaddr_1) = TRUE");
+            }
+        }
+
+        /// <summary>
+        /// Tests inverse translation for <see cref="NpgsqlNetworkAddressExtensions.Equal(DbFunctions,PhysicalAddress,PhysicalAddress)"/>.
+        /// </summary>
+        [Fact]
+        public void PhysicalAddress_macaddr8_Equal_macaddr8()
+        {
+            using (NetContext context = Fixture.CreateContext())
+            {
+                PhysicalAddress macaddr8 = new PhysicalAddress(new byte[8]);
+
+                NetTestEntity[] _ =
+                    context.NetTestEntities
+                           .Where(x => EF.Functions.Equal(x.Macaddr8, macaddr8))
+                           .ToArray();
+
+                AssertContainsSql("WHERE (x.\"Macaddr8\" = @__macaddr8_1) = TRUE");
+            }
+        }
+
+        /// <summary>
         /// Tests inverse translation for <see cref="NpgsqlNetworkAddressExtensions.GreaterThanOrEqual(DbFunctions,IPAddress,IPAddress)"/>.
         /// </summary>
         [Fact]
@@ -186,7 +303,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             using (NetContext context = Fixture.CreateContext())
             {
-                IPAddress inet = new IPAddress(0);
+                IPAddress inet = IPAddress.Any;
 
                 NetTestEntity[] _ =
                     context.NetTestEntities
@@ -205,7 +322,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             using (NetContext context = Fixture.CreateContext())
             {
-                (IPAddress Address, int Subnet) cidr = (new IPAddress(0), 0);
+                (IPAddress Address, int Subnet) cidr = (IPAddress.Any, default);
 
                 NetTestEntity[] _ =
                     context.NetTestEntities
@@ -217,6 +334,44 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         }
 
         /// <summary>
+        /// Tests inverse translation for <see cref="NpgsqlNetworkAddressExtensions.GreaterThanOrEqual(DbFunctions,PhysicalAddress,PhysicalAddress)"/>.
+        /// </summary>
+        [Fact]
+        public void PhysicalAddress_macaddr_GreaterThanOrEqual_macaddr()
+        {
+            using (NetContext context = Fixture.CreateContext())
+            {
+                PhysicalAddress macaddr = new PhysicalAddress(new byte[6]);
+
+                NetTestEntity[] _ =
+                    context.NetTestEntities
+                           .Where(x => EF.Functions.GreaterThanOrEqual(x.Macaddr, macaddr))
+                           .ToArray();
+
+                AssertContainsSql("WHERE (x.\"Macaddr\" >= @__macaddr_1) = TRUE");
+            }
+        }
+
+        /// <summary>
+        /// Tests inverse translation for <see cref="NpgsqlNetworkAddressExtensions.GreaterThanOrEqual(DbFunctions,PhysicalAddress,PhysicalAddress)"/>.
+        /// </summary>
+        [Fact]
+        public void PhysicalAddress_macaddr8_GreaterThanOrEqual_macaddr8()
+        {
+            using (NetContext context = Fixture.CreateContext())
+            {
+                PhysicalAddress macaddr8 = new PhysicalAddress(new byte[8]);
+
+                NetTestEntity[] _ =
+                    context.NetTestEntities
+                           .Where(x => EF.Functions.GreaterThanOrEqual(x.Macaddr8, macaddr8))
+                           .ToArray();
+
+                AssertContainsSql("WHERE (x.\"Macaddr8\" >= @__macaddr8_1) = TRUE");
+            }
+        }
+
+        /// <summary>
         /// Tests inverse translation for <see cref="NpgsqlNetworkAddressExtensions.GreaterThan(DbFunctions,IPAddress,IPAddress)"/>.
         /// </summary>
         [Fact]
@@ -224,7 +379,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             using (NetContext context = Fixture.CreateContext())
             {
-                IPAddress inet = new IPAddress(0);
+                IPAddress inet = IPAddress.Any;
 
                 NetTestEntity[] _ =
                     context.NetTestEntities
@@ -243,7 +398,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             using (NetContext context = Fixture.CreateContext())
             {
-                (IPAddress Address, int Subnet) cidr = (new IPAddress(0), 0);
+                (IPAddress Address, int Subnet) cidr = (IPAddress.Any, default);
 
                 NetTestEntity[] _ =
                     context.NetTestEntities
@@ -255,6 +410,44 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         }
 
         /// <summary>
+        /// Tests inverse translation for <see cref="NpgsqlNetworkAddressExtensions.GreaterThan(DbFunctions,PhysicalAddress,PhysicalAddress)"/>.
+        /// </summary>
+        [Fact]
+        public void PhysicalAddress_macaddr_GreaterThan_macaddr()
+        {
+            using (NetContext context = Fixture.CreateContext())
+            {
+                PhysicalAddress macaddr = new PhysicalAddress(new byte[6]);
+
+                NetTestEntity[] _ =
+                    context.NetTestEntities
+                           .Where(x => EF.Functions.GreaterThan(x.Macaddr, macaddr))
+                           .ToArray();
+
+                AssertContainsSql("WHERE (x.\"Macaddr\" > @__macaddr_1) = TRUE");
+            }
+        }
+
+        /// <summary>
+        /// Tests inverse translation for <see cref="NpgsqlNetworkAddressExtensions.GreaterThan(DbFunctions,PhysicalAddress,PhysicalAddress)"/>.
+        /// </summary>
+        [Fact]
+        public void PhysicalAddress_macaddr8_GreaterThan_macaddr8()
+        {
+            using (NetContext context = Fixture.CreateContext())
+            {
+                PhysicalAddress macaddr8 = new PhysicalAddress(new byte[8]);
+
+                NetTestEntity[] _ =
+                    context.NetTestEntities
+                           .Where(x => EF.Functions.GreaterThan(x.Macaddr8, macaddr8))
+                           .ToArray();
+
+                AssertContainsSql("WHERE (x.\"Macaddr8\" > @__macaddr8_1) = TRUE");
+            }
+        }
+
+        /// <summary>
         /// Tests inverse translation for <see cref="NpgsqlNetworkAddressExtensions.NotEqual(DbFunctions,IPAddress,IPAddress)"/>.
         /// </summary>
         [Fact]
@@ -262,7 +455,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             using (NetContext context = Fixture.CreateContext())
             {
-                IPAddress inet = new IPAddress(0);
+                IPAddress inet = IPAddress.Any;
 
                 NetTestEntity[] _ =
                     context.NetTestEntities
@@ -281,7 +474,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             using (NetContext context = Fixture.CreateContext())
             {
-                (IPAddress Address, int Subnet) cidr = (new IPAddress(0), 0);
+                (IPAddress Address, int Subnet) cidr = (IPAddress.Any, default);
 
                 NetTestEntity[] _ =
                     context.NetTestEntities
@@ -293,6 +486,48 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         }
 
         /// <summary>
+        /// Tests inverse translation for <see cref="NpgsqlNetworkAddressExtensions.NotEqual(DbFunctions,PhysicalAddress,PhysicalAddress)"/>.
+        /// </summary>
+        [Fact]
+        public void PhysicalAddress_macaddr_NotEqual_macaddr()
+        {
+            using (NetContext context = Fixture.CreateContext())
+            {
+                PhysicalAddress macaddr = new PhysicalAddress(new byte[6]);
+
+                NetTestEntity[] _ =
+                    context.NetTestEntities
+                           .Where(x => EF.Functions.NotEqual(x.Macaddr, macaddr))
+                           .ToArray();
+
+                AssertContainsSql("WHERE (x.\"Macaddr\" <> @__macaddr_1) = TRUE");
+            }
+        }
+
+        /// <summary>
+        /// Tests inverse translation for <see cref="NpgsqlNetworkAddressExtensions.NotEqual(DbFunctions,PhysicalAddress,PhysicalAddress)"/>.
+        /// </summary>
+        [Fact]
+        public void PhysicalAddress_macaddr8_NotEqual_macaddr8()
+        {
+            using (NetContext context = Fixture.CreateContext())
+            {
+                PhysicalAddress macaddr8 = new PhysicalAddress(new byte[8]);
+
+                NetTestEntity[] _ =
+                    context.NetTestEntities
+                           .Where(x => EF.Functions.NotEqual(x.Macaddr8, macaddr8))
+                           .ToArray();
+
+                AssertContainsSql("WHERE (x.\"Macaddr8\" <> @__macaddr8_1) = TRUE");
+            }
+        }
+
+        #endregion
+
+        #region ContainmentOperatorTests
+
+        /// <summary>
         /// Tests inverse translation for <see cref="NpgsqlNetworkAddressExtensions.ContainedBy(DbFunctions,IPAddress,IPAddress)"/>.
         /// </summary>
         [Fact]
@@ -300,7 +535,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             using (NetContext context = Fixture.CreateContext())
             {
-                IPAddress inet = new IPAddress(0);
+                IPAddress inet = IPAddress.Any;
 
                 NetTestEntity[] _ =
                     context.NetTestEntities
@@ -319,7 +554,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             using (NetContext context = Fixture.CreateContext())
             {
-                (IPAddress Address, int Subnet) cidr = (new IPAddress(0), 0);
+                (IPAddress Address, int Subnet) cidr = (IPAddress.Any, default);
 
                 NetTestEntity[] _ =
                     context.NetTestEntities
@@ -338,7 +573,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             using (NetContext context = Fixture.CreateContext())
             {
-                IPAddress inet = new IPAddress(0);
+                IPAddress inet = IPAddress.Any;
 
                 NetTestEntity[] _ =
                     context.NetTestEntities
@@ -357,7 +592,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             using (NetContext context = Fixture.CreateContext())
             {
-                (IPAddress Address, int Subnet) cidr = (new IPAddress(0), 0);
+                (IPAddress Address, int Subnet) cidr = (IPAddress.Any, default);
 
                 NetTestEntity[] _ =
                     context.NetTestEntities
@@ -376,7 +611,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             using (NetContext context = Fixture.CreateContext())
             {
-                IPAddress inet = new IPAddress(0);
+                IPAddress inet = IPAddress.Any;
 
                 NetTestEntity[] _ =
                     context.NetTestEntities
@@ -395,7 +630,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             using (NetContext context = Fixture.CreateContext())
             {
-                (IPAddress Address, int Subnet) cidr = (new IPAddress(0), 0);
+                (IPAddress Address, int Subnet) cidr = (IPAddress.Any, default);
 
                 NetTestEntity[] _ =
                     context.NetTestEntities
@@ -414,7 +649,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             using (NetContext context = Fixture.CreateContext())
             {
-                IPAddress inet = new IPAddress(0);
+                IPAddress inet = IPAddress.Any;
 
                 NetTestEntity[] _ =
                     context.NetTestEntities
@@ -433,7 +668,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             using (NetContext context = Fixture.CreateContext())
             {
-                (IPAddress Address, int Subnet) cidr = (new IPAddress(0), 0);
+                (IPAddress Address, int Subnet) cidr = (IPAddress.Any, default);
 
                 NetTestEntity[] _ =
                     context.NetTestEntities
@@ -452,7 +687,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             using (NetContext context = Fixture.CreateContext())
             {
-                IPAddress inet = new IPAddress(0);
+                IPAddress inet = IPAddress.Any;
 
                 NetTestEntity[] _ =
                     context.NetTestEntities
@@ -471,7 +706,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             using (NetContext context = Fixture.CreateContext())
             {
-                (IPAddress Address, int Subnet) cidr = (new IPAddress(0), 0);
+                (IPAddress Address, int Subnet) cidr = (IPAddress.Any, default);
 
                 NetTestEntity[] _ =
                     context.NetTestEntities
@@ -481,6 +716,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 AssertContainsSql("WHERE x.\"Cidr\" && @__cidr_1 = TRUE");
             }
         }
+
+        #endregion
+
+        #region BitwiseOperatorTests
 
         /// <summary>
         /// Tests inverse translation for <see cref="NpgsqlNetworkAddressExtensions.Not(DbFunctions,IPAddress)"/>.
@@ -524,7 +763,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             using (NetContext context = Fixture.CreateContext())
             {
-                IPAddress inet = new IPAddress(0);
+                IPAddress inet = IPAddress.Any;
 
                 IPAddress[] _ =
                     context.NetTestEntities
@@ -543,7 +782,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             using (NetContext context = Fixture.CreateContext())
             {
-                (IPAddress Address, int Subnet) cidr = (new IPAddress(0), 0);
+                (IPAddress Address, int Subnet) cidr = (IPAddress.Any, default);
 
                 (IPAddress Address, int Subnet)[] _ =
                     context.NetTestEntities
@@ -562,7 +801,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             using (NetContext context = Fixture.CreateContext())
             {
-                IPAddress inet = new IPAddress(0);
+                IPAddress inet = IPAddress.Any;
 
                 IPAddress[] _ =
                     context.NetTestEntities
@@ -581,7 +820,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             using (NetContext context = Fixture.CreateContext())
             {
-                (IPAddress Address, int Subnet) cidr = (new IPAddress(0), 0);
+                (IPAddress Address, int Subnet) cidr = (IPAddress.Any, default);
 
                 (IPAddress Address, int Subnet)[] _ =
                     context.NetTestEntities
@@ -591,6 +830,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 AssertContainsSql("SELECT x.\"Cidr\" | @__cidr_1");
             }
         }
+
+        #endregion
+
+        #region ArithmeticOperatorTests
 
         /// <summary>
         /// Tests translation for <see cref="NpgsqlNetworkAddressExtensions.Add(DbFunctions,IPAddress,int)"/>.
@@ -668,7 +911,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             using (NetContext context = Fixture.CreateContext())
             {
-                IPAddress inet = new IPAddress(0);
+                IPAddress inet = IPAddress.Any;
 
                 IPAddress[] _ =
                     context.NetTestEntities
@@ -687,7 +930,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             using (NetContext context = Fixture.CreateContext())
             {
-                (IPAddress Address, int Subnet) cidr = (new IPAddress(0), 0);
+                (IPAddress Address, int Subnet) cidr = (IPAddress.Any, default);
 
                 (IPAddress Address, int Subnet)[] _ =
                     context.NetTestEntities
@@ -984,7 +1227,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             {
                 IPAddress[] _ =
                     context.NetTestEntities
-                           .Select(x => EF.Functions.SetSubnetLength(x.Inet, 0))
+                           .Select(x => EF.Functions.SetSubnetLength(x.Inet, default))
                            .ToArray();
 
                 AssertContainsSql("SELECT set_masklen(x.\"Inet\", 0)");
@@ -1001,7 +1244,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             {
                 (IPAddress Address, int Subnet)[] _ =
                     context.NetTestEntities
-                           .Select(x => EF.Functions.SetSubnetLength(x.Cidr, 0))
+                           .Select(x => EF.Functions.SetSubnetLength(x.Cidr, default))
                            .ToArray();
 
                 AssertContainsSql("SELECT set_masklen(x.\"Cidr\", 0)");
@@ -1050,7 +1293,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             using (NetContext context = Fixture.CreateContext())
             {
-                IPAddress inet = new IPAddress(0);
+                IPAddress inet = IPAddress.Any;
 
                 bool[] _ =
                     context.NetTestEntities
@@ -1069,7 +1312,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             using (NetContext context = Fixture.CreateContext())
             {
-                (IPAddress Address, int Subnet) cidr = (new IPAddress(0), 0);
+                (IPAddress Address, int Subnet) cidr = (IPAddress.Any, default);
 
                 bool[] _ =
                     context.NetTestEntities
@@ -1088,7 +1331,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             using (NetContext context = Fixture.CreateContext())
             {
-                IPAddress inet = new IPAddress(0);
+                IPAddress inet = IPAddress.Any;
 
                 (IPAddress Address, int Subnet)[] _ =
                     context.NetTestEntities
@@ -1107,7 +1350,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             using (NetContext context = Fixture.CreateContext())
             {
-                (IPAddress Address, int Subnet) cidr = (new IPAddress(0), 0);
+                (IPAddress Address, int Subnet) cidr = (IPAddress.Any, default);
 
                 (IPAddress Address, int Subnet)[] _ =
                     context.NetTestEntities

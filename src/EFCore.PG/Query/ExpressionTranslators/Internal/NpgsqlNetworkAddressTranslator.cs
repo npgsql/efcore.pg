@@ -34,7 +34,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
     /// <summary>
-    /// Provides translation services for PostgreSQL network address (inet, cidr) operators.
+    /// Provides translation services for PostgreSQL network address (cidr, inet, macaddr, macaddr8) operators and functions.
     /// </summary>
     /// <remarks>
     /// See: https://www.postgresql.org/docs/current/static/functions-net.html
