@@ -24,7 +24,6 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Text.RegularExpressions;
@@ -41,15 +40,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
     public class NpgsqlQuerySqlGenerator : DefaultQuerySqlGenerator
     {
         readonly bool _reverseNullOrderingEnabled;
-
-        /// <summary>
-        /// The collection of standard comparison operators.
-        /// </summary>
-        /// <remarks>
-        /// See: https://github.com/aspnet/EntityFrameworkCore/issues/9143
-        /// </remarks>
-        [NotNull] static readonly HashSet<string> StandardComparisonSymbols =
-            new HashSet<string>(new[] { "=", "<>", "<", ">", "<=", ">=" });
 
         protected override string TypedTrueLiteral => "TRUE::bool";
         protected override string TypedFalseLiteral => "FALSE::bool";
@@ -332,27 +322,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
         {
             Check.NotNull(expression, nameof(expression));
 
-            //--------------------------------------------------------------------------------------------
-            // BUG: custom relational operators cause Postgres to throw 42601: syntax error at or near "="
-            // Example:
-            //   source.Where(x => EF.Functions.LessThan(x.Inet, inet));
-            //   WHERE x."Inet" < @__inet_1 = TRUE
-            //
-            // See: https://github.com/aspnet/EntityFrameworkCore/issues/9143
-            //--------------------------------------------------------------------------------------------
-            var operatorIsComparisonSymbol = StandardComparisonSymbols.Contains(expression.Operator);
-
-            if (operatorIsComparisonSymbol)
-                Sql.Append('(');
-
+            Sql.Append('(');
             Visit(expression.Left);
-            Sql.Append(" ");
+            Sql.Append(' ');
             Sql.Append(expression.Operator);
-            Sql.Append(" ");
+            Sql.Append(' ');
             Visit(expression.Right);
-
-            if (operatorIsComparisonSymbol)
-                Sql.Append(')');
+            Sql.Append(')');
 
             return expression;
         }

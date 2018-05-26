@@ -3796,3 +3796,221 @@ GROUP BY ""o"".""CustomerID"", ""o"".""EmployeeID""");
 
 
 
+System.RuntimeMethodHandle.InvokeMethod(Object target, Object[] arguments, Signature sig, Boolean constructor, Boolean wrapExceptions) : 
+            AssertSql(
+                @"SELECT (o.""OrderDate"" + MAKE_INTERVAL(secs => 1)) AS ""OrderDate""
+FROM ""Orders"" AS o
+WHERE o.""OrderDate"" IS NOT NULL");
+
+
+
+System.RuntimeMethodHandle.InvokeMethod(Object target, Object[] arguments, Signature sig, Boolean constructor, Boolean wrapExceptions) : 
+            AssertSql(
+                @"SELECT (o.""OrderDate"" + MAKE_INTERVAL(years => 1)) AS ""OrderDate""
+FROM ""Orders"" AS o
+WHERE o.""OrderDate"" IS NOT NULL");
+
+
+
+System.RuntimeMethodHandle.InvokeMethod(Object target, Object[] arguments, Signature sig, Boolean constructor, Boolean wrapExceptions) : 
+            AssertSql(
+                @"SELECT (o.""OrderDate"" + MAKE_INTERVAL(mins => 1)) AS ""OrderDate""
+FROM ""Orders"" AS o
+WHERE o.""OrderDate"" IS NOT NULL");
+
+
+
+System.RuntimeMethodHandle.InvokeMethod(Object target, Object[] arguments, Signature sig, Boolean constructor, Boolean wrapExceptions) : 
+            AssertSql(
+                @"@__years_0='2'
+
+SELECT (o.""OrderDate"" + MAKE_INTERVAL(years => @__years_0)) AS ""OrderDate""
+FROM ""Orders"" AS o
+WHERE o.""OrderDate"" IS NOT NULL");
+
+
+
+System.RuntimeMethodHandle.InvokeMethod(Object target, Object[] arguments, Signature sig, Boolean constructor, Boolean wrapExceptions) : 
+            AssertSql(
+                @"SELECT (o.""OrderDate"" + MAKE_INTERVAL(months => 1)) AS ""OrderDate""
+FROM ""Orders"" AS o
+WHERE o.""OrderDate"" IS NOT NULL");
+
+
+
+System.RuntimeMethodHandle.InvokeMethod(Object target, Object[] arguments, Signature sig, Boolean constructor, Boolean wrapExceptions) : 
+            AssertSql(
+                @"SELECT (o.""OrderDate"" + MAKE_INTERVAL(hours => 1)) AS ""OrderDate""
+FROM ""Orders"" AS o
+WHERE o.""OrderDate"" IS NOT NULL");
+
+
+
+System.RuntimeMethodHandle.InvokeMethod(Object target, Object[] arguments, Signature sig, Boolean constructor, Boolean wrapExceptions) : 
+            AssertSql(
+                @"SELECT (to_tsquery('a & b') && to_tsquery('c & d'))
+FROM ""Customers"" AS c
+LIMIT 1");
+
+
+
+System.RuntimeMethodHandle.InvokeMethod(Object target, Object[] arguments, Signature sig, Boolean constructor, Boolean wrapExceptions) : 
+            AssertSql(
+                @"SELECT (to_tsquery('a & b') || to_tsquery('c & d'))
+FROM ""Customers"" AS c
+LIMIT 1");
+
+
+
+System.RuntimeMethodHandle.InvokeMethod(Object target, Object[] arguments, Signature sig, Boolean constructor, Boolean wrapExceptions) : 
+            AssertSql(
+                @"SELECT (to_tsvector('a') @@ 'b')
+FROM ""Customers"" AS c
+LIMIT 1");
+
+
+
+System.RuntimeMethodHandle.InvokeMethod(Object target, Object[] arguments, Signature sig, Boolean constructor, Boolean wrapExceptions) : 
+            AssertSql(
+                @"SELECT (to_tsvector('a') @@ to_tsquery('b'))
+FROM ""Customers"" AS c
+LIMIT 1");
+
+
+
+System.RuntimeMethodHandle.InvokeMethod(Object target, Object[] arguments, Signature sig, Boolean constructor, Boolean wrapExceptions) : 
+            AssertSql(
+                @"SELECT (to_tsquery('b') <@ to_tsquery('a & b'))
+FROM ""Customers"" AS c
+LIMIT 1");
+
+
+
+System.RuntimeMethodHandle.InvokeMethod(Object target, Object[] arguments, Signature sig, Boolean constructor, Boolean wrapExceptions) : 
+            AssertSql(
+                @"SELECT (to_tsquery('a & b') @> to_tsquery('b'))
+FROM ""Customers"" AS c
+LIMIT 1");
+
+
+
+System.RuntimeMethodHandle.InvokeMethod(Object target, Object[] arguments, Signature sig, Boolean constructor, Boolean wrapExceptions) : 
+            AssertSql(
+                @"SELECT (to_tsvector('b') || to_tsvector('c'))
+FROM ""Customers"" AS c
+LIMIT 1");
+
+
+
+System.RuntimeMethodHandle.InvokeMethod(Object target, Object[] arguments, Signature sig, Boolean constructor, Boolean wrapExceptions) : 
+            AssertSql(
+                @"SELECT (to_tsquery('a & b') && to_tsquery('c & d'))
+FROM ""Customers"" AS c
+LIMIT 1");
+
+
+
+System.RuntimeMethodHandle.InvokeMethod(Object target, Object[] arguments, Signature sig, Boolean constructor, Boolean wrapExceptions) : 
+            AssertSql(
+                @"SELECT (to_tsquery('a & b') || to_tsquery('c & d'))
+FROM ""Customers"" AS c
+LIMIT 1");
+
+
+
+System.RuntimeMethodHandle.InvokeMethod(Object target, Object[] arguments, Signature sig, Boolean constructor, Boolean wrapExceptions) : 
+            AssertSql(
+                @"SELECT (to_tsvector('a') @@ 'b')
+FROM ""Customers"" AS c
+LIMIT 1");
+
+
+
+System.RuntimeMethodHandle.InvokeMethod(Object target, Object[] arguments, Signature sig, Boolean constructor, Boolean wrapExceptions) : 
+            AssertSql(
+                @"SELECT (to_tsvector('a') @@ to_tsquery('b'))
+FROM ""Customers"" AS c
+LIMIT 1");
+
+
+
+System.RuntimeMethodHandle.InvokeMethod(Object target, Object[] arguments, Signature sig, Boolean constructor, Boolean wrapExceptions) : 
+            AssertSql(
+                @"SELECT (to_tsquery('b') <@ to_tsquery('a & b'))
+FROM ""Customers"" AS c
+LIMIT 1");
+
+
+
+System.RuntimeMethodHandle.InvokeMethod(Object target, Object[] arguments, Signature sig, Boolean constructor, Boolean wrapExceptions) : 
+            AssertSql(
+                @"SELECT (to_tsquery('a & b') @> to_tsquery('b'))
+FROM ""Customers"" AS c
+LIMIT 1");
+
+
+
+System.RuntimeMethodHandle.InvokeMethod(Object target, Object[] arguments, Signature sig, Boolean constructor, Boolean wrapExceptions) : 
+            AssertSql(
+                @"SELECT (to_tsvector('b') || to_tsvector('c'))
+FROM ""Customers"" AS c
+LIMIT 1");
+
+
+
+Npgsql.EntityFrameworkCore.PostgreSQL.Query.FullTextSearchDbFunctionsNpgsqlTest.TsQueryAnd() : 
+            AssertSql(
+                @"SELECT (to_tsquery('a & b') && to_tsquery('c & d'))
+FROM ""Customers"" AS c
+LIMIT 1");
+
+
+
+Npgsql.EntityFrameworkCore.PostgreSQL.Query.FullTextSearchDbFunctionsNpgsqlTest.TsQueryOr() : 
+            AssertSql(
+                @"SELECT (to_tsquery('a & b') || to_tsquery('c & d'))
+FROM ""Customers"" AS c
+LIMIT 1");
+
+
+
+Npgsql.EntityFrameworkCore.PostgreSQL.Query.FullTextSearchDbFunctionsNpgsqlTest.Matches_With_String() : 
+            AssertSql(
+                @"SELECT (to_tsvector('a') @@ 'b')
+FROM ""Customers"" AS c
+LIMIT 1");
+
+
+
+Npgsql.EntityFrameworkCore.PostgreSQL.Query.FullTextSearchDbFunctionsNpgsqlTest.Matches_With_Tsquery() : 
+            AssertSql(
+                @"SELECT (to_tsvector('a') @@ to_tsquery('b'))
+FROM ""Customers"" AS c
+LIMIT 1");
+
+
+
+Npgsql.EntityFrameworkCore.PostgreSQL.Query.FullTextSearchDbFunctionsNpgsqlTest.TsQueryIsContainedIn() : 
+            AssertSql(
+                @"SELECT (to_tsquery('b') <@ to_tsquery('a & b'))
+FROM ""Customers"" AS c
+LIMIT 1");
+
+
+
+Npgsql.EntityFrameworkCore.PostgreSQL.Query.FullTextSearchDbFunctionsNpgsqlTest.TsQueryContains() : 
+            AssertSql(
+                @"SELECT (to_tsquery('a & b') @> to_tsquery('b'))
+FROM ""Customers"" AS c
+LIMIT 1");
+
+
+
+Npgsql.EntityFrameworkCore.PostgreSQL.Query.FullTextSearchDbFunctionsNpgsqlTest.TsVectorConcat() : 
+            AssertSql(
+                @"SELECT (to_tsvector('b') || to_tsvector('c'))
+FROM ""Customers"" AS c
+LIMIT 1");
+
+
+
