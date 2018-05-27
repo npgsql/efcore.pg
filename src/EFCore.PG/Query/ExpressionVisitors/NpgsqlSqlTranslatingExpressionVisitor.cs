@@ -31,6 +31,7 @@ using Microsoft.EntityFrameworkCore.Query.Expressions;
 using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors;
 using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
+using Remotion.Linq;
 using Remotion.Linq.Clauses;
 using Remotion.Linq.Clauses.Expressions;
 using Remotion.Linq.Clauses.ResultOperators;
@@ -53,7 +54,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
         }
 
         protected override Expression VisitSubQuery(SubQueryExpression expression)
-            => base.VisitSubQuery(expression) ?? VisitLikeAny(expression) ?? VisitEqualsAny(expression);
+            => base.VisitSubQuery(expression) ?? VisitLikeAnyAll(expression) ?? VisitEqualsAny(expression);
 
         protected override Expression VisitBinary(BinaryExpression expression)
         {
@@ -116,14 +117,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
         }
 
         /// <summary>
-        /// Visits a <see cref="SubQueryExpression"/> and attempts to translate a 'LIKE ANY' or 'ILIKE ANY' expression.
+        /// Visits a <see cref="SubQueryExpression"/> and attempts to translate a LIKE/ILIKE ANY/ALL expression.
         /// </summary>
         /// <param name="expression">The expression to visit.</param>
         /// <returns>
-        /// A 'LIKE ANY' or 'ILIKE ANY' expression or null.
+        /// A 'LIKE ANY', 'LIKE ALL', 'ILIKE ANY', or 'ILIKE ALL' expression or null.
         /// </returns>
         [CanBeNull]
-        protected virtual Expression VisitLikeAny([NotNull] SubQueryExpression expression)
+        protected virtual Expression VisitLikeAnyAll([NotNull] SubQueryExpression expression)
         {
             var queryModel = expression.QueryModel;
             var results = queryModel.ResultOperators;
@@ -132,37 +133,37 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
                 return null;
 
             ArrayComparisonType comparisonType;
+            MethodCallExpression call;
             switch (results[0])
             {
             case AnyResultOperator _:
                 comparisonType = ArrayComparisonType.ANY;
+                call = ComputeAny(queryModel);
                 break;
 
-            case AllResultOperator _:
+            case AllResultOperator allResult:
                 comparisonType = ArrayComparisonType.ALL;
+                call = allResult.Predicate as MethodCallExpression;
                 break;
 
             default:
                 return null;
             }
 
-            var bodyClauses = queryModel.BodyClauses;
-
-            if (bodyClauses.Count != 1 ||
-                !(bodyClauses[0] is WhereClause whereClause) ||
-                !(whereClause.Predicate is MethodCallExpression call))
+            if (call is null)
                 return null;
 
-            Expression source = queryModel.MainFromClause.FromExpression;
+            var source = queryModel.MainFromClause.FromExpression;
 
             // ReSharper disable AssignNullToNotNullAttribute
             switch (call.Method.Name)
             {
-            case "StartsWith":
-                return new ArrayAnyAllExpression(comparisonType, "LIKE", Visit(call.Object), Visit(source));
-
-            case "EndsWith":
-                return new ArrayAnyAllExpression(comparisonType, "LIKE", Visit(call.Object), Visit(source));
+// TODO: Can StartsWith and EndsWith be implemented correctly?
+//            case "StartsWith":
+//                return new ArrayAnyAllExpression(comparisonType, "LIKE", Visit(call.Object), Visit(source));
+//
+//            case "EndsWith":
+//                return new ArrayAnyAllExpression(comparisonType, "LIKE", Visit(call.Object), Visit(source));
 
             case "Like":
                 return new ArrayAnyAllExpression(comparisonType, "LIKE", Visit(call.Arguments[1]), Visit(source));
@@ -174,6 +175,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
                 return null;
             }
             // ReSharper restore AssignNullToNotNullAttribute
+        }
+
+        [CanBeNull]
+        static MethodCallExpression ComputeAny([NotNull] QueryModel queryModel)
+        {
+            var bodyClauses = queryModel.BodyClauses;
+
+            if (bodyClauses.Count == 1 &&
+                bodyClauses[0] is WhereClause whereClause &&
+                whereClause.Predicate is MethodCallExpression call)
+                return call;
+
+            return null;
         }
     }
 }

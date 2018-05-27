@@ -1,5 +1,4 @@
 ﻿using System;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestUtilities;
@@ -10,7 +9,7 @@ using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public class LikeAnyQueryNpgsqlTest : IClassFixture<LikeAnyQueryNpgsqlTest.LikeAnyQueryNpgsqlFixture>
+    public class LikeAnyAllQueryNpgsqlTest : IClassFixture<LikeAnyAllQueryNpgsqlTest.LikeAnyQueryNpgsqlFixture>
     {
         #region Setup
 
@@ -23,7 +22,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         /// Initializes resources for unit tests.
         /// </summary>
         /// <param name="fixture">The fixture of resources for testing.</param>
-        public LikeAnyQueryNpgsqlTest(LikeAnyQueryNpgsqlFixture fixture)
+        public LikeAnyAllQueryNpgsqlTest(LikeAnyQueryNpgsqlFixture fixture)
         {
             Fixture = fixture;
             Fixture.TestSqlLoggerFactory.Clear();
@@ -31,9 +30,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         #endregion
 
-        #region Tests
+        #region StartsWithTests
 
-        [Fact]
+        [Fact(Skip = "StartsWith not currently supported")]
         public void Array_Any_StartsWith()
         {
             using (LikeAnyContext context = Fixture.CreateContext())
@@ -49,7 +48,27 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             }
         }
 
-        [Fact]
+        [Fact(Skip = "StartsWith not currently supported")]
+        public void Array_All_StartsWith()
+        {
+            using (LikeAnyContext context = Fixture.CreateContext())
+            {
+                var collection = new string[] { "a", "b", "c" };
+
+                LikeAnyTestEntity[] _ =
+                    context.LikeAnyTestEntities
+                           .Where(x => collection.All(y => x.Animal.StartsWith(y)))
+                           .ToArray();
+
+                AssertContainsSql("WHERE x.\"Animal\" LIKE ALL (@__collection_0) = TRUE");
+            }
+        }
+
+        #endregion
+
+        #region EndsWithTests
+
+        [Fact(Skip = "EndsWith not currently supported")]
         public void Array_Any_EndsWith()
         {
             using (LikeAnyContext context = Fixture.CreateContext())
@@ -64,6 +83,26 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 AssertContainsSql("WHERE x.\"Animal\" LIKE ANY (@__collection_0) = TRUE");
             }
         }
+
+        [Fact(Skip = "EndsWith not currently supported")]
+        public void Array_All_EndsWith()
+        {
+            using (LikeAnyContext context = Fixture.CreateContext())
+            {
+                var collection = new string[] { "a", "b", "c" };
+
+                LikeAnyTestEntity[] _ =
+                    context.LikeAnyTestEntities
+                           .Where(x => collection.All(y => x.Animal.EndsWith(y)))
+                           .ToArray();
+
+                AssertContainsSql("WHERE x.\"Animal\" LIKE ALL (@__collection_0) = TRUE");
+            }
+        }
+
+        #endregion
+
+        #region LikeTests
 
         [Fact]
         public void Array_Any_Like()
@@ -82,7 +121,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         }
 
         [Fact]
-        public void Array_Any_ILike()
+        public void Array_All_Like()
         {
             using (LikeAnyContext context = Fixture.CreateContext())
             {
@@ -90,10 +129,46 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
                 LikeAnyTestEntity[] _ =
                     context.LikeAnyTestEntities
+                           .Where(x => collection.All(y => EF.Functions.Like(x.Animal, y)))
+                           .ToArray();
+
+                AssertContainsSql("WHERE x.\"Animal\" LIKE ALL (@__collection_0) = TRUE");
+            }
+        }
+
+        #endregion
+
+        #region ILikeTests
+
+        [Fact]
+        public void Array_Any_ILike()
+        {
+            using (LikeAnyContext context = Fixture.CreateContext())
+            {
+                var collection = new string[] { "a", "b", "c%" };
+
+                LikeAnyTestEntity[] _ =
+                    context.LikeAnyTestEntities
                            .Where(x => collection.Any(y => EF.Functions.ILike(x.Animal, y)))
                            .ToArray();
 
                 AssertContainsSql("WHERE x.\"Animal\" ILIKE ANY (@__collection_0) = TRUE");
+            }
+        }
+
+        [Fact]
+        public void Array_All_ILike()
+        {
+            using (LikeAnyContext context = Fixture.CreateContext())
+            {
+                var collection = new string[] { "a", "b", "c%" };
+
+                LikeAnyTestEntity[] _ =
+                    context.LikeAnyTestEntities
+                           .Where(x => collection.All(y => EF.Functions.ILike(x.Animal, y)))
+                           .ToArray();
+
+                AssertContainsSql("WHERE x.\"Animal\" ILIKE ALL (@__collection_0) = TRUE");
             }
         }
 
@@ -109,12 +184,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             /// <summary>
             /// The <see cref="NpgsqlTestStore"/> used for testing.
             /// </summary>
-            private readonly NpgsqlTestStore _testStore;
+            readonly NpgsqlTestStore _testStore;
 
             /// <summary>
             /// The <see cref="DbContextOptions"/> used for testing.
             /// </summary>
-            private readonly DbContextOptions _options;
+            readonly DbContextOptions _options;
 
             /// <summary>
             /// The logger factory used for testing.
@@ -177,16 +252,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             /// <returns>
             /// A <see cref="LikeAnyContext"/> for testing.
             /// </returns>
-            public LikeAnyContext CreateContext()
-            {
-                return new LikeAnyContext(_options);
-            }
+            public LikeAnyContext CreateContext() => new LikeAnyContext(_options);
 
             /// <inheritdoc />
-            public void Dispose()
-            {
-                _testStore.Dispose();
-            }
+            public void Dispose() => _testStore.Dispose();
         }
 
         /// <summary>
@@ -197,7 +266,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             /// <summary>
             /// The primary key.
             /// </summary>
-            [Key]
             public int Id { get; set; }
 
             /// <summary>
@@ -233,10 +301,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         /// Asserts that the SQL fragment appears in the logs.
         /// </summary>
         /// <param name="sql">The SQL statement or fragment to search for in the logs.</param>
-        public void AssertContainsSql(string sql)
-        {
-            Assert.Contains(sql, Fixture.TestSqlLoggerFactory.Sql);
-        }
+        public void AssertContainsSql(string sql) => Assert.Contains(sql, Fixture.TestSqlLoggerFactory.Sql);
 
         #endregion
     }

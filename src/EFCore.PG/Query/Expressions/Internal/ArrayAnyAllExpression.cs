@@ -71,7 +71,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         /// <summary>
         /// Constructs a <see cref="ArrayAnyAllExpression"/>.
         /// </summary>
-        /// <param name="arrayComparisonType">The comparison operator.</param>
+        /// <param name="arrayComparisonType">The comparison type.</param>
         /// <param name="operatorSymbol">The operator symbol to the array expression.</param>
         /// <param name="operand">The value to find.</param>
         /// <param name="array">The array to search.</param>
@@ -82,14 +82,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
             [NotNull] Expression operand,
             [NotNull] Expression array)
         {
+            Check.NotNull(array, nameof(operatorSymbol));
             Check.NotNull(operand, nameof(operand));
             Check.NotNull(array, nameof(array));
-            Check.NotNull(array, nameof(operatorSymbol));
 
-            Operand = operand;
-            Operator = operatorSymbol;
-            Array = array;
             ArrayComparisonType = arrayComparisonType;
+            Operator = operatorSymbol;
+            Operand = operand;
+            Array = array;
         }
 
         /// <inheritdoc />
@@ -139,18 +139,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
     /// <summary>
     /// Represents whether an array comparison is ANY or ALL.
     /// </summary>
-    public enum ArrayComparisonType : byte
+    public enum ArrayComparisonType
     {
         // ReSharper disable once InconsistentNaming
         /// <summary>
         /// Represents an ANY array comparison.
         /// </summary>
-        ANY = 0,
+        ANY,
 
         // ReSharper disable once InconsistentNaming
         /// <summary>
         /// Represents an ALL array comparison.
         /// </summary>
-        ALL = 1 << 0
+        ALL
     }
 }
