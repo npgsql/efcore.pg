@@ -41,8 +41,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
     {
         readonly bool _reverseNullOrderingEnabled;
 
-        protected override string TypedTrueLiteral => "TRUE::bool";
-        protected override string TypedFalseLiteral => "FALSE::bool";
+        protected override string TypedTrueLiteral { get; } = "TRUE::bool";
+
+        protected override string TypedFalseLiteral { get; } = "FALSE::bool";
 
         public NpgsqlQuerySqlGenerator(
             [NotNull] QuerySqlGeneratorDependencies dependencies,
@@ -176,23 +177,34 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
             Sql.Append(']');
         }
 
-        public Expression VisitArrayAny(ArrayAnyExpression arrayAnyExpression)
+        /// <summary>
+        /// Produces expressions like: 1 = ANY ('{0,1,2}') or 'cat' LIKE ANY ('{a%,b%,c%}').
+        /// </summary>
+        public Expression VisitArrayOperator(CustomArrayExpression arrayExpression)
         {
-            Visit(arrayAnyExpression.Operand);
-            Sql.Append(" = ANY (");
-            Visit(arrayAnyExpression.Array);
-            Sql.Append(")");
-            return arrayAnyExpression;
+            Visit(arrayExpression.Operand);
+            Sql.Append(' ');
+            Sql.Append(arrayExpression.Operator);
+            Sql.Append(' ');
+            Sql.Append(arrayExpression.OperatorType);
+            Sql.Append(" (");
+            Visit(arrayExpression.Collection);
+            Sql.Append(')');
+            return arrayExpression;
         }
 
-        // PostgreSQL array indexing is 1-based. If the index happens to be a constant,
-        // just increment it. Otherwise, append a +1 in the SQL.
-        Expression GenerateOneBasedIndexExpression(Expression expression)
+        /// <summary>
+        /// PostgreSQL array indexing is 1-based. If the index happens to be a constant,
+        /// just increment it. Otherwise, append a +1 in the SQL.
+        /// </summary>
+        static Expression GenerateOneBasedIndexExpression(Expression expression)
             => expression is ConstantExpression constantExpression
                 ? Expression.Constant(Convert.ToInt32(constantExpression.Value) + 1)
                 : (Expression)Expression.Add(expression, Expression.Constant(1));
 
-        // See http://www.postgresql.org/docs/current/static/functions-matching.html
+        /// <summary>
+        /// See: http://www.postgresql.org/docs/current/static/functions-matching.html
+        /// </summary>
         public Expression VisitRegexMatch([NotNull] RegexMatchExpression regexMatchExpression)
         {
             Check.NotNull(regexMatchExpression, nameof(regexMatchExpression));
