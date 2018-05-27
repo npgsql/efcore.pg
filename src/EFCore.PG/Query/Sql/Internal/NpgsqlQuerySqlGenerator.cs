@@ -180,17 +180,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
         /// <summary>
         /// Produces expressions like: 1 = ANY ('{0,1,2}') or 'cat' LIKE ANY ('{a%,b%,c%}').
         /// </summary>
-        public Expression VisitArrayOperator(CustomArrayExpression arrayExpression)
+        public Expression VisitArrayAnyAll(ArrayAnyAllExpression arrayAnyAllExpression)
         {
-            Visit(arrayExpression.Operand);
+            Visit(arrayAnyAllExpression.Operand);
             Sql.Append(' ');
-            Sql.Append(arrayExpression.Operator);
+            Sql.Append(arrayAnyAllExpression.Operator);
             Sql.Append(' ');
-            Sql.Append(arrayExpression.OperatorType);
+            Sql.Append(arrayAnyAllExpression.ArrayComparisonType.ToString());
             Sql.Append(" (");
-            Visit(arrayExpression.Collection);
+            Visit(arrayAnyAllExpression.Array);
             Sql.Append(')');
-            return arrayExpression;
+            return arrayAnyAllExpression;
         }
 
         /// <summary>

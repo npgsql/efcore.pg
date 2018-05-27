@@ -32,18 +32,16 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
 {
     /// <summary>
-    /// Represents a PostgreSQL ANY expression (e.g. 1 = ANY ('{0,1,2}'), 'cat' LIKE ANY ('{a%,b%,c%}')).
+    /// Represents a PostgreSQL array ANY or ALL expression.
     /// </summary>
+    /// <example>
+    /// 1 = ANY ('{0,1,2}'), 'cat' LIKE ANY ('{a%,b%,c%}')
+    /// </example>
     /// <remarks>
     /// See https://www.postgresql.org/docs/current/static/functions-comparisons.html
     /// </remarks>
-    public class CustomArrayExpression : Expression, IEquatable<CustomArrayExpression>
+    public class ArrayAnyAllExpression : Expression, IEquatable<ArrayAnyAllExpression>
     {
-        /// <summary>
-        /// True if the operator is modified by ANY; otherwise, false to modify with ALL.
-        /// </summary>
-        readonly bool _any;
-
         /// <inheritdoc />
         public override ExpressionType NodeType { get; } = ExpressionType.Extension;
 
@@ -51,14 +49,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         public override Type Type { get; } = typeof(bool);
 
         /// <summary>
-        /// The value to test against the <see cref="Collection"/>.
+        /// The value to test against the <see cref="Array"/>.
         /// </summary>
         public virtual Expression Operand { get; }
 
         /// <summary>
-        /// The collection of values or patterns to test for the <see cref="Operand"/>.
+        /// The array of values or patterns to test for the <see cref="Operand"/>.
         /// </summary>
-        public virtual Expression Collection { get; }
+        public virtual Expression Array { get; }
 
         /// <summary>
         /// The operator.
@@ -66,67 +64,93 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         public virtual string Operator { get; }
 
         /// <summary>
-        /// The type of the operator expression (ANY or ALL).
+        /// The comparison type.
         /// </summary>
-        public virtual string OperatorType => _any ? "ANY" : "ALL";
+        public virtual ArrayComparisonType ArrayComparisonType { get; }
 
         /// <summary>
-        /// Constructs a <see cref="CustomArrayExpression"/>.
+        /// Constructs a <see cref="ArrayAnyAllExpression"/>.
         /// </summary>
-        /// <param name="operand">The value to find.</param>
-        /// <param name="collection">The collection to search.</param>
+        /// <param name="arrayComparisonType">The comparison operator.</param>
         /// <param name="operatorSymbol">The operator symbol to the array expression.</param>
-        /// <param name="any">True for ANY; false for ALL.</param>
+        /// <param name="operand">The value to find.</param>
+        /// <param name="array">The array to search.</param>
         /// <exception cref="ArgumentNullException" />
-        public CustomArrayExpression([NotNull] Expression operand, [NotNull] Expression collection, [NotNull] string operatorSymbol, bool any)
+        public ArrayAnyAllExpression(
+            ArrayComparisonType arrayComparisonType,
+            [NotNull] string operatorSymbol,
+            [NotNull] Expression operand,
+            [NotNull] Expression array)
         {
             Check.NotNull(operand, nameof(operand));
-            Check.NotNull(collection, nameof(collection));
+            Check.NotNull(array, nameof(array));
+            Check.NotNull(array, nameof(operatorSymbol));
 
             Operand = operand;
             Operator = operatorSymbol;
-            Collection = collection;
-            _any = any;
+            Array = array;
+            ArrayComparisonType = arrayComparisonType;
         }
 
         /// <inheritdoc />
         protected override Expression Accept(ExpressionVisitor visitor)
             => visitor is NpgsqlQuerySqlGenerator npsgqlGenerator
-                ? npsgqlGenerator.VisitArrayOperator(this)
+                ? npsgqlGenerator.VisitArrayAnyAll(this)
                 : base.Accept(visitor);
 
         /// <inheritdoc />
         protected override Expression VisitChildren(ExpressionVisitor visitor)
         {
             if (!(visitor.Visit(Operand) is Expression operand))
-                throw new ArgumentException($"The {nameof(operand)} of a {nameof(CustomArrayExpression)} cannot be null.");
+                throw new ArgumentException($"The {nameof(operand)} of a {nameof(ArrayAnyAllExpression)} cannot be null.");
 
-            if (!(visitor.Visit(Collection) is Expression collection))
-                throw new ArgumentException($"The {nameof(collection)} of a {nameof(CustomArrayExpression)} cannot be null.");
+            if (!(visitor.Visit(Array) is Expression collection))
+                throw new ArgumentException($"The {nameof(collection)} of a {nameof(ArrayAnyAllExpression)} cannot be null.");
 
             return
-                operand == Operand && collection == Collection
+                operand == Operand && collection == Array
                     ? this
-                    : new CustomArrayExpression(operand, collection, Operator, _any);
+                    : new ArrayAnyAllExpression(ArrayComparisonType, Operator, operand, collection);
         }
 
         /// <inheritdoc />
         public override bool Equals(object obj)
-            => obj is CustomArrayExpression likeAnyExpression && Equals(likeAnyExpression);
+            => obj is ArrayAnyAllExpression likeAnyExpression && Equals(likeAnyExpression);
 
         /// <inheritdoc />
-        public bool Equals(CustomArrayExpression other)
-            => Operand.Equals(other?.Operand) && Collection.Equals(other?.Collection);
+        public bool Equals(ArrayAnyAllExpression other)
+            => Operand.Equals(other?.Operand) &&
+               Operator.Equals(other?.Operator) &&
+               ArrayComparisonType.Equals(other?.ArrayComparisonType) &&
+               Array.Equals(other?.Array);
 
         /// <inheritdoc />
         public override int GetHashCode()
             => unchecked((397 * Operand.GetHashCode()) ^
                          (397 * Operator.GetHashCode()) ^
-                         (397 * OperatorType.GetHashCode()) ^
-                         (397 * Collection.GetHashCode()));
+                         (397 * ArrayComparisonType.GetHashCode()) ^
+                         (397 * Array.GetHashCode()));
 
         /// <inheritdoc />
         public override string ToString()
-            => $"{Operand} {Operator} {OperatorType} ({Collection})";
+            => $"{Operand} {Operator} {ArrayComparisonType.ToString()} ({Array})";
+    }
+
+    /// <summary>
+    /// Represents whether an array comparison is ANY or ALL.
+    /// </summary>
+    public enum ArrayComparisonType : byte
+    {
+        // ReSharper disable once InconsistentNaming
+        /// <summary>
+        /// Represents an ANY array comparison.
+        /// </summary>
+        ANY = 0,
+
+        // ReSharper disable once InconsistentNaming
+        /// <summary>
+        /// Represents an ALL array comparison.
+        /// </summary>
+        ALL = 1 << 0
     }
 }

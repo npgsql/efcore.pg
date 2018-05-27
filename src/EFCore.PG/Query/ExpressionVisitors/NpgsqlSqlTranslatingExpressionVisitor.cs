@@ -53,19 +53,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
         }
 
         protected override Expression VisitSubQuery(SubQueryExpression expression)
-        {
-            // Prefer the default EF Core translation if one exists
-            if (base.VisitSubQuery(expression) is Expression result)
-                return result;
-
-            if (VisitLikeAny(expression) is Expression likeAny)
-                return likeAny;
-
-            if (VisitEqualsAny(expression) is Expression equalsAny)
-                return equalsAny;
-
-            return null;
-        }
+            => base.VisitSubQuery(expression) ?? VisitLikeAny(expression) ?? VisitEqualsAny(expression);
 
         protected override Expression VisitBinary(BinaryExpression expression)
         {
@@ -120,7 +108,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
                 {
                     var containsItem = Visit(contains.Item);
                     if (containsItem != null)
-                        return new CustomArrayExpression(containsItem, Visit(fromExpression), "=", true);
+                        return new ArrayAnyAllExpression(ArrayComparisonType.ANY, "=", containsItem, Visit(fromExpression));
                 }
             }
 
@@ -140,39 +128,52 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
             var queryModel = expression.QueryModel;
             var results = queryModel.ResultOperators;
 
-            if (results.Count != 1 || !(results[0] is AnyResultOperator))
+            if (results.Count != 1)
                 return null;
+
+            ArrayComparisonType comparisonType;
+            switch (results[0])
+            {
+            case AnyResultOperator _:
+                comparisonType = ArrayComparisonType.ANY;
+                break;
+
+            case AllResultOperator _:
+                comparisonType = ArrayComparisonType.ALL;
+                break;
+
+            default:
+                return null;
+            }
 
             var bodyClauses = queryModel.BodyClauses;
 
             if (bodyClauses.Count != 1 ||
                 !(bodyClauses[0] is WhereClause whereClause) ||
-                !(whereClause.Predicate is MethodCallExpression methodCallExpression))
+                !(whereClause.Predicate is MethodCallExpression call))
                 return null;
 
-            if (!(Visit(methodCallExpression.Object ?? methodCallExpression.Arguments[1]) is Expression instance))
-                return null;
+            Expression source = queryModel.MainFromClause.FromExpression;
 
-            if (!(Visit(queryModel.MainFromClause.FromExpression) is Expression source))
-                return null;
-
-            switch (methodCallExpression.Method.Name)
+            // ReSharper disable AssignNullToNotNullAttribute
+            switch (call.Method.Name)
             {
             case "StartsWith":
-                return new CustomArrayExpression(instance, source, "LIKE", true);
+                return new ArrayAnyAllExpression(comparisonType, "LIKE", Visit(call.Object), Visit(source));
 
             case "EndsWith":
-                return new CustomArrayExpression(instance, source, "LIKE", true);
+                return new ArrayAnyAllExpression(comparisonType, "LIKE", Visit(call.Object), Visit(source));
 
             case "Like":
-                return new CustomArrayExpression(instance, source, "LIKE", true);
+                return new ArrayAnyAllExpression(comparisonType, "LIKE", Visit(call.Arguments[1]), Visit(source));
 
             case "ILike":
-                return new CustomArrayExpression(instance, source, "ILIKE", true);
+                return new ArrayAnyAllExpression(comparisonType, "ILIKE", Visit(call.Arguments[1]), Visit(source));
 
             default:
                 return null;
             }
+            // ReSharper restore AssignNullToNotNullAttribute
         }
     }
 }
