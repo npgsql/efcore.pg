@@ -1,4 +1,5 @@
 ﻿#region License
+
 // The PostgreSQL License
 //
 // Copyright (C) 2016 The Npgsql Development Team
@@ -19,8 +20,10 @@
 // AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
 // ON AN "AS IS" BASIS, AND THE NPGSQL DEVELOPMENT TEAM HAS NO OBLIGATIONS
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+
 #endregion
 
+using System.Collections;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -37,10 +40,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     /// </remarks>
     public class NpgsqlArraySequenceEqualTranslator : IMethodCallTranslator
     {
-        static readonly MethodInfo SequenceEqualMethodInfo = typeof(Enumerable).GetTypeInfo().GetDeclaredMethods(nameof(Enumerable.SequenceEqual)).Single(m =>
-                m.IsGenericMethodDefinition &&
-                m.GetParameters().Length == 2
-        );
+        static readonly MethodInfo SequenceEqualMethodInfo =
+            typeof(Enumerable)
+                .GetTypeInfo()
+                .GetDeclaredMethods(nameof(Enumerable.SequenceEqual))
+                .Single(m =>
+                    m.IsGenericMethodDefinition &&
+                    m.GetParameters().Length == 2);
 
         [CanBeNull]
         public Expression Translate(MethodCallExpression methodCallExpression)
@@ -48,12 +54,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             var method = methodCallExpression.Method;
             if (method.IsGenericMethod &&
                 ReferenceEquals(method.GetGenericMethodDefinition(), SequenceEqualMethodInfo) &&
-                methodCallExpression.Arguments.All(a => a.Type.IsArray))
-            {
-                return Expression.MakeBinary(ExpressionType.Equal,
-                    methodCallExpression.Arguments[0],
-                    methodCallExpression.Arguments[1]);
-            }
+                methodCallExpression.Arguments.All(a => a.Type.IsArray || typeof(IList).IsAssignableFrom(a.Type)))
+                return
+                    Expression.MakeBinary(
+                        ExpressionType.Equal,
+                        methodCallExpression.Arguments[0],
+                        methodCallExpression.Arguments[1]);
 
             return null;
         }

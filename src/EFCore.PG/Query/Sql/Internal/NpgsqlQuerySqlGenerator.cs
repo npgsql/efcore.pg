@@ -39,26 +39,30 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
 {
     public class NpgsqlQuerySqlGenerator : DefaultQuerySqlGenerator
     {
+        // ReSharper disable once NotAccessedField.Local
         readonly bool _reverseNullOrderingEnabled;
 
+        /// <inheritdoc />
         protected override string TypedTrueLiteral { get; } = "TRUE::bool";
 
+        /// <inheritdoc />
         protected override string TypedFalseLiteral { get; } = "FALSE::bool";
 
+        /// <inheritdoc />
         public NpgsqlQuerySqlGenerator(
             [NotNull] QuerySqlGeneratorDependencies dependencies,
             [NotNull] SelectExpression selectExpression,
             bool reverseNullOrderingEnabled)
             : base(dependencies, selectExpression)
-        {
-            _reverseNullOrderingEnabled = reverseNullOrderingEnabled;
-        }
+            => _reverseNullOrderingEnabled = reverseNullOrderingEnabled;
 
+        /// <inheritdoc />
         protected override void GenerateTop(SelectExpression selectExpression)
         {
             // No TOP() in PostgreSQL, see GenerateLimitOffset
         }
 
+        /// <inheritdoc />
         protected override void GenerateLimitOffset(SelectExpression selectExpression)
         {
             Check.NotNull(selectExpression, nameof(selectExpression));
@@ -81,6 +85,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
             }
         }
 
+        /// <inheritdoc />
         public override Expression VisitSqlFunction(SqlFunctionExpression sqlFunctionExpression)
         {
             var expr = base.VisitSqlFunction(sqlFunctionExpression);
@@ -108,6 +113,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
             return expr;
         }
 
+        /// <inheritdoc />
         protected override Expression VisitBinary(BinaryExpression expression)
         {
             switch (expression.NodeType)
@@ -126,19 +132,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
                     return exp;
                 }
 
-                break;
+                goto default;
             }
 
             case ExpressionType.ArrayIndex:
                 VisitArrayIndex(expression);
                 return expression;
-            }
 
-            return base.VisitBinary(expression);
+            default:
+                return base.VisitBinary(expression);
+            }
         }
 
+        /// <inheritdoc />
         protected override Expression VisitUnary(UnaryExpression expression)
         {
+            // TODO: I don't think this is called any longer.
+            // Handled by NpgsqlSqlTranslatingExpressionVisitor.VisitSubQuery.
             if (expression.NodeType == ExpressionType.ArrayLength)
             {
                 VisitSqlFunction(new SqlFunctionExpression("array_length", typeof(int), new[] { expression.Operand, Expression.Constant(1) }));
@@ -177,12 +187,29 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
             Sql.Append(']');
         }
 
+        /// <inheritdoc />
+        protected override Expression VisitIndex(IndexExpression expression)
+        {
+            // TODO: does this need wrapped? the array indexer is wrapped, but not by our code?
+            Sql.Append('(');
+            Visit(expression.Object);
+            for (int i = 0; i < expression.Arguments.Count; i++)
+            {
+                Sql.Append('[');
+                Visit(GenerateOneBasedIndexExpression(expression.Arguments[i]));
+                Sql.Append(']');
+            }
+
+            Sql.Append(')');
+
+            return expression;
+        }
+
         /// <summary>
         /// Produces expressions like: 1 = ANY ('{0,1,2}') or 'cat' LIKE ANY ('{a%,b%,c%}').
         /// </summary>
         public Expression VisitArrayAnyAll(ArrayAnyAllExpression arrayAnyAllExpression)
         {
-            Visit(arrayAnyAllExpression.Operand);
             Sql.Append(' ');
             Sql.Append(arrayAnyAllExpression.Operator);
             Sql.Append(' ');
@@ -209,7 +236,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
         {
             Check.NotNull(regexMatchExpression, nameof(regexMatchExpression));
             var options = regexMatchExpression.Options;
-
             Visit(regexMatchExpression.Match);
             Sql.Append(" ~ ");
 
@@ -223,33 +249,27 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
             Sql.Append("('(?");
             if (options.HasFlag(RegexOptions.IgnoreCase))
                 Sql.Append('i');
-
             if (options.HasFlag(RegexOptions.Multiline))
                 Sql.Append('n');
             else if (!options.HasFlag(RegexOptions.Singleline))
+
                 // In .NET's default mode, . doesn't match newlines but PostgreSQL it does.
                 Sql.Append('p');
-
             if (options.HasFlag(RegexOptions.IgnorePatternWhitespace))
                 Sql.Append('x');
-
             Sql.Append(")' || ");
             Visit(regexMatchExpression.Pattern);
             Sql.Append(')');
-
             return regexMatchExpression;
         }
 
         public Expression VisitAtTimeZone([NotNull] AtTimeZoneExpression atTimeZoneExpression)
         {
             Check.NotNull(atTimeZoneExpression, nameof(atTimeZoneExpression));
-
             Visit(atTimeZoneExpression.TimestampExpression);
-
             Sql.Append(" AT TIME ZONE '");
             Sql.Append(atTimeZoneExpression.TimeZone);
             Sql.Append('\'');
-
             return atTimeZoneExpression;
         }
 
@@ -259,13 +279,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
 
             //var parentTypeMapping = _typeMapping;
             //_typeMapping = InferTypeMappingFromColumn(iLikeExpression.Match) ?? parentTypeMapping;
-
             Visit(iLikeExpression.Match);
-
             Sql.Append(" ILIKE ");
 
             Visit(iLikeExpression.Pattern);
-
             if (iLikeExpression.EscapeChar != null)
             {
                 Sql.Append(" ESCAPE ");
@@ -273,7 +290,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
             }
 
             //_typeMapping = parentTypeMapping;
-
             return iLikeExpression;
         }
 
@@ -283,18 +299,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
 
             //var parentTypeMapping = _typeMapping;
             //_typeMapping = InferTypeMappingFromColumn(castExpression.Operand);
-
             Visit(castExpression.Operand);
-
             Sql.Append(" AS ")
                .Append(castExpression.StoreType)
                .Append(")");
 
             //_typeMapping = parentTypeMapping;
-
             return castExpression;
         }
 
+        /// <inheritdoc />
         protected override string GenerateOperator(Expression expression)
         {
             switch (expression.NodeType)
@@ -303,26 +317,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
                 if (expression.Type == typeof(string))
                     return " || ";
                 goto default;
-
             case ExpressionType.And:
                 if (expression.Type == typeof(bool))
                     return " AND ";
                 goto default;
-
             case ExpressionType.Or:
                 if (expression.Type == typeof(bool))
                     return " OR ";
                 goto default;
-
             default:
                 return base.GenerateOperator(expression);
             }
         }
 
+        /// <inheritdoc />
         protected override void GenerateOrdering(Ordering ordering)
         {
             base.GenerateOrdering(ordering);
-
             if (_reverseNullOrderingEnabled)
                 Sql.Append(
                     ordering.OrderingDirection == OrderingDirection.Asc
@@ -333,7 +344,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
         public virtual Expression VisitCustomBinary(CustomBinaryExpression expression)
         {
             Check.NotNull(expression, nameof(expression));
-
             Sql.Append('(');
             Visit(expression.Left);
             Sql.Append(' ');
@@ -341,14 +351,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
             Sql.Append(' ');
             Visit(expression.Right);
             Sql.Append(')');
-
             return expression;
         }
 
         public virtual Expression VisitCustomUnary(CustomUnaryExpression expression)
         {
             Check.NotNull(expression, nameof(expression));
-
             if (expression.Postfix)
             {
                 Visit(expression.Operand);
@@ -366,22 +374,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
         public virtual Expression VisitPgFunction(PgFunctionExpression e)
         {
             //var parentTypeMapping = _typeMapping;
-
             //_typeMapping = null;
 
             var wroteSchema = false;
-
             if (e.Instance != null)
             {
                 Visit(e.Instance);
-
                 Sql.Append(".");
             }
             else if (!string.IsNullOrWhiteSpace(e.Schema))
             {
                 Sql.Append(SqlGenerator.DelimitIdentifier(e.Schema))
                    .Append(".");
-
                 wroteSchema = true;
             }
 
@@ -389,31 +393,25 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
                 wroteSchema
                     ? SqlGenerator.DelimitIdentifier(e.FunctionName)
                     : e.FunctionName);
-
             Sql.Append("(");
 
             //_typeMapping = null;
-
             GenerateList(e.PositionalArguments);
-
             bool hasArguments = e.PositionalArguments.Count > 0 && e.NamedArguments.Count > 0;
-
             foreach (var kv in e.NamedArguments)
             {
                 if (hasArguments)
                     Sql.Append(", ");
                 else
                     hasArguments = true;
-
                 Sql.Append(kv.Key)
                    .Append(" => ");
-
                 Visit(kv.Value);
             }
 
             Sql.Append(")");
-            //_typeMapping = parentTypeMapping;
 
+            //_typeMapping = parentTypeMapping;
             return e;
         }
     }

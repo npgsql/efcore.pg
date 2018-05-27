@@ -1,4 +1,5 @@
 ﻿#region License
+
 // The PostgreSQL License
 //
 // Copyright (C) 2016 The Npgsql Development Team
@@ -19,9 +20,11 @@
 // AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
 // ON AN "AS IS" BASIS, AND THE NPGSQL DEVELOPMENT TEAM HAS NO OBLIGATIONS
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+
 #endregion
 
 using System;
+using System.Collections;
 using System.Text;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
@@ -36,49 +39,55 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     /// </summary>
     public class NpgsqlListTypeMapping : RelationalTypeMapping
     {
+        /// <summary>
+        /// The CLR type of the list items.
+        /// </summary>
         public RelationalTypeMapping ElementMapping { get; }
 
         /// <summary>
-        /// Creates the default array mapping (i.e. for the single-dimensional CLR array type)
+        /// Creates the default list mapping.
         /// </summary>
         public NpgsqlListTypeMapping(RelationalTypeMapping elementMapping, Type listType)
-            : this(elementMapping.StoreType + "[]", elementMapping, listType)
-        {}
+            : this(elementMapping.StoreType + "[]", elementMapping, listType) {}
 
+        /// <inheritdoc />
         NpgsqlListTypeMapping(string storeType, RelationalTypeMapping elementMapping, Type listType)
-            : base(new RelationalTypeMappingParameters(
-                new CoreTypeMappingParameters(listType, null, CreateComparer(elementMapping, listType)), storeType
-            ))
-        {
-            ElementMapping = elementMapping;
-        }
+            : base(
+                new RelationalTypeMappingParameters(
+                    new CoreTypeMappingParameters(listType, null, CreateComparer(elementMapping, listType)), storeType))
+            => ElementMapping = elementMapping;
 
+        /// <inheritdoc />
         protected NpgsqlListTypeMapping(RelationalTypeMappingParameters parameters, RelationalTypeMapping elementMapping)
-            : base(parameters) {}
+            : base(parameters)
+            => ElementMapping = elementMapping;
 
+        /// <inheritdoc />
         public override RelationalTypeMapping Clone(string storeType, int? size)
             => new NpgsqlListTypeMapping(StoreType, ElementMapping, ClrType);
 
+        /// <inheritdoc />
         public override CoreTypeMapping Clone(ValueConverter converter)
             => new NpgsqlListTypeMapping(Parameters.WithComposedConverter(converter), ElementMapping);
 
+        /// <inheritdoc />
         protected override string GenerateNonNullSqlLiteral(object value)
         {
-            // TODO: Duplicated from NpgsqlArrayTypeMapping
-            var arr = (Array)value;
+            var list = (IList)value;
 
-            if (arr.Rank != 1)
+            if (list.GetType().GenericTypeArguments[0] != ElementMapping.ClrType)
                 throw new NotSupportedException("Multidimensional array literals aren't supported");
 
             var sb = new StringBuilder();
             sb.Append("ARRAY[");
-            for (var i = 0; i < arr.Length; i++)
+            for (var i = 0; i < list.Count; i++)
             {
-                sb.Append(ElementMapping.GenerateSqlLiteral(arr.GetValue(i)));
-                if (i < arr.Length - 1)
-                    sb.Append(",");
+                if (i > 0)
+                    sb.Append(',');
+                sb.Append(ElementMapping.GenerateSqlLiteral(list[i]));
             }
-            sb.Append("]");
+
+            sb.Append(']');
             return sb.ToString();
         }
 
@@ -148,7 +157,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         class SingleDimComparerWithIEquatable<TElem> : ValueComparer<List<TElem>>
             where TElem : IEquatable<TElem>
         {
-            public SingleDimComparerWithIEquatable(): base(
+            public SingleDimComparerWithIEquatable() : base(
                 (a, b) => Compare(a, b),
                 o => o.GetHashCode(), // TODO: Need to get hash code of elements...
                 source => DoSnapshot(source)) {}
@@ -171,6 +180,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                             continue;
                         return false;
                     }
+
                     if (!elem1.Equals(elem2))
                         return false;
                 }
@@ -215,6 +225,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                             continue;
                         return false;
                     }
+
                     if (!elem1.Equals(elem2))
                         return false;
                 }

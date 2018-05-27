@@ -60,7 +60,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             new NpgsqlRegexIsMatchTranslator(),
             new NpgsqlFullTextSearchMethodTranslator(),
             new NpgsqlRangeTranslator(),
-            new NpgsqlNetworkTranslator()
+            new NpgsqlNetworkTranslator(),
+            new NpgsqlListTranslator()
         };
 
         /// <inheritdoc />

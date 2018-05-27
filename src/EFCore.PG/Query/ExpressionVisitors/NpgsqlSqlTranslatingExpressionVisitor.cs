@@ -23,6 +23,7 @@
 
 #endregion
 
+using System.Collections;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -39,6 +40,9 @@ using Remotion.Linq.Clauses.ResultOperators;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
 {
+    /// <summary>
+    /// The default relational LINQ translating expression visitor for Npgsql.
+    /// </summary>
     public class NpgsqlSqlTranslatingExpressionVisitor : SqlTranslatingExpressionVisitor
     {
         /// <summary>
@@ -87,6 +91,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
             => _queryModelVisitor = queryModelVisitor;
 
         /// <inheritdoc />
+        [CanBeNull]
         protected override Expression VisitSubQuery(SubQueryExpression expression)
             => base.VisitSubQuery(expression) ?? VisitLikeAnyAll(expression) ?? VisitEqualsAny(expression);
 
@@ -133,19 +138,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
             if (properties.Count == 0)
                 return null;
             var lastPropertyType = properties[properties.Count - 1].ClrType;
-            if (lastPropertyType.IsArray && lastPropertyType.GetArrayRank() == 1 && subQueryModel.ResultOperators.Count > 0)
+            if (typeof(IList).IsAssignableFrom(lastPropertyType) && subQueryModel.ResultOperators.Count > 0)
             {
                 // Translate someArray.Length
                 if (subQueryModel.ResultOperators.First() is CountResultOperator)
-                    return Expression.ArrayLength(Visit(fromExpression));
+                    return new SqlFunctionExpression("array_length", typeof(int), new[] { Visit(fromExpression), Expression.Constant(1) });
 
                 // Translate someArray.Contains(someValue)
                 if (subQueryModel.ResultOperators.First() is ContainsResultOperator contains)
-                {
-                    var containsItem = Visit(contains.Item);
-                    if (containsItem != null)
-                        return new ArrayAnyAllExpression(ArrayComparisonType.ANY, "=", containsItem, Visit(fromExpression));
-                }
+                    if (Visit(contains.Item) is Expression containsItem && Visit(fromExpression) is Expression source)
+                        return new ArrayAnyAllExpression(ArrayComparisonType.ANY, "=", containsItem, source);
             }
 
             return null;
@@ -214,7 +216,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
             default:
                 return null;
             }
-            // ReSharper restore AssignNullToNotNullAttribute
         }
     }
 }
