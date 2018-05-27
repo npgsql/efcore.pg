@@ -33,7 +33,6 @@ namespace Microsoft.EntityFrameworkCore
     /// <summary>
     /// Provides extension methods for <see cref="NpgsqlRange{T}"/> supporting PostgreSQL translation.
     /// </summary>
-    [PublicAPI]
     public static class NpgsqlRangeExtensions
     {
         /// <summary>

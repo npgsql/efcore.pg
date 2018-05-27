@@ -28,6 +28,7 @@ using System.Net;
 using System.Net.NetworkInformation;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query.Expressions;
 using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 
@@ -83,13 +84,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             case nameof(NpgsqlNetworkExtensions.ContainsOrContainedBy):
                 return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], "&&", typeof(bool));
 
-            case nameof(NpgsqlNetworkExtensions.Not):
+            case nameof(NpgsqlNetworkExtensions.BitwiseNot):
                 return new CustomUnaryExpression(expression.Arguments[1], "~", expression.Arguments[1].Type);
 
-            case nameof(NpgsqlNetworkExtensions.And):
+            case nameof(NpgsqlNetworkExtensions.BitwiseAnd):
                 return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], "&", expression.Arguments[1].Type);
 
-            case nameof(NpgsqlNetworkExtensions.Or):
+            case nameof(NpgsqlNetworkExtensions.BitwiseOr):
                 return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], "|", expression.Arguments[1].Type);
 
             case nameof(NpgsqlNetworkExtensions.Add):
@@ -99,46 +100,46 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], "-", expression.Arguments[1].Type);
 
             case nameof(NpgsqlNetworkExtensions.Abbreviate):
-                return new PgFunctionExpression("abbrev", typeof(string), new[] { expression.Arguments[1] });
+                return new SqlFunctionExpression("abbrev", typeof(string), new[] { expression.Arguments[1] });
 
             case nameof(NpgsqlNetworkExtensions.Broadcast):
-                return new PgFunctionExpression("broadcast", typeof(IPAddress), new[] { expression.Arguments[1] });
+                return new SqlFunctionExpression("broadcast", typeof(IPAddress), new[] { expression.Arguments[1] });
 
             case nameof(NpgsqlNetworkExtensions.Family):
-                return new PgFunctionExpression("family", typeof(int), new[] { expression.Arguments[1] });
+                return new SqlFunctionExpression("family", typeof(int), new[] { expression.Arguments[1] });
 
             case nameof(NpgsqlNetworkExtensions.Host):
-                return new PgFunctionExpression("host", typeof(string), new[] { expression.Arguments[1] });
+                return new SqlFunctionExpression("host", typeof(string), new[] { expression.Arguments[1] });
 
             case nameof(NpgsqlNetworkExtensions.HostMask):
-                return new PgFunctionExpression("hostmask", typeof(IPAddress), new[] { expression.Arguments[1] });
+                return new SqlFunctionExpression("hostmask", typeof(IPAddress), new[] { expression.Arguments[1] });
 
-            case nameof(NpgsqlNetworkExtensions.SubnetLength):
-                return new PgFunctionExpression("masklen", typeof(int), new[] { expression.Arguments[1] });
+            case nameof(NpgsqlNetworkExtensions.MaskLength):
+                return new SqlFunctionExpression("masklen", typeof(int), new[] { expression.Arguments[1] });
 
-            case nameof(NpgsqlNetworkExtensions.SubnetMask):
-                return new PgFunctionExpression("netmask", typeof(IPAddress), new[] { expression.Arguments[1] });
+            case nameof(NpgsqlNetworkExtensions.Netmask):
+                return new SqlFunctionExpression("netmask", typeof(IPAddress), new[] { expression.Arguments[1] });
 
             case nameof(NpgsqlNetworkExtensions.Network):
-                return new PgFunctionExpression("network", typeof((IPAddress Address, int Subnet)), new[] { expression.Arguments[1] });
+                return new SqlFunctionExpression("network", typeof((IPAddress Address, int Subnet)), new[] { expression.Arguments[1] });
 
-            case nameof(NpgsqlNetworkExtensions.SetSubnetLength):
-                return new PgFunctionExpression("set_masklen", expression.Arguments[1].Type, new[] { expression.Arguments[1], expression.Arguments[2] });
+            case nameof(NpgsqlNetworkExtensions.SetMaskLength):
+                return new SqlFunctionExpression("set_masklen", expression.Arguments[1].Type, new[] { expression.Arguments[1], expression.Arguments[2] });
 
             case nameof(NpgsqlNetworkExtensions.Text):
-                return new PgFunctionExpression("text", typeof(string), new[] { expression.Arguments[1] });
+                return new SqlFunctionExpression("text", typeof(string), new[] { expression.Arguments[1] });
 
             case nameof(NpgsqlNetworkExtensions.SameFamily):
-                return new PgFunctionExpression("inet_same_family", typeof(bool), new[] { expression.Arguments[1], expression.Arguments[2] });
+                return new SqlFunctionExpression("inet_same_family", typeof(bool), new[] { expression.Arguments[1], expression.Arguments[2] });
 
             case nameof(NpgsqlNetworkExtensions.Merge):
-                return new PgFunctionExpression("inet_merge", typeof((IPAddress Address, int Subnet)), new[] { expression.Arguments[1], expression.Arguments[2] });
+                return new SqlFunctionExpression("inet_merge", typeof((IPAddress Address, int Subnet)), new[] { expression.Arguments[1], expression.Arguments[2] });
 
             case nameof(NpgsqlNetworkExtensions.Truncate):
-                return new PgFunctionExpression("trunc", typeof(PhysicalAddress), new[] { expression.Arguments[1] });
+                return new SqlFunctionExpression("trunc", typeof(PhysicalAddress), new[] { expression.Arguments[1] });
 
             case nameof(NpgsqlNetworkExtensions.Set7BitMac8):
-                return new PgFunctionExpression("macaddr8_set7bit", typeof(PhysicalAddress), new[] { expression.Arguments[1] });
+                return new SqlFunctionExpression("macaddr8_set7bit", typeof(PhysicalAddress), new[] { expression.Arguments[1] });
 
             default:
                 return null;
