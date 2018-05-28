@@ -1,4 +1,5 @@
 ﻿#region License
+
 // The PostgreSQL License
 //
 // Copyright (C) 2016 The Npgsql Development Team
@@ -19,13 +20,13 @@
 // AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
 // ON AN "AS IS" BASIS, AND THE NPGSQL DEVELOPMENT TEAM HAS NO OBLIGATIONS
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+
 #endregion
 
 using System;
 using System.Text;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
@@ -45,26 +46,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         /// Creates the default array mapping (i.e. for the single-dimensional CLR array type)
         /// </summary>
         public NpgsqlArrayTypeMapping(string storeType, RelationalTypeMapping elementMapping)
-            : this(storeType, elementMapping, elementMapping.ClrType.MakeArrayType())
-        {}
+            : this(storeType, elementMapping, elementMapping.ClrType.MakeArrayType()) {}
 
         /// <summary>
         /// Creates the default array mapping (i.e. for the single-dimensional CLR array type)
         /// </summary>
         public NpgsqlArrayTypeMapping(RelationalTypeMapping elementMapping, Type arrayType)
-            : this(elementMapping.StoreType + "[]", elementMapping, arrayType)
-        {}
+            : this(elementMapping.StoreType + "[]", elementMapping, arrayType) {}
 
         NpgsqlArrayTypeMapping(string storeType, RelationalTypeMapping elementMapping, Type arrayType)
             : base(new RelationalTypeMappingParameters(
                 new CoreTypeMappingParameters(arrayType, null, CreateComparer(elementMapping, arrayType)), storeType
             ))
-        {
-            ElementMapping = elementMapping;
-        }
+            => ElementMapping = elementMapping;
 
         protected NpgsqlArrayTypeMapping(RelationalTypeMappingParameters parameters, RelationalTypeMapping elementMapping)
-            : base(parameters) {}
+            : base(parameters)
+            => ElementMapping = elementMapping;
 
         public override RelationalTypeMapping Clone(string storeType, int? size)
             => new NpgsqlArrayTypeMapping(StoreType, ElementMapping);
@@ -87,6 +85,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 if (i < arr.Length - 1)
                     sb.Append(",");
             }
+
             sb.Append("]");
             return sb.ToString();
         }
@@ -157,7 +156,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         class SingleDimComparerWithIEquatable<TElem> : ValueComparer<TElem[]>
             where TElem : IEquatable<TElem>
         {
-            public SingleDimComparerWithIEquatable(): base(
+            public SingleDimComparerWithIEquatable() : base(
                 (a, b) => Compare(a, b),
                 o => o.GetHashCode(), // TODO: Need to get hash code of elements...
                 source => DoSnapshot(source)) {}
@@ -180,6 +179,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                             continue;
                         return false;
                     }
+
                     if (!elem1.Equals(elem2))
                         return false;
                 }
@@ -224,6 +224,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                             continue;
                         return false;
                     }
+
                     if (!elem1.Equals(elem2))
                         return false;
                 }
