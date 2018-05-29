@@ -25,13 +25,14 @@
 
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
 using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors;
 using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
-using Remotion.Linq;
 using Remotion.Linq.Clauses;
 using Remotion.Linq.Clauses.Expressions;
 using Remotion.Linq.Clauses.ResultOperators;
@@ -40,8 +41,42 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
 {
     public class NpgsqlSqlTranslatingExpressionVisitor : SqlTranslatingExpressionVisitor
     {
-        readonly RelationalQueryModelVisitor _queryModelVisitor;
+        /// <summary>
+        /// The <see cref="MethodInfo"/> for <see cref="DbFunctionsExtensions.Like(DbFunctions,string,string)"/>.
+        /// </summary>
+        [NotNull] static readonly MethodInfo Like2MethodInfo =
+            typeof(DbFunctionsExtensions)
+                .GetRuntimeMethod(nameof(DbFunctionsExtensions.Like), new[] { typeof(DbFunctions), typeof(string), typeof(string) });
 
+        /// <summary>
+        /// The <see cref="MethodInfo"/> for <see cref="DbFunctionsExtensions.Like(DbFunctions,string,string, string)"/>.
+        /// </summary>
+        [NotNull] static readonly MethodInfo Like3MethodInfo =
+            typeof(DbFunctionsExtensions)
+                .GetRuntimeMethod(nameof(DbFunctionsExtensions.Like), new[] { typeof(DbFunctions), typeof(string), typeof(string), typeof(string) });
+
+        // ReSharper disable once InconsistentNaming
+        /// <summary>
+        /// The <see cref="MethodInfo"/> for <see cref="NpgsqlDbFunctionsExtensions.ILike(DbFunctions,string,string)"/>.
+        /// </summary>
+        [NotNull] static readonly MethodInfo ILike2MethodInfo =
+            typeof(NpgsqlDbFunctionsExtensions)
+                .GetRuntimeMethod(nameof(NpgsqlDbFunctionsExtensions.ILike), new[] { typeof(DbFunctions), typeof(string), typeof(string) });
+
+        // ReSharper disable once InconsistentNaming
+        /// <summary>
+        /// The <see cref="MethodInfo"/> for <see cref="NpgsqlDbFunctionsExtensions.ILike(DbFunctions,string,string,string)"/>.
+        /// </summary>
+        [NotNull] static readonly MethodInfo ILike3MethodInfo =
+            typeof(NpgsqlDbFunctionsExtensions)
+                .GetRuntimeMethod(nameof(NpgsqlDbFunctionsExtensions.ILike), new[] { typeof(DbFunctions), typeof(string), typeof(string), typeof(string) });
+
+        /// <summary>
+        /// The query model visitor.
+        /// </summary>
+        [NotNull] readonly RelationalQueryModelVisitor _queryModelVisitor;
+
+        /// <inheritdoc />
         public NpgsqlSqlTranslatingExpressionVisitor(
             [NotNull] SqlTranslatingExpressionVisitorDependencies dependencies,
             [NotNull] RelationalQueryModelVisitor queryModelVisitor,
@@ -49,13 +84,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
             [CanBeNull] Expression topLevelPredicate = null,
             bool inProjection = false)
             : base(dependencies, queryModelVisitor, targetSelectExpression, topLevelPredicate, inProjection)
-        {
-            _queryModelVisitor = queryModelVisitor;
-        }
+            => _queryModelVisitor = queryModelVisitor;
 
+        /// <inheritdoc />
         protected override Expression VisitSubQuery(SubQueryExpression expression)
             => base.VisitSubQuery(expression) ?? VisitLikeAnyAll(expression) ?? VisitEqualsAny(expression);
 
+        /// <inheritdoc />
         protected override Expression VisitBinary(BinaryExpression expression)
         {
             if (expression.NodeType == ExpressionType.ArrayIndex)
@@ -128,6 +163,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
         {
             var queryModel = expression.QueryModel;
             var results = queryModel.ResultOperators;
+            var body = queryModel.BodyClauses;
 
             if (results.Count != 1)
                 return null;
@@ -138,7 +174,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
             {
             case AnyResultOperator _:
                 comparisonType = ArrayComparisonType.ANY;
-                call = ComputeAny(queryModel);
+                call =
+                    body.Count == 1 &&
+                    body[0] is WhereClause whereClause &&
+                    whereClause.Predicate is MethodCallExpression methocCall
+                        ? methocCall
+                        : null;
                 break;
 
             case AllResultOperator allResult:
@@ -156,38 +197,24 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
             var source = queryModel.MainFromClause.FromExpression;
 
             // ReSharper disable AssignNullToNotNullAttribute
-            switch (call.Method.Name)
+            switch (call.Method)
             {
-// TODO: Can StartsWith and EndsWith be implemented correctly?
-//            case "StartsWith":
-//                return new ArrayAnyAllExpression(comparisonType, "LIKE", Visit(call.Object), Visit(source));
-//
-//            case "EndsWith":
-//                return new ArrayAnyAllExpression(comparisonType, "LIKE", Visit(call.Object), Visit(source));
-
-            case "Like":
+            case MethodInfo m when m == Like2MethodInfo:
                 return new ArrayAnyAllExpression(comparisonType, "LIKE", Visit(call.Arguments[1]), Visit(source));
 
-            case "ILike":
+            case MethodInfo m when m == Like3MethodInfo:
+                return new ArrayAnyAllExpression(comparisonType, "LIKE", Visit(call.Arguments[1]), Visit(source));
+
+            case MethodInfo m when m == ILike2MethodInfo:
+                return new ArrayAnyAllExpression(comparisonType, "ILIKE", Visit(call.Arguments[1]), Visit(source));
+
+            case MethodInfo m when m == ILike3MethodInfo:
                 return new ArrayAnyAllExpression(comparisonType, "ILIKE", Visit(call.Arguments[1]), Visit(source));
 
             default:
                 return null;
             }
             // ReSharper restore AssignNullToNotNullAttribute
-        }
-
-        [CanBeNull]
-        static MethodCallExpression ComputeAny([NotNull] QueryModel queryModel)
-        {
-            var bodyClauses = queryModel.BodyClauses;
-
-            if (bodyClauses.Count == 1 &&
-                bodyClauses[0] is WhereClause whereClause &&
-                whereClause.Predicate is MethodCallExpression call)
-                return call;
-
-            return null;
         }
     }
 }
