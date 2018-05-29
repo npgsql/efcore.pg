@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -452,7 +451,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             using (var ctx = CreateContext())
             {
-                var _ = ctx.SomeEntities.Select(e => e.SomeArray.IndexOf(0)).ToList();
+                var _ = ctx.SomeEntities.Select(e => Array.IndexOf(e.SomeArray, 0)).ToList();
                 AssertContainsInSql(@"SELECT COALESCE(array_position(e.""SomeArray"", 0), -1)");
             }
         }
@@ -468,22 +467,42 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         }
 
         [Fact]
-        public void Array_ToString()
+        public void Array_ArrayToString()
         {
             using (var ctx = CreateContext())
             {
-                var _ = ctx.SomeEntities.Select(e => e.SomeArray.ToString()).ToList();
+                var _ = ctx.SomeEntities.Select(e => EF.Functions.ArrayToString(e.SomeArray, ",")).ToList();
                 AssertContainsInSql(@"SELECT array_to_string(e.""SomeArray"", ',')");
             }
         }
 
         [Fact]
-        public void List_ToString()
+        public void List_ArrayToString()
         {
             using (var ctx = CreateContext())
             {
-                var _ = ctx.SomeEntities.Select(e => e.SomeList.ToString()).ToList();
+                var _ = ctx.SomeEntities.Select(e => EF.Functions.ArrayToString(e.SomeList, ",")).ToList();
                 AssertContainsInSql(@"SELECT array_to_string(e.""SomeList"", ',')");
+            }
+        }
+
+        [Fact]
+        public void Array_ArrayToString_with_null()
+        {
+            using (var ctx = CreateContext())
+            {
+                var _ = ctx.SomeEntities.Select(e => EF.Functions.ArrayToString(e.SomeArray, ",", "*")).ToList();
+                AssertContainsInSql(@"SELECT array_to_string(e.""SomeArray"", ',', '*')");
+            }
+        }
+
+        [Fact]
+        public void List_ArrayToString_with_null()
+        {
+            using (var ctx = CreateContext())
+            {
+                var _ = ctx.SomeEntities.Select(e => EF.Functions.ArrayToString(e.SomeList, ",", "*")).ToList();
+                AssertContainsInSql(@"SELECT array_to_string(e.""SomeList"", ',', '*')");
             }
         }
 

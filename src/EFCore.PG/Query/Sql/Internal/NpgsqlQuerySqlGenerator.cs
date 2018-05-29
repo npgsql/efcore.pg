@@ -147,8 +147,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
         /// <inheritdoc />
         protected override Expression VisitUnary(UnaryExpression expression)
         {
-            // TODO: I don't think this is called any longer.
-            // Handled by NpgsqlSqlTranslatingExpressionVisitor.VisitSubQuery.
             if (expression.NodeType == ExpressionType.ArrayLength)
             {
                 VisitSqlFunction(new SqlFunctionExpression("array_length", typeof(int), new[] { expression.Operand, Expression.Constant(1) }));

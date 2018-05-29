@@ -23,7 +23,8 @@
 
 #endregion
 
-using System.Collections;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -138,7 +139,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
             if (properties.Count == 0)
                 return null;
             var lastPropertyType = properties[properties.Count - 1].ClrType;
-            if (typeof(IList).IsAssignableFrom(lastPropertyType) && subQueryModel.ResultOperators.Count > 0)
+            if (IsArrayOrList(lastPropertyType) && subQueryModel.ResultOperators.Count > 0)
             {
                 if (subQueryModel.ResultOperators.First() is ConcatResultOperator concatResultOperator &&
                     Visit(fromExpression) is Expression first &&
@@ -147,7 +148,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
 
                 // Translate someArray.Length
                 if (subQueryModel.ResultOperators.First() is CountResultOperator)
+                {
+                    if (lastPropertyType.IsArray)
+                        return Expression.ArrayLength(Visit(fromExpression));
+
                     return new SqlFunctionExpression("array_length", typeof(int), new[] { Visit(fromExpression), Expression.Constant(1) });
+                }
 
                 // Translate someArray.Contains(someValue)
                 if (subQueryModel.ResultOperators.First() is ContainsResultOperator contains)
@@ -222,5 +228,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
                 return null;
             }
         }
+
+        /// <summary>
+        /// Tests if the type is an array or a <see cref="List{T}"/>.
+        /// </summary>
+        /// <param name="type">
+        /// The type to test.
+        /// </param>
+        /// <returns>
+        /// True if <paramref name="type"/> is an array or a <see cref="List{T}"/>; otherwise, false.
+        /// </returns>
+        static bool IsArrayOrList([NotNull] Type type)
+            => type.IsArray || type.IsGenericType && typeof(List<>) == type.GetGenericTypeDefinition();
     }
 }
