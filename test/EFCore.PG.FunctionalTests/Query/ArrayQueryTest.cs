@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -60,6 +61,28 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         }
 
         [Fact]
+        public void Array_ElementAt_with_constant()
+        {
+            using (var ctx = CreateContext())
+            {
+                var actual = ctx.SomeEntities.Where(e => e.SomeArray.ElementAt(0) == 3).ToList();
+                Assert.Equal(1, actual.Count);
+                AssertContainsInSql(@"WHERE (e.""SomeArray""[1]) = 3");
+            }
+        }
+
+        [Fact]
+        public void List_ElementAt_with_constant()
+        {
+            using (var ctx = CreateContext())
+            {
+                var actual = ctx.SomeEntities.Where(e => e.SomeList.ElementAt(0) == 3).ToList();
+                Assert.Equal(1, actual.Count);
+                AssertContainsInSql(@"WHERE (e.""SomeList""[1]) = 3");
+            }
+        }
+
+        [Fact]
         public void Array_Index_with_non_constant()
         {
             using (var ctx = CreateContext())
@@ -80,6 +103,32 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 // ReSharper disable once ConvertToConstant.Local
                 var x = 0;
                 var actual = ctx.SomeEntities.Where(e => e.SomeList[x] == 3).ToList();
+                Assert.Equal(1, actual.Count);
+                AssertContainsInSql(@"WHERE (e.""SomeList""[@__x_0 + 1]) = 3");
+            }
+        }
+
+        [Fact]
+        public void Array_ElementAt_with_non_constant()
+        {
+            using (var ctx = CreateContext())
+            {
+                // ReSharper disable once ConvertToConstant.Local
+                var x = 0;
+                var actual = ctx.SomeEntities.Where(e => e.SomeArray.ElementAt(x) == 3).ToList();
+                Assert.Equal(1, actual.Count);
+                AssertContainsInSql(@"WHERE (e.""SomeArray""[@__x_0 + 1]) = 3");
+            }
+        }
+
+        [Fact]
+        public void List_IndexElementAt_with_non_constant()
+        {
+            using (var ctx = CreateContext())
+            {
+                // ReSharper disable once ConvertToConstant.Local
+                var x = 0;
+                var actual = ctx.SomeEntities.Where(e => e.SomeList.ElementAt(x) == 3).ToList();
                 Assert.Equal(1, actual.Count);
                 AssertContainsInSql(@"WHERE (e.""SomeList""[@__x_0 + 1]) = 3");
             }
@@ -130,12 +179,36 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         }
 
         [Fact]
+        public void Array_Equal_with_parameter()
+        {
+            using (var ctx = CreateContext())
+            {
+                var array = new[] { 3, 4 };
+                var x = ctx.SomeEntities.Single(e => e.SomeArray.Equals(array));
+                Assert.Equal(array, x.SomeArray);
+                AssertContainsInSql(@"WHERE e.""SomeArray"" = @__array_0");
+            }
+        }
+
+        [Fact]
+        public void List_Equal_with_parameter()
+        {
+            using (var ctx = CreateContext())
+            {
+                var list = new List<int> { 3, 4 };
+                var x = ctx.SomeEntities.Single(e => e.SomeList.Equals(list));
+                Assert.Equal(list, x.SomeList);
+                AssertContainsInSql(@"WHERE e.""SomeList"" = @__list_0");
+            }
+        }
+
+        [Fact]
         public void Array_SequenceEqual_with_parameter()
         {
             using (var ctx = CreateContext())
             {
                 var array = new[] { 3, 4 };
-                var x = ctx.SomeEntities.Single(e => e.SomeArray.SequenceEqual(array));
+                var x = ctx.SomeEntities.Single(e => e.SomeArray.Equals(array));
                 Assert.Equal(array, x.SomeArray);
                 AssertContainsInSql(@"WHERE e.""SomeArray"" = @__array_0");
             }
@@ -261,8 +334,30 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             using (var ctx = CreateContext())
             {
-                var _ = ctx.SomeEntities.Where(e => e.SomeList.Count > 0).ToArray();
-                AssertContainsInSql(@"WHERE array_length(e.""SomeList"", 1) > 0");
+                var _ = ctx.SomeEntities.Where(e => e.SomeList.Count == 0).ToArray();
+                AssertContainsInSql(@"WHERE array_length(e.""SomeList"", 1) = 0");
+            }
+        }
+
+        [Fact]
+        public void Array_Count()
+        {
+            using (var ctx = CreateContext())
+            {
+                // ReSharper disable once UseCollectionCountProperty
+                var _ = ctx.SomeEntities.Where(e => e.SomeArray.Count() == 1).ToArray();
+                AssertContainsInSql(@"WHERE array_length(e.""SomeArray"", 1) = 1");
+            }
+        }
+
+        [Fact]
+        public void List_Count()
+        {
+            using (var ctx = CreateContext())
+            {
+                // ReSharper disable once UseCollectionCountProperty
+                var _ = ctx.SomeEntities.Where(e => e.SomeList.Count() == 1).ToArray();
+                AssertContainsInSql(@"WHERE array_length(e.""SomeList"", 1) = 1");
             }
         }
 
@@ -311,6 +406,129 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 AssertDoesNotContainInSql("array_length");
             }
         }
+
+        [Fact]
+        public void Array_Concat_with_array_column()
+        {
+            using (var ctx = CreateContext())
+            {
+                var _ = ctx.SomeEntities.Select(e => e.SomeArray.Concat(e.SomeArray)).ToList();
+                AssertContainsInSql(@"SELECT (e.""SomeArray"" || e.""SomeArray"")");
+            }
+        }
+
+        [Fact]
+        public void List_Concat_with_list_column()
+        {
+            using (var ctx = CreateContext())
+            {
+                var _ = ctx.SomeEntities.Select(e => e.SomeList.Concat(e.SomeList)).ToList();
+                AssertContainsInSql(@"SELECT (e.""SomeList"" || e.""SomeList"")");
+            }
+        }
+
+        [Fact]
+        public void Array_Concat_with_list_column()
+        {
+            using (var ctx = CreateContext())
+            {
+                var _ = ctx.SomeEntities.Select(e => e.SomeArray.Concat(e.SomeList)).ToList();
+                AssertContainsInSql(@"SELECT (e.""SomeArray"" || e.""SomeList"")");
+            }
+        }
+
+        [Fact]
+        public void List_Concat_with_array_column()
+        {
+            using (var ctx = CreateContext())
+            {
+                var _ = ctx.SomeEntities.Select(e => e.SomeList.Concat(e.SomeArray)).ToList();
+                AssertContainsInSql(@"SELECT (e.""SomeList"" || e.""SomeArray"")");
+            }
+        }
+
+        [Fact]
+        public void Array_IndexOf_constant()
+        {
+            using (var ctx = CreateContext())
+            {
+                var _ = ctx.SomeEntities.Select(e => e.SomeArray.IndexOf(0)).ToList();
+                AssertContainsInSql(@"SELECT COALESCE(array_position(e.""SomeArray"", 0), -1)");
+            }
+        }
+
+        [Fact]
+        public void List_IndexOf_constant()
+        {
+            using (var ctx = CreateContext())
+            {
+                var _ = ctx.SomeEntities.Select(e => e.SomeList.IndexOf(0)).ToList();
+                AssertContainsInSql(@"SELECT COALESCE(array_position(e.""SomeList"", 0), -1)");
+            }
+        }
+
+        [Fact]
+        public void Array_ToString()
+        {
+            using (var ctx = CreateContext())
+            {
+                var _ = ctx.SomeEntities.Select(e => e.SomeArray.ToString()).ToList();
+                AssertContainsInSql(@"SELECT array_to_string(e.""SomeArray"", ',')");
+            }
+        }
+
+        [Fact]
+        public void List_ToString()
+        {
+            using (var ctx = CreateContext())
+            {
+                var _ = ctx.SomeEntities.Select(e => e.SomeList.ToString()).ToList();
+                AssertContainsInSql(@"SELECT array_to_string(e.""SomeList"", ',')");
+            }
+        }
+
+#if NETCOREAPP2_1
+        [Fact]
+        public void Array_Append_constant()
+        {
+            using (var ctx = CreateContext())
+            {
+                var _ = ctx.SomeEntities.Select(e => e.SomeArray.Append(0)).ToList();
+                AssertContainsInSql(@"SELECT (e.""SomeArray"" || 0)");
+            }
+        }
+
+        [Fact]
+        public void List_Append_constant()
+        {
+            using (var ctx = CreateContext())
+            {
+                var _ = ctx.SomeEntities.Select(e => e.SomeList.Append(0)).ToList();
+                AssertContainsInSql(@"SELECT (e.""SomeList"" || 0)");
+            }
+        }
+
+        [Fact]
+        public void Array_Prepend_constant()
+        {
+            using (var ctx = CreateContext())
+            {
+                var _ = ctx.SomeEntities.Select(e => e.SomeArray.Prepend(0)).ToList();
+                AssertContainsInSql(@"SELECT (0 || e.""SomeArray"")");
+            }
+        }
+
+        [Fact]
+        public void List_Prepend_constant()
+        {
+            using (var ctx = CreateContext())
+            {
+                var _ = ctx.SomeEntities.Select(e => e.SomeList.Prepend(0)).ToList();
+                AssertContainsInSql(@"SELECT (0 || e.""SomeList"")");
+            }
+        }
+
+#endif
 
         #endregion
 

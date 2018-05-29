@@ -25,10 +25,13 @@
 
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.Query.Expressions;
 using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
@@ -44,45 +47,55 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         [CanBeNull]
         public Expression Translate(MethodCallExpression expression)
         {
-            if (!typeof(IList).IsAssignableFrom(expression.Method.DeclaringType))
+            if (expression.Object != null && !typeof(IList).IsAssignableFrom(expression.Object.Type))
                 return null;
+            if (expression.Object == null && expression.Arguments.Count > 0 && !typeof(IList).IsAssignableFrom(expression.Arguments[0].Type))
+                return null;
+
+            // TODO: use #430 to map @> to source.All(x => other.Contains(x));
+            // TODO: use #430 to map && to soucre.Any(x => other.Contains(x));
 
             switch (expression.Method.Name)
             {
+            // TODO: Currently handled in NpgsqlSqlTranslatingExpressionVisitor.
+            case nameof(Enumerable.Append):
+            case nameof(Enumerable.Concat):
+                return new CustomBinaryExpression(expression.Arguments[0], expression.Arguments[1], "||", expression.Arguments[0].Type);
+
+            // TODO: Currently handled in NpgsqlSqlTranslatingExpressionVisitor.
+            case nameof(Enumerable.Count):
+                return new SqlFunctionExpression("array_length", typeof(int), new[] { expression.Arguments[0], Expression.Constant(1) });
+
             case "get_Item" when expression.Object is Expression instance:
                 return Expression.MakeIndex(instance, instance.Type.GetRuntimeProperty("Item"), expression.Arguments);
-//            case nameof(NpgsqlListExtensions.Contains):
-//                return new CustomBinaryExpression(expression.Arguments[0], expression.Arguments[1], "@>", typeof(bool));
-//
-//            case nameof(NpgsqlListExtensions.ContainedBy):
-//                return new CustomBinaryExpression(expression.Arguments[0], expression.Arguments[1], "<@", typeof(bool));
-//
-//            case nameof(NpgsqlListExtensions.Overlaps):
-//                return new CustomBinaryExpression(expression.Arguments[0], expression.Arguments[1], "&&", typeof(bool));
-//
-//            case nameof(NpgsqlListExtensions.IsStrictlyLeftOf):
-//                return new CustomBinaryExpression(expression.Arguments[0], expression.Arguments[1], "<<", typeof(bool));
-//
-//            case nameof(NpgsqlListExtensions.IsStrictlyRightOf):
-//                return new CustomBinaryExpression(expression.Arguments[0], expression.Arguments[1], ">>", typeof(bool));
-//
-//            case nameof(NpgsqlListExtensions.DoesNotExtendRightOf):
-//                return new CustomBinaryExpression(expression.Arguments[0], expression.Arguments[1], "&<", typeof(bool));
-//
-//            case nameof(NpgsqlListExtensions.DoesNotExtendLeftOf):
-//                return new CustomBinaryExpression(expression.Arguments[0], expression.Arguments[1], "&>", typeof(bool));
-//
-//            case nameof(NpgsqlListExtensions.IsAdjacentTo):
-//                return new CustomBinaryExpression(expression.Arguments[0], expression.Arguments[1], "-|-", typeof(bool));
-//
-//            case nameof(NpgsqlListExtensions.Union):
-//                return new CustomBinaryExpression(expression.Arguments[0], expression.Arguments[1], "+", expression.Arguments[0].Type);
-//
-//            case nameof(NpgsqlListExtensions.Intersect):
-//                return new CustomBinaryExpression(expression.Arguments[0], expression.Arguments[1], "*", expression.Arguments[0].Type);
-//
-//            case nameof(NpgsqlListExtensions.Except):
-//                return new CustomBinaryExpression(expression.Arguments[0], expression.Arguments[1], "-", expression.Arguments[0].Type);
+
+            case nameof(Enumerable.ElementAt):
+                return Expression.MakeIndex(expression.Arguments[0], expression.Arguments[0].Type.GetRuntimeProperty("Item"), new[] { expression.Arguments[1] });
+
+            case nameof(Enumerable.Prepend):
+                return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[0], "||", expression.Arguments[0].Type);
+
+            case nameof(Enumerable.SequenceEqual):
+                return Expression.MakeBinary(ExpressionType.Equal, expression.Arguments[0], expression.Arguments[1]);
+
+            case nameof(ToString):
+                return new SqlFunctionExpression("array_to_string", typeof(string), new[] { expression.Object, Expression.Constant(",") });
+
+            case nameof(IList.IndexOf):
+                return
+                    new SqlFunctionExpression(
+                        "COALESCE",
+                        typeof(int),
+                        new Expression[]
+                        {
+                            new SqlFunctionExpression(
+                                "array_position",
+                                typeof(int),
+                                expression.Object is null
+                                    ? (IEnumerable<Expression>)expression.Arguments
+                                    : new[] { expression.Object, expression.Arguments[0] }),
+                            Expression.Constant(-1)
+                        });
 
             default:
                 return null;

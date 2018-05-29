@@ -140,6 +140,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
             var lastPropertyType = properties[properties.Count - 1].ClrType;
             if (typeof(IList).IsAssignableFrom(lastPropertyType) && subQueryModel.ResultOperators.Count > 0)
             {
+                if (subQueryModel.ResultOperators.First() is ConcatResultOperator concatResultOperator &&
+                    Visit(fromExpression) is Expression first &&
+                    Visit(concatResultOperator.Source2) is Expression second)
+                    return new CustomBinaryExpression(first, second, "||", first.Type);
+
                 // Translate someArray.Length
                 if (subQueryModel.ResultOperators.First() is CountResultOperator)
                     return new SqlFunctionExpression("array_length", typeof(int), new[] { Visit(fromExpression), Expression.Constant(1) });

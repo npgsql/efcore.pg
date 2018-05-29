@@ -40,7 +40,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         /// </summary>
         [NotNull] [ItemNotNull] static readonly IMethodCallTranslator[] MethodCallTranslators =
         {
-            new NpgsqlArraySequenceEqualTranslator(),
             new NpgsqlConvertTranslator(),
             new NpgsqlStringSubstringTranslator(),
             new NpgsqlLikeTranslator(),
