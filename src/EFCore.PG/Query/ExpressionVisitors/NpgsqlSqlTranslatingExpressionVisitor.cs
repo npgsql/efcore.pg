@@ -1,4 +1,5 @@
 ﻿#region License
+
 // The PostgreSQL License
 //
 // Copyright (C) 2016 The Npgsql Development Team
@@ -19,16 +20,20 @@
 // AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
 // ON AN "AS IS" BASIS, AND THE NPGSQL DEVELOPMENT TEAM HAS NO OBLIGATIONS
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+
 #endregion
 
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
 using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors;
 using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
+using Remotion.Linq.Clauses;
 using Remotion.Linq.Clauses.Expressions;
 using Remotion.Linq.Clauses.ResultOperators;
 
@@ -36,8 +41,42 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
 {
     public class NpgsqlSqlTranslatingExpressionVisitor : SqlTranslatingExpressionVisitor
     {
-        private readonly RelationalQueryModelVisitor _queryModelVisitor;
+        /// <summary>
+        /// The <see cref="MethodInfo"/> for <see cref="DbFunctionsExtensions.Like(DbFunctions,string,string)"/>.
+        /// </summary>
+        [NotNull] static readonly MethodInfo Like2MethodInfo =
+            typeof(DbFunctionsExtensions)
+                .GetRuntimeMethod(nameof(DbFunctionsExtensions.Like), new[] { typeof(DbFunctions), typeof(string), typeof(string) });
 
+        /// <summary>
+        /// The <see cref="MethodInfo"/> for <see cref="DbFunctionsExtensions.Like(DbFunctions,string,string, string)"/>.
+        /// </summary>
+        [NotNull] static readonly MethodInfo Like3MethodInfo =
+            typeof(DbFunctionsExtensions)
+                .GetRuntimeMethod(nameof(DbFunctionsExtensions.Like), new[] { typeof(DbFunctions), typeof(string), typeof(string), typeof(string) });
+
+        // ReSharper disable once InconsistentNaming
+        /// <summary>
+        /// The <see cref="MethodInfo"/> for <see cref="NpgsqlDbFunctionsExtensions.ILike(DbFunctions,string,string)"/>.
+        /// </summary>
+        [NotNull] static readonly MethodInfo ILike2MethodInfo =
+            typeof(NpgsqlDbFunctionsExtensions)
+                .GetRuntimeMethod(nameof(NpgsqlDbFunctionsExtensions.ILike), new[] { typeof(DbFunctions), typeof(string), typeof(string) });
+
+        // ReSharper disable once InconsistentNaming
+        /// <summary>
+        /// The <see cref="MethodInfo"/> for <see cref="NpgsqlDbFunctionsExtensions.ILike(DbFunctions,string,string,string)"/>.
+        /// </summary>
+        [NotNull] static readonly MethodInfo ILike3MethodInfo =
+            typeof(NpgsqlDbFunctionsExtensions)
+                .GetRuntimeMethod(nameof(NpgsqlDbFunctionsExtensions.ILike), new[] { typeof(DbFunctions), typeof(string), typeof(string), typeof(string) });
+
+        /// <summary>
+        /// The query model visitor.
+        /// </summary>
+        [NotNull] readonly RelationalQueryModelVisitor _queryModelVisitor;
+
+        /// <inheritdoc />
         public NpgsqlSqlTranslatingExpressionVisitor(
             [NotNull] SqlTranslatingExpressionVisitorDependencies dependencies,
             [NotNull] RelationalQueryModelVisitor queryModelVisitor,
@@ -45,22 +84,51 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
             [CanBeNull] Expression topLevelPredicate = null,
             bool inProjection = false)
             : base(dependencies, queryModelVisitor, targetSelectExpression, topLevelPredicate, inProjection)
+            => _queryModelVisitor = queryModelVisitor;
+
+        /// <inheritdoc />
+        protected override Expression VisitSubQuery(SubQueryExpression expression)
+            => base.VisitSubQuery(expression) ?? VisitLikeAnyAll(expression) ?? VisitEqualsAny(expression);
+
+        /// <inheritdoc />
+        protected override Expression VisitBinary(BinaryExpression expression)
         {
-            _queryModelVisitor = queryModelVisitor;
+            if (expression.NodeType == ExpressionType.ArrayIndex)
+            {
+                var properties = MemberAccessBindingExpressionVisitor.GetPropertyPath(
+                    expression.Left, _queryModelVisitor.QueryCompilationContext, out _);
+                if (properties.Count == 0)
+                    return base.VisitBinary(expression);
+                var lastPropertyType = properties[properties.Count - 1].ClrType;
+                if (lastPropertyType.IsArray && lastPropertyType.GetArrayRank() == 1)
+                {
+                    var left = Visit(expression.Left);
+                    var right = Visit(expression.Right);
+
+                    return left != null && right != null
+                        ? Expression.MakeBinary(ExpressionType.ArrayIndex, left, right)
+                        : null;
+                }
+            }
+
+            return base.VisitBinary(expression);
         }
 
-        protected override Expression VisitSubQuery(SubQueryExpression expression)
+        /// <summary>
+        /// Visits a <see cref="SubQueryExpression"/> and attempts to translate a '= ANY' expression.
+        /// </summary>
+        /// <param name="expression">The expression to visit.</param>
+        /// <returns>
+        /// An '= ANY' expression or null.
+        /// </returns>
+        [CanBeNull]
+        protected virtual Expression VisitEqualsAny([NotNull] SubQueryExpression expression)
         {
-            // Prefer the default EF Core translation if one exists
-            var result = base.VisitSubQuery(expression);
-            if (result != null)
-                return result;
-
             var subQueryModel = expression.QueryModel;
             var fromExpression = subQueryModel.MainFromClause.FromExpression;
 
             var properties = MemberAccessBindingExpressionVisitor.GetPropertyPath(
-                fromExpression, _queryModelVisitor.QueryCompilationContext, out var qsre);
+                fromExpression, _queryModelVisitor.QueryCompilationContext, out _);
 
             if (properties.Count == 0)
                 return null;
@@ -76,33 +144,77 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
                 {
                     var containsItem = Visit(contains.Item);
                     if (containsItem != null)
-                        return new ArrayAnyExpression(containsItem, Visit(fromExpression));
+                        return new ArrayAnyAllExpression(ArrayComparisonType.ANY, "=", containsItem, Visit(fromExpression));
                 }
             }
 
             return null;
         }
 
-        protected override Expression VisitBinary(BinaryExpression expression)
+        /// <summary>
+        /// Visits a <see cref="SubQueryExpression"/> and attempts to translate a LIKE/ILIKE ANY/ALL expression.
+        /// </summary>
+        /// <param name="expression">The expression to visit.</param>
+        /// <returns>
+        /// A 'LIKE ANY', 'LIKE ALL', 'ILIKE ANY', or 'ILIKE ALL' expression or null.
+        /// </returns>
+        [CanBeNull]
+        protected virtual Expression VisitLikeAnyAll([NotNull] SubQueryExpression expression)
         {
-            if (expression.NodeType == ExpressionType.ArrayIndex)
-            {
-                var properties = MemberAccessBindingExpressionVisitor.GetPropertyPath(
-                    expression.Left, _queryModelVisitor.QueryCompilationContext, out var qsre);
-                if (properties.Count == 0)
-                    return base.VisitBinary(expression);
-                var lastPropertyType = properties[properties.Count - 1].ClrType;
-                if (lastPropertyType.IsArray && lastPropertyType.GetArrayRank() == 1)
-                {
-                    var left = Visit(expression.Left);
-                    var right = Visit(expression.Right);
+            var queryModel = expression.QueryModel;
+            var results = queryModel.ResultOperators;
+            var body = queryModel.BodyClauses;
 
-                    return left != null && right != null
-                        ? Expression.MakeBinary(ExpressionType.ArrayIndex, left, right)
+            if (results.Count != 1)
+                return null;
+
+            ArrayComparisonType comparisonType;
+            MethodCallExpression call;
+            switch (results[0])
+            {
+            case AnyResultOperator _:
+                comparisonType = ArrayComparisonType.ANY;
+                call =
+                    body.Count == 1 &&
+                    body[0] is WhereClause whereClause &&
+                    whereClause.Predicate is MethodCallExpression methocCall
+                        ? methocCall
                         : null;
-                }
+                break;
+
+            case AllResultOperator allResult:
+                comparisonType = ArrayComparisonType.ALL;
+                call = allResult.Predicate as MethodCallExpression;
+                break;
+
+            default:
+                return null;
             }
-            return base.VisitBinary(expression);
+
+            if (call is null)
+                return null;
+
+            var source = queryModel.MainFromClause.FromExpression;
+
+            // ReSharper disable AssignNullToNotNullAttribute
+            switch (call.Method)
+            {
+            case MethodInfo m when m == Like2MethodInfo:
+                return new ArrayAnyAllExpression(comparisonType, "LIKE", Visit(call.Arguments[1]), Visit(source));
+
+            case MethodInfo m when m == Like3MethodInfo:
+                return new ArrayAnyAllExpression(comparisonType, "LIKE", Visit(call.Arguments[1]), Visit(source));
+
+            case MethodInfo m when m == ILike2MethodInfo:
+                return new ArrayAnyAllExpression(comparisonType, "ILIKE", Visit(call.Arguments[1]), Visit(source));
+
+            case MethodInfo m when m == ILike3MethodInfo:
+                return new ArrayAnyAllExpression(comparisonType, "ILIKE", Visit(call.Arguments[1]), Visit(source));
+
+            default:
+                return null;
+            }
+            // ReSharper restore AssignNullToNotNullAttribute
         }
     }
 }
