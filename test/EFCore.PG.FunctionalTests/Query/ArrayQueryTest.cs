@@ -506,6 +506,34 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             }
         }
 
+        [Fact]
+        public void Array_StringToArray()
+        {
+            using (var ctx = CreateContext())
+            {
+                var _ =
+                    ctx.SomeEntities
+                       .Select(e => EF.Functions.ArrayToString(e.SomeArray, ",", "*"))
+                       .Select(e => EF.Functions.StringToArray<string>(e, ",", "*")).ToList();
+
+                AssertContainsInSql(@"SELECT string_to_array(array_to_string(e.""SomeArray"", ',', '*'), ',', '*')");
+            }
+        }
+
+        [Fact]
+        public void List_StringToList()
+        {
+            using (var ctx = CreateContext())
+            {
+                var _ =
+                    ctx.SomeEntities
+                       .Select(e => EF.Functions.ArrayToString(e.SomeList, ",", "*"))
+                       .Select(e => EF.Functions.StringToList<string>(e, ",", "*")).ToList();
+
+                AssertContainsInSql(@"SELECT string_to_array(array_to_string(e.""SomeList"", ',', '*'), ',', '*')");
+            }
+        }
+
 #if NETCOREAPP2_1
         [Fact]
         public void Array_Append_constant()

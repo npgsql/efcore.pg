@@ -23,9 +23,9 @@
 
 #endregion
 
-using System;
 using System.Collections.Generic;
 using JetBrains.Annotations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore
@@ -36,57 +36,85 @@ namespace Microsoft.EntityFrameworkCore
     public static class NpgsqlArrayExtensions
     {
         /// <summary>
-        /// Determines whether a range contains a specified value.
+        /// Concatenates elements using the supplied delimiter.
         /// </summary>
         /// <param name="_">The DbFunctions instance.</param>
-        /// <param name="array">The list to conver to a string in which to locate the value.</param>
+        /// <param name="array">The list to convert to a string in which to locate the value.</param>
         /// <param name="delimiter">The value used to delimit the elements.</param>
         /// <typeparam name="T">The type of the elements of <paramref name="array"/>.</typeparam>
         /// <returns>
-        /// <value>true</value> if the range contains the specified value; otherwise, <value>false</value>.
+        /// The string concatenation of the elements with the supplied delimiter.
         /// </returns>
         public static string ArrayToString<T>([CanBeNull] this DbFunctions _, [NotNull] T[] array, [CanBeNull] string delimiter)
-            => throw new NotSupportedException();
+            => throw new ClientEvaluationNotSupportedException();
 
         /// <summary>
-        /// Determines whether a range contains a specified value.
+        /// Concatenates elements using the supplied delimiter.
         /// </summary>
         /// <param name="_">The DbFunctions instance.</param>
-        /// <param name="array">The list to conver to a string in which to locate the value.</param>
+        /// <param name="list">The list to convert to a string in which to locate the value.</param>
+        /// <param name="delimiter">The value used to delimit the elements.</param>
+        /// <typeparam name="T">The type of the elements of <paramref name="list"/>.</typeparam>
+        /// <returns>
+        /// The string concatenation of the elements with the supplied delimiter.
+        /// </returns>
+        public static string ArrayToString<T>([CanBeNull] this DbFunctions _, [NotNull] List<T> list, [CanBeNull] string delimiter)
+            => throw new ClientEvaluationNotSupportedException();
+
+        /// <summary>
+        /// Concatenates elements using the supplied delimiter and the string representation for null elements.
+        /// </summary>
+        /// <param name="_">The DbFunctions instance.</param>
+        /// <param name="array">The list to convert to a string in which to locate the value.</param>
         /// <param name="delimiter">The value used to delimit the elements.</param>
         /// <param name="nullString">The value used to represent a null value.</param>
         /// <typeparam name="T">The type of the elements of <paramref name="array"/>.</typeparam>
         /// <returns>
-        /// <value>true</value> if the range contains the specified value; otherwise, <value>false</value>.
+        /// The string concatenation of the elements with the supplied delimiter and null string.
         /// </returns>
         public static string ArrayToString<T>([CanBeNull] this DbFunctions _, [NotNull] T[] array, [CanBeNull] string delimiter, [CanBeNull] string nullString)
-            => throw new NotSupportedException();
+            => throw new ClientEvaluationNotSupportedException();
 
         /// <summary>
-        /// Determines whether a range contains a specified value.
+        /// Concatenates elements using the supplied delimiter and the string representation for null elements.
         /// </summary>
         /// <param name="_">The DbFunctions instance.</param>
-        /// <param name="list">The list to conver to a string in which to locate the value.</param>
-        /// <param name="delimiter">The value used to delimit the elements.</param>
-        /// <typeparam name="T">The type of the elements of <paramref name="list"/>.</typeparam>
-        /// <returns>
-        /// <value>true</value> if the range contains the specified value; otherwise, <value>false</value>.
-        /// </returns>
-        public static string ArrayToString<T>([CanBeNull] this DbFunctions _, [NotNull] List<T> list, [CanBeNull] string delimiter)
-            => throw new NotSupportedException();
-
-        /// <summary>
-        /// Determines whether a range contains a specified value.
-        /// </summary>
-        /// <param name="_">The DbFunctions instance.</param>
-        /// <param name="list">The list to conver to a string in which to locate the value.</param>
+        /// <param name="list">The list to convert to a string in which to locate the value.</param>
         /// <param name="delimiter">The value used to delimit the elements.</param>
         /// <param name="nullString">The value used to represent a null value.</param>
         /// <typeparam name="T">The type of the elements of <paramref name="list"/>.</typeparam>
         /// <returns>
-        /// <value>true</value> if the range contains the specified value; otherwise, <value>false</value>.
+        /// The string concatenation of the elements with the supplied delimiter and null string.
         /// </returns>
         public static string ArrayToString<T>([CanBeNull] this DbFunctions _, [NotNull] List<T> list, [CanBeNull] string delimiter, [CanBeNull] string nullString)
-            => throw new NotSupportedException();
+            => throw new ClientEvaluationNotSupportedException();
+
+        /// <summary>
+        /// Converts the input string into an array using the supplied delimiter and the string representation for null elements.
+        /// </summary>
+        /// <param name="_">The DbFunctions instance.</param>
+        /// <param name="input">The input string of delimited values.</param>
+        /// <param name="delimiter">The value that delimits the elements.</param>
+        /// <param name="nullString">The value that represents a null value.</param>
+        /// <typeparam name="T">The type of the elements in the resulting array.</typeparam>
+        /// <returns>
+        /// The array resulting from splitting the input string based on the supplied delimiter and null string.
+        /// </returns>
+        public static T[] StringToArray<T>([CanBeNull] this DbFunctions _, [NotNull] string input, [CanBeNull] string delimiter, [CanBeNull] string nullString)
+            => throw new ClientEvaluationNotSupportedException();
+
+        /// <summary>
+        /// Converts the input string into a <see cref="List{T}"/> using the supplied delimiter and the string representation for null elements.
+        /// </summary>
+        /// <param name="_">The DbFunctions instance.</param>
+        /// <param name="input">The input string of delimited values.</param>
+        /// <param name="delimiter">The value that delimits the elements.</param>
+        /// <param name="nullString">The value that represents a null value.</param>
+        /// <typeparam name="T">The type of the elements in the resulting array.</typeparam>
+        /// <returns>
+        /// The list resulting from splitting the input string based on the supplied delimiter and null string.
+        /// </returns>
+        public static List<T> StringToList<T>([CanBeNull] this DbFunctions _, [NotNull] string input, [CanBeNull] string delimiter, [CanBeNull] string nullString)
+            => throw new ClientEvaluationNotSupportedException();
     }
 }

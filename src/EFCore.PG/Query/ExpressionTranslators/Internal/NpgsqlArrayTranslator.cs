@@ -53,22 +53,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             if (!IsTypeSupported(expression))
                 return null;
 
-            if (!IsMethodSupported(expression.Method))
-                return null;
-
             // TODO: use #430 to map @> to source.All(x => other.Contains(x));
             // TODO: use #430 to map && to soucre.Any(x => other.Contains(x));
 
             switch (expression.Method.Name)
             {
-            #region Instance
-
-            case "get_Item" when expression.Object is Expression instance:
-                return Expression.MakeIndex(instance, instance.Type.GetRuntimeProperty("Item"), expression.Arguments);
-
-            #endregion
-
-            #region Enumerable
+            #region EnumerableStaticMethods
 
             case nameof(Enumerable.ElementAt):
                 return Expression.MakeIndex(expression.Arguments[0], expression.Arguments[0].Type.GetRuntimeProperty("Item"), new[] { expression.Arguments[1] });
@@ -94,9 +84,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             case nameof(NpgsqlArrayExtensions.ArrayToString):
                 return new SqlFunctionExpression("array_to_string", typeof(string), expression.Arguments.Skip(1));
 
+            case nameof(NpgsqlArrayExtensions.StringToArray):
+                return new SqlFunctionExpression("string_to_array", expression.Method.ReturnType, expression.Arguments.Skip(1));
+
+            case nameof(NpgsqlArrayExtensions.StringToList):
+                return new SqlFunctionExpression("string_to_array", expression.Method.ReturnType, expression.Arguments.Skip(1));
+
             #endregion
 
-            #region ArrayStatic
+            #region ArrayStaticMethods
 
             case nameof(Array.IndexOf) when expression.Method.DeclaringType == typeof(Array):
                 return
@@ -111,7 +107,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
             #endregion
 
-            #region ListInstance
+            #region ListInstanceMethods
+
+            case "get_Item" when expression.Object is Expression instance:
+                return Expression.MakeIndex(instance, instance.Type.GetRuntimeProperty("Item"), expression.Arguments);
 
             case nameof(IList.IndexOf) when IsArrayOrList(expression.Method.DeclaringType):
                 return
@@ -144,21 +143,34 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         /// </returns>
         static bool IsTypeSupported([NotNull] MethodCallExpression expression)
         {
+            Type declaringType = expression.Method.DeclaringType;
+
+            // Methods declared here are always translated.
+            if (declaringType == typeof(NpgsqlArrayExtensions))
+                return true;
+
+            // Methods not declared here are never translated.
+            if (!IsArrayOrList(declaringType) &&
+                declaringType != typeof(Array) &&
+                declaringType != typeof(Enumerable))
+                return false;
+
+            // Instance methods are only translated for T[] and List<T>.
             if (expression.Object is Expression instance)
                 return IsArrayOrList(instance.Type);
 
+            // Extension methods may  only be translated when a parameter is T[] or List<T>
             if (expression.Object is null)
             {
+                // Static method with no parameters? Skip.
                 if (expression.Arguments.Count == 0)
                     return false;
 
-                if (expression.Arguments.Count > 1 &&
-                    expression.Arguments[0].Type == typeof(DbFunctions))
-                    return IsArrayOrList(expression.Arguments[1].Type);
-
+                // Is this an extension method on T[] or List<T>?
                 return IsArrayOrList(expression.Arguments[0].Type);
             }
 
+            // Something else? Skip.
             return false;
         }
 
@@ -171,20 +183,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         /// <returns>
         /// True if <paramref name="type"/> is an array or a <see cref="List{T}"/>; otherwise, false.
         /// </returns>
-        static bool IsArrayOrList(Type type)
-            => type.IsArray || type.IsGenericType && typeof(List<>) == type.GetGenericTypeDefinition();
-
-        /// <summary>
-        /// Tests if the method is declared on an array, a <see cref="List{T}"/>, or <see cref="Enumerable"/>.
-        /// </summary>
-        /// <param name="method">
-        /// The method to test.
-        /// </param>
-        /// <returns>
-        /// True if <paramref name="method"/> is declared on an array, a <see cref="List{T}"/>, or <see cref="Enumerable"/>; otherwise, false.
-        /// </returns>
-        static bool IsMethodSupported([NotNull] MethodInfo method)
-            => method.DeclaringType is Type t && (IsArrayOrList(t) || t == typeof(Array) || t == typeof(Enumerable) || t == typeof(NpgsqlArrayExtensions));
+        static bool IsArrayOrList(Type type) => type.IsArray || type.IsGenericType && typeof(List<>) == type.GetGenericTypeDefinition();
 
         #endregion
     }
