@@ -197,9 +197,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
                 Visit(GenerateOneBasedIndexExpression(expression.Arguments[i]));
                 Sql.Append(']');
             }
-
             Sql.Append(')');
-
             return expression;
         }
 
@@ -208,6 +206,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
         /// </summary>
         public Expression VisitArrayAnyAll(ArrayAnyAllExpression arrayAnyAllExpression)
         {
+            Visit(arrayAnyAllExpression.Operand);
             Sql.Append(' ');
             Sql.Append(arrayAnyAllExpression.Operator);
             Sql.Append(' ');
