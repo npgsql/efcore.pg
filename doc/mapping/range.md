@@ -1,8 +1,5 @@
 # Range Type Mapping
 
-> [!NOTE]
-> This feature is only available in Npgsql EF Core 2.1, which is currently in preview.
-
 PostgreSQL has the unique feature of supporting [*range data types*](https://www.postgresql.org/docs/current/static/rangetypes.html). Ranges represent a range of numbers, dates or other data types, and allow you to easily query ranges which contain a value, perform set operations (e.g. query ranges which contain other ranges), and other similar operations. The range operations supported by PostgreSQL are listed [in this page](https://www.postgresql.org/docs/current/static/functions-range.html). Starting with version 2.1, the Npgsql EF Core provider allows you to seemlessly map PostgreSQL's built-in ranges, and even perform operations on them.
 
 Note that user-defined ranges are not supported.

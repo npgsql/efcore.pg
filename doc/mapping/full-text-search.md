@@ -1,8 +1,5 @@
 # Full Text Search
 
-> [!NOTE]
-> This feature is only available in Npgsql EF Core 2.1, which is currently in preview.
-
 PostgreSQL has [built-in support for full-text search](https://www.postgresql.org/docs/current/static/textsearch.html), which allows you to conveniently and efficiently query natural language documents.
 
 *TO BE COMPLETED*

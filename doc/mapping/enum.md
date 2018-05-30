@@ -1,8 +1,5 @@
 # Enum Type Mapping
 
-> [!NOTE]
-> This feature is only available in Npgsql EF Core 2.1, which is currently in preview.
-
 By default, any enum properties in your model will be mapped to database integers. EF Core 2.1 also allows you to map these to strings in the database with value converters.
 
 However, the Npgsql provider also allows you to map your CLR enums to [database enum types](https://www.postgresql.org/docs/current/static/datatype-enum.html). This option, unique to PostgreSQL, provides the best of both worlds: the enum is internally stored in the database as a number (minimal storage), but is handled like a string (more usable, no need to remember numeric values) and has type safety.
