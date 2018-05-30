@@ -25,6 +25,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq.Expressions;
 using System.Reflection;
 using JetBrains.Annotations;
@@ -45,6 +46,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
     /// </summary>
     public class NpgsqlSqlTranslatingExpressionVisitor : SqlTranslatingExpressionVisitor
     {
+        #region MethodInfoFields
+
         /// <summary>
         /// The <see cref="MethodInfo"/> for <see cref="DbFunctionsExtensions.Like(DbFunctions,string,string)"/>.
         /// </summary>
@@ -75,6 +78,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
             typeof(NpgsqlDbFunctionsExtensions)
                 .GetRuntimeMethod(nameof(NpgsqlDbFunctionsExtensions.ILike), new[] { typeof(DbFunctions), typeof(string), typeof(string), typeof(string) });
 
+        #endregion
+
         /// <summary>
         /// The query model visitor.
         /// </summary>
@@ -90,14 +95,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
             : base(dependencies, queryModelVisitor, targetSelectExpression, topLevelPredicate, inProjection)
             => _queryModelVisitor = queryModelVisitor;
 
-        // TODO: This should be refactored along the lines of NpgsqlCompositeMethodCallTranslator.
+        #region Overrides
+
         /// <inheritdoc />
         [CanBeNull]
         protected override Expression VisitSubQuery(SubQueryExpression expression)
-            => base.VisitSubQuery(expression) ??
-               VisitConcatContainsCount(expression) ??
-               VisitAnyAllLike(expression) ??
-               VisitAnyAllContains(expression);
+            => base.VisitSubQuery(expression) ?? VisitArraySubQuery(expression);
 
         /// <inheritdoc />
         protected override Expression VisitBinary(BinaryExpression expression)
@@ -111,60 +114,65 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
                 var lastPropertyType = properties[properties.Count - 1].ClrType;
                 if (lastPropertyType.IsArray && lastPropertyType.GetArrayRank() == 1)
                 {
-                    var left = Visit(expression.Left);
-                    var right = Visit(expression.Right);
+                    var left = Visit(expression.Left) ?? expression.Left;
+                    var right = Visit(expression.Right) ?? expression.Right;
 
-                    return left != null && right != null
-                        ? Expression.MakeBinary(ExpressionType.ArrayIndex, left, right)
-                        : null;
+                    return Expression.MakeBinary(ExpressionType.ArrayIndex, left, right);
                 }
             }
 
             return base.VisitBinary(expression);
         }
 
+        #endregion
+
+        #region ArraySubQueries
+
         /// <summary>
-        /// Visits an array-based <see cref="SubQueryExpression"/> to translate a
-        /// <see cref="ConcatResultOperator"/>,
-        /// <see cref="ContainsResultOperator"/>, or
-        /// <see cref="CountResultOperator"/>.
+        /// Visits an array-based subquery.
         /// </summary>
-        /// <param name="expression">The expression to visit.</param>
+        /// <param name="expression">The subquery expression.</param>
         /// <returns>
         /// An expression or null.
         /// </returns>
         [CanBeNull]
-        protected virtual Expression VisitConcatContainsCount([NotNull] SubQueryExpression expression)
+        protected virtual Expression VisitArraySubQuery([NotNull] SubQueryExpression expression)
         {
             var queryModel = expression.QueryModel;
             var from = queryModel.MainFromClause.FromExpression;
+            var body = queryModel.BodyClauses;
             var results = queryModel.ResultOperators;
 
-            if (!IsArrayOrList(from.Type) || results.Count != 1)
+            // TODO: what causes the from expression to not be visitable?
+            // Only handle subqueries when the from expression is visitable.
+            if (!(Visit(from) is Expression array))
                 return null;
 
-            // BUG: This keeps a few unit tests from failing.
-            // - SimpleQueryNpgsqlTest.Contains_with_local_anonymous_type_array_closure
-            // - SimpleQueryNpgsqlTest.Contains_with_local_tuple_array_closure
-            // - SimpleQueryNpgsqlTest.Where_navigation_contains
-            if (from is ParameterExpression)
+            // Only handle types mapped to PostgreSQL arrays.
+            if (!IsArrayOrList(array.Type))
                 return null;
 
-            var array = Visit(from) ?? from;
+            // TODO: when is there more than one result operator?
+            // Only handle singular result operators.
+            if (results.Count != 1)
+                return null;
 
             switch (results[0])
             {
-            case ConcatResultOperator concat when IsArrayOrList(concat.Source2.Type):
-                return new CustomBinaryExpression(array, Visit(concat.Source2) ?? concat.Source2, "||", array.Type);
+            case AnyResultOperator _:
+                return VisitArrayAny(array, body);
+
+            case AllResultOperator allResultOperator:
+                return VisitArrayAll(array, allResultOperator);
+
+            case ConcatResultOperator concatResultOperator:
+                return VisitArrayConcat(array, concatResultOperator);
 
             case ContainsResultOperator contains:
                 return new ArrayAnyAllExpression(ArrayComparisonType.ANY, "=", Visit(contains.Item) ?? contains.Item, array);
 
-            case CountResultOperator _ when array.Type.IsArray:
-                return Expression.ArrayLength(array);
-
-            case CountResultOperator _:
-                return new SqlFunctionExpression("array_length", typeof(int), new[] { array, Expression.Constant(1) });
+            case CountResultOperator countResultOperator:
+                return VisitArrayCount(array, countResultOperator);
 
             default:
                 return null;
@@ -172,55 +180,93 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
         }
 
         /// <summary>
-        /// Visits an array-based <see cref="SubQueryExpression"/> to translate a
-        /// <see cref="AnyResultOperator"/> or <see cref="AllResultOperator"/>
-        /// when the relevant predicate is a LIKE or ILIKE expression.
+        /// Visits an array-based ANY comparison: {operand} {operator} ANY ({array}).
         /// </summary>
-        /// <param name="expression">The expression to visit.</param>
+        /// <param name="array">The array expression.</param>
+        /// <param name="body">The body clauses.</param>
         /// <returns>
         /// An expression or null.
         /// </returns>
         [CanBeNull]
-        protected virtual Expression VisitAnyAllLike([NotNull] SubQueryExpression expression)
+        protected virtual Expression VisitArrayAny(Expression array, [NotNull] ObservableCollection<IBodyClause> body)
         {
-            var queryModel = expression.QueryModel;
-            var body = queryModel.BodyClauses;
-            var from = queryModel.MainFromClause.FromExpression;
-            var results = queryModel.ResultOperators;
+            var predicate =
+                body.Count == 1 &&
+                body[0] is WhereClause whereClause
+                    ? whereClause.Predicate
+                    : null;
 
-            if (!IsArrayOrList(from.Type) || results.Count != 1)
+            if (predicate is null)
                 return null;
 
-            ArrayComparisonType comparisonType;
-            MethodCallExpression call;
-            switch (results[0])
-            {
-            case AnyResultOperator _:
-                comparisonType = ArrayComparisonType.ANY;
-                call =
-                    body.Count == 1 &&
-                    body[0] is WhereClause whereClause &&
-                    whereClause.Predicate is MethodCallExpression methocCall
-                        ? methocCall
-                        : null;
-                break;
+            return
+                VisitArrayLike(array, predicate, ArrayComparisonType.ANY) ??
+                VisitArrayContains(array, predicate, ArrayComparisonType.ANY);
+        }
 
-            case AllResultOperator allResult:
-                comparisonType = ArrayComparisonType.ALL;
-                call = allResult.Predicate as MethodCallExpression;
-                break;
+        /// <summary>
+        /// Visits an array-based ALL comparison: {operand} {operator} ALL ({array}).
+        /// </summary>
+        /// <param name="array">The array expression.</param>
+        /// <param name="allResultOperator">The result operator.</param>
+        /// <returns>
+        /// An expression or null.
+        /// </returns>
+        [CanBeNull]
+        protected virtual Expression VisitArrayAll([NotNull] Expression array, [NotNull] AllResultOperator allResultOperator)
+            => VisitArrayLike(array, allResultOperator.Predicate, ArrayComparisonType.ALL) ??
+               VisitArrayContains(array, allResultOperator.Predicate, ArrayComparisonType.ALL);
 
-            default:
-                return null;
-            }
+        /// <summary>
+        /// Visits an array-based concatenation expression: {array|value} || {array|value}.
+        /// </summary>
+        /// <param name="array">The source expression.</param>
+        /// <param name="concatResultOperator">The result operator.</param>
+        /// <returns>
+        /// An expression or null.
+        /// </returns>
+        [CanBeNull]
+        protected virtual Expression VisitArrayConcat([NotNull] Expression array, [NotNull] ConcatResultOperator concatResultOperator)
+        {
+            var other = Visit(concatResultOperator.Source2) ?? concatResultOperator.Source2;
+            return IsArrayOrList(other.Type) ? new CustomBinaryExpression(array, other, "||", array.Type) : null;
+        }
 
-            if (call is null)
+        /// <summary>
+        /// Visits an array-based count expression: {array}.Length, {list}.Count, {array|list}.Count(), {array|list}.Count({predicate}).
+        /// </summary>
+        /// <param name="array">The source expression.</param>
+        /// <param name="countResultOperator">The result operator.</param>
+        /// <returns>
+        /// An expression or null.
+        /// </returns>
+        [CanBeNull]
+        protected virtual Expression VisitArrayCount([NotNull] Expression array, [NotNull] CountResultOperator countResultOperator)
+        {
+            // TODO: handle count operation with predicate.
+
+            return array.Type.IsArray
+                ? (Expression)Expression.ArrayLength(array)
+                : new SqlFunctionExpression("array_length", typeof(int), new[] { array, Expression.Constant(1) });
+        }
+
+        /// <summary>
+        /// Visits an array-based comparison for an LIKE or ILIKE expression: {operand} {LIKE|ILIKE} {ANY|ALL} ({array}).
+        /// </summary>
+        /// <param name="array">The array expression.</param>
+        /// <param name="predicate">The method call expression.</param>
+        /// <param name="comparisonType">The array comparison type.</param>
+        /// <returns>
+        /// An expression or null.
+        /// </returns>
+        [CanBeNull]
+        protected virtual Expression VisitArrayLike([NotNull] Expression array, [NotNull] Expression predicate, ArrayComparisonType comparisonType)
+        {
+            if (!(predicate is MethodCallExpression call))
                 return null;
 
             var operand = Visit(call.Arguments[1]) ?? call.Arguments[1];
-            var array = Visit(from) ?? from;
 
-            // ReSharper disable AssignNullToNotNullAttribute
             switch (call.Method)
             {
             case MethodInfo m when m == Like2MethodInfo:
@@ -241,46 +287,28 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
         }
 
         /// <summary>
-        /// Visits an array-based <see cref="SubQueryExpression"/> to translate a
-        /// <see cref="AnyResultOperator"/> or <see cref="AllResultOperator"/>
-        /// when the relevant predicate is a <see cref="SubQueryExpression"/>
-        /// for which the relevant predicate is a <see cref="ContainsResultOperator"/>.
+        /// Visits an array-based comparison for a containment expression: {operand} = {ANY|ALL} ({array}).
         /// </summary>
-        /// <param name="expression">The expression to visit.</param>
+        /// <param name="array">The array expression.</param>
+        /// <param name="predicate">The method call expression.</param>
+        /// <param name="comparisonType">The array comparison type.</param>
         /// <returns>
         /// An expression or null.
         /// </returns>
         [CanBeNull]
-        protected virtual Expression VisitAnyAllContains([NotNull] SubQueryExpression expression)
+        protected virtual Expression VisitArrayContains([NotNull] Expression array, [NotNull] Expression predicate, ArrayComparisonType comparisonType)
         {
-            var queryModel = expression.QueryModel;
-            var body = queryModel.BodyClauses;
-            var from = queryModel.MainFromClause.FromExpression;
-            var results = queryModel.ResultOperators;
-
-            if (!IsArrayOrList(from.Type) || results.Count != 1)
+            if (!(Visit(predicate) is ArrayAnyAllExpression expression) || !expression.IsContainsExpression)
                 return null;
 
-            var array = Visit(from) ?? from;
+            var inner = Visit(expression.Array) ?? expression.Array;
 
-            switch (results[0])
-            {
-            case AnyResultOperator _
-                when body.Count == 1 &&
-                     body[0] is WhereClause where &&
-                     Visit(where.Predicate) is ArrayAnyAllExpression a &&
-                     a.IsAnyEquals:
-                return new CustomBinaryExpression(array, Visit(a.Array) ?? a.Array, "&&", typeof(bool));
-
-            case AllResultOperator all
-                when Visit(all.Predicate) is ArrayAnyAllExpression a &&
-                     a.IsAnyEquals:
-                return new CustomBinaryExpression(Visit(a.Array) ?? a.Array, array, "@>", typeof(bool));
-
-            default:
-                return null;
-            }
+            return new CustomBinaryExpression(array, inner, comparisonType == ArrayComparisonType.ALL ? "<@" : "&&", typeof(bool));
         }
+
+        #endregion
+
+        #region Helpers
 
         /// <summary>
         /// Tests if the type is an array or a <see cref="List{T}"/>.
@@ -292,5 +320,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
         /// True if <paramref name="type"/> is an array or a <see cref="List{T}"/>; otherwise, false.
         /// </returns>
         static bool IsArrayOrList([NotNull] Type type) => type.IsArray || type.IsGenericType && typeof(List<>) == type.GetGenericTypeDefinition();
+
+        #endregion
     }
 }

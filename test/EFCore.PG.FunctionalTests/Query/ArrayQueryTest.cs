@@ -540,7 +540,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using (var ctx = CreateContext())
             {
                 var _ = ctx.SomeEntities.Where(x => x.SomeList.All(y => x.SomeArray.Contains(y))).ToList();
-                AssertContainsInSql(@"WHERE (x.""SomeArray"" @> x.""SomeList"") = TRUE");
+                AssertContainsInSql(@"WHERE (x.""SomeList"" <@ x.""SomeArray"") = TRUE");
             }
         }
 
@@ -550,7 +550,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using (var ctx = CreateContext())
             {
                 var _ = ctx.SomeEntities.Where(x => x.SomeArray.All(y => x.SomeList.Contains(y))).ToList();
-                AssertContainsInSql(@"WHERE (x.""SomeList"" @> x.""SomeArray"") = TRUE");
+                AssertContainsInSql(@"WHERE (x.""SomeArray"" <@ x.""SomeList"") = TRUE");
             }
         }
 

@@ -71,7 +71,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         /// <summary>
         /// True if this instance represents: {operand} = ANY ({array})".
         /// </summary>
-        public bool IsAnyEquals => ArrayComparisonType is ArrayComparisonType.ANY && Operator is "=";
+        public bool IsContainsExpression => ArrayComparisonType is ArrayComparisonType.ANY && Operator is "=";
 
         /// <summary>
         /// Constructs a <see cref="ArrayAnyAllExpression"/>.
@@ -101,7 +101,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         protected override Expression Accept(ExpressionVisitor visitor)
             => visitor is NpgsqlQuerySqlGenerator npsgqlGenerator
                 ? npsgqlGenerator.VisitArrayAnyAll(this)
-                : base.Accept(visitor);
+                : base.Accept(visitor) ?? this;
 
         /// <inheritdoc />
         protected override Expression VisitChildren(ExpressionVisitor visitor)
