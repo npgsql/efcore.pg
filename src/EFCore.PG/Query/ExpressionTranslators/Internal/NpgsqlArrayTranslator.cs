@@ -53,9 +53,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             if (!IsTypeSupported(expression))
                 return null;
 
-            // TODO: use #430 to map @> to source.All(x => other.Contains(x));
-            // TODO: use #430 to map && to soucre.Any(x => other.Contains(x));
-
             switch (expression.Method.Name)
             {
             #region EnumerableStaticMethods

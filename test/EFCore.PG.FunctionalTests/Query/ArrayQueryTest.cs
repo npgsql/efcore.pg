@@ -534,6 +534,46 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             }
         }
 
+        [Fact]
+        public void Array_All_Contains_List()
+        {
+            using (var ctx = CreateContext())
+            {
+                var _ = ctx.SomeEntities.Where(x => x.SomeList.All(y => x.SomeArray.Contains(y))).ToList();
+                AssertContainsInSql(@"WHERE (x.""SomeArray"" @> x.""SomeList"") = TRUE");
+            }
+        }
+
+        [Fact]
+        public void List_All_Contains_Array()
+        {
+            using (var ctx = CreateContext())
+            {
+                var _ = ctx.SomeEntities.Where(x => x.SomeArray.All(y => x.SomeList.Contains(y))).ToList();
+                AssertContainsInSql(@"WHERE (x.""SomeList"" @> x.""SomeArray"") = TRUE");
+            }
+        }
+
+        [Fact]
+        public void Array_Any_Contains_List()
+        {
+            using (var ctx = CreateContext())
+            {
+                var _ = ctx.SomeEntities.Where(x => x.SomeArray.Any(y => x.SomeList.Contains(y))).ToList();
+                AssertContainsInSql(@"WHERE (x.""SomeArray"" && x.""SomeList"") = TRUE");
+            }
+        }
+
+        [Fact]
+        public void List_Any_Contains_Array()
+        {
+            using (var ctx = CreateContext())
+            {
+                var _ = ctx.SomeEntities.Where(x => x.SomeList.Any(y => x.SomeArray.Contains(y))).ToList();
+                AssertContainsInSql(@"WHERE (x.""SomeList"" && x.""SomeArray"") = TRUE");
+            }
+        }
+
 #if NETCOREAPP2_1
         [Fact]
         public void Array_Append_constant()

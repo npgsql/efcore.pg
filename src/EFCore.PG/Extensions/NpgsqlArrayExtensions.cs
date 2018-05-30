@@ -45,6 +45,9 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns>
         /// The string concatenation of the elements with the supplied delimiter.
         /// </returns>
+        /// <exception cref="ClientEvaluationNotSupportedException">
+        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
+        /// </exception>
         public static string ArrayToString<T>([CanBeNull] this DbFunctions _, [NotNull] T[] array, [CanBeNull] string delimiter)
             => throw new ClientEvaluationNotSupportedException();
 
@@ -58,6 +61,9 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns>
         /// The string concatenation of the elements with the supplied delimiter.
         /// </returns>
+        /// <exception cref="ClientEvaluationNotSupportedException">
+        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
+        /// </exception>
         public static string ArrayToString<T>([CanBeNull] this DbFunctions _, [NotNull] List<T> list, [CanBeNull] string delimiter)
             => throw new ClientEvaluationNotSupportedException();
 
@@ -72,6 +78,9 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns>
         /// The string concatenation of the elements with the supplied delimiter and null string.
         /// </returns>
+        /// <exception cref="ClientEvaluationNotSupportedException">
+        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
+        /// </exception>
         public static string ArrayToString<T>([CanBeNull] this DbFunctions _, [NotNull] T[] array, [CanBeNull] string delimiter, [CanBeNull] string nullString)
             => throw new ClientEvaluationNotSupportedException();
 
@@ -86,6 +95,9 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns>
         /// The string concatenation of the elements with the supplied delimiter and null string.
         /// </returns>
+        /// <exception cref="ClientEvaluationNotSupportedException">
+        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
+        /// </exception>
         public static string ArrayToString<T>([CanBeNull] this DbFunctions _, [NotNull] List<T> list, [CanBeNull] string delimiter, [CanBeNull] string nullString)
             => throw new ClientEvaluationNotSupportedException();
 
@@ -100,6 +112,9 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns>
         /// The array resulting from splitting the input string based on the supplied delimiter and null string.
         /// </returns>
+        /// <exception cref="ClientEvaluationNotSupportedException">
+        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
+        /// </exception>
         public static T[] StringToArray<T>([CanBeNull] this DbFunctions _, [NotNull] string input, [CanBeNull] string delimiter, [CanBeNull] string nullString)
             => throw new ClientEvaluationNotSupportedException();
 
@@ -114,6 +129,9 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns>
         /// The list resulting from splitting the input string based on the supplied delimiter and null string.
         /// </returns>
+        /// <exception cref="ClientEvaluationNotSupportedException">
+        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
+        /// </exception>
         public static List<T> StringToList<T>([CanBeNull] this DbFunctions _, [NotNull] string input, [CanBeNull] string delimiter, [CanBeNull] string nullString)
             => throw new ClientEvaluationNotSupportedException();
     }

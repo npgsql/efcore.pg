@@ -69,6 +69,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         public virtual ArrayComparisonType ArrayComparisonType { get; }
 
         /// <summary>
+        /// True if this instance represents: {operand} = ANY ({array})".
+        /// </summary>
+        public bool IsAnyEquals => ArrayComparisonType is ArrayComparisonType.ANY && Operator is "=";
+
+        /// <summary>
         /// Constructs a <see cref="ArrayAnyAllExpression"/>.
         /// </summary>
         /// <param name="arrayComparisonType">The comparison type.</param>
