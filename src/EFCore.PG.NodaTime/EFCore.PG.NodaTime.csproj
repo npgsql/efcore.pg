@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <VersionPrefix>2.1.0-rtm</VersionPrefix>
+    <VersionPrefix>2.1.0</VersionPrefix>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <AssemblyName>Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime</AssemblyName>
     <RootNamespace>Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime</RootNamespace>
@@ -26,7 +26,7 @@
     <ProjectReference Include="..\EFCore.PG\EFCore.PG.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Npgsql" Version="4.0.0-ci.*" />
-    <PackageReference Include="Npgsql.NodaTime" Version="1.0.0-ci.*" />
+    <PackageReference Include="Npgsql" Version="4.0.0" />
+    <PackageReference Include="Npgsql.NodaTime" Version="1.0.0" />
   </ItemGroup>
 </Project>
