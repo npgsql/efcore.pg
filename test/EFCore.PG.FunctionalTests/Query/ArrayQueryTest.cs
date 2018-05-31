@@ -574,6 +574,66 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             }
         }
 
+        [Fact]
+        public void Array_Exists_equals_with_literal_constant()
+        {
+            using (var ctx = CreateContext())
+            {
+                var _ = ctx.SomeEntities.Where(x => Array.Exists(x.SomeArray, y => y == 1)).ToList();
+                AssertContainsInSql(@"WHERE 1 = ANY (x.""SomeArray"")");
+            }
+        }
+
+        [Fact]
+        public void List_Exists_equals_with_literal_constant()
+        {
+            using (var ctx = CreateContext())
+            {
+                var _ = ctx.SomeEntities.Where(x => x.SomeList.Exists(y => y == 1)).ToList();
+                AssertContainsInSql(@"WHERE 1 = ANY (x.""SomeList"")");
+            }
+        }
+
+        [Fact]
+        public void Array_Exists_less_than_with_literal_constant()
+        {
+            using (var ctx = CreateContext())
+            {
+                var _ = ctx.SomeEntities.Where(x => Array.Exists(x.SomeArray, y => y < 1)).ToList();
+                AssertContainsInSql(@"WHERE 1 > ANY (x.""SomeArray"")");
+            }
+        }
+
+        [Fact]
+        public void List_Exists_less_than_with_literal_constant()
+        {
+            using (var ctx = CreateContext())
+            {
+                var _ = ctx.SomeEntities.Where(x => x.SomeList.Exists(y => y < 1)).ToList();
+                AssertContainsInSql(@"WHERE 1 > ANY (x.""SomeList"")");
+            }
+        }
+
+        [Fact]
+        public void Array_Exists_equals_with_column_list_element()
+        {
+            using (var ctx = CreateContext())
+            {
+                var _ = ctx.SomeEntities.Where(x => Array.Exists(x.SomeArray, y => y == x.SomeList[0])).ToList();
+                AssertContainsInSql(@"WHERE x.""SomeList""[1] = ANY (x.""SomeArray"")");
+            }
+        }
+
+        [Fact]
+        public void List_Exists_equals_with_column_array_element()
+        {
+            using (var ctx = CreateContext())
+            {
+                var _ = ctx.SomeEntities.Where(x => x.SomeList.Exists(y => y == x.SomeArray[0])).ToList();
+                AssertContainsInSql(@"WHERE x.""SomeArray""[1] = ANY (x.""SomeList"")");
+            }
+        }
+
 #if NETCOREAPP2_1
         [Fact]
         public void Array_Append_constant()

@@ -98,11 +98,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
         #region Overrides
 
         /// <inheritdoc />
-        [CanBeNull]
-        protected override Expression VisitSubQuery(SubQueryExpression expression)
-            => base.VisitSubQuery(expression) ?? VisitArraySubQuery(expression);
-
-        /// <inheritdoc />
         protected override Expression VisitBinary(BinaryExpression expression)
         {
             if (expression.NodeType == ExpressionType.ArrayIndex)
@@ -123,6 +118,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
 
             return base.VisitBinary(expression);
         }
+
+        /// <inheritdoc />
+        [CanBeNull]
+        protected override Expression VisitSubQuery(SubQueryExpression expression)
+            => base.VisitSubQuery(expression) ?? VisitArraySubQuery(expression);
 
         #endregion
 
