@@ -188,8 +188,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
         /// <inheritdoc />
         protected override Expression VisitIndex(IndexExpression expression)
         {
-            // TODO: does this need wrapped? the array indexer is wrapped, but not by our code?
-            Sql.Append('(');
             Visit(expression.Object);
             for (int i = 0; i < expression.Arguments.Count; i++)
             {
@@ -197,7 +195,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
                 Visit(GenerateOneBasedIndexExpression(expression.Arguments[i]));
                 Sql.Append(']');
             }
-            Sql.Append(')');
             return expression;
         }
 

@@ -132,9 +132,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         /// <summary>
         /// Tests if the instance or argument types are supported.
         /// </summary>
-        /// <param name="expression">
-        /// The <see cref="MethodCallExpression"/> to test.
-        /// </param>
+        /// <param name="expression">The <see cref="MethodCallExpression"/> to test.</param>
         /// <returns>
         /// True if the instance or argument types are supported; otherwise, false.
         /// </returns>
@@ -174,9 +172,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         /// <summary>
         /// Tests if the type is an array or a <see cref="List{T}"/>.
         /// </summary>
-        /// <param name="type">
-        /// The type to test.
-        /// </param>
+        /// <param name="type">The type to test.</param>
         /// <returns>
         /// True if <paramref name="type"/> is an array or a <see cref="List{T}"/>; otherwise, false.
         /// </returns>

@@ -168,9 +168,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
             case ConcatResultOperator concatResultOperator:
                 return VisitArrayConcat(array, concatResultOperator);
 
-            case ContainsResultOperator contains:
-                return new ArrayAnyAllExpression(ArrayComparisonType.ANY, "=", Visit(contains.Item) ?? contains.Item, array);
-
             case CountResultOperator countResultOperator:
                 return VisitArrayCount(array, countResultOperator);
 
@@ -313,9 +310,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
         /// <summary>
         /// Tests if the type is an array or a <see cref="List{T}"/>.
         /// </summary>
-        /// <param name="type">
-        /// The type to test.
-        /// </param>
+        /// <param name="type">The type to test.</param>
         /// <returns>
         /// True if <paramref name="type"/> is an array or a <see cref="List{T}"/>; otherwise, false.
         /// </returns>

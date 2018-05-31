@@ -120,16 +120,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         /// <inheritdoc />
         protected override Expression VisitChildren(ExpressionVisitor visitor)
         {
-            if (!(visitor.Visit(Operand) is Expression operand))
-                throw new ArgumentException($"The {nameof(operand)} of a {nameof(ArrayAnyAllExpression)} cannot be null.");
-
-            if (!(visitor.Visit(Array) is Expression collection))
-                throw new ArgumentException($"The {nameof(collection)} of a {nameof(ArrayAnyAllExpression)} cannot be null.");
+            var operand = visitor.Visit(Operand) ?? Operand;
+            var array = visitor.Visit(Array) ?? Array;
 
             return
-                operand == Operand && collection == Array
-                    ? this
-                    : new ArrayAnyAllExpression(ArrayComparisonType, Operator, operand, collection);
+                operand != Operand || array != Array
+                    ? new ArrayAnyAllExpression(ArrayComparisonType, Operator, operand, array)
+                    : this;
         }
 
         /// <inheritdoc />
