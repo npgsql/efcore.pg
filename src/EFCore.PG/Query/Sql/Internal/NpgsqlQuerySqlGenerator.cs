@@ -1,4 +1,5 @@
 ﻿#region License
+
 // The PostgreSQL License
 //
 // Copyright (C) 2016 The Npgsql Development Team
@@ -19,6 +20,7 @@
 // AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
 // ON AN "AS IS" BASIS, AND THE NPGSQL DEVELOPMENT TEAM HAS NO OBLIGATIONS
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+
 #endregion
 
 using System;
@@ -27,22 +29,29 @@ using System.Linq.Expressions;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
-using Microsoft.EntityFrameworkCore.Query.Expressions.Internal;
+using Microsoft.EntityFrameworkCore.Query.Sql;
 using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.EntityFrameworkCore.Utilities;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
+using Remotion.Linq.Clauses;
 
-namespace Microsoft.EntityFrameworkCore.Query.Sql.Internal
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
 {
     public class NpgsqlQuerySqlGenerator : DefaultQuerySqlGenerator
     {
-        protected override string TypedTrueLiteral => "TRUE::bool";
-        protected override string TypedFalseLiteral => "FALSE::bool";
+        readonly bool _reverseNullOrderingEnabled;
+
+        protected override string TypedTrueLiteral { get; } = "TRUE::bool";
+
+        protected override string TypedFalseLiteral { get; } = "FALSE::bool";
 
         public NpgsqlQuerySqlGenerator(
             [NotNull] QuerySqlGeneratorDependencies dependencies,
-            [NotNull] SelectExpression selectExpression)
+            [NotNull] SelectExpression selectExpression,
+            bool reverseNullOrderingEnabled)
             : base(dependencies, selectExpression)
         {
+            _reverseNullOrderingEnabled = reverseNullOrderingEnabled;
         }
 
         protected override void GenerateTop(SelectExpression selectExpression)
@@ -62,11 +71,11 @@ namespace Microsoft.EntityFrameworkCore.Query.Sql.Internal
 
             if (selectExpression.Offset != null)
             {
-                if (selectExpression.Limit == null) {
+                if (selectExpression.Limit == null)
                     Sql.AppendLine();
-                } else {
+                else
                     Sql.Append(' ');
-                }
+
                 Sql.Append("OFFSET ");
                 Visit(selectExpression.Offset);
             }
@@ -116,11 +125,12 @@ namespace Microsoft.EntityFrameworkCore.Query.Sql.Internal
                     Sql.Append(")");
                     return exp;
                 }
+
                 break;
             }
 
             case ExpressionType.ArrayIndex:
-                GenerateArrayIndex(expression);
+                VisitArrayIndex(expression);
                 return expression;
             }
 
@@ -138,7 +148,7 @@ namespace Microsoft.EntityFrameworkCore.Query.Sql.Internal
             return base.VisitUnary(expression);
         }
 
-        void GenerateArrayIndex([NotNull] BinaryExpression expression)
+        protected virtual void VisitArrayIndex([NotNull] BinaryExpression expression)
         {
             Debug.Assert(expression.NodeType == ExpressionType.ArrayIndex);
 
@@ -167,23 +177,34 @@ namespace Microsoft.EntityFrameworkCore.Query.Sql.Internal
             Sql.Append(']');
         }
 
-        public Expression VisitArrayAny(ArrayAnyExpression arrayAnyExpression)
+        /// <summary>
+        /// Produces expressions like: 1 = ANY ('{0,1,2}') or 'cat' LIKE ANY ('{a%,b%,c%}').
+        /// </summary>
+        public Expression VisitArrayAnyAll(ArrayAnyAllExpression arrayAnyAllExpression)
         {
-            Visit(arrayAnyExpression.Operand);
-            Sql.Append(" = ANY (");
-            Visit(arrayAnyExpression.Array);
-            Sql.Append(")");
-            return arrayAnyExpression;
+            Visit(arrayAnyAllExpression.Operand);
+            Sql.Append(' ');
+            Sql.Append(arrayAnyAllExpression.Operator);
+            Sql.Append(' ');
+            Sql.Append(arrayAnyAllExpression.ArrayComparisonType.ToString());
+            Sql.Append(" (");
+            Visit(arrayAnyAllExpression.Array);
+            Sql.Append(')');
+            return arrayAnyAllExpression;
         }
 
-        // PostgreSQL array indexing is 1-based. If the index happens to be a constant,
-        // just increment it. Otherwise, append a +1 in the SQL.
-        Expression GenerateOneBasedIndexExpression(Expression expression)
+        /// <summary>
+        /// PostgreSQL array indexing is 1-based. If the index happens to be a constant,
+        /// just increment it. Otherwise, append a +1 in the SQL.
+        /// </summary>
+        static Expression GenerateOneBasedIndexExpression(Expression expression)
             => expression is ConstantExpression constantExpression
                 ? Expression.Constant(Convert.ToInt32(constantExpression.Value) + 1)
                 : (Expression)Expression.Add(expression, Expression.Constant(1));
 
-        // See http://www.postgresql.org/docs/current/static/functions-matching.html
+        /// <summary>
+        /// See: http://www.postgresql.org/docs/current/static/functions-matching.html
+        /// </summary>
         public Expression VisitRegexMatch([NotNull] RegexMatchExpression regexMatchExpression)
         {
             Check.NotNull(regexMatchExpression, nameof(regexMatchExpression));
@@ -200,22 +221,17 @@ namespace Microsoft.EntityFrameworkCore.Query.Sql.Internal
             }
 
             Sql.Append("('(?");
-            if (options.HasFlag(RegexOptions.IgnoreCase)) {
+            if (options.HasFlag(RegexOptions.IgnoreCase))
                 Sql.Append('i');
-            }
 
-            if (options.HasFlag(RegexOptions.Multiline)) {
+            if (options.HasFlag(RegexOptions.Multiline))
                 Sql.Append('n');
-            }
-            else if (!options.HasFlag(RegexOptions.Singleline)) {
+            else if (!options.HasFlag(RegexOptions.Singleline))
                 // In .NET's default mode, . doesn't match newlines but PostgreSQL it does.
                 Sql.Append('p');
-            }
 
             if (options.HasFlag(RegexOptions.IgnorePatternWhitespace))
-            {
                 Sql.Append('x');
-            }
 
             Sql.Append(")' || ");
             Visit(regexMatchExpression.Pattern);
@@ -261,6 +277,24 @@ namespace Microsoft.EntityFrameworkCore.Query.Sql.Internal
             return iLikeExpression;
         }
 
+        public Expression VisitExplicitStoreTypeCast([NotNull] ExplicitStoreTypeCastExpression castExpression)
+        {
+            Sql.Append("CAST(");
+
+            //var parentTypeMapping = _typeMapping;
+            //_typeMapping = InferTypeMappingFromColumn(castExpression.Operand);
+
+            Visit(castExpression.Operand);
+
+            Sql.Append(" AS ")
+               .Append(castExpression.StoreType)
+               .Append(")");
+
+            //_typeMapping = parentTypeMapping;
+
+            return castExpression;
+        }
+
         protected override string GenerateOperator(Expression expression)
         {
             switch (expression.NodeType)
@@ -269,17 +303,118 @@ namespace Microsoft.EntityFrameworkCore.Query.Sql.Internal
                 if (expression.Type == typeof(string))
                     return " || ";
                 goto default;
+
             case ExpressionType.And:
                 if (expression.Type == typeof(bool))
                     return " AND ";
                 goto default;
+
             case ExpressionType.Or:
                 if (expression.Type == typeof(bool))
                     return " OR ";
                 goto default;
+
             default:
                 return base.GenerateOperator(expression);
             }
+        }
+
+        protected override void GenerateOrdering(Ordering ordering)
+        {
+            base.GenerateOrdering(ordering);
+
+            if (_reverseNullOrderingEnabled)
+                Sql.Append(
+                    ordering.OrderingDirection == OrderingDirection.Asc
+                        ? " NULLS FIRST"
+                        : " NULLS LAST");
+        }
+
+        public virtual Expression VisitCustomBinary(CustomBinaryExpression expression)
+        {
+            Check.NotNull(expression, nameof(expression));
+
+            Sql.Append('(');
+            Visit(expression.Left);
+            Sql.Append(' ');
+            Sql.Append(expression.Operator);
+            Sql.Append(' ');
+            Visit(expression.Right);
+            Sql.Append(')');
+
+            return expression;
+        }
+
+        public virtual Expression VisitCustomUnary(CustomUnaryExpression expression)
+        {
+            Check.NotNull(expression, nameof(expression));
+
+            if (expression.Postfix)
+            {
+                Visit(expression.Operand);
+                Sql.Append(expression.Operator);
+            }
+            else
+            {
+                Sql.Append(expression.Operator);
+                Visit(expression.Operand);
+            }
+
+            return expression;
+        }
+
+        public virtual Expression VisitPgFunction(PgFunctionExpression e)
+        {
+            //var parentTypeMapping = _typeMapping;
+
+            //_typeMapping = null;
+
+            var wroteSchema = false;
+
+            if (e.Instance != null)
+            {
+                Visit(e.Instance);
+
+                Sql.Append(".");
+            }
+            else if (!string.IsNullOrWhiteSpace(e.Schema))
+            {
+                Sql.Append(SqlGenerator.DelimitIdentifier(e.Schema))
+                   .Append(".");
+
+                wroteSchema = true;
+            }
+
+            Sql.Append(
+                wroteSchema
+                    ? SqlGenerator.DelimitIdentifier(e.FunctionName)
+                    : e.FunctionName);
+
+            Sql.Append("(");
+
+            //_typeMapping = null;
+
+            GenerateList(e.PositionalArguments);
+
+            bool hasArguments = e.PositionalArguments.Count > 0 && e.NamedArguments.Count > 0;
+
+            foreach (var kv in e.NamedArguments)
+            {
+                if (hasArguments)
+                    Sql.Append(", ");
+                else
+                    hasArguments = true;
+
+                Sql.Append(kv.Key)
+                   .Append(" => ");
+
+                Visit(kv.Value);
+            }
+
+            Sql.Append(")");
+            //_typeMapping = parentTypeMapping;
+
+            return e;
         }
     }
 }

@@ -1,9 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
-namespace Microsoft.EntityFrameworkCore.Metadata.Internal
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
 {
     /// <summary>
     ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
@@ -108,21 +111,25 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Internal
                 return false;
             }
 
-            if (value == null)
+            switch (value)
             {
+            case NpgsqlValueGenerationStrategy.SerialColumn:
+            case NpgsqlValueGenerationStrategy.IdentityAlwaysColumn:
+            case NpgsqlValueGenerationStrategy.IdentityByDefaultColumn:
+                PropertyBuilder.ValueGenerated(ValueGenerated.OnAdd, ConfigurationSource.Convention);
+                HiLoSequenceName(null);
+                HiLoSequenceSchema(null);
+                break;
+            case NpgsqlValueGenerationStrategy.SequenceHiLo:
+                PropertyBuilder.ValueGenerated(ValueGenerated.OnAdd, ConfigurationSource.Convention);
+                break;
+            case null:
                 PropertyBuilder.ValueGenerated(ValueGenerated.Never, ConfigurationSource.Convention);
                 HiLoSequenceName(null);
                 HiLoSequenceSchema(null);
-            }
-            else if (value.Value == NpgsqlValueGenerationStrategy.SerialColumn)
-            {
-                PropertyBuilder.ValueGenerated(ValueGenerated.OnAdd, ConfigurationSource.Convention);
-                HiLoSequenceName(null);
-                HiLoSequenceSchema(null);
-            }
-            else if (value.Value == NpgsqlValueGenerationStrategy.SequenceHiLo)
-            {
-                PropertyBuilder.ValueGenerated(ValueGenerated.OnAdd, ConfigurationSource.Convention);
+                break;
+            default:
+                throw new ArgumentException("Unknown NpgsqlValueGenerationStrategy value: " + value);
             }
 
             return true;

@@ -23,21 +23,28 @@
 
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
-using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.EntityFrameworkCore.Utilities;
+using Microsoft.EntityFrameworkCore.Query.Sql;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
-namespace Microsoft.EntityFrameworkCore.Query.Sql.Internal
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
 {
     public class NpgsqlQuerySqlGeneratorFactory : QuerySqlGeneratorFactoryBase
     {
-        public NpgsqlQuerySqlGeneratorFactory([NotNull] QuerySqlGeneratorDependencies dependencies)
+        readonly INpgsqlOptions _npgsqlOptions;
+
+        public NpgsqlQuerySqlGeneratorFactory(
+            [NotNull] QuerySqlGeneratorDependencies dependencies,
+            [NotNull] INpgsqlOptions npgsqlOptions)
             : base(dependencies)
         {
+            _npgsqlOptions = npgsqlOptions;
         }
 
         public override IQuerySqlGenerator CreateDefault(SelectExpression selectExpression)
             => new NpgsqlQuerySqlGenerator(
                 Dependencies,
-                Check.NotNull(selectExpression, nameof(selectExpression)));
+                Check.NotNull(selectExpression, nameof(selectExpression)),
+                _npgsqlOptions.ReverseNullOrderingEnabled);
     }
 }

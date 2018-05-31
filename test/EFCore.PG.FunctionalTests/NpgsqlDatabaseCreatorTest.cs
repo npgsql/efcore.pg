@@ -1,24 +1,17 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-
-using System;
+﻿using System;
 using System.Data;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Internal;
-using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.EntityFrameworkCore.Utilities;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
+namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
     public class NpgsqlDatabaseCreatorTest
     {
@@ -162,7 +155,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         {
             using (var testDatabase = NpgsqlTestStore.CreateScratch(createDatabase: true))
             {
-                testDatabase.Connection.Close();
+                testDatabase.CloseConnection();
 
                 var creator = GetDatabaseCreator(testDatabase);
 
@@ -247,9 +240,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                         creator.CreateTables();
                     }
 
-                    if (testDatabase.Connection.State != ConnectionState.Open)
+                    if (testDatabase.ConnectionState != ConnectionState.Open)
                     {
-                        await testDatabase.Connection.OpenAsync();
+                        await testDatabase.OpenConnectionAsync();
                     }
 
                     var tables = await testDatabase.QueryAsync<string>("SELECT table_name FROM information_schema.tables WHERE table_type = 'BASE TABLE' AND table_schema NOT IN ('pg_catalog', 'information_schema')");
@@ -322,9 +315,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 
                 Assert.True(creator.Exists());
 
-                if (testDatabase.Connection.State != ConnectionState.Open)
+                if (testDatabase.ConnectionState != ConnectionState.Open)
                 {
-                    await testDatabase.Connection.OpenAsync();
+                    await testDatabase.OpenConnectionAsync();
                 }
 
                 Assert.Equal(0, (await testDatabase.QueryAsync<string>("SELECT table_name FROM information_schema.tables WHERE table_type = 'BASE TABLE' AND table_schema NOT IN ('pg_catalog', 'information_schema')")).Count());

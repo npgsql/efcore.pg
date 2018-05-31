@@ -25,7 +25,7 @@ using System;
 using JetBrains.Annotations;
 using Npgsql;
 
-namespace Microsoft.EntityFrameworkCore.Storage.Internal
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 {
     /// <summary>
     ///     Detects the exceptions caused by PostgreSQL or network transient failures.

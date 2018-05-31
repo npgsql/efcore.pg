@@ -1,12 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Utilities;
+using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
 
-namespace Microsoft.EntityFrameworkCore.Query
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     public class ArrayQueryTest : IClassFixture<ArrayFixture>
     {
@@ -17,6 +19,7 @@ namespace Microsoft.EntityFrameworkCore.Query
             {
                 var x = ctx.SomeEntities.Single(e => e.Id == 1);
                 Assert.Equal(new[] { 3, 4 }, x.SomeArray);
+                Assert.Equal(new List<int> { 3, 4 }, x.SomeList);
             }
         }
 
@@ -27,7 +30,7 @@ namespace Microsoft.EntityFrameworkCore.Query
             {
                 var actual = ctx.SomeEntities.Where(e => e.SomeArray[0] == 3).ToList();
                 Assert.Equal(1, actual.Count);
-                AssertContainsInSql(@"WHERE (""e"".""SomeArray""[1]) = 3");
+                AssertContainsInSql(@"WHERE (e.""SomeArray""[1]) = 3");
             }
         }
 
@@ -39,7 +42,7 @@ namespace Microsoft.EntityFrameworkCore.Query
                 var x = 0;
                 var actual = ctx.SomeEntities.Where(e => e.SomeArray[x] == 3).ToList();
                 Assert.Equal(1, actual.Count);
-                AssertContainsInSql(@"WHERE (""e"".""SomeArray""[@__x_0 + 1]) = 3");
+                AssertContainsInSql(@"WHERE (e.""SomeArray""[@__x_0 + 1]) = 3");
             }
         }
 
@@ -50,7 +53,7 @@ namespace Microsoft.EntityFrameworkCore.Query
             {
                 var actual = ctx.SomeEntities.Where(e => e.SomeBytea[0] == 3).ToList();
                 Assert.Equal(1, actual.Count);
-                AssertContainsInSql(@"WHERE (get_byte(""e"".""SomeBytea"", 0)) = 3");
+                AssertContainsInSql(@"WHERE (get_byte(e.""SomeBytea"", 0)) = 3");
             }
         }
 
@@ -73,7 +76,7 @@ namespace Microsoft.EntityFrameworkCore.Query
                 var arr = new[] { 3, 4 };
                 var x = ctx.SomeEntities.Single(e => e.SomeArray.SequenceEqual(arr));
                 Assert.Equal(new[] { 3, 4 }, x.SomeArray);
-                AssertContainsInSql(@"WHERE ""e"".""SomeArray"" = @");
+                AssertContainsInSql(@"WHERE e.""SomeArray"" = @");
             }
         }
 
@@ -84,7 +87,7 @@ namespace Microsoft.EntityFrameworkCore.Query
             {
                 var x = ctx.SomeEntities.Single(e => e.SomeArray.SequenceEqual(new[] { 3, 4 }));
                 Assert.Equal(new[] { 3, 4 }, x.SomeArray);
-                AssertContainsInSql(@"WHERE ""e"".""SomeArray"" = ARRAY[3,4]");
+                AssertContainsInSql(@"WHERE e.""SomeArray"" = ARRAY[3,4]");
             }
         }
 
@@ -95,7 +98,7 @@ namespace Microsoft.EntityFrameworkCore.Query
             {
                 var x = ctx.SomeEntities.Single(e => e.SomeArray.Contains(3));
                 Assert.Equal(new[] { 3, 4 }, x.SomeArray);
-                AssertContainsInSql(@"WHERE 3 = ANY (""e"".""SomeArray"")");
+                AssertContainsInSql(@"WHERE 3 = ANY (e.""SomeArray"")");
             }
         }
 
@@ -107,7 +110,7 @@ namespace Microsoft.EntityFrameworkCore.Query
                 var p = 3;
                 var x = ctx.SomeEntities.Single(e => e.SomeArray.Contains(p));
                 Assert.Equal(new[] { 3, 4 }, x.SomeArray);
-                AssertContainsInSql(@"WHERE @__p_0 = ANY (""e"".""SomeArray"")");
+                AssertContainsInSql(@"WHERE @__p_0 = ANY (e.""SomeArray"")");
             }
         }
 
@@ -118,7 +121,7 @@ namespace Microsoft.EntityFrameworkCore.Query
             {
                 var x = ctx.SomeEntities.Single(e => e.SomeArray.Contains(e.Id + 2));
                 Assert.Equal(new[] { 3, 4 }, x.SomeArray);
-                AssertContainsInSql(@"WHERE ""e"".""Id"" + 2 = ANY (""e"".""SomeArray"")");
+                AssertContainsInSql(@"WHERE e.""Id"" + 2 = ANY (e.""SomeArray"")");
             }
         }
 
@@ -129,7 +132,7 @@ namespace Microsoft.EntityFrameworkCore.Query
             {
                 var x = ctx.SomeEntities.Single(e => e.SomeArray.Length == 2);
                 Assert.Equal(new[] { 3, 4 }, x.SomeArray);
-                AssertContainsInSql(@"WHERE array_length(""e"".""SomeArray"", 1) = 2");
+                AssertContainsInSql(@"WHERE array_length(e.""SomeArray"", 1) = 2");
             }
         }
 
@@ -139,9 +142,9 @@ namespace Microsoft.EntityFrameworkCore.Query
             using (var ctx = CreateContext())
             {
                 // TODO: This fails
-                var x = ctx.SomeEntities.Single(e => EF.Property<int[]>(e, nameof(SomeEntity.SomeArray)).Length == 2);
+                var x = ctx.SomeEntities.Single(e => EF.Property<int[]>(e, nameof(SomeArrayEntity.SomeArray)).Length == 2);
                 Assert.Equal(new[] { 3, 4 }, x.SomeArray);
-                AssertContainsInSql(@"WHERE array_length(""e"".""SomeArray"", 1) = 2");
+                AssertContainsInSql(@"WHERE array_length(e.""SomeArray"", 1) = 2");
             }
         }
 
@@ -178,7 +181,7 @@ namespace Microsoft.EntityFrameworkCore.Query
 
     public class ArrayContext : DbContext
     {
-        public DbSet<SomeEntity> SomeEntities { get; set; }
+        public DbSet<SomeArrayEntity> SomeEntities { get; set; }
         public ArrayContext(DbContextOptions options) : base(options) {}
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -186,11 +189,12 @@ namespace Microsoft.EntityFrameworkCore.Query
         }
     }
 
-    public class SomeEntity
+    public class SomeArrayEntity
     {
         public int Id { get; set; }
         public int[] SomeArray { get; set; }
         public int[,] SomeMatrix { get; set; }
+        public List<int> SomeList { get; set; }
         public byte[] SomeBytea { get; set; }
         public string SomeText { get; set; }
     }
@@ -204,7 +208,7 @@ namespace Microsoft.EntityFrameworkCore.Query
         {
             _testStore = NpgsqlTestStore.CreateScratch();
             _options = new DbContextOptionsBuilder()
-                .UseNpgsql(_testStore.Connection, b => b.ApplyConfiguration())
+                .UseNpgsql(_testStore.ConnectionString, b => b.ApplyConfiguration())
                 .UseInternalServiceProvider(
                     new ServiceCollection()
                         .AddEntityFrameworkNpgsql()
@@ -215,19 +219,21 @@ namespace Microsoft.EntityFrameworkCore.Query
             using (var ctx = CreateContext())
             {
                 ctx.Database.EnsureCreated();
-                ctx.SomeEntities.Add(new SomeEntity
+                ctx.SomeEntities.Add(new SomeArrayEntity
                 {
                     Id=1,
                     SomeArray = new[] { 3, 4 },
                     SomeBytea = new byte[] { 3, 4 },
-                    SomeMatrix = new[,] { { 5, 6 }, { 7, 8 } }
+                    SomeMatrix = new[,] { { 5, 6 }, { 7, 8 } },
+                    SomeList = new List<int> { 3, 4 }
                 });
-                ctx.SomeEntities.Add(new SomeEntity
+                ctx.SomeEntities.Add(new SomeArrayEntity
                 {
                     Id=2,
                     SomeArray = new[] { 5, 6, 7 },
                     SomeBytea = new byte[] { 5, 6, 7 },
-                    SomeMatrix = new[,] { { 10, 11 }, { 12, 13 } }
+                    SomeMatrix = new[,] { { 10, 11 }, { 12, 13 } },
+                    SomeList = new List<int> { 3, 4 }
                 });
                 ctx.SaveChanges();
             }

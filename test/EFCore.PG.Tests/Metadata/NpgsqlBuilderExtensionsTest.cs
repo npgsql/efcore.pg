@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.TestModels.Northwind;
-using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Metadata
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 {
     public class NpgsqlBuilderExtensionsTest
     {
@@ -34,8 +29,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Metadata
         }
 
         protected virtual ModelBuilder CreateConventionModelBuilder()
-        {
-            return NpgsqlTestHelpers.Instance.CreateConventionBuilder();
-        }
+            => NpgsqlTestHelpers.Instance.CreateConventionBuilder();
     }
 }

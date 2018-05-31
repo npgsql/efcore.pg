@@ -1,12 +1,11 @@
-﻿using System.Diagnostics;
-using System.Linq;
+﻿using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Metadata.Conventions
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
 {
     public class NpgsqlValueGenerationStrategyConventionTest
     {
@@ -15,10 +14,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Metadata.Conventions
         {
             var model = NpgsqlTestHelpers.Instance.CreateConventionBuilder().Model;
 
-            Assert.Equal(1, model.GetAnnotations().Count());
+            var annotations = model.GetAnnotations().OrderBy(a => a.Name).ToList();
+            Assert.Equal(2, annotations.Count);
 
-            Assert.Equal(NpgsqlAnnotationNames.ValueGenerationStrategy, model.GetAnnotations().Single().Name);
-            Assert.Equal(NpgsqlValueGenerationStrategy.SerialColumn, model.GetAnnotations().Single().Value);
+            Assert.Equal(NpgsqlAnnotationNames.ValueGenerationStrategy, annotations.First().Name);
+            Assert.Equal(NpgsqlValueGenerationStrategy.SerialColumn, annotations.First().Value);
         }
 
         [Fact]
@@ -28,8 +28,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Metadata.Conventions
                 .ForNpgsqlUseSequenceHiLo()
                 .Model;
 
-            var annotations = model.GetAnnotations().OrderBy(a => a.Name);
-            Assert.Equal(3, annotations.Count());
+            var annotations = model.GetAnnotations().OrderBy(a => a.Name).ToList();
+            Assert.Equal(4, annotations.Count);
 
             // Note that the annotation order is different with Npgsql than the SqlServer (N vs. S...)
             Assert.Equal(NpgsqlAnnotationNames.HiLoSequenceName, annotations.ElementAt(0).Name);
@@ -38,12 +38,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Metadata.Conventions
             Assert.Equal(NpgsqlAnnotationNames.ValueGenerationStrategy, annotations.ElementAt(1).Name);
             Assert.Equal(NpgsqlValueGenerationStrategy.SequenceHiLo, annotations.ElementAt(1).Value);
 
+            Assert.Equal(RelationalAnnotationNames.MaxIdentifierLength, annotations[2].Name);
+
             Assert.Equal(
                 RelationalAnnotationNames.SequencePrefix +
                 "." +
                 NpgsqlModelAnnotations.DefaultHiLoSequenceName,
-                annotations.ElementAt(2).Name);
-            Assert.NotNull(annotations.ElementAt(2).Value);
+                annotations.ElementAt(3).Name);
+            Assert.NotNull(annotations.ElementAt(3).Value);
         }
     }
 }

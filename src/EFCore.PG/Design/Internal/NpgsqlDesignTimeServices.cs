@@ -22,21 +22,22 @@
 #endregion
 
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.EntityFrameworkCore.Scaffolding;
-using Microsoft.EntityFrameworkCore.Scaffolding.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Microsoft.Extensions.DependencyInjection;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
-namespace Microsoft.EntityFrameworkCore.Design.Internal
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
 {
     public class NpgsqlDesignTimeServices : IDesignTimeServices
     {
         public virtual void ConfigureDesignTimeServices([NotNull] IServiceCollection serviceCollection)
             => serviceCollection
-                .AddSingleton<IRelationalTypeMapper, NpgsqlEFTypeMapper>()
+                .AddSingleton<IRelationalTypeMappingSource, NpgsqlTypeMappingSource>()
                 .AddSingleton<IDatabaseModelFactory, NpgsqlDatabaseModelFactory>()
-                .AddSingleton<IScaffoldingProviderCodeGenerator, NpgsqlScaffoldingCodeGenerator>()
+                .AddSingleton<IProviderConfigurationCodeGenerator, NpgsqlConfigurationCodeGenerator>()
                 .AddSingleton<IAnnotationCodeGenerator, NpgsqlAnnotationCodeGenerator>();
     }
 }

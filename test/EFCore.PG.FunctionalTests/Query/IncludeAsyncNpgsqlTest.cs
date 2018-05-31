@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore.Query;
 
-namespace Microsoft.EntityFrameworkCore.Query
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public class IncludeAsyncNpgsqlTest : IncludeAsyncTestBase<NorthwindQueryNpgsqlFixture>
+    public class IncludeAsyncNpgsqlTest : IncludeAsyncTestBase<IncludeNpgsqlFixture>
     {
-        public IncludeAsyncNpgsqlTest(NorthwindQueryNpgsqlFixture fixture)
+        public IncludeAsyncNpgsqlTest(IncludeNpgsqlFixture fixture)
             : base(fixture)
         {
         }

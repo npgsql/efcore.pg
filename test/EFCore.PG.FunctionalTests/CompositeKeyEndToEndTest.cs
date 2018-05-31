@@ -1,15 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.EntityFrameworkCore.Utilities;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
+namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
     public class CompositeKeyEndToEndTest : IDisposable
     {
@@ -242,7 +240,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 
         public CompositeKeyEndToEndTest()
         {
-            TestStore = NpgsqlTestStore.Create("CompositeKeyEndToEndTest");
+            TestStore = NpgsqlTestStore.CreateInitialized("CompositeKeyEndToEndTest");
         }
 
         protected NpgsqlTestStore TestStore { get; }

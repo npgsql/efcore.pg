@@ -1,17 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.EntityFrameworkCore.Utilities;
-using Xunit;
 
-namespace Microsoft.EntityFrameworkCore.Query
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public class InheritanceNpgsqlTest : InheritanceTestBase<NpgsqlTestStore, InheritanceNpgsqlFixture>
+    public class InheritanceNpgsqlTest : InheritanceRelationalTestBase<InheritanceNpgsqlFixture>
     {
         public InheritanceNpgsqlTest(InheritanceNpgsqlFixture fixture)
             : base(fixture)

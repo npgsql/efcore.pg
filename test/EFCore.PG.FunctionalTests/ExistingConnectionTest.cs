@@ -1,15 +1,12 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-
-using System;
+﻿using System;
 using System.Data;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Utilities;
+using Microsoft.Extensions.DependencyInjection;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
+namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
     public class ExistingConnectionTest
     {
@@ -34,6 +31,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 
             using (var store = NpgsqlTestStore.GetNorthwindStore())
             {
+                store.CloseConnection();
+
                 var openCount = 0;
                 var closeCount = 0;
                 var disposeCount = 0;

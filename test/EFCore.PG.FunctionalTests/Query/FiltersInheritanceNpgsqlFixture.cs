@@ -1,4 +1,4 @@
-﻿namespace Microsoft.EntityFrameworkCore.Query
+﻿namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     public class FiltersInheritanceNpgsqlFixture : InheritanceNpgsqlFixture
     {

@@ -1,59 +1,21 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.TestModels.ComplexNavigationsModel;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.EntityFrameworkCore.Utilities;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.TestUtilities;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Microsoft.EntityFrameworkCore.Query
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     public class ComplexNavigationsQueryNpgsqlFixture
-        : ComplexNavigationsQueryFixtureBase<NpgsqlTestStore>
+       : ComplexNavigationsQueryRelationalFixtureBase
     {
-        public static readonly string DatabaseName = "ComplexNavigations";
+        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
 
-        private readonly IServiceProvider _serviceProvider;
-
-        private readonly DbContextOptions _options;
-
-        private readonly string _connectionString =
-            NpgsqlTestStore.CreateConnectionString(DatabaseName);
-
-        public ComplexNavigationsQueryNpgsqlFixture()
+        public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
         {
-            _serviceProvider = new ServiceCollection()
-                .AddEntityFrameworkNpgsql()
-                .AddSingleton(TestModelSource.GetFactory(OnModelCreating))
-                .AddSingleton<ILoggerFactory>(new TestSqlLoggerFactory())
-                .BuildServiceProvider();
-
-            _options = new DbContextOptionsBuilder()
-                .EnableSensitiveDataLogging()
-                .UseNpgsql(_connectionString, b => b.ApplyConfiguration())
-                .UseInternalServiceProvider(_serviceProvider).Options;
-        }
-
-        public override NpgsqlTestStore CreateTestStore()
-        {
-            return NpgsqlTestStore.GetOrCreateShared(DatabaseName, () =>
-            {
-                using (var context = new ComplexNavigationsContext(_options))
-                {
-                    context.Database.EnsureCreated();
-                    ComplexNavigationsModelInitializer.Seed(context);
-                }
-            });
-        }
-
-        public override ComplexNavigationsContext CreateContext(NpgsqlTestStore testStore)
-        {
-            var context = new ComplexNavigationsContext(_options);
-
-            context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
-
-            context.Database.UseTransaction(testStore.Transaction);
-
-            return context;
+            var optionsBuilder = base.AddOptions(builder);
+            new NpgsqlDbContextOptionsBuilder(optionsBuilder).ReverseNullOrdering();
+            return optionsBuilder;
         }
     }
 }

@@ -22,10 +22,9 @@
 #endregion
 
 using System.Collections.Generic;
-using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.EntityFrameworkCore.Metadata;
 
-namespace Microsoft.EntityFrameworkCore.Metadata
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 {
     public interface INpgsqlModelAnnotations : IRelationalModelAnnotations
     {
@@ -34,5 +33,6 @@ namespace Microsoft.EntityFrameworkCore.Metadata
         string HiLoSequenceSchema { get; }
         IReadOnlyList<IPostgresExtension> PostgresExtensions { get; }
         string DatabaseTemplate { get; }
+        string Tablespace { get; }
     }
 }

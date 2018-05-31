@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Diagnostics;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Logging;
 
-namespace Microsoft.EntityFrameworkCore.TestUtilities
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
 {
     public class FakeDiagnosticsLogger<T> : IDiagnosticsLogger<T>, ILogger
         where T : LoggerCategory<T>, new()

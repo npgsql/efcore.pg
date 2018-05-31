@@ -22,8 +22,9 @@
 #endregion
 
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
-namespace Microsoft.EntityFrameworkCore.Metadata.Internal
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
 {
     public static class NpgsqlInternalMetadataBuilderExtensions
     {

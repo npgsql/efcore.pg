@@ -21,22 +21,28 @@
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 #endregion
 
+using System.Collections.Generic;
+using System.Net.Security;
 using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Utilities;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 // ReSharper disable once CheckNamespace
-namespace Microsoft.EntityFrameworkCore.Infrastructure.Internal
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
 {
     public class NpgsqlOptionsExtension : RelationalOptionsExtension
     {
-        //string _adminDatabase;
-
         public string AdminDatabase { get; private set; }
+        public bool? ReverseNullOrdering { get; private set; }
+        public ProvideClientCertificatesCallback ProvideClientCertificatesCallback { get; private set; }
+        public RemoteCertificateValidationCallback RemoteCertificateValidationCallback { get; private set; }
 
-        public NpgsqlOptionsExtension()
-        {
-        }
+        public IReadOnlyList<NpgsqlEntityFrameworkPlugin> Plugins => _plugins;
+
+        readonly List<NpgsqlEntityFrameworkPlugin> _plugins = new List<NpgsqlEntityFrameworkPlugin>();
+
+        public NpgsqlOptionsExtension() {}
 
         // NB: When adding new options, make sure to update the copy ctor below.
 
@@ -44,6 +50,10 @@ namespace Microsoft.EntityFrameworkCore.Infrastructure.Internal
             : base(copyFrom)
         {
             AdminDatabase = copyFrom.AdminDatabase;
+            ReverseNullOrdering = copyFrom.ReverseNullOrdering;
+            ProvideClientCertificatesCallback = copyFrom.ProvideClientCertificatesCallback;
+            RemoteCertificateValidationCallback = copyFrom.RemoteCertificateValidationCallback;
+            _plugins.AddRange(copyFrom._plugins);
         }
 
         protected override RelationalOptionsExtension Clone() => new NpgsqlOptionsExtension(this);
@@ -57,6 +67,15 @@ namespace Microsoft.EntityFrameworkCore.Infrastructure.Internal
             return true;
         }
 
+        public virtual NpgsqlOptionsExtension WithPlugin(NpgsqlEntityFrameworkPlugin plugin)
+        {
+            var clone = (NpgsqlOptionsExtension)Clone();
+
+            clone._plugins.Add(plugin);
+
+            return clone;
+        }
+
         public virtual NpgsqlOptionsExtension WithAdminDatabase(string adminDatabase)
         {
             var clone = (NpgsqlOptionsExtension)Clone();
@@ -65,5 +84,36 @@ namespace Microsoft.EntityFrameworkCore.Infrastructure.Internal
 
             return clone;
         }
+
+        internal virtual NpgsqlOptionsExtension WithReverseNullOrdering(bool reverseNullOrdering)
+        {
+            var clone = (NpgsqlOptionsExtension)Clone();
+
+            clone.ReverseNullOrdering = reverseNullOrdering;
+
+            return clone;
+        }
+
+        #region Authentication
+
+        public virtual NpgsqlOptionsExtension WithProvideClientCertificatesCallback(ProvideClientCertificatesCallback callback)
+        {
+            var clone = (NpgsqlOptionsExtension)Clone();
+
+            clone.ProvideClientCertificatesCallback = callback;
+
+            return clone;
+        }
+
+        public virtual NpgsqlOptionsExtension WithRemoteCertificateValidationCallback(RemoteCertificateValidationCallback callback)
+        {
+            var clone = (NpgsqlOptionsExtension)Clone();
+
+            clone.RemoteCertificateValidationCallback = callback;
+
+            return clone;
+        }
+
+        #endregion Authentication
     }
 }

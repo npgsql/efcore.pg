@@ -21,7 +21,9 @@
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 #endregion
 
-namespace Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal
+using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
+
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
     public class NpgsqlStringToLowerTranslator : ParameterlessInstanceMethodCallTranslator
     {

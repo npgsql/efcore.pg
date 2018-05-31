@@ -1,19 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
-using Microsoft.Extensions.DependencyInjection;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Operations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
+namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
     public class NpgsqlMigrationSqlGeneratorTest : MigrationSqlGeneratorTestBase
     {
@@ -22,7 +19,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             base.AddColumnOperation_with_defaultValue();
 
             Assert.Equal(
-                "ALTER TABLE \"dbo\".\"People\" ADD \"Name\" varchar(30) NOT NULL DEFAULT 'John Doe';" + EOL,
+                "ALTER TABLE dbo.\"People\" ADD \"Name\" varchar(30) NOT NULL DEFAULT 'John Doe';" + EOL,
                 Sql);
         }
 
@@ -63,12 +60,33 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 Sql);
         }
 
+        [Fact]
+        public void AddColumnOperation_with_huge_varchar()
+        {
+            // PostgreSQL doesn't allow varchar(x) with x > 10485760, so we map this to text.
+            // See #342 and https://www.postgresql.org/message-id/15790.1291824247%40sss.pgh.pa.us
+            Generate(
+                modelBuilder => modelBuilder.Entity("Person").Property<string>("Name").HasMaxLength(10485761),
+                new AddColumnOperation
+                {
+                    Table = "Person",
+                    Name = "Name",
+                    ClrType = typeof(string),
+                    MaxLength = 10485761,
+                    IsNullable = true
+                });
+
+            Assert.Equal(
+                @"ALTER TABLE ""Person"" ADD ""Name"" text NULL;" + EOL,
+                Sql);
+        }
+
         public override void AddForeignKeyOperation_with_name()
         {
             base.AddForeignKeyOperation_with_name();
 
             Assert.Equal(
-                "ALTER TABLE \"dbo\".\"People\" ADD CONSTRAINT \"FK_People_Companies\" FOREIGN KEY (\"EmployerId1\", \"EmployerId2\") REFERENCES \"hr\".\"Companies\" (\"Id1\", \"Id2\") ON DELETE CASCADE;" + EOL,
+                "ALTER TABLE dbo.\"People\" ADD CONSTRAINT \"FK_People_Companies\" FOREIGN KEY (\"EmployerId1\", \"EmployerId2\") REFERENCES hr.\"Companies\" (\"Id1\", \"Id2\") ON DELETE CASCADE;" + EOL,
                 Sql);
         }
 
@@ -86,7 +104,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             base.AddPrimaryKeyOperation_with_name();
 
             Assert.Equal(
-                "ALTER TABLE \"dbo\".\"People\" ADD CONSTRAINT \"PK_People\" PRIMARY KEY (\"Id1\", \"Id2\");" + EOL,
+                "ALTER TABLE dbo.\"People\" ADD CONSTRAINT \"PK_People\" PRIMARY KEY (\"Id1\", \"Id2\");" + EOL,
                 Sql);
         }
 
@@ -104,7 +122,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             base.AddUniqueConstraintOperation_with_name();
 
             Assert.Equal(
-                "ALTER TABLE \"dbo\".\"People\" ADD CONSTRAINT \"AK_People_DriverLicense\" UNIQUE (\"DriverLicense_State\", \"DriverLicense_Number\");" + EOL,
+                "ALTER TABLE dbo.\"People\" ADD CONSTRAINT \"AK_People_DriverLicense\" UNIQUE (\"DriverLicense_State\", \"DriverLicense_Number\");" + EOL,
                 Sql);
         }
 
@@ -122,7 +140,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             base.AlterSequenceOperation_with_minValue_and_maxValue();
 
             Assert.Equal(
-                "ALTER SEQUENCE \"dbo\".\"EntityFrameworkHiLoSequence\" INCREMENT BY 1 MINVALUE 2 MAXVALUE 816 CYCLE;" + EOL,
+                "ALTER SEQUENCE dbo.\"EntityFrameworkHiLoSequence\" INCREMENT BY 1 MINVALUE 2 MAXVALUE 816 CYCLE;" + EOL,
                 Sql);
         }
 
@@ -140,7 +158,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             base.CreateIndexOperation_unique();
 
             Assert.Equal(
-                "CREATE UNIQUE INDEX \"IX_People_Name\" ON \"dbo\".\"People\" (\"FirstName\", \"LastName\");" + EOL,
+                "CREATE UNIQUE INDEX \"IX_People_Name\" ON dbo.\"People\" (\"FirstName\", \"LastName\");" + EOL,
                 Sql);
         }
 
@@ -177,12 +195,26 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 Sql);
         }
 
+        [Fact]
+        public virtual void CreateDatabaseOperation_with_tablespace()
+        {
+            Generate(new NpgsqlCreateDatabaseOperation
+            {
+                Name = "some_db",
+                Tablespace = "MyTablespace"
+            });
+
+            Assert.Equal(
+                @"CREATE DATABASE some_db TABLESPACE ""MyTablespace"";" + EOL,
+                Sql);
+        }
+
         public override void CreateSequenceOperation_with_minValue_and_maxValue()
         {
             base.CreateSequenceOperation_with_minValue_and_maxValue();
 
             Assert.Equal(
-                "CREATE SEQUENCE \"dbo\".\"EntityFrameworkHiLoSequence\" START WITH 3 INCREMENT BY 1 MINVALUE 2 MAXVALUE 816 CYCLE;" + EOL,
+                "CREATE SEQUENCE dbo.\"EntityFrameworkHiLoSequence\" START WITH 3 INCREMENT BY 1 MINVALUE 2 MAXVALUE 816 CYCLE;" + EOL,
                 Sql);
         }
 
@@ -206,9 +238,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             base.CreateTableOperation();
 
             Assert.Equal(
-                "CREATE TABLE \"dbo\".\"People\" (" + EOL +
-                "    \"Id\" int4 NOT NULL," + EOL +
-                "    \"EmployerId\" int4 NULL," + EOL +
+                "CREATE TABLE dbo.\"People\" (" + EOL +
+                "    \"Id\" integer NOT NULL," + EOL +
+                "    \"EmployerId\" integer NULL," + EOL +
                 "    \"SSN\" char(11) NULL," + EOL +
                 "    PRIMARY KEY (\"Id\")," + EOL +
                 "    UNIQUE (\"SSN\")," + EOL +
@@ -222,7 +254,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             base.DropColumnOperation();
 
             Assert.Equal(
-                "ALTER TABLE \"dbo\".\"People\" DROP COLUMN \"LuckyNumber\";" + EOL,
+                "ALTER TABLE dbo.\"People\" DROP COLUMN \"LuckyNumber\";" + EOL,
                 Sql);
         }
 
@@ -231,7 +263,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             base.DropForeignKeyOperation();
 
             Assert.Equal(
-                "ALTER TABLE \"dbo\".\"People\" DROP CONSTRAINT \"FK_People_Companies\";" + EOL,
+                "ALTER TABLE dbo.\"People\" DROP CONSTRAINT \"FK_People_Companies\";" + EOL,
                 Sql);
         }
 
@@ -240,7 +272,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             base.DropPrimaryKeyOperation();
 
             Assert.Equal(
-                "ALTER TABLE \"dbo\".\"People\" DROP CONSTRAINT \"PK_People\";" + EOL,
+                "ALTER TABLE dbo.\"People\" DROP CONSTRAINT \"PK_People\";" + EOL,
                 Sql);
         }
 
@@ -249,7 +281,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             base.DropSequenceOperation();
 
             Assert.Equal(
-                "DROP SEQUENCE \"dbo\".\"EntityFrameworkHiLoSequence\";" + EOL,
+                "DROP SEQUENCE dbo.\"EntityFrameworkHiLoSequence\";" + EOL,
                 Sql);
         }
 
@@ -258,7 +290,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             base.DropTableOperation();
 
             Assert.Equal(
-                "DROP TABLE \"dbo\".\"People\";" + EOL,
+                "DROP TABLE dbo.\"People\";" + EOL,
                 Sql);
         }
 
@@ -267,7 +299,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             base.DropUniqueConstraintOperation();
 
             Assert.Equal(
-                "ALTER TABLE \"dbo\".\"People\" DROP CONSTRAINT \"AK_People_SSN\";" + EOL,
+                "ALTER TABLE dbo.\"People\" DROP CONSTRAINT \"AK_People_SSN\";" + EOL,
                 Sql);
         }
 
@@ -278,9 +310,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             base.AlterColumnOperation();
 
             Assert.Equal(
-                @"ALTER TABLE ""dbo"".""People"" ALTER COLUMN ""LuckyNumber"" TYPE int;" + EOL +
-                @"ALTER TABLE ""dbo"".""People"" ALTER COLUMN ""LuckyNumber"" SET NOT NULL;" + EOL +
-                @"ALTER TABLE ""dbo"".""People"" ALTER COLUMN ""LuckyNumber"" SET DEFAULT 7;" + EOL,
+                @"ALTER TABLE dbo.""People"" ALTER COLUMN ""LuckyNumber"" TYPE int;" + EOL +
+                @"ALTER TABLE dbo.""People"" ALTER COLUMN ""LuckyNumber"" SET NOT NULL;" + EOL +
+                @"ALTER TABLE dbo.""People"" ALTER COLUMN ""LuckyNumber"" SET DEFAULT 7;" + EOL,
             Sql);
         }
 
@@ -289,153 +321,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             base.AlterColumnOperation_without_column_type();
 
             Assert.Equal(
-                @"ALTER TABLE ""People"" ALTER COLUMN ""LuckyNumber"" TYPE int4;" + EOL +
+                @"ALTER TABLE ""People"" ALTER COLUMN ""LuckyNumber"" TYPE integer;" + EOL +
                 @"ALTER TABLE ""People"" ALTER COLUMN ""LuckyNumber"" SET NOT NULL;" + EOL +
                 @"ALTER TABLE ""People"" ALTER COLUMN ""LuckyNumber"" DROP DEFAULT;" + EOL,
             Sql);
-        }
-
-        [Fact]
-        public void AlterColumnOperation_to_serial()
-        {
-            Generate(
-                new AlterColumnOperation
-                {
-                    Table = "People",
-                    Name = "IntKey",
-                    ClrType = typeof(int),
-                    ColumnType = "int",
-                    IsNullable = false,
-                    [NpgsqlAnnotationNames.ValueGenerationStrategy] = NpgsqlValueGenerationStrategy.SerialColumn
-                });
-
-            Assert.Equal(
-                @"CREATE SEQUENCE ""People_IntKey_seq"" START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE;" + EOL +
-                @"ALTER TABLE ""People"" ALTER COLUMN ""IntKey"" TYPE int;" + EOL +
-                @"ALTER TABLE ""People"" ALTER COLUMN ""IntKey"" SET NOT NULL;" + EOL +
-                @"ALTER TABLE ""People"" ALTER COLUMN ""IntKey"" SET DEFAULT (nextval('""People_IntKey_seq""'));" + EOL +
-                @"ALTER SEQUENCE ""People_IntKey_seq"" OWNED BY ""People"".""IntKey""",
-            Sql);
-        }
-
-        #endregion
-
-        #region Npgsql-specific
-
-        [Fact]
-        public void CreateIndexOperation_method()
-        {
-            Generate(new CreateIndexOperation
-            {
-                Name = "IX_People_Name",
-                Table = "People",
-                Schema = "dbo",
-                Columns = new[] { "FirstName" },
-                [NpgsqlAnnotationNames.Prefix + NpgsqlAnnotationNames.IndexMethod] = "gin"
-            });
-
-            Assert.Equal(
-                "CREATE INDEX \"IX_People_Name\" ON \"dbo\".\"People\" USING gin (\"FirstName\");" + EOL,
-                Sql);
-        }
-
-        [Fact]
-        public void EnsurePostgresExtension()
-        {
-            var op = new AlterDatabaseOperation();
-            PostgresExtension.GetOrAddPostgresExtension(op, "hstore");
-            Generate(op);
-
-            Assert.Equal(
-                @"CREATE EXTENSION IF NOT EXISTS ""hstore"";" + EOL,
-                Sql);
-        }
-
-        [Fact]
-        public void EnsurePostgresExtension_with_schema()
-        {
-            var op = new AlterDatabaseOperation();
-            var extension = PostgresExtension.GetOrAddPostgresExtension(op, "hstore");
-            extension.Schema = "myschema";
-            Generate(op);
-
-            Assert.Equal(
-                @"CREATE EXTENSION IF NOT EXISTS ""hstore"" SCHEMA ""myschema"";" + EOL,
-                Sql);
-        }
-
-        [Fact]
-        public virtual void AddColumnOperation_serial()
-        {
-            Generate(new AddColumnOperation
-            {
-                Table = "People",
-                Name = "foo",
-                ClrType = typeof(int),
-                ColumnType = "int",
-                IsNullable = false,
-                [NpgsqlAnnotationNames.ValueGenerationStrategy] = NpgsqlValueGenerationStrategy.SerialColumn
-            });
-
-            Assert.Equal(
-                "ALTER TABLE \"People\" ADD \"foo\" serial NOT NULL;" + EOL,
-                Sql);
-        }
-
-#pragma warning disable 618
-        [Fact]
-        public virtual void AddColumnOperation_serial_old_annotation_throws()
-        {
-            Assert.Throws<NotSupportedException>(() =>
-                Generate(new AddColumnOperation
-                {
-                    Table = "People",
-                    Name = "foo",
-                    ClrType = typeof(int),
-                    ColumnType = "int",
-                    IsNullable = false,
-                    [NpgsqlAnnotationNames.ValueGeneratedOnAdd] = true
-                }));
-        }
-#pragma warning restore 618
-
-        // EFCore will add a default in some cases, e.g. adding a non-nullable column
-        // to an existing table. This shouldn't affect serial column creation.
-        // See #68
-        [Fact]
-        public void AddColumnOperation_serial_with_default()
-        {
-            Generate(
-                new AddColumnOperation
-                {
-                    Table = "People",
-                    Name = "foo",
-                    ClrType = typeof(int),
-                    ColumnType = "int",
-                    DefaultValue = 0,
-                    [NpgsqlAnnotationNames.ValueGenerationStrategy] = NpgsqlValueGenerationStrategy.SerialColumn
-                });
-
-            Assert.Equal(
-                @"ALTER TABLE ""People"" ADD ""foo"" serial NOT NULL DEFAULT 0;" + EOL,
-                Sql);
-        }
-
-        [Fact]
-        public void RenameIndexOperation()
-        {
-            Generate(
-                new RenameIndexOperation
-                {
-                    Table = "People",
-                    Name = "x",
-                    NewName = "y",
-                    Schema = "myschema"
-                });
-
-            Assert.Equal(
-                "ALTER INDEX \"myschema\".\"x\" RENAME TO \"y\";" + EOL,
-                Sql);
         }
 
         [Fact]
@@ -458,6 +347,301 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
         }
 
         #endregion
+
+        #region Value generation add
+
+        [Fact]
+        public virtual void AddColumnOperation_serial()
+        {
+            Generate(new AddColumnOperation
+            {
+                Table = "People",
+                Name = "foo",
+                ClrType = typeof(int),
+                ColumnType = "int",
+                IsNullable = false,
+                [NpgsqlAnnotationNames.ValueGenerationStrategy] = NpgsqlValueGenerationStrategy.SerialColumn
+            });
+
+            Assert.Equal(
+                "ALTER TABLE \"People\" ADD foo serial NOT NULL;" + EOL,
+                Sql);
+        }
+
+        // EFCore will add a default in some cases, e.g. adding a non-nullable column
+        // to an existing table. This shouldn't affect serial column creation.
+        // See #68
+        [Fact]
+        public void AddColumnOperation_serial_with_default()
+        {
+            Generate(
+                new AddColumnOperation
+                {
+                    Table = "People",
+                    Name = "foo",
+                    ClrType = typeof(int),
+                    ColumnType = "int",
+                    DefaultValue = 0,
+                    [NpgsqlAnnotationNames.ValueGenerationStrategy] = NpgsqlValueGenerationStrategy.SerialColumn
+                });
+
+            Assert.Equal(
+                @"ALTER TABLE ""People"" ADD foo serial NOT NULL DEFAULT 0;" + EOL,
+                Sql);
+        }
+
+        [Fact]
+        public void AddColumnOperation_with_identity_always()
+        {
+            Generate(
+                new AddColumnOperation
+                {
+                    Table = "People",
+                    Name = "Id",
+                    ClrType = typeof(int),
+                    [NpgsqlAnnotationNames.ValueGenerationStrategy] = NpgsqlValueGenerationStrategy.IdentityAlwaysColumn
+                });
+
+            Assert.Equal(
+                @"ALTER TABLE ""People"" ADD ""Id"" integer NOT NULL GENERATED ALWAYS AS IDENTITY;" + EOL,
+                Sql);
+        }
+
+        [Fact]
+        public void AddColumnOperation_with_identity_by_default()
+        {
+            Generate(
+                new AddColumnOperation
+                {
+                    Table = "People",
+                    Name = "Id",
+                    ClrType = typeof(int),
+                    [NpgsqlAnnotationNames.ValueGenerationStrategy] = NpgsqlValueGenerationStrategy.IdentityByDefaultColumn
+                });
+
+            Assert.Equal(
+                @"ALTER TABLE ""People"" ADD ""Id"" integer NOT NULL GENERATED BY DEFAULT AS IDENTITY;" + EOL,
+                Sql);
+        }
+
+#pragma warning disable 618
+        [Fact]
+        public virtual void AddColumnOperation_serial_old_annotation_throws()
+        {
+            Assert.Throws<NotSupportedException>(() =>
+                Generate(new AddColumnOperation
+                {
+                    Table = "People",
+                    Name = "foo",
+                    ClrType = typeof(int),
+                    ColumnType = "int",
+                    IsNullable = false,
+                    [NpgsqlAnnotationNames.ValueGeneratedOnAdd] = true
+                }));
+        }
+#pragma warning restore 618
+
+        #endregion Value generation add
+
+        #region Value generation alter
+
+        [Fact]
+        public void AlterColumnOperation_to_identity()
+        {
+            Generate(
+                new AlterColumnOperation
+                {
+                    Table = "People",
+                    Name = "Id",
+                    ClrType = typeof(int),
+                    [NpgsqlAnnotationNames.ValueGenerationStrategy] = NpgsqlValueGenerationStrategy.IdentityAlwaysColumn
+                });
+
+            Assert.Equal(
+                @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" ADD GENERATED ALWAYS AS IDENTITY;" + EOL +
+                @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" TYPE integer;" + EOL +
+                @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET NOT NULL;" + EOL,
+                Sql);
+        }
+
+        [Fact]
+        public void AlterColumnOperation_to_serial()
+        {
+            Generate(
+                new AlterColumnOperation
+                {
+                    Table = "People",
+                    Name = "LongKey",
+                    ClrType = typeof(long),
+                    IsNullable = false,
+                    [NpgsqlAnnotationNames.ValueGenerationStrategy] = NpgsqlValueGenerationStrategy.SerialColumn
+                });
+
+            Assert.Equal(
+                @"CREATE SEQUENCE ""People_LongKey_seq"" START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE;" + EOL +
+                @"GO" + EOL + EOL +  // Note that GO here is just a delimiter introduced in the tests to indicate a batch boundary
+                @"ALTER TABLE ""People"" ALTER COLUMN ""LongKey"" TYPE bigint;" + EOL +
+                @"ALTER TABLE ""People"" ALTER COLUMN ""LongKey"" SET NOT NULL;" + EOL +
+                @"ALTER TABLE ""People"" ALTER COLUMN ""LongKey"" SET DEFAULT (nextval('""People_LongKey_seq""'));" + EOL +
+                @"ALTER SEQUENCE ""People_LongKey_seq"" OWNED BY ""People"".""LongKey""",
+                Sql);
+        }
+
+        [Fact]
+        public void AlterColumnOperation_identity_to_identity()
+        {
+            Generate(
+                new AlterColumnOperation
+                {
+                    Table = "People",
+                    Name = "Id",
+                    ClrType = typeof(int),
+                    OldColumn = new ColumnOperation
+                    {
+                        [NpgsqlAnnotationNames.ValueGenerationStrategy] = NpgsqlValueGenerationStrategy.IdentityByDefaultColumn
+                    },
+                    [NpgsqlAnnotationNames.ValueGenerationStrategy] = NpgsqlValueGenerationStrategy.IdentityAlwaysColumn
+                });
+
+            Assert.Equal(
+                @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET GENERATED ALWAYS;" + EOL +
+                @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" TYPE integer;" + EOL +
+                @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET NOT NULL;" + EOL,
+                Sql);
+        }
+
+        [Fact]
+        public void AlterColumnOperation_serial_to_identity()
+        {
+            Generate(
+                new AlterColumnOperation
+                {
+                    Table = "People",
+                    Name = "Id",
+                    ClrType = typeof(int),
+                    OldColumn = new ColumnOperation
+                    {
+                        [NpgsqlAnnotationNames.ValueGenerationStrategy] = NpgsqlValueGenerationStrategy.SerialColumn
+                    },
+                    [NpgsqlAnnotationNames.ValueGenerationStrategy] = NpgsqlValueGenerationStrategy.IdentityAlwaysColumn
+                });
+
+            Assert.Equal(@"ALTER SEQUENCE ""People_Id_seq"" RENAME TO ""People_Id_old_seq"";" + EOL +
+                @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" DROP DEFAULT;" + EOL +
+                @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" ADD GENERATED ALWAYS AS IDENTITY;" + EOL +
+                @"SELECT * FROM setval('""People_Id_seq""', nextval('""People_Id_old_seq""'), false);" + EOL +
+                @"DROP SEQUENCE ""People_Id_old_seq"";" + EOL +
+                @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" TYPE integer;" + EOL +
+                @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET NOT NULL;" + EOL,
+                Sql);
+        }
+
+        #endregion Value generation alter
+
+        #region Indexes
+
+        [Fact]
+        public void CreateIndexOperation_method()
+        {
+            Generate(new CreateIndexOperation
+            {
+                Name = "IX_People_Name",
+                Table = "People",
+                Schema = "dbo",
+                Columns = new[] { "FirstName" },
+                [NpgsqlAnnotationNames.IndexMethod] = "gin"
+            });
+
+            Assert.Equal(
+                "CREATE INDEX \"IX_People_Name\" ON dbo.\"People\" USING gin (\"FirstName\");" + EOL,
+                Sql);
+        }
+
+        [Fact]
+        public void RenameIndexOperation()
+        {
+            Generate(
+                new RenameIndexOperation
+                {
+                    Table = "People",
+                    Name = "x",
+                    NewName = "y",
+                    Schema = "myschema"
+                });
+
+            Assert.Equal(
+                "ALTER INDEX myschema.x RENAME TO y;" + EOL,
+                Sql);
+        }
+
+        #endregion Indexes
+
+        #region PostgreSQL extensions
+
+        [Fact]
+        public void EnsurePostgresExtension()
+        {
+            var op = new AlterDatabaseOperation();
+            PostgresExtension.GetOrAddPostgresExtension(op, "hstore");
+            Generate(op);
+
+            Assert.Equal(
+                @"CREATE EXTENSION IF NOT EXISTS hstore;" + EOL,
+                Sql);
+        }
+
+        [Fact]
+        public void EnsurePostgresExtension_with_schema()
+        {
+            var op = new AlterDatabaseOperation();
+            var extension = PostgresExtension.GetOrAddPostgresExtension(op, "hstore");
+            extension.Schema = "myschema";
+            Generate(op);
+
+            Assert.Equal(
+                @"CREATE EXTENSION IF NOT EXISTS hstore SCHEMA myschema;" + EOL,
+                Sql);
+        }
+
+        #endregion PostgreSQL extensions
+
+        #region Enums
+
+        [Fact]
+        public void CreatePostgresEnum()
+        {
+            var op = new AlterDatabaseOperation();
+            PostgresEnum.GetOrAddPostgresEnum(op, "public", "my_enum", new[] { "value1", "value2" });
+            Generate(op);
+
+            Assert.Equal(@"CREATE TYPE public.my_enum AS ENUM ('value1', 'value2');" + EOL, Sql);
+        }
+
+        [Fact]
+        public void CreatePostgresEnumWithSchema()
+        {
+            var op = new AlterDatabaseOperation();
+            PostgresEnum.GetOrAddPostgresEnum(op, "some_schema", "my_enum", new[] { "value1", "value2" });
+            Generate(op);
+
+            Assert.Equal(
+                @"CREATE SCHEMA IF NOT EXISTS some_schema;" + EOL +
+                @"GO" + EOL + EOL +
+                @"CREATE TYPE some_schema.my_enum AS ENUM ('value1', 'value2');" + EOL,
+                Sql);
+        }
+
+        [Fact]
+        public void DropPostgresEnum()
+        {
+            var op = new AlterDatabaseOperation();
+            PostgresEnum.GetOrAddPostgresEnum(op.OldDatabase, "public", "my_enum", new[] { "value1", "value2" });
+            Generate(op);
+
+            Assert.Equal(@"DROP TYPE public.my_enum;" + EOL, Sql);
+        }
+
+        #endregion Enums
 
         #region PostgreSQL Storage Parameters
 
@@ -489,8 +673,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 });
 
             Assert.Equal(
-                "CREATE TABLE \"dbo\".\"People\" (" + EOL +
-                "    \"Id\" int4 NOT NULL," + EOL +
+                "CREATE TABLE dbo.\"People\" (" + EOL +
+                "    \"Id\" integer NOT NULL," + EOL +
                 "    PRIMARY KEY (\"Id\")" + EOL +
                 ")" + EOL +
                 "WITH (fillfactor=70, user_catalog_table=true);" + EOL,
@@ -521,8 +705,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 });
 
             Assert.Equal(
-                "ALTER TABLE \"dbo\".\"People\" SET (autovacuum_enabled=true, fillfactor=80);" + EOL +
-                "ALTER TABLE \"dbo\".\"People\" RESET (user_catalog_table);" + EOL,
+                "ALTER TABLE dbo.\"People\" SET (autovacuum_enabled=true, fillfactor=80);" + EOL +
+                "ALTER TABLE dbo.\"People\" RESET (user_catalog_table);" + EOL,
                 Sql);
         }
 
@@ -558,9 +742,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             });
 
             Assert.Equal(
-                "CREATE TABLE \"public\".\"foo\" (" + EOL +
-                "    \"id\" int4 NOT NULL," + EOL +
-                "    PRIMARY KEY (\"id\")" + EOL +
+                "CREATE TABLE public.foo (" + EOL +
+                "    id integer NOT NULL," + EOL +
+                "    PRIMARY KEY (id)" + EOL +
                 ");" + EOL,
                 Sql);
         }
@@ -638,11 +822,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 });
 
             Assert.Equal(
-                "CREATE TABLE \"dbo\".\"People\" (" + EOL +
-                "    \"Id\" int4 NOT NULL," + EOL +
+                "CREATE TABLE dbo.\"People\" (" + EOL +
+                "    \"Id\" integer NOT NULL," + EOL +
                 "    PRIMARY KEY (\"Id\")" + EOL +
                 ");" + EOL +
-                "COMMENT ON TABLE \"dbo\".\"People\" IS 'Some comment';" + EOL,
+                "COMMENT ON TABLE dbo.\"People\" IS 'Some comment';" + EOL,
                 Sql);
         }
 
@@ -672,11 +856,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 });
 
             Assert.Equal(
-                "CREATE TABLE \"dbo\".\"People\" (" + EOL +
-                "    \"Id\" int4 NOT NULL," + EOL +
+                "CREATE TABLE dbo.\"People\" (" + EOL +
+                "    \"Id\" integer NOT NULL," + EOL +
                 "    PRIMARY KEY (\"Id\")" + EOL +
                 ");" + EOL +
-                "COMMENT ON COLUMN \"dbo\".\"People\".\"Id\" IS 'Some comment';" + EOL,
+                "COMMENT ON COLUMN dbo.\"People\".\"Id\" IS 'Some comment';" + EOL,
                 Sql);
         }
 
@@ -693,7 +877,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 });
 
             Assert.Equal(
-                "COMMENT ON TABLE \"dbo\".\"People\" IS 'New comment';" + EOL,
+                "COMMENT ON TABLE dbo.\"People\" IS 'New comment';" + EOL,
                 Sql);
         }
 
@@ -708,7 +892,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                     OldTable = new Annotatable { [NpgsqlAnnotationNames.Comment] = "New comment" }
                 });
             Assert.Equal(
-                "COMMENT ON TABLE \"dbo\".\"People\" IS NULL;" + EOL,
+                "COMMENT ON TABLE dbo.\"People\" IS NULL;" + EOL,
                 Sql);
         }
 
@@ -727,8 +911,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             });
 
             Assert.Equal(
-                "ALTER TABLE \"dbo\".\"People\" ADD \"foo\" int NOT NULL;" + EOL +
-                "COMMENT ON COLUMN \"dbo\".\"People\".\"foo\" IS 'Some comment';" + EOL,
+                "ALTER TABLE dbo.\"People\" ADD foo int NOT NULL;" + EOL +
+                "COMMENT ON COLUMN dbo.\"People\".foo IS 'Some comment';" + EOL,
                 Sql);
         }
 
@@ -750,10 +934,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 });
 
             Assert.Equal(
-                @"ALTER TABLE ""dbo"".""People"" ALTER COLUMN ""LuckyNumber"" TYPE int;" + EOL +
-                @"ALTER TABLE ""dbo"".""People"" ALTER COLUMN ""LuckyNumber"" SET NOT NULL;" + EOL +
-                @"ALTER TABLE ""dbo"".""People"" ALTER COLUMN ""LuckyNumber"" SET DEFAULT 7;" + EOL +
-                "COMMENT ON COLUMN \"dbo\".\"People\".\"LuckyNumber\" IS 'New comment'",
+                @"ALTER TABLE dbo.""People"" ALTER COLUMN ""LuckyNumber"" TYPE int;" + EOL +
+                @"ALTER TABLE dbo.""People"" ALTER COLUMN ""LuckyNumber"" SET NOT NULL;" + EOL +
+                @"ALTER TABLE dbo.""People"" ALTER COLUMN ""LuckyNumber"" SET DEFAULT 7;" + EOL +
+                "COMMENT ON COLUMN dbo.\"People\".\"LuckyNumber\" IS 'New comment'",
                 Sql);
         }
 
@@ -774,10 +958,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
                 });
 
             Assert.Equal(
-                @"ALTER TABLE ""dbo"".""People"" ALTER COLUMN ""LuckyNumber"" TYPE int;" + EOL +
-                @"ALTER TABLE ""dbo"".""People"" ALTER COLUMN ""LuckyNumber"" SET NOT NULL;" + EOL +
-                @"ALTER TABLE ""dbo"".""People"" ALTER COLUMN ""LuckyNumber"" SET DEFAULT 7;" + EOL +
-                "COMMENT ON COLUMN \"dbo\".\"People\".\"LuckyNumber\" IS NULL",
+                @"ALTER TABLE dbo.""People"" ALTER COLUMN ""LuckyNumber"" TYPE int;" + EOL +
+                @"ALTER TABLE dbo.""People"" ALTER COLUMN ""LuckyNumber"" SET NOT NULL;" + EOL +
+                @"ALTER TABLE dbo.""People"" ALTER COLUMN ""LuckyNumber"" SET DEFAULT 7;" + EOL +
+                "COMMENT ON COLUMN dbo.\"People\".\"LuckyNumber\" IS NULL",
                 Sql);
         }
 
@@ -817,15 +1001,85 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
             Generate(op);
 
             Assert.Equal(
-                "CREATE TABLE \"dbo\".\"People\" (" + EOL +
-                "    \"Id\" int4 NOT NULL," + EOL +
+                "CREATE TABLE dbo.\"People\" (" + EOL +
+                "    \"Id\" integer NOT NULL," + EOL +
                 "    PRIMARY KEY (\"Id\")" + EOL +
                 ")" + EOL +
-                "INTERLEAVE IN PARENT \"my_schema\".\"my_parent\" (\"col_a\", \"col_b\");" + EOL,
+                "INTERLEAVE IN PARENT my_schema.my_parent (col_a, col_b);" + EOL,
                 Sql);
         }
 
         #endregion CockroachDB interleave-in-parent
+
+        #region Sequence data types
+
+        [Fact]
+        public void CreateSequenceOperation_with_data_type_smallint()
+        {
+            Generate(
+                new CreateSequenceOperation
+                {
+                    Name = "short_sequence",
+                    Schema = "public",
+                    ClrType = typeof(short)
+                });
+
+            Assert.StartsWith(
+                "CREATE SEQUENCE public.short_sequence AS smallint",
+                Sql);
+        }
+
+        #endregion Sequence data types
+
+        [Fact]
+        public void StoreTypeNames()
+        {
+            Generate(new CreateTableOperation
+                {
+                    Name = "types",
+                    Columns =
+                    {
+                        new AddColumnOperation
+                        {
+                            Name = "text",
+                            Table = "types",
+                            ClrType = typeof(string),
+                            ColumnType = "text"
+                        },
+                        // #396
+                        new AddColumnOperation
+                        {
+                            Name = "text_upper",
+                            Table = "types",
+                            ClrType = typeof(string),
+                            ColumnType = "TEXT"
+                        },
+                        new AddColumnOperation
+                        {
+                            Name = "varchar",
+                            Table = "types",
+                            ClrType = typeof(string),
+                            ColumnType = "varchar(3)"
+                        },
+                        // At least for now, it's the user's responsibility to quote store type name when needed,
+                        // because it seems standard for people to specify either text or TEXT, and both should work.
+                        new AddColumnOperation
+                        {
+                            Name = "SomeCamelCaseEnum",
+                            Table = "types",
+                            ClrType = typeof(string),
+                            ColumnType = "\"SomeCamelCaseEnum\""
+                        },
+                    },
+                });
+
+            Assert.Equal("CREATE TABLE types (" + EOL +
+                         "    text text NOT NULL," + EOL +
+                         "    text_upper TEXT NOT NULL," + EOL +
+                         "    varchar varchar(3) NOT NULL," + EOL +
+                         "    \"SomeCamelCaseEnum\" \"SomeCamelCaseEnum\" NOT NULL" + EOL +
+                         ");" + EOL, Sql);
+        }  // yuval
 
         public NpgsqlMigrationSqlGeneratorTest()
             : base(NpgsqlTestHelpers.Instance)

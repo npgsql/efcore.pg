@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Data;
 using System.Data.Common;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Migrations;
@@ -11,13 +7,10 @@ using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Npgsql;
 using Xunit;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
+namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
     public class MigrationsNpgsqlTest : MigrationsTestBase<MigrationsNpgsqlFixture>
     {
-        private const string FileLineEnding = @"
-";
-
         public MigrationsNpgsqlTest(MigrationsNpgsqlFixture fixture)
             : base(fixture)
         {
@@ -39,7 +32,7 @@ DO $$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM ""__EFMigrationsHistory"" WHERE ""MigrationId"" = '00000000000001_Migration1') THEN
     CREATE TABLE ""Table1"" (
-        ""Id"" int4 NOT NULL,
+        ""Id"" integer NOT NULL,
         CONSTRAINT ""PK_Table1"" PRIMARY KEY (""Id"")
     );
     END IF;
@@ -75,7 +68,9 @@ BEGIN
     VALUES ('00000000000003_Migration3', '7.0.0-test');
     END IF;
 END $$;
-", Sql.Replace(Environment.NewLine, FileLineEnding));
+",
+                Sql,
+                ignoreLineEndingDifferences: true);
         }
 
         public override void Can_generate_idempotent_down_scripts()
@@ -112,7 +107,9 @@ BEGIN
     WHERE ""MigrationId"" = '00000000000001_Migration1';
     END IF;
 END $$;
-", Sql.Replace(Environment.NewLine, FileLineEnding));
+",
+                Sql,
+                ignoreLineEndingDifferences: true);
         }
 
         protected override void AssertFirstMigration(DbConnection connection)
@@ -125,14 +122,15 @@ CreatedTable
     ColumnWithDefaultToDrop int4 NULL DEFAULT 0
     ColumnWithDefaultToAlter int4 NULL DEFAULT 1
 ",
-                sql.Replace(Environment.NewLine, FileLineEnding));
+                sql,
+                ignoreLineEndingDifferences: true);
         }
 
         protected override void BuildSecondMigration(MigrationBuilder migrationBuilder)
         {
             base.BuildSecondMigration(migrationBuilder);
 
-            for (int i = migrationBuilder.Operations.Count - 1; i >= 0; i--)
+            for (var i = migrationBuilder.Operations.Count - 1; i >= 0; i--)
             {
                 var operation = migrationBuilder.Operations[i];
                 if (operation is AlterColumnOperation
@@ -153,7 +151,8 @@ CreatedTable
     ColumnWithDefaultToDrop int4 NULL DEFAULT 0
     ColumnWithDefaultToAlter int4 NULL DEFAULT 1
 ",
-                sql.Replace(Environment.NewLine, FileLineEnding));
+                sql,
+                ignoreLineEndingDifferences: true);
         }
 
         private string GetDatabaseSchemaAsync(DbConnection connection)
@@ -173,8 +172,7 @@ ORDER BY table_name, ordinal_position
 ";
 
             var dbName = connection.Database;
-            var npgConnection = (NpgsqlConnection)connection;
-            command.Parameters.Add(new NpgsqlParameter() { ParameterName = "db", Value = dbName });
+            command.Parameters.Add(new NpgsqlParameter { ParameterName = "db", Value = dbName });
 
             using (var reader = command.ExecuteReader())
             {

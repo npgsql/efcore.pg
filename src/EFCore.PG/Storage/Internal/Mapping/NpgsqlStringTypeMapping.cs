@@ -1,25 +1,39 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Text;
 using JetBrains.Annotations;
-using Npgsql;
-using NpgsqlTypes;
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
-namespace Microsoft.EntityFrameworkCore.Storage.Internal
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 {
+    // TODO: See #357. We should be able to simply use StringTypeMapping but DbParameter.Size isn't managed properly.
     public class NpgsqlStringTypeMapping : StringTypeMapping
     {
-        readonly NpgsqlDbType _npgsqlDbType;
+        public NpgsqlStringTypeMapping([NotNull] string storeType, bool unicode = false, int? size = null)
+            : base(storeType, System.Data.DbType.String, unicode, size) {}
 
-        public NpgsqlStringTypeMapping(string storeType, NpgsqlDbType npgsqlDbType)
-            : base(storeType)
+        protected NpgsqlStringTypeMapping(RelationalTypeMappingParameters parameters) : base(parameters) {}
+
+        public override RelationalTypeMapping Clone(string storeType, int? size)
+            => new NpgsqlStringTypeMapping(Parameters.WithStoreTypeAndSize(storeType, size));
+
+        public override CoreTypeMapping Clone(ValueConverter converter)
+            => new NpgsqlStringTypeMapping(Parameters.WithComposedConverter(converter));
+
+        protected override void ConfigureParameter(DbParameter parameter)
         {
-            _npgsqlDbType = npgsqlDbType;
-        }
+            // See #357
+            if (Size.HasValue)
+            {
+                var value = parameter.Value;
+                var length = (value as string)?.Length;
+                var size = Size.Value;
 
-        protected override void ConfigureParameter([NotNull] DbParameter parameter)
-            => ((NpgsqlParameter)parameter).NpgsqlDbType = _npgsqlDbType;
+                parameter.Size = value == null || value == DBNull.Value || length != null && length <= size
+                    ? size
+                    : -1;
+            }
+        }
     }
 }

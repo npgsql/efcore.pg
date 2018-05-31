@@ -1,18 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.EntityFrameworkCore.Utilities;
+using Microsoft.EntityFrameworkCore.TestUtilities;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
+namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
     public class FieldMappingNpgsqlTest
-        : FieldMappingTestBase<NpgsqlTestStore, FieldMappingNpgsqlTest.FieldMappingNpgsqlFixture>
+        : FieldMappingTestBase<FieldMappingNpgsqlTest.FieldMappingNpgsqlFixture>
     {
         public FieldMappingNpgsqlTest(FieldMappingNpgsqlFixture fixture)
             : base(fixture)
@@ -24,45 +19,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 
         public class FieldMappingNpgsqlFixture : FieldMappingFixtureBase
         {
-            private const string DatabaseName = "FieldMapping";
-
-            private readonly IServiceProvider _serviceProvider;
-
-            public FieldMappingNpgsqlFixture()
-            {
-                _serviceProvider = new ServiceCollection()
-                    .AddEntityFrameworkNpgsql()
-                    .AddSingleton(TestModelSource.GetFactory(OnModelCreating))
-                    .BuildServiceProvider();
-            }
-
-            public override NpgsqlTestStore CreateTestStore()
-            {
-                return NpgsqlTestStore.GetOrCreateShared(DatabaseName, () =>
-                {
-                    var optionsBuilder = new DbContextOptionsBuilder()
-                        .UseNpgsql(NpgsqlTestStore.CreateConnectionString(DatabaseName), b => b.ApplyConfiguration())
-                        .UseInternalServiceProvider(_serviceProvider);
-
-                    using (var context = new FieldMappingContext(optionsBuilder.Options))
-                    {
-                        context.Database.EnsureCreated();
-                        Seed(context);
-                    }
-                });
-            }
-
-            public override DbContext CreateContext(NpgsqlTestStore testStore)
-            {
-                var optionsBuilder = new DbContextOptionsBuilder()
-                    .UseNpgsql(testStore.Connection, b => b.ApplyConfiguration())
-                    .UseInternalServiceProvider(_serviceProvider);
-
-                var context = new FieldMappingContext(optionsBuilder.Options);
-                context.Database.UseTransaction(testStore.Transaction);
-
-                return context;
-            }
+            protected override string StoreName { get; } = "FieldMapping";
+            protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
         }
     }
 }
