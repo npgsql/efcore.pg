@@ -676,7 +676,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             {
                 var array = new[] { 0, 1, 2 };
                 var _ = ctx.SomeEntities.Where(x => Array.Exists(array, y => y == x.SomeArray[0])).ToList();
-                AssertContainsInSql(@"WHERE x.""SomeArray""[1] = ANY (@__array_0) = TRUE");
+                AssertContainsInSql(@"WHERE x.""SomeArray""[1] IN (0, 1, 2)");
             }
         }
 
@@ -687,11 +687,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             {
                 var list = new List<int> { 0, 1, 2 };
                 var _ = ctx.SomeEntities.Where(x => list.Exists(y => y == x.SomeList[0])).ToList();
-
-                // What we don't want:
-                AssertDoesNotContainInSql(@"WHERE (x.""SomeList""[1]) IN (0, 1, 2)");
-                // What we do want:
-                AssertContainsInSql(@"WHERE x.""SomeList""[1] = ANY (@__list_0) = TRUE");
+                AssertContainsInSql(@"WHERE x.""SomeList""[1] IN (0, 1, 2)");
             }
         }
 
@@ -702,7 +698,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             {
                 var array = new[] { 0, 1, 2 };
                 var _ = ctx.SomeEntities.Where(x => Array.Exists(array, y => x.SomeArray[0] == y)).ToList();
-                AssertContainsInSql(@"WHERE x.""SomeArray""[1] = ANY (@__array_0) = TRUE");
+                AssertContainsInSql(@"WHERE x.""SomeArray""[1] IN (0, 1, 2)");
             }
         }
 
@@ -713,11 +709,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             {
                 var list = new List<int> { 0, 1, 2 };
                 var _ = ctx.SomeEntities.Where(x => list.Exists(y => x.SomeList[0] == y)).ToList();
-
-                // What we don't want:
-                AssertDoesNotContainInSql(@"WHERE (x.""SomeList""[1]) IN (0, 1, 2)");
-                // What we do want:
-                AssertContainsInSql(@"WHERE x.""SomeList""[1] = ANY (@__list_0) = TRUE");
+                AssertContainsInSql(@"WHERE x.""SomeList""[1] IN (0, 1, 2)");
             }
         }
 

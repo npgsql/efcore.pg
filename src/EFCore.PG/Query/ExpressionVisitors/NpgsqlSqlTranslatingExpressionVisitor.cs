@@ -168,6 +168,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
             case ConcatResultOperator concatResultOperator:
                 return VisitArrayConcat(array, concatResultOperator);
 
+            case ContainsResultOperator contains:
+                return new ArrayAnyAllExpression(ArrayComparisonType.ANY, "=", Visit(contains.Item) ?? contains.Item, array);
+
             case CountResultOperator countResultOperator:
                 return VisitArrayCount(array, countResultOperator);
 

@@ -49,8 +49,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             if (!(expression is SubQueryExpression subQuery))
                 return null;
 
-            if (ContainsResult(subQuery) is Expression contains)
-                return contains;
+//            if (ContainsResult(subQuery) is Expression contains)
+//                return contains;
 
             if (subQuery.QueryModel.BodyClauses.Count != 1)
                 return null;
@@ -101,6 +101,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         static Expression ContainsResult(SubQueryExpression expression)
         {
             var model = expression.QueryModel;
+
+            if (!(model.MainFromClause.FromExpression is Expression from))
+                return null;
+
+            if (!IsArrayOrList(from.Type))
+                return null;
+
             if (model.BodyClauses.Count != 0)
                 return null;
 
@@ -110,7 +117,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             if (!(model.ResultOperators[0] is ContainsResultOperator contains))
                 return null;
 
-            return new ArrayAnyAllExpression(ArrayComparisonType.ANY, "=", contains.Item, model.MainFromClause.FromExpression);
+            return new ArrayAnyAllExpression(ArrayComparisonType.ANY, "=", contains.Item, from);
         }
 
         #endregion
