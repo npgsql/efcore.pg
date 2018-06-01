@@ -30,6 +30,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
 using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 using Microsoft.EntityFrameworkCore.Query.Sql;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Update;
@@ -113,6 +114,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     .TryAdd<IMemberTranslator, NpgsqlCompositeMemberTranslator>()
                     .TryAdd<ICompositeMethodCallTranslator, NpgsqlCompositeMethodCallTranslator>()
                     .TryAdd<IExpressionFragmentTranslator, NpgsqlCompositeExpressionFragmentTranslator>()
+                    .TryAdd<IQueryOptimizer, NpgsqlQueryOptimizer>()
                     .TryAdd<IQuerySqlGeneratorFactory, NpgsqlQuerySqlGeneratorFactory>()
                     .TryAdd<ISqlTranslatingExpressionVisitorFactory, NpgsqlSqlTranslatingExpressionVisitorFactory>()
                     .TryAdd<ISingletonOptions, INpgsqlOptions>(p => p.GetService<INpgsqlOptions>())
