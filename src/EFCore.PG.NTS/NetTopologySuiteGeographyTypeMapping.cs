@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using GeoAPI.Geometries;
@@ -21,6 +22,25 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite
             => new NetTopologySuiteGeographyTypeMapping(Parameters.WithComposedConverter(converter), NpgsqlDbType);
 
         protected override string GenerateNonNullSqlLiteral(object value)
-            => $"GEOGRAPHY '{((IGeometry)value).AsText()}'";
+        {
+            var geometry = (IGeometry)value;
+            var builder = new StringBuilder();
+
+            builder.Append("GEOGRAPHY '");
+
+            if (geometry.SRID > 0)
+            {
+                builder
+                    .Append("SRID=")
+                    .Append(geometry.SRID)
+                    .Append(";");
+            }
+
+            builder
+                .Append(geometry.AsText())
+                .Append("'");
+
+            return builder.ToString();
+        }
     }
 }
