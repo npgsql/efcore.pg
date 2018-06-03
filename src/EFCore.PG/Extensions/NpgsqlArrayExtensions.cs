@@ -23,9 +23,10 @@
 
 #endregion
 
+using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore
@@ -49,7 +50,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static string ArrayToString<T>([CanBeNull] this DbFunctions _, [NotNull] T[] array, [CanBeNull] string delimiter)
-            => throw new ClientEvaluationNotSupportedException();
+            => throw ClientEvaluationNotSupportedException();
 
         /// <summary>
         /// Concatenates elements using the supplied delimiter.
@@ -65,7 +66,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static string ArrayToString<T>([CanBeNull] this DbFunctions _, [NotNull] List<T> list, [CanBeNull] string delimiter)
-            => throw new ClientEvaluationNotSupportedException();
+            => throw ClientEvaluationNotSupportedException();
 
         /// <summary>
         /// Concatenates elements using the supplied delimiter and the string representation for null elements.
@@ -82,7 +83,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static string ArrayToString<T>([CanBeNull] this DbFunctions _, [NotNull] T[] array, [CanBeNull] string delimiter, [CanBeNull] string nullString)
-            => throw new ClientEvaluationNotSupportedException();
+            => throw ClientEvaluationNotSupportedException();
 
         /// <summary>
         /// Concatenates elements using the supplied delimiter and the string representation for null elements.
@@ -99,7 +100,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static string ArrayToString<T>([CanBeNull] this DbFunctions _, [NotNull] List<T> list, [CanBeNull] string delimiter, [CanBeNull] string nullString)
-            => throw new ClientEvaluationNotSupportedException();
+            => throw ClientEvaluationNotSupportedException();
 
         /// <summary>
         /// Converts the input string into an array using the supplied delimiter and the string representation for null elements.
@@ -116,7 +117,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static T[] StringToArray<T>([CanBeNull] this DbFunctions _, [NotNull] string input, [CanBeNull] string delimiter, [CanBeNull] string nullString)
-            => throw new ClientEvaluationNotSupportedException();
+            => throw ClientEvaluationNotSupportedException();
 
         /// <summary>
         /// Converts the input string into a <see cref="List{T}"/> using the supplied delimiter and the string representation for null elements.
@@ -133,6 +134,21 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static List<T> StringToList<T>([CanBeNull] this DbFunctions _, [NotNull] string input, [CanBeNull] string delimiter, [CanBeNull] string nullString)
-            => throw new ClientEvaluationNotSupportedException();
+            => throw ClientEvaluationNotSupportedException();
+
+        #region Utilities
+
+        /// <summary>
+        /// Helper method to throw a <see cref="NotSupportedException"/> with the name of the throwing method.
+        /// </summary>
+        /// <param name="method">The method that throws the exception.</param>
+        /// <returns>
+        /// A <see cref="NotSupportedException"/>.
+        /// </returns>
+        [NotNull]
+        static NotSupportedException ClientEvaluationNotSupportedException([CallerMemberName] string method = default)
+            => new NotSupportedException($"{method} is only intended for use via SQL translation as part of an EF Core LINQ query.");
+
+        #endregion
     }
 }
