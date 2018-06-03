@@ -34,6 +34,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
 using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors;
+using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Remotion.Linq.Clauses;
 using Remotion.Linq.Clauses.Expressions;
@@ -80,6 +81,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
 
         #endregion
 
+        /// <summary>
+        /// The current query model visitor.
+        /// </summary>
+        [NotNull] readonly RelationalQueryModelVisitor _queryModelVisitor;
+
+        /// <summary>
+        /// The current query compilation context.
+        /// </summary>
+        [NotNull]
+        RelationalQueryCompilationContext Context => _queryModelVisitor.QueryCompilationContext;
+
         /// <inheritdoc />
         public NpgsqlSqlTranslatingExpressionVisitor(
             [NotNull] SqlTranslatingExpressionVisitorDependencies dependencies,
@@ -87,17 +99,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
             [CanBeNull] SelectExpression targetSelectExpression = null,
             [CanBeNull] Expression topLevelPredicate = null,
             bool inProjection = false)
-            : base(dependencies, queryModelVisitor, targetSelectExpression, topLevelPredicate, inProjection) {}
+            : base(dependencies, queryModelVisitor, targetSelectExpression, topLevelPredicate, inProjection)
+            => _queryModelVisitor = queryModelVisitor;
 
         #region Overrides
 
         /// <inheritdoc />
         protected override Expression VisitBinary(BinaryExpression expression)
-            => expression.NodeType is ExpressionType.ArrayIndex
-                ? Expression.MakeIndex(
+            => expression.NodeType is ExpressionType.ArrayIndex &&
+               IsSafeToVisit(expression, Context)
+                ? Expression.ArrayAccess(
                     Visit(expression.Left) ?? expression.Left,
-                    indexer: null,
-                    new[] { Visit(expression.Right) ?? expression.Right, })
+                    Visit(expression.Right) ?? expression.Right)
                 : base.VisitBinary(expression);
 
         /// <inheritdoc />
@@ -311,6 +324,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
         /// True if <paramref name="type"/> is an array or a <see cref="List{T}"/>; otherwise, false.
         /// </returns>
         static bool IsArrayOrList([NotNull] Type type) => type.IsArray || type.IsGenericType && typeof(List<>) == type.GetGenericTypeDefinition();
+
+        /// <summary>
+        /// True if the expression is safe to visitat this stage.
+        /// </summary>
+        /// <param name="expression">The expression to check</param>
+        /// <param name="context">The context to use.</param>
+        /// <returns>
+        /// True to visit this expression; otherwise false.
+        /// </returns>
+        static bool IsSafeToVisit(BinaryExpression expression, RelationalQueryCompilationContext context)
+            => MemberAccessBindingExpressionVisitor.GetPropertyPath(expression.Left, context, out _).Count != 0;
 
         #endregion
     }

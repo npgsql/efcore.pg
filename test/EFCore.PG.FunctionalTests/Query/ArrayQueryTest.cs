@@ -947,50 +947,22 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         #region Support
 
-        /// <summary>
-        /// Provides resources for unit tests.
-        /// </summary>
         ArrayFixture Fixture { get; }
 
-        /// <summary>
-        /// Initializes resources for unit tests.
-        /// </summary>
-        /// <param name="fixture">The fixture of resources for testing.</param>
         public ArrayQueryTest(ArrayFixture fixture)
         {
             Fixture = fixture;
             Fixture.TestSqlLoggerFactory.Clear();
         }
 
-        /// <summary>
-        /// Creates a new <see cref="ArrayContext"/>.
-        /// </summary>
-        /// <returns>
-        /// An <see cref="ArrayContext"/> for testing.
-        /// </returns>
         ArrayContext CreateContext() => Fixture.CreateContext();
 
-        /// <summary>
-        /// Asserts that the SQL fragment appears in the logs.
-        /// </summary>
-        /// <param name="expected">The SQL statement or fragment to search for in the logs.</param>
         void AssertContainsInSql(string expected)
             => Assert.Contains(expected, Fixture.TestSqlLoggerFactory.Sql);
 
-        /// <summary>
-        /// Asserts that the SQL fragment does not appear in the logs.
-        /// </summary>
-        /// <param name="expected">The SQL statement or fragment to search for in the logs.</param>
         void AssertDoesNotContainInSql(string expected)
             => Assert.DoesNotContain(expected, Fixture.TestSqlLoggerFactory.Sql);
 
-        #endregion Support
-
-        #region Fixtures
-
-        /// <summary>
-        /// Represents a database suitable for testing operations with PostgreSQL arrays.
-        /// </summary>
         public class ArrayContext : DbContext
         {
             public DbSet<SomeArrayEntity> SomeEntities { get; set; }
@@ -998,22 +970,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             protected override void OnModelCreating(ModelBuilder builder) {}
         }
 
-        /// <summary>
-        /// Represents an entity suitable for testing operations with PostgreSQL arrays.
-        /// </summary>
         public class SomeArrayEntity
         {
             public int Id { get; set; }
             public int[] SomeArray { get; set; }
-            public List<int> SomeList { get; set; }
             public int[,] SomeMatrix { get; set; }
+            public List<int> SomeList { get; set; }
             public byte[] SomeBytea { get; set; }
+
+            // ReSharper disable once UnusedMember.Global
             public string SomeString { get; set; }
         }
 
-        /// <summary>
-        /// Represents a fixture suitable for testing operations with PostgreSQL arrays.
-        /// </summary>
         public class ArrayFixture : IDisposable
         {
             readonly DbContextOptions _options;
@@ -1039,18 +1007,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                         Id = 1,
                         SomeArray = new[] { 3, 4 },
                         SomeBytea = new byte[] { 3, 4 },
-                        SomeList = new List<int> { 3, 4 },
                         SomeMatrix = new[,] { { 5, 6 }, { 7, 8 } },
-                        SomeString = "This_is_a_test"
+                        SomeList = new List<int> { 3, 4 }
                     });
                     ctx.SomeEntities.Add(new SomeArrayEntity
                     {
                         Id = 2,
                         SomeArray = new[] { 5, 6, 7 },
                         SomeBytea = new byte[] { 5, 6, 7 },
-                        SomeList = new List<int> { 5, 6, 7 },
                         SomeMatrix = new[,] { { 10, 11 }, { 12, 13 } },
-                        SomeString = "this_is_a_test"
+                        SomeList = new List<int> { 3, 4 }
                     });
                     ctx.SaveChanges();
                 }
