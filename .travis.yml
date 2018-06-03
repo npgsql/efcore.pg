@@ -11,10 +11,14 @@ addons:
   postgresql: "9.6"
 
 env:
-  - Test__Npgsql__DefaultConnection: '"Host=localhost;Database=postgres;Username=postgres;Password="'
+  global:
+    - Test__Npgsql__DefaultConnection: '"Host=localhost;Port=5433;Database=postgres;Username=travis;Password=travis"'
+    - PGPORT: 5433
 
 before_script:
+  - psql -c "ALTER USER travis WITH PASSWORD 'travis'"  # For PG 10 hack
   - psql -c 'CREATE EXTENSION hstore'
+  - psql -c 'CREATE EXTENSION postgis'
   - dotnet restore -v Minimal
 script:
   - dotnet test test/EFCore.PG.Tests/EFCore.PG.Tests.csproj
@@ -24,3 +28,12 @@ cache:
   directories:
     - $HOME/.nuget/packages
 
+# The following is necessary because of https://github.com/travis-ci/travis-ci/issues/6972
+addons:
+  apt:
+    packages:
+      - postgresql-10
+      - postgresql-client-10
+      - postgresql-10-postgis-2.4
+      - postgresql-10-postgis-2.4-scripts
+  postgresql: 10

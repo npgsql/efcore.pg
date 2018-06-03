@@ -74,7 +74,7 @@ DROP SEQUENCE ""DefaultFacetsSequence"";
 DROP SEQUENCE db2.""CustomFacetsSequence""");
         }
 
-        [Fact(Skip="Travis doesn't have PG10 which is required. Need to set up conditional fact.")]
+        [Fact]
         public void Sequence_min_max_start_values_are_null_if_default()
         {
             Test(
@@ -1536,7 +1536,7 @@ COMMENT ON COLUMN comment.a IS 'column comment'",
                 "DROP TABLE comment");
         }
 
-        [Fact(Skip="Travis doesn't have PG10 which is required. Need to set up conditional fact.")]
+        [Fact]
         public void Sequence_types()
         {
             Test(
