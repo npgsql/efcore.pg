@@ -27,8 +27,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.Query.Expressions;
 using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
+using Remotion.Linq;
 using Remotion.Linq.Clauses;
 using Remotion.Linq.Clauses.Expressions;
 using Remotion.Linq.Clauses.ResultOperators;
@@ -49,13 +51,22 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             if (!(expression is SubQueryExpression subQuery))
                 return null;
 
-//            if (ContainsResult(subQuery) is Expression contains)
+            var model = subQuery.QueryModel;
+
+            if (ConcatResult(model) is Expression concat)
+                return concat;
+
+            // TODO: catches too much.
+//            if (ContainsResult(model) is Expression contains)
 //                return contains;
 
-            if (subQuery.QueryModel.BodyClauses.Count != 1)
+            if (CountResult(model) is Expression count)
+                return count;
+
+            if (model.BodyClauses.Count != 1)
                 return null;
 
-            if (!(subQuery.QueryModel.BodyClauses[0] is WhereClause where))
+            if (!(model.BodyClauses[0] is WhereClause where))
                 return null;
 
             if (!(where.Predicate is BinaryExpression b))
@@ -98,16 +109,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         #region SubQueries
 
         [CanBeNull]
-        static Expression ContainsResult(SubQueryExpression expression)
+        static Expression ContainsResult([NotNull] QueryModel model)
         {
-            var model = expression.QueryModel;
-
-            if (!(model.MainFromClause.FromExpression is Expression from))
-                return null;
-
-            if (!IsArrayOrList(from.Type))
-                return null;
-
             if (model.BodyClauses.Count != 0)
                 return null;
 
@@ -117,7 +120,75 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             if (!(model.ResultOperators[0] is ContainsResultOperator contains))
                 return null;
 
-            return new ArrayAnyAllExpression(ArrayComparisonType.ANY, "=", contains.Item, from);
+            if (!(model.MainFromClause.FromExpression is Expression from))
+                return null;
+
+            return
+                IsArrayOrList(from.Type)
+                    ? new ArrayAnyAllExpression(ArrayComparisonType.ANY, "=", contains.Item, from)
+                    : null;
+        }
+
+        /// <summary>
+        /// Visits an array-based count expression: {array}.Length, {list}.Count, {array|list}.Count(), {array|list}.Count({predicate}).
+        /// </summary>
+        /// <param name="model">The query model to visit.</param>
+        /// <returns>
+        /// An expression or null.
+        /// </returns>
+        [CanBeNull]
+        static Expression CountResult([NotNull] QueryModel model)
+        {
+            // TODO: handle count operation with predicate.
+            if (model.BodyClauses.Count != 0)
+                return null;
+
+            if (model.ResultOperators.Count != 1)
+                return null;
+
+            if (!(model.ResultOperators[0] is CountResultOperator _))
+                return null;
+
+            if (!(model.MainFromClause.FromExpression is Expression from))
+                return null;
+
+            if (!IsArrayOrList(from.Type))
+                return null;
+
+            return from.Type.IsArray
+                ? (Expression)Expression.ArrayLength(from)
+                : new SqlFunctionExpression("array_length", typeof(int), new[] { from, Expression.Constant(1) });
+        }
+
+        /// <summary>
+        /// Visits an array-based concatenation expression: {array|value} || {array|value}.
+        /// </summary>
+        /// <param name="model">The query model to visit.</param>
+        /// <returns>
+        /// An expression or null.
+        /// </returns>
+        [CanBeNull]
+        static Expression ConcatResult([NotNull] QueryModel model)
+        {
+            if (model.BodyClauses.Count != 0)
+                return null;
+
+            if (model.ResultOperators.Count != 1)
+                return null;
+
+            if (!(model.ResultOperators[0] is ConcatResultOperator concat))
+                return null;
+
+            if (!(model.MainFromClause.FromExpression is Expression from))
+                return null;
+
+            if (!IsArrayOrList(from.Type))
+                return null;
+
+            return
+                IsArrayOrList(concat.Source2.Type)
+                    ? new CustomBinaryExpression(from, concat.Source2, "||", from.Type)
+                    : null;
         }
 
         #endregion

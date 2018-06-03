@@ -27,7 +27,6 @@ using System;
 using System.Linq.Expressions;
 using JetBrains.Annotations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
@@ -106,9 +105,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         {
             switch (visitor)
             {
-            case NpgsqlQuerySqlGenerator npsgqlGenerator:
-                return npsgqlGenerator.VisitArrayAnyAll(this);
-
             case NpgsqlSqlTranslatingExpressionVisitor npgsqlVisitor:
                 return VisitChildren(npgsqlVisitor);
 

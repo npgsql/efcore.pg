@@ -49,7 +49,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             {
                 var actual = ctx.SomeEntities.Where(e => e.SomeArray[0] == 3).ToList();
                 Assert.Equal(1, actual.Count);
-                AssertContainsInSql(@"WHERE (e.""SomeArray""[1]) = 3");
+                AssertContainsInSql(@"WHERE e.""SomeArray""[1] = 3");
             }
         }
 
@@ -61,6 +61,38 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 var actual = ctx.SomeEntities.Where(e => e.SomeList[0] == 3).ToList();
                 Assert.Equal(1, actual.Count);
                 AssertContainsInSql(@"WHERE e.""SomeList""[1] = 3");
+            }
+        }
+
+        [Fact]
+        public void Array_Index_bytea_with_constant()
+        {
+            using (var ctx = CreateContext())
+            {
+                var actual = ctx.SomeEntities.Where(e => e.SomeBytea[0] == 3).ToList();
+                Assert.Equal(1, actual.Count);
+                AssertContainsInSql(@"WHERE get_byte(e.""SomeBytea"", 0) = 3");
+            }
+        }
+
+        [Fact]
+        public void String_Index_text_with_constant_char_as_int()
+        {
+            using (var ctx = CreateContext())
+            {
+                var actual = ctx.SomeEntities.Where(e => e.SomeString[0] == 'T').ToList();
+                Assert.Equal(1, actual.Count);
+                AssertContainsInSql(@"WHERE ascii(substr(e.""SomeString"", 1, 1)) = 84");
+            }
+        }
+
+        [Fact]
+        public void String_Index_text_with_constant_string()
+        {
+            using (var ctx = CreateContext())
+            {
+                var _ = ctx.SomeEntities.Where(e => e.SomeString[0].ToString() == "T").ToList();
+                AssertContainsInSql(@"WHERE CAST(ascii(substr(e.""SomeString"", 1, 1)) AS text) = 'T'");
             }
         }
 
@@ -87,6 +119,37 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         }
 
         [Fact]
+        public void Array_ElementAt_bytea_with_constant()
+        {
+            using (var ctx = CreateContext())
+            {
+                var actual = ctx.SomeEntities.Where(e => e.SomeBytea.ElementAt(0) == 3).ToList();
+                Assert.Equal(1, actual.Count);
+                AssertContainsInSql(@"WHERE get_byte(e.""SomeBytea"", 0) = 3");
+            }
+        }
+
+        [Fact]
+        public void String_ElementAt_text_with_constant_char_as_int()
+        {
+            using (var ctx = CreateContext())
+            {
+                var _ = ctx.SomeEntities.Where(e => e.SomeString.ElementAt(0) == 'T').ToList();
+                AssertContainsInSql(@"WHERE ascii(substr(e.""SomeString"", 1, 1)) = 84");
+            }
+        }
+
+        [Fact]
+        public void String_ElementAt_text_with_constant_string()
+        {
+            using (var ctx = CreateContext())
+            {
+                var _ = ctx.SomeEntities.Where(e => e.SomeString.ElementAt(0).ToString() == "T").ToList();
+                AssertContainsInSql(@"WHERE CAST(ascii(substr(e.""SomeString"", 1, 1)) AS text) = 'T'");
+            }
+        }
+
+        [Fact]
         public void Array_Index_with_non_constant()
         {
             using (var ctx = CreateContext())
@@ -95,7 +158,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 var x = 0;
                 var actual = ctx.SomeEntities.Where(e => e.SomeArray[x] == 3).ToList();
                 Assert.Equal(1, actual.Count);
-                AssertContainsInSql(@"WHERE (e.""SomeArray""[@__x_0 + 1]) = 3");
+                AssertContainsInSql(@"WHERE e.""SomeArray""[@__x_0 + 1] = 3");
             }
         }
 
@@ -113,6 +176,44 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         }
 
         [Fact]
+        public void Array_Index_bytea_with_non_constant()
+        {
+            using (var ctx = CreateContext())
+            {
+                // ReSharper disable once ConvertToConstant.Local
+                var x = 0;
+                var actual = ctx.SomeEntities.Where(e => e.SomeBytea[x] == 3).ToList();
+                Assert.Equal(1, actual.Count);
+                AssertContainsInSql(@"WHERE get_byte(e.""SomeBytea"", @__x_0) = 3");
+            }
+        }
+
+        [Fact]
+        public void String_Index_text_with_non_constant_char_as_int()
+        {
+            using (var ctx = CreateContext())
+            {
+                // ReSharper disable once ConvertToConstant.Local
+                var x = 0;
+                var actual = ctx.SomeEntities.Where(e => e.SomeString[x] == 'T').ToList();
+                Assert.Equal(1, actual.Count);
+                AssertContainsInSql(@"WHERE ascii(substr(e.""SomeString"", @__x_0 + 1, 1)) = 84");
+            }
+        }
+
+        [Fact]
+        public void String_Index_text_with_non_constant_string()
+        {
+            using (var ctx = CreateContext())
+            {
+                // ReSharper disable once ConvertToConstant.Local
+                var x = 0;
+                var _ = ctx.SomeEntities.Where(e => e.SomeString[x].ToString() == "T").ToList();
+                AssertContainsInSql(@"WHERE CAST(ascii(substr(e.""SomeString"", @__x_0 + 1, 1)) AS text) = 'T'");
+            }
+        }
+
+        [Fact]
         public void Array_ElementAt_with_non_constant()
         {
             using (var ctx = CreateContext())
@@ -126,7 +227,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         }
 
         [Fact]
-        public void List_IndexElementAt_with_non_constant()
+        public void List_ElementAt_with_non_constant()
         {
             using (var ctx = CreateContext())
             {
@@ -139,13 +240,40 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         }
 
         [Fact]
-        public void Array_Index_bytea_with_constant()
+        public void Array_ElementAt_bytea_with_non_constant()
         {
             using (var ctx = CreateContext())
             {
-                var actual = ctx.SomeEntities.Where(e => e.SomeBytea[0] == 3).ToList();
+                // ReSharper disable once ConvertToConstant.Local
+                var x = 0;
+                var actual = ctx.SomeEntities.Where(e => e.SomeBytea.ElementAt(x) == 3).ToList();
                 Assert.Equal(1, actual.Count);
-                AssertContainsInSql(@"WHERE (get_byte(e.""SomeBytea"", 0)) = 3");
+                AssertContainsInSql(@"WHERE get_byte(e.""SomeBytea"", @__x_0) = 3");
+            }
+        }
+
+        [Fact]
+        public void String_ElementAt_text_with_non_constant_char_as_int()
+        {
+            using (var ctx = CreateContext())
+            {
+                // ReSharper disable once ConvertToConstant.Local
+                var x = 0;
+                var actual = ctx.SomeEntities.Where(e => e.SomeString.ElementAt(x) == 'T').ToList();
+                Assert.Equal(1, actual.Count);
+                AssertContainsInSql(@"WHERE ascii(substr(e.""SomeString"", @__x_0 + 1, 1)) = 84");
+            }
+        }
+
+        [Fact]
+        public void String_ElementAt_text_with_non_constant_sting()
+        {
+            using (var ctx = CreateContext())
+            {
+                // ReSharper disable once ConvertToConstant.Local
+                var x = 0;
+                var _ = ctx.SomeEntities.Where(e => e.SomeString.ElementAt(x).ToString() == "T").ToList();
+                AssertContainsInSql(@"WHERE CAST(ascii(substr(e.""SomeString"", @__x_0 + 1, 1)) AS text) = 'T'");
             }
         }
 
@@ -880,6 +1008,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             public List<int> SomeList { get; set; }
             public int[,] SomeMatrix { get; set; }
             public byte[] SomeBytea { get; set; }
+            public string SomeString { get; set; }
         }
 
         /// <summary>
@@ -911,7 +1040,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                         SomeArray = new[] { 3, 4 },
                         SomeBytea = new byte[] { 3, 4 },
                         SomeList = new List<int> { 3, 4 },
-                        SomeMatrix = new[,] { { 5, 6 }, { 7, 8 } }
+                        SomeMatrix = new[,] { { 5, 6 }, { 7, 8 } },
+                        SomeString = "This_is_a_test"
                     });
                     ctx.SomeEntities.Add(new SomeArrayEntity
                     {
@@ -919,7 +1049,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                         SomeArray = new[] { 5, 6, 7 },
                         SomeBytea = new byte[] { 5, 6, 7 },
                         SomeList = new List<int> { 5, 6, 7 },
-                        SomeMatrix = new[,] { { 10, 11 }, { 12, 13 } }
+                        SomeMatrix = new[,] { { 10, 11 }, { 12, 13 } },
+                        SomeString = "this_is_a_test"
                     });
                     ctx.SaveChanges();
                 }

@@ -24,7 +24,6 @@
 #endregion
 
 using System;
-using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
@@ -39,7 +38,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
 {
     public class NpgsqlQuerySqlGenerator : DefaultQuerySqlGenerator
     {
-        // ReSharper disable once NotAccessedField.Local
         readonly bool _reverseNullOrderingEnabled;
 
         /// <inheritdoc />
@@ -55,6 +53,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
             bool reverseNullOrderingEnabled)
             : base(dependencies, selectExpression)
             => _reverseNullOrderingEnabled = reverseNullOrderingEnabled;
+
+        #region Generators
 
         /// <inheritdoc />
         protected override void GenerateTop(SelectExpression selectExpression)
@@ -83,6 +83,81 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
                 Sql.Append("OFFSET ");
                 Visit(selectExpression.Offset);
             }
+        }
+
+        /// <summary>
+        /// PostgreSQL array indexing is 1-based. If the index happens to be a constant,
+        /// just increment it. Otherwise, append a +1 in the SQL.
+        /// </summary>
+        protected virtual Expression GenerateOneBasedIndexExpression(Expression expression)
+            => expression is ConstantExpression constantExpression
+                ? Expression.Constant(Convert.ToInt32(constantExpression.Value) + 1)
+                : (Expression)Expression.Add(expression, Expression.Constant(1));
+
+        /// <inheritdoc />
+        protected override string GenerateOperator(Expression expression)
+        {
+            switch (expression.NodeType)
+            {
+            case ExpressionType.Add:
+                if (expression.Type == typeof(string))
+                    return " || ";
+                goto default;
+            case ExpressionType.And:
+                if (expression.Type == typeof(bool))
+                    return " AND ";
+                goto default;
+            case ExpressionType.Or:
+                if (expression.Type == typeof(bool))
+                    return " OR ";
+                goto default;
+            default:
+                return base.GenerateOperator(expression);
+            }
+        }
+
+        /// <inheritdoc />
+        protected override void GenerateOrdering(Ordering ordering)
+        {
+            base.GenerateOrdering(ordering);
+            if (_reverseNullOrderingEnabled)
+                Sql.Append(
+                    ordering.OrderingDirection == OrderingDirection.Asc
+                        ? " NULLS FIRST"
+                        : " NULLS LAST");
+        }
+
+        #endregion
+
+        #region Visitors
+
+        /// <inheritdoc />
+        protected override Expression VisitExtension(Expression expression)
+        {
+            switch (expression)
+            {
+            case ArrayAnyAllExpression arrayAnyAllExpression:
+                return VisitArrayAnyAll(arrayAnyAllExpression);
+
+            default:
+                return base.VisitExtension(expression);
+            }
+        }
+
+        /// <summary>
+        /// Produces expressions like: 1 = ANY ('{0,1,2}') or 'cat' LIKE ANY ('{a%,b%,c%}').
+        /// </summary>
+        protected virtual Expression VisitArrayAnyAll(ArrayAnyAllExpression arrayAnyAllExpression)
+        {
+            Visit(arrayAnyAllExpression.Operand);
+            Sql.Append(' ');
+            Sql.Append(arrayAnyAllExpression.Operator);
+            Sql.Append(' ');
+            Sql.Append(arrayAnyAllExpression.ArrayComparisonType.ToString());
+            Sql.Append(" (");
+            Visit(arrayAnyAllExpression.Array);
+            Sql.Append(')');
+            return arrayAnyAllExpression;
         }
 
         /// <inheritdoc />
@@ -135,10 +210,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
                 goto default;
             }
 
-            case ExpressionType.ArrayIndex:
-                VisitArrayIndex(expression);
-                return expression;
-
             default:
                 return base.VisitBinary(expression);
             }
@@ -156,38 +227,39 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
             return base.VisitUnary(expression);
         }
 
-        protected virtual void VisitArrayIndex([NotNull] BinaryExpression expression)
-        {
-            Debug.Assert(expression.NodeType == ExpressionType.ArrayIndex);
-
-            if (expression.Left.Type == typeof(byte[]))
-            {
-                // bytea cannot be subscripted, but there's get_byte
-                VisitSqlFunction(new SqlFunctionExpression("get_byte", typeof(byte),
-                    new[] { expression.Left, expression.Right }));
-                return;
-            }
-
-            if (expression.Left.Type == typeof(string))
-            {
-                // text cannot be subscripted, use substr
-                // PostgreSQL substr() is 1-based.
-
-                VisitSqlFunction(new SqlFunctionExpression("substr", typeof(char),
-                    new[] { expression.Left, expression.Right, Expression.Constant(1) }));
-                return;
-            }
-
-            // Regular array from here
-            Visit(expression.Left);
-            Sql.Append('[');
-            Visit(GenerateOneBasedIndexExpression(expression.Right));
-            Sql.Append(']');
-        }
-
         /// <inheritdoc />
         protected override Expression VisitIndex(IndexExpression expression)
         {
+            // bytea cannot be subscripted
+            if (expression.Object.Type == typeof(byte[]))
+                return
+                    VisitSqlFunction(
+                        new SqlFunctionExpression(
+                            "get_byte",
+                            typeof(byte),
+                            new[] { expression.Object, expression.Arguments[0] }));
+
+            // text cannot be subscripted
+            if (expression.Object.Type == typeof(string))
+                return
+                    VisitSqlFunction(
+                        // TODO: Expression tree parses `string[0] == 'T'` as though its `string[0] == 84`.
+                        new SqlFunctionExpression(
+                            "ascii",
+                            typeof(int),
+                            new[]
+                            {
+                                new SqlFunctionExpression(
+                                    "substr",
+                                    typeof(char),
+                                    new[]
+                                    {
+                                        expression.Object,
+                                        GenerateOneBasedIndexExpression(expression.Arguments[0]),
+                                        Expression.Constant(1)
+                                    })
+                            }));
+
             Visit(expression.Object);
             for (int i = 0; i < expression.Arguments.Count; i++)
             {
@@ -195,38 +267,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
                 Visit(GenerateOneBasedIndexExpression(expression.Arguments[i]));
                 Sql.Append(']');
             }
+
             return expression;
         }
 
         /// <summary>
-        /// Produces expressions like: 1 = ANY ('{0,1,2}') or 'cat' LIKE ANY ('{a%,b%,c%}').
-        /// </summary>
-        public Expression VisitArrayAnyAll(ArrayAnyAllExpression arrayAnyAllExpression)
-        {
-            Visit(arrayAnyAllExpression.Operand);
-            Sql.Append(' ');
-            Sql.Append(arrayAnyAllExpression.Operator);
-            Sql.Append(' ');
-            Sql.Append(arrayAnyAllExpression.ArrayComparisonType.ToString());
-            Sql.Append(" (");
-            Visit(arrayAnyAllExpression.Array);
-            Sql.Append(')');
-            return arrayAnyAllExpression;
-        }
-
-        /// <summary>
-        /// PostgreSQL array indexing is 1-based. If the index happens to be a constant,
-        /// just increment it. Otherwise, append a +1 in the SQL.
-        /// </summary>
-        static Expression GenerateOneBasedIndexExpression(Expression expression)
-            => expression is ConstantExpression constantExpression
-                ? Expression.Constant(Convert.ToInt32(constantExpression.Value) + 1)
-                : (Expression)Expression.Add(expression, Expression.Constant(1));
-
-        /// <summary>
         /// See: http://www.postgresql.org/docs/current/static/functions-matching.html
         /// </summary>
-        public Expression VisitRegexMatch([NotNull] RegexMatchExpression regexMatchExpression)
+        public virtual Expression VisitRegexMatch([NotNull] RegexMatchExpression regexMatchExpression)
         {
             Check.NotNull(regexMatchExpression, nameof(regexMatchExpression));
             var options = regexMatchExpression.Options;
@@ -257,7 +305,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
             return regexMatchExpression;
         }
 
-        public Expression VisitAtTimeZone([NotNull] AtTimeZoneExpression atTimeZoneExpression)
+        public virtual Expression VisitAtTimeZone([NotNull] AtTimeZoneExpression atTimeZoneExpression)
         {
             Check.NotNull(atTimeZoneExpression, nameof(atTimeZoneExpression));
             Visit(atTimeZoneExpression.TimestampExpression);
@@ -287,7 +335,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
             return iLikeExpression;
         }
 
-        public Expression VisitExplicitStoreTypeCast([NotNull] ExplicitStoreTypeCastExpression castExpression)
+        public virtual Expression VisitExplicitStoreTypeCast([NotNull] ExplicitStoreTypeCastExpression castExpression)
         {
             Sql.Append("CAST(");
 
@@ -300,39 +348,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
 
             //_typeMapping = parentTypeMapping;
             return castExpression;
-        }
-
-        /// <inheritdoc />
-        protected override string GenerateOperator(Expression expression)
-        {
-            switch (expression.NodeType)
-            {
-            case ExpressionType.Add:
-                if (expression.Type == typeof(string))
-                    return " || ";
-                goto default;
-            case ExpressionType.And:
-                if (expression.Type == typeof(bool))
-                    return " AND ";
-                goto default;
-            case ExpressionType.Or:
-                if (expression.Type == typeof(bool))
-                    return " OR ";
-                goto default;
-            default:
-                return base.GenerateOperator(expression);
-            }
-        }
-
-        /// <inheritdoc />
-        protected override void GenerateOrdering(Ordering ordering)
-        {
-            base.GenerateOrdering(ordering);
-            if (_reverseNullOrderingEnabled)
-                Sql.Append(
-                    ordering.OrderingDirection == OrderingDirection.Asc
-                        ? " NULLS FIRST"
-                        : " NULLS LAST");
         }
 
         public virtual Expression VisitCustomBinary(CustomBinaryExpression expression)
@@ -408,5 +423,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
             //_typeMapping = parentTypeMapping;
             return e;
         }
+
+        #endregion
     }
 }

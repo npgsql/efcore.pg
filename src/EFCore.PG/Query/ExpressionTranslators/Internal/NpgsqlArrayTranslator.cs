@@ -58,15 +58,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             #region EnumerableStaticMethods
 
             case nameof(Enumerable.ElementAt):
-                return Expression.MakeIndex(expression.Arguments[0], expression.Arguments[0].Type.GetRuntimeProperty("Item"), new[] { expression.Arguments[1] });
+                return Expression.MakeIndex(expression.Arguments[0], GetIndexer(expression.Arguments[0].Type, expression.Arguments.Skip(1)), new[] { expression.Arguments[1] });
 
-            // TODO: Currently handled in NpgsqlSqlTranslatingExpressionVisitor.
             case nameof(Enumerable.Append):
-            case nameof(Enumerable.Concat) when IsArrayOrList(expression.Arguments[1].Type):
                 return new CustomBinaryExpression(expression.Arguments[0], expression.Arguments[1], "||", expression.Arguments[0].Type);
-
-            case nameof(Enumerable.Count):
-                return new SqlFunctionExpression("array_length", typeof(int), new[] { expression.Arguments[0], Expression.Constant(1) });
 
             case nameof(Enumerable.Prepend):
                 return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[0], "||", expression.Arguments[0].Type);
@@ -91,7 +86,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
             #region ArrayStaticMethods
 
-            case nameof(Array.IndexOf) when expression.Method.DeclaringType == typeof(Array):
+            case nameof(Array.IndexOf)
+                when expression.Method.DeclaringType == typeof(Array):
                 return
                     new SqlFunctionExpression(
                         "COALESCE",
@@ -107,7 +103,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             #region ListInstanceMethods
 
             case "get_Item" when expression.Object is Expression instance:
-                return Expression.MakeIndex(instance, instance.Type.GetRuntimeProperty("Item"), expression.Arguments);
+                return Expression.MakeIndex(instance, GetIndexer(instance.Type, expression.Arguments), expression.Arguments);
 
             case nameof(IList.IndexOf) when IsArrayOrList(expression.Method.DeclaringType):
                 return
@@ -119,6 +115,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                             new SqlFunctionExpression("array_position", typeof(int), new[] { expression.Object, expression.Arguments[0] }),
                             Expression.Constant(-1)
                         });
+
+            #endregion
+
+            #region StringInstanceMethods
+
+            case "get_Chars" when expression.Object is Expression instance:
+                return Expression.MakeIndex(instance, GetIndexer(instance.Type, expression.Arguments), expression.Arguments);
 
             #endregion
 
@@ -150,23 +153,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 declaringType != typeof(Enumerable))
                 return false;
 
+            switch (expression.Object)
+            {
             // Instance methods are only translated for T[] and List<T>.
-            if (expression.Object is Expression instance)
+            case Expression instance:
                 return IsArrayOrList(instance.Type);
 
             // Extension methods may  only be translated when a parameter is T[] or List<T>
-            if (expression.Object is null)
-            {
-                // Static method with no parameters? Skip.
-                if (expression.Arguments.Count == 0)
-                    return false;
-
-                // Is this an extension method on T[] or List<T>?
-                return IsArrayOrList(expression.Arguments[0].Type);
+            case null:
+                // Static method with no parameters? Return null.
+                // Static method on T[] or List<T>?
+                return expression.Arguments.Count != 0 && IsArrayOrList(expression.Arguments[0].Type);
             }
-
-            // Something else? Skip.
-            return false;
         }
 
         /// <summary>
@@ -176,7 +174,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         /// <returns>
         /// True if <paramref name="type"/> is an array or a <see cref="List{T}"/>; otherwise, false.
         /// </returns>
-        static bool IsArrayOrList(Type type) => type.IsArray || type.IsGenericType && typeof(List<>) == type.GetGenericTypeDefinition();
+        static bool IsArrayOrList(Type type) => type.IsArray || type == typeof(string) || type.IsGenericType && typeof(List<>) == type.GetGenericTypeDefinition();
+
+        /// <summary>
+        /// Finds the <see cref="PropertyInfo"/> for the indexer property with the given parameters, or null if none is found.
+        /// </summary>
+        /// <param name="type">The type to search.</param>
+        /// <param name="arguments">The indexer parameters.</param>
+        /// <returns>
+        /// The <see cref="PropertyInfo"/> or null.
+        /// </returns>
+        [CanBeNull]
+        static PropertyInfo GetIndexer([NotNull] Type type, [NotNull] [ItemNotNull] IEnumerable<Expression> arguments)
+            => type.GetRuntimeProperties()
+                   .Where(x => x.Name == type.GetCustomAttribute<DefaultMemberAttribute>()?.MemberName)
+                   .Select(x => (Indexer: x, Parameters: x.GetGetMethod().GetParameters().Select(y => y.ParameterType)))
+                   .SingleOrDefault(x => x.Parameters.SequenceEqual(arguments.Select(y => y.Type)))
+                   .Indexer;
 
         #endregion
     }

@@ -4014,3 +4014,53 @@ LIMIT 1");
 
 
 
+System.RuntimeMethodHandle.InvokeMethod(Object target, Object[] arguments, Signature sig, Boolean constructor, Boolean wrapExceptions) : 
+            AssertSql(
+                @"SELECT (o.""OrderDate"" + MAKE_INTERVAL(secs => 1)) AS ""OrderDate""
+FROM ""Orders"" AS o
+WHERE ((o.""OrderDate"" <> NULL) OR (o.""OrderDate"" IS NULL OR NULL IS NULL)) AND (o.""OrderDate"" IS NOT NULL OR NULL IS NOT NULL)");
+
+
+
+System.RuntimeMethodHandle.InvokeMethod(Object target, Object[] arguments, Signature sig, Boolean constructor, Boolean wrapExceptions) : 
+            AssertSql(
+                @"SELECT (o.""OrderDate"" + MAKE_INTERVAL(years => 1)) AS ""OrderDate""
+FROM ""Orders"" AS o
+WHERE ((o.""OrderDate"" <> NULL) OR (o.""OrderDate"" IS NULL OR NULL IS NULL)) AND (o.""OrderDate"" IS NOT NULL OR NULL IS NOT NULL)");
+
+
+
+System.RuntimeMethodHandle.InvokeMethod(Object target, Object[] arguments, Signature sig, Boolean constructor, Boolean wrapExceptions) : 
+            AssertSql(
+                @"SELECT (o.""OrderDate"" + MAKE_INTERVAL(mins => 1)) AS ""OrderDate""
+FROM ""Orders"" AS o
+WHERE ((o.""OrderDate"" <> NULL) OR (o.""OrderDate"" IS NULL OR NULL IS NULL)) AND (o.""OrderDate"" IS NOT NULL OR NULL IS NOT NULL)");
+
+
+
+System.RuntimeMethodHandle.InvokeMethod(Object target, Object[] arguments, Signature sig, Boolean constructor, Boolean wrapExceptions) : 
+            AssertSql(
+                @"@__years_0='2'
+
+SELECT (o.""OrderDate"" + MAKE_INTERVAL(years => @__years_0)) AS ""OrderDate""
+FROM ""Orders"" AS o
+WHERE ((o.""OrderDate"" <> NULL) OR (o.""OrderDate"" IS NULL OR NULL IS NULL)) AND (o.""OrderDate"" IS NOT NULL OR NULL IS NOT NULL)");
+
+
+
+System.RuntimeMethodHandle.InvokeMethod(Object target, Object[] arguments, Signature sig, Boolean constructor, Boolean wrapExceptions) : 
+            AssertSql(
+                @"SELECT (o.""OrderDate"" + MAKE_INTERVAL(months => 1)) AS ""OrderDate""
+FROM ""Orders"" AS o
+WHERE ((o.""OrderDate"" <> NULL) OR (o.""OrderDate"" IS NULL OR NULL IS NULL)) AND (o.""OrderDate"" IS NOT NULL OR NULL IS NOT NULL)");
+
+
+
+System.RuntimeMethodHandle.InvokeMethod(Object target, Object[] arguments, Signature sig, Boolean constructor, Boolean wrapExceptions) : 
+            AssertSql(
+                @"SELECT (o.""OrderDate"" + MAKE_INTERVAL(hours => 1)) AS ""OrderDate""
+FROM ""Orders"" AS o
+WHERE ((o.""OrderDate"" <> NULL) OR (o.""OrderDate"" IS NULL OR NULL IS NULL)) AND (o.""OrderDate"" IS NOT NULL OR NULL IS NOT NULL)");
+
+
+

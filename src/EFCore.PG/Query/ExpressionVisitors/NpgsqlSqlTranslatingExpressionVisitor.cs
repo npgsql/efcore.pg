@@ -26,6 +26,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using JetBrains.Annotations;
@@ -33,7 +34,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
 using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors;
-using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Remotion.Linq.Clauses;
 using Remotion.Linq.Clauses.Expressions;
@@ -80,11 +80,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
 
         #endregion
 
-        /// <summary>
-        /// The query model visitor.
-        /// </summary>
-        [NotNull] readonly RelationalQueryModelVisitor _queryModelVisitor;
-
         /// <inheritdoc />
         public NpgsqlSqlTranslatingExpressionVisitor(
             [NotNull] SqlTranslatingExpressionVisitorDependencies dependencies,
@@ -92,37 +87,74 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
             [CanBeNull] SelectExpression targetSelectExpression = null,
             [CanBeNull] Expression topLevelPredicate = null,
             bool inProjection = false)
-            : base(dependencies, queryModelVisitor, targetSelectExpression, topLevelPredicate, inProjection)
-            => _queryModelVisitor = queryModelVisitor;
+            : base(dependencies, queryModelVisitor, targetSelectExpression, topLevelPredicate, inProjection) {}
 
         #region Overrides
 
         /// <inheritdoc />
         protected override Expression VisitBinary(BinaryExpression expression)
+            => expression.NodeType is ExpressionType.ArrayIndex
+                ? Expression.MakeIndex(
+                    Visit(expression.Left) ?? expression.Left,
+                    indexer: null,
+                    new[] { Visit(expression.Right) ?? expression.Right, })
+                : base.VisitBinary(expression);
+
+        /// <inheritdoc />
+        [CanBeNull]
+        protected override Expression VisitExtension(Expression expression)
         {
-            if (expression.NodeType == ExpressionType.ArrayIndex)
+            switch (expression)
             {
-                var properties = MemberAccessBindingExpressionVisitor.GetPropertyPath(
-                    expression.Left, _queryModelVisitor.QueryCompilationContext, out _);
-                if (properties.Count == 0)
-                    return base.VisitBinary(expression);
-                var lastPropertyType = properties[properties.Count - 1].ClrType;
-                if (lastPropertyType.IsArray && lastPropertyType.GetArrayRank() == 1)
-                {
-                    var left = Visit(expression.Left) ?? expression.Left;
-                    var right = Visit(expression.Right) ?? expression.Right;
+            case SqlFunctionExpression e:
+                return
+                    new SqlFunctionExpression(
+                        e.FunctionName,
+                        e.Type,
+                        e.Schema,
+                        e.Arguments.Select(x => Visit(x) ?? x));
 
-                    return Expression.MakeBinary(ExpressionType.ArrayIndex, left, right);
-                }
+            case PgFunctionExpression e:
+                return
+                    new PgFunctionExpression(
+                        e.Instance,
+                        e.FunctionName,
+                        e.Schema,
+                        e.Type,
+                        e.PositionalArguments.Select(x => Visit(x) ?? x),
+                        e.NamedArguments.ToDictionary(x => x.Key, x => Visit(x.Value) ?? x.Value));
+
+            case CustomBinaryExpression e:
+                return
+                    new CustomBinaryExpression(
+                        Visit(e.Left) ?? e.Left,
+                        Visit(e.Right) ?? e.Right,
+                        e.Operator,
+                        e.Type);
+
+            case CustomUnaryExpression e:
+                return
+                    new CustomUnaryExpression(
+                        Visit(e.Operand) ?? e.Operand,
+                        e.Operator,
+                        e.Type,
+                        e.Postfix);
+
+            default:
+                return base.VisitExtension(expression);
             }
-
-            return base.VisitBinary(expression);
         }
 
         /// <inheritdoc />
         [CanBeNull]
         protected override Expression VisitSubQuery(SubQueryExpression expression)
             => base.VisitSubQuery(expression) ?? VisitArraySubQuery(expression);
+
+        /// <inheritdoc />
+        protected override Expression VisitUnary(UnaryExpression expression)
+            => Visit(expression.Operand) is Expression operand
+                ? Expression.MakeUnary(expression.NodeType, operand, expression.Type)
+                : base.VisitUnary(expression);
 
         #endregion
 
@@ -165,14 +197,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
             case AllResultOperator allResultOperator:
                 return VisitArrayAll(array, allResultOperator);
 
-            case ConcatResultOperator concatResultOperator:
-                return VisitArrayConcat(array, concatResultOperator);
-
             case ContainsResultOperator contains:
                 return new ArrayAnyAllExpression(ArrayComparisonType.ANY, "=", Visit(contains.Item) ?? contains.Item, array);
-
-            case CountResultOperator countResultOperator:
-                return VisitArrayCount(array, countResultOperator);
 
             default:
                 return null;
@@ -216,39 +242,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
         protected virtual Expression VisitArrayAll([NotNull] Expression array, [NotNull] AllResultOperator allResultOperator)
             => VisitArrayLike(array, allResultOperator.Predicate, ArrayComparisonType.ALL) ??
                VisitArrayContains(array, allResultOperator.Predicate, ArrayComparisonType.ALL);
-
-        /// <summary>
-        /// Visits an array-based concatenation expression: {array|value} || {array|value}.
-        /// </summary>
-        /// <param name="array">The source expression.</param>
-        /// <param name="concatResultOperator">The result operator.</param>
-        /// <returns>
-        /// An expression or null.
-        /// </returns>
-        [CanBeNull]
-        protected virtual Expression VisitArrayConcat([NotNull] Expression array, [NotNull] ConcatResultOperator concatResultOperator)
-        {
-            var other = Visit(concatResultOperator.Source2) ?? concatResultOperator.Source2;
-            return IsArrayOrList(other.Type) ? new CustomBinaryExpression(array, other, "||", array.Type) : null;
-        }
-
-        /// <summary>
-        /// Visits an array-based count expression: {array}.Length, {list}.Count, {array|list}.Count(), {array|list}.Count({predicate}).
-        /// </summary>
-        /// <param name="array">The source expression.</param>
-        /// <param name="countResultOperator">The result operator.</param>
-        /// <returns>
-        /// An expression or null.
-        /// </returns>
-        [CanBeNull]
-        protected virtual Expression VisitArrayCount([NotNull] Expression array, [NotNull] CountResultOperator countResultOperator)
-        {
-            // TODO: handle count operation with predicate.
-
-            return array.Type.IsArray
-                ? (Expression)Expression.ArrayLength(array)
-                : new SqlFunctionExpression("array_length", typeof(int), new[] { array, Expression.Constant(1) });
-        }
 
         /// <summary>
         /// Visits an array-based comparison for an LIKE or ILIKE expression: {operand} {LIKE|ILIKE} {ANY|ALL} ({array}).
