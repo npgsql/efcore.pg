@@ -29,7 +29,6 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 using JetBrains.Annotations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
