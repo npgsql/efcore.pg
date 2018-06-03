@@ -243,7 +243,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
             if (expression.Object.Type == typeof(string))
                 return
                     VisitSqlFunction(
-                        // TODO: Expression tree parses `string[0] == 'T'` as though its `string[0] == 84`.
                         new SqlFunctionExpression(
                             "ascii",
                             typeof(int),
@@ -259,6 +258,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
                                         Expression.Constant(1)
                                     })
                             }));
+
+//            // TODO: discussion: https://github.com/npgsql/Npgsql.EntityFrameworkCore.PostgreSQL/issues/450
+//            VisitSqlFunction(
+//                new SqlFunctionExpression(
+//                    "get_byte",
+//                    typeof(int),
+//                    new[]
+//                    {
+//                        new CustomUnaryExpression(expression.Object, "::bytea", typeof(int), true),
+//                        expression.Arguments[0]
+//                    }));
 
             Visit(expression.Object);
             for (int i = 0; i < expression.Arguments.Count; i++)
