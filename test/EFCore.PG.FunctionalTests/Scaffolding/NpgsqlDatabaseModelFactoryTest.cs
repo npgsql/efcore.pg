@@ -1627,6 +1627,24 @@ CREATE TABLE foo (mood mood);",
         }
 
         [Fact]
+        public void Bug453()
+        {
+            Test(
+                @"
+CREATE TYPE mood AS ENUM ('happy', 'sad');
+CREATE TABLE foo (mood mood, some_num int UNIQUE);
+CREATE TABLE bar (foreign_key int REFERENCES foo(some_num))",
+                Enumerable.Empty<string>(),
+                Enumerable.Empty<string>(),
+                dbModel =>
+                {
+                    // Enum columns are left out of the model for now (a warning is logged).
+                    Assert.Equal(1, dbModel.Tables.Single(t => t.Name == "foo").Columns.Count);
+                },
+                "DROP TABLE bar; DROP TABLE foo; DROP TYPE mood;");
+        }
+
+        [Fact]
         public void Column_default_type_names_are_scaffolded()
         {
             var options = new NpgsqlOptions();
