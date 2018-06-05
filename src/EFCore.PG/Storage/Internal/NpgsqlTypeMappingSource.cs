@@ -321,8 +321,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
                     return null;
                 }
-
-                return null;
             }
 
             if (clrType == null)
