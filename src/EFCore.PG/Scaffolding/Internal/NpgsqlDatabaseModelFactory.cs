@@ -144,7 +144,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
                         continue;
                     }
 
-                    // We may have dropped columns. We load these because constraints take them into
+                    // We may have dropped or skipped columns. We load these because constraints take them into
                     // account when referencing columns, but must now get rid of them before returning
                     // the database model.
                     while (table.Columns.Remove(null)) {}
@@ -318,6 +318,9 @@ WHERE
                             if (_enums.Contains(formattedTypeName) || _enums.Contains(formattedBaseTypeName))
                             {
                                 _logger.EnumColumnSkippedWarning(DisplayName(tableSchema, tableName) + '.' + column.Name);
+                                // We need to know about skipped columns because constraints take them into
+                                // account when referencing columns. We'll get rid of them before returning the model.
+                                table.Columns.Add(null);
                                 continue;
                             }
 
