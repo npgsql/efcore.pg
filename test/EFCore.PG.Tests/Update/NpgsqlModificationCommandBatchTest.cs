@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
@@ -38,7 +39,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Update
                             new RelationalSqlGenerationHelperDependencies()),
                         typeMapper)),
                 new TypedRelationalValueBufferFactoryFactory(
-                    new RelationalValueBufferFactoryDependencies(typeMapper)),
+                    new RelationalValueBufferFactoryDependencies(
+                        typeMapper, new CoreSingletonOptions())),
                 1);
 
             Assert.True(
