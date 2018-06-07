@@ -36,6 +36,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
                 mapping.GenerateSqlLiteral(new DateTime(1997, 12, 17, 7, 37, 16, DateTimeKind.Unspecified)));
             Assert.Equal("TIMESTAMP '1997-12-17 07:37:16.345'",
                 mapping.GenerateSqlLiteral(new DateTime(1997, 12, 17, 7, 37, 16, 345)));
+            Assert.Equal("TIMESTAMP '9999-12-31 23:59:59.999999'",
+                mapping.GenerateSqlLiteral(DateTime.MaxValue));
         }
 
         [Fact]
@@ -52,8 +54,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
             Assert.StartsWith($"TIMESTAMPTZ '1997-12-17 07:37:16{offsetStr}",
                 mapping.GenerateSqlLiteral(new DateTime(1997, 12, 17, 7, 37, 16, DateTimeKind.Local)));
 
-            Assert.Equal("TIMESTAMPTZ '1997-12-17 07:37:16.345 UTC'",
-                mapping.GenerateSqlLiteral(new DateTime(1997, 12, 17, 7, 37, 16, 345, DateTimeKind.Utc)));
+            Assert.Equal("TIMESTAMPTZ '1997-12-17 07:37:16.345678 UTC'",
+                mapping.GenerateSqlLiteral(new DateTime(1997, 12, 17, 7, 37, 16, 345, DateTimeKind.Utc).AddTicks(6780)));
         }
 
         [Fact]
@@ -70,7 +72,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         public void GenerateSqlLiteral_returns_time_literal()
         {
             var mapping = GetMapping("time");
-            Assert.Equal("TIME '04:05:06.789'", mapping.GenerateSqlLiteral(new TimeSpan(0, 4, 5, 6, 789)));
+            Assert.Equal("TIME '04:05:06.123456'",
+                mapping.GenerateSqlLiteral(new TimeSpan(0, 4, 5, 6, 123).Add(TimeSpan.FromTicks(4560))));
+            Assert.Equal("TIME '04:05:06.000123'",
+                mapping.GenerateSqlLiteral(new TimeSpan(0, 4, 5, 6).Add(TimeSpan.FromTicks(1230))));
+            Assert.Equal("TIME '04:05:06.123'", mapping.GenerateSqlLiteral(new TimeSpan(0, 4, 5, 6, 123)));
             Assert.Equal("TIME '04:05:06'", mapping.GenerateSqlLiteral(new TimeSpan(4, 5, 6)));
         }
 
@@ -78,6 +84,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         public void GenerateSqlLiteral_returns_timetz_literal()
         {
             var mapping = GetMapping("timetz");
+            Assert.Equal("TIMETZ '04:05:06.123456+3'",
+                mapping.GenerateSqlLiteral(new DateTimeOffset(2015, 3, 12, 4, 5, 6, 123, TimeSpan.FromHours(3))
+                .AddTicks(4560)));
             Assert.Equal("TIMETZ '04:05:06.789+3'", mapping.GenerateSqlLiteral(new DateTimeOffset(2015, 3, 12, 4, 5, 6, 789, TimeSpan.FromHours(3))));
             Assert.Equal("TIMETZ '04:05:06-3'", mapping.GenerateSqlLiteral(new DateTimeOffset(2015, 3, 12, 4, 5, 6, TimeSpan.FromHours(-3))));
         }
@@ -86,6 +95,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         public void GenerateSqlLiteral_returns_interval_literal()
         {
             var mapping = GetMapping("interval");
+            Assert.Equal("INTERVAL '3 04:05:06.007008'", mapping.GenerateSqlLiteral(new TimeSpan(3, 4, 5, 6, 7)
+                .Add(TimeSpan.FromTicks(80))));
             Assert.Equal("INTERVAL '3 04:05:06.007'", mapping.GenerateSqlLiteral(new TimeSpan(3, 4, 5, 6, 7)));
             Assert.Equal("INTERVAL '3 04:05:06'", mapping.GenerateSqlLiteral(new TimeSpan(3, 4, 5, 6)));
             Assert.Equal("INTERVAL '04:05:06'", mapping.GenerateSqlLiteral(new TimeSpan(4, 5, 6)));
