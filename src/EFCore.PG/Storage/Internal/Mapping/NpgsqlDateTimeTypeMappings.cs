@@ -19,7 +19,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             => new NpgsqlTimestampTypeMapping(Parameters.WithComposedConverter(converter), NpgsqlDbType);
 
         protected override string GenerateNonNullSqlLiteral(object value)
-            => $"TIMESTAMP '{(DateTime)value:yyyy-MM-dd HH:mm:ss.FFF}'";
+            => $"TIMESTAMP '{(DateTime)value:yyyy-MM-dd HH:mm:ss.FFFFFF}'";
     }
 
     public class NpgsqlTimestampTzTypeMapping : NpgsqlTypeMapping
@@ -44,10 +44,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                     ? $"{dt:zzz}"
                     : " UTC";
 
-                return $"TIMESTAMPTZ '{dt:yyyy-MM-dd HH:mm:ss.FFF}{tz}'";
+                return $"TIMESTAMPTZ '{dt:yyyy-MM-dd HH:mm:ss.FFFFFF}{tz}'";
 
             case DateTimeOffset dto:
-                return $"TIMESTAMPTZ '{dto:yyyy-MM-dd HH:mm:ss.FFFzzz}'";
+                return $"TIMESTAMPTZ '{dto:yyyy-MM-dd HH:mm:ss.FFFFFFzzz}'";
 
             default:
                 throw new InvalidCastException(
@@ -90,9 +90,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         protected override string GenerateNonNullSqlLiteral(object value)
         {
             var ts = (TimeSpan)value;
-            return ts.Milliseconds == 0
+            return ts.Ticks % 10000000 == 0
                 ? $@"TIME '{(TimeSpan)value:hh\:mm\:ss}'"
-                : $@"TIME '{(TimeSpan)value:hh\:mm\:ss\.FFF}'";
+                : $@"TIME '{(TimeSpan)value:hh\:mm\:ss\.FFFFFF}'";
         }
     }
 
@@ -110,7 +110,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             => new NpgsqlTimeTzTypeMapping(Parameters.WithComposedConverter(converter), NpgsqlDbType);
 
         protected override string GenerateNonNullSqlLiteral(object value)
-            => $"TIMETZ '{(DateTimeOffset)value:HH:mm:ss.FFFz}'";
+            => $"TIMETZ '{(DateTimeOffset)value:HH:mm:ss.FFFFFFz}'";
     }
 
     public class NpgsqlIntervalTypeMapping : NpgsqlTypeMapping
@@ -129,7 +129,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         protected override string GenerateNonNullSqlLiteral(object value)
         {
             var ts = (TimeSpan)value;
-            return $"INTERVAL '{ts.ToString($@"{(ts < TimeSpan.Zero ? "\\-" : "")}{(ts.Days == 0 ? "" : "d\\ ")}hh\:mm\:ss{(ts.Milliseconds == 0 ? "" : $"\\.FFF")}")}'";
+            return $"INTERVAL '{ts.ToString($@"{(ts < TimeSpan.Zero ? "\\-" : "")}{(ts.Days == 0 ? "" : "d\\ ")}hh\:mm\:ss{(ts.Ticks % 10000000 == 0 ? "" : $"\\.FFFFFF")}")}'";
         }
     }
 }
