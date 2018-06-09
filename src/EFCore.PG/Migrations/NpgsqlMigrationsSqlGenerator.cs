@@ -125,7 +125,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             var comment = operation[NpgsqlAnnotationNames.Comment] as string;
             if (comment != null)
             {
-                builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
+                builder.AppendLine(';');
 
                 var stringTypeMapping = Dependencies.TypeMappingSource.GetMapping(typeof(string));
 
@@ -140,7 +140,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             foreach (var columnOp in operation.Columns.Where(c => c[NpgsqlAnnotationNames.Comment] != null))
             {
                 var columnComment = columnOp[NpgsqlAnnotationNames.Comment];
-                builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
+                builder.AppendLine(';');
 
                 var stringTypeMapping = Dependencies.TypeMappingSource.GetMapping(typeof(string));
 
@@ -155,7 +155,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             if (terminate)
             {
-                builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
+                builder.AppendLine(';');
                 EndStatement(builder);
             }
         }
@@ -184,7 +184,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                     .Append(string.Join(", ", newOrChanged.Select(p => $"{p.Key}={p.Value}")))
                     .Append(")");
 
-                builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
+                builder.AppendLine(';');
                 madeChanges = true;
             }
 
@@ -204,7 +204,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                     .Append(string.Join(", ", removed))
                     .Append(")");
 
-                builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
+                builder.AppendLine(';');
                 madeChanges = true;
             }
 
@@ -222,7 +222,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                     .Append(" IS ")
                     .Append(stringTypeMapping.GenerateSqlLiteral(newComment));
 
-                builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
+                builder.AppendLine(';');
                 madeChanges = true;
             }
 
@@ -258,7 +258,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             var comment = operation[NpgsqlAnnotationNames.Comment] as string;
             if (comment != null)
             {
-                builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
+                builder.AppendLine(';');
 
                 var stringTypeMapping = Dependencies.TypeMappingSource.GetMapping(typeof(string));
 
@@ -273,7 +273,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             if (terminate)
             {
-                builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
+                builder.AppendLine(';');
                 EndStatement(builder);
             }
         }
@@ -395,12 +395,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             builder.Append(alterBase)
                 .Append("TYPE ")
                 .Append(type)
-                .AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
+                .AppendLine(';');
 
             // NOT NULL
             builder.Append(alterBase)
                 .Append(operation.IsNullable ? "DROP NOT NULL" : "SET NOT NULL")
-                .AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
+                .AppendLine(';');
 
             // DEFAULT.
             // Note that identity columns don't have a regular default but trying
@@ -416,7 +416,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 }
                 else
                     builder.Append("DROP DEFAULT");
-                builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
+                builder.AppendLine(';');
             }
 
 
@@ -431,7 +431,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                     .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Table))
                     .Append('.')
                     .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name))
-                    .AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
+                    .AppendLine(';');
             }
 
             // Comment
@@ -449,7 +449,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                     .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name))
                     .Append(" IS ")
                     .Append(stringTypeMapping.GenerateSqlLiteral(newComment))
-                    .AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
+                    .AppendLine(';');
             }
 
             EndStatement(builder);
@@ -576,7 +576,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                     .Append(operation.Filter);
             }
 
-            builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
+            builder.AppendLine(';');
 
             EndStatement(builder);
         }
@@ -600,7 +600,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             builder
                 .Append("CREATE SCHEMA IF NOT EXISTS ")
                 .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name))
-                .AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
+                .AppendLine(';');
 
             EndStatement(builder);
         }
@@ -628,7 +628,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                     .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Tablespace));
             }
 
-            builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
+            builder.AppendLine(';');
 
             EndStatement(builder, suppressTransaction: true);
         }
@@ -740,7 +740,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             builder
                 .Append("DROP INDEX ")
                 .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name, operation.Schema))
-                .AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
+                .AppendLine(';');
 
             EndStatement(builder);
         }
@@ -759,7 +759,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name))
                 .Append(" TO ")
                 .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.NewName))
-                .AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
+                .AppendLine(';');
 
             EndStatement(builder);
         }
@@ -913,7 +913,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 .Append(name)
                 .Append(" RENAME TO ")
                 .Append(newName)
-                .AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
+                .AppendLine(';');
         }
 
         public virtual void Transfer(
