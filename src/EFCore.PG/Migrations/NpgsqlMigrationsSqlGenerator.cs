@@ -430,7 +430,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                     .Append(" OWNED BY ")
                     .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Table))
                     .Append('.')
-                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name));
+                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name))
+                    .AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
             }
 
             // Comment
@@ -447,7 +448,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                     .Append('.')
                     .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name))
                     .Append(" IS ")
-                    .Append(stringTypeMapping.GenerateSqlLiteral(newComment));
+                    .Append(stringTypeMapping.GenerateSqlLiteral(newComment))
+                    .AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
             }
 
             EndStatement(builder);
