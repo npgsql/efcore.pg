@@ -86,7 +86,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                     sb.Append(",");
             }
 
-            sb.Append("]");
+            sb.Append("]::");
+            sb.Append(ElementMapping.StoreType);
+            sb.Append("[]");
             return sb.ToString();
         }
 
