@@ -47,6 +47,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         public ConcurrentDictionary<string, RelationalTypeMapping[]> StoreTypeMappings { get; }
         public ConcurrentDictionary<Type, RelationalTypeMapping> ClrTypeMappings { get; }
 
+        readonly HashSet<string> _userDefinedTypes = new HashSet<string>();
+
         #region Mappings
 
         readonly NpgsqlBoolTypeMapping         _bool           = new NpgsqlBoolTypeMapping();
@@ -240,18 +242,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             StoreTypeMappings = new ConcurrentDictionary<string, RelationalTypeMapping[]>(storeTypeMappings, StringComparer.OrdinalIgnoreCase);
             ClrTypeMappings = new ConcurrentDictionary<Type, RelationalTypeMapping>(clrTypeMappings);
 
-            ReloadMappings();
-
             if (npgsqlOptions?.Plugins != null)
                 foreach (var plugin in npgsqlOptions.Plugins)
                     plugin.AddMappings(this);
+
+            LoadUserDefinedTypeMappings();
         }
 
         /// <summary>
         /// To be used in case user-defined mappings are added late, after this TypeMappingSource has already been initialized.
         /// This is basically only for test usage.
         /// </summary>
-        public void ReloadMappings()
+        public void LoadUserDefinedTypeMappings()
         {
             SetupEnumMappings();
         }
@@ -276,6 +278,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 var mapping = new NpgsqlEnumTypeMapping(storeType, clrType, nameTranslator);
                 ClrTypeMappings[clrType] = mapping;
                 StoreTypeMappings[storeType] = new[] { mapping };
+                _userDefinedTypes.Add(storeType);
             }
         }
 
@@ -423,5 +426,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
             return null;
         }
+
+        public bool IsUserDefinedType(string storeType) => _userDefinedTypes.Contains(storeType);
     }
 }

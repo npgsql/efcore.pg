@@ -42,11 +42,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
     public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
     {
         readonly NpgsqlSqlGenerationHelper _sqlGenerationHelper;
+        readonly NpgsqlTypeMappingSource _typeMappingSource;
 
         public NpgsqlMigrationsSqlGenerator([NotNull] MigrationsSqlGeneratorDependencies dependencies)
             : base(dependencies)
         {
             _sqlGenerationHelper = (NpgsqlSqlGenerationHelper)dependencies.SqlGenerationHelper;
+            _typeMappingSource = (NpgsqlTypeMappingSource)dependencies.TypeMappingSource;
         }
 
         protected override void Generate(MigrationOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
@@ -792,6 +794,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             if (type == null)
                 type = GetColumnType(schema, table, name, clrType, unicode, maxLength, rowVersion, model);
+
+            // User-defined type names are quoted if they contain uppercase letters. Other types are never quoted
+            // since users sometimes prefer to write TEXT instead of text.
+            if (_typeMappingSource.IsUserDefinedType(type))
+                type = _sqlGenerationHelper.DelimitIdentifier(type);
 
             CheckForOldValueGenerationAnnotation(annotatable);
             var valueGenerationStrategy = annotatable[NpgsqlAnnotationNames.ValueGenerationStrategy] as NpgsqlValueGenerationStrategy?;
