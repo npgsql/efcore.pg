@@ -2,6 +2,9 @@
 
 PostgreSQL has the unique feature of supporting [*array data types*](https://www.postgresql.org/docs/current/static/arrays.html). This allow you to conveniently and efficiently store several values in a single column, where in other database you'd typically resort to concatenating the values in a string or defining another table with a one-to-many relationship.
 
+> [!NOTE]
+> Although PostgreSQL supports multidimensional arrays, these aren't yet supported by the EF Core provider.
+
 # Mapping arrays
 
 Simply define a regular .NET array or `List<>` property, and the provider
