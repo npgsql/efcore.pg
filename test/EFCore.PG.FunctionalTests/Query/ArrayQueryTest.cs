@@ -87,7 +87,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             {
                 var x = ctx.SomeEntities.Single(e => e.SomeArray.SequenceEqual(new[] { 3, 4 }));
                 Assert.Equal(new[] { 3, 4 }, x.SomeArray);
-                AssertContainsInSql(@"WHERE e.""SomeArray"" = ARRAY[3,4]");
+                AssertContainsInSql(@"WHERE e.""SomeArray"" = ARRAY[3,4]::integer");
             }
         }
 

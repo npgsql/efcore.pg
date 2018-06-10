@@ -186,7 +186,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
 
         [Fact]
         public void GenerateSqlLiteral_returns_array_literal()
-            => Assert.Equal("ARRAY[3,4]", GetMapping(typeof(int[])).GenerateSqlLiteral(new[] {3, 4}));
+            => Assert.Equal("ARRAY[3,4]::integer[]", GetMapping(typeof(int[])).GenerateSqlLiteral(new[] { 3, 4 }));
+
+        [Fact]
+        public void GenerateSqlLiteral_returns_array_empty_literal()
+            => Assert.Equal("ARRAY[]::smallint[]", GetMapping(typeof(short[])).GenerateSqlLiteral(new short[0]));
 
         [Fact]
         public void ValueComparer_int_array()
