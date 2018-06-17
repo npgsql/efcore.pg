@@ -13,3 +13,4 @@
 ## [NodaTime](mapping/nodatime.md)
 # [Value Generation](value-generation.md)
 # [Miscellaneous](misc.md)
+# [API Reference](../../obj/api/EFCore.PG/)
