@@ -51,8 +51,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
         #region Mappings
 
-        readonly NpgsqlBoolTypeMapping         _bool               = new NpgsqlBoolTypeMapping();
-        readonly NpgsqlByteArrayTypeMapping    _bytea              = new NpgsqlByteArrayTypeMapping();
+        // Numeric types
         readonly FloatTypeMapping              _float4             = new FloatTypeMapping("real", DbType.Single);
         readonly DoubleTypeMapping             _float8             = new DoubleTypeMapping("double precision", DbType.Double);
         readonly DecimalTypeMapping            _numeric            = new DecimalTypeMapping("numeric", DbType.Decimal);
@@ -62,6 +61,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         readonly ByteTypeMapping               _int2Byte           = new ByteTypeMapping("smallint", DbType.Byte);
         readonly IntTypeMapping                _int4               = new IntTypeMapping("integer", DbType.Int32);
         readonly LongTypeMapping               _int8               = new LongTypeMapping("bigint", DbType.Int64);
+
+        // Character types
         readonly NpgsqlStringTypeMapping       _text               = new NpgsqlStringTypeMapping("text");
         readonly NpgsqlStringTypeMapping       _varchar            = new NpgsqlStringTypeMapping("character varying");
         readonly NpgsqlStringTypeMapping       _char               = new NpgsqlStringTypeMapping("character");
@@ -71,6 +72,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         readonly NpgsqlJsonTypeMapping         _json               = new NpgsqlJsonTypeMapping();
         readonly NpgsqlXmlTypeMapping          _xml                = new NpgsqlXmlTypeMapping();
         readonly NpgsqlCitextTypeMapping       _citext             = new NpgsqlCitextTypeMapping();
+
+        // Date/Time types
         readonly NpgsqlDateTypeMapping         _date               = new NpgsqlDateTypeMapping();
         readonly NpgsqlTimestampTypeMapping    _timestamp          = new NpgsqlTimestampTypeMapping();
         readonly NpgsqlTimestampTzTypeMapping  _timestamptz        = new NpgsqlTimestampTzTypeMapping(typeof(DateTime));
@@ -78,13 +81,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         readonly NpgsqlIntervalTypeMapping     _interval           = new NpgsqlIntervalTypeMapping();
         readonly NpgsqlTimeTypeMapping         _time               = new NpgsqlTimeTypeMapping();
         readonly NpgsqlTimeTzTypeMapping       _timetz             = new NpgsqlTimeTzTypeMapping();
+
+        // Network address types
         readonly NpgsqlMacaddrTypeMapping      _macaddr            = new NpgsqlMacaddrTypeMapping();
         readonly NpgsqlMacaddr8TypeMapping     _macaddr8           = new NpgsqlMacaddr8TypeMapping();
         readonly NpgsqlInetTypeMapping         _inet               = new NpgsqlInetTypeMapping();
         readonly NpgsqlCidrTypeMapping         _cidr               = new NpgsqlCidrTypeMapping();
-        readonly NpgsqlBitTypeMapping          _bit                = new NpgsqlBitTypeMapping();
-        readonly NpgsqlVarbitTypeMapping       _varbit             = new NpgsqlVarbitTypeMapping();
-        readonly NpgsqlHstoreTypeMapping       _hstore             = new NpgsqlHstoreTypeMapping();
+
+        // Built-in geometric types
         readonly NpgsqlPointTypeMapping        _point              = new NpgsqlPointTypeMapping();
         readonly NpgsqlBoxTypeMapping          _box                = new NpgsqlBoxTypeMapping();
         readonly NpgsqlLineTypeMapping         _line               = new NpgsqlLineTypeMapping();
@@ -92,23 +96,33 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         readonly NpgsqlPathTypeMapping         _path               = new NpgsqlPathTypeMapping();
         readonly NpgsqlPolygonTypeMapping      _polygon            = new NpgsqlPolygonTypeMapping();
         readonly NpgsqlCircleTypeMapping       _circle             = new NpgsqlCircleTypeMapping();
-        readonly NpgsqlXidTypeMapping          _xid                = new NpgsqlXidTypeMapping();
-        readonly NpgsqlOidTypeMapping          _oid                = new NpgsqlOidTypeMapping();
-        readonly NpgsqlCidTypeMapping          _cid                = new NpgsqlCidTypeMapping();
-        readonly NpgsqlRegtypeTypeMapping      _regtype            = new NpgsqlRegtypeTypeMapping();
+
+        // uint mappings
+        readonly NpgsqlUintTypeMapping         _xid                = new NpgsqlUintTypeMapping("xid", NpgsqlDbType.Xid);
+        readonly NpgsqlUintTypeMapping         _oid                = new NpgsqlUintTypeMapping("oid", NpgsqlDbType.Oid);
+        readonly NpgsqlUintTypeMapping         _cid                = new NpgsqlUintTypeMapping("cid", NpgsqlDbType.Cid);
+        readonly NpgsqlUintTypeMapping         _regtype            = new NpgsqlUintTypeMapping("regtype", NpgsqlDbType.Regtype);
+        readonly NpgsqlUintTypeMapping         _lo                 = new NpgsqlUintTypeMapping("regtype", NpgsqlDbType.Regtype);
 
         // Full text search mappings
         readonly NpgsqlTsQueryTypeMapping   _tsquery               = new NpgsqlTsQueryTypeMapping();
         readonly NpgsqlTsVectorTypeMapping  _tsvector              = new NpgsqlTsVectorTypeMapping();
         readonly NpgsqlTsRankingNormalizationTypeMapping _rankingNormalization = new NpgsqlTsRankingNormalizationTypeMapping();
 
-        // Range mappings
+        // Built-in ranges
         readonly NpgsqlRangeTypeMapping<int>      _int4range;
         readonly NpgsqlRangeTypeMapping<long>     _int8range;
         readonly NpgsqlRangeTypeMapping<decimal>  _numrange;
         readonly NpgsqlRangeTypeMapping<DateTime> _tsrange;
         readonly NpgsqlRangeTypeMapping<DateTime> _tstzrange;
         readonly NpgsqlRangeTypeMapping<DateTime> _daterange;
+
+        // Other types
+        readonly NpgsqlBoolTypeMapping         _bool               = new NpgsqlBoolTypeMapping();
+        readonly NpgsqlBitTypeMapping          _bit                = new NpgsqlBitTypeMapping();
+        readonly NpgsqlVarbitTypeMapping       _varbit             = new NpgsqlVarbitTypeMapping();
+        readonly NpgsqlByteArrayTypeMapping    _bytea              = new NpgsqlByteArrayTypeMapping();
+        readonly NpgsqlHstoreTypeMapping       _hstore             = new NpgsqlHstoreTypeMapping();
 
         #endregion Mappings
 
@@ -188,6 +202,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 { "oid",                         new[] { _oid                          } },
                 { "cid",                         new[] { _cid                          } },
                 { "regtype",                     new[] { _regtype                      } },
+                { "lo",                          new[] { _lo                           } },
 
                 { "int4range",                   new[] { _int4range                    } },
                 { "int8range",                   new[] { _int8range                    } },
