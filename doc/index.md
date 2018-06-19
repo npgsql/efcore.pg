@@ -1,12 +1,12 @@
 # Getting Started
 
-Npgsql has an Entity Framework (EF) Core provider. It behaves like other EF Core provider (e.g. SQL Server), so all of the information in the [general EF Core docs](https://docs.microsoft.com/en-us/ef/core/index) applies. If you're just getting started with EF Core, those docs are the best place to start.
+Npgsql has an Entity Framework (EF) Core provider. It behaves like other EF Core providers (e.g. SQL Server), so the [general EF Core docs](https://docs.microsoft.com/en-us/ef/core/index) apply here as well. If you're just getting started with EF Core, those docs are the best place to start.
 
 Development happens in the [Npgsql.EntityFrameworkCore.PostgreSQL](https://github.com/npgsql/Npgsql.EntityFrameworkCore.PostgreSQL) repository, all issues should be reported there.
 
 ## Configuring the project file
 
-To use the Npgsql EF Core provider, add a dependencies for `Npgsql` and `Npgsql.EntityFrameworkCore.PostgreSQL`. You can follow the instructions in the general [EF Core Getting Started docs](https://docs.microsoft.com/en-us/ef/core/get-started/).
+To use the Npgsql EF Core provider, add a dependency on `Npgsql.EntityFrameworkCore.PostgreSQL`. You can follow the instructions in the general [EF Core Getting Started docs](https://docs.microsoft.com/en-us/ef/core/get-started/).
 
 Below is a `.csproj` file for a console application that uses the Npgsql EF Core provider:
 
@@ -16,8 +16,6 @@ Below is a `.csproj` file for a console application that uses the Npgsql EF Core
     <TargetFramework>netcoreapp2.1</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.1.0" />
-    <PackageReference Include="Npgsql" Version="4.0.0" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="2.1.0" />
   </ItemGroup>
 </Project>
@@ -26,34 +24,55 @@ Below is a `.csproj` file for a console application that uses the Npgsql EF Core
 ## Defining a `DbContext`
 
 ```c#
-public class BlogContext : DbContext
+using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
+
+namespace ConsoleApp.PostgreSQL
 {
-    public BlogContext(DbContextOptions<BlogContext> options) : base(options) { }
+    public class BloggingContext : DbContext
+    {
+        public DbSet<Blog> Blogs { get; set; }
         
-    public DbSet<BlogPost> BlogPosts { get; set; }     
+        public DbSet<Post> Posts { get; set; }
+        
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+            => optionsBuilder.UseNpgsql("Host=my_host;Database=my_db;Username=my_user;Password=my_pw");
+    }
+
+    public class Blog
+    {
+        public int BlogId { get; set; }
+        public string Url { get; set; }
+
+        public List<Post> Posts { get; set; }
+    }
+
+    public class Post
+    {
+        public int PostId { get; set; }
+        public string Title { get; set; }
+        public string Content { get; set; }
+
+        public int BlogId { get; set; }
+        public Blog Blog { get; set; }
+    }
 }
 ```
 
 ## Additional configuration for ASP.NET Core applications
 
-From `Startup.cs` in `ConfigureServices(IServiceCollection)`:
+Modify the `ConfigureServices` method in `Startup.cs`:
 
 ```c#
 public IServiceProvider ConfigureServices(IServiceCollection services)
     => services.AddEntityFrameworkNpgsql()
-               .AddDbContext<BlogContext>(options => options.UseNpgsql(connectionString))
+               .AddDbContext<BlogContext>()
                .BuildServiceProvider();
 ```
 ## Using an Existing Database (Database-First)
 
-The Npgsql EF Core provider also supports reverse-engineering a code model from an existing PostgreSQL database ("database-first"). To do so, use the `dotnet` CLI to execute the following:
+The Npgsql EF Core provider also supports reverse-engineering a code model from an existing PostgreSQL database ("database-first"). To do so, use dotnet CLI to execute the following:
 
 ```bash
 dotnet ef dbcontext scaffold "Host=my_host;Database=my_db;Username=my_user;Password=my_pw" Npgsql.EntityFrameworkCore.PostgreSQL
-```
-
-Or with Powershell:
-
-```powershell
-Scaffold-DbContext "Host=my_host;Database=my_db;Username=my_user;Password=my_pw" Npgsql.EntityFrameworkCore.PostgreSQL
 ```
