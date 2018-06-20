@@ -19,4 +19,7 @@
     <ProjectReference Include="..\..\src\EFCore.PG.NTS\EFCore.PG.NTS.csproj" />
     <ProjectReference Include="..\EFCore.PG.FunctionalTests\EFCore.PG.FunctionalTests.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="Microsoft.NET.Test.Sdk" Version="15.7.2" />
+  </ItemGroup>
 </Project>
