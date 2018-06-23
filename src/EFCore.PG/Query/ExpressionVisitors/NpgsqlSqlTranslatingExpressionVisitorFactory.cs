@@ -71,6 +71,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
             => new NpgsqlSqlTranslatingExpressionVisitor(
                 Dependencies,
                 queryModelVisitor,
+                _npgsqlOptions.Backend,
                 _npgsqlOptions.Compatibility,
                 targetSelectExpression,
                 topLevelPredicate,

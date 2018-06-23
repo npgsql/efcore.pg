@@ -57,6 +57,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
             => new NpgsqlQuerySqlGenerator(
                 Dependencies,
                 Check.NotNull(selectExpression, nameof(selectExpression)),
+                _npgsqlOptions.Backend,
                 _npgsqlOptions.Compatibility,
                 _npgsqlOptions.ReverseNullOrderingEnabled);
     }

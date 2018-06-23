@@ -40,7 +40,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [InlineData("10.4")]
         public void GivenDateTimeAdd_WhenVersionIsSupported_ThenTranslates(string version)
         {
-            using (CompatibilityContext context = Fixture.CreateContext(new Version(version)))
+            using (CompatibilityContext context = Fixture.CreateContext(compatibility: Version.Parse(version)))
             {
                 // ReSharper disable once ConvertToConstant.Local
                 int years = 2;
@@ -61,7 +61,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [InlineData("9.3")]
         public void GivenDateTimeAdd_WhenVersionIsNotSupported_ThenDoesNotTranslate(string version)
         {
-            using (CompatibilityContext context = Fixture.CreateContext(new Version(version)))
+            using (CompatibilityContext context = Fixture.CreateContext(compatibility: Version.Parse(version)))
             {
                 // ReSharper disable once ConvertToConstant.Local
                 int years = 2;
@@ -104,7 +104,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
                 _testStore = NpgsqlTestStore.CreateScratch();
 
-                using (CompatibilityContext context = new CompatibilityContext(CreateOptionsBuilder()))
+                using (CompatibilityContext context = CreateContext())
                 {
                     context.Database.EnsureCreated();
 
@@ -129,33 +129,35 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 }
             }
 
-            /// <summary>
-            /// Creates a new <see cref="CompatibilityContext"/>.
-            /// </summary>
-            /// <returns>
-            /// A <see cref="CompatibilityContext"/> for testing.
-            /// </returns>
-            public CompatibilityContext CreateContext(Version compatibility)
-                => new CompatibilityContext(CreateOptionsBuilder(x => x.SetCompatibility(compatibility)));
-
             /// <inheritdoc />
             public void Dispose() => _testStore.Dispose();
 
-            private DbContextOptions CreateOptionsBuilder(Action<NpgsqlDbContextOptionsBuilder> configure = null)
-                => new DbContextOptionsBuilder()
-                   .UseNpgsql(
-                       _testStore.ConnectionString,
-                       x =>
-                       {
-                           x.ApplyConfiguration();
-                           configure?.Invoke(x);
-                       })
-                   .UseInternalServiceProvider(
-                       new ServiceCollection()
-                           .AddEntityFrameworkNpgsql()
-                           .AddSingleton<ILoggerFactory>(TestSqlLoggerFactory)
-                           .BuildServiceProvider())
-                   .Options;
+            /// <summary>
+            /// Creates a new <see cref="CompatibilityContext"/>.
+            /// </summary>
+            /// <param name="backend">The backend process to target.</param>
+            /// <param name="compatibility">The backend version to target.</param>
+            /// <returns>
+            /// A <see cref="CompatibilityContext"/> for testing.
+            /// </returns>
+            public CompatibilityContext CreateContext(Backend backend = Backend.PostgreSQL, Version compatibility = null)
+                => new CompatibilityContext(
+                    new DbContextOptionsBuilder()
+                        .UseNpgsql(
+                            _testStore.ConnectionString,
+                            x =>
+                            {
+                                x.ApplyConfiguration();
+                                x.SetBackend(backend);
+                                if (compatibility != null)
+                                    x.SetCompatibility(compatibility);
+                            })
+                        .UseInternalServiceProvider(
+                            new ServiceCollection()
+                                .AddEntityFrameworkNpgsql()
+                                .AddSingleton<ILoggerFactory>(TestSqlLoggerFactory)
+                                .BuildServiceProvider())
+                        .Options);
         }
 
         /// <summary>

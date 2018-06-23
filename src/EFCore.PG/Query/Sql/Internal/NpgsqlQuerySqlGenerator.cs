@@ -31,6 +31,7 @@ using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
 using Microsoft.EntityFrameworkCore.Query.Sql;
 using Microsoft.EntityFrameworkCore.Storage;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 using Remotion.Linq.Clauses;
@@ -43,7 +44,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
     public class NpgsqlQuerySqlGenerator : DefaultQuerySqlGenerator
     {
         /// <summary>
-        /// The version of PostgreSQL to target.
+        /// The backend process to target;
+        /// </summary>
+        readonly Backend _backend;
+
+        /// <summary>
+        /// The backend version to target.
         /// </summary>
         [NotNull] readonly Version _compatibility;
 
@@ -61,17 +67,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
         /// <summary>
         /// Creates a new instance of the <see cref="NpgsqlQuerySqlGenerator"/> class.
         /// </summary>
-        /// <param name="dependencies"></param>
-        /// <param name="selectExpression"></param>
-        /// <param name="compatibility"></param>
-        /// <param name="reverseNullOrderingEnabled"></param>
+        /// <param name="dependencies">Parameter object containing dependencies for this service.</param>
+        /// <param name="selectExpression">The select expression.</param>
+        /// <param name="backend">The backend process to target.</param>
+        /// <param name="compatibility">The backend version to target.</param>
+        /// <param name="reverseNullOrderingEnabled">True if null ordering is reversed; otherwise, false.</param>
         public NpgsqlQuerySqlGenerator(
             [NotNull] QuerySqlGeneratorDependencies dependencies,
             [NotNull] SelectExpression selectExpression,
+            Backend backend,
             [NotNull] Version compatibility,
             bool reverseNullOrderingEnabled)
             : base(dependencies, selectExpression)
         {
+            _backend = backend;
             _compatibility = compatibility;
             _reverseNullOrderingEnabled = reverseNullOrderingEnabled;
         }

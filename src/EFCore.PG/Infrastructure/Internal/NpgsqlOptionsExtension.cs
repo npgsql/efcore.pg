@@ -50,7 +50,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         public string AdminDatabase { get; private set; }
 
         /// <summary>
-        /// The version of PostgreSQL to target.
+        /// The backend process to target.
+        /// </summary>
+        public Backend Backend { get; private set; }
+
+        /// <summary>
+        /// The backend version to target.
         /// </summary>
         [CanBeNull]
         public Version Compatibility { get; private set; }
@@ -93,6 +98,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         public NpgsqlOptionsExtension([NotNull] NpgsqlOptionsExtension copyFrom) : base(copyFrom)
         {
             AdminDatabase = copyFrom.AdminDatabase;
+            Backend = copyFrom.Backend;
             Compatibility = copyFrom.Compatibility;
             _plugins = new List<NpgsqlEntityFrameworkPlugin>(copyFrom._plugins);
             ProvideClientCertificatesCallback = copyFrom.ProvideClientCertificatesCallback;
@@ -145,11 +151,28 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         }
 
         /// <summary>
-        /// Returns a copy of the current instance with the specified compatibility version of PostgreSQL.
+        /// Returns a copy of the current instance configured to tartget the specified backend process.
         /// </summary>
-        /// <param name="compatibility">The version of PostgreSQL to target.</param>
+        /// <param name="backend">The version of PostgreSQL to target.</param>
         /// <returns>
-        /// A copy of the current instance with the specified compatibility version of PostgreSQL.
+        /// A copy of the current instance configured to tartget the specified backend process.
+        /// </returns>
+        [NotNull]
+        public virtual NpgsqlOptionsExtension WithBackend(Backend backend)
+        {
+            var clone = (NpgsqlOptionsExtension)Clone();
+
+            clone.Backend = backend;
+
+            return clone;
+        }
+
+        /// <summary>
+        /// Returns a copy of the current instance with the specified compatibility version.
+        /// </summary>
+        /// <param name="compatibility">The backend version to target.</param>
+        /// <returns>
+        /// A copy of the current instance with the specified compatibility version.
         /// </returns>
         [NotNull]
         public virtual NpgsqlOptionsExtension WithCompatiblity([CanBeNull] Version compatibility)

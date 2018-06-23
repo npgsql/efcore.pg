@@ -33,6 +33,7 @@ using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
 using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors;
 using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Remotion.Linq.Clauses;
 using Remotion.Linq.Clauses.Expressions;
@@ -80,7 +81,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
         #endregion
 
         /// <summary>
-        /// The version of PostgreSQL to target.
+        /// The backend process to target.
+        /// </summary>
+        readonly Backend _backend;
+
+        /// <summary>
+        /// The backend version to target.
         /// </summary>
         [NotNull] readonly Version _compatibility;
 
@@ -92,15 +98,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
         /// <summary>
         /// Initializes a new instance of the <see cref="NpgsqlSqlTranslatingExpressionVisitor"/> class.
         /// </summary>
-        /// <param name="dependencies"></param>
-        /// <param name="queryModelVisitor"></param>
-        /// <param name="compatibility"></param>
-        /// <param name="targetSelectExpression"></param>
-        /// <param name="topLevelPredicate"></param>
-        /// <param name="inProjection"></param>
+        /// <param name="dependencies">Parameter object containing dependencies for this service.</param>
+        /// <param name="queryModelVisitor">The query model visitor.</param>
+        /// <param name="backend">The backend process to target.</param>
+        /// <param name="compatibility">The backend version to target.</param>
+        /// <param name="targetSelectExpression">The target select expression.</param>
+        /// <param name="topLevelPredicate">The top level predicate.</param>
+        /// <param name="inProjection">True if the expression to be translated is a LINQ projection; otherwise, false.</param>
         public NpgsqlSqlTranslatingExpressionVisitor(
             [NotNull] SqlTranslatingExpressionVisitorDependencies dependencies,
             [NotNull] RelationalQueryModelVisitor queryModelVisitor,
+            Backend backend,
             [NotNull] Version compatibility,
             [CanBeNull] SelectExpression targetSelectExpression = null,
             [CanBeNull] Expression topLevelPredicate = null,
@@ -108,6 +116,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
             : base(dependencies, queryModelVisitor, targetSelectExpression, topLevelPredicate, inProjection)
         {
             _queryModelVisitor = queryModelVisitor;
+            _backend = backend;
             _compatibility = compatibility;
         }
 

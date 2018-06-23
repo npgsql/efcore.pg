@@ -36,7 +36,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
     public interface INpgsqlOptions : ISingletonOptions
     {
         /// <summary>
-        /// The version of PostgreSQL to target.
+        /// The backend process to target.
+        /// </summary>
+        Backend Backend { get; }
+
+        /// <summary>
+        /// The backend version to target.
         /// </summary>
         [CanBeNull]
         Version Compatibility { get; }

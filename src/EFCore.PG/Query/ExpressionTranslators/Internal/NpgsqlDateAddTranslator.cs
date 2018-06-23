@@ -4,6 +4,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
@@ -15,7 +16,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     public class NpgsqlDateAddTranslator : IMethodCallTranslator
     {
         /// <summary>
-        /// The minimum version of PostgreSQL for which this translator should operate.
+        /// The minimum backend version supported by this translator.
         /// </summary>
         [NotNull] static readonly Version MinimumSupportedVersion = new Version("9.4");
 
@@ -41,21 +42,31 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         };
 
         /// <summary>
-        /// The version of PostgreSQL to target.
+        /// The backend process to target.
+        /// </summary>
+        readonly Backend _backend;
+
+        /// <summary>
+        /// The backend version to target.
         /// </summary>
         [NotNull] readonly Version _compatibility;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="NpgsqlDateAddTranslator"/> class.
         /// </summary>
-        /// <param name="compatibility">The version of PostgreSQL to target.</param>
-        public NpgsqlDateAddTranslator([NotNull] Version compatibility)
-            => _compatibility = Check.NotNull(compatibility, nameof(compatibility));
+        /// <param name="backend">The backend process to target.</param>
+        /// <param name="compatibility">The backend version to target.</param>
+        public NpgsqlDateAddTranslator(Backend backend, [NotNull] Version compatibility)
+        {
+            _backend = backend;
+            _compatibility = Check.NotNull(compatibility, nameof(compatibility));
+        }
 
         /// <inheritdoc />
         public virtual Expression Translate(MethodCallExpression methodCallExpression)
         {
-            if (_compatibility < MinimumSupportedVersion)
+            // This translation is only supported for PostgreSQL 9.4 or higher.
+            if (_backend != Backend.PostgreSQL || _compatibility < MinimumSupportedVersion)
                 return null;
 
             if (!MethodInfoDatePartMapping.TryGetValue(methodCallExpression.Method, out var datePart))

@@ -62,9 +62,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
             => WithOption(e => e.WithAdminDatabase(dbName));
 
         /// <summary>
-        /// Configures the version of PostgreSQL to target.
+        /// Configures the backend process to target.
         /// </summary>
-        /// <param name="compatibility">The version of PostgreSQL to target.</param>
+        /// <param name="backend">The backend process to target.</param>
+        public virtual void SetBackend(Backend backend)
+            => WithOption(e => e.WithBackend(backend));
+
+        /// <summary>
+        /// Configures the backend version to target.
+        /// </summary>
+        /// <param name="compatibility">The backend version to target.</param>
         public virtual void SetCompatibility([CanBeNull] Version compatibility)
             => WithOption(e => e.WithCompatiblity(compatibility));
 
