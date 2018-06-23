@@ -1,4 +1,5 @@
 ﻿#region License
+
 // The PostgreSQL License
 //
 // Copyright (C) 2016 The Npgsql Development Team
@@ -19,6 +20,7 @@
 // AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
 // ON AN "AS IS" BASIS, AND THE NPGSQL DEVELOPMENT TEAM HAS NO OBLIGATIONS
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+
 #endregion
 
 using JetBrains.Annotations;
@@ -29,22 +31,33 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
 {
+    /// <summary>
+    /// The default factory for creating instances of <see cref="NpgsqlQuerySqlGenerator"/> for Npgsql.
+    /// </summary>
     public class NpgsqlQuerySqlGeneratorFactory : QuerySqlGeneratorFactoryBase
     {
-        readonly INpgsqlOptions _npgsqlOptions;
+        /// <summary>
+        /// The <see cref="INpgsqlOptions"/> configued for the current context.
+        /// </summary>
+        [NotNull] readonly INpgsqlOptions _npgsqlOptions;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="NpgsqlQuerySqlGeneratorFactory"/> class.
+        /// </summary>
+        /// <param name="dependencies">The dependencies to construct instances of <see cref="NpgsqlQuerySqlGenerator"/>.</param>
+        /// <param name="npgsqlOptions">The options configued for the current context.</param>
         public NpgsqlQuerySqlGeneratorFactory(
             [NotNull] QuerySqlGeneratorDependencies dependencies,
             [NotNull] INpgsqlOptions npgsqlOptions)
             : base(dependencies)
-        {
-            _npgsqlOptions = npgsqlOptions;
-        }
+            => _npgsqlOptions = npgsqlOptions;
 
+        /// <inheritdoc />
         public override IQuerySqlGenerator CreateDefault(SelectExpression selectExpression)
             => new NpgsqlQuerySqlGenerator(
                 Dependencies,
                 Check.NotNull(selectExpression, nameof(selectExpression)),
+                _npgsqlOptions.Compatibility,
                 _npgsqlOptions.ReverseNullOrderingEnabled);
     }
 }

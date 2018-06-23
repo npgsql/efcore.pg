@@ -23,6 +23,7 @@
 
 #endregion
 
+using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -39,8 +40,13 @@ using Remotion.Linq.Clauses.ResultOperators;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
 {
+    /// <summary>
+    /// The default relational LINQ translating expression visitor for Npgsql.
+    /// </summary>
     public class NpgsqlSqlTranslatingExpressionVisitor : SqlTranslatingExpressionVisitor
     {
+        #region MethodInfo
+
         /// <summary>
         /// The <see cref="MethodInfo"/> for <see cref="DbFunctionsExtensions.Like(DbFunctions,string,string)"/>.
         /// </summary>
@@ -71,20 +77,43 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
             typeof(NpgsqlDbFunctionsExtensions)
                 .GetRuntimeMethod(nameof(NpgsqlDbFunctionsExtensions.ILike), new[] { typeof(DbFunctions), typeof(string), typeof(string), typeof(string) });
 
+        #endregion
+
+        /// <summary>
+        /// The version of PostgreSQL to target.
+        /// </summary>
+        [NotNull] readonly Version _compatibility;
+
         /// <summary>
         /// The query model visitor.
         /// </summary>
         [NotNull] readonly RelationalQueryModelVisitor _queryModelVisitor;
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Initializes a new instance of the <see cref="NpgsqlSqlTranslatingExpressionVisitor"/> class.
+        /// </summary>
+        /// <param name="dependencies"></param>
+        /// <param name="queryModelVisitor"></param>
+        /// <param name="compatibility"></param>
+        /// <param name="targetSelectExpression"></param>
+        /// <param name="topLevelPredicate"></param>
+        /// <param name="inProjection"></param>
         public NpgsqlSqlTranslatingExpressionVisitor(
             [NotNull] SqlTranslatingExpressionVisitorDependencies dependencies,
             [NotNull] RelationalQueryModelVisitor queryModelVisitor,
+            [NotNull] Version compatibility,
             [CanBeNull] SelectExpression targetSelectExpression = null,
             [CanBeNull] Expression topLevelPredicate = null,
             bool inProjection = false)
             : base(dependencies, queryModelVisitor, targetSelectExpression, topLevelPredicate, inProjection)
-            => _queryModelVisitor = queryModelVisitor;
+        {
+            _queryModelVisitor = queryModelVisitor;
+            _compatibility = compatibility;
+        }
+
+        #region Visits
+
+
 
         /// <inheritdoc />
         protected override Expression VisitSubQuery(SubQueryExpression expression)
@@ -216,5 +245,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
             }
             // ReSharper restore AssignNullToNotNullAttribute
         }
+
+        #endregion
     }
 }
