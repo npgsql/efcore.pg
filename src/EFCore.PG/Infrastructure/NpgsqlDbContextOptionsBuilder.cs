@@ -62,6 +62,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
             => WithOption(e => e.WithAdminDatabase(dbName));
 
         /// <summary>
+        /// Configures the version of PostgreSQL to target.
+        /// </summary>
+        /// <param name="compatibility">The version of PostgreSQL to target.</param>
+        public virtual void SetCompatibility([CanBeNull] Version compatibility)
+            => WithOption(e => e.WithCompatiblity(compatibility));
+
+        /// <summary>
         /// Appends NULLS FIRST to all ORDER BY clauses. This is important for the tests which were written
         /// for SQL Server. Note that to fully implement null-first ordering indexes also need to be generated
         /// accordingly, and since this isn't done this feature isn't publicly exposed.

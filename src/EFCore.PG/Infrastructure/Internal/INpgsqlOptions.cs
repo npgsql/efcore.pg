@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 // The PostgreSQL License
 //
@@ -35,6 +35,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
     /// </summary>
     public interface INpgsqlOptions : ISingletonOptions
     {
+        /// <summary>
+        /// The version of PostgreSQL to target.
+        /// </summary>
+        [CanBeNull]
+        Version Compatibility { get; }
+
         /// <summary>
         /// True if reverse null ordering is enabled; otherwise, false.
         /// </summary>

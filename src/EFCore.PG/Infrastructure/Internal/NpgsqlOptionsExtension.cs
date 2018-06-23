@@ -23,6 +23,7 @@
 
 #endregion
 
+using System;
 using System.Collections.Generic;
 using System.Net.Security;
 using JetBrains.Annotations;
@@ -47,6 +48,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// </summary>
         [CanBeNull]
         public string AdminDatabase { get; private set; }
+
+        /// <summary>
+        /// The version of PostgreSQL to target.
+        /// </summary>
+        [CanBeNull]
+        public Version Compatibility { get; private set; }
 
         /// <summary>
         /// The collection of database plugins.
@@ -76,10 +83,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// Initializes an instance of <see cref="NpgsqlOptionsExtension"/> with the default settings.
         /// </summary>
         public NpgsqlOptionsExtension()
-        {
-            _plugins = new List<NpgsqlEntityFrameworkPlugin>();
-            ReverseNullOrdering = false;
-        }
+            => _plugins = new List<NpgsqlEntityFrameworkPlugin>();
 
         // NB: When adding new options, make sure to update the copy ctor below.
         /// <summary>
@@ -89,6 +93,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         public NpgsqlOptionsExtension([NotNull] NpgsqlOptionsExtension copyFrom) : base(copyFrom)
         {
             AdminDatabase = copyFrom.AdminDatabase;
+            Compatibility = copyFrom.Compatibility;
             _plugins = new List<NpgsqlEntityFrameworkPlugin>(copyFrom._plugins);
             ProvideClientCertificatesCallback = copyFrom.ProvideClientCertificatesCallback;
             RemoteCertificateValidationCallback = copyFrom.RemoteCertificateValidationCallback;
@@ -135,6 +140,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
             var clone = (NpgsqlOptionsExtension)Clone();
 
             clone.AdminDatabase = adminDatabase;
+
+            return clone;
+        }
+
+        /// <summary>
+        /// Returns a copy of the current instance with the specified compatibility version of PostgreSQL.
+        /// </summary>
+        /// <param name="compatibility">The version of PostgreSQL to target.</param>
+        /// <returns>
+        /// A copy of the current instance with the specified compatibility version of PostgreSQL.
+        /// </returns>
+        [NotNull]
+        public virtual NpgsqlOptionsExtension WithCompatiblity([CanBeNull] Version compatibility)
+        {
+            var clone = (NpgsqlOptionsExtension)Clone();
+
+            clone.Compatibility = compatibility;
 
             return clone;
         }
