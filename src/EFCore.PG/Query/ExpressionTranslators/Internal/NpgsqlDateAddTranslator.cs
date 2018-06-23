@@ -1,16 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
+    /// <summary>
+    /// Provides expression translation for <see cref="DateTime"/> addition methods.
+    /// </summary>
     public class NpgsqlDateAddTranslator : IMethodCallTranslator
     {
-        readonly Dictionary<MethodInfo, string> _methodInfoDatePartMapping = new Dictionary<MethodInfo, string>
+        /// <summary>
+        /// The minimum version of PostgreSQL for which this translator should operate.
+        /// </summary>
+        [NotNull] static readonly Version MinimumSupportedVersion = new Version("9.4");
+
+        /// <summary>
+        /// The mapping of supported method translations.
+        /// </summary>
+        [NotNull] static readonly Dictionary<MethodInfo, string> MethodInfoDatePartMapping = new Dictionary<MethodInfo, string>
         {
             { typeof(DateTime).GetRuntimeMethod(nameof(DateTime.AddYears), new[] { typeof(int) }), "years" },
             { typeof(DateTime).GetRuntimeMethod(nameof(DateTime.AddMonths), new[] { typeof(int) }), "months" },
@@ -29,15 +41,24 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         };
 
         /// <summary>
-        ///     Translates the given method call expression.
+        /// The version of PostgreSQL to target.
         /// </summary>
-        /// <param name="methodCallExpression">The method call expression.</param>
-        /// <returns>
-        ///     A SQL expression representing the translated MethodCallExpression.
-        /// </returns>
+        [NotNull] readonly Version _compatibility;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="NpgsqlDateAddTranslator"/> class.
+        /// </summary>
+        /// <param name="compatibility">The version of PostgreSQL to target.</param>
+        public NpgsqlDateAddTranslator([NotNull] Version compatibility)
+            => _compatibility = Check.NotNull(compatibility, nameof(compatibility));
+
+        /// <inheritdoc />
         public virtual Expression Translate(MethodCallExpression methodCallExpression)
         {
-            if (!_methodInfoDatePartMapping.TryGetValue(methodCallExpression.Method, out var datePart))
+            if (_compatibility < MinimumSupportedVersion)
+                return null;
+
+            if (!MethodInfoDatePartMapping.TryGetValue(methodCallExpression.Method, out var datePart))
                 return null;
 
             // Ideally we would use Expression.Add() to have a simple plus-sign expression generated for us.
@@ -45,23 +66,30 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             // We could use the provider-specific NpgsqlTimeSpan but it's not currently supported and is somewhat
             // ugly, so we just generate the expression ourselves with CustomBinaryExpression
 
-            var amountToAdd = methodCallExpression.Arguments.First();
+            if (!(methodCallExpression.Object is Expression instance))
+                return null;
+
+            if (methodCallExpression.Arguments.Count < 1)
+                return null;
+
+            if (!(methodCallExpression.Arguments[0] is Expression amountToAdd))
+                return null;
 
             if (amountToAdd is ConstantExpression constantExpression &&
                 constantExpression.Type == typeof(double) &&
-                ((double)constantExpression.Value >= int.MaxValue || (double)constantExpression.Value <= int.MinValue))
-            {
+                ((double)constantExpression.Value >= int.MaxValue ||
+                 (double)constantExpression.Value <= int.MinValue))
                 return null;
-            }
 
-            return new CustomBinaryExpression(
-                methodCallExpression.Object,
-                new PgFunctionExpression("MAKE_INTERVAL", typeof(TimeSpan), new Dictionary<string, Expression>
-                {
-                    { datePart, amountToAdd }
-                }),
-                "+",
-                methodCallExpression.Type);
+            return
+                new CustomBinaryExpression(
+                    instance,
+                    new PgFunctionExpression(
+                        "MAKE_INTERVAL",
+                        typeof(TimeSpan),
+                        new Dictionary<string, Expression> { [datePart] = amountToAdd }),
+                    "+",
+                    methodCallExpression.Type);
         }
     }
 }

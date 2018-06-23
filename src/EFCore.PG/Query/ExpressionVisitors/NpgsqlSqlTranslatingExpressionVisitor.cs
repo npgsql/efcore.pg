@@ -113,8 +113,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
 
         #region Visits
 
-
-
         /// <inheritdoc />
         protected override Expression VisitSubQuery(SubQueryExpression expression)
             => base.VisitSubQuery(expression) ?? VisitLikeAnyAll(expression) ?? VisitEqualsAny(expression);

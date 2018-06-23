@@ -42,7 +42,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         {
             new NpgsqlArraySequenceEqualTranslator(),
             new NpgsqlConvertTranslator(),
-            new NpgsqlDateAddTranslator(),
             new NpgsqlStringSubstringTranslator(),
             new NpgsqlLikeTranslator(),
             new NpgsqlMathTranslator(),
@@ -69,8 +68,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             [NotNull] INpgsqlOptions npgsqlOptions)
             : base(dependencies)
         {
+            var instanceTranslators =
+                new IMethodCallTranslator[]
+                {
+                    new NpgsqlDateAddTranslator(npgsqlOptions.Compatibility)
+                };
+
             // ReSharper disable once DoNotCallOverridableMethodsInConstructor
             AddTranslators(MethodCallTranslators);
+
+            // ReSharper disable once DoNotCallOverridableMethodsInConstructor
+            AddTranslators(instanceTranslators);
 
             foreach (var plugin in npgsqlOptions.Plugins)
                 plugin.AddMethodCallTranslators(this);
@@ -80,7 +88,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         /// Adds additional dispatches to the translators list.
         /// </summary>
         /// <param name="translators">The translators.</param>
-        public new virtual void AddTranslators([NotNull] IEnumerable<IMethodCallTranslator> translators)
+        public new virtual void AddTranslators([NotNull] [ItemNotNull] IEnumerable<IMethodCallTranslator> translators)
             => base.AddTranslators(translators);
     }
 }
