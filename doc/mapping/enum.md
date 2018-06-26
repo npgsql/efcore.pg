@@ -10,11 +10,13 @@ First, you must specify the PostgreSQL enum type on your model, just like you wo
 
 ```c#
 protected override void OnModelCreating(ModelBuilder builder) {
-    builder.ForNpgsqlHasEnum("Mood", new[] { "happy", "sad" });
+    builder.ForNpgsqlHasEnum("mood", new[] { "happy", "sad" });
 }
 ```
 
-This causes the EF Core provider to create your data enum type, `Mood`, with two labels: `happy` and `sad`. This will cause the appropriate migration to be created.
+This causes the EF Core provider to create your data enum type, `mood`, with two labels: `happy` and `sad`. This will cause the appropriate migration to be created.
+
+The PostgreSQL enum should be defined in lower case.
 
 ## Mapping your enum
 
@@ -23,11 +25,11 @@ Even if your database enum is created, Npgsql has to know about it, and especial
 ```c#
 static MyDbContext()
 {
-    NpgsqlConnection.GlobalTypeMapper.MapEnum<Mood>("Mood");
+    NpgsqlConnection.GlobalTypeMapper.MapEnum<Mood>("mood");
 }
 ```
 
-This code lets Npgsql know that your CLR enum type, `Mood`, should be mapped to a database enum called `Mood`.
+This code lets Npgsql know that your CLR enum type, `Mood`, should be mapped to a database enum called `mood`. Note that the database enum must be lower case.
 
 If you're curious as to inner workings, this code maps the enum with the ADO.NET provider - [see here for the full docs](http://www.npgsql.org/doc/types/enums_and_composites.html). When the Npgsql EF Core first initializes, it calls into the ADO.NET provider to get all mapped enums, and sets everything up internally at the EF Core layer as well.
 
