@@ -1,5 +1,4 @@
 ﻿using System;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestUtilities;
@@ -10,8 +9,10 @@ using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public class EnumQueryTest : IClassFixture<EnumFixture>
+    public class EnumQueryTest : IClassFixture<EnumQueryTest.EnumFixture>
     {
+        #region Tests
+
         [Fact]
         public void Roundtrip()
         {
@@ -29,7 +30,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             {
                 var x = ctx.SomeEntities.Single(e => e.Enum1 == EnumType1.Sad);
                 Assert.Equal(EnumType1.Sad, x.Enum1);
-                AssertContainsInSql("WHERE e.enum1 = 'sad'::enum_type1");
+                AssertContainsInSql("WHERE e.\"Enum1\" = 'sad'::enum_type1");
             }
         }
 
@@ -38,13 +39,30 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             using (var ctx = CreateContext())
             {
+                // ReSharper disable once ConvertToConstant.Local
                 var sad = EnumType1.Sad;
                 var x = ctx.SomeEntities.Single(e => e.Enum1 == sad);
                 Assert.Equal(EnumType1.Sad, x.Enum1);
-                AssertContainsInSql("(DbType = Object)");  // Not very effective but better than nothing
-                AssertContainsInSql("WHERE e.enum1 = @");
+                AssertContainsInSql("(DbType = Object)"); // Not very effective but better than nothing
+                AssertContainsInSql("WHERE e.\"Enum1\" = @__sad_0");
             }
         }
+
+        [Fact]
+        public void Where_with_parameter_downcast()
+        {
+            using (var ctx = CreateContext())
+            {
+                // ReSharper disable once ConvertToConstant.Local
+                var sad = EnumType1.Sad;
+                var x = ctx.SomeEntities.Single(e => e.EnumValue == (int)sad);
+                Assert.Equal((int)EnumType1.Sad, x.EnumValue);
+                AssertContainsInSql("(DbType = Object)"); // Not very effective but better than nothing
+                AssertContainsInSql("WHERE e.\"EnumValue\" = CAST(@__sad_0 AS integer)");
+            }
+        }
+
+        #endregion
 
         #region Support
 
@@ -61,65 +79,81 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         void AssertContainsInSql(string expected)
             => Assert.Contains(expected, Fixture.TestSqlLoggerFactory.Sql);
 
+        // ReSharper disable once UnusedMember.Local
         void AssertDoesNotContainInSql(string expected)
             => Assert.DoesNotContain(expected, Fixture.TestSqlLoggerFactory.Sql);
 
-        #endregion Support
-    }
-
-    public class EnumContext : DbContext
-    {
-        public DbSet<SomeEnumEntity> SomeEntities { get; set; }
-        public EnumContext(DbContextOptions options) : base(options) {}
-
-        protected override void OnModelCreating(ModelBuilder builder)
+        public class EnumContext : DbContext
         {
-            builder.ForNpgsqlHasEnum("enum_type1", new[] { "happy", "sad" });
-        }
-    }
+            public DbSet<SomeEnumEntity> SomeEntities { get; set; }
+            public EnumContext(DbContextOptions options) : base(options) {}
 
-    public class SomeEnumEntity
-    {
-        public int Id { get; set; }
-        [Column("enum1")]
-        public EnumType1 Enum1 { get; set; }
-    }
-
-    public enum EnumType1 { Happy, Sad };
-
-    public class EnumFixture : IDisposable
-    {
-        readonly DbContextOptions _options;
-        public TestSqlLoggerFactory TestSqlLoggerFactory { get; } = new TestSqlLoggerFactory();
-
-        public EnumFixture()
-        {
-            NpgsqlConnection.GlobalTypeMapper.MapEnum<EnumType1>();
-
-            _testStore = NpgsqlTestStore.CreateScratch();
-            _options = new DbContextOptionsBuilder()
-                .UseNpgsql(_testStore.ConnectionString, b => b.ApplyConfiguration())
-                .UseInternalServiceProvider(
-                    new ServiceCollection()
-                        .AddEntityFrameworkNpgsql()
-                        .AddSingleton<ILoggerFactory>(TestSqlLoggerFactory)
-                        .BuildServiceProvider())
-                .Options;
-
-            using (var ctx = CreateContext())
+            protected override void OnModelCreating(ModelBuilder builder)
             {
-                ctx.Database.EnsureCreated();
-                ctx.SomeEntities.Add(new SomeEnumEntity
-                {
-                    Id=1,
-                    Enum1 = EnumType1.Sad
-                });
-                ctx.SaveChanges();
+                builder.ForNpgsqlHasEnum("enum_type1", new[] { "happy", "sad" });
             }
         }
 
-        readonly NpgsqlTestStore _testStore;
-        public EnumContext CreateContext() => new EnumContext(_options);
-        public void Dispose() => _testStore.Dispose();
+        public class SomeEnumEntity
+        {
+            public int Id { get; set; }
+
+            public EnumType1 Enum1 { get; set; }
+
+            public int EnumValue { get; set; }
+        }
+
+        public enum EnumType1
+        {
+            // ReSharper disable once UnusedMember.Global
+            Happy,
+            Sad
+        };
+
+        public class EnumFixture : IDisposable
+        {
+            readonly DbContextOptions _options;
+
+            readonly NpgsqlTestStore _testStore;
+
+            public TestSqlLoggerFactory TestSqlLoggerFactory { get; } = new TestSqlLoggerFactory();
+
+            public EnumFixture()
+            {
+                NpgsqlConnection.GlobalTypeMapper.MapEnum<EnumType1>();
+
+                _testStore = NpgsqlTestStore.CreateScratch();
+                _options = new DbContextOptionsBuilder()
+                           .UseNpgsql(_testStore.ConnectionString, b => b.ApplyConfiguration())
+                           .UseInternalServiceProvider(
+                               new ServiceCollection()
+                                   .AddEntityFrameworkNpgsql()
+                                   .AddSingleton<ILoggerFactory>(TestSqlLoggerFactory)
+                                   .BuildServiceProvider())
+                           .Options;
+
+                using (var ctx = CreateContext())
+                {
+                    ctx.Database.EnsureCreated();
+
+                    ctx.SomeEntities
+                       .Add(
+                           new SomeEnumEntity
+                           {
+                               Id = 1,
+                               Enum1 = EnumType1.Sad,
+                               EnumValue = (int)EnumType1.Sad
+                           });
+
+                    ctx.SaveChanges();
+                }
+            }
+
+            public EnumContext CreateContext() => new EnumContext(_options);
+
+            public void Dispose() => _testStore.Dispose();
+        }
+
+        #endregion
     }
 }
