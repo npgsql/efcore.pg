@@ -19,7 +19,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using (var ctx = CreateContext())
             {
                 var x = ctx.SomeEntities.Single(e => e.Id == 1);
-                Assert.Equal(EnumType1.Sad, x.Enum1);
+                Assert.Equal(EnumType1.Sad, x.MappedEnum);
             }
         }
 
@@ -28,9 +28,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             using (var ctx = CreateContext())
             {
-                var x = ctx.SomeEntities.Single(e => e.Enum1 == EnumType1.Sad);
-                Assert.Equal(EnumType1.Sad, x.Enum1);
-                AssertContainsInSql("WHERE e.\"Enum1\" = 'sad'::enum_type1");
+                var x = ctx.SomeEntities.Single(e => e.MappedEnum == EnumType1.Sad);
+                Assert.Equal(EnumType1.Sad, x.MappedEnum);
+                AssertContainsInSql("WHERE e.\"MappedEnum\" = 'sad'::enum_type1");
             }
         }
 
@@ -41,10 +41,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             {
                 // ReSharper disable once ConvertToConstant.Local
                 var sad = EnumType1.Sad;
-                var x = ctx.SomeEntities.Single(e => e.Enum1 == sad);
-                Assert.Equal(EnumType1.Sad, x.Enum1);
+                var x = ctx.SomeEntities.Single(e => e.MappedEnum == sad);
+                Assert.Equal(EnumType1.Sad, x.MappedEnum);
                 AssertContainsInSql("(DbType = Object)"); // Not very effective but better than nothing
-                AssertContainsInSql("WHERE e.\"Enum1\" = @__sad_0");
+                AssertContainsInSql("WHERE e.\"MappedEnum\" = @__sad_0");
             }
         }
 
@@ -54,10 +54,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using (var ctx = CreateContext())
             {
                 // ReSharper disable once ConvertToConstant.Local
-                var sad = EnumType1.Sad;
+                var sad = UnmappedEnum.Sad;
                 var x = ctx.SomeEntities.Single(e => e.EnumValue == (int)sad);
-                Assert.Equal((int)EnumType1.Sad, x.EnumValue);
-                AssertContainsInSql("(DbType = Object)"); // Not very effective but better than nothing
+                Assert.Equal((int)UnmappedEnum.Sad, x.EnumValue);
+                AssertContainsInSql("(DbType = Int32)");
                 AssertContainsInSql("WHERE e.\"EnumValue\" = CAST(@__sad_0 AS integer)");
             }
         }
@@ -98,12 +98,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             public int Id { get; set; }
 
-            public EnumType1 Enum1 { get; set; }
+            public EnumType1 MappedEnum { get; set; }
+
+            public UnmappedEnum UnmappedEnum { get; set; }
 
             public int EnumValue { get; set; }
         }
 
         public enum EnumType1
+        {
+            // ReSharper disable once UnusedMember.Global
+            Happy,
+            Sad
+        };
+
+        public enum UnmappedEnum
         {
             // ReSharper disable once UnusedMember.Global
             Happy,
@@ -141,7 +150,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            new SomeEnumEntity
                            {
                                Id = 1,
-                               Enum1 = EnumType1.Sad,
+                               MappedEnum = EnumType1.Sad,
+                               UnmappedEnum = UnmappedEnum.Sad,
                                EnumValue = (int)EnumType1.Sad
                            });
 
