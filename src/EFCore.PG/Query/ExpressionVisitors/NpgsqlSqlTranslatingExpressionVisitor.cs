@@ -23,6 +23,7 @@
 
 #endregion
 
+using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -112,6 +113,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
             }
 
             return base.VisitBinary(expression);
+        }
+
+        /// <inheritdoc />
+        protected override Expression VisitUnary(UnaryExpression expression)
+        {
+            if (expression.NodeType is ExpressionType.Convert &&
+                expression.Operand.Type.IsEnum &&
+                Enum.GetUnderlyingType(expression.Operand.Type) == expression.Type &&
+                Visit(expression.Operand) is Expression e)
+                return new ExplicitCastExpression(e, expression.Type);
+
+            return base.VisitUnary(expression);
         }
 
         /// <summary>
