@@ -34,6 +34,7 @@ using Microsoft.EntityFrameworkCore.Query.Expressions;
 using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors;
 using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Remotion.Linq.Clauses;
 using Remotion.Linq.Clauses.Expressions;
 using Remotion.Linq.Clauses.ResultOperators;
@@ -77,6 +78,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
         /// </summary>
         [NotNull] readonly RelationalQueryModelVisitor _queryModelVisitor;
 
+        /// <summary>
+        /// The relational type mappings.
+        /// </summary>
+        [NotNull] readonly NpgsqlTypeMappingSource _typeMappingSource;
+
         /// <inheritdoc />
         public NpgsqlSqlTranslatingExpressionVisitor(
             [NotNull] SqlTranslatingExpressionVisitorDependencies dependencies,
@@ -85,7 +91,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
             [CanBeNull] Expression topLevelPredicate = null,
             bool inProjection = false)
             : base(dependencies, queryModelVisitor, targetSelectExpression, topLevelPredicate, inProjection)
-            => _queryModelVisitor = queryModelVisitor;
+        {
+            _queryModelVisitor = queryModelVisitor;
+            _typeMappingSource = (NpgsqlTypeMappingSource)dependencies.TypeMappingSource;
+        }
 
         /// <inheritdoc />
         protected override Expression VisitSubQuery(SubQueryExpression expression)
@@ -94,7 +103,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
         /// <inheritdoc />
         protected override Expression VisitBinary(BinaryExpression expression)
         {
-            if (expression.NodeType == ExpressionType.ArrayIndex)
+            if (expression.NodeType is ExpressionType.ArrayIndex)
             {
                 var properties = MemberAccessBindingExpressionVisitor.GetPropertyPath(
                     expression.Left, _queryModelVisitor.QueryCompilationContext, out _);
@@ -112,19 +121,22 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
                 }
             }
 
+            if (expression.NodeType is ExpressionType.Equal)
+            {
+                if (!(Visit(expression.Left) is Expression left))
+                    return base.VisitBinary(expression);
+
+                if (!(Visit(expression.Right) is Expression right))
+                    return base.VisitBinary(expression);
+
+                if (left is UnaryExpression leftUnary && TryUnwrapEnum(leftUnary) is Expression leftEnum)
+                    return Expression.Equal(leftEnum, right);
+
+                if (right is UnaryExpression rightUnary && TryUnwrapEnum(rightUnary) is Expression rightEnum)
+                    return Expression.Equal(left, rightEnum);
+            }
+
             return base.VisitBinary(expression);
-        }
-
-        /// <inheritdoc />
-        protected override Expression VisitUnary(UnaryExpression expression)
-        {
-            if (expression.NodeType is ExpressionType.Convert &&
-                expression.Operand.Type.IsEnum &&
-                Enum.GetUnderlyingType(expression.Operand.Type) == expression.Type &&
-                Visit(expression.Operand) is Expression e)
-                return new ExplicitCastExpression(e, expression.Type);
-
-            return base.VisitUnary(expression);
         }
 
         /// <summary>
@@ -228,6 +240,36 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
                 return null;
             }
             // ReSharper restore AssignNullToNotNullAttribute
+        }
+
+        /// <summary>
+        /// Attempts to unwrap an enum cast to its underlying system type.
+        /// </summary>
+        /// <param name="expression">The expression to be unwrapped.</param>
+        /// <returns>
+        /// An <see cref="ExplicitCastExpression"/> or null.
+        /// </returns>
+        [CanBeNull]
+        Expression TryUnwrapEnum([NotNull] UnaryExpression expression)
+        {
+            // If the expression isn't a cast, skip.
+            if (expression.NodeType != ExpressionType.Convert)
+                return null;
+
+            // If the operand isn't an enum, skip.
+            if (!(Visit(expression.Operand) is Expression operand) || !operand.Type.IsEnum)
+                return null;
+
+            // If the enum is not cast to the underlying type, skip.
+            if (Enum.GetUnderlyingType(operand.Type) != expression.Type)
+                return null;
+
+            // If the enum is mapped, skip.
+            if (_typeMappingSource.ClrTypeMappings.ContainsKey(operand.Type))
+                return null;
+
+            // Return an explicit cast that won't be removed.
+            return new ExplicitCastExpression(operand, expression.Type);
         }
     }
 }

@@ -19,7 +19,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using (var ctx = CreateContext())
             {
                 var x = ctx.SomeEntities.Single(e => e.Id == 1);
-                Assert.Equal(EnumType1.Sad, x.MappedEnum);
+                Assert.Equal(MappedEnum.Sad, x.MappedEnum);
             }
         }
 
@@ -28,9 +28,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             using (var ctx = CreateContext())
             {
-                var x = ctx.SomeEntities.Single(e => e.MappedEnum == EnumType1.Sad);
-                Assert.Equal(EnumType1.Sad, x.MappedEnum);
-                AssertContainsInSql("WHERE e.\"MappedEnum\" = 'sad'::enum_type1");
+                var x = ctx.SomeEntities.Single(e => e.MappedEnum == MappedEnum.Sad);
+                Assert.Equal(MappedEnum.Sad, x.MappedEnum);
+                AssertContainsInSql("WHERE e.\"MappedEnum\" = 'sad'::mapped_enum");
             }
         }
 
@@ -40,9 +40,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using (var ctx = CreateContext())
             {
                 // ReSharper disable once ConvertToConstant.Local
-                var sad = EnumType1.Sad;
+                var sad = MappedEnum.Sad;
                 var x = ctx.SomeEntities.Single(e => e.MappedEnum == sad);
-                Assert.Equal(EnumType1.Sad, x.MappedEnum);
+                Assert.Equal(MappedEnum.Sad, x.MappedEnum);
                 AssertContainsInSql("(DbType = Object)"); // Not very effective but better than nothing
                 AssertContainsInSql("WHERE e.\"MappedEnum\" = @__sad_0");
             }
@@ -86,11 +86,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         public class EnumContext : DbContext
         {
             public DbSet<SomeEnumEntity> SomeEntities { get; set; }
+
             public EnumContext(DbContextOptions options) : base(options) {}
 
             protected override void OnModelCreating(ModelBuilder builder)
             {
-                builder.ForNpgsqlHasEnum("enum_type1", new[] { "happy", "sad" });
+                builder.ForNpgsqlHasEnum("mapped_enum", new[] { "happy", "sad" });
             }
         }
 
@@ -98,14 +99,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             public int Id { get; set; }
 
-            public EnumType1 MappedEnum { get; set; }
+            public MappedEnum MappedEnum { get; set; }
 
             public UnmappedEnum UnmappedEnum { get; set; }
 
             public int EnumValue { get; set; }
         }
 
-        public enum EnumType1
+        public enum MappedEnum
         {
             // ReSharper disable once UnusedMember.Global
             Happy,
@@ -129,9 +130,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
             public EnumFixture()
             {
-                NpgsqlConnection.GlobalTypeMapper.MapEnum<EnumType1>();
+                NpgsqlConnection.GlobalTypeMapper.MapEnum<MappedEnum>();
 
                 _testStore = NpgsqlTestStore.CreateScratch();
+
                 _options = new DbContextOptionsBuilder()
                            .UseNpgsql(_testStore.ConnectionString, b => b.ApplyConfiguration())
                            .UseInternalServiceProvider(
@@ -150,9 +152,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            new SomeEnumEntity
                            {
                                Id = 1,
-                               MappedEnum = EnumType1.Sad,
+                               MappedEnum = MappedEnum.Sad,
                                UnmappedEnum = UnmappedEnum.Sad,
-                               EnumValue = (int)EnumType1.Sad
+                               EnumValue = (int)MappedEnum.Sad
                            });
 
                     ctx.SaveChanges();
