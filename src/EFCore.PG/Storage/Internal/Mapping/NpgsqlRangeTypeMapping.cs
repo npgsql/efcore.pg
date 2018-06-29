@@ -36,7 +36,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     {
         public RelationalTypeMapping SubtypeMapping { get; }
 
-        internal NpgsqlRangeTypeMapping(
+        public NpgsqlRangeTypeMapping(
             [NotNull] string storeType,
             [NotNull] Type clrType,
             RelationalTypeMapping subtypeMapping,

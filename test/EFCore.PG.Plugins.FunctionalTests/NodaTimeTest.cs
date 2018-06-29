@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using NodaTime;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+using NpgsqlTypes;
 using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL
@@ -324,6 +325,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 */
         #endregion Period members
 
+        #region Range
+
+        [Fact]
+        public void DateRange_Contains()
+        {
+            using (var ctx = CreateContext())
+            {
+                var d = ctx.NodaTimeTypes.Single(t => t.DateRange.Contains(new LocalDate(2018, 4, 21)));
+                Assert.Contains(@"t.""DateRange"" @> DATE '2018-04-21'", Sql);
+            }
+        }
+
+        #endregion Range
+
         #region Support
 
         NodaTimeContext CreateContext() => Fixture.CreateContext();
@@ -366,7 +381,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                     LocalDate = localDateTime.Date,
                     LocalTime = localDateTime.TimeOfDay,
                     OffsetTime = new OffsetTime(new LocalTime(10, 31, 33, 666), Offset.Zero),
-                    Period = DefaultPeriod
+                    Period = DefaultPeriod,
+                    DateRange = new NpgsqlRange<LocalDate>(localDateTime.Date, localDateTime.Date.PlusDays(5))
                 });
                 context.SaveChanges();
             }
@@ -393,6 +409,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             public LocalTime LocalTime { get; set; }
             public OffsetTime OffsetTime { get; set; }
             public Period Period { get; set; }
+            public NpgsqlRange<LocalDate> DateRange { get; set; }
         }
 
         #endregion Support
