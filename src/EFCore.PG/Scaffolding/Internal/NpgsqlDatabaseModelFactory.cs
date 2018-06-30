@@ -704,6 +704,13 @@ LEFT OUTER JOIN pg_namespace AS ownerns ON ownerns.oid = tblcls.relnamespace";
                             var ownerDatabaseTable = tables
                                 .FirstOrDefault(t => t.Name == ownerTable && t.Schema == ownerSchema);
 
+                            if (ownerDatabaseTable == null)
+                            {
+                                // The sequence is owned by a table that isn't being scaffolded because it was excluded
+                                // from the table selection set. Skip the sequence.
+                                continue;
+                            }
+
                             var ownerDatabaseColumn = ownerDatabaseTable
                                 .Columns
                                 .FirstOrDefault(t => t.Name == ownerColumn);
