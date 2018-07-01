@@ -19,8 +19,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             var mapping = GetMapping(typeof(Instant));
             Assert.Equal("timestamp", mapping.StoreType);
 
-            var instant = new LocalDateTime(2018, 4, 20, 10, 31, 33, 666).InUtc().ToInstant();
-            Assert.Equal("TIMESTAMP '2018-04-20T10:31:33.666Z'", mapping.GenerateSqlLiteral(instant));
+            var instant = (new LocalDateTime(2018, 4, 20, 10, 31, 33, 666) + Period.FromTicks(6660)).InUtc().ToInstant();
+            Assert.Equal("TIMESTAMP '2018-04-20T10:31:33.666666Z'", mapping.GenerateSqlLiteral(instant));
         }
 
         [Fact]
@@ -29,8 +29,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             var mapping = GetMapping(typeof(LocalDateTime));
             Assert.Equal("timestamp", mapping.StoreType);
 
-            var localDateTime = new LocalDateTime(2018, 4, 20, 10, 31, 33, 666);
-            Assert.Equal("TIMESTAMP '2018-04-20T10:31:33.666'", mapping.GenerateSqlLiteral(localDateTime));
+            var localDateTime = new LocalDateTime(2018, 4, 20, 10, 31, 33, 666) + Period.FromTicks(6660);
+            Assert.Equal("TIMESTAMP '2018-04-20T10:31:33.666666'", mapping.GenerateSqlLiteral(localDateTime));
         }
 
         [Fact]
@@ -40,8 +40,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             Assert.Equal(typeof(Instant), mapping.ClrType);
             Assert.Equal("timestamp with time zone", mapping.StoreType);
 
-            var instant = new LocalDateTime(2018, 4, 20, 10, 31, 33, 666).InUtc().ToInstant();
-            Assert.Equal("TIMESTAMPTZ '2018-04-20T10:31:33.666Z'", mapping.GenerateSqlLiteral(instant));
+            var instant = (new LocalDateTime(2018, 4, 20, 10, 31, 33, 666) + Period.FromTicks(6660)).InUtc().ToInstant();
+            Assert.Equal("TIMESTAMPTZ '2018-04-20T10:31:33.666666Z'", mapping.GenerateSqlLiteral(instant));
         }
 
         [Fact]
@@ -50,9 +50,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             var mapping = GetMapping(typeof(ZonedDateTime));
             Assert.Equal("timestamp with time zone", mapping.StoreType);
 
-            var zonedDateTime = new LocalDateTime(2018, 4, 20, 10, 31, 33, 666)
+            var zonedDateTime = (new LocalDateTime(2018, 4, 20, 10, 31, 33, 666) + Period.FromTicks(6660))
                 .InZone(DateTimeZone.ForOffset(Offset.FromHours(2)), Resolvers.LenientResolver);
-            Assert.Equal("TIMESTAMPTZ '2018-04-20T10:31:33.666+02'", mapping.GenerateSqlLiteral(zonedDateTime));
+            Assert.Equal("TIMESTAMPTZ '2018-04-20T10:31:33.666666+02'", mapping.GenerateSqlLiteral(zonedDateTime));
         }
 
         [Fact]
@@ -61,8 +61,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             var mapping = GetMapping(typeof(OffsetDateTime));
             Assert.Equal("timestamp with time zone", mapping.StoreType);
 
-            var offsetDateTime = new OffsetDateTime(new LocalDateTime(2018, 4, 20, 10, 31, 33, 666), Offset.FromHours(2));
-            Assert.Equal("TIMESTAMPTZ '2018-04-20T10:31:33.666+02'", mapping.GenerateSqlLiteral(offsetDateTime));
+            var offsetDateTime = new OffsetDateTime(
+                new LocalDateTime(2018, 4, 20, 10, 31, 33, 666) + Period.FromTicks(6660),
+                Offset.FromHours(2));
+            Assert.Equal("TIMESTAMPTZ '2018-04-20T10:31:33.666666+02'", mapping.GenerateSqlLiteral(offsetDateTime));
         }
 
         [Fact]
@@ -80,6 +82,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
             Assert.Equal("TIME '10:31:33'", mapping.GenerateSqlLiteral(new LocalTime(10, 31, 33)));
             Assert.Equal("TIME '10:31:33.666'", mapping.GenerateSqlLiteral(new LocalTime(10, 31, 33, 666)));
+            Assert.Equal("TIME '10:31:33.666666'", mapping.GenerateSqlLiteral(new LocalTime(10, 31, 33, 666) + Period.FromTicks(6660)));
         }
 
         [Fact]
@@ -91,8 +94,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 new OffsetTime(new LocalTime(10, 31, 33), Offset.FromHours(2))));
             Assert.Equal("TIMETZ '10:31:33-02:30'", mapping.GenerateSqlLiteral(
                 new OffsetTime(new LocalTime(10, 31, 33), Offset.FromHoursAndMinutes(-2, -30))));
-            Assert.Equal("TIMETZ '10:31:33Z'", mapping.GenerateSqlLiteral(
-                new OffsetTime(new LocalTime(10, 31, 33), Offset.Zero)));
+            Assert.Equal("TIMETZ '10:31:33.666666Z'", mapping.GenerateSqlLiteral(
+                new OffsetTime(new LocalTime(10, 31, 33, 666) + Period.FromTicks(6660), Offset.Zero)));
         }
 
         [Fact]
@@ -105,6 +108,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
             var withMilliseconds = hms + Period.FromMilliseconds(1);
             Assert.Equal("INTERVAL 'PT4H3M2.001S'", mapping.GenerateSqlLiteral(withMilliseconds));
+
+            var withMicroseconds = hms + Period.FromTicks(6660);
+            Assert.Equal("INTERVAL 'PT4H3M2.000666S'", mapping.GenerateSqlLiteral(withMicroseconds));
 
             var withYearMonthDay = hms + Period.FromYears(2018) + Period.FromMonths(4) + Period.FromDays(20);
             Assert.Equal("INTERVAL 'P2018Y4M20DT4H3M2S'", mapping.GenerateSqlLiteral(withYearMonthDay));

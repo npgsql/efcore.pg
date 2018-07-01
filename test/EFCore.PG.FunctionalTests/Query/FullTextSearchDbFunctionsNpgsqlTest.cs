@@ -44,7 +44,7 @@ LIMIT 1");
             }
 
             AssertSql(
-                @"SELECT array_to_tsvector(ARRAY['b','c','d'])
+                @"SELECT array_to_tsvector(ARRAY['b','c','d']::text[])
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -504,7 +504,7 @@ LIMIT 1");
             }
 
             AssertSql(
-                @"SELECT setweight(to_tsvector('a'), 'A', ARRAY['a'])
+                @"SELECT setweight(to_tsvector('a'), 'A', ARRAY['a']::text[])
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -538,7 +538,7 @@ LIMIT 1");
             }
 
             AssertSql(
-                @"SELECT setweight(to_tsvector('a'), 'A', ARRAY['a'])
+                @"SELECT setweight(to_tsvector('a'), 'A', ARRAY['a']::text[])
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -572,7 +572,7 @@ LIMIT 1");
             }
 
             AssertSql(
-                @"SELECT ts_delete(to_tsvector('b c d'), ARRAY['c','d'])
+                @"SELECT ts_delete(to_tsvector('b c d'), ARRAY['c','d']::text[])
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -589,7 +589,7 @@ LIMIT 1");
             }
 
             AssertSql(
-                @"SELECT ts_filter(CAST('b:1A c:2B d:3C' AS tsvector), CAST(ARRAY['B','C'] AS ""char""[]))
+                @"SELECT ts_filter(CAST('b:1A c:2B d:3C' AS tsvector), CAST(ARRAY['B','C']::character(1)[] AS ""char""[]))
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -680,7 +680,7 @@ LIMIT 1");
             }
 
             AssertSql(
-                @"SELECT ts_rank(ARRAY[1,1,1,1], to_tsvector('a b c'), to_tsquery('b'))
+                @"SELECT ts_rank(ARRAY[1,1,1,1]::real[], to_tsvector('a b c'), to_tsquery('b'))
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -701,7 +701,7 @@ LIMIT 1");
             }
 
             AssertSql(
-                @"SELECT ts_rank(ARRAY[1,1,1,1], to_tsvector('a b c'), to_tsquery('b'), 2)
+                @"SELECT ts_rank(ARRAY[1,1,1,1]::real[], to_tsvector('a b c'), to_tsquery('b'), 2)
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -758,7 +758,7 @@ LIMIT 1");
             }
 
             AssertSql(
-                @"SELECT ts_rank_cd(ARRAY[1,1,1,1], to_tsvector('a b c'), to_tsquery('b'))
+                @"SELECT ts_rank_cd(ARRAY[1,1,1,1]::real[], to_tsvector('a b c'), to_tsquery('b'))
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -779,7 +779,7 @@ LIMIT 1");
             }
 
             AssertSql(
-                @"SELECT ts_rank_cd(ARRAY[1,1,1,1], to_tsvector('a b c'), to_tsquery('b'), 2)
+                @"SELECT ts_rank_cd(ARRAY[1,1,1,1]::real[], to_tsvector('a b c'), to_tsquery('b'), 2)
 FROM ""Customers"" AS c
 LIMIT 1");
         }

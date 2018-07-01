@@ -74,7 +74,7 @@ DROP SEQUENCE ""DefaultFacetsSequence"";
 DROP SEQUENCE db2.""CustomFacetsSequence""");
         }
 
-        [Fact(Skip="Travis doesn't have PG10 which is required. Need to set up conditional fact.")]
+        [Fact]
         public void Sequence_min_max_start_values_are_null_if_default()
         {
             Test(
@@ -1536,7 +1536,7 @@ COMMENT ON COLUMN comment.a IS 'column comment'",
                 "DROP TABLE comment");
         }
 
-        [Fact(Skip="Travis doesn't have PG10 which is required. Need to set up conditional fact.")]
+        [Fact]
         public void Sequence_types()
         {
             Test(
@@ -1624,6 +1624,24 @@ CREATE TABLE foo (mood mood);",
                     Assert.Equal(0, dbModel.Tables.Single().Columns.Count);
                 },
                 "DROP TABLE foo; DROP TYPE mood; DROP TYPE db2.mood;");
+        }
+
+        [Fact]
+        public void Bug453()
+        {
+            Test(
+                @"
+CREATE TYPE mood AS ENUM ('happy', 'sad');
+CREATE TABLE foo (mood mood, some_num int UNIQUE);
+CREATE TABLE bar (foreign_key int REFERENCES foo(some_num))",
+                Enumerable.Empty<string>(),
+                Enumerable.Empty<string>(),
+                dbModel =>
+                {
+                    // Enum columns are left out of the model for now (a warning is logged).
+                    Assert.Equal(1, dbModel.Tables.Single(t => t.Name == "foo").Columns.Count);
+                },
+                "DROP TABLE bar; DROP TABLE foo; DROP TYPE mood;");
         }
 
         [Fact]

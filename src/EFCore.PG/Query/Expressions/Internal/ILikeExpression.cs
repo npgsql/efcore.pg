@@ -161,10 +161,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
                 return true;
             }
 
-            return obj.GetType() == GetType() && Equals((LikeExpression)obj);
+            return obj.GetType() == GetType() && Equals((ILikeExpression)obj);
         }
 
-        private bool Equals(LikeExpression other)
+        bool Equals(ILikeExpression other)
             => Equals(Match, other.Match)
                && Equals(Pattern, other.Pattern)
                && Equals(EscapeChar, other.EscapeChar);

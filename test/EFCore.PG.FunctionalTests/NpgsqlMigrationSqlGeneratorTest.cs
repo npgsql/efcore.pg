@@ -483,7 +483,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 @"ALTER TABLE ""People"" ALTER COLUMN ""LongKey"" TYPE bigint;" + EOL +
                 @"ALTER TABLE ""People"" ALTER COLUMN ""LongKey"" SET NOT NULL;" + EOL +
                 @"ALTER TABLE ""People"" ALTER COLUMN ""LongKey"" SET DEFAULT (nextval('""People_LongKey_seq""'));" + EOL +
-                @"ALTER SEQUENCE ""People_LongKey_seq"" OWNED BY ""People"".""LongKey""",
+                @"ALTER SEQUENCE ""People_LongKey_seq"" OWNED BY ""People"".""LongKey"";" + EOL,
                 Sql);
         }
 
@@ -937,7 +937,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 @"ALTER TABLE dbo.""People"" ALTER COLUMN ""LuckyNumber"" TYPE int;" + EOL +
                 @"ALTER TABLE dbo.""People"" ALTER COLUMN ""LuckyNumber"" SET NOT NULL;" + EOL +
                 @"ALTER TABLE dbo.""People"" ALTER COLUMN ""LuckyNumber"" SET DEFAULT 7;" + EOL +
-                "COMMENT ON COLUMN dbo.\"People\".\"LuckyNumber\" IS 'New comment'",
+                "COMMENT ON COLUMN dbo.\"People\".\"LuckyNumber\" IS 'New comment';" + EOL,
                 Sql);
         }
 
@@ -961,7 +961,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 @"ALTER TABLE dbo.""People"" ALTER COLUMN ""LuckyNumber"" TYPE int;" + EOL +
                 @"ALTER TABLE dbo.""People"" ALTER COLUMN ""LuckyNumber"" SET NOT NULL;" + EOL +
                 @"ALTER TABLE dbo.""People"" ALTER COLUMN ""LuckyNumber"" SET DEFAULT 7;" + EOL +
-                "COMMENT ON COLUMN dbo.\"People\".\"LuckyNumber\" IS NULL",
+                "COMMENT ON COLUMN dbo.\"People\".\"LuckyNumber\" IS NULL;" + EOL,
                 Sql);
         }
 
