@@ -29,4 +29,7 @@
     <PackageReference Include="Npgsql.NetTopologySuite" Version="1.0.1" />
     <PackageReference Include="Npgsql" Version="4.0.0" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="SourceLink.Create.CommandLine" Version="2.8.2" />
+  </ItemGroup>
 </Project>
