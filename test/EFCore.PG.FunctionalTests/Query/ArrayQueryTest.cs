@@ -182,6 +182,58 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         #endregion
 
+        #region AnyAll
+
+        [Fact]
+        public void Array_like_any_when_match_expression_is_column()
+        {
+            using (var ctx = CreateContext())
+            {
+                var patterns = new[] { "a", "b", "c" };
+
+                var anon =
+                    ctx.SomeEntities
+                       .Select(
+                           x => new
+                           {
+                               Array = x.SomeArray,
+                               List = x.SomeList,
+                               Text = x.SomeText
+                           });
+
+                var _ = anon.Where(x => patterns.Any(p => EF.Functions.Like(x.Text, p))).ToList();
+
+                AssertContainsInSql("x.\"SomeText\" LIKE ANY (@__patterns_0) = TRUE");
+            }
+        }
+
+        [Fact]
+        public void Array_like_any_not_translated_when_match_expression_is_qsre()
+        {
+            using (var ctx = CreateContext())
+            {
+                var matches = new[] { "a", "b", "c" };
+
+                var anon =
+                    ctx.SomeEntities
+                       .Select(
+                           x => new
+                           {
+                               Array = x.SomeArray,
+                               List = x.SomeList,
+                               Text = x.SomeText
+                           });
+
+                var _ = anon.Where(x => matches.Any(m => EF.Functions.Like(m, x.Text))).ToList();
+
+                AssertDoesNotContainInSql("LIKE");
+                AssertDoesNotContainInSql("ANY");
+                AssertDoesNotContainInSql("@__matches_0");
+            }
+        }
+
+        #endregion
+
         #endregion
 
         #region Support
