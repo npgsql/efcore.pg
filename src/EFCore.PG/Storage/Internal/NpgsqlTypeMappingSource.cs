@@ -123,6 +123,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         readonly NpgsqlVarbitTypeMapping       _varbit             = new NpgsqlVarbitTypeMapping();
         readonly NpgsqlByteArrayTypeMapping    _bytea              = new NpgsqlByteArrayTypeMapping();
         readonly NpgsqlHstoreTypeMapping       _hstore             = new NpgsqlHstoreTypeMapping();
+        readonly NpgsqlTidTypeMapping          _tid                = new NpgsqlTidTypeMapping();
 
         #endregion Mappings
 
@@ -203,6 +204,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 { "cid",                         new[] { _cid                          } },
                 { "regtype",                     new[] { _regtype                      } },
                 { "lo",                          new[] { _lo                           } },
+                { "tid",                         new[] { _tid                          } },
 
                 { "int4range",                   new[] { _int4range                    } },
                 { "int8range",                   new[] { _int8range                    } },
@@ -237,6 +239,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 { typeof((IPAddress, int)),             _cidr                 },
                 { typeof(BitArray),                     _varbit               },
                 { typeof(Dictionary<string, string>),   _hstore               },
+                { typeof(NpgsqlTid),                    _tid                  },
                 { typeof(NpgsqlPoint),                  _point                },
                 { typeof(NpgsqlBox),                    _box                  },
                 { typeof(NpgsqlLine),                   _line                 },

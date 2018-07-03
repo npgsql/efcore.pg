@@ -279,6 +279,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
 
         enum DummyEnum { Happy, Sad };
 
+        [Fact]
+        public void GenerateSqlLiteral_returns_tid_literal()
+            => Assert.Equal(@"TID '(0,1)'", GetMapping("tid").GenerateSqlLiteral(new NpgsqlTid(0, 1)));
+
         #endregion Misc
 
         #region Ranges
