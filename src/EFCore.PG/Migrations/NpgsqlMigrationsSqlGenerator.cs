@@ -375,6 +375,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                     case NpgsqlValueGenerationStrategy.SerialColumn:
                         switch (type)
                         {
+                        case "integer":
                         case "int":
                         case "int4":
                         case "bigint":
