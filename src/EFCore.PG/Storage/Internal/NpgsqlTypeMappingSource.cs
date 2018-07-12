@@ -357,14 +357,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             {
                 if (clrType == typeof(string))
                 {
+                    mapping = mappingInfo.IsFixedLength ?? false ? _char : _varchar;
+
                     // See #342 for when size > 10485760
                     return mappingInfo.Size <= 10485760
-                        ? _varchar.Clone($"varchar({mappingInfo.Size})", mappingInfo.Size)
+                        ? mapping.Clone($"{mapping.StoreType}({mappingInfo.Size})", mappingInfo.Size)
                         : _text;
                 }
 
                 if (clrType == typeof(BitArray))
-                    return _varbit.Clone($"varbit({mappingInfo.Size})", mappingInfo.Size);
+                {
+                    mapping = mappingInfo.IsFixedLength ?? false ? (RelationalTypeMapping)_bit : _varbit;
+                    return mapping.Clone($"{mapping.StoreType}({mappingInfo.Size})", mappingInfo.Size);
+                }
             }
             else if (mappingInfo.Precision.HasValue)
             {

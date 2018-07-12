@@ -777,21 +777,22 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         #region Utilities
 
         protected override void ColumnDefinition(
-            [CanBeNull] string schema,
-            [NotNull] string table,
-            [NotNull] string name,
-            [NotNull] Type clrType,
-            [CanBeNull] string type,
-            [CanBeNull] bool? unicode,
-            [CanBeNull] int? maxLength,
+            string schema,
+            string table,
+            string name,
+            Type clrType,
+            string type,
+            bool? unicode,
+            int? maxLength,
+            bool? fixedLength,
             bool rowVersion,
             bool nullable,
-            [CanBeNull] object defaultValue,
-            [CanBeNull] string defaultValueSql,
-            [CanBeNull] string computedColumnSql,
-            [NotNull] IAnnotatable annotatable,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            object defaultValue,
+            string defaultValueSql,
+            string computedColumnSql,
+            IAnnotatable annotatable,
+            IModel model,
+            MigrationCommandListBuilder builder)
         {
             Check.NotEmpty(name, nameof(name));
             Check.NotNull(annotatable, nameof(annotatable));
@@ -799,7 +800,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             Check.NotNull(builder, nameof(builder));
 
             if (type == null)
-                type = GetColumnType(schema, table, name, clrType, unicode, maxLength, rowVersion, model);
+                type = GetColumnType(schema, table, name, clrType, unicode, maxLength, fixedLength, rowVersion, model);
 
             // User-defined type names are quoted if they contain uppercase letters. Other types are never quoted
             // since users sometimes prefer to write TEXT instead of text.
@@ -836,6 +837,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 type,
                 unicode,
                 maxLength,
+                fixedLength,
                 rowVersion,
                 nullable,
                 defaultValue,
@@ -856,40 +858,25 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             }
         }
 
-        protected override void ColumnDefinition(
-            [CanBeNull] string schema,
-            [NotNull] string table,
-            [NotNull] string name,
-            [NotNull] Type clrType,
-            [CanBeNull] string type,
-            bool? unicode,
-            int? maxLength,
-            bool? fixedLength,
-            bool rowVersion,
-            bool nullable,
-            [CanBeNull] object defaultValue,
-            [CanBeNull] string defaultValueSql,
-            [CanBeNull] string computedColumnSql,
-            [NotNull] IAnnotatable annotatable,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
-        {
-            Check.NotEmpty(name, nameof(name));
-            Check.NotNull(clrType, nameof(clrType));
-            Check.NotNull(annotatable, nameof(annotatable));
-            Check.NotNull(builder, nameof(builder));
-
-            if (type == null)
-                type = GetColumnType(schema, table, name, clrType, unicode, maxLength, fixedLength, rowVersion, model);
-            builder
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(name))
-                .Append(" ")
-                .Append(type);
-
-            builder.Append(nullable ? " NULL" : " NOT NULL");
-
-            DefaultValue(defaultValue, defaultValueSql, builder);
-        }
+        // Required to "activate" IsFixedLength
+        protected override void ColumnDefinition(AddColumnOperation operation, IModel model, MigrationCommandListBuilder builder)
+            => ColumnDefinition(
+                operation.Schema,
+                operation.Table,
+                operation.Name,
+                operation.ClrType,
+                operation.ColumnType,
+                operation.IsUnicode,
+                operation.MaxLength,
+                operation.IsFixedLength,
+                operation.IsRowVersion,
+                operation.IsNullable,
+                operation.DefaultValue,
+                operation.DefaultValueSql,
+                operation.ComputedColumnSql,
+                operation,
+                model,
+                builder);
 
 #pragma warning disable 618
         // Version 1.0 had a bad strategy for expressing serial columns, which depended on a

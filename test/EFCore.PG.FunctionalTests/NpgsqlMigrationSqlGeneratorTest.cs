@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -56,7 +57,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             base.AddColumnOperation_with_maxLength();
 
             Assert.Equal(
-                @"ALTER TABLE ""Person"" ADD ""Name"" varchar(30) NULL;" + EOL,
+                @"ALTER TABLE ""Person"" ADD ""Name"" character varying(30) NULL;" + EOL,
                 Sql);
         }
 
@@ -340,7 +341,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 });
 
             Assert.Equal(
-                "ALTER TABLE \"People\" ALTER COLUMN \"Name\" TYPE varchar(30);" + EOL +
+                "ALTER TABLE \"People\" ALTER COLUMN \"Name\" TYPE character varying(30);" + EOL +
                 "ALTER TABLE \"People\" ALTER COLUMN \"Name\" SET NOT NULL;" + EOL +
                 "ALTER TABLE \"People\" ALTER COLUMN \"Name\" DROP DEFAULT;" + EOL,
                 Sql);
@@ -1103,6 +1104,56 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                          "    \"SomeCamelCaseEnum\" \"SomeCamelCaseEnum\" NOT NULL" + EOL +
                          ");" + EOL, Sql);
         }  // yuval
+
+        [Fact]
+        public void FixedLength()
+        {
+            Generate(new CreateTableOperation
+            {
+                Name = "types",
+                Columns =
+                {
+                    new AddColumnOperation
+                    {
+                        Name = "char",
+                        Table = "types",
+                        ClrType = typeof(string),
+                        MaxLength = 30,
+                        IsFixedLength = true
+                    },
+                    new AddColumnOperation
+                    {
+                        Name = "varchar",
+                        Table = "types",
+                        ClrType = typeof(string),
+                        MaxLength = 30,
+                        IsFixedLength = false
+                    },
+                    new AddColumnOperation
+                    {
+                        Name = "bit",
+                        Table = "types",
+                        ClrType = typeof(BitArray),
+                        MaxLength = 30,
+                        IsFixedLength = true
+                    },
+                    new AddColumnOperation
+                    {
+                        Name = "varbit",
+                        Table = "types",
+                        ClrType = typeof(BitArray),
+                        MaxLength = 30,
+                        IsFixedLength = false
+                    }
+                }
+            });
+            Assert.Equal("CREATE TABLE types (" + EOL +
+                         "    char character(30) NOT NULL," + EOL +
+                         "    varchar character varying(30) NOT NULL," + EOL +
+                         "    bit bit(30) NOT NULL," + EOL +
+                         "    varbit bit varying(30) NOT NULL" + EOL +
+                         ");" + EOL, Sql);
+        }
 
         public NpgsqlMigrationSqlGeneratorTest()
             : base(NpgsqlTestHelpers.Instance)
