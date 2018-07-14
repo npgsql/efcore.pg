@@ -1305,23 +1305,37 @@ CREATE TABLE ""PrincipalTable"" (
 
 CREATE TABLE ""DependentTable"" (
     ""Id"" int PRIMARY KEY,
-    ""ForeignKeyId"" int,
-    FOREIGN KEY (""ForeignKeyId"") REFERENCES ""PrincipalTable""(""Id"") ON DELETE SET NULL
+    ""ForeignKeySetNullId"" int,
+    ""ForeignKeyCascadeId"" int,
+    ""ForeignKeyNoActionId"" int,
+    ""ForeignKeyRestrictId"" int,
+    ""ForeignKeySetDefaultId"" int,
+    FOREIGN KEY (""ForeignKeySetNullId"") REFERENCES ""PrincipalTable""(""Id"") ON DELETE SET NULL,
+    FOREIGN KEY (""ForeignKeyCascadeId"") REFERENCES ""PrincipalTable""(""Id"") ON DELETE CASCADE,
+    FOREIGN KEY (""ForeignKeyNoActionId"") REFERENCES ""PrincipalTable""(""Id"") ON DELETE NO ACTION,
+    FOREIGN KEY (""ForeignKeyRestrictId"") REFERENCES ""PrincipalTable""(""Id"") ON DELETE RESTRICT,
+    FOREIGN KEY (""ForeignKeySetDefaultId"") REFERENCES ""PrincipalTable""(""Id"") ON DELETE SET DEFAULT
 );",
                 Enumerable.Empty<string>(),
                 Enumerable.Empty<string>(),
                 dbModel =>
                     {
-                        var fk = Assert.Single(dbModel.Tables.Single(t => t.Name == "DependentTable").ForeignKeys);
+                        var table = dbModel.Tables.Single(t => t.Name == "DependentTable");
 
-                        // ReSharper disable once PossibleNullReferenceException
-                        Assert.Equal("public", fk.Table.Schema);
-                        Assert.Equal("DependentTable", fk.Table.Name);
-                        Assert.Equal("public", fk.PrincipalTable.Schema);
-                        Assert.Equal("PrincipalTable", fk.PrincipalTable.Name);
-                        Assert.Equal(new List<string> { "ForeignKeyId" }, fk.Columns.Select(ic => ic.Name).ToList());
-                        Assert.Equal(new List<string> { "Id" }, fk.PrincipalColumns.Select(ic => ic.Name).ToList());
-                        Assert.Equal(ReferentialAction.SetNull, fk.OnDelete);
+                        foreach (var fk in table.ForeignKeys)
+                        {
+                            Assert.Equal("public", fk.Table.Schema);
+                            Assert.Equal("DependentTable", fk.Table.Name);
+                            Assert.Equal("public", fk.PrincipalTable.Schema);
+                            Assert.Equal("PrincipalTable", fk.PrincipalTable.Name);
+                            Assert.Equal(new List<string> { "Id" }, fk.PrincipalColumns.Select(ic => ic.Name).ToList());
+                        }
+
+                        Assert.Equal(ReferentialAction.SetNull,    table.ForeignKeys.Single(fk => fk.Columns.Single().Name == "ForeignKeySetNullId").OnDelete);
+                        Assert.Equal(ReferentialAction.Cascade,    table.ForeignKeys.Single(fk => fk.Columns.Single().Name == "ForeignKeyCascadeId").OnDelete);
+                        Assert.Equal(ReferentialAction.NoAction,   table.ForeignKeys.Single(fk => fk.Columns.Single().Name == "ForeignKeyNoActionId").OnDelete);
+                        Assert.Equal(ReferentialAction.Restrict,   table.ForeignKeys.Single(fk => fk.Columns.Single().Name == "ForeignKeyRestrictId").OnDelete);
+                        Assert.Equal(ReferentialAction.SetDefault, table.ForeignKeys.Single(fk => fk.Columns.Single().Name == "ForeignKeySetDefaultId").OnDelete);
                     },
                 @"
 DROP TABLE ""DependentTable"";
