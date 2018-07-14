@@ -107,6 +107,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         // Full text search mappings
         readonly NpgsqlTsQueryTypeMapping   _tsquery               = new NpgsqlTsQueryTypeMapping();
         readonly NpgsqlTsVectorTypeMapping  _tsvector              = new NpgsqlTsVectorTypeMapping();
+        readonly NpgsqlRegconfigTypeMapping _regconfig             = new NpgsqlRegconfigTypeMapping();
         readonly NpgsqlTsRankingNormalizationTypeMapping _rankingNormalization = new NpgsqlTsRankingNormalizationTypeMapping();
 
         // Built-in ranges
@@ -214,7 +215,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 { "daterange",                   new[] { _daterange                    } },
 
                 { "tsquery",                     new[] { _tsquery                      } },
-                { "tsvector",                    new[] { _tsvector                     } }
+                { "tsvector",                    new[] { _tsvector                     } },
+                { "regconfig",                   new[] { _regconfig                    } }
             };
 
             var clrTypeMappings = new Dictionary<Type, RelationalTypeMapping>
