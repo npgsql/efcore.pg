@@ -1,4 +1,29 @@
-﻿using System;
+﻿#region License
+
+// The PostgreSQL License
+//
+// Copyright (C) 2016 The Npgsql Development Team
+//
+// Permission to use, copy, modify, and distribute this software and its
+// documentation for any purpose, without fee, and without a written
+// agreement is hereby granted, provided that the above copyright notice
+// and this paragraph and the following two paragraphs appear in all copies.
+//
+// IN NO EVENT SHALL THE NPGSQL DEVELOPMENT TEAM BE LIABLE TO ANY PARTY
+// FOR DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES,
+// INCLUDING LOST PROFITS, ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS
+// DOCUMENTATION, EVEN IF THE NPGSQL DEVELOPMENT TEAM HAS BEEN ADVISED OF
+// THE POSSIBILITY OF SUCH DAMAGE.
+//
+// THE NPGSQL DEVELOPMENT TEAM SPECIFICALLY DISCLAIMS ANY WARRANTIES,
+// INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+// AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
+// ON AN "AS IS" BASIS, AND THE NPGSQL DEVELOPMENT TEAM HAS NO OBLIGATIONS
+// TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+
+#endregion
+
+using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -18,7 +43,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         /// <summary>
         /// The minimum backend version supported by this translator.
         /// </summary>
-        [NotNull] static readonly Version MinimumSupportedVersion = new Version("9.4");
+        [NotNull] static readonly Version MinimumSupportedVersion = new Version(9, 4);
 
         /// <summary>
         /// The mapping of supported method translations.
@@ -44,7 +69,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         /// <summary>
         /// The backend process to target.
         /// </summary>
-        readonly Backend _backend;
+        readonly BackendType _backendType;
 
         /// <summary>
         /// The backend version to target.
@@ -54,11 +79,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         /// <summary>
         /// Initializes a new instance of the <see cref="NpgsqlDateAddTranslator"/> class.
         /// </summary>
-        /// <param name="backend">The backend process to target.</param>
+        /// <param name="backendType">The backend process to target.</param>
         /// <param name="compatibility">The backend version to target.</param>
-        public NpgsqlDateAddTranslator(Backend backend, [NotNull] Version compatibility)
+        public NpgsqlDateAddTranslator(BackendType backendType, [NotNull] Version compatibility)
         {
-            _backend = backend;
+            _backendType = backendType;
             _compatibility = Check.NotNull(compatibility, nameof(compatibility));
         }
 
@@ -66,7 +91,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         public virtual Expression Translate(MethodCallExpression methodCallExpression)
         {
             // This translation is only supported for PostgreSQL 9.4 or higher.
-            if (_backend != Backend.PostgreSQL || _compatibility < MinimumSupportedVersion)
+            if (_compatibility < MinimumSupportedVersion)
                 return null;
 
             if (!MethodInfoDatePartMapping.TryGetValue(methodCallExpression.Method, out var datePart))
@@ -77,13 +102,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             // We could use the provider-specific NpgsqlTimeSpan but it's not currently supported and is somewhat
             // ugly, so we just generate the expression ourselves with CustomBinaryExpression
 
-            if (!(methodCallExpression.Object is Expression instance))
-                return null;
-
-            if (methodCallExpression.Arguments.Count < 1)
-                return null;
-
-            if (!(methodCallExpression.Arguments[0] is Expression amountToAdd))
+            if (!(methodCallExpression.Object is Expression instance) ||
+                methodCallExpression.Arguments.Count < 1 ||
+                !(methodCallExpression.Arguments[0] is Expression amountToAdd))
                 return null;
 
             if (amountToAdd is ConstantExpression constantExpression &&

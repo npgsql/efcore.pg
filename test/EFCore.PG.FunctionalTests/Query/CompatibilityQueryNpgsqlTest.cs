@@ -80,7 +80,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         #region Fixtures
 
         /// <summary>
-        /// Represents a fixture suitable for testing compatibility.
+        /// Represents a fixture suitable for testing backendVersion.
         /// </summary>
         public class CompatibilityQueryNpgsqlFixure : IDisposable
         {
@@ -135,12 +135,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             /// <summary>
             /// Creates a new <see cref="CompatibilityContext"/>.
             /// </summary>
-            /// <param name="backend">The backend process to target.</param>
+            /// <param name="backendType">The backend process to target.</param>
             /// <param name="compatibility">The backend version to target.</param>
             /// <returns>
             /// A <see cref="CompatibilityContext"/> for testing.
             /// </returns>
-            public CompatibilityContext CreateContext(Backend backend = Backend.PostgreSQL, Version compatibility = null)
+            public CompatibilityContext CreateContext(BackendType backendType = BackendType.PostgreSQL, Version compatibility = null)
                 => new CompatibilityContext(
                     new DbContextOptionsBuilder()
                         .UseNpgsql(
@@ -148,9 +148,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                             x =>
                             {
                                 x.ApplyConfiguration();
-                                x.SetBackend(backend);
+                                x.SetBackendType(backendType);
                                 if (compatibility != null)
-                                    x.SetCompatibility(compatibility);
+                                    x.SetBackendVersion(compatibility);
                             })
                         .UseInternalServiceProvider(
                             new ServiceCollection()
@@ -161,7 +161,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         }
 
         /// <summary>
-        /// Represents an entity suitable for testing compatibility.
+        /// Represents an entity suitable for testing backendVersion.
         /// </summary>
         public class CompatibilityTestEntity
         {
@@ -182,7 +182,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         public class CompatibilityContext : DbContext
         {
             /// <summary>
-            /// Represents a set of entities for compatibility testing.
+            /// Represents a set of entities for backendVersion testing.
             /// </summary>
             public DbSet<CompatibilityTestEntity> CompatibilityTestEntities { get; set; }
 

@@ -23,7 +23,6 @@
 
 #endregion
 
-using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -33,7 +32,6 @@ using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
 using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors;
 using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Remotion.Linq.Clauses;
 using Remotion.Linq.Clauses.Expressions;
@@ -41,13 +39,8 @@ using Remotion.Linq.Clauses.ResultOperators;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
 {
-    /// <summary>
-    /// The default relational LINQ translating expression visitor for Npgsql.
-    /// </summary>
     public class NpgsqlSqlTranslatingExpressionVisitor : SqlTranslatingExpressionVisitor
     {
-        #region MethodInfo
-
         /// <summary>
         /// The <see cref="MethodInfo"/> for <see cref="DbFunctionsExtensions.Like(DbFunctions,string,string)"/>.
         /// </summary>
@@ -78,49 +71,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
             typeof(NpgsqlDbFunctionsExtensions)
                 .GetRuntimeMethod(nameof(NpgsqlDbFunctionsExtensions.ILike), new[] { typeof(DbFunctions), typeof(string), typeof(string), typeof(string) });
 
-        #endregion
-
-        /// <summary>
-        /// The backend process to target.
-        /// </summary>
-        readonly Backend _backend;
-
-        /// <summary>
-        /// The backend version to target.
-        /// </summary>
-        [NotNull] readonly Version _compatibility;
-
         /// <summary>
         /// The query model visitor.
         /// </summary>
         [NotNull] readonly RelationalQueryModelVisitor _queryModelVisitor;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="NpgsqlSqlTranslatingExpressionVisitor"/> class.
-        /// </summary>
-        /// <param name="dependencies">Parameter object containing dependencies for this service.</param>
-        /// <param name="queryModelVisitor">The query model visitor.</param>
-        /// <param name="backend">The backend process to target.</param>
-        /// <param name="compatibility">The backend version to target.</param>
-        /// <param name="targetSelectExpression">The target select expression.</param>
-        /// <param name="topLevelPredicate">The top level predicate.</param>
-        /// <param name="inProjection">True if the expression to be translated is a LINQ projection; otherwise, false.</param>
+        /// <inheritdoc />
         public NpgsqlSqlTranslatingExpressionVisitor(
             [NotNull] SqlTranslatingExpressionVisitorDependencies dependencies,
             [NotNull] RelationalQueryModelVisitor queryModelVisitor,
-            Backend backend,
-            [NotNull] Version compatibility,
             [CanBeNull] SelectExpression targetSelectExpression = null,
             [CanBeNull] Expression topLevelPredicate = null,
             bool inProjection = false)
             : base(dependencies, queryModelVisitor, targetSelectExpression, topLevelPredicate, inProjection)
-        {
-            _queryModelVisitor = queryModelVisitor;
-            _backend = backend;
-            _compatibility = compatibility;
-        }
-
-        #region Visits
+            => _queryModelVisitor = queryModelVisitor;
 
         /// <inheritdoc />
         protected override Expression VisitSubQuery(SubQueryExpression expression)
@@ -252,7 +216,5 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
             }
             // ReSharper restore AssignNullToNotNullAttribute
         }
-
-        #endregion
     }
 }

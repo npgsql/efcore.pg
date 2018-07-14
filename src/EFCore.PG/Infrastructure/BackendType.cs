@@ -23,39 +23,34 @@
 
 #endregion
 
-using System;
-using System.Collections.Generic;
 using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
 {
     /// <summary>
-    /// Represents options for Npgsql that can only be set at the <see cref="IServiceProvider"/> singleton level.
+    /// Describes the backend process that uses the PostgreSQL wire protocol.
     /// </summary>
-    public interface INpgsqlOptions : ISingletonOptions
+    [PublicAPI]
+    public enum BackendType
     {
         /// <summary>
-        /// The backend process to target.
+        /// The backend process is PostgreSQL.
         /// </summary>
-        BackendType BackendType { get; }
+        PostgreSQL,
 
         /// <summary>
-        /// The backend version to target.
+        /// The backend process is Amazon Redshift.
         /// </summary>
-        [CanBeNull]
-        Version BackendVersion { get; }
+        Redshift,
 
         /// <summary>
-        /// True if reverse null ordering is enabled; otherwise, false.
+        /// The backend process is CockroachDB.
         /// </summary>
-        bool ReverseNullOrderingEnabled { get; }
+        CockroachDB,
 
         /// <summary>
-        /// The collection of database plugins.
+        /// The backend process is CrateDB.
         /// </summary>
-        [NotNull]
-        [ItemNotNull]
-        IReadOnlyList<NpgsqlEntityFrameworkPlugin> Plugins { get; }
+        CrateDB
     }
 }

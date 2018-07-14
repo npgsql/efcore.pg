@@ -64,16 +64,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         /// <summary>
         /// Configures the backend process to target.
         /// </summary>
-        /// <param name="backend">The backend process to target.</param>
-        public virtual void SetBackend(Backend backend)
-            => WithOption(e => e.WithBackend(backend));
+        /// <param name="backendType">The backend process to target.</param>
+        public virtual void SetBackendType(BackendType backendType)
+            => WithOption(e => e.WithBackendType(backendType));
 
         /// <summary>
         /// Configures the backend version to target.
         /// </summary>
-        /// <param name="compatibility">The backend version to target.</param>
-        public virtual void SetCompatibility([CanBeNull] Version compatibility)
-            => WithOption(e => e.WithCompatiblity(compatibility));
+        /// <param name="backendVersion">The backend version to target.</param>
+        public virtual void SetBackendVersion([CanBeNull] Version backendVersion)
+            => WithOption(e => e.WithBackendVersion(backendVersion));
 
         /// <summary>
         /// Appends NULLS FIRST to all ORDER BY clauses. This is important for the tests which were written

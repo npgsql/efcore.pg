@@ -31,67 +31,34 @@ using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
 using Microsoft.EntityFrameworkCore.Query.Sql;
 using Microsoft.EntityFrameworkCore.Storage;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 using Remotion.Linq.Clauses;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
 {
-    /// <summary>
-    /// The default query SQL generator for Npgsql.
-    /// </summary>
     public class NpgsqlQuerySqlGenerator : DefaultQuerySqlGenerator
     {
-        /// <summary>
-        /// The backend process to target;
-        /// </summary>
-        readonly Backend _backend;
-
-        /// <summary>
-        /// The backend version to target.
-        /// </summary>
-        [NotNull] readonly Version _compatibility;
-
-        /// <summary>
-        /// True if null ordering is reversed; otherwise, false.
-        /// </summary>
         readonly bool _reverseNullOrderingEnabled;
 
-        /// <inheritdoc />
         protected override string TypedTrueLiteral { get; } = "TRUE::bool";
 
-        /// <inheritdoc />
         protected override string TypedFalseLiteral { get; } = "FALSE::bool";
 
-        /// <summary>
-        /// Creates a new instance of the <see cref="NpgsqlQuerySqlGenerator"/> class.
-        /// </summary>
-        /// <param name="dependencies">Parameter object containing dependencies for this service.</param>
-        /// <param name="selectExpression">The select expression.</param>
-        /// <param name="backend">The backend process to target.</param>
-        /// <param name="compatibility">The backend version to target.</param>
-        /// <param name="reverseNullOrderingEnabled">True if null ordering is reversed; otherwise, false.</param>
         public NpgsqlQuerySqlGenerator(
             [NotNull] QuerySqlGeneratorDependencies dependencies,
             [NotNull] SelectExpression selectExpression,
-            Backend backend,
-            [NotNull] Version compatibility,
             bool reverseNullOrderingEnabled)
             : base(dependencies, selectExpression)
         {
-            _backend = backend;
-            _compatibility = compatibility;
             _reverseNullOrderingEnabled = reverseNullOrderingEnabled;
         }
 
-        /// <inheritdoc />
         protected override void GenerateTop(SelectExpression selectExpression)
         {
             // No TOP() in PostgreSQL, see GenerateLimitOffset
         }
 
-        /// <inheritdoc />
         protected override void GenerateLimitOffset(SelectExpression selectExpression)
         {
             Check.NotNull(selectExpression, nameof(selectExpression));
@@ -114,7 +81,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
             }
         }
 
-        /// <inheritdoc />
         public override Expression VisitSqlFunction(SqlFunctionExpression sqlFunctionExpression)
         {
             var expr = base.VisitSqlFunction(sqlFunctionExpression);
@@ -142,7 +108,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
             return expr;
         }
 
-        /// <inheritdoc />
         protected override Expression VisitBinary(BinaryExpression expression)
         {
             switch (expression.NodeType)
@@ -172,7 +137,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
             return base.VisitBinary(expression);
         }
 
-        /// <inheritdoc />
         protected override Expression VisitUnary(UnaryExpression expression)
         {
             if (expression.NodeType == ExpressionType.ArrayLength)
@@ -331,7 +295,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
             return castExpression;
         }
 
-        /// <inheritdoc />
         protected override string GenerateOperator(Expression expression)
         {
             switch (expression.NodeType)
@@ -356,7 +319,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
             }
         }
 
-        /// <inheritdoc />
         protected override void GenerateOrdering(Ordering ordering)
         {
             base.GenerateOrdering(ordering);
