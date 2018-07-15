@@ -25,7 +25,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.1.1" PrivateAssets="none" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="2.1.1" PrivateAssets="none" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" Version="2.1.1" PrivateAssets="none" />
-    <PackageReference Include="Npgsql" Version="4.0.1" />
+    <PackageReference Include="Npgsql" Version="4.0.2" />
   </ItemGroup>
   <ItemGroup>
     <None Update="Properties\NpgsqlStrings.Designer.tt">
