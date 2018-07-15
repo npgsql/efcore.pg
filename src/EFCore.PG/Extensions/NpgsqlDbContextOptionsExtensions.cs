@@ -1,4 +1,5 @@
 #region License
+
 // The PostgreSQL License
 //
 // Copyright (C) 2016 The Npgsql Development Team
@@ -19,6 +20,7 @@
 // AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
 // ON AN "AS IS" BASIS, AND THE NPGSQL DEVELOPMENT TEAM HAS NO OBLIGATIONS
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+
 #endregion
 
 using System;
@@ -32,15 +34,22 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 // ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore
 {
+    /// <summary>
+    /// Provides extension methods on <see cref="DbContextOptionsBuilder"/> and <see cref="DbContextOptionsBuilder{T}"/>
+    /// used to configure a <see cref="DbContext"/> to context to a PostgreSQL database with Npgsql.
+    /// </summary>
     public static class NpgsqlDbContextOptionsExtensions
     {
         /// <summary>
-        ///     Configures the context to connect to a PostgreSQL database with Npgsql.
+        /// Configures the context to connect to a PostgreSQL database with Npgsql.
         /// </summary>
         /// <param name="optionsBuilder"> A builder for setting options on the context. </param>
         /// <param name="connectionString"> The connection string of the database to connect to. </param>
         /// <param name="npgsqlOptionsAction">An optional action to allow additional Npgsql-specific configuration.</param>
-        /// <returns> The options builder so that further configuration can be chained. </returns>
+        /// <returns>
+        /// The options builder so that further configuration can be chained.
+        /// </returns>
+        [NotNull]
         public static DbContextOptionsBuilder UseNpgsql(
             [NotNull] this DbContextOptionsBuilder optionsBuilder,
             [NotNull] string connectionString,
@@ -58,16 +67,19 @@ namespace Microsoft.EntityFrameworkCore
         }
 
         /// <summary>
-        ///     Configures the context to connect to a PostgreSQL database with Npgsql.
+        /// Configures the context to connect to a PostgreSQL database with Npgsql.
         /// </summary>
         /// <param name="optionsBuilder"> A builder for setting options on the context. </param>
         /// <param name="connection">
-        ///     An existing <see cref="DbConnection" /> to be used to connect to the database. If the connection is
-        ///     in the open state then EF will not open or close the connection. If the connection is in the closed
-        ///     state then EF will open and close the connection as needed.
+        /// An existing <see cref="DbConnection" /> to be used to connect to the database. If the connection is
+        /// in the open state then EF will not open or close the connection. If the connection is in the closed
+        /// state then EF will open and close the connection as needed.
         /// </param>
         /// <param name="npgsqlOptionsAction">An optional action to allow additional Npgsql-specific configuration.</param>
-        /// <returns> The options builder so that further configuration can be chained. </returns>
+        /// <returns>
+        /// The options builder so that further configuration can be chained.
+        /// </returns>
+        [NotNull]
         public static DbContextOptionsBuilder UseNpgsql(
             [NotNull] this DbContextOptionsBuilder optionsBuilder,
             [NotNull] DbConnection connection,
@@ -85,12 +97,15 @@ namespace Microsoft.EntityFrameworkCore
         }
 
         /// <summary>
-        ///     Configures the context to connect to a PostgreSQL database with Npgsql.
+        /// Configures the context to connect to a PostgreSQL database with Npgsql.
         /// </summary>
         /// <param name="optionsBuilder"> A builder for setting options on the context. </param>
         /// <param name="connectionString"> The connection string of the database to connect to. </param>
         /// <param name="npgsqlOptionsAction">An optional action to allow additional Npgsql-configuration.</param>
-        /// <returns> The options builder so that further configuration can be chained. </returns>
+        /// <returns>
+        /// The options builder so that further configuration can be chained.
+        /// </returns>
+        [NotNull]
         public static DbContextOptionsBuilder<TContext> UseNpgsql<TContext>(
             [NotNull] this DbContextOptionsBuilder<TContext> optionsBuilder,
             [NotNull] string connectionString,
@@ -100,16 +115,19 @@ namespace Microsoft.EntityFrameworkCore
                 (DbContextOptionsBuilder)optionsBuilder, connectionString, npgsqlOptionsAction);
 
         /// <summary>
-        ///     Configures the context to connect to a PostgreSQL database with Npgsql.
+        /// Configures the context to connect to a PostgreSQL database with Npgsql.
         /// </summary>
         /// <param name="optionsBuilder"> A builder for setting options on the context. </param>
         /// <param name="connection">
-        ///     An existing <see cref="DbConnection" /> to be used to connect to the database. If the connection is
-        ///     in the open state then EF will not open or close the connection. If the connection is in the closed
-        ///     state then EF will open and close the connection as needed.
+        /// An existing <see cref="DbConnection" /> to be used to connect to the database. If the connection is
+        /// in the open state then EF will not open or close the connection. If the connection is in the closed
+        /// state then EF will open and close the connection as needed.
         /// </param>
         /// <param name="npgsqlOptionsAction">An optional action to allow additional Npgsql-specific configuration.</param>
-        /// <returns> The options builder so that further configuration can be chained. </returns>
+        /// <returns>
+        /// The options builder so that further configuration can be chained.
+        /// </returns>
+        [NotNull]
         public static DbContextOptionsBuilder<TContext> UseNpgsql<TContext>(
             [NotNull] this DbContextOptionsBuilder<TContext> optionsBuilder,
             [NotNull] DbConnection connection,
@@ -118,12 +136,17 @@ namespace Microsoft.EntityFrameworkCore
             => (DbContextOptionsBuilder<TContext>)UseNpgsql(
                 (DbContextOptionsBuilder)optionsBuilder, connection, npgsqlOptionsAction);
 
-        private static NpgsqlOptionsExtension GetOrCreateExtension(DbContextOptionsBuilder optionsBuilder)
-        {
-            var existing = optionsBuilder.Options.FindExtension<NpgsqlOptionsExtension>();
-            return existing != null
+        /// <summary>
+        /// Returns an existing instance of <see cref="NpgsqlOptionsExtension"/>, or a new instance if one does not exist.
+        /// </summary>
+        /// <param name="optionsBuilder">The <see cref="DbContextOptionsBuilder"/> to search.</param>
+        /// <returns>
+        /// An existing instance of <see cref="NpgsqlOptionsExtension"/>, or a new instance if one does not exist.
+        /// </returns>
+        [NotNull]
+        private static NpgsqlOptionsExtension GetOrCreateExtension([NotNull] DbContextOptionsBuilder optionsBuilder)
+            => optionsBuilder.Options.FindExtension<NpgsqlOptionsExtension>() is NpgsqlOptionsExtension existing
                 ? new NpgsqlOptionsExtension(existing)
                 : new NpgsqlOptionsExtension();
-        }
     }
 }

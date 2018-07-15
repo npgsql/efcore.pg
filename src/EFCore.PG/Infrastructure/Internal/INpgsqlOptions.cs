@@ -36,15 +36,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
     public interface INpgsqlOptions : ISingletonOptions
     {
         /// <summary>
-        /// The backend process to target.
-        /// </summary>
-        BackendType BackendType { get; }
-
-        /// <summary>
         /// The backend version to target.
         /// </summary>
         [CanBeNull]
-        Version BackendVersion { get; }
+        Version PostgresVersion { get; }
 
         /// <summary>
         /// True if reverse null ordering is enabled; otherwise, false.

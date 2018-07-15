@@ -62,18 +62,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
             => WithOption(e => e.WithAdminDatabase(dbName));
 
         /// <summary>
-        /// Configures the backend process to target.
-        /// </summary>
-        /// <param name="backendType">The backend process to target.</param>
-        public virtual void SetBackendType(BackendType backendType)
-            => WithOption(e => e.WithBackendType(backendType));
-
-        /// <summary>
         /// Configures the backend version to target.
         /// </summary>
-        /// <param name="backendVersion">The backend version to target.</param>
-        public virtual void SetBackendVersion([CanBeNull] Version backendVersion)
-            => WithOption(e => e.WithBackendVersion(backendVersion));
+        /// <param name="postgresVersion">The backend version to target.</param>
+        public virtual void SetPostgresVersion([CanBeNull] Version postgresVersion)
+            => WithOption(e => e.WithPostgresVersion(postgresVersion));
 
         /// <summary>
         /// Appends NULLS FIRST to all ORDER BY clauses. This is important for the tests which were written

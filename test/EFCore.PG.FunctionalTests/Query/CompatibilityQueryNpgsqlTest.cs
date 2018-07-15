@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
 
@@ -40,7 +39,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [InlineData("10.4")]
         public void GivenDateTimeAdd_WhenVersionIsSupported_ThenTranslates(string version)
         {
-            using (CompatibilityContext context = Fixture.CreateContext(compatibility: Version.Parse(version)))
+            using (CompatibilityContext context = Fixture.CreateContext(postgresVersion: Version.Parse(version)))
             {
                 // ReSharper disable once ConvertToConstant.Local
                 int years = 2;
@@ -61,7 +60,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [InlineData("9.3")]
         public void GivenDateTimeAdd_WhenVersionIsNotSupported_ThenDoesNotTranslate(string version)
         {
-            using (CompatibilityContext context = Fixture.CreateContext(compatibility: Version.Parse(version)))
+            using (CompatibilityContext context = Fixture.CreateContext(postgresVersion: Version.Parse(version)))
             {
                 // ReSharper disable once ConvertToConstant.Local
                 int years = 2;
@@ -135,12 +134,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             /// <summary>
             /// Creates a new <see cref="CompatibilityContext"/>.
             /// </summary>
-            /// <param name="backendType">The backend process to target.</param>
-            /// <param name="compatibility">The backend version to target.</param>
+            /// <param name="postgresVersion">The backend version to target.</param>
             /// <returns>
             /// A <see cref="CompatibilityContext"/> for testing.
             /// </returns>
-            public CompatibilityContext CreateContext(BackendType backendType = BackendType.PostgreSQL, Version compatibility = null)
+            public CompatibilityContext CreateContext(Version postgresVersion = null)
                 => new CompatibilityContext(
                     new DbContextOptionsBuilder()
                         .UseNpgsql(
@@ -148,9 +146,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                             x =>
                             {
                                 x.ApplyConfiguration();
-                                x.SetBackendType(backendType);
-                                if (compatibility != null)
-                                    x.SetBackendVersion(compatibility);
+                                if (postgresVersion != null)
+                                    x.SetPostgresVersion(postgresVersion);
                             })
                         .UseInternalServiceProvider(
                             new ServiceCollection()

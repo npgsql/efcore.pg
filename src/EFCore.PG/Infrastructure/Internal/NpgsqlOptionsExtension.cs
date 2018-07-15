@@ -50,15 +50,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         public string AdminDatabase { get; private set; }
 
         /// <summary>
-        /// The backend process to target.
-        /// </summary>
-        public BackendType BackendType { get; private set; }
-
-        /// <summary>
         /// The backend version to target.
         /// </summary>
         [CanBeNull]
-        public Version BackendVersion { get; private set; }
+        public Version PostgresVersion { get; private set; }
 
         /// <summary>
         /// The collection of database plugins.
@@ -98,8 +93,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         public NpgsqlOptionsExtension([NotNull] NpgsqlOptionsExtension copyFrom) : base(copyFrom)
         {
             AdminDatabase = copyFrom.AdminDatabase;
-            BackendType = copyFrom.BackendType;
-            BackendVersion = copyFrom.BackendVersion;
+            PostgresVersion = copyFrom.PostgresVersion;
             _plugins = new List<NpgsqlEntityFrameworkPlugin>(copyFrom._plugins);
             ProvideClientCertificatesCallback = copyFrom.ProvideClientCertificatesCallback;
             RemoteCertificateValidationCallback = copyFrom.RemoteCertificateValidationCallback;
@@ -151,35 +145,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         }
 
         /// <summary>
-        /// Returns a copy of the current instance configured to tartget the specified backend process.
+        /// Returns a copy of the current instance with the specified PostgreSQL version.
         /// </summary>
-        /// <param name="backendType">The version of PostgreSQL to target.</param>
+        /// <param name="postgresVersion">The backend version to target.</param>
         /// <returns>
-        /// A copy of the current instance configured to tartget the specified backend process.
+        /// A copy of the current instance with the specified PostgreSQL version.
         /// </returns>
         [NotNull]
-        public virtual NpgsqlOptionsExtension WithBackendType(BackendType backendType)
+        public virtual NpgsqlOptionsExtension WithPostgresVersion([CanBeNull] Version postgresVersion)
         {
             var clone = (NpgsqlOptionsExtension)Clone();
 
-            clone.BackendType = backendType;
-
-            return clone;
-        }
-
-        /// <summary>
-        /// Returns a copy of the current instance with the specified backendVersion version.
-        /// </summary>
-        /// <param name="backendVersion">The backend version to target.</param>
-        /// <returns>
-        /// A copy of the current instance with the specified backendVersion version.
-        /// </returns>
-        [NotNull]
-        public virtual NpgsqlOptionsExtension WithBackendVersion([CanBeNull] Version backendVersion)
-        {
-            var clone = (NpgsqlOptionsExtension)Clone();
-
-            clone.BackendVersion = backendVersion;
+            clone.PostgresVersion = postgresVersion;
 
             return clone;
         }

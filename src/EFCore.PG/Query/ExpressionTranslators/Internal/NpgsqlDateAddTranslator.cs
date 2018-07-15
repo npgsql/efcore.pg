@@ -29,7 +29,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
@@ -67,31 +66,22 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         };
 
         /// <summary>
-        /// The backend process to target.
-        /// </summary>
-        readonly BackendType _backendType;
-
-        /// <summary>
         /// The backend version to target.
         /// </summary>
-        [NotNull] readonly Version _compatibility;
+        [NotNull] readonly Version _postgresVersion;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="NpgsqlDateAddTranslator"/> class.
         /// </summary>
-        /// <param name="backendType">The backend process to target.</param>
-        /// <param name="compatibility">The backend version to target.</param>
-        public NpgsqlDateAddTranslator(BackendType backendType, [NotNull] Version compatibility)
-        {
-            _backendType = backendType;
-            _compatibility = Check.NotNull(compatibility, nameof(compatibility));
-        }
+        /// <param name="postgresVersion">The backend version to target.</param>
+        public NpgsqlDateAddTranslator([NotNull] Version postgresVersion)
+            => _postgresVersion = Check.NotNull(postgresVersion, nameof(postgresVersion));
 
         /// <inheritdoc />
         public virtual Expression Translate(MethodCallExpression methodCallExpression)
         {
             // This translation is only supported for PostgreSQL 9.4 or higher.
-            if (_compatibility < MinimumSupportedVersion)
+            if (_postgresVersion < MinimumSupportedVersion)
                 return null;
 
             if (!MethodInfoDatePartMapping.TryGetValue(methodCallExpression.Method, out var datePart))
