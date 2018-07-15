@@ -308,6 +308,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
                     NpgsqlEventId.ExpressionIndexSkippedWarning,
                     _resourceManager.GetString("LogExpressionIndexSkipped")));
 
+        /// <summary>
+
+        ///     '{callerMemberName}' is only intended for SQL translation by EF Core, but was evaluated by the client.
+
+        /// </summary>
+
+        public static string ClientEvaluation([CanBeNull] object callerMemberName)
+            => string.Format(GetString("ClientEvaluation", nameof(callerMemberName)), callerMemberName);
 
         private static string GetString(string name, params string[] formatterNames)
         {
