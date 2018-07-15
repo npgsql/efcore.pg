@@ -3,11 +3,14 @@
 
 using System;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Storage.Internal;
-using Microsoft.EntityFrameworkCore.Utilities;
+using Microsoft.EntityFrameworkCore.ValueGeneration;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
-namespace Microsoft.EntityFrameworkCore.ValueGeneration.Internal
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
 {
     public class NpgsqlValueGeneratorSelector : RelationalValueGeneratorSelector
     {

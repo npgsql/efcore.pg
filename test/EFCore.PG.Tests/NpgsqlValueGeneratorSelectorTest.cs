@@ -6,10 +6,12 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.ValueGeneration;
 using Microsoft.EntityFrameworkCore.ValueGeneration.Internal;
 using Microsoft.Extensions.DependencyInjection;
-using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+using Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal;
 using Xunit;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests
+namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
     public class NpgsqlValueGeneratorSelectorTest
     {

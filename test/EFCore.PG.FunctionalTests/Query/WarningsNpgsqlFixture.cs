@@ -1,19 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.TestUtilities;
 
-namespace Microsoft.EntityFrameworkCore.Query
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public class WarningsNpgsqlFixture : NorthwindQueryNpgsqlFixture
+    public class WarningsNpgsqlFixture : NorthwindQueryNpgsqlFixture<NoopModelCustomizer>
     {
-        protected override DbContextOptionsBuilder ConfigureOptions(
-            DbContextOptionsBuilder dbContextOptionsBuilder)
-            => dbContextOptionsBuilder.ConfigureWarnings(c =>
-                c.Throw(RelationalEventId.QueryClientEvaluationWarning));
+        public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
+            => base.AddOptions(builder).ConfigureWarnings(c => c.Throw(RelationalEventId.QueryClientEvaluationWarning));
     }
 }

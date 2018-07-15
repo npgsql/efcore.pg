@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore.Utilities;
-using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests;
+using Microsoft.EntityFrameworkCore;
 using Xunit;
 using Xunit.Abstractions;
+using Microsoft.EntityFrameworkCore.TestUtilities;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Microsoft.EntityFrameworkCore.Query
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     public class QueryBugsTest : IClassFixture<NpgsqlFixture>
     {
@@ -16,28 +14,28 @@ namespace Microsoft.EntityFrameworkCore.Query
         public QueryBugsTest(NpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
         {
             Fixture = fixture;
-            //Fixture.TestSqlLoggerFactory.Clear();
+            Fixture.TestSqlLoggerFactory.Clear();
             //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
         protected NpgsqlFixture Fixture { get; }
 
+        #region Bug278
+
         [Fact]
-        public async Task Bug278()
+        public void Bug278()
         {
             using (var testStore = NpgsqlTestStore.CreateScratch())
-            using (var context = new Bug278Context(new DbContextOptionsBuilder()
-                .UseNpgsql(testStore.Connection)
-                .Options))
+            using (var context = new Bug278Context(Fixture.CreateOptions(testStore)))
             {
                 context.Database.EnsureCreated();
                 context.Entities.Add(new Bug278Entity { ChannelCodes = new[] { 1, 1 } });
                 context.SaveChanges();
 
-                var actual = await context.Entities.Select(x => new
+                var actual = context.Entities.Select(x => new
                 {
                     Codes = x.ChannelCodes.Select(c => (ChannelCode)c)
-                }).FirstOrDefaultAsync();
+                }).ToList()[0];
 
                 Assert.Equal(new[] { ChannelCode.Code, ChannelCode.Code }, actual.Codes);
             }
@@ -56,5 +54,7 @@ namespace Microsoft.EntityFrameworkCore.Query
             public Bug278Context(DbContextOptions options) : base(options) {}
             public DbSet<Bug278Entity> Entities { get; set; }
         }
+
+        #endregion Bug278
     }
 }

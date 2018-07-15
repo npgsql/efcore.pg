@@ -23,12 +23,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net.Security;
 using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 
 // ReSharper disable once CheckNamespace
-namespace Microsoft.EntityFrameworkCore.Infrastructure
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
 {
     public class NpgsqlDbContextOptionsBuilder
         : RelationalDbContextOptionsBuilder<NpgsqlDbContextOptionsBuilder, NpgsqlOptionsExtension>
@@ -38,11 +41,33 @@ namespace Microsoft.EntityFrameworkCore.Infrastructure
         {
         }
 
+        public virtual void UsePlugin(NpgsqlEntityFrameworkPlugin plugin)
+            => WithOption(e => e.WithPlugin(plugin));
+
         /// <summary>
         /// Connect to this database for administrative operations (creating/dropping databases).
         /// Defaults to 'postgres'.
         /// </summary>
         public virtual void UseAdminDatabase(string dbName) => WithOption(e => e.WithAdminDatabase(dbName));
+
+        /// <summary>
+        /// Appends NULLS FIRST to all ORDER BY clauses. This is important for the tests which were written
+        /// for SQL Server. Note that to fully implement null-first ordering indexes also need to be generated
+        /// accordingly, and since this isn't done this feature isn't publicly exposed.
+        /// </summary>
+        /// <param name="reverseNullOrdering"></param>
+        internal virtual void ReverseNullOrdering(bool reverseNullOrdering = true)
+            => WithOption(e => e.WithReverseNullOrdering(reverseNullOrdering));
+
+        #region Authentication
+
+        public virtual void ProvideClientCertificatesCallback(ProvideClientCertificatesCallback callback)
+            => WithOption(e => e.WithProvideClientCertificatesCallback(callback));
+
+        public virtual void RemoteCertificateValidationCallback(RemoteCertificateValidationCallback callback)
+            => WithOption(e => e.WithRemoteCertificateValidationCallback(callback));
+
+        #endregion Authentication
 
         #region Retrying execution strategy
 

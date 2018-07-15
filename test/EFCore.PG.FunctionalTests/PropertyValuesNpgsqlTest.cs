@@ -1,16 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.EntityFrameworkCore.Utilities;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.TestUtilities;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
+namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
-    public class PropertyValuesNpgsqlTest
-        : PropertyValuesTestBase<NpgsqlTestStore, PropertyValuesNpgsqlTest.PropertyValuesNpgsqlFixture>
+    public class PropertyValuesNpgsqlTest : PropertyValuesTestBase<PropertyValuesNpgsqlTest.PropertyValuesNpgsqlFixture>
     {
         public PropertyValuesNpgsqlTest(PropertyValuesNpgsqlFixture fixture)
             : base(fixture)
@@ -19,53 +13,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
 
         public class PropertyValuesNpgsqlFixture : PropertyValuesFixtureBase
         {
-            private const string DatabaseName = "PropertyValues";
+            protected override string StoreName { get; } = "PropertyValues";
 
-            private readonly IServiceProvider _serviceProvider;
+            protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
 
-            public PropertyValuesNpgsqlFixture()
+            protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
             {
-                _serviceProvider = new ServiceCollection()
-                    .AddEntityFrameworkNpgsql()
-                    .AddSingleton(TestModelSource.GetFactory(OnModelCreating))
-                    .BuildServiceProvider();
-            }
-
-            public override NpgsqlTestStore CreateTestStore()
-                => NpgsqlTestStore.GetOrCreateShared(DatabaseName, () =>
-                {
-                    var optionsBuilder = new DbContextOptionsBuilder()
-                        .UseNpgsql(NpgsqlTestStore.CreateConnectionString(DatabaseName), b => b.ApplyConfiguration())
-                        .UseInternalServiceProvider(_serviceProvider);
-
-                    using (var context = new AdvancedPatternsMasterContext(optionsBuilder.Options))
-                    {
-                        context.Database.EnsureCreated();
-                        Seed(context);
-                    }
-                });
-
-            protected override void OnModelCreating(ModelBuilder modelBuilder)
-            {
-                base.OnModelCreating(modelBuilder);
+                base.OnModelCreating(modelBuilder, context);
 
                 modelBuilder.Entity<Building>()
                     .Property(b => b.Value).HasColumnType("decimal(18,2)");
 
                 modelBuilder.Entity<CurrentEmployee>()
                     .Property(ce => ce.LeaveBalance).HasColumnType("decimal(18,2)");
-            }
-
-            public override DbContext CreateContext(NpgsqlTestStore testStore)
-            {
-                var optionsBuilder = new DbContextOptionsBuilder()
-                    .UseNpgsql(testStore.Connection, b => b.ApplyConfiguration())
-                    .UseInternalServiceProvider(_serviceProvider);
-
-                var context = new AdvancedPatternsMasterContext(optionsBuilder.Options);
-                context.Database.UseTransaction(testStore.Transaction);
-
-                return context;
             }
         }
     }

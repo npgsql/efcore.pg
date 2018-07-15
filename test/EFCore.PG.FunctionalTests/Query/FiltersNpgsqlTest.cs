@@ -1,11 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore.Query;
 using Xunit.Abstractions;
 
-namespace Microsoft.EntityFrameworkCore.Query
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public class FiltersNpgsqlTest : FiltersTestBase<NorthwindQueryNpgsqlFixture>
+    public class FiltersNpgsqlTest : FiltersTestBase<NorthwindQueryNpgsqlFixture<NorthwindFiltersCustomizer>>
     {
-        public FiltersNpgsqlTest(NorthwindQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
+        public FiltersNpgsqlTest(NorthwindQueryNpgsqlFixture<NorthwindFiltersCustomizer> fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
         {
             fixture.TestSqlLoggerFactory.Clear();

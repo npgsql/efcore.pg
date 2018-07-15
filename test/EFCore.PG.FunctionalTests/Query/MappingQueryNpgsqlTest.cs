@@ -1,25 +1,42 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using Xunit;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.TestUtilities;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Microsoft.EntityFrameworkCore.Query
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public class MappingQueryNpgsqlTest : MappingQueryTestBase, IClassFixture<MappingQueryNpgsqlFixture>
+    public class MappingQueryNpgsqlTest : MappingQueryTestBase<MappingQueryNpgsqlTest.MappingQueryNpgsqlFixture>
     {
-        readonly MappingQueryNpgsqlFixture _fixture;
-
         public MappingQueryNpgsqlTest(MappingQueryNpgsqlFixture fixture)
+            : base(fixture)
         {
-            _fixture = fixture;
+            Fixture.TestSqlLoggerFactory.Clear();
         }
 
-        protected override DbContext CreateContext()
+        private string Sql => Fixture.TestSqlLoggerFactory.Sql;
+
+        public class MappingQueryNpgsqlFixture : MappingQueryFixtureBase
         {
-            return _fixture.CreateContext();
+            protected override ITestStoreFactory TestStoreFactory => NpgsqlNorthwindTestStoreFactory.Instance;
+
+            protected override string DatabaseSchema { get; } = "public";
+
+            protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
+            {
+                base.OnModelCreating(modelBuilder, context);
+
+                modelBuilder.Entity<MappedCustomer>(
+                    e =>
+                    {
+                        e.Property(c => c.CompanyName2).Metadata.Npgsql().ColumnName = "CompanyName";
+                        e.Metadata.Npgsql().TableName = "Customers";
+                        e.Metadata.Npgsql().Schema = "public";
+                    });
+
+                modelBuilder.Entity<MappedEmployee>()
+                    .Property(c => c.EmployeeID)
+                    .HasColumnType("int");
+            }
         }
     }
 }

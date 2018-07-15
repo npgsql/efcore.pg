@@ -1,11 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.TestUtilities;
 using Xunit.Abstractions;
 
-namespace Microsoft.EntityFrameworkCore.Query
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public class AsyncQueryNavigationsNpgsqlTests : AsyncQueryNavigationsTestBase<NorthwindQueryNpgsqlFixture>
+    public class AsyncQueryNavigationsNpgsqlTests : AsyncQueryNavigationsTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
     {
-        public AsyncQueryNavigationsNpgsqlTests(NorthwindQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
+        public AsyncQueryNavigationsNpgsqlTests(NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
         {
             // TestSqlLoggerFactory.CaptureOutput(testOutputHelper);

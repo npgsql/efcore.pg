@@ -22,9 +22,10 @@
 #endregion
 
 using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.EntityFrameworkCore.Metadata;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 
-namespace Microsoft.EntityFrameworkCore.Metadata
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 {
     public class NpgsqlIndexAnnotations : RelationalIndexAnnotations, INpgsqlIndexAnnotations
     {

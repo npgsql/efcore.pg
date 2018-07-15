@@ -6,16 +6,13 @@
 *.userprefs
 /*.nupkg
 .nuget/
+.idea/
 .vs/
 [Bb]in/
 [Bb]uild/
 [Oo]bj/
 [Oo]bj/
-packages/*/
-packages.stable
 artifacts/
 # Roslyn cache directories
 *.ide/
-*.lock.json
-.build
 TestResult.xml

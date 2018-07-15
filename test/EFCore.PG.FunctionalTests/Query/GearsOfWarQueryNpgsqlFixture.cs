@@ -1,71 +1,30 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.TestModels.GearsOfWarModel;
-using Microsoft.EntityFrameworkCore.Utilities;
+using Microsoft.EntityFrameworkCore.TestUtilities;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Microsoft.EntityFrameworkCore.Query
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public class GearsOfWarQueryNpgsqlFixture : GearsOfWarQueryRelationalFixture<NpgsqlTestStore>
+    public class GearsOfWarQueryNpgsqlFixture : GearsOfWarQueryRelationalFixture
     {
-        public const string DatabaseName = "GearsOfWarQueryTest";
+        protected override string StoreName { get; } = "GearsOfWarQueryTest";
+        protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
 
-        private readonly DbContextOptions _options;
-
-        private readonly string _connectionString = NpgsqlTestStore.CreateConnectionString(DatabaseName);
-
-        public TestSqlLoggerFactory TestSqlLoggerFactory { get; } = new TestSqlLoggerFactory();
-
-        public GearsOfWarQueryNpgsqlFixture()
+        protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
         {
-            var serviceProvider = new ServiceCollection()
-                .AddEntityFrameworkNpgsql()
-                .AddSingleton(TestModelSource.GetFactory(OnModelCreating))
-                .AddSingleton<ILoggerFactory>(TestSqlLoggerFactory)
-                .BuildServiceProvider();
+            base.OnModelCreating(modelBuilder, context);
 
-            _options = new DbContextOptionsBuilder()
-                .EnableSensitiveDataLogging()
-                .ConfigureWarnings(w => w.Log(CoreEventId.IncludeIgnoredWarning))
-                .UseInternalServiceProvider(serviceProvider)
-                .Options;
-        }
-
-        public override NpgsqlTestStore CreateTestStore()
-        {
-            return NpgsqlTestStore.GetOrCreateShared(DatabaseName, () =>
-            {
-                using (var context = new GearsOfWarContext(
-                    new DbContextOptionsBuilder(_options)
-                        .UseNpgsql(_connectionString, b => b.ApplyConfiguration())
-                        .Options))
-                {
-                    context.Database.EnsureCreated();
-                    GearsOfWarModelInitializer.Seed(context);
-                }
-            });
-        }
-
-        public override GearsOfWarContext CreateContext(NpgsqlTestStore testStore)
-        {
-            var context = new GearsOfWarContext(
-                new DbContextOptionsBuilder(_options)
-                    .UseNpgsql(testStore.Connection, b => b.ApplyConfiguration())
-                    .Options);
-
-            context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
-
-            context.Database.UseTransaction(testStore.Transaction);
-
-            return context;
-        }
-
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
             modelBuilder.HasPostgresExtension("uuid-ossp");
+            //modelBuilder.Entity<Mission>().Ignore(m => m.Timeline);
+        }
 
-            base.OnModelCreating(modelBuilder);
+        public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
+        {
+            var optionsBuilder = base.AddOptions(builder);
+            new NpgsqlDbContextOptionsBuilder(optionsBuilder).ReverseNullOrdering();
+            return optionsBuilder;
         }
     }
 }

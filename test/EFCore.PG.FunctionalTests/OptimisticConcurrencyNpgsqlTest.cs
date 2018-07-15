@@ -1,17 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Xunit;
 using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.EntityFrameworkCore.Utilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
+namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
-    public class OptimisticConcurrencyNpgsqlTest : OptimisticConcurrencyTestBase<NpgsqlTestStore, F1NpgsqlFixture>
+    public class OptimisticConcurrencyNpgsqlTest : OptimisticConcurrencyTestBase<F1NpgsqlFixture>
     {
         public OptimisticConcurrencyNpgsqlTest(F1NpgsqlFixture fixture) : base(fixture) {}
 

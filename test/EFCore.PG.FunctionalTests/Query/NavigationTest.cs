@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Xunit;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.TestUtilities;
+using Xunit;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
-using Microsoft.EntityFrameworkCore.Utilities;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Microsoft.EntityFrameworkCore.Query
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     public class NavigationTest : IClassFixture<NavigationTestFixture>
     {

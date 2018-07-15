@@ -22,24 +22,20 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
-using System.Data.Common;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
-using Npgsql;
+using Microsoft.EntityFrameworkCore.Update;
 
-namespace Microsoft.EntityFrameworkCore.Update.Internal
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
 {
     /// <remarks>
     /// The usual ModificationCommandBatch implementation is <see cref="AffectedCountModificationCommandBatch"/>,
-    /// which relies on <see cref="SqlGenerator.AppendSelectAffectedCountCommand"/> to fetch the number of
-    /// rows modified via SQL.
+    /// which selects the number of rows modified via a SQL query.
     ///
     /// PostgreSQL actually has no way of selecting the modified row count.
     /// SQL defines GET DIAGNOSTICS which should provide this, but in PostgreSQL it's only available
@@ -156,7 +152,7 @@ namespace Microsoft.EntityFrameworkCore.Update.Internal
 
         protected override async Task ConsumeAsync(
             RelationalDataReader reader,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             var npgsqlReader = (NpgsqlDataReader)reader.DbDataReader;
             Debug.Assert(npgsqlReader.Statements.Count == ModificationCommands.Count, $"Reader has {npgsqlReader.Statements.Count} statements, expected {ModificationCommands.Count}");

@@ -1,58 +1,49 @@
-using System;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Utilities;
+using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.TestUtilities;
+using Microsoft.EntityFrameworkCore.TestModels.Northwind;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Microsoft.EntityFrameworkCore.Query
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public class NorthwindQueryNpgsqlFixture : NorthwindQueryRelationalFixture, IDisposable
+    public class NorthwindQueryNpgsqlFixture<TModelCustomizer> : NorthwindQueryRelationalFixture<TModelCustomizer>
+        where TModelCustomizer : IModelCustomizer, new()
     {
-        private readonly Func<Action<ModelBuilder>, Func<IServiceProvider, IModelSource>> _modelSourceFactory;
+        protected override ITestStoreFactory TestStoreFactory => NpgsqlNorthwindTestStoreFactory.Instance;
 
-        public NorthwindQueryNpgsqlFixture() : this(TestModelSource.GetFactory)
+        protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
         {
+            base.OnModelCreating(modelBuilder, context);
+
+            modelBuilder.Entity<Customer>()
+                .Property(c => c.CustomerID)
+                .HasColumnType("varchar(5)");
+
+            modelBuilder.Entity<Employee>(
+                b =>
+                {
+                    b.Property(c => c.EmployeeID).HasColumnType("int4");
+                    b.Property(c => c.ReportsTo).HasColumnType("int4");
+                });
+
+            modelBuilder.Entity<Order>()
+                .Property(o => o.EmployeeID)
+                .HasColumnType("int4");
+            modelBuilder.Entity<OrderDetail>()
+                .Property(od => od.UnitPrice)
+                .HasColumnType("money");
+
+            modelBuilder.Entity<Product>(
+                b =>
+                {
+                    b.Property(p => p.UnitPrice).HasColumnType("money");
+                    b.Property(p => p.UnitsInStock).HasColumnType("int2");
+                });
+
+            modelBuilder.Entity<MostExpensiveProduct>()
+                .Property(p => p.UnitPrice)
+                .HasColumnType("money");
         }
-
-        protected NorthwindQueryNpgsqlFixture(Func<Action<ModelBuilder>, Func<IServiceProvider, IModelSource>> modelSourceFactory)
-        {
-            _modelSourceFactory = modelSourceFactory;
-        }
-
-        private readonly NpgsqlTestStore _testStore = NpgsqlTestStore.GetNorthwindStore();
-
-        public TestSqlLoggerFactory TestSqlLoggerFactory { get; } = new TestSqlLoggerFactory();
-
-        public override DbContextOptions BuildOptions(IServiceCollection additionalServices = null)
-            => ConfigureOptions(
-                    new DbContextOptionsBuilder()
-                        .ConfigureWarnings(w => w.Log(CoreEventId.IncludeIgnoredWarning))
-                        .EnableSensitiveDataLogging()
-                        .UseInternalServiceProvider(
-                            (additionalServices ?? new ServiceCollection())
-                            .AddEntityFrameworkNpgsql()
-                            .AddSingleton(_modelSourceFactory(OnModelCreating))
-                            .AddSingleton<ILoggerFactory>(TestSqlLoggerFactory)
-                            .BuildServiceProvider()))
-                .UseNpgsql(
-                    _testStore.ConnectionString,
-                    b =>
-                    {
-                        b.ApplyConfiguration();
-                        ConfigureOptions(b);
-                        b.ApplyConfiguration();
-                    })
-                .Options;
-
-        protected virtual DbContextOptionsBuilder ConfigureOptions(DbContextOptionsBuilder dbContextOptionsBuilder)
-            => dbContextOptionsBuilder;
-
-        protected virtual void ConfigureOptions(NpgsqlDbContextOptionsBuilder NpgsqlDbContextOptionsBuilder)
-        {
-        }
-
-        public void Dispose() => _testStore.Dispose();
     }
 }

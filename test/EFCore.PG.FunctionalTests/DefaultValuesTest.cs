@@ -1,14 +1,11 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-
-using System;
+﻿using System;
 using System.Linq;
-using Xunit;
 using Microsoft.EntityFrameworkCore;
+using Xunit;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.EntityFrameworkCore.Utilities;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests
+namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
     public class DefaultValuesTest : IDisposable
     {

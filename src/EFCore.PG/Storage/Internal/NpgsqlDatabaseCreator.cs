@@ -24,21 +24,22 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Transactions;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
-using Microsoft.EntityFrameworkCore.Migrations.Internal;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
-using Microsoft.EntityFrameworkCore.Utilities;
-using Npgsql;
+using Microsoft.EntityFrameworkCore.Storage;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Operations;
 
-namespace Microsoft.EntityFrameworkCore.Storage.Internal
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 {
     public class NpgsqlDatabaseCreator : RelationalDatabaseCreator
     {
@@ -54,6 +55,10 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
             _connection = connection;
             _rawSqlCommandBuilder = rawSqlCommandBuilder;
         }
+
+        public virtual TimeSpan RetryDelay { get; set; } = TimeSpan.FromMilliseconds(500);
+
+        public virtual TimeSpan RetryTimeout { get; set; } = TimeSpan.FromMinutes(1);
 
         public override void Create()
         {
@@ -74,9 +79,11 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
 
                 ClearPool();
             }
+
+            Exists(retryOnNotExists: true);
         }
 
-        public override async Task CreateAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task CreateAsync(CancellationToken cancellationToken = default)
         {
             using (var masterConnection = _connection.CreateMasterConnection())
             {
@@ -95,12 +102,83 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
 
                 ClearPool();
             }
+
+            await ExistsAsync(retryOnNotExists: true, cancellationToken: cancellationToken);
         }
+
+        private bool Exists(bool retryOnNotExists)
+          => Dependencies.ExecutionStrategyFactory.Create().Execute(
+              DateTime.UtcNow + RetryTimeout, giveUp =>
+              {
+                  while (true)
+                  {
+                      try
+                      {
+                          using (new TransactionScope(TransactionScopeOption.Suppress))
+                          {
+                              _connection.Open(errorsExpected: true);
+                              _connection.Close();
+                          }
+                          return true;
+                      }
+                      catch (PostgresException e)
+                      {
+                          if (!retryOnNotExists
+                                && IsDoesNotExist(e))
+                          {
+                              return false;
+                          }
+
+                          if (DateTime.UtcNow > giveUp
+                                || !RetryOnExistsFailure(e))
+                          {
+                              throw;
+                          }
+
+                          Thread.Sleep(RetryDelay);
+                      }
+                  }
+              });
+
+        private Task<bool> ExistsAsync(bool retryOnNotExists, CancellationToken cancellationToken)
+            => Dependencies.ExecutionStrategyFactory.Create().ExecuteAsync(
+                DateTime.UtcNow + RetryTimeout, async (giveUp, ct) =>
+                {
+                    while (true)
+                    {
+                        try
+                        {
+                            using (new TransactionScope(TransactionScopeOption.Suppress, TransactionScopeAsyncFlowOption.Enabled))
+                            {
+                                await _connection.OpenAsync(ct, errorsExpected: true);
+
+                                _connection.Close();
+                            }
+                            return true;
+                        }
+                        catch (PostgresException e)
+                        {
+                            if (!retryOnNotExists
+                                && IsDoesNotExist(e))
+                            {
+                                return false;
+                            }
+
+                            if (DateTime.UtcNow > giveUp
+                                || !RetryOnExistsFailure(e))
+                            {
+                                throw;
+                            }
+
+                            await Task.Delay(RetryDelay, ct);
+                        }
+                    }
+                }, cancellationToken);
 
         protected override bool HasTables()
             => (bool)CreateHasTablesCommand().ExecuteScalar(_connection);
 
-        protected override async Task<bool> HasTablesAsync(CancellationToken cancellationToken = default(CancellationToken))
+        protected override async Task<bool> HasTablesAsync(CancellationToken cancellationToken = default)
             => (bool)(await CreateHasTablesCommand().ExecuteScalarAsync(_connection, cancellationToken: cancellationToken));
 
         IRelationalCommand CreateHasTablesCommand()
@@ -116,7 +194,9 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
             {
                 new NpgsqlCreateDatabaseOperation
                 {
-                    Name = _connection.DbConnection.Database, Template = Dependencies.Model.Npgsql().DatabaseTemplate
+                    Name = _connection.DbConnection.Database,
+                    Template = Dependencies.Model.Npgsql().DatabaseTemplate,
+                    Tablespace = Dependencies.Model.Npgsql().Tablespace
                 }
             });
 
@@ -130,8 +210,11 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
                 var unpooledConn = ((NpgsqlConnection)_connection.DbConnection).CloneWith(unpooledCsb.ToString());
                 using (unpooledConn)
                 {
-                    unpooledConn.Open();
-                    unpooledConn.Close();
+                    using (new TransactionScope(TransactionScopeOption.Suppress))
+                    {
+                        unpooledConn.Open();
+                        unpooledConn.Close();
+                    }
                 }
 
                 return true;
@@ -156,7 +239,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
             }
         }
 
-        public override async Task<bool> ExistsAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<bool> ExistsAsync(CancellationToken cancellationToken = default)
         {
             try
             {
@@ -193,7 +276,18 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
         }
 
         // Login failed is thrown when database does not exist (See Issue #776)
-        static bool IsDoesNotExist(PostgresException exception) => exception.SqlState == "3D000";
+        private static bool IsDoesNotExist(PostgresException exception) => exception.SqlState == "3D000";
+
+        // See Issue #985(EFCore)
+        private bool RetryOnExistsFailure(PostgresException exception)
+        {
+            if (exception.SqlState == "3D000")
+            {
+                ClearPool();
+                return true;
+            }
+            return false;
+        }
 
         public override void Delete()
         {
@@ -206,7 +300,7 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
             }
         }
 
-        public override async Task DeleteAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task DeleteAsync(CancellationToken cancellationToken = default)
         {
             ClearAllPools();
 
@@ -222,9 +316,10 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
             var operations = Dependencies.ModelDiffer.GetDifferences(null, Dependencies.Model);
             var commands = Dependencies.MigrationsSqlGenerator.Generate(operations, Dependencies.Model);
 
-            // Adding a PostgreSQL extension might define new types (e.g. hstore), which we
-            // Npgsql to reload
-            var reloadTypes = operations.Any(o => o is AlterDatabaseOperation && PostgresExtension.GetPostgresExtensions(o).Any());
+            // If a PostgreSQL extension or enum was added, we want Npgsql to reload all types at the ADO.NET level.
+            var reloadTypes = operations.Any(o => o is AlterDatabaseOperation &&
+                (PostgresExtension.GetPostgresExtensions(o).Any() ||
+                 PostgresEnum.GetPostgresEnums(o).Any()));
 
             try
             {
@@ -240,13 +335,19 @@ namespace Microsoft.EntityFrameworkCore.Storage.Internal
 
             if (reloadTypes)
             {
-                var npgsqlConn = (NpgsqlConnection)_connection.DbConnection;
-                if (npgsqlConn.FullState == ConnectionState.Open)
-                    npgsqlConn.ReloadTypes();
+                _connection.Open();
+                try
+                {
+                    ((NpgsqlConnection)_connection.DbConnection).ReloadTypes();
+                }
+                catch
+                {
+                    _connection.Close();
+                }
             }
         }
 
-        public override async Task CreateTablesAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task CreateTablesAsync(CancellationToken cancellationToken = default)
         {
             var operations = Dependencies.ModelDiffer.GetDifferences(null, Dependencies.Model);
             var commands = Dependencies.MigrationsSqlGenerator.Generate(operations, Dependencies.Model);

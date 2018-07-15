@@ -56,7 +56,22 @@ PostgreSQL allows you to [attach comments](https://www.postgresql.org/docs/curre
 modelBuilder.Entity<MyEntity>().ForNpgsqlHasComment("Some comment");
 ```
 
-## Specifying the administrative db
+## Certificate authentication
+
+Npgsql allows you to provide a callback for verifying the server-provided certificates, and to provide a callback for providing certificates to the server. The latter, if properly set up on the PostgreSQL side, allows you to do client certificate authentication - see [the Npgsql docs](http://www.npgsql.org/doc/security.html#encryption-ssltls) and also [the PostgreSQL docs](https://www.postgresql.org/docs/current/static/ssl-tcp.html#SSL-CLIENT-CERTIFICATES) on setting this up.
+
+The Npgsql EF Core provider allows you to set these two callbacks on the `DbContextOptionsBuilder` as follows:
+
+```c#
+builder.UseNpgsql("<connection string>", opts => opts.RemoteCertificateValidationCallback(x));
+
+```
+
+You may also consider passing `Trust Server Certificate=true` in your connection string to make Npgsql accept whatever certificate your PostgreSQL provides (useful for self-signed certificates).
+
+## Database Creation
+
+### Specifying the administrative db
 
 When the Npgsql EF Core provider creates or deletes a database (EnsureCreated(), EnsureDeleted()), it must connect to an administrative database which already exists (with PostgreSQL you always have to be connected to some database, even when creating/deleting another database). Up to now the `postgres` database was used, which is supposed to always be present.
 
@@ -70,7 +85,7 @@ protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 }
 ```
 
-## Using a database template
+### Using a database template
 
 When creating a new database,
 [PostgreSQL allows specifying another "template database"](http://www.postgresql.org/docs/current/static/manage-ag-templatedbs.html)
@@ -80,6 +95,16 @@ which will be copied as the basis for the new one. This can be useful for includ
 modelBuilder.HasDatabaseTemplate("my_template_db");
 ```
 
+### Setting a tablespace
+
+PostgreSQL allows you to locate your database in different parts of your filesystem, [via tablespaces](https://www.postgresql.org/docs/10/static/manage-ag-tablespaces.html). Npgsql allows you to specify your database's namespace:
+
+```c#
+modelBuilder.ForNpgsqlUseTablespace("my_tablespace");
+```
+
+You must have created your tablespace prior to this via the `CREATE TABLESPACE` command - the EF Core provider doesn't do this for you. Note also that specifying a tablespace on specific tables isn't supported.
+
 ## CockroachDB Interleave In Parent
 
 If you're using CockroachDB, the Npgsql provider exposes its ["interleave in parent" feature](https://www.cockroachlabs.com/docs/stable/interleave-in-parent.html). Use the following code:
@@ -88,3 +113,5 @@ If you're using CockroachDB, the Npgsql provider exposes its ["interleave in par
 modelBuilder.Entity<Customer>()
     .ForCockroachDbInterleaveInParent(typeof(ParentEntityType), new List<string> { "prefix_column_1", "prefix_column_2" });
 ```
+
+

@@ -1,9 +1,9 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.FunctionalTests;
+using Microsoft.EntityFrameworkCore.Query;
 using Xunit;
 
-namespace Microsoft.EntityFrameworkCore.Query
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     public class WarningsNpgsqlTest : WarningsTestBase<WarningsNpgsqlFixture>
     {
@@ -18,11 +18,12 @@ namespace Microsoft.EntityFrameworkCore.Query
             base.Does_not_throw_for_top_level_single();
 
             Assert.Equal(
-                @"SELECT ""x"".""OrderID"", ""x"".""CustomerID"", ""x"".""EmployeeID"", ""x"".""OrderDate""
-FROM ""Orders"" AS ""x""
-WHERE ""x"".""OrderID"" = 10248
+                @"SELECT x.""OrderID"", x.""CustomerID"", x.""EmployeeID"", x.""OrderDate""
+FROM ""Orders"" AS x
+WHERE x.""OrderID"" = 10248
 LIMIT 2",
-                Sql);
+                Sql,
+                ignoreLineEndingDifferences: true);
         }
 
         public override void Paging_operation_without_orderby_issues_warning()
@@ -37,8 +38,9 @@ LIMIT 2",
         {
             base.FirstOrDefault_without_orderby_and_filter_issues_warning_subquery();
 
-            Assert.Contains(CoreStrings.LogFirstWithoutOrderByAndFilter.GenerateMessage(
-                "(from Order <generated>_1 in [c].Orders select [<generated>_1].OrderID).FirstOrDefault()"), Fixture.TestSqlLoggerFactory.Log);
+            Assert.Contains(
+                CoreStrings.LogFirstWithoutOrderByAndFilter.GenerateMessage(
+                    "(from Order <generated>_1 in [c].Orders select (Nullable<int>)[<generated>_1].OrderID).FirstOrDefaul..."), Fixture.TestSqlLoggerFactory.Log);
         }
 
         public override void FirstOrDefault_without_orderby_but_with_filter_doesnt_issue_warning()
@@ -71,9 +73,6 @@ LIMIT 2",
             Assert.Contains(CoreStrings.LogPossibleUnintendedReferenceComparison.GenerateMessage("[c].Orders", "[c].Orders"), Fixture.TestSqlLoggerFactory.Log);
         }
 
-        private const string FileLineEnding = @"
-";
-
-        private string Sql => Fixture.TestSqlLoggerFactory.Sql.Replace(Environment.NewLine, FileLineEnding);
+        private string Sql => Fixture.TestSqlLoggerFactory.Sql;
     }
 }

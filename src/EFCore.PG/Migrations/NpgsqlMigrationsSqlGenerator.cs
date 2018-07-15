@@ -23,24 +23,32 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.EntityFrameworkCore.Utilities;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Operations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
-namespace Microsoft.EntityFrameworkCore.Migrations
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 {
     public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
     {
+        readonly NpgsqlSqlGenerationHelper _sqlGenerationHelper;
+        readonly NpgsqlTypeMappingSource _typeMappingSource;
+
         public NpgsqlMigrationsSqlGenerator([NotNull] MigrationsSqlGeneratorDependencies dependencies)
             : base(dependencies)
         {
+            _sqlGenerationHelper = (NpgsqlSqlGenerationHelper)dependencies.SqlGenerationHelper;
+            _typeMappingSource = (NpgsqlTypeMappingSource)dependencies.TypeMappingSource;
         }
 
         protected override void Generate(MigrationOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
@@ -48,15 +56,13 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
-            var createDatabaseOperation = operation as NpgsqlCreateDatabaseOperation;
-            if (createDatabaseOperation != null)
+            if (operation is NpgsqlCreateDatabaseOperation createDatabaseOperation)
             {
                 Generate(createDatabaseOperation, model, builder);
                 return;
             }
 
-            var dropDatabaseOperation = operation as NpgsqlDropDatabaseOperation;
-            if (dropDatabaseOperation != null)
+            if (operation is NpgsqlDropDatabaseOperation dropDatabaseOperation)
             {
                 Generate(dropDatabaseOperation, model, builder);
                 return;
@@ -91,8 +97,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             base.Generate(operation, model, builder, false);
 
             // CockroachDB "interleave in parent" (https://www.cockroachlabs.com/docs/stable/interleave-in-parent.html)
-            var interleaveInParentStr = operation[CockroachDbAnnotationNames.InterleaveInParent] as string;
-            if (interleaveInParentStr != null)
+            if (operation[CockroachDbAnnotationNames.InterleaveInParent] is string)
             {
                 var interleaveInParent = new CockroachDbInterleaveInParent(operation);
                 var parentTableSchema = interleaveInParent.ParentTableSchema;
@@ -124,7 +129,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             {
                 builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
 
-                var stringTypeMapping = Dependencies.TypeMapper.GetMapping(typeof(string));
+                var stringTypeMapping = Dependencies.TypeMappingSource.GetMapping(typeof(string));
 
                 builder
                     .Append("COMMENT ON TABLE ")
@@ -139,7 +144,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                 var columnComment = columnOp[NpgsqlAnnotationNames.Comment];
                 builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
 
-                var stringTypeMapping = Dependencies.TypeMapper.GetMapping(typeof(string));
+                var stringTypeMapping = Dependencies.TypeMappingSource.GetMapping(typeof(string));
 
                 builder
                     .Append("COMMENT ON COLUMN ")
@@ -211,7 +216,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
 
             if (oldComment != newComment)
             {
-                var stringTypeMapping = Dependencies.TypeMapper.GetMapping(typeof(string));
+                var stringTypeMapping = Dependencies.TypeMappingSource.GetMapping(typeof(string));
 
                 builder
                     .Append("COMMENT ON TABLE ")
@@ -257,7 +262,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             {
                 builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
 
-                var stringTypeMapping = Dependencies.TypeMapper.GetMapping(typeof(string));
+                var stringTypeMapping = Dependencies.TypeMappingSource.GetMapping(typeof(string));
 
                 builder
                     .Append("COMMENT ON COLUMN ")
@@ -286,36 +291,113 @@ namespace Microsoft.EntityFrameworkCore.Migrations
 
             var type = operation.ColumnType ?? GetColumnType(operation.Schema, operation.Table, operation.Name, operation.ClrType, null, operation.MaxLength, false, model);
 
-            string sequenceName = null;
+            // User-defined type names are quoted if they contain uppercase letters. Other types are never quoted
+            // since users sometimes prefer to write TEXT instead of text.
+            if (_typeMappingSource.IsUserDefinedType(type))
+                type = _sqlGenerationHelper.DelimitIdentifier(type);
+
+            string newSequenceName = null;
             var defaultValueSql = operation.DefaultValueSql;
 
-            CheckForOldAnnotation(operation);
-            var valueGenerationStrategy = operation[NpgsqlAnnotationNames.ValueGenerationStrategy] as NpgsqlValueGenerationStrategy?;
-            if (valueGenerationStrategy == NpgsqlValueGenerationStrategy.SerialColumn)
+            var table = Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Table, operation.Schema);
+            var column = Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name);
+            var alterBase = $"ALTER TABLE {table} ALTER COLUMN {column} ";
+
+            CheckForOldValueGenerationAnnotation(operation);
+
+            var oldStrategy = operation.OldColumn[NpgsqlAnnotationNames.ValueGenerationStrategy] as NpgsqlValueGenerationStrategy?;
+            var newStrategy = operation[NpgsqlAnnotationNames.ValueGenerationStrategy] as NpgsqlValueGenerationStrategy?;
+
+            if (oldStrategy != newStrategy)
             {
-                switch (type)
+                // We have a value generation strategy change
+
+                if (oldStrategy == NpgsqlValueGenerationStrategy.SerialColumn)
                 {
-                case "int":
-                case "int4":
-                case "bigint":
-                case "int8":
-                case "smallint":
-                case "int2":
-                    sequenceName = $"{operation.Table}_{operation.Name}_seq";
-                    Generate(new CreateSequenceOperation
+                    // TODO: It would be better to actually select for the owned sequence.
+                    // This would require plpgsql.
+                    var sequenceName = Dependencies.SqlGenerationHelper.DelimitIdentifier($"{operation.Table}_{operation.Name}_seq");
+                    switch (newStrategy)
                     {
-                        Name = sequenceName,
-                        ClrType = typeof(long)
-                    }, model, builder, false);
-                    defaultValueSql = $@"nextval('{Dependencies.SqlGenerationHelper.DelimitIdentifier(sequenceName)}')";
-                    // Note: we also need to set the sequence ownership, this is done below
-                    // after the ALTER COLUMN
-                    break;
+                    case null:
+                        // Drop the serial, converting the column to a regular int
+                        builder.AppendLine($"DROP SEQUENCE {sequenceName} CASCADE;");
+                        break;
+                    case NpgsqlValueGenerationStrategy.IdentityAlwaysColumn:
+                    case NpgsqlValueGenerationStrategy.IdentityByDefaultColumn:
+                        // Convert serial column to identity, maintaining the current sequence value
+                        var identityTypeClause = newStrategy == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn
+                            ? "ALWAYS"
+                            : "BY DEFAULT";
+                        var oldSequenceName = Dependencies.SqlGenerationHelper.DelimitIdentifier($"{operation.Table}_{operation.Name}_old_seq");
+                        builder
+                            .AppendLine($"ALTER SEQUENCE {sequenceName} RENAME TO {oldSequenceName};")
+                            .AppendLine($"ALTER TABLE {table} ALTER COLUMN {column} DROP DEFAULT;")
+                            .AppendLine($"ALTER TABLE {table} ALTER COLUMN {column} ADD GENERATED {identityTypeClause} AS IDENTITY;")
+                            .AppendLine($"SELECT * FROM setval('{sequenceName}', nextval('{oldSequenceName}'), false);")
+                            .AppendLine($"DROP SEQUENCE {oldSequenceName};");
+                        break;
+                    default:
+                        throw new NotSupportedException($"Don't know how to migrate serial column to {newStrategy}");
+                    }
+                }
+                else if (oldStrategy == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn ||
+                         oldStrategy == NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
+                {
+                    switch (newStrategy)
+                    {
+                    case null:
+                        // Drop the identity, converting the column to a regular int
+                        builder.AppendLine(alterBase).AppendLine("DROP IDENTITY;");
+                        break;
+                    case NpgsqlValueGenerationStrategy.IdentityAlwaysColumn:
+                        builder.Append(alterBase).AppendLine("SET GENERATED ALWAYS;");
+                        break;
+                    case NpgsqlValueGenerationStrategy.IdentityByDefaultColumn:
+                        builder.Append(alterBase).AppendLine("SET GENERATED BY DEFAULT;");
+                        break;
+                    case NpgsqlValueGenerationStrategy.SerialColumn:
+                        throw new NotSupportedException("Migrating from identity to serial isn't currently supported (and is a bad idea)");
+                    default:
+                        throw new NotSupportedException($"Don't know how to migrate identity column to {newStrategy}");
+                    }
+                }
+                else if (oldStrategy == null)
+                {
+                    switch (newStrategy)
+                    {
+                    case NpgsqlValueGenerationStrategy.IdentityAlwaysColumn:
+                        builder.Append(alterBase).AppendLine("ADD GENERATED ALWAYS AS IDENTITY;");
+                        break;
+                    case NpgsqlValueGenerationStrategy.IdentityByDefaultColumn:
+                        builder.Append(alterBase).AppendLine("ADD GENERATED BY DEFAULT AS IDENTITY;");
+                        break;
+                    case NpgsqlValueGenerationStrategy.SerialColumn:
+                        switch (type)
+                        {
+                        case "integer":
+                        case "int":
+                        case "int4":
+                        case "bigint":
+                        case "int8":
+                        case "smallint":
+                        case "int2":
+                            newSequenceName = $"{operation.Table}_{operation.Name}_seq";
+                            Generate(new CreateSequenceOperation
+                            {
+                                Name = newSequenceName,
+                                ClrType = operation.ClrType
+                            }, model, builder);
+                            defaultValueSql = $@"nextval('{Dependencies.SqlGenerationHelper.DelimitIdentifier(newSequenceName)}')";
+                            // Note: we also need to set the sequence ownership, this is done below after the ALTER COLUMN
+                            break;
+                        }
+                        break;
+                    default:
+                        throw new NotSupportedException($"Don't know how to apply value generation strategy {newStrategy}");
+                    }
                 }
             }
-
-            var identifier = Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Table, operation.Schema);
-            var alterBase = $"ALTER TABLE {identifier} ALTER COLUMN {Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name)} ";
 
             // TYPE
             builder.Append(alterBase)
@@ -328,29 +410,36 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                 .Append(operation.IsNullable ? "DROP NOT NULL" : "SET NOT NULL")
                 .AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
 
-            // DEFAULT
-            builder.Append(alterBase);
-            if (operation.DefaultValue != null || defaultValueSql != null)
+            // DEFAULT.
+            // Note that identity columns don't have a regular default but trying
+            // to drop the default triggers an error.
+            if (newStrategy != NpgsqlValueGenerationStrategy.IdentityAlwaysColumn &&
+                newStrategy != NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
             {
-                builder.Append("SET");
-                DefaultValue(operation.DefaultValue, defaultValueSql, builder);
+                builder.Append(alterBase);
+                if (operation.DefaultValue != null || defaultValueSql != null)
+                {
+                    builder.Append("SET");
+                    DefaultValue(operation.DefaultValue, defaultValueSql, builder);
+                }
+                else
+                    builder.Append("DROP DEFAULT");
+                builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
             }
-            else
-                builder.Append("DROP DEFAULT");
 
-            // Terminate the DEFAULT above
-            builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
 
-            // ALTER SEQUENCE
-            if (sequenceName != null)
+            // A sequence has been created because this column was altered to be a serial.
+            // Change the sequence's ownership.
+            if (newSequenceName != null)
             {
                 builder
                     .Append("ALTER SEQUENCE ")
-                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(sequenceName))
+                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(newSequenceName))
                     .Append(" OWNED BY ")
                     .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Table))
                     .Append('.')
-                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name));
+                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name))
+                    .AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
             }
 
             // Comment
@@ -359,7 +448,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
 
             if (oldComment != newComment)
             {
-                var stringTypeMapping = Dependencies.TypeMapper.GetMapping(typeof(string));
+                var stringTypeMapping = Dependencies.TypeMappingSource.GetMapping(typeof(string));
 
                 builder
                     .Append("COMMENT ON COLUMN ")
@@ -367,41 +456,11 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                     .Append('.')
                     .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name))
                     .Append(" IS ")
-                    .Append(stringTypeMapping.GenerateSqlLiteral(newComment));
+                    .Append(stringTypeMapping.GenerateSqlLiteral(newComment))
+                    .AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
             }
 
             EndStatement(builder);
-        }
-
-        protected override void Generate(CreateSequenceOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
-        {
-            Generate(operation, model, builder, true);
-        }
-
-        void Generate(CreateSequenceOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder, bool endStatement)
-        {
-            Check.NotNull(operation, nameof(operation));
-            Check.NotNull(builder, nameof(builder));
-
-            if (operation.ClrType != typeof(long))
-                throw new NotSupportedException("PostgreSQL sequences can only be bigint (long)");
-
-            var typeMapping = Dependencies.TypeMapper.GetMapping(operation.ClrType);
-
-            builder
-                .Append("CREATE SEQUENCE ")
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name, operation.Schema));
-
-            builder
-                .Append(" START WITH ")
-                .Append(typeMapping.GenerateSqlLiteral(operation.StartValue));
-
-            SequenceOptions(operation, model, builder);
-
-            builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
-
-            if (endStatement)
-                EndStatement(builder);
         }
 
         protected override void Generate(RenameIndexOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
@@ -491,7 +550,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
-            var method = (string)operation[NpgsqlAnnotationNames.Prefix + NpgsqlAnnotationNames.IndexMethod];
+            var method = (string)operation[NpgsqlAnnotationNames.IndexMethod];
 
             builder.Append("CREATE ");
 
@@ -517,6 +576,13 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                 .Append(" (")
                 .Append(ColumnList(operation.Columns))
                 .Append(")");
+
+            if (!string.IsNullOrEmpty(operation.Filter))
+            {
+                builder
+                    .Append(" WHERE ")
+                    .Append(operation.Filter);
+            }
 
             builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
 
@@ -547,7 +613,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             EndStatement(builder);
         }
 
-        public virtual void Generate(NpgsqlCreateDatabaseOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
+        protected virtual void Generate(NpgsqlCreateDatabaseOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
@@ -561,6 +627,13 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                 builder
                     .Append(" TEMPLATE ")
                     .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Template));
+            }
+
+            if (operation.Tablespace != null)
+            {
+                builder
+                    .Append(" TABLESPACE ")
+                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Tablespace));
             }
 
             builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
@@ -604,28 +677,76 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             Check.NotNull(builder, nameof(builder));
 
             foreach (var extension in PostgresExtension.GetPostgresExtensions(operation))
+                GenerateCreateExtension(extension, model, builder);
+
+            foreach (var enumType in PostgresEnum.GetPostgresEnums(operation))
+                GenerateCreateEnum(enumType, model, builder);
+            // TODO: Some forms of enum alterations are actually supported...
+            foreach (var enumType in PostgresEnum.GetPostgresEnums(operation.OldDatabase))
+                GenerateDropEnum(enumType, builder);
+            builder.EndCommand();
+        }
+
+        protected virtual void GenerateCreateExtension(
+            IPostgresExtension extension,
+            IModel model,
+            MigrationCommandListBuilder builder)
+        {
+            builder
+                .Append("CREATE EXTENSION IF NOT EXISTS ")
+                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(extension.Name));
+
+            if (extension.Schema != null)
             {
                 builder
-                    .Append("CREATE EXTENSION IF NOT EXISTS ")
-                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(extension.Name));
-
-                if (extension.Schema != null)
-                {
-                    builder
-                        .Append(" SCHEMA ")
-                        .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(extension.Schema));
-                }
-
-                if (extension.Version != null)
-                {
-                    builder
-                        .Append(" VERSION ")
-                        .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(extension.Version));
-                }
-
-                builder.AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
-                EndStatement(builder, suppressTransaction: true);
+                    .Append(" SCHEMA ")
+                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(extension.Schema));
             }
+
+            if (extension.Version != null)
+            {
+                builder
+                    .Append(" VERSION ")
+                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(extension.Version));
+            }
+
+            builder.AppendLine(';');
+        }
+
+        protected virtual void GenerateCreateEnum(
+            PostgresEnum enumType,
+            IModel model,
+            MigrationCommandListBuilder builder)
+        {
+            // Schemas are normally created (or rather ensured) by the model differ, which scans all tables, sequences
+            // and other database objects. However, it isn't aware of enums, so we always ensure schema on enum creation.
+            if (enumType.Schema != null)
+                Generate(new EnsureSchemaOperation { Name=enumType.Schema }, model, builder);
+
+            builder
+                .Append("CREATE TYPE ")
+                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(enumType.Name, enumType.Schema))
+                .Append(" AS ENUM (");
+
+            var stringTypeMapping = Dependencies.TypeMappingSource.GetMapping(typeof(string));
+
+            var labels = enumType.Labels;
+            for (var i = 0; i < labels.Length; i++)
+            {
+                builder.Append(stringTypeMapping.GenerateSqlLiteral(labels[i]));
+                if (i < labels.Length - 1)
+                    builder.Append(", ");
+            }
+
+            builder.AppendLine(");");
+        }
+
+        protected virtual void GenerateDropEnum(PostgresEnum @enum, MigrationCommandListBuilder builder)
+        {
+            builder
+                .Append("DROP TYPE ")
+                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(@enum.Name, @enum.Schema))
+                .AppendLine(";");
         }
 
         protected override void Generate(DropIndexOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
@@ -665,21 +786,22 @@ namespace Microsoft.EntityFrameworkCore.Migrations
         #region Utilities
 
         protected override void ColumnDefinition(
-            [CanBeNull] string schema,
-            [NotNull] string table,
-            [NotNull] string name,
-            [NotNull] Type clrType,
-            [CanBeNull] string type,
-            [CanBeNull] bool? unicode,
-            [CanBeNull] int? maxLength,
+            string schema,
+            string table,
+            string name,
+            Type clrType,
+            string type,
+            bool? unicode,
+            int? maxLength,
+            bool? fixedLength,
             bool rowVersion,
             bool nullable,
-            [CanBeNull] object defaultValue,
-            [CanBeNull] string defaultValueSql,
-            [CanBeNull] string computedColumnSql,
-            [NotNull] IAnnotatable annotatable,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            object defaultValue,
+            string defaultValueSql,
+            string computedColumnSql,
+            IAnnotatable annotatable,
+            IModel model,
+            MigrationCommandListBuilder builder)
         {
             Check.NotEmpty(name, nameof(name));
             Check.NotNull(annotatable, nameof(annotatable));
@@ -687,9 +809,14 @@ namespace Microsoft.EntityFrameworkCore.Migrations
             Check.NotNull(builder, nameof(builder));
 
             if (type == null)
-                type = GetColumnType(schema, table, name, clrType, unicode, maxLength, rowVersion, model);
+                type = GetColumnType(schema, table, name, clrType, unicode, maxLength, fixedLength, rowVersion, model);
 
-            CheckForOldAnnotation(annotatable);
+            // User-defined type names are quoted if they contain uppercase letters. Other types are never quoted
+            // since users sometimes prefer to write TEXT instead of text.
+            if (_typeMappingSource.IsUserDefinedType(type))
+                type = _sqlGenerationHelper.DelimitIdentifier(type);
+
+            CheckForOldValueGenerationAnnotation(annotatable);
             var valueGenerationStrategy = annotatable[NpgsqlAnnotationNames.ValueGenerationStrategy] as NpgsqlValueGenerationStrategy?;
             if (valueGenerationStrategy == NpgsqlValueGenerationStrategy.SerialColumn)
             {
@@ -697,6 +824,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                 {
                 case "int":
                 case "int4":
+                case "integer":
                     type = "serial";
                     break;
                 case "bigint":
@@ -718,6 +846,7 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                 type,
                 unicode,
                 maxLength,
+                fixedLength,
                 rowVersion,
                 nullable,
                 defaultValue,
@@ -726,12 +855,42 @@ namespace Microsoft.EntityFrameworkCore.Migrations
                 annotatable,
                 model,
                 builder);
+
+            switch (valueGenerationStrategy)
+            {
+            case NpgsqlValueGenerationStrategy.IdentityAlwaysColumn:
+                builder.Append(" GENERATED ALWAYS AS IDENTITY");
+                break;
+            case NpgsqlValueGenerationStrategy.IdentityByDefaultColumn:
+                builder.Append(" GENERATED BY DEFAULT AS IDENTITY");
+                break;
+            }
         }
+
+        // Required to "activate" IsFixedLength
+        protected override void ColumnDefinition(AddColumnOperation operation, IModel model, MigrationCommandListBuilder builder)
+            => ColumnDefinition(
+                operation.Schema,
+                operation.Table,
+                operation.Name,
+                operation.ClrType,
+                operation.ColumnType,
+                operation.IsUnicode,
+                operation.MaxLength,
+                operation.IsFixedLength,
+                operation.IsRowVersion,
+                operation.IsNullable,
+                operation.DefaultValue,
+                operation.DefaultValueSql,
+                operation.ComputedColumnSql,
+                operation,
+                model,
+                builder);
 
 #pragma warning disable 618
         // Version 1.0 had a bad strategy for expressing serial columns, which depended on a
         // ValueGeneratedOnAdd annotation. Detect that and throw.
-        static void CheckForOldAnnotation([NotNull] IAnnotatable annotatable)
+        static void CheckForOldValueGenerationAnnotation([NotNull] IAnnotatable annotatable)
         {
             if (annotatable.FindAnnotation(NpgsqlAnnotationNames.ValueGeneratedOnAdd) != null)
                 throw new NotSupportedException("The Npgsql:ValueGeneratedOnAdd annotation has been found in your migrations, but is no longer supported. Please replace it with '.Annotation(\"Npgsql:ValueGenerationStrategy\", NpgsqlValueGenerationStrategy.SerialColumn)' where you want PostgreSQL serial (autoincrement) columns, and remove it in all other cases.");

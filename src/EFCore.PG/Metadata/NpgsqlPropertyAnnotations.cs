@@ -3,11 +3,14 @@
 
 using System;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Microsoft.EntityFrameworkCore.Utilities;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
-namespace Microsoft.EntityFrameworkCore.Metadata
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 {
     public class NpgsqlPropertyAnnotations : RelationalPropertyAnnotations, INpgsqlPropertyAnnotations
     {
@@ -101,8 +104,14 @@ namespace Microsoft.EntityFrameworkCore.Metadata
             if (modelStrategy == NpgsqlValueGenerationStrategy.SequenceHiLo && Property.ClrType.IsInteger())
                 return NpgsqlValueGenerationStrategy.SequenceHiLo;
 
-            if (modelStrategy == NpgsqlValueGenerationStrategy.SerialColumn && Property.ClrType.IsIntegerForSerial())
+            if (modelStrategy == NpgsqlValueGenerationStrategy.SerialColumn && Property.ClrType.IsIntegerForIdentityOrSerial())
                 return NpgsqlValueGenerationStrategy.SerialColumn;
+
+            if (modelStrategy == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn && Property.ClrType.IsIntegerForIdentityOrSerial())
+                return NpgsqlValueGenerationStrategy.IdentityAlwaysColumn;
+
+            if (modelStrategy == NpgsqlValueGenerationStrategy.IdentityByDefaultColumn && Property.ClrType.IsIntegerForIdentityOrSerial())
+                return NpgsqlValueGenerationStrategy.IdentityByDefaultColumn;
 
             return null;
         }
@@ -113,10 +122,18 @@ namespace Microsoft.EntityFrameworkCore.Metadata
             {
                 var propertyType = Property.ClrType;
 
-                if (value == NpgsqlValueGenerationStrategy.SerialColumn && !propertyType.IsIntegerForSerial())
+                if (value == NpgsqlValueGenerationStrategy.SerialColumn && !propertyType.IsIntegerForIdentityOrSerial())
                 {
                     if (ShouldThrowOnInvalidConfiguration)
                         throw new ArgumentException($"Serial value generation cannot be used for the property '{Property.Name}' on entity type '{Property.DeclaringEntityType.DisplayName()}' because the property type is '{propertyType.ShortDisplayName()}'. Serial columns can only be of type short, int or long.");
+                    return false;
+                }
+
+                if ((value == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn || value == NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
+                    && !propertyType.IsIntegerForIdentityOrSerial())
+                {
+                    if (ShouldThrowOnInvalidConfiguration)
+                        throw new ArgumentException($"Identity value generation cannot be used for the property '{Property.Name}' on entity type '{Property.DeclaringEntityType.DisplayName()}' because the property type is '{propertyType.ShortDisplayName()}'. Identity columns can only be of type short, int or long.");
                     return false;
                 }
 

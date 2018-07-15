@@ -1,14 +1,34 @@
-﻿using System;
+﻿#region License
+// The PostgreSQL License
+//
+// Copyright (C) 2016 The Npgsql Development Team
+//
+// Permission to use, copy, modify, and distribute this software and its
+// documentation for any purpose, without fee, and without a written
+// agreement is hereby granted, provided that the above copyright notice
+// and this paragraph and the following two paragraphs appear in all copies.
+//
+// IN NO EVENT SHALL THE NPGSQL DEVELOPMENT TEAM BE LIABLE TO ANY PARTY
+// FOR DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES,
+// INCLUDING LOST PROFITS, ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS
+// DOCUMENTATION, EVEN IF THE NPGSQL DEVELOPMENT TEAM HAS BEEN ADVISED OF
+// THE POSSIBILITY OF SUCH DAMAGE.
+//
+// THE NPGSQL DEVELOPMENT TEAM SPECIFICALLY DISCLAIMS ANY WARRANTIES,
+// INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+// AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
+// ON AN "AS IS" BASIS, AND THE NPGSQL DEVELOPMENT TEAM HAS NO OBLIGATIONS
+// TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+#endregion
+
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Microsoft.EntityFrameworkCore.Utilities;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
-namespace Microsoft.EntityFrameworkCore.Metadata
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 {
     public class NpgsqlModelAnnotations : RelationalModelAnnotations, INpgsqlModelAnnotations
     {
@@ -75,6 +95,24 @@ namespace Microsoft.EntityFrameworkCore.Metadata
 
         #endregion
 
+        #region Enum types
+
+        public virtual PostgresEnum GetOrAddPostgresEnum(
+            [CanBeNull] string schema,
+            [NotNull] string name,
+            [NotNull] string[] labels)
+            => PostgresEnum.GetOrAddPostgresEnum((IMutableModel)Model, schema, name, labels);
+
+        public virtual PostgresEnum GetOrAddPostgresEnum(
+            [NotNull] string name,
+            [NotNull] string[] labels)
+            => GetOrAddPostgresEnum(null, name, labels);
+
+        public virtual IReadOnlyList<PostgresEnum> PostgresEnums
+            => PostgresEnum.GetPostgresEnums(Model).ToList();
+
+        #endregion Enum types
+
         #region Database Template
 
         public virtual string DatabaseTemplate
@@ -87,6 +125,22 @@ namespace Microsoft.EntityFrameworkCore.Metadata
         protected virtual bool SetDatabaseTemplate([CanBeNull] string value)
             => Annotations.SetAnnotation(
                 NpgsqlAnnotationNames.DatabaseTemplate,
+                Check.NullButNotEmpty(value, nameof(value)));
+
+        #endregion
+
+        #region Tablespace
+
+        public virtual string Tablespace
+        {
+            get => (string)Annotations.Metadata[NpgsqlAnnotationNames.Tablespace];
+            [param: CanBeNull]
+            set => SetTablespace(value);
+        }
+
+        protected virtual bool SetTablespace([CanBeNull] string value)
+            => Annotations.SetAnnotation(
+                NpgsqlAnnotationNames.Tablespace,
                 Check.NullButNotEmpty(value, nameof(value)));
 
         #endregion

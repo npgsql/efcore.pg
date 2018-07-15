@@ -25,10 +25,10 @@ using System;
 using System.Linq.Expressions;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Query.Sql.Internal;
-using Microsoft.EntityFrameworkCore.Utilities;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
-namespace Microsoft.EntityFrameworkCore.Query.Expressions.Internal
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
 {
     public class RegexMatchExpression : Expression
     {

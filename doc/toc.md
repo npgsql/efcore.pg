@@ -1,7 +1,15 @@
 ﻿# [Getting Started](index.md)
-# Migration Notes
-## [From 1.0.x to 1.1.x](migration/1.1.md)
-## [From 1.1.x to 2.0.x](migration/2.0.md)
+# Release Notes
+## [1.1](release-notes/1.1.md)
+## [2.0](release-notes/2.0.md)
+## [2.1](release-notes/2.1.md)
+# Mapping and Translation
+## [General](mapping/general.md)
+## [Arrays](mapping/array.md)
+## [Enums](mapping/enum.md)
+## [Ranges](mapping/range.md)
+## [Spatial Data](mapping/nts.md)
+## [Full Text Search](mapping/full-text-search.md)
+## [NodaTime](mapping/nodatime.md)
 # [Value Generation](value-generation.md)
-# [Mapping and Translation](mapping-and-translation.md)
 # [Miscellaneous](misc.md)

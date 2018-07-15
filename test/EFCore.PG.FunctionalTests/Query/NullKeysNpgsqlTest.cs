@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Utilities;
+﻿using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.TestUtilities;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Microsoft.EntityFrameworkCore.Query
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     public class NullKeysNpgsqlTest : NullKeysTestBase<NullKeysNpgsqlTest.NullKeysNpgsqlFixture>
     {
@@ -17,31 +11,10 @@ namespace Microsoft.EntityFrameworkCore.Query
         {
         }
 
-        public class NullKeysNpgsqlFixture : NullKeysFixtureBase, IDisposable
+        public class NullKeysNpgsqlFixture : NullKeysFixtureBase
         {
-            private readonly DbContextOptions _options;
-            private readonly NpgsqlTestStore _testStore;
-
-            public NullKeysNpgsqlFixture()
-            {
-                var name = "StringsContext";
-                var connectionString = NpgsqlTestStore.CreateConnectionString(name);
-
-                _options = new DbContextOptionsBuilder()
-                    .UseNpgsql(connectionString, b => b.ApplyConfiguration())
-                    .UseInternalServiceProvider(new ServiceCollection()
-                        .AddEntityFrameworkNpgsql()
-                        .AddSingleton(TestModelSource.GetFactory(OnModelCreating))
-                        .BuildServiceProvider())
-                    .Options;
-
-                _testStore = NpgsqlTestStore.GetOrCreateShared(name, EnsureCreated);
-            }
-
-            public override DbContext CreateContext()
-                => new DbContext(_options);
-
-            public void Dispose() => _testStore.Dispose();
+            protected override string StoreName { get; } = "StringsContext";
+            protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
         }
     }
 }

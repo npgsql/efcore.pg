@@ -1,21 +1,21 @@
-﻿using System;
-using System.Diagnostics;
-using System.Linq;
+﻿using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 using Xunit;
 using Xunit.Abstractions;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.TestUtilities;
 
-namespace Microsoft.EntityFrameworkCore.Query
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public class DbFunctionsNpgsqlTest : DbFunctionsTestBase<NorthwindQueryNpgsqlFixture>
+    public class DbFunctionsNpgsqlTest : DbFunctionsTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
     {
-        public DbFunctionsNpgsqlTest(NorthwindQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
+        public DbFunctionsNpgsqlTest(NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
         {
-            fixture.TestSqlLoggerFactory.Clear();
+            Fixture.TestSqlLoggerFactory.Clear();
         }
 
-        public override void String_Like_Literal()
+        public override void Like_literal()
         {
             // PostgreSQL like is case-sensitive, while the EF Core "default" (i.e. SqlServer) is insensitive.
             // So we override and assert only 19 matches unlike the default's 34.
@@ -26,33 +26,30 @@ namespace Microsoft.EntityFrameworkCore.Query
                 Assert.Equal(19, count);
             }
 
-            Assert.Equal(
+            AssertSql(
                 @"SELECT COUNT(*)::INT4
-FROM ""Customers"" AS ""c""
-WHERE ""c"".""ContactName"" LIKE '%M%'",
-                Sql);
+FROM ""Customers"" AS c
+WHERE c.""ContactName"" LIKE '%M%'");
         }
 
-        public override void String_Like_Identity()
+        public override void Like_identity()
         {
-            base.String_Like_Identity();
+            base.Like_identity();
 
-            Assert.Equal(
+            AssertSql(
                 @"SELECT COUNT(*)::INT4
-FROM ""Customers"" AS ""c""
-WHERE ""c"".""ContactName"" LIKE ""c"".""ContactName"" ESCAPE ''",
-                Sql);
+FROM ""Customers"" AS c
+WHERE c.""ContactName"" LIKE c.""ContactName"" ESCAPE ''");
         }
 
-        public override void String_Like_Literal_With_Escape()
+        public override void Like_literal_with_escape()
         {
-            base.String_Like_Literal_With_Escape();
+            base.Like_literal_with_escape();
 
-            Assert.Equal(
+            AssertSql(
                 @"SELECT COUNT(*)::INT4
-FROM ""Customers"" AS ""c""
-WHERE ""c"".""ContactName"" LIKE '!%' ESCAPE '!'",
-                Sql);
+FROM ""Customers"" AS c
+WHERE c.""ContactName"" LIKE '!%' ESCAPE '!'");
         }
 
         [Fact]
@@ -65,11 +62,10 @@ WHERE ""c"".""ContactName"" LIKE '!%' ESCAPE '!'",
                 Assert.Equal(0, count);
             }
 
-            Assert.Equal(
+            AssertSql(
                 @"SELECT COUNT(*)::INT4
-FROM ""Customers"" AS ""c""
-WHERE ""c"".""ContactName"" LIKE '\' ESCAPE ''",
-                Sql);
+FROM ""Customers"" AS c
+WHERE c.""ContactName"" LIKE '\' ESCAPE ''");
         }
 
         [Fact]
@@ -83,11 +79,10 @@ WHERE ""c"".""ContactName"" LIKE '\' ESCAPE ''",
             }
 
             // For the useless = TRUE below see https://github.com/aspnet/EntityFramework/issues/9143
-            Assert.Equal(
+            AssertSql(
                 @"SELECT COUNT(*)::INT4
-FROM ""Customers"" AS ""c""
-WHERE ""c"".""ContactName"" ILIKE '%M%' = TRUE",
-                Sql);
+FROM ""Customers"" AS c
+WHERE c.""ContactName"" ILIKE '%M%' = TRUE");
         }
 
         [Fact]
@@ -100,16 +95,13 @@ WHERE ""c"".""ContactName"" ILIKE '%M%' = TRUE",
             }
 
             // For the useless = TRUE below see https://github.com/aspnet/EntityFramework/issues/9143
-            Assert.Equal(
+            AssertSql(
                 @"SELECT COUNT(*)::INT4
-FROM ""Customers"" AS ""c""
-WHERE ""c"".""ContactName"" ILIKE '!%' ESCAPE '!' = TRUE",
-                Sql);
+FROM ""Customers"" AS c
+WHERE c.""ContactName"" ILIKE '!%' ESCAPE '!' = TRUE");
         }
 
-        private const string FileLineEnding = @"
-";
-
-        private string Sql => Fixture.TestSqlLoggerFactory.Sql.Replace(Environment.NewLine, FileLineEnding);
+        void AssertSql(params string[] expected)
+            => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
     }
 }
