@@ -187,4 +187,7 @@
     <value>Expression index '{name}' on table {tableName} cannot be scaffolded, expression indices aren't supported and must be added via raw SQL in migrations.</value>
     <comment>Warning NpgsqlEventId.ExpressionIndexSkippedWarning string string</comment>
   </data>
+  <data name="ClientEvaluation" xml:space="preserve">
+    <value>'{callerMemberName}' is only intended for SQL translation by EF Core, but was evaluated by the client.</value>
+  </data>
 </root>
