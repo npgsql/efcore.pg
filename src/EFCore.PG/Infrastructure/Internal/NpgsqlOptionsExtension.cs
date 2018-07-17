@@ -93,8 +93,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         public NpgsqlOptionsExtension([NotNull] NpgsqlOptionsExtension copyFrom) : base(copyFrom)
         {
             AdminDatabase = copyFrom.AdminDatabase;
-            PostgresVersion = copyFrom.PostgresVersion;
             _plugins = new List<NpgsqlEntityFrameworkPlugin>(copyFrom._plugins);
+            PostgresVersion = copyFrom.PostgresVersion;
             ProvideClientCertificatesCallback = copyFrom.ProvideClientCertificatesCallback;
             RemoteCertificateValidationCallback = copyFrom.RemoteCertificateValidationCallback;
             ReverseNullOrdering = copyFrom.ReverseNullOrdering;

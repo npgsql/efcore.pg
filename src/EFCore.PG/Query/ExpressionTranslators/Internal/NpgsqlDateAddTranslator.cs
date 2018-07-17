@@ -30,7 +30,6 @@ using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
@@ -74,8 +73,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         /// Initializes a new instance of the <see cref="NpgsqlDateAddTranslator"/> class.
         /// </summary>
         /// <param name="postgresVersion">The backend version to target.</param>
-        public NpgsqlDateAddTranslator([NotNull] Version postgresVersion)
-            => _postgresVersion = Check.NotNull(postgresVersion, nameof(postgresVersion));
+        public NpgsqlDateAddTranslator([CanBeNull] Version postgresVersion)
+            => _postgresVersion = postgresVersion ?? MinimumSupportedVersion;
 
         /// <inheritdoc />
         public virtual Expression Translate(MethodCallExpression methodCallExpression)
@@ -92,15 +91,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             // We could use the provider-specific NpgsqlTimeSpan but it's not currently supported and is somewhat
             // ugly, so we just generate the expression ourselves with CustomBinaryExpression
 
-            if (!(methodCallExpression.Object is Expression instance) ||
-                methodCallExpression.Arguments.Count < 1 ||
-                !(methodCallExpression.Arguments[0] is Expression amountToAdd))
+            Expression instance = methodCallExpression.Object;
+            Expression amountToAdd = methodCallExpression.Arguments[0];
+
+            if (instance is null || amountToAdd is null)
                 return null;
 
-            if (amountToAdd is ConstantExpression constantExpression &&
-                constantExpression.Type == typeof(double) &&
-                ((double)constantExpression.Value >= int.MaxValue ||
-                 (double)constantExpression.Value <= int.MinValue))
+            if (amountToAdd is ConstantExpression amount &&
+                amount.Type == typeof(double) &&
+                ((double)amount.Value >= int.MaxValue ||
+                 (double)amount.Value <= int.MinValue))
                 return null;
 
             return
