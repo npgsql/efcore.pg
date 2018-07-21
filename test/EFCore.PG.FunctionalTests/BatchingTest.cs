@@ -153,12 +153,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         {
             var expectedBlogs = new List<Blog>();
             TestHelpers.ExecuteWithStrategyInTransaction(
-                () =>
-                    {
-                        var optionsBuilder = new DbContextOptionsBuilder(Fixture.CreateOptions());
-                        new NpgsqlDbContextOptionsBuilder(optionsBuilder).MinBatchSize(minBatchSize);
-                        return new BloggingContext(optionsBuilder.Options);
-                    },
+                () => (BloggingContext)Fixture.CreateContext(minBatchSize),
                 UseTransaction,
                 context =>
                     {
@@ -223,7 +218,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         protected void UseTransaction(DatabaseFacade facade, IDbContextTransaction transaction)
             => facade.UseTransaction(transaction.GetDbTransaction());
 
-        private class BloggingContext : DbContext
+        private class BloggingContext : PoolableDbContext
         {
             public BloggingContext(DbContextOptions options)
                 : base(options)
@@ -266,16 +261,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             public uint Version { get; set; }
         }
 
-        public class BatchingTestFixture : SharedStoreFixtureBase<DbContext>
+        public class BatchingTestFixture : SharedStoreFixtureBase<PoolableDbContext>
         {
             public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ServiceProvider.GetRequiredService<ILoggerFactory>();
             protected override string StoreName { get; } = "BatchingTest";
             protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
             protected override Type ContextType { get; } = typeof(BloggingContext);
 
-            protected override void Seed(DbContext context)
+            protected override void Seed(PoolableDbContext context)
             {
                 context.Database.EnsureCreated();
+            }
+
+            public DbContext CreateContext(int minBatchSize)
+            {
+                var optionsBuilder = new DbContextOptionsBuilder(CreateOptions());
+                new NpgsqlDbContextOptionsBuilder(optionsBuilder).MinBatchSize(minBatchSize);
+                return new BloggingContext(optionsBuilder.Options);
             }
         }
     }

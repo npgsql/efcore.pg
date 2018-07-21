@@ -1779,7 +1779,7 @@ CREATE TABLE column_types (
             }
         }
 
-        public class NpgsqlDatabaseModelFixture : SharedStoreFixtureBase<DbContext>
+        public class NpgsqlDatabaseModelFixture : SharedStoreFixtureBase<PoolableDbContext>
         {
             protected override string StoreName { get; } = nameof(NpgsqlDatabaseModelFactoryTest);
             protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;

@@ -406,7 +406,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ServiceProvider.GetRequiredService<ILoggerFactory>();
         }
 
-        public class NodaTimeContext : DbContext
+        public class NodaTimeContext : PoolableDbContext
         {
             public NodaTimeContext(DbContextOptions<NodaTimeContext> options) : base(options) {}
 

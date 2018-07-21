@@ -422,7 +422,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ServiceProvider.GetRequiredService<ILoggerFactory>();
         }
 
-        public class NetTopologySuiteContext : DbContext
+        public class NetTopologySuiteContext : PoolableDbContext
         {
             public NetTopologySuiteContext(DbContextOptions<NetTopologySuiteContext> options) : base(options) {}
 
