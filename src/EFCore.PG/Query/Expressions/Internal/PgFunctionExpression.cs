@@ -278,79 +278,36 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
 
         /// <inheritdoc />
         public bool Equals(PgFunctionExpression other)
-            => other != null &&
-               Instance == other.Instance &&
-               Type == other.Type &&
-               FunctionName == other.FunctionName &&
-               Schema == other.Schema &&
-               _positionalArguments.Count == other._positionalArguments.Count &&
-               _positionalArguments.SequenceEqual(other._positionalArguments) &&
-               _namedArguments.Count == other._namedArguments.Count &&
-               _namedArguments.SequenceEqual(other._namedArguments);
+            => other != null
+               && Type == other.Type
+               && string.Equals(FunctionName, other.FunctionName)
+               && string.Equals(Schema, other.Schema)
+               && _positionalArguments.SequenceEqual(other._positionalArguments)
+               && _namedArguments.Count == other._namedArguments.Count
+               && _namedArguments.All(kv => other._namedArguments.TryGetValue(kv.Key, out var otherValue) && kv.Value?.Equals(otherValue) == true)
+               && (Instance == null && other.Instance == null || Instance?.Equals(other.Instance) == true);
 
         /// <inheritdoc />
         public override int GetHashCode()
         {
             unchecked
             {
-                var hashCode = Type.GetHashCode();
-                hashCode ^= 397 * (Instance?.GetHashCode() ?? 0);
-                hashCode ^= 397 * FunctionName.GetHashCode();
-                hashCode ^= 397 * (Schema?.GetHashCode() ?? 0);
-
-                for (int i = 0; i < _positionalArguments.Count; i++)
-                {
-                    hashCode ^= 397 * _positionalArguments[i].GetHashCode();
-                }
-
-                foreach (var kvp in _namedArguments)
-                {
-                    hashCode ^= 397 * kvp.Key.GetHashCode();
-                    hashCode ^= 397 * kvp.Value.GetHashCode();
-                }
-
+                var hashCode = _positionalArguments.Aggregate(0, (current, argument) => current + ((current * 397) ^ argument.GetHashCode()));
+                hashCode = (hashCode * 397) ^ _namedArguments.Aggregate(0, (current, argument) =>
+                               current + ((current * 397) ^ argument.Key.GetHashCode()) + ((current * 397) ^ argument.Value.GetHashCode()));
+                hashCode = (hashCode * 397) ^ (Instance?.GetHashCode() ?? 0);
+                hashCode = (hashCode * 397) ^ FunctionName.GetHashCode();
+                hashCode = (hashCode * 397) ^ (Schema?.GetHashCode() ?? 0);
+                hashCode = (hashCode * 397) ^ Type.GetHashCode();
                 return hashCode;
             }
         }
 
         /// <inheritdoc />
         public override string ToString()
-        {
-            StringBuilder sb = new StringBuilder();
-
-            sb.Append(Instance?.ToString() ?? Schema);
-
-            if (sb.Length != 0)
-                sb.Append('.');
-
-            sb.Append(FunctionName)
-              .Append('(');
-
-            for (int i = 0; i < PositionalArguments.Count; i++)
-            {
-                if (i != 0)
-                    sb.Append(", ");
-
-                sb.Append(PositionalArguments[i]);
-            }
-
-            bool hasArguments = NamedArguments.Count > 0;
-
-            foreach (var kv in NamedArguments)
-            {
-                if (hasArguments)
-                    sb.Append(", ");
-                else
-                    hasArguments = true;
-
-                sb.Append(kv.Key)
-                  .Append(" => ")
-                  .Append(kv.Value);
-            }
-
-            sb.Append(')');
-
-            return sb.ToString();
-        }
+            => (Instance != null ? Instance + "." : Schema != null ? Schema + "." : "") +
+               $"{FunctionName}({string.Join("", "", PositionalArguments)}" +
+               (NamedArguments.Count > 0 ? ", " + string.Join("", "", NamedArguments.Select(a => $"{a.Key} => {a.Value}")) : "") +
+               ")";
     }
 }
