@@ -57,17 +57,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             case nameof(NpgsqlNetworkExtensions.LessThanOrEqual):
                 return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], "<=", typeof(bool));
 
-            case nameof(NpgsqlNetworkExtensions.Equal):
-                return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], "=", typeof(bool));
-
             case nameof(NpgsqlNetworkExtensions.GreaterThanOrEqual):
                 return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], ">=", typeof(bool));
 
             case nameof(NpgsqlNetworkExtensions.GreaterThan):
                 return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], ">", typeof(bool));
-
-            case nameof(NpgsqlNetworkExtensions.NotEqual):
-                return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], "<>", typeof(bool));
 
             case nameof(NpgsqlNetworkExtensions.ContainedBy):
                 return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], "<<", typeof(bool));

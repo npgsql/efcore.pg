@@ -216,80 +216,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         }
 
         /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.Equal(DbFunctions,IPAddress,IPAddress)"/>.
-        /// </summary>
-        [Fact]
-        public void IPAddress_inet_Equal_inet()
-        {
-            using (NetContext context = Fixture.CreateContext())
-            {
-                IPAddress inet = IPAddress.Any;
-
-                NetTestEntity[] _ =
-                    context.NetTestEntities
-                           .Where(x => EF.Functions.Equal(x.Inet, inet))
-                           .ToArray();
-
-                AssertContainsSql("WHERE (x.\"Inet\" = @__inet_1) = TRUE");
-            }
-        }
-
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.Equal(DbFunctions,ValueTuple{IPAddress,int},ValueTuple{IPAddress,int})"/>.
-        /// </summary>
-        [Fact]
-        public void ValueTuple_cidr_Equal_cidr()
-        {
-            using (NetContext context = Fixture.CreateContext())
-            {
-                (IPAddress Address, int Subnet) cidr = (IPAddress.Any, default);
-
-                NetTestEntity[] _ =
-                    context.NetTestEntities
-                           .Where(x => EF.Functions.Equal(x.Cidr, cidr))
-                           .ToArray();
-
-                AssertContainsSql("WHERE (x.\"Cidr\" = @__cidr_1) = TRUE");
-            }
-        }
-
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.Equal(DbFunctions,PhysicalAddress,PhysicalAddress)"/>.
-        /// </summary>
-        [Fact]
-        public void PhysicalAddress_macaddr_Equal_macaddr()
-        {
-            using (NetContext context = Fixture.CreateContext())
-            {
-                PhysicalAddress macaddr = new PhysicalAddress(new byte[6]);
-
-                NetTestEntity[] _ =
-                    context.NetTestEntities
-                           .Where(x => EF.Functions.Equal(x.Macaddr, macaddr))
-                           .ToArray();
-
-                AssertContainsSql("WHERE (x.\"Macaddr\" = @__macaddr_1) = TRUE");
-            }
-        }
-
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.Equal(DbFunctions,PhysicalAddress,PhysicalAddress)"/>.
-        /// </summary>
-        [Fact]
-        public void PhysicalAddress_macaddr8_Equal_macaddr8()
-        {
-            using (NetContext context = Fixture.CreateContext())
-            {
-                NetTestEntity[] _ =
-                    context.NetTestEntities
-                           .Where(x => EF.Functions.Equal(x.Macaddr8, x.Macaddr8))
-                           .ToArray();
-
-                AssertContainsSql("WHERE (x.\"Macaddr8\" = x.\"Macaddr8\") = TRUE");
-            }
-        }
-
-        /// <summary>
         /// Tests translation for <see cref="NpgsqlNetworkExtensions.GreaterThanOrEqual(DbFunctions,IPAddress,IPAddress)"/>.
         /// </summary>
         [Fact]
@@ -434,80 +360,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .ToArray();
 
                 AssertContainsSql("WHERE (x.\"Macaddr8\" > x.\"Macaddr8\") = TRUE");
-            }
-        }
-
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.NotEqual(DbFunctions,IPAddress,IPAddress)"/>.
-        /// </summary>
-        [Fact]
-        public void IPAddress_inet_NotEqual_inet()
-        {
-            using (NetContext context = Fixture.CreateContext())
-            {
-                IPAddress inet = IPAddress.Any;
-
-                NetTestEntity[] _ =
-                    context.NetTestEntities
-                           .Where(x => EF.Functions.NotEqual(x.Inet, inet))
-                           .ToArray();
-
-                AssertContainsSql("WHERE (x.\"Inet\" <> @__inet_1) = TRUE");
-            }
-        }
-
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.NotEqual(DbFunctions,ValueTuple{IPAddress,int},ValueTuple{IPAddress,int})"/>.
-        /// </summary>
-        [Fact]
-        public void ValueTuple_cidr_NotEqual_cidr()
-        {
-            using (NetContext context = Fixture.CreateContext())
-            {
-                (IPAddress Address, int Subnet) cidr = (IPAddress.Any, default);
-
-                NetTestEntity[] _ =
-                    context.NetTestEntities
-                           .Where(x => EF.Functions.NotEqual(x.Cidr, cidr))
-                           .ToArray();
-
-                AssertContainsSql("WHERE (x.\"Cidr\" <> @__cidr_1) = TRUE");
-            }
-        }
-
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.NotEqual(DbFunctions,PhysicalAddress,PhysicalAddress)"/>.
-        /// </summary>
-        [Fact]
-        public void PhysicalAddress_macaddr_NotEqual_macaddr()
-        {
-            using (NetContext context = Fixture.CreateContext())
-            {
-                PhysicalAddress macaddr = new PhysicalAddress(new byte[6]);
-
-                NetTestEntity[] _ =
-                    context.NetTestEntities
-                           .Where(x => EF.Functions.NotEqual(x.Macaddr, macaddr))
-                           .ToArray();
-
-                AssertContainsSql("WHERE (x.\"Macaddr\" <> @__macaddr_1) = TRUE");
-            }
-        }
-
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.NotEqual(DbFunctions,PhysicalAddress,PhysicalAddress)"/>.
-        /// </summary>
-        [Fact]
-        public void PhysicalAddress_macaddr8_NotEqual_macaddr8()
-        {
-            using (NetContext context = Fixture.CreateContext())
-            {
-                NetTestEntity[] _ =
-                    context.NetTestEntities
-                           .Where(x => EF.Functions.NotEqual(x.Macaddr8, x.Macaddr8))
-                           .ToArray();
-
-                AssertContainsSql("WHERE (x.\"Macaddr8\" <> x.\"Macaddr8\") = TRUE");
             }
         }
 
@@ -1691,16 +1543,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             /// <returns>
             /// A <see cref="NetContext"/> for testing.
             /// </returns>
-            public NetContext CreateContext()
-            {
-                return new NetContext(_options);
-            }
+            public NetContext CreateContext() => new NetContext(_options);
 
             /// <inheritdoc />
-            public void Dispose()
-            {
-                _testStore.Dispose();
-            }
+            public void Dispose() => _testStore.Dispose();
         }
 
         /// <summary>
@@ -1763,10 +1609,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         /// Asserts that the SQL fragment appears in the logs.
         /// </summary>
         /// <param name="sql">The SQL statement or fragment to search for in the logs.</param>
-        public void AssertContainsSql(string sql)
-        {
-            Assert.Contains(sql, Fixture.TestSqlLoggerFactory.Sql);
-        }
+        public void AssertContainsSql(string sql) => Assert.Contains(sql, Fixture.TestSqlLoggerFactory.Sql);
 
         #endregion
     }

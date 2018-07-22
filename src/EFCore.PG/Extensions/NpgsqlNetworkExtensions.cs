@@ -133,51 +133,6 @@ namespace Microsoft.EntityFrameworkCore
             => throw ClientEvaluationNotSupportedException();
 
         /// <summary>
-        /// Determines whether an <see cref="IPAddress"/> is equal to another <see cref="IPAddress"/>.
-        /// </summary>
-        /// <param name="_">The <see cref="DbFunctions"/> instance.</param>
-        /// <param name="inet">The left-hand inet.</param>
-        /// <param name="other">The right-hand inet.</param>
-        /// <returns>
-        /// True if the <see cref="IPAddress"/> is equal to the other <see cref="IPAddress"/>; otherwise, false.
-        /// </returns>
-        /// <exception cref="NotSupportedException">
-        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
-        /// </exception>
-        public static bool Equal([CanBeNull] this DbFunctions _, IPAddress inet, IPAddress other)
-            => throw ClientEvaluationNotSupportedException();
-
-        /// <summary>
-        /// Determines whether an (IPAddress Address, int Subnet) is equal to another (IPAddress Address, int Subnet).
-        /// </summary>
-        /// <param name="_">The <see cref="DbFunctions"/> instance.</param>
-        /// <param name="cidr">The left-hand cidr.</param>
-        /// <param name="other">The right-hand cidr.</param>
-        /// <returns>
-        /// True if the (IPAddress Address, int Subnet) is equal to the other (IPAddress Address, int Subnet); otherwise, false.
-        /// </returns>
-        /// <exception cref="NotSupportedException">
-        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
-        /// </exception>
-        public static bool Equal([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr, (IPAddress Address, int Subnet) other)
-            => throw ClientEvaluationNotSupportedException();
-
-        /// <summary>
-        /// Determines whether an <see cref="PhysicalAddress"/> is equal to another <see cref="PhysicalAddress"/>.
-        /// </summary>
-        /// <param name="_">The <see cref="DbFunctions"/> instance.</param>
-        /// <param name="macaddr">The left-hand macaddr.</param>
-        /// <param name="other">The right-hand macaddr.</param>
-        /// <returns>
-        /// True if the <see cref="PhysicalAddress"/> is equal to the other <see cref="PhysicalAddress"/>; otherwise, false.
-        /// </returns>
-        /// <exception cref="NotSupportedException">
-        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
-        /// </exception>
-        public static bool Equal([CanBeNull] this DbFunctions _, PhysicalAddress macaddr, PhysicalAddress other)
-            => throw ClientEvaluationNotSupportedException();
-
-        /// <summary>
         /// Determines whether an <see cref="IPAddress"/> is greater than or equal to another <see cref="IPAddress"/>.
         /// </summary>
         /// <param name="_">The <see cref="DbFunctions"/> instance.</param>
@@ -265,51 +220,6 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static bool GreaterThan([CanBeNull] this DbFunctions _, PhysicalAddress macaddr, PhysicalAddress other)
-            => throw ClientEvaluationNotSupportedException();
-
-        /// <summary>
-        /// Determines whether an <see cref="IPAddress"/> is not equal to another <see cref="IPAddress"/>.
-        /// </summary>
-        /// <param name="_">The <see cref="DbFunctions"/> instance.</param>
-        /// <param name="inet">The left-hand inet.</param>
-        /// <param name="other">The right-hand inet.</param>
-        /// <returns>
-        /// True if the <see cref="IPAddress"/> is not equal to the other <see cref="IPAddress"/>; otherwise, false.
-        /// </returns>
-        /// <exception cref="NotSupportedException">
-        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
-        /// </exception>
-        public static bool NotEqual([CanBeNull] this DbFunctions _, IPAddress inet, IPAddress other)
-            => throw ClientEvaluationNotSupportedException();
-
-        /// <summary>
-        /// Determines whether an (IPAddress Address, int Subnet) is not equal to another (IPAddress Address, int Subnet).
-        /// </summary>
-        /// <param name="_">The <see cref="DbFunctions"/> instance.</param>
-        /// <param name="cidr">The left-hand cidr.</param>
-        /// <param name="other">The right-hand cidr.</param>
-        /// <returns>
-        /// True if the IPAddress Address, int Subnet) is not equal to the other (IPAddress Address, int Subnet); otherwise, false.
-        /// </returns>
-        /// <exception cref="NotSupportedException">
-        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
-        /// </exception>
-        public static bool NotEqual([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr, (IPAddress Address, int Subnet) other)
-            => throw ClientEvaluationNotSupportedException();
-
-        /// <summary>
-        /// Determines whether an <see cref="PhysicalAddress"/> is not equal to another <see cref="PhysicalAddress"/>.
-        /// </summary>
-        /// <param name="_">The <see cref="DbFunctions"/> instance.</param>
-        /// <param name="macaddr">The left-hand macaddr.</param>
-        /// <param name="other">The right-hand macaddr.</param>
-        /// <returns>
-        /// True if the <see cref="PhysicalAddress"/> is not equal to the other <see cref="PhysicalAddress"/>; otherwise, false.
-        /// </returns>
-        /// <exception cref="NotSupportedException">
-        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
-        /// </exception>
-        public static bool NotEqual([CanBeNull] this DbFunctions _, PhysicalAddress macaddr, PhysicalAddress other)
             => throw ClientEvaluationNotSupportedException();
 
         #endregion
