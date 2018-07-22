@@ -10,8 +10,12 @@ using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public class ArrayQueryTest : IClassFixture<ArrayFixture>
+    public class ArrayQueryTest : IClassFixture<ArrayQueryTest.ArrayFixture>
     {
+        #region ArrayTests
+
+        #region Roundtrip
+
         [Fact]
         public void Roundtrip()
         {
@@ -22,6 +26,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 Assert.Equal(new List<int> { 3, 4 }, x.SomeList);
             }
         }
+
+        #endregion
+
+        #region Indexers
 
         [Fact]
         public void Index_with_constant()
@@ -39,6 +47,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             using (var ctx = CreateContext())
             {
+                // ReSharper disable once ConvertToConstant.Local
                 var x = 0;
                 var actual = ctx.SomeEntities.Where(e => e.SomeArray[x] == 3).ToList();
                 Assert.Equal(1, actual.Count);
@@ -63,10 +72,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using (var ctx = CreateContext())
             {
                 // Operations on multidimensional arrays aren't mapped to SQL yet
-                var actual = ctx.SomeEntities.Where(e => e.SomeMatrix[0,0] == 5).ToList();
+                var actual = ctx.SomeEntities.Where(e => e.SomeMatrix[0, 0] == 5).ToList();
                 Assert.Equal(1, actual.Count);
             }
         }
+
+        #endregion
+
+        #region Equality
 
         [Fact]
         public void SequenceEqual_with_parameter()
@@ -91,6 +104,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             }
         }
 
+        #endregion
+
+        #region Containment
+
         [Fact]
         public void Contains_with_literal()
         {
@@ -107,6 +124,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             using (var ctx = CreateContext())
             {
+                // ReSharper disable once ConvertToConstant.Local
                 var p = 3;
                 var x = ctx.SomeEntities.Single(e => e.SomeArray.Contains(p));
                 Assert.Equal(new[] { 3, 4 }, x.SomeArray);
@@ -125,6 +143,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             }
         }
 
+        #endregion
+
+        #region Length
+
         [Fact]
         public void Length()
         {
@@ -136,7 +158,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             }
         }
 
-        [Fact(Skip="https://github.com/aspnet/EntityFramework/issues/9242")]
+        [Fact(Skip = "https://github.com/aspnet/EntityFramework/issues/9242")]
         public void Length_on_EF_Property()
         {
             using (var ctx = CreateContext())
@@ -153,10 +175,66 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             using (var ctx = CreateContext())
             {
-                var x = ctx.SomeEntities.Where(e => new[] { 1, 2, 3 }.Length == e.Id).ToList();
+                var _ = ctx.SomeEntities.Where(e => new[] { 1, 2, 3 }.Length == e.Id).ToList();
                 AssertDoesNotContainInSql("array_length");
             }
         }
+
+        #endregion
+
+        #region AnyAll
+
+        [Fact]
+        public void Array_like_any_when_match_expression_is_column()
+        {
+            using (var ctx = CreateContext())
+            {
+                var patterns = new[] { "a", "b", "c" };
+
+                var anon =
+                    ctx.SomeEntities
+                       .Select(
+                           x => new
+                           {
+                               Array = x.SomeArray,
+                               List = x.SomeList,
+                               Text = x.SomeText
+                           });
+
+                var _ = anon.Where(x => patterns.Any(p => EF.Functions.Like(x.Text, p))).ToList();
+
+                AssertContainsInSql("x.\"SomeText\" LIKE ANY (@__patterns_0) = TRUE");
+            }
+        }
+
+        [Fact]
+        public void Array_like_any_not_translated_when_match_expression_is_qsre()
+        {
+            using (var ctx = CreateContext())
+            {
+                var matches = new[] { "a", "b", "c" };
+
+                var anon =
+                    ctx.SomeEntities
+                       .Select(
+                           x => new
+                           {
+                               Array = x.SomeArray,
+                               List = x.SomeList,
+                               Text = x.SomeText
+                           });
+
+                var _ = anon.Where(x => matches.Any(m => EF.Functions.Like(m, x.Text))).ToList();
+
+                AssertDoesNotContainInSql("LIKE");
+                AssertDoesNotContainInSql("ANY");
+                AssertDoesNotContainInSql("@__matches_0");
+            }
+        }
+
+        #endregion
+
+        #endregion
 
         #region Support
 
@@ -176,71 +254,70 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         void AssertDoesNotContainInSql(string expected)
             => Assert.DoesNotContain(expected, Fixture.TestSqlLoggerFactory.Sql);
 
-        #endregion Support
-    }
-
-    public class ArrayContext : DbContext
-    {
-        public DbSet<SomeArrayEntity> SomeEntities { get; set; }
-        public ArrayContext(DbContextOptions options) : base(options) {}
-        protected override void OnModelCreating(ModelBuilder builder)
+        public class ArrayContext : DbContext
         {
-
+            public DbSet<SomeArrayEntity> SomeEntities { get; set; }
+            public ArrayContext(DbContextOptions options) : base(options) {}
+            protected override void OnModelCreating(ModelBuilder builder) {}
         }
-    }
 
-    public class SomeArrayEntity
-    {
-        public int Id { get; set; }
-        public int[] SomeArray { get; set; }
-        public int[,] SomeMatrix { get; set; }
-        public List<int> SomeList { get; set; }
-        public byte[] SomeBytea { get; set; }
-        public string SomeText { get; set; }
-    }
-
-    public class ArrayFixture : IDisposable
-    {
-        readonly DbContextOptions _options;
-        public TestSqlLoggerFactory TestSqlLoggerFactory { get; } = new TestSqlLoggerFactory();
-
-        public ArrayFixture()
+        public class SomeArrayEntity
         {
-            _testStore = NpgsqlTestStore.CreateScratch();
-            _options = new DbContextOptionsBuilder()
-                .UseNpgsql(_testStore.ConnectionString, b => b.ApplyConfiguration())
-                .UseInternalServiceProvider(
-                    new ServiceCollection()
-                        .AddEntityFrameworkNpgsql()
-                        .AddSingleton<ILoggerFactory>(TestSqlLoggerFactory)
-                        .BuildServiceProvider())
-                .Options;
+            public int Id { get; set; }
+            public int[] SomeArray { get; set; }
+            public int[,] SomeMatrix { get; set; }
+            public List<int> SomeList { get; set; }
+            public byte[] SomeBytea { get; set; }
 
-            using (var ctx = CreateContext())
+            // ReSharper disable once UnusedMember.Global
+            public string SomeText { get; set; }
+        }
+
+        public class ArrayFixture : IDisposable
+        {
+            readonly DbContextOptions _options;
+            public TestSqlLoggerFactory TestSqlLoggerFactory { get; } = new TestSqlLoggerFactory();
+
+            public ArrayFixture()
             {
-                ctx.Database.EnsureCreated();
-                ctx.SomeEntities.Add(new SomeArrayEntity
+                _testStore = NpgsqlTestStore.CreateScratch();
+                _options = new DbContextOptionsBuilder()
+                           .UseNpgsql(_testStore.ConnectionString, b => b.ApplyConfiguration())
+                           .UseInternalServiceProvider(
+                               new ServiceCollection()
+                                   .AddEntityFrameworkNpgsql()
+                                   .AddSingleton<ILoggerFactory>(TestSqlLoggerFactory)
+                                   .BuildServiceProvider())
+                           .Options;
+
+                using (var ctx = CreateContext())
                 {
-                    Id=1,
-                    SomeArray = new[] { 3, 4 },
-                    SomeBytea = new byte[] { 3, 4 },
-                    SomeMatrix = new[,] { { 5, 6 }, { 7, 8 } },
-                    SomeList = new List<int> { 3, 4 }
-                });
-                ctx.SomeEntities.Add(new SomeArrayEntity
-                {
-                    Id=2,
-                    SomeArray = new[] { 5, 6, 7 },
-                    SomeBytea = new byte[] { 5, 6, 7 },
-                    SomeMatrix = new[,] { { 10, 11 }, { 12, 13 } },
-                    SomeList = new List<int> { 3, 4 }
-                });
-                ctx.SaveChanges();
+                    ctx.Database.EnsureCreated();
+                    ctx.SomeEntities.Add(new SomeArrayEntity
+                    {
+                        Id = 1,
+                        SomeArray = new[] { 3, 4 },
+                        SomeBytea = new byte[] { 3, 4 },
+                        SomeMatrix = new[,] { { 5, 6 }, { 7, 8 } },
+                        SomeList = new List<int> { 3, 4 }
+                    });
+                    ctx.SomeEntities.Add(new SomeArrayEntity
+                    {
+                        Id = 2,
+                        SomeArray = new[] { 5, 6, 7 },
+                        SomeBytea = new byte[] { 5, 6, 7 },
+                        SomeMatrix = new[,] { { 10, 11 }, { 12, 13 } },
+                        SomeList = new List<int> { 3, 4 }
+                    });
+                    ctx.SaveChanges();
+                }
             }
+
+            readonly NpgsqlTestStore _testStore;
+            public ArrayContext CreateContext() => new ArrayContext(_options);
+            public void Dispose() => _testStore.Dispose();
         }
 
-        readonly NpgsqlTestStore _testStore;
-        public ArrayContext CreateContext() => new ArrayContext(_options);
-        public void Dispose() => _testStore.Dispose();
+        #endregion
     }
 }

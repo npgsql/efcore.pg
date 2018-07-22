@@ -194,27 +194,29 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
             if (call is null)
                 return null;
 
-            var source = queryModel.MainFromClause.FromExpression;
+            if (!(Visit(queryModel.MainFromClause.FromExpression) is Expression patterns))
+                return null;
 
-            // ReSharper disable AssignNullToNotNullAttribute
+            if (!(Visit(call.Arguments[1]) is Expression match))
+                return null;
+
             switch (call.Method)
             {
             case MethodInfo m when m == Like2MethodInfo:
-                return new ArrayAnyAllExpression(comparisonType, "LIKE", Visit(call.Arguments[1]), Visit(source));
+                return new ArrayAnyAllExpression(comparisonType, "LIKE", match, patterns);
 
             case MethodInfo m when m == Like3MethodInfo:
-                return new ArrayAnyAllExpression(comparisonType, "LIKE", Visit(call.Arguments[1]), Visit(source));
+                return new ArrayAnyAllExpression(comparisonType, "LIKE", match, patterns);
 
             case MethodInfo m when m == ILike2MethodInfo:
-                return new ArrayAnyAllExpression(comparisonType, "ILIKE", Visit(call.Arguments[1]), Visit(source));
+                return new ArrayAnyAllExpression(comparisonType, "ILIKE", match, patterns);
 
             case MethodInfo m when m == ILike3MethodInfo:
-                return new ArrayAnyAllExpression(comparisonType, "ILIKE", Visit(call.Arguments[1]), Visit(source));
+                return new ArrayAnyAllExpression(comparisonType, "ILIKE", match, patterns);
 
             default:
                 return null;
             }
-            // ReSharper restore AssignNullToNotNullAttribute
         }
     }
 }
