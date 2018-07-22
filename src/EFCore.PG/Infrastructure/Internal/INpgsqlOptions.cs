@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
@@ -6,7 +8,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
     public interface INpgsqlOptions : ISingletonOptions
     {
         /// <summary>
-        ///     Reflects the option set by <see cref="NpgsqlDbContextOptionsBuilder.ReverseNullOrdering" />.
+        /// The backend version to target.
+        /// </summary>
+        [CanBeNull]
+        Version PostgresVersion { get; }
+
+        /// <summary>
+        /// True if reverse null ordering is enabled; otherwise, false.
         /// </summary>
         bool ReverseNullOrderingEnabled { get; }
 

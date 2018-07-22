@@ -10,11 +10,22 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
 {
     public class NpgsqlOptions : INpgsqlOptions
     {
+        /// <inheritdoc />
+        public virtual Version PostgresVersion { get; private set; }
+
+        /// <inheritdoc />
+        public virtual bool ReverseNullOrderingEnabled { get; private set; }
+
+        /// <inheritdoc />
+        public virtual IReadOnlyList<NpgsqlEntityFrameworkPlugin> Plugins { get; private set; }
+
+        /// <inheritdoc />
         public void Initialize(IDbContextOptions options)
         {
             var npgsqlOptions = options.FindExtension<NpgsqlOptionsExtension>() ?? new NpgsqlOptionsExtension();
 
-            ReverseNullOrderingEnabled = npgsqlOptions.ReverseNullOrdering ?? false;
+            PostgresVersion = npgsqlOptions.PostgresVersion;
+            ReverseNullOrderingEnabled = npgsqlOptions.ReverseNullOrdering;
             Plugins = npgsqlOptions.Plugins;
         }
 
@@ -22,7 +33,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         {
             var npgsqlOptions = options.FindExtension<NpgsqlOptionsExtension>() ?? new NpgsqlOptionsExtension();
 
-            if (ReverseNullOrderingEnabled != (npgsqlOptions.ReverseNullOrdering ?? false))
+            if (ReverseNullOrderingEnabled != npgsqlOptions.ReverseNullOrdering)
             {
                 throw new InvalidOperationException(
                     CoreStrings.SingletonOptionChanged(
@@ -30,9 +41,5 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
                         nameof(DbContextOptionsBuilder.UseInternalServiceProvider)));
             }
         }
-
-        public virtual bool ReverseNullOrderingEnabled { get; private set; }
-
-        public virtual IReadOnlyList<NpgsqlEntityFrameworkPlugin> Plugins { get; private set; }
     }
 }

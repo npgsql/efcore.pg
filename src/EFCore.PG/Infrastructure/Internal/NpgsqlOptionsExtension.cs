@@ -1,4 +1,5 @@
 #region License
+
 // The PostgreSQL License
 //
 // Copyright (C) 2016 The Npgsql Development Team
@@ -19,8 +20,10 @@
 // AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
 // ON AN "AS IS" BASIS, AND THE NPGSQL DEVELOPMENT TEAM HAS NO OBLIGATIONS
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+
 #endregion
 
+using System;
 using System.Collections.Generic;
 using System.Net.Security;
 using JetBrains.Annotations;
@@ -33,16 +36,36 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
 {
     public class NpgsqlOptionsExtension : RelationalOptionsExtension
     {
-        public string AdminDatabase { get; private set; }
-        public bool? ReverseNullOrdering { get; private set; }
-        public ProvideClientCertificatesCallback ProvideClientCertificatesCallback { get; private set; }
-        public RemoteCertificateValidationCallback RemoteCertificateValidationCallback { get; private set; }
+        readonly List<NpgsqlEntityFrameworkPlugin> _plugins;
 
+        public string AdminDatabase { get; private set; }
+        public bool ReverseNullOrdering { get; private set; }
+
+        /// <summary>
+        /// The backend version to target.
+        /// </summary>
+        [CanBeNull]
+        public Version PostgresVersion { get; private set; }
+
+        /// <summary>
+        /// The collection of database plugins.
+        /// </summary>
+        [NotNull]
+        [ItemNotNull]
         public IReadOnlyList<NpgsqlEntityFrameworkPlugin> Plugins => _plugins;
 
-        readonly List<NpgsqlEntityFrameworkPlugin> _plugins = new List<NpgsqlEntityFrameworkPlugin>();
+        /// <summary>
+        /// The specified <see cref="ProvideClientCertificatesCallback"/>.
+        /// </summary>
+        [CanBeNull]
+        public ProvideClientCertificatesCallback ProvideClientCertificatesCallback { get; private set; }
 
-        public NpgsqlOptionsExtension() {}
+        public RemoteCertificateValidationCallback RemoteCertificateValidationCallback { get; private set; }
+
+        /// <summary>
+        /// Initializes an instance of <see cref="NpgsqlOptionsExtension"/> with the default settings.
+        /// </summary>
+        public NpgsqlOptionsExtension() => _plugins = new List<NpgsqlEntityFrameworkPlugin>();
 
         // NB: When adding new options, make sure to update the copy ctor below.
 
@@ -51,9 +74,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         {
             AdminDatabase = copyFrom.AdminDatabase;
             ReverseNullOrdering = copyFrom.ReverseNullOrdering;
+            PostgresVersion = copyFrom.PostgresVersion;
             ProvideClientCertificatesCallback = copyFrom.ProvideClientCertificatesCallback;
             RemoteCertificateValidationCallback = copyFrom.RemoteCertificateValidationCallback;
-            _plugins.AddRange(copyFrom._plugins);
+            _plugins = new List<NpgsqlEntityFrameworkPlugin>(copyFrom._plugins);
         }
 
         protected override RelationalOptionsExtension Clone() => new NpgsqlOptionsExtension(this);
@@ -85,6 +109,28 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
             return clone;
         }
 
+        /// <summary>
+        /// Returns a copy of the current instance with the specified PostgreSQL version.
+        /// </summary>
+        /// <param name="postgresVersion">The backend version to target.</param>
+        /// <returns>
+        /// A copy of the current instance with the specified PostgreSQL version.
+        /// </returns>
+        [NotNull]
+        public virtual NpgsqlOptionsExtension WithPostgresVersion([CanBeNull] Version postgresVersion)
+        {
+            var clone = (NpgsqlOptionsExtension)Clone();
+
+            clone.PostgresVersion = postgresVersion;
+
+            return clone;
+        }
+
+        /// <summary>
+        /// Returns a copy of the current instance configured with the specified value..
+        /// </summary>
+        /// <param name="reverseNullOrdering">True to enable reverse null ordering; otherwise, false.</param>
+        [NotNull]
         internal virtual NpgsqlOptionsExtension WithReverseNullOrdering(bool reverseNullOrdering)
         {
             var clone = (NpgsqlOptionsExtension)Clone();
