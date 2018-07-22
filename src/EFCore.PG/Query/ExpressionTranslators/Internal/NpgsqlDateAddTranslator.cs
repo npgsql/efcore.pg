@@ -28,6 +28,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.Query.Expressions;
 using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 
@@ -86,32 +87,48 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             if (!MethodInfoDatePartMapping.TryGetValue(methodCallExpression.Method, out var datePart))
                 return null;
 
+            // When we have a constant, we create the interval via INTERVAL '1 days'. But this expression cannot be
+            // parameterized, so we use CAST($1 || ' days' AS interval) instead
+            // Note that a make_interval() function also exists, but accepts only int (for all fields except for
+            // seconds), so we don't use it.
+
+            Expression interval = null;
+
+            var instance = methodCallExpression.Object;
+            var amountToAdd = methodCallExpression.Arguments[0];
+
+            if (instance is null || amountToAdd is null)
+                return null;
+
+            if (amountToAdd is ConstantExpression constantExpression)
+            {
+                if (constantExpression.Type == typeof(double) &&
+                    ((double)constantExpression.Value >= int.MaxValue ||
+                     (double)constantExpression.Value <= int.MinValue))
+                {
+                    return null;
+                }
+
+                interval = new SqlFragmentExpression($"INTERVAL '{amountToAdd} {datePart}'");
+            }
+            else
+            {
+                interval = new ExplicitCastExpression(
+                    new CustomBinaryExpression(amountToAdd, Expression.Constant(' ' + datePart), "||", typeof(string)),
+                    typeof(TimeSpan)
+                );
+            }
+
             // Ideally we would use Expression.Add() to have a simple plus-sign expression generated for us.
             // But to represent an interval we'd need to use a TimeSpan, which does not represent months/years.
             // We could use the provider-specific NpgsqlTimeSpan but it's not currently supported and is somewhat
             // ugly, so we just generate the expression ourselves with CustomBinaryExpression
 
-            Expression instance = methodCallExpression.Object;
-            Expression amountToAdd = methodCallExpression.Arguments[0];
-
-            if (instance is null || amountToAdd is null)
-                return null;
-
-            if (amountToAdd is ConstantExpression amount &&
-                amount.Type == typeof(double) &&
-                ((double)amount.Value >= int.MaxValue ||
-                 (double)amount.Value <= int.MinValue))
-                return null;
-
-            return
-                new CustomBinaryExpression(
-                    instance,
-                    new PgFunctionExpression(
-                        "MAKE_INTERVAL",
-                        typeof(TimeSpan),
-                        new Dictionary<string, Expression> { [datePart] = amountToAdd }),
-                    "+",
-                    methodCallExpression.Type);
+            return new CustomBinaryExpression(
+                methodCallExpression.Object,
+                interval,
+                "+",
+                methodCallExpression.Type);
         }
     }
 }

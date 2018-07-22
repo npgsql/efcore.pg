@@ -49,7 +49,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Select(x => x.DateTime.AddYears(years))
                            .ToArray();
 
-                AssertContainsSql("SELECT (x.\"DateTime\" + MAKE_INTERVAL(years => @__years_0))");
+                AssertContainsSql("SELECT (x.\"DateTime\" + CAST((@__years_0 || ' years') AS interval)");
             }
         }
 

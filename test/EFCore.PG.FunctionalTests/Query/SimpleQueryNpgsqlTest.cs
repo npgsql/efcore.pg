@@ -21,7 +21,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             await base.Select_expression_date_add_year(isAsync);
 
             AssertSql(
-                @"SELECT (o.""OrderDate"" + MAKE_INTERVAL(years => 1)) AS ""OrderDate""
+                @"SELECT (o.""OrderDate"" + INTERVAL '1 years') AS ""OrderDate""
 FROM ""Orders"" AS o
 WHERE o.""OrderDate"" IS NOT NULL");
         }
@@ -45,7 +45,7 @@ WHERE o.""OrderDate"" IS NOT NULL");
             AssertSql(
                 @"@__years_0='2'
 
-SELECT (o.""OrderDate"" + MAKE_INTERVAL(years => @__years_0)) AS ""OrderDate""
+SELECT (o.""OrderDate"" + CAST((@__years_0 || ' years') AS interval)) AS ""OrderDate""
 FROM ""Orders"" AS o
 WHERE o.""OrderDate"" IS NOT NULL");
         }
@@ -55,7 +55,7 @@ WHERE o.""OrderDate"" IS NOT NULL");
             await base.Select_expression_datetime_add_month(isAsync);
 
             AssertSql(
-                @"SELECT (o.""OrderDate"" + MAKE_INTERVAL(months => 1)) AS ""OrderDate""
+                @"SELECT (o.""OrderDate"" + INTERVAL '1 months') AS ""OrderDate""
 FROM ""Orders"" AS o
 WHERE o.""OrderDate"" IS NOT NULL");
         }
@@ -65,7 +65,7 @@ WHERE o.""OrderDate"" IS NOT NULL");
             await base.Select_expression_datetime_add_hour(isAsync);
 
             AssertSql(
-                @"SELECT (o.""OrderDate"" + MAKE_INTERVAL(hours => 1)) AS ""OrderDate""
+                @"SELECT (o.""OrderDate"" + INTERVAL '1 hours') AS ""OrderDate""
 FROM ""Orders"" AS o
 WHERE o.""OrderDate"" IS NOT NULL");
         }
@@ -75,7 +75,7 @@ WHERE o.""OrderDate"" IS NOT NULL");
             await base.Select_expression_datetime_add_minute(isAsync);
 
             AssertSql(
-                @"SELECT (o.""OrderDate"" + MAKE_INTERVAL(mins => 1)) AS ""OrderDate""
+                @"SELECT (o.""OrderDate"" + INTERVAL '1 mins') AS ""OrderDate""
 FROM ""Orders"" AS o
 WHERE o.""OrderDate"" IS NOT NULL");
         }
@@ -85,7 +85,7 @@ WHERE o.""OrderDate"" IS NOT NULL");
             await base.Select_expression_datetime_add_second(isAsync);
 
             AssertSql(
-                @"SELECT (o.""OrderDate"" + MAKE_INTERVAL(secs => 1)) AS ""OrderDate""
+                @"SELECT (o.""OrderDate"" + INTERVAL '1 secs') AS ""OrderDate""
 FROM ""Orders"" AS o
 WHERE o.""OrderDate"" IS NOT NULL");
         }
