@@ -1,4 +1,31 @@
-﻿using System.Linq.Expressions;
+﻿#region License
+
+// The PostgreSQL License
+//
+// Copyright (C) 2016 The Npgsql Development Team
+//
+// Permission to use, copy, modify, and distribute this software and its
+// documentation for any purpose, without fee, and without a written
+// agreement is hereby granted, provided that the above copyright notice
+// and this paragraph and the following two paragraphs appear in all copies.
+//
+// IN NO EVENT SHALL THE NPGSQL DEVELOPMENT TEAM BE LIABLE TO ANY PARTY
+// FOR DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES,
+// INCLUDING LOST PROFITS, ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS
+// DOCUMENTATION, EVEN IF THE NPGSQL DEVELOPMENT TEAM HAS BEEN ADVISED OF
+// THE POSSIBILITY OF SUCH DAMAGE.
+//
+// THE NPGSQL DEVELOPMENT TEAM SPECIFICALLY DISCLAIMS ANY WARRANTIES,
+// INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+// AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
+// ON AN "AS IS" BASIS, AND THE NPGSQL DEVELOPMENT TEAM HAS NO OBLIGATIONS
+// TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+
+#endregion
+
+using System.Linq.Expressions;
+using System.Net;
+using System.Net.NetworkInformation;
 using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
@@ -10,23 +37,46 @@ using NpgsqlTypes;
 // this (we're currently replacing an internal service
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 {
+    /// <summary>
+    /// Represents an Npgsql-specific filter to identify methods that are evaluatable.
+    /// </summary>
     public class NpgsqlEvaluatableExpressionFilter : RelationalEvaluatableExpressionFilter
     {
-        static readonly MethodInfo _tsQueryParse = typeof(NpgsqlTsQuery).GetMethod(
-            nameof(NpgsqlTsQuery.Parse),
-            BindingFlags.Public | BindingFlags.Static);
+        /// <summary>
+        /// The static method info for <see cref="IPAddress.Parse(string)"/>.
+        /// </summary>
+        [NotNull] static readonly MethodInfo IPAddressParse =
+            typeof(IPAddress).GetRuntimeMethod(nameof(IPAddress.Parse), new[] { typeof(string) });
 
-        static readonly MethodInfo _tsVectorParse = typeof(NpgsqlTsVector).GetMethod(
-            nameof(NpgsqlTsVector.Parse),
-            BindingFlags.Public | BindingFlags.Static);
+        /// <summary>
+        /// The static method info for <see cref="PhysicalAddress.Parse(string)"/>.
+        /// </summary>
+        [NotNull] static readonly MethodInfo PhysicalAddressParse =
+            typeof(PhysicalAddress).GetRuntimeMethod(nameof(PhysicalAddress.Parse), new[] { typeof(string) });
 
-        public NpgsqlEvaluatableExpressionFilter([NotNull] IModel model) : base(model) { }
+        /// <summary>
+        /// The static method info for <see cref="NpgsqlTsQuery.Parse(string)"/>.
+        /// </summary>
+        [NotNull] static readonly MethodInfo TsQueryParse =
+            typeof(NpgsqlTsQuery).GetRuntimeMethod(nameof(NpgsqlTsQuery.Parse), new[] { typeof(string) });
 
-        public override bool IsEvaluatableMethodCall(MethodCallExpression methodCallExpression) =>
-            methodCallExpression.Method != _tsQueryParse
-            && methodCallExpression.Method != _tsVectorParse
-            && methodCallExpression.Method.DeclaringType != typeof(NpgsqlFullTextSearchDbFunctionsExtensions)
-            && methodCallExpression.Method.DeclaringType != typeof(NpgsqlFullTextSearchLinqExtensions)
-            && base.IsEvaluatableMethodCall(methodCallExpression);
+        /// <summary>
+        /// The static method info for <see cref="NpgsqlTsVector.Parse(string)"/>.
+        /// </summary>
+        [NotNull] static readonly MethodInfo TsVectorParse =
+            typeof(NpgsqlTsVector).GetRuntimeMethod(nameof(NpgsqlTsVector.Parse), new[] { typeof(string) });
+
+        /// <inheritdoc />
+        public NpgsqlEvaluatableExpressionFilter([NotNull] IModel model) : base(model) {}
+
+        /// <inheritdoc />
+        public override bool IsEvaluatableMethodCall(MethodCallExpression methodCallExpression)
+            => methodCallExpression.Method != IPAddressParse &&
+               methodCallExpression.Method != PhysicalAddressParse &&
+               methodCallExpression.Method != TsQueryParse &&
+               methodCallExpression.Method != TsVectorParse &&
+               methodCallExpression.Method.DeclaringType != typeof(NpgsqlFullTextSearchDbFunctionsExtensions) &&
+               methodCallExpression.Method.DeclaringType != typeof(NpgsqlFullTextSearchLinqExtensions) &&
+               base.IsEvaluatableMethodCall(methodCallExpression);
     }
 }

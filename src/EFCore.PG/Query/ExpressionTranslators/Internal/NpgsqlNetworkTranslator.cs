@@ -46,11 +46,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         [CanBeNull]
         public Expression Translate(MethodCallExpression expression)
         {
-            if (expression.Method.DeclaringType != typeof(NpgsqlNetworkExtensions))
+            var declaringType = expression.Method.DeclaringType;
+
+            if (declaringType != typeof(NpgsqlNetworkExtensions) &&
+                declaringType != typeof(IPAddress) &&
+                declaringType != typeof(PhysicalAddress))
                 return null;
 
             switch (expression.Method.Name)
             {
+            case nameof(IPAddress.Parse) when declaringType == typeof(IPAddress):
+                return new ExplicitCastExpression(expression.Arguments[0], typeof(IPAddress));
+
+            case nameof(PhysicalAddress.Parse) when declaringType == typeof(PhysicalAddress):
+                return new ExplicitCastExpression(expression.Arguments[0], typeof(PhysicalAddress));
+
             case nameof(NpgsqlNetworkExtensions.LessThan):
                 return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], "<", typeof(bool));
 
