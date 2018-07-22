@@ -1,4 +1,5 @@
 ﻿#region License
+
 // The PostgreSQL License
 //
 // Copyright (C) 2016 The Npgsql Development Team
@@ -19,6 +20,7 @@
 // AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
 // ON AN "AS IS" BASIS, AND THE NPGSQL DEVELOPMENT TEAM HAS NO OBLIGATIONS
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+
 #endregion
 
 using System.Collections.Generic;
@@ -28,23 +30,37 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
+    /// <summary>
+    /// A composite member translator that dispatches to multiple specialized member translators specific to Npgsql.
+    /// </summary>
     public class NpgsqlCompositeMemberTranslator : RelationalCompositeMemberTranslator
     {
+        /// <summary>
+        /// The default member translators registered by the Npgsql provider.
+        /// </summary>
+        [NotNull] [ItemNotNull] static readonly IMemberTranslator[] MemberTranslators =
+        {
+            new NpgsqlStringLengthTranslator(),
+            new NpgsqlDateTimeMemberTranslator()
+        };
+
+        /// <inheritdoc />
         public NpgsqlCompositeMemberTranslator(
             [NotNull] RelationalCompositeMemberTranslatorDependencies dependencies,
             [NotNull] INpgsqlOptions npgsqlOptions)
             : base(dependencies)
         {
-            AddTranslators(new List<IMemberTranslator>
-            {
-                new NpgsqlStringLengthTranslator(),
-                new NpgsqlDateTimeMemberTranslator()
-            });
+            // ReSharper disable once VirtualMemberCallInConstructor
+            AddTranslators(MemberTranslators);
 
             foreach (var plugin in npgsqlOptions.Plugins)
                 plugin.AddMemberTranslators(this);
         }
 
+        /// <summary>
+        /// Adds additional dispatches to the translators list.
+        /// </summary>
+        /// <param name="translators">The translators.</param>
         public new virtual void AddTranslators([NotNull] IEnumerable<IMemberTranslator> translators)
             => base.AddTranslators(translators);
     }

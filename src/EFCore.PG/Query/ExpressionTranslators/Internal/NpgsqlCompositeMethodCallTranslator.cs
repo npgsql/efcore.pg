@@ -1,4 +1,5 @@
 ﻿#region License
+
 // The PostgreSQL License
 //
 // Copyright (C) 2016 The Npgsql Development Team
@@ -19,6 +20,7 @@
 // AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
 // ON AN "AS IS" BASIS, AND THE NPGSQL DEVELOPMENT TEAM HAS NO OBLIGATIONS
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+
 #endregion
 
 using System.Collections.Generic;
@@ -28,9 +30,15 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
+    /// <summary>
+    /// A composite method call translator that dispatches to multiple specialized method call translators specific to Npgsql.
+    /// </summary>
     public class NpgsqlCompositeMethodCallTranslator : RelationalCompositeMethodCallTranslator
     {
-        static readonly IMethodCallTranslator[] _methodCallTranslators =
+        /// <summary>
+        /// The default method call translators registered by the Npgsql provider.
+        /// </summary>
+        [NotNull] [ItemNotNull] static readonly IMethodCallTranslator[] MethodCallTranslators =
         {
             new NpgsqlArraySequenceEqualTranslator(),
             new NpgsqlConvertTranslator(),
@@ -55,18 +63,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             new NpgsqlRangeTranslator()
         };
 
+        /// <inheritdoc />
         public NpgsqlCompositeMethodCallTranslator(
             [NotNull] RelationalCompositeMethodCallTranslatorDependencies dependencies,
             [NotNull] INpgsqlOptions npgsqlOptions)
             : base(dependencies)
         {
             // ReSharper disable once DoNotCallOverridableMethodsInConstructor
-            AddTranslators(_methodCallTranslators);
+            AddTranslators(MethodCallTranslators);
 
             foreach (var plugin in npgsqlOptions.Plugins)
                 plugin.AddMethodCallTranslators(this);
         }
 
+        /// <summary>
+        /// Adds additional dispatches to the translators list.
+        /// </summary>
+        /// <param name="translators">The translators.</param>
         public new virtual void AddTranslators([NotNull] IEnumerable<IMethodCallTranslator> translators)
             => base.AddTranslators(translators);
     }
