@@ -1,4 +1,5 @@
 ﻿#region License
+
 // The PostgreSQL License
 //
 // Copyright (C) 2016 The Npgsql Development Team
@@ -19,43 +20,42 @@
 // AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
 // ON AN "AS IS" BASIS, AND THE NPGSQL DEVELOPMENT TEAM HAS NO OBLIGATIONS
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+
 #endregion
 
-using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
+using System.Collections.Generic;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
     /// <summary>
-    /// Translates Enumerable.SequenceEqual on arrays into PostgreSQL array equality operations.
+    /// A composite expression fragment translator that dispatches to multiple specialized translators specific to Npgsql.
     /// </summary>
-    /// <remarks>
-    /// https://www.postgresql.org/docs/current/static/functions-array.html
-    /// </remarks>
-    public class NpgsqlArraySequenceEqualTranslator : IMethodCallTranslator
+    public class NpgsqlCompositeExpressionFragmentTranslator : RelationalCompositeExpressionFragmentTranslator
     {
-        static readonly MethodInfo SequenceEqualMethodInfo = typeof(Enumerable).GetTypeInfo().GetDeclaredMethods(nameof(Enumerable.SequenceEqual)).Single(m =>
-                m.IsGenericMethodDefinition &&
-                m.GetParameters().Length == 2
-        );
-
-        [CanBeNull]
-        public Expression Translate(MethodCallExpression methodCallExpression)
+        /// <summary>
+        /// The default expression fragment translators registered by the Npgsql provider.
+        /// </summary>
+        static readonly IExpressionFragmentTranslator[] ExpressionFragmentTranslators =
         {
-            var method = methodCallExpression.Method;
-            if (method.IsGenericMethod &&
-                ReferenceEquals(method.GetGenericMethodDefinition(), SequenceEqualMethodInfo) &&
-                methodCallExpression.Arguments.All(a => a.Type.IsArray))
-            {
-                return Expression.MakeBinary(ExpressionType.Equal,
-                    methodCallExpression.Arguments[0],
-                    methodCallExpression.Arguments[1]);
-            }
+            new NpgsqlArrayFragmentTranslator()
+        };
 
-            return null;
+        /// <inheritdoc />
+        public NpgsqlCompositeExpressionFragmentTranslator(
+            [NotNull] RelationalCompositeExpressionFragmentTranslatorDependencies dependencies)
+            : base(dependencies)
+        {
+            // ReSharper disable once DoNotCallOverridableMethodsInConstructor
+            AddTranslators(ExpressionFragmentTranslators);
         }
+
+        /// <summary>
+        /// Adds additional dispatches to the translators list.
+        /// </summary>
+        /// <param name="translators">The translators.</param>
+        public new virtual void AddTranslators([NotNull] IEnumerable<IExpressionFragmentTranslator> translators)
+            => base.AddTranslators(translators);
     }
 }

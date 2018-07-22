@@ -51,6 +51,7 @@ using Remotion.Linq.Parsing.ExpressionVisitors.TreeEvaluation;
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection
 {
+    // ReSharper disable once UnusedMember.Global
     public static class NpgsqlEntityFrameworkServicesBuilderExtensions
     {
         /// <summary>
@@ -106,6 +107,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 .TryAdd<IQueryCompilationContextFactory, NpgsqlQueryCompilationContextFactory>()
                 .TryAdd<IMemberTranslator, NpgsqlCompositeMemberTranslator>()
                 .TryAdd<ICompositeMethodCallTranslator, NpgsqlCompositeMethodCallTranslator>()
+                .TryAdd<IExpressionFragmentTranslator, NpgsqlCompositeExpressionFragmentTranslator>()
+                .TryAdd<IQueryOptimizer, NpgsqlQueryOptimizer>()
                 .TryAdd<IQuerySqlGeneratorFactory, NpgsqlQuerySqlGeneratorFactory>()
                 .TryAdd<ISqlTranslatingExpressionVisitorFactory, NpgsqlSqlTranslatingExpressionVisitorFactory>()
                 .TryAdd<ISingletonOptions, INpgsqlOptions>(p => p.GetService<INpgsqlOptions>())
