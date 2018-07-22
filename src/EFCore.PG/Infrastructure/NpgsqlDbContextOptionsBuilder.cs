@@ -62,6 +62,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
             => WithOption(e => e.WithAdminDatabase(dbName));
 
         /// <summary>
+        /// Configures the backend version to target.
+        /// </summary>
+        /// <param name="postgresVersion">The backend version to target.</param>
+        public virtual void SetPostgresVersion([CanBeNull] Version postgresVersion)
+            => WithOption(e => e.WithPostgresVersion(postgresVersion));
+
+        /// <summary>
         /// Appends NULLS FIRST to all ORDER BY clauses. This is important for the tests which were written
         /// for SQL Server. Note that to fully implement null-first ordering indexes also need to be generated
         /// accordingly, and since this isn't done this feature isn't publicly exposed.

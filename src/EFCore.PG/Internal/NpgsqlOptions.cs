@@ -37,6 +37,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
     public class NpgsqlOptions : INpgsqlOptions
     {
         /// <inheritdoc />
+        public virtual Version PostgresVersion { get; private set; }
+
+        /// <inheritdoc />
         public virtual bool ReverseNullOrderingEnabled { get; private set; }
 
         /// <inheritdoc />
@@ -47,6 +50,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         {
             var npgsqlOptions = options.FindExtension<NpgsqlOptionsExtension>() ?? new NpgsqlOptionsExtension();
 
+            PostgresVersion = npgsqlOptions.PostgresVersion;
             ReverseNullOrderingEnabled = npgsqlOptions.ReverseNullOrdering;
             Plugins = npgsqlOptions.Plugins;
         }

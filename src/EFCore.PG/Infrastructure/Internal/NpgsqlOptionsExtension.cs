@@ -23,6 +23,7 @@
 
 #endregion
 
+using System;
 using System.Collections.Generic;
 using System.Net.Security;
 using JetBrains.Annotations;
@@ -47,6 +48,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// </summary>
         [CanBeNull]
         public string AdminDatabase { get; private set; }
+
+        /// <summary>
+        /// The backend version to target.
+        /// </summary>
+        [CanBeNull]
+        public Version PostgresVersion { get; private set; }
 
         /// <summary>
         /// The collection of database plugins.
@@ -76,10 +83,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// Initializes an instance of <see cref="NpgsqlOptionsExtension"/> with the default settings.
         /// </summary>
         public NpgsqlOptionsExtension()
-        {
-            _plugins = new List<NpgsqlEntityFrameworkPlugin>();
-            ReverseNullOrdering = false;
-        }
+            => _plugins = new List<NpgsqlEntityFrameworkPlugin>();
 
         // NB: When adding new options, make sure to update the copy ctor below.
         /// <summary>
@@ -90,6 +94,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         {
             AdminDatabase = copyFrom.AdminDatabase;
             _plugins = new List<NpgsqlEntityFrameworkPlugin>(copyFrom._plugins);
+            PostgresVersion = copyFrom.PostgresVersion;
             ProvideClientCertificatesCallback = copyFrom.ProvideClientCertificatesCallback;
             RemoteCertificateValidationCallback = copyFrom.RemoteCertificateValidationCallback;
             ReverseNullOrdering = copyFrom.ReverseNullOrdering;
@@ -135,6 +140,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
             var clone = (NpgsqlOptionsExtension)Clone();
 
             clone.AdminDatabase = adminDatabase;
+
+            return clone;
+        }
+
+        /// <summary>
+        /// Returns a copy of the current instance with the specified PostgreSQL version.
+        /// </summary>
+        /// <param name="postgresVersion">The backend version to target.</param>
+        /// <returns>
+        /// A copy of the current instance with the specified PostgreSQL version.
+        /// </returns>
+        [NotNull]
+        public virtual NpgsqlOptionsExtension WithPostgresVersion([CanBeNull] Version postgresVersion)
+        {
+            var clone = (NpgsqlOptionsExtension)Clone();
+
+            clone.PostgresVersion = postgresVersion;
 
             return clone;
         }
