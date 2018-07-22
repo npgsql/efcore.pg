@@ -1,4 +1,5 @@
 #region License
+
 // The PostgreSQL License
 //
 // Copyright (C) 2016 The Npgsql Development Team
@@ -19,6 +20,7 @@
 // AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
 // ON AN "AS IS" BASIS, AND THE NPGSQL DEVELOPMENT TEAM HAS NO OBLIGATIONS
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+
 #endregion
 
 using System;
@@ -30,41 +32,58 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 
-// ReSharper disable once CheckNamespace
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
 {
+    /// <summary>
+    /// Allows for options specific to PostgreSQL to be configured for a <see cref="DbContext"/>.
+    /// </summary>
     public class NpgsqlDbContextOptionsBuilder
         : RelationalDbContextOptionsBuilder<NpgsqlDbContextOptionsBuilder, NpgsqlOptionsExtension>
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="NpgsqlDbContextOptionsBuilder"/> class.
+        /// </summary>
+        /// <param name="optionsBuilder"> The core options builder.</param>
         public NpgsqlDbContextOptionsBuilder([NotNull] DbContextOptionsBuilder optionsBuilder)
-            : base(optionsBuilder)
-        {
-        }
+            : base(optionsBuilder) {}
 
-        public virtual void UsePlugin(NpgsqlEntityFrameworkPlugin plugin)
+        /// <summary>
+        /// Configures the <see cref="DbContext"/> to use the specified <see cref="NpgsqlEntityFrameworkPlugin"/>.
+        /// </summary>
+        /// <param name="plugin">The plugin to configure.</param>
+        public virtual void UsePlugin([NotNull] NpgsqlEntityFrameworkPlugin plugin)
             => WithOption(e => e.WithPlugin(plugin));
 
         /// <summary>
         /// Connect to this database for administrative operations (creating/dropping databases).
-        /// Defaults to 'postgres'.
         /// </summary>
-        public virtual void UseAdminDatabase(string dbName) => WithOption(e => e.WithAdminDatabase(dbName));
+        /// <param name="dbName">The name of the database for administrative operations.</param>
+        public virtual void UseAdminDatabase([CanBeNull] string dbName)
+            => WithOption(e => e.WithAdminDatabase(dbName));
 
         /// <summary>
         /// Appends NULLS FIRST to all ORDER BY clauses. This is important for the tests which were written
         /// for SQL Server. Note that to fully implement null-first ordering indexes also need to be generated
         /// accordingly, and since this isn't done this feature isn't publicly exposed.
         /// </summary>
-        /// <param name="reverseNullOrdering"></param>
+        /// <param name="reverseNullOrdering">True to enable reverse null ordering; otherwise, false.</param>
         internal virtual void ReverseNullOrdering(bool reverseNullOrdering = true)
             => WithOption(e => e.WithReverseNullOrdering(reverseNullOrdering));
 
         #region Authentication
 
-        public virtual void ProvideClientCertificatesCallback(ProvideClientCertificatesCallback callback)
+        /// <summary>
+        /// Configures the <see cref="DbContext"/> to use the specified <see cref="ProvideClientCertificatesCallback"/>.
+        /// </summary>
+        /// <param name="callback">The callback to use.</param>
+        public virtual void ProvideClientCertificatesCallback([CanBeNull] ProvideClientCertificatesCallback callback)
             => WithOption(e => e.WithProvideClientCertificatesCallback(callback));
 
-        public virtual void RemoteCertificateValidationCallback(RemoteCertificateValidationCallback callback)
+        /// <summary>
+        /// Configures the <see cref="DbContext"/> to use the specified <see cref="RemoteCertificateValidationCallback"/>.
+        /// </summary>
+        /// <param name="callback">The callback to use.</param>
+        public virtual void RemoteCertificateValidationCallback([CanBeNull] RemoteCertificateValidationCallback callback)
             => WithOption(e => e.WithRemoteCertificateValidationCallback(callback));
 
         #endregion Authentication
@@ -72,23 +91,36 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         #region Retrying execution strategy
 
         /// <summary>
-        ///     Configures the context to use the default retrying <see cref="IExecutionStrategy" />.
+        /// Configures the context to use the default retrying <see cref="IExecutionStrategy" />.
         /// </summary>
+        /// <returns>
+        /// An instance of <see cref="NpgsqlDbContextOptionsBuilder"/> configured to use
+        /// the default retrying <see cref="IExecutionStrategy" />.
+        /// </returns>
+        [NotNull]
         public virtual NpgsqlDbContextOptionsBuilder EnableRetryOnFailure()
             => ExecutionStrategy(c => new NpgsqlRetryingExecutionStrategy(c));
 
         /// <summary>
-        ///     Configures the context to use the default retrying <see cref="IExecutionStrategy" />.
+        /// Configures the context to use the default retrying <see cref="IExecutionStrategy" />.
         /// </summary>
+        /// <returns>
+        /// An instance of <see cref="NpgsqlDbContextOptionsBuilder"/> with the specified parameters.
+        /// </returns>
+        [NotNull]
         public virtual NpgsqlDbContextOptionsBuilder EnableRetryOnFailure(int maxRetryCount)
             => ExecutionStrategy(c => new NpgsqlRetryingExecutionStrategy(c, maxRetryCount));
 
         /// <summary>
-        ///     Configures the context to use the default retrying <see cref="IExecutionStrategy" />.
+        /// Configures the context to use the default retrying <see cref="IExecutionStrategy" />.
         /// </summary>
-        /// <param name="maxRetryCount"> The maximum number of retry attempts. </param>
-        /// <param name="maxRetryDelay"> The maximum delay between retries. </param>
-        /// <param name="errorCodesToAdd"> Additional error codes that should be considered transient. </param>
+        /// <param name="maxRetryCount">The maximum number of retry attempts.</param>
+        /// <param name="maxRetryDelay">The maximum delay between retries.</param>
+        /// <param name="errorCodesToAdd">Additional error codes that should be considered transient.</param>
+        /// <returns>
+        /// An instance of <see cref="NpgsqlDbContextOptionsBuilder"/> with the specified parameters.
+        /// </returns>
+        [NotNull]
         public virtual NpgsqlDbContextOptionsBuilder EnableRetryOnFailure(
             int maxRetryCount,
             TimeSpan maxRetryDelay,
