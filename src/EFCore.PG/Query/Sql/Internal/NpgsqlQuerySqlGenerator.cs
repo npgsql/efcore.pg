@@ -89,7 +89,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
             if (sqlFunctionExpression.FunctionName == "COUNT"
                 && sqlFunctionExpression.Type == typeof(int))
             {
-                Sql.Append("::INT4");
+                Sql.Append("::INT");
                 return expr;
             }
 
@@ -99,9 +99,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
             if (sqlFunctionExpression.FunctionName == "SUM")
             {
                 if (sqlFunctionExpression.Type == typeof(int))
-                    Sql.Append("::INT4");
+                    Sql.Append("::INT");
                 else if (sqlFunctionExpression.Type == typeof(short))
-                    Sql.Append("::INT2");
+                    Sql.Append("::SMALLINT");
                 return expr;
             }
 
