@@ -26,6 +26,7 @@
 using System.Linq.Expressions;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
@@ -42,25 +43,35 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     /// </remarks>
     public class NpgsqlNetworkTranslator : IMethodCallTranslator
     {
+        /// <summary>
+        /// The static method info for <see cref="IPAddress.Parse(string)"/>.
+        /// </summary>
+        [NotNull] static readonly MethodInfo IPAddressParse =
+            typeof(IPAddress).GetRuntimeMethod(nameof(IPAddress.Parse), new[] { typeof(string) });
+
+        /// <summary>
+        /// The static method info for <see cref="PhysicalAddress.Parse(string)"/>.
+        /// </summary>
+        [NotNull] static readonly MethodInfo PhysicalAddressParse =
+            typeof(PhysicalAddress).GetRuntimeMethod(nameof(PhysicalAddress.Parse), new[] { typeof(string) });
+
         /// <inheritdoc />
         [CanBeNull]
         public Expression Translate(MethodCallExpression expression)
         {
-            var declaringType = expression.Method.DeclaringType;
+            var method = expression.Method;
 
-            if (declaringType != typeof(NpgsqlNetworkExtensions) &&
-                declaringType != typeof(IPAddress) &&
-                declaringType != typeof(PhysicalAddress))
-                return null;
-
-            switch (expression.Method.Name)
-            {
-            case nameof(IPAddress.Parse) when declaringType == typeof(IPAddress):
+            if (method == IPAddressParse)
                 return new ExplicitCastExpression(expression.Arguments[0], typeof(IPAddress));
 
-            case nameof(PhysicalAddress.Parse) when declaringType == typeof(PhysicalAddress):
+            if (method == PhysicalAddressParse)
                 return new ExplicitCastExpression(expression.Arguments[0], typeof(PhysicalAddress));
 
+            if (method.DeclaringType != typeof(NpgsqlNetworkExtensions))
+                return null;
+
+            switch (method.Name)
+            {
             case nameof(NpgsqlNetworkExtensions.LessThan):
                 return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], "<", typeof(bool));
 

@@ -114,7 +114,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => x.Inet.Equals(IPAddress.Parse("127.0.0.1")))
                            .ToArray();
 
-                AssertContainsSql("WHERE x.\"Inet\" = CAST('127.0.0.1' AS inet)");
+                AssertContainsSql("WHERE x.\"Inet\" = @__Parse_0");
             }
         }
 
@@ -131,7 +131,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => x.Macaddr.Equals(PhysicalAddress.Parse("12-34-56-00-00-00")))
                            .ToArray();
 
-                AssertContainsSql("WHERE x.\"Macaddr\" = CAST('12-34-56-00-00-00' AS macaddr)");
+                AssertContainsSql("WHERE x.\"Macaddr\" = @__Parse_0");
             }
         }
 
@@ -151,7 +151,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => x.Inet.Equals(IPAddress.Parse(inet)))
                            .ToArray();
 
-                AssertContainsSql("WHERE x.\"Inet\" = CAST(@__inet_0 AS inet)");
+                AssertContainsSql("WHERE x.\"Inet\" = @__Parse_0");
             }
         }
 
@@ -171,7 +171,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => x.Macaddr.Equals(PhysicalAddress.Parse(macaddr)))
                            .ToArray();
 
-                AssertContainsSql("WHERE x.\"Macaddr\" = CAST(@__macaddr_0 AS macaddr)");
+                AssertContainsSql("WHERE x.\"Macaddr\" = @__Parse_0");
             }
         }
 
@@ -1721,10 +1721,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             /// The options to be used for configuration.
             /// </param>
             public NetContext(DbContextOptions options) : base(options) {}
-
-            /// <inheritdoc />
-            protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-                => base.OnConfiguring(optionsBuilder.EnableSensitiveDataLogging());
         }
 
         #endregion
