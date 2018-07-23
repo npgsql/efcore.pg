@@ -65,6 +65,118 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         #endregion
 
+        #region ParseTests
+
+        /// <summary>
+        /// Tests translation for <see cref="IPAddress.Parse(string)"/>.
+        /// </summary>
+        [Fact]
+        public void IPAddress_inet_parse_column()
+        {
+            using (NetContext context = Fixture.CreateContext())
+            {
+                NetTestEntity[] _ =
+                    context.NetTestEntities
+                           .Where(x => x.Inet.Equals(IPAddress.Parse(x.TextInet)))
+                           .ToArray();
+
+                AssertContainsSql("WHERE x.\"Inet\" = CAST(x.\"TextInet\" AS inet)");
+            }
+        }
+
+        /// <summary>
+        /// Tests translation for <see cref="IPAddress.Parse(string)"/>.
+        /// </summary>
+        [Fact]
+        public void PhysicalAddress_macaddr_parse_column()
+        {
+            using (NetContext context = Fixture.CreateContext())
+            {
+                NetTestEntity[] _ =
+                    context.NetTestEntities
+                           .Where(x => x.Macaddr.Equals(PhysicalAddress.Parse(x.TextMacaddr)))
+                           .ToArray();
+
+                AssertContainsSql("WHERE x.\"Macaddr\" = CAST(x.\"TextMacaddr\" AS macaddr)");
+            }
+        }
+
+        /// <summary>
+        /// Tests translation for <see cref="IPAddress.Parse(string)"/>.
+        /// </summary>
+        [Fact]
+        public void IPAddress_inet_parse_literal()
+        {
+            using (NetContext context = Fixture.CreateContext())
+            {
+                NetTestEntity[] _ =
+                    context.NetTestEntities
+                           .Where(x => x.Inet.Equals(IPAddress.Parse("127.0.0.1")))
+                           .ToArray();
+
+                AssertContainsSql("WHERE x.\"Inet\" = @__Parse_0");
+            }
+        }
+
+        /// <summary>
+        /// Tests translation for <see cref="IPAddress.Parse(string)"/>.
+        /// </summary>
+        [Fact]
+        public void PhysicalAddress_macaddr_parse_literal()
+        {
+            using (NetContext context = Fixture.CreateContext())
+            {
+                NetTestEntity[] _ =
+                    context.NetTestEntities
+                           .Where(x => x.Macaddr.Equals(PhysicalAddress.Parse("12-34-56-00-00-00")))
+                           .ToArray();
+
+                AssertContainsSql("WHERE x.\"Macaddr\" = @__Parse_0");
+            }
+        }
+
+        /// <summary>
+        /// Tests translation for <see cref="IPAddress.Parse(string)"/>.
+        /// </summary>
+        [Fact]
+        public void IPAddress_inet_parse_parameter()
+        {
+            using (NetContext context = Fixture.CreateContext())
+            {
+                // ReSharper disable once ConvertToConstant.Local
+                var inet = "127.0.0.1";
+
+                NetTestEntity[] _ =
+                    context.NetTestEntities
+                           .Where(x => x.Inet.Equals(IPAddress.Parse(inet)))
+                           .ToArray();
+
+                AssertContainsSql("WHERE x.\"Inet\" = @__Parse_0");
+            }
+        }
+
+        /// <summary>
+        /// Tests translation for <see cref="IPAddress.Parse(string)"/>.
+        /// </summary>
+        [Fact]
+        public void PhysicalAddress_macaddr_parse_parameter()
+        {
+            using (NetContext context = Fixture.CreateContext())
+            {
+                // ReSharper disable once ConvertToConstant.Local
+                var macaddr = "12-34-56-00-00-00";
+
+                NetTestEntity[] _ =
+                    context.NetTestEntities
+                           .Where(x => x.Macaddr.Equals(PhysicalAddress.Parse(macaddr)))
+                           .ToArray();
+
+                AssertContainsSql("WHERE x.\"Macaddr\" = @__Parse_0");
+            }
+        }
+
+        #endregion
+
         #region RelationalOperatorTests
 
         /// <summary>
@@ -1580,6 +1692,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             /// </summary>
             [Column(TypeName = "macaddr8")]
             public PhysicalAddress Macaddr8 { get; set; }
+
+            /// <summary>
+            /// The text form of <see cref="Inet"/>.
+            /// </summary>
+            public string TextInet { get; set; }
+
+            /// <summary>
+            /// The text form of <see cref="Macaddr"/>.
+            /// </summary>
+            public string TextMacaddr { get; set; }
         }
 
         /// <summary>
@@ -1598,7 +1720,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             /// <param name="options">
             /// The options to be used for configuration.
             /// </param>
-            public NetContext(DbContextOptions options) : base(options) { }
+            public NetContext(DbContextOptions options) : base(options) {}
         }
 
         #endregion
