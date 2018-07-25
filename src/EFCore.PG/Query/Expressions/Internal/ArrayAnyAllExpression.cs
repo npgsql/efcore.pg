@@ -43,30 +43,38 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
     public class ArrayAnyAllExpression : Expression, IEquatable<ArrayAnyAllExpression>
     {
         /// <inheritdoc />
-        public override ExpressionType NodeType { get; } = ExpressionType.Extension;
+        public override ExpressionType NodeType => ExpressionType.Extension;
 
         /// <inheritdoc />
-        public override Type Type { get; } = typeof(bool);
+        public override Type Type => typeof(bool);
 
         /// <summary>
         /// The value to test against the <see cref="Array"/>.
         /// </summary>
+        [NotNull]
         public virtual Expression Operand { get; }
 
         /// <summary>
         /// The array of values or patterns to test for the <see cref="Operand"/>.
         /// </summary>
+        [NotNull]
         public virtual Expression Array { get; }
 
         /// <summary>
         /// The operator.
         /// </summary>
+        [NotNull]
         public virtual string Operator { get; }
 
         /// <summary>
         /// The comparison type.
         /// </summary>
         public virtual ArrayComparisonType ArrayComparisonType { get; }
+
+        /// <summary>
+        /// True if this instance represents: {operand} = ANY ({array})".
+        /// </summary>
+        public bool IsContainsExpression => ArrayComparisonType is ArrayComparisonType.ANY && Operator is "=";
 
         /// <summary>
         /// Constructs a <see cref="ArrayAnyAllExpression"/>.
