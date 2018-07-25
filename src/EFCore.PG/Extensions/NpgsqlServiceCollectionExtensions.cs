@@ -112,6 +112,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     .TryAdd<IQueryCompilationContextFactory, NpgsqlQueryCompilationContextFactory>()
                     .TryAdd<IMemberTranslator, NpgsqlCompositeMemberTranslator>()
                     .TryAdd<ICompositeMethodCallTranslator, NpgsqlCompositeMethodCallTranslator>()
+                    .TryAdd<IExpressionFragmentTranslator, NpgsqlCompositeExpressionFragmentTranslator>()
                     .TryAdd<IQuerySqlGeneratorFactory, NpgsqlQuerySqlGeneratorFactory>()
                     .TryAdd<ISqlTranslatingExpressionVisitorFactory, NpgsqlSqlTranslatingExpressionVisitorFactory>()
                     .TryAdd<ISingletonOptions, INpgsqlOptions>(p => p.GetService<INpgsqlOptions>())
