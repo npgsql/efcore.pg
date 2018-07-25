@@ -54,6 +54,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics
             ForeignKeyPrincipalColumnMissingWarning,
             EnumColumnSkippedWarning,
             ExpressionIndexSkippedWarning,
+            UnsupportedColumnIndexSkippedWarning,
+            UnsupportedConstraintIndexSkippedWarning
         }
 
         private static readonly string _validationPrefix = DbLoggerCategory.Model.Validation.Name + ".";
@@ -165,5 +167,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics
         /// This event is in the <see cref="DbLoggerCategory.Scaffolding" /> category.
         /// </summary>
         public static readonly EventId ExpressionIndexSkippedWarning = MakeScaffoldingId(Id.ExpressionIndexSkippedWarning);
+
+        /// <summary>
+        /// Index '{name}' on table {tableName} cannot be scaffolded because it includes a column that cannot be scaffolded (e.g. enum).
+        /// </summary>
+        public static readonly EventId UnsupportedColumnIndexSkippedWarning = MakeScaffoldingId(Id.UnsupportedColumnIndexSkippedWarning);
+        
+        /// <summary>
+        /// Constraint '{name}' on table {tableName} cannot be scaffolded because it includes a column that cannot be scaffolded (e.g. enum).
+        /// </summary>
+        public static readonly EventId UnsupportedColumnConstraintSkippedWarning = MakeScaffoldingId(Id.UnsupportedConstraintIndexSkippedWarning);
     }
 }
