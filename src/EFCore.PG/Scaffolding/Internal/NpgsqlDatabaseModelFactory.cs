@@ -27,6 +27,7 @@ using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -509,7 +510,16 @@ AND
                             {
                                 var columns = (List<DatabaseColumn>)table.Columns;
                                 foreach (var i in columnIndices)
-                                    index.Columns.Add(columns[i - 1]);
+                                {
+                                    var indexColumn = columns[i - 1];
+                                    if (indexColumn == null)
+                                    {
+                                        _logger.UnsupportedColumnIndexSkippedWarning(index.Name, DisplayName(tableSchema, tableName));
+                                        goto IndexEnd;
+                                    }
+
+                                    index.Columns.Add(indexColumn);
+                                }
                             }
 
                             var predicate = record.GetValueOrDefault<string>("pred");
@@ -526,6 +536,8 @@ AND
                                 index[NpgsqlAnnotationNames.IndexMethod] = indexMethod;
 
                             table.Indexes.Add(index);
+
+                            IndexEnd: ;
                         }
                     }
                 }
@@ -585,8 +597,18 @@ AND
 
                         var pkColumnIndices = primaryKeyRecord.GetValueOrDefault<short[]>("conkey");
                         foreach (var pkColumnIndex in pkColumnIndices)
-                            primaryKey.Columns.Add(table.Columns[pkColumnIndex - 1]);
+                        {
+                            var pkColumn = table.Columns[pkColumnIndex - 1];
+                            if (pkColumn == null)
+                            {
+                                _logger.UnsupportedColumnConstraintSkippedWarning(primaryKey.Name, DisplayName(tableSchema, tableName));
+                                goto PkEnd;
+                            }
+                            primaryKey.Columns.Add(pkColumn);
+                        }
+
                         table.PrimaryKey = primaryKey;
+                    PkEnd: ;
                     }
 
                     // Foreign keys
@@ -632,11 +654,19 @@ AND
 
                         for (var i = 0; i < columnIndices.Length; i++)
                         {
-                            foreignKey.Columns.Add(table.Columns[columnIndices[i] - 1]);
-                            foreignKey.PrincipalColumns.Add(principalColumns[principalColumnIndices[i] - 1]);
+                            var foreignKeyColumn = table.Columns[columnIndices[i] - 1];
+                            var foreignKeyPrincipalColumn = principalColumns[principalColumnIndices[i] - 1];
+                            if (foreignKeyColumn == null || foreignKeyPrincipalColumn == null)
+                            {
+                                _logger.UnsupportedColumnConstraintSkippedWarning(foreignKey.Name, DisplayName(tableSchema, tableName));
+                                goto ForeignKeyEnd;
+                            }
+                            foreignKey.Columns.Add(foreignKeyColumn);
+                            foreignKey.PrincipalColumns.Add(foreignKeyPrincipalColumn);
                         }
 
                         table.ForeignKeys.Add(foreignKey);
+                    ForeignKeyEnd: ;
                     }
 
                     // Unique constraints
@@ -656,10 +686,20 @@ AND
 
                         var columnIndices = record.GetValueOrDefault<short[]>("conkey");
                         foreach (var t in columnIndices)
-                            uniqueConstraint.Columns.Add(table.Columns[t-1]);
+                        {
+                            var constraintColumn = table.Columns[t - 1];
+                            if (constraintColumn == null)
+                            {
+                                _logger.UnsupportedColumnConstraintSkippedWarning(uniqueConstraint.Name, DisplayName(tableSchema, tableName));
+                                goto UniqueConstraintEnd;
+                            }
+                            uniqueConstraint.Columns.Add(constraintColumn);
+                        }
 
                         table.UniqueConstraints.Add(uniqueConstraint);
                         constraintIndexes.Add(record.GetValueOrDefault<uint>("conindid"));
+
+                    UniqueConstraintEnd: ;
                     }
                 }
             }
