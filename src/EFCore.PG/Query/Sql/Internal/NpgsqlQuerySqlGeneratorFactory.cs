@@ -1,4 +1,5 @@
 ﻿#region License
+
 // The PostgreSQL License
 //
 // Copyright (C) 2016 The Npgsql Development Team
@@ -19,6 +20,7 @@
 // AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
 // ON AN "AS IS" BASIS, AND THE NPGSQL DEVELOPMENT TEAM HAS NO OBLIGATIONS
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+
 #endregion
 
 using JetBrains.Annotations;
@@ -29,18 +31,24 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
 {
+    /// <summary>
+    /// The default factory for Npgsql-specific query SQL generators.
+    /// </summary>
     public class NpgsqlQuerySqlGeneratorFactory : QuerySqlGeneratorFactoryBase
     {
-        readonly INpgsqlOptions _npgsqlOptions;
+        /// <summary>
+        /// Represents options for Npgsql that can only be set by the service provider.
+        /// </summary>
+        [NotNull] readonly INpgsqlOptions _npgsqlOptions;
 
+        /// <inheritdoc />
         public NpgsqlQuerySqlGeneratorFactory(
             [NotNull] QuerySqlGeneratorDependencies dependencies,
             [NotNull] INpgsqlOptions npgsqlOptions)
             : base(dependencies)
-        {
-            _npgsqlOptions = npgsqlOptions;
-        }
+            => _npgsqlOptions = Check.NotNull(npgsqlOptions, nameof(npgsqlOptions));
 
+        /// <inheritdoc />
         public override IQuerySqlGenerator CreateDefault(SelectExpression selectExpression)
             => new NpgsqlQuerySqlGenerator(
                 Dependencies,

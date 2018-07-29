@@ -72,11 +72,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         public virtual ArrayComparisonType ArrayComparisonType { get; }
 
         /// <summary>
-        /// True if this instance represents: {operand} = ANY ({array})".
-        /// </summary>
-        public bool IsContainsExpression => ArrayComparisonType is ArrayComparisonType.ANY && Operator is "=";
-
-        /// <summary>
         /// Constructs a <see cref="ArrayAnyAllExpression"/>.
         /// </summary>
         /// <param name="arrayComparisonType">The comparison type.</param>
@@ -90,14 +85,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
             [NotNull] Expression operand,
             [NotNull] Expression array)
         {
-            Check.NotNull(array, nameof(operatorSymbol));
-            Check.NotNull(operand, nameof(operand));
-            Check.NotNull(array, nameof(array));
-
             ArrayComparisonType = arrayComparisonType;
-            Operator = operatorSymbol;
-            Operand = operand;
-            Array = array;
+            Operator = Check.NotNull(operatorSymbol, nameof(operatorSymbol));
+            Operand = Check.NotNull(operand, nameof(operand));
+            Array = Check.NotNull(array, nameof(array));
         }
 
         /// <inheritdoc />
