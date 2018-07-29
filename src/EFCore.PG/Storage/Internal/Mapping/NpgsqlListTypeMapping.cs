@@ -88,7 +88,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 sb.Append(ElementMapping.GenerateSqlLiteral(list[i]));
             }
 
-            sb.Append(']');
+            sb.Append("]::");
+            sb.Append(ElementMapping.StoreType);
+            sb.Append("[]");
             return sb.ToString();
         }
 
@@ -143,7 +145,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
             static List<TElem> Snapshot(List<TElem> source, ValueComparer<TElem> elementComparer)
             {
-                if (source is null)
+                if (source == null)
                     return null;
 
                 var snapshot = new List<TElem>(source.Count);
@@ -194,7 +196,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
             static List<TElem> DoSnapshot(List<TElem> source)
             {
-                if (source is null)
+                if (source == null)
                     return null;
 
                 var snapshot = new List<TElem>(source.Count);
@@ -243,7 +245,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
             static List<TElem> DoSnapshot(List<TElem> source)
             {
-                if (source is null)
+                if (source == null)
                     return null;
 
                 var snapshot = new List<TElem>(source.Count);
