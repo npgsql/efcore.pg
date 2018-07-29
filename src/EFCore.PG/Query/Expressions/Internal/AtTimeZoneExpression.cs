@@ -1,4 +1,5 @@
 ﻿#region License
+
 // The PostgreSQL License
 //
 // Copyright (C) 2016 The Npgsql Development Team
@@ -19,6 +20,7 @@
 // AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
 // ON AN "AS IS" BASIS, AND THE NPGSQL DEVELOPMENT TEAM HAS NO OBLIGATIONS
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+
 #endregion
 
 using System;
@@ -29,42 +31,59 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
 {
+    /// <summary>
+    /// Represents a PostgreSQL AT TIME ZONE expression.
+    /// </summary>
     public class AtTimeZoneExpression : Expression
     {
-        public AtTimeZoneExpression([NotNull] Expression timestampExpression, [NotNull] string timeZone)
-        {
-            Check.NotNull(timestampExpression, nameof(timestampExpression));
-            Check.NotNull(timeZone, nameof(timeZone));
-
-            TimestampExpression = timestampExpression;
-            TimeZone = timeZone;
-        }
-
-        public Expression TimestampExpression { get; }
-        public string TimeZone { get; }
-
+        /// <inheritdoc />
         public override ExpressionType NodeType => ExpressionType.Extension;
 
+        /// <inheritdoc />
         public override Type Type => typeof(DateTime);
 
-        protected override Expression Accept([NotNull] ExpressionVisitor visitor)
-        {
-            Check.NotNull(visitor, nameof(visitor));
+        /// <summary>
+        /// The timestamp.
+        /// </summary>
+        [NotNull]
+        public Expression Timestamp { get; }
 
-            return visitor is NpgsqlQuerySqlGenerator npgsqlGenerator
+        /// <summary>
+        /// The time zone.
+        /// </summary>
+        [NotNull]
+        public string TimeZone { get; }
+
+        /// <summary>
+        /// Constructs an <see cref="AtTimeZoneExpression"/>.
+        /// </summary>
+        /// <param name="timestamp">The timestamp.</param>
+        /// <param name="timeZone">The time zone.</param>
+        /// <exception cref="ArgumentNullException" />
+        public AtTimeZoneExpression([NotNull] Expression timestamp, [NotNull] string timeZone)
+        {
+            Timestamp = Check.NotNull(timestamp, nameof(timestamp));
+            TimeZone = Check.NotNull(timeZone, nameof(timeZone));
+        }
+
+        /// <inheritdoc />
+        protected override Expression Accept(ExpressionVisitor visitor)
+            => visitor is NpgsqlQuerySqlGenerator npgsqlGenerator
                 ? npgsqlGenerator.VisitAtTimeZone(this)
                 : base.Accept(visitor);
-        }
 
+        /// <inheritdoc />
         protected override Expression VisitChildren(ExpressionVisitor visitor)
         {
-            var newTimestampExpression = visitor.Visit(TimestampExpression);
+            var timestamp = visitor.Visit(Timestamp) ?? Timestamp;
 
-            return newTimestampExpression != TimestampExpression
-                ? new AtTimeZoneExpression(newTimestampExpression, TimeZone)
-                : this;
+            return
+                timestamp != Timestamp
+                    ? new AtTimeZoneExpression(timestamp, TimeZone)
+                    : this;
         }
 
-        public override string ToString() => $"{TimestampExpression} AT TIME ZONE {TimeZone}";
+        /// <inheritdoc />
+        public override string ToString() => $"{Timestamp} AT TIME ZONE {TimeZone}";
     }
 }
