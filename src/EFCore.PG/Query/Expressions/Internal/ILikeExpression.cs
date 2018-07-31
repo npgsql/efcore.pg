@@ -1,4 +1,5 @@
 ﻿#region License
+
 // The PostgreSQL License
 //
 // Copyright (C) 2016 The Npgsql Development Team
@@ -19,162 +20,103 @@
 // AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
 // ON AN "AS IS" BASIS, AND THE NPGSQL DEVELOPMENT TEAM HAS NO OBLIGATIONS
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+
 #endregion
 
 using System;
 using System.Linq.Expressions;
 using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Query.Expressions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
 {
     /// <summary>
-    ///     Represents a SQL ILIKE expression.
+    /// Represents a PostgreSQL ILIKE expression.
     /// </summary>
-    public class ILikeExpression : Expression
+    // ReSharper disable once InconsistentNaming
+    public class ILikeExpression : Expression, IEquatable<ILikeExpression>
     {
-        /// <summary>
-        ///     Creates a new instance of LikeExpression.
-        /// </summary>
-        /// <param name="match"> The expression to match. </param>
-        /// <param name="pattern"> The pattern to match. </param>
-        public ILikeExpression([NotNull] Expression match, [NotNull] Expression pattern)
-        {
-            Check.NotNull(match, nameof(match));
-            Check.NotNull(pattern, nameof(pattern));
+        /// <inheritdoc />
+        public override ExpressionType NodeType => ExpressionType.Extension;
 
-            Match = match;
-            Pattern = pattern;
-        }
+        /// <inheritdoc />
+        public override Type Type => typeof(bool);
 
         /// <summary>
-        ///     Creates a new instance of LikeExpression.
+        /// The match expression.
         /// </summary>
-        /// <param name="match"> The expression to match. </param>
-        /// <param name="pattern"> The pattern to match. </param>
-        /// <param name="escapeChar"> The escape character to use in <paramref name="pattern"/>. </param>
-        public ILikeExpression([NotNull] Expression match, [NotNull] Expression pattern, [CanBeNull] Expression escapeChar)
-        {
-            Check.NotNull(match, nameof(match));
-            Check.NotNull(pattern, nameof(pattern));
-
-            Match = match;
-            Pattern = pattern;
-            EscapeChar = escapeChar;
-        }
-
-        /// <summary>
-        ///     Gets the match expression.
-        /// </summary>
-        /// <value>
-        ///     The match expression.
-        /// </value>
+        [NotNull]
         public virtual Expression Match { get; }
 
         /// <summary>
-        ///     Gets the pattern to match.
+        /// The pattern to match.
         /// </summary>
-        /// <value>
-        ///     The pattern to match.
-        /// </value>
+        [NotNull]
         public virtual Expression Pattern { get; }
 
         /// <summary>
-        ///     Gets the escape character to use in <see cref="Pattern"/>.
+        /// The escape character to use in <see cref="Pattern"/>.
         /// </summary>
-        /// <value>
-        ///     The escape character to use. If null, no escape character is used.
-        /// </value>
         [CanBeNull]
         public virtual Expression EscapeChar { get; }
 
         /// <summary>
-        ///     Returns the node type of this <see cref="Expression" />. (Inherited from <see cref="Expression" />.)
+        /// Constructs a <see cref="ILikeExpression"/>.
         /// </summary>
-        /// <returns>The <see cref="ExpressionType" /> that represents this expression.</returns>
-        public override ExpressionType NodeType => ExpressionType.Extension;
-
-        /// <summary>
-        ///     Gets the static type of the expression that this <see cref="Expression" /> represents. (Inherited from <see cref="Expression" />.)
-        /// </summary>
-        /// <returns>The <see cref="Type" /> that represents the static type of the expression.</returns>
-        public override Type Type => typeof(bool);
-
-        /// <summary>
-        ///     Dispatches to the specific visit method for this node type.
-        /// </summary>
-        protected override Expression Accept(ExpressionVisitor visitor)
+        /// <param name="match">The expression to match.</param>
+        /// <param name="pattern">The pattern to match.</param>
+        /// <exception cref="ArgumentNullException" />
+        public ILikeExpression([NotNull] Expression match, [NotNull] Expression pattern)
         {
-            Check.NotNull(visitor, nameof(visitor));
-
-            var specificVisitor = visitor as NpgsqlQuerySqlGenerator;
-
-            return specificVisitor != null
-                ? specificVisitor.VisitILike(this)
-                : base.Accept(visitor);
+            Match = Check.NotNull(match, nameof(match));
+            Pattern = Check.NotNull(pattern, nameof(pattern));
         }
 
         /// <summary>
-        ///     Reduces the node and then calls the <see cref="ExpressionVisitor.Visit(System.Linq.Expressions.Expression)" /> method passing the
-        ///     reduced expression.
-        ///     Throws an exception if the node isn't reducible.
+        /// Constructs a <see cref="ILikeExpression"/>.
         /// </summary>
-        /// <param name="visitor"> An instance of <see cref="ExpressionVisitor" />. </param>
-        /// <returns> The expression being visited, or an expression which should replace it in the tree. </returns>
-        /// <remarks>
-        ///     Override this method to provide logic to walk the node's children.
-        ///     A typical implementation will call visitor.Visit on each of its
-        ///     children, and if any of them change, should return a new copy of
-        ///     itself with the modified children.
-        /// </remarks>
+        /// <param name="match">The expression to match.</param>
+        /// <param name="pattern">The pattern to match.</param>
+        /// <param name="escapeChar">The escape character to use in <paramref name="pattern"/>.</param>
+        /// <exception cref="ArgumentNullException" />
+        public ILikeExpression([NotNull] Expression match, [NotNull] Expression pattern, [CanBeNull] Expression escapeChar)
+        {
+            Match = Check.NotNull(match, nameof(match));
+            Pattern = Check.NotNull(pattern, nameof(pattern));
+            EscapeChar = escapeChar;
+        }
+
+        /// <inheritdoc />
+        protected override Expression Accept(ExpressionVisitor visitor)
+            => visitor is NpgsqlQuerySqlGenerator npgsqlGenerator
+                ? npgsqlGenerator.VisitILike(this)
+                : base.Accept(visitor);
+
+        /// <inheritdoc />
         protected override Expression VisitChildren(ExpressionVisitor visitor)
         {
-            var newMatchExpression = visitor.Visit(Match);
-            var newPatternExpression = visitor.Visit(Pattern);
-            var newEscapeCharExpression = EscapeChar == null ? null : visitor.Visit(EscapeChar);
+            var match = visitor.Visit(Match) ?? Match;
+            var pattern = visitor.Visit(Pattern) ?? Pattern;
+            var escapeChar = visitor.Visit(EscapeChar);
 
-            return newMatchExpression != Match
-                   || newPatternExpression != Pattern
-                   || newEscapeCharExpression != EscapeChar
-                ? new ILikeExpression(newMatchExpression, newPatternExpression, newEscapeCharExpression)
-                : this;
+            return
+                match != Match || pattern != Pattern || escapeChar != EscapeChar
+                    ? new ILikeExpression(match, pattern, escapeChar)
+                    : this;
         }
 
-        /// <summary>
-        ///     Tests if this object is considered equal to another.
-        /// </summary>
-        /// <param name="obj"> The object to compare with the current object. </param>
-        /// <returns>
-        ///     true if the objects are considered equal, false if they are not.
-        /// </returns>
-        public override bool Equals(object obj)
-        {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
+        /// <inheritdoc />
+        public override bool Equals(object obj) => obj is ILikeExpression other && Equals(other);
 
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
+        /// <inheritdoc />
+        public bool Equals(ILikeExpression other)
+            => other != null &&
+               Equals(Match, other.Match) &&
+               Equals(Pattern, other.Pattern) &&
+               Equals(EscapeChar, other.EscapeChar);
 
-            return obj.GetType() == GetType() && Equals((ILikeExpression)obj);
-        }
-
-        bool Equals(ILikeExpression other)
-            => Equals(Match, other.Match)
-               && Equals(Pattern, other.Pattern)
-               && Equals(EscapeChar, other.EscapeChar);
-
-        /// <summary>
-        ///     Returns a hash code for this object.
-        /// </summary>
-        /// <returns>
-        ///     A hash code for this object.
-        /// </returns>
+        /// <inheritdoc />
         public override int GetHashCode()
         {
             unchecked
@@ -182,15 +124,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
                 var hashCode = Match.GetHashCode();
                 hashCode = (hashCode * 397) ^ Pattern.GetHashCode();
                 hashCode = (hashCode * 397) ^ (EscapeChar?.GetHashCode() ?? 0);
-
                 return hashCode;
             }
         }
 
-        /// <summary>
-        ///     Creates a <see cref="string" /> representation of the Expression.
-        /// </summary>
-        /// <returns>A <see cref="string" /> representation of the Expression.</returns>
+        /// <inheritdoc />
         public override string ToString() => $"{Match} ILIKE {Pattern}{(EscapeChar == null ? "" : $" ESCAPE {EscapeChar}")}";
     }
 }

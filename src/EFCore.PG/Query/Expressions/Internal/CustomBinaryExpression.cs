@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Linq;
 using System.Linq.Expressions;
 using JetBrains.Annotations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
-using NpgsqlTypes;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
 {
@@ -14,49 +12,69 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
     /// </summary>
     public class CustomBinaryExpression : Expression
     {
+        /// <inheritdoc />
+        public override ExpressionType NodeType => ExpressionType.Extension;
+
+        /// <inheritdoc />
+        public override Type Type { get; }
+
+        /// <summary>
+        /// The left-hand expression.
+        /// </summary>
+        [NotNull]
+        public Expression Left { get; }
+
+        /// <summary>
+        /// The right-hand expression.
+        /// </summary>
+        [NotNull]
+        public Expression Right { get; }
+
+        /// <summary>
+        /// The operator.
+        /// </summary>
+        [NotNull]
+        public string Operator { get; }
+
+        /// <summary>
+        /// Constructs a <see cref="CustomBinaryExpression"/>.
+        /// </summary>
+        /// <param name="left">The left-hand expression.</param>
+        /// <param name="right">The right-hand expression.</param>
+        /// <param name="binaryOperator">The operator symbol acting on the expression.</param>
+        /// <param name="type">The result type.</param>
+        /// <exception cref="ArgumentNullException" />
         public CustomBinaryExpression(
             [NotNull] Expression left,
             [NotNull] Expression right,
             [NotNull] string binaryOperator,
             [NotNull] Type type)
         {
-            Check.NotNull(right, nameof(right));
-            Check.NotNull(left, nameof(left));
-            Check.NotEmpty(binaryOperator, nameof(binaryOperator));
-            Check.NotNull(type, nameof(type));
-
-            Left = left;
-            Right = right;
-            Operator = binaryOperator;
-            Type = type;
+            Left = Check.NotNull(left, nameof(left));
+            Right = Check.NotNull(right, nameof(right));
+            Operator = Check.NotEmpty(binaryOperator, nameof(binaryOperator));
+            Type = Check.NotNull(type, nameof(type));
         }
 
-        public Expression Left { get; }
-        public Expression Right { get; }
-        public string Operator { get; }
-        public override Type Type { get; }
-
-        public override ExpressionType NodeType => ExpressionType.Extension;
-
+        /// <inheritdoc />
         protected override Expression Accept(ExpressionVisitor visitor)
-        {
-            Check.NotNull(visitor, nameof(visitor));
-
-            return visitor is NpgsqlQuerySqlGenerator npgsqlGenerator
+            => visitor is NpgsqlQuerySqlGenerator npgsqlGenerator
                 ? npgsqlGenerator.VisitCustomBinary(this)
                 : base.Accept(visitor);
-        }
 
+        /// <inheritdoc />
         protected override Expression VisitChildren(ExpressionVisitor visitor)
         {
-            var newLeft = visitor.Visit(Left);
-            var newRight = visitor.Visit(Right);
+            var left = visitor.Visit(Left) ?? Left;
+            var right = visitor.Visit(Right) ?? Right;
 
-            return newLeft != Left || newRight != Right
-                ? new CustomBinaryExpression(newLeft, newRight, Operator, Type)
-                : this;
+            return
+                left != Left || right != Right
+                    ? new CustomBinaryExpression(left, right, Operator, Type)
+                    : this;
         }
 
+        /// <inheritdoc />
         public override string ToString() => $"{Left} {Operator} {Right}";
     }
 }

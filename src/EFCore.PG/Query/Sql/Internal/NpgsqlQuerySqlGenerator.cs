@@ -186,15 +186,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
                     return exp;
                 }
 
-                break;
+                goto default;
             }
 
             case ExpressionType.ArrayIndex:
                 VisitArrayIndex(expression);
                 return expression;
-            }
 
-            return base.VisitBinary(expression);
+            default:
+                return base.VisitBinary(expression);
+            }
         }
 
         /// <inheritdoc />
@@ -241,35 +242,42 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
         /// <summary>
         /// Produces expressions like: 1 = ANY ('{0,1,2}') or 'cat' LIKE ANY ('{a%,b%,c%}').
         /// </summary>
-        public virtual Expression VisitArrayAnyAll([NotNull] ArrayAnyAllExpression arrayAnyAllExpression)
+        public virtual Expression VisitArrayAnyAll([NotNull] ArrayAnyAllExpression expression)
         {
-            Visit(arrayAnyAllExpression.Operand);
+            Visit(expression.Operand);
             Sql.Append(' ');
-            Sql.Append(arrayAnyAllExpression.Operator);
+            Sql.Append(expression.Operator);
             Sql.Append(' ');
-            Sql.Append(arrayAnyAllExpression.ArrayComparisonType.ToString());
+            Sql.Append(expression.ArrayComparisonType.ToString());
             Sql.Append(" (");
-            Visit(arrayAnyAllExpression.Array);
+            Visit(expression.Array);
             Sql.Append(')');
-            return arrayAnyAllExpression;
+            return expression;
         }
 
         /// <summary>
-        /// See: http://www.postgresql.org/docs/current/static/functions-matching.html
+        /// Visits the children of a <see cref="RegexMatchExpression"/>.
         /// </summary>
-        public virtual Expression VisitRegexMatch([NotNull] RegexMatchExpression regexMatchExpression)
+        /// <param name="expression">The expression.</param>
+        /// <returns>
+        /// An <see cref="Expression"/>.
+        /// </returns>
+        /// <remarks>
+        /// See: http://www.postgresql.org/docs/current/static/functions-matching.html
+        /// </remarks>
+        [NotNull]
+        public virtual Expression VisitRegexMatch([NotNull] RegexMatchExpression expression)
         {
-            Check.NotNull(regexMatchExpression, nameof(regexMatchExpression));
-            var options = regexMatchExpression.Options;
+            var options = expression.Options;
 
-            Visit(regexMatchExpression.Match);
+            Visit(expression.Match);
             Sql.Append(" ~ ");
 
             // PG regexps are singleline by default
             if (options == RegexOptions.Singleline)
             {
-                Visit(regexMatchExpression.Pattern);
-                return regexMatchExpression;
+                Visit(expression.Pattern);
+                return expression;
             }
 
             Sql.Append("('(?");
@@ -286,71 +294,97 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
                 Sql.Append('x');
 
             Sql.Append(")' || ");
-            Visit(regexMatchExpression.Pattern);
+            Visit(expression.Pattern);
             Sql.Append(')');
 
-            return regexMatchExpression;
+            return expression;
         }
 
-        public virtual Expression VisitAtTimeZone([NotNull] AtTimeZoneExpression atTimeZoneExpression)
+        /// <summary>
+        /// Visits the children of an <see cref="AtTimeZoneExpression"/>.
+        /// </summary>
+        /// <param name="expression">The expression.</param>
+        /// <returns>
+        /// An <see cref="Expression"/>.
+        /// </returns>
+        [NotNull]
+        public virtual Expression VisitAtTimeZone([NotNull] AtTimeZoneExpression expression)
         {
-            Check.NotNull(atTimeZoneExpression, nameof(atTimeZoneExpression));
-
-            Visit(atTimeZoneExpression.TimestampExpression);
+            Visit(expression.Timestamp);
 
             Sql.Append(" AT TIME ZONE '");
-            Sql.Append(atTimeZoneExpression.TimeZone);
+            Sql.Append(expression.TimeZone);
             Sql.Append('\'');
 
-            return atTimeZoneExpression;
+            return expression;
         }
 
-        public virtual Expression VisitILike([NotNull] ILikeExpression iLikeExpression)
+        /// <summary>
+        /// Visits the children of an <see cref="ILikeExpression"/>.
+        /// </summary>
+        /// <param name="expression">The expression.</param>
+        /// <returns>
+        /// An <see cref="Expression"/>.
+        /// </returns>
+        [NotNull]
+        public virtual Expression VisitILike([NotNull] ILikeExpression expression)
         {
-            Check.NotNull(iLikeExpression, nameof(iLikeExpression));
-
             //var parentTypeMapping = _typeMapping;
-            //_typeMapping = InferTypeMappingFromColumn(iLikeExpression.Match) ?? parentTypeMapping;
+            //_typeMapping = InferTypeMappingFromColumn(expression.Match) ?? parentTypeMapping;
 
-            Visit(iLikeExpression.Match);
+            Visit(expression.Match);
 
             Sql.Append(" ILIKE ");
 
-            Visit(iLikeExpression.Pattern);
+            Visit(expression.Pattern);
 
-            if (iLikeExpression.EscapeChar != null)
+            if (expression.EscapeChar != null)
             {
                 Sql.Append(" ESCAPE ");
-                Visit(iLikeExpression.EscapeChar);
+                Visit(expression.EscapeChar);
             }
 
             //_typeMapping = parentTypeMapping;
 
-            return iLikeExpression;
+            return expression;
         }
 
-        public virtual Expression VisitExplicitStoreTypeCast([NotNull] ExplicitStoreTypeCastExpression castExpression)
+        /// <summary>
+        /// Visits the children of an <see cref="ExplicitStoreTypeCastExpression"/>.
+        /// </summary>
+        /// <param name="expression">The expression.</param>
+        /// <returns>
+        /// An <see cref="Expression"/>.
+        /// </returns>
+        [NotNull]
+        public virtual Expression VisitExplicitStoreTypeCast([NotNull] ExplicitStoreTypeCastExpression expression)
         {
             Sql.Append("CAST(");
 
             //var parentTypeMapping = _typeMapping;
-            //_typeMapping = InferTypeMappingFromColumn(castExpression.Operand);
+            //_typeMapping = InferTypeMappingFromColumn(expression.Operand);
 
-            Visit(castExpression.Operand);
+            Visit(expression.Operand);
 
             Sql.Append(" AS ")
-               .Append(castExpression.StoreType)
+               .Append(expression.StoreType)
                .Append(")");
 
             //_typeMapping = parentTypeMapping;
 
-            return castExpression;
+            return expression;
         }
 
+        /// <summary>
+        /// Visits the children of a <see cref="CustomBinaryExpression"/>.
+        /// </summary>
+        /// <param name="expression">The expression.</param>
+        /// <returns>
+        /// An <see cref="Expression"/>.
+        /// </returns>
+        [NotNull]
         public virtual Expression VisitCustomBinary([NotNull] CustomBinaryExpression expression)
         {
-            Check.NotNull(expression, nameof(expression));
-
             Sql.Append('(');
             Visit(expression.Left);
             Sql.Append(' ');
@@ -362,10 +396,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
             return expression;
         }
 
+        /// <summary>
+        /// Visits the children of a <see cref="CustomUnaryExpression"/>.
+        /// </summary>
+        /// <param name="expression">The expression.</param>
+        /// <returns>
+        /// An <see cref="Expression"/>.
+        /// </returns>
+        [NotNull]
         public virtual Expression VisitCustomUnary([NotNull] CustomUnaryExpression expression)
         {
-            Check.NotNull(expression, nameof(expression));
-
             if (expression.Postfix)
             {
                 Visit(expression.Operand);
@@ -380,7 +420,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
             return expression;
         }
 
-        public virtual Expression VisitPgFunction([NotNull] PgFunctionExpression e)
+        /// <summary>
+        /// Visits the children of a <see cref="PgFunctionExpression"/>.
+        /// </summary>
+        /// <param name="expression">The expression.</param>
+        /// <returns>
+        /// An <see cref="Expression"/>.
+        /// </returns>
+        [NotNull]
+        public virtual Expression VisitPgFunction([NotNull] PgFunctionExpression expression)
         {
             //var parentTypeMapping = _typeMapping;
 
@@ -388,15 +436,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
 
             var wroteSchema = false;
 
-            if (e.Instance != null)
+            if (expression.Instance != null)
             {
-                Visit(e.Instance);
+                Visit(expression.Instance);
 
                 Sql.Append(".");
             }
-            else if (!string.IsNullOrWhiteSpace(e.Schema))
+            else if (!string.IsNullOrWhiteSpace(expression.Schema))
             {
-                Sql.Append(SqlGenerator.DelimitIdentifier(e.Schema))
+                Sql.Append(SqlGenerator.DelimitIdentifier(expression.Schema))
                    .Append(".");
 
                 wroteSchema = true;
@@ -404,18 +452,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
 
             Sql.Append(
                 wroteSchema
-                    ? SqlGenerator.DelimitIdentifier(e.FunctionName)
-                    : e.FunctionName);
+                    ? SqlGenerator.DelimitIdentifier(expression.FunctionName)
+                    : expression.FunctionName);
 
             Sql.Append("(");
 
             //_typeMapping = null;
 
-            GenerateList(e.PositionalArguments);
+            GenerateList(expression.PositionalArguments);
 
-            bool hasArguments = e.PositionalArguments.Count > 0 && e.NamedArguments.Count > 0;
+            bool hasArguments = expression.PositionalArguments.Count > 0 && expression.NamedArguments.Count > 0;
 
-            foreach (var kv in e.NamedArguments)
+            foreach (var kv in expression.NamedArguments)
             {
                 if (hasArguments)
                     Sql.Append(", ");
@@ -431,7 +479,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
             Sql.Append(")");
             //_typeMapping = parentTypeMapping;
 
-            return e;
+            return expression;
         }
 
         #endregion

@@ -29,11 +29,11 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 using JetBrains.Annotations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
+// ReSharper disable ArgumentsStyleLiteral
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
 {
     /// <summary>
@@ -242,35 +242,30 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
 
         /// <inheritdoc />
         protected override Expression Accept(ExpressionVisitor visitor)
-        {
-            Check.NotNull(visitor, nameof(visitor));
-
-            return visitor is NpgsqlQuerySqlGenerator specificVisitor
-                ? specificVisitor.VisitPgFunction(this)
+            => visitor is NpgsqlQuerySqlGenerator npgsqlGenerator
+                ? npgsqlGenerator.VisitPgFunction(this)
                 : base.Accept(visitor);
-        }
 
         /// <inheritdoc />
         protected override Expression VisitChildren(ExpressionVisitor visitor)
         {
-            var newInstance = visitor.Visit(Instance);
-            var newPositionalArguments = visitor.VisitAndConvert(_positionalArguments, nameof(VisitChildren));
+            var instance = visitor.Visit(Instance) ?? Instance;
+            var positionalArguments = visitor.VisitAndConvert(_positionalArguments, nameof(VisitChildren));
 
-            var newNamedArguments = new Dictionary<string, Expression>(_namedArguments.Count);
+            var namedArguments = new Dictionary<string, Expression>(_namedArguments.Count);
             var namedArgumentsChanged = false;
             foreach (var kv in _namedArguments)
             {
                 var newExpression = visitor.Visit(kv.Value);
                 if (newExpression != kv.Value)
                     namedArgumentsChanged = true;
-                newNamedArguments[kv.Key] = newExpression;
+                namedArguments[kv.Key] = newExpression;
             }
 
-            return newInstance != Instance ||
-                   newPositionalArguments != _positionalArguments ||
-                   namedArgumentsChanged
-                ? new PgFunctionExpression(newInstance, FunctionName, Schema, Type, newPositionalArguments, newNamedArguments)
-                : this;
+            return
+                instance != Instance || positionalArguments != _positionalArguments || namedArgumentsChanged
+                    ? new PgFunctionExpression(instance, FunctionName, Schema, Type, positionalArguments, namedArguments)
+                    : this;
         }
 
         /// <inheritdoc />
