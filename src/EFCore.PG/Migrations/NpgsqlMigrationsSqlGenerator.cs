@@ -279,11 +279,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             var type = operation.ColumnType ?? GetColumnType(operation.Schema, operation.Table, operation.Name, operation.ClrType, null, operation.MaxLength, false, model);
 
-            // User-defined type names are quoted if they contain uppercase letters. Other types are never quoted
-            // since users sometimes prefer to write TEXT instead of text.
-            if (_typeMappingSource.IsUserDefinedType(type))
-                type = _sqlGenerationHelper.DelimitIdentifier(type);
-
             string newSequenceName = null;
             var defaultValueSql = operation.DefaultValueSql;
 
@@ -944,11 +939,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             if (type == null)
                 type = GetColumnType(schema, table, name, clrType, unicode, maxLength, fixedLength, rowVersion, model);
-
-            // User-defined type names are quoted if they contain uppercase letters. Other types are never quoted
-            // since users sometimes prefer to write TEXT instead of text.
-            if (_typeMappingSource.IsUserDefinedType(type))
-                type = _sqlGenerationHelper.DelimitIdentifier(type);
 
             CheckForOldValueGenerationAnnotation(annotatable);
             var valueGenerationStrategy = annotatable[NpgsqlAnnotationNames.ValueGenerationStrategy] as NpgsqlValueGenerationStrategy?;

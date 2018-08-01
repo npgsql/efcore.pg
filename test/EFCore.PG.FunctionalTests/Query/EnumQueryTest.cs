@@ -13,15 +13,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
     {
         #region Tests
 
+        #region Roundtrip
+
         [Fact]
         public void Roundtrip()
         {
             using (var ctx = Fixture.CreateContext())
             {
-                var x = ctx.SomeEntities.Single(e => e.Id == 2);
-                Assert.Equal(MappedEnum.Sad, x.MappedEnum);
+                var x = ctx.SomeEntities.Single(e => e.Id == 1);
+                Assert.Equal(MappedEnum.Happy, x.MappedEnum);
             }
         }
+
+        #endregion
+
+        #region Where
 
         [Fact]
         public void Where_with_constant()
@@ -31,6 +37,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 var x = ctx.SomeEntities.Single(e => e.MappedEnum == MappedEnum.Sad);
                 Assert.Equal(MappedEnum.Sad, x.MappedEnum);
                 AssertContainsInSql("WHERE e.\"MappedEnum\" = 'sad'::mapped_enum");
+            }
+        }
+
+        [Fact]
+        public void Where_with_constant_schema_qualified()
+        {
+            using (var ctx = Fixture.CreateContext())
+            {
+                var x = ctx.SomeEntities.Single(e => e.SchemaQualifiedEnum == SchemaQualifiedEnum.Happy);
+                Assert.Equal(SchemaQualifiedEnum.Happy, x.SchemaQualifiedEnum);
+                AssertContainsInSql("WHERE e.\"SchemaQualifiedEnum\" = 'happy'::test.schema_qualified_enum");
             }
         }
 
@@ -89,6 +106,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         #endregion
 
+        #endregion
+
         #region Support
 
         EnumFixture Fixture { get; }
@@ -111,11 +130,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             // ReSharper disable once UnusedAutoPropertyAccessor.Global
             public DbSet<SomeEnumEntity> SomeEntities { get; set; }
 
+            static EnumContext()
+            {
+                NpgsqlConnection.GlobalTypeMapper.MapEnum<MappedEnum>();
+                NpgsqlConnection.GlobalTypeMapper.MapEnum<InferredEnum>();
+                NpgsqlConnection.GlobalTypeMapper.MapEnum<SchemaQualifiedEnum>("test.schema_qualified_enum");
+            }
+
             public EnumContext(DbContextOptions options) : base(options) {}
 
             protected override void OnModelCreating(ModelBuilder builder)
                 => builder.ForNpgsqlHasEnum("mapped_enum", new[] { "happy", "sad" })
-                          .ForNpgsqlHasEnum<InferredEnum>();
+                          .ForNpgsqlHasEnum<InferredEnum>()
+                          .HasDefaultSchema("test")
+                          .ForNpgsqlHasEnum<SchemaQualifiedEnum>();
         }
 
         public class SomeEnumEntity
@@ -127,6 +155,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             public UnmappedEnum UnmappedEnum { get; set; }
 
             public InferredEnum InferredEnum { get; set; }
+
+            public SchemaQualifiedEnum SchemaQualifiedEnum { get; set; }
 
             public int EnumValue { get; set; }
         }
@@ -149,6 +179,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             Sad
         };
 
+        public enum SchemaQualifiedEnum
+        {
+            Happy,
+            Sad
+        }
+
         // ReSharper disable once ClassNeverInstantiated.Global
         public class EnumFixture : IDisposable
         {
@@ -160,19 +196,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
             public EnumFixture()
             {
-                NpgsqlConnection.GlobalTypeMapper.MapEnum<MappedEnum>();
-                NpgsqlConnection.GlobalTypeMapper.MapEnum<InferredEnum>();
-
                 _testStore = NpgsqlTestStore.CreateScratch();
 
-                _options = new DbContextOptionsBuilder()
-                           .UseNpgsql(_testStore.ConnectionString, b => b.ApplyConfiguration())
-                           .UseInternalServiceProvider(
-                               new ServiceCollection()
-                                   .AddEntityFrameworkNpgsql()
-                                   .AddSingleton<ILoggerFactory>(TestSqlLoggerFactory)
-                                   .BuildServiceProvider())
-                           .Options;
+                _options =
+                    new DbContextOptionsBuilder()
+                        .UseNpgsql(_testStore.ConnectionString, b => b.ApplyConfiguration())
+                        .UseInternalServiceProvider(
+                            new ServiceCollection()
+                                .AddEntityFrameworkNpgsql()
+                                .AddSingleton<ILoggerFactory>(TestSqlLoggerFactory)
+                                .BuildServiceProvider())
+                        .Options;
 
                 using (var ctx = CreateContext())
                 {
@@ -186,6 +220,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                                MappedEnum = MappedEnum.Happy,
                                UnmappedEnum = UnmappedEnum.Happy,
                                InferredEnum = InferredEnum.Happy,
+                               SchemaQualifiedEnum = SchemaQualifiedEnum.Happy,
                                EnumValue = (int)MappedEnum.Happy
                            },
                            new SomeEnumEntity
@@ -194,6 +229,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                                MappedEnum = MappedEnum.Sad,
                                UnmappedEnum = UnmappedEnum.Sad,
                                InferredEnum = InferredEnum.Sad,
+                               SchemaQualifiedEnum = SchemaQualifiedEnum.Sad,
                                EnumValue = (int)MappedEnum.Sad
                            });
 

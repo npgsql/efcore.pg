@@ -187,6 +187,9 @@ namespace Microsoft.EntityFrameworkCore
             Check.NotEmpty(name, nameof(name));
             Check.NotNull(labels, nameof(labels));
 
+            if (schema == null)
+                schema = modelBuilder.Model.FindAnnotation(RelationalAnnotationNames.DefaultSchema)?.Value as string;
+
             modelBuilder.Model.Npgsql().GetOrAddPostgresEnum(schema, name, labels);
             return modelBuilder;
         }

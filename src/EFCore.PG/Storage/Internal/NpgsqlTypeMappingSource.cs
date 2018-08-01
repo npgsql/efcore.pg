@@ -22,8 +22,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         public ConcurrentDictionary<string, RelationalTypeMapping[]> StoreTypeMappings { get; }
         public ConcurrentDictionary<Type, RelationalTypeMapping> ClrTypeMappings { get; }
 
-        readonly HashSet<string> _userDefinedTypes = new HashSet<string>();
-
         #region Mappings
 
         // Numeric types
@@ -289,10 +287,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
                 var nameTranslator = ((IEnumTypeHandlerFactory)adoMapping.TypeHandlerFactory).NameTranslator;
 
-                var mapping = new NpgsqlEnumTypeMapping(storeType, clrType, nameTranslator);
+                // TODO: update with schema per https://github.com/npgsql/npgsql/issues/2121
+                var components = storeType.Split('.');
+                var schema = components.Length > 1 ? components.First() : null;
+                var name = components.Length > 1 ? string.Join(null, components.Skip(1)) : storeType;
+
+                var mapping = new NpgsqlEnumTypeMapping(name, schema, clrType, nameTranslator);
                 ClrTypeMappings[clrType] = mapping;
-                StoreTypeMappings[storeType] = new[] { mapping };
-                _userDefinedTypes.Add(storeType);
+                StoreTypeMappings[mapping.StoreType] = new RelationalTypeMapping[] { mapping };
             }
         }
 
@@ -445,7 +447,5 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
             return null;
         }
-
-        public bool IsUserDefinedType(string storeType) => _userDefinedTypes.Contains(storeType);
     }
 }

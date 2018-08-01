@@ -267,14 +267,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         [Fact]
         public void GenerateSqlLiteral_returns_enum_literal()
         {
-            var mapping = new NpgsqlEnumTypeMapping("dummy_enum", typeof(DummyEnum), new NpgsqlSnakeCaseNameTranslator());
+            var mapping = new NpgsqlEnumTypeMapping("dummy_enum", null, typeof(DummyEnum), new NpgsqlSnakeCaseNameTranslator());
             Assert.Equal("'sad'::dummy_enum", mapping.GenerateSqlLiteral(DummyEnum.Sad));
         }
 
         [Fact]
         public void GenerateSqlLiteral_returns_enum_uppercase_literal()
         {
-            var mapping = new NpgsqlEnumTypeMapping("DummyEnum", typeof(DummyEnum), new NpgsqlSnakeCaseNameTranslator());
+            var mapping = new NpgsqlEnumTypeMapping("DummyEnum", null, typeof(DummyEnum), new NpgsqlSnakeCaseNameTranslator());
             Assert.Equal("'sad'::\"DummyEnum\"", mapping.GenerateSqlLiteral(DummyEnum.Sad));
         }
 
