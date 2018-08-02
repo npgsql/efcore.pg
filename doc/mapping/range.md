@@ -44,7 +44,7 @@ The following table lists the range operations that currently get translated. If
 | `.Where(c => c.SomeRange.DoesNotExtendLeftOf(otherRange))` | [`WHERE x."SomeRange" &> @__otherRange_0`](https://www.postgresql.org/docs/current/static/functions-range.html#RANGE-OPERATORS-TABLE)
 | `.Where(c => c.SomeRange.DoesNotExtendRightOf(otherRange))`| [`WHERE x."SomeRange" <& @__otherRange_0`](https://www.postgresql.org/docs/current/static/functions-range.html#RANGE-OPERATORS-TABLE)
 | `.Where(c => c.SomeRange.IsAdjacentTo(otherRange))`        | [`WHERE x."SomeRange" -\|- @__otherRange_0`](https://www.postgresql.org/docs/current/static/functions-range.html#RANGE-OPERATORS-TABLE)
-| `.Where(c => c.SomeRange.Union(otherRange))`               | [`WHERE x."SomeRange" + @__otherRange_0`](https://www.postgresql.org/docs/current/static/functions-range.html#RANGE-OPERATORS-TABLE)
-| `.Where(c => c.SomeRange.Intersect(otherRange))`           | [`WHERE x."SomeRange" * @__otherRange_0`](https://www.postgresql.org/docs/current/static/functions-range.html#RANGE-OPERATORS-TABLE)
-| `.Where(c => c.SomeRange.Except(otherRange))`              | [`WHERE x."SomeRange" - @__otherRange_0`](https://www.postgresql.org/docs/current/static/functions-range.html#RANGE-OPERATORS-TABLE)
+| `.Select(c => c.SomeRange.Union(otherRange))`               | [`SELECT x."SomeRange" + @__otherRange_0`](https://www.postgresql.org/docs/current/static/functions-range.html#RANGE-OPERATORS-TABLE)
+| `.Select(c => c.SomeRange.Intersect(otherRange))`           | [`SELECT x."SomeRange" * @__otherRange_0`](https://www.postgresql.org/docs/current/static/functions-range.html#RANGE-OPERATORS-TABLE)
+| `.Select(c => c.SomeRange.Except(otherRange))`              | [`SELECT x."SomeRange" - @__otherRange_0`](https://www.postgresql.org/docs/current/static/functions-range.html#RANGE-OPERATORS-TABLE)
 
