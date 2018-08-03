@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
 {
-    public class NpgsqlTestStoreFactory : ITestStoreFactory
+    public class NpgsqlTestStoreFactory : RelationalTestStoreFactory
     {
         public static NpgsqlTestStoreFactory Instance { get; } = new NpgsqlTestStoreFactory();
 
@@ -12,14 +12,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
         {
         }
 
-        public virtual TestStore Create(string storeName)
+        public override TestStore Create(string storeName)
             => NpgsqlTestStore.Create(storeName);
 
-        public virtual TestStore GetOrCreate(string storeName)
+        public override TestStore GetOrCreate(string storeName)
             => NpgsqlTestStore.GetOrCreate(storeName);
 
-        public IServiceCollection AddProviderServices(IServiceCollection serviceCollection)
-            => serviceCollection.AddEntityFrameworkNpgsql()
-                .AddSingleton<ILoggerFactory>(new TestSqlLoggerFactory());
+        public override IServiceCollection AddProviderServices(IServiceCollection serviceCollection)
+            => serviceCollection.AddEntityFrameworkNpgsql();
     }
 }

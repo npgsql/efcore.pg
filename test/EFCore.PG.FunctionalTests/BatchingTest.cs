@@ -177,9 +177,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                         context.SaveChanges();
 
                         Assert.Contains(minBatchSize == 3
-                            ? RelationalStrings.LogBatchReadyForExecution.GenerateMessage(3)
-                            : RelationalStrings.LogBatchSmallerThanMinBatchSize.GenerateMessage(3, 4),
-                            Fixture.TestSqlLoggerFactory.Log);
+                                ? RelationalStrings.LogBatchReadyForExecution.GenerateMessage(3)
+                                : RelationalStrings.LogBatchSmallerThanMinBatchSize.GenerateMessage(3, 4),
+                            Fixture.TestSqlLoggerFactory.Log.Select(l => l.Message));
 
                         Assert.Equal(minBatchSize <= 3 ? 2 : 4, Fixture.TestSqlLoggerFactory.SqlStatements.Count);
                     }, context => AssertDatabaseState(context, false, expectedBlogs));
@@ -263,10 +263,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
         public class BatchingTestFixture : SharedStoreFixtureBase<PoolableDbContext>
         {
-            public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ServiceProvider.GetRequiredService<ILoggerFactory>();
             protected override string StoreName { get; } = "BatchingTest";
+            public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
             protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
             protected override Type ContextType { get; } = typeof(BloggingContext);
+
+            protected override bool ShouldLogCategory(string logCategory)
+                => logCategory == DbLoggerCategory.Update.Name;
 
             protected override void Seed(PoolableDbContext context)
             {
