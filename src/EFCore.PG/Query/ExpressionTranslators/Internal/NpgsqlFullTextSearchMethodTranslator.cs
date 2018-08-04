@@ -94,7 +94,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 return new CustomBinaryExpression(e.Arguments[0], e.Arguments[1], "<@", typeof(bool));
 
             case nameof(NpgsqlFullTextSearchLinqExtensions.Matches):
-                return new CustomBinaryExpression(e.Arguments[0], e.Arguments[1], "@@", typeof(bool));
+                var secondArgument = e.Arguments[1].Type == typeof(string)
+                    ? new SqlFunctionExpression("plainto_tsquery", typeof(NpgsqlTsQuery), new[] { e.Arguments[1] })
+                    : e.Arguments[1];
+                return new CustomBinaryExpression(e.Arguments[0], secondArgument, "@@", typeof(bool));
 
             case nameof(NpgsqlFullTextSearchLinqExtensions.Concat):
                 return new CustomBinaryExpression(e.Arguments[0], e.Arguments[1], "||", typeof(NpgsqlTsVector));
