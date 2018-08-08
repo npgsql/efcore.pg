@@ -1,94 +1,152 @@
-﻿using System;
+﻿#region License
+
+// The PostgreSQL License
+//
+// Copyright (C) 2016 The Npgsql Development Team
+//
+// Permission to use, copy, modify, and distribute this software and its
+// documentation for any purpose, without fee, and without a written
+// agreement is hereby granted, provided that the above copyright notice
+// and this paragraph and the following two paragraphs appear in all copies.
+//
+// IN NO EVENT SHALL THE NPGSQL DEVELOPMENT TEAM BE LIABLE TO ANY PARTY
+// FOR DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES,
+// INCLUDING LOST PROFITS, ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS
+// DOCUMENTATION, EVEN IF THE NPGSQL DEVELOPMENT TEAM HAS BEEN ADVISED OF
+// THE POSSIBILITY OF SUCH DAMAGE.
+//
+// THE NPGSQL DEVELOPMENT TEAM SPECIFICALLY DISCLAIMS ANY WARRANTIES,
+// INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+// AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
+// ON AN "AS IS" BASIS, AND THE NPGSQL DEVELOPMENT TEAM HAS NO OBLIGATIONS
+// TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+
+#endregion
+
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Runtime.CompilerServices;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
 using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
 using NodaTime;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
-using NpgsqlTypes;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
 {
+    /// <summary>
+    /// Provides translation services for <see cref="NodaTime"/> members.
+    /// </summary>
     public class NodaTimeMemberTranslator : IMemberTranslator
     {
+        /// <summary>
+        /// The static member info for <see cref="T:SystemClock.Instance"/>.
+        /// </summary>
+        [NotNull] static readonly MemberInfo Instance =
+            typeof(SystemClock).GetRuntimeProperty(nameof(SystemClock.Instance));
+
+        /// <inheritdoc />
+        [CanBeNull]
         public Expression Translate(MemberExpression e)
         {
+            if (e.Member == Instance)
+                return e;
+
             var declaringType = e.Member.DeclaringType;
             if (declaringType == typeof(LocalDateTime) ||
                 declaringType == typeof(LocalDate) ||
                 declaringType == typeof(LocalTime) ||
                 declaringType == typeof(Period))
-            {
                 return TranslateDateTime(e);
-            }
 
             return null;
         }
 
-        Expression TranslateDateTime(MemberExpression e)
+        /// <summary>
+        /// Translates date and time members.
+        /// </summary>
+        /// <param name="e">The member expression.</param>
+        /// <returns>
+        /// The translated expression or null.
+        /// </returns>
+        [CanBeNull]
+        static Expression TranslateDateTime([NotNull] MemberExpression e)
         {
-            var n = e.Member.Name;
-
-            if (n == "Year" || n == "Years")
+            switch (e.Member.Name)
+            {
+            case "Year":
+            case "Years":
                 return GetDatePartExpression(e, "year");
-            if (n == "Month" || n == "Months")
+
+            case "Month":
+            case "Months":
                 return GetDatePartExpression(e, "month");
-            if (n == "DayOfYear")
+
+            case "DayOfYear":
                 return GetDatePartExpression(e, "doy");
-            if (n == "Day" || n == "Days")
+
+            case "Day":
+            case "Days":
                 return GetDatePartExpression(e, "day");
 
-            if (n == "Hour" || n == "Hours")
+            case "Hour":
+            case "Hours":
                 return GetDatePartExpression(e, "hour");
-            if (n == "Minute" || n == "Minutes")
-                return GetDatePartExpression(e, "minute");
-            if (n == "Second" || n == "Seconds")
-                return GetDatePartExpression(e, "second", true);
-            if (n == "Millisecond" || n == "Milliseconds")
-                return null;  // Too annoying
 
-            if (n == "DayOfWeek")
-            {
+            case "Minute":
+            case "Minutes":
+                return GetDatePartExpression(e, "minute");
+
+            case "Second":
+            case "Seconds":
+                return GetDatePartExpression(e, "second", true);
+
+            case "Millisecond":
+            case "Milliseconds":
+                return null; // Too annoying
+
+            case "DayOfWeek":
                 // Unlike DateTime.DayOfWeek, NodaTime's IsoDayOfWeek enum doesn't exactly correspond to PostgreSQL's
                 // values returned by DATE_PART('dow', ...): in NodaTime Sunday is 7 and not 0, which is None.
                 // So we generate a CASE WHEN expression to translate PostgreSQL's 0 to 7.
                 var getValueExpression = GetDatePartExpression(e, "dow");
-                return Expression.Condition(Expression.Equal(getValueExpression, Expression.Constant(0)),
-                    Expression.Constant(7), getValueExpression);
-            }
+                return
+                    Expression.Condition(
+                        Expression.Equal(
+                            getValueExpression,
+                            Expression.Constant(0)),
+                        Expression.Constant(7),
+                        getValueExpression);
 
-            if (n == "Date")
-            {
-                return new SqlFunctionExpression("DATE_TRUNC", e.Type, new[]
-                {
-                    Expression.Constant("day"),
-                    e.Expression
-                });
-            }
+            case "Date":
+                return new SqlFunctionExpression("DATE_TRUNC", e.Type, new[] { Expression.Constant("day"), e.Expression });
 
-            if (n == "TimeOfDay")
-            {
+            case "TimeOfDay":
                 // TODO: Technically possible simply via casting to PG time,
                 // but ExplicitCastExpression only allows casting to PG types that
                 // are default-mapped from CLR types (timespan maps to interval,
                 // which timestamp cannot be cast into)
                 return null;
-            }
 
-            return null;
+            default:
+                return null;
+            }
         }
 
-        static Expression GetDatePartExpression(MemberExpression e, string partName, bool needsFloor=false)
+        /// <summary>
+        /// Constructs the DATE_PART expression.
+        /// </summary>
+        /// <param name="e">The member expression.</param>
+        /// <param name="partName">The name of the DATE_PART to construct.</param>
+        /// <param name="needsFloor">True if the result should be wrapped with FLOOR(...); otherwise, false.</param>
+        /// <returns>
+        /// The DATE_PART expression.
+        /// </returns>
+        [NotNull]
+        static Expression GetDatePartExpression([NotNull] MemberExpression e, [NotNull] string partName, bool needsFloor = false)
         {
             // DATE_PART returns doubles, which we floor and cast into ints
             // This also gets rid of sub-second components when retrieving seconds
 
-            var result = new SqlFunctionExpression("DATE_PART", typeof(double), new[]
-            {
-                Expression.Constant(partName),
-                e.Expression
-            });
+            var result = new SqlFunctionExpression("DATE_PART", typeof(double), new[] { Expression.Constant(partName), e.Expression });
 
             if (needsFloor)
                 result = new SqlFunctionExpression("FLOOR", typeof(double), new[] { result });
