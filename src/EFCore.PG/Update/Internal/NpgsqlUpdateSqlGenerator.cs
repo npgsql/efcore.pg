@@ -38,7 +38,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
         {
         }
 
-        public override ResultSetMapping AppendInsertOperation(StringBuilder commandStringBuilder, ModificationCommand command, int commandPosition)
+        public override ResultSetMapping AppendInsertOperation(
+            StringBuilder commandStringBuilder,
+            ModificationCommand command,
+            int commandPosition)
+            => AppendInsertOperation(commandStringBuilder, command, commandPosition, false);
+
+        public ResultSetMapping AppendInsertOperation(
+            StringBuilder commandStringBuilder,
+            ModificationCommand command,
+            int commandPosition,
+            bool overridingSystemValue)
         {
             Check.NotNull(commandStringBuilder, nameof(commandStringBuilder));
             Check.NotNull(command, nameof(command));
@@ -49,12 +59,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
             var readOperations = operations.Where(o => o.IsRead).ToArray();
 
             AppendInsertCommandHeader(commandStringBuilder, command.TableName, command.Schema, writeOperations);
+            if (overridingSystemValue)
+                commandStringBuilder.AppendLine().Append("OVERRIDING SYSTEM VALUE");
             AppendValuesHeader(commandStringBuilder, writeOperations);
             AppendValues(commandStringBuilder, writeOperations);
             if (readOperations.Length > 0)
-            {
                 AppendReturningClause(commandStringBuilder, readOperations);
-            }
+
             commandStringBuilder.Append(SqlGenerationHelper.StatementTerminator).AppendLine();
 
             return ResultSetMapping.NoResultSet;
