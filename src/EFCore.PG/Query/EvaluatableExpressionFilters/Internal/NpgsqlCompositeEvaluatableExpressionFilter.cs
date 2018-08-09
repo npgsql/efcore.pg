@@ -32,6 +32,7 @@ using Microsoft.EntityFrameworkCore.Query.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Remotion.Linq.Parsing.ExpressionVisitors.TreeEvaluation;
 
+// ReSharper disable UnusedMember.Global
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.EvaluatableExpressionFilters.Internal
 {
     /// <summary>
@@ -51,13 +52,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.EvaluatableExpressionFilte
         /// <inheritdoc />
         public NpgsqlCompositeEvaluatableExpressionFilter([NotNull] IModel model, [NotNull] INpgsqlOptions npgsqlOptions) : base(model)
         {
-            var versionDependentFilters =
-                new IEvaluatableExpressionFilter[]
-                    {};
-
-            // ReSharper disable once DoNotCallOverridableMethodsInConstructor
-            AddFilters(versionDependentFilters);
-
             foreach (var plugin in npgsqlOptions.Plugins)
                 plugin.AddEvaluatableExpressionFilters(this);
         }
