@@ -55,6 +55,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
         /// <inheritdoc />
         public bool IsEvaluatableMethodCall(MethodCallExpression node) => node.Method != GetCurrentInstant;
 
+        #region unused interface methods
+
         bool IEvaluatableExpressionFilter.IsEvaluatableBinary(BinaryExpression node) => true;
         bool IEvaluatableExpressionFilter.IsEvaluatableConditional(ConditionalExpression node) => true;
         bool IEvaluatableExpressionFilter.IsEvaluatableConstant(ConstantExpression node) => true;
@@ -82,5 +84,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
         bool IEvaluatableExpressionFilter.IsEvaluatableSwitch(SwitchExpression node) => true;
         bool IEvaluatableExpressionFilter.IsEvaluatableSwitchCase(SwitchCase node) => true;
         bool IEvaluatableExpressionFilter.IsEvaluatableTry(TryExpression node) => true;
+
+        #endregion
     }
 }
