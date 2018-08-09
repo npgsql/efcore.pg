@@ -1,4 +1,5 @@
 ﻿#region License
+
 // The PostgreSQL License
 //
 // Copyright (C) 2016 The Npgsql Development Team
@@ -19,11 +20,13 @@
 // AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
 // ON AN "AS IS" BASIS, AND THE NPGSQL DEVELOPMENT TEAM HAS NO OBLIGATIONS
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+
 #endregion
 
 using System;
 using System.Linq.Expressions;
 using System.Reflection;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
 using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
@@ -31,11 +34,23 @@ using NpgsqlTypes;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
+    /// <summary>
+    /// Provides translation services for <see cref="DateTime"/> members.
+    /// </summary>
     public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
     {
-        static readonly PropertyInfo Now = typeof(DateTime).GetProperty(nameof(DateTime.Now));
-        static readonly PropertyInfo UtcNow = typeof(DateTime).GetProperty(nameof(DateTime.UtcNow));
+        /// <summary>
+        /// The static <see cref="PropertyInfo"/> for <see cref="T:DateTime.Now"/>.
+        /// </summary>
+        [NotNull] static readonly PropertyInfo Now = typeof(DateTime).GetRuntimeProperty(nameof(DateTime.Now));
 
+        /// <summary>
+        /// The static <see cref="PropertyInfo"/> for <see cref="T:DateTime.UtcNow"/>.
+        /// </summary>
+        [NotNull] static readonly PropertyInfo UtcNow = typeof(DateTime).GetRuntimeProperty(nameof(DateTime.UtcNow));
+
+        /// <inheritdoc />
+        [CanBeNull]
         public virtual Expression Translate(MemberExpression e)
         {
             if (e.Expression == null)
@@ -45,9 +60,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             if (type != typeof(DateTime) &&
                 type != typeof(NpgsqlDateTime) &&
                 type != typeof(NpgsqlDate))
-            {
                 return null;
-            }
 
             switch (e.Member.Name)
             {
@@ -97,7 +110,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             }
         }
 
-        static Expression GetDatePartExpression(MemberExpression e, string partName)
+        /// <summary>
+        /// Constructs the DATE_PART expression.
+        /// </summary>
+        /// <param name="e">The member expression.</param>
+        /// <param name="partName">The name of the DATE_PART to construct.</param>
+        /// <returns>
+        /// The DATE_PART expression.
+        /// </returns>
+        [NotNull]
+        static Expression GetDatePartExpression([NotNull] MemberExpression e, [NotNull] string partName)
             =>
                 // DATE_PART returns doubles, which we floor and cast into ints
                 // This also gets rid of sub-second components when retrieving seconds
@@ -110,15 +132,22 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                             e.Expression
                         })
                     }),
-                    typeof(int)
-                );
+                    typeof(int));
 
-        Expression TranslateStatic(MemberExpression e)
+        /// <summary>
+        /// Translates static members of <see cref="DateTime"/>.
+        /// </summary>
+        /// <param name="e">The member expression.</param>
+        /// <returns>
+        /// The translated expression or null.
+        /// </returns>
+        [CanBeNull]
+        static Expression TranslateStatic([NotNull] MemberExpression e)
         {
             if (e.Member.Equals(Now))
                 return new SqlFunctionExpression("NOW", e.Type);
             if (e.Member.Equals(UtcNow))
-                return new AtTimeZoneExpression(new SqlFunctionExpression("NOW", e.Type), "UTC");
+                return new AtTimeZoneExpression(new SqlFunctionExpression("NOW", e.Type), "UTC", e.Type);
             return null;
         }
     }
