@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.DependencyInjection;
@@ -323,6 +322,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             }
         }
 */
+
         #endregion Period members
 
         #region Range
@@ -332,12 +332,26 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         {
             using (var ctx = CreateContext())
             {
-                var d = ctx.NodaTimeTypes.Single(t => t.DateRange.Contains(new LocalDate(2018, 4, 21)));
+                var _ = ctx.NodaTimeTypes.Single(t => t.DateRange.Contains(new LocalDate(2018, 4, 21)));
                 Assert.Contains(@"t.""DateRange"" @> DATE '2018-04-21'", Sql);
             }
         }
 
         #endregion Range
+
+        #region GetCurrentInstant()
+
+        [Fact]
+        public void GetCurrentInstant_from_Instance()
+        {
+            using (var ctx = CreateContext())
+            {
+                var _ = ctx.NodaTimeTypes.Where(t => t.Instant < SystemClock.Instance.GetCurrentInstant()).ToArray();
+                Assert.Contains("WHERE t.\"Instant\" < NOW() AT TIME ZONE 'UTC'", Sql);
+            }
+        }
+
+        #endregion
 
         #region Support
 

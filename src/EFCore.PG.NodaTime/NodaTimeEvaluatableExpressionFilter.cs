@@ -23,40 +23,37 @@
 
 #endregion
 
+using System;
 using System.Linq.Expressions;
 using System.Reflection;
 using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore;
-using NpgsqlTypes;
+using NodaTime;
 using Remotion.Linq.Parsing.ExpressionVisitors.TreeEvaluation;
 
-// TODO: https://github.com/aspnet/EntityFrameworkCore/issues/11466 may provide a better way for implementing
-// this (we're currently replacing an internal service
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.EvaluatableExpressionFilters.Internal
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
 {
     /// <summary>
-    /// Represents an Npgsql-specific filter for full-text search to identify expressions that are evaluatable.
+    /// Represents an Npgsql-specific filter for NodaTime to identify expressions that are evaluatable.
     /// </summary>
-    public class NpgsqlFullTextSearchEvaluatableExpressionFilter : IEvaluatableExpressionFilter
+    public class NodaTimeEvaluatableExpressionFilter : IEvaluatableExpressionFilter
     {
         /// <summary>
-        /// The static method info for <see cref="NpgsqlTsQuery.Parse(string)"/>.
+        /// The static member info for <see cref="T:SystemClock.Instance"/>.
         /// </summary>
-        [NotNull] static readonly MethodInfo TsQueryParse =
-            typeof(NpgsqlTsQuery).GetRuntimeMethod(nameof(NpgsqlTsQuery.Parse), new[] { typeof(string) });
+        [NotNull] static readonly MemberInfo Instance =
+            typeof(SystemClock).GetRuntimeProperty(nameof(SystemClock.Instance));
 
         /// <summary>
-        /// The static method info for <see cref="NpgsqlTsVector.Parse(string)"/>.
+        /// The static method info for <see cref="T:SystemClock.GetCurrentInstant()"/>.
         /// </summary>
-        [NotNull] static readonly MethodInfo TsVectorParse =
-            typeof(NpgsqlTsVector).GetRuntimeMethod(nameof(NpgsqlTsVector.Parse), new[] { typeof(string) });
+        [NotNull] static readonly MethodInfo GetCurrentInstant =
+            typeof(SystemClock).GetRuntimeMethod(nameof(SystemClock.GetCurrentInstant), new Type[0]);
 
         /// <inheritdoc />
-        public bool IsEvaluatableMethodCall(MethodCallExpression node)
-            => node.Method != TsQueryParse &&
-               node.Method != TsVectorParse &&
-               node.Method.DeclaringType != typeof(NpgsqlFullTextSearchDbFunctionsExtensions) &&
-               node.Method.DeclaringType != typeof(NpgsqlFullTextSearchLinqExtensions);
+        public bool IsEvaluatableMember(MemberExpression node) => node.Member != Instance;
+
+        /// <inheritdoc />
+        public bool IsEvaluatableMethodCall(MethodCallExpression node) => node.Method != GetCurrentInstant;
 
         #region unused interface methods
 
@@ -67,7 +64,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.EvaluatableExpressionFilte
         bool IEvaluatableExpressionFilter.IsEvaluatableInvocation(InvocationExpression node) => true;
         bool IEvaluatableExpressionFilter.IsEvaluatableLambda(LambdaExpression node) => true;
         bool IEvaluatableExpressionFilter.IsEvaluatableListInit(ListInitExpression node) => true;
-        bool IEvaluatableExpressionFilter.IsEvaluatableMember(MemberExpression node) => true;
         bool IEvaluatableExpressionFilter.IsEvaluatableMemberAssignment(MemberAssignment node) => true;
         bool IEvaluatableExpressionFilter.IsEvaluatableMemberInit(MemberInitExpression node) => true;
         bool IEvaluatableExpressionFilter.IsEvaluatableMemberListBinding(MemberListBinding node) => true;
