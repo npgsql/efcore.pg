@@ -39,6 +39,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.EvaluatableExpressionFilters.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
@@ -116,7 +117,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     .TryAdd<IQuerySqlGeneratorFactory, NpgsqlQuerySqlGeneratorFactory>()
                     .TryAdd<ISqlTranslatingExpressionVisitorFactory, NpgsqlSqlTranslatingExpressionVisitorFactory>()
                     .TryAdd<ISingletonOptions, INpgsqlOptions>(p => p.GetService<INpgsqlOptions>())
-                    .TryAdd<IEvaluatableExpressionFilter, NpgsqlEvaluatableExpressionFilter>()
+                    .TryAdd<IEvaluatableExpressionFilter, NpgsqlCompositeEvaluatableExpressionFilter>()
                     .TryAddProviderSpecificServices(
                         b => b
                              .TryAddSingleton<INpgsqlValueGeneratorCache, NpgsqlValueGeneratorCache>()
