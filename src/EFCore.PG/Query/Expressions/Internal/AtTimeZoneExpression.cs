@@ -40,7 +40,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         public override ExpressionType NodeType => ExpressionType.Extension;
 
         /// <inheritdoc />
-        public override Type Type => typeof(DateTime);
+        public override Type Type { get; }
 
         /// <summary>
         /// The timestamp.
@@ -59,11 +59,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         /// </summary>
         /// <param name="timestamp">The timestamp.</param>
         /// <param name="timeZone">The time zone.</param>
+        /// <param name="type">The type of the expression.</param>
         /// <exception cref="ArgumentNullException" />
-        public AtTimeZoneExpression([NotNull] Expression timestamp, [NotNull] string timeZone)
+        public AtTimeZoneExpression([NotNull] Expression timestamp, [NotNull] string timeZone, [NotNull] Type type)
         {
             Timestamp = Check.NotNull(timestamp, nameof(timestamp));
             TimeZone = Check.NotNull(timeZone, nameof(timeZone));
+            Type = Check.NotNull(type, nameof(type));
         }
 
         /// <inheritdoc />
@@ -79,7 +81,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
 
             return
                 timestamp != Timestamp
-                    ? new AtTimeZoneExpression(timestamp, TimeZone)
+                    ? new AtTimeZoneExpression(timestamp, TimeZone, Type)
                     : this;
         }
 
