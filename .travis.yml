@@ -22,6 +22,7 @@ before_script:
   - dotnet restore -v Minimal
 script:
   - dotnet test test/EFCore.PG.Tests/EFCore.PG.Tests.csproj
+  - dotnet test test/EFCore.PG.Plugins.FunctionalTests/EFCore.PG.Plugins.FunctionalTests.csproj
   - dotnet test test/EFCore.PG.FunctionalTests/EFCore.PG.FunctionalTests.csproj
 
 cache:
