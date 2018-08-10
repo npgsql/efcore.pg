@@ -1,4 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore.Query;
+﻿using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.TestModels.ComplexNavigationsModel;
+using Microsoft.EntityFrameworkCore.TestUtilities.Xunit;
+using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
@@ -10,5 +15,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             Fixture.TestSqlLoggerFactory.Clear();
         }
+
+        [ConditionalTheory(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/12970")]
+        [MemberData(nameof(IsAsyncData))]
+        public override Task Null_check_in_anonymous_type_projection_should_not_be_removed(bool isAsync) => null;
     }
 }
