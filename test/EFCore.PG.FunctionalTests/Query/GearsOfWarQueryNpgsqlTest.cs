@@ -26,5 +26,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         // DateTimeOffset gets mapps to "timestamptz" which does not record the offset, so the values coming
         // back from the database aren't as expected.
         public override Task Where_datetimeoffset_minute_component(bool isAsync) => Task.CompletedTask;
+
+        // PostgreSQL has no datatype that corresponds to DateTimeOffset.
+        // DateTimeOffset gets mapps to "timestamptz" which does not record the offset, so the values coming
+        // back from the database aren't as expected.
+        public override Task Time_of_day_datetimeoffset(bool isAsync) => Task.CompletedTask;
     }
 }
