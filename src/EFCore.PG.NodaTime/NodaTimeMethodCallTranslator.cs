@@ -24,6 +24,7 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using JetBrains.Annotations;
@@ -45,11 +46,40 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
         [NotNull] static readonly MethodInfo GetCurrentInstant =
             typeof(SystemClock).GetRuntimeMethod(nameof(SystemClock.GetCurrentInstant), Type.EmptyTypes);
 
+        /// <summary>
+        /// The mapping of supported method translations.
+        /// </summary>
+        [NotNull] static readonly Dictionary<MethodInfo, string> PeriodPethodMap = new Dictionary<MethodInfo, string>
+        {
+            { typeof(Period).GetRuntimeMethod(nameof(Period.FromYears),        new[] { typeof(int) }),  "years" },
+            { typeof(Period).GetRuntimeMethod(nameof(Period.FromMonths),       new[] { typeof(int) }),  "months" },
+            { typeof(Period).GetRuntimeMethod(nameof(Period.FromWeeks),        new[] { typeof(int) }),  "weeks" },
+            { typeof(Period).GetRuntimeMethod(nameof(Period.FromDays),         new[] { typeof(int) }),  "days" },
+            { typeof(Period).GetRuntimeMethod(nameof(Period.FromHours),        new[] { typeof(long) }), "hours" },
+            { typeof(Period).GetRuntimeMethod(nameof(Period.FromMinutes),      new[] { typeof(long) }), "mins" },
+            { typeof(Period).GetRuntimeMethod(nameof(Period.FromSeconds),      new[] { typeof(long) }), "secs" },
+            //{ typeof(Period).GetRuntimeMethod(nameof(Period.FromMilliseconds), new[] { typeof(long) }), "" },
+            //{ typeof(Period).GetRuntimeMethod(nameof(Period.FromNanoseconds),  new[] { typeof(long) }), "" },
+        };
+
         /// <inheritdoc />
         [CanBeNull]
-        public Expression Translate(MethodCallExpression expression)
-            => expression.Method == GetCurrentInstant
-                ? new AtTimeZoneExpression(new SqlFunctionExpression("NOW", expression.Type), "UTC", expression.Type)
-                : null;
+        public Expression Translate(MethodCallExpression e)
+        {
+            if (e.Method == GetCurrentInstant)
+                return new AtTimeZoneExpression(new SqlFunctionExpression("NOW", e.Type), "UTC", e.Type);
+
+            // TODO: Version compat? See DateTime.Add* translator
+            var declaringType = e.Method.DeclaringType;
+            if (declaringType == typeof(Period))
+            {
+                return PeriodPethodMap.TryGetValue(e.Method, out var datePart)
+                    ? new PgFunctionExpression("MAKE_INTERVAL", typeof(Period), new Dictionary<string, Expression> {
+                          [datePart] = e.Arguments[0]
+                      })
+                    : null;
+            }
+            return null;
+        }
     }
 }
