@@ -220,7 +220,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
         #endregion LocalTime members
 
-        #region Period members
+        #region Period
 
         [Fact]
         public void Select_Period_year_component()
@@ -323,7 +323,27 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         }
 */
 
-        #endregion Period members
+        [Fact]
+        public void Period_from_days()
+        {
+            using (var ctx = CreateContext())
+            {
+                Assert.Null(ctx.NodaTimeTypes.SingleOrDefault(t => t.Period == Period.FromDays(t.Id)));
+                Assert.Contains(@"MAKE_INTERVAL(days => t.""Id"")", Sql);
+            }
+        }
+
+        [Fact]
+        public void Period_from_seconds()
+        {
+            using (var ctx = CreateContext())
+            {
+                Assert.Null(ctx.NodaTimeTypes.SingleOrDefault(t => t.Period == Period.FromSeconds(t.Id)));
+                Assert.Contains(@"MAKE_INTERVAL(secs => t.""Id"")", Sql);
+            }
+        }
+
+        #endregion Period
 
         #region Range
 
