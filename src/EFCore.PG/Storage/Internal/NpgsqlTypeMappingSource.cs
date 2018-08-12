@@ -65,7 +65,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         // Character types
         readonly NpgsqlStringTypeMapping       _text               = new NpgsqlStringTypeMapping("text");
         readonly NpgsqlStringTypeMapping       _varchar            = new NpgsqlStringTypeMapping("character varying");
-        readonly NpgsqlStringTypeMapping       _char               = new NpgsqlStringTypeMapping("character");
+        readonly NpgsqlStringTypeMapping       _char               = new NpgsqlStringTypeMapping("character", DbType.StringFixedLength);
         readonly CharTypeMapping               _singleChar         = new CharTypeMapping("character(1)", DbType.String);
         readonly NpgsqlStringTypeMapping       _stringAsSingleChar = new NpgsqlStringTypeMapping("character(1)");
         readonly NpgsqlJsonbTypeMapping        _jsonb              = new NpgsqlJsonbTypeMapping();
