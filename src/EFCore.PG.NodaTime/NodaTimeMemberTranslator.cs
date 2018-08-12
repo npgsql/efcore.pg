@@ -27,15 +27,18 @@ using System.Linq.Expressions;
 using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
-using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
 using NodaTime;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
 {
     /// <summary>
     /// Provides translation services for <see cref="NodaTime"/> members.
     /// </summary>
-    public class NodaTimeMemberTranslator : IMemberTranslator
+    /// <remarks>
+    /// See: https://www.postgresql.org/docs/current/static/functions-datetime.html
+    /// </remarks>
+    public class NodaTimeMemberTranslator : NpgsqlDateTimeMemberTranslator
     {
         /// <summary>
         /// The static member info for <see cref="T:SystemClock.Instance"/>.
@@ -44,8 +47,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
             typeof(SystemClock).GetRuntimeProperty(nameof(SystemClock.Instance));
 
         /// <inheritdoc />
-        [CanBeNull]
-        public Expression Translate(MemberExpression e)
+        public override Expression Translate(MemberExpression e)
         {
             if (e.Member == Instance)
                 return e;
@@ -107,7 +109,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
                 // Unlike DateTime.DayOfWeek, NodaTime's IsoDayOfWeek enum doesn't exactly correspond to PostgreSQL's
                 // values returned by DATE_PART('dow', ...): in NodaTime Sunday is 7 and not 0, which is None.
                 // So we generate a CASE WHEN expression to translate PostgreSQL's 0 to 7.
-                var getValueExpression = GetDatePartExpression(e, "dow");
+                var getValueExpression = GetDatePartExpression(e, "dow", true);
                 return
                     Expression.Condition(
                         Expression.Equal(
@@ -129,29 +131,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
             default:
                 return null;
             }
-        }
-
-        /// <summary>
-        /// Constructs the DATE_PART expression.
-        /// </summary>
-        /// <param name="e">The member expression.</param>
-        /// <param name="partName">The name of the DATE_PART to construct.</param>
-        /// <param name="needsFloor">True if the result should be wrapped with FLOOR(...); otherwise, false.</param>
-        /// <returns>
-        /// The DATE_PART expression.
-        /// </returns>
-        [NotNull]
-        static Expression GetDatePartExpression([NotNull] MemberExpression e, [NotNull] string partName, bool needsFloor = false)
-        {
-            // DATE_PART returns doubles, which we floor and cast into ints
-            // This also gets rid of sub-second components when retrieving seconds
-
-            var result = new SqlFunctionExpression("DATE_PART", typeof(double), new[] { Expression.Constant(partName), e.Expression });
-
-            if (needsFloor)
-                result = new SqlFunctionExpression("FLOOR", typeof(double), new[] { result });
-
-            return new ExplicitCastExpression(result, typeof(int));
         }
     }
 }
