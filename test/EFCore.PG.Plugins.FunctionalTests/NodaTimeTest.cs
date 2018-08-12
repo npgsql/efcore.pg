@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.DependencyInjection;
@@ -373,6 +374,32 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
         #endregion
 
+        #region DateTime shim
+
+        [Fact]
+        public void DateTime_shim()
+        {
+            using (var ctx = CreateContext())
+            {
+                var _ = ctx.NodaTimeTypes.Select(x => x.BclDateTime).ToArray();
+
+                Assert.Contains("SELECT x.\"BclDateTime\"", Sql);
+            }
+        }
+
+        [Fact]
+        public void DateTime_shim_with_operation()
+        {
+            using (var ctx = CreateContext())
+            {
+                var _ = ctx.NodaTimeTypes.Select(x => x.BclDateTime.AddDays(2)).ToArray();
+
+                Assert.Contains("SELECT x.\"BclDateTime\" + INTERVAL '2 days'", Sql);
+            }
+        }
+
+        #endregion
+
         #region Support
 
         NodaTimeContext CreateContext() => Fixture.CreateContext();
@@ -416,7 +443,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                     LocalTime = localDateTime.TimeOfDay,
                     OffsetTime = new OffsetTime(new LocalTime(10, 31, 33, 666), Offset.Zero),
                     Period = DefaultPeriod,
-                    DateRange = new NpgsqlRange<LocalDate>(localDateTime.Date, localDateTime.Date.PlusDays(5))
+                    DateRange = new NpgsqlRange<LocalDate>(localDateTime.Date, localDateTime.Date.PlusDays(5)),
+                    BclDateTime = DateTime.Now
                 });
                 context.SaveChanges();
             }
@@ -431,6 +459,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             public NodaTimeContext(DbContextOptions<NodaTimeContext> options) : base(options) {}
 
             public DbSet<NodaTimeTypes> NodaTimeTypes { get; set; }
+
+            /// <inheritdoc />
+            protected override void OnModelCreating(ModelBuilder builder)
+                => builder.Entity<NodaTimeTypes>()
+                          .Property(x => x.BclDateTime)
+                          .HasConversion(
+                              x => new LocalDate(x.Year, x.Month, x.Day),
+                              x => new DateTime(x.Year, x.Month, x.Day));
         }
 
         public class NodaTimeTypes
@@ -444,6 +480,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             public OffsetTime OffsetTime { get; set; }
             public Period Period { get; set; }
             public NpgsqlRange<LocalDate> DateRange { get; set; }
+            public DateTime BclDateTime { get; set; }
         }
 
         #endregion Support
