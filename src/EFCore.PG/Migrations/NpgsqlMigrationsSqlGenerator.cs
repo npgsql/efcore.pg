@@ -24,6 +24,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
@@ -681,11 +682,25 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             foreach (var extension in PostgresExtension.GetPostgresExtensions(operation))
                 GenerateCreateExtension(extension, model, builder);
 
-            foreach (var enumType in PostgresEnum.GetPostgresEnums(operation))
-                GenerateCreateEnum(enumType, model, builder);
-            // TODO: Some forms of enum alterations are actually supported...
-            foreach (var enumType in PostgresEnum.GetPostgresEnums(operation.OldDatabase))
-                GenerateDropEnum(enumType, builder);
+            foreach (var enumTypeToCreate in PostgresEnum.GetPostgresEnums(operation)
+                .Where(ne => PostgresEnum.GetPostgresEnums(operation.OldDatabase).All(oe => oe.Name != ne.Name)))
+            {
+                GenerateCreateEnum(enumTypeToCreate, model, builder);
+            }
+
+            foreach (var enumTypeToDrop in PostgresEnum.GetPostgresEnums(operation.OldDatabase)
+                .Where(oe => PostgresEnum.GetPostgresEnums(operation).All(ne => ne.Name != oe.Name)))
+            {
+                GenerateDropEnum(enumTypeToDrop, builder);
+            }
+
+            foreach (var enumTypeToAlter in from newEnum in PostgresEnum.GetPostgresEnums(operation)
+                join oldEnum in PostgresEnum.GetPostgresEnums(operation.OldDatabase) on newEnum.Name equals oldEnum.Name
+                select new { newEnum.Name, OldLabels = oldEnum.Labels, newLabels = newEnum.Labels })
+            {
+                // TODO: Some forms of enum alterations are actually supported... At least log...
+            }
+
             builder.EndCommand();
         }
 
