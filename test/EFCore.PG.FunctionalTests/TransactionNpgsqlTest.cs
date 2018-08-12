@@ -43,26 +43,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             }
         }
 
-        // When closeConnection is true, the test attempts to continue using a TransactionScope after an error occurs.
-        // In PostgreSQL, a transaction is put into a failed state after any error, and is unrecoverable - it can only
-        // be rolled back. So we exclude those test cases.
-        public override Task SaveChanges_uses_ambient_transaction(bool async, bool closeConnection, bool autoTransactionsEnabled)
-            => closeConnection
-                ? Task.CompletedTask
-                : base.SaveChanges_uses_ambient_transaction(async, false, autoTransactionsEnabled);
-
-        // The test attempts to continue using a TransactionScope after an error occurs.
-        // In PostgreSQL, a transaction is put into a failed state after any error, and is unrecoverable - it can only
-        // be rolled back.
-        public override Task SaveChanges_uses_enlisted_transaction(bool async, bool autoTransactionsEnabled)
-            => Task.CompletedTask;
-
-        // The test attempts to continue using a TransactionScope after an error occurs.
-        // In PostgreSQL, a transaction is put into a failed state after any error, and is unrecoverable - it can only
-        // be rolled back.
-        public override Task SaveChanges_uses_ambient_transaction_with_connectionString(bool async, bool autoTransactionsEnabled)
-            => Task.CompletedTask;
-
         public void Dispose()
         {
            TestNpgsqlRetryingExecutionStrategy.Suspended = true;

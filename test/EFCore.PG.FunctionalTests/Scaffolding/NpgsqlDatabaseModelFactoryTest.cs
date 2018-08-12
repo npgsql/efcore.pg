@@ -27,7 +27,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding
     {
         protected NpgsqlDatabaseModelFixture Fixture { get; }
 
-        public NpgsqlDatabaseModelFactoryTest(NpgsqlDatabaseModelFixture fixture) => Fixture = fixture;
+        public NpgsqlDatabaseModelFactoryTest(NpgsqlDatabaseModelFixture fixture)
+        {
+            Fixture = fixture;
+            Fixture.ListLoggerFactory.Clear();
+        }
 
         #region Sequences
 
@@ -1360,7 +1364,7 @@ CREATE TABLE ""Blank"" (
                     {
                         Assert.Empty(dbModel.Tables);
 
-                        var (Level, Id, Message) = Assert.Single(_log.Where(t => t.Level == LogLevel.Warning));
+                        var (_, Id, Message, _, _) = Assert.Single(Fixture.ListLoggerFactory.Log.Where(t => t.Level == LogLevel.Warning));
 
                         Assert.Equal(NpgsqlStrings.LogMissingSchema.EventId, Id);
                         Assert.Equal(NpgsqlStrings.LogMissingSchema.GenerateMessage("MySchema"), Message);
@@ -1382,7 +1386,7 @@ CREATE TABLE ""Blank"" (
                     {
                         Assert.Empty(dbModel.Tables);
 
-                        var (Level, Id, Message) = Assert.Single(_log.Where(t => t.Level == LogLevel.Warning));
+                        var (_, Id, Message, _, _) = Assert.Single(Fixture.ListLoggerFactory.Log.Where(t => t.Level == LogLevel.Warning));
 
                         Assert.Equal(NpgsqlStrings.LogMissingTable.EventId, Id);
                         Assert.Equal(NpgsqlStrings.LogMissingTable.GenerateMessage("MyTable"), Message);
@@ -1408,7 +1412,7 @@ CREATE TABLE ""DependentTable"" (
                 Enumerable.Empty<string>(),
                 dbModel =>
                     {
-                        var (Level, Id, Message) = Assert.Single(_log.Where(t => t.Level == LogLevel.Warning));
+                        var (_, Id, Message, _, _) = Assert.Single(Fixture.ListLoggerFactory.Log.Where(t => t.Level == LogLevel.Warning));
 
                         Assert.Equal(NpgsqlStrings.LogPrincipalTableNotInSelectionSet.EventId, Id);
                         Assert.Equal(NpgsqlStrings.LogPrincipalTableNotInSelectionSet.GenerateMessage("MYFK", "public.DependentTable", "public.PrincipalTable"), Message);
@@ -1752,8 +1756,6 @@ CREATE TABLE column_types (
 
         #endregion
 
-        readonly List<(LogLevel Level, EventId Id, string Message)> _log = new List<(LogLevel Level, EventId Id, string Message)>();
-
         void Test(string createSql, IEnumerable<string> tables, IEnumerable<string> schemas, Action<DatabaseModel> asserter, string cleanupSql)
         {
             Fixture.TestStore.ExecuteNonQuery(createSql);
@@ -1762,7 +1764,7 @@ CREATE TABLE column_types (
             {
                 var databaseModelFactory = new NpgsqlDatabaseModelFactory(
                     new DiagnosticsLogger<DbLoggerCategory.Scaffolding>(
-                        new ListLoggerFactory(_log),
+                        Fixture.ListLoggerFactory,
                         new LoggingOptions(),
                         new DiagnosticListener("Fake")));
 
@@ -1779,7 +1781,7 @@ CREATE TABLE column_types (
             }
         }
 
-        public class NpgsqlDatabaseModelFixture : SharedStoreFixtureBase<DbContext>
+        public class NpgsqlDatabaseModelFixture : SharedStoreFixtureBase<PoolableDbContext>
         {
             protected override string StoreName { get; } = nameof(NpgsqlDatabaseModelFactoryTest);
             protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
@@ -1790,6 +1792,9 @@ CREATE TABLE column_types (
                 TestStore.ExecuteNonQuery("CREATE SCHEMA IF NOT EXISTS db2");
                 TestStore.ExecuteNonQuery(@"CREATE SCHEMA IF NOT EXISTS ""db.2""");
             }
+
+            protected override bool ShouldLogCategory(string logCategory)
+                => logCategory == DbLoggerCategory.Scaffolding.Name;
         }
     }
 }

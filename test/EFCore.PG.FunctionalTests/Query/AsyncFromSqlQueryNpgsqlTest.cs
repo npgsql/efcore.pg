@@ -1,5 +1,13 @@
-﻿using Microsoft.EntityFrameworkCore.Query;
+﻿using System.Data;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.TestUtilities;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
+using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
@@ -9,5 +17,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             : base(fixture)
         {
         }
+
+        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/12972")]
+        public override Task Include_does_not_close_user_opened_connection_for_empty_result()
+            => Task.CompletedTask;
     }
 }

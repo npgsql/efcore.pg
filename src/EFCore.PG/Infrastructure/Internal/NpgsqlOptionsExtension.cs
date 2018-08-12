@@ -114,6 +114,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
             return true;
         }
 
+        // The following is a hack to set the default minimum batch size to 2 in Npgsql
+        // See https://github.com/aspnet/EntityFrameworkCore/pull/10091
+        public override int? MinBatchSize => base.MinBatchSize ?? 2;
+
         /// <summary>
         /// Returns a copy of the current instance configured to use the specified <see cref="NpgsqlEntityFrameworkPlugin"/>.
         /// </summary>
