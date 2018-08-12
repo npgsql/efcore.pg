@@ -348,6 +348,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             }
         }
 
+        [Fact]
+        public void IGeometry()
+        {
+            var igeometry = (IGeometry)new Point(0.5, 0.5);
+            AssertQuery(st => st.Where(s => s.LineString.Intersects(igeometry) && s.Id == 1), entryCount: 1);
+            Assert.Contains(@"ST_Intersects(s.""LineString"", @__igeometry_0)", Sql);
+            AssertQuery(st => st.Where(s => s.IGeometry.Intersects(new Point(6, 6)) && s.Id == 1), entryCount: 0);
+            Assert.Contains(@"ST_Intersects(s.""IGeometry"", GEOMETRY 'POINT (6 6)')", Sql);
+        }
+
         #region Support
 
         static WKTReader Reader = new WKTReader(new GeometryFactory(new PrecisionModel(1), 0));
@@ -444,6 +454,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             public Geometry Geometry { get; set; }
             [Column(TypeName="geography")]
             public Geometry Geography { get; set; }
+            public IGeometry IGeometry { get; set; }
         }
 
         public class SpatialData : IExpectedData
@@ -462,7 +473,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                         Polygon = (Polygon)Reader.Read("POLYGON((-2 -2,-2 2,2 2,2 -2,-2 -2))"),
                         Collection = new GeometryCollection(new IGeometry[0]),
                         Geometry = new Point(3, 4),
-                        Geography = new Point(-118.4079, 33.9434)   // Los Angeles
+                        Geography = new Point(-118.4079, 33.9434),   // Los Angeles
+                        IGeometry = new Point(3, 4)
                     },
                     new SpatialTypes
                     {
@@ -472,7 +484,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                         Polygon = (Polygon)Reader.Read("POLYGON((-2 -2,-2 2,2 2,2 -2,-2 -2))"),
                         Collection = new GeometryCollection(new IGeometry[] { new Point(3, 4), new Point(4, 5)  }),
                         Geometry = (LineString)Reader.Read("LINESTRING(0 0,0 3,3 3,0 0)"),
-                        Geography = (LineString)Reader.Read("LINESTRING(0 0,0 3,3 3,0 0)")
+                        Geography = (LineString)Reader.Read("LINESTRING(0 0,0 3,3 3,0 0)"),
+                        IGeometry = new Point(5, 6)
                     }
                 };
             }
