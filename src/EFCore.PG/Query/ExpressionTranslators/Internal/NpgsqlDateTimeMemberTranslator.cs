@@ -52,6 +52,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         /// </summary>
         [NotNull] static readonly PropertyInfo UtcNow = typeof(DateTime).GetRuntimeProperty(nameof(DateTime.UtcNow));
 
+        /// <summary>
+        /// The static <see cref="PropertyInfo"/> for <see cref="T:DateTime.Today"/>.
+        /// </summary>
+        [NotNull] static readonly PropertyInfo Today = typeof(DateTime).GetRuntimeProperty(nameof(DateTime.Today));
+
         /// <inheritdoc />
         [CanBeNull]
         public virtual Expression Translate(MemberExpression e)
@@ -123,6 +128,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 return new SqlFunctionExpression("NOW", e.Type);
             if (e.Member.Equals(UtcNow))
                 return new AtTimeZoneExpression(new SqlFunctionExpression("NOW", e.Type), "UTC", e.Type);
+            if (e.Member.Equals(Today))
+                return new SqlFunctionExpression("DATE_TRUNC", e.Type, new Expression[] { Expression.Constant("day"), new SqlFunctionExpression("NOW", e.Type) });
             return null;
         }
 
