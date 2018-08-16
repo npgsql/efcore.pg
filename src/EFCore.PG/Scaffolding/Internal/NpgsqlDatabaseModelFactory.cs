@@ -1,4 +1,5 @@
 ﻿#region License
+
 // The PostgreSQL License
 //
 // Copyright (C) 2016 The Npgsql Development Team
@@ -19,6 +20,7 @@
 // AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
 // ON AN "AS IS" BASIS, AND THE NPGSQL DEVELOPMENT TEAM HAS NO OBLIGATIONS
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+
 #endregion
 
 using System;
@@ -27,7 +29,6 @@ using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -46,19 +47,23 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
 {
+    /// <summary>
+    /// The default database model factory for Npgsql.
+    /// </summary>
     public class NpgsqlDatabaseModelFactory : IDatabaseModelFactory
     {
+        #region fields
+
         /// <summary>
-        /// Tables which are considered to be system tables and should not get scaffolded, e.g. the support table
-        /// created by the PostGIS extension.
+        /// The regular expression formatting string for schema and/or table names.
         /// </summary>
-        static readonly string[] SystemTables = new[] { "spatial_ref_sys" };
+        [NotNull] const string NamePartRegex = @"(?:(?:""(?<part{0}>(?:(?:"""")|[^""])+)"")|(?<part{0}>[^\.\[""]+))";
 
-        const string NamePartRegex
-            = @"(?:(?:""(?<part{0}>(?:(?:"""")|[^""])+)"")|(?<part{0}>[^\.\[""]+))";
-
-        static readonly Regex _partExtractor
-            = new Regex(
+        /// <summary>
+        /// The <see cref="Regex"/> to extract the schema and/or table names.
+        /// </summary>
+        [NotNull] static readonly Regex SchemaTableNameExtractor =
+            new Regex(
                 string.Format(
                     CultureInfo.InvariantCulture,
                     @"^{0}(?:\.{1})?$",
@@ -67,17 +72,39 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
                 RegexOptions.Compiled,
                 TimeSpan.FromMilliseconds(1000.0));
 
-        readonly HashSet<string> _enums = new HashSet<string>();
+        /// <summary>
+        /// Tables which are considered to be system tables and should not get scaffolded, e.g. the support table
+        /// created by the PostGIS extension.
+        /// </summary>
+        [NotNull] [ItemNotNull] static readonly string[] SystemTables = { "spatial_ref_sys" };
 
-        readonly IDiagnosticsLogger<DbLoggerCategory.Scaffolding> _logger;
+        /// <summary>
+        /// The types used for serial columns.
+        /// </summary>
+        [NotNull] [ItemNotNull] static readonly string[] SerialTypes = { "int2", "int4", "int8" };
 
+        /// <summary>
+        /// The collection of known enums.
+        /// </summary>
+        [NotNull] [ItemNotNull] readonly HashSet<string> _enums = new HashSet<string>();
+
+        /// <summary>
+        /// The diagnostic logger instance.
+        /// </summary>
+        [NotNull] readonly IDiagnosticsLogger<DbLoggerCategory.Scaffolding> _logger;
+
+        #endregion
+
+        #region public surface
+
+        /// <summary>
+        /// Constructs an instance of the <see cref="NpgsqlDatabaseModelFactory"/> class.
+        /// </summary>
+        /// <param name="logger">The diagnostic logger instance.</param>
         public NpgsqlDatabaseModelFactory([NotNull] IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
-        {
-            Check.NotNull(logger, nameof(logger));
+            => _logger = Check.NotNull(logger, nameof(logger));
 
-            _logger = logger;
-        }
-
+        /// <inheritdoc />
         public virtual DatabaseModel Create(string connectionString, IEnumerable<string> tables, IEnumerable<string> schemas)
         {
             Check.NotEmpty(connectionString, nameof(connectionString));
@@ -90,14 +117,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
             }
         }
 
+        /// <inheritdoc />
         public virtual DatabaseModel Create(DbConnection dbConnection, IEnumerable<string> tables, IEnumerable<string> schemas)
         {
+            Check.NotNull(dbConnection, nameof(dbConnection));
+            Check.NotNull(tables, nameof(tables));
+            Check.NotNull(schemas, nameof(schemas));
+
             var connection = (NpgsqlConnection)dbConnection;
+
             var connectionStartedOpen = connection.State == ConnectionState.Open;
+
             if (!connectionStartedOpen)
-            {
                 connection.Open();
-            }
 
             try
             {
@@ -110,7 +142,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
                 var schemaList = schemas.ToList();
                 var schemaFilter = GenerateSchemaFilter(schemaList);
                 var tableList = tables.ToList();
-                var tableFilter = GenerateTableFilter(tableList.Select(Parse).ToList(), schemaFilter);
+                var tableFilter = GenerateTableFilter(tableList.Select(ParseSchemaTable).ToList(), schemaFilter);
 
                 GetEnums(connection, databaseModel);
 
@@ -122,7 +154,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
 
                 foreach (var table in databaseModel.Tables)
                 {
-                    while (table.Columns.Remove(null)) { }
+                    while (table.Columns.Remove(null)) {}
                 }
 
                 foreach (var sequence in GetSequences(connection, databaseModel.Tables, schemaFilter))
@@ -153,19 +185,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
 
                 foreach (var schema in schemaList
                     .Except(
-                        databaseModel.Sequences.Select(s => s.Schema)
-                            .Concat(databaseModel.Tables.Select(t => t.Schema))))
+                        databaseModel.Sequences
+                                     .Select(s => s.Schema)
+                                     .Concat(databaseModel.Tables.Select(t => t.Schema))))
                 {
                     _logger.MissingSchemaWarning(schema);
                 }
 
                 foreach (var table in tableList)
                 {
-                    var (Schema, Table) = Parse(table);
+                    var (schema, name) = ParseSchemaTable(table);
                     if (!databaseModel.Tables.Any(
-                        t => !string.IsNullOrEmpty(Schema)
-                             && t.Schema == Schema
-                             || t.Name == Table))
+                        t => !string.IsNullOrEmpty(schema)
+                             && t.Schema == schema
+                             || t.Name == name))
                     {
                         _logger.MissingTableWarning(table);
                     }
@@ -176,11 +209,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
             finally
             {
                 if (!connectionStartedOpen)
-                {
                     connection.Close();
-                }
             }
         }
+
+        #endregion
+
+        #region helpers
 
         IEnumerable<DatabaseTable> GetTables(
             NpgsqlConnection connection,
@@ -367,8 +402,6 @@ WHERE
                 }
             }
         }
-
-        static readonly string[] SerialTypes = { "int2", "int4", "int8" };
 
         /// <summary>
         /// Type names as returned by PostgreSQL's format_type need to be cleaned up a bit
@@ -948,9 +981,9 @@ GROUP BY nspname, typname";
             return null;
         }
 
-        static (string Schema, string Table) Parse(string table)
+        static (string Schema, string Table) ParseSchemaTable(string table)
         {
-            var match = _partExtractor.Match(table.Trim());
+            var match = SchemaTableNameExtractor.Match(table.Trim());
 
             if (!match.Success)
             {
@@ -1039,5 +1072,7 @@ GROUP BY nspname, typname";
         }
 
         static string EscapeLiteral(string s) => $"'{s}'";
+
+        #endregion
     }
 }
