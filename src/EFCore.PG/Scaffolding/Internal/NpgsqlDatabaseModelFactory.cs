@@ -52,7 +52,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
     /// </summary>
     public class NpgsqlDatabaseModelFactory : IDatabaseModelFactory
     {
-        #region fields
+        #region Fields
 
         /// <summary>
         /// The regular expression formatting string for schema and/or table names.
@@ -95,7 +95,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
 
         #endregion
 
-        #region public surface
+        #region Public surface
 
         /// <summary>
         /// Constructs an instance of the <see cref="NpgsqlDatabaseModelFactory"/> class.
@@ -215,7 +215,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
 
         #endregion
 
-        #region type information queries
+        #region Type information queries
 
         IEnumerable<DatabaseTable> GetTables(
             NpgsqlConnection connection,
@@ -804,7 +804,7 @@ GROUP BY nspname, typname";
 
         #endregion
 
-        #region configure default values
+        #region Configure default values
 
         /// <summary>
         /// Configures the default value for a column.
@@ -935,7 +935,7 @@ GROUP BY nspname, typname";
 
         #endregion
 
-        #region filter fragment generators
+        #region Filter fragment generators
 
         /// <summary>
         /// Builds a delegate to generate a schema filter fragment.
@@ -1027,7 +1027,7 @@ GROUP BY nspname, typname";
 
         #endregion
 
-        #region utilities
+        #region Utilities
 
         /// <summary>
         /// Type names as returned by PostgreSQL's format_type need to be cleaned up a bit
