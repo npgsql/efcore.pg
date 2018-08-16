@@ -20,6 +20,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             AssertContainsSqlFragment("WHERE NOW() AT TIME ZONE 'UTC' <>");
         }
 
+        public override async Task Where_datetime_today(bool isAsync)
+        {
+            await base.Where_datetime_today(isAsync);
+            AssertContainsSqlFragment("WHERE DATE_TRUNC('day', NOW()) ");
+        }
+
         public override async Task Where_datetime_date_component(bool isAsync)
         {
             await base.Where_datetime_date_component(isAsync);
