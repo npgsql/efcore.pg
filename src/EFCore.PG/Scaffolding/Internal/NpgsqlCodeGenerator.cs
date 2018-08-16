@@ -1,4 +1,5 @@
 ﻿#region License
+
 // The PostgreSQL License
 //
 // Copyright (C) 2016 The Npgsql Development Team
@@ -19,6 +20,7 @@
 // AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
 // ON AN "AS IS" BASIS, AND THE NPGSQL DEVELOPMENT TEAM HAS NO OBLIGATIONS
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+
 #endregion
 
 using Microsoft.EntityFrameworkCore;
@@ -27,17 +29,19 @@ using Microsoft.EntityFrameworkCore.Scaffolding;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
 {
+    /// <summary>
+    /// The default configuration generator for Npgsql.
+    /// </summary>
     public class NpgsqlConfigurationCodeGenerator : ProviderCodeGenerator
     {
-        public NpgsqlConfigurationCodeGenerator(ProviderCodeGeneratorDependencies dependencies)
-            : base(dependencies)
-        {
-        }
-
         /// <summary>
-        ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
+        /// Constructs an instance of the <see cref="NpgsqlConfigurationCodeGenerator"/> class.
         /// </summary>
+        /// <param name="dependencies">The dependencies.</param>
+        public NpgsqlConfigurationCodeGenerator(ProviderCodeGeneratorDependencies dependencies)
+            : base(dependencies) {}
+
+        /// <inheritdoc />
         public override MethodCallCodeFragment GenerateUseProvider(string connectionString)
             => new MethodCallCodeFragment(nameof(NpgsqlDbContextOptionsExtensions.UseNpgsql), connectionString);
     }
