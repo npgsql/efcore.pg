@@ -403,21 +403,6 @@ WHERE
             }
         }
 
-        /// <summary>
-        /// Type names as returned by PostgreSQL's format_type need to be cleaned up a bit
-        /// </summary>
-        static string AdjustFormattedTypeName(string formattedTypeName)
-        {
-            // User-defined types (e.g. enums) with capital letters get formatted with quotes, remove.
-            if (formattedTypeName[0] == '"')
-                formattedTypeName = formattedTypeName.Substring(1, formattedTypeName.Length - 2);
-
-            if (formattedTypeName == "bpchar")
-                formattedTypeName = "char";
-
-            return formattedTypeName;
-        }
-
         static void AdjustDefaults(DatabaseColumn column, string systemTypeName)
         {
             var defaultValue = column.DefaultValueSql;
@@ -941,28 +926,6 @@ GROUP BY nspname, typname";
             }
         }
 
-        static string DisplayName(string schema, string name)
-            => (!string.IsNullOrEmpty(schema) ? schema + "." : "") + name;
-
-        static ReferentialAction? ConvertToReferentialAction(char onDeleteAction)
-        {
-            switch (onDeleteAction)
-            {
-                case 'a':
-                    return ReferentialAction.NoAction;
-                case 'r':
-                    return ReferentialAction.Restrict;
-                case 'c':
-                    return ReferentialAction.Cascade;
-                case 'n':
-                    return ReferentialAction.SetNull;
-                case 'd':
-                    return ReferentialAction.SetDefault;
-                default:
-                    throw new ArgumentOutOfRangeException($"Unknown value {onDeleteAction} for foreign key deletion action code");
-            }
-        }
-
         static Func<string, string> GenerateSchemaFilter(IReadOnlyList<string> schemas)
         {
             if (schemas.Any())
@@ -979,21 +942,6 @@ GROUP BY nspname, typname";
             }
 
             return null;
-        }
-
-        static (string Schema, string Table) ParseSchemaTable(string table)
-        {
-            var match = SchemaTableNameExtractor.Match(table.Trim());
-
-            if (!match.Success)
-            {
-                throw new InvalidOperationException();
-            }
-
-            var part1 = match.Groups["part1"].Value;
-            var part2 = match.Groups["part2"].Value;
-
-            return string.IsNullOrEmpty(part2) ? (null, part1) : (part1, part2);
         }
 
         static Func<string, string, string> GenerateTableFilter(
@@ -1071,7 +1019,102 @@ GROUP BY nspname, typname";
             return null;
         }
 
-        static string EscapeLiteral(string s) => $"'{s}'";
+        #endregion
+
+        #region utilities
+
+        /// <summary>
+        /// Type names as returned by PostgreSQL's format_type need to be cleaned up a bit
+        /// </summary>
+        /// <param name="formattedTypeName">The type name to adjust.</param>
+        /// <returns>
+        /// The adjusted type name or the original name if no adjustments were required.
+        /// </returns>
+        [NotNull]
+        static string AdjustFormattedTypeName([NotNull] string formattedTypeName)
+        {
+            // User-defined types (e.g. enums) with capital letters get formatted with quotes, remove.
+            if (formattedTypeName[0] == '"')
+                formattedTypeName = formattedTypeName.Substring(1, formattedTypeName.Length - 2);
+
+            if (formattedTypeName == "bpchar")
+                formattedTypeName = "char";
+
+            return formattedTypeName;
+        }
+
+        /// <summary>
+        /// Maps a character to a <see cref="ReferentialAction"/>.
+        /// </summary>
+        /// <param name="onDeleteAction">The character to map.</param>
+        /// <returns>
+        /// A <see cref="ReferentialAction"/> associated with the <paramref name="onDeleteAction"/> character.
+        /// </returns>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// Unknown value <paramref name="onDeleteAction"/> for foreign key deletion action code.
+        /// </exception>
+        static ReferentialAction ConvertToReferentialAction(char onDeleteAction)
+        {
+            switch (onDeleteAction)
+            {
+            case 'a':
+                return ReferentialAction.NoAction;
+            case 'r':
+                return ReferentialAction.Restrict;
+            case 'c':
+                return ReferentialAction.Cascade;
+            case 'n':
+                return ReferentialAction.SetNull;
+            case 'd':
+                return ReferentialAction.SetDefault;
+            default:
+                throw new ArgumentOutOfRangeException($"Unknown value {onDeleteAction} for foreign key deletion action code.");
+            }
+        }
+
+        /// <summary>
+        /// Constructs the display name given a schema and table name.
+        /// </summary>
+        /// <param name="schema">The schema name.</param>
+        /// <param name="name">The table name.</param>
+        /// <returns>
+        /// A display name in the form of 'schema.name' or 'name'.
+        /// </returns>
+        // TODO: should this default to/screen out the public schema?
+        [NotNull]
+        static string DisplayName([CanBeNull] string schema, [NotNull] string name)
+            => string.IsNullOrEmpty(schema) ? name : $"{schema}.{name}";
+
+        /// <summary>
+        /// Parses the table name into a tuple of schema name and table name where the schema may be null.
+        /// </summary>
+        /// <param name="table">The name to parse.</param>
+        /// <returns>
+        /// A tuple of schema name and table name where the schema may be null.
+        /// </returns>
+        /// <exception cref="InvalidOperationException">The table name could not be parsed.</exception>
+        static (string Schema, string Table) ParseSchemaTable([NotNull] string table)
+        {
+            var match = SchemaTableNameExtractor.Match(table.Trim());
+
+            if (!match.Success)
+                throw new InvalidOperationException("The table name could not be parsed.");
+
+            var part1 = match.Groups["part1"].Value;
+            var part2 = match.Groups["part2"].Value;
+
+            return string.IsNullOrEmpty(part2) ? (null, part1) : (part1, part2);
+        }
+
+        /// <summary>
+        /// Wraps a string literal in single quotes.
+        /// </summary>
+        /// <param name="s">The string literal.</param>
+        /// <returns>
+        /// The string literal wrapped in single quotes.
+        /// </returns>
+        [NotNull]
+        static string EscapeLiteral([CanBeNull] string s) => $"'{s}'";
 
         #endregion
     }
