@@ -215,7 +215,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
 
         #endregion
 
-        #region helpers
+        #region type information queries
 
         IEnumerable<DatabaseTable> GetTables(
             NpgsqlConnection connection,
@@ -400,57 +400,6 @@ WHERE
                         }
                     }
                 }
-            }
-        }
-
-        static void AdjustDefaults(DatabaseColumn column, string systemTypeName)
-        {
-            var defaultValue = column.DefaultValueSql;
-            if (defaultValue == null || defaultValue == "(NULL)")
-            {
-                column.DefaultValueSql = null;
-                return;
-            }
-
-            if (column.IsNullable)
-                return;
-
-            if (defaultValue == "0")
-            {
-                if (systemTypeName == "float4" ||
-                    systemTypeName == "float8" ||
-                    systemTypeName == "int2"   ||
-                    systemTypeName == "int4"   ||
-                    systemTypeName == "int8"   ||
-                    systemTypeName == "money"  ||
-                    systemTypeName == "numeric")
-                {
-                    column.DefaultValueSql = null;
-                    return;
-                }
-            }
-
-            if (defaultValue == "0.0" || defaultValue == "'0'::numeric")
-            {
-                if (systemTypeName == "numeric" ||
-                    systemTypeName == "float4"  ||
-                    systemTypeName == "float8"  ||
-                    systemTypeName == "money")
-                {
-                    column.DefaultValueSql = null;
-                    return;
-                }
-            }
-
-            if ((systemTypeName == "bool"      && defaultValue == "false") ||
-                (systemTypeName == "date"      && defaultValue == "'0001-01-01'::date") ||
-                (systemTypeName == "timestamp" && defaultValue == "'1900-01-01 00:00:00'::timestamp without time zone") ||
-                (systemTypeName == "time"      && defaultValue == "'00:00:00'::time without time zone") ||
-                (systemTypeName == "interval"  && defaultValue == "'00:00:00'::interval") ||
-                (systemTypeName == "uuid"      && defaultValue == "'00000000-0000-0000-0000-000000000000'::uuid"))
-            {
-                column.DefaultValueSql = null;
-                return;
             }
         }
 
@@ -800,79 +749,6 @@ LEFT OUTER JOIN pg_namespace AS ownerns ON ownerns.oid = tblcls.relnamespace";
             }
         }
 
-        void SetSequenceStartMinMax(DatabaseSequence sequence, Version postgresVersion)
-        {
-            long defaultStart, defaultMin, defaultMax;
-
-            if (sequence.StoreType == "smallint")
-            {
-                if (sequence.IncrementBy > 0)
-                {
-                    defaultMin = 1;
-                    defaultMax = short.MaxValue;
-                    defaultStart = sequence.MinValue.Value;
-                }
-                else
-                {
-                    // PostgreSQL 10 changed the default minvalue for a descending sequence, see #264
-                    defaultMin = postgresVersion >= new Version(10, 0)
-                        ? short.MinValue
-                        : short.MinValue + 1;
-                    defaultMax = -1;
-                    defaultStart = sequence.MaxValue.Value;
-                }
-            }
-            else if (sequence.StoreType == "integer")
-            {
-                if (sequence.IncrementBy > 0)
-                {
-                    defaultMin = 1;
-                    defaultMax = int.MaxValue;
-                    defaultStart = sequence.MinValue.Value;
-                }
-                else
-                {
-                    // PostgreSQL 10 changed the default minvalue for a descending sequence, see #264
-                    defaultMin = postgresVersion >= new Version(10, 0)
-                        ? int.MinValue
-                        : int.MinValue + 1;
-                    defaultMax = -1;
-                    defaultStart = sequence.MaxValue.Value;
-                }
-            }
-            else if (sequence.StoreType == "bigint")
-            {
-                if (sequence.IncrementBy > 0)
-                {
-                    defaultMin = 1;
-                    defaultMax = long.MaxValue;
-                    defaultStart = sequence.MinValue.Value;
-                }
-                else
-                {
-                    // PostgreSQL 10 changed the default minvalue for a descending sequence, see #264
-                    defaultMin = postgresVersion >= new Version(10, 0)
-                        ? long.MinValue
-                        : long.MinValue + 1;
-                    defaultMax = -1;
-                    Debug.Assert(sequence.MaxValue.HasValue);
-                    defaultStart = sequence.MaxValue.Value;
-                }
-            }
-            else
-            {
-                _logger.Logger.LogWarning($"Sequence with datatype {sequence.StoreType} which isn't the expected bigint.");
-                return;
-            }
-
-            if (sequence.StartValue == defaultStart)
-                sequence.StartValue = null;
-            if (sequence.MinValue == defaultMin)
-                sequence.MinValue = null;
-            if (sequence.MaxValue == defaultMax)
-                sequence.MaxValue = null;
-        }
-
         void GetEnums(NpgsqlConnection connection, DatabaseModel databaseModel)
         {
             _enums.Clear();
@@ -926,32 +802,168 @@ GROUP BY nspname, typname";
             }
         }
 
-        static Func<string, string> GenerateSchemaFilter(IReadOnlyList<string> schemas)
+        #endregion
+
+        #region configure default values
+
+        /// <summary>
+        /// Configures the default value for a column.
+        /// </summary>
+        /// <param name="column">The column to configure.</param>
+        /// <param name="systemTypeName">The type name of the column.</param>
+        static void AdjustDefaults([NotNull] DatabaseColumn column, [NotNull] string systemTypeName)
         {
-            if (schemas.Any())
+            var defaultValue = column.DefaultValueSql;
+            if (defaultValue == null || defaultValue == "(NULL)")
             {
-                return s =>
-                {
-                    var schemaFilterBuilder = new StringBuilder();
-                    schemaFilterBuilder.Append(s);
-                    schemaFilterBuilder.Append(" IN (");
-                    schemaFilterBuilder.Append(string.Join(", ", schemas.Select(EscapeLiteral)));
-                    schemaFilterBuilder.Append(")");
-                    return schemaFilterBuilder.ToString();
-                };
+                column.DefaultValueSql = null;
+                return;
             }
 
-            return null;
+            if (column.IsNullable)
+                return;
+
+            if (defaultValue == "0")
+            {
+                if (systemTypeName == "float4" ||
+                    systemTypeName == "float8" ||
+                    systemTypeName == "int2" ||
+                    systemTypeName == "int4" ||
+                    systemTypeName == "int8" ||
+                    systemTypeName == "money" ||
+                    systemTypeName == "numeric")
+                {
+                    column.DefaultValueSql = null;
+                    return;
+                }
+            }
+
+            if (defaultValue == "0.0" || defaultValue == "'0'::numeric")
+            {
+                if (systemTypeName == "numeric" ||
+                    systemTypeName == "float4" ||
+                    systemTypeName == "float8" ||
+                    systemTypeName == "money")
+                {
+                    column.DefaultValueSql = null;
+                    return;
+                }
+            }
+
+            if (systemTypeName == "bool" && defaultValue == "false" ||
+                systemTypeName == "date" && defaultValue == "'0001-01-01'::date" ||
+                systemTypeName == "timestamp" && defaultValue == "'1900-01-01 00:00:00'::timestamp without time zone" ||
+                systemTypeName == "time" && defaultValue == "'00:00:00'::time without time zone" ||
+                systemTypeName == "interval" && defaultValue == "'00:00:00'::interval" ||
+                systemTypeName == "uuid" && defaultValue == "'00000000-0000-0000-0000-000000000000'::uuid")
+            {
+                column.DefaultValueSql = null;
+            }
         }
 
-        static Func<string, string, string> GenerateTableFilter(
-            IReadOnlyList<(string Schema, string Table)> tables,
-            Func<string, string> schemaFilter)
+        /// <summary>
+        /// Sets default values (min, max, start) a <see cref="DatabaseSequence"/>.
+        /// </summary>
+        /// <param name="sequence">The sequence to configure.</param>
+        /// <param name="postgresVersion">The PostgreSQL version to target.</param>
+        void SetSequenceStartMinMax([NotNull] DatabaseSequence sequence, [NotNull] Version postgresVersion)
         {
-            if (schemaFilter != null
-                || tables.Any())
+            long defaultStart, defaultMin, defaultMax;
+
+            switch (sequence.StoreType)
             {
-                return (s, t) =>
+            case "smallint" when sequence.IncrementBy > 0:
+                defaultMin = 1;
+                defaultMax = short.MaxValue;
+                defaultStart = sequence.MinValue ?? 0;
+                break;
+
+            case "smallint":
+                // PostgreSQL 10 changed the default minvalue for a descending sequence, see #264
+                defaultMin = postgresVersion >= new Version(10, 0)
+                    ? short.MinValue
+                    : short.MinValue + 1;
+                defaultMax = -1;
+                defaultStart = sequence.MaxValue ?? 0;
+                break;
+
+            case "integer" when sequence.IncrementBy > 0:
+                defaultMin = 1;
+                defaultMax = int.MaxValue;
+                defaultStart = sequence.MinValue ?? 0;
+                break;
+
+            case "integer":
+                // PostgreSQL 10 changed the default minvalue for a descending sequence, see #264
+                defaultMin = postgresVersion >= new Version(10, 0)
+                    ? int.MinValue
+                    : int.MinValue + 1;
+                defaultMax = -1;
+                defaultStart = sequence.MaxValue ?? 0;
+                break;
+
+            case "bigint" when sequence.IncrementBy > 0:
+                defaultMin = 1;
+                defaultMax = long.MaxValue;
+                defaultStart = sequence.MinValue ?? 0;
+                break;
+
+            case "bigint":
+                // PostgreSQL 10 changed the default minvalue for a descending sequence, see #264
+                defaultMin = postgresVersion >= new Version(10, 0)
+                    ? long.MinValue
+                    : long.MinValue + 1;
+                defaultMax = -1;
+                Debug.Assert(sequence.MaxValue.HasValue);
+                defaultStart = sequence.MaxValue.Value;
+                break;
+
+            default:
+                _logger.Logger.LogWarning($"Sequence with datatype {sequence.StoreType} which isn't an expected sequence type.");
+                return;
+            }
+
+            if (sequence.StartValue == defaultStart)
+                sequence.StartValue = null;
+
+            if (sequence.MinValue == defaultMin)
+                sequence.MinValue = null;
+
+            if (sequence.MaxValue == defaultMax)
+                sequence.MaxValue = null;
+        }
+
+        #endregion
+
+        #region filter fragment generators
+
+        /// <summary>
+        /// Builds a delegate to generate a schema filter fragment.
+        /// </summary>
+        /// <param name="schemas">The list of schema names.</param>
+        /// <returns>
+        /// A delegate that generates a schema filter fragment.
+        /// </returns>
+        [CanBeNull]
+        static Func<string, string> GenerateSchemaFilter([NotNull] IReadOnlyList<string> schemas)
+            => schemas.Any()
+                ? s => $"{s} IN ({string.Join(", ", schemas.Select(EscapeLiteral))})"
+                : (Func<string, string>)null;
+
+        /// <summary>
+        /// Builds a delegate to generate a table filter fragment.
+        /// </summary>
+        /// <param name="tables">The list of tables parsed into tuples of schema name and table name.</param>
+        /// <param name="schemaFilter">The delegate that generates a schema filter fragment.</param>
+        /// <returns>
+        /// A delegate that generates a table filter fragment.
+        /// </returns>
+        [CanBeNull]
+        static Func<string, string, string> GenerateTableFilter(
+            [NotNull] IReadOnlyList<(string Schema, string Table)> tables,
+            [CanBeNull] Func<string, string> schemaFilter)
+            => schemaFilter != null || tables.Any()
+                ? (s, t) =>
                 {
                     var tableFilterBuilder = new StringBuilder();
 
@@ -991,9 +1003,8 @@ GROUP BY nspname, typname";
                         if (tablesWithSchema.Any())
                         {
                             if (tablesWithoutSchema.Any())
-                            {
                                 tableFilterBuilder.Append(" OR ");
-                            }
+
                             tableFilterBuilder.Append(t);
                             tableFilterBuilder.Append(" IN (");
                             tableFilterBuilder.Append(string.Join(", ", tablesWithSchema.Select(e => EscapeLiteral(e.Table))));
@@ -1008,16 +1019,11 @@ GROUP BY nspname, typname";
                     }
 
                     if (openBracket)
-                    {
                         tableFilterBuilder.Append(")");
-                    }
 
                     return tableFilterBuilder.ToString();
-                };
-            }
-
-            return null;
-        }
+                }
+                : (Func<string, string, string>)null;
 
         #endregion
 
