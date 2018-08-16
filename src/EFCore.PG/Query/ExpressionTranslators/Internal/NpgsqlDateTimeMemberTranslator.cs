@@ -32,7 +32,7 @@ using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using NpgsqlTypes;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
     /// <summary>
     /// Provides translation services for <see cref="DateTime"/> members.
@@ -140,7 +140,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators
         /// This also gets rid of sub-second components when retrieving seconds.
         /// </remarks>
         [NotNull]
-        protected static Expression GetDatePartExpression(
+        static Expression GetDatePartExpression(
             [NotNull] MemberExpression e,
             [NotNull] string partName,
             bool floor = false)

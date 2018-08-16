@@ -27,8 +27,8 @@ using System.Linq.Expressions;
 using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
+using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
 using NodaTime;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
 {
@@ -38,7 +38,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
     /// <remarks>
     /// See: https://www.postgresql.org/docs/current/static/functions-datetime.html
     /// </remarks>
-    public class NodaTimeMemberTranslator : NpgsqlDateTimeMemberTranslator
+    public class NodaTimeMemberTranslator : IMemberTranslator
     {
         /// <summary>
         /// The static member info for <see cref="T:SystemClock.Instance"/>.
@@ -47,7 +47,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
             typeof(SystemClock).GetRuntimeProperty(nameof(SystemClock.Instance));
 
         /// <inheritdoc />
-        public override Expression Translate(MemberExpression e)
+        [CanBeNull]
+        public Expression Translate(MemberExpression e)
         {
             if (e.Member == Instance)
                 return e;
@@ -131,6 +132,34 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
             default:
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Constructs the DATE_PART expression.
+        /// </summary>
+        /// <param name="e">The member expression.</param>
+        /// <param name="partName">The name of the DATE_PART to construct.</param>
+        /// <param name="floor">True if the result should be wrapped with FLOOR(...); otherwise, false.</param>
+        /// <returns>
+        /// The DATE_PART expression.
+        /// </returns>
+        /// <remarks>
+        /// DATE_PART returns doubles, which we floor and cast into ints
+        /// This also gets rid of sub-second components when retrieving seconds.
+        /// </remarks>
+        [NotNull]
+        static Expression GetDatePartExpression(
+            [NotNull] MemberExpression e,
+            [NotNull] string partName,
+            bool floor = false)
+        {
+            var result =
+                new SqlFunctionExpression("DATE_PART", typeof(double), new[] { Expression.Constant(partName), e.Expression });
+
+            if (floor)
+                result = new SqlFunctionExpression("FLOOR", typeof(double), new[] { result });
+
+            return new ExplicitCastExpression(result, typeof(int));
         }
     }
 }
