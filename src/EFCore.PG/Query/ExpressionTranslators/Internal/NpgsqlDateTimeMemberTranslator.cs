@@ -37,6 +37,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     /// <summary>
     /// Provides translation services for <see cref="DateTime"/> members.
     /// </summary>
+    /// <remarks>
+    /// See: https://www.postgresql.org/docs/current/static/functions-datetime.html
+    /// </remarks>
     public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
     {
         /// <summary>
@@ -85,14 +88,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
             case nameof(DateTime.DayOfWeek):
                 // .NET's DayOfWeek is an enum, but its int values happen to correspond to PostgreSQL
-                return GetDatePartExpression(e, "dow");
+                return GetDatePartExpression(e, "dow", true);
 
             case nameof(DateTime.Date):
-                return new SqlFunctionExpression("DATE_TRUNC", e.Type, new[]
-                {
-                    Expression.Constant("day"),
-                    e.Expression
-                });
+                return new SqlFunctionExpression("DATE_TRUNC", e.Type, new[] { Expression.Constant("day"), e.Expression });
 
             case nameof(DateTime.TimeOfDay):
                 // TODO: Technically possible simply via casting to PG time,
@@ -111,30 +110,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         }
 
         /// <summary>
-        /// Constructs the DATE_PART expression.
-        /// </summary>
-        /// <param name="e">The member expression.</param>
-        /// <param name="partName">The name of the DATE_PART to construct.</param>
-        /// <returns>
-        /// The DATE_PART expression.
-        /// </returns>
-        [NotNull]
-        static Expression GetDatePartExpression([NotNull] MemberExpression e, [NotNull] string partName)
-            =>
-                // DATE_PART returns doubles, which we floor and cast into ints
-                // This also gets rid of sub-second components when retrieving seconds
-                new ExplicitCastExpression(
-                    new SqlFunctionExpression("FLOOR", typeof(double), new[]
-                    {
-                        new SqlFunctionExpression("DATE_PART", typeof(double), new[]
-                        {
-                            Expression.Constant(partName),
-                            e.Expression
-                        })
-                    }),
-                    typeof(int));
-
-        /// <summary>
         /// Translates static members of <see cref="DateTime"/>.
         /// </summary>
         /// <param name="e">The member expression.</param>
@@ -149,6 +124,34 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             if (e.Member.Equals(UtcNow))
                 return new AtTimeZoneExpression(new SqlFunctionExpression("NOW", e.Type), "UTC", e.Type);
             return null;
+        }
+
+        /// <summary>
+        /// Constructs the DATE_PART expression.
+        /// </summary>
+        /// <param name="e">The member expression.</param>
+        /// <param name="partName">The name of the DATE_PART to construct.</param>
+        /// <param name="floor">True if the result should be wrapped with FLOOR(...); otherwise, false.</param>
+        /// <returns>
+        /// The DATE_PART expression.
+        /// </returns>
+        /// <remarks>
+        /// DATE_PART returns doubles, which we floor and cast into ints
+        /// This also gets rid of sub-second components when retrieving seconds.
+        /// </remarks>
+        [NotNull]
+        static Expression GetDatePartExpression(
+            [NotNull] MemberExpression e,
+            [NotNull] string partName,
+            bool floor = false)
+        {
+            var result =
+                new SqlFunctionExpression("DATE_PART", typeof(double), new[] { Expression.Constant(partName), e.Expression });
+
+            if (floor)
+                result = new SqlFunctionExpression("FLOOR", typeof(double), new[] { result });
+
+            return new ExplicitCastExpression(result, typeof(int));
         }
     }
 }
