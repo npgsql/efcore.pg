@@ -223,10 +223,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
         {
             var filter = tableFilter != null ? $"AND {tableFilter("ns.nspname", "cls.relname")}" : null;
             var commandText = $@"
-SELECT
-  nspname,
-  relname,
-  description
+SELECT nspname, relname, description
 FROM pg_class AS cls
 JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
 LEFT OUTER JOIN pg_description AS des ON des.objoid = cls.oid AND des.objsubid=0
@@ -321,13 +318,9 @@ ORDER BY attnum";
             using (var command = new NpgsqlCommand(commandText, connection))
             using (var reader = command.ExecuteReader())
             {
-                var tableGroups =
-                    reader.Cast<DbDataRecord>()
-                          .GroupBy(ddr =>
-                          (
-                              tableSchema: ddr.GetValueOrDefault<string>("nspname"),
-                              tableName: ddr.GetValueOrDefault<string>("relname")
-                          ));
+                var tableGroups = reader.Cast<DbDataRecord>().GroupBy(ddr => (
+                    tableSchema: ddr.GetValueOrDefault<string>("nspname"),
+                    tableName: ddr.GetValueOrDefault<string>("relname")));
 
                 foreach (var tableGroup in tableGroups)
                 {
@@ -479,8 +472,7 @@ WHERE
             {
                 var tableGroups = reader.Cast<DbDataRecord>().GroupBy(ddr => (
                     tableSchema: ddr.GetValueOrDefault<string>("nspname"),
-                    tableName: ddr.GetValueOrDefault<string>("cls_relname")
-                ));
+                    tableName: ddr.GetValueOrDefault<string>("cls_relname")));
 
                 foreach (var tableGroup in tableGroups)
                 {
@@ -594,13 +586,9 @@ WHERE
             using (var reader = command.ExecuteReader())
             {
                 constraintIndexes = new List<uint>();
-                var tableGroups =
-                    reader.Cast<DbDataRecord>()
-                          .GroupBy(ddr =>
-                          (
-                              tableSchema: ddr.GetValueOrDefault<string>("nspname"),
-                              tableName: ddr.GetValueOrDefault<string>("relname")
-                          ));
+                var tableGroups = reader.Cast<DbDataRecord>().GroupBy(ddr => (
+                    tableSchema: ddr.GetValueOrDefault<string>("nspname"),
+                    tableName: ddr.GetValueOrDefault<string>("relname")));
 
                 foreach (var tableGroup in tableGroups)
                 {
@@ -864,13 +852,7 @@ GROUP BY
         /// <param name="databaseModel">The database model.</param>
         static void GetExtensions([NotNull] NpgsqlConnection connection, [NotNull] DatabaseModel databaseModel)
         {
-            const string commandText = @"
-SELECT
-  name,
-  default_version,
-  installed_version
-FROM pg_available_extensions";
-
+            const string commandText = "SELECT name, default_version, installed_version FROM pg_available_extensions";
             using (var command = new NpgsqlCommand(commandText, connection))
             using (var reader = command.ExecuteReader())
             {
