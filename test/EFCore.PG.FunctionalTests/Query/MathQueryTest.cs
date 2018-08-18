@@ -337,33 +337,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         #endregion
 
-        #region Log
-
-        [Fact]
-        public void Log_double_double()
-        {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var _ =
-                    ctx.MathTestEntities
-                       .Select(x => Math.Log(x.Double, x.Double))
-                       .ToArray();
-
-                AssertContainsSql(@"SELECT CASE
-    WHEN x.""Double"" = CAST('NaN' AS double precision)
-    THEN x.""Double"" ELSE CASE
-        WHEN x.""Double"" = CAST('NaN' AS double precision)
-        THEN x.""Double"" ELSE CASE
-            WHEN (x.""Double"" = 1.0) OR ((x.""Double"" <> 1.0) AND ((x.""Double"" = 0.0) OR (x.""Double"" = CAST('Infinity' AS double precision))))
-            THEN CAST('NaN' AS double precision) ELSE LN(x.""Double"") / LN(x.""Double"")
-        END
-    END
-END");
-            }
-        }
-
-        #endregion
-
         #endregion
 
         #region Setup
