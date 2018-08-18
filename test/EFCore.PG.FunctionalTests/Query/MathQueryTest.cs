@@ -10,12 +10,14 @@ using Xunit;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     /// <summary>
-    /// Provides unit tests for GREATEST(...) and LEAST(...).
+    /// Provides unit tests for math functions.
     /// </summary>
     /// <remarks>
-    /// See: https://www.postgresql.org/docs/current/static/functions-conditional.html#FUNCTIONS-GREATEST-LEAST
+    /// See:
+    ///   - https://www.postgresql.org/docs/current/static/functions-math.html
+    ///   - https://www.postgresql.org/docs/current/static/functions-conditional.html#FUNCTIONS-GREATEST-LEAST
     /// </remarks>
-    public class GreatestLeastQueryTest : IClassFixture<GreatestLeastQueryTest.GreatestLeastQueryNpgsqlFixture>
+    public class MathQueryTest : IClassFixture<MathQueryTest.MathQueryNpgsqlFixture>
     {
         #region Tests
 
@@ -27,7 +29,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using (var ctx = Fixture.CreateContext())
             {
                 var _ =
-                    ctx.GreatestLeastTestEntities
+                    ctx.MathTestEntities
                        .Select(x => Math.Max(x.UShort, x.UShort))
                        .ToArray();
 
@@ -41,7 +43,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using (var ctx = Fixture.CreateContext())
             {
                 var _ =
-                    ctx.GreatestLeastTestEntities
+                    ctx.MathTestEntities
                        .Select(x => Math.Max(x.UInt, x.UInt))
                        .ToArray();
 
@@ -55,7 +57,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using (var ctx = Fixture.CreateContext())
             {
                 var _ =
-                    ctx.GreatestLeastTestEntities
+                    ctx.MathTestEntities
                        .Select(x => Math.Max(x.ULong, x.ULong))
                        .ToArray();
 
@@ -69,7 +71,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using (var ctx = Fixture.CreateContext())
             {
                 var _ =
-                    ctx.GreatestLeastTestEntities
+                    ctx.MathTestEntities
                        .Select(x => Math.Max(x.Short, x.Short))
                        .ToArray();
 
@@ -83,7 +85,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using (var ctx = Fixture.CreateContext())
             {
                 var _ =
-                    ctx.GreatestLeastTestEntities
+                    ctx.MathTestEntities
                        .Select(x => Math.Max(x.Int, x.Int))
                        .ToArray();
 
@@ -97,7 +99,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using (var ctx = Fixture.CreateContext())
             {
                 var _ =
-                    ctx.GreatestLeastTestEntities
+                    ctx.MathTestEntities
                        .Select(x => Math.Max(x.Long, x.Long))
                        .ToArray();
 
@@ -111,7 +113,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using (var ctx = Fixture.CreateContext())
             {
                 var _ =
-                    ctx.GreatestLeastTestEntities
+                    ctx.MathTestEntities
                        .Select(x => Math.Max(x.Float, x.Float))
                        .ToArray();
 
@@ -125,7 +127,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using (var ctx = Fixture.CreateContext())
             {
                 var _ =
-                    ctx.GreatestLeastTestEntities
+                    ctx.MathTestEntities
                        .Select(x => Math.Max(x.Double, x.Double))
                        .ToArray();
 
@@ -139,7 +141,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using (var ctx = Fixture.CreateContext())
             {
                 var _ =
-                    ctx.GreatestLeastTestEntities
+                    ctx.MathTestEntities
                        .Select(x => Math.Max(x.Decimal, x.Decimal))
                        .ToArray();
 
@@ -153,7 +155,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using (var ctx = Fixture.CreateContext())
             {
                 var _ =
-                    ctx.GreatestLeastTestEntities
+                    ctx.MathTestEntities
                        .Select(x => Math.Max(x.SByte, x.SByte))
                        .ToArray();
 
@@ -167,7 +169,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using (var ctx = Fixture.CreateContext())
             {
                 var _ =
-                    ctx.GreatestLeastTestEntities
+                    ctx.MathTestEntities
                        .Select(x => Math.Max(x.Byte, x.Byte))
                        .ToArray();
 
@@ -185,7 +187,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using (var ctx = Fixture.CreateContext())
             {
                 var _ =
-                    ctx.GreatestLeastTestEntities
+                    ctx.MathTestEntities
                        .Select(x => Math.Min(x.UShort, x.UShort))
                        .ToArray();
 
@@ -199,7 +201,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using (var ctx = Fixture.CreateContext())
             {
                 var _ =
-                    ctx.GreatestLeastTestEntities
+                    ctx.MathTestEntities
                        .Select(x => Math.Min(x.UInt, x.UInt))
                        .ToArray();
 
@@ -213,7 +215,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using (var ctx = Fixture.CreateContext())
             {
                 var _ =
-                    ctx.GreatestLeastTestEntities
+                    ctx.MathTestEntities
                        .Select(x => Math.Min(x.ULong, x.ULong))
                        .ToArray();
 
@@ -227,7 +229,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using (var ctx = Fixture.CreateContext())
             {
                 var _ =
-                    ctx.GreatestLeastTestEntities
+                    ctx.MathTestEntities
                        .Select(x => Math.Min(x.Short, x.Short))
                        .ToArray();
 
@@ -241,7 +243,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using (var ctx = Fixture.CreateContext())
             {
                 var _ =
-                    ctx.GreatestLeastTestEntities
+                    ctx.MathTestEntities
                        .Select(x => Math.Min(x.Int, x.Int))
                        .ToArray();
 
@@ -255,7 +257,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using (var ctx = Fixture.CreateContext())
             {
                 var _ =
-                    ctx.GreatestLeastTestEntities
+                    ctx.MathTestEntities
                        .Select(x => Math.Min(x.Long, x.Long))
                        .ToArray();
 
@@ -269,7 +271,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using (var ctx = Fixture.CreateContext())
             {
                 var _ =
-                    ctx.GreatestLeastTestEntities
+                    ctx.MathTestEntities
                        .Select(x => Math.Min(x.Float, x.Float))
                        .ToArray();
 
@@ -283,7 +285,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using (var ctx = Fixture.CreateContext())
             {
                 var _ =
-                    ctx.GreatestLeastTestEntities
+                    ctx.MathTestEntities
                        .Select(x => Math.Min(x.Double, x.Double))
                        .ToArray();
 
@@ -297,7 +299,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using (var ctx = Fixture.CreateContext())
             {
                 var _ =
-                    ctx.GreatestLeastTestEntities
+                    ctx.MathTestEntities
                        .Select(x => Math.Min(x.Decimal, x.Decimal))
                        .ToArray();
 
@@ -311,7 +313,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using (var ctx = Fixture.CreateContext())
             {
                 var _ =
-                    ctx.GreatestLeastTestEntities
+                    ctx.MathTestEntities
                        .Select(x => Math.Min(x.SByte, x.SByte))
                        .ToArray();
 
@@ -325,11 +327,29 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using (var ctx = Fixture.CreateContext())
             {
                 var _ =
-                    ctx.GreatestLeastTestEntities
+                    ctx.MathTestEntities
                        .Select(x => Math.Min(x.Byte, x.Byte))
                        .ToArray();
 
                 AssertContainsSql("SELECT LEAST(x.\"Byte\", x.\"Byte\")");
+            }
+        }
+
+        #endregion
+
+        #region Log
+
+        [Fact]
+        public void Log_double_double()
+        {
+            using (var ctx = Fixture.CreateContext())
+            {
+                var _ =
+                    ctx.MathTestEntities
+                       .Select(x => Math.Log(x.Double, x.Double))
+                       .ToArray();
+
+                AssertContainsSql("SELECT CAST(LOG(CAST(x.\"Double\" AS numeric), CAST(x.\"Double\" AS numeric)) AS double precision)");
             }
         }
 
@@ -342,13 +362,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         /// <summary>
         /// Provides resources for unit tests.
         /// </summary>
-        GreatestLeastQueryNpgsqlFixture Fixture { get; }
+        MathQueryNpgsqlFixture Fixture { get; }
 
         /// <summary>
         /// Initializes resources for unit tests.
         /// </summary>
         /// <param name="fixture"> The fixture of resources for testing. </param>
-        public GreatestLeastQueryTest(GreatestLeastQueryNpgsqlFixture fixture)
+        public MathQueryTest(MathQueryNpgsqlFixture fixture)
         {
             Fixture = fixture;
             Fixture.TestSqlLoggerFactory.Clear();
@@ -361,7 +381,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         /// <summary>
         /// Represents a fixture suitable for testing GREATEST(...) and LEAST(...)/
         /// </summary>
-        public class GreatestLeastQueryNpgsqlFixture : IDisposable
+        public class MathQueryNpgsqlFixture : IDisposable
         {
             /// <summary>
             /// The <see cref="NpgsqlTestStore"/> used for testing.
@@ -379,10 +399,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             public TestSqlLoggerFactory TestSqlLoggerFactory { get; }
 
             /// <summary>
-            /// Initializes a <see cref="GreatestLeastQueryNpgsqlFixture"/>.
+            /// Initializes a <see cref="MathQueryNpgsqlFixture"/>.
             /// </summary>
             // ReSharper disable once UnusedMember.Global
-            public GreatestLeastQueryNpgsqlFixture()
+            public MathQueryNpgsqlFixture()
             {
                 TestSqlLoggerFactory = new TestSqlLoggerFactory();
 
@@ -398,19 +418,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                                 .BuildServiceProvider())
                         .Options;
 
-                using (GreatestLeastContext context = CreateContext())
+                using (MathContext context = CreateContext())
                 {
                     context.Database.EnsureCreated();
                 }
             }
 
             /// <summary>
-            /// Creates a new <see cref="GreatestLeastContext"/>.
+            /// Creates a new <see cref="MathContext"/>.
             /// </summary>
             /// <returns>
-            /// A <see cref="GreatestLeastContext"/> for testing.
+            /// A <see cref="MathContext"/> for testing.
             /// </returns>
-            public GreatestLeastContext CreateContext() => new GreatestLeastContext(_options);
+            public MathContext CreateContext() => new MathContext(_options);
 
             /// <inheritdoc />
             public void Dispose() => _testStore.Dispose();
@@ -419,7 +439,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         /// <summary>
         /// Represents an entity suitable for testing GREATEST(...) and LEAST(...) operators.
         /// </summary>
-        public class GreatestLeastTestEntity
+        public class MathTestEntity
         {
             public int Id { get; set; }
             public ushort UShort { get; set; }
@@ -438,15 +458,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         /// <summary>
         /// Represents a database suitable for testing GREATEST(...) and LEAST(...).
         /// </summary>
-        public class GreatestLeastContext : DbContext
+        public class MathContext : DbContext
         {
             /// <summary>
             /// Represents a set of entities with numeric properties.
             /// </summary>
-            public DbSet<GreatestLeastTestEntity> GreatestLeastTestEntities { get; set; }
+            public DbSet<MathTestEntity> MathTestEntities { get; set; }
 
             /// <inheritdoc />
-            public GreatestLeastContext(DbContextOptions options) : base(options) {}
+            public MathContext(DbContextOptions options) : base(options) {}
         }
 
         #endregion

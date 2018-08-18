@@ -1,4 +1,5 @@
 ﻿#region License
+
 // The PostgreSQL License
 //
 // Copyright (C) 2016 The Npgsql Development Team
@@ -19,117 +20,164 @@
 // AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
 // ON AN "AS IS" BASIS, AND THE NPGSQL DEVELOPMENT TEAM HAS NO OBLIGATIONS
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+
 #endregion
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 using System.Linq.Expressions;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
 using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
+    /// <summary>
+    /// Provides translation services for static <see cref="Math"/> methods..
+    /// </summary>
+    /// <remarks>
+    /// See:
+    ///   - https://www.postgresql.org/docs/current/static/functions-math.html
+    ///   - https://www.postgresql.org/docs/current/static/functions-conditional.html#FUNCTIONS-GREATEST-LEAST
+    /// </remarks>
     public class NpgsqlMathTranslator : IMethodCallTranslator
     {
-        static readonly Dictionary<MethodInfo, string> _supportedMethodTranslations = new Dictionary<MethodInfo, string>
-        {
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Abs), new[] { typeof(decimal) }), "ABS" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Abs), new[] { typeof(double) }), "ABS" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Abs), new[] { typeof(float) }), "ABS" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Abs), new[] { typeof(int) }), "ABS" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Abs), new[] { typeof(long) }), "ABS" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Abs), new[] { typeof(sbyte) }), "ABS" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Abs), new[] { typeof(short) }), "ABS" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Ceiling), new[] { typeof(decimal) }), "CEILING" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Ceiling), new[] { typeof(double) }), "CEILING" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Floor), new[] { typeof(decimal) }), "FLOOR" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Floor), new[] { typeof(double) }), "FLOOR" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Pow), new[] { typeof(double), typeof(double) }), "POWER" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Exp), new[] { typeof(double) }), "EXP" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Log10), new[] { typeof(double) }), "LOG" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Log), new[] { typeof(double) }), "LN" },
-            // Disabled because PG only has log(x,y) for numeric
-            //{ typeof(Math).GetRuntimeMethod(nameof(Math.Log), new[] { typeof(double), typeof(double) }), "LOG" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Sqrt), new[] { typeof(double) }), "SQRT" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Acos), new[] { typeof(double) }), "ACOS" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Asin), new[] { typeof(double) }), "ASIN" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Atan), new[] { typeof(double) }), "ATAN" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Atan2), new[] { typeof(double), typeof(double) }), "ATAN2" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Cos), new[] { typeof(double) }), "COS" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Sin), new[] { typeof(double) }), "SIN" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Tan), new[] { typeof(double) }), "TAN" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Sign), new[] { typeof(decimal) }), "SIGN" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Sign), new[] { typeof(double) }), "SIGN" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Sign), new[] { typeof(float) }), "SIGN" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Sign), new[] { typeof(int) }), "SIGN" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Sign), new[] { typeof(long) }), "SIGN" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Sign), new[] { typeof(sbyte) }), "SIGN" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Sign), new[] { typeof(short) }), "SIGN" }
-        };
+        /// <summary>
+        /// The backend version to target.
+        /// </summary>
+        [CanBeNull] readonly Version _postgresVersion;
 
-        static readonly IEnumerable<MethodInfo> _truncateMethodInfos = new[]
-        {
-            typeof(Math).GetRuntimeMethod(nameof(Math.Truncate), new[] { typeof(decimal) }),
-            typeof(Math).GetRuntimeMethod(nameof(Math.Truncate), new[] { typeof(double) })
-        };
+        /// <summary>
+        /// Initializes a new instance of the <see cref="NpgsqlMathTranslator"/> class.
+        /// </summary>
+        /// <param name="postgresVersion">The backend version to target.</param>
+        public NpgsqlMathTranslator([CanBeNull] Version postgresVersion) => _postgresVersion = postgresVersion;
 
-        static readonly IEnumerable<MethodInfo> _roundMethodInfos = new[]
+        /// <inheritdoc />
+        [CanBeNull]
+        public Expression Translate(MethodCallExpression expression)
         {
-            typeof(Math).GetRuntimeMethod(nameof(Math.Round), new[] { typeof(decimal) }),
-            typeof(Math).GetRuntimeMethod(nameof(Math.Round), new[] { typeof(double) }),
-            typeof(Math).GetRuntimeMethod(nameof(Math.Round), new[] { typeof(decimal), typeof(int) }),
-            typeof(Math).GetRuntimeMethod(nameof(Math.Round), new[] { typeof(double), typeof(int) })
-        };
+            var method = expression.Method;
 
-        public virtual Expression Translate(MethodCallExpression methodCallExpression)
-        {
-            Check.NotNull(methodCallExpression, nameof(methodCallExpression));
+            if (!method.IsStatic || method.DeclaringType != typeof(Math))
+                return null;
 
-            var method = methodCallExpression.Method;
-            if (_supportedMethodTranslations.TryGetValue(method, out string sqlFunctionName))
+            switch (method.Name)
             {
-                return new SqlFunctionExpression(
-                    sqlFunctionName,
-                    methodCallExpression.Type,
-                    methodCallExpression.Arguments);
-            }
+            case nameof(Math.Abs):
+                return new SqlFunctionExpression("ABS", expression.Type, expression.Arguments);
 
-            if (_truncateMethodInfos.Contains(method))
+            case nameof(Math.Acos):
+                return new SqlFunctionExpression("ACOS", expression.Type, expression.Arguments);
+
+            case nameof(Math.Asin):
+                return new SqlFunctionExpression("ASIN", expression.Type, expression.Arguments);
+
+            case nameof(Math.Atan):
+                return new SqlFunctionExpression("ATAN", expression.Type, expression.Arguments);
+
+            case nameof(Math.Atan2):
+                return new SqlFunctionExpression("ATAN2", expression.Type, expression.Arguments);
+
+            case nameof(Math.Ceiling):
+                return new SqlFunctionExpression("CEILING", expression.Type, expression.Arguments);
+
+            case nameof(Math.Cos):
+                return new SqlFunctionExpression("COS", expression.Type, expression.Arguments);
+
+            case nameof(Math.Exp):
+                return new SqlFunctionExpression("EXP", expression.Type, expression.Arguments);
+
+            case nameof(Math.Floor):
+                return new SqlFunctionExpression("FLOOR", expression.Type, expression.Arguments);
+
+            case nameof(Math.Max) when VersionAtLeast(8, 1):
+                return new SqlFunctionExpression("GREATEST", expression.Type, expression.Arguments);
+
+            case nameof(Math.Min) when VersionAtLeast(8, 1):
+                return new SqlFunctionExpression("LEAST", expression.Type, expression.Arguments);
+
+            case nameof(Math.Log) when expression.Arguments.Count == 1:
+                return new SqlFunctionExpression("LN", expression.Type, expression.Arguments);
+
+            case nameof(Math.Log) when expression.Arguments.Count == 2:
+                return
+                    new ExplicitCastExpression(
+                        new SqlFunctionExpression(
+                            "LOG",
+                            expression.Type,
+                            new[]
+                            {
+                                new ExplicitStoreTypeCastExpression(
+                                    expression.Arguments[0],
+                                    expression.Arguments[0].Type,
+                                    "numeric"),
+                                new ExplicitStoreTypeCastExpression(
+                                    expression.Arguments[1],
+                                    expression.Arguments[1].Type,
+                                    "numeric")
+                            }),
+                        expression.Type);
+
+            case nameof(Math.Log10):
+                return new SqlFunctionExpression("LOG", expression.Type, expression.Arguments);
+
+            case nameof(Math.Pow):
+                return new SqlFunctionExpression("POWER", expression.Type, expression.Arguments);
+
+            case nameof(Math.Round):
             {
-                var firstArgument = methodCallExpression.Arguments[0];
-
+                var firstArgument = expression.Arguments[0];
                 if (firstArgument.NodeType == ExpressionType.Convert)
-                {
                     firstArgument = new ExplicitCastExpression(firstArgument, firstArgument.Type);
-                }
-
-                return new SqlFunctionExpression(
-                    "TRUNC",
-                    methodCallExpression.Type,
-                    new[] { firstArgument });
-            }
-
-            if (_roundMethodInfos.Contains(method))
-            {
-                var firstArgument = methodCallExpression.Arguments[0];
-
-                if (firstArgument.NodeType == ExpressionType.Convert)
-                {
-                    firstArgument = new ExplicitCastExpression(firstArgument, firstArgument.Type);
-                }
 
                 return new SqlFunctionExpression(
                     "ROUND",
-                    methodCallExpression.Type,
-                    methodCallExpression.Arguments.Count == 1
+                    expression.Type,
+                    expression.Arguments.Count == 1
                         ? new[] { firstArgument }
-                        : new[] { firstArgument, methodCallExpression.Arguments[1] });
+                        : new[] { firstArgument, expression.Arguments[1] });
             }
 
-            return null;
+            case nameof(Math.Sign):
+                return new SqlFunctionExpression("SIGN", expression.Type, expression.Arguments);
+
+            case nameof(Math.Sin):
+                return new SqlFunctionExpression("SIN", expression.Type, expression.Arguments);
+
+            case nameof(Math.Sqrt):
+                return new SqlFunctionExpression("SQRT", expression.Type, expression.Arguments);
+
+            case nameof(Math.Tan):
+                return new SqlFunctionExpression("TAN", expression.Type, expression.Arguments);
+
+            case nameof(Math.Truncate):
+            {
+                var firstArgument = expression.Arguments[0];
+                if (firstArgument.NodeType == ExpressionType.Convert)
+                    firstArgument = new ExplicitCastExpression(firstArgument, firstArgument.Type);
+
+                return new SqlFunctionExpression("TRUNC", expression.Type, new[] { firstArgument });
+            }
+
+            default:
+                return null;
+            }
         }
+
+        #region Helpers
+
+        /// <summary>
+        /// True if <see cref="_postgresVersion"/> is null, greater than, or equal to the specified version.
+        /// </summary>
+        /// <param name="major">The major version.</param>
+        /// <param name="minor">The minor version.</param>
+        /// <returns>
+        /// True if <see cref="_postgresVersion"/> is null, greater than, or equal to the specified version.
+        /// </returns>
+        bool VersionAtLeast(int major, int minor)
+            => _postgresVersion is null || new Version(major, minor) <= _postgresVersion;
+
+        #endregion
     }
 }
