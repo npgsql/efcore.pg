@@ -349,7 +349,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                        .Select(x => Math.Log(x.Double, x.Double))
                        .ToArray();
 
-                AssertContainsSql("SELECT CAST(LOG(CAST(x.\"Double\" AS numeric), CAST(x.\"Double\" AS numeric)) AS double precision)");
+                AssertContainsSql(@"SELECT CASE
+    WHEN x.""Double"" = CAST('NaN' AS double precision)
+    THEN x.""Double"" ELSE CASE
+        WHEN x.""Double"" = CAST('NaN' AS double precision)
+        THEN x.""Double"" ELSE CASE
+            WHEN (x.""Double"" = 1.0) OR ((x.""Double"" <> 1.0) AND ((x.""Double"" = 0.0) OR (x.""Double"" = CAST('Infinity' AS double precision))))
+            THEN CAST('NaN' AS double precision) ELSE LN(x.""Double"") / LN(x.""Double"")
+        END
+    END
+END");
             }
         }
 
@@ -477,7 +486,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         /// Asserts that the SQL fragment appears in the logs.
         /// </summary>
         /// <param name="sql">The SQL statement or fragment to search for in the logs.</param>
-        public void AssertContainsSql(string sql) => Assert.Contains(sql, Fixture.TestSqlLoggerFactory.Sql);
+        public void AssertContainsSql(string sql) =>
+            Assert.Contains(
+                sql.Replace(Environment.NewLine, " ").Remove('\r').Remove('\n'),
+                Fixture.TestSqlLoggerFactory.Sql.Replace(Environment.NewLine, " ").Remove('\r').Remove('\n'));
 
         #endregion
     }

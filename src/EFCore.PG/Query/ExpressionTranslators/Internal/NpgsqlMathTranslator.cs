@@ -100,24 +100,77 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             case nameof(Math.Log) when expression.Arguments.Count == 1:
                 return new SqlFunctionExpression("LN", expression.Type, expression.Arguments);
 
+//            // Simple, but might not match C# semantics
+//            case nameof(Math.Log) when expression.Arguments.Count == 2:
+//                return
+//                    new ExplicitCastExpression(
+//                        new SqlFunctionExpression(
+//                            "LOG",
+//                            expression.Type,
+//                            new[]
+//                            {
+//                                new ExplicitStoreTypeCastExpression(
+//                                    expression.Arguments[0],
+//                                    expression.Arguments[0].Type,
+//                                    "numeric"),
+//                                new ExplicitStoreTypeCastExpression(
+//                                    expression.Arguments[1],
+//                                    expression.Arguments[1].Type,
+//                                    "numeric")
+//                            }),
+//                        expression.Type);
+
+            // Complicated, but matches C# semantics
             case nameof(Math.Log) when expression.Arguments.Count == 2:
+            {
+                // Decompiled with JetBrains decompiler
+                // Type: System.Math
+                // Assembly: System.Private.CoreLib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e
+                // MVID: 5322196E-EC4D-4A49-A05F-63EFDE8F0BE4
+                // Assembly location: C:\Program Files\dotnet\shared\Microsoft.NETCore.App\2.1.2\System.Private.CoreLib.dll
+                //
+                //public static double Log(double a, double newBase)
+                //{
+                //    if (double.IsNaN(a))
+                //        return a;
+                //    if (double.IsNaN(newBase))
+                //        return newBase;
+                //    if (newBase == 1.0 || a != 1.0 && (newBase == 0.0 || double.IsPositiveInfinity(newBase)))
+                //        return double.NaN;
+                //    return Math.Log(a) / Math.Log(newBase);
+                //}
+
+                var a = expression.Arguments[0];
+                var newBase = expression.Arguments[1];
+                // doesn't translate?
+//                var nan = Expression.Constant(double.NaN);
+                var nan = new ExplicitStoreTypeCastExpression(Expression.Constant("NaN"), typeof(double), "double precision");
+                var one = Expression.Constant(1.0);
+                var zero = Expression.Constant(0.0);
+                // doesn't translate?
+//                var positiveInfinity = Expression.Constant(double.PositiveInfinity);
+                var positiveInfinity = new ExplicitStoreTypeCastExpression(Expression.Constant("Infinity"), typeof(double), "double precision");
+
                 return
-                    new ExplicitCastExpression(
-                        new SqlFunctionExpression(
-                            "LOG",
-                            expression.Type,
-                            new[]
-                            {
-                                new ExplicitStoreTypeCastExpression(
-                                    expression.Arguments[0],
-                                    expression.Arguments[0].Type,
-                                    "numeric"),
-                                new ExplicitStoreTypeCastExpression(
-                                    expression.Arguments[1],
-                                    expression.Arguments[1].Type,
-                                    "numeric")
-                            }),
-                        expression.Type);
+                    Expression.Condition(
+                        Expression.Equal(a, nan),
+                        a,
+                        Expression.Condition(
+                            Expression.Equal(newBase, nan),
+                            newBase,
+                            Expression.Condition(
+                                Expression.OrElse(
+                                    Expression.Equal(newBase, one),
+                                    Expression.AndAlso(
+                                        Expression.NotEqual(a, one),
+                                        Expression.OrElse(
+                                            Expression.Equal(newBase, zero),
+                                            Expression.Equal(newBase, positiveInfinity)))),
+                                nan,
+                                Expression.Divide(
+                                    new SqlFunctionExpression("LN", expression.Type, new[] { a }),
+                                    new SqlFunctionExpression("LN", expression.Type, new[] { newBase })))));
+            }
 
             case nameof(Math.Log10):
                 return new SqlFunctionExpression("LOG", expression.Type, expression.Arguments);
