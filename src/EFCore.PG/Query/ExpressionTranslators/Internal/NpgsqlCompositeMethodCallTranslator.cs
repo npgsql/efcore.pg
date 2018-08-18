@@ -72,7 +72,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             var instanceTranslators =
                 new IMethodCallTranslator[]
                 {
-                    new NpgsqlDateAddTranslator(npgsqlOptions.PostgresVersion)
+                    new NpgsqlDateAddTranslator(npgsqlOptions.PostgresVersion),
+                    new NpgsqlGreatestLeastTranslator(npgsqlOptions.PostgresVersion)
                 };
 
             // ReSharper disable once DoNotCallOverridableMethodsInConstructor
