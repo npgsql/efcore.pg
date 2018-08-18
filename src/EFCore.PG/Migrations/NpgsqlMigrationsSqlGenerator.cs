@@ -28,6 +28,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
@@ -670,27 +671,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
+            GenerateEnumStatements(operation, model, builder);
+            GenerateRangeStatements(operation, model, builder);
+
             foreach (var extension in PostgresExtension.GetPostgresExtensions(operation))
                 GenerateCreateExtension(extension, model, builder);
-
-            foreach (var enumTypeToCreate in PostgresEnum.GetPostgresEnums(operation)
-                .Where(ne => PostgresEnum.GetPostgresEnums(operation.OldDatabase).All(oe => oe.Name != ne.Name)))
-            {
-                GenerateCreateEnum(enumTypeToCreate, model, builder);
-            }
-
-            foreach (var enumTypeToDrop in PostgresEnum.GetPostgresEnums(operation.OldDatabase)
-                .Where(oe => PostgresEnum.GetPostgresEnums(operation).All(ne => ne.Name != oe.Name)))
-            {
-                GenerateDropEnum(enumTypeToDrop, builder);
-            }
-
-            foreach (var enumTypeToAlter in from newEnum in PostgresEnum.GetPostgresEnums(operation)
-                join oldEnum in PostgresEnum.GetPostgresEnums(operation.OldDatabase) on newEnum.Name equals oldEnum.Name
-                select new { newEnum.Name, OldLabels = oldEnum.Labels, newLabels = newEnum.Labels })
-            {
-                // TODO: Some forms of enum alterations are actually supported... At least log...
-            }
 
             builder.EndCommand();
         }
@@ -719,6 +704,33 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             }
 
             builder.AppendLine(';');
+        }
+
+        #region Enum management
+
+        protected virtual void GenerateEnumStatements(
+                AlterDatabaseOperation operation,
+                IModel model,
+                MigrationCommandListBuilder builder)
+        {
+            foreach (var enumTypeToCreate in PostgresEnum.GetPostgresEnums(operation)
+                .Where(ne => PostgresEnum.GetPostgresEnums(operation.OldDatabase).All(oe => oe.Name != ne.Name)))
+            {
+                GenerateCreateEnum(enumTypeToCreate, model, builder);
+            }
+
+            foreach (var enumTypeToDrop in PostgresEnum.GetPostgresEnums(operation.OldDatabase)
+                .Where(oe => PostgresEnum.GetPostgresEnums(operation).All(ne => ne.Name != oe.Name)))
+            {
+                GenerateDropEnum(enumTypeToDrop, builder);
+            }
+
+            foreach (var enumTypeToAlter in from newEnum in PostgresEnum.GetPostgresEnums(operation)
+                join oldEnum in PostgresEnum.GetPostgresEnums(operation.OldDatabase) on newEnum.Name equals oldEnum.Name
+                select new { newEnum.Name, OldLabels = oldEnum.Labels, newLabels = newEnum.Labels })
+            {
+                // TODO: Some forms of enum alterations are actually supported... At least log...
+            }
         }
 
         protected virtual void GenerateCreateEnum(
@@ -756,6 +768,81 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(@enum.Name, @enum.Schema))
                 .AppendLine(";");
         }
+
+        #endregion Enum management
+
+        #region Range management
+
+        protected virtual void GenerateRangeStatements(
+                AlterDatabaseOperation operation,
+                IModel model,
+                MigrationCommandListBuilder builder)
+        {
+            foreach (var rangeTypeToCreate in PostgresRange.GetPostgresRanges(operation)
+                .Where(ne => PostgresRange.GetPostgresRanges(operation.OldDatabase).All(oe => oe.Name != ne.Name)))
+            {
+                GenerateCreateRange(rangeTypeToCreate, model, builder);
+            }
+
+            foreach (var rangeTypeToDrop in PostgresRange.GetPostgresRanges(operation.OldDatabase)
+                .Where(oe => PostgresRange.GetPostgresRanges(operation).All(ne => ne.Name != oe.Name)))
+            {
+                GenerateDropRange(rangeTypeToDrop, builder);
+            }
+
+            foreach (var rangeTypeToAlter in from newRange in PostgresRange.GetPostgresRanges(operation)
+                join oldRange in PostgresRange.GetPostgresRanges(operation.OldDatabase) on newRange.Name equals oldRange.Name
+                select oldRange)
+            {
+                throw new NotSupportedException($"Altering range type ${rangeTypeToAlter} isn't supported.");
+            }
+        }
+
+        protected virtual void GenerateCreateRange(
+            PostgresRange rangeType,
+            IModel model,
+            MigrationCommandListBuilder builder)
+        {
+            // Schemas are normally created (or rather ensured) by the model differ, which scans all tables, sequences
+            // and other database objects. However, it isn't aware of ranges, so we always ensure schema on range creation.
+            if (rangeType.Schema != null)
+                Generate(new EnsureSchemaOperation { Name=rangeType.Schema }, model, builder);
+
+            builder
+                .Append("CREATE TYPE ")
+                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(rangeType.Name, rangeType.Schema))
+                .AppendLine($" AS RANGE (")
+                .IncrementIndent();
+
+            var def = new List<string> { $"SUBTYPE = {rangeType.Subtype}" };
+            if (rangeType.CanonicalFunction != null)
+                def.Add($"CANONICAL = {rangeType.CanonicalFunction}");
+            if (rangeType.SubtypeOpClass != null)
+                def.Add($"SUBTYPE_OPCLASS = {rangeType.SubtypeOpClass}");
+            if (rangeType.CanonicalFunction != null)
+                def.Add($"COLLATION = {rangeType.Collation}");
+            if (rangeType.SubtypeDiff != null)
+                def.Add($"SUBTYPE_DIFF = {rangeType.SubtypeDiff}");
+
+            for (var i = 0; i < def.Count; i++)
+                builder
+                    .Append(def[i] + (i == def.Count - 1 ? null : ","))
+                    .AppendLine();
+
+            builder
+                .DecrementIndent()
+                .AppendLine(");");
+        }
+
+        protected virtual void GenerateDropRange(PostgresRange rangeType, MigrationCommandListBuilder builder)
+        {
+            builder
+                .Append("DROP TYPE ")
+                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(rangeType.Name, rangeType.Schema))
+                .AppendLine(";");
+        }
+
+        #endregion Range management
 
         protected override void Generate(DropIndexOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
         {

@@ -56,12 +56,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
         [NotNull] readonly TimeTzMapping _timetz = new TimeTzMapping();
         [NotNull] readonly IntervalMapping _period = new IntervalMapping();
 
-        [NotNull] readonly NpgsqlRangeTypeMapping<LocalDateTime> _timestampLocalDateTimeRange;
-        [NotNull] readonly NpgsqlRangeTypeMapping<Instant> _timestampInstantRange;
-        [NotNull] readonly NpgsqlRangeTypeMapping<Instant> _timestamptzInstantRange;
-        [NotNull] readonly NpgsqlRangeTypeMapping<ZonedDateTime> _timestamptzZonedDateTimeRange;
-        [NotNull] readonly NpgsqlRangeTypeMapping<OffsetDateTime> _timestamptzOffsetDateTimeRange;
-        [NotNull] readonly NpgsqlRangeTypeMapping<LocalDate> _dateRange;
+        [NotNull] readonly NpgsqlRangeTypeMapping _timestampLocalDateTimeRange;
+        [NotNull] readonly NpgsqlRangeTypeMapping _timestampInstantRange;
+        [NotNull] readonly NpgsqlRangeTypeMapping _timestamptzInstantRange;
+        [NotNull] readonly NpgsqlRangeTypeMapping _timestamptzZonedDateTimeRange;
+        [NotNull] readonly NpgsqlRangeTypeMapping _timestamptzOffsetDateTimeRange;
+        [NotNull] readonly NpgsqlRangeTypeMapping _dateRange;
 
         #endregion
 
@@ -91,23 +91,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
         /// </summary>
         public NodaTimePlugin()
         {
-            _timestampLocalDateTimeRange = new NpgsqlRangeTypeMapping<LocalDateTime>(
-                "tsrange", typeof(NpgsqlRange<LocalDateTime>), _timestampLocalDateTime, NpgsqlDbType.Range | NpgsqlDbType.Timestamp);
-
-            _timestampInstantRange = new NpgsqlRangeTypeMapping<Instant>(
-                "tsrange", typeof(NpgsqlRange<Instant>), _timestampInstant, NpgsqlDbType.Range | NpgsqlDbType.Timestamp);
-
-            _timestamptzInstantRange = new NpgsqlRangeTypeMapping<Instant>(
-                "tstzrange", typeof(NpgsqlRange<Instant>), _timestamptzInstant, NpgsqlDbType.Range | NpgsqlDbType.TimestampTz);
-
-            _timestamptzZonedDateTimeRange = new NpgsqlRangeTypeMapping<ZonedDateTime>(
-                "tstzrange", typeof(NpgsqlRange<ZonedDateTime>), _timestamptzZonedDateTime, NpgsqlDbType.Range | NpgsqlDbType.TimestampTz);
-
-            _timestamptzOffsetDateTimeRange = new NpgsqlRangeTypeMapping<OffsetDateTime>(
-                "tstzrange", typeof(NpgsqlRange<OffsetDateTime>), _timestamptzOffsetDateTime, NpgsqlDbType.Range | NpgsqlDbType.TimestampTz);
-
-            _dateRange = new NpgsqlRangeTypeMapping<LocalDate>(
-                "daterange", typeof(NpgsqlRange<LocalDate>), _date, NpgsqlDbType.Range | NpgsqlDbType.Date);
+            _timestampLocalDateTimeRange = new NpgsqlRangeTypeMapping("tsrange", typeof(NpgsqlRange<LocalDateTime>), _timestampLocalDateTime);
+            _timestampInstantRange = new NpgsqlRangeTypeMapping("tsrange", typeof(NpgsqlRange<Instant>), _timestampInstant);
+            _timestamptzInstantRange = new NpgsqlRangeTypeMapping("tstzrange", typeof(NpgsqlRange<Instant>), _timestamptzInstant);
+            _timestamptzZonedDateTimeRange = new NpgsqlRangeTypeMapping("tstzrange", typeof(NpgsqlRange<ZonedDateTime>), _timestamptzZonedDateTime);
+            _timestamptzOffsetDateTimeRange = new NpgsqlRangeTypeMapping("tstzrange", typeof(NpgsqlRange<OffsetDateTime>), _timestamptzOffsetDateTime);
+            _dateRange = new NpgsqlRangeTypeMapping("daterange", typeof(NpgsqlRange<LocalDate>), _date);
         }
 
         /// <inheritdoc />

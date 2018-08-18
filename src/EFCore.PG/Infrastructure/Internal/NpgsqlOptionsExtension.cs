@@ -38,9 +38,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
     /// </summary>
     public class NpgsqlOptionsExtension : RelationalOptionsExtension
     {
-        /// <summary>
-        /// The collection of database plugins.
-        /// </summary>
+        [NotNull] readonly List<(Type ElementClrType, string RangeName, string SubTypeName)> _rangeMappings;
+
         [NotNull] readonly List<NpgsqlEntityFrameworkPlugin> _plugins;
 
         /// <summary>
@@ -54,6 +53,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// </summary>
         [CanBeNull]
         public Version PostgresVersion { get; private set; }
+
+        /// <summary>
+        /// The list of range mappings specified by the user.
+        /// </summary>
+        [NotNull]
+        public List<(Type ElementClrType, string RangeName, string SubTypeName)> RangeMappings => _rangeMappings;
 
         /// <summary>
         /// The collection of database plugins.
@@ -83,7 +88,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// Initializes an instance of <see cref="NpgsqlOptionsExtension"/> with the default settings.
         /// </summary>
         public NpgsqlOptionsExtension()
-            => _plugins = new List<NpgsqlEntityFrameworkPlugin>();
+        {
+            _rangeMappings = new List<(Type ElementClrType, string RangeName, string SubTypeName)>();
+            _plugins = new List<NpgsqlEntityFrameworkPlugin>();
+        }
 
         // NB: When adding new options, make sure to update the copy ctor below.
         /// <summary>
@@ -93,6 +101,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         public NpgsqlOptionsExtension([NotNull] NpgsqlOptionsExtension copyFrom) : base(copyFrom)
         {
             AdminDatabase = copyFrom.AdminDatabase;
+            _rangeMappings = new List<(Type ElementClrType, string RangeName, string SubTypeName)>(copyFrom._rangeMappings);
             _plugins = new List<NpgsqlEntityFrameworkPlugin>(copyFrom._plugins);
             PostgresVersion = copyFrom.PostgresVersion;
             ProvideClientCertificatesCallback = copyFrom.ProvideClientCertificatesCallback;
@@ -117,6 +126,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         // The following is a hack to set the default minimum batch size to 2 in Npgsql
         // See https://github.com/aspnet/EntityFrameworkCore/pull/10091
         public override int? MinBatchSize => base.MinBatchSize ?? 2;
+
+        /// <summary>
+        /// Returns a copy of the current instance configured with the specified range mapping.
+        /// </summary>
+        [NotNull]
+        internal virtual NpgsqlOptionsExtension WithRangeMapping(Type elementClrType, string rangeName, string subtypeName)
+        {
+            var clone = (NpgsqlOptionsExtension)Clone();
+
+            clone.RangeMappings.Add((elementClrType, rangeName, subtypeName));
+
+            return clone;
+        }
 
         /// <summary>
         /// Returns a copy of the current instance configured to use the specified <see cref="NpgsqlEntityFrameworkPlugin"/>.

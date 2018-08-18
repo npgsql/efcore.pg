@@ -113,6 +113,33 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 
         #endregion Enum types
 
+        #region Range types
+
+        public virtual PostgresRange GetOrAddPostgresRange(
+            [CanBeNull] string schema,
+            [NotNull] string name,
+            [NotNull] string subtype,
+            string canonicalFunction = null,
+            string subtypeOpClass = null,
+            string collation = null,
+            string subtypeDiff = null)
+            => PostgresRange.GetOrAddPostgresRange((IMutableModel)Model, schema, name, subtype, canonicalFunction,
+                subtypeOpClass, collation, subtypeDiff);
+
+        public virtual PostgresRange GetOrAddPostgresRange(
+            [NotNull] string name,
+            [NotNull] string subtype)
+            => PostgresRange.GetOrAddPostgresRange((IMutableModel)Model, null, name, subtype);
+
+        public virtual IReadOnlyList<PostgresRange> PostgresRanges
+            => PostgresRange.GetPostgresRanges(Model).ToList();
+
+        #endregion Range types
+
+        #region User-defined range types
+
+        #endregion User-defined range types
+
         #region Database Template
 
         public virtual string DatabaseTemplate

@@ -75,6 +75,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal
         public override IEnumerable<IAnnotation> For(IModel model)
             => model.GetAnnotations().Where(a =>
                 a.Name.StartsWith(NpgsqlAnnotationNames.PostgresExtensionPrefix, StringComparison.Ordinal) ||
-                a.Name.StartsWith(NpgsqlAnnotationNames.EnumPrefix, StringComparison.Ordinal));
+                a.Name.StartsWith(NpgsqlAnnotationNames.EnumPrefix, StringComparison.Ordinal) ||
+                a.Name.StartsWith(NpgsqlAnnotationNames.RangePrefix, StringComparison.Ordinal));
     }
 }

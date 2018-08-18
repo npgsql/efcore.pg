@@ -25,6 +25,7 @@
 
 using System;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Internal;
@@ -43,7 +44,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         public virtual bool ReverseNullOrderingEnabled { get; private set; }
 
         /// <inheritdoc />
+        [NotNull]
+        public virtual IReadOnlyList<(Type ElementClrType, string RangeName, string SubTypeName)> RangeMappings { get; private set; }
+
+        /// <inheritdoc />
+        [NotNull]
         public virtual IReadOnlyList<NpgsqlEntityFrameworkPlugin> Plugins { get; private set; }
+
+        public NpgsqlOptions()
+        {
+            RangeMappings = new (Type, string, string)[0];
+            Plugins = new NpgsqlEntityFrameworkPlugin[0];
+        }
 
         /// <inheritdoc />
         public void Initialize(IDbContextOptions options)
@@ -53,6 +65,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
             PostgresVersion = npgsqlOptions.PostgresVersion;
             ReverseNullOrderingEnabled = npgsqlOptions.ReverseNullOrdering;
             Plugins = npgsqlOptions.Plugins;
+            RangeMappings = npgsqlOptions.RangeMappings;
         }
 
         /// <inheritdoc />

@@ -178,6 +178,61 @@ namespace Microsoft.EntityFrameworkCore
             return modelBuilder;
         }
 
+        /// <summary>
+        /// Registers a user-defined range type in the model.
+        /// </summary>
+        /// <param name="modelBuilder">The model builder on which to create the range type.</param>
+        /// <param name="schema">The schema in which to create the range type.</param>
+        /// <param name="name">The name of the range type to be created.</param>
+        /// <param name="subtype">The subtype (or element type) of the range</param>
+        /// <param name="canonicalFunction">
+        /// An optional PostgreSQL function which converts range values to a canonical form.
+        /// </param>
+        /// <param name="subtypeOpClass">Used to specify a non-default operator class.</param>
+        /// <param name="collation">Used to specify a non-default collation in the range's order.</param>
+        /// <param name="subtypeDiff">
+        /// An optional PostgreSQL function taking two values of the subtype type as argument, and return a double
+        /// precision value representing the difference between the two given values.
+        /// </param>
+        /// <remarks>
+        /// See https://www.postgresql.org/docs/current/static/rangetypes.html,
+        /// https://www.postgresql.org/docs/current/static/sql-createtype.html,
+        /// </remarks>
+        public static ModelBuilder ForNpgsqlHasRange(
+            [NotNull] this ModelBuilder modelBuilder,
+            [CanBeNull] string schema,
+            [NotNull] string name,
+            [NotNull] string subtype,
+            string canonicalFunction = null,
+            string subtypeOpClass = null,
+            string collation = null,
+            string subtypeDiff = null)
+        {
+            Check.NotNull(modelBuilder, nameof(modelBuilder));
+            Check.NotEmpty(name, nameof(name));
+            Check.NotEmpty(subtype, nameof(subtype));
+
+            modelBuilder.Model.Npgsql().GetOrAddPostgresRange(schema, name, subtype, canonicalFunction, subtypeOpClass,
+                collation, subtypeDiff);
+            return modelBuilder;
+        }
+
+        /// <summary>
+        /// Registers a user-defined range type in the model.
+        /// </summary>
+        /// <param name="modelBuilder">The model builder on which to create the range type.</param>
+        /// <param name="name">The name of the range type to be created.</param>
+        /// <param name="subtype">The subtype (or element type) of the range</param>
+        /// <remarks>
+        /// See https://www.postgresql.org/docs/current/static/rangetypes.html,
+        /// https://www.postgresql.org/docs/current/static/sql-createtype.html,
+        /// </remarks>
+        public static ModelBuilder ForNpgsqlHasRange(
+            [NotNull] this ModelBuilder modelBuilder,
+            [NotNull] string name,
+            [NotNull] string subtype)
+            => ForNpgsqlHasRange(modelBuilder, null, name, subtype);
+
         public static ModelBuilder ForNpgsqlUseTablespace(
             [NotNull] this ModelBuilder modelBuilder,
             [NotNull] string tablespace)

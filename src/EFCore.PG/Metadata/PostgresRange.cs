@@ -1,0 +1,190 @@
+﻿#region License
+// The PostgreSQL License
+//
+// Copyright (C) 2016 The Npgsql Development Team
+//
+// Permission to use, copy, modify, and distribute this software and its
+// documentation for any purpose, without fee, and without a written
+// agreement is hereby granted, provided that the above copyright notice
+// and this paragraph and the following two paragraphs appear in all copies.
+//
+// IN NO EVENT SHALL THE NPGSQL DEVELOPMENT TEAM BE LIABLE TO ANY PARTY
+// FOR DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES,
+// INCLUDING LOST PROFITS, ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS
+// DOCUMENTATION, EVEN IF THE NPGSQL DEVELOPMENT TEAM HAS BEEN ADVISED OF
+// THE POSSIBILITY OF SUCH DAMAGE.
+//
+// THE NPGSQL DEVELOPMENT TEAM SPECIFICALLY DISCLAIMS ANY WARRANTIES,
+// INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+// AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
+// ON AN "AS IS" BASIS, AND THE NPGSQL DEVELOPMENT TEAM HAS NO OBLIGATIONS
+// TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+#endregion
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Storage;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
+
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
+{
+    public class PostgresRange
+    {
+        readonly IAnnotatable _annotatable;
+        readonly string _annotationName;
+
+        internal PostgresRange(IAnnotatable annotatable, string annotationName)
+        {
+            _annotatable = annotatable;
+            _annotationName = annotationName;
+        }
+
+        public static PostgresRange GetOrAddPostgresRange(
+            [NotNull] IMutableAnnotatable annotatable,
+            [CanBeNull] string schema,
+            [NotNull] string name,
+            [NotNull] string subtype,
+            string canonicalFunction = null,
+            string subtypeOpClass = null,
+            string collation = null,
+            string subtypeDiff = null)
+        {
+            var rangeType = FindPostgresRange(annotatable, schema, name);
+            if (rangeType != null)
+                return rangeType;
+
+            rangeType = new PostgresRange(annotatable, BuildAnnotationName(schema, name));
+            rangeType.SetData(subtype, canonicalFunction, subtypeOpClass, collation, subtypeDiff);
+            return rangeType;
+        }
+
+        public static PostgresRange FindPostgresRange(
+            [NotNull] IAnnotatable annotatable,
+            [CanBeNull] string schema,
+            [NotNull] string name)
+        {
+            Check.NotNull(annotatable, nameof(annotatable));
+            Check.NotEmpty(name, nameof(name));
+
+            var annotationName = BuildAnnotationName(schema, name);
+
+            return annotatable[annotationName] == null ? null : new PostgresRange(annotatable, annotationName);
+        }
+
+        static string BuildAnnotationName(string schema, string name)
+            => NpgsqlAnnotationNames.RangePrefix + (schema == null ? name : schema + '.' + name);
+
+        public static IEnumerable<PostgresRange> GetPostgresRanges([NotNull] IAnnotatable annotatable)
+        {
+            Check.NotNull(annotatable, nameof(annotatable));
+
+            return annotatable.GetAnnotations()
+                .Where(a => a.Name.StartsWith(NpgsqlAnnotationNames.RangePrefix, StringComparison.Ordinal))
+                .Select(a => new PostgresRange(annotatable, a.Name));
+        }
+
+        public Annotatable Annotatable => (Annotatable)_annotatable;
+
+        public string Schema => GetData().Schema;
+
+        public string Name => GetData().Name;
+
+        public string Subtype
+        {
+            get => GetData().Subtype;
+            set
+            {
+                var x = GetData();
+                var (_, _, _, canonicalFunction, subtypeOpClass, collation, subtypeDiff) = GetData();
+                SetData(value, canonicalFunction, subtypeOpClass, collation, subtypeDiff);
+            }
+        }
+
+        public string CanonicalFunction
+        {
+            get => GetData().CanonicalFunction;
+            set
+            {
+                var x = GetData();
+                var (_, _, subtype, _, subtypeOpClass, collation, subtypeDiff) = GetData();
+                SetData(subtype, value, subtypeOpClass, collation, subtypeDiff);
+            }
+        }
+
+        public string SubtypeOpClass
+        {
+            get => GetData().SubtypeOpClass;
+            set
+            {
+                var x = GetData();
+                var (_, _, subtype, canonicalFunction, _, collation, subtypeDiff) = GetData();
+                SetData(subtype, canonicalFunction, value, collation, subtypeDiff);
+            }
+        }
+
+        public string Collation
+        {
+            get => GetData().Collation;
+            set
+            {
+                var x = GetData();
+                var (_, _, subtype, canonicalFunction, subtypeOpClass, _, subtypeDiff) = GetData();
+                SetData(subtype, canonicalFunction, subtypeOpClass, value, subtypeDiff);
+            }
+        }
+
+        public string SubtypeDiff
+        {
+            get => GetData().SubtypeDiff;
+            set
+            {
+                var x = GetData();
+                var (_, _, subtype, canonicalFunction, subtypeOpClass, collation, _) = GetData();
+                SetData(subtype, canonicalFunction, subtypeOpClass, collation, value);
+            }
+        }
+
+        (string Schema, string Name, string Subtype, string CanonicalFunction, string SubtypeOpClass, string Collation,
+            string SubtypeDiff) GetData()
+        {
+            return !(Annotatable[_annotationName] is string annotationValue)
+                ? (null, null, null, null, null, null, null)
+                : Deserialize(_annotationName, annotationValue);
+        }
+
+        void SetData(string subtype, string canonicalFunction, string subtypeOpClass, string collation, string subtypeDiff)
+            => Annotatable[_annotationName] = $"{subtype},{canonicalFunction},{subtypeOpClass},{collation},{subtypeDiff}";
+
+        static (string Schema, string Name, string Subtype, string CanonicalFunction, string SubtypeOpClass, string collation, string SubtypeDiff)
+            Deserialize([NotNull] string annotationName, [NotNull] string annotationValue)
+        {
+            Check.NotEmpty(annotationValue, nameof(annotationValue));
+
+            var elements = annotationValue.Split(',').ToArray();
+            if (elements.Length != 5)
+                throw new ArgumentException("Cannot parse range annotation value: " + annotationValue);
+            for (var i = 0; i < 5; i++)
+                if (elements[i] == "")
+                    elements[i] = null;
+
+            // Yes, this doesn't support dots in the schema/range name, let somebody complain first.
+            var schemaAndName = annotationName.Substring(NpgsqlAnnotationNames.RangePrefix.Length).Split('.');
+            switch (schemaAndName.Length)
+            {
+            case 1:
+                return (null, schemaAndName[0], elements[0], elements[1], elements[2], elements[3], elements[4]);
+            case 2:
+                return (schemaAndName[0], schemaAndName[1], elements[0], elements[1], elements[2], elements[3], elements[4]);
+            default:
+                throw new ArgumentException("Cannot parse enum name from annotation: " + annotationName);
+            }
+        }
+    }
+}
