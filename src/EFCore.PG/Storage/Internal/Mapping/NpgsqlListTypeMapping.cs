@@ -52,10 +52,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
         /// <inheritdoc />
         NpgsqlListTypeMapping(string storeType, RelationalTypeMapping elementMapping, Type listType)
-            : base(
-                new RelationalTypeMappingParameters(
-                    new CoreTypeMappingParameters(listType, null, CreateComparer(elementMapping, listType)), storeType))
-            => ElementMapping = elementMapping;
+            : this(new RelationalTypeMappingParameters(
+                new CoreTypeMappingParameters(listType, null, CreateComparer(elementMapping, listType)), storeType
+            ), elementMapping) {}
 
         /// <inheritdoc />
         protected NpgsqlListTypeMapping(RelationalTypeMappingParameters parameters, RelationalTypeMapping elementMapping)
@@ -63,12 +62,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             => ElementMapping = elementMapping;
 
         /// <inheritdoc />
-        public override RelationalTypeMapping Clone(string storeType, int? size)
-            => new NpgsqlListTypeMapping(StoreType, ElementMapping, ClrType);
-
-        /// <inheritdoc />
-        public override CoreTypeMapping Clone(ValueConverter converter)
-            => new NpgsqlListTypeMapping(Parameters.WithComposedConverter(converter), ElementMapping);
+        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
+            => new NpgsqlListTypeMapping(parameters, ElementMapping);
 
         /// <inheritdoc />
         protected override string GenerateNonNullSqlLiteral(object value)

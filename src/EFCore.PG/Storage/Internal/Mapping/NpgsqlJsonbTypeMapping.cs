@@ -10,14 +10,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     {
         public NpgsqlJsonbTypeMapping() : base("jsonb", typeof(string), NpgsqlDbType.Jsonb) {}
 
-        protected NpgsqlJsonbTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
-            : base(parameters, npgsqlDbType) {}
+        protected NpgsqlJsonbTypeMapping(RelationalTypeMappingParameters parameters)
+            : base(parameters, NpgsqlDbType.Jsonb) {}
 
-        public override RelationalTypeMapping Clone(string storeType, int? size)
-            => new NpgsqlJsonbTypeMapping(Parameters.WithStoreTypeAndSize(storeType, size), NpgsqlDbType);
-
-        public override CoreTypeMapping Clone(ValueConverter converter)
-            => new NpgsqlJsonbTypeMapping(Parameters.WithComposedConverter(converter), NpgsqlDbType);
+        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
+            => new NpgsqlJsonbTypeMapping(parameters);
 
         protected override string GenerateNonNullSqlLiteral(object value)
             => $"JSONB '{EscapeSqlLiteral((string)value)}'";

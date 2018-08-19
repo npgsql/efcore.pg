@@ -10,14 +10,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     {
         public NpgsqlXmlTypeMapping() : base("xml", typeof(string), NpgsqlDbType.Xml) {}
 
-        protected NpgsqlXmlTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
-            : base(parameters, npgsqlDbType) {}
+        protected NpgsqlXmlTypeMapping(RelationalTypeMappingParameters parameters)
+            : base(parameters, NpgsqlDbType.Xml) {}
 
-        public override RelationalTypeMapping Clone(string storeType, int? size)
-            => new NpgsqlXmlTypeMapping(Parameters.WithStoreTypeAndSize(storeType, size), NpgsqlDbType);
-
-        public override CoreTypeMapping Clone(ValueConverter converter)
-            => new NpgsqlXmlTypeMapping(Parameters.WithComposedConverter(converter), NpgsqlDbType);
+        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
+            => new NpgsqlXmlTypeMapping(parameters);
 
         protected override string GenerateNonNullSqlLiteral(object value)
             => $"XML '{EscapeSqlLiteral((string)value)}'";

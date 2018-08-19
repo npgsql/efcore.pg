@@ -35,14 +35,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     {
         public NpgsqlMacaddrTypeMapping() : base("macaddr", typeof(PhysicalAddress), NpgsqlDbType.MacAddr) {}
 
-        protected NpgsqlMacaddrTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
-            : base(parameters, npgsqlDbType) {}
+        protected NpgsqlMacaddrTypeMapping(RelationalTypeMappingParameters parameters)
+            : base(parameters, NpgsqlDbType.MacAddr) {}
 
-        public override RelationalTypeMapping Clone(string storeType, int? size)
-            => new NpgsqlMacaddrTypeMapping(Parameters.WithStoreTypeAndSize(storeType, size), NpgsqlDbType);
-
-        public override CoreTypeMapping Clone(ValueConverter converter)
-            => new NpgsqlMacaddrTypeMapping(Parameters.WithComposedConverter(converter), NpgsqlDbType);
+        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
+            => new NpgsqlMacaddrTypeMapping(parameters);
 
         protected override string GenerateNonNullSqlLiteral(object value)
             => $"MACADDR '{(PhysicalAddress)value}'";
@@ -52,14 +49,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     {
         public NpgsqlMacaddr8TypeMapping() : base("macaddr8", typeof(PhysicalAddress), NpgsqlDbType.MacAddr8) {}
 
-        protected NpgsqlMacaddr8TypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
-            : base(parameters, npgsqlDbType) {}
+        protected NpgsqlMacaddr8TypeMapping(RelationalTypeMappingParameters parameters)
+            : base(parameters, NpgsqlDbType.MacAddr8) {}
 
-        public override RelationalTypeMapping Clone(string storeType, int? size)
-            => new NpgsqlMacaddr8TypeMapping(Parameters.WithStoreTypeAndSize(storeType, size), NpgsqlDbType);
-
-        public override CoreTypeMapping Clone(ValueConverter converter)
-            => new NpgsqlMacaddr8TypeMapping(Parameters.WithComposedConverter(converter), NpgsqlDbType);
+        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
+            => new NpgsqlMacaddr8TypeMapping(parameters);
 
         protected override string GenerateNonNullSqlLiteral(object value)
             => $"MACADDR8 '{(PhysicalAddress)value}'";
@@ -69,14 +63,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     {
         public NpgsqlInetTypeMapping() : base("inet", typeof(IPAddress), NpgsqlDbType.Inet) {}
 
-        protected NpgsqlInetTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
-            : base(parameters, npgsqlDbType) {}
+        protected NpgsqlInetTypeMapping(RelationalTypeMappingParameters parameters)
+            : base(parameters, NpgsqlDbType.Inet) {}
 
-        public override RelationalTypeMapping Clone(string storeType, int? size)
-            => new NpgsqlInetTypeMapping(Parameters.WithStoreTypeAndSize(storeType, size), NpgsqlDbType);
-
-        public override CoreTypeMapping Clone(ValueConverter converter)
-            => new NpgsqlInetTypeMapping(Parameters.WithComposedConverter(converter), NpgsqlDbType);
+        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
+            => new NpgsqlInetTypeMapping(parameters);
 
         protected override string GenerateNonNullSqlLiteral(object value)
             => $"INET '{(IPAddress)value}'";
@@ -86,14 +77,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     {
         public NpgsqlCidrTypeMapping() : base("cidr", typeof((IPAddress, int)), NpgsqlDbType.Cidr) {}
 
-        protected NpgsqlCidrTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
-            : base(parameters, npgsqlDbType) {}
+        protected NpgsqlCidrTypeMapping(RelationalTypeMappingParameters parameters)
+            : base(parameters, NpgsqlTypes.NpgsqlDbType.Cidr) {}
 
-        public override RelationalTypeMapping Clone(string storeType, int? size)
-            => new NpgsqlCidrTypeMapping(Parameters.WithStoreTypeAndSize(storeType, size), NpgsqlDbType);
-
-        public override CoreTypeMapping Clone(ValueConverter converter)
-            => new NpgsqlCidrTypeMapping(Parameters.WithComposedConverter(converter), NpgsqlDbType);
+        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
+            => new NpgsqlCidrTypeMapping(parameters);
 
         protected override string GenerateNonNullSqlLiteral(object value)
         {

@@ -12,10 +12,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         protected NpgsqlUintTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
             : base(parameters, npgsqlDbType) {}
 
-        public override RelationalTypeMapping Clone(string storeType, int? size)
-            => new NpgsqlUintTypeMapping(Parameters.WithStoreTypeAndSize(storeType, size), NpgsqlDbType);
-
-        public override CoreTypeMapping Clone(ValueConverter converter)
-            => new NpgsqlUintTypeMapping(Parameters.WithComposedConverter(converter), NpgsqlDbType);
+        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
+            => new NpgsqlUintTypeMapping(parameters, NpgsqlDbType);
     }
 }

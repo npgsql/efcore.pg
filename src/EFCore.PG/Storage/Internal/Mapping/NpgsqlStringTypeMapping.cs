@@ -15,11 +15,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
         protected NpgsqlStringTypeMapping(RelationalTypeMappingParameters parameters) : base(parameters) {}
 
-        public override RelationalTypeMapping Clone(string storeType, int? size)
-            => new NpgsqlStringTypeMapping(Parameters.WithStoreTypeAndSize(storeType, size));
-
-        public override CoreTypeMapping Clone(ValueConverter converter)
-            => new NpgsqlStringTypeMapping(Parameters.WithComposedConverter(converter));
+        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
+            => new NpgsqlStringTypeMapping(parameters);
 
         protected override void ConfigureParameter(DbParameter parameter)
         {

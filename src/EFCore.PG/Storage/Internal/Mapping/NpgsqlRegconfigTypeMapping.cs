@@ -10,13 +10,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     {
         public NpgsqlRegconfigTypeMapping() : base("regconfig", typeof(string), NpgsqlDbType.Unknown) { }
 
-        protected NpgsqlRegconfigTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
-            : base(parameters, npgsqlDbType) {}
+        protected NpgsqlRegconfigTypeMapping(RelationalTypeMappingParameters parameters)
+            : base(parameters, NpgsqlDbType.Unknown) {}
 
-        public override RelationalTypeMapping Clone(string storeType, int? size)
-            => new NpgsqlRegconfigTypeMapping(Parameters.WithStoreTypeAndSize(storeType, size), NpgsqlDbType);
-
-        public override CoreTypeMapping Clone(ValueConverter converter)
-            => new NpgsqlRegconfigTypeMapping(Parameters.WithComposedConverter(converter), NpgsqlDbType);
+        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
+            => new NpgsqlRegconfigTypeMapping(parameters);
     }
 }

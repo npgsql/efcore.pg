@@ -10,14 +10,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     {
         public NpgsqlTsVectorTypeMapping() : base("tsvector", typeof(NpgsqlTsVector), NpgsqlDbType.TsVector) { }
 
-        protected NpgsqlTsVectorTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
-            : base(parameters, npgsqlDbType) {}
+        protected NpgsqlTsVectorTypeMapping(RelationalTypeMappingParameters parameters)
+            : base(parameters, NpgsqlDbType.TsVector) {}
 
-        public override RelationalTypeMapping Clone(string storeType, int? size)
-            => new NpgsqlTsVectorTypeMapping(Parameters.WithStoreTypeAndSize(storeType, size), NpgsqlDbType);
-
-        public override CoreTypeMapping Clone(ValueConverter converter)
-            => new NpgsqlTsVectorTypeMapping(Parameters.WithComposedConverter(converter), NpgsqlDbType);
+        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
+            => new NpgsqlTsVectorTypeMapping(parameters);
 
         protected override string GenerateNonNullSqlLiteral(object value)
         {

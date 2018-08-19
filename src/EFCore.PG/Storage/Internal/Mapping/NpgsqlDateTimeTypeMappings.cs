@@ -9,14 +9,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     {
         public NpgsqlTimestampTypeMapping() : base("timestamp without time zone", typeof(DateTime), NpgsqlDbType.Timestamp) {}
 
-        protected NpgsqlTimestampTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
-            : base(parameters, npgsqlDbType) {}
+        protected NpgsqlTimestampTypeMapping(RelationalTypeMappingParameters parameters)
+            : base(parameters, NpgsqlDbType.Timestamp) {}
 
-        public override RelationalTypeMapping Clone(string storeType, int? size)
-            => new NpgsqlTimestampTypeMapping(Parameters.WithStoreTypeAndSize(storeType, size), NpgsqlDbType);
-
-        public override CoreTypeMapping Clone(ValueConverter converter)
-            => new NpgsqlTimestampTypeMapping(Parameters.WithComposedConverter(converter), NpgsqlDbType);
+        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
+            => new NpgsqlTimestampTypeMapping(parameters);
 
         protected override string GenerateNonNullSqlLiteral(object value)
             => $"TIMESTAMP '{(DateTime)value:yyyy-MM-dd HH:mm:ss.FFFFFF}'";
@@ -26,14 +23,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     {
         public NpgsqlTimestampTzTypeMapping(Type clrType) : base("timestamp with time zone", clrType, NpgsqlDbType.TimestampTz) {}
 
-        protected NpgsqlTimestampTzTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
-            : base(parameters, npgsqlDbType) {}
+        protected NpgsqlTimestampTzTypeMapping(RelationalTypeMappingParameters parameters)
+            : base(parameters, NpgsqlDbType.TimestampTz) {}
 
-        public override RelationalTypeMapping Clone(string storeType, int? size)
-            => new NpgsqlTimestampTzTypeMapping(Parameters.WithStoreTypeAndSize(storeType, size), NpgsqlDbType);
-
-        public override CoreTypeMapping Clone(ValueConverter converter)
-            => new NpgsqlTimestampTzTypeMapping(Parameters.WithComposedConverter(converter), NpgsqlDbType);
+        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
+            => new NpgsqlTimestampTzTypeMapping(parameters);
 
         protected override string GenerateNonNullSqlLiteral(object value)
         {
@@ -61,14 +55,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     {
         public NpgsqlDateTypeMapping() : base("date", typeof(DateTime), NpgsqlDbType.Date) {}
 
-        protected NpgsqlDateTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
-            : base(parameters, npgsqlDbType) {}
+        protected NpgsqlDateTypeMapping(RelationalTypeMappingParameters parameters)
+            : base(parameters, NpgsqlDbType.Date) {}
 
-        public override RelationalTypeMapping Clone(string storeType, int? size)
-            => new NpgsqlDateTypeMapping(Parameters.WithStoreTypeAndSize(storeType, size), NpgsqlDbType);
-
-        public override CoreTypeMapping Clone(ValueConverter converter)
-            => new NpgsqlDateTypeMapping(Parameters.WithComposedConverter(converter), NpgsqlDbType);
+        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
+            => new NpgsqlDateTypeMapping(parameters);
 
         protected override string GenerateNonNullSqlLiteral(object value)
             => $"DATE '{(DateTime)value:yyyy-MM-dd}'";
@@ -78,14 +69,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     {
         public NpgsqlTimeTypeMapping() : base("time without time zone", typeof(TimeSpan), NpgsqlDbType.Time) {}
 
-        protected NpgsqlTimeTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
-            : base(parameters, npgsqlDbType) {}
+        protected NpgsqlTimeTypeMapping(RelationalTypeMappingParameters parameters)
+            : base(parameters, NpgsqlDbType.Time) {}
 
-        public override RelationalTypeMapping Clone(string storeType, int? size)
-            => new NpgsqlTimeTypeMapping(Parameters.WithStoreTypeAndSize(storeType, size), NpgsqlDbType);
-
-        public override CoreTypeMapping Clone(ValueConverter converter)
-            => new NpgsqlTimeTypeMapping(Parameters.WithComposedConverter(converter), NpgsqlDbType);
+        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
+            => new NpgsqlTimeTypeMapping(parameters);
 
         protected override string GenerateNonNullSqlLiteral(object value)
         {
@@ -100,14 +88,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     {
         public NpgsqlTimeTzTypeMapping() : base("time with time zone", typeof(DateTimeOffset), NpgsqlDbType.TimeTz) {}
 
-        protected NpgsqlTimeTzTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
-            : base(parameters, npgsqlDbType) {}
+        protected NpgsqlTimeTzTypeMapping(RelationalTypeMappingParameters parameters)
+            : base(parameters, NpgsqlDbType.TimeTz) {}
 
-        public override RelationalTypeMapping Clone(string storeType, int? size)
-            => new NpgsqlTimeTzTypeMapping(Parameters.WithStoreTypeAndSize(storeType, size), NpgsqlDbType);
-
-        public override CoreTypeMapping Clone(ValueConverter converter)
-            => new NpgsqlTimeTzTypeMapping(Parameters.WithComposedConverter(converter), NpgsqlDbType);
+        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
+            => new NpgsqlTimeTzTypeMapping(parameters);
 
         protected override string GenerateNonNullSqlLiteral(object value)
             => $"TIMETZ '{(DateTimeOffset)value:HH:mm:ss.FFFFFFz}'";
@@ -117,14 +102,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     {
         public NpgsqlIntervalTypeMapping() : base("interval", typeof(TimeSpan), NpgsqlDbType.Interval) {}
 
-        protected NpgsqlIntervalTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
-            : base(parameters, npgsqlDbType) {}
+        protected NpgsqlIntervalTypeMapping(RelationalTypeMappingParameters parameters)
+            : base(parameters, NpgsqlDbType.Interval) {}
 
-        public override RelationalTypeMapping Clone(string storeType, int? size)
-            => new NpgsqlIntervalTypeMapping(Parameters.WithStoreTypeAndSize(storeType, size), NpgsqlDbType);
-
-        public override CoreTypeMapping Clone(ValueConverter converter)
-            => new NpgsqlIntervalTypeMapping(Parameters.WithComposedConverter(converter), NpgsqlDbType);
+        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
+            => new NpgsqlIntervalTypeMapping(parameters);
 
         protected override string GenerateNonNullSqlLiteral(object value)
         {

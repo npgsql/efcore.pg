@@ -14,11 +14,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         protected NpgsqlTsRankingNormalizationTypeMapping(RelationalTypeMappingParameters parameters)
             : base(parameters) {}
 
-        public override RelationalTypeMapping Clone(string storeType, int? size)
-            => new NpgsqlTsRankingNormalizationTypeMapping(Parameters.WithStoreTypeAndSize(storeType, size));
-
-        public override CoreTypeMapping Clone(ValueConverter converter)
-            => new NpgsqlTsRankingNormalizationTypeMapping(Parameters.WithComposedConverter(converter));
-
+        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
+            => new NpgsqlTsRankingNormalizationTypeMapping(parameters);
     }
 }

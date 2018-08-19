@@ -10,14 +10,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     {
         public NpgsqlTsQueryTypeMapping() : base("tsquery", typeof(NpgsqlTsQuery), NpgsqlDbType.TsQuery) { }
 
-        protected NpgsqlTsQueryTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
-            : base(parameters, npgsqlDbType) {}
+        protected NpgsqlTsQueryTypeMapping(RelationalTypeMappingParameters parameters)
+            : base(parameters, NpgsqlDbType.TsQuery) {}
 
-        public override RelationalTypeMapping Clone(string storeType, int? size)
-            => new NpgsqlTsQueryTypeMapping(Parameters.WithStoreTypeAndSize(storeType, size), NpgsqlDbType);
-
-        public override CoreTypeMapping Clone(ValueConverter converter)
-            => new NpgsqlTsQueryTypeMapping(Parameters.WithComposedConverter(converter), NpgsqlDbType);
+        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
+            => new NpgsqlTsQueryTypeMapping(parameters);
 
         protected override string GenerateNonNullSqlLiteral(object value)
         {
