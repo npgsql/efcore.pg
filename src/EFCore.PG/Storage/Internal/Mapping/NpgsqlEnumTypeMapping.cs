@@ -25,11 +25,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             _sqlGenerationHelper = new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies());
         }
 
-        public override RelationalTypeMapping Clone(string storeType, int? size)
-            => new NpgsqlEnumTypeMapping(storeType, ClrType, _nameTranslator);
-
-        public override CoreTypeMapping Clone(ValueConverter converter)
-            => new NpgsqlEnumTypeMapping(Parameters.WithComposedConverter(converter), _nameTranslator);
+        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
+            => new NpgsqlEnumTypeMapping(parameters, _nameTranslator);
 
         protected override string GenerateNonNullSqlLiteral(object value)
             => $"'{_nameTranslator.TranslateMemberName(value.ToString())}'::{_sqlGenerationHelper.DelimitIdentifier(StoreType)}";

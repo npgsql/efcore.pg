@@ -10,14 +10,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     {
         public NpgsqlCitextTypeMapping() : base("citext", typeof(string), NpgsqlDbType.Citext) {}
 
-        protected NpgsqlCitextTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
-            : base(parameters, npgsqlDbType) {}
+        protected NpgsqlCitextTypeMapping(RelationalTypeMappingParameters parameters)
+            : base(parameters, NpgsqlDbType.Citext) {}
 
-        public override RelationalTypeMapping Clone(string storeType, int? size)
-            => new NpgsqlCitextTypeMapping(Parameters.WithStoreTypeAndSize(storeType, size), NpgsqlDbType);
-
-        public override CoreTypeMapping Clone(ValueConverter converter)
-            => new NpgsqlCitextTypeMapping(Parameters.WithComposedConverter(converter), NpgsqlDbType);
+        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
+            => new NpgsqlCitextTypeMapping(parameters);
 
         protected override string GenerateNonNullSqlLiteral(object value)
             => $"CITEXT '{EscapeSqlLiteral((string)value)}'";

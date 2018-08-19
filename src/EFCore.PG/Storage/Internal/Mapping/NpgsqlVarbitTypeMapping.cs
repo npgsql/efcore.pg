@@ -15,14 +15,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     {
         public NpgsqlVarbitTypeMapping() : base("bit varying", typeof(BitArray), NpgsqlDbType.Varbit) {}
 
-        protected NpgsqlVarbitTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
-            : base(parameters, npgsqlDbType) {}
+        protected NpgsqlVarbitTypeMapping(RelationalTypeMappingParameters parameters)
+            : base(parameters, NpgsqlDbType.Varbit) {}
 
-        public override RelationalTypeMapping Clone(string storeType, int? size)
-            => new NpgsqlVarbitTypeMapping(Parameters.WithStoreTypeAndSize(storeType, size), NpgsqlDbType);
-
-        public override CoreTypeMapping Clone(ValueConverter converter)
-            => new NpgsqlVarbitTypeMapping(Parameters.WithComposedConverter(converter), NpgsqlDbType);
+        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
+            => new NpgsqlVarbitTypeMapping(parameters);
 
         protected override string GenerateNonNullSqlLiteral(object value)
         {
@@ -33,7 +30,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 sb.Append(bits[i] ? '1' : '0');
             sb.Append('\'');
             return sb.ToString();
-
         }
     }
 }

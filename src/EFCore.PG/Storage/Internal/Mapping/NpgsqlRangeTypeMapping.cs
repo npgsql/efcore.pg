@@ -48,12 +48,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             : base(parameters, npgsqlDbType) { }
 
         [NotNull]
-        public override RelationalTypeMapping Clone(string storeType, int? size)
-            => new NpgsqlRangeTypeMapping(Parameters.WithStoreTypeAndSize(storeType, size), NpgsqlDbType);
-
-        [NotNull]
-        public override CoreTypeMapping Clone(ValueConverter converter)
-            => new NpgsqlRangeTypeMapping(Parameters.WithComposedConverter(converter), NpgsqlDbType);
+        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
+            => new NpgsqlRangeTypeMapping(parameters, NpgsqlDbType);
 
         protected override string GenerateNonNullSqlLiteral(object value)
         {

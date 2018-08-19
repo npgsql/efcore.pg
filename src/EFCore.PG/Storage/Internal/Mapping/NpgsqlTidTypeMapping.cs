@@ -10,14 +10,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         public NpgsqlTidTypeMapping()
             : base("tid", typeof(NpgsqlTid), NpgsqlDbType.Tid) {}
 
-        protected NpgsqlTidTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
-            : base(parameters, npgsqlDbType) {}
+        protected NpgsqlTidTypeMapping(RelationalTypeMappingParameters parameters)
+            : base(parameters, NpgsqlDbType.Tid) {}
 
-        public override RelationalTypeMapping Clone(string storeType, int? size)
-            => new NpgsqlTidTypeMapping(Parameters.WithStoreTypeAndSize(storeType, size), NpgsqlDbType);
-
-        public override CoreTypeMapping Clone(ValueConverter converter)
-            => new NpgsqlTidTypeMapping(Parameters.WithComposedConverter(converter), NpgsqlDbType);
+        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
+            => new NpgsqlTidTypeMapping(parameters);
 
         protected override string GenerateNonNullSqlLiteral(object value)
         {

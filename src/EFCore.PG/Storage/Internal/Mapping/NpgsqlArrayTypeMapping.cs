@@ -55,20 +55,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             : this(elementMapping.StoreType + "[]", elementMapping, arrayType) {}
 
         NpgsqlArrayTypeMapping(string storeType, RelationalTypeMapping elementMapping, Type arrayType)
-            : base(new RelationalTypeMappingParameters(
+            : this(new RelationalTypeMappingParameters(
                 new CoreTypeMappingParameters(arrayType, null, CreateComparer(elementMapping, arrayType)), storeType
-            ))
-            => ElementMapping = elementMapping;
+            ), elementMapping) {}
 
         protected NpgsqlArrayTypeMapping(RelationalTypeMappingParameters parameters, RelationalTypeMapping elementMapping)
             : base(parameters)
             => ElementMapping = elementMapping;
 
-        public override RelationalTypeMapping Clone(string storeType, int? size)
-            => new NpgsqlArrayTypeMapping(StoreType, ElementMapping);
-
-        public override CoreTypeMapping Clone(ValueConverter converter)
-            => new NpgsqlArrayTypeMapping(Parameters.WithComposedConverter(converter), ElementMapping);
+        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
+            => new NpgsqlArrayTypeMapping(parameters, ElementMapping);
 
         protected override string GenerateNonNullSqlLiteral(object value)
         {

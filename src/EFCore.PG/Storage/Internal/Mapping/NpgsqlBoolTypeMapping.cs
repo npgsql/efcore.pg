@@ -33,11 +33,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         protected NpgsqlBoolTypeMapping(RelationalTypeMappingParameters parameters)
             : base(parameters) {}
 
-        public override RelationalTypeMapping Clone(string storeType, int? size)
-            => new NpgsqlBoolTypeMapping(Parameters.WithStoreTypeAndSize(storeType, size));
-
-        public override CoreTypeMapping Clone(ValueConverter converter)
-            => new NpgsqlBoolTypeMapping(Parameters.WithComposedConverter(converter));
+        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
+            => new NpgsqlBoolTypeMapping(parameters);
 
         protected override string GenerateNonNullSqlLiteral(object value)
             => (bool)value ? "TRUE" : "FALSE";

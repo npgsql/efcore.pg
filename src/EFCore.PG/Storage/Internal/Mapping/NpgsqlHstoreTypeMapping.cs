@@ -18,14 +18,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                     "hstore"
                 ), NpgsqlDbType.Hstore) {}
 
-        protected NpgsqlHstoreTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
-            : base(parameters, npgsqlDbType) {}
+        protected NpgsqlHstoreTypeMapping(RelationalTypeMappingParameters parameters)
+            : base(parameters, NpgsqlDbType.Hstore) {}
 
-        public override RelationalTypeMapping Clone(string storeType, int? size)
-            => new NpgsqlHstoreTypeMapping(Parameters.WithStoreTypeAndSize(storeType, size), NpgsqlDbType);
-
-        public override CoreTypeMapping Clone(ValueConverter converter)
-            => new NpgsqlHstoreTypeMapping(Parameters.WithComposedConverter(converter), NpgsqlDbType);
+        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
+            => new NpgsqlHstoreTypeMapping(parameters);
 
         protected override string GenerateNonNullSqlLiteral(object value)
         {
