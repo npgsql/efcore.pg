@@ -9,7 +9,7 @@
     <SignAssembly>true</SignAssembly>
     <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
     <Description>PostgreSQL/Npgsql provider for Entity Framework Core.</Description>
-    <Authors>Shay Rojansky</Authors>
+    <Authors>Shay Rojansky;Austin Drenski;Yoh Deadfall;</Authors>
     <Company>Npgsql</Company>
     <PackageTags>npgsql;postgresql;postgres;Entity Framework Core;entity-framework-core;ef;efcore;orm;sql</PackageTags>
     <Copyright>Copyright 2017 © The Npgsql Development Team</Copyright>
