@@ -209,6 +209,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 Sql);
         }
 
+        [Fact]
         public override void CreateSequenceOperation_with_minValue_and_maxValue()
         {
             base.CreateSequenceOperation_with_minValue_and_maxValue();
@@ -218,12 +219,24 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 Sql);
         }
 
+        [Fact]
         public override void CreateSequenceOperation_with_minValue_and_maxValue_not_long()
         {
-            // In PostgreSQL, sequence data types are always bigint.
-            // http://www.postgresql.org/docs/9.4/static/infoschema-sequences.html
+            base.CreateSequenceOperation_with_minValue_and_maxValue_not_long();
+            Assert.Equal(
+                "CREATE SEQUENCE dbo.\"EntityFrameworkHiLoSequence\" AS integer START WITH 3 INCREMENT BY 1 MINVALUE 2 MAXVALUE 816 CYCLE;" + EOL,
+                Sql);
+
+            using (TestHelpers.WithPostgresVersion(new Version(9, 5)))
+            {
+                base.CreateSequenceOperation_with_minValue_and_maxValue_not_long();
+                Assert.Equal(
+                    "CREATE SEQUENCE dbo.\"EntityFrameworkHiLoSequence\" START WITH 3 INCREMENT BY 1 MINVALUE 2 MAXVALUE 816 CYCLE;" + EOL,
+                    Sql);
+            }
         }
 
+        [Fact]
         public override void CreateSequenceOperation_without_minValue_and_maxValue()
         {
             base.CreateSequenceOperation_without_minValue_and_maxValue();
@@ -1050,6 +1063,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             Assert.StartsWith(
                 "CREATE SEQUENCE public.short_sequence AS smallint",
                 Sql);
+
+            using(TestHelpers.WithPostgresVersion(new Version(9, 5)))
+            {
+                Generate(
+                    new CreateSequenceOperation {
+                        Name = "short_sequence",
+                        Schema = "public",
+                        ClrType = typeof(short)
+                    });
+
+                Assert.StartsWith(
+                    "CREATE SEQUENCE public.short_sequence",
+                    Sql);
+            }
         }
 
         #endregion Sequence data types
@@ -1153,6 +1180,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                          "    varbit bit varying(30) NOT NULL" + EOL +
                          ");" + EOL, Sql);
         }
+
+        protected new NpgsqlTestHelpers TestHelpers => (NpgsqlTestHelpers)base.TestHelpers;
 
         public NpgsqlMigrationSqlGeneratorTest()
             : base(NpgsqlTestHelpers.Instance)

@@ -918,6 +918,32 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             builder.EndCommand();
         }
 
+        protected override void Generate(CreateSequenceOperation operation, IModel model, MigrationCommandListBuilder builder)
+        {
+            Check.NotNull(operation, nameof(operation));
+            Check.NotNull(builder, nameof(builder));
+
+            if (VersionAtLeast(10, 0))
+            {
+                // "CREATE SEQUENCE name AS type" expression is supported only in PostgreSQL 10 or above.
+                // The base MigrationsSqlGenerator.Generate method generates that expression.
+                // https://github.com/aspnet/EntityFrameworkCore/blob/master/src/EFCore.Relational/Migrations/MigrationsSqlGenerator.cs#L533-L535
+                base.Generate(operation, model, builder);
+                return;
+            }
+
+            // Generate CREATE SEQUENCE without "AS" part.
+            builder
+                .Append("CREATE SEQUENCE ")
+                .Append(_sqlGenerationHelper.DelimitIdentifier(operation.Name, operation.Schema))
+                .Append(" START WITH ")
+                .Append(_typeMappingSource.GetMapping(typeof(long)).GenerateSqlLiteral(operation.StartValue));
+
+            SequenceOptions(operation, model, builder);
+            builder.AppendLine(_sqlGenerationHelper.StatementTerminator);
+            EndStatement(builder);
+        }
+
         #endregion Standard migrations
 
         #region Utilities
