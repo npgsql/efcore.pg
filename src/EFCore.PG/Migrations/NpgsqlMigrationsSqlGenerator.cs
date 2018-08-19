@@ -1,4 +1,5 @@
 #region License
+
 // The PostgreSQL License
 //
 // Copyright (C) 2016 The Npgsql Development Team
@@ -19,12 +20,12 @@
 // AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
 // ON AN "AS IS" BASIS, AND THE NPGSQL DEVELOPMENT TEAM HAS NO OBLIGATIONS
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+
 #endregion
 
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
@@ -33,6 +34,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Microsoft.EntityFrameworkCore.Storage;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Operations;
@@ -47,11 +49,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         readonly NpgsqlSqlGenerationHelper _sqlGenerationHelper;
         readonly NpgsqlTypeMappingSource _typeMappingSource;
 
-        public NpgsqlMigrationsSqlGenerator([NotNull] MigrationsSqlGeneratorDependencies dependencies)
+        /// <summary>
+        /// The backend version to target.
+        /// </summary>
+        [CanBeNull] readonly Version _postgresVersion;
+
+        public NpgsqlMigrationsSqlGenerator(
+            [NotNull] MigrationsSqlGeneratorDependencies dependencies,
+            [NotNull] INpgsqlOptions npgsqlOptions)
             : base(dependencies)
         {
             _sqlGenerationHelper = (NpgsqlSqlGenerationHelper)dependencies.SqlGenerationHelper;
             _typeMappingSource = (NpgsqlTypeMappingSource)dependencies.TypeMappingSource;
+            _postgresVersion = npgsqlOptions.PostgresVersion;
         }
 
         protected override void Generate(MigrationOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
@@ -1024,5 +1034,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         }
 
         #endregion Storage parameter utilities
+
+        #region Helpers
+
+        /// <summary>
+        /// True if <see cref="_postgresVersion"/> is null, greater than, or equal to the specified version.
+        /// </summary>
+        /// <param name="major">The major version.</param>
+        /// <param name="minor">The minor version.</param>
+        /// <returns>
+        /// True if <see cref="_postgresVersion"/> is null, greater than, or equal to the specified version.
+        /// </returns>
+        bool VersionAtLeast(int major, int minor)
+            => _postgresVersion is null || new Version(major, minor) <= _postgresVersion;
+
+        #endregion
     }
 }
