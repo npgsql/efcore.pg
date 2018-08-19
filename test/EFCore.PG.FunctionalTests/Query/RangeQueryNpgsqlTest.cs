@@ -570,7 +570,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                     new DbContextOptionsBuilder()
                         .UseNpgsql(_testStore.ConnectionString, b =>
                         {
-                            b.MapRange(typeof(float), "floatrange");
+                            b.MapRange("floatrange", typeof(float));
                             b.ApplyConfiguration();
                         })
                         .UseInternalServiceProvider(
@@ -651,24 +651,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             }
         }
 
-        /// <summary>
-        /// Represents an entity suitable for testing range operators.
-        /// </summary>
         public class RangeTestEntity
         {
-            /// <summary>
-            /// The primary key.
-            /// </summary>
             public int Id { get; set; }
-
-            /// <summary>
-            /// The range of integers.
-            /// </summary>
             public NpgsqlRange<int> Range { get; set; }
-
-            /// <summary>
-            /// The range of integers.
-            /// </summary>
             public NpgsqlRange<float> FloatRange { get; set; }
         }
 

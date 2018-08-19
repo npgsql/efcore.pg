@@ -52,8 +52,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             [NotNull] string name,
             [NotNull] string[] labels)
         {
-            var enumType = FindPostgresEnum(annotatable, schema, name);
-            if (enumType != null)
+            if (FindPostgresEnum(annotatable, schema, name) is PostgresEnum enumType)
                 return enumType;
 
             enumType = new PostgresEnum(annotatable, BuildAnnotationName(schema, name));

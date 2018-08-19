@@ -50,7 +50,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// The collection of range mappings.
         /// </summary>
         [NotNull]
-        IReadOnlyList<(Type ElementClrType, string RangeName, string SubTypeName)> RangeMappings { get; }
+        IReadOnlyList<(string RangeName, Type ElementClrType, string SubTypeName)> RangeMappings { get; }
 
         /// <summary>
         /// The collection of database plugins.

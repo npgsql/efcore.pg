@@ -134,9 +134,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             : base(dependencies, relationalDependencies)
         {
             // Initialize some mappings which depend on other mappings
-            _int4range = new NpgsqlRangeTypeMapping("int4range", typeof(NpgsqlRange<int>), _int4);
-            _int8range = new NpgsqlRangeTypeMapping("int8range", typeof(NpgsqlRange<long>), _int8);
-            _numrange  = new NpgsqlRangeTypeMapping("numrange",  typeof(NpgsqlRange<decimal>), _numeric);
+            _int4range = new NpgsqlRangeTypeMapping("int4range", typeof(NpgsqlRange<int>),      _int4);
+            _int8range = new NpgsqlRangeTypeMapping("int8range", typeof(NpgsqlRange<long>),     _int8);
+            _numrange  = new NpgsqlRangeTypeMapping("numrange",  typeof(NpgsqlRange<decimal>),  _numeric);
             _tsrange   = new NpgsqlRangeTypeMapping("tsrange",   typeof(NpgsqlRange<DateTime>), _timestamp);
             _tstzrange = new NpgsqlRangeTypeMapping("tstzrange", typeof(NpgsqlRange<DateTime>), _timestamptz);
             _daterange = new NpgsqlRangeTypeMapping("daterange", typeof(NpgsqlRange<DateTime>), _timestamptz);
@@ -263,34 +263,29 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             StoreTypeMappings = new ConcurrentDictionary<string, RelationalTypeMapping[]>(storeTypeMappings, StringComparer.OrdinalIgnoreCase);
             ClrTypeMappings = new ConcurrentDictionary<Type, RelationalTypeMapping>(clrTypeMappings);
 
-            if (npgsqlOptions != null)
+            LoadUserDefinedTypeMappings();
+
+            if (npgsqlOptions == null)
+                return;
+
+            foreach (var (rangeName, elementClrType, subtypeName) in npgsqlOptions.RangeMappings)
             {
-                foreach (var (elementClrType, rangeName, subtypeName) in npgsqlOptions.RangeMappings)
-                {
-                    RelationalTypeMapping subtypeMapping;
-                    if (subtypeName == null)
-                    {
-                        if (!ClrTypeMappings.TryGetValue(elementClrType, out subtypeMapping))
-                            throw new Exception($"Could not map range {rangeName}, no mapping was found for element type {elementClrType}");
-                    }
-                    else
-                    {
-                        if (StoreTypeMappings.TryGetValue(subtypeName, out var subtypeMappings))
-                            throw new Exception($"Could not map range {rangeName}, no mapping was found for subtype {subtypeName}");
-                        subtypeMapping = subtypeMappings[0];
-                    }
+                var subtypeMapping = subtypeName == null
+                    ? ClrTypeMappings.TryGetValue(elementClrType, out var mapping)
+                        ? mapping
+                        : throw new Exception($"Could not map range {rangeName}, no mapping was found for element type {elementClrType}")
+                    : StoreTypeMappings.TryGetValue(subtypeName, out var mappings)
+                        ? mappings[0]
+                        : throw new Exception($"Could not map range {rangeName}, no mapping was found for subtype {subtypeName}");
 
-                    var rangeClrType = typeof(NpgsqlRange<>).MakeGenericType(elementClrType);
-                    var rangeMapping = new NpgsqlRangeTypeMapping(rangeName, rangeClrType, subtypeMapping);
-                    StoreTypeMappings[rangeName] = new RelationalTypeMapping[] { rangeMapping };
-                    ClrTypeMappings[rangeClrType] = rangeMapping;
-                }
-
-                foreach (var plugin in npgsqlOptions.Plugins)
-                    plugin.AddMappings(this);
+                var rangeClrType = typeof(NpgsqlRange<>).MakeGenericType(elementClrType);
+                var rangeMapping = new NpgsqlRangeTypeMapping(rangeName, rangeClrType, subtypeMapping);
+                StoreTypeMappings[rangeName] = new RelationalTypeMapping[] { rangeMapping };
+                ClrTypeMappings[rangeClrType] = rangeMapping;
             }
 
-            LoadUserDefinedTypeMappings();
+            foreach (var plugin in npgsqlOptions.Plugins)
+                plugin.AddMappings(this);
         }
 
         /// <summary>

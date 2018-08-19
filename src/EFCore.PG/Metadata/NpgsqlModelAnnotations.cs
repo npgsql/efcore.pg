@@ -123,14 +123,22 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             string subtypeOpClass = null,
             string collation = null,
             string subtypeDiff = null)
-            => PostgresRange.GetOrAddPostgresRange((IMutableModel)Model, schema, name, subtype, canonicalFunction,
-                subtypeOpClass, collation, subtypeDiff);
+            => PostgresRange.GetOrAddPostgresRange(
+                (IMutableModel)Model,
+                schema,
+                name,
+                subtype,
+                canonicalFunction,
+                subtypeOpClass,
+                collation,
+                subtypeDiff);
 
         public virtual PostgresRange GetOrAddPostgresRange(
             [NotNull] string name,
             [NotNull] string subtype)
             => PostgresRange.GetOrAddPostgresRange((IMutableModel)Model, null, name, subtype);
 
+        [NotNull]
         public virtual IReadOnlyList<PostgresRange> PostgresRanges
             => PostgresRange.GetPostgresRanges(Model).ToList();
 

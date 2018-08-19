@@ -709,9 +709,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         #region Enum management
 
         protected virtual void GenerateEnumStatements(
-                AlterDatabaseOperation operation,
-                IModel model,
-                MigrationCommandListBuilder builder)
+                [NotNull] AlterDatabaseOperation operation,
+                [NotNull] IModel model,
+                [NotNull] MigrationCommandListBuilder builder)
         {
             foreach (var enumTypeToCreate in PostgresEnum.GetPostgresEnums(operation)
                 .Where(ne => PostgresEnum.GetPostgresEnums(operation.OldDatabase).All(oe => oe.Name != ne.Name)))
@@ -734,9 +734,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         }
 
         protected virtual void GenerateCreateEnum(
-            PostgresEnum enumType,
-            IModel model,
-            MigrationCommandListBuilder builder)
+            [NotNull] PostgresEnum enumType,
+            [NotNull] IModel model,
+            [NotNull] MigrationCommandListBuilder builder)
         {
             // Schemas are normally created (or rather ensured) by the model differ, which scans all tables, sequences
             // and other database objects. However, it isn't aware of enums, so we always ensure schema on enum creation.
@@ -761,11 +761,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             builder.AppendLine(");");
         }
 
-        protected virtual void GenerateDropEnum(PostgresEnum @enum, MigrationCommandListBuilder builder)
+        protected virtual void GenerateDropEnum([NotNull] PostgresEnum enumType, [NotNull] MigrationCommandListBuilder builder)
         {
             builder
                 .Append("DROP TYPE ")
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(@enum.Name, @enum.Schema))
+                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(enumType.Name, enumType.Schema))
                 .AppendLine(";");
         }
 
@@ -774,9 +774,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         #region Range management
 
         protected virtual void GenerateRangeStatements(
-                AlterDatabaseOperation operation,
-                IModel model,
-                MigrationCommandListBuilder builder)
+                [NotNull] AlterDatabaseOperation operation,
+                [NotNull] IModel model,
+                [NotNull] MigrationCommandListBuilder builder)
         {
             foreach (var rangeTypeToCreate in PostgresRange.GetPostgresRanges(operation)
                 .Where(ne => PostgresRange.GetPostgresRanges(operation.OldDatabase).All(oe => oe.Name != ne.Name)))
@@ -790,18 +790,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 GenerateDropRange(rangeTypeToDrop, builder);
             }
 
-            foreach (var rangeTypeToAlter in from newRange in PostgresRange.GetPostgresRanges(operation)
-                join oldRange in PostgresRange.GetPostgresRanges(operation.OldDatabase) on newRange.Name equals oldRange.Name
-                select oldRange)
+            if (PostgresRange.GetPostgresRanges(operation).FirstOrDefault(nr =>
+                    PostgresRange.GetPostgresRanges(operation.OldDatabase).Any(or => or.Name == nr.Name)
+                ) is PostgresRange rangeTypeToAlter)
             {
                 throw new NotSupportedException($"Altering range type ${rangeTypeToAlter} isn't supported.");
             }
         }
 
         protected virtual void GenerateCreateRange(
-            PostgresRange rangeType,
-            IModel model,
-            MigrationCommandListBuilder builder)
+            [NotNull] PostgresRange rangeType,
+            [NotNull] IModel model,
+            [NotNull] MigrationCommandListBuilder builder)
         {
             // Schemas are normally created (or rather ensured) by the model differ, which scans all tables, sequences
             // and other database objects. However, it isn't aware of ranges, so we always ensure schema on range creation.
@@ -834,7 +834,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 .AppendLine(");");
         }
 
-        protected virtual void GenerateDropRange(PostgresRange rangeType, MigrationCommandListBuilder builder)
+        protected virtual void GenerateDropRange([NotNull] PostgresRange rangeType, [NotNull] MigrationCommandListBuilder builder)
         {
             builder
                 .Append("DROP TYPE ")

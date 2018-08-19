@@ -40,18 +40,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         public NpgsqlRangeTypeMapping(
             [NotNull] string storeType,
             [NotNull] Type clrType,
-            RelationalTypeMapping subtypeMapping)
+            [NotNull] RelationalTypeMapping subtypeMapping)
             : base(storeType, clrType, GenerateNpgsqlDbType(subtypeMapping))
-        {
-            SubtypeMapping = subtypeMapping;
-        }
+        => SubtypeMapping = subtypeMapping;
 
         protected NpgsqlRangeTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
             : base(parameters, npgsqlDbType) { }
 
+        [NotNull]
         public override RelationalTypeMapping Clone(string storeType, int? size)
             => new NpgsqlRangeTypeMapping(Parameters.WithStoreTypeAndSize(storeType, size), NpgsqlDbType);
 
+        [NotNull]
         public override CoreTypeMapping Clone(ValueConverter converter)
             => new NpgsqlRangeTypeMapping(Parameters.WithComposedConverter(converter), NpgsqlDbType);
 
@@ -65,7 +65,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             return sb.ToString();
         }
 
-        static NpgsqlDbType GenerateNpgsqlDbType(RelationalTypeMapping subtypeMapping)
+        static NpgsqlDbType GenerateNpgsqlDbType([NotNull] RelationalTypeMapping subtypeMapping)
         {
             if (subtypeMapping is NpgsqlTypeMapping npgsqlTypeMapping)
                 return NpgsqlDbType.Range | npgsqlTypeMapping.NpgsqlDbType;

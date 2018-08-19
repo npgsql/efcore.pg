@@ -317,10 +317,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             var commands = Dependencies.MigrationsSqlGenerator.Generate(operations, Dependencies.Model);
 
             // If a PostgreSQL extension or enum was added, we want Npgsql to reload all types at the ADO.NET level.
-            var reloadTypes = operations.Any(o => o is AlterDatabaseOperation &&
-                (PostgresExtension.GetPostgresExtensions(o).Any() ||
-                 PostgresEnum.GetPostgresEnums(o).Any() ||
-                 PostgresRange.GetPostgresRanges(o).Any()));
+            var reloadTypes = operations.Any(o =>
+                o is AlterDatabaseOperation && (
+                    PostgresExtension.GetPostgresExtensions(o).Any() ||
+                    PostgresEnum.GetPostgresEnums(o).Any() ||
+                    PostgresRange.GetPostgresRanges(o).Any()
+                )
+            );
 
             try
             {

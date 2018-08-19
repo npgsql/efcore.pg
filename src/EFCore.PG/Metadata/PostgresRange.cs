@@ -37,10 +37,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 {
     public class PostgresRange
     {
-        readonly IAnnotatable _annotatable;
-        readonly string _annotationName;
+        [NotNull] readonly IAnnotatable _annotatable;
+        [NotNull] readonly string _annotationName;
 
-        internal PostgresRange(IAnnotatable annotatable, string annotationName)
+        internal PostgresRange([NotNull] IAnnotatable annotatable, [NotNull] string annotationName)
         {
             _annotatable = annotatable;
             _annotationName = annotationName;
@@ -56,8 +56,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             string collation = null,
             string subtypeDiff = null)
         {
-            var rangeType = FindPostgresRange(annotatable, schema, name);
-            if (rangeType != null)
+            if (FindPostgresRange(annotatable, schema, name) is PostgresRange rangeType)
                 return rangeType;
 
             rangeType = new PostgresRange(annotatable, BuildAnnotationName(schema, name));
@@ -65,6 +64,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             return rangeType;
         }
 
+        [CanBeNull]
         public static PostgresRange FindPostgresRange(
             [NotNull] IAnnotatable annotatable,
             [CanBeNull] string schema,
@@ -78,24 +78,27 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             return annotatable[annotationName] == null ? null : new PostgresRange(annotatable, annotationName);
         }
 
+        [NotNull]
         static string BuildAnnotationName(string schema, string name)
             => NpgsqlAnnotationNames.RangePrefix + (schema == null ? name : schema + '.' + name);
 
+        [NotNull]
         public static IEnumerable<PostgresRange> GetPostgresRanges([NotNull] IAnnotatable annotatable)
-        {
-            Check.NotNull(annotatable, nameof(annotatable));
-
-            return annotatable.GetAnnotations()
+            => Check.NotNull(annotatable, nameof(annotatable))
+                .GetAnnotations()
                 .Where(a => a.Name.StartsWith(NpgsqlAnnotationNames.RangePrefix, StringComparison.Ordinal))
                 .Select(a => new PostgresRange(annotatable, a.Name));
-        }
 
+        [NotNull]
         public Annotatable Annotatable => (Annotatable)_annotatable;
 
+        [NotNull]
         public string Schema => GetData().Schema;
 
+        [NotNull]
         public string Name => GetData().Name;
 
+        [NotNull]
         public string Subtype
         {
             get => GetData().Subtype;
@@ -107,6 +110,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             }
         }
 
+        [CanBeNull]
         public string CanonicalFunction
         {
             get => GetData().CanonicalFunction;
@@ -118,6 +122,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             }
         }
 
+        [CanBeNull]
         public string SubtypeOpClass
         {
             get => GetData().SubtypeOpClass;
@@ -129,6 +134,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             }
         }
 
+        [CanBeNull]
         public string Collation
         {
             get => GetData().Collation;
@@ -140,6 +146,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             }
         }
 
+        [CanBeNull]
         public string SubtypeDiff
         {
             get => GetData().SubtypeDiff;
@@ -153,11 +160,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 
         (string Schema, string Name, string Subtype, string CanonicalFunction, string SubtypeOpClass, string Collation,
             string SubtypeDiff) GetData()
-        {
-            return !(Annotatable[_annotationName] is string annotationValue)
+            => !(Annotatable[_annotationName] is string annotationValue)
                 ? (null, null, null, null, null, null, null)
                 : Deserialize(_annotationName, annotationValue);
-        }
 
         void SetData(string subtype, string canonicalFunction, string subtypeOpClass, string collation, string subtypeDiff)
             => Annotatable[_annotationName] = $"{subtype},{canonicalFunction},{subtypeOpClass},{collation},{subtypeDiff}";

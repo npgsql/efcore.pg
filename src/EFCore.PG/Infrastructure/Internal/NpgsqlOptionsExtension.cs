@@ -38,7 +38,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
     /// </summary>
     public class NpgsqlOptionsExtension : RelationalOptionsExtension
     {
-        [NotNull] readonly List<(Type ElementClrType, string RangeName, string SubTypeName)> _rangeMappings;
+        [NotNull] readonly List<(string RangeName, Type ElementClrType, string SubTypeName)> _rangeMappings;
 
         [NotNull] readonly List<NpgsqlEntityFrameworkPlugin> _plugins;
 
@@ -58,7 +58,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// The list of range mappings specified by the user.
         /// </summary>
         [NotNull]
-        public List<(Type ElementClrType, string RangeName, string SubTypeName)> RangeMappings => _rangeMappings;
+        public IReadOnlyList<(string RangeName, Type ElementClrType, string SubTypeName)> RangeMappings => _rangeMappings;
 
         /// <summary>
         /// The collection of database plugins.
@@ -89,7 +89,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// </summary>
         public NpgsqlOptionsExtension()
         {
-            _rangeMappings = new List<(Type ElementClrType, string RangeName, string SubTypeName)>();
+            _rangeMappings = new List<(string RangeName, Type ElementClrType, string SubTypeName)>();
             _plugins = new List<NpgsqlEntityFrameworkPlugin>();
         }
 
@@ -101,7 +101,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         public NpgsqlOptionsExtension([NotNull] NpgsqlOptionsExtension copyFrom) : base(copyFrom)
         {
             AdminDatabase = copyFrom.AdminDatabase;
-            _rangeMappings = new List<(Type ElementClrType, string RangeName, string SubTypeName)>(copyFrom._rangeMappings);
+            _rangeMappings = new List<(string RangeName, Type ElementClrType, string SubTypeName)>(copyFrom._rangeMappings);
             _plugins = new List<NpgsqlEntityFrameworkPlugin>(copyFrom._plugins);
             PostgresVersion = copyFrom.PostgresVersion;
             ProvideClientCertificatesCallback = copyFrom.ProvideClientCertificatesCallback;
@@ -131,11 +131,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// Returns a copy of the current instance configured with the specified range mapping.
         /// </summary>
         [NotNull]
-        internal virtual NpgsqlOptionsExtension WithRangeMapping(Type elementClrType, string rangeName, string subtypeName)
+        internal virtual NpgsqlOptionsExtension WithRangeMapping(string rangeName, Type elementClrType,
+            string subtypeName)
         {
             var clone = (NpgsqlOptionsExtension)Clone();
 
-            clone.RangeMappings.Add((elementClrType, rangeName, subtypeName));
+            clone._rangeMappings.Add((rangeName, elementClrType, subtypeName));
 
             return clone;
         }

@@ -198,6 +198,7 @@ namespace Microsoft.EntityFrameworkCore
         /// See https://www.postgresql.org/docs/current/static/rangetypes.html,
         /// https://www.postgresql.org/docs/current/static/sql-createtype.html,
         /// </remarks>
+        [NotNull]
         public static ModelBuilder ForNpgsqlHasRange(
             [NotNull] this ModelBuilder modelBuilder,
             [CanBeNull] string schema,
@@ -212,8 +213,14 @@ namespace Microsoft.EntityFrameworkCore
             Check.NotEmpty(name, nameof(name));
             Check.NotEmpty(subtype, nameof(subtype));
 
-            modelBuilder.Model.Npgsql().GetOrAddPostgresRange(schema, name, subtype, canonicalFunction, subtypeOpClass,
-                collation, subtypeDiff);
+            modelBuilder.Model.Npgsql().GetOrAddPostgresRange(
+                schema,
+                name,
+                subtype,
+                canonicalFunction,
+                subtypeOpClass,
+                collation,
+                subtypeDiff);
             return modelBuilder;
         }
 
