@@ -131,8 +131,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// Returns a copy of the current instance configured with the specified range mapping.
         /// </summary>
         [NotNull]
-        internal virtual NpgsqlOptionsExtension WithRangeMapping(string rangeName, Type elementClrType,
-            string subtypeName)
+        internal virtual NpgsqlOptionsExtension WithRangeMapping(string rangeName, Type elementClrType, string subtypeName)
         {
             var clone = (NpgsqlOptionsExtension)Clone();
 
