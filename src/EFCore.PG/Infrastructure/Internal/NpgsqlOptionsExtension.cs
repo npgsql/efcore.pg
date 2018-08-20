@@ -30,6 +30,7 @@ using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
+using NpgsqlTypes;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
 {
@@ -38,7 +39,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
     /// </summary>
     public class NpgsqlOptionsExtension : RelationalOptionsExtension
     {
-        [NotNull] readonly List<(string RangeName, Type ElementClrType, string SubTypeName)> _rangeMappings;
+        [NotNull] readonly List<RangeMappingInfo> _rangeMappings;
 
         [NotNull] readonly List<NpgsqlEntityFrameworkPlugin> _plugins;
 
@@ -58,7 +59,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// The list of range mappings specified by the user.
         /// </summary>
         [NotNull]
-        public IReadOnlyList<(string RangeName, Type ElementClrType, string SubTypeName)> RangeMappings => _rangeMappings;
+        public IReadOnlyList<RangeMappingInfo> RangeMappings => _rangeMappings;
 
         /// <summary>
         /// The collection of database plugins.
@@ -89,7 +90,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// </summary>
         public NpgsqlOptionsExtension()
         {
-            _rangeMappings = new List<(string RangeName, Type ElementClrType, string SubTypeName)>();
+            _rangeMappings = new List<RangeMappingInfo>();
             _plugins = new List<NpgsqlEntityFrameworkPlugin>();
         }
 
@@ -101,7 +102,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         public NpgsqlOptionsExtension([NotNull] NpgsqlOptionsExtension copyFrom) : base(copyFrom)
         {
             AdminDatabase = copyFrom.AdminDatabase;
-            _rangeMappings = new List<(string RangeName, Type ElementClrType, string SubTypeName)>(copyFrom._rangeMappings);
+            _rangeMappings = new List<RangeMappingInfo>(copyFrom._rangeMappings);
             _plugins = new List<NpgsqlEntityFrameworkPlugin>(copyFrom._plugins);
             PostgresVersion = copyFrom.PostgresVersion;
             ProvideClientCertificatesCallback = copyFrom.ProvideClientCertificatesCallback;
@@ -131,11 +132,24 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// Returns a copy of the current instance configured with the specified range mapping.
         /// </summary>
         [NotNull]
-        internal virtual NpgsqlOptionsExtension WithRangeMapping(string rangeName, Type elementClrType, string subtypeName)
+        public virtual NpgsqlOptionsExtension WithRangeMapping<TSubtype>(string rangeName, string subtypeName)
         {
             var clone = (NpgsqlOptionsExtension)Clone();
 
-            clone._rangeMappings.Add((rangeName, elementClrType, subtypeName));
+            clone._rangeMappings.Add(new RangeMappingInfo(rangeName, typeof(TSubtype), subtypeName));
+
+            return clone;
+        }
+
+        /// <summary>
+        /// Returns a copy of the current instance configured with the specified range mapping.
+        /// </summary>
+        [NotNull]
+        public virtual NpgsqlOptionsExtension WithRangeMapping(string rangeName, Type subtypeClrType, string subtypeName)
+        {
+            var clone = (NpgsqlOptionsExtension)Clone();
+
+            clone._rangeMappings.Add(new RangeMappingInfo(rangeName, subtypeClrType, subtypeName));
 
             return clone;
         }
@@ -232,5 +246,35 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         }
 
         #endregion Authentication
+    }
+
+    public readonly struct RangeMappingInfo
+    {
+        /// <summary>The name of the PostgreSQL range type to be mapped.</summary>
+        public readonly string RangeName;
+        /// <summary>
+        /// The CLR type of the range's subtype (or element).
+        /// The actual mapped type will be an <see cref="NpgsqlRange{T}"/> over this type.
+        /// </summary>
+        public readonly Type SubtypeClrType;
+        /// <summary>
+        /// Optionally, the name of the range's PostgreSQL subtype (or element).
+        /// This is usually not needed - the subtype will be inferred based on <see cref="SubtypeClrType"/>.
+        /// </summary>
+        public readonly string SubtypeName;
+
+        public RangeMappingInfo(string rangeName, Type subtypeClrType, string subtypeName)
+        {
+            RangeName = rangeName;
+            SubtypeClrType = subtypeClrType;
+            SubtypeName = subtypeName;
+        }
+
+        public void Deconstruct(out string rangeName, out Type subtypeClrType, out string subtypeName)
+        {
+            rangeName = RangeName;
+            subtypeClrType = SubtypeClrType;
+            subtypeName = SubtypeName;
+        }
     }
 }

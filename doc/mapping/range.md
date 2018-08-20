@@ -33,6 +33,7 @@ This allows you to have properties of type `NpgsqlRange<float>`, which will be m
 
 The above does *not* create the `floatrange` type for you. In order to do that, include the following in your context's `OnModelCreating()`:
 
+```c#
 protected override void OnModelCreating(ModelBuilder builder) {
     builder.ForNpgsqlHasRange("floatrange", "real");
 }

@@ -45,7 +45,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
 
         /// <inheritdoc />
         [NotNull]
-        public virtual IReadOnlyList<(string RangeName, Type ElementClrType, string SubTypeName)> RangeMappings { get; private set; }
+        public virtual IReadOnlyList<RangeMappingInfo> RangeMappings { get; private set; }
 
         /// <inheritdoc />
         [NotNull]
@@ -53,7 +53,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
 
         public NpgsqlOptions()
         {
-            RangeMappings = new (string, Type, string)[0];
+            RangeMappings = new RangeMappingInfo[0];
             Plugins = new NpgsqlEntityFrameworkPlugin[0];
         }
 

@@ -725,11 +725,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 GenerateDropEnum(enumTypeToDrop, builder);
             }
 
-            foreach (var enumTypeToAlter in from newEnum in PostgresEnum.GetPostgresEnums(operation)
-                join oldEnum in PostgresEnum.GetPostgresEnums(operation.OldDatabase) on newEnum.Name equals oldEnum.Name
-                select new { newEnum.Name, OldLabels = oldEnum.Labels, newLabels = newEnum.Labels })
+            // TODO: Some forms of enum alterations are actually supported...
+            if (PostgresEnum.GetPostgresEnums(operation).FirstOrDefault(nr =>
+                PostgresEnum.GetPostgresEnums(operation.OldDatabase).Any(or => or.Name == nr.Name)
+            ) is PostgresEnum enumTypeToAlter)
             {
-                // TODO: Some forms of enum alterations are actually supported... At least log...
+                throw new NotSupportedException($"Altering enum type ${enumTypeToAlter} isn't supported.");
             }
         }
 

@@ -144,10 +144,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 
         #endregion Range types
 
-        #region User-defined range types
-
-        #endregion User-defined range types
-
         #region Database Template
 
         public virtual string DatabaseTemplate

@@ -268,17 +268,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             if (npgsqlOptions == null)
                 return;
 
-            foreach (var (rangeName, elementClrType, subtypeName) in npgsqlOptions.RangeMappings)
+            foreach (var (rangeName, subtypeClrType, subtypeName) in npgsqlOptions.RangeMappings)
             {
                 var subtypeMapping = subtypeName == null
-                    ? ClrTypeMappings.TryGetValue(elementClrType, out var mapping)
+                    ? ClrTypeMappings.TryGetValue(subtypeClrType, out var mapping)
                         ? mapping
-                        : throw new Exception($"Could not map range {rangeName}, no mapping was found for element type {elementClrType}")
+                        : throw new Exception($"Could not map range {rangeName}, no mapping was found for subtype CLR type {subtypeClrType}")
                     : StoreTypeMappings.TryGetValue(subtypeName, out var mappings)
                         ? mappings[0]
                         : throw new Exception($"Could not map range {rangeName}, no mapping was found for subtype {subtypeName}");
 
-                var rangeClrType = typeof(NpgsqlRange<>).MakeGenericType(elementClrType);
+                var rangeClrType = typeof(NpgsqlRange<>).MakeGenericType(subtypeClrType);
                 var rangeMapping = new NpgsqlRangeTypeMapping(rangeName, rangeClrType, subtypeMapping);
                 StoreTypeMappings[rangeName] = new RelationalTypeMapping[] { rangeMapping };
                 ClrTypeMappings[rangeClrType] = rangeMapping;
