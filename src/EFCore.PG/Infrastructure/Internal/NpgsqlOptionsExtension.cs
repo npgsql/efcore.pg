@@ -251,17 +251,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
     public readonly struct RangeMappingInfo
     {
         /// <summary>The name of the PostgreSQL range type to be mapped.</summary>
-        public readonly string RangeName;
+        public string RangeName { get; }
         /// <summary>
         /// The CLR type of the range's subtype (or element).
         /// The actual mapped type will be an <see cref="NpgsqlRange{T}"/> over this type.
         /// </summary>
-        public readonly Type SubtypeClrType;
+        public Type SubtypeClrType { get; }
         /// <summary>
         /// Optionally, the name of the range's PostgreSQL subtype (or element).
         /// This is usually not needed - the subtype will be inferred based on <see cref="SubtypeClrType"/>.
         /// </summary>
-        public readonly string SubtypeName;
+        public string SubtypeName { get; }
 
         public RangeMappingInfo(string rangeName, Type subtypeClrType, string subtypeName)
         {
