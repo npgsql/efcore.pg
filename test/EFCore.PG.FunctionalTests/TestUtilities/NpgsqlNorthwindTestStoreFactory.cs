@@ -1,12 +1,4 @@
-﻿using System;
-using System.Data.Common;
-using System.Diagnostics;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Internal;
-using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.EntityFrameworkCore.TestUtilities;
-using Microsoft.Extensions.Logging;
-using Npgsql;
+﻿using Microsoft.EntityFrameworkCore.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
 {
