@@ -35,6 +35,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
         public const string IndexMethod = Prefix + "IndexMethod";
         public const string PostgresExtensionPrefix = Prefix + "PostgresExtension:";
         public const string EnumPrefix = Prefix + "Enum:";
+        public const string RangePrefix = Prefix + "Range:";
         public const string DatabaseTemplate = Prefix + "DatabaseTemplate";
         public const string Tablespace = Prefix + "Tablespace";
         public const string StorageParameterPrefix = Prefix + "StorageParameter:";

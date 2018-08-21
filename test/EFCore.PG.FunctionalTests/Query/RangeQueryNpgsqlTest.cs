@@ -490,6 +490,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             }
         }
 
+        [Fact]
+        public void UserDefined()
+        {
+            using (RangeContext context = Fixture.CreateContext())
+            {
+                var e = context.RangeTestEntities.Single(x => x.FloatRange.UpperBound > 5);
+                Assert.Equal(e.FloatRange.LowerBound, 0);
+                Assert.Equal(e.FloatRange.UpperBound, 10);
+            }
+        }
+
         #endregion Tests
 
         #region TheoryData
@@ -533,12 +544,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             /// <summary>
             /// The <see cref="NpgsqlTestStore"/> used for testing.
             /// </summary>
-            private readonly NpgsqlTestStore _testStore;
+            readonly NpgsqlTestStore _testStore;
 
             /// <summary>
             /// The <see cref="DbContextOptions"/> used for testing.
             /// </summary>
-            private readonly DbContextOptions _options;
+            readonly DbContextOptions _options;
 
             /// <summary>
             /// The logger factory used for testing.
@@ -557,7 +568,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
                 _options =
                     new DbContextOptionsBuilder()
-                        .UseNpgsql(_testStore.ConnectionString, b => b.ApplyConfiguration())
+                        .UseNpgsql(_testStore.ConnectionString, b =>
+                        {
+                            b.MapRange("floatrange", typeof(float));
+                            b.ApplyConfiguration();
+                        })
                         .UseInternalServiceProvider(
                             new ServiceCollection()
                                 .AddEntityFrameworkNpgsql()
@@ -575,6 +590,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                             Id = 1,
                             // (0, 10)
                             Range = new NpgsqlRange<int>(0, false, false, 10, false, false),
+                            FloatRange = new NpgsqlRange<float>(0, false, false, 10, false, false)
                         },
                         new RangeTestEntity
                         {
@@ -635,20 +651,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             }
         }
 
-        /// <summary>
-        /// Represents an entity suitable for testing range operators.
-        /// </summary>
         public class RangeTestEntity
         {
-            /// <summary>
-            /// The primary key.
-            /// </summary>
             public int Id { get; set; }
-
-            /// <summary>
-            /// The range of integers.
-            /// </summary>
             public NpgsqlRange<int> Range { get; set; }
+            public NpgsqlRange<float> FloatRange { get; set; }
         }
 
         /// <summary>
@@ -670,7 +677,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             public RangeContext(DbContextOptions options) : base(options) { }
 
             /// <inheritdoc />
-            protected override void OnModelCreating(ModelBuilder builder) { }
+            protected override void OnModelCreating(ModelBuilder builder)
+                => builder.ForNpgsqlHasRange("floatrange", "real");
         }
 
         #endregion

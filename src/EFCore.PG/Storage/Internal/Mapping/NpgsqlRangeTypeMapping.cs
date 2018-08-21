@@ -24,6 +24,7 @@
 #endregion
 
 using System;
+using System.Diagnostics;
 using System.Text;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -32,38 +33,49 @@ using NpgsqlTypes;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 {
-    public class NpgsqlRangeTypeMapping<T> : NpgsqlTypeMapping
+    public class NpgsqlRangeTypeMapping : NpgsqlTypeMapping
     {
         public RelationalTypeMapping SubtypeMapping { get; }
 
         public NpgsqlRangeTypeMapping(
             [NotNull] string storeType,
             [NotNull] Type clrType,
-            RelationalTypeMapping subtypeMapping,
-            NpgsqlDbType subtypeNpgsqlDbType)
-            : base(storeType, clrType, NpgsqlDbType.Range | subtypeNpgsqlDbType)
-        {
-            SubtypeMapping = subtypeMapping;
-        }
+            [NotNull] RelationalTypeMapping subtypeMapping)
+            : base(storeType, clrType, GenerateNpgsqlDbType(subtypeMapping))
+        => SubtypeMapping = subtypeMapping;
 
         protected NpgsqlRangeTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
             : base(parameters, npgsqlDbType) { }
 
+        [NotNull]
         public override RelationalTypeMapping Clone(string storeType, int? size)
-            => new NpgsqlRangeTypeMapping<T>(Parameters.WithStoreTypeAndSize(storeType, size), NpgsqlDbType);
+            => new NpgsqlRangeTypeMapping(Parameters.WithStoreTypeAndSize(storeType, size), NpgsqlDbType);
 
+        [NotNull]
         public override CoreTypeMapping Clone(ValueConverter converter)
-            => new NpgsqlRangeTypeMapping<T>(Parameters.WithComposedConverter(converter), NpgsqlDbType);
+            => new NpgsqlRangeTypeMapping(Parameters.WithComposedConverter(converter), NpgsqlDbType);
 
         protected override string GenerateNonNullSqlLiteral(object value)
         {
-            var range = (NpgsqlRange<T>)value;
             var sb = new StringBuilder();
             sb.Append('\'');
-            sb.Append(range.ToString());
+            sb.Append(value);
             sb.Append("'::");
             sb.Append(StoreType);
             return sb.ToString();
+        }
+
+        static NpgsqlDbType GenerateNpgsqlDbType([NotNull] RelationalTypeMapping subtypeMapping)
+        {
+            if (subtypeMapping is NpgsqlTypeMapping npgsqlTypeMapping)
+                return NpgsqlDbType.Range | npgsqlTypeMapping.NpgsqlDbType;
+
+            // We're using a built-in, non-Npgsql mapping such as IntTypeMapping.
+            // Infer the NpgsqlDbType from the DbType (somewhat hacky but why not).
+            Debug.Assert(subtypeMapping.DbType.HasValue);
+            var p = new NpgsqlParameter();
+            p.DbType = subtypeMapping.DbType.Value;
+            return NpgsqlDbType.Range | p.NpgsqlDbType;
         }
     }
 }

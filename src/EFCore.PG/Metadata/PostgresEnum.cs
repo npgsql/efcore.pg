@@ -52,13 +52,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             [NotNull] string name,
             [NotNull] string[] labels)
         {
-            var extension = FindPostgresEnum(annotatable, schema, name);
-            if (extension != null)
-                return extension;
+            if (FindPostgresEnum(annotatable, schema, name) is PostgresEnum enumType)
+                return enumType;
 
-            extension = new PostgresEnum(annotatable, BuildAnnotationName(schema, name));
-            extension.SetData(labels);
-            return extension;
+            enumType = new PostgresEnum(annotatable, BuildAnnotationName(schema, name));
+            enumType.SetData(labels);
+            return enumType;
         }
 
         public static PostgresEnum GetOrAddPostgresEnum(

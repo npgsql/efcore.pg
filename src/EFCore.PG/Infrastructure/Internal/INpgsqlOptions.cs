@@ -47,6 +47,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         bool ReverseNullOrderingEnabled { get; }
 
         /// <summary>
+        /// The collection of range mappings.
+        /// </summary>
+        [NotNull]
+        IReadOnlyList<RangeMappingInfo> RangeMappings { get; }
+
+        /// <summary>
         /// The collection of database plugins.
         /// </summary>
         [NotNull]

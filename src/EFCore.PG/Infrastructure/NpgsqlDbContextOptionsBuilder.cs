@@ -31,6 +31,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
+using NpgsqlTypes;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
 {
@@ -67,6 +68,44 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         /// <param name="postgresVersion">The backend version to target.</param>
         public virtual void SetPostgresVersion([CanBeNull] Version postgresVersion)
             => WithOption(e => e.WithPostgresVersion(postgresVersion));
+
+        /// <summary>
+        /// Maps a user-defined PostgreSQL range type for use.
+        /// </summary>
+        /// <typeparam name="TSubtype">
+        /// The CLR type of the range's subtype (or element).
+        /// The actual mapped type will be an <see cref="NpgsqlRange{T}"/> over this type.
+        /// </typeparam>
+        /// <param name="rangeName">The name of the PostgreSQL range type to be mapped.</param>
+        /// <param name="subtypeName">
+        /// Optionally, the name of the range's PostgreSQL subtype (or element).
+        /// This is usually not needed - the subtype will be inferred based on <typeparamref name="TSubtype"/>.
+        /// </param>
+        /// <example>
+        /// To map a range of PostgreSQL real, use the following:
+        /// <code>NpgsqlTypeMappingSource.MapRange{float}("floatrange");</code>
+        /// </example>
+        public virtual void MapRange<TSubtype>([NotNull] string rangeName, string subtypeName = null)
+            => WithOption(e => e.WithRangeMapping(rangeName, typeof(TSubtype), subtypeName));
+
+        /// <summary>
+        /// Maps a user-defined PostgreSQL range type for use.
+        /// </summary>
+        /// <param name="rangeName">The name of the PostgreSQL range type to be mapped.</param>
+        /// <param name="subtypeClrType">
+        /// The CLR type of the range's subtype (or element).
+        /// The actual mapped type will be an <see cref="NpgsqlRange{T}"/> over this type.
+        /// </param>
+        /// <param name="subtypeName">
+        /// Optionally, the name of the range's PostgreSQL subtype (or element).
+        /// This is usually not needed - the subtype will be inferred based on <paramref name="subtypeClrType"/>.
+        /// </param>
+        /// <example>
+        /// To map a range of PostgreSQL real, use the following:
+        /// <code>NpgsqlTypeMappingSource.MapRange("floatrange", typeof(float));</code>
+        /// </example>
+        public virtual void MapRange([NotNull] string rangeName, [NotNull] Type subtypeClrType, string subtypeName = null)
+            => WithOption(e => e.WithRangeMapping(rangeName, subtypeClrType, subtypeName));
 
         /// <summary>
         /// Appends NULLS FIRST to all ORDER BY clauses. This is important for the tests which were written

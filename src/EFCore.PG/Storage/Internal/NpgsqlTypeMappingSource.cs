@@ -111,12 +111,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         readonly NpgsqlTsRankingNormalizationTypeMapping _rankingNormalization = new NpgsqlTsRankingNormalizationTypeMapping();
 
         // Built-in ranges
-        readonly NpgsqlRangeTypeMapping<int>      _int4range;
-        readonly NpgsqlRangeTypeMapping<long>     _int8range;
-        readonly NpgsqlRangeTypeMapping<decimal>  _numrange;
-        readonly NpgsqlRangeTypeMapping<DateTime> _tsrange;
-        readonly NpgsqlRangeTypeMapping<DateTime> _tstzrange;
-        readonly NpgsqlRangeTypeMapping<DateTime> _daterange;
+        readonly NpgsqlRangeTypeMapping        _int4range;
+        readonly NpgsqlRangeTypeMapping        _int8range;
+        readonly NpgsqlRangeTypeMapping        _numrange;
+        readonly NpgsqlRangeTypeMapping        _tsrange;
+        readonly NpgsqlRangeTypeMapping        _tstzrange;
+        readonly NpgsqlRangeTypeMapping        _daterange;
 
         // Other types
         readonly NpgsqlBoolTypeMapping         _bool               = new NpgsqlBoolTypeMapping();
@@ -134,12 +134,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             : base(dependencies, relationalDependencies)
         {
             // Initialize some mappings which depend on other mappings
-            _int4range = new NpgsqlRangeTypeMapping<int>("int4range", typeof(NpgsqlRange<int>), _int4, NpgsqlDbType.Integer);
-            _int8range = new NpgsqlRangeTypeMapping<long>("int8range", typeof(NpgsqlRange<long>), _int8, NpgsqlDbType.Bigint);
-            _numrange  = new NpgsqlRangeTypeMapping<decimal>("numrange",  typeof(NpgsqlRange<decimal>), _numeric, NpgsqlDbType.Numeric);
-            _tsrange   = new NpgsqlRangeTypeMapping<DateTime>("tsrange", typeof(NpgsqlRange<DateTime>), _timestamp, NpgsqlDbType.Range | NpgsqlDbType.Timestamp);
-            _tstzrange = new NpgsqlRangeTypeMapping<DateTime>("tstzrange", typeof(NpgsqlRange<DateTime>), _timestamptz, NpgsqlDbType.Range | NpgsqlDbType.TimestampTz);
-            _daterange = new NpgsqlRangeTypeMapping<DateTime>("daterange", typeof(NpgsqlRange<DateTime>), _timestamptz, NpgsqlDbType.Range | NpgsqlDbType.Date);
+            _int4range = new NpgsqlRangeTypeMapping("int4range", typeof(NpgsqlRange<int>),      _int4);
+            _int8range = new NpgsqlRangeTypeMapping("int8range", typeof(NpgsqlRange<long>),     _int8);
+            _numrange  = new NpgsqlRangeTypeMapping("numrange",  typeof(NpgsqlRange<decimal>),  _numeric);
+            _tsrange   = new NpgsqlRangeTypeMapping("tsrange",   typeof(NpgsqlRange<DateTime>), _timestamp);
+            _tstzrange = new NpgsqlRangeTypeMapping("tstzrange", typeof(NpgsqlRange<DateTime>), _timestamptz);
+            _daterange = new NpgsqlRangeTypeMapping("daterange", typeof(NpgsqlRange<DateTime>), _timestamptz);
 
             // Note that PostgreSQL has aliases to some built-in type name aliases (e.g. int4 for integer),
             // these are mapped as well.
@@ -263,11 +263,29 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             StoreTypeMappings = new ConcurrentDictionary<string, RelationalTypeMapping[]>(storeTypeMappings, StringComparer.OrdinalIgnoreCase);
             ClrTypeMappings = new ConcurrentDictionary<Type, RelationalTypeMapping>(clrTypeMappings);
 
-            if (npgsqlOptions?.Plugins != null)
-                foreach (var plugin in npgsqlOptions.Plugins)
-                    plugin.AddMappings(this);
-
             LoadUserDefinedTypeMappings();
+
+            if (npgsqlOptions == null)
+                return;
+
+            foreach (var (rangeName, subtypeClrType, subtypeName) in npgsqlOptions.RangeMappings)
+            {
+                var subtypeMapping = subtypeName == null
+                    ? ClrTypeMappings.TryGetValue(subtypeClrType, out var mapping)
+                        ? mapping
+                        : throw new Exception($"Could not map range {rangeName}, no mapping was found for subtype CLR type {subtypeClrType}")
+                    : StoreTypeMappings.TryGetValue(subtypeName, out var mappings)
+                        ? mappings[0]
+                        : throw new Exception($"Could not map range {rangeName}, no mapping was found for subtype {subtypeName}");
+
+                var rangeClrType = typeof(NpgsqlRange<>).MakeGenericType(subtypeClrType);
+                var rangeMapping = new NpgsqlRangeTypeMapping(rangeName, rangeClrType, subtypeMapping);
+                StoreTypeMappings[rangeName] = new RelationalTypeMapping[] { rangeMapping };
+                ClrTypeMappings[rangeClrType] = rangeMapping;
+            }
+
+            foreach (var plugin in npgsqlOptions.Plugins)
+                plugin.AddMappings(this);
         }
 
         /// <summary>
