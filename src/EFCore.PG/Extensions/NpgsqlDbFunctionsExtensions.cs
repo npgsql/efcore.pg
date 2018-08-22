@@ -31,10 +31,14 @@ using JetBrains.Annotations;
 // ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore
 {
+    /// <summary>
+    /// Provides Npgsql-specific extension methods on <see cref="DbFunctions"/>.
+    /// </summary>
     public static class NpgsqlDbFunctionsExtensions
     {
+        // ReSharper disable once InconsistentNaming
         /// <summary>
-        ///     An implementation of the PostgreSQL ILIKE operation, which is an insensitive LIKE.
+        /// An implementation of the PostgreSQL ILIKE operation, which is an insensitive LIKE.
         /// </summary>
         /// <param name="_">The DbFunctions instance.</param>
         /// <param name="matchExpression">The string that is to be matched.</param>
@@ -44,17 +48,18 @@ namespace Microsoft.EntityFrameworkCore
             [CanBeNull] this DbFunctions _,
             [CanBeNull] string matchExpression,
             [CanBeNull] string pattern)
-            => ILikeCore(matchExpression, pattern, escapeCharacter: null);
+            => ILikeCore(matchExpression, pattern, null);
 
+        // ReSharper disable once InconsistentNaming
         /// <summary>
-        ///     An implementation of the PostgreSQL ILIKE operation, which is an insensitive LIKE.
+        /// An implementation of the PostgreSQL ILIKE operation, which is an insensitive LIKE.
         /// </summary>
         /// <param name="_">The DbFunctions instance.</param>
         /// <param name="matchExpression">The string that is to be matched.</param>
         /// <param name="pattern">The pattern which may involve wildcards %,_,[,],^.</param>
         /// <param name="escapeCharacter">
-        ///     The escape character (as a single character string) to use in front of %,_,[,],^
-        ///     if they are not used as wildcards.
+        /// The escape character (as a single character string) to use in front of %,_,[,],^
+        /// if they are not used as wildcards.
         /// </param>
         /// <returns>true if there is a match.</returns>
         public static bool ILike(
@@ -64,62 +69,54 @@ namespace Microsoft.EntityFrameworkCore
             [CanBeNull] string escapeCharacter)
             => ILikeCore(matchExpression, pattern, escapeCharacter);
 
-        // Regex special chars defined here:
-        // https://msdn.microsoft.com/en-us/library/4edbef7e(v=vs.110).aspx
+        /// <remarks>
+        /// Regex special chars defined here:
+        /// https://msdn.microsoft.com/en-us/library/4edbef7e(v=vs.110).aspx
+        /// </remarks>
+        static readonly char[] RegexSpecialChars =
+            { '.', '$', '^', '{', '[', '(', '|', ')', '*', '+', '?', '\\' };
 
-        private static readonly char[] _regexSpecialChars
-            = { '.', '$', '^', '{', '[', '(', '|', ')', '*', '+', '?', '\\' };
+        static readonly string DefaultEscapeRegexCharsPattern =
+            BuildEscapeRegexCharsPattern(RegexSpecialChars);
 
-        private static readonly string _defaultEscapeRegexCharsPattern
-            = BuildEscapeRegexCharsPattern(_regexSpecialChars);
+        static readonly TimeSpan RegexTimeout = TimeSpan.FromMilliseconds(value: 1000.0);
 
-        private static readonly TimeSpan _regexTimeout = TimeSpan.FromMilliseconds(value: 1000.0);
+        static string BuildEscapeRegexCharsPattern(IEnumerable<char> regexSpecialChars)
+            => string.Join("|", regexSpecialChars.Select(c => @"\" + c));
 
-        private static string BuildEscapeRegexCharsPattern(IEnumerable<char> regexSpecialChars)
-        {
-            return string.Join("|", regexSpecialChars.Select(c => @"\" + c));
-        }
-
-        private static bool ILikeCore(string matchExpression, string pattern, string escapeCharacter)
+        // ReSharper disable once InconsistentNaming
+        static bool ILikeCore(string matchExpression, string pattern, string escapeCharacter)
         {
             //TODO: this fixes https://github.com/aspnet/EntityFramework/issues/8656 by insisting that
             // the "escape character" is a string but just using the first character of that string,
             // but we may later want to allow the complete string as the "escape character"
             // in which case we need to change the way we construct the regex below.
             var singleEscapeCharacter =
-                (escapeCharacter == null || escapeCharacter.Length == 0)
+                string.IsNullOrEmpty(escapeCharacter)
                     ? (char?)null
                     : escapeCharacter.First();
 
-            if (matchExpression == null
-                || pattern == null)
-            {
+            if (matchExpression == null || pattern == null)
                 return false;
-            }
 
             if (matchExpression.Equals(pattern))
-            {
                 return true;
-            }
 
-            if (matchExpression.Length == 0
-                || pattern.Length == 0)
-            {
+            if (matchExpression.Length == 0 || pattern.Length == 0)
                 return false;
-            }
 
-            var escapeRegexCharsPattern
-                = singleEscapeCharacter == null
-                    ? _defaultEscapeRegexCharsPattern
-                    : BuildEscapeRegexCharsPattern(_regexSpecialChars.Where(c => c != singleEscapeCharacter));
+            var escapeRegexCharsPattern =
+                singleEscapeCharacter == null
+                    ? DefaultEscapeRegexCharsPattern
+                    : BuildEscapeRegexCharsPattern(RegexSpecialChars.Where(c => c != singleEscapeCharacter));
 
-            var regexPattern
-                = Regex.Replace(
+            var regexPattern =
+                Regex.Replace(
                     pattern,
                     escapeRegexCharsPattern,
                     c => @"\" + c,
-                    default(RegexOptions),
-                    _regexTimeout);
+                    default,
+                    RegexTimeout);
 
             var stringBuilder = new StringBuilder();
 
@@ -158,7 +155,7 @@ namespace Microsoft.EntityFrameworkCore
                 matchExpression,
                 @"\A" + regexPattern + @"\s*\z",
                 RegexOptions.IgnoreCase | RegexOptions.Singleline,
-                _regexTimeout);
+                RegexTimeout);
         }
     }
 }

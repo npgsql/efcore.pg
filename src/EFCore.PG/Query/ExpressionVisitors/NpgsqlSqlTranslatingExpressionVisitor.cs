@@ -39,6 +39,9 @@ using Remotion.Linq.Clauses.ResultOperators;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
 {
+    /// <summary>
+    /// The default relational LINQ translating expression visitor for Npgsql.
+    /// </summary>
     public class NpgsqlSqlTranslatingExpressionVisitor : SqlTranslatingExpressionVisitor
     {
         /// <summary>
@@ -105,9 +108,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
                     var left = Visit(expression.Left);
                     var right = Visit(expression.Right);
 
-                    return left != null && right != null
-                        ? Expression.MakeBinary(ExpressionType.ArrayIndex, left, right)
-                        : null;
+                    if (left == null || right == null)
+                        return base.VisitBinary(expression);
+
+                    return Expression.MakeBinary(ExpressionType.ArrayIndex, left, right);
                 }
             }
 
@@ -137,14 +141,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
             {
                 // Translate someArray.Length
                 if (subQueryModel.ResultOperators.First() is CountResultOperator)
-                    return Expression.ArrayLength(Visit(fromExpression));
+                {
+                    if (Visit(fromExpression) is Expression from)
+                        return Expression.ArrayLength(from);
+                }
 
                 // Translate someArray.Contains(someValue)
                 if (subQueryModel.ResultOperators.First() is ContainsResultOperator contains)
                 {
-                    var containsItem = Visit(contains.Item);
-                    if (containsItem != null)
-                        return new ArrayAnyAllExpression(ArrayComparisonType.ANY, "=", containsItem, Visit(fromExpression));
+                    if (Visit(contains.Item) is Expression containsItem)
+                    {
+                        if (Visit(fromExpression) is Expression from)
+                            return new ArrayAnyAllExpression(ArrayComparisonType.ANY, "=", containsItem, from);
+                    }
                 }
             }
 

@@ -1,4 +1,5 @@
 ﻿#region License
+
 // The PostgreSQL License
 //
 // Copyright (C) 2016 The Npgsql Development Team
@@ -19,11 +20,13 @@
 // AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
 // ON AN "AS IS" BASIS, AND THE NPGSQL DEVELOPMENT TEAM HAS NO OBLIGATIONS
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+
 #endregion
 
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
 using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
@@ -31,28 +34,31 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
+    /// <summary>
+    /// Translates <see cref="M:string.StartsWith(string)"/>.
+    /// </summary>
     public class NpgsqlStringStartsWithTranslator : IMethodCallTranslator
     {
-        static readonly MethodInfo _methodInfo
-            = typeof(string).GetRuntimeMethod(nameof(string.StartsWith), new[] { typeof(string) });
+        static readonly MethodInfo MethodInfo =
+            typeof(string).GetRuntimeMethod(nameof(string.StartsWith), new[] { typeof(string) });
 
-        static readonly MethodInfo _concat
-            = typeof(string).GetRuntimeMethod(nameof(string.Concat), new[] { typeof(string), typeof(string) });
+        static readonly MethodInfo Concat =
+            typeof(string).GetRuntimeMethod(nameof(string.Concat), new[] { typeof(string), typeof(string) });
 
+        /// <inheritdoc />
+        [CanBeNull]
         public virtual Expression Translate(MethodCallExpression e)
         {
-            if (!e.Method.Equals(_methodInfo) || e.Object == null)
+            if (!e.Method.Equals(MethodInfo) || e.Object == null)
                 return null;
 
-            var constantPatternExpr = e.Arguments[0] as ConstantExpression;
-            if (constantPatternExpr != null)
+            if (e.Arguments[0] is ConstantExpression constantPatternExpr)
             {
                 // The pattern is constant. Escape all special characters (%, _, \) in C# and send
                 // a simple LIKE
                 return new LikeExpression(
                     e.Object,
-                    Expression.Constant(Regex.Replace((string)constantPatternExpr.Value, @"([%_\\])", @"\$1") + '%')
-                );
+                    Expression.Constant(Regex.Replace((string)constantPatternExpr.Value, @"([%_\\])", @"\$1") + '%'));
             }
 
             // The pattern isn't a constant (i.e. parameter, database column...).
@@ -73,12 +79,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 leftExpr = new ExplicitStoreTypeCastExpression(leftExpr, typeof(string), "citext");
 
             return Expression.AndAlso(
-                new LikeExpression(e.Object, Expression.Add(pattern, Expression.Constant("%"), _concat)),
-                Expression.Equal(
-                    leftExpr,
-                    pattern
-                )
-            );
+                new LikeExpression(e.Object, Expression.Add(pattern, Expression.Constant("%"), Concat)),
+                Expression.Equal(leftExpr, pattern));
         }
     }
 }

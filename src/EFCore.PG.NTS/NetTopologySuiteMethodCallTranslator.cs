@@ -1,13 +1,19 @@
 ﻿using System.Linq.Expressions;
 using GeoAPI.Geometries;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
 using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
 using NetTopologySuite.Geometries;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite
 {
+    /// <summary>
+    /// Translates methods operating on types implementing the <see cref="IGeometry"/> interface.
+    /// </summary>
     public class NetTopologySuiteMethodCallTranslator : IMethodCallTranslator
     {
+        /// <inheritdoc />
+        [CanBeNull]
         public virtual Expression Translate(MethodCallExpression e)
         {
             if (!typeof(IGeometry).IsAssignableFrom(e.Method.DeclaringType))

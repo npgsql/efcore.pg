@@ -1,4 +1,5 @@
 ﻿#region License
+
 // The PostgreSQL License
 //
 // Copyright (C) 2016 The Npgsql Development Team
@@ -19,6 +20,7 @@
 // AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
 // ON AN "AS IS" BASIS, AND THE NPGSQL DEVELOPMENT TEAM HAS NO OBLIGATIONS
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+
 #endregion
 
 using System.Linq;
@@ -30,17 +32,19 @@ using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
+    /// <summary>
+    /// Translates <see cref="M:string.Replace(string, string)"/> to 'Replace(text, text)'.
+    /// </summary>
     public class NpgsqlStringReplaceTranslator : IMethodCallTranslator
     {
-        static readonly MethodInfo _methodInfo
-            = typeof(string).GetRuntimeMethod(nameof(string.Replace), new[] { typeof(string), typeof(string) });
+        static readonly MethodInfo MethodInfo =
+            typeof(string).GetRuntimeMethod(nameof(string.Replace), new[] { typeof(string), typeof(string) });
 
-        public virtual Expression Translate([NotNull] MethodCallExpression methodCallExpression)
-            => _methodInfo.Equals(methodCallExpression.Method)
-                ? new SqlFunctionExpression(
-                    "REPLACE",
-                    methodCallExpression.Type,
-                    new[] { methodCallExpression.Object }.Concat(methodCallExpression.Arguments))
+        /// <inheritdoc />
+        [CanBeNull]
+        public virtual Expression Translate(MethodCallExpression e)
+            => MethodInfo.Equals(e.Method)
+                ? new SqlFunctionExpression("REPLACE", e.Type, new[] { e.Object }.Concat(e.Arguments))
                 : null;
     }
 }
