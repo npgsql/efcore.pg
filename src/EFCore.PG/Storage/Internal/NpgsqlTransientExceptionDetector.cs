@@ -23,7 +23,6 @@
 
 using System;
 using JetBrains.Annotations;
-using Npgsql;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 {

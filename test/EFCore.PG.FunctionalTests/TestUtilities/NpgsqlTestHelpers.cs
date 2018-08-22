@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.DependencyInjection;
-using Npgsql;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
 {

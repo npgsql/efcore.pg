@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using Microsoft.Extensions.Configuration;
-using Npgsql;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
 {

@@ -1,7 +1,5 @@
-﻿using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore.Query;
+﻿using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.TestUtilities;
-using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {

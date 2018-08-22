@@ -1,12 +1,6 @@
-﻿using System.Data;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
+﻿using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.Query;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.TestUtilities;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query

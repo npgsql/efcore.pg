@@ -27,7 +27,6 @@ using System;
 using System.Linq.Expressions;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
