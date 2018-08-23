@@ -1,4 +1,5 @@
 ﻿#region License
+
 // The PostgreSQL License
 //
 // Copyright (C) 2016 The Npgsql Development Team
@@ -19,10 +20,12 @@
 // AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
 // ON AN "AS IS" BASIS, AND THE NPGSQL DEVELOPMENT TEAM HAS NO OBLIGATIONS
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+
 #endregion
 
 using System.Linq.Expressions;
 using System.Reflection;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
 using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
@@ -30,37 +33,32 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
+    /// <summary>
+    /// Translates <see cref="M:string.Contains(string)"/> to 'STRPOS(text, text) > 0'.
+    /// </summary>
     public class NpgsqlStringContainsTranslator : IMethodCallTranslator
     {
-        static readonly MethodInfo _methodInfo
-            = typeof(string).GetRuntimeMethod(nameof(string.Contains), new[] { typeof(string) });
+        static readonly MethodInfo MethodInfo =
+            typeof(string).GetRuntimeMethod(nameof(string.Contains), new[] { typeof(string) });
 
-        public virtual Expression Translate(MethodCallExpression methodCallExpression)
+        /// <inheritdoc />
+        [CanBeNull]
+        public virtual Expression Translate(MethodCallExpression e)
         {
-            if (!methodCallExpression.Method.Equals(_methodInfo))
-            {
+            if (!e.Method.Equals(MethodInfo))
                 return null;
-            }
 
-            var argument0 = methodCallExpression.Arguments[0];
+            var argument0 = e.Arguments[0];
 
             // If Contains() is being invoked on a citext, ensure that the string argument is explicitly cast into a
             // citext (instead of the default text for a CLR string) as otherwise PostgreSQL prefers the text variant of
             // the ambiguous call STRPOS(citext, text) and the search will be case-sensitive. See #384.
-            if (argument0 != null &&
-                methodCallExpression.Object?.FindProperty(typeof(string))?.GetConfiguredColumnType() == "citext")
-            {
+            if (argument0 != null && e.Object?.FindProperty(typeof(string))?.GetConfiguredColumnType() == "citext")
                 argument0 = new ExplicitStoreTypeCastExpression(argument0, typeof(string), "citext");
-            }
 
             return Expression.GreaterThan(
-                new SqlFunctionExpression("STRPOS", typeof(int), new[]
-                {
-                    methodCallExpression.Object,
-                    argument0
-                }),
-                Expression.Constant(0)
-            );
+                new SqlFunctionExpression("STRPOS", typeof(int), new[] { e.Object, argument0 }),
+                Expression.Constant(0));
         }
     }
 }

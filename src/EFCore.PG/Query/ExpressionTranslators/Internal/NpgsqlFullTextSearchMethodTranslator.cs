@@ -1,4 +1,5 @@
 ﻿#region License
+
 // The PostgreSQL License
 //
 // Copyright (C) 2016 The Npgsql Development Team
@@ -19,6 +20,7 @@
 // AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
 // ON AN "AS IS" BASIS, AND THE NPGSQL DEVELOPMENT TEAM HAS NO OBLIGATIONS
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+
 #endregion
 
 using System;
@@ -26,6 +28,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
 using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
@@ -34,47 +37,45 @@ using NpgsqlTypes;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
+    /// <summary>
+    /// Provides translations for PostgreSQL full-text search methods.
+    /// </summary>
     public class NpgsqlFullTextSearchMethodTranslator : IMethodCallTranslator
     {
-        static readonly MethodInfo _tsQueryParse = typeof(NpgsqlTsQuery).GetMethod(
-            nameof(NpgsqlTsQuery.Parse),
-            BindingFlags.Public | BindingFlags.Static);
+        static readonly MethodInfo TsQueryParse =
+            typeof(NpgsqlTsQuery).GetMethod(nameof(NpgsqlTsQuery.Parse), BindingFlags.Public | BindingFlags.Static);
 
-        static readonly MethodInfo _tsVectorParse = typeof(NpgsqlTsVector).GetMethod(
-            nameof(NpgsqlTsVector.Parse),
-            BindingFlags.Public | BindingFlags.Static);
+        static readonly MethodInfo TsVectorParse =
+            typeof(NpgsqlTsVector).GetMethod(nameof(NpgsqlTsVector.Parse), BindingFlags.Public | BindingFlags.Static);
 
-        static readonly IReadOnlyDictionary<string, string> _sqlNameByMethodName =
-            new Dictionary<string, string>
-            {
-                [nameof(NpgsqlFullTextSearchDbFunctionsExtensions.ArrayToTsVector)] = "array_to_tsvector",
-                [nameof(NpgsqlFullTextSearchDbFunctionsExtensions.ToTsVector)] = "to_tsvector",
-                [nameof(NpgsqlFullTextSearchDbFunctionsExtensions.PlainToTsQuery)] = "plainto_tsquery",
-                [nameof(NpgsqlFullTextSearchDbFunctionsExtensions.PhraseToTsQuery)] = "phraseto_tsquery",
-                [nameof(NpgsqlFullTextSearchDbFunctionsExtensions.ToTsQuery)] = "to_tsquery"
-            };
-
-        public Expression Translate(MethodCallExpression methodCallExpression)
+        static readonly IReadOnlyDictionary<string, string> SqlNameByMethodName = new Dictionary<string, string>
         {
-            if (methodCallExpression.Method == _tsQueryParse || methodCallExpression.Method == _tsVectorParse)
-                return new ExplicitCastExpression(
-                    methodCallExpression.Arguments[0],
-                    methodCallExpression.Method.ReturnType);
+            [nameof(NpgsqlFullTextSearchDbFunctionsExtensions.ArrayToTsVector)] = "array_to_tsvector",
+            [nameof(NpgsqlFullTextSearchDbFunctionsExtensions.ToTsVector)] = "to_tsvector",
+            [nameof(NpgsqlFullTextSearchDbFunctionsExtensions.PlainToTsQuery)] = "plainto_tsquery",
+            [nameof(NpgsqlFullTextSearchDbFunctionsExtensions.PhraseToTsQuery)] = "phraseto_tsquery",
+            [nameof(NpgsqlFullTextSearchDbFunctionsExtensions.ToTsQuery)] = "to_tsquery"
+        };
 
-            if (methodCallExpression.Method.DeclaringType == typeof(NpgsqlFullTextSearchDbFunctionsExtensions)
-                && _sqlNameByMethodName.TryGetValue(methodCallExpression.Method.Name, out var sqlFunctionName))
-                return new SqlFunctionExpression(
-                    sqlFunctionName,
-                    methodCallExpression.Method.ReturnType,
-                    methodCallExpression.Arguments.Skip(1));
+        /// <inheritdoc />
+        [CanBeNull]
+        public Expression Translate(MethodCallExpression e)
+        {
+            if (e.Method == TsQueryParse || e.Method == TsVectorParse)
+                return new ExplicitCastExpression(e.Arguments[0], e.Method.ReturnType);
 
-            if (methodCallExpression.Method.DeclaringType == typeof(NpgsqlFullTextSearchLinqExtensions))
-                return TryTranslateOperator(methodCallExpression) ?? TryTranslateFunction(methodCallExpression);
+            if (e.Method.DeclaringType == typeof(NpgsqlFullTextSearchDbFunctionsExtensions)
+                && SqlNameByMethodName.TryGetValue(e.Method.Name, out var sqlFunctionName))
+                return new SqlFunctionExpression(sqlFunctionName, e.Method.ReturnType, e.Arguments.Skip(1));
+
+            if (e.Method.DeclaringType == typeof(NpgsqlFullTextSearchLinqExtensions))
+                return TryTranslateOperator(e) ?? TryTranslateFunction(e);
 
             return null;
         }
 
-        static Expression TryTranslateOperator(MethodCallExpression e)
+        [CanBeNull]
+        static Expression TryTranslateOperator([NotNull] MethodCallExpression e)
         {
             switch (e.Method.Name)
             {
@@ -107,75 +108,58 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             }
         }
 
-        static Expression TryTranslateFunction(MethodCallExpression methodCallExpression)
+        [CanBeNull]
+        static Expression TryTranslateFunction([NotNull] MethodCallExpression e)
         {
-            switch (methodCallExpression.Method.Name)
+            switch (e.Method.Name)
             {
             case nameof(NpgsqlFullTextSearchLinqExtensions.GetNodeCount):
-                return new SqlFunctionExpression(
-                    "numnode",
-                    methodCallExpression.Method.ReturnType,
-                    methodCallExpression.Arguments);
+                return new SqlFunctionExpression("numnode", e.Method.ReturnType, e.Arguments);
 
             case nameof(NpgsqlFullTextSearchLinqExtensions.GetQueryTree):
-                return new SqlFunctionExpression(
-                    "querytree",
-                    methodCallExpression.Method.ReturnType,
-                    methodCallExpression.Arguments);
+                return new SqlFunctionExpression("querytree", e.Method.ReturnType, e.Arguments);
 
             case nameof(NpgsqlFullTextSearchLinqExtensions.GetResultHeadline):
-                var tsheadlineFunctionName = "ts_headline";
-                switch (methodCallExpression.Arguments.Count)
+                switch (e.Arguments.Count)
                 {
                 case 2:
-                    return new SqlFunctionExpression(
-                        tsheadlineFunctionName,
-                        methodCallExpression.Method.ReturnType,
-                        methodCallExpression.Arguments.Reverse());
+                    return new SqlFunctionExpression("ts_headline", e.Method.ReturnType, e.Arguments.Reverse());
 
                 case 3:
                     return new SqlFunctionExpression(
-                        tsheadlineFunctionName,
-                        methodCallExpression.Method.ReturnType,
+                        "ts_headline",
+                        e.Method.ReturnType,
                         new[]
                         {
-                            methodCallExpression.Arguments[1],
-                            methodCallExpression.Arguments[0],
-                            methodCallExpression.Arguments[2]
+                            e.Arguments[1],
+                            e.Arguments[0],
+                            e.Arguments[2]
                         });
 
                 case 4:
                     return new SqlFunctionExpression(
-                        tsheadlineFunctionName,
-                        methodCallExpression.Method.ReturnType,
+                        "ts_headline",
+                        e.Method.ReturnType,
                         new[]
                         {
-                            methodCallExpression.Arguments[1],
-                            methodCallExpression.Arguments[2],
-                            methodCallExpression.Arguments[0],
-                            methodCallExpression.Arguments[3]
+                            e.Arguments[1],
+                            e.Arguments[2],
+                            e.Arguments[0],
+                            e.Arguments[3]
                         });
 
                 default:
-                    throw new ArgumentException(
-                        $"Invalid method overload for {tsheadlineFunctionName}",
-                        nameof(methodCallExpression));
+                    throw new ArgumentException("Invalid method overload for ts_headline", nameof(e));
                 }
 
             case nameof(NpgsqlFullTextSearchLinqExtensions.Rewrite):
-                return new SqlFunctionExpression(
-                    "ts_rewrite",
-                    methodCallExpression.Method.ReturnType,
-                    methodCallExpression.Arguments);
+                return new SqlFunctionExpression("ts_rewrite", e.Method.ReturnType, e.Arguments);
 
             case nameof(NpgsqlFullTextSearchLinqExtensions.ToPhrase):
-                return new SqlFunctionExpression(
-                    "tsquery_phrase",
-                    methodCallExpression.Method.ReturnType,
-                    methodCallExpression.Arguments);
+                return new SqlFunctionExpression("tsquery_phrase", e.Method.ReturnType, e.Arguments);
 
             case nameof(NpgsqlFullTextSearchLinqExtensions.SetWeight):
-                var arguments = methodCallExpression.Arguments.ToArray();
+                var arguments = e.Arguments.ToArray();
 
                 if (arguments[1].Type == typeof(NpgsqlTsVector.Lexeme.Weight))
                 {
@@ -188,57 +172,42 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     arguments[1] = Expression.Constant(weightExpression.Value.ToString()[0]);
                 }
 
-                return new SqlFunctionExpression(
-                    "setweight",
-                    methodCallExpression.Method.ReturnType,
-                    arguments);
+                return new SqlFunctionExpression("setweight", e.Method.ReturnType, arguments);
 
             case nameof(NpgsqlFullTextSearchLinqExtensions.Delete):
-                return new SqlFunctionExpression(
-                    "ts_delete",
-                    methodCallExpression.Method.ReturnType,
-                    methodCallExpression.Arguments);
+                return new SqlFunctionExpression("ts_delete", e.Method.ReturnType, e.Arguments);
 
             case nameof(NpgsqlFullTextSearchLinqExtensions.Filter):
                 return new SqlFunctionExpression(
                     "ts_filter",
-                    methodCallExpression.Method.ReturnType,
+                    e.Method.ReturnType,
                     new[]
                     {
-                        methodCallExpression.Arguments[0],
-                        new ExplicitStoreTypeCastExpression(methodCallExpression.Arguments[1], typeof(char[]), "\"char\"[]")
+                        e.Arguments[0],
+                        new ExplicitStoreTypeCastExpression(e.Arguments[1], typeof(char[]), "\"char\"[]")
                     });
 
             case nameof(NpgsqlFullTextSearchLinqExtensions.GetLength):
-                return new SqlFunctionExpression(
-                    "length",
-                    methodCallExpression.Method.ReturnType,
-                    methodCallExpression.Arguments);
+                return new SqlFunctionExpression("length", e.Method.ReturnType, e.Arguments);
 
             case nameof(NpgsqlFullTextSearchLinqExtensions.ToStripped):
-                return new SqlFunctionExpression(
-                    "strip",
-                    methodCallExpression.Method.ReturnType,
-                    methodCallExpression.Arguments);
+                return new SqlFunctionExpression("strip", e.Method.ReturnType, e.Arguments);
 
             case nameof(NpgsqlFullTextSearchLinqExtensions.Rank):
             case nameof(NpgsqlFullTextSearchLinqExtensions.RankCoverDensity):
-                var rankFunctionName = methodCallExpression.Method.Name == nameof(NpgsqlFullTextSearchLinqExtensions.Rank)
+                var rankFunctionName = e.Method.Name == nameof(NpgsqlFullTextSearchLinqExtensions.Rank)
                     ? "ts_rank"
                     : "ts_rank_cd";
 
-                switch (methodCallExpression.Arguments.Count)
+                switch (e.Arguments.Count)
                 {
                 case 2:
-                    return new SqlFunctionExpression(
-                        rankFunctionName,
-                        methodCallExpression.Method.ReturnType,
-                        methodCallExpression.Arguments);
+                    return new SqlFunctionExpression(rankFunctionName, e.Method.ReturnType, e.Arguments);
 
                 case 3:
-                    var firstArgument = methodCallExpression.Arguments[0];
-                    var secondArgument = methodCallExpression.Arguments[1];
-                    if (methodCallExpression.Arguments[1].Type == typeof(float[]))
+                    var firstArgument = e.Arguments[0];
+                    var secondArgument = e.Arguments[1];
+                    if (e.Arguments[1].Type == typeof(float[]))
                     {
                         var temp = firstArgument;
                         firstArgument = secondArgument;
@@ -247,30 +216,30 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
                     return new SqlFunctionExpression(
                         rankFunctionName,
-                        methodCallExpression.Method.ReturnType,
+                        e.Method.ReturnType,
                         new[]
                         {
                             firstArgument,
                             secondArgument,
-                            methodCallExpression.Arguments[2]
+                            e.Arguments[2]
                         });
 
                 case 4:
                     return new SqlFunctionExpression(
                         rankFunctionName,
-                        methodCallExpression.Method.ReturnType,
+                        e.Method.ReturnType,
                         new[]
                         {
-                            methodCallExpression.Arguments[1],
-                            methodCallExpression.Arguments[0],
-                            methodCallExpression.Arguments[2],
-                            methodCallExpression.Arguments[3]
+                            e.Arguments[1],
+                            e.Arguments[0],
+                            e.Arguments[2],
+                            e.Arguments[3]
                         });
 
                 default:
                     throw new ArgumentException(
                         $"Invalid method overload for {rankFunctionName}",
-                        nameof(methodCallExpression));
+                        nameof(e));
                 }
 
             default:

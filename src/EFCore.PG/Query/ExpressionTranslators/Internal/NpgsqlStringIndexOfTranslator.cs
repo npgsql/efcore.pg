@@ -1,4 +1,5 @@
 ﻿#region License
+
 // The PostgreSQL License
 //
 // Copyright (C) 2016 The Npgsql Development Team
@@ -19,6 +20,7 @@
 // AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
 // ON AN "AS IS" BASIS, AND THE NPGSQL DEVELOPMENT TEAM HAS NO OBLIGATIONS
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+
 #endregion
 
 using System.Linq;
@@ -30,27 +32,27 @@ using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
+    /// <summary>
+    /// Translates <see cref="M:string.IndexOf(string)"/> and <see cref="M:string.IndexOf(char)"/>
+    /// to 'STRPOS(text, text) - 1'.
+    /// </summary>
     public class NpgsqlStringIndexOfTranslator : IMethodCallTranslator
     {
-        static readonly MethodInfo _indexOfString
-            = typeof(string).GetRuntimeMethod(nameof(string.IndexOf), new[] { typeof(string) });
+        static readonly MethodInfo IndexOfString =
+            typeof(string).GetRuntimeMethod(nameof(string.IndexOf), new[] { typeof(string) });
 
-        static readonly MethodInfo _indexOfChar
-            = typeof(string).GetRuntimeMethod(nameof(string.IndexOf), new[] { typeof(char) });
+        static readonly MethodInfo IndexOfChar =
+            typeof(string).GetRuntimeMethod(nameof(string.IndexOf), new[] { typeof(char) });
 
-        public virtual Expression Translate([NotNull] MethodCallExpression methodCallExpression)
+        /// <inheritdoc />
+        [CanBeNull]
+        public virtual Expression Translate(MethodCallExpression e)
         {
-            if (!_indexOfString.Equals(methodCallExpression.Method) &&
-                !_indexOfChar.Equals(methodCallExpression.Method))
-            {
+            if (!IndexOfString.Equals(e.Method) && !IndexOfChar.Equals(e.Method))
                 return null;
-            }
 
             return Expression.Subtract(
-                new SqlFunctionExpression(
-                    "STRPOS",
-                    methodCallExpression.Type,
-                    new[] { methodCallExpression.Object }.Concat(methodCallExpression.Arguments)),
+                new SqlFunctionExpression("STRPOS", e.Type, new[] { e.Object }.Concat(e.Arguments)),
                 Expression.Constant(1)
             );
         }

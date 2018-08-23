@@ -1,4 +1,5 @@
 ﻿#region License
+
 // The PostgreSQL License
 //
 // Copyright (C) 2016 The Npgsql Development Team
@@ -19,6 +20,7 @@
 // AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
 // ON AN "AS IS" BASIS, AND THE NPGSQL DEVELOPMENT TEAM HAS NO OBLIGATIONS
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+
 #endregion
 
 using System.Linq.Expressions;
@@ -42,44 +44,31 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             typeof(Regex).GetRuntimeMethod(nameof(Regex.IsMatch), new[] { typeof(string), typeof(string) });
 
         static readonly MethodInfo IsMatchWithRegexOptions =
-            typeof(Regex).GetRuntimeMethod(nameof(Regex.IsMatch), new [] { typeof(string), typeof(string), typeof(RegexOptions) });
+            typeof(Regex).GetRuntimeMethod(nameof(Regex.IsMatch), new[] { typeof(string), typeof(string), typeof(RegexOptions) });
 
         const RegexOptions UnsupportedRegexOptions = RegexOptions.RightToLeft | RegexOptions.ECMAScript;
 
+        /// <inheritdoc />
         [CanBeNull]
-        public Expression Translate([NotNull] MethodCallExpression methodCallExpression)
+        public Expression Translate(MethodCallExpression e)
         {
             // Regex.IsMatch(string, string)
-            if (methodCallExpression.Method.Equals(IsMatch))
-            {
-                return new RegexMatchExpression(
-                    methodCallExpression.Arguments[0],
-                    methodCallExpression.Arguments[1],
-                    RegexOptions.None
-                );
-            }
+            if (e.Method.Equals(IsMatch))
+                return new RegexMatchExpression(e.Arguments[0], e.Arguments[1], RegexOptions.None);
 
             // Regex.IsMatch(string, string, RegexOptions)
-            if (methodCallExpression.Method.Equals(IsMatchWithRegexOptions))
-            {
-                var constantExpr = methodCallExpression.Arguments[2] as ConstantExpression;
+            if (!e.Method.Equals(IsMatchWithRegexOptions))
+                return null;
 
-                if (constantExpr == null)
-                    return null;
+            if (!(e.Arguments[2] is ConstantExpression constantExpr))
+                return null;
 
-                var options = (RegexOptions)constantExpr.Value;
+            var options = (RegexOptions)constantExpr.Value;
 
-                if ((options & UnsupportedRegexOptions) != 0)
-                    return null;
-
-                return new RegexMatchExpression(
-                    methodCallExpression.Arguments[0],
-                    methodCallExpression.Arguments[1],
-                    options
-                );
-            }
-
-            return null;
+            return
+                (options & UnsupportedRegexOptions) == 0
+                    ? new RegexMatchExpression(e.Arguments[0], e.Arguments[1], options)
+                    : null;
         }
     }
 }

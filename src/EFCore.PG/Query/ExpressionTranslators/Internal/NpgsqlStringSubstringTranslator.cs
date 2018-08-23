@@ -1,4 +1,5 @@
 ﻿#region License
+
 // The PostgreSQL License
 //
 // Copyright (C) 2016 The Npgsql Development Team
@@ -19,6 +20,7 @@
 // AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
 // ON AN "AS IS" BASIS, AND THE NPGSQL DEVELOPMENT TEAM HAS NO OBLIGATIONS
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+
 #endregion
 
 using System.Linq;
@@ -30,33 +32,31 @@ using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
+    /// <summary>
+    /// Translates <see cref="M:string.Substring(int, int)"/>.
+    /// </summary>
     public class NpgsqlStringSubstringTranslator : IMethodCallTranslator
     {
-        static readonly MethodInfo _methodInfo = typeof(string).GetTypeInfo()
-            .GetDeclaredMethods(nameof(string.Substring))
-            .Single(m => m.GetParameters().Length == 2);
+        static readonly MethodInfo MethodInfo =
+            typeof(string).GetTypeInfo()
+                          .GetDeclaredMethods(nameof(string.Substring))
+                          .Single(m => m.GetParameters().Length == 2);
 
-        /// <summary>
-        ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
+        /// <inheritdoc />
         [CanBeNull]
-        public virtual Expression Translate(MethodCallExpression methodCallExpression)
-            => methodCallExpression.Method.Equals(_methodInfo)
+        public virtual Expression Translate(MethodCallExpression e)
+            => e.Method.Equals(MethodInfo)
                 ? new SqlFunctionExpression(
                     "SUBSTRING",
-                    methodCallExpression.Type,
+                    e.Type,
                     new[]
                     {
-                        methodCallExpression.Object,
+                        e.Object,
                         // Accommodate for SQL Server assumption of 1-based string indexes
-                        methodCallExpression.Arguments[0].NodeType == ExpressionType.Constant
-                            ? (Expression)Expression.Constant(
-                                (int)((ConstantExpression)methodCallExpression.Arguments[0]).Value + 1)
-                            : Expression.Add(
-                                methodCallExpression.Arguments[0],
-                                Expression.Constant(1)),
-                        methodCallExpression.Arguments[1]
+                        e.Arguments[0].NodeType == ExpressionType.Constant
+                            ? (Expression)Expression.Constant((int)((ConstantExpression)e.Arguments[0]).Value + 1)
+                            : Expression.Add(e.Arguments[0], Expression.Constant(1)),
+                        e.Arguments[1]
                     })
                 : null;
     }

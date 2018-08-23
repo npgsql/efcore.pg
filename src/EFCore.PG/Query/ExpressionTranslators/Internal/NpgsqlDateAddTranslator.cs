@@ -92,7 +92,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             // Note that a make_interval() function also exists, but accepts only int (for all fields except for
             // seconds), so we don't use it.
 
-            Expression interval = null;
+            Expression interval;
 
             var instance = methodCallExpression.Object;
             var amountToAdd = methodCallExpression.Arguments[0];
@@ -124,11 +124,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             // We could use the provider-specific NpgsqlTimeSpan but it's not currently supported and is somewhat
             // ugly, so we just generate the expression ourselves with CustomBinaryExpression
 
-            return new CustomBinaryExpression(
-                methodCallExpression.Object,
-                interval,
-                "+",
-                methodCallExpression.Type);
+            return new CustomBinaryExpression(instance, interval, "+", methodCallExpression.Type);
         }
     }
 }

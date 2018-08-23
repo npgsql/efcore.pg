@@ -27,14 +27,18 @@ using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
 using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
+    /// <summary>
+    /// Translates methods defined on <see cref="T:System.Convert"/> into PostgreSQL CAST expressions.
+    /// </summary>
     public class NpgsqlConvertTranslator : IMethodCallTranslator
     {
-        static readonly Dictionary<string, DbType> _typeMapping = new Dictionary<string, DbType>
+        static readonly Dictionary<string, DbType> TypeMapping = new Dictionary<string, DbType>
         {
             [nameof(Convert.ToByte)] = DbType.Byte,
             [nameof(Convert.ToDecimal)] = DbType.Decimal,
@@ -45,7 +49,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             [nameof(Convert.ToString)] = DbType.String
         };
 
-        static readonly List<Type> _supportedTypes = new List<Type>
+        static readonly List<Type> SupportedTypes = new List<Type>
         {
             typeof(bool),
             typeof(byte),
@@ -58,18 +62,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             typeof(string)
         };
 
-        static readonly IEnumerable<MethodInfo> _supportedMethods
-            = _typeMapping.Keys
+        static readonly IEnumerable<MethodInfo> SupportedMethods =
+            TypeMapping.Keys
                 .SelectMany(t => typeof(Convert).GetTypeInfo().GetDeclaredMethods(t)
                     .Where(m => m.GetParameters().Length == 1
-                                && _supportedTypes.Contains(m.GetParameters().First().ParameterType)));
+                                && SupportedTypes.Contains(m.GetParameters().First().ParameterType)));
 
-        /// <summary>
-        ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
+        /// <inheritdoc />
+        [CanBeNull]
         public virtual Expression Translate(MethodCallExpression methodCallExpression)
-            => _supportedMethods.Contains(methodCallExpression.Method)
+            => SupportedMethods.Contains(methodCallExpression.Method)
                 ? new ExplicitCastExpression(methodCallExpression.Arguments[0], methodCallExpression.Type)
                 : null;
     }

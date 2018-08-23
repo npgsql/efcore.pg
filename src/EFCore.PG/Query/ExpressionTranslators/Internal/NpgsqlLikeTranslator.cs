@@ -1,4 +1,5 @@
 ﻿#region License
+
 // The PostgreSQL License
 //
 // Copyright (C) 2016 The Npgsql Development Team
@@ -19,10 +20,12 @@
 // AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
 // ON AN "AS IS" BASIS, AND THE NPGSQL DEVELOPMENT TEAM HAS NO OBLIGATIONS
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+
 #endregion
 
 using System.Linq.Expressions;
 using System.Reflection;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
 using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
@@ -31,42 +34,49 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
+    /// <summary>
+    /// Translates <see cref="T:DbFunctionsExtensions.Like"/> methods into PostgreSQL LIKE expressions.
+    /// </summary>
     public class NpgsqlLikeTranslator : IMethodCallTranslator
     {
-        private static readonly MethodInfo _like
-            = typeof(DbFunctionsExtensions).GetRuntimeMethod(
+        static readonly MethodInfo Like =
+            typeof(DbFunctionsExtensions).GetRuntimeMethod(
                 nameof(DbFunctionsExtensions.Like),
                 new[] { typeof(DbFunctions), typeof(string), typeof(string) });
 
-        private static readonly MethodInfo _likeWithEscape
-            = typeof(DbFunctionsExtensions).GetRuntimeMethod(
+        static readonly MethodInfo LikeWithEscape =
+            typeof(DbFunctionsExtensions).GetRuntimeMethod(
                 nameof(DbFunctionsExtensions.Like),
                 new[] { typeof(DbFunctions), typeof(string), typeof(string), typeof(string) });
 
-        private static readonly MethodInfo _iLike
-            = typeof(NpgsqlDbFunctionsExtensions).GetRuntimeMethod(
+        // ReSharper disable once InconsistentNaming
+        static readonly MethodInfo ILike =
+            typeof(NpgsqlDbFunctionsExtensions).GetRuntimeMethod(
                 nameof(NpgsqlDbFunctionsExtensions.ILike),
                 new[] { typeof(DbFunctions), typeof(string), typeof(string) });
 
-        private static readonly MethodInfo _iLikeWithEscape
-            = typeof(NpgsqlDbFunctionsExtensions).GetRuntimeMethod(
+        // ReSharper disable once InconsistentNaming
+        static readonly MethodInfo ILikeWithEscape =
+            typeof(NpgsqlDbFunctionsExtensions).GetRuntimeMethod(
                 nameof(NpgsqlDbFunctionsExtensions.ILike),
                 new[] { typeof(DbFunctions), typeof(string), typeof(string), typeof(string) });
 
-        public virtual Expression Translate(MethodCallExpression methodCallExpression)
+        /// <inheritdoc />
+        [CanBeNull]
+        public virtual Expression Translate(MethodCallExpression e)
         {
-            Check.NotNull(methodCallExpression, nameof(methodCallExpression));
+            Check.NotNull(e, nameof(e));
 
-            if (Equals(methodCallExpression.Method, _likeWithEscape))
-                return new LikeExpression(methodCallExpression.Arguments[1], methodCallExpression.Arguments[2], methodCallExpression.Arguments[3]);
+            if (Equals(e.Method, LikeWithEscape))
+                return new LikeExpression(e.Arguments[1], e.Arguments[2], e.Arguments[3]);
 
-            if (Equals(methodCallExpression.Method, _iLikeWithEscape))
-                return new ILikeExpression(methodCallExpression.Arguments[1], methodCallExpression.Arguments[2], methodCallExpression.Arguments[3]);
+            if (Equals(e.Method, ILikeWithEscape))
+                return new ILikeExpression(e.Arguments[1], e.Arguments[2], e.Arguments[3]);
 
             bool sensitive;
-            if (Equals(methodCallExpression.Method, _like))
+            if (Equals(e.Method, Like))
                 sensitive = true;
-            else if (Equals(methodCallExpression.Method, _iLike))
+            else if (Equals(e.Method, ILike))
                 sensitive = false;
             else
                 return null;
@@ -78,18 +88,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             // an ESCAPE clause (better SQL). If we have a constant expression with backslashes or a non-constant
             // expression, we render an ESCAPE clause to disable backslash escaping.
 
-            if (methodCallExpression.Arguments[2] is ConstantExpression constantPattern &&
+            if (e.Arguments[2] is ConstantExpression constantPattern &&
                 constantPattern.Value is string pattern &&
                 !pattern.Contains("\\"))
             {
                 return sensitive
-                    ? new LikeExpression(methodCallExpression.Arguments[1], methodCallExpression.Arguments[2])
-                    : (Expression)new ILikeExpression(methodCallExpression.Arguments[1], methodCallExpression.Arguments[2]);
+                    ? new LikeExpression(e.Arguments[1], e.Arguments[2])
+                    : (Expression)new ILikeExpression(e.Arguments[1], e.Arguments[2]);
             }
 
             return sensitive
-                ? new LikeExpression(methodCallExpression.Arguments[1], methodCallExpression.Arguments[2], Expression.Constant(string.Empty))
-                : (Expression)new ILikeExpression(methodCallExpression.Arguments[1], methodCallExpression.Arguments[2], Expression.Constant(string.Empty));
+                ? new LikeExpression(e.Arguments[1], e.Arguments[2], Expression.Constant(string.Empty))
+                : (Expression)new ILikeExpression(e.Arguments[1], e.Arguments[2], Expression.Constant(string.Empty));
         }
     }
 }

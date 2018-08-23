@@ -1,4 +1,5 @@
 ﻿#region License
+
 // The PostgreSQL License
 //
 // Copyright (C) 2016 The Npgsql Development Team
@@ -19,33 +20,35 @@
 // AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
 // ON AN "AS IS" BASIS, AND THE NPGSQL DEVELOPMENT TEAM HAS NO OBLIGATIONS
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+
 #endregion
 
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
 using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
+    /// <summary>
+    /// Translates <see cref="M:string.IsNullOrWhiteSpace(string)"/>.
+    /// </summary>
     public class NpgsqlStringIsNullOrWhiteSpaceTranslator : IMethodCallTranslator
     {
-        static readonly MethodInfo _methodInfo
-            = typeof(string).GetRuntimeMethod(nameof(string.IsNullOrWhiteSpace), new[] { typeof(string) });
+        static readonly MethodInfo MethodInfo =
+            typeof(string).GetRuntimeMethod(nameof(string.IsNullOrWhiteSpace), new[] { typeof(string) });
 
-        public virtual Expression Translate(MethodCallExpression methodCallExpression)
-            => _methodInfo.Equals(methodCallExpression.Method)
+        /// <inheritdoc />
+        [CanBeNull]
+        public virtual Expression Translate(MethodCallExpression e)
+            => MethodInfo.Equals(e.Method)
                 ? Expression.MakeBinary(
                     ExpressionType.OrElse,
-                    new IsNullExpression(methodCallExpression.Arguments[0]),
-                    new RegexMatchExpression(
-                        methodCallExpression.Arguments[0],
-                        Expression.Constant(@"^\s*$"),
-                        RegexOptions.Singleline
-                    )
-                )
+                    new IsNullExpression(e.Arguments[0]),
+                    new RegexMatchExpression(e.Arguments[0], Expression.Constant(@"^\s*$"), RegexOptions.Singleline))
                 : null;
     }
 }

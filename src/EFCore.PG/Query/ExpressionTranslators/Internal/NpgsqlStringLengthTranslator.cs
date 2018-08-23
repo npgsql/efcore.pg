@@ -1,4 +1,5 @@
 ﻿#region License
+
 // The PostgreSQL License
 //
 // Copyright (C) 2016 The Npgsql Development Team
@@ -19,6 +20,7 @@
 // AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
 // ON AN "AS IS" BASIS, AND THE NPGSQL DEVELOPMENT TEAM HAS NO OBLIGATIONS
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+
 #endregion
 
 using System.Linq.Expressions;
@@ -28,13 +30,18 @@ using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
+    /// <summary>
+    /// Translates <see cref="M:string.Length"/> to 'LENGTH(text)'.
+    /// </summary>
     public class NpgsqlStringLengthTranslator : IMemberTranslator
     {
-        public virtual Expression Translate([NotNull] MemberExpression memberExpression)
-            => (memberExpression.Expression != null)
-               && (memberExpression.Expression.Type == typeof(string))
-               && (memberExpression.Member.Name == nameof(string.Length))
-                ? new SqlFunctionExpression("LENGTH", memberExpression.Type, new[] { memberExpression.Expression })
+        /// <inheritdoc />
+        [CanBeNull]
+        public virtual Expression Translate(MemberExpression e)
+            => e.Expression != null &&
+               e.Expression.Type == typeof(string) &&
+               e.Member.Name == nameof(string.Length)
+                ? new SqlFunctionExpression("LENGTH", e.Type, new[] { e.Expression })
                 : null;
     }
 }

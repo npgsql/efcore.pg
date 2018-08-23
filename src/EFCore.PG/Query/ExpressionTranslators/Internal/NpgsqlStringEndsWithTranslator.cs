@@ -1,4 +1,5 @@
 ﻿#region License
+
 // The PostgreSQL License
 //
 // Copyright (C) 2016 The Npgsql Development Team
@@ -19,35 +20,39 @@
 // AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
 // ON AN "AS IS" BASIS, AND THE NPGSQL DEVELOPMENT TEAM HAS NO OBLIGATIONS
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+
 #endregion
 
 using System.Linq.Expressions;
 using System.Reflection;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
 using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
+    /// <summary>
+    /// Translates <see cref="M:string.EndsWith(string)"/> to 'RIGHT(text, int) = text'.
+    /// </summary>
     public class NpgsqlStringEndsWithTranslator : IMethodCallTranslator
     {
-        static readonly MethodInfo _methodInfo
-            = typeof(string).GetRuntimeMethod(nameof(string.EndsWith), new[] { typeof(string) });
+        static readonly MethodInfo MethodInfo =
+            typeof(string).GetRuntimeMethod(nameof(string.EndsWith), new[] { typeof(string) });
 
-        public virtual Expression Translate(MethodCallExpression methodCallExpression)
-            => ReferenceEquals(methodCallExpression.Method, _methodInfo)
+        /// <inheritdoc />
+        [CanBeNull]
+        public virtual Expression Translate(MethodCallExpression e)
+            => e.Object != null && ReferenceEquals(e.Method, MethodInfo)
                 ? Expression.Equal(
                     new SqlFunctionExpression(
                         "RIGHT",
-                        // ReSharper disable once PossibleNullReferenceException
-                        methodCallExpression.Object.Type,
+                        e.Object.Type,
                         new[]
                         {
-                            methodCallExpression.Object,
-                            new SqlFunctionExpression("LENGTH", typeof(int), new[] { methodCallExpression.Arguments[0] })
-                        }
-                    ),
-                    methodCallExpression.Arguments[0]
-                )
+                            e.Object,
+                            new SqlFunctionExpression("LENGTH", typeof(int), new[] { e.Arguments[0] })
+                        }),
+                    e.Arguments[0])
                 : null;
     }
 }

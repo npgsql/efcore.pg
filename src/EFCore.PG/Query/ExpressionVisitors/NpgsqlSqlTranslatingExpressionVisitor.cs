@@ -39,6 +39,9 @@ using Remotion.Linq.Clauses.ResultOperators;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
 {
+    /// <summary>
+    /// The default relational LINQ translating expression visitor for Npgsql.
+    /// </summary>
     public class NpgsqlSqlTranslatingExpressionVisitor : SqlTranslatingExpressionVisitor
     {
         /// <summary>
@@ -107,7 +110,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
 
                     return left != null && right != null
                         ? Expression.MakeBinary(ExpressionType.ArrayIndex, left, right)
-                        : null;
+                        : base.VisitBinary(expression);
                 }
             }
 
@@ -135,16 +138,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
             var lastPropertyType = properties[properties.Count - 1].ClrType;
             if (lastPropertyType.IsArray && lastPropertyType.GetArrayRank() == 1 && subQueryModel.ResultOperators.Count > 0)
             {
+                var from = Visit(fromExpression);
+
+                if (from == null)
+                    return null;
+
+                switch (subQueryModel.ResultOperators.First())
+                {
                 // Translate someArray.Length
-                if (subQueryModel.ResultOperators.First() is CountResultOperator)
-                    return Expression.ArrayLength(Visit(fromExpression));
+                case CountResultOperator _:
+                    return Expression.ArrayLength(from);
 
                 // Translate someArray.Contains(someValue)
-                if (subQueryModel.ResultOperators.First() is ContainsResultOperator contains)
-                {
-                    var containsItem = Visit(contains.Item);
-                    if (containsItem != null)
-                        return new ArrayAnyAllExpression(ArrayComparisonType.ANY, "=", containsItem, Visit(fromExpression));
+                case ContainsResultOperator contains when Visit(contains.Item) is Expression containsItem:
+                    return new ArrayAnyAllExpression(ArrayComparisonType.ANY, "=", containsItem, from);
                 }
             }
 
