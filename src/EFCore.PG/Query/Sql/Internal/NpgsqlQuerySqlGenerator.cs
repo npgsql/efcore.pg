@@ -24,6 +24,7 @@
 #endregion
 
 using System;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Text.RegularExpressions;
@@ -43,6 +44,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
     public class NpgsqlQuerySqlGenerator : DefaultQuerySqlGenerator
     {
         /// <summary>
+        /// The static cache of default literal values.
+        /// </summary>
+        [NotNull] static readonly ConcurrentDictionary<Type, string> DefaultConstants = new ConcurrentDictionary<Type, string>();
+
+        /// <summary>
         /// True if null ordering is reversed; otherwise false.
         /// </summary>
         readonly bool _reverseNullOrderingEnabled;
@@ -52,6 +58,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
 
         /// <inheritdoc />
         protected override string TypedFalseLiteral { get; } = "FALSE::bool";
+
+        /// <summary>
+        /// The type mapping source.
+        /// </summary>
+        protected IRelationalTypeMappingSource TypeMappingSource => Dependencies.TypeMappingSource;
 
         /// <inheritdoc />
         public NpgsqlQuerySqlGenerator(
@@ -196,6 +207,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
             default:
                 return base.VisitBinary(expression);
             }
+        }
+
+        /// <inheritdoc />
+        protected override Expression VisitDefault(DefaultExpression e)
+        {
+            Sql.Append(DefaultConstants.GetOrAdd(e.Type, GenerateLiteralFromMapping));
+            return e;
+
+            string GenerateLiteralFromMapping(Type t)
+                => TypeMappingSource.FindMapping(t)
+                                    .GenerateSqlLiteral(t.IsNullableType() ? null : Activator.CreateInstance(t));
         }
 
         /// <inheritdoc />

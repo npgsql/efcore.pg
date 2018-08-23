@@ -180,6 +180,18 @@ namespace Microsoft.EntityFrameworkCore
         /// <exception cref="NotSupportedException">{method} is only intended for use via SQL translation as part of an EF Core LINQ query.</exception>
         public static NpgsqlRange<T> Except<T>(this NpgsqlRange<T> a, NpgsqlRange<T> b) => throw ClientEvaluationNotSupportedException();
 
+        /// <summary>
+        /// Returns the smallest range which includes both of the given ranges.
+        /// </summary>
+        /// <param name="a">The first range.</param>
+        /// <param name="b">The second range.</param>
+        /// <typeparam name="T">The type of the elements of <paramref name="a"/>.</typeparam>
+        /// <returns>
+        /// The smallest range which includes both of the given rangesge.
+        /// </returns>
+        /// <exception cref="NotSupportedException">{method} is only intended for use via SQL translation as part of an EF Core LINQ query.</exception>
+        public static NpgsqlRange<T> Merge<T>(this NpgsqlRange<T> a, NpgsqlRange<T> b) => throw ClientEvaluationNotSupportedException();
+
         #region Utilities
 
         /// <summary>

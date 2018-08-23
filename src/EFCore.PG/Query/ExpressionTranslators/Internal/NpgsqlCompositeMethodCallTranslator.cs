@@ -58,7 +58,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             new NpgsqlStringTrimStartTranslator(),
             new NpgsqlRegexIsMatchTranslator(),
             new NpgsqlFullTextSearchMethodTranslator(),
-            new NpgsqlRangeTranslator(),
             new NpgsqlNetworkTranslator()
         };
 
@@ -72,7 +71,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 new IMethodCallTranslator[]
                 {
                     new NpgsqlDateAddTranslator(npgsqlOptions.PostgresVersion),
-                    new NpgsqlMathTranslator(npgsqlOptions.PostgresVersion)
+                    new NpgsqlMathTranslator(npgsqlOptions.PostgresVersion),
+                    new NpgsqlRangeTranslator(npgsqlOptions.PostgresVersion),
                 };
 
             // ReSharper disable once DoNotCallOverridableMethodsInConstructor

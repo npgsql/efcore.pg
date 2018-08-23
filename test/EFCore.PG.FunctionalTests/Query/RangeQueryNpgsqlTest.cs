@@ -16,22 +16,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
     /// </summary>
     public class RangeQueryNpgsqlTest : IClassFixture<RangeQueryNpgsqlTest.RangeQueryNpgsqlFixture>
     {
-        /// <summary>
-        /// Provides resources for unit tests.
-        /// </summary>
-        RangeQueryNpgsqlFixture Fixture { get; }
-
-        /// <summary>
-        /// Initializes resources for unit tests.
-        /// </summary>
-        /// <param name="fixture">The fixture of resources for testing.</param>
-        public RangeQueryNpgsqlTest(RangeQueryNpgsqlFixture fixture)
-        {
-            Fixture = fixture;
-            Fixture.TestSqlLoggerFactory.Clear();
-        }
-
         #region Tests
+
+        #region Operators
 
         /// <summary>
         /// Tests translation for <see cref="NpgsqlRangeExtensions.Contains{T}(NpgsqlRange{T},NpgsqlRange{T})"/>.
@@ -490,6 +477,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             }
         }
 
+        #endregion
+
+        #region User-defined ranges
+
         [Fact]
         public void UserDefined()
         {
@@ -501,7 +492,120 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             }
         }
 
-        #endregion Tests
+        #endregion
+
+        #region Functions
+
+        [Fact]
+        public void RangeLowerBound()
+        {
+            using (RangeContext context = Fixture.CreateContext())
+            {
+                try
+                {
+                    var _ = context.RangeTestEntities.Select(x => x.Range.LowerBound).ToArray();
+                }
+                catch
+                {
+                    AssertContainsSql("SELECT COALESCE(lower(x.\"Range\"), 0)");
+                }
+
+                AssertContainsSql("SELECT COALESCE(lower(x.\"Range\"), 0)");
+            }
+        }
+
+        [Fact]
+        public void RangeUpperBound()
+        {
+            using (RangeContext context = Fixture.CreateContext())
+            {
+                var _ = context.RangeTestEntities.Select(x => x.Range.UpperBound).ToArray();
+                AssertContainsSql("SELECT COALESCE(upper(x.\"Range\"), 0)");
+            }
+        }
+
+        [Fact]
+        public void RangeIsEmpty()
+        {
+            using (RangeContext context = Fixture.CreateContext())
+            {
+                var _ = context.RangeTestEntities.Select(x => x.Range.IsEmpty).ToArray();
+                AssertContainsSql("SELECT isempty(x.\"Range\")");
+            }
+        }
+
+        [Fact]
+        public void RangeLowerBoundIsInclusive()
+        {
+            using (RangeContext context = Fixture.CreateContext())
+            {
+                var _ = context.RangeTestEntities.Select(x => x.Range.LowerBoundIsInclusive).ToArray();
+                AssertContainsSql("SELECT lower_inc(x.\"Range\")");
+            }
+        }
+
+        [Fact]
+        public void RangeUpperBoundIsInclusive()
+        {
+            using (RangeContext context = Fixture.CreateContext())
+            {
+                var _ = context.RangeTestEntities.Select(x => x.Range.UpperBoundIsInclusive).ToArray();
+                AssertContainsSql("SELECT upper_inc(x.\"Range\")");
+            }
+        }
+
+        [Fact]
+        public void RangeLowerBoundInfinite()
+        {
+            using (RangeContext context = Fixture.CreateContext())
+            {
+                var _ = context.RangeTestEntities.Select(x => x.Range.LowerBoundInfinite).ToArray();
+                AssertContainsSql("SELECT lower_inf(x.\"Range\")");
+            }
+        }
+
+        [Fact]
+        public void RangeUpperBoundInfinite()
+        {
+            using (RangeContext context = Fixture.CreateContext())
+            {
+                var _ = context.RangeTestEntities.Select(x => x.Range.UpperBoundInfinite).ToArray();
+                AssertContainsSql("SELECT upper_inf(x.\"Range\")");
+            }
+        }
+
+        [Fact]
+        public void RangeMergeRange()
+        {
+            using (RangeContext context = Fixture.CreateContext())
+            {
+                var _ = context.RangeTestEntities.Select(x => x.Range.Merge(x.Range)).ToArray();
+                AssertContainsSql("SELECT range_merge(x.\"Range\", x.\"Range\")");
+            }
+        }
+
+        #endregion
+
+        #endregion
+
+        #region Setup
+
+        /// <summary>
+        /// Provides resources for unit tests.
+        /// </summary>
+        RangeQueryNpgsqlFixture Fixture { get; }
+
+        /// <summary>
+        /// Initializes resources for unit tests.
+        /// </summary>
+        /// <param name="fixture">The fixture of resources for testing.</param>
+        public RangeQueryNpgsqlTest(RangeQueryNpgsqlFixture fixture)
+        {
+            Fixture = fixture;
+            Fixture.TestSqlLoggerFactory.Clear();
+        }
+
+        #endregion
 
         #region TheoryData
 
@@ -674,7 +778,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             /// <param name="options">
             /// The options to be used for configuration.
             /// </param>
-            public RangeContext(DbContextOptions options) : base(options) { }
+            public RangeContext(DbContextOptions options) : base(options) {}
 
             /// <inheritdoc />
             protected override void OnModelCreating(ModelBuilder builder)
