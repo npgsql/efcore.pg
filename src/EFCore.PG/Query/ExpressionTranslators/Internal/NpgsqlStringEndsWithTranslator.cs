@@ -42,23 +42,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         /// <inheritdoc />
         [CanBeNull]
         public virtual Expression Translate(MethodCallExpression e)
-        {
-            var instance = e.Object;
-
-            if (instance == null || !ReferenceEquals(e.Method, MethodInfo))
-                return null;
-
-            return
-                Expression.Equal(
+            => e.Object != null && ReferenceEquals(e.Method, MethodInfo)
+                ? Expression.Equal(
                     new SqlFunctionExpression(
                         "RIGHT",
-                        instance.Type,
+                        e.Object.Type,
                         new[]
                         {
-                            instance,
+                            e.Object,
                             new SqlFunctionExpression("LENGTH", typeof(int), new[] { e.Arguments[0] })
                         }),
-                    e.Arguments[0]);
-        }
+                    e.Arguments[0])
+                : null;
     }
 }

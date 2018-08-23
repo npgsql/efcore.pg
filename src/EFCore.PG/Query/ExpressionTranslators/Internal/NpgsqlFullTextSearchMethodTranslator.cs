@@ -64,8 +64,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             if (e.Method == TsQueryParse || e.Method == TsVectorParse)
                 return new ExplicitCastExpression(e.Arguments[0], e.Method.ReturnType);
 
-            if (e.Method.DeclaringType == typeof(NpgsqlFullTextSearchDbFunctionsExtensions) &&
-                SqlNameByMethodName.TryGetValue(e.Method.Name, out var sqlFunctionName))
+            if (e.Method.DeclaringType == typeof(NpgsqlFullTextSearchDbFunctionsExtensions)
+                && SqlNameByMethodName.TryGetValue(e.Method.Name, out var sqlFunctionName))
                 return new SqlFunctionExpression(sqlFunctionName, e.Method.ReturnType, e.Arguments.Skip(1));
 
             if (e.Method.DeclaringType == typeof(NpgsqlFullTextSearchLinqExtensions))
