@@ -41,7 +41,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         [NotNull] [ItemNotNull] static readonly IMemberTranslator[] MemberTranslators =
         {
             new NpgsqlStringLengthTranslator(),
-            new NpgsqlDateTimeMemberTranslator()
+            new NpgsqlDateTimeMemberTranslator(),
+            new NpgsqlRangeTranslator()
         };
 
         /// <inheritdoc />
@@ -50,17 +51,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             [NotNull] INpgsqlOptions npgsqlOptions)
             : base(dependencies)
         {
-            var instanceTranslators =
-                new IMemberTranslator[]
-                {
-                    new NpgsqlRangeTranslator(npgsqlOptions.PostgresVersion)
-                };
-
             // ReSharper disable once VirtualMemberCallInConstructor
             AddTranslators(MemberTranslators);
-
-            // ReSharper disable once DoNotCallOverridableMethodsInConstructor
-            AddTranslators(instanceTranslators);
 
             foreach (var plugin in npgsqlOptions.Plugins)
                 plugin.AddMemberTranslators(this);

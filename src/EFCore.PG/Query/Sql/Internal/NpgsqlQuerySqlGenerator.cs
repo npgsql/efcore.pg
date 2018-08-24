@@ -212,12 +212,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
         /// <inheritdoc />
         protected override Expression VisitDefault(DefaultExpression e)
         {
-            Sql.Append(DefaultConstants.GetOrAdd(e.Type, GenerateLiteralFromMapping));
-            return e;
+            Sql.Append(DefaultConstants.GetOrAdd(e.Type, t =>
+                TypeMappingSource.FindMapping(t).GenerateSqlLiteral(
+                    t.IsNullableType() ? null : Activator.CreateInstance(t))));
 
-            string GenerateLiteralFromMapping(Type t)
-                => TypeMappingSource.FindMapping(t)
-                                    .GenerateSqlLiteral(t.IsNullableType() ? null : Activator.CreateInstance(t));
+            return e;
         }
 
         /// <inheritdoc />
