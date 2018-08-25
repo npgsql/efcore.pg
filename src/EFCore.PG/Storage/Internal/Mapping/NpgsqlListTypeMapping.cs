@@ -29,6 +29,7 @@ using System.Text;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.Collections.Generic;
 using System.Diagnostics;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
@@ -36,12 +37,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     /// <summary>
     /// Maps PostgreSQL arrays to <see cref="List{T}"/>.
     /// </summary>
+    /// <remarks>
+    /// Note that mapping PostgreSQL arrays to .NET arrays is also supported via <see cref="NpgsqlArrayTypeMapping"/>.
+    /// </remarks>
     public class NpgsqlListTypeMapping : RelationalTypeMapping
     {
         /// <summary>
         /// The CLR type of the list items.
         /// </summary>
-        public RelationalTypeMapping ElementMapping { get; }
+        [NotNull] readonly RelationalTypeMapping _elementMapping;
 
         /// <summary>
         /// Creates the default list mapping.
@@ -51,25 +55,27 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
         /// <inheritdoc />
         NpgsqlListTypeMapping(string storeType, RelationalTypeMapping elementMapping, Type listType)
-            : this(new RelationalTypeMappingParameters(
-                new CoreTypeMappingParameters(listType, null, CreateComparer(elementMapping, listType)), storeType
-            ), elementMapping) {}
+            : this(
+                new RelationalTypeMappingParameters(
+                    new CoreTypeMappingParameters(listType, null, CreateComparer(elementMapping, listType)), storeType
+                ),
+                elementMapping) {}
 
         /// <inheritdoc />
         protected NpgsqlListTypeMapping(RelationalTypeMappingParameters parameters, RelationalTypeMapping elementMapping)
             : base(parameters)
-            => ElementMapping = elementMapping;
+            => _elementMapping = elementMapping;
 
         /// <inheritdoc />
         protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
-            => new NpgsqlListTypeMapping(parameters, ElementMapping);
+            => new NpgsqlListTypeMapping(parameters, _elementMapping);
 
         /// <inheritdoc />
         protected override string GenerateNonNullSqlLiteral(object value)
         {
             var list = (IList)value;
 
-            if (list.GetType().GenericTypeArguments[0] != ElementMapping.ClrType)
+            if (list.GetType().GenericTypeArguments[0] != _elementMapping.ClrType)
                 throw new NotSupportedException("Multidimensional array literals aren't supported");
 
             var sb = new StringBuilder();
@@ -79,21 +85,22 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 if (i > 0)
                     sb.Append(',');
 
-                sb.Append(ElementMapping.GenerateSqlLiteral(list[i]));
+                sb.Append(_elementMapping.GenerateSqlLiteral(list[i]));
             }
 
             sb.Append("]::");
-            sb.Append(ElementMapping.StoreType);
+            sb.Append(_elementMapping.StoreType);
             sb.Append("[]");
             return sb.ToString();
         }
 
         #region Value Comparison
 
-        // Note that the value comparison code is largely duplicated from NpgsqlAraryTypeMapping.
-        // However, a limitation in EF Core prevents us from merging the code together, see
-        // https://github.com/aspnet/EntityFrameworkCore/issues/11077
-
+        /// <remarks>
+        /// Note that the value comparison code is largely duplicated from NpgsqlArrayTypeMapping.
+        /// However, a limitation in EF Core prevents us from merging the code together, see
+        /// https://github.com/aspnet/EntityFrameworkCore/issues/11077
+        /// </remarks>
         static ValueComparer CreateComparer(RelationalTypeMapping elementMapping, Type listType)
         {
             Debug.Assert(listType.IsGenericType && listType.GetGenericTypeDefinition() == typeof(List<>));
@@ -113,8 +120,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             return (ValueComparer)Activator.CreateInstance(typeof(SingleDimComparerWithEquals<>).MakeGenericType(elementType));
         }
 
+        /// <inheritdoc />
         class SingleDimComparerWithComparer<TElem> : ValueComparer<List<TElem>>
         {
+            /// <inheritdoc />
             public SingleDimComparerWithComparer(RelationalTypeMapping elementMapping)
                 : base(
                     (a, b) => Compare(a, b, (ValueComparer<TElem>)elementMapping.Comparer),
@@ -131,8 +140,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 // Note: the following currently boxes every element access because ValueComparer isn't really
                 // generic (see https://github.com/aspnet/EntityFrameworkCore/issues/11072)
                 for (var i = 0; i < a.Count; i++)
+                {
                     if (!elementComparer.Equals(a[i], b[i]))
                         return false;
+                }
 
                 return true;
             }
@@ -153,14 +164,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             }
         }
 
+        /// <inheritdoc />
         class SingleDimComparerWithIEquatable<TElem> : ValueComparer<List<TElem>> where TElem : IEquatable<TElem>
         {
+            /// <inheritdoc />
             public SingleDimComparerWithIEquatable()
                 : base(
                     (a, b) => Compare(a, b),
                     o => o.GetHashCode(), // TODO: Need to get hash code of elements...
                     source => DoSnapshot(source)) {}
 
+            /// <inheritdoc />
             public override Type Type => typeof(List<TElem>);
 
             static bool Compare(List<TElem> a, List<TElem> b)
@@ -202,14 +216,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             }
         }
 
+        /// <inheritdoc />
         class SingleDimComparerWithEquals<TElem> : ValueComparer<List<TElem>>
         {
+            /// <inheritdoc />
             public SingleDimComparerWithEquals()
                 : base(
                     (a, b) => Compare(a, b),
                     o => o.GetHashCode(), // TODO: Need to get hash code of elements...
                     source => DoSnapshot(source)) {}
 
+            /// <inheritdoc />
             public override Type Type => typeof(List<TElem>);
 
             static bool Compare(List<TElem> a, List<TElem> b)

@@ -37,7 +37,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite
                 return new SqlFunctionExpression("ST_Difference",    typeof(Geometry), new[] { e.Object, e.Arguments[0] });
             case "Distance":
                 return new SqlFunctionExpression("ST_Distance",      typeof(double),   new[] { e.Object, e.Arguments[0] });
-            case "EqualsExact":
+            case "EqualsExact" when e.Object != null && e.Arguments[0] != null:
                 return Expression.Equal(e.Object, e.Arguments[0]);
             case "EqualsTopologically":
                 return new SqlFunctionExpression("ST_Equals",        typeof(bool),     new[] { e.Object, e.Arguments[0] });

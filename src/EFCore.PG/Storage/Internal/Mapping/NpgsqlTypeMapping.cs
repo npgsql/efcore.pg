@@ -1,4 +1,5 @@
 ﻿#region License
+
 // The PostgreSQL License
 //
 // Copyright (C) 2016 The Npgsql Development Team
@@ -19,6 +20,7 @@
 // AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
 // ON AN "AS IS" BASIS, AND THE NPGSQL DEVELOPMENT TEAM HAS NO OBLIGATIONS
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+
 #endregion
 
 using System;
@@ -29,26 +31,37 @@ using NpgsqlTypes;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 {
+    /// <summary>
+    /// The base class for mapping Npgsql-specific types.
+    /// </summary>
     public abstract class NpgsqlTypeMapping : RelationalTypeMapping
     {
+        /// <summary>
+        /// The database type used by Npgsql.
+        /// </summary>
         public NpgsqlDbType NpgsqlDbType { get; }
 
-        public NpgsqlTypeMapping(
-            [NotNull] string storeType,
-            [NotNull] Type clrType,
-            NpgsqlDbType npgsqlDbType)
+        /// <summary>
+        /// Constructs an instance of the <see cref="NpgsqlTypeMapping"/> class.
+        /// </summary>
+        /// <param name="storeType">The database type to map</param>
+        /// <param name="clrType">The CLR type to map.</param>
+        /// <param name="npgsqlDbType">The database type used by Npgsql.</param>
+        protected NpgsqlTypeMapping([NotNull] string storeType, [NotNull] Type clrType, NpgsqlDbType npgsqlDbType)
             : base(storeType, clrType)
-        {
-            NpgsqlDbType = npgsqlDbType;
-        }
+            => NpgsqlDbType = npgsqlDbType;
 
+        /// <summary>
+        /// Constructs an instance of the <see cref="NpgsqlTypeMapping"/> class.
+        /// </summary>
+        /// <param name="parameters">The parameters for this mapping.</param>
+        /// <param name="npgsqlDbType">The database type of the range subtype.</param>
         protected NpgsqlTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
             : base(parameters)
-        {
-            NpgsqlDbType = npgsqlDbType;
-        }
+            => NpgsqlDbType = npgsqlDbType;
 
-        protected override void ConfigureParameter([NotNull] DbParameter parameter)
+        /// <inheritdoc />
+        protected override void ConfigureParameter(DbParameter parameter)
         {
             base.ConfigureParameter(parameter);
 

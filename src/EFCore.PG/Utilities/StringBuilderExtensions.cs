@@ -1,4 +1,5 @@
 #region License
+
 // The PostgreSQL License
 //
 // Copyright (C) 2016 The Npgsql Development Team
@@ -19,21 +20,29 @@
 // AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
 // ON AN "AS IS" BASIS, AND THE NPGSQL DEVELOPMENT TEAM HAS NO OBLIGATIONS
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+
 #endregion
 
 using System.Collections.Generic;
+using JetBrains.Annotations;
 
+// ReSharper disable once CheckNamespace
 namespace System.Text
 {
     internal static class StringBuilderExtensions
     {
+        // ReSharper disable once UnusedMethodReturnValue.Global
         public static StringBuilder AppendJoin(
-            this StringBuilder stringBuilder, IEnumerable<string> values, string separator = ", ")
+            [NotNull] this StringBuilder stringBuilder,
+            [NotNull] IEnumerable<string> values,
+            [NotNull] string separator = ", ")
             => stringBuilder.AppendJoin(values, (sb, value) => sb.Append(value), separator);
 
-        public static StringBuilder AppendJoin<T>(
-            this StringBuilder stringBuilder, IEnumerable<T> values, Action<StringBuilder, T> joinAction,
-            string separator)
+        static StringBuilder AppendJoin<T>(
+            [NotNull] this StringBuilder stringBuilder,
+            [NotNull] IEnumerable<T> values,
+            [NotNull] Action<StringBuilder, T> joinAction,
+            [NotNull] string separator)
         {
             var appended = false;
 

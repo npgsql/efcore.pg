@@ -30,26 +30,46 @@ using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Storage;
 using NpgsqlTypes;
 
+// ReSharper disable BitwiseOperatorOnEnumWithoutFlags
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 {
+    /// <summary>
+    /// The type mapping for the PostgreSQL range types.
+    /// </summary>
+    /// <remarks>
+    /// See: https://www.postgresql.org/docs/current/static/rangetypes.html
+    /// </remarks>
     public class NpgsqlRangeTypeMapping : NpgsqlTypeMapping
     {
-        public RelationalTypeMapping SubtypeMapping { get; }
+        // ReSharper disable once NotAccessedField.Local
+        [NotNull] RelationalTypeMapping _subtypeMapping;
 
+        /// <summary>
+        /// Constructs an instance of the <see cref="NpgsqlRangeTypeMapping"/> class.
+        /// </summary>
+        /// <param name="storeType">The database type to map</param>
+        /// <param name="clrType">The CLR type to map.</param>
+        /// <param name="subtypeMapping">The type mapping for the range subtype.</param>
         public NpgsqlRangeTypeMapping(
             [NotNull] string storeType,
             [NotNull] Type clrType,
             [NotNull] RelationalTypeMapping subtypeMapping)
             : base(storeType, clrType, GenerateNpgsqlDbType(subtypeMapping))
-        => SubtypeMapping = subtypeMapping;
+            => _subtypeMapping = subtypeMapping;
 
+        /// <summary>
+        /// Constructs an instance of the <see cref="NpgsqlRangeTypeMapping"/> class.
+        /// </summary>
+        /// <param name="parameters">The parameters for this mapping.</param>
+        /// <param name="npgsqlDbType">The database type of the range subtype.</param>
         protected NpgsqlRangeTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
-            : base(parameters, npgsqlDbType) { }
+            : base(parameters, npgsqlDbType) {}
 
-        [NotNull]
+        /// <inheritdoc />
         protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
             => new NpgsqlRangeTypeMapping(parameters, NpgsqlDbType);
 
+        /// <inheritdoc />
         protected override string GenerateNonNullSqlLiteral(object value)
         {
             var sb = new StringBuilder();
@@ -68,8 +88,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             // We're using a built-in, non-Npgsql mapping such as IntTypeMapping.
             // Infer the NpgsqlDbType from the DbType (somewhat hacky but why not).
             Debug.Assert(subtypeMapping.DbType.HasValue);
-            var p = new NpgsqlParameter();
-            p.DbType = subtypeMapping.DbType.Value;
+            var p = new NpgsqlParameter { DbType = subtypeMapping.DbType.Value };
             return NpgsqlDbType.Range | p.NpgsqlDbType;
         }
     }

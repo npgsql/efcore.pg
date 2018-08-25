@@ -1,4 +1,5 @@
 ﻿#region License
+
 // The PostgreSQL License
 //
 // Copyright (C) 2016 The Npgsql Development Team
@@ -19,6 +20,7 @@
 // AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
 // ON AN "AS IS" BASIS, AND THE NPGSQL DEVELOPMENT TEAM HAS NO OBLIGATIONS
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+
 #endregion
 
 using JetBrains.Annotations;
@@ -31,13 +33,19 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
 {
+    /// <summary>
+    /// Enables configuring Npgsql-specific design-time services.
+    /// Tools will automatically discover implementations of this interface that are in the startup assembly.
+    /// </summary>
+    [UsedImplicitly]
     public class NpgsqlDesignTimeServices : IDesignTimeServices
     {
-        public virtual void ConfigureDesignTimeServices([NotNull] IServiceCollection serviceCollection)
+        /// <inheritdoc />
+        public virtual void ConfigureDesignTimeServices(IServiceCollection serviceCollection)
             => serviceCollection
-                .AddSingleton<IRelationalTypeMappingSource, NpgsqlTypeMappingSource>()
-                .AddSingleton<IDatabaseModelFactory, NpgsqlDatabaseModelFactory>()
-                .AddSingleton<IProviderConfigurationCodeGenerator, NpgsqlConfigurationCodeGenerator>()
-                .AddSingleton<IAnnotationCodeGenerator, NpgsqlAnnotationCodeGenerator>();
+               .AddSingleton<IRelationalTypeMappingSource, NpgsqlTypeMappingSource>()
+               .AddSingleton<IDatabaseModelFactory, NpgsqlDatabaseModelFactory>()
+               .AddSingleton<IProviderConfigurationCodeGenerator, NpgsqlConfigurationCodeGenerator>()
+               .AddSingleton<IAnnotationCodeGenerator, NpgsqlAnnotationCodeGenerator>();
     }
 }

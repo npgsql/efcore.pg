@@ -1,4 +1,5 @@
 ﻿#region License
+
 // The PostgreSQL License
 //
 // Copyright (C) 2016 The Npgsql Development Team
@@ -19,6 +20,7 @@
 // AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
 // ON AN "AS IS" BASIS, AND THE NPGSQL DEVELOPMENT TEAM HAS NO OBLIGATIONS
 // TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
+
 #endregion
 
 using System;
@@ -33,6 +35,9 @@ using Microsoft.EntityFrameworkCore.Update;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
 {
+    /// <summary>
+    /// The Npgsql-specific implementation for <see cref="T:Microsoft.EntityFrameworkCore.Update.ModificationCommandBatch" />.
+    /// </summary>
     /// <remarks>
     /// The usual ModificationCommandBatch implementation is <see cref="AffectedCountModificationCommandBatch"/>,
     /// which selects the number of rows modified via a SQL query.
@@ -51,6 +56,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
         readonly int _maxBatchSize;
         long _parameterCount;
 
+        /// <inheritdoc />
         public NpgsqlModificationCommandBatch(
             [NotNull] IRelationalCommandBuilderFactory commandBuilderFactory,
             [NotNull] ISqlGenerationHelper sqlGenerationHelper,
@@ -65,8 +71,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
             _maxBatchSize = maxBatchSize ?? DefaultBatchSize;
         }
 
+        /// <inheritdoc />
         protected override int GetParameterCount() => (int)_parameterCount;
 
+        /// <inheritdoc />
         protected override bool CanAddCommand(ModificationCommand modificationCommand)
         {
             if (ModificationCommands.Count >= _maxBatchSize)
@@ -81,13 +89,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
             return true;
         }
 
-        protected override bool IsCommandTextValid()
-            => true;
+        /// <inheritdoc />
+        protected override bool IsCommandTextValid() => true;
 
+        /// <inheritdoc />
         protected override void Consume(RelationalDataReader reader)
         {
             var npgsqlReader = (NpgsqlDataReader)reader.DbDataReader;
-            Debug.Assert(npgsqlReader.Statements.Count == ModificationCommands.Count, $"Reader has {npgsqlReader.Statements.Count} statements, expected {ModificationCommands.Count}");
+
+            Debug.Assert(
+                npgsqlReader.Statements.Count == ModificationCommands.Count,
+                $"Reader has {npgsqlReader.Statements.Count} statements, expected {ModificationCommands.Count}");
+
             var commandIndex = 0;
 
             try
@@ -97,9 +110,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
                     // Find the next propagating command, if any
                     int nextPropagating;
                     for (nextPropagating = commandIndex;
-                        nextPropagating < ModificationCommands.Count &&
-                        !ModificationCommands[nextPropagating].RequiresResultPropagation;
-                        nextPropagating++) ;
+                         nextPropagating < ModificationCommands.Count && !ModificationCommands[nextPropagating].RequiresResultPropagation;
+                         nextPropagating++) {}
 
                     // Go over all non-propagating commands before the next propagating one,
                     // make sure they executed
@@ -116,7 +128,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
 
                     if (nextPropagating == ModificationCommands.Count)
                     {
-                        Debug.Assert(!npgsqlReader.NextResult(), "Expected less resultsets");
+                        Debug.Assert(!npgsqlReader.NextResult(), "Expected fewer resultsets");
                         break;
                     }
 
@@ -125,11 +137,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
                     var modificationCommand = ModificationCommands[commandIndex++];
 
                     if (!reader.Read())
-                    {
-                        throw new DbUpdateConcurrencyException(
-                            RelationalStrings.UpdateConcurrencyException(1, 0),
-                            modificationCommand.Entries);
-                    }
+                        throw new DbUpdateConcurrencyException(RelationalStrings.UpdateConcurrencyException(1, 0), modificationCommand.Entries);
 
                     var valueBufferFactory = CreateValueBufferFactory(modificationCommand.ColumnModifications);
                     modificationCommand.PropagateResults(valueBufferFactory.Create(npgsqlReader));
@@ -143,19 +151,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
             }
             catch (Exception ex)
             {
-                throw new DbUpdateException(
-                    RelationalStrings.UpdateStoreException,
-                    ex,
-                    ModificationCommands[commandIndex].Entries);
+                throw new DbUpdateException(RelationalStrings.UpdateStoreException, ex, ModificationCommands[commandIndex].Entries);
             }
         }
 
-        protected override async Task ConsumeAsync(
-            RelationalDataReader reader,
-            CancellationToken cancellationToken = default)
+        /// <inheritdoc />
+        protected override async Task ConsumeAsync(RelationalDataReader reader, CancellationToken cancellationToken = default)
         {
             var npgsqlReader = (NpgsqlDataReader)reader.DbDataReader;
-            Debug.Assert(npgsqlReader.Statements.Count == ModificationCommands.Count, $"Reader has {npgsqlReader.Statements.Count} statements, expected {ModificationCommands.Count}");
+
+            Debug.Assert(
+                npgsqlReader.Statements.Count == ModificationCommands.Count,
+                $"Reader has {npgsqlReader.Statements.Count} statements, expected {ModificationCommands.Count}");
+
             var commandIndex = 0;
 
             try
@@ -165,27 +173,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
                     // Find the next propagating command, if any
                     int nextPropagating;
                     for (nextPropagating = commandIndex;
-                        nextPropagating < ModificationCommands.Count &&
-                        !ModificationCommands[nextPropagating].RequiresResultPropagation;
-                        nextPropagating++)
-                        ;
+                         nextPropagating < ModificationCommands.Count && !ModificationCommands[nextPropagating].RequiresResultPropagation;
+                         nextPropagating++) {}
 
                     // Go over all non-propagating commands before the next propagating one,
                     // make sure they executed
                     for (; commandIndex < nextPropagating; commandIndex++)
                     {
                         if (npgsqlReader.Statements[commandIndex].Rows == 0)
-                        {
-                            throw new DbUpdateConcurrencyException(
-                                RelationalStrings.UpdateConcurrencyException(1, 0),
-                                ModificationCommands[commandIndex].Entries
-                            );
-                        }
+                            throw new DbUpdateConcurrencyException(RelationalStrings.UpdateConcurrencyException(1, 0), ModificationCommands[commandIndex].Entries);
                     }
 
                     if (nextPropagating == ModificationCommands.Count)
                     {
-                        Debug.Assert(!(await npgsqlReader.NextResultAsync(cancellationToken)), "Expected less resultsets");
+                        Debug.Assert(!await npgsqlReader.NextResultAsync(cancellationToken), "Expected fewer resultsets");
                         break;
                     }
 
@@ -193,13 +194,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
 
                     var modificationCommand = ModificationCommands[commandIndex++];
 
-                    if (!(await reader.ReadAsync(cancellationToken)))
-                    {
-                        throw new DbUpdateConcurrencyException(
-                            RelationalStrings.UpdateConcurrencyException(1, 0),
-                            modificationCommand.Entries
-                        );
-                    }
+                    if (!await reader.ReadAsync(cancellationToken))
+                        throw new DbUpdateConcurrencyException(RelationalStrings.UpdateConcurrencyException(1, 0), modificationCommand.Entries);
 
                     var valueBufferFactory = CreateValueBufferFactory(modificationCommand.ColumnModifications);
                     modificationCommand.PropagateResults(valueBufferFactory.Create(npgsqlReader));
@@ -213,10 +209,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
             }
             catch (Exception ex)
             {
-                throw new DbUpdateException(
-                    RelationalStrings.UpdateStoreException,
-                    ex,
-                    ModificationCommands[commandIndex].Entries);
+                throw new DbUpdateException(RelationalStrings.UpdateStoreException, ex, ModificationCommands[commandIndex].Entries);
             }
         }
     }
