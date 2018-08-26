@@ -35,7 +35,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     /// The type mapping for the PostgreSQL hstore type.
     /// </summary>
     /// <remarks>
-    /// See: https://www.postgresql.org/docs/10/static/hstore.html
+    /// See: https://www.postgresql.org/docs/current/static/hstore.html
     /// </remarks>
     public class NpgsqlHstoreTypeMapping : NpgsqlTypeMapping
     {
@@ -58,11 +58,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         protected NpgsqlHstoreTypeMapping(RelationalTypeMappingParameters parameters)
             : base(parameters, NpgsqlDbType.Hstore) {}
 
-        /// <inheritdoc />
         protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
             => new NpgsqlHstoreTypeMapping(parameters);
 
-        /// <inheritdoc />
         protected override string GenerateNonNullSqlLiteral(object value)
         {
             var sb = new StringBuilder("HSTORE '");

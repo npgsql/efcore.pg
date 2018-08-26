@@ -41,8 +41,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     /// </remarks>
     public class NpgsqlRangeTypeMapping : NpgsqlTypeMapping
     {
-        // ReSharper disable once NotAccessedField.Local
-        [NotNull] RelationalTypeMapping _subtypeMapping;
+        // ReSharper disable once MemberCanBePrivate.Global
+        // ReSharper disable once UnusedAutoPropertyAccessor.Local
+        /// <summary>
+        /// The relational type mapping used to initialize the bound mapping.
+        /// </summary>
+        public RelationalTypeMapping SubtypeMapping { get; }
 
         /// <summary>
         /// Constructs an instance of the <see cref="NpgsqlRangeTypeMapping"/> class.
@@ -55,7 +59,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             [NotNull] Type clrType,
             [NotNull] RelationalTypeMapping subtypeMapping)
             : base(storeType, clrType, GenerateNpgsqlDbType(subtypeMapping))
-            => _subtypeMapping = subtypeMapping;
+            => SubtypeMapping = subtypeMapping;
 
         /// <summary>
         /// Constructs an instance of the <see cref="NpgsqlRangeTypeMapping"/> class.
@@ -65,11 +69,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         protected NpgsqlRangeTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
             : base(parameters, npgsqlDbType) {}
 
-        /// <inheritdoc />
         protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
             => new NpgsqlRangeTypeMapping(parameters, NpgsqlDbType);
 
-        /// <inheritdoc />
         protected override string GenerateNonNullSqlLiteral(object value)
         {
             var sb = new StringBuilder();

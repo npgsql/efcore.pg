@@ -43,9 +43,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
         /// <inheritdoc />
         public virtual void ConfigureDesignTimeServices(IServiceCollection serviceCollection)
             => serviceCollection
-               .AddSingleton<IRelationalTypeMappingSource, NpgsqlTypeMappingSource>()
-               .AddSingleton<IDatabaseModelFactory, NpgsqlDatabaseModelFactory>()
-               .AddSingleton<IProviderConfigurationCodeGenerator, NpgsqlConfigurationCodeGenerator>()
-               .AddSingleton<IAnnotationCodeGenerator, NpgsqlAnnotationCodeGenerator>();
+                .AddSingleton<IRelationalTypeMappingSource, NpgsqlTypeMappingSource>()
+                .AddSingleton<IDatabaseModelFactory, NpgsqlDatabaseModelFactory>()
+                .AddSingleton<IProviderConfigurationCodeGenerator, NpgsqlConfigurationCodeGenerator>()
+                .AddSingleton<IAnnotationCodeGenerator, NpgsqlAnnotationCodeGenerator>();
     }
 }

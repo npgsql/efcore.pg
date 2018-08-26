@@ -37,13 +37,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     /// </summary>
     /// <remarks>
     /// Note that mapping PostgreSQL arrays to .NET List{T} is also supported via <see cref="NpgsqlListTypeMapping"/>.
+    /// See: https://www.postgresql.org/docs/current/static/arrays.html
     /// </remarks>
     public class NpgsqlArrayTypeMapping : RelationalTypeMapping
     {
+        // ReSharper disable once MemberCanBePrivate.Global
         /// <summary>
-        /// The CLR type of the array items.
+        /// The relational type mapping used to initialize the array mapping.
         /// </summary>
-        [NotNull] readonly RelationalTypeMapping _elementMapping;
+        public RelationalTypeMapping ElementMapping { get; }
 
         /// <summary>
         /// Creates the default array mapping (i.e. for the single-dimensional CLR array type)
@@ -66,13 +68,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
         protected NpgsqlArrayTypeMapping(RelationalTypeMappingParameters parameters, [NotNull] RelationalTypeMapping elementMapping)
             : base(parameters)
-            => _elementMapping = elementMapping;
+            => ElementMapping = elementMapping;
 
-        /// <inheritdoc />
         protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
-            => new NpgsqlArrayTypeMapping(parameters, _elementMapping);
+            => new NpgsqlArrayTypeMapping(parameters, ElementMapping);
 
-        /// <inheritdoc />
         protected override string GenerateNonNullSqlLiteral(object value)
         {
             var arr = (Array)value;
@@ -84,13 +84,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             sb.Append("ARRAY[");
             for (var i = 0; i < arr.Length; i++)
             {
-                sb.Append(_elementMapping.GenerateSqlLiteral(arr.GetValue(i)));
+                sb.Append(ElementMapping.GenerateSqlLiteral(arr.GetValue(i)));
                 if (i < arr.Length - 1)
                     sb.Append(",");
             }
 
             sb.Append("]::");
-            sb.Append(_elementMapping.StoreType);
+            sb.Append(ElementMapping.StoreType);
             sb.Append("[]");
             return sb.ToString();
         }
@@ -126,13 +126,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         /// <inheritdoc />
         class SingleDimComparerWithComparer<TElem> : ValueComparer<TElem[]>
         {
-            /// <inheritdoc />
             public SingleDimComparerWithComparer(RelationalTypeMapping elementMapping) : base(
                 (a, b) => Compare(a, b, (ValueComparer<TElem>)elementMapping.Comparer),
                 o => o.GetHashCode(), // TODO: Need to get hash code of elements...
                 source => Snapshot(source, (ValueComparer<TElem>)elementMapping.Comparer)) {}
 
-            /// <inheritdoc />
             public override Type Type => typeof(TElem[]);
 
             static bool Compare(TElem[] a, TElem[] b, ValueComparer<TElem> elementComparer)
@@ -166,15 +164,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         }
 
         /// <inheritdoc />
-        class SingleDimComparerWithIEquatable<TElem> : ValueComparer<TElem[]> where TElem : IEquatable<TElem>
+        class SingleDimComparerWithIEquatable<TElem> : ValueComparer<TElem[]>
+            where TElem : IEquatable<TElem>
         {
-            /// <inheritdoc />
             public SingleDimComparerWithIEquatable() : base(
                 (a, b) => Compare(a, b),
                 o => o.GetHashCode(), // TODO: Need to get hash code of elements...
                 source => DoSnapshot(source)) {}
 
-            /// <inheritdoc />
             public override Type Type => typeof(TElem[]);
 
             static bool Compare(TElem[] a, TElem[] b)
@@ -215,13 +212,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         /// <inheritdoc />
         class SingleDimComparerWithEquals<TElem> : ValueComparer<TElem[]>
         {
-            /// <inheritdoc />
             public SingleDimComparerWithEquals() : base(
                 (a, b) => Compare(a, b),
                 o => o.GetHashCode(), // TODO: Need to get hash code of elements...
                 source => DoSnapshot(source)) {}
 
-            /// <inheritdoc />
             public override Type Type => typeof(TElem[]);
 
             static bool Compare(TElem[] a, TElem[] b)
