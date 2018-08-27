@@ -150,6 +150,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         #region Fixture
 
+        // ReSharper disable once ClassNeverInstantiated.Global
         /// <summary>
         /// Represents a fixture suitable for testing character data.
         /// </summary>
@@ -257,14 +258,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         #region Helpers
 
+        // ReSharper disable once UnusedMember.Global
         /// <summary>
         /// Asserts that the SQL fragment appears in the logs.
         /// </summary>
         /// <param name="sql">The SQL statement or fragment to search for in the logs.</param>
-        public void AssertContainsSql(string sql)
-        {
-            Assert.Contains(sql, Fixture.TestSqlLoggerFactory.Sql);
-        }
+        public void AssertContainsSql(string sql) => Assert.Contains(sql, Fixture.TestSqlLoggerFactory.Sql);
 
         #endregion
     }
