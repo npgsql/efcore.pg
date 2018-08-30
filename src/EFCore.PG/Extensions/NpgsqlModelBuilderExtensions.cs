@@ -237,7 +237,7 @@ namespace Microsoft.EntityFrameworkCore
             [NotNull] this ModelBuilder modelBuilder,
             [NotNull] string name,
             [NotNull] string[] labels)
-            => ForNpgsqlHasEnum(modelBuilder, null, name, labels);
+            => modelBuilder.ForNpgsqlHasEnum(null, name, labels);
 
         /// <summary>
         /// Registers a user-defined enum type in the model.
@@ -267,8 +267,7 @@ namespace Microsoft.EntityFrameworkCore
             if (nameTranslator == null)
                 nameTranslator = DefaultNameTranslator;
 
-            return ForNpgsqlHasEnum(
-                modelBuilder,
+            return modelBuilder.ForNpgsqlHasEnum(
                 schema,
                 name ?? GetTypePgName<TEnum>(nameTranslator),
                 GetMemberPgNames<TEnum>(nameTranslator));
@@ -377,20 +376,18 @@ namespace Microsoft.EntityFrameworkCore
         // See: https://github.com/npgsql/npgsql/blob/dev/src/Npgsql/TypeMapping/TypeMapperBase.cs#L132-L138
         [NotNull]
         static string GetTypePgName<TEnum>([NotNull] INpgsqlNameTranslator nameTranslator) where TEnum : struct, Enum
-            => typeof(TEnum).GetCustomAttribute<PgNameAttribute>()?.PgName
-               ??
+            => typeof(TEnum).GetCustomAttribute<PgNameAttribute>()?.PgName ??
                nameTranslator.TranslateTypeName(typeof(TEnum).Name);
 
         // See: https://github.com/npgsql/npgsql/blob/dev/src/Npgsql/TypeHandlers/EnumHandler.cs#L118-L129
         [NotNull]
         [ItemNotNull]
         static string[] GetMemberPgNames<TEnum>([NotNull] INpgsqlNameTranslator nameTranslator) where TEnum : struct, Enum
-            => typeof(TEnum).GetFields(BindingFlags.Static | BindingFlags.Public)
-                            .Select(x =>
-                                x.GetCustomAttribute<PgNameAttribute>()?.PgName
-                                ??
-                                nameTranslator.TranslateMemberName(x.Name))
-                            .ToArray();
+            => typeof(TEnum)
+               .GetFields(BindingFlags.Static | BindingFlags.Public)
+               .Select(x => x.GetCustomAttribute<PgNameAttribute>()?.PgName ??
+                            nameTranslator.TranslateMemberName(x.Name))
+               .ToArray();
 
         #endregion
     }
