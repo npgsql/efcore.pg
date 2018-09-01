@@ -43,9 +43,6 @@ namespace Microsoft.EntityFrameworkCore
     [PublicAPI]
     public static class NpgsqlModelBuilderExtensions
     {
-        // TODO: update driver to expose this from INpgsqlTypeMapper.
-        [NotNull] static readonly INpgsqlNameTranslator DefaultNameTranslator = new NpgsqlSnakeCaseNameTranslator();
-
         #region Sequences
 
         /// <summary>
@@ -265,7 +262,7 @@ namespace Microsoft.EntityFrameworkCore
             where TEnum : struct, Enum
         {
             if (nameTranslator == null)
-                nameTranslator = DefaultNameTranslator;
+                nameTranslator = NpgsqlConnection.GlobalTypeMapper.DefaultNameTranslator;
 
             return modelBuilder.ForNpgsqlHasEnum(
                 schema,
