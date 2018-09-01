@@ -26,5 +26,6 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational.Specification.Tests" Version="2.2.0-preview1-34941" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.2.0-preview1-34941" />
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="2.2.0-preview1-34941" />
+    <PackageReference Update="Npgsql" Version="4.0.3-ci.1272" />
   </ItemGroup>
 </Project>

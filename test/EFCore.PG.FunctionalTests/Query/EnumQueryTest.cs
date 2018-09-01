@@ -16,9 +16,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Roundtrip()
         {
-            using (var ctx = CreateContext())
+            using (var ctx = Fixture.CreateContext())
             {
-                var x = ctx.SomeEntities.Single(e => e.Id == 1);
+                var x = ctx.SomeEntities.Single(e => e.Id == 2);
                 Assert.Equal(MappedEnum.Sad, x.MappedEnum);
             }
         }
@@ -26,7 +26,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Where_with_constant()
         {
-            using (var ctx = CreateContext())
+            using (var ctx = Fixture.CreateContext())
             {
                 var x = ctx.SomeEntities.Single(e => e.MappedEnum == MappedEnum.Sad);
                 Assert.Equal(MappedEnum.Sad, x.MappedEnum);
@@ -37,7 +37,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Where_with_parameter()
         {
-            using (var ctx = CreateContext())
+            using (var ctx = Fixture.CreateContext())
             {
                 // ReSharper disable once ConvertToConstant.Local
                 var sad = MappedEnum.Sad;
@@ -51,7 +51,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Where_with_unmapped_enum_parameter_downcasts_are_implicit()
         {
-            using (var ctx = CreateContext())
+            using (var ctx = Fixture.CreateContext())
             {
                 // ReSharper disable once ConvertToConstant.Local
                 var sad = UnmappedEnum.Sad;
@@ -64,7 +64,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Where_with_unmapped_enum_parameter_downcasts_do_not_matter()
         {
-            using (var ctx = CreateContext())
+            using (var ctx = Fixture.CreateContext())
             {
                 // ReSharper disable once ConvertToConstant.Local
                 var sad = UnmappedEnum.Sad;
@@ -77,7 +77,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Where_with_mapped_enum_parameter_downcasts_do_not_matter()
         {
-            using (var ctx = CreateContext())
+            using (var ctx = Fixture.CreateContext())
             {
                 // ReSharper disable once ConvertToConstant.Local
                 var sad = MappedEnum.Sad;
@@ -90,7 +90,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Where_with_unmapped_enum_parameter_downcast_for_int_comparison_does_matter()
         {
-            using (var ctx = CreateContext())
+            using (var ctx = Fixture.CreateContext())
             {
                 // ReSharper disable once ConvertToConstant.Local
                 var sad = UnmappedEnum.Sad;
@@ -115,8 +115,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             Fixture.TestSqlLoggerFactory.Clear();
         }
 
-        EnumContext CreateContext() => Fixture.CreateContext();
-
         void AssertContainsInSql(string expected)
             => Assert.Contains(expected, Fixture.TestSqlLoggerFactory.Sql);
 
@@ -126,14 +124,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         public class EnumContext : DbContext
         {
+            // ReSharper disable once UnusedAutoPropertyAccessor.Global
             public DbSet<SomeEnumEntity> SomeEntities { get; set; }
 
             public EnumContext(DbContextOptions options) : base(options) {}
 
             protected override void OnModelCreating(ModelBuilder builder)
-            {
-                builder.ForNpgsqlHasEnum("mapped_enum", new[] { "happy", "sad" });
-            }
+                => builder.ForNpgsqlHasEnum("mapped_enum", new[] { "happy", "sad" })
+                          .ForNpgsqlHasEnum<InferredEnum>();
         }
 
         public class SomeEnumEntity
@@ -144,23 +142,30 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
             public UnmappedEnum UnmappedEnum { get; set; }
 
+            public InferredEnum InferredEnum { get; set; }
+
             public int EnumValue { get; set; }
         }
 
         public enum MappedEnum
         {
-            // ReSharper disable once UnusedMember.Global
             Happy,
             Sad
         };
 
         public enum UnmappedEnum
         {
-            // ReSharper disable once UnusedMember.Global
             Happy,
             Sad
         };
 
+        public enum InferredEnum
+        {
+            Happy,
+            Sad
+        };
+
+        // ReSharper disable once ClassNeverInstantiated.Global
         public class EnumFixture : IDisposable
         {
             readonly DbContextOptions _options;
@@ -172,6 +177,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             public EnumFixture()
             {
                 NpgsqlConnection.GlobalTypeMapper.MapEnum<MappedEnum>();
+                NpgsqlConnection.GlobalTypeMapper.MapEnum<InferredEnum>();
 
                 _testStore = NpgsqlTestStore.CreateScratch();
 
@@ -189,12 +195,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                     ctx.Database.EnsureCreated();
 
                     ctx.SomeEntities
-                       .Add(
+                       .AddRange(
                            new SomeEnumEntity
                            {
                                Id = 1,
+                               MappedEnum = MappedEnum.Happy,
+                               UnmappedEnum = UnmappedEnum.Happy,
+                               InferredEnum = InferredEnum.Happy,
+                               EnumValue = (int)MappedEnum.Happy
+                           },
+                           new SomeEnumEntity
+                           {
+                               Id = 2,
                                MappedEnum = MappedEnum.Sad,
                                UnmappedEnum = UnmappedEnum.Sad,
+                               InferredEnum = InferredEnum.Sad,
                                EnumValue = (int)MappedEnum.Sad
                            });
 
