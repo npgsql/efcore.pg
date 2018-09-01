@@ -18,5 +18,6 @@
     <ProjectReference Include="..\..\src\EFCore.PG\EFCore.PG.csproj" />
     <ProjectReference Include="..\..\src\EFCore.PG.NTS\EFCore.PG.NTS.csproj" />
     <ProjectReference Include="..\EFCore.PG.FunctionalTests\EFCore.PG.FunctionalTests.csproj" />
+    <PackageReference Update="Npgsql" Version="4.0.3-ci.1272" />
   </ItemGroup>
 </Project>
