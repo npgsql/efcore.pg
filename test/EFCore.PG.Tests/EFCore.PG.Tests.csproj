@@ -23,7 +23,6 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.2.0-preview1-34941" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="2.2.0-preview1-34941" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational.Specification.Tests" Version="2.2.0-preview1-34941" />
-    <PackageReference Update="Npgsql" Version="4.1.0-ci.1270" />
   </ItemGroup>
 
 </Project>

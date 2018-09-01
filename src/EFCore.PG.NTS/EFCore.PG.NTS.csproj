@@ -27,6 +27,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Npgsql.NetTopologySuite" Version="1.0.2" />
-    <PackageReference Include="Npgsql" Version="4.1.0-ci.1270" />
+    <PackageReference Include="Npgsql" Version="4.0.3-ci.1272+sha.b3fc7da6f" />
   </ItemGroup>
 </Project>
