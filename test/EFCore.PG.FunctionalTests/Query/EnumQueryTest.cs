@@ -36,7 +36,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             {
                 var x = ctx.SomeEntities.Single(e => e.MappedEnum == MappedEnum.Sad);
                 Assert.Equal(MappedEnum.Sad, x.MappedEnum);
-                AssertContainsInSql("WHERE e.\"MappedEnum\" = 'sad'::mapped_enum");
+                AssertContainsInSql("WHERE e.\"MappedEnum\" = 'sad'::test.mapped_enum");
             }
         }
 
@@ -132,8 +132,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
             static EnumContext()
             {
-                NpgsqlConnection.GlobalTypeMapper.MapEnum<MappedEnum>();
-                NpgsqlConnection.GlobalTypeMapper.MapEnum<InferredEnum>();
+                NpgsqlConnection.GlobalTypeMapper.MapEnum<MappedEnum>("test.mapped_enum");
+                NpgsqlConnection.GlobalTypeMapper.MapEnum<InferredEnum>("test.inferred_enum");
                 NpgsqlConnection.GlobalTypeMapper.MapEnum<SchemaQualifiedEnum>("test.schema_qualified_enum");
             }
 

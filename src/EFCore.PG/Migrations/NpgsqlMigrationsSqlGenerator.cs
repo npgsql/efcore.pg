@@ -703,7 +703,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             foreach (var enumTypeToDrop in PostgresEnum.GetPostgresEnums(operation.OldDatabase)
                 .Where(oe => PostgresEnum.GetPostgresEnums(operation).All(ne => ne.Name != oe.Name)))
             {
-                GenerateDropEnum(enumTypeToDrop, builder);
+                GenerateDropEnum(enumTypeToDrop, operation.OldDatabase, builder);
             }
 
             // TODO: Some forms of enum alterations are actually supported...
@@ -720,14 +720,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             [NotNull] IModel model,
             [NotNull] MigrationCommandListBuilder builder)
         {
+            var schema = enumType.Schema ?? model.FindAnnotation(RelationalAnnotationNames.DefaultSchema)?.Value as string;
+
             // Schemas are normally created (or rather ensured) by the model differ, which scans all tables, sequences
             // and other database objects. However, it isn't aware of enums, so we always ensure schema on enum creation.
-            if (enumType.Schema != null)
-                Generate(new EnsureSchemaOperation { Name=enumType.Schema }, model, builder);
+            if (schema != null)
+                Generate(new EnsureSchemaOperation { Name = schema }, model, builder);
 
             builder
                 .Append("CREATE TYPE ")
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(enumType.Name, enumType.Schema))
+                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(enumType.Name, schema))
                 .Append(" AS ENUM (");
 
             var stringTypeMapping = Dependencies.TypeMappingSource.GetMapping(typeof(string));
@@ -743,11 +745,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             builder.AppendLine(");");
         }
 
-        protected virtual void GenerateDropEnum([NotNull] PostgresEnum enumType, [NotNull] MigrationCommandListBuilder builder)
+        protected virtual void GenerateDropEnum(
+            [NotNull] PostgresEnum enumType,
+            [CanBeNull] IAnnotatable oldDatabase,
+            [NotNull] MigrationCommandListBuilder builder)
         {
+            var schema = enumType.Schema ?? oldDatabase?.FindAnnotation(RelationalAnnotationNames.DefaultSchema)?.Value as string;
+
             builder
                 .Append("DROP TYPE ")
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(enumType.Name, enumType.Schema))
+                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(enumType.Name, schema))
                 .AppendLine(";");
         }
 
