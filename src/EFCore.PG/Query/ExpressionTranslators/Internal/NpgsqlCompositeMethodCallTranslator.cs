@@ -71,6 +71,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             var instanceTranslators =
                 new IMethodCallTranslator[]
                 {
+                    new NpgsqlBinaryStringTranslator(npgsqlOptions.PostgresVersion),
                     new NpgsqlDateAddTranslator(npgsqlOptions.PostgresVersion),
                     new NpgsqlMathTranslator(npgsqlOptions.PostgresVersion)
                 };

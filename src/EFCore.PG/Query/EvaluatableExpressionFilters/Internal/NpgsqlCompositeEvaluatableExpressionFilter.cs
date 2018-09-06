@@ -52,6 +52,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.EvaluatableExpressionFilte
         /// <inheritdoc />
         public NpgsqlCompositeEvaluatableExpressionFilter([NotNull] IModel model, [NotNull] INpgsqlOptions npgsqlOptions) : base(model)
         {
+            _filters.Add(new NpgsqlHashingAlgorithmEvaluatableExpressionFilter(npgsqlOptions.PostgresVersion));
+
             foreach (var plugin in npgsqlOptions.Plugins)
                 plugin.AddEvaluatableExpressionFilters(this);
         }
