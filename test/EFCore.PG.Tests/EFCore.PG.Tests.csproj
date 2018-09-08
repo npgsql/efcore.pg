@@ -19,11 +19,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="2.2.0-preview1-34941" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.2.0-preview1-34941" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="2.2.0-preview1-34941" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational.Specification.Tests" Version="2.2.0-preview1-34941" />
-    <PackageReference Update="Npgsql" Version="4.0.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="$(EFCoreVersion)" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="$(EFCoreVersion)" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational.Specification.Tests" Version="$(EFCoreVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="$(MicrosoftExtensionsVersion)" />
   </ItemGroup>
 
 </Project>
