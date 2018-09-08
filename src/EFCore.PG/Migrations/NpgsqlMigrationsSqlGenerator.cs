@@ -316,6 +316,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             var column = Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name);
             var alterBase = $"ALTER TABLE {table} ALTER COLUMN {column} ";
 
+            // TYPE
+            builder.Append(alterBase)
+                .Append("TYPE ")
+                .Append(type)
+                .AppendLine(';');
+
+            // NOT NULL
+            builder.Append(alterBase)
+                .Append(operation.IsNullable ? "DROP NOT NULL" : "SET NOT NULL")
+                .AppendLine(';');
+
             CheckForOldValueGenerationAnnotation(operation);
 
             var oldStrategy = operation.OldColumn[NpgsqlAnnotationNames.ValueGenerationStrategy] as NpgsqlValueGenerationStrategy?;
@@ -401,7 +412,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                                 Name = newSequenceName,
                                 ClrType = operation.ClrType
                             }, model, builder);
-                            defaultValueSql = $@"nextval('{Dependencies.SqlGenerationHelper.DelimitIdentifier(newSequenceName)}')";
+
+                            builder.Append(alterBase).Append("SET");
+                            DefaultValue(null, $@"nextval('{Dependencies.SqlGenerationHelper.DelimitIdentifier(newSequenceName)}')", builder);
+                            builder.AppendLine(';');
                             // Note: we also need to set the sequence ownership, this is done below after the ALTER COLUMN
                             break;
                         }
@@ -412,22 +426,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 }
             }
 
-            // TYPE
-            builder.Append(alterBase)
-                .Append("TYPE ")
-                .Append(type)
-                .AppendLine(';');
-
-            // NOT NULL
-            builder.Append(alterBase)
-                .Append(operation.IsNullable ? "DROP NOT NULL" : "SET NOT NULL")
-                .AppendLine(';');
-
             // DEFAULT.
-            // Note that identity columns don't have a regular default but trying
-            // to drop the default triggers an error.
-            if (newStrategy != NpgsqlValueGenerationStrategy.IdentityAlwaysColumn &&
-                newStrategy != NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
+            // Note that defaults values for value-generated columns (identity, serial) are managed above. This is
+            // only for regular columns with user-specified default settings.
+            if (newStrategy == null)
             {
                 builder.Append(alterBase);
                 if (operation.DefaultValue != null || defaultValueSql != null)
