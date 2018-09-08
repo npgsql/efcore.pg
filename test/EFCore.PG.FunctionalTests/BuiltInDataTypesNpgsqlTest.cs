@@ -133,6 +133,7 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
                         SearchQuery = NpgsqlTsQuery.Parse("a & b"),
                         SearchVector = NpgsqlTsVector.Parse("a b"),
                         RankingNormalization = NpgsqlTsRankingNormalization.DivideByLength,
+                        Regconfig = 12724,
 
                         Mood = Mood.Sad
                     });
@@ -270,8 +271,11 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
                 var param37 = NpgsqlTsRankingNormalization.DivideByLength;
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.RankingNormalization == param37));
 
-                var param38 = Mood.Sad;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Mood == param38));
+                var param38 = 12724u;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Regconfig == param38));
+
+                var param39 = Mood.Sad;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Mood == param39));
             }
         }
 
@@ -419,8 +423,11 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
                 NpgsqlTsRankingNormalization? param37 = null;
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.RankingNormalization == param37));
 
-                Mood? param38 = null;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.Mood == param38));
+                uint? param38 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.Regconfig == param38));
+
+                Mood? param39 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.Mood == param39));
             }
         }
 
@@ -465,21 +472,22 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
 @p25='System.Net.NetworkInformation.PhysicalAddress[]' (Nullable = false) (DbType = Object)
 @p26='08002B010203' (Nullable = false) (DbType = Object)
 @p27='2'
-@p28=''a' & 'b'' (Nullable = false) (DbType = Object)
-@p29=''a' 'b'' (Nullable = false) (DbType = Object)
-@p30='79'
-@p31='{""a"": ""b""}' (Nullable = false)
-@p32='{""a"": ""b""}' (Nullable = false) (DbType = Object)
-@p33='Gumball Rules!' (Nullable = false)
-@p34='Gumball Rules OK' (Nullable = false)
-@p35='11:15:12' (DbType = Object)
+@p28='12724' (DbType = Object)
+@p29=''a' & 'b'' (Nullable = false) (DbType = Object)
+@p30=''a' 'b'' (Nullable = false) (DbType = Object)
+@p31='79'
+@p32='{""a"": ""b""}' (Nullable = false)
+@p33='{""a"": ""b""}' (Nullable = false) (DbType = Object)
+@p34='Gumball Rules!' (Nullable = false)
+@p35='Gumball Rules OK' (Nullable = false)
 @p36='11:15:12' (DbType = Object)
-@p37='65535'
-@p38='-1'
-@p39='4294967295'
-@p40='-1'
-@p41='2147483648' (DbType = Object)
-@p42='-1'",
+@p37='11:15:12' (DbType = Object)
+@p38='65535'
+@p39='-1'
+@p40='4294967295'
+@p41='-1'
+@p42='2147483648' (DbType = Object)
+@p43='-1'",
                     parameters,
                     ignoreLineEndingDifferences: true);
         }
@@ -598,6 +606,7 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
                 SearchQuery = NpgsqlTsQuery.Parse("a & b"),
                 SearchVector = NpgsqlTsVector.Parse("a b"),
                 RankingNormalization = NpgsqlTsRankingNormalization.DivideByLength,
+                Regconfig = 12724,
 
                 Mood = Mood.Sad
             };
@@ -765,9 +774,11 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
                 modelBuilder.Entity<MappedDataTypes>().Property(x => x.SearchQuery).HasColumnType("tsquery");
                 modelBuilder.Entity<MappedDataTypes>().Property(x => x.SearchVector).HasColumnType("tsvector");
                 modelBuilder.Entity<MappedDataTypes>().Property(x => x.RankingNormalization).HasColumnType("integer");
+                modelBuilder.Entity<MappedDataTypes>().Property(x => x.Regconfig).HasColumnType("regconfig");
                 modelBuilder.Entity<MappedNullableDataTypes>().Property(x => x.SearchQuery).HasColumnType("tsquery");
                 modelBuilder.Entity<MappedNullableDataTypes>().Property(x => x.SearchVector).HasColumnType("tsvector");
                 modelBuilder.Entity<MappedNullableDataTypes>().Property(x => x.RankingNormalization).HasColumnType("integer");
+                modelBuilder.Entity<MappedNullableDataTypes>().Property(x => x.Regconfig).HasColumnType("regconfig");
             }
 
             public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
@@ -921,6 +932,7 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
             public NpgsqlTsQuery SearchQuery { get; set; }
             public NpgsqlTsVector SearchVector { get; set; }
             public NpgsqlTsRankingNormalization RankingNormalization { get; set; }
+            public uint Regconfig { get; set; }
 
             [Column(TypeName = "mood")]
             public Mood Mood { get; set; }
@@ -1097,6 +1109,7 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
             public NpgsqlTsQuery SearchQuery { get; set; }
             public NpgsqlTsVector SearchVector { get; set; }
             public NpgsqlTsRankingNormalization? RankingNormalization { get; set; }
+            public uint? Regconfig { get; set; }
 
             [Column(TypeName = "mood")]
             public Mood? Mood { get; set; }
