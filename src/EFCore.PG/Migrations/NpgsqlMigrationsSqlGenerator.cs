@@ -24,8 +24,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
@@ -35,6 +37,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Operations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
@@ -303,6 +306,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             var column = Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name);
             var alterBase = $"ALTER TABLE {table} ALTER COLUMN {column} ";
 
+            // TYPE
+            builder.Append(alterBase)
+                .Append("TYPE ")
+                .Append(type)
+                .AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
+
+            // NOT NULL
+            builder.Append(alterBase)
+                .Append(operation.IsNullable ? "DROP NOT NULL" : "SET NOT NULL")
+                .AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
+
             CheckForOldValueGenerationAnnotation(operation);
 
             var oldStrategy = operation.OldColumn[NpgsqlAnnotationNames.ValueGenerationStrategy] as NpgsqlValueGenerationStrategy?;
@@ -388,7 +402,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                                 Name = newSequenceName,
                                 ClrType = operation.ClrType
                             }, model, builder);
-                            defaultValueSql = $@"nextval('{Dependencies.SqlGenerationHelper.DelimitIdentifier(newSequenceName)}')";
+
+                            builder.Append(alterBase).Append("SET");
+                            DefaultValue(null, $@"nextval('{Dependencies.SqlGenerationHelper.DelimitIdentifier(newSequenceName)}')", builder);
+                            builder.AppendLine(';');
                             // Note: we also need to set the sequence ownership, this is done below after the ALTER COLUMN
                             break;
                         }
@@ -399,22 +416,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 }
             }
 
-            // TYPE
-            builder.Append(alterBase)
-                .Append("TYPE ")
-                .Append(type)
-                .AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
-
-            // NOT NULL
-            builder.Append(alterBase)
-                .Append(operation.IsNullable ? "DROP NOT NULL" : "SET NOT NULL")
-                .AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
-
             // DEFAULT.
-            // Note that identity columns don't have a regular default but trying
-            // to drop the default triggers an error.
-            if (newStrategy != NpgsqlValueGenerationStrategy.IdentityAlwaysColumn &&
-                newStrategy != NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
+            // Note that defaults values for value-generated columns (identity, serial) are managed above. This is
+            // only for regular columns with user-specified default settings.
+            if (newStrategy == null)
             {
                 builder.Append(alterBase);
                 if (operation.DefaultValue != null || defaultValueSql != null)
@@ -679,11 +684,25 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             foreach (var extension in PostgresExtension.GetPostgresExtensions(operation))
                 GenerateCreateExtension(extension, model, builder);
 
-            foreach (var enumType in PostgresEnum.GetPostgresEnums(operation))
-                GenerateCreateEnum(enumType, model, builder);
-            // TODO: Some forms of enum alterations are actually supported...
-            foreach (var enumType in PostgresEnum.GetPostgresEnums(operation.OldDatabase))
-                GenerateDropEnum(enumType, builder);
+            foreach (var enumTypeToCreate in PostgresEnum.GetPostgresEnums(operation)
+                .Where(ne => PostgresEnum.GetPostgresEnums(operation.OldDatabase).All(oe => oe.Name != ne.Name)))
+            {
+                GenerateCreateEnum(enumTypeToCreate, model, builder);
+            }
+
+            foreach (var enumTypeToDrop in PostgresEnum.GetPostgresEnums(operation.OldDatabase)
+                .Where(oe => PostgresEnum.GetPostgresEnums(operation).All(ne => ne.Name != oe.Name)))
+            {
+                GenerateDropEnum(enumTypeToDrop, builder);
+            }
+
+            foreach (var enumTypeToAlter in from newEnum in PostgresEnum.GetPostgresEnums(operation)
+                join oldEnum in PostgresEnum.GetPostgresEnums(operation.OldDatabase) on newEnum.Name equals oldEnum.Name
+                select new { newEnum.Name, OldLabels = oldEnum.Labels, newLabels = newEnum.Labels })
+            {
+                // TODO: Some forms of enum alterations are actually supported... At least log...
+            }
+
             builder.EndCommand();
         }
 
@@ -779,6 +798,38 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 .AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
 
             EndStatement(builder);
+        }
+
+        /// <summary>
+        /// Builds commands for the given <see cref="InsertDataOperation" /> by making calls on the given
+        /// <see cref="MigrationCommandListBuilder" />, and then terminates the final command.
+        /// </summary>
+        /// <param name="operation"> The operation. </param>
+        /// <param name="model"> The target model which may be <c>null</c> if the operations exist without a model. </param>
+        /// <param name="builder"> The command builder to use to build the commands. </param>
+        protected override void Generate(
+            InsertDataOperation operation,
+            IModel model,
+            MigrationCommandListBuilder builder)
+        {
+            Check.NotNull(operation, nameof(operation));
+            Check.NotNull(builder, nameof(builder));
+
+            var sqlBuilder = new StringBuilder();
+            foreach (var modificationCommand in operation.GenerateModificationCommands(model))
+            {
+                var overridingSystemValue = modificationCommand.ColumnModifications.Any(m =>
+                    m.Property?.Npgsql().ValueGenerationStrategy == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn);
+                ((NpgsqlUpdateSqlGenerator)Dependencies.UpdateSqlGenerator).AppendInsertOperation(
+                    sqlBuilder,
+                    modificationCommand,
+                    0,
+                    overridingSystemValue);
+            }
+
+            builder.Append(sqlBuilder.ToString());
+
+            builder.EndCommand();
         }
 
         #endregion Standard migrations

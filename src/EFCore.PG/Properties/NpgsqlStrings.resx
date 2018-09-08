@@ -187,4 +187,12 @@
     <value>Expression index '{name}' on table {tableName} cannot be scaffolded, expression indices aren't supported and must be added via raw SQL in migrations.</value>
     <comment>Warning NpgsqlEventId.ExpressionIndexSkippedWarning string string</comment>
   </data>
+  <data name="LogUnsupportedColumnConstraintSkipped" xml:space="preserve">
+    <value>Constraint '{name}' on table {tableName} cannot be scaffolded because it includes a column that cannot be scaffolded (e.g. enum).</value>
+    <comment>Warning NpgsqlEventId.UnsupportedColumnConstraintSkippedWarning string string</comment>
+  </data>
+  <data name="LogUnsupportedColumnIndexSkipped" xml:space="preserve">
+    <value>Index '{name}' on table {tableName} cannot be scaffolded because it includes a column that cannot be scaffolded (e.g. enum).</value>
+    <comment>Warning NpgsqlEventId.UnsupportedColumnIndexSkippedWarning string string</comment>
+  </data>
 </root>

@@ -429,14 +429,17 @@ LIMIT 1");
         {
             using (var context = CreateContext())
             {
+                var query = "b";
                 var result = context.Customers
-                    .Select(c => EF.Functions.ToTsVector("a").Matches("b"))
+                    .Select(c => EF.Functions.ToTsVector("a").Matches(query))
                     .First();
                 Assert.False(result);
             }
 
             AssertSql(
-                @"SELECT (to_tsvector('a') @@ 'b')
+                @"@__query_1='b'
+
+SELECT (to_tsvector('a') @@ plainto_tsquery(@__query_1))
 FROM ""Customers"" AS c
 LIMIT 1");
         }

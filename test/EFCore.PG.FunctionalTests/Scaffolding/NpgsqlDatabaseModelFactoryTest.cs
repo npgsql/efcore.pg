@@ -1604,7 +1604,7 @@ CREATE EXTENSION pgcrypto;",
                 @"
 CREATE TYPE mood AS ENUM ('happy', 'sad');
 CREATE TYPE db2.mood AS ENUM ('excited', 'depressed');
-CREATE TABLE foo (mood mood);",
+CREATE TABLE foo (mood mood UNIQUE);",
                 Enumerable.Empty<string>(),
                 Enumerable.Empty<string>(),
                 dbModel =>
@@ -1620,8 +1620,13 @@ CREATE TABLE foo (mood mood);",
                     Assert.Equal("mood", mood2.Name);
                     Assert.Equal(new[] { "excited", "depressed" }, mood2.Labels);
 
+                    var table = Assert.Single(dbModel.Tables);
+
                     // Enum columns are left out of the model for now (a warning is logged).
-                    Assert.Equal(0, dbModel.Tables.Single().Columns.Count);
+                    Assert.Empty(table.Columns);
+                    // Constraints and indexes over enum columns also need to be left out
+                    Assert.Empty(table.UniqueConstraints);
+                    Assert.Empty(table.Indexes);
                 },
                 "DROP TABLE foo; DROP TYPE mood; DROP TYPE db2.mood;");
         }

@@ -8,7 +8,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 {
     public class NpgsqlRegconfigTypeMapping : NpgsqlTypeMapping
     {
-        public NpgsqlRegconfigTypeMapping() : base("regconfig", typeof(string), NpgsqlDbType.Unknown) { }
+        public NpgsqlRegconfigTypeMapping() : base("regconfig", typeof(uint), NpgsqlDbType.Regconfig) { }
 
         protected NpgsqlRegconfigTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
             : base(parameters, npgsqlDbType) {}

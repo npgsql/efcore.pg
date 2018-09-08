@@ -91,11 +91,24 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 
             var relationalProperty = Property.Relational();
             if (!fallbackToModel
-                || Property.ValueGenerated != ValueGenerated.OnAdd
                 || relationalProperty.DefaultValue != null
                 || relationalProperty.DefaultValueSql != null
                 || relationalProperty.ComputedColumnSql != null)
             {
+                return null;
+            }
+
+            if (Property.ValueGenerated != ValueGenerated.OnAdd)
+            {
+                var sharedTablePrincipalPrimaryKeyProperty = Property.FindSharedTableRootPrimaryKeyProperty();
+                var sharedTablePkValueGenerationStrategy = sharedTablePrincipalPrimaryKeyProperty?.Npgsql().ValueGenerationStrategy;
+                if (sharedTablePkValueGenerationStrategy == NpgsqlValueGenerationStrategy.SerialColumn ||
+                    sharedTablePkValueGenerationStrategy == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn ||
+                    sharedTablePkValueGenerationStrategy == NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
+                {
+                    return sharedTablePkValueGenerationStrategy;
+                }
+
                 return null;
             }
 

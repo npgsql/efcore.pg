@@ -138,5 +138,43 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
             }
             // No DiagnosticsSource events because these are purely design-time messages
         }
+
+        public static void UnsupportedColumnIndexSkippedWarning(
+            [NotNull] this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
+            [NotNull] string indexName,
+            [NotNull] string tableName)
+        {
+            var definition = NpgsqlStrings.LogUnsupportedColumnIndexSkipped;
+
+            var warningBehavior = definition.GetLogBehavior(diagnostics);
+            if (warningBehavior != WarningBehavior.Ignore)
+            {
+                definition.Log(
+                    diagnostics,
+                    warningBehavior,
+                    indexName,
+                    tableName);
+            }
+            // No DiagnosticsSource events because these are purely design-time messages
+        }
+
+        public static void UnsupportedColumnConstraintSkippedWarning(
+            [NotNull] this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
+            [NotNull] string indexName,
+            [NotNull] string tableName)
+        {
+            var definition = NpgsqlStrings.LogUnsupportedColumnConstraintSkipped;
+
+            var warningBehavior = definition.GetLogBehavior(diagnostics);
+            if (warningBehavior != WarningBehavior.Ignore)
+            {
+                definition.Log(
+                    diagnostics,
+                    warningBehavior,
+                    indexName,
+                    tableName);
+            }
+            // No DiagnosticsSource events because these are purely design-time messages
+        }
     }
 }

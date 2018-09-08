@@ -459,9 +459,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 });
 
             Assert.Equal(
-                @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" ADD GENERATED ALWAYS AS IDENTITY;" + EOL +
                 @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" TYPE integer;" + EOL +
-                @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET NOT NULL;" + EOL,
+                @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET NOT NULL;" + EOL +
+                @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" ADD GENERATED ALWAYS AS IDENTITY;" + EOL,
                 Sql);
         }
 
@@ -479,10 +479,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 });
 
             Assert.Equal(
-                @"CREATE SEQUENCE ""People_IntKey_seq"" AS integer START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE;" + EOL +
-                @"GO" + EOL + EOL +  // Note that GO here is just a delimiter introduced in the tests to indicate a batch boundary
                 @"ALTER TABLE ""People"" ALTER COLUMN ""IntKey"" TYPE integer;" + EOL +
                 @"ALTER TABLE ""People"" ALTER COLUMN ""IntKey"" SET NOT NULL;" + EOL +
+                @"CREATE SEQUENCE ""People_IntKey_seq"" AS integer START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE;" + EOL +
+                @"GO" + EOL + EOL +  // Note that GO here is just a delimiter introduced in the tests to indicate a batch boundary
                 @"ALTER TABLE ""People"" ALTER COLUMN ""IntKey"" SET DEFAULT (nextval('""People_IntKey_seq""'));" + EOL +
                 @"ALTER SEQUENCE ""People_IntKey_seq"" OWNED BY ""People"".""IntKey"";" + EOL,
                 Sql);
@@ -502,10 +502,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 });
 
             Assert.Equal(
-                @"CREATE SEQUENCE ""People_LongKey_seq"" START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE;" + EOL +
-                @"GO" + EOL + EOL +  // Note that GO here is just a delimiter introduced in the tests to indicate a batch boundary
                 @"ALTER TABLE ""People"" ALTER COLUMN ""LongKey"" TYPE bigint;" + EOL +
                 @"ALTER TABLE ""People"" ALTER COLUMN ""LongKey"" SET NOT NULL;" + EOL +
+                @"CREATE SEQUENCE ""People_LongKey_seq"" START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE;" + EOL +
+                @"GO" + EOL + EOL +  // Note that GO here is just a delimiter introduced in the tests to indicate a batch boundary
                 @"ALTER TABLE ""People"" ALTER COLUMN ""LongKey"" SET DEFAULT (nextval('""People_LongKey_seq""'));" + EOL +
                 @"ALTER SEQUENCE ""People_LongKey_seq"" OWNED BY ""People"".""LongKey"";" + EOL,
                 Sql);
@@ -528,9 +528,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 });
 
             Assert.Equal(
-                @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET GENERATED ALWAYS;" + EOL +
                 @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" TYPE integer;" + EOL +
-                @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET NOT NULL;" + EOL,
+                @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET NOT NULL;" + EOL +
+                @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET GENERATED ALWAYS;" + EOL,
                 Sql);
         }
 
@@ -550,13 +550,36 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                     [NpgsqlAnnotationNames.ValueGenerationStrategy] = NpgsqlValueGenerationStrategy.IdentityAlwaysColumn
                 });
 
-            Assert.Equal(@"ALTER SEQUENCE ""People_Id_seq"" RENAME TO ""People_Id_old_seq"";" + EOL +
+            Assert.Equal(
+                @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" TYPE integer;" + EOL +
+                @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET NOT NULL;" + EOL +
+                @"ALTER SEQUENCE ""People_Id_seq"" RENAME TO ""People_Id_old_seq"";" + EOL +
                 @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" DROP DEFAULT;" + EOL +
                 @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" ADD GENERATED ALWAYS AS IDENTITY;" + EOL +
                 @"SELECT * FROM setval('""People_Id_seq""', nextval('""People_Id_old_seq""'), false);" + EOL +
-                @"DROP SEQUENCE ""People_Id_old_seq"";" + EOL +
-                @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" TYPE integer;" + EOL +
-                @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET NOT NULL;" + EOL,
+                @"DROP SEQUENCE ""People_Id_old_seq"";" + EOL,
+                Sql);
+        }
+
+        [Fact]
+        public void AlterColumnOperation_serial_change_type()
+        {
+            Generate(
+                new AlterColumnOperation
+                {
+                    Table = "People",
+                    Name = "Id",
+                    ClrType = typeof(long),
+                    OldColumn = new ColumnOperation
+                    {
+                        ClrType = typeof(int),
+                        [NpgsqlAnnotationNames.ValueGenerationStrategy] = NpgsqlValueGenerationStrategy.SerialColumn
+                    },
+                    [NpgsqlAnnotationNames.ValueGenerationStrategy] = NpgsqlValueGenerationStrategy.SerialColumn
+                });
+
+            Assert.Equal(@"ALTER TABLE ""People"" ALTER COLUMN ""Id"" TYPE bigint;" + EOL +
+                         @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET NOT NULL;" + EOL,
                 Sql);
         }
 
