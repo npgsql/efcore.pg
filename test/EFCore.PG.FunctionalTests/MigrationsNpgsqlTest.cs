@@ -15,7 +15,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             : base(fixture) {}
 
         [ConditionalFact(Skip = "Flaky test")]
-        public new async Task Can_apply_all_migrations_async() => await base.Can_apply_all_migrations_async();
+        public override async Task Can_apply_all_migrations_async() => await base.Can_apply_all_migrations_async();
 
         public override void Can_generate_idempotent_up_scripts()
         {
