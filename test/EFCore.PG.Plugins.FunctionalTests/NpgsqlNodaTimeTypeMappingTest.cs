@@ -127,9 +127,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
             Mapper = new NpgsqlTypeMappingSource(
                 new TypeMappingSourceDependencies(
-                    new ValueConverterSelector(new ValueConverterSelectorDependencies())
+                    new ValueConverterSelector(new ValueConverterSelectorDependencies()),
+                    Array.Empty<ITypeMappingSourcePlugin>()
                 ),
-                new RelationalTypeMappingSourceDependencies(),
+                new RelationalTypeMappingSourceDependencies(Array.Empty<IRelationalTypeMappingSourcePlugin>()),
                 options
             );
         }

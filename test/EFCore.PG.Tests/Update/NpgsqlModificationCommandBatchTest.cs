@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.Internal;
@@ -19,9 +20,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Update
         {
             var typeMapper = new NpgsqlTypeMappingSource(
                 new TypeMappingSourceDependencies (
-                    new ValueConverterSelector(new ValueConverterSelectorDependencies())
+                    new ValueConverterSelector(new ValueConverterSelectorDependencies()),
+                    Array.Empty<ITypeMappingSourcePlugin>()
                 ),
-                new RelationalTypeMappingSourceDependencies(),
+                new RelationalTypeMappingSourceDependencies(Array.Empty<IRelationalTypeMappingSourcePlugin>()),
                 new NpgsqlOptions()
             );
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Net;
 using System.Net.NetworkInformation;
 using Microsoft.EntityFrameworkCore;
@@ -345,9 +346,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
 
         static readonly NpgsqlTypeMappingSource Mapper = new NpgsqlTypeMappingSource(
             new TypeMappingSourceDependencies(
-                new ValueConverterSelector(new ValueConverterSelectorDependencies())
+                new ValueConverterSelector(new ValueConverterSelectorDependencies()),
+                Array.Empty<ITypeMappingSourcePlugin>()
             ),
-            new RelationalTypeMappingSourceDependencies(),
+            new RelationalTypeMappingSourceDependencies(Array.Empty<IRelationalTypeMappingSourcePlugin>()),
             new NpgsqlOptions()
         );
 
