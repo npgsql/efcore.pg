@@ -11,6 +11,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
 
+#if DISABLED_FLAKY_ON_APPVEYOR
+
 namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
     public class NpgsqlDatabaseCreatorTest
@@ -411,3 +413,5 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         }
     }
 }
+
+#endif
