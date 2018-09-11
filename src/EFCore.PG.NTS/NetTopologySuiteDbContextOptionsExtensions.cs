@@ -22,7 +22,7 @@ namespace Microsoft.EntityFrameworkCore
             NetTopologySuiteBootstrapper.Bootstrap();
 
             // TODO: Global-only setup at the ADO.NET level for now, optionally allow per-connection?
-            NpgsqlConnection.GlobalTypeMapper.UseNetTopologySuite();
+            NpgsqlConnection.GlobalTypeMapper.UseNetTopologySuite(coordinateSequenceFactory, precisionModel, handleOrdinates);
 
             optionsBuilder.UsePlugin(new NetTopologySuitePlugin());
 
