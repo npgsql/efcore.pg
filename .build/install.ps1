@@ -1,17 +1,32 @@
+#!/usr/bin/pwsh
+
 ###################
-### Setup PostgreSQL
-####################
+## Setup PostGIS ##
+###################
 
-Write-Host Enabling PostGIS...
-If (!(Test-Path $env:POSTGIS_EXE)) {
-  Write-Host Downloading PostGIS...
-  (New-Object Net.WebClient).DownloadFile("http://download.osgeo.org/postgis/windows/pg10/$env:POSTGIS_EXE", "$env:POSTGIS_EXE")
+If ($isWindows) {
+    If (!(Test-Path $env:POSTGIS_EXE)) {
+        Write-Host Downloading PostGIS...
+        (New-Object Net.WebClient).DownloadFile("http://download.osgeo.org/postgis/windows/pg10/$env:POSTGIS_EXE", "$env:POSTGIS_EXE")
+    }
+    Write-Host Installing PostGIS...
+    iex ".\$env:POSTGIS_EXE /S /D='C:\Program Files\PostgreSQL\10'"
 }
-iex ".\$env:POSTGIS_EXE /S /D='C:\Program Files\PostgreSQL\10'"
 
-########################
-## Set version variables
-########################
+#####################
+## Setup .NET Core ##
+#####################
+
+If ($isWindows) {
+    ## The following can be used to install a custom version of .NET Core
+    # - ps: Invoke-WebRequest -Uri "https://raw.githubusercontent.com/dotnet/cli/master/scripts/obtain/dotnet-install.ps1" -OutFile "install-dotnet.ps1"
+    # - ps: .\install-dotnet.ps1 -Version 2.1.300-rc1-008673
+    # - ps: $blockRdp = $true; iex ((New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+}
+
+###########################
+## Set version variables ##
+###########################
 
 Set-Variable -Name TruncatedSha1 -Value $env:APPVEYOR_REPO_COMMIT.subString(0, 9)
 
