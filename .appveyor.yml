@@ -29,18 +29,21 @@ for:
   services:
     - postgresql
 install:
+  - sh: sudo sh .build/install.sh
   - pwsh: .build/install.ps1
 before_build:
+  - sh: sudo -u postgres sh .build/before_build.sh
   - pwsh: .build/before_build.ps1
   - pwsh: dotnet restore -v Minimal --disable-parallel
+  # - pwsh: $blockRdp = $true; iex ((New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 build_script:
   - pwsh: dotnet pack src/EFCore.PG/EFCore.PG.csproj -c Release
   - pwsh: dotnet pack src/EFCore.PG.NodaTime/EFCore.PG.NodaTime.csproj -c Release
   - pwsh: dotnet pack src/EFCore.PG.NTS/EFCore.PG.NTS.csproj -c Release
 test_script:
-  - pwsh: dotnet test test/EFCore.PG.Tests/EFCore.PG.Tests.csproj -c Release
-  - pwsh: dotnet test test/EFCore.PG.Plugins.FunctionalTests/EFCore.PG.Plugins.FunctionalTests.csproj -c Release
-  - pwsh: dotnet test test/EFCore.PG.FunctionalTests/EFCore.PG.FunctionalTests.csproj -c Release
+  - pwsh: dotnet test test/EFCore.PG.Tests/EFCore.PG.Tests.csproj
+  - pwsh: dotnet test test/EFCore.PG.Plugins.FunctionalTests/EFCore.PG.Plugins.FunctionalTests.csproj
+  - pwsh: dotnet test test/EFCore.PG.FunctionalTests/EFCore.PG.FunctionalTests.csproj
 artifacts:
   - path: 'src\**\*.nupkg'
 deploy:
