@@ -29,7 +29,6 @@ for:
   services:
     - postgresql
 install:
-  - sh: sudo sh .build/install.sh
   - pwsh: .build/install.ps1
 before_build:
   - pwsh: .build/before_build.ps1
