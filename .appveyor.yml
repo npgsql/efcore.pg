@@ -29,11 +29,20 @@ for:
   services:
     - postgresql
 install:
-  - sh: sudo sh .build/install.sh
-  - pwsh: .build/install.ps1
+  - pwsh: .build/set_version.ps1
+  - pwsh: |
+      if ($isLinux) {
+        sh .build/install.sh
+      } else {
+        .build/install.ps1
+      }
 before_build:
-  - sh: sudo -u postgres sh .build/before_build.sh
-  - pwsh: .build/before_build.ps1
+  - pwsh: |
+      if ($isLinux) {
+        sh .build/before_build.sh
+      } else {
+        .build/before_build.ps1
+      }
   - pwsh: dotnet restore -v Minimal --disable-parallel
   # - pwsh: $blockRdp = $true; iex ((New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 build_script:
@@ -47,7 +56,7 @@ test_script:
 artifacts:
   - path: 'src\**\*.nupkg'
 deploy:
-  # Deploy on CI_WINDOWS because the build order is Linux -> Windows.
+  # Deploy only for CI_WINDOWS because the build order is Linux -> Windows.
   - provider: Environment
     name: MyGet Unstable
     on:
