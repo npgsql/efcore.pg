@@ -1,17 +1,8 @@
-###################
-### Setup PostgreSQL
-####################
+#!/usr/bin/pwsh
 
-Write-Host Enabling PostGIS...
-If (!(Test-Path $env:POSTGIS_EXE)) {
-  Write-Host Downloading PostGIS...
-  (New-Object Net.WebClient).DownloadFile("http://download.osgeo.org/postgis/windows/pg10/$env:POSTGIS_EXE", "$env:POSTGIS_EXE")
-}
-iex ".\$env:POSTGIS_EXE /S /D='C:\Program Files\PostgreSQL\10'"
-
-########################
-## Set version variables
-########################
+###########################
+## Set version variables ##
+###########################
 
 Set-Variable -Name TruncatedSha1 -Value $env:APPVEYOR_REPO_COMMIT.subString(0, 9)
 

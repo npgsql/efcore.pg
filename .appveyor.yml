@@ -1,49 +1,74 @@
-image: Visual Studio 2017
+image:
+  - Ubuntu
+  - Visual Studio 2017
 version: 2.2.0-{build}
-services:
-  - postgresql101
-environment:
-  global:
-    DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
-    DOTNET_CLI_TELEMETRY_OPTOUT: 1
-    Test__Npgsql__DefaultConnection: Host=localhost;Database=postgres;Username=postgres;Password=Password12!
-    PGUSER: postgres
-    PGPASSWORD: Password12!
-    POSTGIS_EXE: postgis-bundle-pg10x64-setup-2.4.4-1.exe
-    NoPackageAnalysis: true  # Suppresses warning about SemVer 2.0.0 version suffixes when packing
-cache:
-  - '%USERPROFILE%\.nuget\packages -> **\*.csproj'
-  - $(POSTGIS_EXE)
 clone_depth: 10
+environment:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+  POWERSHELL_TELEMETRY_OPTOUT: 1
+  PGPASSWORD: Password12! # Used by psql on Windows.
+  POSTGIS_EXE: postgis-bundle-pg10x64-setup-2.4.4-1.exe
+  NoPackageAnalysis: true  # Suppresses warning about SemVer 2.0.0 version suffixes when packing
+for:
+-
+  matrix:
+    only:
+      - image: Visual Studio 2017
+  cache:
+    - '%USERPROFILE%\.nuget\packages -> **\*.csproj'
+    - $(POSTGIS_EXE)
+  services:
+    - postgresql101
+-
+  matrix:
+    only:
+      - image: Ubuntu
+  cache:
+    - ~/.nuget/packages -> **/*.csproj
+  services:
+    - postgresql
 install:
-  - powershell .build\setup_appveyor.ps1
-  # The following can be used to install a custom version of .NET Core
-  # - ps: Invoke-WebRequest -Uri "https://raw.githubusercontent.com/dotnet/cli/master/scripts/obtain/dotnet-install.ps1" -OutFile "install-dotnet.ps1"
-  # - ps: .\install-dotnet.ps1 -Version 2.1.300-rc1-008673
-  #
-  # - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
+  - pwsh: .build/set_version.ps1
+  - pwsh: |
+      if ($isLinux) {
+        sh .build/install.sh
+      } else {
+        .build/install.ps1
+      }
 before_build:
-  - appveyor-retry dotnet restore -v Minimal
+  - pwsh: |
+      if ($isLinux) {
+        sh .build/before_build.sh
+      } else {
+        .build/before_build.ps1
+      }
+  - pwsh: dotnet restore -v Minimal --disable-parallel
+  # - pwsh: $blockRdp = $true; iex ((New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 build_script:
-  - dotnet pack src\EFCore.PG\EFCore.PG.csproj -c Release
-  - dotnet pack src\EFCore.PG.NodaTime\EFCore.PG.NodaTime.csproj -c Release
-  - dotnet pack src\EFCore.PG.NTS\EFCore.PG.NTS.csproj -c Release
+  - pwsh: dotnet pack src/EFCore.PG/EFCore.PG.csproj -c Release
+  - pwsh: dotnet pack src/EFCore.PG.NodaTime/EFCore.PG.NodaTime.csproj -c Release
+  - pwsh: dotnet pack src/EFCore.PG.NTS/EFCore.PG.NTS.csproj -c Release
 test_script:
-  - dotnet test test\EFCore.PG.Tests\EFCore.PG.Tests.csproj
-  - dotnet test test\EFCore.PG.Plugins.FunctionalTests\EFCore.PG.Plugins.FunctionalTests.csproj
-  - dotnet test test\EFCore.PG.FunctionalTests\EFCore.PG.FunctionalTests.csproj
+  - pwsh: dotnet test test/EFCore.PG.Tests/EFCore.PG.Tests.csproj
+  - pwsh: dotnet test test/EFCore.PG.Plugins.FunctionalTests/EFCore.PG.Plugins.FunctionalTests.csproj
+  - pwsh: dotnet test test/EFCore.PG.FunctionalTests/EFCore.PG.FunctionalTests.csproj
 artifacts:
   - path: 'src\**\*.nupkg'
 deploy:
+  # Deploy only for CI_WINDOWS because the build order is Linux -> Windows.
   - provider: Environment
     name: MyGet Unstable
     on:
       deploy_myget_unstable: true
+      CI_WINDOWS: true
   - provider: Environment
     name: MyGet Stable
     on:
       deploy_myget_stable: true
+      CI_WINDOWS: true
   - provider: Environment
     name: EFCore.PG Github
     on:
       deploy_github_release: true
+      CI_WINDOWS: true
