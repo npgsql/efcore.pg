@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
@@ -45,9 +45,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
             // ReSharper disable once DoNotCallOverridableMethodsInConstructor
             AddTranslators(versionDependentTranslators);
-
-            foreach (var plugin in npgsqlOptions.Plugins)
-                plugin.AddMethodCallTranslators(this);
         }
 
         /// <summary>

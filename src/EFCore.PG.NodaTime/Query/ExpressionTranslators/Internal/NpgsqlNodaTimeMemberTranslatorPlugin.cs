@@ -23,6 +23,7 @@
 
 #endregion
 
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using JetBrains.Annotations;
@@ -38,7 +39,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
     /// <remarks>
     /// See: https://www.postgresql.org/docs/current/static/functions-datetime.html
     /// </remarks>
-    public class NodaTimeMemberTranslator : IMemberTranslator
+    public class NpgsqlNodaTimeMemberTranslatorPlugin : IMemberTranslatorPlugin
+    {
+        public virtual IEnumerable<IMemberTranslator> Translators { get; } = new IMemberTranslator[]
+        {
+            new NpgsqlNodaTimeMemberTranslator()
+        };
+    }
+
+    /// <summary>
+    /// Provides translation services for <see cref="NodaTime"/> members.
+    /// </summary>
+    /// <remarks>
+    /// See: https://www.postgresql.org/docs/current/static/functions-datetime.html
+    /// </remarks>
+    public class NpgsqlNodaTimeMemberTranslator : IMemberTranslator
     {
         /// <summary>
         /// The static member info for <see cref="T:SystemClock.Instance"/>.

@@ -16,8 +16,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
     {
         [NotNull] readonly List<RangeMappingInfo> _rangeMappings;
 
-        [NotNull] readonly List<NpgsqlEntityFrameworkPlugin> _plugins;
-
         /// <summary>
         /// The name of the database for administrative operations.
         /// </summary>
@@ -35,13 +33,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// </summary>
         [NotNull]
         public IReadOnlyList<RangeMappingInfo> RangeMappings => _rangeMappings;
-
-        /// <summary>
-        /// The collection of database plugins.
-        /// </summary>
-        [NotNull]
-        [ItemNotNull]
-        public IReadOnlyList<NpgsqlEntityFrameworkPlugin> Plugins => _plugins;
 
         /// <summary>
         /// The specified <see cref="ProvideClientCertificatesCallback"/>.
@@ -64,10 +55,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// Initializes an instance of <see cref="NpgsqlOptionsExtension"/> with the default settings.
         /// </summary>
         public NpgsqlOptionsExtension()
-        {
-            _rangeMappings = new List<RangeMappingInfo>();
-            _plugins = new List<NpgsqlEntityFrameworkPlugin>();
-        }
+            => _rangeMappings = new List<RangeMappingInfo>();
 
         // NB: When adding new options, make sure to update the copy ctor below.
         /// <summary>
@@ -78,7 +66,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         {
             AdminDatabase = copyFrom.AdminDatabase;
             _rangeMappings = new List<RangeMappingInfo>(copyFrom._rangeMappings);
-            _plugins = new List<NpgsqlEntityFrameworkPlugin>(copyFrom._plugins);
             PostgresVersion = copyFrom.PostgresVersion;
             ProvideClientCertificatesCallback = copyFrom.ProvideClientCertificatesCallback;
             RemoteCertificateValidationCallback = copyFrom.RemoteCertificateValidationCallback;
@@ -125,22 +112,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
             var clone = (NpgsqlOptionsExtension)Clone();
 
             clone._rangeMappings.Add(new RangeMappingInfo(rangeName, subtypeClrType, subtypeName));
-
-            return clone;
-        }
-
-        /// <summary>
-        /// Returns a copy of the current instance configured to use the specified <see cref="NpgsqlEntityFrameworkPlugin"/>.
-        /// </summary>
-        /// <param name="plugin">The plugin to configure.</param>
-        [NotNull]
-        public virtual NpgsqlOptionsExtension WithPlugin([NotNull] NpgsqlEntityFrameworkPlugin plugin)
-        {
-            Check.NotNull(plugin, nameof(plugin));
-
-            var clone = (NpgsqlOptionsExtension)Clone();
-
-            clone._plugins.Add(plugin);
 
             return clone;
         }

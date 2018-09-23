@@ -118,33 +118,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
         #region Support
 
-        static NpgsqlNodaTimeTypeMappingTest()
-        {
-            var optionsBuilder = new DbContextOptionsBuilder();
-            var npgsqlBuilder = new NpgsqlDbContextOptionsBuilder(optionsBuilder).UseNodaTime();
-            var options = new NpgsqlOptions();
-            options.Initialize(optionsBuilder.Options);
-
-            Mapper = new NpgsqlTypeMappingSource(
-                new TypeMappingSourceDependencies(
-                    new ValueConverterSelector(new ValueConverterSelectorDependencies()),
-                    Array.Empty<ITypeMappingSourcePlugin>()
-                ),
-                new RelationalTypeMappingSourceDependencies(Array.Empty<IRelationalTypeMappingSourcePlugin>()),
-                options
-            );
-        }
-
-        static readonly NpgsqlTypeMappingSource Mapper;
+        static readonly IRelationalTypeMappingSourcePlugin Mapper = new NpgsqlNodaTimeTypeMappingSourcePlugin();
 
         static RelationalTypeMapping GetMapping(string storeType)
-            => Mapper.FindMapping(storeType);
+            => Mapper.FindMapping(new RelationalTypeMappingInfo(storeType));
 
         public static RelationalTypeMapping GetMapping(Type clrType)
-            => (RelationalTypeMapping)Mapper.FindMapping(clrType);
+            => Mapper.FindMapping(new RelationalTypeMappingInfo(clrType));
 
         public static RelationalTypeMapping GetMapping(Type clrType, string storeType)
-            => Mapper.FindMapping(clrType, storeType);
+            => Mapper.FindMapping(new RelationalTypeMappingInfo(clrType, storeType, false, null, null, null, null, null, null));
 
         #endregion Support
     }

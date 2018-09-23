@@ -391,13 +391,32 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         {
             protected override string StoreName { get; } = "NodaTimeTest";
 
+            protected override IServiceCollection AddServices(IServiceCollection serviceCollection)
+                => base.AddServices(serviceCollection).AddEntityFrameworkNpgsqlNodaTime();
+
             public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
             {
-                var npgsqlBuilder = new NpgsqlDbContextOptionsBuilder(builder).UseNodaTime();
-                return builder;
+                var optionsBuilder = base.AddOptions(builder);
+                new NpgsqlDbContextOptionsBuilder(optionsBuilder).UseNodaTime();
+
+                return optionsBuilder;
             }
 
             protected override void Seed(NodaTimeContext context)
+                => NodaTimeContext.Seed(context);
+
+            protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+
+            public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ServiceProvider.GetRequiredService<ILoggerFactory>();
+        }
+
+        public class NodaTimeContext : PoolableDbContext
+        {
+            public NodaTimeContext(DbContextOptions<NodaTimeContext> options) : base(options) {}
+
+            public DbSet<NodaTimeTypes> NodaTimeTypes { get; set; }
+
+            public static void Seed(NodaTimeContext context)
             {
                 var localDateTime = new LocalDateTime(2018, 4, 20, 10, 31, 33, 666);
                 var zonedDateTime = localDateTime.InUtc();
@@ -420,17 +439,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 });
                 context.SaveChanges();
             }
-
-            protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
-
-            public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ServiceProvider.GetRequiredService<ILoggerFactory>();
-        }
-
-        public class NodaTimeContext : PoolableDbContext
-        {
-            public NodaTimeContext(DbContextOptions<NodaTimeContext> options) : base(options) {}
-
-            public DbSet<NodaTimeTypes> NodaTimeTypes { get; set; }
         }
 
         public class NodaTimeTypes

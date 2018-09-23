@@ -256,9 +256,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 StoreTypeMappings[rangeName] = new RelationalTypeMapping[] { rangeMapping };
                 ClrTypeMappings[rangeClrType] = rangeMapping;
             }
-
-            foreach (var plugin in npgsqlOptions.Plugins)
-                plugin.AddMappings(this);
         }
 
         /// <summary>
@@ -298,18 +295,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             }
         }
 
-        protected override RelationalTypeMapping FindMapping(in RelationalTypeMappingInfo mappingInfo)
-        {
-            var baseMapping = FindBaseTypeMapping(mappingInfo);
-            if (baseMapping != null)
-                return baseMapping;
+        protected override RelationalTypeMapping FindMapping(in RelationalTypeMappingInfo mappingInfo) =>
+            // First, try any plugins, allowing them to override built-in mappings (e.g. NodaTime)
+            base.FindMapping(mappingInfo) ??
+            // Then, any mappings that have already been set up
+            FindExistingMapping(mappingInfo) ??
+            // Finally, try any array mappings which have not yet been set up
+            FindArrayMapping(mappingInfo);
 
-            // We couldn't find a base (simple) type mapping. Try to find an array.
-            var arrayMapping = FindArrayMapping(mappingInfo);
-            return arrayMapping ?? null;
-        }
-
-        protected virtual RelationalTypeMapping FindBaseTypeMapping(in RelationalTypeMappingInfo mappingInfo)
+        protected virtual RelationalTypeMapping FindExistingMapping(in RelationalTypeMappingInfo mappingInfo)
         {
             var clrType = mappingInfo.ClrType;
             var storeTypeName = mappingInfo.StoreTypeName;
@@ -319,9 +313,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             {
                 if (StoreTypeMappings.TryGetValue(storeTypeName, out var mappings))
                 {
+                    // We found the user-specified store type. No CLR type was provided - we're probably
+                    // scaffolding from an existing database, take the first mapping as the default.
                     if (clrType == null)
                         return mappings[0];
 
+                    // A CLR type was provided - look for a mapping between the store and CLR types. If not found, fail
+                    // immediately.
                     foreach (var m in mappings)
                         if (m.ClrType == clrType)
                             return m;
@@ -340,12 +338,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
                     return null;
                 }
+
+                // A store type name was provided, but is unknown. This could be a domain (alias) type, in which case
+                // we proceed with a CLR type lookup (if the type doesn't exist at all the failure will come later).
             }
 
-            if (clrType == null)
-                return null;
-
-            if (!ClrTypeMappings.TryGetValue(clrType, out var mapping))
+            if (clrType == null || !ClrTypeMappings.TryGetValue(clrType, out var mapping))
                 return null;
 
             // If needed, clone the mapping with the configured length/precision/scale

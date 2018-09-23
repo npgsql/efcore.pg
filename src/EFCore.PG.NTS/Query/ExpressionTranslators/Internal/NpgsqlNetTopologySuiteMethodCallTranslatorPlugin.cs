@@ -1,17 +1,30 @@
-﻿using System.Linq.Expressions;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+using System.Reflection;
 using GeoAPI.Geometries;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
 using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
 using NetTopologySuite.Geometries;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
+    public class NpgsqlNetTopologySuiteMethodCallTranslatorPlugin : IMethodCallTranslatorPlugin
+    {
+        public virtual IEnumerable<IMethodCallTranslator> Translators { get; } = new IMethodCallTranslator[]
+        {
+            new NpgsqlGeometryMethodTranslator()
+        };
+    }
+
     /// <summary>
     /// Translates methods operating on types implementing the <see cref="IGeometry"/> interface.
     /// </summary>
-    public class NetTopologySuiteMethodCallTranslator : IMethodCallTranslator
+    public class NpgsqlGeometryMethodTranslator : IMethodCallTranslator
     {
+        static readonly MethodInfo _collectionItem =
+            typeof(IGeometryCollection).GetRuntimeProperty("Item").GetMethod;
+
         /// <inheritdoc />
         [CanBeNull]
         public virtual Expression Translate(MethodCallExpression e)
@@ -21,10 +34,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite
 
             switch (e.Method.Name)
             {
+            case "AsBinary":
+                return new SqlFunctionExpression("ST_AsBinary",      typeof(byte[]),   new[] { e.Object });
             case "AsText":
                 return new SqlFunctionExpression("ST_AsText",        typeof(string),   new[] { e.Object });
+            case "Buffer":
+                return new SqlFunctionExpression("ST_Buffer",        typeof(Geometry), new[] { e.Object, e.Arguments[0] });
             case "Contains":
                 return new SqlFunctionExpression("ST_Contains",      typeof(bool),     new[] { e.Object, e.Arguments[0] });
+            case "ConvexHull":
+                return new SqlFunctionExpression("ST_ConvexHull",    typeof(Geometry), new[] { e.Object });
             case "CoveredBy":
                 return new SqlFunctionExpression("ST_CoveredBy",     typeof(bool),     new[] { e.Object, e.Arguments[0] });
             case "Covers":
@@ -42,14 +61,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite
             case "EqualsTopologically":
                 return new SqlFunctionExpression("ST_Equals",        typeof(bool),     new[] { e.Object, e.Arguments[0] });
             case "GetGeometryN":
-                // NetTopologySuite uses 0-based indexing, but PostGIS uses 1-based
-                return new SqlFunctionExpression("ST_GeometryN", typeof(Geometry), new[]
-                {
-                    e.Object,
-                    e.Arguments[0] is ConstantExpression constant
-                        ? (Expression)Expression.Constant((int)constant.Value + 1)
-                        : Expression.Add(e.Arguments[0], Expression.Constant(1))
-                });
+                return GenerateOneBasedFunctionExpression("ST_GeometryN", e.Object, e.Arguments[0]);
+            case "GetInteriorRingN":
+                return GenerateOneBasedFunctionExpression("ST_InteriorRingN", e.Object, e.Arguments[0]);
+            case "GetPointN":
+                return GenerateOneBasedFunctionExpression("ST_PointN", e.Object, e.Arguments[0]);
             case "Intersection":
                 return new SqlFunctionExpression("ST_Intersection",  typeof(Geometry), new[] { e.Object, e.Arguments[0] });
             case "Intersects":
@@ -62,17 +78,36 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite
                 return new SqlFunctionExpression("ST_Reverse",       typeof(Geometry), new[] { e.Object });
             case "SymmetricDifference":
                 return new SqlFunctionExpression("ST_SymDifference", typeof(Geometry), new[] { e.Object, e.Arguments[0] });
+            case "ToBinary":
+                return new SqlFunctionExpression("ST_AsBinary",      typeof(byte[]),   new[] { e.Object });
             case "ToText":
                 return new SqlFunctionExpression("ST_AsText",        typeof(string),   new[] { e.Object });
             case "Touches":
                 return new SqlFunctionExpression("ST_Touches",       typeof(bool),     new[] { e.Object, e.Arguments[0] });
-            case "Union":
+            case "Union" when e.Arguments.Count == 0:
+                return null;  // ST_Union() with only one parameter is an aggregate function in PostGIS
+            case "Union" when e.Arguments.Count == 1:
                 return new SqlFunctionExpression("ST_Union",        typeof(Geometry),  new[] { e.Object, e.Arguments[0] });
             case "Within":
                 return new SqlFunctionExpression("ST_Within",       typeof(bool),      new[] { e.Object, e.Arguments[0] });
-            default:
-                return null;
             }
+
+            // IGeometryCollection[index]
+            var method = e.Method.OnInterface(typeof(IGeometryCollection));
+            if (Equals(method, _collectionItem))
+                return GenerateOneBasedFunctionExpression("ST_GeometryN", e.Object, e.Arguments[0]);
+
+            return null;
         }
+
+        // NetTopologySuite uses 0-based indexing, but PostGIS uses 1-based
+        static SqlFunctionExpression GenerateOneBasedFunctionExpression(string functionName, Expression obj, Expression arg)
+            => new SqlFunctionExpression(functionName, typeof(Geometry), new[]
+            {
+                obj,
+                arg is ConstantExpression constant
+                    ? (Expression)Expression.Constant((int)constant.Value + 1)
+                    : Expression.Add(arg, Expression.Constant(1))
+            });
     }
 }

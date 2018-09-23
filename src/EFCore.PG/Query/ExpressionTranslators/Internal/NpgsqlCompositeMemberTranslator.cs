@@ -28,9 +28,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         {
             // ReSharper disable once VirtualMemberCallInConstructor
             AddTranslators(MemberTranslators);
-
-            foreach (var plugin in npgsqlOptions.Plugins)
-                plugin.AddMemberTranslators(this);
         }
 
         /// <summary>
