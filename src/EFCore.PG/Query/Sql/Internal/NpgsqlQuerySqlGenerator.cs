@@ -24,7 +24,6 @@
 #endregion
 
 using System;
-using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Text.RegularExpressions;
@@ -44,25 +43,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
     public class NpgsqlQuerySqlGenerator : DefaultQuerySqlGenerator
     {
         /// <summary>
-        /// The static cache of default literal values.
-        /// </summary>
-        [NotNull] static readonly ConcurrentDictionary<Type, string> DefaultConstants = new ConcurrentDictionary<Type, string>();
-
-        /// <summary>
         /// True if null ordering is reversed; otherwise false.
         /// </summary>
         readonly bool _reverseNullOrderingEnabled;
+
+        /// <summary>
+        /// The type mapping source.
+        /// </summary>
+        IRelationalTypeMappingSource TypeMappingSource => Dependencies.TypeMappingSource;
 
         /// <inheritdoc />
         protected override string TypedTrueLiteral { get; } = "TRUE::bool";
 
         /// <inheritdoc />
         protected override string TypedFalseLiteral { get; } = "FALSE::bool";
-
-        /// <summary>
-        /// The type mapping source.
-        /// </summary>
-        protected IRelationalTypeMappingSource TypeMappingSource => Dependencies.TypeMappingSource;
 
         /// <inheritdoc />
         public NpgsqlQuerySqlGenerator(
@@ -212,9 +206,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
         /// <inheritdoc />
         protected override Expression VisitDefault(DefaultExpression e)
         {
-            Sql.Append(DefaultConstants.GetOrAdd(e.Type, t =>
-                TypeMappingSource.FindMapping(t).GenerateSqlLiteral(
-                    t.IsNullableType() ? null : Activator.CreateInstance(t))));
+            // LOWER(range) and UPPER(range) return null on empty or infinite bounds.
+            // When this happens, we need to ensure the database null is coalesced
+            // back to the CLR default bound value (e.g. NpgsqlRange<int>.LowerBound is `int` not `int?`).
+            var instance = e.Type.IsNullableType() ? null : Activator.CreateInstance(e.Type);
+
+            Sql.Append(TypeMappingSource.FindMapping(e.Type).GenerateSqlLiteral(instance));
 
             return e;
         }
