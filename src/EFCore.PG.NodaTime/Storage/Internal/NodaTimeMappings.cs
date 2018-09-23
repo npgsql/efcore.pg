@@ -30,7 +30,7 @@ using NodaTime.Text;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using NpgsqlTypes;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 {
     #region timestamp
 

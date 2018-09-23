@@ -23,37 +23,26 @@
 
 #endregion
 
-using System;
 using System.Linq.Expressions;
 using System.Reflection;
 using JetBrains.Annotations;
-using NodaTime;
+using Microsoft.EntityFrameworkCore;
+using NpgsqlTypes;
 using Remotion.Linq.Parsing.ExpressionVisitors.TreeEvaluation;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.EvaluatableExpressionFilters.Internal
 {
-    /// <summary>
-    /// Represents an Npgsql-specific filter for NodaTime to identify expressions that are evaluatable.
-    /// </summary>
-    public class NodaTimeEvaluatableExpressionFilter : IEvaluatableExpressionFilter
+    // TODO: This is a hack until https://github.com/aspnet/EntityFrameworkCore/issues/13454 is done
+    public class NpgsqlNodaTimeEvaluatableExpressionFilter : IEvaluatableExpressionFilter
     {
-        /// <summary>
-        /// The static member info for <see cref="T:SystemClock.Instance"/>.
-        /// </summary>
-        [NotNull] static readonly MemberInfo Instance =
-            typeof(SystemClock).GetRuntimeProperty(nameof(SystemClock.Instance));
-
-        /// <summary>
-        /// The static method info for <see cref="T:SystemClock.GetCurrentInstant()"/>.
-        /// </summary>
-        [NotNull] static readonly MethodInfo GetCurrentInstant =
-            typeof(SystemClock).GetRuntimeMethod(nameof(SystemClock.GetCurrentInstant), new Type[0]);
-
         /// <inheritdoc />
-        public bool IsEvaluatableMember(MemberExpression node) => node.Member != Instance;
+        public bool IsEvaluatableMethodCall(MethodCallExpression node)
+            => node.Method.DeclaringType?.FullName != "NodaTime.SystemClock" ||
+               node.Method.Name != "GetCurrentInstant";
 
-        /// <inheritdoc />
-        public bool IsEvaluatableMethodCall(MethodCallExpression node) => node.Method != GetCurrentInstant;
+        bool IEvaluatableExpressionFilter.IsEvaluatableMember(MemberExpression node)
+            => node.Member.DeclaringType?.FullName != "NodaTime.SystemClock" ||
+               node.Member.Name != "Instance";
 
         #region unused interface methods
 

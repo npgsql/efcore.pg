@@ -26,12 +26,5 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// </summary>
         [NotNull]
         IReadOnlyList<RangeMappingInfo> RangeMappings { get; }
-
-        /// <summary>
-        /// The collection of database plugins.
-        /// </summary>
-        [NotNull]
-        [ItemNotNull]
-        IReadOnlyList<NpgsqlEntityFrameworkPlugin> Plugins { get; }
     }
 }

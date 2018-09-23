@@ -24,13 +24,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
             : base(optionsBuilder) {}
 
         /// <summary>
-        /// Configures the <see cref="DbContext"/> to use the specified <see cref="NpgsqlEntityFrameworkPlugin"/>.
-        /// </summary>
-        /// <param name="plugin">The plugin to configure.</param>
-        public virtual void UsePlugin([NotNull] NpgsqlEntityFrameworkPlugin plugin)
-            => WithOption(e => e.WithPlugin(plugin));
-
-        /// <summary>
         /// Connect to this database for administrative operations (creating/dropping databases).
         /// </summary>
         /// <param name="dbName">The name of the database for administrative operations.</param>

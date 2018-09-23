@@ -21,15 +21,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.EvaluatableExpressionFilte
         [NotNull] [ItemNotNull] readonly List<IEvaluatableExpressionFilter> _filters =
             new List<IEvaluatableExpressionFilter>
             {
-                new NpgsqlFullTextSearchEvaluatableExpressionFilter()
+                new NpgsqlFullTextSearchEvaluatableExpressionFilter(),
+                new NpgsqlNodaTimeEvaluatableExpressionFilter()
             };
 
         /// <inheritdoc />
-        public NpgsqlCompositeEvaluatableExpressionFilter([NotNull] IModel model, [NotNull] INpgsqlOptions npgsqlOptions) : base(model)
-        {
-            foreach (var plugin in npgsqlOptions.Plugins)
-                plugin.AddEvaluatableExpressionFilters(this);
-        }
+        public NpgsqlCompositeEvaluatableExpressionFilter([NotNull] IModel model) : base(model) {}
 
         /// <inheritdoc />
         public override bool IsEvaluatableMember(MemberExpression expression)

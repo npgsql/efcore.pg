@@ -16,9 +16,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             typeof(FunkyDataQueryTestBase<>),
             typeof(LoggingRelationalTestBase<,>),
             typeof(AsyncFromSqlSprocQueryTestBase<>),
-            typeof(FromSqlSprocQueryTestBase<>),
-            typeof(SpatialTestBase<>),
-            typeof(SpatialQueryTestBase<>)
+            typeof(FromSqlSprocQueryTestBase<>)
         };
 
         protected override Assembly TargetAssembly { get; } = typeof(NpgsqlComplianceTest).Assembly;

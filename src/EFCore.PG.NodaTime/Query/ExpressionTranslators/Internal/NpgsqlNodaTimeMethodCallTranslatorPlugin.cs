@@ -36,9 +36,23 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
 {
     /// <summary>
+    /// Provides translation services for <see cref="NodaTime"/> members.
+    /// </summary>
+    /// <remarks>
+    /// See: https://www.postgresql.org/docs/current/static/functions-datetime.html
+    /// </remarks>
+    public class NpgsqlNodaTimeMethodCallTranslatorPlugin : IMethodCallTranslatorPlugin
+    {
+        public virtual IEnumerable<IMethodCallTranslator> Translators { get; } = new IMethodCallTranslator[]
+        {
+            new NpgsqlNodaTimeMethodCallTranslator()
+        };
+    }
+
+    /// <summary>
     /// Provides translation services for NodaTime method calls.
     /// </summary>
-    public class NodaTimeMethodCallTranslator : IMethodCallTranslator
+    public class NpgsqlNodaTimeMethodCallTranslator : IMethodCallTranslator
     {
         /// <summary>
         /// The static method info for <see cref="T:SystemClock.GetCurrentInstant()"/>.

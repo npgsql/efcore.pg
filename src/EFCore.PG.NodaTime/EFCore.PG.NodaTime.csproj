@@ -23,6 +23,12 @@
     <Compile Include="..\Shared\*.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="build\**\*">
+      <Pack>True</Pack>
+      <PackagePath>build</PackagePath>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\EFCore.PG\EFCore.PG.csproj" />
   </ItemGroup>
   <ItemGroup>
