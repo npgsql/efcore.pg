@@ -47,6 +47,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
         /// </summary>
         readonly bool _reverseNullOrderingEnabled;
 
+        /// <summary>
+        /// The type mapping source.
+        /// </summary>
+        IRelationalTypeMappingSource TypeMappingSource => Dependencies.TypeMappingSource;
+
         /// <inheritdoc />
         protected override string TypedTrueLiteral { get; } = "TRUE::bool";
 
@@ -196,6 +201,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
             default:
                 return base.VisitBinary(expression);
             }
+        }
+
+        /// <inheritdoc />
+        protected override Expression VisitDefault(DefaultExpression e)
+        {
+            // LOWER(range) and UPPER(range) return null on empty or infinite bounds.
+            // When this happens, we need to ensure the database null is coalesced
+            // back to the CLR default bound value (e.g. NpgsqlRange<int>.LowerBound is `int` not `int?`).
+            var instance = e.Type.IsNullableType() ? null : Activator.CreateInstance(e.Type);
+
+            Sql.Append(TypeMappingSource.FindMapping(e.Type).GenerateSqlLiteral(instance));
+
+            return e;
         }
 
         /// <inheritdoc />

@@ -41,7 +41,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         [NotNull] [ItemNotNull] static readonly IMemberTranslator[] MemberTranslators =
         {
             new NpgsqlStringLengthTranslator(),
-            new NpgsqlDateTimeMemberTranslator()
+            new NpgsqlDateTimeMemberTranslator(),
+            new NpgsqlRangeTranslator()
         };
 
         /// <inheritdoc />
