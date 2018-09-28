@@ -13,5 +13,5 @@
 ## [Full Text Search](mapping/full-text-search.md)
 ## [NodaTime](mapping/nodatime.md)
 # [Value Generation](value-generation.md)
-# [Miscellaneous](misc.md)
+# [Miscellaneous](miscellaneous.md)
 # [API Reference](../../obj/api/EFCore.PG/)
