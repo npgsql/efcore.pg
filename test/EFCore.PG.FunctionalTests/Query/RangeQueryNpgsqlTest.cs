@@ -492,6 +492,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             }
         }
 
+        [Fact]
+        public void UserDefinedSchemaQualified()
+        {
+            using (RangeContext context = Fixture.CreateContext())
+            {
+                var e = context.RangeTestEntities.Single(x => x.SchemaRange == NpgsqlRange<double>.Parse("(0,10)"));
+                AssertContainsSql("WHERE x.\"SchemaRange\" = @__Parse_0");
+                Assert.Equal(e.SchemaRange.LowerBound, 0);
+                Assert.Equal(e.SchemaRange.UpperBound, 10);
+            }
+        }
+
         #endregion
 
         #region Functions
@@ -675,6 +687,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                         .UseNpgsql(_testStore.ConnectionString, b =>
                         {
                             b.MapRange("floatrange", typeof(float));
+                            b.MapRange<double>("Schema_Range", "test");
                             b.ApplyConfiguration();
                         })
                         .UseInternalServiceProvider(
@@ -694,7 +707,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                             Id = 1,
                             // (0, 10)
                             Range = new NpgsqlRange<int>(0, false, false, 10, false, false),
-                            FloatRange = new NpgsqlRange<float>(0, false, false, 10, false, false)
+                            FloatRange = new NpgsqlRange<float>(0, false, false, 10, false, false),
+                            SchemaRange = new NpgsqlRange<double>(0, false, false, 10, false, false)
                         },
                         new RangeTestEntity
                         {
@@ -760,6 +774,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             public int Id { get; set; }
             public NpgsqlRange<int> Range { get; set; }
             public NpgsqlRange<float> FloatRange { get; set; }
+            public NpgsqlRange<double> SchemaRange { get; set; }
         }
 
         /// <summary>
@@ -782,7 +797,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
             /// <inheritdoc />
             protected override void OnModelCreating(ModelBuilder builder)
-                => builder.ForNpgsqlHasRange("floatrange", "real");
+                => builder.ForNpgsqlHasRange("floatrange", "real")
+                          .ForNpgsqlHasRange("test", "Schema_Range", "double precision");
         }
 
         #endregion

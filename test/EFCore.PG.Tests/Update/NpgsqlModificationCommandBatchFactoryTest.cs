@@ -27,6 +27,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update
                     Array.Empty<ITypeMappingSourcePlugin>()
                 ),
                 new RelationalTypeMappingSourceDependencies(Array.Empty<IRelationalTypeMappingSourcePlugin>()),
+                new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
                 new NpgsqlOptions()
             );
             var factory = new NpgsqlModificationCommandBatchFactory(
@@ -63,6 +64,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update
                     Array.Empty<ITypeMappingSourcePlugin>()
                 ),
                 new RelationalTypeMappingSourceDependencies(Array.Empty<IRelationalTypeMappingSourcePlugin>()),
+                new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
                 new NpgsqlOptions()
             );
             var factory = new NpgsqlModificationCommandBatchFactory(

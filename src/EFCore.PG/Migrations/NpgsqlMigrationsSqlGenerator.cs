@@ -640,6 +640,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
+            // Alter operations may not have a default schema attached. If not, try to attach one for schema-qualified types.
+            if (operation[RelationalAnnotationNames.DefaultSchema] == null)
+                operation[RelationalAnnotationNames.DefaultSchema] = model[RelationalAnnotationNames.DefaultSchema];
+
             GenerateEnumStatements(operation, model, builder);
             GenerateRangeStatements(operation, model, builder);
 

@@ -33,7 +33,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             if (FindPostgresRange(annotatable, schema, name) is PostgresRange rangeType)
                 return rangeType;
 
-            rangeType = new PostgresRange(annotatable, BuildAnnotationName(schema, name));
+            rangeType = new PostgresRange(annotatable, BuildAnnotationName(annotatable, schema, name));
             rangeType.SetData(subtype, canonicalFunction, subtypeOpClass, collation, subtypeDiff);
             return rangeType;
         }
@@ -47,14 +47,22 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             Check.NotNull(annotatable, nameof(annotatable));
             Check.NotEmpty(name, nameof(name));
 
-            var annotationName = BuildAnnotationName(schema, name);
+            var annotationName = BuildAnnotationName(annotatable, schema, name);
 
             return annotatable[annotationName] == null ? null : new PostgresRange(annotatable, annotationName);
         }
 
         [NotNull]
-        static string BuildAnnotationName(string schema, string name)
-            => NpgsqlAnnotationNames.RangePrefix + (schema == null ? name : schema + '.' + name);
+        static string BuildAnnotationName(IAnnotatable annotatable, string schema, string name)
+        {
+            if (!string.IsNullOrEmpty(schema))
+                return $"{NpgsqlAnnotationNames.RangePrefix}{schema}.{name}";
+
+            if (annotatable[RelationalAnnotationNames.DefaultSchema] is string defaultSchema && !string.IsNullOrEmpty(defaultSchema))
+                return $"{NpgsqlAnnotationNames.RangePrefix}{defaultSchema}.{name}";
+
+            return $"{NpgsqlAnnotationNames.RangePrefix}{name}";
+        }
 
         [NotNull]
         public static IEnumerable<PostgresRange> GetPostgresRanges([NotNull] IAnnotatable annotatable)
@@ -66,8 +74,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         [NotNull]
         public Annotatable Annotatable => (Annotatable)_annotatable;
 
-        [NotNull]
-        public string Schema => GetData().Schema;
+        [CanBeNull]
+        public string Schema => GetData().Schema ?? (string)_annotatable[RelationalAnnotationNames.DefaultSchema];
 
         [NotNull]
         public string Name => GetData().Name;

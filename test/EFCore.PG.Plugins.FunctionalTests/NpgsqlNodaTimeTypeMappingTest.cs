@@ -118,7 +118,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
         #region Support
 
-        static readonly IRelationalTypeMappingSourcePlugin Mapper = new NpgsqlNodaTimeTypeMappingSourcePlugin();
+        static readonly IRelationalTypeMappingSourcePlugin Mapper =
+            new NpgsqlNodaTimeTypeMappingSourcePlugin(new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()));
 
         static RelationalTypeMapping GetMapping(string storeType)
             => Mapper.FindMapping(new RelationalTypeMappingInfo(storeType));

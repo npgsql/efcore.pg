@@ -45,6 +45,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         /// The actual mapped type will be an <see cref="NpgsqlRange{T}"/> over this type.
         /// </typeparam>
         /// <param name="rangeName">The name of the PostgreSQL range type to be mapped.</param>
+        /// <param name="schemaName">The name of the PostgreSQL schema in which the range is defined.</param>
         /// <param name="subtypeName">
         /// Optionally, the name of the range's PostgreSQL subtype (or element).
         /// This is usually not needed - the subtype will be inferred based on <typeparamref name="TSubtype"/>.
@@ -53,13 +54,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         /// To map a range of PostgreSQL real, use the following:
         /// <code>NpgsqlTypeMappingSource.MapRange{float}("floatrange");</code>
         /// </example>
-        public virtual void MapRange<TSubtype>([NotNull] string rangeName, string subtypeName = null)
-            => WithOption(e => e.WithUserRangeDefinition(rangeName, typeof(TSubtype), subtypeName));
+        public virtual void MapRange<TSubtype>([NotNull] string rangeName, string schemaName = null, string subtypeName = null)
+            => MapRange(rangeName, typeof(TSubtype), schemaName, subtypeName);
 
         /// <summary>
         /// Maps a user-defined PostgreSQL range type for use.
         /// </summary>
         /// <param name="rangeName">The name of the PostgreSQL range type to be mapped.</param>
+        /// <param name="schemaName">The name of the PostgreSQL schema in which the range is defined.</param>
         /// <param name="subtypeClrType">
         /// The CLR type of the range's subtype (or element).
         /// The actual mapped type will be an <see cref="NpgsqlRange{T}"/> over this type.
@@ -72,8 +74,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         /// To map a range of PostgreSQL real, use the following:
         /// <code>NpgsqlTypeMappingSource.MapRange("floatrange", typeof(float));</code>
         /// </example>
-        public virtual void MapRange([NotNull] string rangeName, [NotNull] Type subtypeClrType, string subtypeName = null)
-            => WithOption(e => e.WithUserRangeDefinition(rangeName, subtypeClrType, subtypeName));
+        public virtual void MapRange([NotNull] string rangeName, [NotNull] Type subtypeClrType, string schemaName = null, string subtypeName = null)
+            => WithOption(e => e.WithUserRangeDefinition(rangeName, schemaName, subtypeClrType, subtypeName));
 
         /// <summary>
         /// Appends NULLS FIRST to all ORDER BY clauses. This is important for the tests which were written

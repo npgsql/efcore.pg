@@ -1763,6 +1763,7 @@ CREATE TABLE column_types (
                             Array.Empty<ITypeMappingSourcePlugin>()
                         ),
                         new RelationalTypeMappingSourceDependencies(Array.Empty<IRelationalTypeMappingSourcePlugin>()),
+                        new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
                         options
                     );
 

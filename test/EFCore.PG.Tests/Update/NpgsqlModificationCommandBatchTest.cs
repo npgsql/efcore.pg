@@ -24,6 +24,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Update
                     Array.Empty<ITypeMappingSourcePlugin>()
                 ),
                 new RelationalTypeMappingSourceDependencies(Array.Empty<IRelationalTypeMappingSourcePlugin>()),
+                new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
                 new NpgsqlOptions()
             );
 
