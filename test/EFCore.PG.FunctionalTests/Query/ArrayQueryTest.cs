@@ -19,7 +19,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Roundtrip()
         {
-            using (var ctx = CreateContext())
+            using (var ctx = Fixture.CreateContext())
             {
                 var x = ctx.SomeEntities.Single(e => e.Id == 1);
                 Assert.Equal(new[] { 3, 4 }, x.SomeArray);
@@ -34,7 +34,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Index_with_constant()
         {
-            using (var ctx = CreateContext())
+            using (var ctx = Fixture.CreateContext())
             {
                 var actual = ctx.SomeEntities.Where(e => e.SomeArray[0] == 3).ToList();
                 Assert.Equal(1, actual.Count);
@@ -45,7 +45,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Index_with_non_constant()
         {
-            using (var ctx = CreateContext())
+            using (var ctx = Fixture.CreateContext())
             {
                 // ReSharper disable once ConvertToConstant.Local
                 var x = 0;
@@ -58,7 +58,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Index_bytea_with_constant()
         {
-            using (var ctx = CreateContext())
+            using (var ctx = Fixture.CreateContext())
             {
                 var actual = ctx.SomeEntities.Where(e => e.SomeBytea[0] == 3).ToList();
                 Assert.Equal(1, actual.Count);
@@ -69,7 +69,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Index_multidimensional()
         {
-            using (var ctx = CreateContext())
+            using (var ctx = Fixture.CreateContext())
             {
                 // Operations on multidimensional arrays aren't mapped to SQL yet
                 var actual = ctx.SomeEntities.Where(e => e.SomeMatrix[0, 0] == 5).ToList();
@@ -84,7 +84,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void SequenceEqual_with_parameter()
         {
-            using (var ctx = CreateContext())
+            using (var ctx = Fixture.CreateContext())
             {
                 var arr = new[] { 3, 4 };
                 var x = ctx.SomeEntities.Single(e => e.SomeArray.SequenceEqual(arr));
@@ -96,7 +96,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void SequenceEqual_with_array_literal()
         {
-            using (var ctx = CreateContext())
+            using (var ctx = Fixture.CreateContext())
             {
                 var x = ctx.SomeEntities.Single(e => e.SomeArray.SequenceEqual(new[] { 3, 4 }));
                 Assert.Equal(new[] { 3, 4 }, x.SomeArray);
@@ -111,7 +111,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Contains_with_literal()
         {
-            using (var ctx = CreateContext())
+            using (var ctx = Fixture.CreateContext())
             {
                 var x = ctx.SomeEntities.Single(e => e.SomeArray.Contains(3));
                 Assert.Equal(new[] { 3, 4 }, x.SomeArray);
@@ -122,7 +122,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Contains_with_parameter()
         {
-            using (var ctx = CreateContext())
+            using (var ctx = Fixture.CreateContext())
             {
                 // ReSharper disable once ConvertToConstant.Local
                 var p = 3;
@@ -135,7 +135,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Contains_with_column()
         {
-            using (var ctx = CreateContext())
+            using (var ctx = Fixture.CreateContext())
             {
                 var x = ctx.SomeEntities.Single(e => e.SomeArray.Contains(e.Id + 2));
                 Assert.Equal(new[] { 3, 4 }, x.SomeArray);
@@ -150,7 +150,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Length()
         {
-            using (var ctx = CreateContext())
+            using (var ctx = Fixture.CreateContext())
             {
                 var x = ctx.SomeEntities.Single(e => e.SomeArray.Length == 2);
                 Assert.Equal(new[] { 3, 4 }, x.SomeArray);
@@ -161,7 +161,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact(Skip = "https://github.com/aspnet/EntityFramework/issues/9242")]
         public void Length_on_EF_Property()
         {
-            using (var ctx = CreateContext())
+            using (var ctx = Fixture.CreateContext())
             {
                 // TODO: This fails
                 var x = ctx.SomeEntities.Single(e => EF.Property<int[]>(e, nameof(SomeArrayEntity.SomeArray)).Length == 2);
@@ -173,7 +173,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Length_on_literal_not_translated()
         {
-            using (var ctx = CreateContext())
+            using (var ctx = Fixture.CreateContext())
             {
                 var _ = ctx.SomeEntities.Where(e => new[] { 1, 2, 3 }.Length == e.Id).ToList();
                 AssertDoesNotContainInSql("array_length");
@@ -187,7 +187,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Array_like_any_when_match_expression_is_column()
         {
-            using (var ctx = CreateContext())
+            using (var ctx = Fixture.CreateContext())
             {
                 var patterns = new[] { "a", "b", "c" };
 
@@ -210,7 +210,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Array_like_any_not_translated_when_match_expression_is_qsre()
         {
-            using (var ctx = CreateContext())
+            using (var ctx = Fixture.CreateContext())
             {
                 var matches = new[] { "a", "b", "c" };
 
@@ -246,8 +246,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             Fixture.TestSqlLoggerFactory.Clear();
         }
 
-        ArrayContext CreateContext() => Fixture.CreateContext();
-
         void AssertContainsInSql(string expected)
             => Assert.Contains(expected, Fixture.TestSqlLoggerFactory.Sql);
 
@@ -257,8 +255,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         public class ArrayContext : DbContext
         {
             public DbSet<SomeArrayEntity> SomeEntities { get; set; }
+
             public ArrayContext(DbContextOptions options) : base(options) {}
-            protected override void OnModelCreating(ModelBuilder builder) {}
         }
 
         public class SomeArrayEntity
@@ -268,54 +266,56 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             public int[,] SomeMatrix { get; set; }
             public List<int> SomeList { get; set; }
             public byte[] SomeBytea { get; set; }
-
-            // ReSharper disable once UnusedMember.Global
             public string SomeText { get; set; }
         }
 
         public class ArrayFixture : IDisposable
         {
-            readonly DbContextOptions _options;
+            readonly NpgsqlTestStore _testStore;
             public TestSqlLoggerFactory TestSqlLoggerFactory { get; } = new TestSqlLoggerFactory();
 
             public ArrayFixture()
             {
                 _testStore = NpgsqlTestStore.CreateScratch();
-                _options = new DbContextOptionsBuilder()
-                           .UseNpgsql(_testStore.ConnectionString, b => b.ApplyConfiguration())
-                           .UseInternalServiceProvider(
-                               new ServiceCollection()
-                                   .AddEntityFrameworkNpgsql()
-                                   .AddSingleton<ILoggerFactory>(TestSqlLoggerFactory)
-                                   .BuildServiceProvider())
-                           .Options;
 
                 using (var ctx = CreateContext())
                 {
                     ctx.Database.EnsureCreated();
-                    ctx.SomeEntities.Add(new SomeArrayEntity
-                    {
-                        Id = 1,
-                        SomeArray = new[] { 3, 4 },
-                        SomeBytea = new byte[] { 3, 4 },
-                        SomeMatrix = new[,] { { 5, 6 }, { 7, 8 } },
-                        SomeList = new List<int> { 3, 4 }
-                    });
-                    ctx.SomeEntities.Add(new SomeArrayEntity
-                    {
-                        Id = 2,
-                        SomeArray = new[] { 5, 6, 7 },
-                        SomeBytea = new byte[] { 5, 6, 7 },
-                        SomeMatrix = new[,] { { 10, 11 }, { 12, 13 } },
-                        SomeList = new List<int> { 3, 4 }
-                    });
+                    ctx.SomeEntities.AddRange(
+                        new SomeArrayEntity
+                        {
+                            Id = 1,
+                            SomeArray = new[] { 3, 4 },
+                            SomeBytea = new byte[] { 3, 4 },
+                            SomeMatrix = new[,] { { 5, 6 }, { 7, 8 } },
+                            SomeList = new List<int> { 3, 4 }
+                        },
+                        new SomeArrayEntity
+                        {
+                            Id = 2,
+                            SomeArray = new[] { 5, 6, 7 },
+                            SomeBytea = new byte[] { 5, 6, 7 },
+                            SomeMatrix = new[,] { { 10, 11 }, { 12, 13 } },
+                            SomeList = new List<int> { 3, 4 }
+                        });
                     ctx.SaveChanges();
                 }
             }
 
-            readonly NpgsqlTestStore _testStore;
-            public ArrayContext CreateContext() => new ArrayContext(_options);
+            public ArrayContext CreateContext(Version postgresVersion = default)
+                => new ArrayContext(CreateOptions(postgresVersion));
+
             public void Dispose() => _testStore.Dispose();
+
+            DbContextOptions CreateOptions(Version postgresVersion = null)
+                => new DbContextOptionsBuilder()
+                   .UseNpgsql(_testStore.ConnectionString, b => b.ApplyConfiguration().SetPostgresVersion(postgresVersion))
+                   .UseInternalServiceProvider(
+                       new ServiceCollection()
+                           .AddEntityFrameworkNpgsql()
+                           .AddSingleton<ILoggerFactory>(TestSqlLoggerFactory)
+                           .BuildServiceProvider())
+                   .Options;
         }
 
         #endregion
