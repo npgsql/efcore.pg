@@ -2,7 +2,7 @@
 
 // The PostgreSQL License
 //
-// Copyright (C) 2016 The Npgsql Development Team
+// Copyright (C) 2018 The Npgsql Development Team
 //
 // Permission to use, copy, modify, and distribute this software and its
 // documentation for any purpose, without fee, and without a written
@@ -195,8 +195,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
             }
 
             case ExpressionType.ArrayIndex:
-                VisitArrayIndex(expression);
-                return expression;
+                return VisitArrayIndex(expression);
 
             default:
                 return base.VisitBinary(expression);
@@ -228,26 +227,50 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
             return base.VisitUnary(expression);
         }
 
-        protected virtual void VisitArrayIndex([NotNull] BinaryExpression expression)
+        /// <inheritdoc />
+        protected override Expression VisitIndex(IndexExpression expression)
+        {
+            // text cannot be subscripted.
+            if (expression.Object.Type == typeof(string))
+            {
+                return VisitSqlFunction(
+                    new SqlFunctionExpression(
+                        "substr",
+                        typeof(char),
+                        new[] { expression.Object, GenerateOneBasedIndexExpression(expression.Arguments[0]), Expression.Constant(1) }));
+            }
+
+            Visit(expression.Object);
+            for (int i = 0; i < expression.Arguments.Count; i++)
+            {
+                Sql.Append('[');
+                Visit(GenerateOneBasedIndexExpression(expression.Arguments[i]));
+                Sql.Append(']');
+            }
+
+            return expression;
+        }
+
+        /// <summary>
+        /// Visits the children of an <see cref="T:ExpressionType.ArrayIndex"/> node.
+        /// </summary>
+        /// <param name="expression">The expression.</param>
+        /// <returns>
+        /// An <see cref="Expression"/>.
+        /// </returns>
+        [NotNull]
+        protected virtual Expression VisitArrayIndex([NotNull] BinaryExpression expression)
         {
             Debug.Assert(expression.NodeType == ExpressionType.ArrayIndex);
 
+            // bytea cannot be subscripted, but there's get_byte.
             if (expression.Left.Type == typeof(byte[]))
             {
-                // bytea cannot be subscripted, but there's get_byte
-                VisitSqlFunction(new SqlFunctionExpression("get_byte", typeof(byte),
-                    new[] { expression.Left, expression.Right }));
-                return;
-            }
-
-            if (expression.Left.Type == typeof(string))
-            {
-                // text cannot be subscripted, use substr
-                // PostgreSQL substr() is 1-based.
-
-                VisitSqlFunction(new SqlFunctionExpression("substr", typeof(char),
-                    new[] { expression.Left, expression.Right, Expression.Constant(1) }));
-                return;
+                return VisitSqlFunction(
+                    new SqlFunctionExpression(
+                        "get_byte",
+                        typeof(byte),
+                        new[] { expression.Left, expression.Right }));
             }
 
             // Regular array from here
@@ -255,11 +278,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
             Sql.Append('[');
             Visit(GenerateOneBasedIndexExpression(expression.Right));
             Sql.Append(']');
+            return expression;
         }
 
         /// <summary>
         /// Produces expressions like: 1 = ANY ('{0,1,2}') or 'cat' LIKE ANY ('{a%,b%,c%}').
         /// </summary>
+        [NotNull]
         public virtual Expression VisitArrayAnyAll([NotNull] ArrayAnyAllExpression expression)
         {
             Visit(expression.Operand);
@@ -291,7 +316,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
             Visit(expression.Match);
             Sql.Append(" ~ ");
 
-            // PG regexps are singleline by default
+            // PG regexps are single-line by default
             if (options == RegexOptions.Singleline)
             {
                 Visit(expression.Pattern);

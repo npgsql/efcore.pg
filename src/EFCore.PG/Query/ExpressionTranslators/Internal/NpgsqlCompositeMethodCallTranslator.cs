@@ -2,7 +2,7 @@
 
 // The PostgreSQL License
 //
-// Copyright (C) 2016 The Npgsql Development Team
+// Copyright (C) 2018 The Npgsql Development Team
 //
 // Permission to use, copy, modify, and distribute this software and its
 // documentation for any purpose, without fee, and without a written
@@ -40,7 +40,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         /// </summary>
         [NotNull] [ItemNotNull] static readonly IMethodCallTranslator[] MethodCallTranslators =
         {
-            new NpgsqlArraySequenceEqualTranslator(),
             new NpgsqlConvertTranslator(),
             new NpgsqlStringSubstringTranslator(),
             new NpgsqlLikeTranslator(),
@@ -68,8 +67,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             [NotNull] INpgsqlOptions npgsqlOptions)
             : base(dependencies)
         {
-            var instanceTranslators = new IMethodCallTranslator[]
+            var versionDependentTranslators = new IMethodCallTranslator[]
             {
+                new NpgsqlArrayMethodCallTranslator(npgsqlOptions.PostgresVersion),
                 new NpgsqlDateAddTranslator(npgsqlOptions.PostgresVersion),
                 new NpgsqlMathTranslator(npgsqlOptions.PostgresVersion)
             };
@@ -78,7 +78,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             AddTranslators(MethodCallTranslators);
 
             // ReSharper disable once DoNotCallOverridableMethodsInConstructor
-            AddTranslators(instanceTranslators);
+            AddTranslators(versionDependentTranslators);
 
             foreach (var plugin in npgsqlOptions.Plugins)
                 plugin.AddMethodCallTranslators(this);
