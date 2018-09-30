@@ -26,8 +26,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             [NotNull] INpgsqlOptions npgsqlOptions)
             : base(dependencies)
         {
-            // ReSharper disable once VirtualMemberCallInConstructor
+            var versionDependentTranslators = new IMemberTranslator[]
+            {
+                new NpgsqlArrayMemberTranslator(npgsqlOptions.PostgresVersion)
+            };
+
+            // ReSharper disable once DoNotCallOverridableMethodsInConstructor
             AddTranslators(MemberTranslators);
+
+            // ReSharper disable once DoNotCallOverridableMethodsInConstructor
+            AddTranslators(versionDependentTranslators);
         }
 
         /// <summary>

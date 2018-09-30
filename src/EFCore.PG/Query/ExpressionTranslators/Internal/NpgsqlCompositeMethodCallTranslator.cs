@@ -15,7 +15,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         /// </summary>
         [NotNull] [ItemNotNull] static readonly IMethodCallTranslator[] MethodCallTranslators =
         {
-            new NpgsqlArraySequenceEqualTranslator(),
             new NpgsqlConvertTranslator(),
             new NpgsqlGuidTranslator(),
             new NpgsqlLikeTranslator(),
@@ -37,6 +36,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         {
             var versionDependentTranslators = new IMethodCallTranslator[]
             {
+                new NpgsqlArrayMethodCallTranslator(npgsqlOptions.PostgresVersion),
                 new NpgsqlDateAddTranslator(npgsqlOptions.PostgresVersion),
                 new NpgsqlMathTranslator(npgsqlOptions.PostgresVersion)
             };
