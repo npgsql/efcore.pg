@@ -2,7 +2,7 @@
 
 // The PostgreSQL License
 //
-// Copyright (C) 2016 The Npgsql Development Team
+// Copyright (C) 2018 The Npgsql Development Team
 //
 // Permission to use, copy, modify, and distribute this software and its
 // documentation for any purpose, without fee, and without a written
@@ -51,8 +51,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             [NotNull] INpgsqlOptions npgsqlOptions)
             : base(dependencies)
         {
-            // ReSharper disable once VirtualMemberCallInConstructor
+            var versionDependentTranslators = new IMemberTranslator[]
+            {
+                new NpgsqlArrayMemberTranslator(npgsqlOptions.PostgresVersion)
+            };
+
+            // ReSharper disable once DoNotCallOverridableMethodsInConstructor
             AddTranslators(MemberTranslators);
+
+            // ReSharper disable once DoNotCallOverridableMethodsInConstructor
+            AddTranslators(versionDependentTranslators);
 
             foreach (var plugin in npgsqlOptions.Plugins)
                 plugin.AddMemberTranslators(this);

@@ -2,7 +2,7 @@
 
 // The PostgreSQL License
 //
-// Copyright (C) 2016 The Npgsql Development Team
+// Copyright (C) 2018 The Npgsql Development Team
 //
 // Permission to use, copy, modify, and distribute this software and its
 // documentation for any purpose, without fee, and without a written
@@ -23,17 +23,15 @@
 
 #endregion
 
-using System.Linq;
+using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Reflection;
 using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
 using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors;
 using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
-using Remotion.Linq.Clauses;
 using Remotion.Linq.Clauses.Expressions;
 using Remotion.Linq.Clauses.ResultOperators;
 
@@ -45,39 +43,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
     public class NpgsqlSqlTranslatingExpressionVisitor : SqlTranslatingExpressionVisitor
     {
         /// <summary>
-        /// The <see cref="MethodInfo"/> for <see cref="DbFunctionsExtensions.Like(DbFunctions,string,string)"/>.
-        /// </summary>
-        [NotNull] static readonly MethodInfo Like2MethodInfo =
-            typeof(DbFunctionsExtensions)
-                .GetRuntimeMethod(nameof(DbFunctionsExtensions.Like), new[] { typeof(DbFunctions), typeof(string), typeof(string) });
-
-        /// <summary>
-        /// The <see cref="MethodInfo"/> for <see cref="DbFunctionsExtensions.Like(DbFunctions,string,string, string)"/>.
-        /// </summary>
-        [NotNull] static readonly MethodInfo Like3MethodInfo =
-            typeof(DbFunctionsExtensions)
-                .GetRuntimeMethod(nameof(DbFunctionsExtensions.Like), new[] { typeof(DbFunctions), typeof(string), typeof(string), typeof(string) });
-
-        // ReSharper disable once InconsistentNaming
-        /// <summary>
-        /// The <see cref="MethodInfo"/> for <see cref="NpgsqlDbFunctionsExtensions.ILike(DbFunctions,string,string)"/>.
-        /// </summary>
-        [NotNull] static readonly MethodInfo ILike2MethodInfo =
-            typeof(NpgsqlDbFunctionsExtensions)
-                .GetRuntimeMethod(nameof(NpgsqlDbFunctionsExtensions.ILike), new[] { typeof(DbFunctions), typeof(string), typeof(string) });
-
-        // ReSharper disable once InconsistentNaming
-        /// <summary>
-        /// The <see cref="MethodInfo"/> for <see cref="NpgsqlDbFunctionsExtensions.ILike(DbFunctions,string,string,string)"/>.
-        /// </summary>
-        [NotNull] static readonly MethodInfo ILike3MethodInfo =
-            typeof(NpgsqlDbFunctionsExtensions)
-                .GetRuntimeMethod(nameof(NpgsqlDbFunctionsExtensions.ILike), new[] { typeof(DbFunctions), typeof(string), typeof(string), typeof(string) });
-
-        /// <summary>
-        /// The query model visitor.
+        /// The current query model visitor.
         /// </summary>
         [NotNull] readonly RelationalQueryModelVisitor _queryModelVisitor;
+
+        /// <summary>
+        /// The current query compilation context.
+        /// </summary>
+        [NotNull]
+        RelationalQueryCompilationContext Context => _queryModelVisitor.QueryCompilationContext;
 
         /// <inheritdoc />
         public NpgsqlSqlTranslatingExpressionVisitor(
@@ -89,29 +63,24 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
             : base(dependencies, queryModelVisitor, targetSelectExpression, topLevelPredicate, inProjection)
             => _queryModelVisitor = queryModelVisitor;
 
-        /// <inheritdoc />
-        protected override Expression VisitSubQuery(SubQueryExpression expression)
-            => base.VisitSubQuery(expression) ?? VisitLikeAnyAll(expression) ?? VisitEqualsAny(expression);
+        #region Overrides
 
         /// <inheritdoc />
         protected override Expression VisitBinary(BinaryExpression expression)
         {
-            if (expression.NodeType == ExpressionType.ArrayIndex)
-            {
-                var properties = MemberAccessBindingExpressionVisitor.GetPropertyPath(
-                    expression.Left, _queryModelVisitor.QueryCompilationContext, out _);
-                if (properties.Count == 0)
-                    return base.VisitBinary(expression);
-                var lastPropertyType = properties[properties.Count - 1].ClrType;
-                if (lastPropertyType.IsArray && lastPropertyType.GetArrayRank() == 1)
-                {
-                    var left = Visit(expression.Left);
-                    var right = Visit(expression.Right);
+            var left = Visit(expression.Left);
+            var right = Visit(expression.Right);
 
-                    return left != null && right != null
-                        ? Expression.MakeBinary(ExpressionType.ArrayIndex, left, right)
-                        : base.VisitBinary(expression);
-                }
+            if (left == null || right == null)
+                return base.VisitBinary(expression);
+
+            if (MemberAccessBindingExpressionVisitor.GetPropertyPath(expression.Left, Context, out _).Count != 0)
+            {
+                if (expression.NodeType == ExpressionType.ArrayIndex)
+                    return Expression.ArrayIndex(left, right);
+
+                if (expression.NodeType == ExpressionType.Index)
+                    return Expression.ArrayAccess(left, right);
             }
 
             return base.VisitBinary(expression);
@@ -125,105 +94,118 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
         /// An '= ANY' expression or null.
         /// </returns>
         [CanBeNull]
-        protected virtual Expression VisitEqualsAny([NotNull] SubQueryExpression expression)
+        protected override Expression VisitSubQuery(SubQueryExpression expression)
+            => base.VisitSubQuery(expression) ?? VisitArraySubQuery(expression);
+
+        /// <inheritdoc />
+        protected override Expression VisitUnary(UnaryExpression expression)
         {
-            var subQueryModel = expression.QueryModel;
-            var fromExpression = subQueryModel.MainFromClause.FromExpression;
+            // Character literals are represented as integer literals by the expression tree.
+            // So `myString[0] == 'T'` looks like `((int)myString[0]) == 84`.
+            // Since `substr` returns `text`, not `char` or `int`, wrap it in `ascii`.
+            if (expression.NodeType == ExpressionType.Convert &&
+                Visit(expression.Operand) is IndexExpression index &&
+                index.Object.Type == typeof(string))
+                return new SqlFunctionExpression("ascii", typeof(int), new[] { index });
 
-            var properties = MemberAccessBindingExpressionVisitor.GetPropertyPath(
-                fromExpression, _queryModelVisitor.QueryCompilationContext, out _);
-
-            if (properties.Count == 0)
-                return null;
-            var lastPropertyType = properties[properties.Count - 1].ClrType;
-            if (lastPropertyType.IsArray && lastPropertyType.GetArrayRank() == 1 && subQueryModel.ResultOperators.Count > 0)
-            {
-                var from = Visit(fromExpression);
-
-                if (from == null)
-                    return null;
-
-                switch (subQueryModel.ResultOperators.First())
-                {
-                // Translate someArray.Length
-                case CountResultOperator _:
-                    return Expression.ArrayLength(from);
-
-                // Translate someArray.Contains(someValue)
-                case ContainsResultOperator contains when Visit(contains.Item) is Expression containsItem:
-                    return new ArrayAnyAllExpression(ArrayComparisonType.ANY, "=", containsItem, from);
-                }
-            }
-
-            return null;
+            return base.VisitUnary(expression);
         }
 
+        /// <inheritdoc />
+        /// <remarks>
+        /// https://github.com/aspnet/EntityFrameworkCore/blob/release/2.2/src/EFCore.Relational/Query/ExpressionVisitors/SqlTranslatingExpressionVisitor.cs#L1077-L1144
+        /// </remarks>
+        protected override Expression VisitExtension(Expression expression)
+        {
+            switch (expression)
+            {
+            case ArrayAnyAllExpression e:
+            {
+                var operand = Visit(e.Operand);
+                var array = Visit(e.Array);
+
+                if (operand == null || array == null)
+                    return null;
+
+                return
+                    operand != e.Operand || array != e.Array
+                        ? new ArrayAnyAllExpression(e.ArrayComparisonType, e.Operator, operand, array)
+                        : e;
+            }
+
+            case CustomBinaryExpression e:
+            {
+                var left = Visit(e.Left);
+                var right = Visit(e.Right);
+
+                if (left == null || right == null)
+                    return null;
+
+                return
+                    left != e.Left || right != e.Right
+                        ? new CustomBinaryExpression(left, right, e.Operator, e.Type)
+                        : e;
+            }
+
+            default:
+                return base.VisitExtension(expression);
+            }
+        }
+
+        #endregion
+
+        #region ArraySubQueries
+
         /// <summary>
-        /// Visits a <see cref="SubQueryExpression"/> and attempts to translate a LIKE/ILIKE ANY/ALL expression.
+        /// Visits an array-based subquery.
         /// </summary>
-        /// <param name="expression">The expression to visit.</param>
+        /// <param name="expression">The subquery expression.</param>
         /// <returns>
-        /// A 'LIKE ANY', 'LIKE ALL', 'ILIKE ANY', or 'ILIKE ALL' expression or null.
+        /// An expression or null.
         /// </returns>
         [CanBeNull]
-        protected virtual Expression VisitLikeAnyAll([NotNull] SubQueryExpression expression)
+        protected virtual Expression VisitArraySubQuery([NotNull] SubQueryExpression expression)
         {
-            var queryModel = expression.QueryModel;
-            var results = queryModel.ResultOperators;
-            var body = queryModel.BodyClauses;
+            var model = expression.QueryModel;
+            var from = model.MainFromClause.FromExpression;
+            var results = model.ResultOperators;
 
+            // Only handle types mapped to PostgreSQL arrays.
+            if (!IsArrayOrList(from.Type))
+                return null;
+
+            // Only handle subqueries when the from expression is visitable.
+            if (!(Visit(from) is Expression array))
+                return null;
+
+            // Only handle singular result operators.
             if (results.Count != 1)
                 return null;
 
-            ArrayComparisonType comparisonType;
-            MethodCallExpression call;
             switch (results[0])
             {
-            case AnyResultOperator _:
-                comparisonType = ArrayComparisonType.ANY;
-                call =
-                    body.Count == 1 &&
-                    body[0] is WhereClause whereClause &&
-                    whereClause.Predicate is MethodCallExpression methocCall
-                        ? methocCall
-                        : null;
-                break;
-
-            case AllResultOperator allResult:
-                comparisonType = ArrayComparisonType.ALL;
-                call = allResult.Predicate as MethodCallExpression;
-                break;
-
-            default:
-                return null;
-            }
-
-            if (call is null)
-                return null;
-
-            if (!(Visit(queryModel.MainFromClause.FromExpression) is Expression patterns))
-                return null;
-
-            if (!(Visit(call.Arguments[1]) is Expression match))
-                return null;
-
-            switch (call.Method)
-            {
-            case MethodInfo m when m == Like2MethodInfo:
-                return new ArrayAnyAllExpression(comparisonType, "LIKE", match, patterns);
-
-            case MethodInfo m when m == Like3MethodInfo:
-                return new ArrayAnyAllExpression(comparisonType, "LIKE", match, patterns);
-
-            case MethodInfo m when m == ILike2MethodInfo:
-                return new ArrayAnyAllExpression(comparisonType, "ILIKE", match, patterns);
-
-            case MethodInfo m when m == ILike3MethodInfo:
-                return new ArrayAnyAllExpression(comparisonType, "ILIKE", match, patterns);
+            case ContainsResultOperator contains:
+                return new ArrayAnyAllExpression(ArrayComparisonType.ANY, "=", Visit(contains.Item) ?? contains.Item, array);
 
             default:
                 return null;
             }
         }
+
+        #endregion
+
+        #region Helpers
+
+        /// <summary>
+        /// Tests if the type is an array or a <see cref="List{T}"/>.
+        /// </summary>
+        /// <param name="type">The type to test.</param>
+        /// <returns>
+        /// True if <paramref name="type"/> is an array or a <see cref="List{T}"/>; otherwise, false.
+        /// </returns>
+        static bool IsArrayOrList([NotNull] Type type)
+            => type.IsArray || type.IsGenericType && typeof(List<>) == type.GetGenericTypeDefinition();
+
+        #endregion
     }
 }
