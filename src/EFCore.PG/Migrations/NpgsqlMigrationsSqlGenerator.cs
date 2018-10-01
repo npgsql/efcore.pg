@@ -720,7 +720,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             [NotNull] IModel model,
             [NotNull] MigrationCommandListBuilder builder)
         {
-            var schema = enumType.Schema ?? model.FindAnnotation(RelationalAnnotationNames.DefaultSchema)?.Value as string;
+            var schema = GetSchemaOrDefault(enumType.Schema, model);
 
             // Schemas are normally created (or rather ensured) by the model differ, which scans all tables, sequences
             // and other database objects. However, it isn't aware of enums, so we always ensure schema on enum creation.
@@ -750,7 +750,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             [CanBeNull] IAnnotatable oldDatabase,
             [NotNull] MigrationCommandListBuilder builder)
         {
-            var schema = enumType.Schema ?? oldDatabase?.FindAnnotation(RelationalAnnotationNames.DefaultSchema)?.Value as string;
+            var schema = GetSchemaOrDefault(enumType.Schema, oldDatabase);
 
             builder
                 .Append("DROP TYPE ")
@@ -1117,6 +1117,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         #endregion Storage parameter utilities
 
         #region Helpers
+
+        [CanBeNull]
+        static string GetSchemaOrDefault([CanBeNull] string schema, [CanBeNull] IAnnotatable model)
+            => schema ?? model?.FindAnnotation(RelationalAnnotationNames.DefaultSchema)?.Value as string;
 
         /// <summary>
         /// True if <see cref="_postgresVersion"/> is null, greater than, or equal to the specified version.
