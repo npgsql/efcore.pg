@@ -92,6 +92,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Utilities
             return value;
         }
 
+        public static IReadOnlyCollection<T> NullButNotEmpty<T>([CanBeNull] IReadOnlyCollection<T> value, [InvokerParameterName] [NotNull] string parameterName)
+        {
+            if (!ReferenceEquals(value, null)
+                && (value.Count == 0))
+            {
+                NotEmpty(parameterName, nameof(parameterName));
+
+                throw new ArgumentException(AbstractionsStrings.ArgumentIsEmpty(parameterName));
+            }
+
+            return value;
+        }
+
         public static IReadOnlyList<T> HasNoNulls<T>(IReadOnlyList<T> value, [InvokerParameterName] [NotNull] string parameterName)
             where T : class
         {

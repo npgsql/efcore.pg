@@ -47,6 +47,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal
         {
             if (index.Npgsql().Method != null)
                 yield return new Annotation(NpgsqlAnnotationNames.IndexMethod, index.Npgsql().Method);
+            if (index.Npgsql().Operators != null)
+                yield return new Annotation(NpgsqlAnnotationNames.IndexOperators, index.Npgsql().Operators);
         }
 
         public override IEnumerable<IAnnotation> For(IModel model)

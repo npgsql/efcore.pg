@@ -11,5 +11,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         /// http://www.postgresql.org/docs/current/static/sql-createindex.html
         /// </remarks>
         string Method { get; }
+
+        /// <summary>
+        /// The PostgreSQL index operators to be used.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/static/indexes-opclass.html
+        /// </remarks>
+        string[] Operators { get; }
     }
 }
