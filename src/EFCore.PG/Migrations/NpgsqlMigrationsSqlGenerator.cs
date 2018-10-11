@@ -1151,10 +1151,28 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 if (string.IsNullOrEmpty(@operator))
                     return identifier;
 
-                var delimitedOperator = Dependencies.SqlGenerationHelper.DelimitIdentifier(@operator);
+                var delimitedOperator = TryParseSchema(@operator, out var name, out var schema)
+                    ? Dependencies.SqlGenerationHelper.DelimitIdentifier(name, schema)
+                    : Dependencies.SqlGenerationHelper.DelimitIdentifier(@operator);
 
                 return string.Concat(identifier, " ", delimitedOperator);
             }));
+        }
+
+        static bool TryParseSchema(string identifier, out string name, out string schema)
+        {
+            var index = identifier.IndexOf('.');
+
+            if (index >= 0)
+            {
+                schema = identifier.Substring(0, index);
+                name = identifier.Substring(index + 1);
+                return true;
+            }
+
+            schema = default;
+            name = default;
+            return false;
         }
 
         #endregion
