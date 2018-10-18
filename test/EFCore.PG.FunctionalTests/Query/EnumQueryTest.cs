@@ -87,22 +87,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             }
         }
 
-        [Fact]
-        public void Where_with_unmapped_enum_parameter_downcast_for_int_comparison_does_matter()
-        {
-            using (var ctx = Fixture.CreateContext())
-            {
-                // ReSharper disable once ConvertToConstant.Local
-                var sad = UnmappedEnum.Sad;
-
-                var exception = Assert.Throws<InvalidCastException>(() => ctx.SomeEntities.Single(e => e.EnumValue == (int)sad));
-
-                Assert.Equal(
-                    "Can't write CLR type Npgsql.EntityFrameworkCore.PostgreSQL.Query.EnumQueryTest+UnmappedEnum with handler type Int32Handler",
-                    exception.Message);
-            }
-        }
-
         #endregion
 
         #region Support

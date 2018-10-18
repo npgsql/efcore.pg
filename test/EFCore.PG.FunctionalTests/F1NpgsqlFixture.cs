@@ -13,9 +13,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         public override ModelBuilder CreateModelBuilder()
             => new ModelBuilder(NpgsqlConventionSetBuilder.Build());
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
+        protected override void BuildModelExternal(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder, context);
+            base.BuildModelExternal(modelBuilder);
 
             modelBuilder.Entity<Chassis>().ForNpgsqlUseXminAsConcurrencyToken();
             modelBuilder.Entity<Driver>().ForNpgsqlUseXminAsConcurrencyToken();

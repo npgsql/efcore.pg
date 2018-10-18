@@ -19,7 +19,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             base.Single_query_tag();
 
             AssertSql(
-                @"-- EFCore: (#Yanni)
+                @"-- Yanni
+
 SELECT c.""CustomerID"", c.""Address"", c.""City"", c.""CompanyName"", c.""ContactName"", c.""ContactTitle"", c.""Country"", c.""Fax"", c.""Phone"", c.""PostalCode"", c.""Region""
 FROM ""Customers"" AS c
 ORDER BY c.""CustomerID""
@@ -31,7 +32,10 @@ LIMIT 1");
             base.Single_query_multiple_tags();
 
             AssertSql(
-                @"-- EFCore: (#Yanni, #Enya)
+                @"-- Yanni
+
+-- Enya
+
 SELECT c.""CustomerID"", c.""Address"", c.""City"", c.""CompanyName"", c.""ContactName"", c.""ContactTitle"", c.""Country"", c.""Fax"", c.""Phone"", c.""PostalCode"", c.""Region""
 FROM ""Customers"" AS c
 ORDER BY c.""CustomerID""
@@ -43,7 +47,10 @@ LIMIT 1");
             base.Tags_on_subquery();
 
             AssertSql(
-                @"-- EFCore: (#Yanni, #Laurel)
+                @"-- Yanni
+
+-- Laurel
+
 SELECT c.""CustomerID"", c.""Address"", c.""City"", c.""CompanyName"", c.""ContactName"", c.""ContactTitle"", c.""Country"", c.""Fax"", c.""Phone"", c.""PostalCode"", c.""Region""
 FROM ""Customers"" AS c
 CROSS JOIN (
@@ -60,7 +67,8 @@ WHERE c.""CustomerID"" = 'ALFKI'");
             base.Duplicate_tags();
 
             AssertSql(
-                @"-- EFCore: (#Yanni)
+                @"-- Yanni
+
 SELECT c.""CustomerID"", c.""Address"", c.""City"", c.""CompanyName"", c.""ContactName"", c.""ContactTitle"", c.""Country"", c.""Fax"", c.""Phone"", c.""PostalCode"", c.""Region""
 FROM ""Customers"" AS c
 ORDER BY c.""CustomerID""
@@ -72,13 +80,15 @@ LIMIT 1");
             base.Tag_on_include_query();
 
             AssertSql(
-                @"-- EFCore: (#Yanni)
+                @"-- Yanni
+
 SELECT c.""CustomerID"", c.""Address"", c.""City"", c.""CompanyName"", c.""ContactName"", c.""ContactTitle"", c.""Country"", c.""Fax"", c.""Phone"", c.""PostalCode"", c.""Region""
 FROM ""Customers"" AS c
 ORDER BY c.""CustomerID""
 LIMIT 1",
                 //
-                @"-- EFCore: (#Yanni)
+                @"-- Yanni
+
 SELECT ""c.Orders"".""OrderID"", ""c.Orders"".""CustomerID"", ""c.Orders"".""EmployeeID"", ""c.Orders"".""OrderDate""
 FROM ""Orders"" AS ""c.Orders""
 INNER JOIN (
@@ -88,6 +98,71 @@ INNER JOIN (
     LIMIT 1
 ) AS t ON ""c.Orders"".""CustomerID"" = t.""CustomerID""
 ORDER BY t.""CustomerID""");
+        }
+
+        public override void Tag_on_scalar_query()
+        {
+            base.Tag_on_scalar_query();
+
+            AssertSql(
+                @"-- Yanni
+
+SELECT o.""OrderDate""
+FROM ""Orders"" AS o
+ORDER BY o.""OrderID""
+LIMIT 1");
+        }
+
+        public override void Single_query_multiline_tag()
+        {
+            base.Single_query_multiline_tag();
+
+            AssertSql(
+                @"-- Yanni
+-- AND
+-- Laurel
+
+SELECT c.""CustomerID"", c.""Address"", c.""City"", c.""CompanyName"", c.""ContactName"", c.""ContactTitle"", c.""Country"", c.""Fax"", c.""Phone"", c.""PostalCode"", c.""Region""
+FROM ""Customers"" AS c
+ORDER BY c.""CustomerID""
+LIMIT 1");
+        }
+
+        public override void Single_query_multiple_multiline_tag()
+        {
+            base.Single_query_multiple_multiline_tag();
+
+            AssertSql(
+                @"-- Yanni
+-- AND
+-- Laurel
+
+-- Yet
+-- Another
+-- Multiline
+-- Tag
+
+SELECT c.""CustomerID"", c.""Address"", c.""City"", c.""CompanyName"", c.""ContactName"", c.""ContactTitle"", c.""Country"", c.""Fax"", c.""Phone"", c.""PostalCode"", c.""Region""
+FROM ""Customers"" AS c
+ORDER BY c.""CustomerID""
+LIMIT 1");
+        }
+
+        public override void Single_query_multiline_tag_with_empty_lines()
+        {
+            base.Single_query_multiline_tag_with_empty_lines();
+
+            AssertSql(
+                @"-- Yanni
+-- 
+-- AND
+-- 
+-- Laurel
+
+SELECT c.""CustomerID"", c.""Address"", c.""City"", c.""CompanyName"", c.""ContactName"", c.""ContactTitle"", c.""Country"", c.""Fax"", c.""Phone"", c.""PostalCode"", c.""Region""
+FROM ""Customers"" AS c
+ORDER BY c.""CustomerID""
+LIMIT 1");
         }
 
         void AssertSql(params string[] expected) => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
