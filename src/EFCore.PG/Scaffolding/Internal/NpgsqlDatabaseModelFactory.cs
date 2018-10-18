@@ -359,8 +359,7 @@ ORDER BY attnum";
                         else
                         {
                             // This is a domain type
-                            column.StoreType = formattedTypeName;
-                            column.SetUnderlyingStoreType(AdjustFormattedTypeName(formattedBaseTypeName));
+                            column.StoreType = formattedBaseTypeName;
                             systemTypeName = record.GetValueOrDefault<string>("basetypname");
                         }
 

@@ -649,16 +649,13 @@ CREATE TABLE domains (
                 dbModel =>
                     {
                         var textDomainColumn = Assert.Single(dbModel.Tables.Single().Columns.Where(c => c.Name == "text_domain"));
-                        Assert.Equal("text_domain", textDomainColumn.StoreType);
-                        Assert.Equal("text", textDomainColumn.GetUnderlyingStoreType());
+                        Assert.Equal("text", textDomainColumn.StoreType);
 
                         var charDomainColumn = Assert.Single(dbModel.Tables.Single().Columns.Where(c => c.Name == "char_domain"));
-                        Assert.Equal("char_domain", charDomainColumn.StoreType);
-                        Assert.Equal("character(3)", charDomainColumn.GetUnderlyingStoreType());
+                        Assert.Equal("character(3)", charDomainColumn.StoreType);
 
                         var nonDomainColumn = Assert.Single(dbModel.Tables.Single().Columns.Where(c => c.Name == "id"));
                         Assert.Equal("integer", nonDomainColumn.StoreType);
-                        Assert.Null(nonDomainColumn.GetUnderlyingStoreType());
                     },
                 @"
 DROP TABLE domains;
