@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq.Expressions;
 using System.Text;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -46,6 +47,35 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             var p = new NpgsqlParameter();
             p.DbType = subtypeMapping.DbType.Value;
             return NpgsqlDbType.Range | p.NpgsqlDbType;
+        }
+
+        public override Expression GenerateCodeLiteral(object value)
+        {
+            var subtypeType = SubtypeMapping.ClrType;
+            var rangeType = typeof(NpgsqlRange<>).MakeGenericType(subtypeType);
+
+            var lower = rangeType.GetProperty(nameof(NpgsqlRange<int>.LowerBound)).GetValue(value);
+            var upper = rangeType.GetProperty(nameof(NpgsqlRange<int>.UpperBound)).GetValue(value);
+            var lowerInfinite = (bool)rangeType.GetProperty(nameof(NpgsqlRange<int>.LowerBoundInfinite)).GetValue(value);
+            var upperInfinite = (bool)rangeType.GetProperty(nameof(NpgsqlRange<int>.UpperBoundInfinite)).GetValue(value);
+            var lowerInclusive = (bool)rangeType.GetProperty(nameof(NpgsqlRange<int>.LowerBoundIsInclusive)).GetValue(value);
+            var upperInclusive = (bool)rangeType.GetProperty(nameof(NpgsqlRange<int>.UpperBoundIsInclusive)).GetValue(value);
+
+            return lowerInfinite || upperInfinite
+               ? Expression.New(
+                    rangeType.GetConstructor(new[] { subtypeType, typeof(bool), typeof(bool), subtypeType, typeof(bool), typeof(bool) }),
+                    Expression.Constant(lower),
+                    Expression.Constant(lowerInclusive),
+                    Expression.Constant(lowerInfinite),
+                    Expression.Constant(upper),
+                    Expression.Constant(upperInclusive),
+                    Expression.Constant(upperInfinite))
+               : Expression.New(
+                    rangeType.GetConstructor(new[] { subtypeType, typeof(bool), subtypeType, typeof(bool) }),
+                    Expression.Constant(lower),
+                    Expression.Constant(lowerInclusive),
+                    Expression.Constant(upper),
+                    Expression.Constant(upperInclusive));
         }
     }
 }

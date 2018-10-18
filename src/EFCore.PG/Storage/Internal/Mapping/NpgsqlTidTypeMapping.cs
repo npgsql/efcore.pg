@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Linq.Expressions;
+using System.Text;
 using Microsoft.EntityFrameworkCore.Storage;
 using NpgsqlTypes;
 
@@ -24,6 +25,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             builder.Append(tid.OffsetNumber);
             builder.Append(")'");
             return builder.ToString();
+        }
+
+        public override Expression GenerateCodeLiteral(object value)
+        {
+            var tid = (NpgsqlTid)value;
+            return Expression.New(typeof(NpgsqlTid).GetConstructor(new[] { typeof(uint), typeof(ushort) }),
+                Expression.Constant(tid.BlockNumber), Expression.Constant(tid.OffsetNumber));
         }
     }
 }
