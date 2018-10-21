@@ -10,10 +10,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
     public partial class SimpleQueryNpgsqlTest : SimpleQueryTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
     {
         public SimpleQueryNpgsqlTest(NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture)
-            : base(fixture)
-        {
-            Fixture.TestSqlLoggerFactory.Clear();
-        }
+            : base(fixture) => Fixture.TestSqlLoggerFactory.Clear();
+
+        #region Overrides
 
         public override async Task Select_expression_date_add_year(bool isAsync)
         {
@@ -89,7 +88,112 @@ FROM ""Orders"" AS o
 WHERE o.""OrderDate"" IS NOT NULL");
         }
 
+        #endregion
+
+        #region PadLeft, PadRight
+
+        [Fact]
+        public void PadLeft_with_constant()
+        {
+            using (var ctx = Fixture.CreateContext())
+            {
+                var _ = ctx.Customers.Select(x => x.Address.PadLeft(2)).ToArray();
+                AssertContainsInSql("SELECT lpad(x.\"Address\", 2)");
+            }
+        }
+
+        [Fact]
+        public void PadLeft_char_with_constant()
+        {
+            using (var ctx = Fixture.CreateContext())
+            {
+                var _ = ctx.Customers.Select(x => x.Address.PadLeft(2, 'a')).ToArray();
+                AssertContainsInSql("SELECT lpad(x.\"Address\", 2, 'a')");
+            }
+        }
+
+        [Fact]
+        public void PadLeft_with_parameter()
+        {
+            using (var ctx = Fixture.CreateContext())
+            {
+                // ReSharper disable once ConvertToConstant.Local
+                var length = 2;
+                var _ = ctx.Customers.Select(x => x.Address.PadLeft(length)).ToArray();
+                AssertContainsInSql("SELECT lpad(x.\"Address\", @__length_0)");
+            }
+        }
+
+        [Fact]
+        public void PadLeft_char_with_parameter()
+        {
+            using (var ctx = Fixture.CreateContext())
+            {
+                // ReSharper disable once ConvertToConstant.Local
+                var length = 2;
+                // ReSharper disable once ConvertToConstant.Local
+                var character = 'a';
+                var _ = ctx.Customers.Select(x => x.Address.PadLeft(length, character)).ToArray();
+                AssertContainsInSql("SELECT lpad(x.\"Address\", @__length_0, @__character_1)");
+            }
+        }
+
+        [Fact]
+        public void PadRight_with_constant()
+        {
+            using (var ctx = Fixture.CreateContext())
+            {
+                var _ = ctx.Customers.Select(x => x.Address.PadRight(2)).ToArray();
+                AssertContainsInSql("SELECT rpad(x.\"Address\", 2)");
+            }
+        }
+
+        [Fact]
+        public void PadRight_char_with_constant()
+        {
+            using (var ctx = Fixture.CreateContext())
+            {
+                var _ = ctx.Customers.Select(x => x.Address.PadRight(2, 'a')).ToArray();
+                AssertContainsInSql("SELECT rpad(x.\"Address\", 2, 'a')");
+            }
+        }
+
+        [Fact]
+        public void PadRight_with_parameter()
+        {
+            using (var ctx = Fixture.CreateContext())
+            {
+                // ReSharper disable once ConvertToConstant.Local
+                var length = 2;
+                var _ = ctx.Customers.Select(x => x.Address.PadRight(length)).ToArray();
+                AssertContainsInSql("SELECT rpad(x.\"Address\", @__length_0)");
+            }
+        }
+
+        [Fact]
+        public void PadRight_char_with_parameter()
+        {
+            using (var ctx = Fixture.CreateContext())
+            {
+                // ReSharper disable once ConvertToConstant.Local
+                var length = 2;
+                // ReSharper disable once ConvertToConstant.Local
+                var character = 'a';
+                var _ = ctx.Customers.Select(x => x.Address.PadRight(length, character)).ToArray();
+                AssertContainsInSql("SELECT rpad(x.\"Address\", @__length_0, @__character_1)");
+            }
+        }
+
+        #endregion
+
+        #region Helpers
+
         void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
+
+        void AssertContainsInSql(string expected)
+            => Assert.Contains(expected, Fixture.TestSqlLoggerFactory.Sql);
+
+        #endregion
     }
 }

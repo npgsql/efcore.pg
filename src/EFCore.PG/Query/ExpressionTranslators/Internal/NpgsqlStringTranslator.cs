@@ -59,6 +59,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         [NotNull] static readonly MethodInfo TrimStartWithChars = typeof(string).GetRuntimeMethod(nameof(string.TrimStart), new[] { typeof(char[]) });
         [NotNull] static readonly MethodInfo Substring = typeof(string).GetTypeInfo().GetDeclaredMethods(nameof(string.Substring)).Single(m => m.GetParameters().Length == 2);
         [NotNull] static readonly MethodInfo Replace = typeof(string).GetRuntimeMethod(nameof(string.Replace), new[] { typeof(string), typeof(string) });
+        [NotNull] static readonly MethodInfo PadLeft = typeof(string).GetRuntimeMethod(nameof(string.PadLeft), new[] { typeof(int) });
+        [NotNull] static readonly MethodInfo PadLeftWithChar = typeof(string).GetRuntimeMethod(nameof(string.PadLeft), new[] { typeof(int), typeof(char) });
+        [NotNull] static readonly MethodInfo PadRight = typeof(string).GetRuntimeMethod(nameof(string.PadRight), new[] { typeof(int) });
+        [NotNull] static readonly MethodInfo PadRightWithChar = typeof(string).GetRuntimeMethod(nameof(string.PadRight), new[] { typeof(int), typeof(char) });
 
         // The following exist as optimizations in netcoreapp20
         [NotNull] static readonly MethodInfo TrimWithSingleChar = typeof(string).GetRuntimeMethod(nameof(string.Trim), new[] { typeof(char) });
@@ -81,6 +85,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                    TranslateStartsWith(e) ??
                    TranslateIndexOf(e) ??
                    TranslateIsNullOrWhiteSpace(e) ??
+                   TranslatePadLeft(e) ??
+                   TranslatePadRight(e) ??
                    TranslateTrim(e) ??
                    TranslateTrimEnd(e) ??
                    TranslateTrimStart(e) ??
@@ -194,6 +200,42 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 ExpressionType.OrElse,
                 new IsNullExpression(e.Arguments[0]),
                 new RegexMatchExpression(e.Arguments[0], Expression.Constant(@"^\s*$"), RegexOptions.Singleline));
+        }
+
+        #endregion
+
+        #region PadLeft, PadRight
+
+        [CanBeNull]
+        static Expression TranslatePadLeft([NotNull] MethodCallExpression e)
+        {
+            if (e.Object == null ||
+                e.Method != PadLeft &&
+                e.Method != PadLeftWithChar)
+                return null;
+
+            var arguments =
+                e.Method == PadLeft
+                    ? new[] { e.Object, e.Arguments[0] }
+                    : new[] { e.Object, e.Arguments[0], e.Arguments[1] };
+
+            return new SqlFunctionExpression("lpad", typeof(string), arguments);
+        }
+
+        [CanBeNull]
+        static Expression TranslatePadRight([NotNull] MethodCallExpression e)
+        {
+            if (e.Object == null ||
+                e.Method != PadRight &&
+                e.Method != PadRightWithChar)
+                return null;
+
+            var arguments =
+                e.Method == PadRight
+                    ? new[] { e.Object, e.Arguments[0] }
+                    : new[] { e.Object, e.Arguments[0], e.Arguments[1] };
+
+            return new SqlFunctionExpression("rpad", typeof(string), arguments);
         }
 
         #endregion
