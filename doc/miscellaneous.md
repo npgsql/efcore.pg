@@ -51,7 +51,7 @@ This strategy relies on the `IsTransient` property of `NpgsqlException`. Both th
 
 ## Comments
 
-PostgreSQL allows you to [attach comments](https://www.postgresql.org/docs/current/static/sql-syntax.html) to database objects, which can help explain their purpose for someone examining the schema. The Npgsql EF Core provider supports this for tables or columns, simply set the comment in your model's `OnModelCreating` as follows:
+PostgreSQL allows you to [attach comments](https://www.postgresql.org/docs/current/static/sql-syntax-lexical.html#SQL-SYNTAX-COMMENTS) to database objects, which can help explain their purpose for someone examining the schema. The Npgsql EF Core provider supports this for tables or columns, simply set the comment in your model's `OnModelCreating` as follows:
 
 ```c#
 protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -106,7 +106,7 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 
 ### Setting a tablespace
 
-PostgreSQL allows you to locate your database in different parts of your filesystem, [via tablespaces](https://www.postgresql.org/docs/10/static/manage-ag-tablespaces.html). The Npgsql EF Core provider allows you to specify your database's namespace:
+PostgreSQL allows you to locate your database in different parts of your filesystem, [via tablespaces](https://www.postgresql.org/docs/current/static/manage-ag-tablespaces.html). The Npgsql EF Core provider allows you to specify your database's namespace:
 
 ```c#
 protected override void OnModelCreating(ModelBuilder modelBuilder)
