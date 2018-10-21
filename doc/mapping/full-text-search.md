@@ -108,7 +108,7 @@ public partial class CreateProductTable : Migration
             @"CREATE TRIGGER product_search_vector_update BEFORE INSERT OR UPDATE
               ON ""Products"" FOR EACH ROW EXECUTE PROCEDURE
               tsvector_update_trigger(""SearchVector"", 'pg_catalog.english', ""Name"", ""Description"");");
-              
+
         // If you were adding a tsvector to an existing table, you should populate the column using an UPDATE
         // migrationBuilder.Sql("UPDATE \"Products\" SET \"Name\" = \"Name\";");
     }
