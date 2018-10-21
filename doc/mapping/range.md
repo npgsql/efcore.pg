@@ -2,7 +2,6 @@
 
 PostgreSQL has the unique feature of supporting [*range data types*](https://www.postgresql.org/docs/current/static/rangetypes.html). Ranges represent a range of numbers, dates or other data types, and allow you to easily query ranges which contain a value, perform set operations (e.g. query ranges which contain other ranges), and other similar operations. The range operations supported by PostgreSQL are listed [in this page](https://www.postgresql.org/docs/current/static/functions-range.html). Starting with version 2.1, the Npgsql EF Core provider allows you to seemlessly map PostgreSQL's built-in ranges, and even perform operations on them.
 
-Note that user-defined ranges are not supported.
 
 # Mapping ranges
 
@@ -18,6 +17,40 @@ public class Event
 ```
 
 This will create a column of type `daterange` in your database. You can similarly have properties of type `NpgsqlRange<int>`, `NpgsqlRange<long>`, etc.
+
+# User-defined ranges
+
+PostgreSQL comes with 6 built-in ranges: `int4range`, `int8range`, `numrange`, `tsrange`, `tstzrange`, `daterange`; these can be used simply by adding the appropriate `NpgsqlRange<T>` property in your entities as shown above.
+
+# [Version 2.2](#tab/tabid-1)
+
+You can also define your own range types over arbitrary types, and use those in EF Core as well.
+
+To make the EF Core type mapper aware of your user-defined range, call the `MapRange()` method in your context's `OnConfiguring()` method as follows:
+```c#
+protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    => optionsBuilder.UseNpgsql(
+        "<connection_string>",
+        options => options.MapRange("floatrange", typeof(float)));
+```
+
+This allows you to have properties of type `NpgsqlRange<float>`, which will be mapped to PostgreSQL `floatrange`.
+
+The above does *not* create the `floatrange` type for you. In order to do that, include the following in your context's `OnModelCreating()`:
+
+```c#
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+    => modelBuilder.ForNpgsqlHasRange("floatrange", "real");
+```
+
+This will cause the appropriate [`CREATE TYPE ... AS RANGE`](https://www.postgresql.org/docs/current/static/sql-createtype.html) statement to be generated in your migrations, ensuring that your range is created and ready for use. Note that `ForNpgsqlHasRange()` supports additional parameters as supported by PostgreSQL `CREATE TYPE`.
+
+# [Version 2.1](#tab/tabid-2)
+
+While PostgreSQL supports ranges over arbitrary types, user-defined ranges are not supported in version 2.1 or earlier.
+
+---
+<br/>
 
 # Operation translation
 
@@ -44,7 +77,7 @@ The following table lists the range operations that currently get translated. If
 | `.Where(c => c.SomeRange.DoesNotExtendLeftOf(otherRange))` | [`WHERE x."SomeRange" &> @__otherRange_0`](https://www.postgresql.org/docs/current/static/functions-range.html#RANGE-OPERATORS-TABLE)
 | `.Where(c => c.SomeRange.DoesNotExtendRightOf(otherRange))`| [`WHERE x."SomeRange" <& @__otherRange_0`](https://www.postgresql.org/docs/current/static/functions-range.html#RANGE-OPERATORS-TABLE)
 | `.Where(c => c.SomeRange.IsAdjacentTo(otherRange))`        | [`WHERE x."SomeRange" -\|- @__otherRange_0`](https://www.postgresql.org/docs/current/static/functions-range.html#RANGE-OPERATORS-TABLE)
-| `.Where(c => c.SomeRange.Union(otherRange))`               | [`WHERE x."SomeRange" + @__otherRange_0`](https://www.postgresql.org/docs/current/static/functions-range.html#RANGE-OPERATORS-TABLE)
-| `.Where(c => c.SomeRange.Intersect(otherRange))`           | [`WHERE x."SomeRange" * @__otherRange_0`](https://www.postgresql.org/docs/current/static/functions-range.html#RANGE-OPERATORS-TABLE)
-| `.Where(c => c.SomeRange.Except(otherRange))`              | [`WHERE x."SomeRange" - @__otherRange_0`](https://www.postgresql.org/docs/current/static/functions-range.html#RANGE-OPERATORS-TABLE)
+| `.Select(c => c.SomeRange.Union(otherRange))`               | [`SELECT x."SomeRange" + @__otherRange_0`](https://www.postgresql.org/docs/current/static/functions-range.html#RANGE-OPERATORS-TABLE)
+| `.Select(c => c.SomeRange.Intersect(otherRange))`           | [`SELECT x."SomeRange" * @__otherRange_0`](https://www.postgresql.org/docs/current/static/functions-range.html#RANGE-OPERATORS-TABLE)
+| `.Select(c => c.SomeRange.Except(otherRange))`              | [`SELECT x."SomeRange" - @__otherRange_0`](https://www.postgresql.org/docs/current/static/functions-range.html#RANGE-OPERATORS-TABLE)
 

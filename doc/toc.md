@@ -1,8 +1,9 @@
 ﻿# [Getting Started](index.md)
 # Release Notes
-## [1.1](release-notes/1.1.md)
-## [2.0](release-notes/2.0.md)
+## [2.2](release-notes/2.2.md)
 ## [2.1](release-notes/2.1.md)
+## [2.0](release-notes/2.0.md)
+## [1.1](release-notes/1.1.md)
 # Mapping and Translation
 ## [General](mapping/general.md)
 ## [Arrays](mapping/array.md)
@@ -12,4 +13,5 @@
 ## [Full Text Search](mapping/full-text-search.md)
 ## [NodaTime](mapping/nodatime.md)
 # [Value Generation](value-generation.md)
-# [Miscellaneous](misc.md)
+# [Miscellaneous](miscellaneous.md)
+# [API Reference](../../obj/api/EFCore.PG/)

@@ -20,12 +20,13 @@ To maintain backwards compatibility with existing EF Core models, serial columns
 To use identity columns for all value-generated properties on a new model, simply place the following in your context's `OnModelCreating()`:
 
 ```c#
-builder.ForNpgsqlUseIdentityColumns();
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+    => modelBuilder.ForNpgsqlUseIdentityColumns();
 ```
 
 This will create make all keys and other properties which have `.ValueGeneratedOnAdd()` have *Identity by default*. You can use `ForNpgsqlUseIdentityAlwaysColumns()` to have *Identity always*, and you can also specify identity on a property-by-property basis with `UseNpgsqlIdentityColumn()` and `UseNpgsqlIdentityAlwaysColumn()`.
 
-If you set identity for existing columns, or even for your entire existing model, Npgsql will safely migrate you from serial to identity, preserving current sequence values. However, back up your database before you do this and test carefully, as migrating from identity to serial isn't supported at this time.
+If you set identity for existing columns, or even for your entire existing model, the Npgsql EF Core provider will safely migrate you from serial to identity, preserving current sequence values. However, back up your database before you do this and test carefully, as migrating from identity to serial isn't supported at this time.
 
 > [!Warning]
 > There was a significant and breaking change in 1.1. If you are upgrading from 1.0 and have existing migrations, please read the [release notes](release-notes/1.1.md).
@@ -35,13 +36,16 @@ If you set identity for existing columns, or even for your entire existing model
 While `serial` sets up a sequence for you, you may want to manage sequence creation yourself. This can be useful for cases where you need to control the sequence's increment value (i.e. increment by 2), populate two columns from the same sequence, etc. Adding a sequence to your model is described in [the general EF Core documentation](https://docs.microsoft.com/en-us/ef/core/modeling/relational/sequences); once the sequence is specified, you can simply set a column's default value to extract the next value from that sequence. Note that the SQL used to fetch the next value from a sequence differs across databases (see [the PostgreSQL docs](https://www.postgresql.org/docs/current/static/functions-sequence.html)). Your models' `OnModelCreating` should look like this:
 
 ```c#
-modelBuilder.HasSequence<int>("OrderNumbers")
-	.StartsAt(1000)
-	.IncrementsBy(5);
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    modelBuilder.HasSequence<int>("OrderNumbers")
+                .StartsAt(1000)
+                .IncrementsBy(5);
 
-modelBuilder.Entity<Order>()
-	.Property(o => o.OrderNo)
-	.HasDefaultValueSql("nextval('\"OrderNumbers\"')");
+    modelBuilder.Entity<Order>()
+                .Property(o => o.OrderNo)
+                .HasDefaultValueSql("nextval('\"OrderNumbers\"')");
+}
 ```
 
 ## HiLo Autoincrement Generation
@@ -51,13 +55,17 @@ One disadvantage of database-generated values is that these values must be read 
 To use HiLo, specify `ForNpgsqlUseSequenceHiLo` on a property in your model's `OnModelCreating`:
 
 ```c#
-modelBuilder.Entity<Blog>().Property(b => b.Id).ForNpgsqlUseSequenceHiLo();
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+    => modelBuilder.Entity<Blog>()
+                   .Property(b => b.Id)
+                   .ForNpgsqlUseSequenceHiLo();
 ```
 
 You can also make your model use HiLo everywhere:
 
 ```c#
-modelBuilder.ForNpgsqlUseSequenceHiLo();
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+    => modelBuilder.ForNpgsqlUseSequenceHiLo();
 ```
 
 ## Guid/UUID Generation
@@ -67,11 +75,11 @@ By default, if you specify `ValueGeneratedOnAdd` on a Guid property, a random Gu
 If you prefer to generate values in the database instead, you can do so by specifying `HasDefaultValueSql` on your property. Note that PostgreSQL doesn't include any Guid/UUID generation functions, you must add an extension such as `uuid-ossp` or `pgcrypto`. This can be done by placing the following code in your model's `OnModelCreating`:
 
 ```c#
-modelBuilder.HasPostgresExtension("uuid-ossp");
-modelBuilder
-	.Entity<Blog>()
-	.Property(e => e.SomeGuidProperty)
-	.HasDefaultValueSql("uuid_generate_v4()");
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+    => modelBuilder.HasPostgresExtension("uuid-ossp")
+                   .Entity<Blog>()
+                   .Property(e => e.SomeGuidProperty)
+                   .HasDefaultValueSql("uuid_generate_v4()");
 ```
 
 See [the PostgreSQL docs on UUID for more details](https://www.postgresql.org/docs/current/static/datatype-uuid.html).
