@@ -31,7 +31,7 @@ To make the EF Core type mapper aware of your user-defined range, call the `MapR
 protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     => optionsBuilder.UseNpgsql(
         "<connection_string>",
-        options => options.MapRange("floatrange", typeof(float)));
+        options => options.MapRange<float>("floatrange"));
 ```
 
 This allows you to have properties of type `NpgsqlRange<float>`, which will be mapped to PostgreSQL `floatrange`.
