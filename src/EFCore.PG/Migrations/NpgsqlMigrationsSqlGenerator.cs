@@ -279,11 +279,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             var type = operation.ColumnType ?? GetColumnType(operation.Schema, operation.Table, operation.Name, operation.ClrType, null, operation.MaxLength, false, model);
 
-            // User-defined type names are quoted if they contain uppercase letters. Other types are never quoted
-            // since users sometimes prefer to write TEXT instead of text.
-            if (_typeMappingSource.IsUserDefinedType(type))
-                type = _sqlGenerationHelper.DelimitIdentifier(type);
-
             string newSequenceName = null;
             var defaultValueSql = operation.DefaultValueSql;
 
@@ -708,7 +703,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             foreach (var enumTypeToDrop in PostgresEnum.GetPostgresEnums(operation.OldDatabase)
                 .Where(oe => PostgresEnum.GetPostgresEnums(operation).All(ne => ne.Name != oe.Name)))
             {
-                GenerateDropEnum(enumTypeToDrop, builder);
+                GenerateDropEnum(enumTypeToDrop, operation.OldDatabase, builder);
             }
 
             // TODO: Some forms of enum alterations are actually supported...
@@ -725,14 +720,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             [NotNull] IModel model,
             [NotNull] MigrationCommandListBuilder builder)
         {
+            var schema = GetSchemaOrDefault(enumType.Schema, model);
+
             // Schemas are normally created (or rather ensured) by the model differ, which scans all tables, sequences
             // and other database objects. However, it isn't aware of enums, so we always ensure schema on enum creation.
-            if (enumType.Schema != null)
-                Generate(new EnsureSchemaOperation { Name=enumType.Schema }, model, builder);
+            if (schema != null)
+                Generate(new EnsureSchemaOperation { Name = schema }, model, builder);
 
             builder
                 .Append("CREATE TYPE ")
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(enumType.Name, enumType.Schema))
+                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(enumType.Name, schema))
                 .Append(" AS ENUM (");
 
             var stringTypeMapping = Dependencies.TypeMappingSource.GetMapping(typeof(string));
@@ -748,11 +745,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             builder.AppendLine(");");
         }
 
-        protected virtual void GenerateDropEnum([NotNull] PostgresEnum enumType, [NotNull] MigrationCommandListBuilder builder)
+        protected virtual void GenerateDropEnum(
+            [NotNull] PostgresEnum enumType,
+            [CanBeNull] IAnnotatable oldDatabase,
+            [NotNull] MigrationCommandListBuilder builder)
         {
+            var schema = GetSchemaOrDefault(enumType.Schema, oldDatabase);
+
             builder
                 .Append("DROP TYPE ")
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(enumType.Name, enumType.Schema))
+                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(enumType.Name, schema))
                 .AppendLine(";");
         }
 
@@ -945,11 +947,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             if (type == null)
                 type = GetColumnType(schema, table, name, clrType, unicode, maxLength, fixedLength, rowVersion, model);
 
-            // User-defined type names are quoted if they contain uppercase letters. Other types are never quoted
-            // since users sometimes prefer to write TEXT instead of text.
-            if (_typeMappingSource.IsUserDefinedType(type))
-                type = _sqlGenerationHelper.DelimitIdentifier(type);
-
             CheckForOldValueGenerationAnnotation(annotatable);
             var valueGenerationStrategy = annotatable[NpgsqlAnnotationNames.ValueGenerationStrategy] as NpgsqlValueGenerationStrategy?;
             if (valueGenerationStrategy == NpgsqlValueGenerationStrategy.SerialColumn)
@@ -1120,6 +1117,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         #endregion Storage parameter utilities
 
         #region Helpers
+
+        [CanBeNull]
+        static string GetSchemaOrDefault([CanBeNull] string schema, [CanBeNull] IAnnotatable model)
+            => schema ?? model?.FindAnnotation(RelationalAnnotationNames.DefaultSchema)?.Value as string;
 
         /// <summary>
         /// True if <see cref="_postgresVersion"/> is null, greater than, or equal to the specified version.
