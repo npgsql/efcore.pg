@@ -158,12 +158,34 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             => (bool)(await CreateHasTablesCommand().ExecuteScalarAsync(_connection, cancellationToken: cancellationToken));
 
         IRelationalCommand CreateHasTablesCommand()
-            => _rawSqlCommandBuilder
-                .Build(@"
-                    SELECT CASE WHEN COUNT(*) = 0 THEN FALSE ELSE TRUE END
-                    FROM information_schema.tables
-                    WHERE table_type = 'BASE TABLE' AND table_schema NOT IN ('pg_catalog', 'information_schema')
-                ");
+        {
+            var schemaInModel = Dependencies.Model.GetEntityTypes()
+                .Select(entityType => entityType.Relational().Schema)
+                .Where(schema => !string.IsNullOrEmpty(schema))
+                .Distinct()
+                .ToArray();
+
+            return schemaInModel.Length == 0
+                ? CreateHasAnyTablesCommand() // case when no schema (default or per table) has been defined in the model
+                : CreateHasAtLeastOneTableWithSchemaCommand(schemaInModel);
+        }
+
+        IRelationalCommand CreateHasAtLeastOneTableWithSchemaCommand(string[] schemaInModel)
+        {
+            var sql = string.Format(@"
+                SELECT CASE WHEN COUNT(*) = 0 THEN FALSE ELSE TRUE END
+                FROM information_schema.tables
+                WHERE table_type = 'BASE TABLE' AND table_schema IN ('{0}')",
+                string.Join("','", schemaInModel));
+
+            return _rawSqlCommandBuilder.Build(sql);
+        }
+
+        IRelationalCommand CreateHasAnyTablesCommand()
+            => _rawSqlCommandBuilder.Build(@"
+                SELECT CASE WHEN COUNT(*) = 0 THEN FALSE ELSE TRUE END
+                FROM information_schema.tables
+                WHERE table_type = 'BASE TABLE' AND table_schema NOT IN ('pg_catalog', 'information_schema')");
 
         IReadOnlyList<MigrationCommand> CreateCreateOperations()
             => Dependencies.MigrationsSqlGenerator.Generate(new[]
