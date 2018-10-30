@@ -48,9 +48,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal
         }
 
         public override IEnumerable<IAnnotation> For(IModel model)
-            => model.GetAnnotations().Where(a =>
-                a.Name.StartsWith(NpgsqlAnnotationNames.PostgresExtensionPrefix, StringComparison.Ordinal) ||
-                a.Name.StartsWith(NpgsqlAnnotationNames.EnumPrefix, StringComparison.Ordinal) ||
-                a.Name.StartsWith(NpgsqlAnnotationNames.RangePrefix, StringComparison.Ordinal));
+        {
+            foreach (var annotation in model.GetAnnotations())
+            {
+                if (annotation.Name.StartsWith(NpgsqlAnnotationNames.PostgresExtensionPrefix, StringComparison.Ordinal))
+                    yield return annotation;
+
+                if (annotation.Name.StartsWith(NpgsqlAnnotationNames.RangePrefix, StringComparison.Ordinal))
+                    yield return annotation;
+            }
+
+            foreach (var e in model.Npgsql().PostgresEnums)
+                yield return PostgresEnum.CreateAnnotation(e.Schema, e.Name, e.Labels);
+        }
     }
 }

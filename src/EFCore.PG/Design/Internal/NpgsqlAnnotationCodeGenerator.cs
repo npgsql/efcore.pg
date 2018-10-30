@@ -75,7 +75,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
                     extension.Name);
             }
 
-            if (annotation.Name.StartsWith(NpgsqlAnnotationNames.EnumPrefix))
+            if (annotation.Name.StartsWith(NpgsqlAnnotationNames.EnumPrefix, StringComparison.Ordinal))
             {
                 var enumTypeDef = new PostgresEnum(model, annotation.Name);
 
