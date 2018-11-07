@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
@@ -21,7 +22,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         protected override string GenerateNonNullSqlLiteral(object value)
         {
             var point = (NpgsqlPoint)value;
-            return $"POINT '({point.X.ToString("G17", CultureInfo.InvariantCulture)},{point.Y.ToString("G17", CultureInfo.InvariantCulture)})'";
+            return FormattableString.Invariant($"POINT '({point.X:G17},{point.Y:G17})'");
         }
 
         public override Expression GenerateCodeLiteral(object value)
@@ -46,7 +47,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         protected override string GenerateNonNullSqlLiteral(object value)
         {
             var line = (NpgsqlLine)value;
-            return $"LINE '{{{line.A.ToString("G17", CultureInfo.InvariantCulture)},{line.B.ToString("G17", CultureInfo.InvariantCulture)},{line.C.ToString("G17", CultureInfo.InvariantCulture)}}}'";
+            var a = line.A.ToString("G17", CultureInfo.InvariantCulture);
+            var b = line.B.ToString("G17", CultureInfo.InvariantCulture);
+            var c = line.C.ToString("G17", CultureInfo.InvariantCulture);
+            return $"LINE '{{{a},{b},{c}}}'";
         }
 
         public override Expression GenerateCodeLiteral(object value)
@@ -71,11 +75,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         protected override string GenerateNonNullSqlLiteral(object value)
         {
             var lseg = (NpgsqlLSeg)value;
-            var x1 = lseg.Start.X.ToString("G17", CultureInfo.InvariantCulture);
-            var y1 = lseg.Start.Y.ToString("G17", CultureInfo.InvariantCulture);
-            var x2 = lseg.End.X.ToString("G17", CultureInfo.InvariantCulture);
-            var y2 = lseg.End.Y.ToString("G17", CultureInfo.InvariantCulture);
-            return $"LSEG '[({x1},{y1}),({x2},{y2})]'";
+            return FormattableString.Invariant($"LSEG '[({lseg.Start.X:G17},{lseg.Start.Y:G17}),({lseg.End.X:G17},{lseg.End.Y:G17})]'");
         }
 
         public override Expression GenerateCodeLiteral(object value)
@@ -101,11 +101,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         protected override string GenerateNonNullSqlLiteral(object value)
         {
             var box = (NpgsqlBox)value;
-            var right  = box.Right.ToString("G17", CultureInfo.InvariantCulture);
-            var top    = box.Top.ToString("G17", CultureInfo.InvariantCulture);
-            var left   = box.Left.ToString("G17", CultureInfo.InvariantCulture);
-            var bottom = box.Bottom.ToString("G17", CultureInfo.InvariantCulture);
-            return $"BOX '(({right},{top}),({left},{bottom}))'";
+            return FormattableString.Invariant($"BOX '(({box.Right:G17},{box.Top:G17}),({box.Left:G17},{box.Bottom:G17}))'");
         }
 
         public override Expression GenerateCodeLiteral(object value)
@@ -216,10 +212,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         protected override string GenerateNonNullSqlLiteral(object value)
         {
             var circle = (NpgsqlCircle)value;
-            var x = circle.X.ToString("G17", CultureInfo.InvariantCulture);
-            var y = circle.Y.ToString("G17", CultureInfo.InvariantCulture);
-            var radius = circle.Radius.ToString("G17", CultureInfo.InvariantCulture);
-            return $"CIRCLE '<({x},{y}),{radius}>'";
+            return FormattableString.Invariant($"CIRCLE '<({circle.X:G17},{circle.Y:G17}),{circle.Radius:G17}>'");
         }
 
         public override Expression GenerateCodeLiteral(object value)
