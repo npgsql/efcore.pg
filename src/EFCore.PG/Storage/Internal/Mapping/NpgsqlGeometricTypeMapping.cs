@@ -157,8 +157,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 Expression.NewArrayInit(typeof(NpgsqlPoint),
                     path.Select(p => Expression.New(
                         typeof(NpgsqlPoint).GetConstructor(new[] { typeof(double), typeof(double) }),
-                        Expression.Constant(p.X),
-                        Expression.Constant(p.Y)))),
+                        Expression.Constant(p.X), Expression.Constant(p.Y)))),
                 Expression.Constant(path.Open));
         }
     }
@@ -200,8 +199,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 Expression.NewArrayInit(typeof(NpgsqlPoint),
                     polygon.Select(p => Expression.New(
                         typeof(NpgsqlPoint).GetConstructor(new[] { typeof(double), typeof(double) }),
-                        Expression.Constant(p.X),
-                        Expression.Constant(p.Y)))));
+                        Expression.Constant(p.X), Expression.Constant(p.Y)))));
         }
     }
 
