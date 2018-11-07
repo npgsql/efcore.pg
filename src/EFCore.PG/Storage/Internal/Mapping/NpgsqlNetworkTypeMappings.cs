@@ -1,4 +1,6 @@
-﻿using System.Net;
+using System;
+using System.Linq.Expressions;
+using System.Net;
 using System.Net.NetworkInformation;
 using Microsoft.EntityFrameworkCore.Storage;
 using NpgsqlTypes;
@@ -17,6 +19,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
         protected override string GenerateNonNullSqlLiteral(object value)
             => $"MACADDR '{(PhysicalAddress)value}'";
+
+        public override Expression GenerateCodeLiteral(object value)
+            => Expression.Call(
+                typeof(PhysicalAddress).GetMethod("Parse", new[] {typeof(string)}),
+                Expression.Constant(((PhysicalAddress)value).ToString()));
     }
 
     public class NpgsqlMacaddr8TypeMapping : NpgsqlTypeMapping
@@ -31,6 +38,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
         protected override string GenerateNonNullSqlLiteral(object value)
             => $"MACADDR8 '{(PhysicalAddress)value}'";
+
+        public override Expression GenerateCodeLiteral(object value)
+            => Expression.Call(
+                typeof(PhysicalAddress).GetMethod("Parse", new[] {typeof(string)}),
+                Expression.Constant(((PhysicalAddress)value).ToString()));
     }
 
     public class NpgsqlInetTypeMapping : NpgsqlTypeMapping
@@ -45,6 +57,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
         protected override string GenerateNonNullSqlLiteral(object value)
             => $"INET '{(IPAddress)value}'";
+
+        public override Expression GenerateCodeLiteral(object value)
+            => Expression.Call(
+                typeof(IPAddress).GetMethod("Parse", new[] {typeof(string)}),
+                Expression.Constant(((IPAddress)value).ToString()));
     }
 
     public class NpgsqlCidrTypeMapping : NpgsqlTypeMapping
@@ -61,6 +78,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         {
             var cidr = ((IPAddress Address, int Subnet))value;
             return $"CIDR '{cidr.Address}/{cidr.Subnet}'";
+        }
+
+        public override Expression GenerateCodeLiteral(object value)
+        {
+            var cidr = ((IPAddress Address, int Subnet))value;
+            return Expression.New(
+                typeof((IPAddress, int)).GetConstructor(new[] { typeof(IPAddress), typeof(int) }),
+                Expression.Call(
+                    typeof(IPAddress).GetMethod("Parse", new[] {typeof(string)}),
+                    Expression.Constant(cidr.Address.ToString())),
+                Expression.Constant(cidr.Subnet));
         }
     }
 }

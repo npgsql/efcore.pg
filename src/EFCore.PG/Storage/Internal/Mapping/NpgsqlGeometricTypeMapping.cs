@@ -1,4 +1,7 @@
-﻿using System.Globalization;
+﻿using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using Microsoft.EntityFrameworkCore.Storage;
 using NpgsqlTypes;
@@ -20,6 +23,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             var point = (NpgsqlPoint)value;
             return $"POINT '({point.X.ToString("G17", CultureInfo.InvariantCulture)},{point.Y.ToString("G17", CultureInfo.InvariantCulture)})'";
         }
+
+        public override Expression GenerateCodeLiteral(object value)
+        {
+            var point = (NpgsqlPoint)value;
+            return Expression.New(
+                typeof(NpgsqlPoint).GetConstructor(new[] { typeof(double), typeof(double) }),
+                Expression.Constant(point.X), Expression.Constant(point.Y));
+        }
     }
 
     public class NpgsqlLineTypeMapping : NpgsqlTypeMapping
@@ -36,6 +47,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         {
             var line = (NpgsqlLine)value;
             return $"LINE '{{{line.A.ToString("G17", CultureInfo.InvariantCulture)},{line.B.ToString("G17", CultureInfo.InvariantCulture)},{line.C.ToString("G17", CultureInfo.InvariantCulture)}}}'";
+        }
+
+        public override Expression GenerateCodeLiteral(object value)
+        {
+            var line = (NpgsqlLine)value;
+            return Expression.New(
+                typeof(NpgsqlLine).GetConstructor(new[] { typeof(double), typeof(double), typeof(double) }),
+                Expression.Constant(line.A), Expression.Constant(line.B), Expression.Constant(line.C));
         }
     }
 
@@ -58,6 +77,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             var y2 = lseg.End.Y.ToString("G17", CultureInfo.InvariantCulture);
             return $"LSEG '[({x1},{y1}),({x2},{y2})]'";
         }
+
+        public override Expression GenerateCodeLiteral(object value)
+        {
+            var lseg = (NpgsqlLSeg)value;
+            return Expression.New(
+                typeof(NpgsqlLSeg).GetConstructor(new[] { typeof(double), typeof(double), typeof(double), typeof(double) }),
+                Expression.Constant(lseg.Start.X), Expression.Constant(lseg.Start.Y),
+                Expression.Constant(lseg.End.X), Expression.Constant(lseg.End.Y));
+        }
     }
 
     public class NpgsqlBoxTypeMapping : NpgsqlTypeMapping
@@ -78,6 +106,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             var left   = box.Left.ToString("G17", CultureInfo.InvariantCulture);
             var bottom = box.Bottom.ToString("G17", CultureInfo.InvariantCulture);
             return $"BOX '(({right},{top}),({left},{bottom}))'";
+        }
+
+        public override Expression GenerateCodeLiteral(object value)
+        {
+            var box = (NpgsqlBox)value;
+            return Expression.New(
+                typeof(NpgsqlBox).GetConstructor(new[] { typeof(double), typeof(double), typeof(double), typeof(double) }),
+                Expression.Constant(box.Top), Expression.Constant(box.Right),
+                Expression.Constant(box.Bottom), Expression.Constant(box.Left));
         }
     }
 
@@ -111,6 +148,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             sb.Append('\'');
             return sb.ToString();
         }
+
+        public override Expression GenerateCodeLiteral(object value)
+        {
+            var path = (NpgsqlPath)value;
+            return Expression.New(
+                typeof(NpgsqlPath).GetConstructor(new[] { typeof(IEnumerable<NpgsqlPoint>), typeof(bool) }),
+                Expression.NewArrayInit(typeof(NpgsqlPoint),
+                    path.Select(p => Expression.New(
+                        typeof(NpgsqlPoint).GetConstructor(new[] { typeof(double), typeof(double) }),
+                        Expression.Constant(p.X), Expression.Constant(p.Y)))),
+                Expression.Constant(path.Open));
+        }
     }
 
     public class NpgsqlPolygonTypeMapping : NpgsqlTypeMapping
@@ -141,6 +190,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             sb.Append(")'");
             return sb.ToString();
         }
+
+        public override Expression GenerateCodeLiteral(object value)
+        {
+            var polygon = (NpgsqlPolygon)value;
+            return Expression.New(
+                typeof(NpgsqlPolygon).GetConstructor(new[] { typeof(NpgsqlPoint[]) }),
+                Expression.NewArrayInit(typeof(NpgsqlPoint),
+                    polygon.Select(p => Expression.New(
+                        typeof(NpgsqlPoint).GetConstructor(new[] { typeof(double), typeof(double) }),
+                        Expression.Constant(p.X), Expression.Constant(p.Y)))));
+        }
     }
 
     public class NpgsqlCircleTypeMapping : NpgsqlTypeMapping
@@ -160,6 +220,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             var y = circle.Y.ToString("G17", CultureInfo.InvariantCulture);
             var radius = circle.Radius.ToString("G17", CultureInfo.InvariantCulture);
             return $"CIRCLE '<({x},{y}),{radius}>'";
+        }
+
+        public override Expression GenerateCodeLiteral(object value)
+        {
+            var circle = (NpgsqlCircle)value;
+            return Expression.New(
+                typeof(NpgsqlCircle).GetConstructor(new[] { typeof(double), typeof(double), typeof(double) }),
+                Expression.Constant(circle.X), Expression.Constant(circle.Y), Expression.Constant(circle.Radius));
         }
     }
 }

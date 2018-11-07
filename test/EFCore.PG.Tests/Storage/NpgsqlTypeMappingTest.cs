@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Net;
 using System.Net.NetworkInformation;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Design.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
@@ -113,16 +114,32 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
             => Assert.Equal("MACADDR '001122334455'", GetMapping("macaddr").GenerateSqlLiteral(PhysicalAddress.Parse("00-11-22-33-44-55")));
 
         [Fact]
+        public void GenerateCodeLiteral_returns_macaddr_literal()
+            => Assert.Equal("System.Net.NetworkInformation.PhysicalAddress.Parse(\"001122334455\")", CodeLiteral(PhysicalAddress.Parse("00-11-22-33-44-55")));
+
+        [Fact]
         public void GenerateSqlLiteral_returns_macaddr8_literal()
             => Assert.Equal("MACADDR8 '0011223344556677'", GetMapping("macaddr8").GenerateSqlLiteral(PhysicalAddress.Parse("00-11-22-33-44-55-66-77")));
+
+        [Fact]
+        public void GenerateCodeLiteral_returns_macaddr8_literal()
+            => Assert.Equal("System.Net.NetworkInformation.PhysicalAddress.Parse(\"0011223344556677\")", CodeLiteral(PhysicalAddress.Parse("00-11-22-33-44-55-66-77")));
 
         [Fact]
         public void GenerateSqlLiteral_returns_inet_literal()
             => Assert.Equal("INET '192.168.1.1'", GetMapping("inet").GenerateSqlLiteral(IPAddress.Parse("192.168.1.1")));
 
         [Fact]
+        public void GenerateCodeLiteral_returns_inet_literal()
+            => Assert.Equal("System.Net.IPAddress.Parse(\"192.168.1.1\")", CodeLiteral(IPAddress.Parse("192.168.1.1")));
+
+        [Fact]
         public void GenerateSqlLiteral_returns_cidr_literal()
             => Assert.Equal("CIDR '192.168.1.0/24'", GetMapping("cidr").GenerateSqlLiteral((IPAddress.Parse("192.168.1.0"), 24)));
+
+        [Fact]
+        public void GenerateCodeLiteral_returns_cidr_literal()
+            => Assert.Equal("new System.ValueTuple<System.Net.IPAddress, int>(System.Net.IPAddress.Parse(\"192.168.1.0\"), 24)", CodeLiteral((IPAddress.Parse("192.168.1.0"), 24)));
 
         #endregion Networking
 
@@ -133,20 +150,43 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
             => Assert.Equal("POINT '(3.5,4.5)'", GetMapping("point").GenerateSqlLiteral(new NpgsqlPoint(3.5, 4.5)));
 
         [Fact]
+        public void GenerateCodeLiteral_returns_point_literal()
+            => Assert.Equal("new NpgsqlTypes.NpgsqlPoint(3.5, 4.5)", CodeLiteral(new NpgsqlPoint(3.5, 4.5)));
+
+        [Fact]
         public void GenerateSqlLiteral_returns_line_literal()
             => Assert.Equal("LINE '{3.5,4.5,10}'", GetMapping("line").GenerateSqlLiteral(new NpgsqlLine(3.5, 4.5, 10)));
+
+        [Fact]
+        public void GenerateCodeLiteral_returns_line_literal()
+            => Assert.Equal("new NpgsqlTypes.NpgsqlLine(3.5, 4.5, 10.0)", CodeLiteral(new NpgsqlLine(3.5, 4.5, 10)));
 
         [Fact]
         public void GenerateSqlLiteral_returns_lseg_literal()
             => Assert.Equal("LSEG '[(3.5,4.5),(5.5,6.5)]'", GetMapping("lseg").GenerateSqlLiteral(new NpgsqlLSeg(3.5, 4.5, 5.5, 6.5)));
 
         [Fact]
+        public void GenerateCodeLiteral_returns_lseg_literal()
+            => Assert.Equal("new NpgsqlTypes.NpgsqlLSeg(3.5, 4.5, 5.5, 6.5)", CodeLiteral(new NpgsqlLSeg(3.5, 4.5, 5.5, 6.5)));
+
+        [Fact]
         public void GenerateSqlLiteral_returns_box_literal()
             => Assert.Equal("BOX '((2,1),(4,3))'", GetMapping("box").GenerateSqlLiteral(new NpgsqlBox(1, 2, 3, 4)));
 
         [Fact]
+        public void GenerateCodeLiteral_returns_box_literal()
+            => Assert.Equal("new NpgsqlTypes.NpgsqlBox(1.0, 2.0, 3.0, 4.0)", CodeLiteral(new NpgsqlBox(1, 2, 3, 4)));
+
+        [Fact]
         public void GenerateSqlLiteral_returns_path_closed_literal()
             => Assert.Equal("PATH '((1,2),(3,4))'", GetMapping("path").GenerateSqlLiteral(new NpgsqlPath(
+                new NpgsqlPoint(1, 2),
+                new NpgsqlPoint(3, 4)
+            )));
+
+        [Fact]
+        public void GenerateCodeLiteral_returns_closed_path_literal()
+            => Assert.Equal("new NpgsqlTypes.NpgsqlPath(new NpgsqlPoint[] { new NpgsqlTypes.NpgsqlPoint(1.0, 2.0), new NpgsqlTypes.NpgsqlPoint(3.0, 4.0) }, false)", CodeLiteral(new NpgsqlPath(
                 new NpgsqlPoint(1, 2),
                 new NpgsqlPoint(3, 4)
             )));
@@ -159,6 +199,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
             ) { Open = true }));
 
         [Fact]
+        public void GenerateCodeLiteral_returns_open_path_literal()
+            => Assert.Equal("new NpgsqlTypes.NpgsqlPath(new NpgsqlPoint[] { new NpgsqlTypes.NpgsqlPoint(1.0, 2.0), new NpgsqlTypes.NpgsqlPoint(3.0, 4.0) }, true)", CodeLiteral(new NpgsqlPath(
+                new NpgsqlPoint(1, 2),
+                new NpgsqlPoint(3, 4)
+            ) { Open = true }));
+
+        [Fact]
         public void GenerateSqlLiteral_returns_polygon_literal()
             => Assert.Equal("POLYGON '((1,2),(3,4))'", GetMapping("polygon").GenerateSqlLiteral(new NpgsqlPolygon(
                 new NpgsqlPoint(1, 2),
@@ -166,8 +213,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
             )));
 
         [Fact]
+        public void GenerateCodeLiteral_returns_polygon_literal()
+            => Assert.Equal("new NpgsqlTypes.NpgsqlPolygon(new NpgsqlPoint[] { new NpgsqlTypes.NpgsqlPoint(1.0, 2.0), new NpgsqlTypes.NpgsqlPoint(3.0, 4.0) })", CodeLiteral(new NpgsqlPolygon(
+                new NpgsqlPoint(1, 2),
+                new NpgsqlPoint(3, 4)
+            )));
+
+        [Fact]
         public void GenerateSqlLiteral_returns_circle_literal()
             => Assert.Equal("CIRCLE '<(3.5,4.5),5.5>'", GetMapping("circle").GenerateSqlLiteral(new NpgsqlCircle(3.5, 4.5, 5.5)));
+
+        [Fact]
+        public void GenerateCodeLiteral_returns_circle_literal()
+            => Assert.Equal("new NpgsqlTypes.NpgsqlCircle(3.5, 4.5, 5.5)", CodeLiteral(new NpgsqlCircle(3.5, 4.5, 5.5)));
 
         #endregion Geometric
 
@@ -182,8 +240,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
             => Assert.Equal("VARBIT B'10'", GetMapping("varbit").GenerateSqlLiteral(new BitArray(new[] { true, false })));
 
         [Fact]
+        public void GenerateCodeLiteral_returns_varbit_literal()
+            => Assert.Equal("new System.Collections.BitArray(new bool[] { true, false })", CodeLiteral(new BitArray(new[] { true, false })));
+
+        [Fact]
         public void GenerateSqlLiteral_returns_bit_literal()
             => Assert.Equal("BIT B'10'", GetMapping("bit").GenerateSqlLiteral(new BitArray(new[] { true, false })));
+
+        [Fact]
+        public void GenerateCodeLiteral_returns_bit_literal()
+            => Assert.Equal("new System.Collections.BitArray(new bool[] { true, false })", CodeLiteral(new BitArray(new[] { true, false })));
 
         [Fact]
         public void GenerateSqlLiteral_returns_array_literal()
@@ -297,12 +363,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         }
 
         [Fact]
+        public void GenerateCodeLiteral_returns_range_empty_literal()
+            => Assert.Equal("new NpgsqlTypes.NpgsqlRange<int>(0, false, 0, false)", CodeLiteral(NpgsqlRange<int>.Empty));
+
+        [Fact]
         public void GenerateSqlLiteral_returns_range_inclusive_literal()
         {
             var value = new NpgsqlRange<int>(4, 7);
             var literal = GetMapping("int4range").GenerateSqlLiteral(value);
             Assert.Equal("'[4,7]'::int4range", literal);
         }
+
+        [Fact]
+        public void GenerateCodeLiteral_returns_range_inclusive_literal()
+            => Assert.Equal("new NpgsqlTypes.NpgsqlRange<int>(4, true, 7, true)", CodeLiteral(new NpgsqlRange<int>(4, 7)));
 
         [Fact]
         public void GenerateSqlLiteral_returns_range_inclusive_exclusive_literal()
@@ -313,12 +387,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         }
 
         [Fact]
+        public void GenerateCodeLiteral_returns_range_inclusive_exclusive_literal()
+            => Assert.Equal("new NpgsqlTypes.NpgsqlRange<int>(4, false, 7, true)", CodeLiteral(new NpgsqlRange<int>(4, false, 7, true)));
+
+        [Fact]
         public void GenerateSqlLiteral_returns_range_infinite_literal()
         {
             var value = new NpgsqlRange<int>(0, false, true, 7, true, false);
             var literal = GetMapping("int4range").GenerateSqlLiteral(value);
             Assert.Equal("'(,7]'::int4range", literal);
         }
+
+        [Fact]
+        public void GenerateCodeLiteral_returns_range_infinite_literal()
+            => Assert.Equal("new NpgsqlTypes.NpgsqlRange<int>(0, false, true, 7, true, false)", CodeLiteral(new NpgsqlRange<int>(0, false, true, 7, true, false)));
 
         #endregion Ranges
 
@@ -358,6 +440,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
 
         public static RelationalTypeMapping GetMapping(Type clrType)
             => (RelationalTypeMapping)Mapper.FindMapping(clrType);
+
+        static readonly CSharpHelper _csHelper = new CSharpHelper(Mapper);
+
+        static string CodeLiteral(object value) => _csHelper.UnknownLiteral(value);
 
         #endregion Support
     }
