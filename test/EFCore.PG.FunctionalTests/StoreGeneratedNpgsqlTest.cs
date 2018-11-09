@@ -79,6 +79,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                         b.Property(e => e.OnUpdateThrowBeforeThrowAfter).HasDefaultValue("Rabbit");
                     });
 
+                // In StoreGeneratedSqlServerTest the following are defined with HasComputedValueSql, but that's
+                // not supported by PostgreSQL
+                modelBuilder.Entity<WithBackingFields>(b =>
+                {
+                    b.Property(e => e.NullableAsNonNullable).HasDefaultValueSql("1");
+                    b.Property(e => e.NonNullableAsNullable).HasDefaultValueSql("1");
+                });
+
                 base.OnModelCreating(modelBuilder, context);
             }
         }
