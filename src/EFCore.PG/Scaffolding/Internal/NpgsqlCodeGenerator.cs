@@ -5,21 +5,24 @@ using Microsoft.EntityFrameworkCore.Scaffolding;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
 {
     /// <summary>
-    /// The default configuration generator for Npgsql.
+    /// The default code generator for Npgsql.
     /// </summary>
-    public class NpgsqlConfigurationCodeGenerator : ProviderCodeGenerator
+    public class NpgsqlCodeGenerator : ProviderCodeGenerator
     {
         /// <summary>
-        /// Constructs an instance of the <see cref="NpgsqlConfigurationCodeGenerator"/> class.
+        /// Constructs an instance of the <see cref="NpgsqlCodeGenerator"/> class.
         /// </summary>
         /// <param name="dependencies">The dependencies.</param>
-        public NpgsqlConfigurationCodeGenerator(ProviderCodeGeneratorDependencies dependencies)
+        public NpgsqlCodeGenerator(ProviderCodeGeneratorDependencies dependencies)
             : base(dependencies) {}
 
-#pragma warning disable 672
-        /// <inheritdoc />
-        public override MethodCallCodeFragment GenerateUseProvider(string connectionString)
-            => new MethodCallCodeFragment(nameof(NpgsqlDbContextOptionsExtensions.UseNpgsql), connectionString);
-#pragma warning restore 672
+        public override MethodCallCodeFragment GenerateUseProvider(
+            string connectionString,
+            MethodCallCodeFragment providerOptions)
+            => new MethodCallCodeFragment(
+                nameof(NpgsqlDbContextOptionsExtensions.UseNpgsql),
+                providerOptions == null
+                    ? new object[] { connectionString }
+                    : new object[] { connectionString, new NestedClosureCodeFragment("x", providerOptions) });
     }
 }
