@@ -16,8 +16,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
         public NpgsqlConfigurationCodeGenerator(ProviderCodeGeneratorDependencies dependencies)
             : base(dependencies) {}
 
+#pragma warning disable 672
         /// <inheritdoc />
         public override MethodCallCodeFragment GenerateUseProvider(string connectionString)
             => new MethodCallCodeFragment(nameof(NpgsqlDbContextOptionsExtensions.UseNpgsql), connectionString);
+#pragma warning restore 672
     }
 }
