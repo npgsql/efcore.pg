@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -61,11 +62,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             case "EqualsTopologically":
                 return new SqlFunctionExpression("ST_Equals",        typeof(bool),     new[] { e.Object, e.Arguments[0] });
             case "GetGeometryN":
-                return GenerateOneBasedFunctionExpression("ST_GeometryN", e.Object, e.Arguments[0]);
+                return GenerateOneBasedFunctionExpression("ST_GeometryN", e.Type, e.Object, e.Arguments[0]);
             case "GetInteriorRingN":
-                return GenerateOneBasedFunctionExpression("ST_InteriorRingN", e.Object, e.Arguments[0]);
+                return GenerateOneBasedFunctionExpression("ST_InteriorRingN", e.Type, e.Object, e.Arguments[0]);
             case "GetPointN":
-                return GenerateOneBasedFunctionExpression("ST_PointN", e.Object, e.Arguments[0]);
+                return GenerateOneBasedFunctionExpression("ST_PointN", e.Type, e.Object, e.Arguments[0]);
             case "Intersection":
                 return new SqlFunctionExpression("ST_Intersection",  typeof(Geometry), new[] { e.Object, e.Arguments[0] });
             case "Intersects":
@@ -95,14 +96,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             // IGeometryCollection[index]
             var method = e.Method.OnInterface(typeof(IGeometryCollection));
             if (Equals(method, _collectionItem))
-                return GenerateOneBasedFunctionExpression("ST_GeometryN", e.Object, e.Arguments[0]);
+                return GenerateOneBasedFunctionExpression("ST_GeometryN", e.Type, e.Object, e.Arguments[0]);
 
             return null;
         }
 
         // NetTopologySuite uses 0-based indexing, but PostGIS uses 1-based
-        static SqlFunctionExpression GenerateOneBasedFunctionExpression(string functionName, Expression obj, Expression arg)
-            => new SqlFunctionExpression(functionName, typeof(Geometry), new[]
+        static SqlFunctionExpression GenerateOneBasedFunctionExpression(
+            string functionName, Type returnType, Expression obj, Expression arg)
+            => new SqlFunctionExpression(functionName, returnType, new[]
             {
                 obj,
                 arg is ConstantExpression constant

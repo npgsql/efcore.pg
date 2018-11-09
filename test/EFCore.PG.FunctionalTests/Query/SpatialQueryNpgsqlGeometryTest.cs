@@ -167,6 +167,9 @@ SELECT e.""Id"", ST_Distance(e.""Point"", @__point_0) AS ""Distance""
 FROM ""PointEntity"" AS e");
         }
 
+        // PostGIS refuses to operate on points of mixed SRIDs
+        public override Task Distance_constant_srid_4326(bool isAsync) => Task.CompletedTask;
+
         public override async Task EndPoint(bool isAsync)
         {
             await base.EndPoint(isAsync);
@@ -210,10 +213,14 @@ FROM ""PolygonEntity"" AS e");
         public override async Task GeometryType(bool isAsync)
         {
             // PostGIS returns "POINT", NTS returns "Point"
-            await AssertQuery<PointEntity>(isAsync, es => es.Select(e => new { e.Id, Type=e.Point.GeometryType.ToLower() }));
+            await AssertQuery<PointEntity>(
+                isAsync,
+                es => es.Select(
+                    e => new { e.Id, GeometryType = e.Point == null ? null : e.Point.GeometryType.ToLower() }),
+                elementSorter: x => x.Id);
 
             AssertSql(
-                @"SELECT e.""Id"", LOWER(GeometryType(e.""Point"")) AS ""Type""
+                @"SELECT e.""Id"", LOWER(GeometryType(e.""Point"")) AS ""GeometryType""
 FROM ""PointEntity"" AS e");
         }
 
@@ -231,9 +238,11 @@ FROM ""MultiLineStringEntity"" AS e");
             await base.GetInteriorRingN(isAsync);
 
             AssertSql(
-                @"SELECT e.""Id"", ST_InteriorRingN(e.""Polygon"", 1) AS ""InteriorRing0""
-FROM ""PolygonEntity"" AS e
-WHERE ST_NumInteriorRings(e.""Polygon"") > 0");
+                @"SELECT e.""Id"", CASE
+    WHEN e.""Polygon"" IS NULL OR (ST_NumInteriorRings(e.""Polygon"") = 0)
+    THEN NULL ELSE ST_InteriorRingN(e.""Polygon"", 1)
+END AS ""InteriorRing0""
+FROM ""PolygonEntity"" AS e");
         }
 
         public override async Task GetPointN(bool isAsync)
