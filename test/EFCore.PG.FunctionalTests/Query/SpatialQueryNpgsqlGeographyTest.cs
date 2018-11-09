@@ -82,10 +82,14 @@ FROM ""PointEntity"" AS e");
         public override async Task GeometryType(bool isAsync)
         {
             // PostGIS returns "POINT", NTS returns "Point"
-            await AssertQuery<PointEntity>(isAsync, es => es.Select(e => new { e.Id, Type=e.Point.GeometryType.ToLower() }));
+            await AssertQuery<PointEntity>(
+                isAsync,
+                es => es.Select(
+                    e => new { e.Id, GeometryType = e.Point == null ? null : e.Point.GeometryType.ToLower() }),
+                elementSorter: x => x.Id);
 
             AssertSql(
-                @"SELECT e.""Id"", LOWER(GeometryType(e.""Point"")) AS ""Type""
+                @"SELECT e.""Id"", LOWER(GeometryType(e.""Point"")) AS ""GeometryType""
 FROM ""PointEntity"" AS e");
         }
 
