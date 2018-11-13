@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata;
+﻿using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 {
@@ -18,6 +19,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         /// <remarks>
         /// https://www.postgresql.org/docs/current/static/indexes-opclass.html
         /// </remarks>
-        string[] Operators { get; }
+        IReadOnlyList<string> Operators { get; }
     }
 }
