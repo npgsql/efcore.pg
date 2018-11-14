@@ -25,6 +25,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// The collection of range mappings.
         /// </summary>
         [NotNull]
-        IReadOnlyList<RangeMappingInfo> RangeMappings { get; }
+        IReadOnlyList<UserRangeDefinition> UserRangeDefinitions { get; }
     }
 }

@@ -54,7 +54,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         /// <code>NpgsqlTypeMappingSource.MapRange{float}("floatrange");</code>
         /// </example>
         public virtual void MapRange<TSubtype>([NotNull] string rangeName, string subtypeName = null)
-            => WithOption(e => e.WithRangeMapping(rangeName, typeof(TSubtype), subtypeName));
+            => WithOption(e => e.WithUserRangeDefinition(rangeName, typeof(TSubtype), subtypeName));
 
         /// <summary>
         /// Maps a user-defined PostgreSQL range type for use.
@@ -73,7 +73,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         /// <code>NpgsqlTypeMappingSource.MapRange("floatrange", typeof(float));</code>
         /// </example>
         public virtual void MapRange([NotNull] string rangeName, [NotNull] Type subtypeClrType, string subtypeName = null)
-            => WithOption(e => e.WithRangeMapping(rangeName, subtypeClrType, subtypeName));
+            => WithOption(e => e.WithUserRangeDefinition(rangeName, subtypeClrType, subtypeName));
 
         /// <summary>
         /// Appends NULLS FIRST to all ORDER BY clauses. This is important for the tests which were written

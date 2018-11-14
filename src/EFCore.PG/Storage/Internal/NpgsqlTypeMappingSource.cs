@@ -22,7 +22,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         public ConcurrentDictionary<string, RelationalTypeMapping[]> StoreTypeMappings { get; }
         public ConcurrentDictionary<Type, RelationalTypeMapping> ClrTypeMappings { get; }
 
-        readonly IReadOnlyList<RangeMappingInfo> _userRangeMappings;
+        readonly IReadOnlyList<UserRangeDefinition> _userRangeDefinitions;
 
         #region Mappings
 
@@ -240,7 +240,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
             LoadUserDefinedTypeMappings();
 
-            _userRangeMappings = npgsqlOptions?.RangeMappings ?? new RangeMappingInfo[0];
+            _userRangeDefinitions = npgsqlOptions?.UserRangeDefinitions ?? new UserRangeDefinition[0];
         }
 
         /// <summary>
@@ -435,7 +435,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
         protected virtual RelationalTypeMapping FindUserRangeMapping(in RelationalTypeMappingInfo mappingInfo)
         {
-            RangeMappingInfo rangeMappingInfo = null;
+            UserRangeDefinition rangeDefinition = null;
             var rangeStoreType = mappingInfo.StoreTypeName;
             var rangeClrType = mappingInfo.ClrType;
 
@@ -450,43 +450,43 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             // incoming MappingInfo's StoreType or ClrType
             if (rangeStoreType != null)
             {
-                rangeMappingInfo = _userRangeMappings.SingleOrDefault(m => m.RangeName == rangeStoreType);
+                rangeDefinition = _userRangeDefinitions.SingleOrDefault(m => m.RangeName == rangeStoreType);
 
-                if (rangeMappingInfo == null)
+                if (rangeDefinition == null)
                     return null;
 
                 if (rangeClrType == null)
                 {
                     // The incoming MappingInfo does not contain a ClrType, only a StoreType (i.e. scaffolding).
                     // Construct the range ClrType from the range definition's subtype ClrType
-                    rangeClrType = typeof(NpgsqlRange<>).MakeGenericType(rangeMappingInfo.SubtypeClrType);
+                    rangeClrType = typeof(NpgsqlRange<>).MakeGenericType(rangeDefinition.SubtypeClrType);
                 }
-                else if (rangeClrType != typeof(NpgsqlRange<>).MakeGenericType(rangeMappingInfo.SubtypeClrType))
+                else if (rangeClrType != typeof(NpgsqlRange<>).MakeGenericType(rangeDefinition.SubtypeClrType))
                 {
                     // If the incoming MappingInfo also contains a ClrType (in addition to the StoreType), make sure it
-                    // corresponds to the subtype ClrType on the range mapping
+                    // corresponds to the subtype ClrType on the range definition
                     return null;
                 }
             }
             else if (rangeClrType != null)
-                rangeMappingInfo = _userRangeMappings.SingleOrDefault(m => m.SubtypeClrType == rangeClrType.GetGenericArguments()[0]);
+                rangeDefinition = _userRangeDefinitions.SingleOrDefault(m => m.SubtypeClrType == rangeClrType.GetGenericArguments()[0]);
 
-            if (rangeMappingInfo == null)
+            if (rangeDefinition == null)
                 return null;
 
-            // We now have a user-defined range mapping from the context options. Use it to get the subtype's
+            // We now have a user-defined range definition from the context options. Use it to get the subtype's
             // mapping
-            var subtypeMapping = (RelationalTypeMapping)(rangeMappingInfo.SubtypeName == null
-                ? FindMapping(rangeMappingInfo.SubtypeClrType)
-                : FindMapping(rangeMappingInfo.SubtypeName));
+            var subtypeMapping = (RelationalTypeMapping)(rangeDefinition.SubtypeName == null
+                ? FindMapping(rangeDefinition.SubtypeClrType)
+                : FindMapping(rangeDefinition.SubtypeName));
 
             if (subtypeMapping == null)
-                throw new Exception($"Could not map range {rangeMappingInfo.RangeName}, no mapping was found its subtype");
+                throw new Exception($"Could not map range {rangeDefinition.RangeName}, no mapping was found its subtype");
 
             // Finally, construct a range mapping and add it to our lookup dictionaries - next time it will be found as
             // an existing mapping
-            var rangeMapping = new NpgsqlRangeTypeMapping(rangeMappingInfo.RangeName, rangeClrType, subtypeMapping);
-            StoreTypeMappings[rangeMappingInfo.RangeName] = new RelationalTypeMapping[] { rangeMapping };
+            var rangeMapping = new NpgsqlRangeTypeMapping(rangeDefinition.RangeName, rangeClrType, subtypeMapping);
+            StoreTypeMappings[rangeDefinition.RangeName] = new RelationalTypeMapping[] { rangeMapping };
             ClrTypeMappings[rangeClrType] = rangeMapping;
 
             return rangeMapping;

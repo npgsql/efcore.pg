@@ -20,10 +20,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
 
         /// <inheritdoc />
         [NotNull]
-        public virtual IReadOnlyList<RangeMappingInfo> RangeMappings { get; private set; }
+        public virtual IReadOnlyList<UserRangeDefinition> UserRangeDefinitions { get; private set; }
 
         public NpgsqlOptions()
-            => RangeMappings = new RangeMappingInfo[0];
+            => UserRangeDefinitions = new UserRangeDefinition[0];
 
         /// <inheritdoc />
         public void Initialize(IDbContextOptions options)
@@ -32,7 +32,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
 
             PostgresVersion = npgsqlOptions.PostgresVersion;
             ReverseNullOrderingEnabled = npgsqlOptions.ReverseNullOrdering;
-            RangeMappings = npgsqlOptions.RangeMappings;
+            UserRangeDefinitions = npgsqlOptions.UserRangeDefinitions;
         }
 
         /// <inheritdoc />
