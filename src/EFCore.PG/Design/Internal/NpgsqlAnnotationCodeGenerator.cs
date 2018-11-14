@@ -135,6 +135,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
         {
             if (annotation.Name == NpgsqlAnnotationNames.IndexMethod)
                 return new MethodCallCodeFragment(nameof(NpgsqlIndexBuilderExtensions.ForNpgsqlHasMethod), annotation.Value);
+            if (annotation.Name == NpgsqlAnnotationNames.IndexOperators)
+                return new MethodCallCodeFragment(nameof(NpgsqlIndexBuilderExtensions.ForNpgsqlHasOperators), annotation.Value);
 
             return null;
         }

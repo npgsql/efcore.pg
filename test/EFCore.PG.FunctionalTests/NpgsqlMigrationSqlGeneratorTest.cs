@@ -617,6 +617,40 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         }
 
         [Fact]
+        public void CreateIndexOperation_operations()
+        {
+            Generate(new CreateIndexOperation
+            {
+                Name = "IX_People_Name",
+                Table = "People",
+                Schema = "dbo",
+                Columns = new[] { "FirstName", "LastName" },
+                [NpgsqlAnnotationNames.IndexOperators] = new[] { "text_pattern_ops" }
+            });
+
+            Assert.Equal(
+                "CREATE INDEX \"IX_People_Name\" ON dbo.\"People\" (\"FirstName\" text_pattern_ops, \"LastName\");" + EOL,
+                Sql);
+        }
+
+        [Fact]
+        public void CreateIndexOperation_schema_qualified_operations()
+        {
+            Generate(new CreateIndexOperation
+            {
+                Name = "IX_People_Name",
+                Table = "People",
+                Schema = "dbo",
+                Columns = new[] { "FirstName" },
+                [NpgsqlAnnotationNames.IndexOperators] = new[] { "myschema.TextOperation" }
+            });
+
+            Assert.Equal(
+                "CREATE INDEX \"IX_People_Name\" ON dbo.\"People\" (\"FirstName\" myschema.\"TextOperation\");" + EOL,
+                Sql);
+        }
+
+        [Fact]
         public void RenameIndexOperation()
         {
             Generate(

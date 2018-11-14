@@ -1,4 +1,5 @@
-﻿using JetBrains.Annotations;
+﻿using System.Collections.Generic;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 
@@ -28,8 +29,24 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             set => SetMethod(value);
         }
 
+        /// <summary>
+        /// The PostgreSQL index operators to be used.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/static/indexes-opclass.html
+        /// </remarks>
+        public string[] Operators
+        {
+            get => (string[]) Annotations.Metadata[NpgsqlAnnotationNames.IndexOperators];
+            set => SetOperators(value);
+        }
+
+        IReadOnlyList<string> INpgsqlIndexAnnotations.Operators => Operators;
+
         protected virtual bool SetMethod(string value)
             => Annotations.SetAnnotation(NpgsqlAnnotationNames.IndexMethod, value);
 
+        protected virtual bool SetOperators(string[] value)
+            => Annotations.SetAnnotation(NpgsqlAnnotationNames.IndexOperators, value);
     }
 }

@@ -536,6 +536,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             Check.NotNull(builder, nameof(builder));
 
             var method = (string)operation[NpgsqlAnnotationNames.IndexMethod];
+            var operators = (string[])operation[NpgsqlAnnotationNames.IndexOperators];
 
             builder.Append("CREATE ");
 
@@ -559,7 +560,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             builder
                 .Append(" (")
-                .Append(ColumnList(operation.Columns))
+                .Append(IndexColumnList(operation.Columns, operators))
                 .Append(")");
 
             if (!string.IsNullOrEmpty(operation.Filter))
@@ -1132,6 +1133,47 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         /// </returns>
         bool VersionAtLeast(int major, int minor)
             => _postgresVersion is null || new Version(major, minor) <= _postgresVersion;
+
+        string IndexColumnList(string[] columns, string[] operators)
+        {
+            if (operators == null || operators.Length == 0)
+                return ColumnList(columns);
+
+            return string.Join(", ", columns.Select((v, i) =>
+            {
+                var identifier = Dependencies.SqlGenerationHelper.DelimitIdentifier(v);
+
+                if (i >= operators.Length)
+                    return identifier;
+
+                var @operator = operators[i];
+
+                if (string.IsNullOrEmpty(@operator))
+                    return identifier;
+
+                var delimitedOperator = TryParseSchema(@operator, out var name, out var schema)
+                    ? Dependencies.SqlGenerationHelper.DelimitIdentifier(name, schema)
+                    : Dependencies.SqlGenerationHelper.DelimitIdentifier(@operator);
+
+                return string.Concat(identifier, " ", delimitedOperator);
+            }));
+        }
+
+        static bool TryParseSchema(string identifier, out string name, out string schema)
+        {
+            var index = identifier.IndexOf('.');
+
+            if (index >= 0)
+            {
+                schema = identifier.Substring(0, index);
+                name = identifier.Substring(index + 1);
+                return true;
+            }
+
+            schema = default;
+            name = default;
+            return false;
+        }
 
         #endregion
     }

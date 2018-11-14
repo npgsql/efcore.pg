@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata;
+﻿using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 {
@@ -11,5 +12,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         /// http://www.postgresql.org/docs/current/static/sql-createindex.html
         /// </remarks>
         string Method { get; }
+
+        /// <summary>
+        /// The PostgreSQL index operators to be used.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/static/indexes-opclass.html
+        /// </remarks>
+        IReadOnlyList<string> Operators { get; }
     }
 }
