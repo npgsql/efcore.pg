@@ -1,4 +1,9 @@
-﻿using JetBrains.Annotations;
+﻿using System;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
+using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
@@ -44,6 +49,26 @@ namespace Microsoft.EntityFrameworkCore
             Check.NullButNotEmpty(operators, nameof(operators));
 
             indexBuilder.Metadata.Npgsql().Operators = operators;
+
+            return indexBuilder;
+        }
+
+        public static IndexBuilder ForNpgsqlInclude([NotNull] this IndexBuilder indexBuilder, [CanBeNull] params string[] propertyNames)
+        {
+            Check.NotNull(indexBuilder, nameof(indexBuilder));
+            Check.NullButNotEmpty(propertyNames, nameof(propertyNames));
+
+            indexBuilder.Metadata.Npgsql().IncludeProperties = propertyNames;
+
+            return indexBuilder;
+        }
+
+        public static IndexBuilder<TEntity> ForNpgsqlInclude<TEntity>([NotNull] this IndexBuilder<TEntity> indexBuilder, [NotNull] Expression<Func<TEntity, object>> includeExpression)
+        {
+            Check.NotNull(indexBuilder, nameof(indexBuilder));
+            Check.NotNull(includeExpression, nameof(includeExpression));
+
+            indexBuilder.ForNpgsqlInclude(includeExpression.GetPropertyAccessList().Select(x => x.Name).ToArray());
 
             return indexBuilder;
         }

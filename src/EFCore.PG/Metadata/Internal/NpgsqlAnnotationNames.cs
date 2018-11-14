@@ -11,6 +11,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
         public const string HiLoSequenceSchema = Prefix + "HiLoSequenceSchema";
         public const string IndexMethod = Prefix + "IndexMethod";
         public const string IndexOperators = Prefix + "IndexOperators";
+        public const string IndexInclude = Prefix + "IndexInclude";
         public const string PostgresExtensionPrefix = Prefix + "PostgresExtension:";
         public const string EnumPrefix = Prefix + "Enum:";
         public const string RangePrefix = Prefix + "Range:";

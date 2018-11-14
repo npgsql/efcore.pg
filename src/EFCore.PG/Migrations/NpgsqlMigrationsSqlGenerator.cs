@@ -563,16 +563,26 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 .Append(IndexColumnList(operation.Columns, operators))
                 .Append(")");
 
-            if (!string.IsNullOrEmpty(operation.Filter))
-            {
-                builder
-                    .Append(" WHERE ")
-                    .Append(operation.Filter);
-            }
+            IndexOptions(operation, model, builder);
 
             builder.AppendLine(';');
 
             EndStatement(builder);
+        }
+
+        protected override void IndexOptions(CreateIndexOperation operation, IModel model, MigrationCommandListBuilder builder)
+        {
+            var includeProperties = (string[])operation[NpgsqlAnnotationNames.IndexInclude];
+
+            if (includeProperties != null && includeProperties.Length > 0)
+            {
+                builder
+                    .Append(" INCLUDE (")
+                    .Append(ColumnList(includeProperties))
+                    .Append(")");
+            }
+
+            base.IndexOptions(operation, model, builder);
         }
 
         protected override void Generate(EnsureSchemaOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)

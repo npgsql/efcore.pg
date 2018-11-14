@@ -634,6 +634,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         }
 
         [Fact]
+        public void CreateIndexOperation_includes()
+        {
+            Generate(
+                new CreateIndexOperation
+                {
+                    Name = "IX_People_Name",
+                    Table = "People",
+                    Columns = new[] { "Name" },
+                    [NpgsqlAnnotationNames.IndexInclude] = new[] { "FirstName", "LastName" }
+                });
+
+            Assert.Equal(
+                "CREATE INDEX \"IX_People_Name\" ON \"People\" (\"Name\") INCLUDE (\"FirstName\", \"LastName\");" + EOL,
+                Sql);
+        }
+
+        [Fact]
         public void CreateIndexOperation_schema_qualified_operations()
         {
             Generate(new CreateIndexOperation

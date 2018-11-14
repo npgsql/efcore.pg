@@ -20,5 +20,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         /// https://www.postgresql.org/docs/current/static/indexes-opclass.html
         /// </remarks>
         IReadOnlyList<string> Operators { get; }
+
+        IReadOnlyList<string> IncludeProperties { get; }
     }
 }

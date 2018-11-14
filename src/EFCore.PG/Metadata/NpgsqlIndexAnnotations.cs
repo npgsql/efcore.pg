@@ -43,10 +43,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 
         IReadOnlyList<string> INpgsqlIndexAnnotations.Operators => Operators;
 
+        public string[] IncludeProperties
+        {
+            get => (string[]) Annotations.Metadata[NpgsqlAnnotationNames.IndexInclude];
+            set => SetIncludeProperties(value);
+        }
+
+        IReadOnlyList<string> INpgsqlIndexAnnotations.IncludeProperties => IncludeProperties;
+
         protected virtual bool SetMethod(string value)
             => Annotations.SetAnnotation(NpgsqlAnnotationNames.IndexMethod, value);
 
         protected virtual bool SetOperators(string[] value)
             => Annotations.SetAnnotation(NpgsqlAnnotationNames.IndexOperators, value);
+
+        protected virtual bool SetIncludeProperties(string[] value)
+            => Annotations.SetAnnotation(NpgsqlAnnotationNames.IndexInclude, value);
     }
 }
