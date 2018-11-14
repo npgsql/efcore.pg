@@ -14,7 +14,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
     /// </summary>
     public class NpgsqlOptionsExtension : RelationalOptionsExtension
     {
-        [NotNull] readonly List<RangeMappingInfo> _rangeMappings;
+        [NotNull] readonly List<UserRangeDefinition> _userRangeDefinitions;
 
         /// <summary>
         /// The name of the database for administrative operations.
@@ -32,7 +32,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// The list of range mappings specified by the user.
         /// </summary>
         [NotNull]
-        public IReadOnlyList<RangeMappingInfo> RangeMappings => _rangeMappings;
+        public IReadOnlyList<UserRangeDefinition> UserRangeDefinitions => _userRangeDefinitions;
 
         /// <summary>
         /// The specified <see cref="ProvideClientCertificatesCallback"/>.
@@ -55,7 +55,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// Initializes an instance of <see cref="NpgsqlOptionsExtension"/> with the default settings.
         /// </summary>
         public NpgsqlOptionsExtension()
-            => _rangeMappings = new List<RangeMappingInfo>();
+            => _userRangeDefinitions = new List<UserRangeDefinition>();
 
         // NB: When adding new options, make sure to update the copy ctor below.
         /// <summary>
@@ -65,7 +65,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         public NpgsqlOptionsExtension([NotNull] NpgsqlOptionsExtension copyFrom) : base(copyFrom)
         {
             AdminDatabase = copyFrom.AdminDatabase;
-            _rangeMappings = new List<RangeMappingInfo>(copyFrom._rangeMappings);
+            _userRangeDefinitions = new List<UserRangeDefinition>(copyFrom._userRangeDefinitions);
             PostgresVersion = copyFrom.PostgresVersion;
             ProvideClientCertificatesCallback = copyFrom.ProvideClientCertificatesCallback;
             RemoteCertificateValidationCallback = copyFrom.RemoteCertificateValidationCallback;
@@ -94,11 +94,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// Returns a copy of the current instance configured with the specified range mapping.
         /// </summary>
         [NotNull]
-        public virtual NpgsqlOptionsExtension WithRangeMapping<TSubtype>(string rangeName, string subtypeName)
+        public virtual NpgsqlOptionsExtension WithUserRangeDefinition<TSubtype>(string rangeName, string subtypeName)
         {
             var clone = (NpgsqlOptionsExtension)Clone();
 
-            clone._rangeMappings.Add(new RangeMappingInfo(rangeName, typeof(TSubtype), subtypeName));
+            clone._userRangeDefinitions.Add(new UserRangeDefinition(rangeName, typeof(TSubtype), subtypeName));
 
             return clone;
         }
@@ -107,11 +107,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// Returns a copy of the current instance configured with the specified range mapping.
         /// </summary>
         [NotNull]
-        public virtual NpgsqlOptionsExtension WithRangeMapping(string rangeName, Type subtypeClrType, string subtypeName)
+        public virtual NpgsqlOptionsExtension WithUserRangeDefinition(string rangeName, Type subtypeClrType, string subtypeName)
         {
             var clone = (NpgsqlOptionsExtension)Clone();
 
-            clone._rangeMappings.Add(new RangeMappingInfo(rangeName, subtypeClrType, subtypeName));
+            clone._userRangeDefinitions.Add(new UserRangeDefinition(rangeName, subtypeClrType, subtypeName));
 
             return clone;
         }
@@ -194,7 +194,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         #endregion Authentication
     }
 
-    public class RangeMappingInfo
+    public class UserRangeDefinition
     {
         /// <summary>The name of the PostgreSQL range type to be mapped.</summary>
         public string RangeName { get; }
@@ -209,7 +209,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// </summary>
         public string SubtypeName { get; }
 
-        public RangeMappingInfo(string rangeName, Type subtypeClrType, string subtypeName)
+        public UserRangeDefinition(string rangeName, Type subtypeClrType, string subtypeName)
         {
             RangeName = rangeName;
             SubtypeClrType = subtypeClrType;
