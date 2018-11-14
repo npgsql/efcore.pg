@@ -194,7 +194,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         #endregion Authentication
     }
 
-    public readonly struct RangeMappingInfo
+    public class RangeMappingInfo
     {
         /// <summary>The name of the PostgreSQL range type to be mapped.</summary>
         public string RangeName { get; }

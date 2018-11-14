@@ -22,6 +22,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         public ConcurrentDictionary<string, RelationalTypeMapping[]> StoreTypeMappings { get; }
         public ConcurrentDictionary<Type, RelationalTypeMapping> ClrTypeMappings { get; }
 
+        readonly IReadOnlyList<RangeMappingInfo> _userRangeMappings;
+
         #region Mappings
 
         // Numeric types
@@ -238,24 +240,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
             LoadUserDefinedTypeMappings();
 
-            if (npgsqlOptions == null)
-                return;
-
-            foreach (var (rangeName, subtypeClrType, subtypeName) in npgsqlOptions.RangeMappings)
-            {
-                var subtypeMapping = subtypeName == null
-                    ? ClrTypeMappings.TryGetValue(subtypeClrType, out var mapping)
-                        ? mapping
-                        : throw new Exception($"Could not map range {rangeName}, no mapping was found for subtype CLR type {subtypeClrType}")
-                    : StoreTypeMappings.TryGetValue(subtypeName, out var mappings)
-                        ? mappings[0]
-                        : throw new Exception($"Could not map range {rangeName}, no mapping was found for subtype {subtypeName}");
-
-                var rangeClrType = typeof(NpgsqlRange<>).MakeGenericType(subtypeClrType);
-                var rangeMapping = new NpgsqlRangeTypeMapping(rangeName, rangeClrType, subtypeMapping);
-                StoreTypeMappings[rangeName] = new RelationalTypeMapping[] { rangeMapping };
-                ClrTypeMappings[rangeClrType] = rangeMapping;
-            }
+            _userRangeMappings = npgsqlOptions?.RangeMappings ?? new RangeMappingInfo[0];
         }
 
         /// <summary>
@@ -300,8 +285,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             base.FindMapping(mappingInfo) ??
             // Then, any mappings that have already been set up
             FindExistingMapping(mappingInfo) ??
-            // Finally, try any array mappings which have not yet been set up
-            FindArrayMapping(mappingInfo);
+            // Try any array mappings which have not yet been set up
+            FindArrayMapping(mappingInfo) ??
+            // Try any user-defined range mappings which have not yet been set up
+            FindUserRangeMapping(mappingInfo);
 
         protected virtual RelationalTypeMapping FindExistingMapping(in RelationalTypeMappingInfo mappingInfo)
         {
@@ -387,7 +374,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             return mapping;
         }
 
-        RelationalTypeMapping FindArrayMapping(in RelationalTypeMappingInfo mappingInfo)
+        protected virtual RelationalTypeMapping FindArrayMapping(in RelationalTypeMappingInfo mappingInfo)
         {
             // PostgreSQL array type names are the element plus []
             var storeType = mappingInfo.StoreTypeName;
@@ -444,6 +431,65 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             }
 
             return null;
+        }
+
+        protected virtual RelationalTypeMapping FindUserRangeMapping(in RelationalTypeMappingInfo mappingInfo)
+        {
+            RangeMappingInfo rangeMappingInfo = null;
+            var rangeStoreType = mappingInfo.StoreTypeName;
+            var rangeClrType = mappingInfo.ClrType;
+
+            // If the incoming MappingInfo contains a ClrType, make sure it's an NpgsqlRange<T>, otherwise bail
+            if (rangeClrType != null &&
+                (!rangeClrType.IsGenericType || rangeClrType.GetGenericTypeDefinition() != typeof(NpgsqlRange<>)))
+            {
+                return null;
+            }
+
+            // Try to find a user range definition (defined by the user on their context options), based on the
+            // incoming MappingInfo's StoreType or ClrType
+            if (rangeStoreType != null)
+            {
+                rangeMappingInfo = _userRangeMappings.SingleOrDefault(m => m.RangeName == rangeStoreType);
+
+                if (rangeMappingInfo == null)
+                    return null;
+
+                if (rangeClrType == null)
+                {
+                    // The incoming MappingInfo does not contain a ClrType, only a StoreType (i.e. scaffolding).
+                    // Construct the range ClrType from the range definition's subtype ClrType
+                    rangeClrType = typeof(NpgsqlRange<>).MakeGenericType(rangeMappingInfo.SubtypeClrType);
+                }
+                else if (rangeClrType != typeof(NpgsqlRange<>).MakeGenericType(rangeMappingInfo.SubtypeClrType))
+                {
+                    // If the incoming MappingInfo also contains a ClrType (in addition to the StoreType), make sure it
+                    // corresponds to the subtype ClrType on the range mapping
+                    return null;
+                }
+            }
+            else if (rangeClrType != null)
+                rangeMappingInfo = _userRangeMappings.SingleOrDefault(m => m.SubtypeClrType == rangeClrType.GetGenericArguments()[0]);
+
+            if (rangeMappingInfo == null)
+                return null;
+
+            // We now have a user-defined range mapping from the context options. Use it to get the subtype's
+            // mapping
+            var subtypeMapping = (RelationalTypeMapping)(rangeMappingInfo.SubtypeName == null
+                ? FindMapping(rangeMappingInfo.SubtypeClrType)
+                : FindMapping(rangeMappingInfo.SubtypeName));
+
+            if (subtypeMapping == null)
+                throw new Exception($"Could not map range {rangeMappingInfo.RangeName}, no mapping was found its subtype");
+
+            // Finally, construct a range mapping and add it to our lookup dictionaries - next time it will be found as
+            // an existing mapping
+            var rangeMapping = new NpgsqlRangeTypeMapping(rangeMappingInfo.RangeName, rangeClrType, subtypeMapping);
+            StoreTypeMappings[rangeMappingInfo.RangeName] = new RelationalTypeMapping[] { rangeMapping };
+            ClrTypeMappings[rangeClrType] = rangeMapping;
+
+            return rangeMapping;
         }
     }
 }
