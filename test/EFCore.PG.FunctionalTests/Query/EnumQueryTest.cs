@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+using NpgsqlTypes;
 using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
@@ -47,7 +48,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             {
                 var x = ctx.SomeEntities.Single(e => e.SchemaQualifiedEnum == SchemaQualifiedEnum.Happy);
                 Assert.Equal(SchemaQualifiedEnum.Happy, x.SchemaQualifiedEnum);
-                AssertContainsInSql("WHERE e.\"SchemaQualifiedEnum\" = 'happy'::test.schema_qualified_enum");
+                AssertContainsInSql("WHERE e.\"SchemaQualifiedEnum\" = 'Happy (PgName)'::test.schema_qualified_enum");
             }
         }
 
@@ -181,6 +182,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         public enum SchemaQualifiedEnum
         {
+            [PgName("Happy (PgName)")]
             Happy,
             Sad
         }
