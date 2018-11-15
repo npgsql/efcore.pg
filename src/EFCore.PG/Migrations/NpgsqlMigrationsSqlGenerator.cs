@@ -519,7 +519,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 name = operation.NewName;
             }
 
-            if (operation.NewSchema != null)
+            if (operation.NewSchema != null &&
+                operation.NewSchema != operation.Schema)
             {
                 Transfer(operation.NewSchema, operation.Schema, name, "TABLE", builder);
             }
@@ -1075,7 +1076,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 .Append(" ")
                 .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(name, schema))
                 .Append(" SET SCHEMA ")
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(newSchema));
+                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(newSchema))
+                .AppendLine(';');
         }
 
         #endregion Utilities
