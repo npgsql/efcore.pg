@@ -24,7 +24,9 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="indexBuilder"> The builder for the index being configured. </param>
         /// <param name="method"> The name of the index. </param>
         /// <returns> A builder to further configure the index. </returns>
-        public static IndexBuilder ForNpgsqlHasMethod([NotNull] this IndexBuilder indexBuilder, [CanBeNull] string method)
+        public static IndexBuilder ForNpgsqlHasMethod(
+            [NotNull] this IndexBuilder indexBuilder,
+            [CanBeNull] string method)
         {
             Check.NotNull(indexBuilder, nameof(indexBuilder));
             Check.NullButNotEmpty(method, nameof(method));
@@ -43,7 +45,9 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="indexBuilder"> The builder for the index being configured. </param>
         /// <param name="operators"> The operators to use for each column. </param>
         /// <returns> A builder to further configure the index. </returns>
-        public static IndexBuilder ForNpgsqlHasOperators([NotNull] this IndexBuilder indexBuilder, [CanBeNull] params string[] operators)
+        public static IndexBuilder ForNpgsqlHasOperators(
+            [NotNull] this IndexBuilder indexBuilder,
+            [CanBeNull, ItemNotNull] params string[] operators)
         {
             Check.NotNull(indexBuilder, nameof(indexBuilder));
             Check.NullButNotEmpty(operators, nameof(operators));
@@ -63,7 +67,9 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="indexBuilder"> The builder for the index being configured. </param>
         /// <param name="propertyNames"> An array of property names to be used in INCLUDE clause. </param>
         /// <returns> A builder to further configure the index. </returns>
-        public static IndexBuilder ForNpgsqlInclude([NotNull] this IndexBuilder indexBuilder, [CanBeNull] params string[] propertyNames)
+        public static IndexBuilder ForNpgsqlInclude(
+            [NotNull] this IndexBuilder indexBuilder,
+            [CanBeNull, ItemNotNull] params string[] propertyNames)
         {
             Check.NotNull(indexBuilder, nameof(indexBuilder));
             Check.NullButNotEmpty(propertyNames, nameof(propertyNames));
@@ -92,7 +98,9 @@ namespace Microsoft.EntityFrameworkCore
         ///     </para>
         /// </param>
         /// <returns> A builder to further configure the index. </returns>
-        public static IndexBuilder<TEntity> ForNpgsqlInclude<TEntity>([NotNull] this IndexBuilder<TEntity> indexBuilder, [NotNull] Expression<Func<TEntity, object>> includeExpression)
+        public static IndexBuilder<TEntity> ForNpgsqlInclude<TEntity>(
+            [NotNull] this IndexBuilder<TEntity> indexBuilder,
+            [NotNull] Expression<Func<TEntity, object>> includeExpression)
         {
             Check.NotNull(indexBuilder, nameof(indexBuilder));
             Check.NotNull(includeExpression, nameof(includeExpression));
