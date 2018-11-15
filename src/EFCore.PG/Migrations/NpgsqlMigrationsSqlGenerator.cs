@@ -489,7 +489,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 name = operation.NewName;
             }
 
-            if (operation.NewSchema != null)
+            if (operation.NewSchema != null &&
+                operation.NewSchema != operation.Schema)
             {
                 Transfer(operation.NewSchema, operation.Schema, name, "SEQUENCE", builder);
             }
