@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
@@ -18,7 +18,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         }
 
         /// <summary>
-        /// The PostgreSQL index method to be used. Null selects the default (currently btree).
+        /// The method to be used, or <c>null</c> if it hasn't been specified. <c>null</c> selects the default (currently <c>btree</c>).
         /// </summary>
         /// <remarks>
         /// http://www.postgresql.org/docs/current/static/sql-createindex.html
@@ -30,7 +30,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         }
 
         /// <summary>
-        /// The PostgreSQL index operators to be used, or <c>null</c> if they have not been specified.
+        /// The column operators to be used, or <c>null</c> if they have not been specified.
         /// </summary>
         /// <remarks>
         /// https://www.postgresql.org/docs/current/static/indexes-opclass.html
@@ -44,10 +44,52 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         IReadOnlyList<string> INpgsqlIndexAnnotations.Operators => Operators;
 
         /// <summary>
-        /// The PostgreSQL included property names, or <c>null</c> if they have not been specified.
+        /// The column collations to be used, or <c>null</c> if they have not been specified.
         /// </summary>
         /// <remarks>
-        /// https://www.postgresql.org/docs/current/sql-createindex.html
+        /// https://www.postgresql.org/docs/current/static/indexes-collations.html
+        /// </remarks>
+        public string[] Collation
+        {
+            get => (string[])Annotations.Metadata[NpgsqlAnnotationNames.IndexCollation];
+            set => SetCollation(value);
+        }
+
+        IReadOnlyList<string> INpgsqlIndexAnnotations.Collation => Collation;
+
+        /// <summary>
+        /// The column sort orders to be used, or <c>null</c> if they have not been specified.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
+        /// </remarks>
+        public SortOrder[] SortOrder
+        {
+            get => (SortOrder[])Annotations.Metadata[NpgsqlAnnotationNames.IndexSortOrder];
+            set => SetSortOrder(value);
+        }
+
+        IReadOnlyList<SortOrder> INpgsqlIndexAnnotations.SortOrder => SortOrder;
+
+        /// <summary>
+        /// The column NULL sort orders to be used, or <c>null</c> if they have not been specified.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
+        /// </remarks>
+        public NullSortOrder[] NullSortOrder
+        {
+            get => (NullSortOrder[])Annotations.Metadata[NpgsqlAnnotationNames.IndexNullSortOrder];
+            set => SetNullSortOrder(value);
+        }
+
+        IReadOnlyList<NullSortOrder> INpgsqlIndexAnnotations.NullSortOrder => NullSortOrder;
+
+        /// <summary>
+        /// The included property names, or <c>null</c> if they have not been specified.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/static/sql-createindex.html
         /// </remarks>
         public string[] IncludeProperties
         {
@@ -62,6 +104,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 
         protected virtual bool SetOperators(string[] value)
             => Annotations.SetAnnotation(NpgsqlAnnotationNames.IndexOperators, value);
+
+        protected virtual bool SetCollation(string[] value)
+            => Annotations.SetAnnotation(NpgsqlAnnotationNames.IndexCollation, value);
+
+        protected virtual bool SetSortOrder(SortOrder[] value)
+            => Annotations.SetAnnotation(NpgsqlAnnotationNames.IndexSortOrder, value);
+
+        protected virtual bool SetNullSortOrder(NullSortOrder[] value)
+            => Annotations.SetAnnotation(NpgsqlAnnotationNames.IndexNullSortOrder, value);
 
         protected virtual bool SetIncludeProperties(string[] value)
             => Annotations.SetAnnotation(NpgsqlAnnotationNames.IndexInclude, value);

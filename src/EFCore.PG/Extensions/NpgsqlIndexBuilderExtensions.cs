@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Linq.Expressions;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 // ReSharper disable once CheckNamespace
@@ -52,6 +53,73 @@ namespace Microsoft.EntityFrameworkCore
             Check.NullButNotEmpty(operators, nameof(operators));
 
             indexBuilder.Metadata.Npgsql().Operators = operators;
+
+            return indexBuilder;
+        }
+
+        /// <summary>
+        /// The PostgreSQL index collation to be used.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/static/indexes-collations.html
+        /// </remarks>
+        /// <param name="indexBuilder"> The builder for the index being configured. </param>
+        /// <param name="values"> The sort options to use for each column. </param>
+        /// <returns> A builder to further configure the index. </returns>
+        public static IndexBuilder ForNpgsqlHasCollation(
+            [NotNull] this IndexBuilder indexBuilder,
+            [CanBeNull, ItemNotNull] params string[] values)
+        {
+            Check.NotNull(indexBuilder, nameof(indexBuilder));
+            Check.NullButNotEmpty(values, nameof(values));
+
+            indexBuilder.Metadata.Npgsql().Collation = values;
+
+            return indexBuilder;
+        }
+
+        /// <summary>
+        /// The PostgreSQL index sort ordering to be used.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
+        /// </remarks>
+        /// <param name="indexBuilder"> The builder for the index being configured. </param>
+        /// <param name="values"> The sort order to use for each column. </param>
+        /// <returns> A builder to further configure the index. </returns>
+        public static IndexBuilder ForNpgsqlHasSortOrder(
+            [NotNull] this IndexBuilder indexBuilder,
+            [CanBeNull] params SortOrder[] values)
+        {
+            Check.NotNull(indexBuilder, nameof(indexBuilder));
+            Check.NullButNotEmpty(values, nameof(values));
+
+            if (!SortOrderHelper.IsDefaultSortOrder(values))
+                indexBuilder.Metadata.Npgsql().SortOrder = values;
+
+            return indexBuilder;
+        }
+
+        /// <summary>
+        /// The PostgreSQL index NULL sort ordering to be used.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
+        /// </remarks>
+        /// <param name="indexBuilder"> The builder for the index being configured. </param>
+        /// <param name="values"> The sort order to use for each column. </param>
+        /// <returns> A builder to further configure the index. </returns>
+        public static IndexBuilder ForNpgsqlHasNullSortOrder(
+            [NotNull] this IndexBuilder indexBuilder,
+            [CanBeNull] params NullSortOrder[] values)
+        {
+            Check.NotNull(indexBuilder, nameof(indexBuilder));
+            Check.NullButNotEmpty(values, nameof(values));
+
+            var sortOrders = indexBuilder.Metadata.Npgsql().SortOrder;
+
+            if (!SortOrderHelper.IsDefaultNullSortOrder(values, sortOrders))
+                indexBuilder.Metadata.Npgsql().NullSortOrder = values;
 
             return indexBuilder;
         }

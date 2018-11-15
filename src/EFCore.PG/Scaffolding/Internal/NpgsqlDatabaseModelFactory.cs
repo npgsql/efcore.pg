@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -420,6 +420,12 @@ ORDER BY attnum";
                 foreach (var opClass in reader.Cast<DbDataRecord>())
                     opClasses[opClass.GetValueOrDefault<uint>("oid")] = (opClass.GetValueOrDefault<string>("opcname"), opClass.GetValueOrDefault<bool>("opcdefault"));
 
+            var collations = new Dictionary<uint, string>();
+            using (var command = new NpgsqlCommand("SELECT oid, collname FROM pg_collation", connection))
+            using (var reader = command.ExecuteReader())
+                foreach (var collation in reader.Cast<DbDataRecord>())
+                    collations[collation.GetValueOrDefault<uint>("oid")] = collation.GetValueOrDefault<string>("collname");
+
             var commandText = $@"
 SELECT
   idxcls.oid AS idx_oid,
@@ -428,9 +434,12 @@ SELECT
   idxcls.relname AS idx_relname,
   indisunique,
   {(connection.PostgreSqlVersion >= new Version(11, 0) ? "indnkeyatts" : "indnatts AS indnkeyatts")},
+  {(connection.PostgreSqlVersion >= new Version(9, 6) ? "pg_indexam_has_property(am.oid, 'can_order') as amcanorder" : "amcanorder")},
   indkey,
   amname,
   indclass,
+  indoption,
+  indcollation,
   CASE
     WHEN indexprs IS NULL THEN NULL
     ELSE pg_get_expr(indexprs, cls.oid)
@@ -543,8 +552,42 @@ WHERE
                             .GetValueOrDefault<uint[]>("indclass")
                             .Select(oid => opClasses.TryGetValue(oid, out var opc) && !opc.IsDefault ? opc.Name : null)
                             .ToArray();
+
                         if (opClassNames.Any(op => op != null))
                             index[NpgsqlAnnotationNames.IndexOperators] = opClassNames;
+
+                        var columnCollations = record
+                            .GetValueOrDefault<uint[]>("indcollation")
+                            .Select(oid => collations.TryGetValue(oid, out var collation) && !string.Equals(collation, "default") ? collation : null)
+                            .ToArray();
+
+                        if (columnCollations.Any(coll => coll != null))
+                            index[NpgsqlAnnotationNames.IndexCollation] = columnCollations;
+
+                        if (record.GetValueOrDefault<bool>("amcanorder"))
+                        {
+                            var options = record.GetValueOrDefault<ushort[]>("indoption");
+
+                            // The first bit specifies whether values are sorted in descending order.
+                            const ushort indoptionDescFlag = 0x0001;
+
+                            var sortOrders = options
+                                .Select(val => (val & indoptionDescFlag) != 0 ? SortOrder.Descending : SortOrder.Ascending)
+                                .ToArray();
+
+                            if (!SortOrderHelper.IsDefaultSortOrder(sortOrders))
+                                index[NpgsqlAnnotationNames.IndexSortOrder] = sortOrders;
+
+                            // The second bit specifies whether NULLs are sorted first instead of last.
+                            const ushort indoptionNullsFirstFlag = 0x0002;
+
+                            var nullSortOrders = options
+                                .Select(val => (val & indoptionNullsFirstFlag) != 0 ? NullSortOrder.NullsFirst : NullSortOrder.NullsLast)
+                                .ToArray();
+
+                            if (!SortOrderHelper.IsDefaultNullSortOrder(nullSortOrders, sortOrders))
+                                index[NpgsqlAnnotationNames.IndexNullSortOrder] = nullSortOrders;
+                        }
 
                         table.Indexes.Add(index);
 

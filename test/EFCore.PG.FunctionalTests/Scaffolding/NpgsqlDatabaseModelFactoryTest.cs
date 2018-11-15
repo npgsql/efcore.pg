@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -1412,6 +1412,75 @@ CREATE INDEX ix_without ON ""IndexOperators"" (a, b);",
                     Assert.Null(indexWithout.FindAnnotation(NpgsqlAnnotationNames.IndexOperators));
                 },
                 @"DROP TABLE ""IndexOperators""");
+
+        [Fact]
+        public void Index_collation()
+            => Test(@"
+CREATE TABLE ""IndexCollation"" (a text, b text);
+CREATE INDEX ix_with ON ""IndexCollation"" (a, b COLLATE ""POSIX"");
+CREATE INDEX ix_without ON ""IndexCollation"" (a, b);",
+                Enumerable.Empty<string>(),
+                Enumerable.Empty<string>(),
+                dbModel =>
+                {
+                    var table = dbModel.Tables.Single();
+
+                    var indexWith = table.Indexes.Single(i => i.Name == "ix_with");
+                    Assert.Equal(new[] { null, "POSIX" }, indexWith.FindAnnotation(NpgsqlAnnotationNames.IndexCollation).Value);
+
+                    var indexWithout = table.Indexes.Single(i => i.Name == "ix_without");
+                    Assert.Null(indexWithout.FindAnnotation(NpgsqlAnnotationNames.IndexCollation));
+                },
+                @"DROP TABLE ""IndexCollation""");
+
+        [Theory]
+        [InlineData("gin", null)]
+        [InlineData("gist", null)]
+        [InlineData("hash", null)]
+        [InlineData("brin", null)]
+        [InlineData("btree", new[] { SortOrder.Ascending, SortOrder.Descending })]
+        public void Index_sort_order(string method, SortOrder[] expected)
+            => Test(@"
+CREATE TABLE ""IndexSortOrder"" (a text, b text, c tsvector);
+CREATE INDEX ix_gin ON ""IndexSortOrder"" USING gin (c);
+CREATE INDEX ix_gist ON ""IndexSortOrder"" USING gist (c);
+CREATE INDEX ix_hash ON ""IndexSortOrder"" USING hash (a);
+CREATE INDEX ix_brin ON ""IndexSortOrder"" USING brin (a);
+CREATE INDEX ix_btree ON ""IndexSortOrder"" USING btree (a ASC, b DESC);
+CREATE INDEX ix_without ON ""IndexSortOrder"" (a, b);",
+                Enumerable.Empty<string>(),
+                Enumerable.Empty<string>(),
+                dbModel =>
+                {
+                    var table = dbModel.Tables.Single();
+
+                    var indexWith = table.Indexes.Single(i => i.Name == $"ix_{method}");
+                    Assert.Equal(expected, indexWith.FindAnnotation(NpgsqlAnnotationNames.IndexSortOrder)?.Value);
+
+                    var indexWithout = table.Indexes.Single(i => i.Name == "ix_without");
+                    Assert.Null(indexWithout.FindAnnotation(NpgsqlAnnotationNames.IndexSortOrder));
+                },
+                @"DROP TABLE ""IndexSortOrder""");
+
+        [Fact]
+        public void Index_null_sort_order()
+            => Test(@"
+CREATE TABLE ""IndexNullSortOrder"" (a text, b text);
+CREATE INDEX ix_with ON ""IndexNullSortOrder"" (a NULLS FIRST, b DESC NULLS LAST);
+CREATE INDEX ix_without ON ""IndexNullSortOrder"" (a, b);",
+                Enumerable.Empty<string>(),
+                Enumerable.Empty<string>(),
+                dbModel =>
+                {
+                    var table = dbModel.Tables.Single();
+
+                    var indexWith = table.Indexes.Single(i => i.Name == "ix_with");
+                    Assert.Equal(new[] { NullSortOrder.NullsFirst, NullSortOrder.NullsLast }, indexWith.FindAnnotation(NpgsqlAnnotationNames.IndexNullSortOrder).Value);
+
+                    var indexWithout = table.Indexes.Single(i => i.Name == "ix_without");
+                    Assert.Null(indexWithout.FindAnnotation(NpgsqlAnnotationNames.IndexNullSortOrder));
+                },
+                @"DROP TABLE ""IndexNullSortOrder""");
 
         [Fact]
         public void Index_covering()

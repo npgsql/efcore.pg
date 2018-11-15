@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
@@ -6,7 +6,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
     public interface INpgsqlIndexAnnotations : IRelationalIndexAnnotations
     {
         /// <summary>
-        /// The PostgreSQL index method to be used. Null selects the default (currently btree).
+        /// The method to be used, or <c>null</c> if it hasn't been specified. <c>null</c> selects the default (currently <c>btree</c>).
         /// </summary>
         /// <remarks>
         /// http://www.postgresql.org/docs/current/static/sql-createindex.html
@@ -14,7 +14,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         string Method { get; }
 
         /// <summary>
-        /// The PostgreSQL index operators to be used, or <c>null</c> if they have not been specified.
+        /// The column operators to be used, or <c>null</c> if they have not been specified.
         /// </summary>
         /// <remarks>
         /// https://www.postgresql.org/docs/current/static/indexes-opclass.html
@@ -22,10 +22,34 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         IReadOnlyList<string> Operators { get; }
 
         /// <summary>
-        /// The PostgreSQL included property names, or <c>null</c> if they have not been specified.
+        /// The column collations to be used, or <c>null</c> if they have not been specified.
         /// </summary>
         /// <remarks>
-        /// https://www.postgresql.org/docs/current/sql-createindex.html
+        /// https://www.postgresql.org/docs/current/static/indexes-collations.html
+        /// </remarks>
+        IReadOnlyList<string> Collation { get; }
+
+        /// <summary>
+        /// The column sort orders to be used, or <c>null</c> if they have not been specified.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
+        /// </remarks>
+        IReadOnlyList<SortOrder> SortOrder { get; }
+
+        /// <summary>
+        /// The column NULL sort orders to be used, or <c>null</c> if they have not been specified.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
+        /// </remarks>
+        IReadOnlyList<NullSortOrder> NullSortOrder { get; }
+
+        /// <summary>
+        /// The included property names, or <c>null</c> if they have not been specified.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/static/sql-createindex.html
         /// </remarks>
         IReadOnlyList<string> IncludeProperties { get; }
     }

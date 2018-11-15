@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
@@ -688,6 +688,57 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
             Assert.Equal(
                 "CREATE INDEX \"IX_People_Name\" ON dbo.\"People\" (\"FirstName\" myschema.\"TextOperation\");" + EOL,
+                Sql);
+        }
+
+        [Fact]
+        public void CreateIndexOperation_collation()
+        {
+            Generate(new CreateIndexOperation
+            {
+                Name = "IX_People_Name",
+                Table = "People",
+                Schema = "dbo",
+                Columns = new[] { "FirstName", "LastName" },
+                [NpgsqlAnnotationNames.IndexCollation] = new[] { null, "de_DE" }
+            });
+
+            Assert.Equal(
+                "CREATE INDEX \"IX_People_Name\" ON dbo.\"People\" (\"FirstName\", \"LastName\" COLLATE de_DE);" + EOL,
+                Sql);
+        }
+
+        [Fact]
+        public void CreateIndexOperation_sort_order()
+        {
+            Generate(new CreateIndexOperation
+            {
+                Name = "IX_People_Name",
+                Table = "People",
+                Schema = "dbo",
+                Columns = new[] { "FirstName", "LastName" },
+                [NpgsqlAnnotationNames.IndexSortOrder] = new[] { SortOrder.Descending, SortOrder.Ascending }
+            });
+
+            Assert.Equal(
+                "CREATE INDEX \"IX_People_Name\" ON dbo.\"People\" (\"FirstName\" DESC, \"LastName\");" + EOL,
+                Sql);
+        }
+
+        [Fact]
+        public void CreateIndexOperation_nulls_first()
+        {
+            Generate(new CreateIndexOperation
+            {
+                Name = "IX_People_Name",
+                Table = "People",
+                Schema = "dbo",
+                Columns = new[] { "FirstName", "MiddleName", "LastName" },
+                [NpgsqlAnnotationNames.IndexNullSortOrder] = new[] { NullSortOrder.NullsFirst, NullSortOrder.Unspecified, NullSortOrder.NullsLast }
+            });
+
+            Assert.Equal(
+                "CREATE INDEX \"IX_People_Name\" ON dbo.\"People\" (\"FirstName\" NULLS FIRST, \"MiddleName\", \"LastName\" NULLS LAST);" + EOL,
                 Sql);
         }
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
@@ -45,6 +45,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal
                 yield return new Annotation(NpgsqlAnnotationNames.IndexMethod, index.Npgsql().Method);
             if (index.Npgsql().Operators != null)
                 yield return new Annotation(NpgsqlAnnotationNames.IndexOperators, index.Npgsql().Operators);
+            if (index.Npgsql().Collation != null)
+                yield return new Annotation(NpgsqlAnnotationNames.IndexCollation, index.Npgsql().Collation);
+            if (index.Npgsql().SortOrder != null)
+                yield return new Annotation(NpgsqlAnnotationNames.IndexSortOrder, index.Npgsql().SortOrder);
+            if (index.Npgsql().NullSortOrder != null)
+                yield return new Annotation(NpgsqlAnnotationNames.IndexNullSortOrder, index.Npgsql().NullSortOrder);
             if (index.Npgsql().IncludeProperties != null)
                 yield return new Annotation(NpgsqlAnnotationNames.IndexInclude, index.Npgsql().IncludeProperties);
         }
