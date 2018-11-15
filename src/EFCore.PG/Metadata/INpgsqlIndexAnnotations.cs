@@ -14,13 +14,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         string Method { get; }
 
         /// <summary>
-        /// The PostgreSQL index operators to be used.
+        /// The PostgreSQL index operators to be used, or <c>null</c> if they have not been specified.
         /// </summary>
         /// <remarks>
         /// https://www.postgresql.org/docs/current/static/indexes-opclass.html
         /// </remarks>
         IReadOnlyList<string> Operators { get; }
 
+        /// <summary>
+        /// The PostgreSQL included property names, or <c>null</c> if they have not been specified.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/sql-createindex.html
+        /// </remarks>
         IReadOnlyList<string> IncludeProperties { get; }
     }
 }

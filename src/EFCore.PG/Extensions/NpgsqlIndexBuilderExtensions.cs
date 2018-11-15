@@ -53,6 +53,16 @@ namespace Microsoft.EntityFrameworkCore
             return indexBuilder;
         }
 
+        /// <summary>
+        /// Adds an INCLUDE clause to the index definition with the specified property names.
+        /// This clause specifies a list of columns which will be included as a non-key part in the index.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/sql-createindex.html
+        /// </remarks>
+        /// <param name="indexBuilder"> The builder for the index being configured. </param>
+        /// <param name="propertyNames"> An array of property names to be used in INCLUDE clause. </param>
+        /// <returns> A builder to further configure the index. </returns>
         public static IndexBuilder ForNpgsqlInclude([NotNull] this IndexBuilder indexBuilder, [CanBeNull] params string[] propertyNames)
         {
             Check.NotNull(indexBuilder, nameof(indexBuilder));
@@ -63,6 +73,25 @@ namespace Microsoft.EntityFrameworkCore
             return indexBuilder;
         }
 
+        /// <summary>
+        /// Adds an INCLUDE clause to the index definition with property names from the specified expression.
+        /// This clause specifies a list of columns which will be included as a non-key part in the index.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/sql-createindex.html
+        /// </remarks>
+        /// <param name="indexBuilder"> The builder for the index being configured. </param>
+        /// <param name="includeExpression">
+        ///     <para>
+        ///         A lambda expression representing the property(s) to be included in the INCLUDE clause
+        ///         (<c>blog => blog.Url</c>).
+        ///     </para>
+        ///     <para>
+        ///         If multiple properties are to be included then specify an anonymous type including the
+        ///         properties (<c>post => new { post.Title, post.BlogId }</c>).
+        ///     </para>
+        /// </param>
+        /// <returns> A builder to further configure the index. </returns>
         public static IndexBuilder<TEntity> ForNpgsqlInclude<TEntity>([NotNull] this IndexBuilder<TEntity> indexBuilder, [NotNull] Expression<Func<TEntity, object>> includeExpression)
         {
             Check.NotNull(indexBuilder, nameof(indexBuilder));
