@@ -593,18 +593,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 .Append(" ON ")
                 .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Table, operation.Schema));
 
-            if (operation[NpgsqlAnnotationNames.IndexMethod] is string method && method.Length > 0)
+            var method = operation[NpgsqlAnnotationNames.IndexMethod] as string;
+
+            if (method?.Length > 0)
             {
                 builder
                     .Append(" USING ")
                     .Append(method);
             }
 
-            var operators = operation[NpgsqlAnnotationNames.IndexOperators] as string[];
+            var indexColumns = GetIndexColumns(operation);
 
             builder
                 .Append(" (")
-                .Append(IndexColumnList(operation.Columns, operators))
+                .Append(IndexColumnList(indexColumns, method))
                 .Append(")");
 
             IndexOptions(operation, model, builder);
@@ -1201,29 +1203,60 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         bool VersionAtLeast(int major, int minor)
             => _postgresVersion is null || new Version(major, minor) <= _postgresVersion;
 
-        string IndexColumnList(string[] columns, string[] operators)
+        string IndexColumnList(IndexColumn[] columns, string method)
         {
-            if (operators == null || operators.Length == 0)
-                return ColumnList(columns);
+            var isFirst = true;
+            var builder = new StringBuilder();
 
-            return string.Join(", ", columns.Select((v, i) =>
+            for (var i = 0; i < columns.Length; i++)
             {
-                var identifier = Dependencies.SqlGenerationHelper.DelimitIdentifier(v);
+                if (!isFirst)
+                    builder.Append(", ");
 
-                if (i >= operators.Length)
-                    return identifier;
+                var column = columns[i];
 
-                var @operator = operators[i];
+                builder.Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(column.Name));
 
-                if (string.IsNullOrEmpty(@operator))
-                    return identifier;
+                if (!string.IsNullOrEmpty(column.Operator))
+                {
+                    var delimitedOperator = TryParseSchema(column.Operator, out var name, out var schema)
+                        ? Dependencies.SqlGenerationHelper.DelimitIdentifier(name, schema)
+                        : Dependencies.SqlGenerationHelper.DelimitIdentifier(column.Operator);
 
-                var delimitedOperator = TryParseSchema(@operator, out var name, out var schema)
-                    ? Dependencies.SqlGenerationHelper.DelimitIdentifier(name, schema)
-                    : Dependencies.SqlGenerationHelper.DelimitIdentifier(@operator);
+                    builder.Append(" ").Append(delimitedOperator);
+                }
 
-                return string.Concat(identifier, " ", delimitedOperator);
-            }));
+                if (!string.IsNullOrEmpty(column.Collation))
+                {
+                    builder.Append(" COLLATE ").Append(column.Collation);
+                }
+
+                // Of the built-in access methods, only btree (the default) supports
+                // sorting, thus we only want to emit sort options for btree indexes.
+                if (method == null || string.Equals(method, "btree"))
+                {
+                    if (column.SortOrder == SortOrder.Descending)
+                    {
+                        builder.Append(" DESC");
+                    }
+
+                    if (column.NullSortOrder != NullSortOrder.Unspecified)
+                    {
+                        builder.Append(" NULLS ");
+
+                        switch (column.NullSortOrder)
+                        {
+                            case NullSortOrder.NullsFirst: builder.Append("FIRST"); break;
+                            case NullSortOrder.NullsLast: builder.Append("LAST"); break;
+                            default: throw new ArgumentOutOfRangeException();
+                        }
+                    }
+                }
+
+                isFirst = false;
+            }
+
+            return builder.ToString();
         }
 
         static bool TryParseSchema(string identifier, out string name, out string schema)
@@ -1240,6 +1273,47 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             schema = default;
             name = default;
             return false;
+        }
+
+        static IndexColumn[] GetIndexColumns(CreateIndexOperation operation)
+        {
+            var operators = operation[NpgsqlAnnotationNames.IndexOperators] as string[];
+            var collations = operation[NpgsqlAnnotationNames.IndexCollation] as string[];
+            var sortOrders = operation[NpgsqlAnnotationNames.IndexSortOrder] as SortOrder[];
+            var nullSortOrders = operation[NpgsqlAnnotationNames.IndexNullSortOrder] as NullSortOrder[];
+
+            var columns = new IndexColumn[operation.Columns.Length];
+
+            for (var i = 0; i < columns.Length; i++)
+            {
+                var name = operation.Columns[i];
+                var @operator = i < operators?.Length ? operators[i] : null;
+                var collation = i < collations?.Length ? collations[i] : null;
+                var sortOrder = i < sortOrders?.Length ? sortOrders[i] : SortOrder.Ascending;
+                var nullSortOrder = i < nullSortOrders?.Length ? nullSortOrders[i] : NullSortOrder.Unspecified;
+
+                columns[i] = new IndexColumn(name, @operator, collation, sortOrder, nullSortOrder);
+            }
+
+            return columns;
+        }
+
+        readonly struct IndexColumn
+        {
+            public IndexColumn(string name, string @operator, string collation, SortOrder sortOrder, NullSortOrder nullSortOrder)
+            {
+                Name = name;
+                Operator = @operator;
+                Collation = collation;
+                SortOrder = sortOrder;
+                NullSortOrder = nullSortOrder;
+            }
+
+            public string Name { get; }
+            public string Operator { get; }
+            public string Collation { get; }
+            public SortOrder SortOrder { get; }
+            public NullSortOrder NullSortOrder { get; }
         }
 
         #endregion

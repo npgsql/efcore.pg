@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
@@ -163,6 +163,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
                 return new MethodCallCodeFragment(nameof(NpgsqlIndexBuilderExtensions.ForNpgsqlHasMethod), annotation.Value);
             if (annotation.Name == NpgsqlAnnotationNames.IndexOperators)
                 return new MethodCallCodeFragment(nameof(NpgsqlIndexBuilderExtensions.ForNpgsqlHasOperators), annotation.Value);
+            if (annotation.Name == NpgsqlAnnotationNames.IndexCollation)
+                return new MethodCallCodeFragment(nameof(NpgsqlIndexBuilderExtensions.ForNpgsqlHasCollation), annotation.Value);
+            if (annotation.Name == NpgsqlAnnotationNames.IndexSortOrder)
+                return new MethodCallCodeFragment(nameof(NpgsqlIndexBuilderExtensions.ForNpgsqlHasSortOrder), annotation.Value);
+            if (annotation.Name == NpgsqlAnnotationNames.IndexNullSortOrder)
+                return new MethodCallCodeFragment(nameof(NpgsqlIndexBuilderExtensions.ForNpgsqlHasNullSortOrder), annotation.Value);
             if (annotation.Name == NpgsqlAnnotationNames.IndexInclude)
                 return new MethodCallCodeFragment(nameof(NpgsqlIndexBuilderExtensions.ForNpgsqlInclude), annotation.Value);
 
