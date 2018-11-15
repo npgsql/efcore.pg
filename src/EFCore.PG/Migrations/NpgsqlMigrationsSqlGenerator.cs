@@ -448,26 +448,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             EndStatement(builder);
         }
 
-        protected override void Generate(RenameIndexOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
+        protected override void Generate(RenameIndexOperation operation, IModel model, MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
-            var qualifiedName = new StringBuilder();
-            if (operation.Schema != null)
-            {
-                qualifiedName
-                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Schema))
-                    .Append(".");
-            }
-            qualifiedName.Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name));
-
             // TODO: Rename across schema will break, see #44
-            Rename(qualifiedName.ToString(), Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.NewName), "INDEX", builder);
+            Rename(operation.Schema, operation.Name, operation.NewName, "INDEX", builder);
             EndStatement(builder);
         }
 
-        protected override void Generate(RenameSequenceOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
+        protected override void Generate(RenameSequenceOperation operation, IModel model, MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
@@ -475,16 +466,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             var name = operation.Name;
             if (operation.NewName != null)
             {
-                var qualifiedName = new StringBuilder();
-                if (operation.Schema != null)
-                {
-                    qualifiedName
-                        .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Schema))
-                        .Append(".");
-                }
-                qualifiedName.Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name));
-
-                Rename(qualifiedName.ToString(), Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.NewName), "SEQUENCE", builder);
+                Rename(operation.Schema, operation.Name, operation.NewName, "SEQUENCE", builder);
 
                 name = operation.NewName;
             }
@@ -498,7 +480,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             EndStatement(builder);
         }
 
-        protected override void Generate(RenameTableOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
+        protected override void Generate(RenameTableOperation operation, IModel model, MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
@@ -506,16 +488,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             var name = operation.Name;
             if (operation.NewName != null)
             {
-                var qualifiedName = new StringBuilder();
-                if (operation.Schema != null)
-                {
-                    qualifiedName
-                        .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Schema))
-                        .Append(".");
-                }
-                qualifiedName.Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name));
-
-                Rename(qualifiedName.ToString(), Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.NewName), "TABLE", builder);
+                Rename(operation.Schema, operation.Name, operation.NewName, "TABLE", builder);
 
                 name = operation.NewName;
             }
@@ -1032,13 +1005,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 #pragma warning restore 618
 
         /// <summary>
-        /// Renames a database object such as an index or a sequence.
+        /// Renames a database object such as a table, index, or sequence.
         /// </summary>
-        /// <param name="name">An already delimited name of the object to rename</param>
-        /// <param name="newName">An already delimited name of the new name</param>
-        /// <param name="type">The type of the object (e.g. INDEX, SEQUENCE)</param>
-        /// <param name="builder"></param>
+        /// <param name="schema">The current schema of the object to rename.</param>
+        /// <param name="name">The current name of the object to rename.</param>
+        /// <param name="newName">The new name.</param>
+        /// <param name="type">The type of the object (e.g. TABLE, INDEX, SEQUENCE).</param>
+        /// <param name="builder">The builder to which operations are appended.</param>
         public virtual void Rename(
+            [CanBeNull] string schema,
             [NotNull] string name,
             [NotNull] string newName,
             [NotNull] string type,
@@ -1053,12 +1028,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 .Append("ALTER ")
                 .Append(type)
                 .Append(' ')
-                .Append(name)
+                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(name, schema))
                 .Append(" RENAME TO ")
-                .Append(newName)
+                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(newName))
                 .AppendLine(';');
         }
 
+        /// <summary>
+        /// Transfers a database object such as a table, index, or sequence between schemas.
+        /// </summary>
+        /// <param name="newSchema">The new schema.</param>
+        /// <param name="schema">The current schema.</param>
+        /// <param name="name">The name of the object to transfer.</param>
+        /// <param name="type">The type of the object (e.g. TABLE, INDEX, SEQUENCE).</param>
+        /// <param name="builder">The builder to which operations are appended.</param>
         public virtual void Transfer(
             [NotNull] string newSchema,
             [CanBeNull] string schema,
