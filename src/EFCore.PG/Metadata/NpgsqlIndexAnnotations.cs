@@ -30,7 +30,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         }
 
         /// <summary>
-        /// The PostgreSQL index operators to be used.
+        /// The PostgreSQL index operators to be used, or <c>null</c> if they have not been specified.
         /// </summary>
         /// <remarks>
         /// https://www.postgresql.org/docs/current/static/indexes-opclass.html
@@ -43,10 +43,27 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 
         IReadOnlyList<string> INpgsqlIndexAnnotations.Operators => Operators;
 
+        /// <summary>
+        /// The PostgreSQL included property names, or <c>null</c> if they have not been specified.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/sql-createindex.html
+        /// </remarks>
+        public string[] IncludeProperties
+        {
+            get => (string[]) Annotations.Metadata[NpgsqlAnnotationNames.IndexInclude];
+            set => SetIncludeProperties(value);
+        }
+
+        IReadOnlyList<string> INpgsqlIndexAnnotations.IncludeProperties => IncludeProperties;
+
         protected virtual bool SetMethod(string value)
             => Annotations.SetAnnotation(NpgsqlAnnotationNames.IndexMethod, value);
 
         protected virtual bool SetOperators(string[] value)
             => Annotations.SetAnnotation(NpgsqlAnnotationNames.IndexOperators, value);
+
+        protected virtual bool SetIncludeProperties(string[] value)
+            => Annotations.SetAnnotation(NpgsqlAnnotationNames.IndexInclude, value);
     }
 }

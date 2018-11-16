@@ -112,8 +112,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             }
 
             // Comment on the table
-            var comment = operation[NpgsqlAnnotationNames.Comment] as string;
-            if (comment != null)
+            if (operation[NpgsqlAnnotationNames.Comment] is string comment && comment.Length > 0)
             {
                 builder.AppendLine(';');
 
@@ -245,8 +244,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             base.Generate(operation, model, builder, terminate: false);
 
-            var comment = operation[NpgsqlAnnotationNames.Comment] as string;
-            if (comment != null)
+            if (operation[NpgsqlAnnotationNames.Comment] is string comment && comment.Length > 0)
             {
                 builder.AppendLine(';');
 
@@ -535,9 +533,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
-            var method = (string)operation[NpgsqlAnnotationNames.IndexMethod];
-            var operators = (string[])operation[NpgsqlAnnotationNames.IndexOperators];
-
             builder.Append("CREATE ");
 
             if (operation.IsUnique)
@@ -551,28 +546,38 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 .Append(" ON ")
                 .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Table, operation.Schema));
 
-            if (method != null)
+            if (operation[NpgsqlAnnotationNames.IndexMethod] is string method && method.Length > 0)
             {
                 builder
                     .Append(" USING ")
                     .Append(method);
             }
 
+            var operators = operation[NpgsqlAnnotationNames.IndexOperators] as string[];
+
             builder
                 .Append(" (")
                 .Append(IndexColumnList(operation.Columns, operators))
                 .Append(")");
 
-            if (!string.IsNullOrEmpty(operation.Filter))
-            {
-                builder
-                    .Append(" WHERE ")
-                    .Append(operation.Filter);
-            }
+            IndexOptions(operation, model, builder);
 
             builder.AppendLine(';');
 
             EndStatement(builder);
+        }
+
+        protected override void IndexOptions(CreateIndexOperation operation, IModel model, MigrationCommandListBuilder builder)
+        {
+            if (operation[NpgsqlAnnotationNames.IndexInclude] is string[] includeProperties && includeProperties.Length > 0)
+            {
+                builder
+                    .Append(" INCLUDE (")
+                    .Append(ColumnList(includeProperties))
+                    .Append(")");
+            }
+
+            base.IndexOptions(operation, model, builder);
         }
 
         protected override void Generate(EnsureSchemaOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
