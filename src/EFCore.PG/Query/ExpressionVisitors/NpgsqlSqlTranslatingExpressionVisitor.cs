@@ -1,13 +1,23 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Extensions.Internal;
+using Microsoft.EntityFrameworkCore.Internal;
+using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
 using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors;
 using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 using Remotion.Linq.Clauses;
 using Remotion.Linq.Clauses.Expressions;
 using Remotion.Linq.Clauses.ResultOperators;
@@ -54,6 +64,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
         /// </summary>
         [NotNull] readonly RelationalQueryModelVisitor _queryModelVisitor;
 
+        /// <summary>
+        /// The type mapping source
+        /// </summary>
+        [NotNull] readonly NpgsqlTypeMappingSource _typeMappingSource;
+
         /// <inheritdoc />
         public NpgsqlSqlTranslatingExpressionVisitor(
             [NotNull] SqlTranslatingExpressionVisitorDependencies dependencies,
@@ -62,7 +77,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
             [CanBeNull] Expression topLevelPredicate = null,
             bool inProjection = false)
             : base(dependencies, queryModelVisitor, targetSelectExpression, topLevelPredicate, inProjection)
-            => _queryModelVisitor = queryModelVisitor;
+        {
+            _typeMappingSource = (NpgsqlTypeMappingSource)dependencies.TypeMappingSource;
+            _queryModelVisitor = queryModelVisitor;
+        }
 
         /// <inheritdoc />
         protected override Expression VisitSubQuery(SubQueryExpression expression)
@@ -199,6 +217,32 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
             default:
                 return null;
             }
+        }
+
+        protected override Expression VisitMember(MemberExpression memberExpression)
+        {
+            Check.NotNull(memberExpression, nameof(memberExpression));
+
+            var expr = base.VisitMember(memberExpression);
+            if (expr != null)
+                return expr;
+
+            // ReSharper disable HeuristicUnreachableCode
+            var properties = MemberAccessBindingExpressionVisitor.GetPropertyPath(
+                memberExpression.Expression, _queryModelVisitor.QueryCompilationContext, out _);
+            if (properties.Count == 0)
+                return null;
+            var lastPropertyType = properties[properties.Count - 1].ClrType;
+            if (_typeMappingSource.FindMapping(lastPropertyType) is NpgsqlCompositeTypeMapping compositeMapping)
+            {
+                return new CompositeMemberExpression(
+                    Visit(memberExpression.Expression),
+                    compositeMapping.NameTranslator.TranslateMemberName(memberExpression.Member.Name),
+                    memberExpression.Type);
+            }
+            // ReSharper restore HeuristicUnreachableCode
+
+            return null;
         }
     }
 }

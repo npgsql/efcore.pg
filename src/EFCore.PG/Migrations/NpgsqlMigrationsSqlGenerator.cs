@@ -659,6 +659,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             Check.NotNull(builder, nameof(builder));
 
             GenerateEnumStatements(operation, model, builder);
+            GenerateCompositeStatements(operation, model, builder);
             GenerateRangeStatements(operation, model, builder);
 
             foreach (var extension in PostgresExtension.GetPostgresExtensions(operation))
@@ -765,6 +766,74 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         }
 
         #endregion Enum management
+
+        #region Composite management
+
+        protected virtual void GenerateCompositeStatements(
+                [NotNull] AlterDatabaseOperation operation,
+                [NotNull] IModel model,
+                [NotNull] MigrationCommandListBuilder builder)
+        {
+            foreach (var compositeTypeToCreate in PostgresComposite.GetPostgresComposites(operation)
+                .Where(nc => PostgresComposite.GetPostgresComposites(operation.OldDatabase).All(oc => oc.Name != nc.Name))
+                .OrderBy(nc => nc.Ordering))
+            {
+                GenerateCreateComposite(compositeTypeToCreate, model, builder);
+            }
+
+            foreach (var compositeTypeToDrop in PostgresComposite.GetPostgresComposites(operation.OldDatabase)
+                .Where(oc => PostgresComposite.GetPostgresComposites(operation).All(nc => nc.Name != oc.Name))
+                .OrderByDescending(nc => nc.Ordering))
+            {
+                GenerateDropComposite(compositeTypeToDrop, operation.OldDatabase, builder);
+            }
+
+            // TODO: Composite field alteration is actually supported by PostgreSQL
+            // TODO: Also composite rename support
+            if (PostgresComposite.GetPostgresComposites(operation).FirstOrDefault(nc =>
+                PostgresComposite.GetPostgresComposites(operation.OldDatabase).Any(oc => oc.Name == nc.Name)
+            ) is PostgresComposite compositeTypeToAlter)
+            {
+                throw new NotSupportedException($"Altering composite type ${compositeTypeToAlter} isn't supported (for now).");
+            }
+        }
+
+        protected virtual void GenerateCreateComposite(
+            [NotNull] PostgresComposite compositeType,
+            [NotNull] IModel model,
+            [NotNull] MigrationCommandListBuilder builder)
+        {
+            var schema = GetSchemaOrDefault(compositeType.Schema, model);
+
+            // Schemas are normally created (or rather ensured) by the model differ, which scans all tables, sequences
+            // and other database objects. However, it isn't aware of enums, so we always ensure schema on enum creation.
+            if (schema != null)
+                Generate(new EnsureSchemaOperation { Name = schema }, model, builder);
+
+            builder
+                .Append("CREATE TYPE ")
+                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(compositeType.Name, schema))
+                .Append(" AS (")
+                // TODO: Schema support for the field type
+                .Append(string.Join(", ", compositeType.Fields.Select(
+                    f => $"{Dependencies.SqlGenerationHelper.DelimitIdentifier(f.Name)} {Dependencies.SqlGenerationHelper.DelimitIdentifier(f.StoreType)}")))
+                .AppendLine(");");
+        }
+
+        protected virtual void GenerateDropComposite(
+            [NotNull] PostgresComposite compositeType,
+            [CanBeNull] IAnnotatable oldDatabase,
+            [NotNull] MigrationCommandListBuilder builder)
+        {
+            var schema = GetSchemaOrDefault(compositeType.Schema, oldDatabase);
+
+            builder
+                .Append("DROP TYPE ")
+                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(compositeType.Name, schema))
+                .AppendLine(";");
+        }
+
+        #endregion Composite management
 
         #region Range management
 

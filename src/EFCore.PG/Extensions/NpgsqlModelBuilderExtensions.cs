@@ -247,6 +247,93 @@ namespace Microsoft.EntityFrameworkCore
 
         #endregion
 
+        #region Composite
+
+        /// <summary>
+        /// Registers a user-defined composite type in the model.
+        /// </summary>
+        /// <param name="modelBuilder">The model builder in which to create the composite type.</param>
+        /// <param name="schema">The schema in which to create the composite type.</param>
+        /// <param name="name">The name of the composite type to create.</param>
+        /// <param name="fields">The composite list of fields, with their names and PostgreSQL types.</param>
+        /// <returns>
+        /// The updated <see cref="ModelBuilder"/>.
+        /// </returns>
+        /// <remarks>
+        /// See: https://www.postgresql.org/docs/current/rowtypes.html
+        /// </remarks>
+        /// <exception cref="ArgumentNullException">builder</exception>
+        [NotNull]
+        public static ModelBuilder ForNpgsqlHasComposite(
+            [NotNull] this ModelBuilder modelBuilder,
+            [CanBeNull] string schema,
+            [NotNull] string name,
+            [NotNull] params (string Name, string StoreType)[] fields)
+        {
+            Check.NotNull(modelBuilder, nameof(modelBuilder));
+            Check.NotEmpty(name, nameof(name));
+            Check.NotNull(fields, nameof(fields));
+
+            modelBuilder.Model.Npgsql().GetOrAddPostgresComposite(schema, name, fields);
+            return modelBuilder;
+        }
+
+        /// <summary>
+        /// Registers a user-defined composite type in the model.
+        /// </summary>
+        /// <param name="modelBuilder">The model builder in which to create the composite type.</param>
+        /// <param name="name">The name of the composite type to create.</param>
+        /// <param name="fields">The composite list of fields, with their names and PostgreSQL types.</param>
+        /// <returns>
+        /// The updated <see cref="ModelBuilder"/>.
+        /// </returns>
+        /// <remarks>
+        /// See: https://www.postgresql.org/docs/current/rowtypes.html
+        /// </remarks>
+        /// <exception cref="ArgumentNullException">builder</exception>
+        [NotNull]
+        public static ModelBuilder ForNpgsqlHasComposite(
+            [NotNull] this ModelBuilder modelBuilder,
+            [NotNull] string name,
+            [NotNull] params (string Name, string StoreType)[] fields)
+            => modelBuilder.ForNpgsqlHasComposite(null, name, fields);
+
+        /*
+        /// <summary>
+        /// Registers a user-defined composite type in the model.
+        /// </summary>
+        /// <param name="modelBuilder">The model builder in which to create the composite type.</param>
+        /// <param name="schema">The schema in which to create the composite type.</param>
+        /// <param name="name">The name of the composite type to create.</param>
+        /// <param name="nameTranslator">
+        /// The translator for name and label inference.
+        /// Defaults to <see cref="NpgsqlSnakeCaseNameTranslator"/>.</param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns>
+        /// The updated <see cref="ModelBuilder"/>.
+        /// </returns>
+        /// <remarks>
+        /// See: https://www.postgresql.org/docs/current/rowtypes.html
+        /// </remarks>
+        /// <exception cref="ArgumentNullException">builder</exception>
+        [NotNull]
+        public static ModelBuilder ForNpgsqlHasComposite<T>(
+            [NotNull] this ModelBuilder modelBuilder,
+            [CanBeNull] string schema = null,
+            [CanBeNull] string name = null,
+            [CanBeNull] INpgsqlNameTranslator nameTranslator = null)
+        {
+            if (nameTranslator == null)
+                nameTranslator = NpgsqlConnection.GlobalTypeMapper.DefaultNameTranslator;
+
+            return modelBuilder.ForNpgsqlHasComposite(
+                schema,
+                name ?? GetTypePgName<T>(nameTranslator),
+                GetMemberPgNames<T>(nameTranslator));
+        }*/
+
+        #endregion
+
         #region Templates
 
         public static ModelBuilder HasDatabaseTemplate(
@@ -347,10 +434,9 @@ namespace Microsoft.EntityFrameworkCore
 
         // See: https://github.com/npgsql/npgsql/blob/dev/src/Npgsql/TypeMapping/TypeMapperBase.cs#L132-L138
         [NotNull]
-        static string GetTypePgName<TEnum>([NotNull] INpgsqlNameTranslator nameTranslator) where TEnum : struct, Enum
-            => typeof(TEnum).GetCustomAttribute<PgNameAttribute>()?.PgName ??
-               nameTranslator.TranslateTypeName(typeof(TEnum).Name);
-
+        static string GetTypePgName<T>([NotNull] INpgsqlNameTranslator nameTranslator)
+            => typeof(T).GetCustomAttribute<PgNameAttribute>()?.PgName ??
+               nameTranslator.TranslateTypeName(typeof(T).Name);
         // See: https://github.com/npgsql/npgsql/blob/dev/src/Npgsql/TypeHandlers/EnumHandler.cs#L118-L129
         [NotNull]
         [ItemNotNull]

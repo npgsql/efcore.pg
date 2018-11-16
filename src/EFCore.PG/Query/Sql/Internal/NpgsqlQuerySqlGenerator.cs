@@ -3,10 +3,13 @@ using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
+using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors.Internal;
 using Microsoft.EntityFrameworkCore.Query.Sql;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 using Remotion.Linq.Clauses;
 
@@ -477,6 +480,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
             //_typeMapping = parentTypeMapping;
 
             return expression;
+        }
+
+        public virtual Expression VisitCompositeMember([NotNull] CompositeMemberExpression e)
+        {
+            // Surround the expression with parentheses to prevent PostgreSQL from interpreting it as a table.
+            // See https://www.postgresql.org/docs/current/rowtypes.html#ROWTYPES-ACCESSING
+            Sql.Append('(');
+            Visit(e.Expression);
+            Sql
+                .Append(").")
+                .Append(SqlGenerator.DelimitIdentifier(e.Member));
+            return e;
         }
 
         #endregion

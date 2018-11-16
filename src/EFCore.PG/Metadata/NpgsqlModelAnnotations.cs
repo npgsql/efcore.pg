@@ -90,6 +90,24 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 
         #endregion Enum types
 
+        #region Composite types
+
+        public virtual PostgresComposite GetOrAddPostgresComposite(
+            [CanBeNull] string schema,
+            [NotNull] string name,
+            [NotNull] params (string Name, string StoreType)[] fields)
+            => PostgresComposite.GetOrAddPostgresComposite((IMutableModel)Model, schema, name, fields);
+
+        public virtual PostgresComposite GetOrAddPostgresComposite(
+            [NotNull] string name,
+            [NotNull] params (string Name, string StoreType)[] fields)
+            => GetOrAddPostgresComposite(null, name, fields);
+
+        public virtual IReadOnlyList<PostgresComposite> PostgresComposites
+            => PostgresComposite.GetPostgresComposites(Model).ToList();
+
+        #endregion Composite types
+
         #region Range types
 
         public virtual PostgresRange GetOrAddPostgresRange(

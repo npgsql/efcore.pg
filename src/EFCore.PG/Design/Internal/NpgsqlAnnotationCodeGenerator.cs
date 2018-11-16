@@ -88,6 +88,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
                         enumTypeDef.Schema, enumTypeDef.Name, enumTypeDef.Labels);
             }
 
+            if (annotation.Name.StartsWith(NpgsqlAnnotationNames.EnumPrefix))
+            {
+                var compositeTypeDef = new PostgresComposite(model, annotation.Name);
+
+                return compositeTypeDef.Schema == "public"
+                    ? new MethodCallCodeFragment(nameof(NpgsqlModelBuilderExtensions.ForNpgsqlHasComposite),
+                        compositeTypeDef.Name, compositeTypeDef.Fields)
+                    : new MethodCallCodeFragment(nameof(NpgsqlModelBuilderExtensions.ForNpgsqlHasComposite),
+                        compositeTypeDef.Schema, compositeTypeDef.Name, compositeTypeDef.Fields);
+            }
+
             return null;
         }
 

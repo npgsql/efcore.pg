@@ -15,6 +15,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using Npgsql.TypeHandlers;
 using NpgsqlTypes;
 
+using AdoTypeMapping = Npgsql.TypeMapping.NpgsqlTypeMapping;
+
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 {
     public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
@@ -238,57 +240,72 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             StoreTypeMappings = new ConcurrentDictionary<string, RelationalTypeMapping[]>(storeTypeMappings, StringComparer.OrdinalIgnoreCase);
             ClrTypeMappings = new ConcurrentDictionary<Type, RelationalTypeMapping>(clrTypeMappings);
 
-            LoadUserDefinedTypeMappings();
+            //LoadUserDefinedTypeMappings();
 
             _userRangeDefinitions = npgsqlOptions?.UserRangeDefinitions ?? new UserRangeDefinition[0];
         }
 
+        /*
         /// <summary>
-        /// To be used in case user-defined mappings are added late, after this TypeMappingSource has already been initialized.
-        /// This is basically only for test usage.
+        /// Loads global enum and composite mappings from the ADO level, and creates mappings for them at the EF Core level.
         /// </summary>
+        /// <remarks>
+        /// This method gets called from tests, allowing enum/composite tests to be added after the TypeMappingSource
+        /// is initialized.
+        /// </remarks>
         public void LoadUserDefinedTypeMappings()
-        {
-            SetupEnumMappings();
-        }
-
-        /// <summary>
-        /// Gets all global enum mappings from the ADO.NET layer and creates mappings for them
-        /// </summary>
-        void SetupEnumMappings()
         {
             foreach (var adoMapping in NpgsqlConnection.GlobalTypeMapper.Mappings.Where(m => m.TypeHandlerFactory is IEnumTypeHandlerFactory))
             {
+                var enumHandlerFactory = adoMapping.TypeHandlerFactory as IEnumTypeHandlerFactory;
+
+                // TODO: Expose MappedCompositeTypeHandlerFactory in Npgsql (but consider an interface instead)
+                if (enumHandlerFactory == null &&
+                    adoMapping.TypeHandlerFactory.GetType().Name != "MappedCompositeTypeHandlerFactory")
+                {
+                    return;
+                }
+
                 var storeType = adoMapping.PgTypeName;
                 var clrType = adoMapping.ClrTypes.SingleOrDefault();
                 if (clrType == null)
                 {
-                    // TODO: Log skipping the enum
+                    // TODO: Log skipping the enum/composite
                     continue;
                 }
-
-                var nameTranslator = ((IEnumTypeHandlerFactory)adoMapping.TypeHandlerFactory).NameTranslator;
 
                 // TODO: update with schema per https://github.com/npgsql/npgsql/issues/2121
                 var components = storeType.Split('.');
                 var schema = components.Length > 1 ? components.First() : null;
                 var name = components.Length > 1 ? string.Join(null, components.Skip(1)) : storeType;
 
-                var mapping = new NpgsqlEnumTypeMapping(name, schema, clrType, nameTranslator);
+                RelationalTypeMapping mapping;
+                if (enumHandlerFactory != null)
+                {
+                    var nameTranslator = ((IEnumTypeHandlerFactory)adoMapping.TypeHandlerFactory).NameTranslator;
+                    mapping = new NpgsqlEnumTypeMapping(name, schema, clrType, nameTranslator);
+                }
+                else
+                {
+                    // TODO: NameTranslator
+                    mapping = new NpgsqlEnumTypeMapping(name, schema, clrType);
+                }
+
                 ClrTypeMappings[clrType] = mapping;
-                StoreTypeMappings[mapping.StoreType] = new RelationalTypeMapping[] { mapping };
+                StoreTypeMappings[mapping.StoreType] = new[] { mapping };
             }
-        }
+        }*/
 
         protected override RelationalTypeMapping FindMapping(in RelationalTypeMappingInfo mappingInfo) =>
             // First, try any plugins, allowing them to override built-in mappings (e.g. NodaTime)
             base.FindMapping(mappingInfo) ??
             // Then, any mappings that have already been set up
             FindExistingMapping(mappingInfo) ??
-            // Try any array mappings which have not yet been set up
+            // Then try to see if any array, user-defined range, enum or composite mapping match.
             FindArrayMapping(mappingInfo) ??
-            // Try any user-defined range mappings which have not yet been set up
-            FindUserRangeMapping(mappingInfo);
+            FindUserRangeMapping(mappingInfo) ??
+            FindEnumMapping(mappingInfo) ??
+            FindCompositeMapping(mappingInfo);
 
         protected virtual RelationalTypeMapping FindExistingMapping(in RelationalTypeMappingInfo mappingInfo)
         {
@@ -490,6 +507,66 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             ClrTypeMappings[rangeClrType] = rangeMapping;
 
             return rangeMapping;
+        }
+
+        protected virtual RelationalTypeMapping FindEnumMapping(in RelationalTypeMappingInfo mappingInfo)
+        {
+            if (mappingInfo.ClrType?.IsEnum != true)
+                return null;   // ClrType was given and is not an enum
+
+            return null;  // NotImplemented
+        }
+
+        protected virtual RelationalTypeMapping FindCompositeMapping(in RelationalTypeMappingInfo mappingInfo)
+        {
+            var compositeMappings = NpgsqlConnection.GlobalTypeMapper.Mappings
+                .Where(m => m.TypeHandlerFactory is IMappedCompositeTypeHandlerFactory);
+
+            AdoTypeMapping adoMapping = null;
+            var storeType = mappingInfo.StoreTypeName;
+            var clrType = mappingInfo.ClrType;
+
+            if (storeType != null)
+            {
+                adoMapping = compositeMappings.SingleOrDefault(cm => cm.PgTypeName == storeType);
+
+                if (adoMapping == null)
+                    return null;
+
+                if (clrType == null)
+                {
+                    // No ClrType was provided in the incoming MappingInfo (we're scaffolding). Pick the first
+                    // (and only) ClrType specified in the ADO mapping
+                    clrType = adoMapping.ClrTypes[0];
+                }
+                if (clrType != null && adoMapping.ClrTypes.Contains(clrType))
+                {
+                    // If the incoming MappingInfo also contains a ClrType (in addition to the StoreType), make sure
+                    // it's included in the ADO mapping
+                    return null;
+                }
+            }
+            else if (clrType != null)
+                adoMapping = compositeMappings.SingleOrDefault(cm => cm.ClrTypes.Contains(clrType));
+
+            if (adoMapping == null)
+                return null;
+
+            // TODO: we need to also get the fields...
+
+            // Finally, construct a composite mapping and add it to our lookup dictionaries - next time it will be found as
+            // an existing mapping
+
+            Debug.Assert(clrType != null);
+            var components = adoMapping.PgTypeName.Split('.');
+            var schema = components.Length > 1 ? components.First() : null;
+            var name = components.Length > 1 ? string.Join(null, components.Skip(1)) : adoMapping.PgTypeName;
+            var translator = ((IMappedCompositeTypeHandlerFactory)adoMapping.TypeHandlerFactory).NameTranslator;
+            var compositeMapping = new NpgsqlCompositeTypeMapping(name, schema, clrType, translator);
+            StoreTypeMappings[adoMapping.PgTypeName] = new RelationalTypeMapping[] { compositeMapping };
+            ClrTypeMappings[clrType] = compositeMapping;
+
+            return compositeMapping;
         }
     }
 }

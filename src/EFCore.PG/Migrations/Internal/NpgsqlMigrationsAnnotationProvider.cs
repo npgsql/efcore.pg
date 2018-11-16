@@ -57,6 +57,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal
             => model.GetAnnotations().Where(a =>
                 a.Name.StartsWith(NpgsqlAnnotationNames.PostgresExtensionPrefix, StringComparison.Ordinal) ||
                 a.Name.StartsWith(NpgsqlAnnotationNames.EnumPrefix, StringComparison.Ordinal) ||
+                a.Name.StartsWith(NpgsqlAnnotationNames.CompositePrefix, StringComparison.Ordinal) ||
                 a.Name.StartsWith(NpgsqlAnnotationNames.RangePrefix, StringComparison.Ordinal));
     }
 }

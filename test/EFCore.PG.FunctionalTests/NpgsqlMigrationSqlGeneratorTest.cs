@@ -753,6 +753,44 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
         #endregion Enums
 
+        #region Composites
+
+        [Fact]
+        public void CreatePostgresComposite()
+        {
+            var op = new AlterDatabaseOperation();
+            PostgresComposite.GetOrAddPostgresComposite(op, "public", "my_composite", new[] { ("f1", "int"), ("f2", "text") });
+            Generate(op);
+
+            Assert.Equal(@"CREATE TYPE public.my_composite AS (f1 int, f2 text);" + EOL, Sql);
+        }
+
+        [Fact]
+        public void CreatePostgresCompositeWithSchema()
+        {
+            var op = new AlterDatabaseOperation();
+            PostgresComposite.GetOrAddPostgresComposite(op, "some_schema", "my_composite", new[] { ("f1", "int"), ("f2", "text") });
+            Generate(op);
+
+            Assert.Equal(
+                @"CREATE SCHEMA IF NOT EXISTS some_schema;" + EOL +
+                @"GO" + EOL + EOL +
+                @"CREATE TYPE some_schema.my_composite AS (f1 int, f2 text);" + EOL,
+                Sql);
+        }
+
+        [Fact]
+        public void DropPostgresComposite()
+        {
+            var op = new AlterDatabaseOperation();
+            PostgresComposite.GetOrAddPostgresComposite(op.OldDatabase, "public", "my_composite", new[] { ("f1", "int"), ("f2", "text") });
+            Generate(op);
+
+            Assert.Equal(@"DROP TYPE public.my_composite;" + EOL, Sql);
+        }
+
+        #endregion Composites
+
         #region PostgreSQL Storage Parameters
 
         [Fact]
