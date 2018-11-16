@@ -453,8 +453,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
-            // TODO: Rename across schema will break, see #44
-            Rename(operation.Schema, operation.Name, operation.NewName, "INDEX", builder);
+            if (operation.NewName != null &&
+                operation.NewName != operation.Name)
+            {
+                Rename(operation.Schema, operation.Name, operation.NewName, "INDEX", builder);
+            }
+
+            // N.B. indexes are always stored in the same schema as the table.
             EndStatement(builder);
         }
 
@@ -464,7 +469,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             Check.NotNull(builder, nameof(builder));
 
             var name = operation.Name;
-            if (operation.NewName != null)
+            if (operation.NewName != null &&
+                operation.NewName != operation.Name)
             {
                 Rename(operation.Schema, operation.Name, operation.NewName, "SEQUENCE", builder);
 
@@ -486,7 +492,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             Check.NotNull(builder, nameof(builder));
 
             var name = operation.Name;
-            if (operation.NewName != null)
+            if (operation.NewName != null &&
+                operation.NewName != operation.Name)
             {
                 Rename(operation.Schema, operation.Name, operation.NewName, "TABLE", builder);
 
