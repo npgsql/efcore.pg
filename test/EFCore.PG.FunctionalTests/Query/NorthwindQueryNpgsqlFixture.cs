@@ -16,6 +16,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             base.OnModelCreating(modelBuilder, context);
 
+            modelBuilder.HasPostgresExtension("uuid-ossp");
+
             modelBuilder.Entity<Customer>()
                 .Property(c => c.CustomerID)
                 .HasColumnType("varchar(5)");
