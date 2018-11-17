@@ -1533,6 +1533,29 @@ CREATE INDEX ix_b ON ""IndexMethod"" (b);",
         }
 
         [Fact]
+        public void Index_operators()
+        {
+            Test(
+                @"
+CREATE TABLE ""IndexOperators"" (a text, b text);
+CREATE INDEX ix_with ON ""IndexOperators"" (a, b varchar_pattern_ops);
+CREATE INDEX ix_without ON ""IndexOperators"" (a, b);",
+                Enumerable.Empty<string>(),
+                Enumerable.Empty<string>(),
+                dbModel =>
+                {
+                    var table = dbModel.Tables.Single();
+
+                    var indexWith = table.Indexes.Single(i => i.Name == "ix_with");
+                    Assert.Equal(new[] { null, "varchar_pattern_ops" }, indexWith.FindAnnotation(NpgsqlAnnotationNames.IndexOperators).Value);
+
+                    var indexWithout = table.Indexes.Single(i => i.Name == "ix_without");
+                    Assert.Null(indexWithout.FindAnnotation(NpgsqlAnnotationNames.IndexOperators));
+                },
+                @"DROP TABLE ""IndexOperators""");
+        }
+
+        [Fact]
         public void Comments()
         {
             Test(
