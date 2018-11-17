@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Storage;
+using NpgsqlTypes;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 {
@@ -59,8 +61,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
         [NotNull]
         static Dictionary<object, string> CreateValueMapping([NotNull] Type enumType, [NotNull] INpgsqlNameTranslator nameTranslator)
-            => Enum.GetValues(enumType)
-                   .Cast<object>()
-                   .ToDictionary(x => x, x => nameTranslator.TranslateMemberName(Enum.GetName(enumType, x)));
+            => enumType.GetFields(BindingFlags.Static | BindingFlags.Public)
+                       .ToDictionary(
+                           x => x.GetValue(null),
+                           x => x.GetCustomAttribute<PgNameAttribute>()?.PgName ?? nameTranslator.TranslateMemberName(x.Name));
     }
 }
