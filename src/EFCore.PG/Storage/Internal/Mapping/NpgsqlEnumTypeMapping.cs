@@ -59,7 +59,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
         protected override string GenerateNonNullSqlLiteral(object value) => $"'{_members[value]}'::{StoreType}";
 
-        // See: https://github.com/npgsql/npgsql/blob/6c7e70a4a44db08e0ad7eb4caf5d04056d2279c9/src/Npgsql/TypeHandlers/EnumHandler.cs#L118-L129
         [NotNull]
         static Dictionary<object, string> CreateValueMapping([NotNull] Type enumType, [NotNull] INpgsqlNameTranslator nameTranslator)
             => enumType.GetFields(BindingFlags.Static | BindingFlags.Public)
