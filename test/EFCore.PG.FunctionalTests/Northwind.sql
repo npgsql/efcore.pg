@@ -5,6 +5,8 @@ SET check_function_bodies = false;
 SET client_min_messages = warning;
 GO
 
+CREATE EXTENSION "uuid-ossp";
+
 CREATE TABLE "Employees" (
 	"EmployeeID" SERIAL,
 	"LastName" varchar (20) NOT NULL ,
