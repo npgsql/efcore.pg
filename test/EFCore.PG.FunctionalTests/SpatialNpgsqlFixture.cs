@@ -1,6 +1,4 @@
-using System;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.TestModels.SpatialModel;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
@@ -15,7 +13,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
         protected override IServiceCollection AddServices(IServiceCollection serviceCollection)
             => base.AddServices(serviceCollection)
-                .AddEntityFrameworkNpgsqlNetTopologySuite();
+                   .AddEntityFrameworkNpgsqlNetTopologySuite();
 
         public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
         {
@@ -29,7 +27,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         {
             base.OnModelCreating(modelBuilder, context);
 
-            modelBuilder.HasPostgresExtension("postgis");
+            modelBuilder.HasPostgresExtension("postgis")
+                        .HasPostgresExtension("uuid-ossp");
         }
     }
 }

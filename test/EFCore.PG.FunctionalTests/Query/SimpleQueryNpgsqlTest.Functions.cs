@@ -1,7 +1,9 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.TestModels.Northwind;
+using Microsoft.EntityFrameworkCore.TestUtilities.Xunit;
 using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
@@ -186,6 +188,24 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         }
 
         #endregion Regex
+
+        #region Guid
+
+        public override async Task Where_guid_newguid(bool isAsync)
+        {
+            await base.Where_guid_newguid(isAsync);
+            AssertContainsSqlFragment("WHERE uuid_generate_v4() <> '00000000-0000-0000-0000-000000000000'");
+        }
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public virtual async Task OrderBy_Guid_NewGuid(bool isAsync)
+        {
+            await AssertQuery<OrderDetail>(isAsync, ods => ods.OrderBy(od => Guid.NewGuid()), entryCount: 2155);
+            AssertContainsSqlFragment("ORDER BY uuid_generate_v4()");
+        }
+
+        #endregion
 
         void AssertContainsSqlFragment(string expectedFragment)
             => Assert.True(Fixture.TestSqlLoggerFactory.SqlStatements.Any(s => s.Contains(expectedFragment)));
