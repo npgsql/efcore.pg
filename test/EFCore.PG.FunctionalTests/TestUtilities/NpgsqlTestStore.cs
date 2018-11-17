@@ -416,6 +416,26 @@ SELECT pg_terminate_backend (pg_stat_activity.pid)
             return command;
         }
 
+        public Version GetPostgresVersion()
+        {
+            var opened = false;
+            if (Connection.State == ConnectionState.Closed)
+            {
+                Connection.Open();
+                opened = true;
+            }
+
+            try
+            {
+                return ((NpgsqlConnection)Connection).PostgreSqlVersion;
+            }
+            finally
+            {
+                if (opened)
+                    Connection.Close();
+            }
+        }
+
         public override void Dispose()
         {
             base.Dispose();

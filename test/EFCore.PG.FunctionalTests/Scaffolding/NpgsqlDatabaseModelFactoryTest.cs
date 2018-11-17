@@ -1556,6 +1556,35 @@ CREATE INDEX ix_without ON ""IndexOperators"" (a, b);",
         }
 
         [Fact]
+        public void Index_covering()
+        {
+            if (Fixture.TestStore.GetPostgresVersion() < new Version(11, 0))
+                return;
+
+            Test(
+                @"
+CREATE TABLE ""IndexCovering"" (a text, b text, c text);
+CREATE INDEX ix_with ON ""IndexCovering"" (a) INCLUDE (b, c);
+CREATE INDEX ix_without ON ""IndexCovering"" (a, b, c);",
+                Enumerable.Empty<string>(),
+                Enumerable.Empty<string>(),
+                dbModel =>
+                {
+                    var table = dbModel.Tables.Single();
+
+                    var indexWith = table.Indexes.Single(i => i.Name == "ix_with");
+                    Assert.Equal("a", indexWith.Columns.Single().Name);
+                    Assert.Equal(new[] { "b", "c" }, indexWith.FindAnnotation(NpgsqlAnnotationNames.IndexInclude).Value);
+
+                    var indexWithout = table.Indexes.Single(i => i.Name == "ix_without");
+                    Assert.Equal(new[] { "a", "b", "c" }, indexWithout.Columns.Select(i => i.Name).ToArray());
+                    Assert.Null(indexWithout.FindAnnotation(NpgsqlAnnotationNames.IndexInclude));
+
+                },
+                @"DROP TABLE ""IndexCovering""");
+        }
+
+        [Fact]
         public void Comments()
         {
             Test(
