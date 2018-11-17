@@ -427,6 +427,7 @@ SELECT
   cls.relname AS cls_relname,
   idxcls.relname AS idx_relname,
   indisunique,
+  {(connection.PostgreSqlVersion >= new Version(11, 0) ? "indnkeyatts" : "indnatts AS indnkeyatts")},
   indkey,
   amname,
   indclass,
@@ -478,7 +479,10 @@ WHERE
                             IsUnique = record.GetValueOrDefault<bool>("indisunique")
                         };
 
+                        var numKeyColumns = record.GetValueOrDefault<short>("indnkeyatts");
                         var columnIndices = record.GetValueOrDefault<short[]>("indkey");
+                        var tableColumns = (List<DatabaseColumn>)table.Columns;
+
                         if (columnIndices.Any(i => i == 0))
                         {
                             // Expression index, not supported
@@ -493,17 +497,34 @@ WHERE
                             */
                         }
 
-                        var columns = (List<DatabaseColumn>)table.Columns;
-                        foreach (var i in columnIndices)
+                        // Key columns come before non-key (included) columns, process them first
+                        foreach (var i in columnIndices.Take(numKeyColumns))
                         {
-                            if (columns[i - 1] is DatabaseColumn indexColumn)
-                                index.Columns.Add(indexColumn);
-
+                            if (tableColumns[i - 1] is DatabaseColumn indexKeyColumn)
+                                index.Columns.Add(indexKeyColumn);
                             else
                             {
                                 logger.UnsupportedColumnIndexSkippedWarning(index.Name, DisplayName(tableSchema, tableName));
                                 goto IndexEnd;
                             }
+                        }
+
+                        // Now go over non-key (included columns) if any are present
+                        if (columnIndices.Length > numKeyColumns)
+                        {
+                            var nonKeyColumns = new List<string>();
+                            foreach (var i in columnIndices.Skip(numKeyColumns))
+                            {
+                                if (tableColumns[i - 1] is DatabaseColumn indexKeyColumn)
+                                    nonKeyColumns.Add(indexKeyColumn.Name);
+                                else
+                                {
+                                    logger.UnsupportedColumnIndexSkippedWarning(index.Name, DisplayName(tableSchema, tableName));
+                                    goto IndexEnd;
+                                }
+                            }
+
+                            index[NpgsqlAnnotationNames.IndexInclude] = nonKeyColumns.ToArray();
                         }
 
                         if (record.GetValueOrDefault<string>("pred") is string predicate)
