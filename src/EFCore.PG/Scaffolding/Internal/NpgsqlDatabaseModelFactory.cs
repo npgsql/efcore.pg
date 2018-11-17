@@ -412,6 +412,14 @@ ORDER BY attnum";
             [NotNull] List<uint> constraintIndexes,
             [NotNull] IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
         {
+            // Load the pg_opclass table (https://www.postgresql.org/docs/current/catalog-pg-opclass.html),
+            // which is referenced by the indices we'll load below
+            var opClasses = new Dictionary<uint, (string Name, bool IsDefault)>();
+            using (var command = new NpgsqlCommand("SELECT oid, opcname, opcdefault FROM pg_opclass", connection))
+            using (var reader = command.ExecuteReader())
+                foreach (var opClass in reader.Cast<DbDataRecord>())
+                    opClasses[opClass.GetValueOrDefault<uint>("oid")] = (opClass.GetValueOrDefault<string>("opcname"), opClass.GetValueOrDefault<bool>("opcdefault"));
+
             var commandText = $@"
 SELECT
   idxcls.oid AS idx_oid,
@@ -421,6 +429,7 @@ SELECT
   indisunique,
   indkey,
   amname,
+  indclass,
   CASE
     WHEN indexprs IS NULL THEN NULL
     ELSE pg_get_expr(indexprs, cls.oid)
@@ -507,6 +516,14 @@ WHERE
                         // the annotation from the model entirely.
                         if (record.GetValueOrDefault<string>("amname") is string indexMethod && indexMethod != "btree")
                             index[NpgsqlAnnotationNames.IndexMethod] = indexMethod;
+
+                        // Handle index operator classes, which we pre-loaded
+                        var opClassNames = record
+                            .GetValueOrDefault<uint[]>("indclass")
+                            .Select(oid => opClasses.TryGetValue(oid, out var opc) && !opc.IsDefault ? opc.Name : null)
+                            .ToArray();
+                        if (opClassNames.Any(op => op != null))
+                            index[NpgsqlAnnotationNames.IndexOperators] = opClassNames;
 
                         table.Indexes.Add(index);
 
