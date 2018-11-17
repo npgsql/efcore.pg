@@ -201,7 +201,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [MemberData(nameof(IsAsyncData))]
         public virtual async Task OrderBy_Guid_NewGuid(bool isAsync)
         {
-            await AssertQuery<OrderDetail>(isAsync, ods => ods.OrderBy(od => Guid.NewGuid()));
+            await AssertQuery<OrderDetail>(isAsync, ods => ods.OrderBy(od => Guid.NewGuid()), entryCount: 2155);
             AssertContainsSqlFragment("ORDER BY uuid_generate_v4()");
         }
 
