@@ -13,6 +13,8 @@ namespace Microsoft.EntityFrameworkCore
     /// </summary>
     public static class NpgsqlDbFunctionsExtensions
     {
+        #region ILike
+
         // ReSharper disable once InconsistentNaming
         /// <summary>
         /// An implementation of the PostgreSQL ILIKE operation, which is an insensitive LIKE.
@@ -134,5 +136,45 @@ namespace Microsoft.EntityFrameworkCore
                 RegexOptions.IgnoreCase | RegexOptions.Singleline,
                 RegexTimeout);
         }
+
+        #endregion
+
+        #region NullIf
+
+        /// <summary>
+        /// Returns null if <paramref name="a"/> equals <paramref name="b"/>; otherwise, <paramref name="a"/>.
+        /// </summary>
+        /// <param name="_">The <see cref="DbFunctions"/> instance.</param>
+        /// <param name="a">The first item.</param>
+        /// <param name="b">The second item.</param>
+        /// <returns>
+        /// Null if <paramref name="a"/> equals <paramref name="b"/>; otherwise, <paramref name="a"/>.
+        /// </returns>
+        [CanBeNull]
+        public static T NullIf<T>(
+            [CanBeNull] this DbFunctions _,
+            [CanBeNull] T a,
+            [CanBeNull] T b)
+            where T : class
+            => Equals(a, b) ? default : a;
+
+        /// <summary>
+        /// Returns null if <paramref name="a"/> equals <paramref name="b"/>; otherwise, <paramref name="a"/>.
+        /// </summary>
+        /// <param name="_">The <see cref="DbFunctions"/> instance.</param>
+        /// <param name="a">The first item.</param>
+        /// <param name="b">The second item.</param>
+        /// <returns>
+        /// Null if <paramref name="a"/> equals <paramref name="b"/>; otherwise, <paramref name="a"/>.
+        /// </returns>
+        [CanBeNull]
+        public static T? NullIf<T>(
+            [CanBeNull] this DbFunctions _,
+            [CanBeNull] T? a,
+            [CanBeNull] T? b)
+            where T : struct
+            => Equals(a, b) ? default : a;
+
+        #endregion
     }
 }

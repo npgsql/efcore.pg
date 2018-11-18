@@ -15,6 +15,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             Fixture.TestSqlLoggerFactory.Clear();
         }
 
+        #region Like, ILike
+
         public override void Like_literal()
         {
             // PostgreSQL like is case-sensitive, while the EF Core "default" (i.e. SqlServer) is insensitive.
@@ -101,7 +103,40 @@ FROM ""Customers"" AS c
 WHERE c.""ContactName"" ILIKE '!%' ESCAPE '!' = TRUE");
         }
 
+        #endregion
+
+        #region NullIf
+
+        [Fact]
+        public void NullIf_with_class()
+        {
+            using (var ctx = Fixture.CreateContext())
+            {
+                var _ = ctx.Customers.Select(c => EF.Functions.NullIf(c.Address, c.City)).ToArray();
+                AssertContainsInSql("SELECT NULLIF(c.\"Address\", c.\"City\")");
+            }
+        }
+
+        [Fact]
+        public void NullIf_with_struct()
+        {
+            using (var ctx = Fixture.CreateContext())
+            {
+                var _ = ctx.OrderDetails.Select(od => EF.Functions.NullIf(od.Quantity, default(short?))).ToArray();
+                AssertContainsInSql("SELECT NULLIF(od.\"Quantity\", NULL)");
+            }
+        }
+
+        #endregion
+
+        #region Helpers
+
         void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
+
+        void AssertContainsInSql(string expected)
+            => Assert.Contains(expected, Fixture.TestSqlLoggerFactory.Sql);
+
+        #endregion
     }
 }

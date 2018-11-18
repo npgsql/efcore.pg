@@ -20,6 +20,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             new NpgsqlGuidTranslator(),
             new NpgsqlLikeTranslator(),
             new NpgsqlObjectToStringTranslator(),
+            new NpgsqlNullIfTranslator(),
             new NpgsqlStringTranslator(),
             new NpgsqlStringToLowerTranslator(),
             new NpgsqlStringToUpperTranslator(),
