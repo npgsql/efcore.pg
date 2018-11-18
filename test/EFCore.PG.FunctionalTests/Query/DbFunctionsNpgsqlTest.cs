@@ -108,7 +108,7 @@ WHERE c.""ContactName"" ILIKE '!%' ESCAPE '!' = TRUE");
         #region NullIf
 
         [Fact]
-        public void NullIf_with_class()
+        public void NullIf_function_with_class()
         {
             using (var ctx = Fixture.CreateContext())
             {
@@ -118,12 +118,32 @@ WHERE c.""ContactName"" ILIKE '!%' ESCAPE '!' = TRUE");
         }
 
         [Fact]
-        public void NullIf_with_struct()
+        public void NullIf_function_with_struct()
         {
             using (var ctx = Fixture.CreateContext())
             {
                 var _ = ctx.OrderDetails.Select(od => EF.Functions.NullIf(od.Quantity, default(short?))).ToArray();
                 AssertContainsInSql("SELECT NULLIF(od.\"Quantity\", NULL)");
+            }
+        }
+
+        [Fact]
+        public void NullIf_ternary_with_class()
+        {
+            using (var ctx = Fixture.CreateContext())
+            {
+                var _ = ctx.Customers.Select(c => c.Address == c.City ? null : c.Address).ToArray();
+                AssertContainsInSql("SELECT NULLIF(c.\"Address\", c.\"City\")");
+            }
+        }
+
+        [Fact]
+        public void NullIf_ternary_with_struct_not_translated()
+        {
+            using (var ctx = Fixture.CreateContext())
+            {
+                var _ = ctx.OrderDetails.Select(od => od.Quantity == default ? default(short?) : od.Quantity).ToArray();
+                AssertDoesNotContainInSql("SELECT NULLIF(od.\"Quantity\", NULL)");
             }
         }
 
@@ -136,6 +156,9 @@ WHERE c.""ContactName"" ILIKE '!%' ESCAPE '!' = TRUE");
 
         void AssertContainsInSql(string expected)
             => Assert.Contains(expected, Fixture.TestSqlLoggerFactory.Sql);
+
+        void AssertDoesNotContainInSql(string expected)
+            => Assert.DoesNotContain(expected, Fixture.TestSqlLoggerFactory.Sql);
 
         #endregion
     }

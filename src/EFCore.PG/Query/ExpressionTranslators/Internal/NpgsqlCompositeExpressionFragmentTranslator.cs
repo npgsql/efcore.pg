@@ -13,7 +13,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         /// The default expression fragment translators registered by the Npgsql provider.
         /// </summary>
         [NotNull] [ItemNotNull] static readonly IExpressionFragmentTranslator[] ExpressionFragmentTranslators =
-            {};
+        {
+            new NpgsqlNullIfTranslator()
+        };
 
         /// <inheritdoc />
         public NpgsqlCompositeExpressionFragmentTranslator(
