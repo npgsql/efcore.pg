@@ -262,7 +262,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// See: https://www.postgresql.org/docs/current/rowtypes.html
         /// </remarks>
-        /// <exception cref="ArgumentNullException">builder</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="modelBuilder"/></exception>
         [NotNull]
         public static ModelBuilder ForNpgsqlHasComposite(
             [NotNull] this ModelBuilder modelBuilder,
@@ -271,6 +271,7 @@ namespace Microsoft.EntityFrameworkCore
             [NotNull] params (string Name, string StoreType)[] fields)
         {
             Check.NotNull(modelBuilder, nameof(modelBuilder));
+            Check.NullButNotEmpty(schema, nameof(schema));
             Check.NotEmpty(name, nameof(name));
             Check.NotNull(fields, nameof(fields));
 
@@ -290,7 +291,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// See: https://www.postgresql.org/docs/current/rowtypes.html
         /// </remarks>
-        /// <exception cref="ArgumentNullException">builder</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="modelBuilder"/></exception>
         [NotNull]
         public static ModelBuilder ForNpgsqlHasComposite(
             [NotNull] this ModelBuilder modelBuilder,

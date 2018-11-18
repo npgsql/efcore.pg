@@ -4,6 +4,7 @@ using System.Linq;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
@@ -26,6 +27,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             [NotNull] string name,
             [NotNull] params (string Name, string StoreType)[] fields)
         {
+            Check.NotNull(annotatable, nameof(annotatable));
+            Check.NullButNotEmpty(schema, nameof(schema));
+            Check.NotNull(name, nameof(name));
+            Check.NullButNotEmpty(fields, nameof(fields));
+
             if (FindPostgresComposite(annotatable, schema, name) is PostgresComposite CompositeType)
                 return CompositeType;
 
@@ -55,6 +61,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             [NotNull] string name)
         {
             Check.NotNull(annotatable, nameof(annotatable));
+            Check.NullButNotEmpty(schema, nameof(schema));
             Check.NotEmpty(name, nameof(name));
 
             var annotationName = BuildAnnotationName(schema, name);

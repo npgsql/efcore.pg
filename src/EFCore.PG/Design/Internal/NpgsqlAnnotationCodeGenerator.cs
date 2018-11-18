@@ -88,7 +88,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
                         enumTypeDef.Schema, enumTypeDef.Name, enumTypeDef.Labels);
             }
 
-            if (annotation.Name.StartsWith(NpgsqlAnnotationNames.EnumPrefix))
+            if (annotation.Name.StartsWith(NpgsqlAnnotationNames.CompositePrefix))
             {
                 var compositeTypeDef = new PostgresComposite(model, annotation.Name);
 
