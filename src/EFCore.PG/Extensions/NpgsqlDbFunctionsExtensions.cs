@@ -151,12 +151,7 @@ namespace Microsoft.EntityFrameworkCore
         /// Null if <paramref name="a"/> equals <paramref name="b"/>; otherwise, <paramref name="a"/>.
         /// </returns>
         [CanBeNull]
-        public static T NullIf<T>(
-            [CanBeNull] this DbFunctions _,
-            [CanBeNull] T a,
-            [CanBeNull] T b)
-            where T : class
-            => Equals(a, b) ? default : a;
+        public static T NullIf<T>([CanBeNull] this DbFunctions _, [CanBeNull] T a, [CanBeNull] T b) where T : class => Equals(a, b) ? default : a;
 
         /// <summary>
         /// Returns null if <paramref name="a"/> equals <paramref name="b"/>; otherwise, <paramref name="a"/>.
@@ -168,12 +163,7 @@ namespace Microsoft.EntityFrameworkCore
         /// Null if <paramref name="a"/> equals <paramref name="b"/>; otherwise, <paramref name="a"/>.
         /// </returns>
         [CanBeNull]
-        public static T? NullIf<T>(
-            [CanBeNull] this DbFunctions _,
-            [CanBeNull] T? a,
-            [CanBeNull] T? b)
-            where T : struct
-            => Equals(a, b) ? default : a;
+        public static T? NullIf<T>([CanBeNull] this DbFunctions _, [CanBeNull] T? a, [CanBeNull] T? b) where T : struct => Equals(a, b) ? default : a;
 
         #endregion
     }

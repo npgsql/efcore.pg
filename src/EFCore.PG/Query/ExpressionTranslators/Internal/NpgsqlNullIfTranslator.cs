@@ -18,14 +18,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         /// <inheritdoc />
         [CanBeNull]
         public virtual Expression Translate(MethodCallExpression e)
-        {
-            if (e.Method.DeclaringType != typeof(NpgsqlDbFunctionsExtensions))
-                return null;
-
-            if (e.Method.Name == nameof(NpgsqlDbFunctionsExtensions.NullIf))
-                return new SqlFunctionExpression("NULLIF", e.Arguments[1].Type, e.Arguments.Skip(1));
-
-            return null;
-        }
+            => e.Method.DeclaringType == typeof(NpgsqlDbFunctionsExtensions) &&
+               e.Method.Name == nameof(NpgsqlDbFunctionsExtensions.NullIf)
+                ? new SqlFunctionExpression("NULLIF", e.Arguments[1].Type, e.Arguments.Skip(1))
+                : null;
     }
 }
