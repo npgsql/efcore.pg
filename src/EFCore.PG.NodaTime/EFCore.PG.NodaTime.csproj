@@ -14,7 +14,7 @@
     <PackageTags>npgsql;postgresql;postgres;Entity Framework Core;entity-framework-core;ef;efcore;orm;sql;nodatime</PackageTags>
     <Copyright>Copyright 2017 © The Npgsql Development Team</Copyright>
     <PackageIconUrl>http://www.npgsql.org/img/postgresql.gif</PackageIconUrl>
-    <PackageLicenseUrl>https://raw.githubusercontent.com/npgsql/Npgsql.EntityFrameworkCore.PostgreSQL/dev/LICENSE.txt</PackageLicenseUrl>
+    <PackageLicenseExpression>PostgreSQL</PackageLicenseExpression>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>git://github.com/npgsql/Npgsql.EntityFrameworkCore.PostgreSQL</RepositoryUrl>
     <LangVersion>latest</LangVersion>
