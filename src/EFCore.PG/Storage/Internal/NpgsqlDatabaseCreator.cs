@@ -352,9 +352,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             var operations = Dependencies.ModelDiffer.GetDifferences(null, Dependencies.Model);
             var commands = Dependencies.MigrationsSqlGenerator.Generate(operations, Dependencies.Model);
 
-            // Adding a PostgreSQL extension might define new types (e.g. hstore), which we
-            // Npgsql to reload
-            var reloadTypes = operations.Any(o => o is AlterDatabaseOperation && PostgresExtension.GetPostgresExtensions(o).Any());
+            // If a PostgreSQL extension, enum or range was added, we want Npgsql to reload all types at the ADO.NET level.
+            var reloadTypes = operations.Any(o =>
+                o is AlterDatabaseOperation && (
+                    PostgresExtension.GetPostgresExtensions(o).Any() ||
+                    PostgresEnum.GetPostgresEnums(o).Any()
+                )
+            );
 
             try
             {
@@ -369,12 +373,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 // (happens in the tests). Simply ignore the error.
             }
 
-            // TODO: Not async
             if (reloadTypes)
             {
-                var npgsqlConn = (NpgsqlConnection)_connection.DbConnection;
-                if (npgsqlConn.FullState == ConnectionState.Open)
-                    npgsqlConn.ReloadTypes();
+                await _connection.OpenAsync(cancellationToken);
+                try
+                {
+                    // TODO: Not async
+                    ((NpgsqlConnection)_connection.DbConnection).ReloadTypes();
+                }
+                catch
+                {
+                    _connection.Close();
+                }
             }
         }
 
