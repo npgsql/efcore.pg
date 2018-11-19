@@ -787,7 +787,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             // Schemas are normally created (or rather ensured) by the model differ, which scans all tables, sequences
             // and other database objects. However, it isn't aware of ranges, so we always ensure schema on range creation.
             if (rangeType.Schema != null)
-                Generate(new EnsureSchemaOperation { Name=rangeType.Schema }, model, builder);
+                Generate(new EnsureSchemaOperation { Name = rangeType.Schema }, model, builder);
 
             builder
                 .Append("CREATE TYPE ")
