@@ -1,5 +1,4 @@
 using System;
-using System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
@@ -63,8 +62,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         public NpgsqlTypeMappingSourceTest()
         {
             var builder = new DbContextOptionsBuilder();
-            new NpgsqlDbContextOptionsBuilder(builder).MapRange("floatrange", typeof(float));
-            new NpgsqlDbContextOptionsBuilder(builder).MapRange("dummyrange", typeof(DummyType), "dummy");
+            new NpgsqlDbContextOptionsBuilder(builder).MapRange<float>("floatrange");
+            new NpgsqlDbContextOptionsBuilder(builder).MapRange<DummyType>("dummyrange", subtypeName: "dummy");
             var options = new NpgsqlOptions();
             options.Initialize(builder.Options);
 
@@ -74,6 +73,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
                     Array.Empty<ITypeMappingSourcePlugin>()),
                 new RelationalTypeMappingSourceDependencies(
                     new[] { new DummyTypeMappingSourcePlugin() }),
+                new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
                 options);
         }
 

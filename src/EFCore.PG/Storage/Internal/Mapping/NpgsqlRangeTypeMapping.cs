@@ -10,21 +10,43 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 {
     public class NpgsqlRangeTypeMapping : NpgsqlTypeMapping
     {
+        [NotNull] readonly ISqlGenerationHelper _sqlGenerationHelper;
+
         public RelationalTypeMapping SubtypeMapping { get; }
 
         public NpgsqlRangeTypeMapping(
             [NotNull] string storeType,
             [NotNull] Type clrType,
-            [NotNull] RelationalTypeMapping subtypeMapping)
-            : base(storeType, clrType, GenerateNpgsqlDbType(subtypeMapping))
-        => SubtypeMapping = subtypeMapping;
+            [NotNull] RelationalTypeMapping subtypeMapping,
+            [NotNull] ISqlGenerationHelper sqlGenerationHelper)
+            : this(storeType, null, clrType, subtypeMapping, sqlGenerationHelper) {}
 
-        protected NpgsqlRangeTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
-            : base(parameters, npgsqlDbType) { }
+        public NpgsqlRangeTypeMapping(
+            [NotNull] string storeType,
+            [CanBeNull] string storeTypeSchema,
+            [NotNull] Type clrType,
+            [NotNull] RelationalTypeMapping subtypeMapping,
+            [NotNull] ISqlGenerationHelper sqlGenerationHelper)
+            : base(sqlGenerationHelper.DelimitIdentifier(storeType, storeTypeSchema), clrType, GenerateNpgsqlDbType(subtypeMapping))
+        {
+            SubtypeMapping = subtypeMapping;
+            _sqlGenerationHelper = sqlGenerationHelper;
+        }
+
+        protected NpgsqlRangeTypeMapping(
+            RelationalTypeMappingParameters parameters,
+            NpgsqlDbType npgsqlDbType,
+            [NotNull] RelationalTypeMapping subtypeMapping,
+            [NotNull] ISqlGenerationHelper sqlGenerationHelper)
+            : base(parameters, npgsqlDbType)
+        {
+            SubtypeMapping = subtypeMapping;
+            _sqlGenerationHelper = sqlGenerationHelper;
+        }
 
         [NotNull]
         protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
-            => new NpgsqlRangeTypeMapping(parameters, NpgsqlDbType);
+            => new NpgsqlRangeTypeMapping(parameters, NpgsqlDbType, SubtypeMapping, _sqlGenerationHelper);
 
         protected override string GenerateNonNullSqlLiteral(object value)
         {

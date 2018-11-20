@@ -33,7 +33,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             if (FindPostgresRange(annotatable, schema, name) is PostgresRange rangeType)
                 return rangeType;
 
-            rangeType = new PostgresRange(annotatable, BuildAnnotationName(schema, name));
+            rangeType = new PostgresRange(annotatable, BuildAnnotationName(annotatable, schema, name));
             rangeType.SetData(subtype, canonicalFunction, subtypeOpClass, collation, subtypeDiff);
             return rangeType;
         }
@@ -47,27 +47,31 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             Check.NotNull(annotatable, nameof(annotatable));
             Check.NotEmpty(name, nameof(name));
 
-            var annotationName = BuildAnnotationName(schema, name);
+            var annotationName = BuildAnnotationName(annotatable, schema, name);
 
             return annotatable[annotationName] == null ? null : new PostgresRange(annotatable, annotationName);
         }
 
         [NotNull]
-        static string BuildAnnotationName(string schema, string name)
-            => NpgsqlAnnotationNames.RangePrefix + (schema == null ? name : schema + '.' + name);
+        static string BuildAnnotationName([NotNull] IAnnotatable annotatable, [CanBeNull] string schema, [NotNull] string name)
+            => !string.IsNullOrEmpty(schema)
+                ? $"{NpgsqlAnnotationNames.RangePrefix}{schema}.{name}"
+                : annotatable[RelationalAnnotationNames.DefaultSchema] is string defaultSchema && !string.IsNullOrEmpty(defaultSchema)
+                    ? $"{NpgsqlAnnotationNames.RangePrefix}{defaultSchema}.{name}"
+                    : $"{NpgsqlAnnotationNames.RangePrefix}{name}";
 
         [NotNull]
         public static IEnumerable<PostgresRange> GetPostgresRanges([NotNull] IAnnotatable annotatable)
             => Check.NotNull(annotatable, nameof(annotatable))
-                .GetAnnotations()
-                .Where(a => a.Name.StartsWith(NpgsqlAnnotationNames.RangePrefix, StringComparison.Ordinal))
-                .Select(a => new PostgresRange(annotatable, a.Name));
+                    .GetAnnotations()
+                    .Where(a => a.Name.StartsWith(NpgsqlAnnotationNames.RangePrefix, StringComparison.Ordinal))
+                    .Select(a => new PostgresRange(annotatable, a.Name));
 
         [NotNull]
         public Annotatable Annotatable => (Annotatable)_annotatable;
 
-        [NotNull]
-        public string Schema => GetData().Schema;
+        [CanBeNull]
+        public string Schema => GetData().Schema ?? (string)_annotatable[RelationalAnnotationNames.DefaultSchema];
 
         [NotNull]
         public string Name => GetData().Name;

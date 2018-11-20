@@ -94,24 +94,28 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// Returns a copy of the current instance configured with the specified range mapping.
         /// </summary>
         [NotNull]
-        public virtual NpgsqlOptionsExtension WithUserRangeDefinition<TSubtype>(string rangeName, string subtypeName)
-        {
-            var clone = (NpgsqlOptionsExtension)Clone();
-
-            clone._userRangeDefinitions.Add(new UserRangeDefinition(rangeName, typeof(TSubtype), subtypeName));
-
-            return clone;
-        }
+        public virtual NpgsqlOptionsExtension WithUserRangeDefinition<TSubtype>(
+            [NotNull] string rangeName,
+            [CanBeNull] string schemaName = null,
+            [CanBeNull] string subtypeName = null)
+            => WithUserRangeDefinition(rangeName, schemaName, typeof(TSubtype), subtypeName);
 
         /// <summary>
         /// Returns a copy of the current instance configured with the specified range mapping.
         /// </summary>
         [NotNull]
-        public virtual NpgsqlOptionsExtension WithUserRangeDefinition(string rangeName, Type subtypeClrType, string subtypeName)
+        public virtual NpgsqlOptionsExtension WithUserRangeDefinition(
+            [NotNull] string rangeName,
+            [CanBeNull] string schemaName,
+            [NotNull] Type subtypeClrType,
+            [CanBeNull] string subtypeName)
         {
+            Check.NotEmpty(rangeName, nameof(rangeName));
+            Check.NotNull(subtypeClrType, nameof(subtypeClrType));
+
             var clone = (NpgsqlOptionsExtension)Clone();
 
-            clone._userRangeDefinitions.Add(new UserRangeDefinition(rangeName, subtypeClrType, subtypeName));
+            clone._userRangeDefinitions.Add(new UserRangeDefinition(rangeName, schemaName, subtypeClrType, subtypeName));
 
             return clone;
         }
@@ -196,29 +200,53 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
 
     public class UserRangeDefinition
     {
-        /// <summary>The name of the PostgreSQL range type to be mapped.</summary>
+        /// <summary>
+        /// The name of the PostgreSQL range type to be mapped.
+        /// </summary>
+        [NotNull]
         public string RangeName { get; }
+
+        /// <summary>
+        /// The PostgreSQL schema in which the range is defined. If null, the default schema is used
+        /// (which is public unless changed on the model).
+        /// </summary>
+        [CanBeNull]
+        public string SchemaName { get; }
+
         /// <summary>
         /// The CLR type of the range's subtype (or element).
         /// The actual mapped type will be an <see cref="NpgsqlRange{T}"/> over this type.
         /// </summary>
+        [NotNull]
         public Type SubtypeClrType { get; }
+
         /// <summary>
         /// Optionally, the name of the range's PostgreSQL subtype (or element).
         /// This is usually not needed - the subtype will be inferred based on <see cref="SubtypeClrType"/>.
         /// </summary>
+        [CanBeNull]
         public string SubtypeName { get; }
 
-        public UserRangeDefinition(string rangeName, Type subtypeClrType, string subtypeName)
+        public UserRangeDefinition(
+            [NotNull] string rangeName,
+            [CanBeNull] string schemaName,
+            [NotNull] Type subtypeClrType,
+            [CanBeNull] string subtypeName)
         {
-            RangeName = rangeName;
-            SubtypeClrType = subtypeClrType;
+            RangeName = Check.NotEmpty(rangeName, nameof(rangeName));
+            SchemaName = schemaName;
+            SubtypeClrType = Check.NotNull(subtypeClrType, nameof(subtypeClrType));
             SubtypeName = subtypeName;
         }
 
-        public void Deconstruct(out string rangeName, out Type subtypeClrType, out string subtypeName)
+        public void Deconstruct(
+            [NotNull] out string rangeName,
+            [CanBeNull] out string schemaName,
+            [NotNull] out Type subtypeClrType,
+            [CanBeNull] out string subtypeName)
         {
             rangeName = RangeName;
+            schemaName = SchemaName;
             subtypeClrType = SubtypeClrType;
             subtypeName = SubtypeName;
         }

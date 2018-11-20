@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 using Npgsql.TypeHandlers;
 using NpgsqlTypes;
 
@@ -19,6 +20,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 {
     public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
     {
+        [NotNull] readonly ISqlGenerationHelper _sqlGenerationHelper;
+
         public ConcurrentDictionary<string, RelationalTypeMapping[]> StoreTypeMappings { get; }
         public ConcurrentDictionary<Type, RelationalTypeMapping> ClrTypeMappings { get; }
 
@@ -105,16 +108,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
         public NpgsqlTypeMappingSource([NotNull] TypeMappingSourceDependencies dependencies,
             [NotNull] RelationalTypeMappingSourceDependencies relationalDependencies,
+            [NotNull] ISqlGenerationHelper sqlGenerationHelper,
             [CanBeNull] INpgsqlOptions npgsqlOptions=null)
             : base(dependencies, relationalDependencies)
         {
+            _sqlGenerationHelper = Check.NotNull(sqlGenerationHelper, nameof(sqlGenerationHelper));
+
             // Initialize some mappings which depend on other mappings
-            _int4range = new NpgsqlRangeTypeMapping("int4range", typeof(NpgsqlRange<int>),      _int4);
-            _int8range = new NpgsqlRangeTypeMapping("int8range", typeof(NpgsqlRange<long>),     _int8);
-            _numrange  = new NpgsqlRangeTypeMapping("numrange",  typeof(NpgsqlRange<decimal>),  _numeric);
-            _tsrange   = new NpgsqlRangeTypeMapping("tsrange",   typeof(NpgsqlRange<DateTime>), _timestamp);
-            _tstzrange = new NpgsqlRangeTypeMapping("tstzrange", typeof(NpgsqlRange<DateTime>), _timestamptz);
-            _daterange = new NpgsqlRangeTypeMapping("daterange", typeof(NpgsqlRange<DateTime>), _timestamptz);
+            _int4range = new NpgsqlRangeTypeMapping("int4range", typeof(NpgsqlRange<int>),      _int4,        sqlGenerationHelper);
+            _int8range = new NpgsqlRangeTypeMapping("int8range", typeof(NpgsqlRange<long>),     _int8,        sqlGenerationHelper);
+            _numrange  = new NpgsqlRangeTypeMapping("numrange",  typeof(NpgsqlRange<decimal>),  _numeric,     sqlGenerationHelper);
+            _tsrange   = new NpgsqlRangeTypeMapping("tsrange",   typeof(NpgsqlRange<DateTime>), _timestamp,   sqlGenerationHelper);
+            _tstzrange = new NpgsqlRangeTypeMapping("tstzrange", typeof(NpgsqlRange<DateTime>), _timestamptz, sqlGenerationHelper);
+            _daterange = new NpgsqlRangeTypeMapping("daterange", typeof(NpgsqlRange<DateTime>), _timestamptz, sqlGenerationHelper);
 
             // Note that PostgreSQL has aliases to some built-in type name aliases (e.g. int4 for integer),
             // these are mapped as well.
@@ -485,9 +491,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
             // Finally, construct a range mapping and add it to our lookup dictionaries - next time it will be found as
             // an existing mapping
-            var rangeMapping = new NpgsqlRangeTypeMapping(rangeDefinition.RangeName, rangeClrType, subtypeMapping);
-            StoreTypeMappings[rangeDefinition.RangeName] = new RelationalTypeMapping[] { rangeMapping };
-            ClrTypeMappings[rangeClrType] = rangeMapping;
+            var rangeMapping = new NpgsqlRangeTypeMapping(rangeDefinition.RangeName, rangeDefinition.SchemaName, rangeClrType, subtypeMapping, _sqlGenerationHelper);
+            StoreTypeMappings[rangeMapping.StoreType] = new RelationalTypeMapping[] { rangeMapping };
+            ClrTypeMappings[rangeMapping.ClrType] = rangeMapping;
 
             return rangeMapping;
         }

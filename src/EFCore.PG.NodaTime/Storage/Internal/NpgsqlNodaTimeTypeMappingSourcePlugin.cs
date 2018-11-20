@@ -41,14 +41,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         /// <summary>
         /// Constructs an instance of the <see cref="NpgsqlNodaTimeTypeMappingSourcePlugin"/> class.
         /// </summary>
-        public NpgsqlNodaTimeTypeMappingSourcePlugin()
+        public NpgsqlNodaTimeTypeMappingSourcePlugin([NotNull] ISqlGenerationHelper sqlGenerationHelper)
         {
-            _timestampLocalDateTimeRange = new NpgsqlRangeTypeMapping("tsrange", typeof(NpgsqlRange<LocalDateTime>), _timestampLocalDateTime);
-            _timestampInstantRange = new NpgsqlRangeTypeMapping("tsrange", typeof(NpgsqlRange<Instant>), _timestampInstant);
-            _timestamptzInstantRange = new NpgsqlRangeTypeMapping("tstzrange", typeof(NpgsqlRange<Instant>), _timestamptzInstant);
-            _timestamptzZonedDateTimeRange = new NpgsqlRangeTypeMapping("tstzrange", typeof(NpgsqlRange<ZonedDateTime>), _timestamptzZonedDateTime);
-            _timestamptzOffsetDateTimeRange = new NpgsqlRangeTypeMapping("tstzrange", typeof(NpgsqlRange<OffsetDateTime>), _timestamptzOffsetDateTime);
-            _dateRange = new NpgsqlRangeTypeMapping("daterange", typeof(NpgsqlRange<LocalDate>), _date);
+            _timestampLocalDateTimeRange = new NpgsqlRangeTypeMapping("tsrange", typeof(NpgsqlRange<LocalDateTime>), _timestampLocalDateTime, sqlGenerationHelper);
+            _timestampInstantRange = new NpgsqlRangeTypeMapping("tsrange", typeof(NpgsqlRange<Instant>), _timestampInstant, sqlGenerationHelper);
+            _timestamptzInstantRange = new NpgsqlRangeTypeMapping("tstzrange", typeof(NpgsqlRange<Instant>), _timestamptzInstant, sqlGenerationHelper);
+            _timestamptzZonedDateTimeRange = new NpgsqlRangeTypeMapping("tstzrange", typeof(NpgsqlRange<ZonedDateTime>), _timestamptzZonedDateTime, sqlGenerationHelper);
+            _timestamptzOffsetDateTimeRange = new NpgsqlRangeTypeMapping("tstzrange", typeof(NpgsqlRange<OffsetDateTime>), _timestamptzOffsetDateTime, sqlGenerationHelper);
+            _dateRange = new NpgsqlRangeTypeMapping("daterange", typeof(NpgsqlRange<LocalDate>), _date, sqlGenerationHelper);
 
             var storeTypeMappings = new Dictionary<string, RelationalTypeMapping[]>(StringComparer.OrdinalIgnoreCase)
             {
