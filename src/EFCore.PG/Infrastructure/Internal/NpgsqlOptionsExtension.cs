@@ -207,7 +207,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         public string RangeName { get; }
 
         /// <summary>
-        /// The PostgreSQL schema in which the range is defined. If null, the default schema is assumed.
+        /// The PostgreSQL schema in which the range is defined. If null, the default schema is used
+        /// (which is public unless changed on the model).
         /// </summary>
         [CanBeNull]
         public string SchemaName { get; }

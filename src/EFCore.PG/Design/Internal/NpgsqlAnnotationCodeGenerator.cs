@@ -90,6 +90,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             {
                 var rangeTypeDef = new PostgresRange(model, annotation.Name);
 
+                if (rangeTypeDef.CanonicalFunction == null &&
+                    rangeTypeDef.SubtypeOpClass == null &&
+                    rangeTypeDef.Collation == null &&
+                    rangeTypeDef.SubtypeDiff == null)
+                {
+                    return new MethodCallCodeFragment(nameof(NpgsqlModelBuilderExtensions.ForNpgsqlHasRange),
+                        rangeTypeDef.Schema == "public" ? null : rangeTypeDef.Schema,
+                        rangeTypeDef.Name,
+                        rangeTypeDef.Subtype);
+                }
+
                 return new MethodCallCodeFragment(nameof(NpgsqlModelBuilderExtensions.ForNpgsqlHasRange),
                     rangeTypeDef.Schema == "public" ? null : rangeTypeDef.Schema,
                     rangeTypeDef.Name,
