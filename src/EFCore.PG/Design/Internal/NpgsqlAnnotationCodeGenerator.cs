@@ -14,9 +14,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
     public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
     {
         public NpgsqlAnnotationCodeGenerator([NotNull] AnnotationCodeGeneratorDependencies dependencies)
-            : base(dependencies)
-        {
-        }
+            : base(dependencies) {}
 
         public override bool IsHandledByConvention(IModel model, IAnnotation annotation)
         {
@@ -86,6 +84,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
                         enumTypeDef.Name, enumTypeDef.Labels)
                     : new MethodCallCodeFragment(nameof(NpgsqlModelBuilderExtensions.ForNpgsqlHasEnum),
                         enumTypeDef.Schema, enumTypeDef.Name, enumTypeDef.Labels);
+            }
+
+            if (annotation.Name.StartsWith(NpgsqlAnnotationNames.RangePrefix))
+            {
+                var rangeTypeDef = new PostgresRange(model, annotation.Name);
+
+                return new MethodCallCodeFragment(nameof(NpgsqlModelBuilderExtensions.ForNpgsqlHasRange),
+                    rangeTypeDef.Schema == "public" ? null : rangeTypeDef.Schema,
+                    rangeTypeDef.Name,
+                    rangeTypeDef.Subtype,
+                    rangeTypeDef.CanonicalFunction,
+                    rangeTypeDef.SubtypeOpClass,
+                    rangeTypeDef.Collation,
+                    rangeTypeDef.SubtypeDiff);
             }
 
             return null;
