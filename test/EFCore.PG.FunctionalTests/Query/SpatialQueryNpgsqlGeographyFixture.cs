@@ -3,6 +3,7 @@ using GeoAPI;
 using GeoAPI.Geometries;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.TestModels.SpatialModel;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using NetTopologySuite;
@@ -40,7 +41,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             NpgsqlConnection.GlobalTypeMapper.UseNetTopologySuite();
 
             return base.AddServices(serviceCollection)
-                .AddEntityFrameworkNpgsqlNetTopologySuite();
+                       .AddEntityFrameworkNpgsqlNetTopologySuite();
         }
 
         public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
@@ -56,6 +57,24 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             base.OnModelCreating(modelBuilder, context);
 
             modelBuilder.HasPostgresExtension("postgis");
+
+            modelBuilder.Entity<PointEntity>()
+                        .Property(e => e.Point)
+                        .ForNpgsqlHasSpatialType("POINT");
+
+            modelBuilder.Entity<PointEntity>()
+                        .Property(e => e.ConcretePoint)
+                        .ForNpgsqlHasSpatialType("POINT")
+                        .ForNpgsqlHasSrid(4326);
+
+            modelBuilder.Entity<LineStringEntity>()
+                        .Property(e => e.LineString)
+                        .ForNpgsqlHasSpatialType("LINESTRING");
+
+            modelBuilder.Entity<MultiLineStringEntity>()
+                        .Property(e => e.MultiLineString)
+                        .ForNpgsqlHasSpatialType("MULTILINESTRING")
+                        .ForNpgsqlHasSrid(4326);
         }
     }
 }

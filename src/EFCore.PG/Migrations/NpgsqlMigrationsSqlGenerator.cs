@@ -957,23 +957,34 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 }
             }
 
-            base.ColumnDefinition(
-                schema,
-                table,
-                name,
-                clrType,
-                type,
-                unicode,
-                maxLength,
-                fixedLength,
-                rowVersion,
-                nullable,
-                defaultValue,
-                defaultValueSql,
-                computedColumnSql,
-                annotatable,
-                model,
-                builder);
+            builder
+                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(name))
+                .Append(' ')
+                .Append(type);
+
+            if (string.Equals(type, "geography", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(type, "geometry", StringComparison.OrdinalIgnoreCase))
+            {
+                if (annotatable[NpgsqlAnnotationNames.SpatialType] is string spatialType)
+                {
+                    builder
+                        .Append('(')
+                        .Append(spatialType);
+
+                    if (annotatable[NpgsqlAnnotationNames.Srid] is int srid)
+                    {
+                        builder
+                            .Append(',')
+                            .Append(srid);
+                    }
+
+                    builder.Append(')');
+                }
+            }
+
+            builder.Append(nullable ? " NULL" : " NOT NULL");
+
+            DefaultValue(defaultValue, defaultValueSql, builder);
 
             switch (valueGenerationStrategy)
             {

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.TestModels.SpatialModel;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
@@ -29,6 +30,24 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
             modelBuilder.HasPostgresExtension("postgis")
                         .HasPostgresExtension("uuid-ossp");
+
+            modelBuilder.Entity<PointEntity>()
+                        .Property(e => e.Point)
+                        .ForNpgsqlHasSpatialType("POINT");
+
+            modelBuilder.Entity<PointEntity>()
+                        .Property(e => e.ConcretePoint)
+                        .ForNpgsqlHasSpatialType("POINT")
+                        .ForNpgsqlHasSrid(0);
+
+            modelBuilder.Entity<LineStringEntity>()
+                        .Property(e => e.LineString)
+                        .ForNpgsqlHasSpatialType("LINESTRING");
+
+            modelBuilder.Entity<MultiLineStringEntity>()
+                        .Property(e => e.MultiLineString)
+                        .ForNpgsqlHasSpatialType("MULTILINESTRING")
+                        .ForNpgsqlHasSrid(0);
         }
     }
 }

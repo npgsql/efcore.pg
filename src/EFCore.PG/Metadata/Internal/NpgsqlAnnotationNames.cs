@@ -19,6 +19,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
         public const string Tablespace = Prefix + "Tablespace";
         public const string StorageParameterPrefix = Prefix + "StorageParameter:";
         public const string Comment = Prefix + "Comment";
+        public const string SpatialType = Prefix + "SpatialType";
+        public const string Srid = Prefix + "Srid";
 
         // Database model annotations
 

@@ -42,6 +42,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
         /// </summary>
         protected override bool ShouldThrowOnInvalidConfiguration => Annotations.ConfigurationSource == ConfigurationSource.Explicit;
 
+        /// <summary>
+        ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
+        ///     directly from your code. This API may change or be removed in future releases.
+        /// </summary>
+        public virtual bool HasSpatialType(string value) => SetSpatialType(value);
+
+        /// <summary>
+        ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
+        ///     directly from your code. This API may change or be removed in future releases.
+        /// </summary>
+        public virtual bool HasSrid(int? value) => SetSrid(value);
+
 #pragma warning disable 109
         /// <summary>
         ///     This API supports the Entity Framework Core infrastructure and is not intended to be used

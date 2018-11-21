@@ -319,5 +319,45 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             => Annotations.SetAnnotation(
                 NpgsqlAnnotationNames.Comment,
                 Check.NullButNotEmpty(value, nameof(value)));
+
+        /// <summary>
+        /// Gets or sets the spatial type to use when creating a column for this property.
+        /// </summary>
+        public virtual string SpatialType
+        {
+            get => (string)Annotations.Metadata[NpgsqlAnnotationNames.SpatialType];
+            [param: CanBeNull]
+            set => SetSpatialType(value);
+        }
+
+        /// <summary>
+        /// Sets the spatial type to use when creating a column for this property.
+        /// </summary>
+        /// <param name="value">The SRID.</param>
+        /// <returns>
+        /// True if the annotation was set; otherwise, false.
+        /// </returns>
+        protected virtual bool SetSpatialType(string value)
+            => Annotations.SetAnnotation(NpgsqlAnnotationNames.SpatialType, value);
+
+        /// <summary>
+        /// Gets or sets the SRID to use when creating a column for this property.
+        /// </summary>
+        public virtual int? Srid
+        {
+            get => (int?)Annotations.Metadata[NpgsqlAnnotationNames.Srid];
+            [param: CanBeNull]
+            set => SetSrid(value);
+        }
+
+        /// <summary>
+        /// Sets the SRID to use when creating a column for this property.
+        /// </summary>
+        /// <param name="value">The SRID.</param>
+        /// <returns>
+        /// True if the annotation was set; otherwise, false.
+        /// </returns>
+        protected virtual bool SetSrid(int? value)
+            => Annotations.SetAnnotation(NpgsqlAnnotationNames.Srid, value);
     }
 }

@@ -149,9 +149,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
 
             case NpgsqlAnnotationNames.Comment:
                 return new MethodCallCodeFragment(nameof(NpgsqlPropertyBuilderExtensions.ForNpgsqlHasComment), annotation.Value);
-            }
 
-            return null;
+            case NpgsqlAnnotationNames.SpatialType:
+                return new MethodCallCodeFragment(nameof(NpgsqlPropertyBuilderExtensions.ForNpgsqlHasSpatialType), annotation.Value);
+
+            case NpgsqlAnnotationNames.Srid:
+                return new MethodCallCodeFragment(nameof(NpgsqlPropertyBuilderExtensions.ForNpgsqlHasSrid), annotation.Value);
+
+            default:
+                return null;
+            }
         }
 
         public override MethodCallCodeFragment GenerateFluentApi(IIndex index, IAnnotation annotation)

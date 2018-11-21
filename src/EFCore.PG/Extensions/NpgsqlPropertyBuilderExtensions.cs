@@ -226,9 +226,73 @@ namespace Microsoft.EntityFrameworkCore
         public static PropertyBuilder<TEntity> ForNpgsqlHasComment<TEntity>(
             [NotNull] this PropertyBuilder<TEntity> propertyBuilder,
             [CanBeNull] string comment)
-        => (PropertyBuilder<TEntity>)ForNpgsqlHasComment((PropertyBuilder)propertyBuilder, comment);
+            => (PropertyBuilder<TEntity>)ForNpgsqlHasComment((PropertyBuilder)propertyBuilder, comment);
 
         #endregion Comment
+
+        #region Spatial methods
+
+        /// <summary>
+        /// Configures the spatial type of the column that the property maps to when targeting PostgreSQL.
+        /// </summary>
+        /// <param name="propertyBuilder">The builder for the property being configured.</param>
+        /// <param name="type">The spatial type.</param>
+        /// <returns>
+        /// The same builder instance so that multiple calls can be chained.
+        /// </returns>
+        public static PropertyBuilder ForNpgsqlHasSpatialType([NotNull] this PropertyBuilder propertyBuilder, [CanBeNull] string type)
+        {
+            Check.NotNull(propertyBuilder, nameof(propertyBuilder));
+
+            propertyBuilder.Metadata.Npgsql().SpatialType = type;
+
+            return propertyBuilder;
+        }
+
+        /// <summary>
+        /// Configures the spatial type of the column that the property maps to when targeting PostgreSQL.
+        /// </summary>
+        /// <param name="propertyBuilder">The builder for the property being configured.</param>
+        /// <param name="type">The spatial type.</param>
+        /// <returns>
+        /// The same builder instance so that multiple calls can be chained.
+        /// </returns>
+        public static PropertyBuilder<TProperty> ForNpgsqlHasSpatialType<TProperty>(
+            [NotNull] this PropertyBuilder<TProperty> propertyBuilder,
+            [CanBeNull] string type)
+            => (PropertyBuilder<TProperty>)ForNpgsqlHasSpatialType((PropertyBuilder)propertyBuilder, type);
+
+        /// <summary>
+        /// Configures the SRID of the column that the property maps to when targeting PostgreSQL.
+        /// </summary>
+        /// <param name="propertyBuilder">The builder for the property being configured.</param>
+        /// <param name="srid">The SRID.</param>
+        /// <returns>
+        /// The same builder instance so that multiple calls can be chained.
+        /// </returns>
+        public static PropertyBuilder ForNpgsqlHasSrid([NotNull] this PropertyBuilder propertyBuilder, int srid)
+        {
+            Check.NotNull(propertyBuilder, nameof(propertyBuilder));
+
+            propertyBuilder.Metadata.Npgsql().Srid = srid;
+
+            return propertyBuilder;
+        }
+
+        /// <summary>
+        /// Configures the SRID of the column that the property maps to when targeting PostgreSQL.
+        /// </summary>
+        /// <param name="propertyBuilder">The builder for the property being configured.</param>
+        /// <param name="srid">The SRID.</param>
+        /// <returns>
+        /// The same builder instance so that multiple calls can be chained.
+        /// </returns>
+        public static PropertyBuilder<TProperty> ForNpgsqlHasSrid<TProperty>(
+            [NotNull] this PropertyBuilder<TProperty> propertyBuilder,
+            int srid)
+            => (PropertyBuilder<TProperty>)ForNpgsqlHasSrid((PropertyBuilder)propertyBuilder, srid);
+
+        #endregion
 
         static NpgsqlPropertyBuilderAnnotations GetNpgsqlInternalBuilder(PropertyBuilder propertyBuilder)
             => propertyBuilder.GetInfrastructure<InternalPropertyBuilder>().Npgsql(ConfigurationSource.Explicit);
