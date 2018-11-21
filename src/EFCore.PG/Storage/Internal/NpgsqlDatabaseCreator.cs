@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
@@ -12,7 +11,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Microsoft.EntityFrameworkCore.Storage;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Operations;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
@@ -293,13 +291,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             var commands = Dependencies.MigrationsSqlGenerator.Generate(operations, Dependencies.Model);
 
             // If a PostgreSQL extension, enum or range was added, we want Npgsql to reload all types at the ADO.NET level.
-            var reloadTypes = operations.Any(o =>
-                o is AlterDatabaseOperation && (
-                    PostgresExtension.GetPostgresExtensions(o).Any() ||
-                    PostgresEnum.GetPostgresEnums(o).Any() ||
-                    PostgresRange.GetPostgresRanges(o).Any()
-                )
-            );
+            var reloadTypes =
+                operations.OfType<AlterDatabaseOperation>()
+                          .Any(o =>
+                              o.Npgsql().PostgresExtensions.Any() ||
+                              o.Npgsql().PostgresEnums.Any() ||
+                              o.Npgsql().PostgresRanges.Any());
 
             try
             {
@@ -333,13 +330,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             var commands = Dependencies.MigrationsSqlGenerator.Generate(operations, Dependencies.Model);
 
             // If a PostgreSQL extension, enum or range was added, we want Npgsql to reload all types at the ADO.NET level.
-            var reloadTypes = operations.Any(o =>
-                o is AlterDatabaseOperation && (
-                    PostgresExtension.GetPostgresExtensions(o).Any() ||
-                    PostgresEnum.GetPostgresEnums(o).Any() ||
-                    PostgresRange.GetPostgresRanges(o).Any()
-                )
-            );
+            var reloadTypes =
+                operations.OfType<AlterDatabaseOperation>()
+                          .Any(o =>
+                              o.Npgsql().PostgresExtensions.Any() ||
+                              o.Npgsql().PostgresEnums.Any() ||
+                              o.Npgsql().PostgresRanges.Any());
 
             try
             {

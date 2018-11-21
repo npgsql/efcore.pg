@@ -1,17 +1,10 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 {
-    public interface INpgsqlModelAnnotations : IRelationalModelAnnotations
+    public interface INpgsqlDatabaseModelAnnotations
     {
-        NpgsqlValueGenerationStrategy? ValueGenerationStrategy { get; }
-        string HiLoSequenceName { get; }
-        string HiLoSequenceSchema { get; }
-        string DatabaseTemplate { get; }
-        string Tablespace { get; }
-
         [NotNull]
         [ItemNotNull]
         IReadOnlyList<IPostgresExtension> PostgresExtensions { get; }

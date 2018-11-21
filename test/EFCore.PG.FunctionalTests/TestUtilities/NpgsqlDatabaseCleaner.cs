@@ -75,7 +75,7 @@ SELECT name FROM pg_available_extensions WHERE installed_version IS NOT NULL AND
             // Some extensions create tables (e.g. PostGIS), wo we must drop them first.
             var sb = new StringBuilder();
 
-            foreach (var extension in PostgresExtension.GetPostgresExtensions(databaseModel))
+            foreach (var extension in databaseModel.Npgsql().PostgresExtensions)
                 sb
                     .Append("DROP EXTENSION ")
                     .Append(_sqlGenerationHelper.DelimitIdentifier(extension.Name, extension.Schema))
@@ -88,7 +88,7 @@ SELECT name FROM pg_available_extensions WHERE installed_version IS NOT NULL AND
         {
             var sb = new StringBuilder();
 
-            foreach (var enumDef in PostgresEnum.GetPostgresEnums(databaseModel))
+            foreach (var enumDef in databaseModel.Npgsql().PostgresEnums)
                 sb
                     .Append("DROP TYPE ")
                     .Append(_sqlGenerationHelper.DelimitIdentifier(enumDef.Name, enumDef.Schema))

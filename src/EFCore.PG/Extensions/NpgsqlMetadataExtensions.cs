@@ -1,10 +1,11 @@
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations.Operations;
+using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 // ReSharper disable once CheckNamespace
-
 namespace Microsoft.EntityFrameworkCore
 {
     public static class NpgsqlMetadataExtensions
@@ -44,5 +45,11 @@ namespace Microsoft.EntityFrameworkCore
 
         public static NpgsqlPropertyAnnotations Npgsql([NotNull] this IMutableProperty property)
             => (NpgsqlPropertyAnnotations)Npgsql((IProperty)property);
+
+        public static INpgsqlAlterDatabaseOperationAnnotations Npgsql([NotNull] this AlterDatabaseOperation operation)
+            => new NpgsqlAlterDatabaseOperationAnnotations(Check.NotNull(operation, nameof(operation)));
+
+        public static INpgsqlDatabaseModelAnnotations Npgsql([NotNull] this DatabaseModel model)
+            => new NpgsqlDatabaseModelAnnotations(Check.NotNull(model, nameof(model)));
     }
 }
