@@ -643,7 +643,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             GenerateEnumStatements(operation, model, builder);
             GenerateRangeStatements(operation, model, builder);
 
-            foreach (var extension in PostgresExtension.GetPostgresExtensions(operation))
+            foreach (var extension in operation.Npgsql().PostgresExtensions)
                 GenerateCreateExtension(extension, model, builder);
 
             builder.EndCommand();
@@ -682,21 +682,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 [NotNull] IModel model,
                 [NotNull] MigrationCommandListBuilder builder)
         {
-            foreach (var enumTypeToCreate in PostgresEnum.GetPostgresEnums(operation)
-                .Where(ne => PostgresEnum.GetPostgresEnums(operation.OldDatabase).All(oe => oe.Name != ne.Name)))
+            foreach (var enumTypeToCreate in operation.Npgsql().PostgresEnums
+                .Where(ne => operation.Npgsql().OldPostgresEnums.All(oe => oe.Name != ne.Name)))
             {
                 GenerateCreateEnum(enumTypeToCreate, model, builder);
             }
 
-            foreach (var enumTypeToDrop in PostgresEnum.GetPostgresEnums(operation.OldDatabase)
-                .Where(oe => PostgresEnum.GetPostgresEnums(operation).All(ne => ne.Name != oe.Name)))
+            foreach (var enumTypeToDrop in operation.Npgsql().OldPostgresEnums
+                .Where(oe => operation.Npgsql().PostgresEnums.All(ne => ne.Name != oe.Name)))
             {
                 GenerateDropEnum(enumTypeToDrop, operation.OldDatabase, builder);
             }
 
             // TODO: Some forms of enum alterations are actually supported...
-            if (PostgresEnum.GetPostgresEnums(operation).FirstOrDefault(nr =>
-                PostgresEnum.GetPostgresEnums(operation.OldDatabase).Any(or => or.Name == nr.Name)
+            if (operation.Npgsql().PostgresEnums.FirstOrDefault(nr =>
+                operation.Npgsql().OldPostgresEnums.Any(or => or.Name == nr.Name)
             ) is PostgresEnum enumTypeToAlter)
             {
                 throw new NotSupportedException($"Altering enum type ${enumTypeToAlter} isn't supported.");
@@ -755,21 +755,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 [NotNull] IModel model,
                 [NotNull] MigrationCommandListBuilder builder)
         {
-            foreach (var rangeTypeToCreate in PostgresRange.GetPostgresRanges(operation)
-                .Where(ne => PostgresRange.GetPostgresRanges(operation.OldDatabase).All(oe => oe.Name != ne.Name)))
+            foreach (var rangeTypeToCreate in operation.Npgsql().PostgresRanges
+                .Where(ne => operation.Npgsql().OldPostgresRanges.All(oe => oe.Name != ne.Name)))
             {
                 GenerateCreateRange(rangeTypeToCreate, model, builder);
             }
 
-            foreach (var rangeTypeToDrop in PostgresRange.GetPostgresRanges(operation.OldDatabase)
-                .Where(oe => PostgresRange.GetPostgresRanges(operation).All(ne => ne.Name != oe.Name)))
+            foreach (var rangeTypeToDrop in operation.Npgsql().OldPostgresRanges
+                .Where(oe => operation.Npgsql().PostgresRanges.All(ne => ne.Name != oe.Name)))
             {
                 GenerateDropRange(rangeTypeToDrop, builder);
             }
 
-            if (PostgresRange.GetPostgresRanges(operation).FirstOrDefault(nr =>
-                    PostgresRange.GetPostgresRanges(operation.OldDatabase).Any(or => or.Name == nr.Name)
-                ) is PostgresRange rangeTypeToAlter)
+            if (operation.Npgsql().PostgresRanges.FirstOrDefault(nr =>
+                operation.Npgsql().OldPostgresRanges.Any(or => or.Name == nr.Name)
+            ) is PostgresRange rangeTypeToAlter)
             {
                 throw new NotSupportedException($"Altering range type ${rangeTypeToAlter} isn't supported.");
             }

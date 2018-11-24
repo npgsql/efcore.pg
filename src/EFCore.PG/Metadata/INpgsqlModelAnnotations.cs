@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
@@ -8,8 +9,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         NpgsqlValueGenerationStrategy? ValueGenerationStrategy { get; }
         string HiLoSequenceName { get; }
         string HiLoSequenceSchema { get; }
-        IReadOnlyList<IPostgresExtension> PostgresExtensions { get; }
         string DatabaseTemplate { get; }
         string Tablespace { get; }
+
+        [NotNull]
+        [ItemNotNull]
+        IReadOnlyList<IPostgresExtension> PostgresExtensions { get; }
+
+        [NotNull]
+        [ItemNotNull]
+        IReadOnlyList<PostgresEnum> PostgresEnums { get; }
+
+        [NotNull]
+        [ItemNotNull]
+        IReadOnlyList<PostgresRange> PostgresRanges { get; }
     }
 }

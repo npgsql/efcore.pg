@@ -68,7 +68,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             => PostgresExtension.GetOrAddPostgresExtension((IMutableModel)Model, name);
 
         public virtual IReadOnlyList<IPostgresExtension> PostgresExtensions
-            => PostgresExtension.GetPostgresExtensions(Model).ToList();
+            => PostgresExtension.GetPostgresExtensions(Model).ToArray();
 
         #endregion
 
@@ -86,7 +86,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             => GetOrAddPostgresEnum(null, name, labels);
 
         public virtual IReadOnlyList<PostgresEnum> PostgresEnums
-            => PostgresEnum.GetPostgresEnums(Model).ToList();
+            => PostgresEnum.GetPostgresEnums(Model).ToArray();
 
         #endregion Enum types
 
@@ -115,9 +115,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             [NotNull] string subtype)
             => PostgresRange.GetOrAddPostgresRange((IMutableModel)Model, null, name, subtype);
 
-        [NotNull]
         public virtual IReadOnlyList<PostgresRange> PostgresRanges
-            => PostgresRange.GetPostgresRanges(Model).ToList();
+            => PostgresRange.GetPostgresRanges(Model).ToArray();
 
         #endregion Range types
 
