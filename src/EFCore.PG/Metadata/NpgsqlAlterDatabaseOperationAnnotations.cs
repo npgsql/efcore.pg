@@ -10,25 +10,37 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
     /// <summary>
     /// Provides relational-specific annotations specific to Npgsql.
     /// </summary>
-    public class NpgsqlAlterDatabaseOperationAnnotations : RelationalAnnotations, INpgsqlAlterDatabaseOperationAnnotations
+    public class NpgsqlAlterDatabaseOperationAnnotations : RelationalAnnotations
     {
-        readonly IAnnotatable _oldDatabase;
+        [NotNull] readonly IAnnotatable _oldDatabase;
 
+        [NotNull]
+        [ItemNotNull]
         public virtual IReadOnlyList<IPostgresExtension> PostgresExtensions
             => PostgresExtension.GetPostgresExtensions(Metadata).ToArray();
 
+        [NotNull]
+        [ItemNotNull]
         public virtual IReadOnlyList<IPostgresExtension> OldPostgresExtensions
             => PostgresExtension.GetPostgresExtensions(_oldDatabase).ToArray();
 
+        [NotNull]
+        [ItemNotNull]
         public virtual IReadOnlyList<PostgresEnum> PostgresEnums
             => PostgresEnum.GetPostgresEnums(Metadata).ToArray();
 
+        [NotNull]
+        [ItemNotNull]
         public virtual IReadOnlyList<PostgresEnum> OldPostgresEnums
             => PostgresEnum.GetPostgresEnums(_oldDatabase).ToArray();
 
+        [NotNull]
+        [ItemNotNull]
         public virtual IReadOnlyList<PostgresRange> PostgresRanges
             => PostgresRange.GetPostgresRanges(Metadata).ToArray();
 
+        [NotNull]
+        [ItemNotNull]
         public virtual IReadOnlyList<PostgresRange> OldPostgresRanges
             => PostgresRange.GetPostgresRanges(_oldDatabase).ToArray();
 

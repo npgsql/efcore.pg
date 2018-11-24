@@ -46,10 +46,10 @@ namespace Microsoft.EntityFrameworkCore
         public static NpgsqlPropertyAnnotations Npgsql([NotNull] this IMutableProperty property)
             => (NpgsqlPropertyAnnotations)Npgsql((IProperty)property);
 
-        public static INpgsqlAlterDatabaseOperationAnnotations Npgsql([NotNull] this AlterDatabaseOperation operation)
+        public static NpgsqlAlterDatabaseOperationAnnotations Npgsql([NotNull] this AlterDatabaseOperation operation)
             => new NpgsqlAlterDatabaseOperationAnnotations(Check.NotNull(operation, nameof(operation)));
 
-        public static INpgsqlDatabaseModelAnnotations Npgsql([NotNull] this DatabaseModel model)
+        public static NpgsqlDatabaseModelAnnotations Npgsql([NotNull] this DatabaseModel model)
             => new NpgsqlDatabaseModelAnnotations(Check.NotNull(model, nameof(model)));
     }
 }
