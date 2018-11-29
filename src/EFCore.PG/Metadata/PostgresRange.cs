@@ -16,8 +16,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 
         internal PostgresRange([NotNull] IAnnotatable annotatable, [NotNull] string annotationName)
         {
-            _annotatable = annotatable;
-            _annotationName = annotationName;
+            _annotatable = Check.NotNull(annotatable, nameof(annotatable));
+            _annotationName = Check.NotNull(annotationName, nameof(annotationName));
         }
 
         public static PostgresRange GetOrAddPostgresRange(
@@ -30,35 +30,27 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             string collation = null,
             string subtypeDiff = null)
         {
-            if (FindPostgresRange(annotatable, schema, name) is PostgresRange rangeType)
-                return rangeType;
-
-            rangeType = new PostgresRange(annotatable, BuildAnnotationName(annotatable, schema, name));
-            rangeType.SetData(subtype, canonicalFunction, subtypeOpClass, collation, subtypeDiff);
-            return rangeType;
-        }
-
-        [CanBeNull]
-        public static PostgresRange FindPostgresRange(
-            [NotNull] IAnnotatable annotatable,
-            [CanBeNull] string schema,
-            [NotNull] string name)
-        {
             Check.NotNull(annotatable, nameof(annotatable));
-            Check.NotEmpty(name, nameof(name));
+            Check.NullButNotEmpty(schema, nameof(schema));
+            Check.NotNull(name, nameof(name));
+            Check.NotNull(subtype, nameof(subtype));
 
-            var annotationName = BuildAnnotationName(annotatable, schema, name);
-
-            return annotatable[annotationName] == null ? null : new PostgresRange(annotatable, annotationName);
-        }
-
-        [NotNull]
-        static string BuildAnnotationName([NotNull] IAnnotatable annotatable, [CanBeNull] string schema, [NotNull] string name)
-            => !string.IsNullOrEmpty(schema)
-                ? $"{NpgsqlAnnotationNames.RangePrefix}{schema}.{name}"
-                : annotatable[RelationalAnnotationNames.DefaultSchema] is string defaultSchema && !string.IsNullOrEmpty(defaultSchema)
-                    ? $"{NpgsqlAnnotationNames.RangePrefix}{defaultSchema}.{name}"
+            var annotationName =
+                schema != null
+                    ? $"{NpgsqlAnnotationNames.RangePrefix}{schema}.{name}"
                     : $"{NpgsqlAnnotationNames.RangePrefix}{name}";
+
+            return annotatable[annotationName] != null
+                ? new PostgresRange(annotatable, annotationName)
+                : new PostgresRange(annotatable, annotationName)
+                {
+                    CanonicalFunction = canonicalFunction,
+                    Collation = collation,
+                    Subtype = subtype,
+                    SubtypeDiff = subtypeDiff,
+                    SubtypeOpClass = subtypeOpClass
+                };
+        }
 
         [NotNull]
         public static IEnumerable<PostgresRange> GetPostgresRanges([NotNull] IAnnotatable annotatable)
@@ -67,11 +59,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
                     .Where(a => a.Name.StartsWith(NpgsqlAnnotationNames.RangePrefix, StringComparison.Ordinal))
                     .Select(a => new PostgresRange(annotatable, a.Name));
 
-        [NotNull]
-        public Annotatable Annotatable => (Annotatable)_annotatable;
-
         [CanBeNull]
-        public string Schema => GetData().Schema ?? (string)_annotatable[RelationalAnnotationNames.DefaultSchema];
+        public string Schema => GetData().Schema;
 
         [NotNull]
         public string Name => GetData().Name;
@@ -80,75 +69,56 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         public string Subtype
         {
             get => GetData().Subtype;
-            set
-            {
-                var x = GetData();
-                var (_, _, _, canonicalFunction, subtypeOpClass, collation, subtypeDiff) = GetData();
-                SetData(value, canonicalFunction, subtypeOpClass, collation, subtypeDiff);
-            }
+            private set => SetData(subtype: value);
         }
 
         [CanBeNull]
         public string CanonicalFunction
         {
             get => GetData().CanonicalFunction;
-            set
-            {
-                var x = GetData();
-                var (_, _, subtype, _, subtypeOpClass, collation, subtypeDiff) = GetData();
-                SetData(subtype, value, subtypeOpClass, collation, subtypeDiff);
-            }
+            private set => SetData(canonicalFunction: value);
         }
 
         [CanBeNull]
         public string SubtypeOpClass
         {
             get => GetData().SubtypeOpClass;
-            set
-            {
-                var x = GetData();
-                var (_, _, subtype, canonicalFunction, _, collation, subtypeDiff) = GetData();
-                SetData(subtype, canonicalFunction, value, collation, subtypeDiff);
-            }
+            private set => SetData(subtypeOpClass: value);
         }
 
         [CanBeNull]
         public string Collation
         {
             get => GetData().Collation;
-            set
-            {
-                var x = GetData();
-                var (_, _, subtype, canonicalFunction, subtypeOpClass, _, subtypeDiff) = GetData();
-                SetData(subtype, canonicalFunction, subtypeOpClass, value, subtypeDiff);
-            }
+            private set => SetData(collation: value);
         }
 
         [CanBeNull]
         public string SubtypeDiff
         {
             get => GetData().SubtypeDiff;
-            set
-            {
-                var x = GetData();
-                var (_, _, subtype, canonicalFunction, subtypeOpClass, collation, _) = GetData();
-                SetData(subtype, canonicalFunction, subtypeOpClass, collation, value);
-            }
+            private set => SetData(subtypeDiff: value);
         }
 
-        (string Schema, string Name, string Subtype, string CanonicalFunction, string SubtypeOpClass, string Collation,
-            string SubtypeDiff) GetData()
-            => !(Annotatable[_annotationName] is string annotationValue)
-                ? (null, null, null, null, null, null, null)
-                : Deserialize(_annotationName, annotationValue);
+        (string Schema, string Name, string Subtype, string CanonicalFunction, string SubtypeOpClass, string Collation, string SubtypeDiff) GetData()
+            => Deserialize(_annotationName, _annotatable[_annotationName] as string);
 
-        void SetData(string subtype, string canonicalFunction, string subtypeOpClass, string collation, string subtypeDiff)
-            => Annotatable[_annotationName] = $"{subtype},{canonicalFunction},{subtypeOpClass},{collation},{subtypeDiff}";
-
-        static (string Schema, string Name, string Subtype, string CanonicalFunction, string SubtypeOpClass, string collation, string SubtypeDiff)
-            Deserialize([NotNull] string annotationName, [NotNull] string annotationValue)
+        void SetData(string subtype = null, string canonicalFunction = null, string subtypeOpClass = null, string collation = null, string subtypeDiff = null)
         {
-            Check.NotEmpty(annotationValue, nameof(annotationValue));
+            ((Annotatable)_annotatable)[_annotationName] =
+                string.Join(",",
+                    subtype ?? Subtype,
+                    canonicalFunction ?? CanonicalFunction,
+                    subtypeOpClass ?? SubtypeOpClass,
+                    collation ?? Collation,
+                    subtypeDiff ?? SubtypeDiff);
+        }
+
+        static (string Schema, string Name, string Subtype, string CanonicalFunction, string SubtypeOpClass, string Collation, string SubtypeDiff)
+            Deserialize([NotNull] string annotationName, [CanBeNull] string annotationValue)
+        {
+            if (annotationValue == null)
+                return (null, null, null, null, null, null, null);
 
             var elements = annotationValue.Split(',').ToArray();
             if (elements.Length != 5)
