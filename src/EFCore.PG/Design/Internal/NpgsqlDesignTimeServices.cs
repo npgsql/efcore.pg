@@ -15,6 +15,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
                 .AddSingleton<IRelationalTypeMappingSource, NpgsqlTypeMappingSource>()
                 .AddSingleton<IDatabaseModelFactory, NpgsqlDatabaseModelFactory>()
                 .AddSingleton<IProviderConfigurationCodeGenerator, NpgsqlCodeGenerator>()
-                .AddSingleton<IAnnotationCodeGenerator, NpgsqlAnnotationCodeGenerator>();
+                .AddSingleton<IAnnotationCodeGenerator, NpgsqlAnnotationCodeGenerator>()
+                .AddSingleton<ISqlGenerationHelper, NpgsqlSqlGenerationHelper>()
+                .AddSingleton<RelationalSqlGenerationHelperDependencies>();
     }
 }
