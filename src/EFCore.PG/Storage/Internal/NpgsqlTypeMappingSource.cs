@@ -244,7 +244,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             StoreTypeMappings = new ConcurrentDictionary<string, RelationalTypeMapping[]>(storeTypeMappings, StringComparer.OrdinalIgnoreCase);
             ClrTypeMappings = new ConcurrentDictionary<Type, RelationalTypeMapping>(clrTypeMappings);
 
-            LoadUserDefinedTypeMappings();
+            LoadUserDefinedTypeMappings(sqlGenerationHelper);
 
             _userRangeDefinitions = npgsqlOptions?.UserRangeDefinitions ?? new UserRangeDefinition[0];
         }
@@ -253,15 +253,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         /// To be used in case user-defined mappings are added late, after this TypeMappingSource has already been initialized.
         /// This is basically only for test usage.
         /// </summary>
-        public void LoadUserDefinedTypeMappings()
+        public void LoadUserDefinedTypeMappings([NotNull] ISqlGenerationHelper sqlGenerationHelper)
         {
-            SetupEnumMappings();
+            SetupEnumMappings(sqlGenerationHelper);
         }
 
         /// <summary>
         /// Gets all global enum mappings from the ADO.NET layer and creates mappings for them
         /// </summary>
-        void SetupEnumMappings()
+        void SetupEnumMappings([NotNull] ISqlGenerationHelper sqlGenerationHelper)
         {
             foreach (var adoMapping in NpgsqlConnection.GlobalTypeMapper.Mappings.Where(m => m.TypeHandlerFactory is IEnumTypeHandlerFactory))
             {
@@ -280,7 +280,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 var schema = components.Length > 1 ? components.First() : null;
                 var name = components.Length > 1 ? string.Join(null, components.Skip(1)) : storeType;
 
-                var mapping = new NpgsqlEnumTypeMapping(name, schema, clrType, nameTranslator);
+                var mapping = new NpgsqlEnumTypeMapping(name, schema, clrType, sqlGenerationHelper, nameTranslator);
                 ClrTypeMappings[clrType] = mapping;
                 StoreTypeMappings[mapping.StoreType] = new RelationalTypeMapping[] { mapping };
             }
