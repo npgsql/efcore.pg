@@ -10,27 +10,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 {
     public class NpgsqlEnumTypeMapping : RelationalTypeMapping
     {
-        [NotNull] static readonly NpgsqlSqlGenerationHelper SqlGenerationHelper =
-            new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies());
-
+        [NotNull] readonly ISqlGenerationHelper _sqlGenerationHelper;
         [NotNull] readonly INpgsqlNameTranslator _nameTranslator;
-
-        [CanBeNull] readonly string _storeTypeSchema;
 
         /// <summary>
         /// Translates the CLR member value to the PostgreSQL value label.
         /// </summary>
         [NotNull] readonly Dictionary<object, string> _members;
 
-        [NotNull]
-        public override string StoreType => SqlGenerationHelper.DelimitIdentifier(base.StoreType, _storeTypeSchema);
-
         public NpgsqlEnumTypeMapping(
             [NotNull] string storeType,
             [CanBeNull] string storeTypeSchema,
             [NotNull] Type enumType,
+            [NotNull] ISqlGenerationHelper sqlGenerationHelper,
             [CanBeNull] INpgsqlNameTranslator nameTranslator = null)
-            : base(storeType, enumType)
+            : base(sqlGenerationHelper.DelimitIdentifier(storeType, storeTypeSchema), enumType)
         {
             if (!enumType.IsEnum || !enumType.IsValueType)
                 throw new ArgumentException($"Enum type mappings require a CLR enum. {enumType.FullName} is not an enum.");
@@ -39,23 +33,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 nameTranslator = NpgsqlConnection.GlobalTypeMapper.DefaultNameTranslator;
 
             _nameTranslator = nameTranslator;
-            _storeTypeSchema = storeTypeSchema;
+            _sqlGenerationHelper = sqlGenerationHelper;
             _members = CreateValueMapping(enumType, nameTranslator);
         }
 
         protected NpgsqlEnumTypeMapping(
             RelationalTypeMappingParameters parameters,
-            [CanBeNull] string storeTypeSchema,
+            [NotNull] ISqlGenerationHelper sqlGenerationHelper,
             [NotNull] INpgsqlNameTranslator nameTranslator)
             : base(parameters)
         {
             _nameTranslator = nameTranslator;
-            _storeTypeSchema = storeTypeSchema;
+            _sqlGenerationHelper = sqlGenerationHelper;
             _members = CreateValueMapping(parameters.CoreParameters.ClrType, nameTranslator);
         }
 
         protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
-            => new NpgsqlEnumTypeMapping(parameters, _storeTypeSchema, _nameTranslator);
+            => new NpgsqlEnumTypeMapping(parameters, _sqlGenerationHelper, _nameTranslator);
 
         protected override string GenerateNonNullSqlLiteral(object value) => $"'{_members[value]}'::{StoreType}";
 

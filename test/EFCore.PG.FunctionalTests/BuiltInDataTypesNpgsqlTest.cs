@@ -707,7 +707,7 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
                 base.OnModelCreating(modelBuilder, context);
 
                 NpgsqlConnection.GlobalTypeMapper.MapEnum<Mood>();
-                ((NpgsqlTypeMappingSource)context.GetService<ITypeMappingSource>()).LoadUserDefinedTypeMappings();
+                ((NpgsqlTypeMappingSource)context.GetService<ITypeMappingSource>()).LoadUserDefinedTypeMappings(context.GetService<ISqlGenerationHelper>());
 
                 modelBuilder.HasPostgresExtension("hstore");
                 modelBuilder.ForNpgsqlHasEnum("mood", new[] { "happy", "sad" });

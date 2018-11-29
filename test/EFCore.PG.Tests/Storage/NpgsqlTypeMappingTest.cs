@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Net;
 using System.Net.NetworkInformation;
 using Microsoft.EntityFrameworkCore;
@@ -88,7 +87,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
             var mapping = GetMapping("timetz");
             Assert.Equal("TIMETZ '04:05:06.123456+3'",
                 mapping.GenerateSqlLiteral(new DateTimeOffset(2015, 3, 12, 4, 5, 6, 123, TimeSpan.FromHours(3))
-                .AddTicks(4560)));
+                    .AddTicks(4560)));
             Assert.Equal("TIMETZ '04:05:06.789+3'", mapping.GenerateSqlLiteral(new DateTimeOffset(2015, 3, 12, 4, 5, 6, 789, TimeSpan.FromHours(3))));
             Assert.Equal("TIMETZ '04:05:06-3'", mapping.GenerateSqlLiteral(new DateTimeOffset(2015, 3, 12, 4, 5, 6, TimeSpan.FromHours(-3))));
         }
@@ -280,8 +279,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
             // This exercises array's comparer when the element has its own non-null comparer
             var source = new[]
             {
-                new Dictionary<string, string> { { "k1", "v1"} },
-                new Dictionary<string, string> { { "k2", "v2"} },
+                new Dictionary<string, string> { { "k1", "v1" } },
+                new Dictionary<string, string> { { "k2", "v2" } },
             };
 
             var comparer = GetMapping(typeof(Dictionary<string, string>[])).Comparer;
@@ -300,18 +299,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         public void GenerateSqlLiteral_returns_hstore_literal()
             => Assert.Equal(@"HSTORE '""k1""=>""v1"",""k2""=>""v2""'",
                 GetMapping("hstore").GenerateSqlLiteral(new Dictionary<string, string>
-            {
-                { "k1", "v1" },
-                { "k2", "v2" }
-            }));
+                {
+                    { "k1", "v1" },
+                    { "k2", "v2" }
+                }));
 
         [Fact]
         public void ValueComparer_hstore()
         {
             var source = new Dictionary<string, string>
             {
-                { "k1", "v1"},
-                { "k2", "v2"}
+                { "k1", "v1" },
+                { "k2", "v2" }
             };
 
             var comparer = GetMapping("hstore").Comparer;
@@ -333,18 +332,34 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         [Fact]
         public void GenerateSqlLiteral_returns_enum_literal()
         {
-            var mapping = new NpgsqlEnumTypeMapping("dummy_enum", null, typeof(DummyEnum), new NpgsqlSnakeCaseNameTranslator());
+            var mapping = new NpgsqlEnumTypeMapping(
+                "dummy_enum",
+                null,
+                typeof(DummyEnum),
+                new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
+                new NpgsqlSnakeCaseNameTranslator());
+
             Assert.Equal("'sad'::dummy_enum", mapping.GenerateSqlLiteral(DummyEnum.Sad));
         }
 
         [Fact]
         public void GenerateSqlLiteral_returns_enum_uppercase_literal()
         {
-            var mapping = new NpgsqlEnumTypeMapping("DummyEnum", null, typeof(DummyEnum), new NpgsqlSnakeCaseNameTranslator());
+            var mapping = new NpgsqlEnumTypeMapping(
+                "DummyEnum",
+                null,
+                typeof(DummyEnum),
+                new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
+                new NpgsqlSnakeCaseNameTranslator());
+
             Assert.Equal("'sad'::\"DummyEnum\"", mapping.GenerateSqlLiteral(DummyEnum.Sad));
         }
 
-        enum DummyEnum { Happy, Sad };
+        enum DummyEnum
+        {
+            Happy,
+            Sad
+        };
 
         [Fact]
         public void GenerateSqlLiteral_returns_tid_literal()
