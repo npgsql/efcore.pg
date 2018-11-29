@@ -14,9 +14,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal
     public class NpgsqlMigrationsAnnotationProvider : MigrationsAnnotationProvider
     {
         public NpgsqlMigrationsAnnotationProvider([NotNull] MigrationsAnnotationProviderDependencies dependencies)
-            : base(dependencies)
-        {
-        }
+            : base(dependencies) {}
 
         public override IEnumerable<IAnnotation> For(IEntityType entityType)
         {
@@ -33,14 +31,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal
 
         public override IEnumerable<IAnnotation> For(IProperty property)
         {
-            if (property.Npgsql().ValueGenerationStrategy == NpgsqlValueGenerationStrategy.SerialColumn)
-                yield return new Annotation(NpgsqlAnnotationNames.ValueGenerationStrategy, NpgsqlValueGenerationStrategy.SerialColumn);
-            if (property.Npgsql().ValueGenerationStrategy == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn)
-                yield return new Annotation(NpgsqlAnnotationNames.ValueGenerationStrategy, NpgsqlValueGenerationStrategy.IdentityAlwaysColumn);
-            if (property.Npgsql().ValueGenerationStrategy == NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
-                yield return new Annotation(NpgsqlAnnotationNames.ValueGenerationStrategy, NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
-            if (property.Npgsql().Comment != null)
-                yield return new Annotation(NpgsqlAnnotationNames.Comment, property.Npgsql().Comment);
+            if (property.Npgsql().ValueGenerationStrategy is NpgsqlValueGenerationStrategy npgsqlValueGenerationStrategy)
+                yield return new Annotation(NpgsqlAnnotationNames.ValueGenerationStrategy, npgsqlValueGenerationStrategy);
+            if (property.Npgsql().Comment is string comment)
+                yield return new Annotation(NpgsqlAnnotationNames.Comment, comment);
         }
 
         public override IEnumerable<IAnnotation> For(IIndex index)
