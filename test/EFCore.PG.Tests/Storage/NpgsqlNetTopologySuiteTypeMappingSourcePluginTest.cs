@@ -43,7 +43,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
             new object[] { "GEOGRAPHY (point)",         (ValueTuple<bool, string, int?>)(true, "point", null)     },
             new object[] { "geometry",                  (ValueTuple<bool, string, int?>)(false, null, null)       },
             new object[] { "geometry   (geometry)",     (ValueTuple<bool, string, int?>)(false, "geometry", null) },
-            new object[] { "Geography ( Point , 123 )", (ValueTuple<bool, string, int?>)(true, "point", 123)      },
+            new object[] { "Geography ( Point , 123 )", (ValueTuple<bool, string, int?>)(true, "Point", 123)      },
             new object[] { "text",                      null                                                      }
         };
 

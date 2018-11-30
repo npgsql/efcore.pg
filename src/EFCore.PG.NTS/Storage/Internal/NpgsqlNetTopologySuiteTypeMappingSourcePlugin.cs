@@ -67,7 +67,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             return null;
         }
 
-        static readonly Regex _storeTypeRegex = new Regex(@"^(GEOMETRY|GEOGRAPHY)\s*(\((\w+)(,(\d+))?\))?$", RegexOptions.IgnoreCase);
+        static readonly Regex _storeTypeRegex = new Regex(@"^(GEOMETRY|GEOGRAPHY)\s*(\(\s*(\w+)(\s*,\s*(\d+))?\s*\))?$", RegexOptions.IgnoreCase);
 
         /// <summary>
         /// Given a PostgreSQL store type, attempts to parse it down to its components.
