@@ -13,18 +13,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 {
     public class NpgsqlNetTopologySuiteTypeMappingSourcePlugin : IRelationalTypeMappingSourcePlugin
     {
-        static readonly Dictionary<string, Type> _storeTypeMappings
-            = new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase)
-            {
-                { "GEOMETRY", typeof(IGeometry) },
-                { "GEOMETRYCOLLECTION", typeof(IGeometryCollection) },
-                { "LINESTRING", typeof(ILineString) },
-                { "MULTILINESTRING", typeof(IMultiLineString) },
-                { "MULTIPOINT", typeof(IMultiPoint) },
-                { "MULTIPOLYGON", typeof(IMultiPolygon) },
-                { "POINT", typeof(IPoint) },
-                { "POLYGON", typeof(IPolygon) }
-            };
+        static readonly Dictionary<string, Type> _storeTypeMappings = new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "GEOMETRY", typeof(IGeometry) },
+            { "GEOMETRYCOLLECTION", typeof(IGeometryCollection) },
+            { "LINESTRING", typeof(ILineString) },
+            { "MULTILINESTRING", typeof(IMultiLineString) },
+            { "MULTIPOINT", typeof(IMultiPoint) },
+            { "MULTIPOLYGON", typeof(IMultiPolygon) },
+            { "POINT", typeof(IPoint) },
+            { "POLYGON", typeof(IPolygon) }
+        };
 
         // Note: we reference the options rather than copying IsGeographyDefault out, because that field is initialized
         // rather late by SingletonOptionsInitializer

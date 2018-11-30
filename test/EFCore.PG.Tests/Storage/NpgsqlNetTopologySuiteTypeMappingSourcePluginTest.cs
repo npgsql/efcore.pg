@@ -39,11 +39,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
 
         static IEnumerable<object[]> GetParseData() => new[]
         {
-            new object[] { "geography (point,123)", (ValueTuple<bool, string, int?>)(true, "point", 123)      },
-            new object[] { "GEOGRAPHY (point)",     (ValueTuple<bool, string, int?>)(true, "point", null)     },
-            new object[] { "geometry",              (ValueTuple<bool, string, int?>)(false, null, null)       },
-            new object[] { "geometry   (geometry)", (ValueTuple<bool, string, int?>)(false, "geometry", null) },
-            new object[] { "text",                  null                                                      }
+            new object[] { "geography (point,123)",     (ValueTuple<bool, string, int?>)(true, "point", 123)      },
+            new object[] { "GEOGRAPHY (point)",         (ValueTuple<bool, string, int?>)(true, "point", null)     },
+            new object[] { "geometry",                  (ValueTuple<bool, string, int?>)(false, null, null)       },
+            new object[] { "geometry   (geometry)",     (ValueTuple<bool, string, int?>)(false, "geometry", null) },
+            new object[] { "Geography ( Point , 123 )", (ValueTuple<bool, string, int?>)(true, "point", 123)      },
+            new object[] { "text",                      null                                                      }
         };
 
         readonly NpgsqlNetTopologySuiteTypeMappingSourcePlugin _geomPlugin =
