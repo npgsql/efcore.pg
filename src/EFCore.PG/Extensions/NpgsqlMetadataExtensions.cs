@@ -46,8 +46,23 @@ namespace Microsoft.EntityFrameworkCore
         public static NpgsqlPropertyAnnotations Npgsql([NotNull] this IMutableProperty property)
             => (NpgsqlPropertyAnnotations)Npgsql((IProperty)property);
 
+        public static NpgsqlAddColumnOperationAnnotations Npgsql([NotNull] this AddColumnOperation operation)
+            => new NpgsqlAddColumnOperationAnnotations(Check.NotNull(operation, nameof(operation)));
+
+        public static NpgsqlAlterColumnOperationAnnotations Npgsql([NotNull] this AlterColumnOperation operation)
+            => new NpgsqlAlterColumnOperationAnnotations(Check.NotNull(operation, nameof(operation)));
+
         public static NpgsqlAlterDatabaseOperationAnnotations Npgsql([NotNull] this AlterDatabaseOperation operation)
             => new NpgsqlAlterDatabaseOperationAnnotations(Check.NotNull(operation, nameof(operation)));
+
+        public static NpgsqlAlterTableOperationAnnotations Npgsql([NotNull] this AlterTableOperation operation)
+            => new NpgsqlAlterTableOperationAnnotations(Check.NotNull(operation, nameof(operation)));
+
+        public static NpgsqlCreateIndexOperationAnnotations Npgsql([NotNull] this CreateIndexOperation operation)
+            => new NpgsqlCreateIndexOperationAnnotations(Check.NotNull(operation, nameof(operation)));
+
+        public static NpgsqlCreateTableOperationAnnotations Npgsql([NotNull] this CreateTableOperation operation)
+            => new NpgsqlCreateTableOperationAnnotations(Check.NotNull(operation, nameof(operation)));
 
         public static NpgsqlDatabaseModelAnnotations Npgsql([NotNull] this DatabaseModel model)
             => new NpgsqlDatabaseModelAnnotations(Check.NotNull(model, nameof(model)));

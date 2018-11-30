@@ -744,7 +744,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         public void CreatePostgresEnum()
         {
             var op = new AlterDatabaseOperation();
-            PostgresEnum.GetOrAddPostgresEnum(op, "public", "my_enum", new[] { "value1", "value2" });
+            op.Npgsql().GetOrAddPostgresEnum("public", "my_enum", new[] { "value1", "value2" });
             Generate(op);
 
             Assert.Equal(@"CREATE TYPE public.my_enum AS ENUM ('value1', 'value2');" + EOL, Sql);
@@ -754,7 +754,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         public void CreatePostgresEnumWithSchema()
         {
             var op = new AlterDatabaseOperation();
-            PostgresEnum.GetOrAddPostgresEnum(op, "some_schema", "my_enum", new[] { "value1", "value2" });
+            op.Npgsql().GetOrAddPostgresEnum("some_schema", "my_enum", new[] { "value1", "value2" });
             Generate(op);
 
             Assert.Equal(

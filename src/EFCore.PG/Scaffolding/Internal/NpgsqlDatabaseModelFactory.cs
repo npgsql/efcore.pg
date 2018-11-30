@@ -849,7 +849,7 @@ GROUP BY
                     if (schema == "public")
                         schema = null;
 
-                    PostgresEnum.GetOrAddPostgresEnum(databaseModel, schema, name, labels);
+                    databaseModel.Npgsql().GetOrAddPostgresEnum(schema, name, labels);
                     enums.Add(name);
                 }
 

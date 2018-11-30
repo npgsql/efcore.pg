@@ -85,7 +85,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             base.Generate(operation, model, builder, false);
 
             // CockroachDB "interleave in parent" (https://www.cockroachlabs.com/docs/stable/interleave-in-parent.html)
-            if (operation[CockroachDbAnnotationNames.InterleaveInParent] is string)
+            if (operation.Npgsql().CockroachDbInterleaveInParent != null)
             {
                 var interleaveInParent = new CockroachDbInterleaveInParent(operation);
                 var parentTableSchema = interleaveInParent.ParentTableSchema;
@@ -112,7 +112,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             }
 
             // Comment on the table
-            if (operation[NpgsqlAnnotationNames.Comment] is string comment && comment.Length > 0)
+            if (operation.Npgsql().Comment is string comment && comment.Length > 0)
             {
                 builder.AppendLine(';');
 
@@ -126,9 +126,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             }
 
             // Comments on the columns
-            foreach (var columnOp in operation.Columns.Where(c => c[NpgsqlAnnotationNames.Comment] != null))
+            foreach (var columnOp in operation.Columns.Where(c => c.Npgsql().Comment != null))
             {
-                var columnComment = columnOp[NpgsqlAnnotationNames.Comment];
+                var columnComment = columnOp.Npgsql().Comment;
                 builder.AppendLine(';');
 
                 var stringTypeMapping = Dependencies.TypeMappingSource.GetMapping(typeof(string));
@@ -198,8 +198,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             }
 
             // Comment
-            var oldComment = operation.OldTable[NpgsqlAnnotationNames.Comment] as string;
-            var newComment = operation[NpgsqlAnnotationNames.Comment] as string;
+            var oldComment = operation.Npgsql().OldComment;
+            var newComment = operation.Npgsql().Comment;
 
             if (oldComment != newComment)
             {
@@ -244,7 +244,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             base.Generate(operation, model, builder, terminate: false);
 
-            if (operation[NpgsqlAnnotationNames.Comment] is string comment && comment.Length > 0)
+            if (operation.Npgsql().Comment is string comment && comment.Length > 0)
             {
                 builder.AppendLine(';');
 
@@ -297,8 +297,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             CheckForOldValueGenerationAnnotation(operation);
 
-            var oldStrategy = operation.OldColumn[NpgsqlAnnotationNames.ValueGenerationStrategy] as NpgsqlValueGenerationStrategy?;
-            var newStrategy = operation[NpgsqlAnnotationNames.ValueGenerationStrategy] as NpgsqlValueGenerationStrategy?;
+            var oldStrategy = operation.Npgsql().OldValueGenerationStrategy;
+            var newStrategy = operation.Npgsql().ValueGenerationStrategy;
 
             if (oldStrategy != newStrategy)
             {
@@ -427,8 +427,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             }
 
             // Comment
-            var oldComment = operation.OldColumn[NpgsqlAnnotationNames.Comment] as string;
-            var newComment = operation[NpgsqlAnnotationNames.Comment] as string;
+            var oldComment = operation.Npgsql().OldComment;
+            var newComment = operation.Npgsql().Comment;
 
             if (oldComment != newComment)
             {
@@ -529,14 +529,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 .Append(" ON ")
                 .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Table, operation.Schema));
 
-            if (operation[NpgsqlAnnotationNames.IndexMethod] is string method && method.Length > 0)
+            if (operation.Npgsql().Method is string method && method.Length > 0)
             {
                 builder
                     .Append(" USING ")
                     .Append(method);
             }
 
-            var operators = operation[NpgsqlAnnotationNames.IndexOperators] as string[];
+            var operators = operation.Npgsql().Operators;
 
             builder
                 .Append(" (")
@@ -552,7 +552,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
         protected override void IndexOptions(CreateIndexOperation operation, IModel model, MigrationCommandListBuilder builder)
         {
-            if (operation[NpgsqlAnnotationNames.IndexInclude] is string[] includeProperties && includeProperties.Length > 0)
+            if (operation.Npgsql().IncludeProperties is string[] includeProperties && includeProperties.Length > 0)
             {
                 builder
                     .Append(" INCLUDE (")

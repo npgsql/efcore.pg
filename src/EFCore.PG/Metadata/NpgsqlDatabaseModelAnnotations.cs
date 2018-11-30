@@ -32,5 +32,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             [NotNull] string name,
             [CanBeNull] string version)
             => PostgresExtension.GetOrAddPostgresExtension((IMutableAnnotatable)Metadata, schema, name, version);
+
+        [NotNull]
+        public virtual PostgresEnum GetOrAddPostgresEnum(
+            [CanBeNull] string schema,
+            [NotNull] string name,
+            [NotNull] string[] labels)
+            => PostgresEnum.GetOrAddPostgresEnum((IMutableAnnotatable)Metadata, schema, name, labels);
     }
 }
