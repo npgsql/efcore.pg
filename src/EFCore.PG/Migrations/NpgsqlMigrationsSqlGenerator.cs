@@ -765,7 +765,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             foreach (var rangeTypeToDrop in operation.Npgsql().OldPostgresRanges
                 .Where(oe => operation.Npgsql().PostgresRanges.All(ne => ne.Name != oe.Name)))
             {
-                GenerateDropRange(rangeTypeToDrop, builder);
+                GenerateDropRange(rangeTypeToDrop, model, builder);
             }
 
             if (operation.Npgsql().PostgresRanges.FirstOrDefault(nr =>
@@ -781,14 +781,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             [NotNull] IModel model,
             [NotNull] MigrationCommandListBuilder builder)
         {
+            var schema = rangeType.Schema ?? model.Relational().DefaultSchema;
+
             // Schemas are normally created (or rather ensured) by the model differ, which scans all tables, sequences
             // and other database objects. However, it isn't aware of ranges, so we always ensure schema on range creation.
-            if (rangeType.Schema != null)
-                Generate(new EnsureSchemaOperation { Name = rangeType.Schema }, model, builder);
+            if (schema != null)
+                Generate(new EnsureSchemaOperation { Name = schema }, model, builder);
 
             builder
                 .Append("CREATE TYPE ")
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(rangeType.Name, rangeType.Schema))
+                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(rangeType.Name, schema))
                 .AppendLine($" AS RANGE (")
                 .IncrementIndent();
 
@@ -812,11 +814,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 .AppendLine(");");
         }
 
-        protected virtual void GenerateDropRange([NotNull] PostgresRange rangeType, [NotNull] MigrationCommandListBuilder builder)
+        protected virtual void GenerateDropRange(
+            [NotNull] PostgresRange rangeType,
+            [NotNull] IModel model,
+            [NotNull] MigrationCommandListBuilder builder)
         {
+            var schema = rangeType.Schema ?? model.Relational().DefaultSchema;
+
             builder
                 .Append("DROP TYPE ")
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(rangeType.Name, rangeType.Schema))
+                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(rangeType.Name, schema))
                 .AppendLine(";");
         }
 
