@@ -67,7 +67,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             Check.NotNull(model, nameof(model));
             Check.NotNull(annotation, nameof(annotation));
 
-            if (annotation.Name.StartsWith(NpgsqlAnnotationNames.PostgresExtensionPrefix))
+            if (annotation.Name.StartsWith(NpgsqlAnnotationNames.PostgresExtensionPrefix, StringComparison.Ordinal))
             {
                 var extension = new PostgresExtension(model, annotation.Name);
 

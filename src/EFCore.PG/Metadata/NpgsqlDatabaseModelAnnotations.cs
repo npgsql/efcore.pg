@@ -10,7 +10,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
     {
         [NotNull]
         [ItemNotNull]
-        public virtual IReadOnlyList<IPostgresExtension> PostgresExtensions
+        public virtual IReadOnlyList<PostgresExtension> PostgresExtensions
             => PostgresExtension.GetPostgresExtensions(Metadata).ToArray();
 
         [NotNull]
@@ -25,5 +25,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 
         /// <inheritdoc />
         public NpgsqlDatabaseModelAnnotations([NotNull] DatabaseModel model) : base(model) {}
+
+        [NotNull]
+        public virtual PostgresExtension GetOrAddPostgresExtension(
+            [CanBeNull] string schema,
+            [NotNull] string name,
+            [CanBeNull] string version)
+            => PostgresExtension.GetOrAddPostgresExtension((IMutableAnnotatable)Metadata, schema, name, version);
     }
 }

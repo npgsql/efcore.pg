@@ -16,12 +16,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 
         [NotNull]
         [ItemNotNull]
-        public virtual IReadOnlyList<IPostgresExtension> PostgresExtensions
+        public virtual IReadOnlyList<PostgresExtension> PostgresExtensions
             => PostgresExtension.GetPostgresExtensions(Metadata).ToArray();
 
         [NotNull]
         [ItemNotNull]
-        public virtual IReadOnlyList<IPostgresExtension> OldPostgresExtensions
+        public virtual IReadOnlyList<PostgresExtension> OldPostgresExtensions
             => PostgresExtension.GetPostgresExtensions(_oldDatabase).ToArray();
 
         [NotNull]
@@ -48,5 +48,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         public NpgsqlAlterDatabaseOperationAnnotations([NotNull] AlterDatabaseOperation operation)
             : base(operation)
             => _oldDatabase = operation.OldDatabase;
+
+        [NotNull]
+        public virtual PostgresExtension GetOrAddPostgresExtension(
+            [CanBeNull] string schema,
+            [NotNull] string name,
+            [CanBeNull] string version)
+            => PostgresExtension.GetOrAddPostgresExtension((IMutableAnnotatable)Metadata, schema, name, version);
     }
 }
