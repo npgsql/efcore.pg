@@ -83,6 +83,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     .TryAdd<IModificationCommandBatchFactory, NpgsqlModificationCommandBatchFactory>()
                     .TryAdd<IValueGeneratorSelector, NpgsqlValueGeneratorSelector>()
                     .TryAdd<IRelationalConnection>(p => p.GetService<INpgsqlRelationalConnection>())
+                    .TryAdd<IMigrationsModelDiffer, NpgsqlMigrationsModelDiffer>()
                     .TryAdd<IMigrationsSqlGenerator, NpgsqlMigrationsSqlGenerator>()
                     .TryAdd<IRelationalDatabaseCreator, NpgsqlDatabaseCreator>()
                     .TryAdd<IHistoryRepository, NpgsqlHistoryRepository>()

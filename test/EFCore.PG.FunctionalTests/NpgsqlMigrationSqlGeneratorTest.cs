@@ -751,20 +751,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         }
 
         [Fact]
-        public void CreatePostgresEnumWithSchema()
-        {
-            var op = new AlterDatabaseOperation();
-            PostgresEnum.GetOrAddPostgresEnum(op, "some_schema", "my_enum", new[] { "value1", "value2" });
-            Generate(op);
-
-            Assert.Equal(
-                @"CREATE SCHEMA IF NOT EXISTS some_schema;" + EOL +
-                @"GO" + EOL + EOL +
-                @"CREATE TYPE some_schema.my_enum AS ENUM ('value1', 'value2');" + EOL,
-                Sql);
-        }
-
-        [Fact]
         public void DropPostgresEnum()
         {
             var op = new AlterDatabaseOperation();

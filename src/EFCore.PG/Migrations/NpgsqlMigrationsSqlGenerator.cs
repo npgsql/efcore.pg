@@ -712,11 +712,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         {
             var schema = enumType.Schema ?? model.Relational().DefaultSchema;
 
-            // Schemas are normally created (or rather ensured) by the model differ, which scans all tables, sequences
-            // and other database objects. However, it isn't aware of enums, so we always ensure schema on enum creation.
-            if (schema != null)
-                Generate(new EnsureSchemaOperation { Name = schema }, model, builder);
-
             builder
                 .Append("CREATE TYPE ")
                 .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(enumType.Name, schema))
@@ -783,11 +778,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             [NotNull] MigrationCommandListBuilder builder)
         {
             var schema = rangeType.Schema ?? model.Relational().DefaultSchema;
-
-            // Schemas are normally created (or rather ensured) by the model differ, which scans all tables, sequences
-            // and other database objects. However, it isn't aware of ranges, so we always ensure schema on range creation.
-            if (schema != null)
-                Generate(new EnsureSchemaOperation { Name = schema }, model, builder);
 
             builder
                 .Append("CREATE TYPE ")
