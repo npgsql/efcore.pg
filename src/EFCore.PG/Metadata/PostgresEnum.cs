@@ -31,35 +31,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         }
 
         /// <summary>
-        /// Creates an <see cref="IAnnotation"/> that represents a PostgreSQL enum.
-        /// </summary>
-        /// <param name="schema">The enum schema or null to use the model's default schema.</param>
-        /// <param name="name">The enum name.</param>
-        /// <param name="labels">The enum labels.</param>
-        /// <returns>
-        /// An <see cref="IAnnotation"/> representing a PostgreSQL enum.
-        /// </returns>
-        /// <exception cref="ArgumentException"><paramref name="schema"/></exception>
-        /// <exception cref="ArgumentNullException"><paramref name="name"/></exception>
-        /// <exception cref="ArgumentNullException"><paramref name="labels"/></exception>
-        [NotNull]
-        public static IAnnotation CreateAnnotation([CanBeNull] string schema, [NotNull] string name, [NotNull] string[] labels)
-        {
-            Check.NullButNotEmpty(schema, nameof(schema));
-            Check.NotNull(name, nameof(name));
-            Check.NotNull(labels, nameof(labels));
-
-            var annotationName =
-                schema != null
-                    ? $"{NpgsqlAnnotationNames.EnumPrefix}{schema}.{name}"
-                    : $"{NpgsqlAnnotationNames.EnumPrefix}{name}";
-
-            var annotationValue = string.Join(",", labels);
-
-            return new Annotation(annotationName, annotationValue);
-        }
-
-        /// <summary>
         /// Gets or adds a <see cref="PostgresEnum"/> from or to the <see cref="IMutableAnnotatable"/>.
         /// </summary>
         /// <param name="annotatable">The annotatable from which to get or add the enum.</param>
@@ -85,12 +56,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             Check.NotNull(name, nameof(name));
             Check.NotNull(labels, nameof(labels));
 
-            var annotation = CreateAnnotation(schema, name, labels);
+            var annotationName =
+                schema != null
+                    ? $"{NpgsqlAnnotationNames.EnumPrefix}{schema}.{name}"
+                    : $"{NpgsqlAnnotationNames.EnumPrefix}{name}";
 
-            var postgresEnum = new PostgresEnum(annotatable, annotation.Name);
+            var postgresEnum = new PostgresEnum(annotatable, annotationName);
 
-            if (postgresEnum.Annotation == null && postgresEnum._annotatable is IMutableAnnotatable mutable)
-                mutable.SetAnnotation(annotation.Name, annotation.Value);
+            if (postgresEnum.Annotation == null)
+                postgresEnum.Labels = labels;
 
             return postgresEnum;
         }
@@ -130,15 +104,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         /// The enum labels.
         /// </summary>
         [NotNull]
-        public string[] Labels => Deserialize(Annotation).Labels;
+        public IReadOnlyList<string> Labels
+        {
+            get => Deserialize(Annotation).Labels;
+            // ReSharper disable once MemberCanBePrivate.Global
+            set => ((IMutableAnnotatable)_annotatable)[_annotationName] = string.Join(",", value);
+        }
 
         static (string Schema, string Name, string[] Labels) Deserialize([CanBeNull] IAnnotation annotation)
         {
             if (annotation == null || !(annotation.Value is string value) || string.IsNullOrEmpty(value))
                 return (null, null, null);
 
-            var labels = value.Split(',').ToArray();
+            var labels = value.Split(',');
 
+            // TODO: This would be a safer operation if we stored schema and name in the annotation value (see Sequence.cs).
             // Yes, this doesn't support dots in the schema/enum name, let somebody complain first.
             var schemaAndName = annotation.Name.Substring(NpgsqlAnnotationNames.EnumPrefix.Length).Split('.');
             switch (schemaAndName.Length)
