@@ -66,6 +66,25 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         }
 
         /// <summary>
+        /// Gets or adds a <see cref="PostgresEnum"/> from or to the <see cref="IMutableAnnotatable"/>.
+        /// </summary>
+        /// <param name="annotatable">The annotatable from which to get or add the enum.</param>
+        /// <param name="name">The enum name.</param>
+        /// <param name="labels">The enum labels.</param>
+        /// <returns>
+        /// The <see cref="PostgresEnum"/> from the <see cref="IMutableAnnotatable"/>.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="annotatable"/></exception>
+        /// <exception cref="ArgumentNullException"><paramref name="name"/></exception>
+        /// <exception cref="ArgumentNullException"><paramref name="labels"/></exception>
+        [NotNull]
+        public static PostgresEnum GetOrAddPostgresEnum(
+            [NotNull] IMutableAnnotatable annotatable,
+            [NotNull] string name,
+            [NotNull] string[] labels)
+            => GetOrAddPostgresEnum(annotatable, null, name, labels);
+
+        /// <summary>
         /// Finds a <see cref="PostgresEnum"/> in the <see cref="IAnnotatable"/>, or returns null if not found.
         /// </summary>
         /// <param name="annotatable">The annotatable to search for the enum.</param>
@@ -146,7 +165,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             => Deserialize(Annotatable.FindAnnotation(_annotationName));
 
         void SetData([NotNull] IEnumerable<string> labels)
-            =>  Annotatable[_annotationName] = string.Join(",", labels);
+            => Annotatable[_annotationName] = string.Join(",", labels);
 
         static (string Schema, string Name, string[] Labels) Deserialize([CanBeNull] IAnnotation annotation)
         {
