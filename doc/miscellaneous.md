@@ -24,18 +24,6 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
                    .ForNpgsqlUseXminAsConcurrencyToken();
 ```
 
-## PostgreSQL Index Methods
-
-PostgreSQL supports a number of _index methods_, or _types_. These are specified at index creation time via the `USING _method_` clause, see the [PostgreSQL docs for `CREATE INDEX`](https://www.postgresql.org/docs/current/static/sql-createindex.html) and [this page](https://www.postgresql.org/docs/current/static/indexes-types.html) for information on the different types.
-
-The Npgsql EF Core provider allows you to specify the index method to be used by specifying `ForNpgsqlHasMethod()` on your index in your context's `OnModelCreating` method:
-```c#
-protected override void OnModelCreating(ModelBuilder modelBuilder)
-    => modelBuilder.Entity<Blog>()
-                   .HasIndex(b => b.Url)
-                   .ForNpgsqlHasMethod("gin");
-```
-
 ## Execution Strategy
 
 Since 2.0.0, the Npgsql EF Core provider provides a retrying execution strategy, which will attempt to detect most transient PostgreSQL/network errors and will automatically retry your operation. To enable, place the following code in your context's `OnModelConfiguring`:

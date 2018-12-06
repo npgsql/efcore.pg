@@ -4,6 +4,8 @@
 ## [2.1](release-notes/2.1.md)
 ## [2.0](release-notes/2.0.md)
 ## [1.1](release-notes/1.1.md)
+# Creating a Model
+## [Indices](modeling/indices.md)
 # Mapping and Translation
 ## [General](mapping/general.md)
 ## [Arrays](mapping/array.md)
