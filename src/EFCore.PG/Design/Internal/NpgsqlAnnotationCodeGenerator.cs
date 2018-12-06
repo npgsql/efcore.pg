@@ -86,7 +86,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
                         enumTypeDef.Schema, enumTypeDef.Name, enumTypeDef.Labels);
             }
 
-            if (annotation.Name.StartsWith(NpgsqlAnnotationNames.RangePrefix))
+            if (annotation.Name.StartsWith(NpgsqlAnnotationNames.RangePrefix, StringComparison.Ordinal))
             {
                 var rangeTypeDef = new PostgresRange(model, annotation.Name);
 
