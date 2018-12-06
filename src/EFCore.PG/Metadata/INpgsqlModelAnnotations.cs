@@ -14,7 +14,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 
         [NotNull]
         [ItemNotNull]
-        IReadOnlyList<IPostgresExtension> PostgresExtensions { get; }
+        IReadOnlyList<PostgresExtension> PostgresExtensions { get; }
 
         [NotNull]
         [ItemNotNull]

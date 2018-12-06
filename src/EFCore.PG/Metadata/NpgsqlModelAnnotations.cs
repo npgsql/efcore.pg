@@ -64,10 +64,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 
         #region PostgreSQL Extensions
 
-        public virtual PostgresExtension GetOrAddPostgresExtension([NotNull] string name)
-            => PostgresExtension.GetOrAddPostgresExtension((IMutableModel)Model, name);
+        [NotNull]
+        public virtual PostgresExtension GetOrAddPostgresExtension(
+            [CanBeNull] string schema,
+            [NotNull] string name,
+            [CanBeNull] string version)
+            => PostgresExtension.GetOrAddPostgresExtension((IMutableAnnotatable)Model, schema, name, version);
 
-        public virtual IReadOnlyList<IPostgresExtension> PostgresExtensions
+        public virtual IReadOnlyList<PostgresExtension> PostgresExtensions
             => PostgresExtension.GetPostgresExtensions(Model).ToArray();
 
         #endregion

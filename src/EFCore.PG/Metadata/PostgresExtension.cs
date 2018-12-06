@@ -1,187 +1,188 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 {
-    public class PostgresExtension : IPostgresExtension
+    /// <summary>
+    /// Represents the metadata for a PostgreSQL extension.
+    /// </summary>
+    [PublicAPI]
+    public class PostgresExtension
     {
-        readonly IAnnotatable _annotatable;
-        readonly string _annotationName;
+        [NotNull] readonly IAnnotatable _annotatable;
+        [NotNull] readonly string _annotationName;
 
-        internal PostgresExtension(IAnnotatable annotatable, string annotationName)
+        /// <summary>
+        /// Creates a <see cref="PostgresExtension"/>.
+        /// </summary>
+        /// <param name="annotatable">The annotatable to search for the annotation.</param>
+        /// <param name="annotationName">The annotation name to search for in the annotatable.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="annotatable"/></exception>
+        /// <exception cref="ArgumentNullException"><paramref name="annotationName"/></exception>
+        internal PostgresExtension([NotNull] IAnnotatable annotatable, [NotNull] string annotationName)
         {
-            _annotatable = annotatable;
-            _annotationName = annotationName;
+            _annotatable = Check.NotNull(annotatable, nameof(annotatable));
+            _annotationName = Check.NotNull(annotationName, nameof(annotationName));
         }
 
+        /// <summary>
+        /// Gets or adds a <see cref="PostgresExtension"/> from or to the <see cref="IMutableAnnotatable"/>.
+        /// </summary>
+        /// <param name="annotatable">The annotatable from which to get or add the extension.</param>
+        /// <param name="schema">The extension schema or null to use the model's default schema.</param>
+        /// <param name="name">The extension name.</param>
+        /// <param name="version">The extension version.</param>
+        /// <returns>
+        /// The <see cref="PostgresExtension"/> from the <see cref="IMutableAnnotatable"/>.
+        /// </returns>
+        /// <exception cref="ArgumentException"><paramref name="schema"/></exception>
+        /// <exception cref="ArgumentNullException"><paramref name="annotatable"/></exception>
+        /// <exception cref="ArgumentNullException"><paramref name="name"/></exception>
+        [NotNull]
         public static PostgresExtension GetOrAddPostgresExtension(
             [NotNull] IMutableAnnotatable annotatable,
-            [NotNull] string extensionName)
+            [CanBeNull] string schema,
+            [NotNull] string name,
+            [CanBeNull] string version)
         {
-            var extension = (PostgresExtension)FindPostgresExtension(annotatable, extensionName);
-            if (extension != null)
-                return extension;
+            Check.NotNull(annotatable, nameof(annotatable));
+            Check.NullButNotEmpty(schema, nameof(schema));
+            Check.NotNull(name, nameof(name));
 
-            extension = new PostgresExtension(annotatable, BuildAnnotationName(extensionName));
-            extension.SetData(new PostgresExtensionData { Name = extensionName });
-            return extension;
+            if (FindPostgresExtension(annotatable, schema, name) is PostgresExtension postgresExtension)
+                return postgresExtension;
+
+            var annotationName = BuildAnnotationName(schema, name);
+
+            return new PostgresExtension(annotatable, annotationName) { Version = version };
         }
 
-        public static IPostgresExtension FindPostgresExtension(
+        /// <summary>
+        /// Gets or adds a <see cref="PostgresExtension"/> from or to the <see cref="IMutableAnnotatable"/>.
+        /// </summary>
+        /// <param name="annotatable">The annotatable from which to get or add the extension.</param>
+        /// <param name="name">The extension name.</param>
+        /// <param name="version">The extension version.</param>
+        /// <returns>
+        /// The <see cref="PostgresExtension"/> from the <see cref="IMutableAnnotatable"/>.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="annotatable"/></exception>
+        /// <exception cref="ArgumentNullException"><paramref name="name"/></exception>
+        [NotNull]
+        public static PostgresExtension GetOrAddPostgresExtension(
+            [NotNull] IMutableAnnotatable annotatable,
+            [NotNull] string name,
+            [CanBeNull] string version)
+            => GetOrAddPostgresExtension(annotatable, null, name, version);
+
+        /// <summary>
+        /// Finds a <see cref="PostgresExtension"/> in the <see cref="IAnnotatable"/>, or returns null if not found.
+        /// </summary>
+        /// <param name="annotatable">The annotatable to search for the extension.</param>
+        /// <param name="schema">The extension schema. The default schema is never used.</param>
+        /// <param name="name">The extension name.</param>
+        /// <returns>
+        /// The <see cref="PostgresExtension"/> from the <see cref="IAnnotatable"/>.
+        /// </returns>
+        /// <exception cref="ArgumentException"><paramref name="schema"/></exception>
+        /// <exception cref="ArgumentNullException"><paramref name="annotatable"/></exception>
+        /// <exception cref="ArgumentNullException"><paramref name="name"/></exception>
+        [CanBeNull]
+        public static PostgresExtension FindPostgresExtension(
             [NotNull] IAnnotatable annotatable,
+            [CanBeNull] string schema,
             [NotNull] string name)
         {
             Check.NotNull(annotatable, nameof(annotatable));
+            Check.NullButNotEmpty(schema, nameof(schema));
             Check.NotEmpty(name, nameof(name));
 
-            var annotationName = BuildAnnotationName(name);
+            var annotationName = BuildAnnotationName(schema, name);
 
             return annotatable[annotationName] == null ? null : new PostgresExtension(annotatable, annotationName);
         }
 
-        static string BuildAnnotationName(string name)
-            => NpgsqlAnnotationNames.PostgresExtensionPrefix + name;
+        [NotNull]
+        static string BuildAnnotationName(string schema, string name)
+            => schema != null
+                ? $"{NpgsqlAnnotationNames.PostgresExtensionPrefix}{schema}.{name}"
+                : $"{NpgsqlAnnotationNames.PostgresExtensionPrefix}{name}";
 
-        public static IEnumerable<IPostgresExtension> GetPostgresExtensions([NotNull] IAnnotatable annotatable)
-        {
-            Check.NotNull(annotatable, nameof(annotatable));
+        /// <summary>
+        /// Gets the collection of <see cref="PostgresExtension"/> stored in the <see cref="IAnnotatable"/>.
+        /// </summary>
+        /// <param name="annotatable">The annotatable to search for <see cref="PostgresExtension"/> annotations.</param>
+        /// <returns>
+        /// The collection of <see cref="PostgresExtension"/> stored in the <see cref="IAnnotatable"/>.
+        /// </returns>
+        /// <exception cref="ArgumentNullException"><paramref name="annotatable"/></exception>
+        [NotNull]
+        [ItemNotNull]
+        public static IEnumerable<PostgresExtension> GetPostgresExtensions([NotNull] IAnnotatable annotatable)
+            => Check.NotNull(annotatable, nameof(annotatable))
+                    .GetAnnotations()
+                    .Where(a => a.Name.StartsWith(NpgsqlAnnotationNames.PostgresExtensionPrefix, StringComparison.Ordinal))
+                    .Select(a => new PostgresExtension(annotatable, a.Name));
 
-            return annotatable.GetAnnotations()
-                .Where(a => a.Name.StartsWith(NpgsqlAnnotationNames.PostgresExtensionPrefix, StringComparison.Ordinal))
-                .Select(a => new PostgresExtension(annotatable, a.Name));
-        }
-
+        /// <summary>
+        /// The <see cref="Annotatable"/> that stores the extension.
+        /// </summary>
+        [NotNull]
         public Annotatable Annotatable => (Annotatable)_annotatable;
 
+        /// <summary>
+        /// The extension schema or null to represent the default schema.
+        /// </summary>
+        [CanBeNull]
+        public string Schema => GetData().Schema;
+
+        /// <summary>
+        /// The extension name.
+        /// </summary>
+        [NotNull]
         public string Name => GetData().Name;
 
-        [CanBeNull]
-        public string Schema
-        {
-            get => GetData().Schema;
-            set
-            {
-                var data = GetData();
-                data.Schema = value;
-                SetData(data);
-            }
-        }
-
+        /// <summary>
+        /// The extension version.
+        /// </summary>
         [CanBeNull]
         public string Version
         {
             get => GetData().Version;
-            set
-            {
-                var data = GetData();
-                data.Version = value;
-                SetData(data);
-            }
+            set => SetData(value);
         }
 
-        PostgresExtensionData GetData() => PostgresExtensionData.Deserialize((string)Annotatable[_annotationName]);
+        (string Schema, string Name, string Version) GetData()
+            => Deserialize(Annotatable.FindAnnotation(_annotationName));
 
-        void SetData(PostgresExtensionData data)
-            => Annotatable[_annotationName] = data.Serialize();
-
-        IAnnotatable IPostgresExtension.Annotatable => _annotatable;
-
-        public override string ToString()
+        void SetData([CanBeNull] string version)
         {
-            var sb = new StringBuilder();
-            if (Schema != null)
-            {
-                sb.Append(Schema);
-                sb.Append('.');
-            }
-            sb.Append(Name);
-            if (Version != null)
-            {
-                sb.Append("' (");
-                sb.Append(Version);
-                sb.Append(')');
-            }
-            return sb.ToString();
+            var data = GetData();
+            Annotatable[_annotationName] = $"{data.Schema},{data.Name},{version}";
         }
 
-        class PostgresExtensionData
+        static (string Schema, string Name, string Version) Deserialize([CanBeNull] IAnnotation annotation)
         {
-            public string Name { get; set; }
-            public string Schema { get; set; }
-            public string Version { get; set; }
+            if (annotation == null || !(annotation.Value is string value) || string.IsNullOrEmpty(value))
+                return (null, null, null);
 
-            public string Serialize()
+            // TODO: Can't actually use schema and name...they might not be set when this is first called.
+            var schemaNameValue = value.Split(',').Select(x => x == "" ? null : x).ToArray();
+            var schemaAndName = annotation.Name.Substring(NpgsqlAnnotationNames.PostgresExtensionPrefix.Length).Split('.');
+            switch (schemaAndName.Length)
             {
-                var builder = new StringBuilder();
-
-                EscapeAndQuote(builder, Name);
-                builder.Append(", ");
-                EscapeAndQuote(builder, Schema);
-                builder.Append(", ");
-                EscapeAndQuote(builder, Version);
-
-                return builder.ToString();
-            }
-
-            public static PostgresExtensionData Deserialize([NotNull] string value)
-            {
-                Check.NotEmpty(value, nameof(value));
-
-                try
-                {
-                    var data = new PostgresExtensionData();
-
-                    // ReSharper disable PossibleInvalidOperationException
-                    var position = 0;
-                    data.Name = ExtractValue(value, ref position);
-                    data.Schema = ExtractValue(value, ref position);
-                    data.Version = ExtractValue(value, ref position);
-                    // ReSharper restore PossibleInvalidOperationException
-
-                    return data;
-                }
-                catch (Exception ex)
-                {
-                    throw new ArgumentException(RelationalStrings.BadSequenceString, ex);
-                }
-            }
-
-            private static string ExtractValue(string value, ref int position)
-            {
-                position = value.IndexOf('\'', position) + 1;
-
-                var end = value.IndexOf('\'', position);
-
-                while ((end + 1 < value.Length)
-                       && (value[end + 1] == '\''))
-                {
-                    end = value.IndexOf('\'', end + 2);
-                }
-
-                var extracted = value.Substring(position, end - position).Replace("''", "'");
-                position = end + 1;
-
-                return extracted.Length == 0 ? null : extracted;
-            }
-
-            private static void EscapeAndQuote(StringBuilder builder, object value)
-            {
-                builder.Append("'");
-
-                if (value != null)
-                {
-                    builder.Append(value.ToString().Replace("'", "''"));
-                }
-
-                builder.Append("'");
+            case 1:
+                return (null, schemaAndName[0], schemaNameValue[2]);
+            case 2:
+                return (schemaAndName[0], schemaAndName[1], schemaNameValue[2]);
+            default:
+                throw new ArgumentException($"Cannot parse extension name from annotation: {annotation.Name}");
             }
         }
     }

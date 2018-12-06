@@ -2,12 +2,12 @@
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore
 {
+    // TODO: This is unused. Can we remove it?
     public static class NpgsqlMigrationBuilderExtensions
     {
         public static MigrationBuilder EnsurePostgresExtension(
@@ -22,9 +22,7 @@ namespace Microsoft.EntityFrameworkCore
             Check.NullButNotEmpty(version, nameof(schema));
 
             var op = new AlterDatabaseOperation();
-            var extension = PostgresExtension.GetOrAddPostgresExtension(op, name);
-            extension.Schema = schema;
-            extension.Version = version;
+            op.Npgsql().GetOrAddPostgresExtension(schema, name, version);
             builder.Operations.Add(op);
 
             return builder;
@@ -35,15 +33,13 @@ namespace Microsoft.EntityFrameworkCore
             this MigrationBuilder builder,
             [NotNull] string name,
             string schema = null,
-            string version = null
-        )
+            string version = null)
             => EnsurePostgresExtension(builder, name, schema, version);
 
         [Obsolete("This no longer does anything and should be removed.")]
         public static MigrationBuilder DropPostgresExtension(
             this MigrationBuilder builder,
-            [NotNull] string name
-        )
+            [NotNull] string name)
             => builder;
     }
 }

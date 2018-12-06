@@ -880,7 +880,8 @@ GROUP BY
                     if (name == "plpgsql") // Implicitly installed in all PG databases
                         continue;
 
-                    PostgresExtension.GetOrAddPostgresExtension(databaseModel, name);
+                    // TODO: how/should we query the schema?
+                    databaseModel.Npgsql().GetOrAddPostgresExtension(null, name, installedVersion);
                 }
             }
         }

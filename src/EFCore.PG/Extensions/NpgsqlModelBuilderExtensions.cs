@@ -147,16 +147,52 @@ namespace Microsoft.EntityFrameworkCore
 
         #region Extensions
 
+        /// <summary>
+        /// Registers a PostgreSQL extension in the model.
+        /// </summary>
+        /// <param name="modelBuilder">The model builder in which to define the extension.</param>
+        /// <param name="schema">The schema in which to create the extension.</param>
+        /// <param name="name">The name of the extension to create.</param>
+        /// <param name="version">The version of the extension.</param>
+        /// <returns>
+        /// The updated <see cref="ModelBuilder"/>.
+        /// </returns>
+        /// <remarks>
+        /// See: https://www.postgresql.org/docs/current/external-extensions.html
+        /// </remarks>
+        /// <exception cref="ArgumentNullException"><paramref name="modelBuilder"/></exception>
+        [NotNull]
+        public static ModelBuilder HasPostgresExtension(
+            [NotNull] this ModelBuilder modelBuilder,
+            [CanBeNull] string schema,
+            [NotNull] string name,
+            [CanBeNull] string version)
+        {
+            Check.NotNull(modelBuilder, nameof(modelBuilder));
+            Check.NullButNotEmpty(schema, nameof(schema));
+            Check.NotEmpty(name, nameof(name));
+
+            modelBuilder.Model.Npgsql().GetOrAddPostgresExtension(schema, name, version);
+            return modelBuilder;
+        }
+
+        /// <summary>
+        /// Registers a PostgreSQL extension in the model.
+        /// </summary>
+        /// <param name="modelBuilder">The model builder in which to define the extension.</param>
+        /// <param name="name">The name of the extension to create.</param>
+        /// <returns>
+        /// The updated <see cref="ModelBuilder"/>.
+        /// </returns>
+        /// <remarks>
+        /// See: https://www.postgresql.org/docs/current/external-extensions.html
+        /// </remarks>
+        /// <exception cref="ArgumentNullException"><paramref name="modelBuilder"/></exception>
+        [NotNull]
         public static ModelBuilder HasPostgresExtension(
             [NotNull] this ModelBuilder modelBuilder,
             [NotNull] string name)
-        {
-            Check.NotNull(modelBuilder, nameof(modelBuilder));
-            Check.NotEmpty(name, nameof(name));
-
-            modelBuilder.Model.Npgsql().GetOrAddPostgresExtension(name);
-            return modelBuilder;
-        }
+            => modelBuilder.HasPostgresExtension(null, name, null);
 
         #endregion
 

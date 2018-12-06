@@ -651,7 +651,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         }
 
         protected virtual void GenerateCreateExtension(
-            IPostgresExtension extension,
+            PostgresExtension extension,
             IModel model,
             MigrationCommandListBuilder builder)
         {
