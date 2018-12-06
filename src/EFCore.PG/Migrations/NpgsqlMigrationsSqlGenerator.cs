@@ -638,6 +638,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
+            Check.NotNull(model, nameof(model));
             Check.NotNull(builder, nameof(builder));
 
             GenerateEnumStatements(operation, model, builder);
@@ -691,7 +692,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             foreach (var enumTypeToDrop in operation.Npgsql().OldPostgresEnums
                 .Where(oe => operation.Npgsql().PostgresEnums.All(ne => ne.Name != oe.Name)))
             {
-                GenerateDropEnum(enumTypeToDrop, operation.OldDatabase, builder);
+                GenerateDropEnum(enumTypeToDrop, model, builder);
             }
 
             // TODO: Some forms of enum alterations are actually supported...
@@ -708,7 +709,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             [NotNull] IModel model,
             [NotNull] MigrationCommandListBuilder builder)
         {
-            var schema = GetSchemaOrDefault(enumType.Schema, model);
+            var schema = enumType.Schema ?? model.Relational().DefaultSchema;
 
             // Schemas are normally created (or rather ensured) by the model differ, which scans all tables, sequences
             // and other database objects. However, it isn't aware of enums, so we always ensure schema on enum creation.
@@ -723,10 +724,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             var stringTypeMapping = Dependencies.TypeMappingSource.GetMapping(typeof(string));
 
             var labels = enumType.Labels;
-            for (var i = 0; i < labels.Length; i++)
+            for (var i = 0; i < labels.Count; i++)
             {
                 builder.Append(stringTypeMapping.GenerateSqlLiteral(labels[i]));
-                if (i < labels.Length - 1)
+                if (i < labels.Count - 1)
                     builder.Append(", ");
             }
 
@@ -735,10 +736,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
         protected virtual void GenerateDropEnum(
             [NotNull] PostgresEnum enumType,
-            [CanBeNull] IAnnotatable oldDatabase,
+            [NotNull] IModel model,
             [NotNull] MigrationCommandListBuilder builder)
         {
-            var schema = GetSchemaOrDefault(enumType.Schema, oldDatabase);
+            var schema = enumType.Schema ?? model.Relational().DefaultSchema;
 
             builder
                 .Append("DROP TYPE ")
@@ -1116,10 +1117,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         #endregion Storage parameter utilities
 
         #region Helpers
-
-        [CanBeNull]
-        static string GetSchemaOrDefault([CanBeNull] string schema, [CanBeNull] IAnnotatable model)
-            => schema ?? model?.FindAnnotation(RelationalAnnotationNames.DefaultSchema)?.Value as string;
 
         /// <summary>
         /// True if <see cref="_postgresVersion"/> is null, greater than, or equal to the specified version.
