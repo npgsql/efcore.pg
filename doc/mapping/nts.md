@@ -1,7 +1,7 @@
 ## Spatial Mapping with NetTopologySuite
 
 > [!NOTE]
-> It's recommended that you start by reading the general [Entity Framework Core docs on spatial support](https://docs.microsoft.com/en-us/ef/core/modeling/spatial).
+> It's recommended that you start by reading the general [Entity Framework Core docs on spatial support](https://docs.microsoft.com/ef/core/modeling/spatial).
 
 PostgreSQL supports spatial data and operations via [the PostGIS extension](https://postgis.net/), which is a mature and feature-rich database spatial implementation. .NET doesn't provide a standard spatial library, but [NetTopologySuite](https://github.com/NetTopologySuite/NetTopologySuite) is quite a good candidate. The Npgsql EF Core provider has a plugin which allows you to map NetTopologySuite's types PostGIS columns, and even translate many useful spatial operations to SQL. This is the recommended way to interact with spatial types in Npgsql.
 
@@ -43,7 +43,7 @@ var nearbyCities = context.Cities.Where(c => c.Location.Distance(somePoint) < 10
 
 ## Operation translation
 
-The following table lists NetTopologySuite operations which are translated to PostGIS SQL operations. This allows you to use these NetTopologySuite methods and members efficiently - evaluation will happen on the server side. Since evaluation happens at the server, table data doesn't need to be transferred to the client (saving bandwidth), and cases indices can be used to speed things up.
+The following table lists NetTopologySuite operations which are translated to PostGIS SQL operations. This allows you to use these NetTopologySuite methods and members efficiently - evaluation will happen on the server side. Since evaluation happens at the server, table data doesn't need to be transferred to the client (saving bandwidth), and in some cases indexes can be used to speed things up.
 
 Note that the plugin is far from covering all spatial operations. If an operation you need is missing, please open an issue to request for it.
 

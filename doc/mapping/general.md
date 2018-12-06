@@ -38,7 +38,7 @@ public string SomeStringProperty { get; set; }
 
 ## Operation translation to SQL
 
-Entity Framework Core allows providers to translate query expressions to SQL for database evaluation. For example, PostgreSQL supports [regular expression operations](http://www.postgresql.org/docs/current/static/functions-matching.html#FUNCTIONS-POSIX-REGEXP), and the Npgsql EF Core provider automatically translates .NET's `Regex.IsMatch()` to use this feature. Since evaluation happens at the server, table data doesn't need to be transferred to the client (saving bandwidth), and in some cases indices can be used to speed things up. The same C# code on other providers will trigger client evaluation.
+Entity Framework Core allows providers to translate query expressions to SQL for database evaluation. For example, PostgreSQL supports [regular expression operations](http://www.postgresql.org/docs/current/static/functions-matching.html#FUNCTIONS-POSIX-REGEXP), and the Npgsql EF Core provider automatically translates .NET's `Regex.IsMatch()` to use this feature. Since evaluation happens at the server, table data doesn't need to be transferred to the client (saving bandwidth), and in some cases indexes can be used to speed things up. The same C# code on other providers will trigger client evaluation.
 
 Below are some Npgsql-specific translations, many additional standard ones are supported as well. See the other pages in the mapping section for more supported types and operations.
 

@@ -1,6 +1,6 @@
 # Value Generation (auto-increment)
 
-See [the general EF Docs on value generation](https://docs.microsoft.com/en-us/ef/core/modeling/generated-properties) to better understand the concepts described here.
+See [the general EF Docs on value generation](https://docs.microsoft.com/ef/core/modeling/generated-properties) to better understand the concepts described here.
 
 ## Serial and identity columns
 
@@ -33,7 +33,7 @@ If you set identity for existing columns, or even for your entire existing model
 
 ## Standard Sequence-Driven Columns
 
-While `serial` sets up a sequence for you, you may want to manage sequence creation yourself. This can be useful for cases where you need to control the sequence's increment value (i.e. increment by 2), populate two columns from the same sequence, etc. Adding a sequence to your model is described in [the general EF Core documentation](https://docs.microsoft.com/en-us/ef/core/modeling/relational/sequences); once the sequence is specified, you can simply set a column's default value to extract the next value from that sequence. Note that the SQL used to fetch the next value from a sequence differs across databases (see [the PostgreSQL docs](https://www.postgresql.org/docs/current/static/functions-sequence.html)). Your models' `OnModelCreating` should look like this:
+While `serial` sets up a sequence for you, you may want to manage sequence creation yourself. This can be useful for cases where you need to control the sequence's increment value (i.e. increment by 2), populate two columns from the same sequence, etc. Adding a sequence to your model is described in [the general EF Core documentation](https://docs.microsoft.com/ef/core/modeling/relational/sequences); once the sequence is specified, you can simply set a column's default value to extract the next value from that sequence. Note that the SQL used to fetch the next value from a sequence differs across databases (see [the PostgreSQL docs](https://www.postgresql.org/docs/current/static/functions-sequence.html)). Your models' `OnModelCreating` should look like this:
 
 ```c#
 protected override void OnModelCreating(ModelBuilder modelBuilder)
