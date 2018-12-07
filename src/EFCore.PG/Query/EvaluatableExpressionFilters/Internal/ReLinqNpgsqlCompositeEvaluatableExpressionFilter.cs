@@ -11,7 +11,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.EvaluatableExpressionFilte
     /// <summary>
     /// A composite evaluatable expression filter that dispatches to multiple specialized filters specific to Npgsql.
     /// </summary>
-    public class NpgsqlCompositeEvaluatableExpressionFilter : RelationalEvaluatableExpressionFilter
+    public class ReLinqNpgsqlCompositeEvaluatableExpressionFilter : ReLinqRelationalEvaluatableExpressionFilter
     {
         /// <summary>
         /// The collection of registered evaluatable expression filters.
@@ -24,11 +24,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.EvaluatableExpressionFilte
             };
 
         /// <inheritdoc />
-        public NpgsqlCompositeEvaluatableExpressionFilter([NotNull] IModel model) : base(model) {}
+        public ReLinqNpgsqlCompositeEvaluatableExpressionFilter([NotNull] IModel model) : base(model) {}
 
         /// <inheritdoc />
-        public override bool IsEvaluatableExpression(Expression expression)
-            => _filters.All(x => x.IsEvaluatableExpression(expression)) && base.IsEvaluatableExpression(expression);
+        public override bool IsEvaluatableMember(MemberExpression expression)
+            => _filters.All(x => x.IsEvaluatableExpression(expression)) && base.IsEvaluatableMember(expression);
+
+        /// <inheritdoc />
+        public override bool IsEvaluatableMethodCall(MethodCallExpression expression)
+            => _filters.All(x => x.IsEvaluatableExpression(expression)) && base.IsEvaluatableMethodCall(expression);
+
 
         /// <summary>
         /// Adds additional dispatches to the filters list.
