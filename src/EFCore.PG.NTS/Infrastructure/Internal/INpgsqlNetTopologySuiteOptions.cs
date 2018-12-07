@@ -1,3 +1,5 @@
+using System;
+using GeoAPI.Geometries;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
@@ -11,5 +13,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// True if geography is to be used by default instead of geometry
         /// </summary>
         bool IsGeographyDefault { get; }
+
+        /// <summary>
+        /// The ordinates to be used by default.
+        /// </summary>
+        Ordinates Ordinates { get; }
     }
 }

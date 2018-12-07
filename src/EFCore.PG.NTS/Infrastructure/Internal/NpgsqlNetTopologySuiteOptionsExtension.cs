@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using GeoAPI.Geometries;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Primitives;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
@@ -18,11 +18,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
     {
         bool _isGeographyDefault;
         string _logFragment;
+        Ordinates _ordinates;
 
         public NpgsqlNetTopologySuiteOptionsExtension() {}
 
         protected NpgsqlNetTopologySuiteOptionsExtension([NotNull] NpgsqlNetTopologySuiteOptionsExtension copyFrom)
-            => _isGeographyDefault = copyFrom._isGeographyDefault;
+        {
+            _isGeographyDefault = copyFrom._isGeographyDefault;
+            _ordinates = copyFrom._ordinates;
+        }
 
         protected virtual NpgsqlNetTopologySuiteOptionsExtension Clone() => new NpgsqlNetTopologySuiteOptionsExtension(this);
 
@@ -35,11 +39,22 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
 
         public virtual bool IsGeographyDefault => _isGeographyDefault;
 
+        public virtual Ordinates Ordinates => _ordinates;
+
         public virtual NpgsqlNetTopologySuiteOptionsExtension WithGeographyDefault(bool isGeographyDefault = true)
         {
             var clone = Clone();
 
             clone._isGeographyDefault = isGeographyDefault;
+
+            return clone;
+        }
+
+        public virtual NpgsqlNetTopologySuiteOptionsExtension WithOrdinates(Ordinates ordinates)
+        {
+            var clone = Clone();
+
+            clone._ordinates = ordinates;
 
             return clone;
         }

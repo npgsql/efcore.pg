@@ -1,4 +1,3 @@
-using GeoAPI;
 using GeoAPI.Geometries;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -24,7 +23,7 @@ namespace Microsoft.EntityFrameworkCore
             [NotNull] this NpgsqlDbContextOptionsBuilder optionsBuilder,
             ICoordinateSequenceFactory coordinateSequenceFactory = null,
             IPrecisionModel precisionModel = null,
-            Ordinates handleOrdinates = Ordinates.None,
+            Ordinates handleOrdinates = Ordinates.XY,
             bool geographyAsDefault = false)
         {
             Check.NotNull(optionsBuilder, nameof(optionsBuilder));
@@ -39,6 +38,8 @@ namespace Microsoft.EntityFrameworkCore
 
             if (geographyAsDefault)
                 extension = extension.WithGeographyDefault();
+
+            extension = extension.WithOrdinates(handleOrdinates);
 
             ((IDbContextOptionsBuilderInfrastructure)coreOptionsBuilder).AddOrUpdateExtension(extension);
 

@@ -37,8 +37,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         protected override IServiceCollection AddServices(IServiceCollection serviceCollection)
         {
-            NpgsqlConnection.GlobalTypeMapper.UseNetTopologySuite();
-
             return base.AddServices(serviceCollection)
                 .AddEntityFrameworkNpgsqlNetTopologySuite();
         }
@@ -46,7 +44,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
         {
             var optionsBuilder = base.AddOptions(builder);
-            new NpgsqlDbContextOptionsBuilder(optionsBuilder).UseNetTopologySuite(null, null, Ordinates.None, true);
+            new NpgsqlDbContextOptionsBuilder(optionsBuilder).UseNetTopologySuite(geographyAsDefault: true);
 
             return optionsBuilder;
         }

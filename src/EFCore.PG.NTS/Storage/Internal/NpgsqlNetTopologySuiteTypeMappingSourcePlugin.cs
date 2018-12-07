@@ -6,7 +6,6 @@ using GeoAPI.Geometries;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
@@ -18,11 +17,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             { "GEOMETRY", typeof(IGeometry) },
             { "GEOMETRYCOLLECTION", typeof(IGeometryCollection) },
             { "LINESTRING", typeof(ILineString) },
+            { "LINESTRINGZ", typeof(ILineString) },
+            { "LINESTRINGZM", typeof(ILineString) },
             { "MULTILINESTRING", typeof(IMultiLineString) },
+            { "MULTILINESTRINGZ", typeof(IMultiLineString) },
+            { "MULTILINESTRINGZM", typeof(IMultiLineString) },
             { "MULTIPOINT", typeof(IMultiPoint) },
+            { "MULTIPOINTZ", typeof(IMultiPoint) },
+            { "MULTIPOINTZM", typeof(IMultiPoint) },
             { "MULTIPOLYGON", typeof(IMultiPolygon) },
+            { "MULTIPOLYGONZ", typeof(IMultiPolygon) },
+            { "MULTIPOLYGONZM", typeof(IMultiPolygon) },
             { "POINT", typeof(IPoint) },
-            { "POLYGON", typeof(IPolygon) }
+            { "POINTZ", typeof(IPoint) },
+            { "POINTZM", typeof(IPoint) },
+            { "POLYGON", typeof(IPolygon) },
+            { "POLYGONZ", typeof(IPolygon) },
+            { "POLYGONZM", typeof(IPolygon) }
         };
 
         // Note: we reference the options rather than copying IsGeographyDefault out, because that field is initialized
@@ -43,7 +54,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             if (clrType != null)
             {
                 if (typeof(IGeometry).IsAssignableFrom(clrType) &&
-                    (storeType != null || TryGetStoreType(clrType, _options.IsGeographyDefault, null, out storeType)))
+                    (storeType != null || TryGetStoreType(clrType, _options.IsGeographyDefault, _options.Ordinates, null, out storeType)))
                 {
                     return (RelationalTypeMapping)Activator.CreateInstance(
                         typeof(NpgsqlGeometryTypeMapping<>).MakeGenericType(clrType),
@@ -86,7 +97,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 m.Groups[5].Success ? (int?)int.Parse(m.Groups[5].Value) : null);
         }
 
-        static bool TryGetStoreType(Type clrType, bool isGeography, int? srid, out string storeType)
+        static bool TryGetStoreType(Type clrType, bool isGeography, Ordinates ordinates, int? srid, out string storeType)
         {
             var sb = new StringBuilder(isGeography ? "GEOGRAPHY" : "GEOMETRY");
             if (typeof(ILineString).IsAssignableFrom(clrType))
@@ -118,6 +129,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 storeType = null;
                 return false;
             }
+
+            if (ordinates.HasFlag(Ordinates.Z))
+                sb.Append('Z');
+
+            if (ordinates.HasFlag(Ordinates.M))
+                sb.Append('M');
 
             if (srid.HasValue)
                 sb.Append(',').Append(srid.Value);

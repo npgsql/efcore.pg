@@ -1,4 +1,3 @@
-using GeoAPI.Geometries;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.TestUtilities;
@@ -15,8 +14,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         protected override IServiceCollection AddServices(IServiceCollection serviceCollection)
         {
-            NpgsqlConnection.GlobalTypeMapper.UseNetTopologySuite();
-
             return base.AddServices(serviceCollection)
                 .AddEntityFrameworkNpgsqlNetTopologySuite();
         }
