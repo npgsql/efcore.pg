@@ -4014,3 +4014,21 @@ LIMIT 1");
 
 
 
+Npgsql.EntityFrameworkCore.PostgreSQL.Query.SpatialQueryNpgsqlGeographyTest.<IsWithinDistance>d__9.MoveNext() : line 84
+            AssertSql(
+                @"@__point_0='POINT (0 1)' (DbType = Object)
+
+SELECT e.""Id"", ST_DWithin(e.""Point"", @__point_0, 1.0) AS ""IsWithinDistance""
+FROM ""PointEntity"" AS e");
+
+
+
+Npgsql.EntityFrameworkCore.PostgreSQL.Query.SpatialQueryNpgsqlGeographyTest.<IsWithinDistance>d__9.MoveNext() : line 84
+            AssertSql(
+                @"@__point_0='POINT (0 1)' (DbType = Object)
+
+SELECT e.""Id"", ST_DWithin(e.""Point"", @__point_0, 1.0) AS ""IsWithinDistance""
+FROM ""PointEntity"" AS e");
+
+
+
