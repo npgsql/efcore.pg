@@ -334,6 +334,17 @@ FROM ""LineStringEntity"" AS e");
 FROM ""PointEntity"" AS e");
         }
 
+        public override async Task IsWithinDistance(bool isAsync)
+        {
+            await base.IsWithinDistance(isAsync);
+
+            AssertSql(
+                @"@__point_0='POINT (0 1)' (DbType = Object)
+
+SELECT e.""Id"", ST_DWithin(e.""Point"", @__point_0, 1.0) AS ""IsWithinDistance""
+FROM ""PointEntity"" AS e");
+        }
+
         public override async Task Item(bool isAsync)
         {
             await base.Item(isAsync);

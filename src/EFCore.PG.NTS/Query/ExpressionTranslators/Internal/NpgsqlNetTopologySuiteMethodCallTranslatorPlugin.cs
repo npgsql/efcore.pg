@@ -71,6 +71,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 return new SqlFunctionExpression("ST_Intersection",  typeof(Geometry), new[] { e.Object, e.Arguments[0] });
             case "Intersects":
                 return new SqlFunctionExpression("ST_Intersects",    typeof(bool),     new[] { e.Object, e.Arguments[0] });
+            case "IsWithinDistance":
+                return new SqlFunctionExpression("ST_DWithin",       typeof(bool),     new[] { e.Object, e.Arguments[0], e.Arguments[1] });
             case "Overlaps":
                 return new SqlFunctionExpression("ST_Overlaps",      typeof(bool),     new[] { e.Object, e.Arguments[0] });
             case "Relate":
