@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
@@ -46,11 +45,5 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal
             if (index.Npgsql().IncludeProperties != null)
                 yield return new Annotation(NpgsqlAnnotationNames.IndexInclude, index.Npgsql().IncludeProperties);
         }
-
-        public override IEnumerable<IAnnotation> For(IModel model)
-            => model.GetAnnotations().Where(a =>
-                a.Name.StartsWith(NpgsqlAnnotationNames.PostgresExtensionPrefix, StringComparison.Ordinal) ||
-                a.Name.StartsWith(NpgsqlAnnotationNames.EnumPrefix, StringComparison.Ordinal) ||
-                a.Name.StartsWith(NpgsqlAnnotationNames.RangePrefix, StringComparison.Ordinal));
     }
 }

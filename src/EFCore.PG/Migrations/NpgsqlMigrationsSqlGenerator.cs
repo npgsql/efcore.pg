@@ -644,11 +644,26 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             GenerateEnumStatements(operation, model, builder);
             GenerateRangeStatements(operation, model, builder);
-
-            foreach (var extension in operation.Npgsql().PostgresExtensions)
-                GenerateCreateExtension(extension, model, builder);
+            GenerateExtensionStatements(operation, model, builder);
 
             builder.EndCommand();
+        }
+
+        #region Extension management
+
+        protected virtual void GenerateExtensionStatements(
+            [NotNull] AlterDatabaseOperation operation,
+            [NotNull] IModel model,
+            [NotNull] MigrationCommandListBuilder builder)
+        {
+            foreach (var extensionTypeToCreate in operation.Npgsql().GetPostgresExtensionsToCreate())
+                GenerateCreateExtension(extensionTypeToCreate, model, builder);
+
+            foreach (var extensionTypeToDrop in operation.Npgsql().GetPostgresExtensionsToDrop())
+                GenerateDropExtension(extensionTypeToDrop, model, builder);
+
+            foreach (var extensionTypeToAlter in operation.Npgsql().GetPostgresExtensionsToAlter())
+                GenerateAlterExtension(extensionTypeToAlter, model, builder);
         }
 
         protected virtual void GenerateCreateExtension(
@@ -677,6 +692,22 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             builder.AppendLine(';');
         }
 
+        // TODO: Some forms of extension dropping are actually supported...
+        protected virtual void GenerateDropExtension(
+            [NotNull] PostgresExtension extensionType,
+            [NotNull] IModel model,
+            [NotNull] MigrationCommandListBuilder builder)
+            => throw new NotSupportedException($"Dropping extension type ${extensionType} isn't supported.");
+
+        // TODO: Some forms of extension alterations are actually supported...
+        protected virtual void GenerateAlterExtension(
+            [NotNull] PostgresExtension extensionType,
+            [NotNull] IModel model,
+            [NotNull] MigrationCommandListBuilder builder)
+            => throw new NotSupportedException($"Altering extension type ${extensionType} isn't supported.");
+
+        #endregion
+
         #region Enum management
 
         protected virtual void GenerateEnumStatements(
@@ -684,25 +715,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 [NotNull] IModel model,
                 [NotNull] MigrationCommandListBuilder builder)
         {
-            foreach (var enumTypeToCreate in operation.Npgsql().PostgresEnums
-                .Where(ne => operation.Npgsql().OldPostgresEnums.All(oe => oe.Name != ne.Name)))
-            {
+            foreach (var enumTypeToCreate in operation.Npgsql().GetPostgresEnumsToCreate())
                 GenerateCreateEnum(enumTypeToCreate, model, builder);
-            }
 
-            foreach (var enumTypeToDrop in operation.Npgsql().OldPostgresEnums
-                .Where(oe => operation.Npgsql().PostgresEnums.All(ne => ne.Name != oe.Name)))
-            {
+            foreach (var enumTypeToDrop in operation.Npgsql().GetPostgresEnumsToDrop())
                 GenerateDropEnum(enumTypeToDrop, model, builder);
-            }
 
-            // TODO: Some forms of enum alterations are actually supported...
-            if (operation.Npgsql().PostgresEnums.FirstOrDefault(nr =>
-                operation.Npgsql().OldPostgresEnums.Any(or => or.Name == nr.Name)
-            ) is PostgresEnum enumTypeToAlter)
-            {
-                throw new NotSupportedException($"Altering enum type ${enumTypeToAlter} isn't supported.");
-            }
+            foreach (var enumTypeToAlter in operation.Npgsql().GetPostgresEnumsToAlter())
+                GenerateAlterEnum(enumTypeToAlter, model, builder);
         }
 
         protected virtual void GenerateCreateEnum(
@@ -743,6 +763,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 .AppendLine(";");
         }
 
+        // TODO: Some forms of enum alterations are actually supported...
+        protected virtual void GenerateAlterEnum(
+            [NotNull] PostgresEnum enumType,
+            [NotNull] IModel model,
+            [NotNull] MigrationCommandListBuilder builder)
+            => throw new NotSupportedException($"Altering enum type ${enumType} isn't supported.");
+
         #endregion Enum management
 
         #region Range management
@@ -752,24 +779,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 [NotNull] IModel model,
                 [NotNull] MigrationCommandListBuilder builder)
         {
-            foreach (var rangeTypeToCreate in operation.Npgsql().PostgresRanges
-                .Where(ne => operation.Npgsql().OldPostgresRanges.All(oe => oe.Name != ne.Name)))
-            {
+            foreach (var rangeTypeToCreate in operation.Npgsql().GetPostgresRangesToCreate())
                 GenerateCreateRange(rangeTypeToCreate, model, builder);
-            }
 
-            foreach (var rangeTypeToDrop in operation.Npgsql().OldPostgresRanges
-                .Where(oe => operation.Npgsql().PostgresRanges.All(ne => ne.Name != oe.Name)))
-            {
+            foreach (var rangeTypeToDrop in operation.Npgsql().GetPostgresRangesToDrop())
                 GenerateDropRange(rangeTypeToDrop, model, builder);
-            }
 
-            if (operation.Npgsql().PostgresRanges.FirstOrDefault(nr =>
-                operation.Npgsql().OldPostgresRanges.Any(or => or.Name == nr.Name)
-            ) is PostgresRange rangeTypeToAlter)
-            {
-                throw new NotSupportedException($"Altering range type ${rangeTypeToAlter} isn't supported.");
-            }
+            foreach (var rangeTypeToAlter in operation.Npgsql().GetPostgresRangesToAlter())
+                GenerateAlterRange(rangeTypeToAlter, model, builder);
         }
 
         protected virtual void GenerateCreateRange(
@@ -817,6 +834,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(rangeType.Name, schema))
                 .AppendLine(";");
         }
+
+        // TODO: Some forms of range alterations are actually supported...
+        protected virtual void GenerateAlterRange(
+            [NotNull] PostgresRange rangeType,
+            [NotNull] IModel model,
+            [NotNull] MigrationCommandListBuilder builder)
+            => throw new NotSupportedException($"Altering range type ${rangeType} isn't supported.");
 
         #endregion Range management
 
