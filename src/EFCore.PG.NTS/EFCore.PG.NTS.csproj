@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <VersionPrefix>2.1.3</VersionPrefix>
+    <VersionPrefix>$(EFCoreVersion)</VersionPrefix>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <AssemblyName>Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite</AssemblyName>
     <RootNamespace>Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite</RootNamespace>
@@ -26,7 +26,6 @@
     <ProjectReference Include="..\EFCore.PG\EFCore.PG.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Npgsql.NetTopologySuite" Version="1.0.2" />
-    <PackageReference Include="Npgsql" Version="4.0.3" />
+    <PackageReference Include="Npgsql.NetTopologySuite" Version="4.0.4.1" />
   </ItemGroup>
 </Project>
