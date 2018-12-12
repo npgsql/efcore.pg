@@ -77,5 +77,20 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         public static NpgsqlTsQuery ToTsQuery(this DbFunctions _, string config, string query) =>
             throw new NotSupportedException();
+
+        /// <summary>
+        /// Convert <paramref name="query" /> tsquery using the simplified websearch syntax.
+        /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES
+        /// </summary>
+        public static NpgsqlTsQuery WebsearchToTsQuery(this DbFunctions _, string query) =>
+            throw new NotSupportedException();
+
+        /// <summary>
+        /// Convert <paramref name="query" /> tsquery using the simplified websearch syntax and the text
+        /// search configuration specified by <paramref name="config" />.
+        /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES
+        /// </summary>
+        public static NpgsqlTsQuery WebsearchToTsQuery(this DbFunctions _, string config, string query) =>
+            throw new NotSupportedException();
     }
 }
