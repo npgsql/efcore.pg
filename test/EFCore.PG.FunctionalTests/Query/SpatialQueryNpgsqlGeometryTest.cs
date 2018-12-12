@@ -208,8 +208,6 @@ FROM ""PointEntity"" AS e");
 FROM ""PolygonEntity"" AS e");
         }
 
-        [Theory]
-        [MemberData(nameof(IsAsyncData))]
         public override async Task GeometryType(bool isAsync)
         {
             // PostGIS returns "POINT", NTS returns "Point"

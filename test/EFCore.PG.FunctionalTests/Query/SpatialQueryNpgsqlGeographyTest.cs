@@ -77,8 +77,6 @@ SELECT e.""Id"", ST_Distance(e.""Point"", @__point_0) AS ""Distance""
 FROM ""PointEntity"" AS e");
         }
 
-        [Theory]
-        [MemberData(nameof(IsAsyncData))]
         public override async Task GeometryType(bool isAsync)
         {
             // PostGIS returns "POINT", NTS returns "Point"
