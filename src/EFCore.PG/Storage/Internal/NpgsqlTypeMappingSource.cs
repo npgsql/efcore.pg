@@ -41,11 +41,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         readonly LongTypeMapping               _int8               = new LongTypeMapping("bigint", DbType.Int64);
 
         // Character types
-        readonly NpgsqlStringTypeMapping       _text               = new NpgsqlStringTypeMapping("text");
-        readonly NpgsqlStringTypeMapping       _varchar            = new NpgsqlStringTypeMapping("character varying");
-        readonly NpgsqlStringTypeMapping       _char               = new NpgsqlCharacterTypeMapping("character");
+        readonly StringTypeMapping             _text               = new StringTypeMapping("text", DbType.String);
+        readonly StringTypeMapping             _varchar            = new StringTypeMapping("character varying", DbType.String);
+        readonly NpgsqlCharacterTypeMapping    _char               = new NpgsqlCharacterTypeMapping("character");
         readonly CharTypeMapping               _singleChar         = new CharTypeMapping("character(1)", DbType.String);
-        readonly NpgsqlStringTypeMapping       _stringAsSingleChar = new NpgsqlCharacterTypeMapping("character(1)");
+        readonly NpgsqlCharacterTypeMapping    _stringAsSingleChar = new NpgsqlCharacterTypeMapping("character(1)");
         readonly NpgsqlJsonbTypeMapping        _jsonb              = new NpgsqlJsonbTypeMapping();
         readonly NpgsqlJsonTypeMapping         _json               = new NpgsqlJsonTypeMapping();
         readonly NpgsqlXmlTypeMapping          _xml                = new NpgsqlXmlTypeMapping();
