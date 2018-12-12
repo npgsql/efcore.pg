@@ -26,7 +26,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
         /// The current query compilation context.
         /// </summary>
         [NotNull]
-        RelationalQueryCompilationContext Context => _queryModelVisitor.QueryCompilationContext;
+        RelationalQueryCompilationContext QueryCompilationContext => _queryModelVisitor.QueryCompilationContext;
 
         /// <inheritdoc />
         public NpgsqlSqlTranslatingExpressionVisitor(
@@ -49,7 +49,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
             if (left == null || right == null)
                 return base.VisitBinary(expression);
 
-            if (MemberAccessBindingExpressionVisitor.GetPropertyPath(expression.Left, Context, out _).Count != 0)
+            if (MemberAccessBindingExpressionVisitor.GetPropertyPath(expression.Left, QueryCompilationContext, out _).Count != 0)
             {
                 if (expression.NodeType == ExpressionType.ArrayIndex)
                     return Expression.ArrayIndex(left, right);

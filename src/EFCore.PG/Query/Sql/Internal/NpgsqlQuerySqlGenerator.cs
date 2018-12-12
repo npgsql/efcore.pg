@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Text.RegularExpressions;
@@ -203,27 +204,30 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
         }
 
         /// <inheritdoc />
-        protected override Expression VisitIndex(IndexExpression expression)
+        protected override Expression VisitIndex(IndexExpression e)
         {
             // text cannot be subscripted.
-            if (expression.Object.Type == typeof(string))
+            if (e.Object.Type == typeof(string))
             {
                 return VisitSqlFunction(
                     new SqlFunctionExpression(
                         "substr",
                         typeof(char),
-                        new[] { expression.Object, GenerateOneBasedIndexExpression(expression.Arguments[0]), Expression.Constant(1) }));
+                        new[] { e.Object, GenerateOneBasedIndexExpression(e.Arguments[0]), Expression.Constant(1) }));
             }
 
-            Visit(expression.Object);
-            for (int i = 0; i < expression.Arguments.Count; i++)
+            if (!IsArrayOrList(e.Object.Type))
+                return null;
+
+            Visit(e.Object);
+            for (int i = 0; i < e.Arguments.Count; i++)
             {
                 Sql.Append('[');
-                Visit(GenerateOneBasedIndexExpression(expression.Arguments[i]));
+                Visit(GenerateOneBasedIndexExpression(e.Arguments[i]));
                 Sql.Append(']');
             }
 
-            return expression;
+            return e;
         }
 
         /// <summary>
@@ -499,6 +503,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
 
             return expression;
         }
+
+        #endregion
+
+        #region Helpers
+
+        /// <summary>
+        /// Tests if the type is an array or a <see cref="List{T}"/>.
+        /// </summary>
+        /// <param name="type">The type to test.</param>
+        /// <returns>
+        /// True if <paramref name="type"/> is an array or a <see cref="List{T}"/>; otherwise, false.
+        /// </returns>
+        static bool IsArrayOrList([NotNull] Type type) => type.IsArray || type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>);
 
         #endregion
     }

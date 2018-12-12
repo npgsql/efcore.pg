@@ -31,11 +31,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 new NpgsqlArrayMemberTranslator(npgsqlOptions.PostgresVersion)
             };
 
-            // ReSharper disable once DoNotCallOverridableMethodsInConstructor
+            // ReSharper disable VirtualMemberCallInConstructor
             AddTranslators(MemberTranslators);
-
-            // ReSharper disable once DoNotCallOverridableMethodsInConstructor
             AddTranslators(versionDependentTranslators);
+            // ReSharper restore VirtualMemberCallInConstructor
         }
 
         /// <summary>

@@ -288,26 +288,6 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         [NotNull]
-        public static T[,] MatrixFill<T>(
-            [CanBeNull] this DbFunctions _,
-            [CanBeNull] T value,
-            [CanBeNull] [ItemNotNull] T[] dimensions)
-            => throw ClientEvaluationNotSupportedException();
-
-        /// <summary>
-        /// Initializes an array with the given
-        /// </summary>
-        /// <param name="_">The DbFunctions instance.</param>
-        /// <param name="value">The value with which to initialize each element.</param>
-        /// <param name="dimensions">The dimensions of the array.</param>
-        /// <typeparam name="T">The type of the elements in the array.</typeparam>
-        /// <returns>
-        /// An array initialized with the given <paramref name="value"/> and <paramref name="dimensions"/>.
-        /// </returns>
-        /// <exception cref="ClientEvaluationNotSupportedException">
-        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
-        /// </exception>
-        [NotNull]
         public static List<T> ListFill<T>(
             [CanBeNull] this DbFunctions _,
             [CanBeNull] T value,
@@ -334,24 +314,6 @@ namespace Microsoft.EntityFrameworkCore
         public static string ArrayDimensions<T>(
             [CanBeNull] this DbFunctions _,
             [CanBeNull] T[] array)
-            => throw ClientEvaluationNotSupportedException();
-
-        /// <summary>
-        /// Returns a text representation of the array dimensions.
-        /// </summary>
-        /// <param name="_">The DbFunctions instance.</param>
-        /// <param name="array">The array.</param>
-        /// <typeparam name="T">The type of the elements in the array.</typeparam>
-        /// <returns>
-        /// A text representation of the array dimensions.
-        /// </returns>
-        /// <exception cref="ClientEvaluationNotSupportedException">
-        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
-        /// </exception>
-        [NotNull]
-        public static string ArrayDimensions<T>(
-            [CanBeNull] this DbFunctions _,
-            [CanBeNull] T[,] array)
             => throw ClientEvaluationNotSupportedException();
 
         /// <summary>
@@ -490,28 +452,6 @@ namespace Microsoft.EntityFrameworkCore
         /// Replaces each element equal to the given value with a new value.
         /// </summary>
         /// <param name="_">The DbFunctions instance.</param>
-        /// <param name="array">The array to search.</param>
-        /// <param name="current">The value to replace.</param>
-        /// <param name="replacement">The new value.</param>
-        /// <typeparam name="T">The type of the elements in the array.</typeparam>
-        /// <returns>
-        /// An array where each element equal to the given value is replaced with a new value.
-        /// </returns>
-        /// <exception cref="ClientEvaluationNotSupportedException">
-        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
-        /// </exception>
-        [CanBeNull]
-        public static T[,] ArrayReplace<T>(
-            [CanBeNull] this DbFunctions _,
-            [CanBeNull] [ItemCanBeNull] T[,] array,
-            [CanBeNull] T current,
-            [CanBeNull] T replacement)
-            => throw ClientEvaluationNotSupportedException();
-
-        /// <summary>
-        /// Replaces each element equal to the given value with a new value.
-        /// </summary>
-        /// <param name="_">The DbFunctions instance.</param>
         /// <param name="list">The list to search.</param>
         /// <param name="current">The value to replace.</param>
         /// <param name="replacement">The new value.</param>
@@ -558,26 +498,6 @@ namespace Microsoft.EntityFrameworkCore
         /// Concatenates elements using the supplied delimiter.
         /// </summary>
         /// <param name="_">The DbFunctions instance.</param>
-        /// <param name="array">The list to convert to a string in which to locate the value.</param>
-        /// <param name="delimiter">The value used to delimit the elements.</param>
-        /// <typeparam name="T">The type of the elements of <paramref name="array"/>.</typeparam>
-        /// <returns>
-        /// The string concatenation of the elements with the supplied delimiter.
-        /// </returns>
-        /// <exception cref="ClientEvaluationNotSupportedException">
-        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
-        /// </exception>
-        [CanBeNull]
-        public static string ArrayToString<T>(
-            [CanBeNull] this DbFunctions _,
-            [CanBeNull] [ItemCanBeNull] T[,] array,
-            [CanBeNull] string delimiter)
-            => throw ClientEvaluationNotSupportedException();
-
-        /// <summary>
-        /// Concatenates elements using the supplied delimiter.
-        /// </summary>
-        /// <param name="_">The DbFunctions instance.</param>
         /// <param name="list">The list to convert to a string in which to locate the value.</param>
         /// <param name="delimiter">The value used to delimit the elements.</param>
         /// <typeparam name="T">The type of the elements of <paramref name="list"/>.</typeparam>
@@ -612,28 +532,6 @@ namespace Microsoft.EntityFrameworkCore
         public static string ArrayToString<T>(
             [CanBeNull] this DbFunctions _,
             [CanBeNull] [ItemCanBeNull] T[] array,
-            [CanBeNull] string delimiter,
-            [CanBeNull] string nullString)
-            => throw ClientEvaluationNotSupportedException();
-
-        /// <summary>
-        /// Concatenates elements using the supplied delimiter and the string representation for null elements.
-        /// </summary>
-        /// <param name="_">The DbFunctions instance.</param>
-        /// <param name="array">The list to convert to a string in which to locate the value.</param>
-        /// <param name="delimiter">The value used to delimit the elements.</param>
-        /// <param name="nullString">The value used to represent a null value.</param>
-        /// <typeparam name="T">The type of the elements of <paramref name="array"/>.</typeparam>
-        /// <returns>
-        /// The string concatenation of the elements with the supplied delimiter and null string.
-        /// </returns>
-        /// <exception cref="ClientEvaluationNotSupportedException">
-        /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
-        /// </exception>
-        [CanBeNull]
-        public static string ArrayToString<T>(
-            [CanBeNull] this DbFunctions _,
-            [CanBeNull] [ItemCanBeNull] T[,] array,
             [CanBeNull] string delimiter,
             [CanBeNull] string nullString)
             => throw ClientEvaluationNotSupportedException();

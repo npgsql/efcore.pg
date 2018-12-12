@@ -25,6 +25,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         [NotNull] static readonly MethodInfo Contains = typeof(string).GetRuntimeMethod(nameof(string.Contains), new[] { typeof(string) });
         [NotNull] static readonly MethodInfo EndsWith = typeof(string).GetRuntimeMethod(nameof(string.EndsWith), new[] { typeof(string) });
         [NotNull] static readonly MethodInfo StartsWith = typeof(string).GetRuntimeMethod(nameof(string.StartsWith), new[] { typeof(string) });
+        [NotNull] static readonly MethodInfo GetIndexer = typeof(string).GetRuntimeMethod("get_Chars", new[] { typeof(int) });
         [NotNull] static readonly MethodInfo IndexOfString = typeof(string).GetRuntimeMethod(nameof(string.IndexOf), new[] { typeof(string) });
         [NotNull] static readonly MethodInfo IndexOfChar = typeof(string).GetRuntimeMethod(nameof(string.IndexOf), new[] { typeof(char) });
         [NotNull] static readonly MethodInfo IsNullOrWhiteSpace = typeof(string).GetRuntimeMethod(nameof(string.IsNullOrWhiteSpace), new[] { typeof(string) });
@@ -48,6 +49,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
         #endregion
 
+        #region PropertyInfo
+
+        [NotNull] static readonly PropertyInfo Indexer = typeof(string).GetRuntimeProperty("Chars");
+
+        #endregion
+
         /// <inheritdoc />
         [CanBeNull]
         public virtual Expression Translate(MethodCallExpression e)
@@ -58,6 +65,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             return TranslateContains(e) ??
                    TranslateEndsWith(e) ??
                    TranslateStartsWith(e) ??
+                   TranslateIndexer(e) ??
                    TranslateIndexOf(e) ??
                    TranslateIsNullOrWhiteSpace(e) ??
                    TranslatePadLeft(e) ??
@@ -143,6 +151,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             return Expression.AndAlso(
                 new LikeExpression(e.Object, Expression.Add(pattern, Expression.Constant("%"), Concat)),
                 Expression.Equal(leftExpr, pattern));
+        }
+
+        #endregion
+
+        #region Indexer
+
+        [CanBeNull]
+        static Expression TranslateIndexer([NotNull] MethodCallExpression e)
+        {
+            if (e.Method != GetIndexer || e.Object == null)
+                return null;
+
+            return Expression.MakeIndex(e.Object, Indexer, e.Arguments.Take(1));
         }
 
         #endregion

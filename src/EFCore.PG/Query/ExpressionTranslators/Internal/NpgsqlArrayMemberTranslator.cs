@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
@@ -29,92 +28,60 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         public NpgsqlArrayMemberTranslator([CanBeNull] Version postgresVersion) => _postgresVersion = postgresVersion;
 
         /// <inheritdoc />
-        public Expression Translate(MemberExpression expression)
-            => ArrayInstanceHandler(expression) ?? ListInstanceHandler(expression);
+        public Expression Translate(MemberExpression e)
+            => ArrayInstanceHandler(e) ??
+               ListInstanceHandler(e);
 
         #region Handlers
 
-        /// <summary>
-        /// Translates instance members defined on <see cref="Array"/>.
-        /// </summary>
-        /// <param name="expression">The expression to translate.</param>
-        /// <returns>
-        /// A translated expression or null if no translation is supported.
-        /// </returns>
         [CanBeNull]
-        Expression ArrayInstanceHandler([NotNull] MemberExpression expression)
+        Expression ArrayInstanceHandler([NotNull] MemberExpression e)
         {
-            var instance = expression.Expression;
+            var instance = e.Expression;
 
-            if (instance is null || !instance.Type.IsArray)
+            if (instance == null || !instance.Type.IsArray || instance.Type.GetArrayRank() != 1)
                 return null;
 
-            switch (expression.Member.Name)
+            switch (e.Member.Name)
             {
-            case nameof(Array.Length) when VersionAtLeast(9, 4):
-                return new SqlFunctionExpression("cardinality", typeof(int), new[] { instance });
-
-            case nameof(Array.Length) when VersionAtLeast(8, 4) && instance.Type.GetArrayRank() == 1:
-                return
-                    Expression.Coalesce(
-                        new SqlFunctionExpression(
-                            "array_length",
-                            typeof(int?),
-                            new[] { instance, Expression.Constant(1) }),
-                        Expression.Constant(0));
-
             case nameof(Array.Length) when VersionAtLeast(8, 4):
-                return
-                    Enumerable.Range(1, instance.Type.GetArrayRank())
-                              .Select(x =>
-                                  Expression.Coalesce(
-                                      new SqlFunctionExpression(
-                                          "array_length",
-                                          typeof(int?),
-                                          new[] { instance, Expression.Constant(x) }),
-                                      Expression.Constant(0)))
-                              .Cast<Expression>()
-                              .Aggregate(Expression.Multiply);
+                return Expression.Coalesce(
+                    new SqlFunctionExpression(
+                        "array_length",
+                        typeof(int?),
+                        new[] { instance, Expression.Constant(1) }),
+                    Expression.Constant(0));
 
             case nameof(Array.Rank) when VersionAtLeast(8, 4):
-                return
-                    Expression.Coalesce(
-                        new SqlFunctionExpression(
-                            "array_ndims",
-                            typeof(int?),
-                            new[] { instance }),
-                        Expression.Constant(1));
+                return Expression.Coalesce(
+                    new SqlFunctionExpression(
+                        "array_ndims",
+                        typeof(int?),
+                        new[] { instance }),
+                    Expression.Constant(1));
 
             default:
                 return null;
             }
         }
 
-        /// <summary>
-        /// Translates instance members defined on <see cref="List{T}"/>.
-        /// </summary>
-        /// <param name="expression">The expression to translate.</param>
-        /// <returns>
-        /// A translated expression or null if no translation is supported.
-        /// </returns>
         [CanBeNull]
-        Expression ListInstanceHandler([NotNull] MemberExpression expression)
+        Expression ListInstanceHandler([NotNull] MemberExpression e)
         {
-            var instance = expression.Expression;
+            var instance = e.Expression;
 
             if (instance is null || !instance.Type.IsGenericType || instance.Type.GetGenericTypeDefinition() != typeof(List<>))
                 return null;
 
-            switch (expression.Member.Name)
+            switch (e.Member.Name)
             {
             case nameof(IList.Count) when VersionAtLeast(8, 4):
-                return
-                    Expression.Coalesce(
-                        new SqlFunctionExpression(
-                            "array_length",
-                            typeof(int?),
-                            new Expression[] { instance, Expression.Constant(1) }),
-                        Expression.Constant(0));
+                return Expression.Coalesce(
+                    new SqlFunctionExpression(
+                        "array_length",
+                        typeof(int?),
+                        new Expression[] { instance, Expression.Constant(1) }),
+                    Expression.Constant(0));
 
             default:
                 return null;
