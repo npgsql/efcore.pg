@@ -449,8 +449,8 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
 @p2='80'
 @p3='0x56' (Nullable = false)
 @p4='f' (DbType = String)
-@p5='g' (Nullable = false) (Size = 1)
-@p6='h' (Nullable = false) (Size = 1)
+@p5='g' (Nullable = false)
+@p6='h' (Nullable = false)
 @p7='2015-01-02T00:00:00' (DbType = Date)
 @p8='2015-01-02T10:11:12' (DbType = DateTime)
 @p9='2016-01-02T11:11:12' (DbType = DateTimeOffset)

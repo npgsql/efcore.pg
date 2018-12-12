@@ -13,7 +13,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     /// See: https://www.postgresql.org/docs/current/static/datatype-character.html
     /// </remarks>
     /// <inheritdoc />
-    public class NpgsqlCharacterTypeMapping : NpgsqlStringTypeMapping
+    public class NpgsqlCharacterTypeMapping : StringTypeMapping
     {
         /// <summary>
         /// Static <see cref="ValueComparer{T}"/> for fixed-width character types.
@@ -34,7 +34,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         public override ValueComparer KeyComparer => CharacterValueComparer;
 
         public NpgsqlCharacterTypeMapping([NotNull] string storeType, bool unicode = false, int? size = null)
-            : base(storeType, unicode, size) {}
+            : base(storeType, System.Data.DbType.StringFixedLength, unicode, size) {}
 
         protected NpgsqlCharacterTypeMapping(RelationalTypeMappingParameters parameters) : base(parameters) {}
 
