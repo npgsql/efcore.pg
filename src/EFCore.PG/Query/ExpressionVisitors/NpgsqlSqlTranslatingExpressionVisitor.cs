@@ -41,24 +41,37 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
         #region Overrides
 
         /// <inheritdoc />
-        protected override Expression VisitBinary(BinaryExpression expression)
+        protected override Expression VisitBinary(BinaryExpression e)
         {
-            var left = Visit(expression.Left);
-            var right = Visit(expression.Right);
-
-            if (left == null || right == null)
-                return base.VisitBinary(expression);
-
-            if (MemberAccessBindingExpressionVisitor.GetPropertyPath(expression.Left, QueryCompilationContext, out _).Count != 0)
+            switch (e.NodeType)
             {
-                if (expression.NodeType == ExpressionType.ArrayIndex)
-                    return Expression.ArrayIndex(left, right);
+            case ExpressionType.ArrayIndex:
+                if (MemberAccessBindingExpressionVisitor.GetPropertyPath(e.Left, QueryCompilationContext, out _).Count == 0)
+                    goto default;
 
-                if (expression.NodeType == ExpressionType.Index)
-                    return Expression.ArrayAccess(left, right);
+                var leftArrayIndex = Visit(e.Left);
+                var rightArrayIndex = Visit(e.Right);
+
+                if (leftArrayIndex == null || rightArrayIndex == null)
+                    goto default;
+
+                return Expression.ArrayIndex(leftArrayIndex, rightArrayIndex);
+
+            case ExpressionType.Index:
+                if (MemberAccessBindingExpressionVisitor.GetPropertyPath(e.Left, QueryCompilationContext, out _).Count == 0)
+                    goto default;
+
+                var leftArrayAccess = Visit(e.Left);
+                var rightArrayAccess = Visit(e.Right);
+
+                if (leftArrayAccess == null || rightArrayAccess == null)
+                    goto default;
+
+                return Expression.ArrayAccess(leftArrayAccess, rightArrayAccess);
+
+            default:
+                return base.VisitBinary(e);
             }
-
-            return base.VisitBinary(expression);
         }
 
         /// <summary>
