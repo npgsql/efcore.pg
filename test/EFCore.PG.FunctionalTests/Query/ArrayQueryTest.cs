@@ -549,22 +549,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         #region array_fill
 
-        [Theory]
-        [InlineData(8, 4)]
-        public void Array_ArrayFill_constant(int major, int minor)
+        [Fact]
+        public void Array_ArrayFill_constant()
         {
-            using (var ctx = Fixture.CreateContext(new Version(major, minor)))
+            using (var ctx = Fixture.CreateContext())
             {
                 var _ = ctx.SomeEntities.Select(e => EF.Functions.ArrayFill(e.Id, new[] { 2 })).ToList();
                 AssertContainsInSql("SELECT array_fill(e.\"Id\", ARRAY[2]::integer[])");
             }
         }
 
-        [Theory]
-        [InlineData(8, 4)]
-        public void List_ListFill_constant(int major, int minor)
+        [Fact]
+        public void List_ListFill_constant()
         {
-            using (var ctx = Fixture.CreateContext(new Version(major, minor)))
+            using (var ctx = Fixture.CreateContext())
             {
                 var _ = ctx.SomeEntities.Select(e => EF.Functions.ListFill(e.Id, new[] { 3 })).ToList();
                 AssertContainsInSql("SELECT array_fill(e.\"Id\", ARRAY[3]::integer[])");
@@ -715,11 +713,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         #region array_lower
 
-        [Theory]
-        [InlineData(7, 4)]
-        public void Array_ArrayLower(int major, int minor)
+        [Fact]
+        public void Array_ArrayLower()
         {
-            using (var ctx = Fixture.CreateContext(new Version(major, minor)))
+            using (var ctx = Fixture.CreateContext())
             {
                 var _ = ctx.SomeEntities.Where(e => e.SomeArray.GetLowerBound(0) == 2).ToList();
                 AssertContainsInSql("WHERE (COALESCE(array_lower(e.\"SomeArray\", 1), 0) - 1) = 2");
@@ -730,11 +727,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         #region array_ndims
 
-        [Theory]
-        [InlineData(8, 4)]
-        public void Array_Rank(int major, int minor)
+        [Fact]
+        public void Array_Rank()
         {
-            using (var ctx = Fixture.CreateContext(new Version(major, minor)))
+            using (var ctx = Fixture.CreateContext())
             {
                 var _ = ctx.SomeEntities.Where(e => e.SomeArray.Rank == 2).ToList();
                 AssertContainsInSql("WHERE COALESCE(array_ndims(e.\"SomeArray\"), 1) = 2");
@@ -797,22 +793,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         #region array_remove
 
-        [Theory]
-        [InlineData(9, 3)]
-        public void Array_ArrayRemove_column(int major, int minor)
+        [Fact]
+        public void Array_ArrayRemove_column()
         {
-            using (var ctx = Fixture.CreateContext(new Version(major, minor)))
+            using (var ctx = Fixture.CreateContext())
             {
                 var _ = ctx.SomeEntities.Select(e => EF.Functions.ArrayRemove(e.SomeArray, 0)).ToList();
                 AssertContainsInSql("SELECT array_remove(e.\"SomeArray\", 0)");
             }
         }
 
-        [Theory]
-        [InlineData(9, 3)]
-        public void List_ArrayRemove_column(int major, int minor)
+        [Fact]
+        public void List_ArrayRemove_column()
         {
-            using (var ctx = Fixture.CreateContext(new Version(major, minor)))
+            using (var ctx = Fixture.CreateContext())
             {
                 var _ = ctx.SomeEntities.Select(e => EF.Functions.ArrayRemove(e.SomeList, 0)).ToList();
                 AssertContainsInSql("SELECT array_remove(e.\"SomeList\", 0)");
@@ -823,22 +817,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         #region array_replace
 
-        [Theory]
-        [InlineData(9, 3)]
-        public void Array_ArrayReplace_column(int major, int minor)
+        [Fact]
+        public void Array_ArrayReplace_column()
         {
-            using (var ctx = Fixture.CreateContext(new Version(major, minor)))
+            using (var ctx = Fixture.CreateContext())
             {
                 var _ = ctx.SomeEntities.Select(e => EF.Functions.ArrayReplace(e.SomeArray, 0, 1)).ToList();
                 AssertContainsInSql("SELECT array_replace(e.\"SomeArray\", 0, 1)");
             }
         }
 
-        [Theory]
-        [InlineData(9, 3)]
-        public void List_ArrayReplace_column(int major, int minor)
+        [Fact]
+        public void List_ArrayReplace_column()
         {
-            using (var ctx = Fixture.CreateContext(new Version(major, minor)))
+            using (var ctx = Fixture.CreateContext())
             {
                 var _ = ctx.SomeEntities.Select(e => EF.Functions.ArrayReplace(e.SomeList, 0, 1)).ToList();
                 AssertContainsInSql("SELECT array_replace(e.\"SomeList\", 0, 1)");
@@ -849,11 +841,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         #region array_upper
 
-        [Theory]
-        [InlineData(7, 4)]
-        public void Array_ArrayUpper(int major, int minor)
+        [Fact]
+        public void Array_ArrayUpper()
         {
-            using (var ctx = Fixture.CreateContext(new Version(major, minor)))
+            using (var ctx = Fixture.CreateContext())
             {
                 var _ = ctx.SomeEntities.Where(e => e.SomeArray.GetUpperBound(0) == 2).ToList();
                 AssertContainsInSql("WHERE (COALESCE(array_upper(e.\"SomeArray\", 1), 0) - 1) = 2");
@@ -864,46 +855,40 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         #region array_to_string
 
-        [Theory]
-        [InlineData(7, 4)]
-        [InlineData(9, 1)]
-        public void Array_ArrayToString(int major, int minor)
+        [Fact]
+        public void Array_ArrayToString()
         {
-            using (var ctx = Fixture.CreateContext(new Version(major, minor)))
+            using (var ctx = Fixture.CreateContext())
             {
                 var _ = ctx.SomeEntities.Select(e => EF.Functions.ArrayToString(e.SomeArray, "*")).ToList();
                 AssertContainsInSql("SELECT array_to_string(e.\"SomeArray\", '*')");
             }
         }
 
-        [Theory]
-        [InlineData(7, 4)]
-        [InlineData(9, 1)]
-        public void List_ArrayToString(int major, int minor)
+        [Fact]
+        public void List_ArrayToString()
         {
-            using (var ctx = Fixture.CreateContext(new Version(major, minor)))
+            using (var ctx = Fixture.CreateContext())
             {
                 var _ = ctx.SomeEntities.Select(e => EF.Functions.ArrayToString(e.SomeList, "*")).ToList();
                 AssertContainsInSql("SELECT array_to_string(e.\"SomeList\", '*')");
             }
         }
 
-        [Theory]
-        [InlineData(9, 1)]
-        public void Array_ArrayToString_with_null(int major, int minor)
+        [Fact]
+        public void Array_ArrayToString_with_null()
         {
-            using (var ctx = Fixture.CreateContext(new Version(major, minor)))
+            using (var ctx = Fixture.CreateContext())
             {
                 var _ = ctx.SomeEntities.Select(e => EF.Functions.ArrayToString(e.SomeArray, "*", ";")).ToList();
                 AssertContainsInSql("SELECT array_to_string(e.\"SomeArray\", '*', ';')");
             }
         }
 
-        [Theory]
-        [InlineData(9, 1)]
-        public void List_ArrayToString_with_null(int major, int minor)
+        [Fact]
+        public void List_ArrayToString_with_null()
         {
-            using (var ctx = Fixture.CreateContext(new Version(major, minor)))
+            using (var ctx = Fixture.CreateContext())
             {
                 var _ = ctx.SomeEntities.Select(e => EF.Functions.ArrayToString(e.SomeList, "*", ";")).ToList();
                 AssertContainsInSql("SELECT array_to_string(e.\"SomeList\", '*', ';')");
@@ -914,46 +899,40 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         #region string_to_array
 
-        [Theory]
-        [InlineData(7, 4)]
-        [InlineData(9, 1)]
-        public void Array_StringToArray(int major, int minor)
+        [Fact]
+        public void Array_StringToArray()
         {
-            using (var ctx = Fixture.CreateContext(new Version(major, minor)))
+            using (var ctx = Fixture.CreateContext())
             {
                 var _ = ctx.SomeEntities.Where(e => EF.Functions.StringToArray<string>(e.SomeText, "*") != null).ToList();
                 AssertContainsInSql("WHERE string_to_array(e.\"SomeText\", '*') IS NOT NULL");
             }
         }
 
-        [Theory]
-        [InlineData(7, 4)]
-        [InlineData(9, 1)]
-        public void List_StringToList(int major, int minor)
+        [Fact]
+        public void List_StringToList()
         {
-            using (var ctx = Fixture.CreateContext(new Version(major, minor)))
+            using (var ctx = Fixture.CreateContext())
             {
                 var _ = ctx.SomeEntities.Where(e => EF.Functions.StringToList<string>(e.SomeText, "*") != null).ToList();
                 AssertContainsInSql("WHERE string_to_array(e.\"SomeText\", '*') IS NOT NULL");
             }
         }
 
-        [Theory]
-        [InlineData(9, 1)]
-        public void Array_StringToArray_with_null_string(int major, int minor)
+        [Fact]
+        public void Array_StringToArray_with_null_string()
         {
-            using (var ctx = Fixture.CreateContext(new Version(major, minor)))
+            using (var ctx = Fixture.CreateContext())
             {
                 var _ = ctx.SomeEntities.Where(e => EF.Functions.StringToArray<string>(e.SomeText, "*", ";") != null).ToList();
                 AssertContainsInSql("WHERE string_to_array(e.\"SomeText\", '*', ';') IS NOT NULL");
             }
         }
 
-        [Theory]
-        [InlineData(9, 1)]
-        public void List_StringToList_with_null_string(int major, int minor)
+        [Fact]
+        public void List_StringToList_with_null_string()
         {
-            using (var ctx = Fixture.CreateContext(new Version(major, minor)))
+            using (var ctx = Fixture.CreateContext())
             {
                 var _ = ctx.SomeEntities.Where(e => EF.Functions.StringToList<string>(e.SomeText, "*", ";") != null).ToList();
                 AssertContainsInSql("WHERE string_to_array(e.\"SomeText\", '*', ';') IS NOT NULL");

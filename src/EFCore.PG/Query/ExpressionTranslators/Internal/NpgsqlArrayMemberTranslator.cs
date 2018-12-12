@@ -29,13 +29,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
         /// <inheritdoc />
         public Expression Translate(MemberExpression e)
-            => ArrayInstanceHandler(e) ??
-               ListInstanceHandler(e);
+        {
+            if (!VersionAtLeast(9, 4))
+                return null;
+
+            return ArrayInstanceHandler(e) ??
+                   ListInstanceHandler(e);
+        }
 
         #region Handlers
 
         [CanBeNull]
-        Expression ArrayInstanceHandler([NotNull] MemberExpression e)
+        static Expression ArrayInstanceHandler([NotNull] MemberExpression e)
         {
             var instance = e.Expression;
 
@@ -44,7 +49,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
             switch (e.Member.Name)
             {
-            case nameof(Array.Length) when VersionAtLeast(8, 4):
+            case nameof(Array.Length):
                 return Expression.Coalesce(
                     new SqlFunctionExpression(
                         "array_length",
@@ -52,7 +57,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                         new[] { instance, Expression.Constant(1) }),
                     Expression.Constant(0));
 
-            case nameof(Array.Rank) when VersionAtLeast(8, 4):
+            case nameof(Array.Rank):
                 return Expression.Coalesce(
                     new SqlFunctionExpression(
                         "array_ndims",
@@ -66,7 +71,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         }
 
         [CanBeNull]
-        Expression ListInstanceHandler([NotNull] MemberExpression e)
+        static Expression ListInstanceHandler([NotNull] MemberExpression e)
         {
             var instance = e.Expression;
 
@@ -75,7 +80,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
             switch (e.Member.Name)
             {
-            case nameof(IList.Count) when VersionAtLeast(8, 4):
+            case nameof(IList.Count):
                 return Expression.Coalesce(
                     new SqlFunctionExpression(
                         "array_length",

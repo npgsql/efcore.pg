@@ -36,6 +36,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         [CanBeNull]
         public Expression Translate(MethodCallExpression e)
         {
+            if (!VersionAtLeast(9, 4))
+                return null;
+
             var declaringType = e.Method.DeclaringType;
 
             if (declaringType != null &&
@@ -68,7 +71,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
             switch (e.Method.Name)
             {
-            case nameof(Enumerable.Count) when VersionAtLeast(8, 4):
+            case nameof(Enumerable.Count):
                 return Expression.Coalesce(
                     new SqlFunctionExpression(
                         "array_length",
@@ -104,19 +107,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
             switch (e.Method.Name)
             {
-            case nameof(NpgsqlArrayExtensions.Contains) when VersionAtLeast(8, 2):
+            case nameof(NpgsqlArrayExtensions.Contains):
                 return new CustomBinaryExpression(e.Arguments[1], e.Arguments[2], "@>", typeof(bool));
 
-            case nameof(NpgsqlArrayExtensions.ContainedBy) when VersionAtLeast(8, 2):
+            case nameof(NpgsqlArrayExtensions.ContainedBy):
                 return new CustomBinaryExpression(e.Arguments[1], e.Arguments[2], "<@", typeof(bool));
 
-            case nameof(NpgsqlArrayExtensions.Overlaps) when VersionAtLeast(8, 2):
+            case nameof(NpgsqlArrayExtensions.Overlaps):
                 return new CustomBinaryExpression(e.Arguments[1], e.Arguments[2], "&&", typeof(bool));
 
-            case nameof(NpgsqlArrayExtensions.ArrayFill) when VersionAtLeast(8, 4):
+            case nameof(NpgsqlArrayExtensions.ArrayFill):
                 return new SqlFunctionExpression("array_fill", e.Method.ReturnType, e.Arguments.Skip(1));
 
-            case nameof(NpgsqlArrayExtensions.ListFill) when VersionAtLeast(8, 4):
+            case nameof(NpgsqlArrayExtensions.ListFill):
                 return new SqlFunctionExpression("array_fill", e.Method.ReturnType, e.Arguments.Skip(1));
 
             case nameof(NpgsqlArrayExtensions.ArrayDimensions):
@@ -125,29 +128,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             case nameof(NpgsqlArrayExtensions.ArrayPositions) when VersionAtLeast(9, 5):
                 return new SqlFunctionExpression("array_positions", e.Method.ReturnType, e.Arguments.Skip(1));
 
-            case nameof(NpgsqlArrayExtensions.ArrayRemove) when VersionAtLeast(9, 3):
+            case nameof(NpgsqlArrayExtensions.ArrayRemove):
                 return new SqlFunctionExpression("array_remove", e.Method.ReturnType, e.Arguments.Skip(1).Take(2));
 
-            case nameof(NpgsqlArrayExtensions.ArrayReplace) when VersionAtLeast(9, 3):
+            case nameof(NpgsqlArrayExtensions.ArrayReplace):
                 return new SqlFunctionExpression("array_replace", e.Method.ReturnType, e.Arguments.Skip(1).Take(3));
 
-            case nameof(NpgsqlArrayExtensions.ArrayToString) when VersionAtLeast(9, 1):
+            case nameof(NpgsqlArrayExtensions.ArrayToString):
                 return new SqlFunctionExpression("array_to_string", e.Method.ReturnType, e.Arguments.Skip(1).Take(3));
 
-            case nameof(NpgsqlArrayExtensions.ArrayToString):
-                return new SqlFunctionExpression("array_to_string", e.Method.ReturnType, e.Arguments.Skip(1).Take(2));
-
-            case nameof(NpgsqlArrayExtensions.StringToArray) when VersionAtLeast(9, 1):
-                return new SqlFunctionExpression("string_to_array", e.Method.ReturnType, e.Arguments.Skip(1).Take(3));
-
             case nameof(NpgsqlArrayExtensions.StringToArray):
-                return new SqlFunctionExpression("string_to_array", e.Method.ReturnType, e.Arguments.Skip(1).Take(2));
-
-            case nameof(NpgsqlArrayExtensions.StringToList) when VersionAtLeast(9, 1):
                 return new SqlFunctionExpression("string_to_array", e.Method.ReturnType, e.Arguments.Skip(1).Take(3));
 
             case nameof(NpgsqlArrayExtensions.StringToList):
-                return new SqlFunctionExpression("string_to_array", e.Method.ReturnType, e.Arguments.Skip(1).Take(2));
+                return new SqlFunctionExpression("string_to_array", e.Method.ReturnType, e.Arguments.Skip(1).Take(3));
 
             default:
                 return null;
@@ -189,7 +183,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
             switch (e.Method.Name)
             {
-            case nameof(Array.GetLength) when VersionAtLeast(8, 4):
+            case nameof(Array.GetLength):
                 return Expression.Coalesce(
                     new SqlFunctionExpression(
                         "array_length",
