@@ -43,10 +43,10 @@ var nearbyCities = context.Cities.Where(c => c.Location.Distance(somePoint) < 10
 
 ## Constraining your type names
 
-With the code above, the provider will create a database column of type `geometry`. This is perfectly fine, but be aware that this type accepts any geometry type (point, polygon...), with any coordinate system (XY, XYZ...). It's good practice to constrain the colun to exact type of data you will be storing, but unfortunately the provider isn't aware of your required coordinate system and therefore can't do that for you. Consider explicitly specifying your column types on your properties as follows:
+With the code above, the provider will create a database column of type `geometry`. This is perfectly fine, but be aware that this type accepts any geometry type (point, polygon...), with any coordinate system (XY, XYZ...). It's good practice to constrain the column to the exact type of data you will be storing, but unfortunately the provider isn't aware of your required coordinate system and therefore can't do that for you. Consider explicitly specifying your column types on your properties as follows:
 
 ```c#
-[Column(TypeName="geometry (Point)")]
+[Column(TypeName="geometry (point)")]
 public Point Location { get; set; }
 ```
 
@@ -105,7 +105,7 @@ The Npgsql provider will be default map all NetTopologySuite types to PostGIS `g
 ```c#
 protected override void OnModelCreating(ModelBuilder builder)
 {
-    builder.Entity<City>().Property(b => b.Location).HasColumnType("geography (Point)");
+    builder.Entity<City>().Property(b => b.Location).HasColumnType("geography (point)");
 }
 ```
 
