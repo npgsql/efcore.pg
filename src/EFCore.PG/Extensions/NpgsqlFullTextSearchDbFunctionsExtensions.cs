@@ -102,7 +102,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES
         /// </remarks>
-        public static NpgsqlTsQuery WebsearchToTsQuery(this DbFunctions _, string query) =>
+        public static NpgsqlTsQuery WebSearchToTsQuery(this DbFunctions _, string query) =>
             throw new NotSupportedException();
 
         /// <summary>
@@ -112,7 +112,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES
         /// </remarks>
-        public static NpgsqlTsQuery WebsearchToTsQuery(this DbFunctions _, string config, string query) =>
+        public static NpgsqlTsQuery WebSearchToTsQuery(this DbFunctions _, string config, string query) =>
             throw new NotSupportedException();
     }
 }

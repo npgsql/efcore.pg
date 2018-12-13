@@ -273,7 +273,7 @@ LIMIT 1");
         {
             using (var context = CreateContext())
             {
-                var tsquery = context.Customers.Select(c => EF.Functions.WebsearchToTsQuery("a OR b")).First();
+                var tsquery = context.Customers.Select(c => EF.Functions.WebSearchToTsQuery("a OR b")).First();
                 Assert.NotNull(tsquery);
             }
 
@@ -288,7 +288,7 @@ LIMIT 1");
         {
             using (var context = CreateContext())
             {
-                var tsquery = context.Customers.Select(c => EF.Functions.WebsearchToTsQuery("english", "a OR b")).First();
+                var tsquery = context.Customers.Select(c => EF.Functions.WebSearchToTsQuery("english", "a OR b")).First();
                 Assert.NotNull(tsquery);
             }
 
