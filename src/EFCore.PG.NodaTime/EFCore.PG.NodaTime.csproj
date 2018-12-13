@@ -1,6 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <VersionPrefix>$(EFCoreVersion)</VersionPrefix>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <AssemblyName>Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime</AssemblyName>
     <RootNamespace>Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime</RootNamespace>
