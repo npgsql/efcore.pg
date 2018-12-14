@@ -80,7 +80,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => x.Inet.Equals(IPAddress.Parse(x.TextInet)))
                            .ToArray();
 
-                AssertContainsSql("WHERE x.\"Inet\" = CAST(x.\"TextInet\" AS inet)");
+                AssertContainsSql("WHERE (x.\"Inet\" = CAST(x.\"TextInet\" AS inet))");
             }
         }
 
@@ -97,7 +97,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => x.Macaddr.Equals(PhysicalAddress.Parse(x.TextMacaddr)))
                            .ToArray();
 
-                AssertContainsSql("WHERE x.\"Macaddr\" = CAST(x.\"TextMacaddr\" AS macaddr)");
+                AssertContainsSql("WHERE (x.\"Macaddr\" = CAST(x.\"TextMacaddr\" AS macaddr))");
             }
         }
 
@@ -114,7 +114,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => x.Inet.Equals(IPAddress.Parse("127.0.0.1")))
                            .ToArray();
 
-                AssertContainsSql("WHERE x.\"Inet\" = @__Parse_0");
+                AssertContainsSql("WHERE x.\"Inet\" = INET '127.0.0.1'");
             }
         }
 
@@ -131,7 +131,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => x.Macaddr.Equals(PhysicalAddress.Parse("12-34-56-00-00-00")))
                            .ToArray();
 
-                AssertContainsSql("WHERE x.\"Macaddr\" = @__Parse_0");
+                AssertContainsSql("WHERE x.\"Macaddr\" = MACADDR '123456000000'");
             }
         }
 

@@ -90,14 +90,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 oc => oc.Where(o =>
                     o.OrderDate.Value.DayOfWeek == DayOfWeek.Tuesday),
                 entryCount: 168);
-            AssertContainsSqlFragment("WHERE CAST(FLOOR(DATE_PART('dow', o.\"OrderDate\")) AS integer)");
+            AssertContainsSqlFragment("WHERE CAST(FLOOR(DATE_PART('dow', o.\"OrderDate\")) AS int)");
         }
-
 
         public override async Task Where_string_indexof(bool isAsync)
         {
             await base.Where_string_indexof(isAsync);
-            AssertContainsSqlFragment("WHERE (STRPOS(c.\"City\", 'Sea') - 1) <> -1");
+            AssertContainsSqlFragment("WHERE ((STRPOS(c.\"City\", 'Sea') - 1) <> -1)");
         }
     }
 }

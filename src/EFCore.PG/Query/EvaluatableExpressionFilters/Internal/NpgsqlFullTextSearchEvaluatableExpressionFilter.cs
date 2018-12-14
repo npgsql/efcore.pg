@@ -29,8 +29,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.EvaluatableExpressionFilte
         /// <inheritdoc />
         public override bool IsEvaluatableExpression(Expression expression)
             => !(expression is MethodCallExpression e && (
-                   e.Method == TsQueryParse ||
-                   e.Method == TsVectorParse ||
+                   e.Method == TsQueryParse || e.Method == TsVectorParse ||
                    e.Method.DeclaringType == typeof(NpgsqlFullTextSearchDbFunctionsExtensions) ||
                    e.Method.DeclaringType == typeof(NpgsqlFullTextSearchLinqExtensions)
                ));
