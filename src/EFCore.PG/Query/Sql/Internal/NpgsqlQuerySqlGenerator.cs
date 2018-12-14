@@ -23,6 +23,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
         readonly bool _reverseNullOrderingEnabled;
 
         /// <summary>
+        /// The backend version to target. If null, it means the user hasn't set a compatibility version, and the
+        /// latest should be targeted.
+        /// </summary>
+        readonly Version _postgresVersion;
+
+        /// <summary>
         /// The type mapping source.
         /// </summary>
         IRelationalTypeMappingSource TypeMappingSource => Dependencies.TypeMappingSource;
@@ -37,9 +43,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
         public NpgsqlQuerySqlGenerator(
             [NotNull] QuerySqlGeneratorDependencies dependencies,
             [NotNull] SelectExpression selectExpression,
-            bool reverseNullOrderingEnabled)
+            bool reverseNullOrderingEnabled,
+            Version postgresVersion)
             : base(dependencies, selectExpression)
-            => _reverseNullOrderingEnabled = reverseNullOrderingEnabled;
+        {
+            _reverseNullOrderingEnabled = reverseNullOrderingEnabled;
+            _postgresVersion = postgresVersion;
+        }
 
         #region Generators
 
@@ -154,6 +164,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
             {
             case ExpressionType.Add:
             {
+                if (_postgresVersion == null || _postgresVersion >= new Version(9, 5))
+                    return base.VisitBinary(expression);
+
                 // PostgreSQL 9.4 and below has some weird operator precedence fixed in 9.5 and described here:
                 // http://git.postgresql.org/gitweb/?p=postgresql.git&a=commitdiff&h=c6b3c939b7e0f1d35f4ed4996e71420a993810d2
                 // As a result we must surround string concatenation with parentheses
@@ -166,7 +179,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
                     return exp;
                 }
 
-                goto default;
+                return base.VisitBinary(expression);
             }
 
             case ExpressionType.ArrayIndex:
