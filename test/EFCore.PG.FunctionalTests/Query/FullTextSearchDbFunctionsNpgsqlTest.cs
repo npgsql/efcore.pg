@@ -269,7 +269,7 @@ LIMIT 1");
         }
 
         [Fact]
-        public void WebsearchToTsQuery()
+        public void WebSearchToTsQuery()
         {
             using (var context = CreateContext())
             {
@@ -284,7 +284,7 @@ LIMIT 1");
         }
 
         [Fact]
-        public void WebsearchToTsQuery_With_Config()
+        public void WebSearchToTsQuery_With_Config()
         {
             using (var context = CreateContext())
             {
