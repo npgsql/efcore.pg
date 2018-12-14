@@ -32,8 +32,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         public override async Task String_StartsWith_Column(bool isAsync)
         {
-            await AssertQuery<Customer>(isAsync, cs => cs.Where(c => c.ContactName.StartsWith(c.City)));
-            AssertContainsSqlFragment(@"WHERE c.""ContactName"" LIKE (c.""City"" || '%') AND (LEFT(c.""ContactName"", LENGTH(c.""City"")) = c.""City"")");
+            await base.String_StartsWith_Column(isAsync);
+
+            AssertContainsSqlFragment(@"WHERE c.""ContactName"" LIKE c.""ContactName"" || '%' AND ((LEFT(c.""ContactName"", LENGTH(c.""ContactName"")) = c.""ContactName"") OR c.""ContactName"" IS NULL)");
         }
 
         public override async Task String_EndsWith_Literal(bool isAsync)

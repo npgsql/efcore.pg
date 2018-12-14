@@ -498,7 +498,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using (var context = Fixture.CreateContext())
             {
                 var e = context.RangeTestEntities.Single(x => x.SchemaRange == NpgsqlRange<double>.Parse("(0,10)"));
-                AssertContainsSql("WHERE x.\"SchemaRange\" = @__Parse_0");
+                AssertContainsSql("WHERE x.\"SchemaRange\" = '(0,10)'::test.\"Schema_Range\"");
                 Assert.Equal(e.SchemaRange.LowerBound, 0);
                 Assert.Equal(e.SchemaRange.UpperBound, 10);
             }

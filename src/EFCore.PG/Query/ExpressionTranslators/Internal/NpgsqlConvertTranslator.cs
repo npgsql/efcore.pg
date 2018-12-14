@@ -7,6 +7,7 @@ using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
 using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
@@ -15,15 +16,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     /// </summary>
     public class NpgsqlConvertTranslator : IMethodCallTranslator
     {
-        static readonly Dictionary<string, DbType> TypeMapping = new Dictionary<string, DbType>
+        static readonly Dictionary<string, string> TypeMapping = new Dictionary<string, string>
         {
-            [nameof(Convert.ToByte)] = DbType.Byte,
-            [nameof(Convert.ToDecimal)] = DbType.Decimal,
-            [nameof(Convert.ToDouble)] = DbType.Double,
-            [nameof(Convert.ToInt16)] = DbType.Int16,
-            [nameof(Convert.ToInt32)] = DbType.Int32,
-            [nameof(Convert.ToInt64)] = DbType.Int64,
-            [nameof(Convert.ToString)] = DbType.String
+            [nameof(Convert.ToBoolean)] = "bool",
+            [nameof(Convert.ToByte)]    = "smallint",
+            [nameof(Convert.ToDecimal)] = "numeric",
+            [nameof(Convert.ToDouble)]  = "double precision",
+            [nameof(Convert.ToInt16)]   = "smallint",
+            [nameof(Convert.ToInt32)]   = "int",
+            [nameof(Convert.ToInt64)]   = "bigint",
+            [nameof(Convert.ToString)]  = "text"
         };
 
         static readonly List<Type> SupportedTypes = new List<Type>
@@ -49,7 +51,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         [CanBeNull]
         public virtual Expression Translate(MethodCallExpression methodCallExpression)
             => SupportedMethods.Contains(methodCallExpression.Method)
-                ? new ExplicitCastExpression(methodCallExpression.Arguments[0], methodCallExpression.Type)
+                ? new ExplicitStoreTypeCastExpression(
+                    methodCallExpression.Arguments[0],
+                    methodCallExpression.Type,
+                    TypeMapping[methodCallExpression.Method.Name])
                 : null;
     }
 }

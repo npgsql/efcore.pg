@@ -138,7 +138,7 @@ WHERE is_top_customer(c.""Id"") = TRUE");
             base.Scalar_Function_Where_Not_Correlated_Static();
 
             AssertSql(
-                @"@__startDate_0='2000-04-01T00:00:00' (DbType = DateTime)
+                @"@__startDate_0='2000-04-01T00:00:00' (Nullable = true) (DbType = DateTime)
 
 SELECT c.""Id""
 FROM ""Customers"" AS c
@@ -519,7 +519,7 @@ WHERE is_top_customer(c.""Id"") = TRUE");
             base.Scalar_Function_Where_Not_Correlated_Instance();
 
             AssertSql(
-                @"@__startDate_1='2000-04-01T00:00:00' (DbType = DateTime)
+                @"@__startDate_1='2000-04-01T00:00:00' (Nullable = true) (DbType = DateTime)
 
 SELECT c.""Id""
 FROM ""Customers"" AS c

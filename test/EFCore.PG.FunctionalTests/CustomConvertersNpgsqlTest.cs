@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
@@ -15,6 +16,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
         // Disabled: PostgreSQL is case-sensitive
         public override void Can_insert_and_read_back_with_case_insensitive_string_key() {}
+
+        [Fact(Skip="https://github.com/aspnet/EntityFrameworkCore/issues/14159")]
+        public override void Can_query_using_any_data_type_nullable_shadow() {}
 
         public class CustomConvertersNpgsqlFixture : CustomConvertersFixtureBase
         {

@@ -133,7 +133,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             if (floor)
                 result = new SqlFunctionExpression("FLOOR", typeof(double), new[] { result });
 
-            return new ExplicitCastExpression(result, typeof(int));
+            return new ExplicitStoreTypeCastExpression(result, typeof(int), "int");
         }
     }
 }

@@ -34,7 +34,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.EvaluatableExpressionFilte
         public override bool IsEvaluatableMethodCall(MethodCallExpression expression)
             => _filters.All(x => x.IsEvaluatableExpression(expression)) && base.IsEvaluatableMethodCall(expression);
 
-
         /// <summary>
         /// Adds additional dispatches to the filters list.
         /// </summary>
