@@ -300,6 +300,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             var oldStrategy = operation.OldColumn[NpgsqlAnnotationNames.ValueGenerationStrategy] as NpgsqlValueGenerationStrategy?;
             var newStrategy = operation[NpgsqlAnnotationNames.ValueGenerationStrategy] as NpgsqlValueGenerationStrategy?;
 
+            // IDENTITY migrations generate invalid SQL prior to PostgreSQL 10.0.
+            if ((oldStrategy == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn ||
+                 newStrategy == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn ||
+                 oldStrategy == NpgsqlValueGenerationStrategy.IdentityByDefaultColumn ||
+                 newStrategy == NpgsqlValueGenerationStrategy.IdentityByDefaultColumn) &&
+                !VersionAtLeast(10, 0))
+            {
+                throw new NotSupportedException($"Migrations using '{newStrategy}' require PostgreSQL 10.0 or later.");
+            }
+
             if (oldStrategy != newStrategy)
             {
                 // We have a value generation strategy change
