@@ -29,6 +29,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
                 Dependencies,
                 Check.NotNull(selectExpression, nameof(selectExpression)),
                 _npgsqlOptions.ReverseNullOrderingEnabled,
-                _npgsqlOptions.PostgresVersion);
+                _npgsqlOptions.PostgresVersion,
+                _npgsqlOptions.CaseInsensitiveEnabled);
     }
 }

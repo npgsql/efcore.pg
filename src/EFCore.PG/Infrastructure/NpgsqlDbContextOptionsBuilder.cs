@@ -86,6 +86,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         internal virtual void ReverseNullOrdering(bool reverseNullOrdering = true)
             => WithOption(e => e.WithReverseNullOrdering(reverseNullOrdering));
 
+        /// <summary>
+        /// Appends NULLS FIRST to all ORDER BY clauses. This is important for the tests which were written
+        /// for SQL Server. Note that to fully implement null-first ordering indexes also need to be generated
+        /// accordingly, and since this isn't done this feature isn't publicly exposed.
+        /// </summary>
+        /// <param name="reverseNullOrdering">True to enable reverse null ordering; otherwise, false.</param>
+        public virtual void SetCaseInsensitive(bool caseInsensitive = false)
+            => WithOption(e => e.WithCaseInsensitive(caseInsensitive));
+
         #region Authentication
 
         /// <summary>

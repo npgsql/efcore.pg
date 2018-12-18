@@ -19,6 +19,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         public virtual bool ReverseNullOrderingEnabled { get; private set; }
 
         /// <inheritdoc />
+        public virtual bool CaseInsensitiveEnabled { get; private set; }
+
+        /// <inheritdoc />
         [NotNull]
         public virtual IReadOnlyList<UserRangeDefinition> UserRangeDefinitions { get; private set; }
 
@@ -33,6 +36,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
             PostgresVersion = npgsqlOptions.PostgresVersion;
             ReverseNullOrderingEnabled = npgsqlOptions.ReverseNullOrdering;
             UserRangeDefinitions = npgsqlOptions.UserRangeDefinitions;
+            CaseInsensitiveEnabled = npgsqlOptions.CaseInsensitive;
         }
 
         /// <inheritdoc />

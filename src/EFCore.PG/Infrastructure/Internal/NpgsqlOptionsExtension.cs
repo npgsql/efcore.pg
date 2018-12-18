@@ -52,6 +52,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         public bool ReverseNullOrdering { get; private set; }
 
         /// <summary>
+        /// True if reverse null ordering is enabled; otherwise, false.
+        /// </summary>
+        public bool CaseInsensitive { get; private set; }
+
+        /// <summary>
         /// Initializes an instance of <see cref="NpgsqlOptionsExtension"/> with the default settings.
         /// </summary>
         public NpgsqlOptionsExtension()
@@ -70,6 +75,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
             ProvideClientCertificatesCallback = copyFrom.ProvideClientCertificatesCallback;
             RemoteCertificateValidationCallback = copyFrom.RemoteCertificateValidationCallback;
             ReverseNullOrdering = copyFrom.ReverseNullOrdering;
+            CaseInsensitive = copyFrom.CaseInsensitive;
         }
 
         /// <inheritdoc />
@@ -161,6 +167,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
             var clone = (NpgsqlOptionsExtension)Clone();
 
             clone.ReverseNullOrdering = reverseNullOrdering;
+
+            return clone;
+        }
+
+        /// <summary>
+        /// Returns a copy of the current instance configured with the specified value..
+        /// </summary>
+        /// <param name="caseInsensitive">True to enable case insensitive; otherwise, false.</param>
+        [NotNull]
+        internal virtual NpgsqlOptionsExtension WithCaseInsensitive(bool caseInsensitive)
+        {
+            var clone = (NpgsqlOptionsExtension)Clone();
+
+            clone.CaseInsensitive = caseInsensitive;
 
             return clone;
         }

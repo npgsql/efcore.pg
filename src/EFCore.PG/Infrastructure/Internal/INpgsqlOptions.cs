@@ -22,6 +22,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         bool ReverseNullOrderingEnabled { get; }
 
         /// <summary>
+        /// True if reverse null ordering is enabled; otherwise, false.
+        /// </summary>
+        bool CaseInsensitiveEnabled { get; }
+
+        /// <summary>
         /// The collection of range mappings.
         /// </summary>
         [NotNull]

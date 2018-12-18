@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq.Expressions;
+using System.Text;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
@@ -29,6 +30,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
         readonly Version _postgresVersion;
 
         /// <summary>
+        /// True if case insensitive mode enabled; otherwise false.
+        /// </summary>
+        readonly bool _caseInsensitiveEnabled;
+
+        /// <summary>
         /// The type mapping source.
         /// </summary>
         IRelationalTypeMappingSource TypeMappingSource => Dependencies.TypeMappingSource;
@@ -39,16 +45,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
         /// <inheritdoc />
         protected override string TypedFalseLiteral { get; } = "FALSE::bool";
 
+        /// <summary>
+        /// Flag for predicate state generating
+        /// </summary>
+        protected bool PredicateGenerating { get; private set; }
+
         /// <inheritdoc />
         public NpgsqlQuerySqlGenerator(
             [NotNull] QuerySqlGeneratorDependencies dependencies,
             [NotNull] SelectExpression selectExpression,
             bool reverseNullOrderingEnabled,
-            Version postgresVersion)
+            Version postgresVersion,
+            bool caseInsensitiveEnabled)
             : base(dependencies, selectExpression)
         {
             _reverseNullOrderingEnabled = reverseNullOrderingEnabled;
             _postgresVersion = postgresVersion;
+            _caseInsensitiveEnabled = caseInsensitiveEnabled;
         }
 
         #region Generators
@@ -108,6 +121,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
             default:
                 return base.GenerateOperator(expression);
             }
+        }
+
+        protected override void GeneratePredicate(Expression predicate)
+        {
+            PredicateGenerating = true;
+
+            base.GeneratePredicate(predicate);
+
+            PredicateGenerating = false;
         }
 
         /// <inheritdoc />
@@ -471,7 +493,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
 
             GenerateList(expression.PositionalArguments);
 
-            bool hasArguments = expression.PositionalArguments.Count > 0 && expression.NamedArguments.Count > 0;
+            var hasArguments = expression.PositionalArguments.Count > 0 && expression.NamedArguments.Count > 0;
 
             foreach (var kv in expression.NamedArguments)
             {
@@ -492,6 +514,60 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
             return expression;
         }
 
+        public override Expression VisitColumn(ColumnExpression columnExpression)
+        {
+            if (!PredicateGenerating || !_caseInsensitiveEnabled  || columnExpression?.Property?.PropertyInfo?.PropertyType != typeof(string))
+                return base.VisitColumn(columnExpression);
+
+            var builder = new StringBuilder();
+            builder.Append(SqlGenerator.DelimitIdentifier(columnExpression.Table.Alias))
+                .Append(".")
+                .Append(SqlGenerator.DelimitIdentifier(columnExpression.Name));
+
+            AddLowerFunctionToSqlQuery(builder.ToString());
+
+            return columnExpression;
+        }
+
+        protected override Expression VisitConstant(ConstantExpression constantExpression)
+        {
+            if (!PredicateGenerating || !_caseInsensitiveEnabled || constantExpression?.Type != typeof(string))
+                return base.VisitConstant(constantExpression);
+
+            InferTypeMappingFromColumn(constantExpression);
+
+            AddLowerFunctionToSqlQuery(GenerateSqlLiteral(constantExpression.Value));
+
+            return constantExpression;
+        }
+
         #endregion
+
+        private string GenerateSqlLiteral(object value)
+        {
+            var mapping = TypeMappingSource.GetMappingForValue(value);
+            var mappingClrType = mapping?.ClrType;
+
+            if (mappingClrType != null
+                && (value == null
+                    || mappingClrType.IsInstanceOfType(value)
+                    || value.GetType().IsInteger()
+                    && (mappingClrType.IsInteger()
+                        || mappingClrType.IsEnum)))
+            {
+                if (value?.GetType().IsInteger() == true
+                    && mappingClrType.IsEnum)
+                {
+                    value = Enum.ToObject(mappingClrType, value);
+                }
+            }
+
+            return mapping.GenerateSqlLiteral(value);
+        }
+
+        public void AddLowerFunctionToSqlQuery(string value)
+            => Sql.Append("lower(")
+                .Append(value)
+                .Append(")");
     }
 }
