@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -527,6 +529,42 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
             AddLowerFunctionToSqlQuery(builder.ToString());
 
             return columnExpression;
+        }
+
+        protected override Expression VisitParameter(ParameterExpression parameterExpression)
+        {
+            if (!PredicateGenerating || !_caseInsensitiveEnabled || parameterExpression?.Type != typeof(string))
+                return base.VisitParameter(parameterExpression);
+
+            var parameterName = SqlGenerator.GenerateParameterName(parameterExpression.Name);
+
+            if (Sql.ParameterBuilder.Parameters
+                .All(p => p.InvariantName != parameterExpression.Name))
+            {
+                var parameterType = parameterExpression.Type.UnwrapNullableType();
+                var value = ParameterValues[parameterExpression.Name];
+                var typeMapping = TypeMappingSource.GetMappingForValue(value);
+
+                if (typeMapping == null
+                    || (!typeMapping.ClrType.UnwrapNullableType().IsAssignableFrom(parameterType)
+                        && (parameterType.IsEnum
+                            || !typeof(IConvertible).IsAssignableFrom(parameterType))))
+                {
+                    typeMapping = Dependencies.TypeMappingSource.GetMapping(parameterType);
+                }
+
+                Sql.AddParameter(
+                    parameterExpression.Name,
+                    parameterName,
+                    typeMapping,
+                    parameterExpression.Type.IsNullableType());
+            }
+
+            var parameterNamePlaceholder = SqlGenerator.GenerateParameterNamePlaceholder(parameterExpression.Name);
+
+            AddLowerFunctionToSqlQuery(parameterNamePlaceholder);
+
+            return parameterExpression;
         }
 
         protected override Expression VisitConstant(ConstantExpression constantExpression)
