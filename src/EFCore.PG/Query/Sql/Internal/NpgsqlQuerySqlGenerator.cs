@@ -542,15 +542,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
                 .All(p => p.InvariantName != parameterExpression.Name))
             {
                 var parameterType = parameterExpression.Type.UnwrapNullableType();
-                var value = ParameterValues[parameterExpression.Name];
-                var typeMapping = TypeMappingSource.GetMappingForValue(value);
+                var typeMapping = TypeMappingSource.GetMapping(parameterType);
 
-                if (typeMapping == null
-                    || (!typeMapping.ClrType.UnwrapNullableType().IsAssignableFrom(parameterType)
-                        && (parameterType.IsEnum
-                            || !typeof(IConvertible).IsAssignableFrom(parameterType))))
+                if (ParameterValues.ContainsKey(parameterExpression.Name))
                 {
-                    typeMapping = Dependencies.TypeMappingSource.GetMapping(parameterType);
+                    var value = ParameterValues[parameterExpression.Name];
+
+                    typeMapping = TypeMappingSource.GetMappingForValue(value);
+
+                    if (typeMapping == null
+                        || (!typeMapping.ClrType.UnwrapNullableType().IsAssignableFrom(parameterType)
+                            && (parameterType.IsEnum
+                                || !typeof(IConvertible).IsAssignableFrom(parameterType))))
+                    {
+                        typeMapping = TypeMappingSource.GetMapping(parameterType);
+                    }
                 }
 
                 Sql.AddParameter(
