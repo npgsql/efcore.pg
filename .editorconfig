@@ -1,15 +1,18 @@
 root = true
 
 [*]
+charset = utf-8
 end_of_line = LF
-
-[*.cs]
-indent_style = space
-indent_size = 4
-trim_trailing_whitespace = true
 insert_final_newline = true
+trim_trailing_whitespace = true
+
+[{*.DotSettings, *.DotSettings.user}]
+indent_size = 2
+indent_style = tab
 
 [*.cs]
+indent_size = 4
+indent_style = space
 dotnet_style_qualification_for_field = false:error
 dotnet_style_qualification_for_property = false:error
 dotnet_style_qualification_for_method = false:error
