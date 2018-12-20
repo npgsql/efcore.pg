@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -30,7 +31,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         public override void Validate(IModel model)
         {
             base.Validate(model);
-            ValidateIdentityUsage(model);
+            ValidateIdentityVersionCompatibility(model);
         }
 
         #region Npgsql-specific validations
@@ -39,17 +40,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         /// Validates that identity columns are used only with PostgreSQL 10.0 or later.
         /// </summary>
         /// <param name="model">The model to validate.</param>
-        protected virtual void ValidateIdentityUsage([NotNull] IModel model)
+        protected virtual void ValidateIdentityVersionCompatibility([NotNull] IModel model)
         {
             if (VersionAtLeast(10, 0))
                 return;
 
-            var strategy = model.Npgsql().ValueGenerationStrategy;
+            ThrowIfIdentity(model.Npgsql().ValueGenerationStrategy);
 
-            if (strategy == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn ||
-                strategy == NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
+            foreach (var property in model.GetEntityTypes().SelectMany(e => e.GetProperties()))
+                ThrowIfIdentity(property.Npgsql().ValueGenerationStrategy);
+
+            void ThrowIfIdentity(NpgsqlValueGenerationStrategy? value)
             {
-                throw new InvalidOperationException($"'{strategy}' requires PostgreSQL 10.0 or later.");
+                if (value == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn ||
+                    value == NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
+                {
+                    throw new InvalidOperationException($"'{value}' requires PostgreSQL 10.0 or later.");
+                }
             }
         }
 
