@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore.Query.Sql;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Update;
 using Microsoft.EntityFrameworkCore.ValueGeneration;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions;
@@ -75,6 +76,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     .TryAdd<IRelationalTypeMappingSource, NpgsqlTypeMappingSource>()
                     .TryAdd<ISqlGenerationHelper, NpgsqlSqlGenerationHelper>()
                     .TryAdd<IMigrationsAnnotationProvider, NpgsqlMigrationsAnnotationProvider>()
+                    .TryAdd<IModelValidator, NpgsqlModelValidator>()
                     .TryAdd<IRelationalValueBufferFactoryFactory, TypedRelationalValueBufferFactoryFactory>()
                     .TryAdd<IConventionSetBuilder, NpgsqlConventionSetBuilder>()
                     .TryAdd<IUpdateSqlGenerator, NpgsqlUpdateSqlGenerator>()
