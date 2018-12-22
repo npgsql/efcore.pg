@@ -45,17 +45,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
             if (VersionAtLeast(10, 0))
                 return;
 
-            ThrowIfIdentity(model.Npgsql().ValueGenerationStrategy);
+            var strategy = model.Npgsql().ValueGenerationStrategy;
+
+            if (strategy == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn ||
+                strategy == NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
+            {
+                throw new InvalidOperationException($"'{strategy}' requires PostgreSQL 10.0 or later.");
+            }
 
             foreach (var property in model.GetEntityTypes().SelectMany(e => e.GetProperties()))
-                ThrowIfIdentity(property.Npgsql().ValueGenerationStrategy);
-
-            void ThrowIfIdentity(NpgsqlValueGenerationStrategy? value)
             {
-                if (value == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn ||
-                    value == NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
+                var propertyStrategy = property.Npgsql().ValueGenerationStrategy;
+
+                if (propertyStrategy == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn ||
+                    propertyStrategy == NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
                 {
-                    throw new InvalidOperationException($"'{value}' requires PostgreSQL 10.0 or later.");
+                    throw new InvalidOperationException(
+                        $"{property.DeclaringEntityType}.{property.Name}: '{propertyStrategy}' requires PostgreSQL 10.0 or later.");
                 }
             }
         }
