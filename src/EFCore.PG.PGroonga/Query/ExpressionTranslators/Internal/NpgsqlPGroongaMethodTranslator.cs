@@ -40,14 +40,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         [CanBeNull]
         public Expression Translate(MethodCallExpression e)
         {
-            if (e.Method.DeclaringType == typeof(NpgsqlPGroongaDbFunctionsExtensions)
-                && SqlNameByMethodName.TryGetValue(e.Method.Name, out var sqlFunctionName))
+            if (e.Method.DeclaringType != typeof(NpgsqlPGroongaDbFunctionsExtensions) &&
+                e.Method.DeclaringType != typeof(NpgsqlPGroongaLinqExtensions))
+                return null;
+
+            if (SqlNameByMethodName.TryGetValue(e.Method.Name, out var sqlFunctionName))
                 return new SqlFunctionExpression(sqlFunctionName, e.Method.ReturnType, e.Arguments.Skip(1));
 
-            if (e.Method.DeclaringType == typeof(NpgsqlPGroongaLinqExtensions))
-                return TryTranslateOperator(e);
-
-            return null;
+            return TryTranslateOperator(e);
         }
 
         [CanBeNull]

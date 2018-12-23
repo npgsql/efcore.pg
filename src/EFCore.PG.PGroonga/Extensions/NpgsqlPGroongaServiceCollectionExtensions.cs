@@ -26,7 +26,6 @@ namespace Microsoft.Extensions.DependencyInjection
                     x => x
                         .TryAddSingletonEnumerable<IMethodCallTranslatorPlugin, NpgsqlPGroongaMethodCallTranslatorPlugin>());
 
-
             return serviceCollection;
         }
     }

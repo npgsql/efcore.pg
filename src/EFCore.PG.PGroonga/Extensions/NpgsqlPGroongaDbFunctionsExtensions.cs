@@ -216,11 +216,11 @@ namespace Microsoft.EntityFrameworkCore
         /// Get precision as a number
         /// </summary>
         /// <param name="_"><see cref="DbFunctions"/></param>
-        /// <param name="tableoid">A table OID, use "tableoid" system column by default</param>
-        /// <param name="ctid">A ID of the row, use "ctid" system column by default</param>
+        /// <param name="tableoid">A table OID, can use "tableoid" system column</param>
+        /// <param name="ctid">A ID of the row, can use "ctid" system column</param>
         /// <returns>Precision as double precision type value</returns>
         /// <remarks>https://pgroonga.github.io/reference/functions/pgroonga-score.html</remarks>
-        public static double PgroongaScore(this DbFunctions _, string tableoid = "tableoid", string ctid = "ctid") => throw new NotSupportedException();
+        public static double PgroongaScore(this DbFunctions _, string tableoid, string ctid) => throw new NotSupportedException();
 
         /// <summary>
         /// Get precision as a number
