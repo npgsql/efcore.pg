@@ -1,4 +1,5 @@
 using System;
+using NpgsqlTypes;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore
@@ -10,10 +11,19 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="_"><see cref="DbFunctions"/></param>
         /// <param name="command">A Groonga command</param>
+        /// <returns>The result as text type value</returns>
+        /// <remarks>https://pgroonga.github.io/reference/functions/pgroonga-command.html</remarks>
+        public static string PgroongaCommand(this DbFunctions _, string command) => throw new NotSupportedException();
+
+        /// <summary>
+        /// Executes a Groonga command
+        /// </summary>
+        /// <param name="_"><see cref="DbFunctions"/></param>
+        /// <param name="command">A Groonga command</param>
         /// <param name="arguments">Arguments for the command</param>
         /// <returns>The result as text type value</returns>
         /// <remarks>https://pgroonga.github.io/reference/functions/pgroonga-command.html</remarks>
-        public static string PgroongaCommand(this DbFunctions _, string command, string[] arguments = null) => throw new NotSupportedException();
+        public static string PgroongaCommand(this DbFunctions _, string command, string[] arguments) => throw new NotSupportedException();
 
         /// <summary>
         /// Escapes special characters in "value" part of Groonga command format
@@ -130,10 +140,20 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="_"><see cref="DbFunctions"/></param>
         /// <param name="target">A text to be highlighted</param>
         /// <param name="keywords">Keywords to be highlighted</param>
+        /// <returns>Highlighted text</returns>
+        /// <remarks>https://pgroonga.github.io/reference/functions/pgroonga-highlight-html.html</remarks>
+        public static string PgroongaHighlightHtml(this DbFunctions _, string target, string[] keywords) => throw new NotSupportedException();
+
+        /// <summary>
+        /// Surrounds the specified keywords in the specified text by <span class="keyword"> and </span>
+        /// </summary>
+        /// <param name="_"><see cref="DbFunctions"/></param>
+        /// <param name="target">A text to be highlighted</param>
+        /// <param name="keywords">Keywords to be highlighted</param>
         /// <param name="pgroongaIndexName">An index name</param>
         /// <returns>Highlighted text</returns>
         /// <remarks>https://pgroonga.github.io/reference/functions/pgroonga-highlight-html.html</remarks>
-        public static string PgroongaHighlightHtml(this DbFunctions _, string target, string[] keywords, string pgroongaIndexName = null) => throw new NotSupportedException();
+        public static string PgroongaHighlightHtml(this DbFunctions _, string target, string[] keywords, string pgroongaIndexName) => throw new NotSupportedException();
 
         /// <summary>
         /// Determine whether you can change PGroonga data or not
@@ -151,7 +171,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="keywords">Keywords to be found</param>
         /// <returns>An array of positions consists of offset and length</returns>
         /// <remarks>https://pgroonga.github.io/reference/functions/pgroonga-match-positions-byte.html</remarks>
-        public static int[][] PgroongaMatchPositionsByte(this DbFunctions _, string target, string[] keywords) => throw new NotSupportedException();
+        public static int[,] PgroongaMatchPositionsByte(this DbFunctions _, string target, string[] keywords) => throw new NotSupportedException();
 
         /// <summary>
         /// Get positions of the specified keywords in the specified text
@@ -161,7 +181,16 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="keywords">Keywords to be found</param>
         /// <returns>An array of positions consists of offset and length</returns>
         /// <remarks>https://pgroonga.github.io/reference/functions/pgroonga-match-positions-character.html</remarks>
-        public static int[][] PgroongaMatchPositionsCharacter(this DbFunctions _, string target, string[] keywords) => throw new NotSupportedException();
+        public static int[,] PgroongaMatchPositionsCharacter(this DbFunctions _, string target, string[] keywords) => throw new NotSupportedException();
+
+        /// <summary>
+        /// Converts a text into a normalized form using Groonga's normalizer modules
+        /// </summary>
+        /// <param name="_"><see cref="DbFunctions"/></param>
+        /// <param name="target">A text to be highlighted</param>
+        /// <returns>Normalized text</returns>
+        /// <remarks>https://pgroonga.github.io/reference/functions/pgroonga-normalize.html</remarks>
+        public static string PgroongaNormalize(this DbFunctions _, string target) => throw new NotSupportedException();
 
         /// <summary>
         /// Converts a text into a normalized form using Groonga's normalizer modules
@@ -171,7 +200,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="normalizerName">The normalizer module you want to use</param>
         /// <returns>Normalized text</returns>
         /// <remarks>https://pgroonga.github.io/reference/functions/pgroonga-normalize.html</remarks>
-        public static string PgroongaNormalize(this DbFunctions _, string target, string normalizerName = "NormalizerAuto") => throw new NotSupportedException();
+        public static string PgroongaNormalize(this DbFunctions _, string target, string normalizerName) => throw new NotSupportedException();
 
         /// <summary>
         /// Converts the given value to a literal for query syntax
@@ -216,20 +245,10 @@ namespace Microsoft.EntityFrameworkCore
         /// Get precision as a number
         /// </summary>
         /// <param name="_"><see cref="DbFunctions"/></param>
-        /// <param name="tableoid">A table OID, can use "tableoid" system column</param>
-        /// <param name="ctid">A ID of the row, can use "ctid" system column</param>
+        /// <param name="columnName">Table alias name</param>
         /// <returns>Precision as double precision type value</returns>
         /// <remarks>https://pgroonga.github.io/reference/functions/pgroonga-score.html</remarks>
-        public static double PgroongaScore(this DbFunctions _, string tableoid, string ctid) => throw new NotSupportedException();
-
-        /// <summary>
-        /// Get precision as a number
-        /// </summary>
-        /// <param name="_"><see cref="DbFunctions"/></param>
-        /// <param name="tableName">An existing table name</param>
-        /// <returns>Precision as double precision type value</returns>
-        /// <remarks>https://pgroonga.github.io/reference/functions/pgroonga-score.html</remarks>
-        public static double PgroongaScore(this DbFunctions _, string tableName) => throw new NotSupportedException();
+        public static double PgroongaScore(this DbFunctions _, string columnName) => throw new NotSupportedException();
 
         /// <summary>
         /// Get KWIC (keyword in context) in the specified text
@@ -254,10 +273,26 @@ namespace Microsoft.EntityFrameworkCore
         /// Apply pending WAL
         /// </summary>
         /// <param name="_"><see cref="DbFunctions"/></param>
+        /// <returns>The number of applied operations</returns>
+        /// <remarks>https://pgroonga.github.io/reference/functions/pgroonga-wal-apply.html</remarks>
+        public static long PgroongaWalApply(this DbFunctions _) => throw new NotSupportedException();
+
+        /// <summary>
+        /// Apply pending WAL
+        /// </summary>
+        /// <param name="_"><see cref="DbFunctions"/></param>
         /// <param name="pgroongaIndexName">An index name</param>
         /// <returns>The number of applied operations</returns>
         /// <remarks>https://pgroonga.github.io/reference/functions/pgroonga-wal-apply.html</remarks>
-        public static long PgroongaWalApply(this DbFunctions _, string pgroongaIndexName = null) => throw new NotSupportedException();
+        public static long PgroongaWalApply(this DbFunctions _, string pgroongaIndexName) => throw new NotSupportedException();
+
+        /// <summary>
+        /// Truncate pending WAL
+        /// </summary>
+        /// <param name="_"><see cref="DbFunctions"/></param>
+        /// <returns>The number of truncated PostgreSQL data blocks</returns>
+        /// <remarks>https://pgroonga.github.io/reference/functions/pgroonga-wal-truncate.html</remarks>
+        public static long PgroongaWalTruncate(this DbFunctions _) => throw new NotSupportedException();
 
         /// <summary>
         /// Truncate pending WAL
@@ -266,6 +301,6 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="pgroongaIndexName">An index name</param>
         /// <returns>The number of truncated PostgreSQL data blocks</returns>
         /// <remarks>https://pgroonga.github.io/reference/functions/pgroonga-wal-truncate.html</remarks>
-        public static long PgroongaWalTruncate(this DbFunctions _, string pgroongaIndexName = null) => throw new NotSupportedException();
+        public static long PgroongaWalTruncate(this DbFunctions _, string pgroongaIndexName) => throw new NotSupportedException();
     }
 }

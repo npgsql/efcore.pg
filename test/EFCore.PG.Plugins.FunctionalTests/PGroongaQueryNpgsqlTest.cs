@@ -19,6 +19,255 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
         PGroongaFixture Fixture { get; }
 
+        #region Functions
+
+        [Fact]
+        public void Function_PgroongaCommand()
+        {
+            using (var ctx = CreateContext())
+            {
+                var rows = ctx.PGroongaTypes.Where(t => t.Id == 1).Select(x => EF.Functions.PgroongaCommand("status"))
+                    .Single();
+                Assert.Contains("uptime", rows);
+                Assert.Contains(@"SELECT pgroonga_command('status')", Sql);
+            }
+        }
+
+        [Fact]
+        public void Function_PgroongaCommandEscapeValue()
+        {
+            using (var ctx = CreateContext())
+            {
+                var row = ctx.PGroongaTypes.Where(t => t.Id == 1)
+                    .Select(x => EF.Functions.PgroongaCommandEscapeValue("(PostgreSQL")).Single();
+                Assert.Equal("\"(PostgreSQL\"", row);
+                Assert.Contains(@"SELECT pgroonga_command_escape_value('(PostgreSQL')", Sql);
+            }
+        }
+
+        [Fact]
+        public void Function_PgroongaEscape()
+        {
+            using (var ctx = CreateContext())
+            {
+                var row = ctx.PGroongaTypes.Where(t => t.Id == 1).Select(x => EF.Functions.PgroongaEscape(100)).Single();
+                Assert.Equal("100", row);
+                Assert.Contains(@"SELECT pgroonga_escape(100)", Sql);
+            }
+        }
+
+        [Fact]
+        public void Function_PgroongaFlush()
+        {
+            using (var ctx = CreateContext())
+            {
+                var row = ctx.PGroongaTypes.Where(t => t.Id == 1)
+                    .Select(x => EF.Functions.PgroongaFlush("ix_pgroongatypes_id_content")).Single();
+                Assert.Equal(true, row);
+                Assert.Contains(@"SELECT pgroonga_flush('ix_pgroongatypes_id_content')", Sql);
+            }
+        }
+
+        [Fact]
+        public void Function_PgroongaHighlightHtml()
+        {
+            using (var ctx = CreateContext())
+            {
+                var row = ctx.PGroongaTypes.Where(t => t.Id == 1).Select(x =>
+                        EF.Functions.PgroongaHighlightHtml("PGroonga is a PostgreSQL extension.",
+                            new[] { "PostgreSQL" }))
+                    .Single();
+                Assert.Contains("<span class=\"keyword\">PostgreSQL</span>", row);
+                Assert.Contains(@"SELECT pgroonga_highlight_html('PGroonga is a PostgreSQL extension.', ARRAY['PostgreSQL']", Sql);
+            }
+        }
+
+        [Fact]
+        public void Function_PgroongaIsWritable()
+        {
+            using (var ctx = CreateContext())
+            {
+                var row = ctx.PGroongaTypes.Where(t => t.Id == 1).Select(x => EF.Functions.PgroongaIsWritable()).Single();
+                Assert.Equal(true, row);
+                Assert.Contains(@"SELECT pgroonga_is_writable()", Sql);
+            }
+        }
+
+        [Fact]
+        public void Function_PgroongaMatchPositionsByte()
+        {
+            using (var ctx = CreateContext())
+            {
+                var row = ctx.PGroongaTypes.Where(t => t.Id == 1).Select(x =>
+                        EF.Functions.PgroongaMatchPositionsByte("PGroonga is a PostgreSQL extension.",
+                            new[] { "PostgreSQL" }))
+                    .Single();
+                Assert.Equal(new[,] { { 14, 10 } }, row);
+                Assert.Contains(@"SELECT pgroonga_match_positions_byte('PGroonga is a PostgreSQL extension.', ARRAY['PostgreSQL']", Sql);
+            }
+        }
+
+        [Fact]
+        public void Function_PgroongaMatchPositionsCharacter()
+        {
+            using (var ctx = CreateContext())
+            {
+                var row = ctx.PGroongaTypes.Where(t => t.Id == 1).Select(x =>
+                        EF.Functions.PgroongaMatchPositionsCharacter("PGroonga is a PostgreSQL extension.",
+                            new[] { "PostgreSQL" }))
+                    .Single();
+                Assert.Equal(new[,] { { 14, 10 } }, row);
+                Assert.Contains(@"SELECT pgroonga_match_positions_character('PGroonga is a PostgreSQL extension.', ARRAY['PostgreSQL']", Sql);
+            }
+        }
+
+        [Fact]
+        public void Function_PgroongaNormalize()
+        {
+            using (var ctx = CreateContext())
+            {
+                var row = ctx.PGroongaTypes.Where(t => t.Id == 1)
+                    .Select(x => EF.Functions.PgroongaNormalize("aBcDe 123")).Single();
+                Assert.Equal("abcde 123", row);
+                Assert.Contains(@"SELECT pgroonga_normalize('aBcDe 123')", Sql);
+            }
+        }
+
+        [Fact]
+        public void Function_PgroongaQueryEscape()
+        {
+            using (var ctx = CreateContext())
+            {
+                var row = ctx.PGroongaTypes.Where(t => t.Id == 1)
+                    .Select(x => EF.Functions.PgroongaQueryEscape("(PostgreSQL")).Single();
+                Assert.Equal("\\(PostgreSQL", row);
+                Assert.Contains(@"SELECT pgroonga_query_escape('(PostgreSQL')", Sql);
+            }
+        }
+
+        /*
+        [Fact]
+        public void Function_PgroongaQueryExpand()
+        {
+            using (var ctx = CreateContext())
+            {
+                var row = ctx.PGroongaTypes.Where(t => t.Id == 1).Select(x =>
+                    EF.Functions.PgroongaQueryExpand("synonyms", "term", "synonyms", "PGroonga OR Mroonga")).Single();
+                Assert.Equal("((PGroonga) OR (Groonga PostgreSQL)) OR Mroonga", row);
+                Assert.Contains(@"SELECT pgroonga_query_expand('synonyms', 'term', 'synonyms',", Sql);
+            }
+        }
+        */
+
+        [Fact]
+        public void Function_PgroongaQueryExtractKeywords()
+        {
+            using (var ctx = CreateContext())
+            {
+                var row = ctx.PGroongaTypes.Where(t => t.Id == 1).Select(x =>
+                    EF.Functions.PgroongaQueryExtractKeywords("Groonga PostgreSQL")).Single();
+                Assert.Equal(new[] { "PostgreSQL", "Groonga" }, row);
+                Assert.Contains(@"SELECT pgroonga_query_extract_keywords('Groonga PostgreSQL')", Sql);
+            }
+        }
+
+        [Fact]
+        public void Function_PgroongaSetWritable()
+        {
+            using (var ctx = CreateContext())
+            {
+                var row1 = ctx.PGroongaTypes.Where(t => t.Id == 1).Select(x => EF.Functions.PgroongaSetWritable(false)).Single();
+                Assert.Equal(true, row1);
+                Assert.Contains(@"SELECT pgroonga_set_writable(FALSE)", Sql);
+                var row2 = ctx.PGroongaTypes.Where(t => t.Id == 1).Select(x => EF.Functions.PgroongaSetWritable(true)).Single();
+                Assert.Equal(false, row2);
+            }
+        }
+
+        [Fact]
+        public void Function_PgroongaScore()
+        {
+            using (var ctx = CreateContext())
+            {
+                var row = ctx.PGroongaTypes
+                    .Where(r => r.Content.Match("engine"))
+                    .Select(r => EF.Functions.PgroongaScore(r.Content))
+                    .Single();
+                Assert.Equal(1, row);
+                Assert.Contains(@"SELECT pgroonga_score(r.tableoid, r.ctid)", Sql);
+            }
+        }
+
+        [Fact]
+        public void Function_PgroongaSnippetHtml()
+        {
+            using (var ctx = CreateContext())
+            {
+                var row = ctx.PGroongaTypes.Where(t => t.Id == 1)
+                    .Select(x =>
+                        EF.Functions.PgroongaSnippetHtml(
+                            @"Groonga is a fast and accurate full text search engine based on
+inverted index. One of the characteristics of Groonga is that a
+newly registered document instantly appears in search results.
+Also, Groonga allows updates without read locks. These characteristics
+result in superior performance on real-time applications.
+\n
+\n
+Groonga is also a column-oriented database management system (DBMS).
+Compared with well-known row-oriented systems, such as MySQL and
+PostgreSQL, column-oriented systems are more suited for aggregate
+queries. Due to this advantage, Groonga can cover weakness of
+row-oriented systems.", new[] { "fast", "PostgreSQL" }))
+                    .First();
+                Assert.Equal(2, row.Length);
+                Assert.Contains(@"SELECT pgroonga_snippet_html(", Sql);
+            }
+        }
+
+        [Fact]
+        public void Function_PgroongaTableName()
+        {
+            using (var ctx = CreateContext())
+            {
+                var row = ctx.PGroongaTypes
+                    .Where(r => r.Content.Match("engine"))
+                    .Select(r => EF.Functions.PgroongaTableName("ix_pgroongatypes_id_content"))
+                    .Single();
+                Assert.Contains("Sources", row);
+                Assert.Contains(@"SELECT pgroonga_table_name('ix_pgroongatypes_id_content')", Sql);
+            }
+        }
+
+        /*
+        [Fact]
+        public void Function_PgroongaWalApply()
+        {
+            using (var ctx = CreateContext())
+            {
+                var row = ctx.PGroongaTypes
+                    .Where(r => r.Content.Match("engine"))
+                    .Select(r => EF.Functions.PgroongaWalApply("ix_pgroongatypes_id_content"))
+                    .Single();
+                Assert.Contains(@"SELECT pgroonga_wal_apply('ix_pgroongatypes_id_content')", Sql);
+            }
+        }
+
+        [Fact]
+        public void Function_PgroongaWalTruncate()
+        {
+            using (var ctx = CreateContext())
+            {
+                var row = ctx.PGroongaTypes
+                    .Where(r => r.Content.Match("engine"))
+                    .Select(r => EF.Functions.PgroongaWalTruncate("ix_pgroongatypes_id_content"))
+                    .Single();
+                Assert.Contains(@"SELECT pgroonga_wal_truncate('ix_pgroongatypes_id_content')", Sql);
+            }
+        }
+        */
+
+        #endregion Functions
+
         #region Operators pgroonga_text_full_text_search_ops_v2
 
         [Fact]
@@ -181,7 +430,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
                 modelBuilder.Entity<PGroongaType>()
                     .HasIndex(t => new { t.Id, t.Content })
-                    .ForNpgsqlHasMethod("pgroonga");
+                    .ForNpgsqlHasMethod("pgroonga")
+                    .HasName("ix_pgroongatypes_id_content");
 
                 modelBuilder.Entity<PGroongaType>()
                     .HasIndex(t => t.Tag)

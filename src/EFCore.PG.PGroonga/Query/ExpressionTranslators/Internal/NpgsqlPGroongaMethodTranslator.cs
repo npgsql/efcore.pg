@@ -45,7 +45,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 return null;
 
             if (SqlNameByMethodName.TryGetValue(e.Method.Name, out var sqlFunctionName))
+            {
+                if (sqlFunctionName == "pgroonga_score")
+                {
+                    var column = e.Arguments[1] as ColumnExpression;
+                    return new SqlFunctionExpression(sqlFunctionName, e.Method.ReturnType, new[]
+                    {
+                        new ColumnExpression("tableoid", column.Property, column.Table),
+                        new ColumnExpression("ctid", column.Property, column.Table)
+                    });
+                }
+
                 return new SqlFunctionExpression(sqlFunctionName, e.Method.ReturnType, e.Arguments.Skip(1));
+            }
 
             return TryTranslateOperator(e);
         }
