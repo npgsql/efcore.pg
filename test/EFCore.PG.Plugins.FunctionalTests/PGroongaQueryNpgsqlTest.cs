@@ -26,7 +26,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         {
             using (var ctx = CreateContext())
             {
-                var row = ctx.PGroongaTypes.Single(r => EF.Functions.Match(r.Content, "engine"));
+                var row = ctx.PGroongaTypes.Single(r => r.Content.Match("engine"));
                 Assert.Equal(2, row.Id);
                 Assert.Contains(@"WHERE (r.""Content"" &@ 'engine') = TRUE", Sql);
             }
@@ -37,7 +37,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         {
             using (var ctx = CreateContext())
             {
-                var rows = ctx.PGroongaTypes.Count(r => EF.Functions.Query(r.Content, "PGroonga OR PostgreSQL"));
+                var rows = ctx.PGroongaTypes.Count(r => r.Content.Query("PGroonga OR PostgreSQL"));
                 Assert.Equal(2, rows);
                 Assert.Contains(@"WHERE (r.""Content"" &@~ 'PGroonga OR PostgreSQL') = TRUE", Sql);
             }
@@ -48,7 +48,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         {
             using (var ctx = CreateContext())
             {
-                var row = ctx.PGroongaTypes.Single(r => EF.Functions.SimilarSearch(r.Content, "Mroonga is a MySQL extension taht uses Groonga"));
+                var row = ctx.PGroongaTypes.Single(r => r.Content.SimilarSearch("Mroonga is a MySQL extension taht uses Groonga"));
                 Assert.Equal(3, row.Id);
                 Assert.Contains(@"WHERE (r.""Content"" &@* 'Mroonga is a MySQL extension taht uses Groonga') = TRUE", Sql);
             }
@@ -59,7 +59,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         {
             using (var ctx = CreateContext())
             {
-                var row = ctx.PGroongaTypes.Single(r => EF.Functions.ScriptQuery(r.Content, "Id >= 2 && (Content @ 'engine' || Content @ 'rdbms')"));
+                var row = ctx.PGroongaTypes.Single(r => r.Content.ScriptQuery("Id >= 2 && (Content @ 'engine' || Content @ 'rdbms')"));
                 Assert.Equal(2, row.Id);
                 Assert.Contains(@"WHERE (r.""Content"" &` 'Id >= 2 && (Content @ ''engine'' || Content @ ''rdbms'')') = TRUE", Sql);
             }
@@ -70,7 +70,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         {
             using (var ctx = CreateContext())
             {
-                var rows = ctx.PGroongaTypes.Count(r => EF.Functions.MatchIn(r.Content, new[] { "engine", "database" }));
+                var rows = ctx.PGroongaTypes.Count(r => r.Content.MatchIn(new[] { "engine", "database" }));
                 Assert.Equal(2, rows);
                 Assert.Contains(@"WHERE (r.""Content"" &@| ARRAY['engine','database']::text[]) = TRUE", Sql);
             }
@@ -81,7 +81,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         {
             using (var ctx = CreateContext())
             {
-                var rows = ctx.PGroongaTypes.Count(r => EF.Functions.QueryIn(r.Content, new[] { "Groonga engine", "PostgreSQL -PGroonga" }));
+                var rows = ctx.PGroongaTypes.Count(r => r.Content.QueryIn(new[] { "Groonga engine", "PostgreSQL -PGroonga" }));
                 Assert.Equal(2, rows);
                 Assert.Contains(@"WHERE (r.""Content"" &@~| ARRAY['Groonga engine','PostgreSQL -PGroonga']::text[]) = TRUE", Sql);
             }
@@ -96,7 +96,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         {
             using (var ctx = CreateContext())
             {
-                var rows = ctx.PGroongaTypes.Count(r => EF.Functions.PrefixSearch(r.Tag, "pg"));
+                var rows = ctx.PGroongaTypes.Count(r => r.Tag.PrefixSearch("pg"));
                 Assert.Equal(2, rows);
                 Assert.Contains(@"WHERE (r.""Tag"" &^ 'pg') = TRUE", Sql);
             }
@@ -107,7 +107,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         {
             using (var ctx = CreateContext())
             {
-                var rows = ctx.PGroongaTypes.Count(r => EF.Functions.PrefixRkSearch(r.Tag, "pi-ji-"));
+                var rows = ctx.PGroongaTypes.Count(r => r.Tag.PrefixRkSearch("pi-ji-"));
                 Assert.Equal(2, rows);
                 Assert.Contains(@"WHERE (r.""Tag"" &^~ 'pi-ji-') = TRUE", Sql);
             }
@@ -118,7 +118,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         {
             using (var ctx = CreateContext())
             {
-                var rows = ctx.PGroongaTypes.Count(r => EF.Functions.PrefixSearchIn(r.Tag, new[] { "pg", "gro" }));
+                var rows = ctx.PGroongaTypes.Count(r => r.Tag.PrefixSearchIn(new[] { "pg", "gro" }));
                 Assert.Equal(3, rows);
                 Assert.Contains(@"WHERE (r.""Tag"" &^| ARRAY['pg','gro']::text[]) = TRUE", Sql);
             }
@@ -129,7 +129,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         {
             using (var ctx = CreateContext())
             {
-                var rows = ctx.PGroongaTypes.Count(r => EF.Functions.PrefixRkSearchIn(r.Tag, new[] { "pi-ji-", "posu" }));
+                var rows = ctx.PGroongaTypes.Count(r => r.Tag.PrefixRkSearchIn(new[] { "pi-ji-", "posu" }));
                 Assert.Equal(4, rows);
                 Assert.Contains(@"WHERE (r.""Tag"" &^~| ARRAY['pi-ji-','posu']::text[]) = TRUE", Sql);
             }
@@ -144,7 +144,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         {
             using (var ctx = CreateContext())
             {
-                var row = ctx.PGroongaTypes.Single(r => EF.Functions.RegexpMatch(r.Content, "\\Apostgresql"));
+                var row = ctx.PGroongaTypes.Single(r => r.Content.RegexpMatch("\\Apostgresql"));
                 Assert.Equal(1, row.Id);
                 Assert.Contains(@"WHERE (r.""Content"" &~ '\Apostgresql') = TRUE", Sql);
             }

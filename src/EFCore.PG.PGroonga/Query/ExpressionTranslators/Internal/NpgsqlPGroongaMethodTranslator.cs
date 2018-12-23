@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
@@ -12,101 +14,79 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     /// </summary>
     public class NpgsqlPGroongaMethodTranslator : IMethodCallTranslator
     {
+        static readonly IReadOnlyDictionary<string, string> SqlNameByMethodName = new Dictionary<string, string>
+        {
+            [nameof(NpgsqlPGroongaDbFunctionsExtensions.PgroongaCommand)] = "pgroonga_command",
+            [nameof(NpgsqlPGroongaDbFunctionsExtensions.PgroongaCommandEscapeValue)] = "pgroonga_command_escape_value",
+            [nameof(NpgsqlPGroongaDbFunctionsExtensions.PgroongaEscape)] = "pgroonga_escape",
+            [nameof(NpgsqlPGroongaDbFunctionsExtensions.PgroongaFlush)] = "pgroonga_flush",
+            [nameof(NpgsqlPGroongaDbFunctionsExtensions.PgroongaHighlightHtml)] = "pgroonga_highlight_html",
+            [nameof(NpgsqlPGroongaDbFunctionsExtensions.PgroongaIsWritable)] = "pgroonga_is_writable",
+            [nameof(NpgsqlPGroongaDbFunctionsExtensions.PgroongaMatchPositionsByte)] = "pgroonga_match_positions_byte",
+            [nameof(NpgsqlPGroongaDbFunctionsExtensions.PgroongaMatchPositionsCharacter)] = "pgroonga_match_positions_character",
+            [nameof(NpgsqlPGroongaDbFunctionsExtensions.PgroongaNormalize)] = "pgroonga_normalize",
+            [nameof(NpgsqlPGroongaDbFunctionsExtensions.PgroongaQueryEscape)] = "pgroonga_query_escape",
+            [nameof(NpgsqlPGroongaDbFunctionsExtensions.PgroongaQueryExpand)] = "pgroonga_query_expand",
+            [nameof(NpgsqlPGroongaDbFunctionsExtensions.PgroongaQueryExtractKeywords)] = "pgroonga_query_extract_keywords",
+            [nameof(NpgsqlPGroongaDbFunctionsExtensions.PgroongaSetWritable)] = "pgroonga_set_writable",
+            [nameof(NpgsqlPGroongaDbFunctionsExtensions.PgroongaScore)] = "pgroonga_score",
+            [nameof(NpgsqlPGroongaDbFunctionsExtensions.PgroongaSnippetHtml)] = "pgroonga_snippet_html",
+            [nameof(NpgsqlPGroongaDbFunctionsExtensions.PgroongaTableName)] = "pgroonga_table_name",
+            [nameof(NpgsqlPGroongaDbFunctionsExtensions.PgroongaWalApply)] = "pgroonga_wal_apply",
+            [nameof(NpgsqlPGroongaDbFunctionsExtensions.PgroongaWalTruncate)] = "pgroonga_wal_truncate"
+        };
+
         /// <inheritdoc />
         [CanBeNull]
         public Expression Translate(MethodCallExpression e)
         {
-            if (e.Method.DeclaringType != typeof(NpgsqlPGroongaDbFunctionsExtensions))
-                return null;
+            if (e.Method.DeclaringType == typeof(NpgsqlPGroongaDbFunctionsExtensions)
+                && SqlNameByMethodName.TryGetValue(e.Method.Name, out var sqlFunctionName))
+                return new SqlFunctionExpression(sqlFunctionName, e.Method.ReturnType, e.Arguments.Skip(1));
 
+            if (e.Method.DeclaringType == typeof(NpgsqlPGroongaLinqExtensions))
+                return TryTranslateOperator(e);
+
+            return null;
+        }
+
+        [CanBeNull]
+        static Expression TryTranslateOperator([NotNull] MethodCallExpression e)
+        {
             switch (e.Method.Name)
             {
-            case nameof(NpgsqlPGroongaDbFunctionsExtensions.Match):
-                return new CustomBinaryExpression(e.Arguments[1], e.Arguments[2], "&@", typeof(bool));
+            case nameof(NpgsqlPGroongaLinqExtensions.Match):
+                return new CustomBinaryExpression(e.Arguments[0], e.Arguments[1], "&@", typeof(bool));
 
-            case nameof(NpgsqlPGroongaDbFunctionsExtensions.Query):
-                return new CustomBinaryExpression(e.Arguments[1], e.Arguments[2], "&@~", typeof(bool));
+            case nameof(NpgsqlPGroongaLinqExtensions.Query):
+                return new CustomBinaryExpression(e.Arguments[0], e.Arguments[1], "&@~", typeof(bool));
 
-            case nameof(NpgsqlPGroongaDbFunctionsExtensions.SimilarSearch):
-                return new CustomBinaryExpression(e.Arguments[1], e.Arguments[2], "&@*", typeof(bool));
+            case nameof(NpgsqlPGroongaLinqExtensions.SimilarSearch):
+                return new CustomBinaryExpression(e.Arguments[0], e.Arguments[1], "&@*", typeof(bool));
 
-            case nameof(NpgsqlPGroongaDbFunctionsExtensions.ScriptQuery):
-                return new CustomBinaryExpression(e.Arguments[1], e.Arguments[2], "&`", typeof(bool));
+            case nameof(NpgsqlPGroongaLinqExtensions.ScriptQuery):
+                return new CustomBinaryExpression(e.Arguments[0], e.Arguments[1], "&`", typeof(bool));
 
-            case nameof(NpgsqlPGroongaDbFunctionsExtensions.MatchIn):
-                return new CustomBinaryExpression(e.Arguments[1], e.Arguments[2], "&@|", typeof(bool));
+            case nameof(NpgsqlPGroongaLinqExtensions.MatchIn):
+                return new CustomBinaryExpression(e.Arguments[0], e.Arguments[1], "&@|", typeof(bool));
 
-            case nameof(NpgsqlPGroongaDbFunctionsExtensions.QueryIn):
-                return new CustomBinaryExpression(e.Arguments[1], e.Arguments[2], "&@~|", typeof(bool));
+            case nameof(NpgsqlPGroongaLinqExtensions.QueryIn):
+                return new CustomBinaryExpression(e.Arguments[0], e.Arguments[1], "&@~|", typeof(bool));
 
-            case nameof(NpgsqlPGroongaDbFunctionsExtensions.PrefixSearch):
-                return new CustomBinaryExpression(e.Arguments[1], e.Arguments[2], "&^", typeof(bool));
+            case nameof(NpgsqlPGroongaLinqExtensions.PrefixSearch):
+                return new CustomBinaryExpression(e.Arguments[0], e.Arguments[1], "&^", typeof(bool));
 
-            case nameof(NpgsqlPGroongaDbFunctionsExtensions.PrefixRkSearch):
-                return new CustomBinaryExpression(e.Arguments[1], e.Arguments[2], "&^~", typeof(bool));
+            case nameof(NpgsqlPGroongaLinqExtensions.PrefixRkSearch):
+                return new CustomBinaryExpression(e.Arguments[0], e.Arguments[1], "&^~", typeof(bool));
 
-            case nameof(NpgsqlPGroongaDbFunctionsExtensions.PrefixSearchIn):
-                return new CustomBinaryExpression(e.Arguments[1], e.Arguments[2], "&^|", typeof(bool));
+            case nameof(NpgsqlPGroongaLinqExtensions.PrefixSearchIn):
+                return new CustomBinaryExpression(e.Arguments[0], e.Arguments[1], "&^|", typeof(bool));
 
-            case nameof(NpgsqlPGroongaDbFunctionsExtensions.PrefixRkSearchIn):
-                return new CustomBinaryExpression(e.Arguments[1], e.Arguments[2], "&^~|", typeof(bool));
+            case nameof(NpgsqlPGroongaLinqExtensions.PrefixRkSearchIn):
+                return new CustomBinaryExpression(e.Arguments[0], e.Arguments[1], "&^~|", typeof(bool));
 
-            case nameof(NpgsqlPGroongaDbFunctionsExtensions.RegexpMatch):
-                return new CustomBinaryExpression(e.Arguments[1], e.Arguments[2], "&~", typeof(bool));
-
-            case nameof(NpgsqlPGroongaDbFunctionsExtensions.PgroongaCommand):
-                return new SqlFunctionExpression("pgroonga_command", e.Method.ReturnType, e.Arguments);
-
-            case nameof(NpgsqlPGroongaDbFunctionsExtensions.PgroongaCommandEscapeValue):
-                return new SqlFunctionExpression("pgroonga_command_escape_value", e.Method.ReturnType, e.Arguments);
-
-            case nameof(NpgsqlPGroongaDbFunctionsExtensions.PgroongaEscape):
-                return new SqlFunctionExpression("pgroonga_escape", e.Method.ReturnType, e.Arguments);
-
-            case nameof(NpgsqlPGroongaDbFunctionsExtensions.PgroongaFlush):
-                return new SqlFunctionExpression("pgroonga_flush", e.Method.ReturnType, e.Arguments);
-
-            case nameof(NpgsqlPGroongaDbFunctionsExtensions.PgroongaHighlightHtml):
-                return new SqlFunctionExpression("pgroonga_highlight_html", e.Method.ReturnType, e.Arguments);
-
-            case nameof(NpgsqlPGroongaDbFunctionsExtensions.PgroongaIsWritable):
-                return new SqlFunctionExpression("pgroonga_is_writable", e.Method.ReturnType);
-
-            case nameof(NpgsqlPGroongaDbFunctionsExtensions.PgroongaMatchPositionsByte):
-                return new SqlFunctionExpression("pgroonga_match_positions_byte", e.Method.ReturnType, e.Arguments);
-
-            case nameof(NpgsqlPGroongaDbFunctionsExtensions.PgroongaMatchPositionsCharacter):
-                return new SqlFunctionExpression("pgroonga_match_positions_character", e.Method.ReturnType, e.Arguments);
-
-            case nameof(NpgsqlPGroongaDbFunctionsExtensions.PgroongaNormalize):
-                return new SqlFunctionExpression("pgroonga_normalize", e.Method.ReturnType, e.Arguments);
-
-            case nameof(NpgsqlPGroongaDbFunctionsExtensions.PgroongaQueryEscape):
-                return new SqlFunctionExpression("pgroonga_query_escape", e.Method.ReturnType, e.Arguments);
-
-            case nameof(NpgsqlPGroongaDbFunctionsExtensions.PgroongaQueryExpand):
-                return new SqlFunctionExpression("pgroonga_query_expand", e.Method.ReturnType, e.Arguments);
-
-            case nameof(NpgsqlPGroongaDbFunctionsExtensions.PgroongaQueryExtractKeywords):
-                return new SqlFunctionExpression("pgroonga_query_extract_keywords", e.Method.ReturnType, e.Arguments);
-
-            case nameof(NpgsqlPGroongaDbFunctionsExtensions.PgroongaSetWritable):
-                return new SqlFunctionExpression("pgroonga_set_writable", e.Method.ReturnType, e.Arguments);
-
-            case nameof(NpgsqlPGroongaDbFunctionsExtensions.PgroongaScore):
-                return new SqlFunctionExpression("pgroonga_score", e.Method.ReturnType, e.Arguments);
-
-            case nameof(NpgsqlPGroongaDbFunctionsExtensions.PgroongaSnippetHtml):
-                return new SqlFunctionExpression("pgroonga_snippet_html", e.Method.ReturnType, e.Arguments);
-
-            case nameof(NpgsqlPGroongaDbFunctionsExtensions.PgroongaTableName):
-                return new SqlFunctionExpression("pgroonga_table_name", e.Method.ReturnType, e.Arguments);
-
-            case nameof(NpgsqlPGroongaDbFunctionsExtensions.PgroongaWalApply):
-                return new SqlFunctionExpression("pgroonga_wal_apply", e.Method.ReturnType, e.Arguments);
-
-            case nameof(NpgsqlPGroongaDbFunctionsExtensions.PgroongaWalTruncate):
-                return new SqlFunctionExpression("pgroonga_wal_truncate", e.Method.ReturnType, e.Arguments);
+            case nameof(NpgsqlPGroongaLinqExtensions.RegexpMatch):
+                return new CustomBinaryExpression(e.Arguments[0], e.Arguments[1], "&~", typeof(bool));
 
             default:
                 return null;
