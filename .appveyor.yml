@@ -10,10 +10,12 @@ environment:
     PGUSER: postgres
     PGPASSWORD: Password12!
     POSTGIS_EXE: postgis-bundle-pg10x64-setup-2.5.0-1.exe
+    PGROONGA_ZIP: pgroonga-2.1.6-postgresql-10.5-1-x64.zip
     NoPackageAnalysis: true  # Suppresses warning about SemVer 2.0.0 version suffixes when packing
 cache:
   - '%USERPROFILE%\.nuget\packages -> **\*.csproj'
   - $(POSTGIS_EXE)
+  - $(PGROONGA_ZIP)
 clone_depth: 10
 install:
   - powershell .build\setup_appveyor.ps1
@@ -28,6 +30,7 @@ build_script:
   - dotnet pack src\EFCore.PG\EFCore.PG.csproj -c Release
   - dotnet pack src\EFCore.PG.NodaTime\EFCore.PG.NodaTime.csproj -c Release
   - dotnet pack src\EFCore.PG.NTS\EFCore.PG.NTS.csproj -c Release
+  - dotnet pack src\EFCore.PG.PGroonga\EFCore.PG.PGroonga.csproj -c Release
 test_script:
   - dotnet test test\EFCore.PG.Tests\EFCore.PG.Tests.csproj
   - dotnet test test\EFCore.PG.Plugins.FunctionalTests\EFCore.PG.Plugins.FunctionalTests.csproj
