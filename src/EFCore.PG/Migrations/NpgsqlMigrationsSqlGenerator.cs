@@ -377,12 +377,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                             newSequenceName = $"{operation.Table}_{operation.Name}_seq";
                             Generate(new CreateSequenceOperation
                             {
+                                Schema = operation.Schema,
                                 Name = newSequenceName,
                                 ClrType = operation.ClrType
                             }, model, builder);
 
                             builder.Append(alterBase).Append("SET");
-                            DefaultValue(null, $@"nextval('{Dependencies.SqlGenerationHelper.DelimitIdentifier(newSequenceName)}')", builder);
+                            DefaultValue(null, $@"nextval('{Dependencies.SqlGenerationHelper.DelimitIdentifier(newSequenceName, operation.Schema)}')", builder);
                             builder.AppendLine(';');
                             // Note: we also need to set the sequence ownership, this is done below after the ALTER COLUMN
                             break;
@@ -417,9 +418,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             {
                 builder
                     .Append("ALTER SEQUENCE ")
-                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(newSequenceName))
+                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(newSequenceName, operation.Schema))
                     .Append(" OWNED BY ")
-                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Table))
+                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Table, operation.Schema))
                     .Append('.')
                     .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name))
                     .AppendLine(';');

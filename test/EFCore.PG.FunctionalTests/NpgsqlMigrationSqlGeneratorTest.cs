@@ -478,7 +478,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         }
 
         [Fact]
-        public void AlterColumnOperation_int_to_serial()
+        public void AlterColumnOperation_int_to_serial_public()
         {
             Generate(
                 new AlterColumnOperation
@@ -497,6 +497,30 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 @"GO" + EOL + EOL +  // Note that GO here is just a delimiter introduced in the tests to indicate a batch boundary
                 @"ALTER TABLE ""People"" ALTER COLUMN ""IntKey"" SET DEFAULT (nextval('""People_IntKey_seq""'));" + EOL +
                 @"ALTER SEQUENCE ""People_IntKey_seq"" OWNED BY ""People"".""IntKey"";" + EOL,
+                Sql);
+        }
+
+        [Fact]
+        public void AlterColumnOperation_int_to_serial_non_public()
+        {
+            Generate(
+                new AlterColumnOperation
+                {
+                    Schema = "dbo",
+                    Table = "People",
+                    Name = "IntKey",
+                    ClrType = typeof(int),
+                    IsNullable = false,
+                    [NpgsqlAnnotationNames.ValueGenerationStrategy] = NpgsqlValueGenerationStrategy.SerialColumn
+                });
+
+            Assert.Equal(
+                @"ALTER TABLE dbo.""People"" ALTER COLUMN ""IntKey"" TYPE integer;" + EOL +
+                @"ALTER TABLE dbo.""People"" ALTER COLUMN ""IntKey"" SET NOT NULL;" + EOL +
+                @"CREATE SEQUENCE dbo.""People_IntKey_seq"" AS integer START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE;" + EOL +
+                @"GO" + EOL + EOL +  // Note that GO here is just a delimiter introduced in the tests to indicate a batch boundary
+                @"ALTER TABLE dbo.""People"" ALTER COLUMN ""IntKey"" SET DEFAULT (nextval('dbo.""People_IntKey_seq""'));" + EOL +
+                @"ALTER SEQUENCE dbo.""People_IntKey_seq"" OWNED BY dbo.""People"".""IntKey"";" + EOL,
                 Sql);
         }
 
