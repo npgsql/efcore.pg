@@ -2,13 +2,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.TestModels.SpatialModel;
-using Microsoft.EntityFrameworkCore.TestUtilities.Xunit;
-using NetTopologySuite.Geometries;
-using Xunit;
 using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
+    // ReSharper disable once UnusedMember.Global
     public class SpatialQueryNpgsqlGeographyTest : SpatialQueryTestBase<SpatialQueryNpgsqlGeographyFixture>
     {
         public SpatialQueryNpgsqlGeographyTest(SpatialQueryNpgsqlGeographyFixture fixture, ITestOutputHelper testOutputHelper)

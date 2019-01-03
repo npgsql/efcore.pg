@@ -1,4 +1,3 @@
-using System;
 using System.Linq.Expressions;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -69,7 +68,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         public NpgsqlCidrTypeMapping() : base("cidr", typeof((IPAddress, int)), NpgsqlDbType.Cidr) {}
 
         protected NpgsqlCidrTypeMapping(RelationalTypeMappingParameters parameters)
-            : base(parameters, NpgsqlTypes.NpgsqlDbType.Cidr) {}
+            : base(parameters, NpgsqlDbType.Cidr) {}
 
         protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
             => new NpgsqlCidrTypeMapping(parameters);

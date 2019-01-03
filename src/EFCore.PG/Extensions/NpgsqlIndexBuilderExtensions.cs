@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -11,7 +10,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 namespace Microsoft.EntityFrameworkCore
 {
     /// <summary>
-    ///     Npgsql specific extension methods for <see cref="IndexBuilder" />.
+    /// Npgsql specific extension methods for <see cref="IndexBuilder" />.
     /// </summary>
     public static class NpgsqlIndexBuilderExtensions
     {

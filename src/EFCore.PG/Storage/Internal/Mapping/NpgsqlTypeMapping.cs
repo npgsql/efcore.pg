@@ -10,22 +10,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     {
         public NpgsqlDbType NpgsqlDbType { get; }
 
+        // ReSharper disable once PublicConstructorInAbstractClass
         public NpgsqlTypeMapping(
             [NotNull] string storeType,
             [NotNull] Type clrType,
             NpgsqlDbType npgsqlDbType)
             : base(storeType, clrType)
-        {
-            NpgsqlDbType = npgsqlDbType;
-        }
+            => NpgsqlDbType = npgsqlDbType;
 
         protected NpgsqlTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
             : base(parameters)
-        {
-            NpgsqlDbType = npgsqlDbType;
-        }
+            => NpgsqlDbType = npgsqlDbType;
 
-        protected override void ConfigureParameter([NotNull] DbParameter parameter)
+        protected override void ConfigureParameter(DbParameter parameter)
         {
             base.ConfigureParameter(parameter);
 

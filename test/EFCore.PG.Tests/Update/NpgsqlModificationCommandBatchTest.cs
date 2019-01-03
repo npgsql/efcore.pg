@@ -11,6 +11,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal;
 using Xunit;
 
+// ReSharper disable once CheckNamespace
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Update
 {
     public class NpgsqlModificationCommandBatchTest

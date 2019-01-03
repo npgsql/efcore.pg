@@ -471,7 +471,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
 
             GenerateList(expression.PositionalArguments);
 
-            bool hasArguments = expression.PositionalArguments.Count > 0 && expression.NamedArguments.Count > 0;
+            var hasArguments = expression.PositionalArguments.Count > 0 && expression.NamedArguments.Count > 0;
 
             foreach (var kv in expression.NamedArguments)
             {
