@@ -155,6 +155,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             AssertContainsSqlFragment("WHERE c.\"CompanyName\" ~ ('(?n)' || '^A')");
         }
 
+        // ReSharper disable once IdentifierTypo
         [Theory]
         [MemberData(nameof(IsAsyncData))]
         public async Task Regex_IsMatchOptionsSingleline(bool isAsync)

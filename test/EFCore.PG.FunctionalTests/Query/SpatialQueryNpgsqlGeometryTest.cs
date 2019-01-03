@@ -9,12 +9,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     public class SpatialQueryNpgsqlGeometryTest : SpatialQueryTestBase<SpatialQueryNpgsqlGeometryFixture>
     {
+        // ReSharper disable once UnusedParameter.Local
         public SpatialQueryNpgsqlGeometryTest(SpatialQueryNpgsqlGeometryFixture fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
-        {
-            Fixture.TestSqlLoggerFactory.Clear();
-            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
-        }
+            => Fixture.TestSqlLoggerFactory.Clear();
 
         public override async Task Area(bool isAsync)
         {

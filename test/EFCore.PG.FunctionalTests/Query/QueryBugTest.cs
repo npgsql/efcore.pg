@@ -16,6 +16,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
+        // ReSharper disable once MemberCanBePrivate.Global
         protected NpgsqlFixture Fixture { get; }
 
         #region Bug278
@@ -39,10 +40,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             }
         }
 
+        // ReSharper disable once MemberCanBePrivate.Global
         public enum ChannelCode { Code = 1 }
 
+        // ReSharper disable once MemberCanBePrivate.Global
         public class Bug278Entity
         {
+            // ReSharper disable once UnusedMember.Global
             public int Id { get; set; }
             public int[] ChannelCodes { get; set; }
         }
@@ -50,6 +54,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         class Bug278Context : DbContext
         {
             public Bug278Context(DbContextOptions options) : base(options) {}
+            // ReSharper disable once UnusedAutoPropertyAccessor.Local
             public DbSet<Bug278Entity> Entities { get; set; }
         }
 

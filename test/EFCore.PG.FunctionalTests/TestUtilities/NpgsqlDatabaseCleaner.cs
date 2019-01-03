@@ -18,7 +18,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
 {
     public class NpgsqlDatabaseCleaner : RelationalDatabaseCleaner
     {
-        NpgsqlSqlGenerationHelper _sqlGenerationHelper;
+        readonly NpgsqlSqlGenerationHelper _sqlGenerationHelper;
 
         public NpgsqlDatabaseCleaner()
             => _sqlGenerationHelper = new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies());
@@ -70,30 +70,20 @@ SELECT name FROM pg_available_extensions WHERE installed_version IS NOT NULL AND
         }
 
         protected override string BuildCustomSql(DatabaseModel databaseModel)
-        {
-            // Some extensions create tables (e.g. PostGIS), wo we must drop them first.
-            var sb = new StringBuilder();
-
-            foreach (var extension in databaseModel.Npgsql().PostgresExtensions)
-                sb
-                    .Append("DROP EXTENSION ")
-                    .Append(_sqlGenerationHelper.DelimitIdentifier(extension.Name, extension.Schema))
-                    .AppendLine(";");
-
-            return sb.ToString();
-        }
+            // Some extensions create tables (e.g. PostGIS), so we must drop them first.
+            => databaseModel.Npgsql()
+                            .PostgresExtensions
+                            .Select(e => _sqlGenerationHelper.DelimitIdentifier(e.Name, e.Schema))
+                            .Aggregate(new StringBuilder(),
+                                (builder, s) => builder.Append("DROP EXTENSION ").Append(s).Append(";"),
+                                builder => builder.ToString());
 
         protected override string BuildCustomEndingSql(DatabaseModel databaseModel)
-        {
-            var sb = new StringBuilder();
-
-            foreach (var enumDef in databaseModel.Npgsql().PostgresEnums)
-                sb
-                    .Append("DROP TYPE ")
-                    .Append(_sqlGenerationHelper.DelimitIdentifier(enumDef.Name, enumDef.Schema))
-                    .AppendLine(" CASCADE;");
-
-            return sb.ToString();
-        }
+            => databaseModel.Npgsql()
+                            .PostgresEnums
+                            .Select(e => _sqlGenerationHelper.DelimitIdentifier(e.Name, e.Schema))
+                            .Aggregate(new StringBuilder(),
+                                (builder, s) => builder.Append("DROP TYPE ").Append(s).Append(" CASCADE;"),
+                                builder => builder.ToString());
     }
 }

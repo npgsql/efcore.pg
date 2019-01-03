@@ -9,11 +9,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     public class DbFunctionsNpgsqlTest : DbFunctionsTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
     {
+        // ReSharper disable once UnusedParameter.Local
         public DbFunctionsNpgsqlTest(NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
-        {
-            Fixture.TestSqlLoggerFactory.Clear();
-        }
+            => Fixture.TestSqlLoggerFactory.Clear();
 
         public override void Like_literal()
         {

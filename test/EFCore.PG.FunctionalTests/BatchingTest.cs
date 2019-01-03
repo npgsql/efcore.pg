@@ -184,7 +184,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         }
 #endif
 
-        private void AssertDatabaseState(DbContext context, bool clientOrder, List<Blog> expectedBlogs)
+        void AssertDatabaseState(DbContext context, bool clientOrder, List<Blog> expectedBlogs)
         {
             expectedBlogs = clientOrder
                 ? expectedBlogs.OrderBy(b => b.Order).ToList()
@@ -205,9 +205,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             }
         }
 
-        private BloggingContext CreateContext() => (BloggingContext)Fixture.CreateContext();
+        BloggingContext CreateContext() => (BloggingContext)Fixture.CreateContext();
 
-        private void ExecuteWithStrategyInTransaction(
+        void ExecuteWithStrategyInTransaction(
             Action<BloggingContext> testOperation,
             Action<BloggingContext> nestedTestOperation)
             => TestHelpers.ExecuteWithStrategyInTransaction(
@@ -216,7 +216,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         protected void UseTransaction(DatabaseFacade facade, IDbContextTransaction transaction)
             => facade.UseTransaction(transaction.GetDbTransaction());
 
-        private class BloggingContext : PoolableDbContext
+        class BloggingContext : PoolableDbContext
         {
             public BloggingContext(DbContextOptions options)
                 : base(options)
@@ -243,7 +243,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             public DbSet<Owner> Owners { get; set; }
         }
 
-        private class Blog
+        class Blog
         {
             public Guid Id { get; set; }
             public int Order { get; set; }
@@ -252,7 +252,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             public uint Version { get; set; }
         }
 
-        private class Owner
+        class Owner
         {
             public string Id { get; set; }
             public string Name { get; set; }

@@ -6,30 +6,32 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
 {
     public class TestNpgsqlRetryingExecutionStrategy : NpgsqlRetryingExecutionStrategy
     {
-        private static readonly string[] _additionalSqlStates =
+        static readonly string[] AdditionalSqlStates =
         {
             "XX000"
         };
 
+        // ReSharper disable once UnusedMember.Global
         public TestNpgsqlRetryingExecutionStrategy()
             : base(
                 new DbContext(new DbContextOptionsBuilder().UseNpgsql(TestEnvironment.DefaultConnection).Options),
-                DefaultMaxRetryCount, DefaultMaxDelay, _additionalSqlStates)
+                DefaultMaxRetryCount, DefaultMaxDelay, AdditionalSqlStates)
         {
         }
 
         public TestNpgsqlRetryingExecutionStrategy(DbContext context)
-            : base(context, DefaultMaxRetryCount, DefaultMaxDelay, _additionalSqlStates)
+            : base(context, DefaultMaxRetryCount, DefaultMaxDelay, AdditionalSqlStates)
         {
         }
 
         public TestNpgsqlRetryingExecutionStrategy(DbContext context, TimeSpan maxDelay)
-            : base(context, DefaultMaxRetryCount, maxDelay, _additionalSqlStates)
+            : base(context, DefaultMaxRetryCount, maxDelay, AdditionalSqlStates)
         {
         }
 
+        // ReSharper disable once UnusedMember.Global
         public TestNpgsqlRetryingExecutionStrategy(ExecutionStrategyDependencies dependencies)
-            : base(dependencies, DefaultMaxRetryCount, DefaultMaxDelay, _additionalSqlStates)
+            : base(dependencies, DefaultMaxRetryCount, DefaultMaxDelay, AdditionalSqlStates)
         {
         }
 
@@ -49,6 +51,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             return false;
         }
 
+        // ReSharper disable once UnusedMember.Global
         public new virtual TimeSpan? GetNextDelay(Exception lastException)
         {
             ExceptionsEncountered.Add(lastException);
@@ -57,6 +60,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
 
         public new static bool Suspended
         {
+            // ReSharper disable once UnusedMember.Global
             get => ExecutionStrategy.Suspended;
             set => ExecutionStrategy.Suspended = value;
         }

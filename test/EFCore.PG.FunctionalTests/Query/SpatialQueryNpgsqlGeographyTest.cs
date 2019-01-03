@@ -9,12 +9,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
     // ReSharper disable once UnusedMember.Global
     public class SpatialQueryNpgsqlGeographyTest : SpatialQueryTestBase<SpatialQueryNpgsqlGeographyFixture>
     {
+        // ReSharper disable once UnusedParameter.Local
         public SpatialQueryNpgsqlGeographyTest(SpatialQueryNpgsqlGeographyFixture fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
-        {
-            Fixture.TestSqlLoggerFactory.Clear();
-            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
-        }
+            => Fixture.TestSqlLoggerFactory.Clear();
 
         protected override bool AssertDistances
             => false;

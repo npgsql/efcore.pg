@@ -8,6 +8,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
 
+// ReSharper disable StringLiteralTypo
 namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
     public class ConnectionSpecificationTest
@@ -41,7 +42,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             }
         }
 
-        private class StringInOnConfiguringContext : NorthwindContextBase
+        class StringInOnConfiguringContext : NorthwindContextBase
         {
             protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
                 => optionsBuilder.UseNpgsql(NpgsqlTestStore.NorthwindConnectionString, b => b.ApplyConfiguration());
@@ -76,14 +77,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             }
         }
 
-        private class ConnectionInOnConfiguringContext : NorthwindContextBase
+        class ConnectionInOnConfiguringContext : NorthwindContextBase
         {
-            private readonly NpgsqlConnection _connection;
+            readonly NpgsqlConnection _connection;
 
             public ConnectionInOnConfiguringContext(NpgsqlConnection connection)
-            {
-                _connection = connection;
-            }
+                => _connection = connection;
 
             protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
                 => optionsBuilder.UseNpgsql(_connection, b => b.ApplyConfiguration());
@@ -95,7 +94,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             }
         }
 
-        private class StringInConfigContext : NorthwindContextBase
+        // ReSharper disable once UnusedMember.Local
+        class StringInConfigContext : NorthwindContextBase
         {
             protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
                 => optionsBuilder.UseNpgsql("Database=Crunchie", b => b.ApplyConfiguration());
@@ -131,7 +131,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             }
         }
 
-        private class NoUseNpgsqlContext : NorthwindContextBase
+        // ReSharper disable once ClassNeverInstantiated.Local
+        class NoUseNpgsqlContext : NorthwindContextBase
         {
         }
 
@@ -167,10 +168,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             }
         }
 
-        private class OptionsContext : NorthwindContextBase
+        class OptionsContext : NorthwindContextBase
         {
-            private readonly NpgsqlConnection _connection;
-            private readonly DbContextOptions<OptionsContext> _options;
+            readonly NpgsqlConnection _connection;
+            readonly DbContextOptions<OptionsContext> _options;
 
             public OptionsContext(DbContextOptions<OptionsContext> options, NpgsqlConnection connection)
                 : base(options)
@@ -224,15 +225,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             }
         }
 
-        private class NonGenericOptionsContext : NorthwindContextBase
+        class NonGenericOptionsContext : NorthwindContextBase
         {
-            private readonly DbContextOptions _options;
+            readonly DbContextOptions _options;
 
             public NonGenericOptionsContext(DbContextOptions options)
                 : base(options)
-            {
-                _options = options;
-            }
+                => _options = options;
 
             protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
             {
@@ -244,7 +243,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             }
         }
 
-        private class NorthwindContextBase : DbContext
+        class NorthwindContextBase : DbContext
         {
             protected NorthwindContextBase()
             {
@@ -255,22 +254,25 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             {
             }
 
+            // ReSharper disable once UnusedAutoPropertyAccessor.Local
             public DbSet<Customer> Customers { get; set; }
 
             protected override void OnModelCreating(ModelBuilder modelBuilder)
-            {
-                modelBuilder.Entity<Customer>(b =>
+                => modelBuilder.Entity<Customer>(b =>
                 {
-                    b.HasKey(c => c.CustomerID);
+                    b.HasKey(c => c.CustomerId);
                     b.ToTable("Customers");
                 });
-            }
         }
 
-        private class Customer
+        // ReSharper disable once ClassNeverInstantiated.Local
+        class Customer
         {
-            public string CustomerID { get; set; }
+            // ReSharper disable once UnusedAutoPropertyAccessor.Local
+            public string CustomerId { get; set; }
+            // ReSharper disable once UnusedMember.Local
             public string CompanyName { get; set; }
+            // ReSharper disable once UnusedMember.Local
             public string Fax { get; set; }
         }
 

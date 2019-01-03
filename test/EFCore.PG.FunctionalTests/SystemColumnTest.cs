@@ -8,7 +8,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
     public class SystemColumnTest : IDisposable
     {
         [Fact]
-        public void xmin()
+        public void Xmin()
         {
             using (var context = CreateContext())
             {
@@ -25,27 +25,31 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             }
         }
 
-        private class SystemColumnContext : DbContext
+        class SystemColumnContext : DbContext
         {
             internal SystemColumnContext(DbContextOptions options) : base(options) {}
 
+            // ReSharper disable once UnusedAutoPropertyAccessor.Local
             public DbSet<SomeEntity> Entities { get; set; }
 
             protected override void OnModelCreating(ModelBuilder builder)
-            {
-                builder.Entity<SomeEntity>().Property(e => e.Version)
-                    .HasColumnName("xmin")
-                    .HasColumnType("xid")
-                    .ValueGeneratedOnAddOrUpdate()
-                    .IsConcurrencyToken();
-            }
+                => builder.Entity<SomeEntity>().Property(e => e.Version)
+                          .HasColumnName("xmin")
+                          .HasColumnType("xid")
+                          .ValueGeneratedOnAddOrUpdate()
+                          .IsConcurrencyToken();
         }
 
+        // ReSharper disable once MemberCanBePrivate.Global
         public class SomeEntity
         {
+            // ReSharper disable UnusedMember.Global
+            // ReSharper disable UnusedAutoPropertyAccessor.Global
             public int Id { get; set; }
             public string Name { get; set; }
             public uint Version { get; set; }
+            // ReSharper restore UnusedMember.Global
+            // ReSharper restore UnusedAutoPropertyAccessor.Global
         }
 
         public SystemColumnTest()
