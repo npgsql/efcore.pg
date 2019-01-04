@@ -117,13 +117,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         static readonly IRelationalTypeMappingSourcePlugin Mapper =
             new NpgsqlNodaTimeTypeMappingSourcePlugin(new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()));
 
-        static RelationalTypeMapping GetMapping(string storeType)
-            => Mapper.FindMapping(new RelationalTypeMappingInfo(storeType));
-
-        public static RelationalTypeMapping GetMapping(Type clrType)
+        static RelationalTypeMapping GetMapping(Type clrType)
             => Mapper.FindMapping(new RelationalTypeMappingInfo(clrType));
 
-        public static RelationalTypeMapping GetMapping(Type clrType, string storeType)
+        static RelationalTypeMapping GetMapping(Type clrType, string storeType)
             => Mapper.FindMapping(new RelationalTypeMappingInfo(clrType, storeType, false, null, null, null, null, null, null));
 
         #endregion Support
