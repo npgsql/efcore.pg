@@ -8,9 +8,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
 {
+    [UsedImplicitly]
     public class NpgsqlDesignTimeServices : IDesignTimeServices
     {
-        public virtual void ConfigureDesignTimeServices([NotNull] IServiceCollection serviceCollection)
+        public virtual void ConfigureDesignTimeServices(IServiceCollection serviceCollection)
             => serviceCollection
                 .AddSingleton<IRelationalTypeMappingSource, NpgsqlTypeMappingSource>()
                 .AddSingleton<IDatabaseModelFactory, NpgsqlDatabaseModelFactory>()

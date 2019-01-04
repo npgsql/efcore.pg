@@ -5,13 +5,13 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using GeoAPI.Geometries;
 using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 using NetTopologySuite.IO;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using NpgsqlTypes;
 
+// ReSharper disable once CheckNamespace
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 {
+    [UsedImplicitly]
     public class NpgsqlGeometryTypeMapping<TGeometry> : RelationalGeometryTypeMapping<TGeometry, TGeometry>
     {
         readonly bool _isGeography;
@@ -25,7 +25,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
             => new NpgsqlGeometryTypeMapping<TGeometry>(parameters);
 
-        protected override void ConfigureParameter([NotNull] DbParameter parameter)
+        protected override void ConfigureParameter(DbParameter parameter)
         {
             base.ConfigureParameter(parameter);
 

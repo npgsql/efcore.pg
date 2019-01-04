@@ -33,6 +33,7 @@ using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
 using NodaTime;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 
+// ReSharper disable once CheckNamespace
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
 {
     /// <summary>

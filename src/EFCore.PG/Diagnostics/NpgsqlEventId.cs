@@ -60,18 +60,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics
         private static readonly string _validationPrefix = DbLoggerCategory.Model.Validation.Name + ".";
         private static EventId MakeValidationId(Id id) => new EventId((int)id, _validationPrefix + id);
 
-        /// <summary>
-        ///     <para>
-        ///         No explicit type for a decimal column.
-        ///     </para>
-        ///     <para>
-        ///         This event is in the <see cref="DbLoggerCategory.Model.Validation" /> category.
-        ///     </para>
-        ///     <para>
-        ///         This event uses the <see cref="PropertyEventData" /> payload when used with a <see cref="DiagnosticSource" />.
-        ///     </para>
-        /// </summary>
-        //public static readonly EventId DecimalTypeDefaultWarning = MakeValidationId(Id.DecimalTypeDefaultWarning);
+//        /// <summary>
+//        ///     <para>
+//        ///         No explicit type for a decimal column.
+//        ///     </para>
+//        ///     <para>
+//        ///         This event is in the <see cref="DbLoggerCategory.Model.Validation" /> category.
+//        ///     </para>
+//        ///     <para>
+//        ///         This event uses the <see cref="PropertyEventData" /> payload when used with a <see cref="DiagnosticSource" />.
+//        ///     </para>
+//        /// </summary>
+//        public static readonly EventId DecimalTypeDefaultWarning = MakeValidationId(Id.DecimalTypeDefaultWarning);
 
         /// <summary>
         ///     <para>

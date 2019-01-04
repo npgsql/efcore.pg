@@ -39,7 +39,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             _postgresVersion = npgsqlOptions.PostgresVersion;
         }
 
-        protected override void Generate(MigrationOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
+        protected override void Generate(MigrationOperation operation, IModel model, MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
@@ -509,9 +509,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         }
 
         protected override void Generate(
-            [NotNull] CreateIndexOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            CreateIndexOperation operation,
+            IModel model,
+            MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
@@ -563,7 +563,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             base.IndexOptions(operation, model, builder);
         }
 
-        protected override void Generate(EnsureSchemaOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
+        protected override void Generate(EnsureSchemaOperation operation, IModel model, MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
@@ -830,7 +830,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
         #endregion Range management
 
-        protected override void Generate(DropIndexOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
+        protected override void Generate(DropIndexOperation operation, IModel model, MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
@@ -844,9 +844,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         }
 
         protected override void Generate(
-            [NotNull] RenameColumnOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            RenameColumnOperation operation,
+            IModel model,
+            MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));

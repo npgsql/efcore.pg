@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if DISABLED_FLAKY_ON_APPVEYOR
+
+using System;
 using System.Data;
 using System.Linq;
 using System.Threading;
@@ -10,8 +12,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
-
-#if DISABLED_FLAKY_ON_APPVEYOR
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {

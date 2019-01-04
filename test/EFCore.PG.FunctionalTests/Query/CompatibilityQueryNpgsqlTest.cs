@@ -9,18 +9,18 @@ using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public class CompatibilityQueryNpgsqlTest : IClassFixture<CompatibilityQueryNpgsqlTest.CompatibilityQueryNpgsqlFixure>
+    public class CompatibilityQueryNpgsqlTest : IClassFixture<CompatibilityQueryNpgsqlTest.CompatibilityQueryNpgsqlFixture>
     {
         /// <summary>
         /// Provides resources for unit tests.
         /// </summary>
-        CompatibilityQueryNpgsqlFixure Fixture { get; }
+        CompatibilityQueryNpgsqlFixture Fixture { get; }
 
         /// <summary>
         /// Initializes resources for unit tests.
         /// </summary>
         /// <param name="fixture">The fixture of resources for testing.</param>
-        public CompatibilityQueryNpgsqlTest(CompatibilityQueryNpgsqlFixure fixture)
+        public CompatibilityQueryNpgsqlTest(CompatibilityQueryNpgsqlFixture fixture)
         {
             Fixture = fixture;
             Fixture.TestSqlLoggerFactory.Clear();
@@ -39,12 +39,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [InlineData("10.4")]
         public void GivenDateTimeAdd_WhenVersionIsSupported_ThenTranslates(string version)
         {
-            using (CompatibilityContext context = Fixture.CreateContext(postgresVersion: Version.Parse(version)))
+            using (var context = Fixture.CreateContext(postgresVersion: Version.Parse(version)))
             {
                 // ReSharper disable once ConvertToConstant.Local
-                int years = 2;
+                var years = 2;
 
-                DateTime[] _ =
+                var _ =
                     context.CompatibilityTestEntities
                            .Select(x => x.DateTime.AddYears(years))
                            .ToArray();
@@ -60,12 +60,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [InlineData("9.3")]
         public void GivenDateTimeAdd_WhenVersionIsNotSupported_ThenDoesNotTranslate(string version)
         {
-            using (CompatibilityContext context = Fixture.CreateContext(postgresVersion: Version.Parse(version)))
+            using (var context = Fixture.CreateContext(postgresVersion: Version.Parse(version)))
             {
                 // ReSharper disable once ConvertToConstant.Local
-                int years = 2;
+                var years = 2;
 
-                DateTime[] _ =
+                var _ =
                     context.CompatibilityTestEntities
                            .Select(x => x.DateTime.AddYears(years))
                            .ToArray();
@@ -81,7 +81,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         /// <summary>
         /// Represents a fixture suitable for testing backendVersion.
         /// </summary>
-        public class CompatibilityQueryNpgsqlFixure : IDisposable
+        public class CompatibilityQueryNpgsqlFixture : IDisposable
         {
             /// <summary>
             /// The <see cref="NpgsqlTestStore"/> used for testing.
@@ -94,16 +94,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             public TestSqlLoggerFactory TestSqlLoggerFactory { get; }
 
             /// <summary>
-            /// Initializes a <see cref="CompatibilityQueryNpgsqlFixure"/>.
+            /// Initializes a <see cref="CompatibilityQueryNpgsqlFixture"/>.
             /// </summary>
             // ReSharper disable once UnusedMember.Global
-            public CompatibilityQueryNpgsqlFixure()
+            public CompatibilityQueryNpgsqlFixture()
             {
                 TestSqlLoggerFactory = new TestSqlLoggerFactory();
 
                 _testStore = NpgsqlTestStore.CreateScratch();
 
-                using (CompatibilityContext context = CreateContext())
+                using (var context = CreateContext())
                 {
                     context.Database.EnsureCreated();
 
@@ -198,19 +198,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         /// Asserts that the SQL fragment appears in the logs.
         /// </summary>
         /// <param name="sql">The SQL statement or fragment to search for in the logs.</param>
-        public void AssertContainsSql(string sql)
-        {
-            Assert.Contains(sql, Fixture.TestSqlLoggerFactory.Sql);
-        }
+        void AssertContainsSql(string sql) => Assert.Contains(sql, Fixture.TestSqlLoggerFactory.Sql);
 
         /// <summary>
         /// Asserts that the SQL fragment does not appears in the logs.
         /// </summary>
         /// <param name="sql">The SQL statement or fragment to search for in the logs.</param>
-        public void AssertDoesNotContainsSql(string sql)
-        {
-            Assert.DoesNotContain(sql, Fixture.TestSqlLoggerFactory.Sql);
-        }
+        void AssertDoesNotContainsSql(string sql) => Assert.DoesNotContain(sql, Fixture.TestSqlLoggerFactory.Sql);
 
         #endregion
     }
