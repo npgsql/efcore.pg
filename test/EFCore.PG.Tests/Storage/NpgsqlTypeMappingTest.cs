@@ -357,6 +357,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
 
         enum DummyEnum
         {
+            // ReSharper disable once UnusedMember.Local
             Happy,
             Sad
         };
@@ -451,15 +452,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
             new NpgsqlOptions()
         );
 
-        static RelationalTypeMapping GetMapping(string storeType)
-            => Mapper.FindMapping(storeType);
+        static RelationalTypeMapping GetMapping(string storeType) => Mapper.FindMapping(storeType);
 
-        public static RelationalTypeMapping GetMapping(Type clrType)
-            => (RelationalTypeMapping)Mapper.FindMapping(clrType);
+        static RelationalTypeMapping GetMapping(Type clrType) => (RelationalTypeMapping)Mapper.FindMapping(clrType);
 
-        static readonly CSharpHelper _csHelper = new CSharpHelper(Mapper);
+        static readonly CSharpHelper CsHelper = new CSharpHelper(Mapper);
 
-        static string CodeLiteral(object value) => _csHelper.UnknownLiteral(value);
+        static string CodeLiteral(object value) => CsHelper.UnknownLiteral(value);
 
         #endregion Support
     }

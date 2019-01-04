@@ -115,7 +115,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             Assert.IsType<NpgsqlSequenceHiLoValueGenerator<int>>(selector.Select(entityType.FindProperty("Id"), entityType));
         }
 
-        private static IMutableModel BuildModel(bool generateValues = true)
+        static IMutableModel BuildModel(bool generateValues = true)
         {
             var builder = NpgsqlTestHelpers.Instance.CreateConventionBuilder();
 
@@ -144,6 +144,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
         private class AnEntity
         {
+            // ReSharper disable UnusedMember.Local
+            // ReSharper disable UnusedAutoPropertyAccessor.Local
             public int Id { get; set; }
             public int Custom { get; set; }
             public long Long { get; set; }
@@ -163,14 +165,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             public int AlwaysIdentity { get; set; }
             public int AlwaysSequence { get; set; }
             public Random Random { get; set; }
+            // ReSharper restore UnusedMember.Local
+            // ReSharper restore UnusedAutoPropertyAccessor.Local
         }
 
+        // ReSharper disable once ClassNeverInstantiated.Local
         private class CustomValueGenerator : ValueGenerator<int>
         {
-            public override int Next(EntityEntry entry)
-            {
-                throw new NotImplementedException();
-            }
+            public override int Next(EntityEntry entry) => throw new NotImplementedException();
 
             public override bool GeneratesTemporaryValues => false;
         }
