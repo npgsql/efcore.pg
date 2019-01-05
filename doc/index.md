@@ -73,7 +73,7 @@ Modify the `ConfigureServices` method in `Startup.cs`:
 ```c#
 public IServiceProvider ConfigureServices(IServiceCollection services)
     => services.AddEntityFrameworkNpgsql()
-               .AddDbContext<BlogContext>()
+               .AddDbContext<BloggingContext>()
                .BuildServiceProvider();
 ```
 ## Using an Existing Database (Database-First)
