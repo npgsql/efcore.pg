@@ -52,10 +52,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         [Fact]
         public void Can_access_property()
         {
-            var propertyBuilder =
-                CreateBuilder()
-                    .Entity(typeof(Splot), ConfigurationSource.Convention)
-                    .Property("Id", typeof(int), ConfigurationSource.Convention);
+            var propertyBuilder = CreateBuilder()
+                .Entity(typeof(Splot), ConfigurationSource.Convention)
+                .Property("Id", typeof(int), ConfigurationSource.Convention);
 
             Assert.True(propertyBuilder.Npgsql(ConfigurationSource.Convention).HiLoSequenceName("Splew"));
             Assert.Equal("Splew", propertyBuilder.Metadata.Npgsql().HiLoSequenceName);

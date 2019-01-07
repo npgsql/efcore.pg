@@ -981,7 +981,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         static ModelBuilder GetModelBuilder() => NpgsqlTestHelpers.Instance.CreateConventionBuilder();
 
         // ReSharper disable once ClassNeverInstantiated.Local
-        private class Customer
+        class Customer
         {
             // ReSharper disable MemberCanBePrivate.Local
             // ReSharper disable UnusedAutoPropertyAccessor.Local
@@ -996,7 +996,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         }
 
         // ReSharper disable once ClassNeverInstantiated.Local
-        private class Order
+        class Order
         {
             // ReSharper disable MemberCanBePrivate.Local
             // ReSharper disable UnusedAutoPropertyAccessor.Local

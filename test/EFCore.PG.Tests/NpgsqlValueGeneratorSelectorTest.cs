@@ -142,7 +142,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             return model;
         }
 
-        private class AnEntity
+        class AnEntity
         {
             // ReSharper disable UnusedMember.Local
             // ReSharper disable UnusedAutoPropertyAccessor.Local
@@ -170,7 +170,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         }
 
         // ReSharper disable once ClassNeverInstantiated.Local
-        private class CustomValueGenerator : ValueGenerator<int>
+        class CustomValueGenerator : ValueGenerator<int>
         {
             public override int Next(EntityEntry entry) => throw new NotImplementedException();
 
