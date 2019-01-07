@@ -11,16 +11,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     /// <summary>
     /// Maps PostgreSQL arrays to <see cref="List{T}"/>.
     /// </summary>
+    /// <remarks>
+    /// Note that mapping PostgreSQL arrays to .NET arrays is also supported via <see cref="NpgsqlArrayTypeMapping"/>.
+    /// See: https://www.postgresql.org/docs/current/static/arrays.html
+    /// </remarks>
     public class NpgsqlListTypeMapping : RelationalTypeMapping
     {
+        // ReSharper disable once MemberCanBePrivate.Global
         /// <summary>
-        /// The CLR type of the list items.
+        /// The relational type mapping used to initialize the list mapping.
         /// </summary>
         public RelationalTypeMapping ElementMapping { get; }
 
         /// <summary>
         /// Creates the default list mapping.
         /// </summary>
+        /// <param name="elementMapping">The element type mapping.</param>
+        /// <param name="listType">The database type to map.</param>
         public NpgsqlListTypeMapping(RelationalTypeMapping elementMapping, Type listType)
             : this(elementMapping.StoreType + "[]", elementMapping, listType) {}
 
@@ -65,7 +72,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
         #region Value Comparison
 
-        // Note that the value comparison code is largely duplicated from NpgsqlAraryTypeMapping.
+        // Note that the value comparison code is largely duplicated from NpgsqlArrayTypeMapping.
         // However, a limitation in EF Core prevents us from merging the code together, see
         // https://github.com/aspnet/EntityFrameworkCore/issues/11077
 
