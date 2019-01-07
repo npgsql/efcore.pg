@@ -8,6 +8,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
 {
+    /// <summary>
+    /// Enables configuring Npgsql-specific design-time services.
+    /// Tools will automatically discover implementations of this interface that are in the startup assembly.
+    /// </summary>
     [UsedImplicitly]
     public class NpgsqlDesignTimeServices : IDesignTimeServices
     {

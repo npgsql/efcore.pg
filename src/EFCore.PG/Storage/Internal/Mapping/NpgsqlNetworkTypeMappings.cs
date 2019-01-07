@@ -6,8 +6,17 @@ using NpgsqlTypes;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 {
+    /// <summary>
+    /// The type mapping for the PostgreSQL macaddr type.
+    /// </summary>
+    /// <remarks>
+    /// See: https://www.postgresql.org/docs/current/static/datatype-net-types.html#DATATYPE-MACADDR
+    /// </remarks>
     public class NpgsqlMacaddrTypeMapping : NpgsqlTypeMapping
     {
+        /// <summary>
+        /// Constructs an instance of the <see cref="NpgsqlMacaddrTypeMapping"/> class.
+        /// </summary>
         public NpgsqlMacaddrTypeMapping() : base("macaddr", typeof(PhysicalAddress), NpgsqlDbType.MacAddr) {}
 
         protected NpgsqlMacaddrTypeMapping(RelationalTypeMappingParameters parameters)
@@ -25,8 +34,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 Expression.Constant(((PhysicalAddress)value).ToString()));
     }
 
+    /// <summary>
+    /// The type mapping for the PostgreSQL macaddr8 type.
+    /// </summary>
+    /// <remarks>
+    /// See: https://www.postgresql.org/docs/current/static/datatype-net-types.html#DATATYPE-MACADDR8
+    /// </remarks>
     public class NpgsqlMacaddr8TypeMapping : NpgsqlTypeMapping
     {
+        /// <summary>
+        /// Constructs an instance of the <see cref="NpgsqlMacaddr8TypeMapping"/> class.
+        /// </summary>
         public NpgsqlMacaddr8TypeMapping() : base("macaddr8", typeof(PhysicalAddress), NpgsqlDbType.MacAddr8) {}
 
         protected NpgsqlMacaddr8TypeMapping(RelationalTypeMappingParameters parameters)
@@ -44,8 +62,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 Expression.Constant(((PhysicalAddress)value).ToString()));
     }
 
+    /// <summary>
+    /// The type mapping for the PostgreSQL inet type.
+    /// </summary>
+    /// <remarks>
+    /// See: https://www.postgresql.org/docs/current/static/datatype-net-types.html#DATATYPE-INET
+    /// </remarks>
     public class NpgsqlInetTypeMapping : NpgsqlTypeMapping
     {
+        /// <summary>
+        /// Constructs an instance of the <see cref="NpgsqlInetTypeMapping"/> class.
+        /// </summary>
         public NpgsqlInetTypeMapping() : base("inet", typeof(IPAddress), NpgsqlDbType.Inet) {}
 
         protected NpgsqlInetTypeMapping(RelationalTypeMappingParameters parameters)
@@ -63,8 +90,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 Expression.Constant(((IPAddress)value).ToString()));
     }
 
+    /// <summary>
+    /// The type mapping for the PostgreSQL cidr type.
+    /// </summary>
+    /// <remarks>
+    /// See: https://www.postgresql.org/docs/current/static/datatype-net-types.html#DATATYPE-CIDR
+    /// </remarks>
     public class NpgsqlCidrTypeMapping : NpgsqlTypeMapping
     {
+        /// <summary>
+        /// Constructs an instance of the <see cref="NpgsqlCidrTypeMapping"/> class.
+        /// </summary>
         public NpgsqlCidrTypeMapping() : base("cidr", typeof((IPAddress, int)), NpgsqlDbType.Cidr) {}
 
         protected NpgsqlCidrTypeMapping(RelationalTypeMappingParameters parameters)

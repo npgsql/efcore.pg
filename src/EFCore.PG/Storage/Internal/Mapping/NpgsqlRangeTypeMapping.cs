@@ -8,12 +8,29 @@ using NpgsqlTypes;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 {
+    /// <summary>
+    /// The type mapping for the PostgreSQL range types.
+    /// </summary>
+    /// <remarks>
+    /// See: https://www.postgresql.org/docs/current/static/rangetypes.html
+    /// </remarks>
     public class NpgsqlRangeTypeMapping : NpgsqlTypeMapping
     {
         [NotNull] readonly ISqlGenerationHelper _sqlGenerationHelper;
 
+        // ReSharper disable once MemberCanBePrivate.Global
+        /// <summary>
+        /// The relational type mapping used to initialize the bound mapping.
+        /// </summary>
         public RelationalTypeMapping SubtypeMapping { get; }
 
+        /// <summary>
+        /// Constructs an instance of the <see cref="NpgsqlRangeTypeMapping"/> class.
+        /// </summary>
+        /// <param name="storeType">The database type to map</param>
+        /// <param name="clrType">The CLR type to map.</param>
+        /// <param name="subtypeMapping">The type mapping for the range subtype.</param>
+        /// <param name="sqlGenerationHelper">The SQL generation helper to delimit the store name.</param>
         public NpgsqlRangeTypeMapping(
             [NotNull] string storeType,
             [NotNull] Type clrType,
@@ -21,6 +38,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             [NotNull] ISqlGenerationHelper sqlGenerationHelper)
             : this(storeType, null, clrType, subtypeMapping, sqlGenerationHelper) {}
 
+        /// <summary>
+        /// Constructs an instance of the <see cref="NpgsqlRangeTypeMapping"/> class.
+        /// </summary>
+        /// <param name="storeType">The database type to map</param>
+        /// <param name="storeTypeSchema">The schema of the type.</param>
+        /// <param name="clrType">The CLR type to map.</param>
+        /// <param name="subtypeMapping">The type mapping for the range subtype.</param>
+        /// <param name="sqlGenerationHelper">The SQL generation helper to delimit the store name.</param>
         public NpgsqlRangeTypeMapping(
             [NotNull] string storeType,
             [CanBeNull] string storeTypeSchema,

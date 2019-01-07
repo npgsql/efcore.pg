@@ -6,11 +6,23 @@ using NpgsqlTypes;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 {
+    /// <summary>
+    /// The base class for mapping Npgsql-specific types.
+    /// </summary>
     public abstract class NpgsqlTypeMapping : RelationalTypeMapping
     {
+        /// <summary>
+        /// The database type used by Npgsql.
+        /// </summary>
         public NpgsqlDbType NpgsqlDbType { get; }
 
         // ReSharper disable once PublicConstructorInAbstractClass
+        /// <summary>
+        /// Constructs an instance of the <see cref="NpgsqlTypeMapping"/> class.
+        /// </summary>
+        /// <param name="storeType">The database type to map.</param>
+        /// <param name="clrType">The CLR type to map.</param>
+        /// <param name="npgsqlDbType">The database type used by Npgsql.</param>
         public NpgsqlTypeMapping(
             [NotNull] string storeType,
             [NotNull] Type clrType,
@@ -18,6 +30,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             : base(storeType, clrType)
             => NpgsqlDbType = npgsqlDbType;
 
+        /// <summary>
+        /// Constructs an instance of the <see cref="NpgsqlTypeMapping"/> class.
+        /// </summary>
+        /// <param name="parameters">The parameters for this mapping.</param>
+        /// <param name="npgsqlDbType">The database type of the range subtype.</param>
         protected NpgsqlTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
             : base(parameters)
             => NpgsqlDbType = npgsqlDbType;
