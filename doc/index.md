@@ -20,10 +20,10 @@ Below is a `.csproj` file for a console application that uses the Npgsql EF Core
 ```xml
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="2.1.2" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="2.2.0" />
   </ItemGroup>
 </Project>
 ```
@@ -73,7 +73,7 @@ Modify the `ConfigureServices` method in `Startup.cs`:
 ```c#
 public IServiceProvider ConfigureServices(IServiceCollection services)
     => services.AddEntityFrameworkNpgsql()
-               .AddDbContext<BlogContext>()
+               .AddDbContext<BloggingContext>()
                .BuildServiceProvider();
 ```
 ## Using an Existing Database (Database-First)
