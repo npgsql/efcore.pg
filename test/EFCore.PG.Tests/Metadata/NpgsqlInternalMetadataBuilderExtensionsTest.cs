@@ -6,11 +6,12 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 using Xunit;
 
+// ReSharper disable StringLiteralTypo
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 {
     public class NpgsqlInternalMetadataBuilderExtensionsTest
     {
-        InternalModelBuilder CreateBuilder() => new InternalModelBuilder(new Model());
+        static InternalModelBuilder CreateBuilder() => new InternalModelBuilder(new Model());
 
         [Fact]
         public void Can_access_model()
@@ -89,6 +90,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
                 a => a.Name.StartsWith(RelationalAnnotationNames.Prefix, StringComparison.Ordinal)));
         }
 
+        // ReSharper disable once IdentifierTypo
         class Splot {}
     }
 }

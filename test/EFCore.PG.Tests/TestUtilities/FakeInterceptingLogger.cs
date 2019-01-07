@@ -9,6 +9,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
     public class FakeDiagnosticsLogger<T> : IDiagnosticsLogger<T>, ILogger
         where T : LoggerCategory<T>, new()
     {
+        // ReSharper disable once UnassignedGetOnlyAutoProperty
         public ILoggingOptions Options { get; }
 
         public bool ShouldLogSensitiveData() => false;
@@ -27,8 +28,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
         }
 
         public bool IsEnabled(LogLevel logLevel) => true;
-
-        public bool IsEnabled(EventId eventId, LogLevel logLevel) => true;
 
         public WarningBehavior GetLogBehavior(EventId eventId, LogLevel logLevel) => WarningBehavior.Log;
 

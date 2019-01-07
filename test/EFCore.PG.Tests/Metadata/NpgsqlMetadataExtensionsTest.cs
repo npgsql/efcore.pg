@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
 
+// ReSharper disable StringLiteralTypo
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 {
     public class NpgsqlMetadataExtensionsTest
@@ -828,8 +829,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             property.Npgsql().HiLoSequenceName = "DaneelOlivaw";
             property.Npgsql().ValueGenerationStrategy = NpgsqlValueGenerationStrategy.SequenceHiLo;
 
-            Assert.Equal("DaneelOlivaw", property.Npgsql().FindHiLoSequence().Name);
-            Assert.Equal("DaneelOlivaw", ((IProperty)property).Npgsql().FindHiLoSequence().Name);
+            Assert.Equal("DaneelOlivaw", property.Npgsql().FindHiLoSequence()?.Name);
+            Assert.Equal("DaneelOlivaw", ((IProperty)property).Npgsql().FindHiLoSequence()?.Name);
         }
 
         [Fact]
@@ -847,8 +848,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             modelBuilder.Model.Npgsql().ValueGenerationStrategy = NpgsqlValueGenerationStrategy.SequenceHiLo;
             property.Npgsql().HiLoSequenceName = "DaneelOlivaw";
 
-            Assert.Equal("DaneelOlivaw", property.Npgsql().FindHiLoSequence().Name);
-            Assert.Equal("DaneelOlivaw", ((IProperty)property).Npgsql().FindHiLoSequence().Name);
+            Assert.Equal("DaneelOlivaw", property.Npgsql().FindHiLoSequence()?.Name);
+            Assert.Equal("DaneelOlivaw", ((IProperty)property).Npgsql().FindHiLoSequence()?.Name);
         }
 
         [Fact]
@@ -866,8 +867,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             modelBuilder.Model.Npgsql().HiLoSequenceName = "DaneelOlivaw";
             property.Npgsql().ValueGenerationStrategy = NpgsqlValueGenerationStrategy.SequenceHiLo;
 
-            Assert.Equal("DaneelOlivaw", property.Npgsql().FindHiLoSequence().Name);
-            Assert.Equal("DaneelOlivaw", ((IProperty)property).Npgsql().FindHiLoSequence().Name);
+            Assert.Equal("DaneelOlivaw", property.Npgsql().FindHiLoSequence()?.Name);
+            Assert.Equal("DaneelOlivaw", ((IProperty)property).Npgsql().FindHiLoSequence()?.Name);
         }
 
         [Fact]
@@ -885,8 +886,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             modelBuilder.Model.Npgsql().ValueGenerationStrategy = NpgsqlValueGenerationStrategy.SequenceHiLo;
             modelBuilder.Model.Npgsql().HiLoSequenceName = "DaneelOlivaw";
 
-            Assert.Equal("DaneelOlivaw", property.Npgsql().FindHiLoSequence().Name);
-            Assert.Equal("DaneelOlivaw", ((IProperty)property).Npgsql().FindHiLoSequence().Name);
+            Assert.Equal("DaneelOlivaw", property.Npgsql().FindHiLoSequence()?.Name);
+            Assert.Equal("DaneelOlivaw", ((IProperty)property).Npgsql().FindHiLoSequence()?.Name);
         }
 
         [Fact]
@@ -905,10 +906,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             property.Npgsql().HiLoSequenceSchema = "R";
             property.Npgsql().ValueGenerationStrategy = NpgsqlValueGenerationStrategy.SequenceHiLo;
 
-            Assert.Equal("DaneelOlivaw", property.Npgsql().FindHiLoSequence().Name);
-            Assert.Equal("DaneelOlivaw", ((IProperty)property).Npgsql().FindHiLoSequence().Name);
-            Assert.Equal("R", property.Npgsql().FindHiLoSequence().Schema);
-            Assert.Equal("R", ((IProperty)property).Npgsql().FindHiLoSequence().Schema);
+            Assert.Equal("DaneelOlivaw", property.Npgsql().FindHiLoSequence()?.Name);
+            Assert.Equal("DaneelOlivaw", ((IProperty)property).Npgsql().FindHiLoSequence()?.Name);
+            Assert.Equal("R", property.Npgsql().FindHiLoSequence()?.Schema);
+            Assert.Equal("R", ((IProperty)property).Npgsql().FindHiLoSequence()?.Schema);
         }
 
         [Fact]
@@ -927,10 +928,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             property.Npgsql().HiLoSequenceName = "DaneelOlivaw";
             property.Npgsql().HiLoSequenceSchema = "R";
 
-            Assert.Equal("DaneelOlivaw", property.Npgsql().FindHiLoSequence().Name);
-            Assert.Equal("DaneelOlivaw", ((IProperty)property).Npgsql().FindHiLoSequence().Name);
-            Assert.Equal("R", property.Npgsql().FindHiLoSequence().Schema);
-            Assert.Equal("R", ((IProperty)property).Npgsql().FindHiLoSequence().Schema);
+            Assert.Equal("DaneelOlivaw", property.Npgsql().FindHiLoSequence()?.Name);
+            Assert.Equal("DaneelOlivaw", ((IProperty)property).Npgsql().FindHiLoSequence()?.Name);
+            Assert.Equal("R", property.Npgsql().FindHiLoSequence()?.Schema);
+            Assert.Equal("R", ((IProperty)property).Npgsql().FindHiLoSequence()?.Schema);
         }
 
         [Fact]
@@ -949,10 +950,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             modelBuilder.Model.Npgsql().HiLoSequenceSchema = "R";
             property.Npgsql().ValueGenerationStrategy = NpgsqlValueGenerationStrategy.SequenceHiLo;
 
-            Assert.Equal("DaneelOlivaw", property.Npgsql().FindHiLoSequence().Name);
-            Assert.Equal("DaneelOlivaw", ((IProperty)property).Npgsql().FindHiLoSequence().Name);
-            Assert.Equal("R", property.Npgsql().FindHiLoSequence().Schema);
-            Assert.Equal("R", ((IProperty)property).Npgsql().FindHiLoSequence().Schema);
+            Assert.Equal("DaneelOlivaw", property.Npgsql().FindHiLoSequence()?.Name);
+            Assert.Equal("DaneelOlivaw", ((IProperty)property).Npgsql().FindHiLoSequence()?.Name);
+            Assert.Equal("R", property.Npgsql().FindHiLoSequence()?.Schema);
+            Assert.Equal("R", ((IProperty)property).Npgsql().FindHiLoSequence()?.Schema);
         }
 
         [Fact]
@@ -971,28 +972,40 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             modelBuilder.Model.Npgsql().HiLoSequenceName = "DaneelOlivaw";
             modelBuilder.Model.Npgsql().HiLoSequenceSchema = "R";
 
-            Assert.Equal("DaneelOlivaw", property.Npgsql().FindHiLoSequence().Name);
-            Assert.Equal("DaneelOlivaw", ((IProperty)property).Npgsql().FindHiLoSequence().Name);
-            Assert.Equal("R", property.Npgsql().FindHiLoSequence().Schema);
-            Assert.Equal("R", ((IProperty)property).Npgsql().FindHiLoSequence().Schema);
+            Assert.Equal("DaneelOlivaw", property.Npgsql().FindHiLoSequence()?.Name);
+            Assert.Equal("DaneelOlivaw", ((IProperty)property).Npgsql().FindHiLoSequence()?.Name);
+            Assert.Equal("R", property.Npgsql().FindHiLoSequence()?.Schema);
+            Assert.Equal("R", ((IProperty)property).Npgsql().FindHiLoSequence()?.Schema);
         }
 
-        private static ModelBuilder GetModelBuilder() => NpgsqlTestHelpers.Instance.CreateConventionBuilder();
+        static ModelBuilder GetModelBuilder() => NpgsqlTestHelpers.Instance.CreateConventionBuilder();
 
-        private class Customer
+        // ReSharper disable once ClassNeverInstantiated.Local
+        class Customer
         {
+            // ReSharper disable MemberCanBePrivate.Local
+            // ReSharper disable UnusedAutoPropertyAccessor.Local
             public int Id { get; set; }
             public int? NullableInt { get; set; }
             public string Name { get; set; }
             public byte Byte { get; set; }
             public byte? NullableByte { get; set; }
             public byte[] ByteArray { get; set; }
+            // ReSharper restore MemberCanBePrivate.Local
+            // ReSharper restore UnusedAutoPropertyAccessor.Local
         }
 
-        private class Order
+        // ReSharper disable once ClassNeverInstantiated.Local
+        class Order
         {
+            // ReSharper disable MemberCanBePrivate.Local
+            // ReSharper disable UnusedAutoPropertyAccessor.Local
+            // ReSharper disable UnusedMember.Local
             public int OrderId { get; set; }
             public int CustomerId { get; set; }
+            // ReSharper restore MemberCanBePrivate.Local
+            // ReSharper restore UnusedAutoPropertyAccessor.Local
+            // ReSharper restore UnusedMember.Local
         }
     }
 }
