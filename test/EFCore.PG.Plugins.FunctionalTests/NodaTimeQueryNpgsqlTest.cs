@@ -228,7 +228,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             using (var ctx = CreateContext())
             {
                 var d = ctx.NodaTimeTypes.Single(t => t.Period.Years == 2018);
-                Assert.Equal(DefaultPeriod, d.Period);
+                Assert.Equal(_defaultPeriod, d.Period);
                 Assert.Contains(@"WHERE CAST(DATE_PART('year', t.""Period"") AS integer) = 2018", Sql);
             }
         }
@@ -328,6 +328,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         {
             using (var ctx = CreateContext())
             {
+                // ReSharper disable once PossibleUnintendedReferenceComparison
                 Assert.Null(ctx.NodaTimeTypes.SingleOrDefault(t => t.Period == Period.FromDays(t.Id)));
                 Assert.Contains(@"MAKE_INTERVAL(days => t.""Id"")", Sql);
             }
@@ -338,6 +339,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         {
             using (var ctx = CreateContext())
             {
+                // ReSharper disable once PossibleUnintendedReferenceComparison
                 Assert.Null(ctx.NodaTimeTypes.SingleOrDefault(t => t.Period == Period.FromSeconds(t.Id)));
                 Assert.Contains(@"MAKE_INTERVAL(secs => t.""Id"")", Sql);
             }
@@ -377,15 +379,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
         NodaTimeContext CreateContext() => Fixture.CreateContext();
 
-        void AssertSql(params string[] expected)
-            => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
-
-        void AssertContainsSql(params string[] expected)
-            => Fixture.TestSqlLoggerFactory.AssertBaseline(expected, assertOrder: false);
-
         string Sql => Fixture.TestSqlLoggerFactory.Sql;
 
-        static Period DefaultPeriod;
+        static Period _defaultPeriod;
 
         public class NodaTimeFixture : SharedStoreFixtureBase<NodaTimeContext>
         {
@@ -414,6 +410,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         {
             public NodaTimeContext(DbContextOptions<NodaTimeContext> options) : base(options) {}
 
+            // ReSharper disable once MemberHidesStaticFromOuterClass
+            // ReSharper disable once UnusedAutoPropertyAccessor.Global
             public DbSet<NodaTimeTypes> NodaTimeTypes { get; set; }
 
             public static void Seed(NodaTimeContext context)
@@ -422,7 +420,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 var zonedDateTime = localDateTime.InUtc();
                 var instant = zonedDateTime.ToInstant();
 
-                DefaultPeriod = Period.FromYears(2018) + Period.FromMonths(4) + Period.FromDays(20) +
+                _defaultPeriod = Period.FromYears(2018) + Period.FromMonths(4) + Period.FromDays(20) +
                                 Period.FromHours(10) + Period.FromMinutes(31) + Period.FromSeconds(23) +
                                 Period.FromMilliseconds(666);
                 context.Add(new NodaTimeTypes
@@ -434,7 +432,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                     LocalDate = localDateTime.Date,
                     LocalTime = localDateTime.TimeOfDay,
                     OffsetTime = new OffsetTime(new LocalTime(10, 31, 33, 666), Offset.Zero),
-                    Period = DefaultPeriod,
+                    Period = _defaultPeriod,
                     DateRange = new NpgsqlRange<LocalDate>(localDateTime.Date, localDateTime.Date.PlusDays(5))
                 });
                 context.SaveChanges();
@@ -443,6 +441,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
         public class NodaTimeTypes
         {
+            // ReSharper disable UnusedAutoPropertyAccessor.Global
             public int Id { get; set; }
             public Instant Instant { get; set; }
             public LocalDateTime LocalDateTime { get; set; }
@@ -452,6 +451,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             public OffsetTime OffsetTime { get; set; }
             public Period Period { get; set; }
             public NpgsqlRange<LocalDate> DateRange { get; set; }
+            // ReSharper restore UnusedAutoPropertyAccessor.Global
         }
 
         #endregion Support
