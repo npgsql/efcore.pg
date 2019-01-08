@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.TestUtilities.Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities.Xunit
 {
+    // TODO: This is unused, should it be removed?
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
     public class MinimumPostgresVersionAttribute : Attribute, ITestCondition
     {

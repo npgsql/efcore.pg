@@ -86,7 +86,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             /// <summary>
             /// The <see cref="NpgsqlTestStore"/> used for testing.
             /// </summary>
-            private readonly NpgsqlTestStore _testStore;
+            readonly NpgsqlTestStore _testStore;
 
             /// <summary>
             /// The logger factory used for testing.

@@ -16,16 +16,15 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using NpgsqlTypes;
 
+// ReSharper disable InconsistentNaming
 namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
     public class BuiltInDataTypesNpgsqlTest : BuiltInDataTypesTestBase<BuiltInDataTypesNpgsqlTest.BuiltInDataTypesNpgsqlFixture>
     {
+        // ReSharper disable once UnusedParameter.Local
         public BuiltInDataTypesNpgsqlTest(BuiltInDataTypesNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
-        {
-            Fixture.TestSqlLoggerFactory.Clear();
-            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
-        }
+            => Fixture.TestSqlLoggerFactory.Clear();
 
         [Fact]
         public void Sql_translation_uses_type_mapper_when_constant()
@@ -207,9 +206,11 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
                 TimeSpan? param19 = new TimeSpan(11, 15, 12);
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.TimeSpanAsInterval == param19));
 
+                // ReSharper disable once ConvertToConstant.Local
                 var param20 = "Gumball Rules!";
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.StringAsText == param20));
 
+                // ReSharper disable once ConvertToConstant.Local
                 var param21 = "Gumball Rules OK";
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.StringAsVarchar == param21));
 
@@ -217,9 +218,11 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
                 // var param21a = 'f';
                 // Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.CharAsChar1 == param21a));
 
+                // ReSharper disable once ConvertToConstant.Local
                 var param21b = 'g';
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.CharAsText == param21b));
 
+                // ReSharper disable once ConvertToConstant.Local
                 var param21c = 'h';
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.CharAsVarchar == param21c));
 
@@ -242,6 +245,7 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
                 // NpgsqlPoint? param27 = new NpgsqlPoint(5.2, 3.3);
                 // Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Point == param27));
 
+                // ReSharper disable once ConvertToConstant.Local
                 var param28 = @"{""a"": ""b""}";
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.StringAsJsonb == param28));
 
@@ -261,6 +265,7 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
                 var param33 = new[] { PhysicalAddress.Parse("08-00-2B-01-02-03"), PhysicalAddress.Parse("08-00-2B-01-02-04") };
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.PhysicalAddressArrayAsMacaddrArray == param33));
 
+                // ReSharper disable once ConvertToConstant.Local
                 var param34 = (uint)int.MaxValue + 1;
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.UintAsXid == param34));
 
@@ -270,12 +275,15 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
                 var param36 = NpgsqlTsVector.Parse("a b");
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.SearchVector == param36));
 
+                // ReSharper disable once ConvertToConstant.Local
                 var param37 = NpgsqlTsRankingNormalization.DivideByLength;
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.RankingNormalization == param37));
 
+                // ReSharper disable once ConvertToConstant.Local
                 var param38 = 12724u;
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Regconfig == param38));
 
+                // ReSharper disable once ConvertToConstant.Local
                 var param39 = Mood.Sad;
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Mood == param39));
             }
@@ -391,6 +399,7 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.EnumAsVarchar == param25));
 
                 PhysicalAddress param26 = null;
+                // ReSharper disable once PossibleUnintendedReferenceComparison
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.PhysicalAddressAsMacaddr == param26));
 
                 NpgsqlPoint? param27 = null;
@@ -497,8 +506,11 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
         string DumpParameters()
             => Fixture.TestSqlLoggerFactory.Parameters.Single().Replace(", ", EOL);
 
+        // ReSharper disable once UnusedMember.Local
+        // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
         static void AssertMappedDataTypes(MappedDataTypes entity, int id)
         {
+            // ReSharper disable once UnusedVariable
             var expected = CreateMappedDataTypes(id);
             Assert.Equal(id, entity.Int);
             Assert.Equal(78, entity.LongAsBigint);
@@ -631,7 +643,9 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
             }
         }
 
+        // ReSharper disable ParameterOnlyUsedForPreconditionCheck.Local
         static void AssertNullMappedNullableDataTypes(MappedNullableDataTypes entity, int id)
+        // ReSharper restore ParameterOnlyUsedForPreconditionCheck.Local
         {
             Assert.Equal(id, entity.Int);
             Assert.Null(entity.LongAsBigint);
@@ -808,18 +822,23 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
 
         protected enum StringEnum16 : short
         {
+            // ReSharper disable once UnusedMember.Global
             Value1 = 1,
+            // ReSharper disable once UnusedMember.Global
             Value2 = 2,
             Value4 = 4
         }
 
         protected enum StringEnumU16 : ushort
         {
+            // ReSharper disable once UnusedMember.Global
             Value1 = 1,
+            // ReSharper disable once UnusedMember.Global
             Value2 = 2,
             Value4 = 4
         }
 
+        // ReSharper disable once MemberCanBePrivate.Global
         protected class MappedDataTypes
         {
             [Column(TypeName = "int")]
@@ -950,12 +969,15 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
             public NpgsqlTsRankingNormalization RankingNormalization { get; set; }
             public uint Regconfig { get; set; }
 
+            // ReSharper disable once UnusedAutoPropertyAccessor.Global
             [Column(TypeName = "mood")]
             public Mood Mood { get; set; }
         }
 
+        // ReSharper disable once MemberCanBePrivate.Global
         public class MappedSizedDataTypes
         {
+            // ReSharper disable once UnusedAutoPropertyAccessor.Global
             public int Id { get; set; }
             /*
             public string Char { get; set; }
@@ -974,8 +996,10 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
             */
         }
 
+        // ReSharper disable once MemberCanBePrivate.Global
         public class MappedScaledDataTypes
         {
+            // ReSharper disable once UnusedAutoPropertyAccessor.Global
             public int Id { get; set; }
             /*
             public float Float { get; set; }
@@ -988,8 +1012,10 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
             */
         }
 
+        // ReSharper disable once MemberCanBePrivate.Global
         public class MappedPrecisionAndScaledDataTypes
         {
+            // ReSharper disable once UnusedAutoPropertyAccessor.Global
             public int Id { get; set; }
             /*
             public decimal Decimal { get; set; }
@@ -998,6 +1024,7 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
             */
         }
 
+        // ReSharper disable once MemberCanBePrivate.Global
         protected class MappedNullableDataTypes
         {
             [Column(TypeName = "int")]
@@ -1133,5 +1160,6 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
         }
     }
 
+    // ReSharper disable once UnusedMember.Global
     public enum Mood { Happy, Sad };
 }

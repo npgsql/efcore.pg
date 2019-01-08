@@ -60,7 +60,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             }
         }
 
-        private readonly NavigationTestFixture _fixture;
+        readonly NavigationTestFixture _fixture;
 
         public NavigationTest(NavigationTestFixture fixture) => _fixture = fixture;
     }
@@ -91,7 +91,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
     public class NavigationTestFixture
     {
-        private readonly DbContextOptions _options;
+        readonly DbContextOptions _options;
 
         public NavigationTestFixture()
         {

@@ -22,8 +22,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
 
         public const int CommandTimeout = 600;
 
-        static string BaseDirectory => AppContext.BaseDirectory;
-
         public static readonly string NorthwindConnectionString = CreateConnectionString(Northwind);
 
         public static NpgsqlTestStore GetNorthwindStore()
@@ -33,6 +31,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
         public static NpgsqlTestStore GetOrCreate(string name)
              => new NpgsqlTestStore(name);
 
+        // ReSharper disable once UnusedMember.Global
         public static NpgsqlTestStore GetOrCreateInitialized(string name)
             => new NpgsqlTestStore(name).InitializeNpgsql(null, (Func<DbContext>)null, null);
 
@@ -51,7 +50,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
 
         private NpgsqlTestStore(
             string name,
+            // ReSharper disable once UnusedParameter.Local
             bool useFileName = false,
+            // ReSharper disable once UnusedParameter.Local
             bool? multipleActiveResultSets = null,
             string scriptPath = null,
             bool shared = true)
@@ -60,17 +61,22 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             Name = name;
             if (scriptPath != null)
             {
+                // ReSharper disable once AssignNullToNotNullAttribute
                 _scriptPath = Path.Combine(Path.GetDirectoryName(typeof(NpgsqlTestStore).GetTypeInfo().Assembly.Location), scriptPath);
             }
 
+            // ReSharper disable VirtualMemberCallInConstructor
             ConnectionString = CreateConnectionString(Name);
             Connection = new NpgsqlConnection(ConnectionString);
+            // ReSharper restore VirtualMemberCallInConstructor
         }
 
+        // ReSharper disable once MemberCanBePrivate.Global
         public NpgsqlTestStore InitializeNpgsql(
            IServiceProvider serviceProvider, Func<DbContext> createContext, Action<DbContext> seed)
            => (NpgsqlTestStore)Initialize(serviceProvider, createContext, seed);
 
+        // ReSharper disable once UnusedMember.Global
         public NpgsqlTestStore InitializeNpgsql(
             IServiceProvider serviceProvider, Func<NpgsqlTestStore, DbContext> createContext, Action<DbContext> seed)
             => InitializeNpgsql(serviceProvider, () => createContext(this), seed);
@@ -97,8 +103,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
         public override DbContextOptionsBuilder AddProviderOptions(DbContextOptionsBuilder builder)
             => builder.UseNpgsql(Connection, b => b.ApplyConfiguration().CommandTimeout(CommandTimeout));
 
-
-        private static string GetScratchDbName()
+        static string GetScratchDbName()
         {
             string name;
             do
@@ -110,7 +115,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             return name;
         }
 
-        private bool CreateDatabase()
+        bool CreateDatabase()
         {
             using (var master = new NpgsqlConnection(CreateAdminConnectionString()))
             {
@@ -135,12 +140,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             return true;
         }
 
-        private static void WaitForExists(NpgsqlConnection connection)
-        {
-            WaitForExistsImplementation(connection);
-        }
+        static void WaitForExists(NpgsqlConnection connection) => WaitForExistsImplementation(connection);
 
-        private static void WaitForExistsImplementation(NpgsqlConnection connection)
+        static void WaitForExistsImplementation(NpgsqlConnection connection)
         {
             var retryCount = 0;
             while (true)
@@ -171,6 +173,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             }
         }
 
+        // ReSharper disable once MemberCanBePrivate.Global
         public void ExecuteScript(string scriptPath)
         {
             var script = File.ReadAllText(scriptPath);
@@ -188,9 +191,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
                 }, "");
         }
 
-        private NpgsqlConnection _connection;
-        private string _connectionString;
-        private bool _deleteDatabase;
+        NpgsqlConnection _connection;
+        string _connectionString;
+        bool _deleteDatabase;
 
         NpgsqlTestStore CreateTransient(bool createDatabase, bool deleteDatabase)
         {
@@ -212,6 +215,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             return this;
         }
 
+        // ReSharper disable once UnusedMember.Local
         static void Clean(string name)
         {
             var options = new DbContextOptionsBuilder()
@@ -264,34 +268,39 @@ SELECT pg_terminate_backend (pg_stat_activity.pid)
 
         public override Task OpenConnectionAsync() => Connection.OpenAsync();
 
+        // ReSharper disable once UnusedMember.Global
         public T ExecuteScalar<T>(string sql, params object[] parameters)
             => ExecuteScalar<T>(Connection, sql, parameters);
 
-        private static T ExecuteScalar<T>(DbConnection connection, string sql, params object[] parameters)
+        static T ExecuteScalar<T>(DbConnection connection, string sql, params object[] parameters)
             => Execute(connection, command => (T)command.ExecuteScalar(), sql, false, parameters);
 
+        // ReSharper disable once UnusedMember.Global
         public Task<T> ExecuteScalarAsync<T>(string sql, params object[] parameters)
             => ExecuteScalarAsync<T>(Connection, sql, parameters);
 
-        private static Task<T> ExecuteScalarAsync<T>(DbConnection connection, string sql, object[] parameters = null)
+        static Task<T> ExecuteScalarAsync<T>(DbConnection connection, string sql, object[] parameters = null)
             => ExecuteAsync(connection, async command => (T)await command.ExecuteScalarAsync(), sql, false, parameters);
 
+        // ReSharper disable once UnusedMethodReturnValue.Global
         public int ExecuteNonQuery(string sql, params object[] parameters)
             => ExecuteNonQuery(Connection, sql, parameters);
 
-        private static int ExecuteNonQuery(DbConnection connection, string sql, object[] parameters = null)
+        static int ExecuteNonQuery(DbConnection connection, string sql, object[] parameters = null)
             => Execute(connection, command => command.ExecuteNonQuery(), sql, false, parameters);
 
+        // ReSharper disable once UnusedMember.Global
         public Task<int> ExecuteNonQueryAsync(string sql, params object[] parameters)
             => ExecuteNonQueryAsync(Connection, sql, parameters);
 
-        private static Task<int> ExecuteNonQueryAsync(DbConnection connection, string sql, object[] parameters = null)
+        static Task<int> ExecuteNonQueryAsync(DbConnection connection, string sql, object[] parameters = null)
             => ExecuteAsync(connection, command => command.ExecuteNonQueryAsync(), sql, false, parameters);
 
+        // ReSharper disable once UnusedMember.Global
         public IEnumerable<T> Query<T>(string sql, params object[] parameters)
             => Query<T>(Connection, sql, parameters);
 
-        private static IEnumerable<T> Query<T>(DbConnection connection, string sql, object[] parameters = null)
+        static IEnumerable<T> Query<T>(DbConnection connection, string sql, object[] parameters = null)
             => Execute(connection, command =>
             {
                 using (var dataReader = command.ExecuteReader())
@@ -305,10 +314,11 @@ SELECT pg_terminate_backend (pg_stat_activity.pid)
                 }
             }, sql, false, parameters);
 
+        // ReSharper disable once UnusedMember.Global
         public Task<IEnumerable<T>> QueryAsync<T>(string sql, params object[] parameters)
             => QueryAsync<T>(Connection, sql, parameters);
 
-        private static Task<IEnumerable<T>> QueryAsync<T>(DbConnection connection, string sql, object[] parameters = null)
+        static Task<IEnumerable<T>> QueryAsync<T>(DbConnection connection, string sql, object[] parameters = null)
             => ExecuteAsync(connection, async command =>
             {
                 using (var dataReader = await command.ExecuteReaderAsync())
@@ -322,12 +332,12 @@ SELECT pg_terminate_backend (pg_stat_activity.pid)
                 }
             }, sql, false, parameters);
 
-        private static T Execute<T>(
+        static T Execute<T>(
             DbConnection connection, Func<DbCommand, T> execute, string sql,
             bool useTransaction = false, object[] parameters = null)
             => ExecuteCommand(connection, execute, sql, useTransaction, parameters);
 
-        private static T ExecuteCommand<T>(
+        static T ExecuteCommand<T>(
             DbConnection connection, Func<DbCommand, T> execute, string sql, bool useTransaction, object[] parameters)
         {
             if (connection.State != ConnectionState.Closed)
@@ -360,12 +370,12 @@ SELECT pg_terminate_backend (pg_stat_activity.pid)
             }
         }
 
-        private static Task<T> ExecuteAsync<T>(
+        static Task<T> ExecuteAsync<T>(
             DbConnection connection, Func<DbCommand, Task<T>> executeAsync, string sql,
             bool useTransaction = false, IReadOnlyList<object> parameters = null)
             => ExecuteCommandAsync(connection, executeAsync, sql, useTransaction, parameters);
 
-        private static async Task<T> ExecuteCommandAsync<T>(
+        static async Task<T> ExecuteCommandAsync<T>(
             DbConnection connection, Func<DbCommand, Task<T>> executeAsync, string sql, bool useTransaction, IReadOnlyList<object> parameters)
         {
             if (connection.State != ConnectionState.Closed)
@@ -397,7 +407,7 @@ SELECT pg_terminate_backend (pg_stat_activity.pid)
             }
         }
 
-        private static DbCommand CreateCommand(
+        static DbCommand CreateCommand(
             DbConnection connection, string commandText, IReadOnlyList<object> parameters = null)
         {
             var command = (NpgsqlCommand)connection.CreateCommand();

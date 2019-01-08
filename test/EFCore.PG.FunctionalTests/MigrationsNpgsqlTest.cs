@@ -154,7 +154,7 @@ CreatedTable
                 ignoreLineEndingDifferences: true);
         }
 
-        private static string GetDatabaseSchemaAsync(DbConnection connection)
+        static string GetDatabaseSchemaAsync(DbConnection connection)
         {
             var builder = new IndentedStringBuilder();
             var command = connection.CreateCommand();

@@ -4,13 +4,13 @@ using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
+    // ReSharper disable once UnusedMember.Global
     public class GearsOfWarFromSqlQueryNpgsqlTest : GearsOfWarFromSqlQueryTestBase<GearsOfWarQueryNpgsqlFixture>
     {
+        // ReSharper disable once UnusedParameter.Local
         public GearsOfWarFromSqlQueryNpgsqlTest(GearsOfWarQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
-        {
-            Fixture.TestSqlLoggerFactory.Clear();
-        }
+            => Fixture.TestSqlLoggerFactory.Clear();
 
         public override void From_sql_queryable_simple_columns_out_of_order()
         {
@@ -24,6 +24,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         protected override void ClearLog()
             => Fixture.TestSqlLoggerFactory.Clear();
 
-        private string Sql => Fixture.TestSqlLoggerFactory.Sql;
+        string Sql => Fixture.TestSqlLoggerFactory.Sql;
     }
 }

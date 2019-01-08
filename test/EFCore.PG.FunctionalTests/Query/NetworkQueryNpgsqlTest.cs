@@ -48,11 +48,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact(Skip = nameof(NetworkQueryNpgsqlTest))]
         public void Demonstrate_ValueTypeParametersAreDuplicated()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
                 (IPAddress Address, int Subnet) cidr = (IPAddress.Any, default);
 
-                bool[] _ =
+                var _ =
                     context.NetTestEntities
                            .Where(x => EF.Functions.ContainsOrEqual(x.Cidr, cidr))
                            .Select(x => x.Cidr.Equals(cidr))
@@ -73,9 +73,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void IPAddress_inet_parse_column()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                NetTestEntity[] _ =
+                var _ =
                     context.NetTestEntities
                            .Where(x => x.Inet.Equals(IPAddress.Parse(x.TextInet)))
                            .ToArray();
@@ -90,9 +90,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void PhysicalAddress_macaddr_parse_column()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                NetTestEntity[] _ =
+                var _ =
                     context.NetTestEntities
                            .Where(x => x.Macaddr.Equals(PhysicalAddress.Parse(x.TextMacaddr)))
                            .ToArray();
@@ -107,9 +107,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void IPAddress_inet_parse_literal()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                NetTestEntity[] _ =
+                var _ =
                     context.NetTestEntities
                            .Where(x => x.Inet.Equals(IPAddress.Parse("127.0.0.1")))
                            .ToArray();
@@ -124,9 +124,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void PhysicalAddress_macaddr_parse_literal()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                NetTestEntity[] _ =
+                var _ =
                     context.NetTestEntities
                            .Where(x => x.Macaddr.Equals(PhysicalAddress.Parse("12-34-56-00-00-00")))
                            .ToArray();
@@ -141,12 +141,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void IPAddress_inet_parse_parameter()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
                 // ReSharper disable once ConvertToConstant.Local
                 var inet = "127.0.0.1";
 
-                NetTestEntity[] _ =
+                var _ =
                     context.NetTestEntities
                            .Where(x => x.Inet.Equals(IPAddress.Parse(inet)))
                            .ToArray();
@@ -161,12 +161,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void PhysicalAddress_macaddr_parse_parameter()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
                 // ReSharper disable once ConvertToConstant.Local
                 var macaddr = "12-34-56-00-00-00";
 
-                NetTestEntity[] _ =
+                var _ =
                     context.NetTestEntities
                            .Where(x => x.Macaddr.Equals(PhysicalAddress.Parse(macaddr)))
                            .ToArray();
@@ -185,11 +185,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void IPAddress_inet_LessThan_inet()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                IPAddress inet = IPAddress.Any;
+                var inet = IPAddress.Any;
 
-                NetTestEntity[] _ =
+                var _ =
                     context.NetTestEntities
                            .Where(x => EF.Functions.LessThan(x.Inet, inet))
                            .ToArray();
@@ -204,11 +204,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void ValueTuple_cidr_LessThan_cidr()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
                 (IPAddress Address, int Subnet) cidr = (IPAddress.Any, default);
 
-                NetTestEntity[] _ =
+                var _ =
                     context.NetTestEntities
                            .Where(x => EF.Functions.LessThan(x.Cidr, cidr))
                            .ToArray();
@@ -223,11 +223,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void PhysicalAddress_macaddr_LessThan_macaddr()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                PhysicalAddress macaddr = new PhysicalAddress(new byte[6]);
+                var macaddr = new PhysicalAddress(new byte[6]);
 
-                NetTestEntity[] _ =
+                var _ =
                     context.NetTestEntities
                            .Where(x => EF.Functions.LessThan(x.Macaddr, macaddr))
                            .ToArray();
@@ -242,9 +242,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void PhysicalAddress_macaddr8_LessThan_macaddr8()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                NetTestEntity[] _ =
+                var _ =
                     context.NetTestEntities
                            .Where(x => EF.Functions.LessThan(x.Macaddr8, x.Macaddr8))
                            .ToArray();
@@ -259,11 +259,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void IPAddress_inet_LessThanOrEqual_inet()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                IPAddress inet = IPAddress.Any;
+                var inet = IPAddress.Any;
 
-                NetTestEntity[] _ =
+                var _ =
                     context.NetTestEntities
                            .Where(x => EF.Functions.LessThanOrEqual(x.Inet, inet))
                            .ToArray();
@@ -278,11 +278,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void ValueTuple_cidr_LessThanOrEqual_cidr()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
                 (IPAddress Address, int Subnet) cidr = (IPAddress.Any, default);
 
-                NetTestEntity[] _ =
+                var _ =
                     context.NetTestEntities
                            .Where(x => EF.Functions.LessThanOrEqual(x.Cidr, cidr))
                            .ToArray();
@@ -297,11 +297,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void PhysicalAddress_macaddr_LessThanOrEqual_macaddr()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                PhysicalAddress macaddr = new PhysicalAddress(new byte[6]);
+                var macaddr = new PhysicalAddress(new byte[6]);
 
-                NetTestEntity[] _ =
+                var _ =
                     context.NetTestEntities
                            .Where(x => EF.Functions.LessThanOrEqual(x.Macaddr, macaddr))
                            .ToArray();
@@ -316,9 +316,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void PhysicalAddress_macaddr8_LessThanOrEqual_macaddr8()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                NetTestEntity[] _ =
+                var _ =
                     context.NetTestEntities
                            .Where(x => EF.Functions.LessThanOrEqual(x.Macaddr8, x.Macaddr8))
                            .ToArray();
@@ -333,11 +333,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void IPAddress_inet_GreaterThanOrEqual_inet()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                IPAddress inet = IPAddress.Any;
+                var inet = IPAddress.Any;
 
-                NetTestEntity[] _ =
+                var _ =
                     context.NetTestEntities
                            .Where(x => EF.Functions.GreaterThanOrEqual(x.Inet, inet))
                            .ToArray();
@@ -352,11 +352,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void ValueTuple_cidr_GreaterThanOrEqual_cidr()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
                 (IPAddress Address, int Subnet) cidr = (IPAddress.Any, default);
 
-                NetTestEntity[] _ =
+                var _ =
                     context.NetTestEntities
                            .Where(x => EF.Functions.GreaterThanOrEqual(x.Cidr, cidr))
                            .ToArray();
@@ -371,11 +371,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void PhysicalAddress_macaddr_GreaterThanOrEqual_macaddr()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                PhysicalAddress macaddr = new PhysicalAddress(new byte[6]);
+                var macaddr = new PhysicalAddress(new byte[6]);
 
-                NetTestEntity[] _ =
+                var _ =
                     context.NetTestEntities
                            .Where(x => EF.Functions.GreaterThanOrEqual(x.Macaddr, macaddr))
                            .ToArray();
@@ -390,9 +390,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void PhysicalAddress_macaddr8_GreaterThanOrEqual_macaddr8()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                NetTestEntity[] _ =
+                var _ =
                     context.NetTestEntities
                            .Where(x => EF.Functions.GreaterThanOrEqual(x.Macaddr8, x.Macaddr8))
                            .ToArray();
@@ -407,11 +407,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void IPAddress_inet_GreaterThan_inet()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                IPAddress inet = IPAddress.Any;
+                var inet = IPAddress.Any;
 
-                NetTestEntity[] _ =
+                var _ =
                     context.NetTestEntities
                            .Where(x => EF.Functions.GreaterThan(x.Inet, inet))
                            .ToArray();
@@ -426,11 +426,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void ValueTuple_cidr_GreaterThan_cidr()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
                 (IPAddress Address, int Subnet) cidr = (IPAddress.Any, default);
 
-                NetTestEntity[] _ =
+                var _ =
                     context.NetTestEntities
                            .Where(x => EF.Functions.GreaterThan(x.Cidr, cidr))
                            .ToArray();
@@ -445,11 +445,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void PhysicalAddress_macaddr_GreaterThan_macaddr()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                PhysicalAddress macaddr = new PhysicalAddress(new byte[6]);
+                var macaddr = new PhysicalAddress(new byte[6]);
 
-                NetTestEntity[] _ =
+                var _ =
                     context.NetTestEntities
                            .Where(x => EF.Functions.GreaterThan(x.Macaddr, macaddr))
                            .ToArray();
@@ -464,9 +464,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void PhysicalAddress_macaddr8_GreaterThan_macaddr8()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                NetTestEntity[] _ =
+                var _ =
                     context.NetTestEntities
                            .Where(x => EF.Functions.GreaterThan(x.Macaddr8, x.Macaddr8))
                            .ToArray();
@@ -485,11 +485,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void IPAddress_inet_ContainedBy_inet()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                IPAddress inet = IPAddress.Any;
+                var inet = IPAddress.Any;
 
-                NetTestEntity[] _ =
+                var _ =
                     context.NetTestEntities
                            .Where(x => EF.Functions.ContainedBy(x.Inet, inet))
                            .ToArray();
@@ -504,11 +504,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void IPAddress_inet_ContainedBy_cidr()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
                 (IPAddress Address, int Subnet) cidr = (IPAddress.Any, default);
 
-                NetTestEntity[] _ =
+                var _ =
                     context.NetTestEntities
                            .Where(x => EF.Functions.ContainedBy(x.Inet, cidr))
                            .ToArray();
@@ -523,11 +523,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void ValueTuple_cidr_ContainedBy_cidr()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
                 (IPAddress Address, int Subnet) cidr = (IPAddress.Any, default);
 
-                NetTestEntity[] _ =
+                var _ =
                     context.NetTestEntities
                            .Where(x => EF.Functions.ContainedBy(x.Cidr, cidr))
                            .ToArray();
@@ -542,11 +542,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void IPAddress_inet_ContainedByOrEqual_inet()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                IPAddress inet = IPAddress.Any;
+                var inet = IPAddress.Any;
 
-                NetTestEntity[] _ =
+                var _ =
                     context.NetTestEntities
                            .Where(x => EF.Functions.ContainedByOrEqual(x.Inet, inet))
                            .ToArray();
@@ -561,11 +561,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void IPAddress_inet_ContainedByOrEqual_cidr()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
                 (IPAddress Address, int Subnet) cidr = (IPAddress.Any, default);
 
-                NetTestEntity[] _ =
+                var _ =
                     context.NetTestEntities
                            .Where(x => EF.Functions.ContainedByOrEqual(x.Inet, cidr))
                            .ToArray();
@@ -580,11 +580,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void ValueTuple_cidr_ContainedByOrEqual_cidr()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
                 (IPAddress Address, int Subnet) cidr = (IPAddress.Any, default);
 
-                NetTestEntity[] _ =
+                var _ =
                     context.NetTestEntities
                            .Where(x => EF.Functions.ContainedByOrEqual(x.Cidr, cidr))
                            .ToArray();
@@ -599,11 +599,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void IPAddress_inet_Contains_inet()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                IPAddress inet = IPAddress.Any;
+                var inet = IPAddress.Any;
 
-                NetTestEntity[] _ =
+                var _ =
                     context.NetTestEntities
                            .Where(x => EF.Functions.Contains(x.Inet, inet))
                            .ToArray();
@@ -618,11 +618,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void ValueTuple_cidr_Contains_inet()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                IPAddress inet = IPAddress.Any;
+                var inet = IPAddress.Any;
 
-                NetTestEntity[] _ =
+                var _ =
                     context.NetTestEntities
                            .Where(x => EF.Functions.Contains(x.Cidr, inet))
                            .ToArray();
@@ -637,11 +637,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void ValueTuple_cidr_Contains_cidr()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
                 (IPAddress Address, int Subnet) cidr = (IPAddress.Any, default);
 
-                NetTestEntity[] _ =
+                var _ =
                     context.NetTestEntities
                            .Where(x => EF.Functions.Contains(x.Cidr, cidr))
                            .ToArray();
@@ -656,11 +656,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void IPAddress_inet_ContainsOrEqual_inet()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                IPAddress inet = IPAddress.Any;
+                var inet = IPAddress.Any;
 
-                NetTestEntity[] _ =
+                var _ =
                     context.NetTestEntities
                            .Where(x => EF.Functions.ContainsOrEqual(x.Inet, inet))
                            .ToArray();
@@ -675,11 +675,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void ValueTuple_cidr_ContainsOrEqual_inet()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                IPAddress inet = IPAddress.Any;
+                var inet = IPAddress.Any;
 
-                NetTestEntity[] _ =
+                var _ =
                     context.NetTestEntities
                            .Where(x => EF.Functions.ContainsOrEqual(x.Cidr, inet))
                            .ToArray();
@@ -694,11 +694,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void ValueTuple_cidr_ContainsOrEqual_cidr()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
                 (IPAddress Address, int Subnet) cidr = (IPAddress.Any, default);
 
-                NetTestEntity[] _ =
+                var _ =
                     context.NetTestEntities
                            .Where(x => EF.Functions.ContainsOrEqual(x.Cidr, cidr))
                            .ToArray();
@@ -713,11 +713,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void IPAddress_inet_ContainsOrContainedBy_inet()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                IPAddress inet = IPAddress.Any;
+                var inet = IPAddress.Any;
 
-                NetTestEntity[] _ =
+                var _ =
                     context.NetTestEntities
                            .Where(x => EF.Functions.ContainsOrContainedBy(x.Inet, inet))
                            .ToArray();
@@ -732,11 +732,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void IPAddress_inet_ContainsOrContainedBy_cidr()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
                 (IPAddress Address, int Subnet) cidr = (IPAddress.Any, default);
 
-                NetTestEntity[] _ =
+                var _ =
                     context.NetTestEntities
                            .Where(x => EF.Functions.ContainsOrContainedBy(x.Inet, cidr))
                            .ToArray();
@@ -751,11 +751,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void ValueTuple_cidr_ContainsOrContainedBy_inet()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                IPAddress inet = IPAddress.Any;
+                var inet = IPAddress.Any;
 
-                NetTestEntity[] _ =
+                var _ =
                     context.NetTestEntities
                            .Where(x => EF.Functions.ContainsOrContainedBy(x.Cidr, inet))
                            .ToArray();
@@ -770,11 +770,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void ValueTuple_cidr_ContainsOrContainedBy_cidr()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
                 (IPAddress Address, int Subnet) cidr = (IPAddress.Any, default);
 
-                NetTestEntity[] _ =
+                var _ =
                     context.NetTestEntities
                            .Where(x => EF.Functions.ContainsOrContainedBy(x.Cidr, cidr))
                            .ToArray();
@@ -793,9 +793,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void IPAddress_inet_BitwiseNot()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                IPAddress[] _ =
+                var _ =
                     context.NetTestEntities
                            .Select(x => EF.Functions.BitwiseNot(x.Inet))
                            .ToArray();
@@ -810,9 +810,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void ValueTuple_cidr_BitwiseNot()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                (IPAddress Address, int Subnet)[] _ =
+                var _ =
                     context.NetTestEntities
                            .Select(x => EF.Functions.BitwiseNot(x.Cidr))
                            .ToArray();
@@ -827,9 +827,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void PhysicalAddress_macaddr_BitwiseNot()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                PhysicalAddress[] _ =
+                var _ =
                     context.NetTestEntities
                            .Select(x => EF.Functions.BitwiseNot(x.Macaddr))
                            .ToArray();
@@ -844,9 +844,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void PhysicalAddress_macaddr8_BitwiseNot()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                PhysicalAddress[] _ =
+                var _ =
                     context.NetTestEntities
                            .Select(x => EF.Functions.BitwiseNot(x.Macaddr8))
                            .ToArray();
@@ -861,11 +861,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void IPAddress_inet_BitwiseAnd_inet()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                IPAddress inet = IPAddress.Any;
+                var inet = IPAddress.Any;
 
-                IPAddress[] _ =
+                var _ =
                     context.NetTestEntities
                            .Select(x => EF.Functions.BitwiseAnd(x.Inet, inet))
                            .ToArray();
@@ -880,11 +880,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void ValueTuple_cidr_BitwiseAnd_cidr()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
                 (IPAddress Address, int Subnet) cidr = (IPAddress.Any, default);
 
-                (IPAddress Address, int Subnet)[] _ =
+                var _ =
                     context.NetTestEntities
                            .Select(x => EF.Functions.BitwiseAnd(x.Cidr, cidr))
                            .ToArray();
@@ -899,11 +899,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void PhysicalAddress_macaddr_BitwiseAnd_macaddr()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                PhysicalAddress macaddr = new PhysicalAddress(new byte[6]);
+                var macaddr = new PhysicalAddress(new byte[6]);
 
-                PhysicalAddress[] _ =
+                var _ =
                     context.NetTestEntities
                            .Select(x => EF.Functions.BitwiseAnd(x.Macaddr, macaddr))
                            .ToArray();
@@ -918,9 +918,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void PhysicalAddress_macaddr8_BitwiseAnd_macaddr8()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                PhysicalAddress[] _ =
+                var _ =
                     context.NetTestEntities
                            .Select(x => EF.Functions.BitwiseAnd(x.Macaddr8, x.Macaddr8))
                            .ToArray();
@@ -935,11 +935,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void IPAddress_inet_BitwiseOr_inet()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                IPAddress inet = IPAddress.Any;
+                var inet = IPAddress.Any;
 
-                IPAddress[] _ =
+                var _ =
                     context.NetTestEntities
                            .Select(x => EF.Functions.BitwiseOr(x.Inet, inet))
                            .ToArray();
@@ -954,11 +954,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void ValueTuple_cidr_BitwiseOr_cidr()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
                 (IPAddress Address, int Subnet) cidr = (IPAddress.Any, default);
 
-                (IPAddress Address, int Subnet)[] _ =
+                var _ =
                     context.NetTestEntities
                            .Select(x => EF.Functions.BitwiseOr(x.Cidr, cidr))
                            .ToArray();
@@ -973,11 +973,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void PhysicalAddress_macaddr_BitwiseOr_macaddr()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                PhysicalAddress macaddr = new PhysicalAddress(new byte[6]);
+                var macaddr = new PhysicalAddress(new byte[6]);
 
-                PhysicalAddress[] _ =
+                var _ =
                     context.NetTestEntities
                            .Select(x => EF.Functions.BitwiseOr(x.Macaddr, macaddr))
                            .ToArray();
@@ -992,9 +992,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void PhysicalAddress_macaddr8_BitwiseOr_macaddr8()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                PhysicalAddress[] _ =
+                var _ =
                     context.NetTestEntities
                            .Select(x => EF.Functions.BitwiseOr(x.Macaddr8, x.Macaddr8))
                            .ToArray();
@@ -1013,9 +1013,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void IPAddress_inet_Add_int()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                IPAddress[] _ =
+                var _ =
                     context.NetTestEntities
                            .Select(x => EF.Functions.Add(x.Inet, 1))
                            .ToArray();
@@ -1030,9 +1030,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void ValueTuple_cidr_Add_int()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                (IPAddress Address, int Subnet)[] _ =
+                var _ =
                     context.NetTestEntities
                            .Select(x => EF.Functions.Add(x.Cidr, 1))
                            .ToArray();
@@ -1047,9 +1047,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void IPAddress_inet_Subtract_int()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                IPAddress[] _ =
+                var _ =
                     context.NetTestEntities
                            .Select(x => EF.Functions.Subtract(x.Inet, 1))
                            .ToArray();
@@ -1064,9 +1064,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void ValueTuple_cidr_Subtract_int()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                (IPAddress Address, int Subnet)[] _ =
+                var _ =
                     context.NetTestEntities
                            .Select(x => EF.Functions.Subtract(x.Cidr, 1))
                            .ToArray();
@@ -1081,11 +1081,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void IPAddress_inet_Subtract_inet()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                IPAddress inet = IPAddress.Any;
+                var inet = IPAddress.Any;
 
-                IPAddress[] _ =
+                var _ =
                     context.NetTestEntities
                            .Select(x => EF.Functions.Subtract(x.Inet, inet))
                            .ToArray();
@@ -1100,11 +1100,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void ValueTuple_cidr_Subtract_cidr()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
                 (IPAddress Address, int Subnet) cidr = (IPAddress.Any, default);
 
-                (IPAddress Address, int Subnet)[] _ =
+                var _ =
                     context.NetTestEntities
                            .Select(x => EF.Functions.Subtract(x.Cidr, cidr))
                            .ToArray();
@@ -1123,9 +1123,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void IPAddress_inet_Abbreviate()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                string[] _ =
+                var _ =
                     context.NetTestEntities
                            .Select(x => EF.Functions.Abbreviate(x.Inet))
                            .ToArray();
@@ -1138,11 +1138,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         /// Tests translation for <see cref="NpgsqlNetworkExtensions.Abbreviate(DbFunctions,ValueTuple{IPAddress,int})"/>.
         /// </summary>
         [Fact]
-        public void ValueTuple_cidr_Abbrebiate()
+        public void ValueTuple_cidr_Abbreviate()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                string[] _ =
+                var _ =
                     context.NetTestEntities
                            .Select(x => EF.Functions.Abbreviate(x.Cidr))
                            .ToArray();
@@ -1157,9 +1157,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void IPAddress_inet_Broadcast()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                IPAddress[] _ =
+                var _ =
                     context.NetTestEntities
                            .Select(x => EF.Functions.Broadcast(x.Inet))
                            .ToArray();
@@ -1174,9 +1174,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void ValueTuple_cidr_Broadcast()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                IPAddress[] _ =
+                var _ =
                     context.NetTestEntities
                            .Select(x => EF.Functions.Broadcast(x.Cidr))
                            .ToArray();
@@ -1191,9 +1191,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void IPAddress_inet_Family()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                int[] _ =
+                var _ =
                     context.NetTestEntities
                            .Select(x => EF.Functions.Family(x.Inet))
                            .ToArray();
@@ -1208,9 +1208,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void ValueTuple_cidr_Family()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                int[] _ =
+                var _ =
                     context.NetTestEntities
                            .Select(x => EF.Functions.Family(x.Cidr))
                            .ToArray();
@@ -1225,9 +1225,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void IPAddress_inet_Host()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                string[] _ =
+                var _ =
                     context.NetTestEntities
                            .Select(x => EF.Functions.Host(x.Inet))
                            .ToArray();
@@ -1242,9 +1242,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void ValueTuple_cidr_Host()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                string[] _ =
+                var _ =
                     context.NetTestEntities
                            .Select(x => EF.Functions.Host(x.Cidr))
                            .ToArray();
@@ -1259,9 +1259,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void IPAddress_inet_HostMask()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                IPAddress[] _ =
+                var _ =
                     context.NetTestEntities
                            .Select(x => EF.Functions.HostMask(x.Inet))
                            .ToArray();
@@ -1276,9 +1276,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void ValueTuple_cidr_HostMask()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                IPAddress[] _ =
+                var _ =
                     context.NetTestEntities
                            .Select(x => EF.Functions.HostMask(x.Cidr))
                            .ToArray();
@@ -1293,9 +1293,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void IPAddress_inet_MaskLength()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                int[] _ =
+                var _ =
                     context.NetTestEntities
                            .Select(x => EF.Functions.MaskLength(x.Inet))
                            .ToArray();
@@ -1310,9 +1310,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void ValueTuple_cidr_MaskLength()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                int[] _ =
+                var _ =
                     context.NetTestEntities
                            .Select(x => EF.Functions.MaskLength(x.Cidr))
                            .ToArray();
@@ -1327,9 +1327,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void IPAddress_inet_Netmask()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                IPAddress[] _ =
+                var _ =
                     context.NetTestEntities
                            .Select(x => EF.Functions.Netmask(x.Inet))
                            .ToArray();
@@ -1344,9 +1344,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void ValueTuple_cidr_Netmask()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                IPAddress[] _ =
+                var _ =
                     context.NetTestEntities
                            .Select(x => EF.Functions.Netmask(x.Cidr))
                            .ToArray();
@@ -1361,9 +1361,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void IPAddress_inet_Network()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                (IPAddress Address, int Subnet)[] _ =
+                var _ =
                     context.NetTestEntities
                            .Select(x => EF.Functions.Network(x.Inet))
                            .ToArray();
@@ -1378,9 +1378,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void ValueTuple_cidr_Network()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                (IPAddress Address, int Subnet)[] _ =
+                var _ =
                     context.NetTestEntities
                            .Select(x => EF.Functions.Network(x.Cidr))
                            .ToArray();
@@ -1395,9 +1395,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void IPAddress_inet_SetMaskLength()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                IPAddress[] _ =
+                var _ =
                     context.NetTestEntities
                            .Select(x => EF.Functions.SetMaskLength(x.Inet, default))
                            .ToArray();
@@ -1412,9 +1412,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void ValueTuple_cidr_SetMaskLength()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                (IPAddress Address, int Subnet)[] _ =
+                var _ =
                     context.NetTestEntities
                            .Select(x => EF.Functions.SetMaskLength(x.Cidr, default))
                            .ToArray();
@@ -1429,9 +1429,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void IPAddress_inet_Text()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                string[] _ =
+                var _ =
                     context.NetTestEntities
                            .Select(x => EF.Functions.Text(x.Inet))
                            .ToArray();
@@ -1446,9 +1446,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void ValueTuple_cidr_Text()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                string[] _ =
+                var _ =
                     context.NetTestEntities
                            .Select(x => EF.Functions.Text(x.Cidr))
                            .ToArray();
@@ -1463,11 +1463,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void IPAddress_inet_SameFamily()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                IPAddress inet = IPAddress.Any;
+                var inet = IPAddress.Any;
 
-                bool[] _ =
+                var _ =
                     context.NetTestEntities
                            .Select(x => EF.Functions.SameFamily(x.Inet, inet))
                            .ToArray();
@@ -1482,11 +1482,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void ValueTuple_cidr_SameFamily()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
                 (IPAddress Address, int Subnet) cidr = (IPAddress.Any, default);
 
-                bool[] _ =
+                var _ =
                     context.NetTestEntities
                            .Select(x => EF.Functions.SameFamily(x.Cidr, cidr))
                            .ToArray();
@@ -1501,11 +1501,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void IPAddress_inet_Merge()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                IPAddress inet = IPAddress.Any;
+                var inet = IPAddress.Any;
 
-                (IPAddress Address, int Subnet)[] _ =
+                var _ =
                     context.NetTestEntities
                            .Select(x => EF.Functions.Merge(x.Inet, inet))
                            .ToArray();
@@ -1520,11 +1520,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void ValueTuple_cidr_Merge()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
                 (IPAddress Address, int Subnet) cidr = (IPAddress.Any, default);
 
-                (IPAddress Address, int Subnet)[] _ =
+                var _ =
                     context.NetTestEntities
                            .Select(x => EF.Functions.Merge(x.Cidr, cidr))
                            .ToArray();
@@ -1539,7 +1539,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void PhysicalAddress_macaddr_Truncate()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
                 var _ =
                     context.NetTestEntities
@@ -1556,7 +1556,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void PhysicalAddress_macaddr8_Truncate()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
                 var _ =
                     context.NetTestEntities
@@ -1573,9 +1573,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void PhysicalAddress_macaddr8_Set7BitMac8()
         {
-            using (NetContext context = Fixture.CreateContext())
+            using (var context = Fixture.CreateContext())
             {
-                PhysicalAddress[] _ =
+                var _ =
                     context.NetTestEntities
                            .Select(x => EF.Functions.Set7BitMac8(x.Macaddr8))
                            .ToArray();
@@ -1596,12 +1596,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             /// <summary>
             /// The <see cref="NpgsqlTestStore"/> used for testing.
             /// </summary>
-            private readonly NpgsqlTestStore _testStore;
+            readonly NpgsqlTestStore _testStore;
 
             /// <summary>
             /// The <see cref="DbContextOptions"/> used for testing.
             /// </summary>
-            private readonly DbContextOptions _options;
+            readonly DbContextOptions _options;
 
             /// <summary>
             /// The logger factory used for testing.
@@ -1628,7 +1628,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                                 .BuildServiceProvider())
                         .Options;
 
-                using (NetContext context = CreateContext())
+                using (var context = CreateContext())
                 {
                     context.Database.EnsureCreated();
 
@@ -1666,6 +1666,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         /// </summary>
         public class NetTestEntity
         {
+            // ReSharper disable once UnusedMember.Global
             /// <summary>
             /// The primary key.
             /// </summary>
@@ -1731,7 +1732,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         /// Asserts that the SQL fragment appears in the logs.
         /// </summary>
         /// <param name="sql">The SQL statement or fragment to search for in the logs.</param>
-        public void AssertContainsSql(string sql) => Assert.Contains(sql, Fixture.TestSqlLoggerFactory.Sql);
+        void AssertContainsSql(string sql) => Assert.Contains(sql, Fixture.TestSqlLoggerFactory.Sql);
 
         #endregion
     }

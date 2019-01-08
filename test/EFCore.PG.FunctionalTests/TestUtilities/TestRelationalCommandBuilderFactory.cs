@@ -12,8 +12,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
 {
     public class TestRelationalCommandBuilderFactory : IRelationalCommandBuilderFactory
     {
-        private readonly IDiagnosticsLogger<DbLoggerCategory.Database.Command> _logger;
-        private readonly IRelationalTypeMappingSource _typeMappingSource;
+        readonly IDiagnosticsLogger<DbLoggerCategory.Database.Command> _logger;
+        readonly IRelationalTypeMappingSource _typeMappingSource;
 
         public TestRelationalCommandBuilderFactory(
             IDiagnosticsLogger<DbLoggerCategory.Database.Command> logger,
@@ -26,9 +26,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
         public virtual IRelationalCommandBuilder Create()
             => new TestRelationalCommandBuilder(_logger, _typeMappingSource);
 
-        private class TestRelationalCommandBuilder : IRelationalCommandBuilder
+        class TestRelationalCommandBuilder : IRelationalCommandBuilder
         {
-            private readonly IDiagnosticsLogger<DbLoggerCategory.Database.Command> _logger;
+            readonly IDiagnosticsLogger<DbLoggerCategory.Database.Command> _logger;
 
             public TestRelationalCommandBuilder(
                 IDiagnosticsLogger<DbLoggerCategory.Database.Command> logger,
@@ -49,9 +49,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
                     ParameterBuilder.Parameters);
         }
 
-        private class TestRelationalCommand : IRelationalCommand
+        class TestRelationalCommand : IRelationalCommand
         {
-            private readonly RelationalCommand _realRelationalCommand;
+            readonly RelationalCommand _realRelationalCommand;
 
             public TestRelationalCommand(
                 IDiagnosticsLogger<DbLoggerCategory.Database.Command> logger,
@@ -149,7 +149,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
                 return result;
             }
 
-            private string PreExecution(IRelationalConnection connection)
+            string PreExecution(IRelationalConnection connection)
             {
                 string errorNumber = null;
                 var testConnection = (TestNpgsqlConnection)connection;

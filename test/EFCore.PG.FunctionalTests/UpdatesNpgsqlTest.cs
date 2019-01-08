@@ -6,13 +6,13 @@ using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
+    // ReSharper disable once UnusedMember.Global
     public class UpdatesNpgsqlTest : UpdatesRelationalTestBase<UpdatesNpgsqlFixture>
     {
+        // ReSharper disable once UnusedParameter.Local
         public UpdatesNpgsqlTest(UpdatesNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
-        {
-            Fixture.TestSqlLoggerFactory.Clear();
-        }
+            => Fixture.TestSqlLoggerFactory.Clear();
 
         public override void Identifiers_are_generated_correctly()
         {

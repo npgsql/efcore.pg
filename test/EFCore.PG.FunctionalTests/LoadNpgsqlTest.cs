@@ -7,19 +7,19 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
+    // ReSharper disable once UnusedMember.Global
     public class LoadNpgsqlTest : LoadTestBase<LoadNpgsqlTest.LoadNpgsqlFixture>
     {
         public LoadNpgsqlTest(LoadNpgsqlFixture fixture)
             : base(fixture)
-        {
-            fixture.TestSqlLoggerFactory.Clear();
-        }
+            => Fixture.TestSqlLoggerFactory.Clear();
 
         protected override void ClearLog() => Fixture.TestSqlLoggerFactory.Clear();
 
         protected override void RecordLog() => Sql = Fixture.TestSqlLoggerFactory.Sql;
 
-        private string Sql { get; set; }
+        // ReSharper disable once UnusedAutoPropertyAccessor.Local
+        string Sql { get; set; }
 
         public class LoadNpgsqlFixture : LoadFixtureBase
         {

@@ -13,15 +13,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         // See aspnet/Data#135
         [Fact]
         public async Task Can_use_an_existing_closed_connection()
-        {
-            await Can_use_an_existing_closed_connection_test(openConnection: false);
-        }
+            => await Can_use_an_existing_closed_connection_test(openConnection: false);
 
         [Fact]
         public async Task Can_use_an_existing_open_connection()
-        {
-            await Can_use_an_existing_closed_connection_test(openConnection: true);
-        }
+            => await Can_use_an_existing_closed_connection_test(openConnection: true);
 
         static async Task Can_use_an_existing_closed_connection_test(bool openConnection)
         {
@@ -91,6 +87,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 _connection = connection;
             }
 
+            // ReSharper disable once UnusedAutoPropertyAccessor.Local
             public DbSet<Customer> Customers { get; set; }
 
             protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -101,15 +98,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             protected override void OnModelCreating(ModelBuilder modelBuilder)
                 => modelBuilder.Entity<Customer>(b =>
                 {
-                    b.HasKey(c => c.CustomerID);
+                    b.HasKey(c => c.CustomerId);
                     b.ToTable("Customers");
                 });
         }
 
+        // ReSharper disable once ClassNeverInstantiated.Local
         class Customer
         {
-            public string CustomerID { get; set; }
+            // ReSharper disable once UnusedAutoPropertyAccessor.Local
+            public string CustomerId { get; set; }
+            // ReSharper disable once UnusedMember.Local
             public string CompanyName { get; set; }
+            // ReSharper disable once UnusedMember.Local
             public string Fax { get; set; }
         }
     }

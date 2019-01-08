@@ -5,16 +5,12 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
+    // ReSharper disable once UnusedMember.Global
     public class NullSemanticsQueryNpgsqlTest : NullSemanticsQueryTestBase<NullSemanticsQueryNpgsqlFixture>
     {
         public NullSemanticsQueryNpgsqlTest(NullSemanticsQueryNpgsqlFixture fixture)
             : base(fixture)
-        {
-            Fixture.TestSqlLoggerFactory.Clear();
-        }
-
-        private void AssertSql(params string[] expected)
-            => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
+            => Fixture.TestSqlLoggerFactory.Clear();
 
         protected override void ClearLog()
             => Fixture.TestSqlLoggerFactory.Clear();

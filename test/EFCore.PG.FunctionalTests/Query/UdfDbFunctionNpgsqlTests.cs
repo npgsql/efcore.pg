@@ -11,12 +11,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     public class UdfDbFunctionNpgsqlTests : UdfDbFunctionTestBase<UdfDbFunctionNpgsqlTests.Npgsql>
     {
+        // ReSharper disable once UnusedParameter.Local
         public UdfDbFunctionNpgsqlTests(Npgsql fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
-        {
-            fixture.TestSqlLoggerFactory.Clear();
-            //fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
-        }
+            => Fixture.TestSqlLoggerFactory.Clear();
 
         #region Scalar Tests
 
@@ -52,9 +50,7 @@ LIMIT 2");
 
         [Fact]
         public override void Scalar_Function_ClientEval_Method_As_Translateable_Method_Parameter_Static()
-        {
-            base.Scalar_Function_ClientEval_Method_As_Translateable_Method_Parameter_Static();
-        }
+            => base.Scalar_Function_ClientEval_Method_As_Translateable_Method_Parameter_Static();
 
         [Fact]
         public override void Scalar_Function_Constant_Parameter_Static()
@@ -765,6 +761,7 @@ LIMIT 2");
 
         #endregion
 
+        // ReSharper disable once UnusedMember.Global
         protected class UDFNpgsqlContext : UDFSqlContext
         {
             public UDFNpgsqlContext(DbContextOptions options) : base(options) {}
@@ -775,11 +772,13 @@ LIMIT 2");
 
                 var methodInfo = typeof(UDFSqlContext).GetMethod(nameof(MyCustomLengthStatic));
 
+                // ReSharper disable once AssignNullToNotNullAttribute
                 modelBuilder.HasDbFunction(methodInfo)
                     .HasTranslation(args => new SqlFunctionExpression("length", methodInfo.ReturnType, args));
 
                 var methodInfo2 = typeof(UDFSqlContext).GetMethod(nameof(MyCustomLengthInstance));
 
+                // ReSharper disable once AssignNullToNotNullAttribute
                 modelBuilder.HasDbFunction(methodInfo2)
                     .HasTranslation(args => new SqlFunctionExpression("length", methodInfo2.ReturnType, args));
             }
@@ -797,6 +796,7 @@ LIMIT 2");
 
             protected override void OnModelCreating(ModelBuilder modelBuilder)
             {
+                // ReSharper disable AssignNullToNotNullAttribute
                 base.OnModelCreating(modelBuilder);
 
                 //Static
@@ -828,6 +828,7 @@ LIMIT 2");
 
                 modelBuilder.HasDbFunction(methodInfo2)
                     .HasTranslation(args => new SqlFunctionExpression("length", methodInfo2.ReturnType, args));
+                // ReSharper restore AssignNullToNotNullAttribute
             }
         }
 
@@ -912,7 +913,7 @@ LIMIT 2");
             }
         }
 
-        public void AssertSql(params string[] expected)
+        void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
     }
 }

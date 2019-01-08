@@ -13,12 +13,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
     public class ConvertToProviderTypesNpgsqlTest : ConvertToProviderTypesTestBase<ConvertToProviderTypesNpgsqlTest.ConvertToProviderTypesNpgsqlFixture>
     {
+        // ReSharper disable once UnusedParameter.Local
         public ConvertToProviderTypesNpgsqlTest(ConvertToProviderTypesNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
-        {
-            fixture.TestSqlLoggerFactory.Clear();
-            //fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
-        }
+            => Fixture.TestSqlLoggerFactory.Clear();
 
         [Fact]
         public override void Can_insert_and_read_with_max_length_set()
