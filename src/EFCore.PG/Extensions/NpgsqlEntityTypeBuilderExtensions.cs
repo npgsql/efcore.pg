@@ -109,6 +109,43 @@ namespace Microsoft.EntityFrameworkCore
 
         #endregion Comment
 
+        #region Unlogged Table
+
+        /// <summary>
+        /// Configures the entity to use an unlogged table when targeting Npgsql.
+        /// </summary>
+        /// <param name="entityTypeBuilder">The builder for the entity type being configured.</param>
+        /// <param name="unlogged">True to configure the entity to use an unlogged table; otherwise, false.</param>
+        /// <returns>
+        /// The same builder instance so that multiple calls can be chained.
+        /// </returns>
+        public static EntityTypeBuilder ForNpgsqlHasUnloggedTable(
+            [NotNull] this EntityTypeBuilder entityTypeBuilder,
+            bool unlogged = true)
+        {
+            Check.NotNull(entityTypeBuilder, nameof(entityTypeBuilder));
+
+            entityTypeBuilder.Metadata.Npgsql().UnloggedTable = unlogged;
+
+            return entityTypeBuilder;
+        }
+
+        /// <summary>
+        /// Configures the entity to use an unlogged table when targeting Npgsql.
+        /// </summary>
+        /// <param name="entityTypeBuilder">The builder for the entity type being configured.</param>
+        /// <param name="unlogged">True to configure the entity to use an unlogged table; otherwise, false.</param>
+        /// <returns>
+        /// The same builder instance so that multiple calls can be chained.
+        /// </returns>
+        public static EntityTypeBuilder<TEntity> ForNpgsqlHasUnloggedTable<TEntity>(
+            [NotNull] this EntityTypeBuilder<TEntity> entityTypeBuilder,
+            bool unlogged = true)
+            where TEntity : class
+            => (EntityTypeBuilder<TEntity>)ForNpgsqlHasUnloggedTable((EntityTypeBuilder)entityTypeBuilder, unlogged);
+
+        #endregion
+
         #region CockroachDB Interleave-in-parent
 
         public static EntityTypeBuilder ForCockroachDbInterleaveInParent(

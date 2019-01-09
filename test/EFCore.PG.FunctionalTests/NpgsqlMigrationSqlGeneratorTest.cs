@@ -1100,6 +1100,97 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
         #endregion
 
+        #region Unlogged Table
+
+        [Fact]
+        public void CreateTableOperation_with_unlogged()
+        {
+            Generate(
+                new CreateTableOperation
+                {
+                    Name = "People",
+                    Schema = "dbo",
+                    [NpgsqlAnnotationNames.UnloggedTable] = true
+                });
+
+            Assert.Equal("CREATE UNLOGGED TABLE dbo.\"People\" (" + EOL + EOL + ");" + EOL, Sql);
+        }
+
+        [Fact]
+        public void AlterTable_set_unlogged()
+        {
+            Generate(
+                new AlterTableOperation
+                {
+                    Name = "People",
+                    Schema = "dbo",
+                    OldTable = new Annotatable(),
+                    [NpgsqlAnnotationNames.UnloggedTable] = true
+                });
+
+            Assert.Equal("ALTER TABLE dbo.\"People\" SET UNLOGGED;" + EOL, Sql);
+        }
+
+        [Fact]
+        public void AlterTable_set_logged()
+        {
+            Generate(
+                new AlterTableOperation
+                {
+                    Name = "People",
+                    Schema = "dbo",
+                    OldTable = new Annotatable { [NpgsqlAnnotationNames.UnloggedTable] = true },
+                    [NpgsqlAnnotationNames.UnloggedTable] = false
+                });
+
+            Assert.Equal("ALTER TABLE dbo.\"People\" SET LOGGED;" + EOL, Sql);
+        }
+
+        [Fact]
+        public void AlterTable_remove_unlogged()
+        {
+            Generate(
+                new AlterTableOperation
+                {
+                    Name = "People",
+                    Schema = "dbo",
+                    OldTable = new Annotatable { [NpgsqlAnnotationNames.UnloggedTable] = true }
+                });
+
+            Assert.Equal("ALTER TABLE dbo.\"People\" SET LOGGED;" + EOL, Sql);
+        }
+
+        [Fact]
+        public void AlterTable_remove_not_unlogged_noop()
+        {
+            Generate(
+                new AlterTableOperation
+                {
+                    Name = "People",
+                    Schema = "dbo",
+                    OldTable = new Annotatable { [NpgsqlAnnotationNames.UnloggedTable] = false }
+                });
+
+            Assert.Equal("", Sql);
+        }
+
+        [Fact]
+        public void AlterTable_set_not_unlogged_noop()
+        {
+            Generate(
+                new AlterTableOperation
+                {
+                    Name = "People",
+                    Schema = "dbo",
+                    [NpgsqlAnnotationNames.UnloggedTable] = false
+                });
+
+            Assert.Equal("", Sql);
+        }
+
+
+        #endregion
+
         #region CockroachDB interleave-in-parent
 
         [Fact]

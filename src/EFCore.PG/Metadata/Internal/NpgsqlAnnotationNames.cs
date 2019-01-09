@@ -19,6 +19,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
         public const string Tablespace = Prefix + "Tablespace";
         public const string StorageParameterPrefix = Prefix + "StorageParameter:";
         public const string Comment = Prefix + "Comment";
+        public const string UnloggedTable = Prefix + "UnloggedTable";
 
         // Database model annotations
 

@@ -82,7 +82,55 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 operation = filteredOperation;
             }
 
-            base.Generate(operation, model, builder, false);
+            #region Customized base call
+
+            // TODO: Could EF Core make this easier to override?
+
+            builder.Append("CREATE ");
+
+            if (operation[NpgsqlAnnotationNames.UnloggedTable] is bool unlogged && unlogged)
+                builder.Append("UNLOGGED ");
+
+            builder
+                .Append("TABLE ")
+                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name, operation.Schema))
+                .AppendLine(" (");
+
+            using (builder.Indent())
+            {
+                for (var i = 0; i < operation.Columns.Count; i++)
+                {
+                    var column = operation.Columns[i];
+                    ColumnDefinition(column, model, builder);
+
+                    if (i != operation.Columns.Count - 1)
+                        builder.AppendLine(",");
+                }
+
+                if (operation.PrimaryKey != null)
+                {
+                    builder.AppendLine(",");
+                    PrimaryKeyConstraint(operation.PrimaryKey, model, builder);
+                }
+
+                foreach (var uniqueConstraint in operation.UniqueConstraints)
+                {
+                    builder.AppendLine(",");
+                    UniqueConstraint(uniqueConstraint, model, builder);
+                }
+
+                foreach (var foreignKey in operation.ForeignKeys)
+                {
+                    builder.AppendLine(",");
+                    ForeignKeyConstraint(foreignKey, model, builder);
+                }
+
+                builder.AppendLine();
+            }
+
+            builder.Append(")");
+
+            #endregion
 
             // CockroachDB "interleave in parent" (https://www.cockroachlabs.com/docs/stable/interleave-in-parent.html)
             if (operation[CockroachDbAnnotationNames.InterleaveInParent] is string)
@@ -212,6 +260,22 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                     .Append(stringTypeMapping.GenerateSqlLiteral(newComment));
 
                 builder.AppendLine(';');
+                madeChanges = true;
+            }
+
+            // Unlogged table (null is equivalent to false)
+            var oldUnlogged = operation.OldTable[NpgsqlAnnotationNames.UnloggedTable] is bool ou && ou;
+            var newUnlogged = operation[NpgsqlAnnotationNames.UnloggedTable] is bool nu && nu;
+
+            if (oldUnlogged != newUnlogged)
+            {
+                builder
+                    .Append("ALTER TABLE ")
+                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name, operation.Schema))
+                    .Append(" SET ")
+                    .Append(newUnlogged ? "UNLOGGED" : "LOGGED")
+                    .AppendLine(";");
+
                 madeChanges = true;
             }
 
