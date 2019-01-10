@@ -123,7 +123,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
                 return new MethodCallCodeFragment(nameof(NpgsqlEntityTypeBuilderExtensions.ForNpgsqlHasComment), annotation.Value);
 
             if (annotation.Name == NpgsqlAnnotationNames.UnloggedTable)
-                return new MethodCallCodeFragment(nameof(NpgsqlEntityTypeBuilderExtensions.ForNpgsqlHasUnloggedTable), annotation.Value);
+                return new MethodCallCodeFragment(nameof(NpgsqlEntityTypeBuilderExtensions.ForNpgsqlIsUnlogged), annotation.Value);
 
             return null;
         }
