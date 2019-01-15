@@ -109,6 +109,51 @@ namespace Microsoft.EntityFrameworkCore
 
         #endregion Comment
 
+        #region Unlogged Table
+
+        // ReSharper disable once CommentTypo
+        /// <summary>
+        /// Configures the entity to use an unlogged table when targeting Npgsql.
+        /// </summary>
+        /// <param name="entityTypeBuilder">The builder for the entity type being configured.</param>
+        /// <param name="isUnlogged">True to configure the entity to use an unlogged table; otherwise, false.</param>
+        /// <returns>
+        /// The same builder instance so that multiple calls can be chained.
+        /// </returns>
+        /// <remarks>
+        /// See: https://www.postgresql.org/docs/current/sql-createtable.html#SQL-CREATETABLE-UNLOGGED
+        /// </remarks>
+        public static EntityTypeBuilder ForNpgsqlIsUnlogged(
+            [NotNull] this EntityTypeBuilder entityTypeBuilder,
+            bool isUnlogged = true)
+        {
+            Check.NotNull(entityTypeBuilder, nameof(entityTypeBuilder));
+
+            entityTypeBuilder.Metadata.Npgsql().IsUnlogged = isUnlogged;
+
+            return entityTypeBuilder;
+        }
+
+        // ReSharper disable once CommentTypo
+        /// <summary>
+        /// Configures the entity to use an unlogged table when targeting Npgsql.
+        /// </summary>
+        /// <param name="entityTypeBuilder">The builder for the entity type being configured.</param>
+        /// <param name="isUnlogged">True to configure the entity to use an unlogged table; otherwise, false.</param>
+        /// <returns>
+        /// The same builder instance so that multiple calls can be chained.
+        /// </returns>
+        /// <remarks>
+        /// See: https://www.postgresql.org/docs/current/sql-createtable.html#SQL-CREATETABLE-UNLOGGED
+        /// </remarks>
+        public static EntityTypeBuilder<TEntity> ForNpgsqlIsUnlogged<TEntity>(
+            [NotNull] this EntityTypeBuilder<TEntity> entityTypeBuilder,
+            bool isUnlogged = true)
+            where TEntity : class
+            => (EntityTypeBuilder<TEntity>)ForNpgsqlIsUnlogged((EntityTypeBuilder)entityTypeBuilder, isUnlogged);
+
+        #endregion
+
         #region CockroachDB Interleave-in-parent
 
         public static EntityTypeBuilder ForCockroachDbInterleaveInParent(

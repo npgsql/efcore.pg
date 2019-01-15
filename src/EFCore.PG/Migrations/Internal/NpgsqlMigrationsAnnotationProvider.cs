@@ -20,6 +20,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal
         {
             if (entityType.Npgsql().Comment != null)
                 yield return new Annotation(NpgsqlAnnotationNames.Comment, entityType.Npgsql().Comment);
+            if (entityType.Npgsql().IsUnlogged)
+                yield return new Annotation(NpgsqlAnnotationNames.UnloggedTable, entityType.Npgsql().IsUnlogged);
             if (entityType[CockroachDbAnnotationNames.InterleaveInParent] != null)
                 yield return new Annotation(CockroachDbAnnotationNames.InterleaveInParent, entityType[CockroachDbAnnotationNames.InterleaveInParent]);
             foreach (var storageParamAnnotation in entityType.GetAnnotations()

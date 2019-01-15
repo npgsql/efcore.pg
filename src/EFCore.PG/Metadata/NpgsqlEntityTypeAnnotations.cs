@@ -42,6 +42,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
                 NpgsqlAnnotationNames.Comment,
                 Check.NullButNotEmpty(value, nameof(value)));
 
+        public virtual bool IsUnlogged
+        {
+            get => Annotations.Metadata[NpgsqlAnnotationNames.UnloggedTable] is bool unlogged && unlogged;
+            set => SetIsUnlogged(value);
+        }
+
+        protected virtual bool SetIsUnlogged(bool value)
+            => value
+                ? Annotations.SetAnnotation(NpgsqlAnnotationNames.UnloggedTable, true)
+                : Annotations.RemoveAnnotation(NpgsqlAnnotationNames.UnloggedTable);
+
         public virtual CockroachDbInterleaveInParent CockroachDbInterleaveInParent
             => new CockroachDbInterleaveInParent(EntityType);
     }
