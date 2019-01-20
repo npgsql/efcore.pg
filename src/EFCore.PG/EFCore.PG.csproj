@@ -11,7 +11,7 @@
     <Authors>Shay Rojansky;Austin Drenski;Yoh Deadfall;</Authors>
     <Company>Npgsql</Company>
     <PackageTags>npgsql;postgresql;postgres;Entity Framework Core;entity-framework-core;ef;efcore;orm;sql</PackageTags>
-    <Copyright>Copyright 2017 © The Npgsql Development Team</Copyright>
+    <Copyright>Copyright 2019 © The Npgsql Development Team</Copyright>
     <PackageIconUrl>http://www.npgsql.org/img/postgresql.gif</PackageIconUrl>
     <PackageLicenseExpression>PostgreSQL</PackageLicenseExpression>
     <RepositoryType>git</RepositoryType>
