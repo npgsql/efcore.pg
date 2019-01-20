@@ -1,10 +1,9 @@
-﻿Microsoft Visual Studio Solution File, Format Version 12.00
+Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.2026
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4A5A60DD-41B6-40BF-B677-227A921ECCC8}"
 	ProjectSection(SolutionItems) = preProject
-		CommonAssemblyInfo.cs = CommonAssemblyInfo.cs
 		Npgsql.snk = Npgsql.snk
 	EndProjectSection
 EndProject
@@ -18,11 +17,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.PG.Tests", "test\EFC
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.PG.FunctionalTests", "test\EFCore.PG.FunctionalTests\EFCore.PG.FunctionalTests.csproj", "{05A7D0B7-4AE1-4BC8-A1BE-2389F1593B2D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EFCore.PG.NTS", "src\EFCore.PG.NTS\EFCore.PG.NTS.csproj", "{78E89DB4-233B-4F93-A405-A1849D8B1A85}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.PG.NTS", "src\EFCore.PG.NTS\EFCore.PG.NTS.csproj", "{78E89DB4-233B-4F93-A405-A1849D8B1A85}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EFCore.PG.Plugins.FunctionalTests", "test\EFCore.PG.Plugins.FunctionalTests\EFCore.PG.Plugins.FunctionalTests.csproj", "{B78A7825-BE72-4509-B0AD-01EEC67A9624}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.PG.Plugins.FunctionalTests", "test\EFCore.PG.Plugins.FunctionalTests\EFCore.PG.Plugins.FunctionalTests.csproj", "{B78A7825-BE72-4509-B0AD-01EEC67A9624}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EFCore.PG.NodaTime", "src\EFCore.PG.NodaTime\EFCore.PG.NodaTime.csproj", "{77F0608F-6D0C-481C-9108-D5176E2EAD69}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.PG.NodaTime", "src\EFCore.PG.NodaTime\EFCore.PG.NodaTime.csproj", "{77F0608F-6D0C-481C-9108-D5176E2EAD69}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
