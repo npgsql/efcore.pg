@@ -7,7 +7,7 @@ PostgreSQL and the Npgsql provider support the standard index modeling described
 Since version 11, PostgreSQL supports [covering indexes](https://paquier.xyz/postgresql-2/postgres-11-covering-indexes), which allow you to include "non-key" columns in your indexes. This allows you to perform index-only scans and can provide a significant performance boost:
 
 ```c#
-protected override void OnConfiguring(DbContextOptionsBuilder builder)
+protected override void OnModelCreating(ModelBuilder modelBuilder)
     => modelBuilder.Entity<Blog>()
                    .ForNpgsqlHasIndex(b => b.Id)
                    .ForNpgsqlInclude(b => b.Name);
