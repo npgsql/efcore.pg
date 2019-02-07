@@ -86,7 +86,25 @@ LIMIT 1");
             }
 
             AssertSql(
-                @"SELECT to_tsvector('english', c.""CompanyName"")
+                @"SELECT to_tsvector(CAST('english' AS regconfig), c.""CompanyName"")
+FROM ""Customers"" AS c
+LIMIT 1");
+        }
+
+        [Fact]
+        public void ToTsVector_With_Config_From_Variable()
+        {
+            using (var context = CreateContext())
+            {
+                var config = "english";
+                var tsvector = context.Customers.Select(c => EF.Functions.ToTsVector(config, c.CompanyName)).First();
+                Assert.NotNull(tsvector);
+            }
+
+            AssertSql(
+                @"@__config_1='english'
+
+SELECT to_tsvector(CAST(@__config_1 AS regconfig), c.""CompanyName"")
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -131,7 +149,25 @@ LIMIT 1");
             }
 
             AssertSql(
-                @"SELECT plainto_tsquery('english', 'a')
+                @"SELECT plainto_tsquery(CAST('english' AS regconfig), 'a')
+FROM ""Customers"" AS c
+LIMIT 1");
+        }
+
+        [Fact]
+        public void PlainToTsQuery_With_Config_From_Variable()
+        {
+            using (var context = CreateContext())
+            {
+                var config = "english";
+                var tsquery = context.Customers.Select(c => EF.Functions.PlainToTsQuery(config, "a")).First();
+                Assert.NotNull(tsquery);
+            }
+
+            AssertSql(
+                @"@__config_1='english'
+
+SELECT plainto_tsquery(CAST(@__config_1 AS regconfig), 'a')
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -161,7 +197,25 @@ LIMIT 1");
             }
 
             AssertSql(
-                @"SELECT phraseto_tsquery('english', 'a b')
+                @"SELECT phraseto_tsquery(CAST('english' AS regconfig), 'a b')
+FROM ""Customers"" AS c
+LIMIT 1");
+        }
+
+        [Fact]
+        public void PhraseToTsQuery_With_Config_From_Variable()
+        {
+            using (var context = CreateContext())
+            {
+                var config = "english";
+                var tsquery = context.Customers.Select(c => EF.Functions.PhraseToTsQuery(config, "a b")).First();
+                Assert.NotNull(tsquery);
+            }
+
+            AssertSql(
+                @"@__config_1='english'
+
+SELECT phraseto_tsquery(CAST(@__config_1 AS regconfig), 'a b')
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -191,7 +245,25 @@ LIMIT 1");
             }
 
             AssertSql(
-                @"SELECT to_tsquery('english', 'a & b')
+                @"SELECT to_tsquery(CAST('english' AS regconfig), 'a & b')
+FROM ""Customers"" AS c
+LIMIT 1");
+        }
+
+        [Fact]
+        public void ToTsQuery_With_Config_From_Variable()
+        {
+            using (var context = CreateContext())
+            {
+                var config = "english";
+                var tsquery = context.Customers.Select(c => EF.Functions.ToTsQuery(config, "a & b")).First();
+                Assert.NotNull(tsquery);
+            }
+
+            AssertSql(
+                @"@__config_1='english'
+
+SELECT to_tsquery(CAST(@__config_1 AS regconfig), 'a & b')
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -365,7 +437,31 @@ LIMIT 1");
             }
 
             AssertSql(
-                @"SELECT ts_headline('english', 'a b c', to_tsquery('b'), 'MinWords=1, MaxWords=2')
+                @"SELECT ts_headline(CAST('english' AS regconfig), 'a b c', to_tsquery('b'), 'MinWords=1, MaxWords=2')
+FROM ""Customers"" AS c
+LIMIT 1");
+        }
+
+        [Fact]
+        public void GetResultHeadline_With_Config_From_Variable_And_Options()
+        {
+            using (var context = CreateContext())
+            {
+                var config = "english";
+                var headline = context.Customers
+                    .Select(
+                        c => EF.Functions.ToTsQuery("b").GetResultHeadline(
+                            config,
+                            "a b c",
+                            "MinWords=1, MaxWords=2"))
+                    .First();
+                Assert.NotEmpty(headline);
+            }
+
+            AssertSql(
+                @"@__config_1='english'
+
+SELECT ts_headline(CAST(@__config_1 AS regconfig), 'a b c', to_tsquery('b'), 'MinWords=1, MaxWords=2')
 FROM ""Customers"" AS c
 LIMIT 1");
         }

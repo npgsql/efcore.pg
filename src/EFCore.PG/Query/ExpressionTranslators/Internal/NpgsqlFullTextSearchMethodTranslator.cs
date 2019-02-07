@@ -41,12 +41,35 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
             if (e.Method.DeclaringType == typeof(NpgsqlFullTextSearchDbFunctionsExtensions)
                 && SqlNameByMethodName.TryGetValue(e.Method.Name, out var sqlFunctionName))
-                return new SqlFunctionExpression(sqlFunctionName, e.Method.ReturnType, e.Arguments.Skip(1));
+                return TryTranslateDbFunctionExtension(e, sqlFunctionName);
 
             if (e.Method.DeclaringType == typeof(NpgsqlFullTextSearchLinqExtensions))
                 return TryTranslateOperator(e) ?? TryTranslateFunction(e);
 
             return null;
+        }
+
+        [CanBeNull]
+        static Expression TryTranslateDbFunctionExtension([NotNull] MethodCallExpression e, [NotNull] string sqlFunctionName)
+        {
+            switch (e.Method.Name)
+            {
+                case nameof(NpgsqlFullTextSearchDbFunctionsExtensions.ToTsVector) when e.Arguments.Count == 3:
+                case nameof(NpgsqlFullTextSearchDbFunctionsExtensions.PlainToTsQuery) when e.Arguments.Count == 3:
+                case nameof(NpgsqlFullTextSearchDbFunctionsExtensions.PhraseToTsQuery) when e.Arguments.Count == 3:
+                case nameof(NpgsqlFullTextSearchDbFunctionsExtensions.ToTsQuery) when e.Arguments.Count == 3:
+                    return new SqlFunctionExpression(
+                        sqlFunctionName,
+                        e.Method.ReturnType,
+                        new[]
+                        {
+                            new ExplicitStoreTypeCastExpression(e.Arguments[1], typeof(string), "regconfig"),
+                            e.Arguments[2]
+                        });
+
+                default:
+                    return new SqlFunctionExpression(sqlFunctionName, e.Method.ReturnType, e.Arguments.Skip(1));
+            }
         }
 
         [CanBeNull]
@@ -117,7 +140,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                         e.Method.ReturnType,
                         new[]
                         {
-                            e.Arguments[1],
+                            new ExplicitStoreTypeCastExpression(e.Arguments[1], typeof(string), "regconfig"),
                             e.Arguments[2],
                             e.Arguments[0],
                             e.Arguments[3]
