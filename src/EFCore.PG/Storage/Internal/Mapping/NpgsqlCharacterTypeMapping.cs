@@ -26,7 +26,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         /// </remarks>
         [NotNull] static readonly ValueComparer<string> CharacterValueComparer =
             new ValueComparer<string>(
-                (x, y) => x != null && y != null && x.AsSpan().TrimEnd() == y.AsSpan().TrimEnd(),
+                (x, y) => x != null && y != null && EqualsWithoutTrailingWhitespace(x, y),
                 x => x != null ? x.TrimEnd().GetHashCode() : 0);
 
         public override ValueComparer Comparer => CharacterValueComparer;
@@ -63,6 +63,24 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 parameter.Value = value.TrimEnd();
 
             base.ConfigureParameter(parameter);
+        }
+
+        // Needed because we can't use Spans in expression trees
+        static bool EqualsWithoutTrailingWhitespace(string a, string b)
+        {
+            var (i, j) = (0, 0);
+
+            for (i = a.Length - 1; a[i] >= 0 && char.IsWhiteSpace(a[i]); i--) ;
+            for (j = b.Length - 1; b[j] >= 0 && char.IsWhiteSpace(b[j]); j--) ;
+
+            if (i != j)
+                return false;
+
+            for (; i > -1; i--)
+                if (a[i] != b[i])
+                    return false;
+
+            return true;
         }
     }
 }
