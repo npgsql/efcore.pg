@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Data.Common;
 using System.Text;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -16,8 +16,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
     {
         readonly bool _isGeography;
 
-        public NpgsqlGeometryTypeMapping(string storeType) : base(new NullValueConverter(), storeType)
-            => _isGeography = IsGeography(storeType);
+        public NpgsqlGeometryTypeMapping(string storeType, bool isGeography) : base(new NullValueConverter(), storeType)
+            => _isGeography = isGeography;
 
         protected NpgsqlGeometryTypeMapping(RelationalTypeMappingParameters parameters)
             : base(parameters, new NullValueConverter()) {}
@@ -55,9 +55,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
             return builder.ToString();
         }
-
-        static bool IsGeography(string storeType)
-            => string.Equals(storeType, "geography", StringComparison.OrdinalIgnoreCase);
 
         class NullValueConverter : ValueConverter<TGeometry, TGeometry>
         {
