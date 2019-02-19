@@ -5,9 +5,11 @@
 Write-Host Enabling PostGIS...
 If (!(Test-Path $env:POSTGIS_EXE)) {
   Write-Host Downloading PostGIS...
-  (New-Object Net.WebClient).DownloadFile("http://download.osgeo.org/postgis/windows/pg10/$env:POSTGIS_EXE", "$env:POSTGIS_EXE")
+  (New-Object Net.WebClient).DownloadFile("http://download.osgeo.org/postgis/windows/pg11/$env:POSTGIS_EXE", "$env:POSTGIS_EXE")
 }
-iex ".\$env:POSTGIS_EXE /S /D='C:\Program Files\PostgreSQL\10'"
+ls '/Program Files/PostgreSQL'
+net start postgresql-x64-11;
+iex ".\$env:POSTGIS_EXE /S /D='C:\Program Files\PostgreSQL\11'"
 
 ########################
 ## Set version variables
