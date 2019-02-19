@@ -70,8 +70,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         {
             var (i, j) = (0, 0);
 
-            for (i = a.Length - 1; a[i] >= 0 && char.IsWhiteSpace(a[i]); i--) ;
-            for (j = b.Length - 1; b[j] >= 0 && char.IsWhiteSpace(b[j]); j--) ;
+            for (i = a.Length - 1; i >= 0 && char.IsWhiteSpace(a[i]); i--) ;
+            for (j = b.Length - 1; j >= 0 && char.IsWhiteSpace(b[j]); j--) ;
 
             if (i != j)
                 return false;
