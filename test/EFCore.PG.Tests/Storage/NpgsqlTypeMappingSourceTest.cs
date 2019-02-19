@@ -2,6 +2,8 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using GeoAPI.Geometries;
+using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
@@ -19,6 +21,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         [InlineData("int4range", typeof(NpgsqlRange<int>))]
         [InlineData("floatrange", typeof(NpgsqlRange<float>))]
         [InlineData("dummyrange", typeof(NpgsqlRange<DummyType>))]
+        [InlineData("geometry", typeof(IGeometry))]
+        [InlineData("geometry(Polygon)", typeof(IPolygon))]
+        [InlineData("geography(Point, 4326)", typeof(IPoint))]
         public void By_StoreType(string storeType, Type expectedClrType)
             => Assert.Same(expectedClrType, Source.FindMapping(storeType).ClrType);
 
@@ -29,6 +34,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         [InlineData(typeof(NpgsqlRange<int>), "int4range")]
         [InlineData(typeof(NpgsqlRange<float>), "floatrange")]
         [InlineData(typeof(NpgsqlRange<DummyType>), "dummyrange")]
+        [InlineData(typeof(IGeometry), "geometry")]
+        [InlineData(typeof(IPoint), "geometry")]
+        [InlineData(typeof(Point), "geometry")]
         public void By_ClrType(Type clrType, string expectedStoreType)
             => Assert.Equal(expectedStoreType, ((RelationalTypeMapping)Source.FindMapping(clrType)).StoreType);
 
@@ -39,6 +47,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         [InlineData("int4range", typeof(NpgsqlRange<int>))]
         [InlineData("floatrange", typeof(NpgsqlRange<float>))]
         [InlineData("dummyrange", typeof(NpgsqlRange<DummyType>))]
+        [InlineData("geometry", typeof(IGeometry))]
+        [InlineData("geometry(Point, 4326)", typeof(IGeometry))]
         public void By_StoreType_with_ClrType(string storeType, Type clrType)
             => Assert.Equal(storeType, Source.FindMapping(clrType, storeType).StoreType);
 
@@ -49,6 +59,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         [InlineData("int4range", typeof(UnknownType))]
         [InlineData("floatrange", typeof(UnknownType))]
         [InlineData("dummyrange", typeof(UnknownType))]
+        [InlineData("geometry", typeof(UnknownType))]
         public void By_StoreType_with_wrong_ClrType(string storeType, Type wrongClrType)
             => Assert.Null(Source.FindMapping(wrongClrType, storeType));
 
@@ -72,7 +83,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
                     new ValueConverterSelector(new ValueConverterSelectorDependencies()),
                     Array.Empty<ITypeMappingSourcePlugin>()),
                 new RelationalTypeMappingSourceDependencies(
-                    new[] { new DummyTypeMappingSourcePlugin() }),
+                    new IRelationalTypeMappingSourcePlugin[] {
+                        new NpgsqlNetTopologySuiteTypeMappingSourcePlugin(new NpgsqlNetTopologySuiteOptions()),
+                        new DummyTypeMappingSourcePlugin()
+                    }),
                 new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
                 options);
         }
