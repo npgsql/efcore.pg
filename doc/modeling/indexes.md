@@ -10,7 +10,7 @@ Since version 11, PostgreSQL supports [covering indexes](https://paquier.xyz/pos
 protected override void OnModelCreating(ModelBuilder modelBuilder)
     => modelBuilder.Entity<Blog>()
                    .HasIndex(b => b.Id)
-                   .ForNpgsqlInclude("Name");
+                   .ForNpgsqlInclude(nameof(b.Name));
 ```
 
 This will create an index for searching on `Id`, but containing also the column `Name`, so that reading the latter will not involve accessing the table. The SQL generated is as follows:
