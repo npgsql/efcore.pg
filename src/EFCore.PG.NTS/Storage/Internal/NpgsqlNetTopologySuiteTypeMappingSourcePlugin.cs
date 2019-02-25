@@ -81,26 +81,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             if (openParen == -1)
                 return true;
 
-            string subTypeString = null;
             var closeParen = storeTypeName.IndexOf(")", openParen + 1, StringComparison.Ordinal);
-            if (closeParen > openParen)
-            {
-                var comma = storeTypeName.IndexOf(",", openParen + 1, StringComparison.Ordinal);
-                if (comma > openParen && comma < closeParen)
-                {
-                    subTypeString = storeTypeName.Substring(openParen + 1, comma - openParen - 1).Trim();
-
-                    if (!int.TryParse(storeTypeName.Substring(comma + 1, closeParen - comma - 1).Trim(), out srid))
-                        return false;
-                }
-                else
-                    subTypeString = storeTypeName.Substring(openParen + 1, closeParen - openParen - 1).Trim();
-            }
-
-            if (subTypeString != null && !SubTypeNameToClrType.TryGetValue(subTypeString, out clrType))
+            if (closeParen == -1)
                 return false;
 
-            return true;
+            string subTypeString;
+            var comma = storeTypeName.IndexOf(",", openParen + 1, StringComparison.Ordinal);
+            if (comma > openParen && comma < closeParen)
+            {
+                subTypeString = storeTypeName.Substring(openParen + 1, comma - openParen - 1).Trim();
+
+                if (!int.TryParse(storeTypeName.Substring(comma + 1, closeParen - comma - 1).Trim(), out srid))
+                    return false;
+            }
+            else
+                subTypeString = storeTypeName.Substring(openParen + 1, closeParen - openParen - 1).Trim();
+
+            return SubTypeNameToClrType.TryGetValue(subTypeString, out clrType);
         }
     }
 }
