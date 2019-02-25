@@ -26,7 +26,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         /// </remarks>
         [NotNull] static readonly ValueComparer<string> CharacterValueComparer =
             new ValueComparer<string>(
-                (x, y) => x != null && y != null && x.AsSpan().TrimEnd() == y.AsSpan().TrimEnd(),
+                (x, y) => x != null && y != null && x.TrimEnd() == y.TrimEnd(),
                 x => x != null ? x.TrimEnd().GetHashCode() : 0);
 
         public override ValueComparer Comparer => CharacterValueComparer;
