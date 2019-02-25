@@ -195,6 +195,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
             return clone;
         }
 
+        public override void PopulateDebugInfo(IDictionary<string, string> debugInfo)
+        {
+            // We might want to add the current values of AdminDatabase, PostgresVersion, ReverseNullOrdering, _userRangeDefinitions
+            // and the certificates callbacks here.
+        }
+
         #endregion Authentication
     }
 
