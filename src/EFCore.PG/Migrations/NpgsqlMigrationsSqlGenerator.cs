@@ -339,7 +339,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             if (IsSystemColumn(operation.Name))
                 return;
 
-            var type = operation.ColumnType ?? GetColumnType(operation.Schema, operation.Table, operation.Name, operation.ClrType, null, operation.MaxLength, false, model);
+            var type = operation.ColumnType ?? GetColumnType(operation.Schema, operation.Table, operation.Name, operation.ClrType, null, operation.MaxLength, operation.IsFixedLength, false, model);
 
             string newSequenceName = null;
             var defaultValueSql = operation.DefaultValueSql;
