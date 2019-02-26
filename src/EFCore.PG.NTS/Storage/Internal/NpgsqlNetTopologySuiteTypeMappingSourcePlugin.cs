@@ -60,16 +60,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         /// </summary>
         public static bool TryParseStoreTypeName(string storeTypeName, out bool isGeography, out Type clrType, out int srid)
         {
+            storeTypeName = storeTypeName.Trim();
             isGeography = false;
             clrType = null;
             srid = -1;
 
             var openParen = storeTypeName.IndexOf("(", StringComparison.Ordinal);
 
-            var baseType = (openParen > 0
-                ? storeTypeName.Substring(0, openParen)
-                : storeTypeName)
-                .Trim();
+            var baseType = openParen > 0 ? storeTypeName.Substring(0, openParen).Trim() : storeTypeName;
 
             if (baseType.Equals("geometry", StringComparison.OrdinalIgnoreCase))
                 isGeography = false;
@@ -82,20 +80,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 return true;
 
             var closeParen = storeTypeName.IndexOf(")", openParen + 1, StringComparison.Ordinal);
-            if (closeParen == -1)
+            if (closeParen != storeTypeName.Length - 1)
                 return false;
 
             string subTypeString;
             var comma = storeTypeName.IndexOf(",", openParen + 1, StringComparison.Ordinal);
-            if (comma > openParen && comma < closeParen)
+            if (comma == -1)
+                subTypeString = storeTypeName.Substring(openParen + 1, closeParen - openParen - 1).Trim();
+            else
             {
                 subTypeString = storeTypeName.Substring(openParen + 1, comma - openParen - 1).Trim();
 
                 if (!int.TryParse(storeTypeName.Substring(comma + 1, closeParen - comma - 1).Trim(), out srid))
                     return false;
             }
-            else
-                subTypeString = storeTypeName.Substring(openParen + 1, closeParen - openParen - 1).Trim();
 
             return SubTypeNameToClrType.TryGetValue(subTypeString, out clrType);
         }
