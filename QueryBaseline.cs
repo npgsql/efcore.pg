@@ -4048,3 +4048,21 @@ LIMIT 1");
 
 
 
+Npgsql.EntityFrameworkCore.PostgreSQL.Query.FullTextSearchDbFunctionsNpgsqlTest.WebSearchToTsQuery_With_Config_From_Variable() : 
+            AssertSql(
+                @"@__config_1='english'
+
+SELECT websearch_to_tsquery(CAST(@__config_1 AS regconfig), 'a OR b')
+FROM ""Customers"" AS c
+LIMIT 1");
+
+
+
+Npgsql.EntityFrameworkCore.PostgreSQL.Query.FullTextSearchDbFunctionsNpgsqlTest.WebSearchToTsQuery_With_Config() : 
+            AssertSql(
+                @"SELECT websearch_to_tsquery(CAST('english' AS regconfig), 'a OR b')
+FROM ""Customers"" AS c
+LIMIT 1");
+
+
+

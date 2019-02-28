@@ -293,7 +293,25 @@ LIMIT 1");
             }
 
             AssertSql(
-                @"SELECT websearch_to_tsquery('english', 'a OR b')
+                @"SELECT websearch_to_tsquery(CAST('english' AS regconfig), 'a OR b')
+FROM ""Customers"" AS c
+LIMIT 1");
+        }
+
+        [Fact]
+        public void WebSearchToTsQuery_With_Config_From_Variable()
+        {
+            using (var context = CreateContext())
+            {
+                var config = "english";
+                var tsquery = context.Customers.Select(c => EF.Functions.WebSearchToTsQuery(config, "a OR b")).First();
+                Assert.NotNull(tsquery);
+            }
+
+            AssertSql(
+                @"@__config_1='english'
+
+SELECT websearch_to_tsquery(CAST(@__config_1 AS regconfig), 'a OR b')
 FROM ""Customers"" AS c
 LIMIT 1");
         }
