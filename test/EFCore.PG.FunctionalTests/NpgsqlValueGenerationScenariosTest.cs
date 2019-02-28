@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
@@ -85,7 +85,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 {
                     context.Database.EnsureCreated();
 
-                    context.AddRange(new Blog { Name = "One Unicorn" }, new Blog { Name = "Two Unicorns" });
+                    context.AddRange(
+                        new Blog
+                        {
+                            Name = "One Unicorn"
+                        }, new Blog
+                        {
+                            Name = "Two Unicorns"
+                        });
 
                     context.SaveChanges();
                 }
@@ -94,8 +101,32 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 {
                     var blogs = context.Blogs.OrderBy(e => e.Id).ToList();
 
-                    Assert.Equal(77, blogs[0].Id);
-                    Assert.Equal(78, blogs[1].Id);
+                    Assert.Equal(0, blogs[0].Id);
+                    Assert.Equal(1, blogs[1].Id);
+                }
+
+                using (var context = new BlogContextDefaultValueNoMigrations(testStore.Name))
+                {
+                    context.AddRange(
+                        new Blog
+                        {
+                            Name = "One Unicorn"
+                        }, new Blog
+                        {
+                            Name = "Two Unicorns"
+                        });
+
+                    context.SaveChanges();
+                }
+
+                using (var context = new BlogContextDefaultValueNoMigrations(testStore.Name))
+                {
+                    var blogs = context.Blogs.OrderBy(e => e.Id).ToList();
+
+                    Assert.Equal(0, blogs[0].Id);
+                    Assert.Equal(1, blogs[1].Id);
+                    Assert.Equal(2, blogs[2].Id);
+                    Assert.Equal(3, blogs[3].Id);
                 }
             }
         }
@@ -111,12 +142,29 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             {
                 modelBuilder
                     .HasSequence("MySequence")
-                    .StartsAt(77);
+                    .HasMin(0)
+                    .StartsAt(0);
 
                 modelBuilder
                     .Entity<Blog>()
                     .Property(e => e.Id)
                     .HasDefaultValueSql("nextval('\"MySequence\"')");
+            }
+        }
+
+        public class BlogContextDefaultValueNoMigrations : ContextBase
+        {
+            public BlogContextDefaultValueNoMigrations(string databaseName)
+                : base(databaseName)
+            {
+            }
+
+            protected override void OnModelCreating(ModelBuilder modelBuilder)
+            {
+                modelBuilder
+                    .Entity<Blog>()
+                    .Property(e => e.Id)
+                    .HasDefaultValue();
             }
         }
 
@@ -450,15 +498,27 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 {
                     context.Database.EnsureCreated();
 
-                    var blog = context.Add(new GuidBlog { Name = "One Unicorn" }).Entity;
+                    var blog = context.Add(
+                        new GuidBlog
+                        {
+                            Name = "One Unicorn"
+                        }).Entity;
 
                     var beforeSave = blog.Id;
+                    var beforeSaveNotId = blog.NotId;
+
+                    Assert.Equal(default, beforeSave);
+                    Assert.Equal(default, beforeSaveNotId);
 
                     context.SaveChanges();
 
                     afterSave = blog.Id;
+                    var afterSaveNotId = blog.NotId;
 
+                    Assert.NotEqual(default, afterSave);
+                    Assert.NotEqual(default, afterSaveNotId);
                     Assert.NotEqual(beforeSave, afterSave);
+                    Assert.NotEqual(beforeSaveNotId, afterSaveNotId);
                 }
 
                 using (var context = new BlogContextServerGuidKey(testStore.Name))
@@ -479,9 +539,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             {
                 modelBuilder.HasPostgresExtension("uuid-ossp");
                 modelBuilder
-                    .Entity<GuidBlog>()
-                    .Property(e => e.Id)
-                    .HasDefaultValueSql("uuid_generate_v4()");
+                    .Entity<GuidBlog>(
+                        eb =>
+                        {
+                            eb.Property(e => e.Id)
+                                .HasDefaultValueSql("uuid_generate_v4()");
+                            eb.Property(e => e.NotId)
+                                .HasDefaultValueSql("uuid_generate_v4()");
+                        });
             }
         }
 
@@ -512,6 +577,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         {
             public Guid Id { get; set; }
             public string Name { get; set; }
+            public Guid NotId { get; set; }
         }
 
         public class ConcurrentBlog
