@@ -60,6 +60,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 case nameof(NpgsqlFullTextSearchDbFunctionsExtensions.PlainToTsQuery) when e.Arguments.Count == 3:
                 case nameof(NpgsqlFullTextSearchDbFunctionsExtensions.PhraseToTsQuery) when e.Arguments.Count == 3:
                 case nameof(NpgsqlFullTextSearchDbFunctionsExtensions.ToTsQuery) when e.Arguments.Count == 3:
+                case nameof(NpgsqlFullTextSearchDbFunctionsExtensions.WebSearchToTsQuery) when e.Arguments.Count == 3:
                     return new SqlFunctionExpression(
                         sqlFunctionName,
                         e.Method.ReturnType,
