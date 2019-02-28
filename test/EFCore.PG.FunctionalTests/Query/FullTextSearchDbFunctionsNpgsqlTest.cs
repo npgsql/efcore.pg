@@ -269,6 +269,36 @@ LIMIT 1");
         }
 
         [Fact]
+        public void WebSearchToTsQuery()
+        {
+            using (var context = CreateContext())
+            {
+                var tsquery = context.Customers.Select(c => EF.Functions.WebSearchToTsQuery("a OR b")).First();
+                Assert.NotNull(tsquery);
+            }
+
+            AssertSql(
+                @"SELECT websearch_to_tsquery('a OR b')
+FROM ""Customers"" AS c
+LIMIT 1");
+        }
+
+        [Fact]
+        public void WebSearchToTsQuery_With_Config()
+        {
+            using (var context = CreateContext())
+            {
+                var tsquery = context.Customers.Select(c => EF.Functions.WebSearchToTsQuery("english", "a OR b")).First();
+                Assert.NotNull(tsquery);
+            }
+
+            AssertSql(
+                @"SELECT websearch_to_tsquery('english', 'a OR b')
+FROM ""Customers"" AS c
+LIMIT 1");
+        }
+
+        [Fact]
         public void TsQueryAnd()
         {
             using (var context = CreateContext())

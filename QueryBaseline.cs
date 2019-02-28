@@ -4032,3 +4032,19 @@ FROM ""PointEntity"" AS e");
 
 
 
+System.RuntimeMethodHandle.InvokeMethod(Object target, Object[] arguments, Signature sig, Boolean constructor, Boolean wrapExceptions) : 
+            AssertSql(
+                @"SELECT websearch_to_tsquery('a OR b')
+FROM ""Customers"" AS c
+LIMIT 1");
+
+
+
+System.RuntimeMethodHandle.InvokeMethod(Object target, Object[] arguments, Signature sig, Boolean constructor, Boolean wrapExceptions) : 
+AssertSql(
+@"SELECT websearch_to_tsquery('english', 'a OR b')
+FROM ""Customers"" AS c
+LIMIT 1");
+
+
+
