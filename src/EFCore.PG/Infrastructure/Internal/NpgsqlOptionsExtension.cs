@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Net.Security;
+using System.Text;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Internal;
@@ -17,6 +18,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
     public class NpgsqlOptionsExtension : RelationalOptionsExtension
     {
         [NotNull] readonly List<UserRangeDefinition> _userRangeDefinitions;
+        string _logFragment;
 
         /// <summary>
         /// The name of the database for administrative operations.
@@ -114,6 +116,67 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
             {
                 debugInfo["Npgsql.EntityFrameworkCore.PostgreSQL:" + nameof(NpgsqlDbContextOptionsBuilder.MapRange) + ":" + rangeDefinition.SubtypeClrType.DisplayName()]
                     = rangeDefinition.GetHashCode().ToString(CultureInfo.InvariantCulture);
+            }
+        }
+
+        [NotNull]
+        public override string LogFragment
+        {
+            get
+            {
+                if (_logFragment != null)
+                    return _logFragment;
+
+                var builder = new StringBuilder(base.LogFragment);
+
+                if (AdminDatabase != null)
+                {
+                    builder.Append("AdminDatabase=").Append(AdminDatabase).Append(' ');
+                }
+
+                if (PostgresVersion != null)
+                {
+                    builder.Append("PostgresVersion=").Append(PostgresVersion).Append(' ');
+                }
+
+                if (ProvideClientCertificatesCallback != null)
+                {
+                    builder.Append("ProvideClientCertificatesCallback ");
+                }
+
+                if (RemoteCertificateValidationCallback != null)
+                {
+                    builder.Append("RemoteCertificateValidationCallback ");
+                }
+
+                if (ReverseNullOrdering)
+                {
+                    builder.Append("ReverseNullOrdering ");
+                }
+
+                if (UserRangeDefinitions.Count > 0)
+                {
+                    builder.Append("UserRangeDefinitions=[");
+                    foreach (var item in UserRangeDefinitions)
+                    {
+                        builder.Append(item.SubtypeClrType).Append("=>");
+
+                        if (item.SchemaName != null)
+                            builder.Append(item.SchemaName).Append(".");
+
+                        builder.Append(item.RangeName);
+
+                        if (item.SubtypeName != null)
+                            builder.Append("(").Append(item.SubtypeName).Append(")");
+
+                        builder.Append(";");
+                    }
+
+                    builder.Length = builder.Length -1;
+                    builder.Append("] ");
+                }
+
+                return _logFragment = builder.ToString();
             }
         }
 
