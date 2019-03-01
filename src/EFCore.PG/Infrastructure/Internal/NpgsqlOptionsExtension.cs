@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Net.Security;
 using System.Text;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 using NpgsqlTypes;
@@ -91,6 +93,32 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         // The following is a hack to set the default minimum batch size to 2 in Npgsql
         // See https://github.com/aspnet/EntityFrameworkCore/pull/10091
         public override int? MinBatchSize => base.MinBatchSize ?? 2;
+
+        /// <inheritdoc />
+        public override void PopulateDebugInfo(IDictionary<string, string> debugInfo)
+        {
+            debugInfo["Npgsql.EntityFrameworkCore.PostgreSQL:" + nameof(NpgsqlDbContextOptionsBuilder.UseAdminDatabase)]
+                = (AdminDatabase?.GetHashCode() ?? 0).ToString(CultureInfo.InvariantCulture);
+
+            debugInfo["Npgsql.EntityFrameworkCore.PostgreSQL:" + nameof(NpgsqlDbContextOptionsBuilder.SetPostgresVersion)]
+                = (PostgresVersion?.GetHashCode() ?? 0).ToString(CultureInfo.InvariantCulture);
+
+            debugInfo["Npgsql.EntityFrameworkCore.PostgreSQL:" + nameof(NpgsqlDbContextOptionsBuilder.ReverseNullOrdering)]
+                = ReverseNullOrdering.GetHashCode().ToString(CultureInfo.InvariantCulture);
+
+            debugInfo["Npgsql.EntityFrameworkCore.PostgreSQL:" + nameof(NpgsqlDbContextOptionsBuilder.RemoteCertificateValidationCallback)]
+                = (RemoteCertificateValidationCallback?.GetHashCode() ?? 0).ToString(CultureInfo.InvariantCulture);
+
+            debugInfo["Npgsql.EntityFrameworkCore.PostgreSQL:" + nameof(NpgsqlDbContextOptionsBuilder.ProvideClientCertificatesCallback)]
+                = (ProvideClientCertificatesCallback?.GetHashCode() ?? 0).ToString(CultureInfo.InvariantCulture);
+
+            foreach (var rangeDefinition in _userRangeDefinitions)
+            {
+                debugInfo["Npgsql.EntityFrameworkCore.PostgreSQL:" + nameof(NpgsqlDbContextOptionsBuilder.MapRange) + ":" + rangeDefinition.SubtypeClrType.DisplayName()]
+                    = rangeDefinition.GetHashCode().ToString(CultureInfo.InvariantCulture);
+            }
+
+        }
 
         /// <inheritdoc />
         [NotNull]
@@ -259,12 +287,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
             clone.RemoteCertificateValidationCallback = callback;
 
             return clone;
-        }
-
-        public override void PopulateDebugInfo(IDictionary<string, string> debugInfo)
-        {
-            // We might want to add the current values of AdminDatabase, PostgresVersion, ReverseNullOrdering, _userRangeDefinitions
-            // and the certificates callbacks here.
         }
 
         #endregion Authentication
