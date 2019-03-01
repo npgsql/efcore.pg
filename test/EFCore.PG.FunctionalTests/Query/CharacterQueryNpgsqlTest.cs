@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestUtilities;
@@ -107,7 +107,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         /// <summary>
         /// Test that comparisons are treated correctly.
         /// </summary>
-        [Fact]
+        [Fact(Skip = "See https://github.com/npgsql/Npgsql.EntityFrameworkCore.PostgreSQL/pull/820")]
         public void Test_change_tracking_key_sizes()
         {
             Fixture.ClearEntities();
