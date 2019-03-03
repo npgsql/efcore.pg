@@ -9,7 +9,7 @@ Since version 11, PostgreSQL supports [covering indexes](https://paquier.xyz/pos
 ```c#
 protected override void OnModelCreating(ModelBuilder modelBuilder)
     => modelBuilder.Entity<Blog>()
-                   .ForNpgsqlHasIndex(b => b.Id)
+                   .HasIndex(b => b.Id)
                    .ForNpgsqlInclude(b => b.Name);
 ```
 
