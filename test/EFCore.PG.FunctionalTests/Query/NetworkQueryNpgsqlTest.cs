@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
@@ -182,7 +182,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         /// <summary>
         /// Tests translation for <see cref="NpgsqlNetworkExtensions.LessThan(DbFunctions,IPAddress,IPAddress)"/>.
         /// </summary>
-        [Fact]
+        [Fact(Skip = "https://github.com/npgsql/npgsql/issues/2360")]
         public void IPAddress_inet_LessThan_inet()
         {
             using (var context = Fixture.CreateContext())
@@ -256,7 +256,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         /// <summary>
         /// Tests translation for <see cref="NpgsqlNetworkExtensions.LessThanOrEqual(DbFunctions,IPAddress,IPAddress)"/>.
         /// </summary>
-        [Fact]
+        [Fact(Skip = "https://github.com/npgsql/npgsql/issues/2360")]
         public void IPAddress_inet_LessThanOrEqual_inet()
         {
             using (var context = Fixture.CreateContext())
@@ -330,7 +330,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         /// <summary>
         /// Tests translation for <see cref="NpgsqlNetworkExtensions.GreaterThanOrEqual(DbFunctions,IPAddress,IPAddress)"/>.
         /// </summary>
-        [Fact]
+        [Fact(Skip = "https://github.com/npgsql/npgsql/issues/2360")]
         public void IPAddress_inet_GreaterThanOrEqual_inet()
         {
             using (var context = Fixture.CreateContext())
@@ -404,7 +404,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         /// <summary>
         /// Tests translation for <see cref="NpgsqlNetworkExtensions.GreaterThan(DbFunctions,IPAddress,IPAddress)"/>.
         /// </summary>
-        [Fact]
+        [Fact(Skip = "https://github.com/npgsql/npgsql/issues/2360")]
         public void IPAddress_inet_GreaterThan_inet()
         {
             using (var context = Fixture.CreateContext())
@@ -482,7 +482,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         /// <summary>
         /// Tests translation for <see cref="NpgsqlNetworkExtensions.ContainedBy(DbFunctions,IPAddress,IPAddress)"/>.
         /// </summary>
-        [Fact]
+        [Fact(Skip = "https://github.com/npgsql/npgsql/issues/2360")]
         public void IPAddress_inet_ContainedBy_inet()
         {
             using (var context = Fixture.CreateContext())
@@ -539,7 +539,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         /// <summary>
         /// Tests translation for <see cref="NpgsqlNetworkExtensions.ContainedByOrEqual(DbFunctions,IPAddress,IPAddress)"/>.
         /// </summary>
-        [Fact]
+        [Fact(Skip = "https://github.com/npgsql/npgsql/issues/2360")]
         public void IPAddress_inet_ContainedByOrEqual_inet()
         {
             using (var context = Fixture.CreateContext())
@@ -596,7 +596,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         /// <summary>
         /// Tests translation for <see cref="NpgsqlNetworkExtensions.Contains(DbFunctions,IPAddress,IPAddress)"/>.
         /// </summary>
-        [Fact]
+        [Fact(Skip = "https://github.com/npgsql/npgsql/issues/2360")]
         public void IPAddress_inet_Contains_inet()
         {
             using (var context = Fixture.CreateContext())
@@ -615,7 +615,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         /// <summary>
         /// Tests translation for <see cref="NpgsqlNetworkExtensions.Contains(DbFunctions,ValueTuple{IPAddress,int},IPAddress)"/>.
         /// </summary>
-        [Fact]
+        [Fact(Skip = "https://github.com/npgsql/npgsql/issues/2360")]
         public void ValueTuple_cidr_Contains_inet()
         {
             using (var context = Fixture.CreateContext())
@@ -653,7 +653,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         /// <summary>
         /// Tests translation for <see cref="NpgsqlNetworkExtensions.ContainsOrEqual(DbFunctions,IPAddress,IPAddress)"/>.
         /// </summary>
-        [Fact]
+        [Fact(Skip = "https://github.com/npgsql/npgsql/issues/2360")]
         public void IPAddress_inet_ContainsOrEqual_inet()
         {
             using (var context = Fixture.CreateContext())
@@ -672,7 +672,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         /// <summary>
         /// Tests translation for <see cref="NpgsqlNetworkExtensions.ContainsOrEqual(DbFunctions,ValueTuple{IPAddress,int},IPAddress)"/>.
         /// </summary>
-        [Fact]
+        [Fact(Skip = "https://github.com/npgsql/npgsql/issues/2360")]
         public void ValueTuple_cidr_ContainsOrEqual_inet()
         {
             using (var context = Fixture.CreateContext())
@@ -710,7 +710,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         /// <summary>
         /// Tests translation for <see cref="NpgsqlNetworkExtensions.ContainsOrContainedBy(DbFunctions,IPAddress,IPAddress)"/>.
         /// </summary>
-        [Fact]
+        [Fact(Skip = "https://github.com/npgsql/npgsql/issues/2360")]
         public void IPAddress_inet_ContainsOrContainedBy_inet()
         {
             using (var context = Fixture.CreateContext())
@@ -748,7 +748,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         /// <summary>
         /// Tests translation for <see cref="NpgsqlNetworkExtensions.ContainsOrContainedBy(DbFunctions,ValueTuple{IPAddress,int},IPAddress)"/>.
         /// </summary>
-        [Fact]
+        [Fact(Skip = "https://github.com/npgsql/npgsql/issues/2360")]
         public void ValueTuple_cidr_ContainsOrContainedBy_inet()
         {
             using (var context = Fixture.CreateContext())
@@ -858,7 +858,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         /// <summary>
         /// Tests translation for <see cref="NpgsqlNetworkExtensions.BitwiseAnd(DbFunctions,IPAddress,IPAddress)"/>.
         /// </summary>
-        [Fact]
+        [Fact(Skip = "https://github.com/npgsql/npgsql/issues/2360")]
         public void IPAddress_inet_BitwiseAnd_inet()
         {
             using (var context = Fixture.CreateContext())
@@ -932,7 +932,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         /// <summary>
         /// Tests translation for <see cref="NpgsqlNetworkExtensions.BitwiseOr(DbFunctions,IPAddress,IPAddress)"/>.
         /// </summary>
-        [Fact]
+        [Fact(Skip = "https://github.com/npgsql/npgsql/issues/2360")]
         public void IPAddress_inet_BitwiseOr_inet()
         {
             using (var context = Fixture.CreateContext())
@@ -1078,7 +1078,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         /// <summary>
         /// Tests translation for <see cref="NpgsqlNetworkExtensions.Subtract(DbFunctions,IPAddress,IPAddress)"/>.
         /// </summary>
-        [Fact]
+        [Fact(Skip = "https://github.com/npgsql/npgsql/issues/2360")]
         public void IPAddress_inet_Subtract_inet()
         {
             using (var context = Fixture.CreateContext())
@@ -1460,7 +1460,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         /// <summary>
         /// Tests translation for <see cref="NpgsqlNetworkExtensions.SameFamily(DbFunctions,IPAddress,IPAddress)"/>.
         /// </summary>
-        [Fact]
+        [Fact(Skip = "https://github.com/npgsql/npgsql/issues/2360")]
         public void IPAddress_inet_SameFamily()
         {
             using (var context = Fixture.CreateContext())
@@ -1498,7 +1498,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         /// <summary>
         /// Tests translation for <see cref="NpgsqlNetworkExtensions.Merge(DbFunctions,IPAddress,IPAddress)"/>.
         /// </summary>
-        [Fact]
+        [Fact(Skip = "https://github.com/npgsql/npgsql/issues/2360")]
         public void IPAddress_inet_Merge()
         {
             using (var context = Fixture.CreateContext())
