@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Storage;
 using NodaTime;
 using NodaTime.TimeZones;
@@ -121,7 +121,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             => Mapper.FindMapping(new RelationalTypeMappingInfo(clrType));
 
         static RelationalTypeMapping GetMapping(Type clrType, string storeType)
-            => Mapper.FindMapping(new RelationalTypeMappingInfo(clrType, storeType, false, null, null, null, null, null, null));
+            => Mapper.FindMapping(new RelationalTypeMappingInfo(clrType, storeType, storeType, false, null, null, null, null, null, null));
 
         #endregion Support
     }
