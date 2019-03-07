@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -40,12 +40,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
         /// <param name="valueBufferFactoryFactory">A factory for creating <see cref="ValueBuffer" /> factories.</param>
         /// <param name="maxBatchSize">The maximum count of commands to batch.</param>
         public NpgsqlModificationCommandBatch(
-            [NotNull] IRelationalCommandBuilderFactory commandBuilderFactory,
-            [NotNull] ISqlGenerationHelper sqlGenerationHelper,
-            [NotNull] IUpdateSqlGenerator updateSqlGenerator,
-            [NotNull] IRelationalValueBufferFactoryFactory valueBufferFactoryFactory,
+            [NotNull] ModificationCommandBatchFactoryDependencies dependencies,
             [CanBeNull] int? maxBatchSize)
-            : base(commandBuilderFactory, sqlGenerationHelper, updateSqlGenerator, valueBufferFactoryFactory)
+            : base(dependencies)
         {
             if (maxBatchSize.HasValue && maxBatchSize.Value <= 0)
                 throw new ArgumentOutOfRangeException(nameof(maxBatchSize), RelationalStrings.InvalidMaxBatchSize);

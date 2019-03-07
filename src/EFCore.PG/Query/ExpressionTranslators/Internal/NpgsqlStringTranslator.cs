@@ -4,6 +4,8 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
 using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
@@ -50,7 +52,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
         /// <inheritdoc />
         [CanBeNull]
-        public virtual Expression Translate(MethodCallExpression e)
+        public virtual Expression Translate(MethodCallExpression e, IDiagnosticsLogger<DbLoggerCategory.Query> logger)
         {
             if (e.Method.DeclaringType != typeof(string))
                 return null;

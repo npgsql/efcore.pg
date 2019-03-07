@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
 using Microsoft.EntityFrameworkCore.Query.Sql;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -44,8 +45,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
             [NotNull] QuerySqlGeneratorDependencies dependencies,
             [NotNull] SelectExpression selectExpression,
             bool reverseNullOrderingEnabled,
-            Version postgresVersion)
-            : base(dependencies, selectExpression)
+            Version postgresVersion,
+            DiagnosticsLoggers loggers)
+            : base(dependencies, selectExpression, loggers)
         {
             _reverseNullOrderingEnabled = reverseNullOrderingEnabled;
             _postgresVersion = postgresVersion;

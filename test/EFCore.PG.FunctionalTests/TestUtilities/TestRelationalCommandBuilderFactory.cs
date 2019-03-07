@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -12,19 +12,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
 {
     public class TestRelationalCommandBuilderFactory : IRelationalCommandBuilderFactory
     {
-        readonly IDiagnosticsLogger<DbLoggerCategory.Database.Command> _logger;
         readonly IRelationalTypeMappingSource _typeMappingSource;
 
         public TestRelationalCommandBuilderFactory(
-            IDiagnosticsLogger<DbLoggerCategory.Database.Command> logger,
             IRelationalTypeMappingSource typeMappingSource)
         {
-            _logger = logger;
             _typeMappingSource = typeMappingSource;
         }
 
-        public virtual IRelationalCommandBuilder Create()
-            => new TestRelationalCommandBuilder(_logger, _typeMappingSource);
+        public virtual IRelationalCommandBuilder Create(
+            IDiagnosticsLogger<DbLoggerCategory.Database.Command> logger)
+            => new TestRelationalCommandBuilder(logger, _typeMappingSource);
 
         class TestRelationalCommandBuilder : IRelationalCommandBuilder
         {

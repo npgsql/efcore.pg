@@ -1,6 +1,8 @@
-﻿using System;
+using System;
 using System.Linq.Expressions;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
 using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
 
@@ -29,7 +31,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
         /// <inheritdoc />
         [CanBeNull]
-        public Expression Translate(MethodCallExpression expression)
+        public Expression Translate(MethodCallExpression expression, IDiagnosticsLogger<DbLoggerCategory.Query> logger)
         {
             var method = expression.Method;
 

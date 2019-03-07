@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -31,19 +31,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update
                 new NpgsqlOptions()
             );
             var factory = new NpgsqlModificationCommandBatchFactory(
-                new RelationalCommandBuilderFactory(
-                    new FakeDiagnosticsLogger<DbLoggerCategory.Database.Command>(),
-                    typeMapper),
-                new RelationalSqlGenerationHelper(
-                    new RelationalSqlGenerationHelperDependencies()),
-                new NpgsqlUpdateSqlGenerator(
-                    new UpdateSqlGeneratorDependencies(
-                        new RelationalSqlGenerationHelper(
-                            new RelationalSqlGenerationHelperDependencies()),
-                        typeMapper)),
-                new TypedRelationalValueBufferFactoryFactory(
-                    new RelationalValueBufferFactoryDependencies(
-                        typeMapper, new CoreSingletonOptions())),
+                new ModificationCommandBatchFactoryDependencies(
+                    new RelationalCommandBuilderFactory(
+                        typeMapper),
+                    new RelationalSqlGenerationHelper(
+                        new RelationalSqlGenerationHelperDependencies()),
+                    new NpgsqlUpdateSqlGenerator(
+                        new UpdateSqlGeneratorDependencies(
+                            new RelationalSqlGenerationHelper(
+                                new RelationalSqlGenerationHelperDependencies()),
+                            typeMapper)),
+                    new TypedRelationalValueBufferFactoryFactory(
+                        new RelationalValueBufferFactoryDependencies(
+                            typeMapper, new CoreSingletonOptions())),
+                    new FakeDiagnosticsLogger<DbLoggerCategory.Database.Command>()),
                 optionsBuilder.Options);
 
             var batch = factory.Create();
@@ -68,19 +69,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update
                 new NpgsqlOptions()
             );
             var factory = new NpgsqlModificationCommandBatchFactory(
-                new RelationalCommandBuilderFactory(
-                    new FakeDiagnosticsLogger<DbLoggerCategory.Database.Command>(),
-                    typeMapper),
-                new RelationalSqlGenerationHelper(
-                    new RelationalSqlGenerationHelperDependencies()),
-                new NpgsqlUpdateSqlGenerator(
-                    new UpdateSqlGeneratorDependencies(
-                        new RelationalSqlGenerationHelper(
-                            new RelationalSqlGenerationHelperDependencies()),
-                        typeMapper)),
-                new TypedRelationalValueBufferFactoryFactory(
-                    new RelationalValueBufferFactoryDependencies(
-                        typeMapper, new CoreSingletonOptions())),
+                new ModificationCommandBatchFactoryDependencies(
+                    new RelationalCommandBuilderFactory(
+                        typeMapper),
+                    new RelationalSqlGenerationHelper(
+                        new RelationalSqlGenerationHelperDependencies()),
+                    new NpgsqlUpdateSqlGenerator(
+                        new UpdateSqlGeneratorDependencies(
+                            new RelationalSqlGenerationHelper(
+                                new RelationalSqlGenerationHelperDependencies()),
+                            typeMapper)),
+                    new TypedRelationalValueBufferFactoryFactory(
+                        new RelationalValueBufferFactoryDependencies(
+                            typeMapper, new CoreSingletonOptions())),
+                    new FakeDiagnosticsLogger<DbLoggerCategory.Database.Command>()),
                 optionsBuilder.Options);
 
             var batch = factory.Create();

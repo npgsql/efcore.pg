@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Data;
 using System.Linq;
 using System.Threading;
@@ -370,7 +370,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             protected override string StoreName { get; } = nameof(ExecutionStrategyTest);
             protected override bool UsePooling => false;
             public new RelationalTestStore TestStore => (RelationalTestStore)base.TestStore;
-            public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ServiceProvider.GetRequiredService<ILoggerFactory>();
+            public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
             protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
             protected override Type ContextType { get; } = typeof(ExecutionStrategyContext);
 
@@ -388,6 +388,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 new NpgsqlDbContextOptionsBuilder(options).MaxBatchSize(1);
                 return options;
             }
+
+            protected override bool ShouldLogCategory(string logCategory)
+                => logCategory == DbLoggerCategory.Infrastructure.Name;
         }
     }
 }
