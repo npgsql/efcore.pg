@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.TestUtilities;
@@ -24,7 +24,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             {
                 base.OnModelCreating(modelBuilder, context);
 
-                modelBuilder.Query<BlogQuery>().ToView("Blog");
+                modelBuilder.Entity<BlogQuery>().HasNoKey().ToTable("Blog");
             }
         }
     }
