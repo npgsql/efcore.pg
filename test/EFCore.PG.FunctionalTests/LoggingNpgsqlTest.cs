@@ -2,6 +2,7 @@ using System;
 using System.Net.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.Extensions.DependencyInjection;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Xunit;
@@ -65,8 +66,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         }
 
         protected override DbContextOptionsBuilder CreateOptionsBuilder(
+            IServiceCollection services,
             Action<RelationalDbContextOptionsBuilder<NpgsqlDbContextOptionsBuilder, NpgsqlOptionsExtension>> relationalAction)
-            => new DbContextOptionsBuilder().UseNpgsql("Data Source=LoggingNpgsqlTest.db", relationalAction);
+            => new DbContextOptionsBuilder()
+                .UseInternalServiceProvider(services.AddEntityFrameworkNpgsql().BuildServiceProvider())
+                .UseNpgsql("Data Source=LoggingNpgsqlTest.db", relationalAction);
 
         protected override string ProviderName => "Npgsql.EntityFrameworkCore.PostgreSQL";
     }
