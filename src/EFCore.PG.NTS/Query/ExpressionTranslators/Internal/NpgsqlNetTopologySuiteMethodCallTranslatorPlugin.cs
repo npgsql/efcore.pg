@@ -4,6 +4,8 @@ using System.Linq.Expressions;
 using System.Reflection;
 using GeoAPI.Geometries;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
 using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
 using NetTopologySuite.Geometries;
@@ -29,7 +31,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
         /// <inheritdoc />
         [CanBeNull]
-        public virtual Expression Translate(MethodCallExpression e)
+        public virtual Expression Translate(MethodCallExpression e, IDiagnosticsLogger<DbLoggerCategory.Query> logger)
         {
             if (!typeof(IGeometry).IsAssignableFrom(e.Method.DeclaringType))
                 return null;

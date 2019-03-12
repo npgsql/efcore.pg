@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
@@ -28,13 +29,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
             : base(dependencies, relationalDependencies)
             => _postgresVersion = Check.NotNull(npgsqlOptions, nameof(npgsqlOptions)).PostgresVersion;
 
-        public override void Validate(IModel model)
+        public override void Validate(IModel model, DiagnosticsLoggers loggers)
         {
-            base.Validate(model);
+            base.Validate(model, loggers);
+
             ValidateIdentityVersionCompatibility(model);
         }
-
-        #region Npgsql-specific validations
 
         /// <summary>
         /// Validates that identity columns are used only with PostgreSQL 10.0 or later.
@@ -65,8 +65,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
                 }
             }
         }
-
-        #endregion
 
         #region Helpers
 

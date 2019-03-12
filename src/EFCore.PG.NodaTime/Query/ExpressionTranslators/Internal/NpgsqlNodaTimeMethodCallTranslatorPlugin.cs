@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 
 // The PostgreSQL License
 //
@@ -28,6 +28,8 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
 using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
 using NodaTime;
@@ -79,7 +81,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
 
         /// <inheritdoc />
         [CanBeNull]
-        public Expression Translate(MethodCallExpression e)
+        public Expression Translate(MethodCallExpression e, IDiagnosticsLogger<DbLoggerCategory.Query> logger)
         {
             if (e.Method == GetCurrentInstant)
                 return new AtTimeZoneExpression(new SqlFunctionExpression("NOW", e.Type), "UTC", e.Type);

@@ -1,6 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
 using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
 
@@ -30,7 +32,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             typeof(sbyte),
         };
 
-        public virtual Expression Translate(MethodCallExpression methodCallExpression)
+        public virtual Expression Translate(MethodCallExpression methodCallExpression, IDiagnosticsLogger<DbLoggerCategory.Query> logger)
             => methodCallExpression.Method.Name == nameof(ToString) &&
                methodCallExpression.Arguments.Count == 0 &&
                methodCallExpression.Object != null &&

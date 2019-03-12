@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.TestUtilities;
@@ -39,6 +39,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             var entry = context.Entry(dependent);
             entry.Property("Id1").IsTemporary = true;
             entry.Property("Id2").IsTemporary = true;
+
+            foreach (var property in entry.Properties)
+            {
+                if (property.Metadata.IsForeignKey())
+                {
+                    property.IsTemporary = true;
+                }
+            }
 
             entry = context.Entry(principal);
             entry.Property("Id1").IsTemporary = true;

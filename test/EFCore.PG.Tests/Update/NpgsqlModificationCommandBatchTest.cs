@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -30,19 +30,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Update
             );
 
             var batch = new NpgsqlModificationCommandBatch(
-                new RelationalCommandBuilderFactory(
-                    new FakeDiagnosticsLogger<DbLoggerCategory.Database.Command>(),
-                    typeMapper),
-                new RelationalSqlGenerationHelper(
-                    new RelationalSqlGenerationHelperDependencies()),
-                new NpgsqlUpdateSqlGenerator(
-                    new UpdateSqlGeneratorDependencies(
-                        new RelationalSqlGenerationHelper(
-                            new RelationalSqlGenerationHelperDependencies()),
-                        typeMapper)),
-                new TypedRelationalValueBufferFactoryFactory(
-                    new RelationalValueBufferFactoryDependencies(
-                        typeMapper, new CoreSingletonOptions())),
+                new ModificationCommandBatchFactoryDependencies(
+                    new RelationalCommandBuilderFactory(
+                        typeMapper),
+                    new RelationalSqlGenerationHelper(
+                        new RelationalSqlGenerationHelperDependencies()),
+                    new NpgsqlUpdateSqlGenerator(
+                        new UpdateSqlGeneratorDependencies(
+                            new RelationalSqlGenerationHelper(
+                                new RelationalSqlGenerationHelperDependencies()),
+                            typeMapper)),
+                    new TypedRelationalValueBufferFactoryFactory(
+                        new RelationalValueBufferFactoryDependencies(
+                            typeMapper, new CoreSingletonOptions())),
+                    new FakeDiagnosticsLogger<DbLoggerCategory.Database.Command>()),
                 1);
 
             Assert.True(

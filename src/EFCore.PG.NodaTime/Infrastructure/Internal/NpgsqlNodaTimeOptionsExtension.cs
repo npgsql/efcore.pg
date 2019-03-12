@@ -23,6 +23,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
 
         public virtual long GetServiceProviderHashCode() => 0;
 
+        public void PopulateDebugInfo(IDictionary<string, string> debugInfo)
+        {
+        }
+
         public virtual void Validate(IDbContextOptions options)
         {
             var internalServiceProvider = options.FindExtension<CoreOptionsExtension>()?.InternalServiceProvider;

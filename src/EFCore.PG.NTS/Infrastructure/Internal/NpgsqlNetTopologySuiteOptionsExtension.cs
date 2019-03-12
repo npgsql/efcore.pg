@@ -14,7 +14,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 // ReSharper disable once CheckNamespace
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
 {
-    public class NpgsqlNetTopologySuiteOptionsExtension : IDbContextOptionsExtensionWithDebugInfo
+    public class NpgsqlNetTopologySuiteOptionsExtension : IDbContextOptionsExtension
     {
         bool _isGeographyDefault;
         string _logFragment;

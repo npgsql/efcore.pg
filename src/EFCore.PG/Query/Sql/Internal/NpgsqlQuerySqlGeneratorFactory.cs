@@ -1,4 +1,5 @@
-﻿using JetBrains.Annotations;
+using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query.Expressions;
 using Microsoft.EntityFrameworkCore.Query.Sql;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
@@ -24,11 +25,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
             => _npgsqlOptions = Check.NotNull(npgsqlOptions, nameof(npgsqlOptions));
 
         /// <inheritdoc />
-        public override IQuerySqlGenerator CreateDefault(SelectExpression selectExpression)
+        public override IQuerySqlGenerator CreateDefault(SelectExpression selectExpression, DiagnosticsLoggers loggers)
             => new NpgsqlQuerySqlGenerator(
                 Dependencies,
                 Check.NotNull(selectExpression, nameof(selectExpression)),
                 _npgsqlOptions.ReverseNullOrderingEnabled,
-                _npgsqlOptions.PostgresVersion);
+                _npgsqlOptions.PostgresVersion,
+                loggers);
     }
 }
