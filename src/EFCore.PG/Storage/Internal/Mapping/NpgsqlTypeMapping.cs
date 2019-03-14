@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Data.Common;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -10,10 +10,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     {
         public NpgsqlDbType NpgsqlDbType { get; }
 
-        public NpgsqlTypeMapping(
-            [NotNull] string storeType,
-            [NotNull] Type clrType,
-            NpgsqlDbType npgsqlDbType)
+        public NpgsqlTypeMapping([NotNull] string storeType, [NotNull] Type clrType, NpgsqlDbType npgsqlDbType)
             : base(storeType, clrType)
         {
             NpgsqlDbType = npgsqlDbType;
