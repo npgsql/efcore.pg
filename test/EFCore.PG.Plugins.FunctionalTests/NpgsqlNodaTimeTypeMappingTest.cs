@@ -1,7 +1,11 @@
 using System;
+using Microsoft.EntityFrameworkCore.Design.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NodaTime;
+using NodaTime.Calendars;
 using NodaTime.TimeZones;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Xunit;
 
@@ -27,6 +31,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
             var localDateTime = new LocalDateTime(2018, 4, 20, 10, 31, 33, 666) + Period.FromTicks(6660);
             Assert.Equal("TIMESTAMP '2018-04-20T10:31:33.666666'", mapping.GenerateSqlLiteral(localDateTime));
+        }
+
+        [Fact]
+        public void GenerateCodeLiteral_returns_local_date_time_literal()
+        {
+            Assert.Equal("new NodaTime.LocalDateTime(2018, 4, 20, 10, 31)", CodeLiteral(new LocalDateTime(2018, 4, 20, 10, 31)));
+            Assert.Equal("new NodaTime.LocalDateTime(2018, 4, 20, 10, 31, 33)", CodeLiteral(new LocalDateTime(2018, 4, 20, 10, 31, 33)));
+
+            var localDateTime = new LocalDateTime(2018, 4, 20, 10, 31, 33) + Period.FromNanoseconds(1);
+            Assert.Equal("new NodaTime.LocalDateTime(2018, 4, 20, 10, 31, 33).PlusNanoseconds(1L)", CodeLiteral(localDateTime));
         }
 
         [Fact]
@@ -64,11 +78,31 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         }
 
         [Fact]
+        public void GenerateCodeLiteral_returns_offset_date_time_literal()
+        {
+            Assert.Equal("new NodaTime.OffsetDateTime(new NodaTime.LocalDateTime(2018, 4, 20, 10, 31), NodaTime.Offset.FromHours(-2))",
+                CodeLiteral(new OffsetDateTime(new LocalDateTime(2018, 4, 20, 10, 31), Offset.FromHours(-2))));
+
+            Assert.Equal("new NodaTime.OffsetDateTime(new NodaTime.LocalDateTime(2018, 4, 20, 10, 31, 33), NodaTime.Offset.FromSeconds(9000))",
+                CodeLiteral(new OffsetDateTime(new LocalDateTime(2018, 4, 20, 10, 31, 33), Offset.FromHoursAndMinutes(2, 30))));
+
+            Assert.Equal("new NodaTime.OffsetDateTime(new NodaTime.LocalDateTime(2018, 4, 20, 10, 31, 33), NodaTime.Offset.FromSeconds(-1))",
+                CodeLiteral(new OffsetDateTime(new LocalDateTime(2018, 4, 20, 10, 31, 33), Offset.FromSeconds(-1))));
+        }
+
+        [Fact]
         public void GenerateSqlLiteral_returns_local_date_literal()
         {
             var mapping = GetMapping(typeof(LocalDate));
 
             Assert.Equal("DATE '2018-04-20'", mapping.GenerateSqlLiteral(new LocalDate(2018, 4, 20)));
+        }
+
+        [Fact]
+        public void GenerateCodeLiteral_returns_local_date_literal()
+        {
+            Assert.Equal("new NodaTime.LocalDate(2018, 4, 20)", CodeLiteral(new LocalDate(2018, 4, 20)));
+            Assert.Equal("new NodaTime.LocalDate(-2017, 4, 20)", CodeLiteral(new LocalDate(Era.BeforeCommon, 2018, 4, 20)));
         }
 
         [Fact]
@@ -79,6 +113,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             Assert.Equal("TIME '10:31:33'", mapping.GenerateSqlLiteral(new LocalTime(10, 31, 33)));
             Assert.Equal("TIME '10:31:33.666'", mapping.GenerateSqlLiteral(new LocalTime(10, 31, 33, 666)));
             Assert.Equal("TIME '10:31:33.666666'", mapping.GenerateSqlLiteral(new LocalTime(10, 31, 33, 666) + Period.FromTicks(6660)));
+        }
+
+        [Fact]
+        public void GenerateCodeLiteral_returns_local_time_literal()
+        {
+            Assert.Equal("new NodaTime.LocalTime(9, 30)", CodeLiteral(new LocalTime(9, 30)));
+            Assert.Equal("new NodaTime.LocalTime(9, 30, 15)", CodeLiteral(new LocalTime(9, 30, 15)));
+            Assert.Equal("NodaTime.LocalTime.FromHourMinuteSecondNanosecond(9, 30, 15, 500000000L)", CodeLiteral(new LocalTime(9, 30, 15, 500)));
+            Assert.Equal("NodaTime.LocalTime.FromHourMinuteSecondNanosecond(9, 30, 15, 1L)", CodeLiteral(LocalTime.FromHourMinuteSecondNanosecond(9, 30, 15, 1)));
         }
 
         [Fact]
@@ -93,6 +136,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             Assert.Equal("TIMETZ '10:31:33.666666Z'", mapping.GenerateSqlLiteral(
                 new OffsetTime(new LocalTime(10, 31, 33, 666) + Period.FromTicks(6660), Offset.Zero)));
         }
+
+        [Fact]
+        public void GenerateCodeLiteral_returns_offset_time_literal()
+            => Assert.Equal("new NodaTime.OffsetTime(new NodaTime.LocalTime(10, 31, 33), NodaTime.Offset.FromHours(2))",
+                CodeLiteral(new OffsetTime(new LocalTime(10, 31, 33), Offset.FromHours(2))));
 
         [Fact]
         public void GenerateSqlLiteral_returns_period_literal()
@@ -114,14 +162,28 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
         #region Support
 
-        static readonly IRelationalTypeMappingSourcePlugin Mapper =
-            new NpgsqlNodaTimeTypeMappingSourcePlugin(new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()));
+        static readonly NpgsqlTypeMappingSource Mapper = new NpgsqlTypeMappingSource(
+            new TypeMappingSourceDependencies(
+                new ValueConverterSelector(new ValueConverterSelectorDependencies()),
+                Array.Empty<ITypeMappingSourcePlugin>()),
+            new RelationalTypeMappingSourceDependencies(
+                new IRelationalTypeMappingSourcePlugin[] {
+                    new NpgsqlNodaTimeTypeMappingSourcePlugin(new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()))
+                }),
+            new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
+            new NpgsqlOptions()
+        );
 
-        static RelationalTypeMapping GetMapping(Type clrType)
-            => Mapper.FindMapping(new RelationalTypeMappingInfo(clrType));
+        static RelationalTypeMapping GetMapping(string storeType) => Mapper.FindMapping(storeType);
+
+        static RelationalTypeMapping GetMapping(Type clrType) => (RelationalTypeMapping)Mapper.FindMapping(clrType);
 
         static RelationalTypeMapping GetMapping(Type clrType, string storeType)
-            => Mapper.FindMapping(new RelationalTypeMappingInfo(clrType, storeType, storeType, false, null, null, null, null, null, null));
+            => Mapper.FindMapping(clrType, storeType);
+
+        static readonly CSharpHelper CsHelper = new CSharpHelper(Mapper);
+
+        static string CodeLiteral(object value) => CsHelper.UnknownLiteral(value);
 
         #endregion Support
     }
