@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Data.Common;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -15,7 +15,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         /// The database type used by Npgsql.
         /// </summary>
         public NpgsqlDbType NpgsqlDbType { get; }
-
         // ReSharper disable once PublicConstructorInAbstractClass
         /// <summary>
         /// Constructs an instance of the <see cref="NpgsqlTypeMapping"/> class.
@@ -23,10 +22,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         /// <param name="storeType">The database type to map.</param>
         /// <param name="clrType">The CLR type to map.</param>
         /// <param name="npgsqlDbType">The database type used by Npgsql.</param>
-        public NpgsqlTypeMapping(
-            [NotNull] string storeType,
-            [NotNull] Type clrType,
-            NpgsqlDbType npgsqlDbType)
+        public NpgsqlTypeMapping([NotNull] string storeType, [NotNull] Type clrType, NpgsqlDbType npgsqlDbType)
             : base(storeType, clrType)
             => NpgsqlDbType = npgsqlDbType;
 

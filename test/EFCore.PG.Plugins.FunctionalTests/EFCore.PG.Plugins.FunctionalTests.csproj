@@ -19,4 +19,7 @@
     <ProjectReference Include="..\..\src\EFCore.PG.NTS\EFCore.PG.NTS.csproj" />
     <ProjectReference Include="..\EFCore.PG.FunctionalTests\EFCore.PG.FunctionalTests.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="$(EFCoreVersion)" />
+  </ItemGroup>
 </Project>
