@@ -42,8 +42,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 return new SqlFunctionExpression("ST_AsBinary",      typeof(byte[]),   new[] { e.Object });
             case "AsText":
                 return new SqlFunctionExpression("ST_AsText",        typeof(string),   new[] { e.Object });
-            case "Buffer":
+            case "Buffer" when e.Arguments.Count == 1:
                 return new SqlFunctionExpression("ST_Buffer",        typeof(Geometry), new[] { e.Object, e.Arguments[0] });
+            case "Buffer" when e.Arguments.Count == 2:
+                return new SqlFunctionExpression("ST_Buffer",        typeof(Geometry), new[] { e.Object, e.Arguments[0], e.Arguments[1] });
             case "Contains":
                 return new SqlFunctionExpression("ST_Contains",      typeof(bool),     new[] { e.Object, e.Arguments[0] });
             case "ConvexHull":
@@ -91,7 +93,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             case "Touches":
                 return new SqlFunctionExpression("ST_Touches",       typeof(bool),     new[] { e.Object, e.Arguments[0] });
             case "Union" when e.Arguments.Count == 0:
-                return null;  // ST_Union() with only one parameter is an aggregate function in PostGIS
+                return new SqlFunctionExpression("ST_UnaryUnion",    typeof(Geometry), new[] { e.Object });
             case "Union" when e.Arguments.Count == 1:
                 return new SqlFunctionExpression("ST_Union",        typeof(Geometry),  new[] { e.Object, e.Arguments[0] });
             case "Within":

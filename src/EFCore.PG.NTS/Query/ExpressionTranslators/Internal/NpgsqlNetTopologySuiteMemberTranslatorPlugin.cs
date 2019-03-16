@@ -86,9 +86,34 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     return new SqlFunctionExpression("ST_NumInteriorRings", typeof(int), new[] { e.Expression });
                 case "NumPoints":
                     return new SqlFunctionExpression("ST_NumPoints", typeof(int),       new[] { e.Expression });
+                case "OgcGeometryType":
+                {
+                    var whenThenList = new List<CaseWhenClause>
+                    {
+                        new CaseWhenClause(Expression.Constant("ST_CircularString"), Expression.Constant(OgcGeometryType.CircularString)),
+                        new CaseWhenClause(Expression.Constant("ST_CompoundCurve"), Expression.Constant(OgcGeometryType.CompoundCurve)),
+                        new CaseWhenClause(Expression.Constant("ST_CurvePolygon"), Expression.Constant(OgcGeometryType.CurvePolygon)),
+                        new CaseWhenClause(Expression.Constant("ST_GeometryCollection"), Expression.Constant(OgcGeometryType.GeometryCollection)),
+                        new CaseWhenClause(Expression.Constant("ST_LineString"), Expression.Constant(OgcGeometryType.LineString)),
+                        new CaseWhenClause(Expression.Constant("ST_MultiCurve"), Expression.Constant(OgcGeometryType.MultiCurve)),
+                        new CaseWhenClause(Expression.Constant("ST_MultiLineString"), Expression.Constant(OgcGeometryType.MultiLineString)),
+                        new CaseWhenClause(Expression.Constant("ST_MultiPoint"), Expression.Constant(OgcGeometryType.MultiPoint)),
+                        new CaseWhenClause(Expression.Constant("ST_MultiPolygon"), Expression.Constant(OgcGeometryType.MultiPolygon)),
+                        new CaseWhenClause(Expression.Constant("ST_MultiSurface"), Expression.Constant(OgcGeometryType.MultiSurface)),
+                        new CaseWhenClause(Expression.Constant("ST_Point"), Expression.Constant(OgcGeometryType.Point)),
+                        new CaseWhenClause(Expression.Constant("ST_Polygon"), Expression.Constant(OgcGeometryType.Polygon)),
+                        new CaseWhenClause(Expression.Constant("ST_PolyhedralSurface"), Expression.Constant(OgcGeometryType.PolyhedralSurface)),
+                        new CaseWhenClause(Expression.Constant("ST_Tin"), Expression.Constant(OgcGeometryType.TIN))
+                    };
+
+                    return new CaseExpression(
+                        new SqlFunctionExpression("ST_GeometryType", typeof(string), new[] { e.Expression }),
+                        whenThenList.ToArray());
+                }
                 case "PointOnSurface":
-                    return new SqlFunctionExpression("ST_PointOnSurface", typeof(IPoint), new[] { e.Expression });
-                case "SRID":
+                case "InteriorPoint":
+                    return new SqlFunctionExpression("ST_PointOnSurface", typeof(IGeometry), new[] { e.Expression });
+                    case "SRID":
                     return new SqlFunctionExpression("ST_SRID", typeof(int),            new[] { e.Expression });
                 case "StartPoint":
                     return new SqlFunctionExpression("ST_StartPoint", typeof(IPoint),   new[] { e.Expression });
