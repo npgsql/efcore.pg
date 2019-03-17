@@ -113,7 +113,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 case "PointOnSurface":
                 case "InteriorPoint":
                     return new SqlFunctionExpression("ST_PointOnSurface", typeof(IGeometry), new[] { e.Expression });
-                    case "SRID":
+                case "SRID":
                     return new SqlFunctionExpression("ST_SRID", typeof(int),            new[] { e.Expression });
                 case "StartPoint":
                     return new SqlFunctionExpression("ST_StartPoint", typeof(IPoint),   new[] { e.Expression });
