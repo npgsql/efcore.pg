@@ -86,7 +86,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     return null;
                 }
 
-                interval = new SqlFragmentExpression($"INTERVAL '{amountToAdd} {datePart}'");
+                interval = new SqlFragmentExpression(FormattableString.Invariant($"INTERVAL '{amountToAdd} {datePart}'"));
             }
             else
             {
