@@ -105,11 +105,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 case "NumPoints":
                     return new SqlFunctionExpression("ST_NumPoints", typeof(int),       new[] { e.Expression });
                 case "OgcGeometryType":
-                {
                     return new CaseExpression(
-                        new SqlFunctionExpression("ST_GeometryType", typeof(string), new[] { e.Expression }),
+                        new SqlFunctionExpression("ST_GeometryType", typeof(string),    new[] { e.Expression }),
                         _ogcGeometryTypeWhenThenList);
-                }
                 case "PointOnSurface":
                 case "InteriorPoint":
                     return new SqlFunctionExpression("ST_PointOnSurface", typeof(IGeometry), new[] { e.Expression });
