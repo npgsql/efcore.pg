@@ -1,5 +1,6 @@
 using System;
 using System.Data.Common;
+using System.Linq;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -26,8 +27,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         /// </remarks>
         [NotNull] static readonly ValueComparer<string> CharacterValueComparer =
             new ValueComparer<string>(
-                (x, y) => x != null && y != null && x.TrimEnd() == y.TrimEnd(),
-                x => x != null ? x.TrimEnd().GetHashCode() : 0);
+                (x, y) => EqualsWithoutTrailingWhitespace(x, y),
+                x => GetHashCodeWithoutTrailingWhitespace(x));
 
         public override ValueComparer Comparer => CharacterValueComparer;
 
@@ -64,5 +65,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
             base.ConfigureParameter(parameter);
         }
+
+        static bool EqualsWithoutTrailingWhitespace(string a, string b)
+            => a.AsSpan().TrimEnd().SequenceEqual(b.AsSpan().TrimEnd());
+
+        static int GetHashCodeWithoutTrailingWhitespace(string a)
+            => a?.TrimEnd().GetHashCode() ?? 0;
     }
 }

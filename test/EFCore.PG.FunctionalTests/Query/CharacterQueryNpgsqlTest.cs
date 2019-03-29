@@ -107,7 +107,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         /// <summary>
         /// Test that comparisons are treated correctly.
         /// </summary>
-        [Fact(Skip = "See https://github.com/npgsql/Npgsql.EntityFrameworkCore.PostgreSQL/pull/820")]
+        [Fact]
         public void Test_change_tracking_key_sizes()
         {
             Fixture.ClearEntities();
@@ -118,12 +118,31 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 ctx.CharacterTestEntities.Add(entity);
                 ctx.SaveChanges();
 
-                var update = ctx.CharacterTestEntities.Single(x => x.Character8 == "123456");
-                update.Character6 = entity.Character6.TrimEnd();
-                Assert.Equal(1, ctx.SaveChanges());
+                // In memory, the properties are unchanged.
+                Assert.Equal("12345 ", entity.Character6);
 
-                var test = ctx.CharacterTestEntities.Single(x => x.Character6 == "12345 ");
-                Assert.Equal("12345 ", test.Character6);
+                // Trailing whitespace is ignored when querying.
+                var fromLocal = ctx.CharacterTestEntities.Single(x => x.Character6 == "12345" && x.Character6 == "12345 ");
+
+                // And since we queried the same context, we received the same object.
+                Assert.Equal(entity, fromLocal);
+
+                // Which means that the property actually still has trailing whitespace...
+                Assert.Equal("12345 ", fromLocal.Character6);
+
+                // No changes are detected/saved when trailing whitespace is added.
+                entity.Character6 += "     ";
+                Assert.Equal(0, ctx.SaveChanges());
+            }
+
+            using (var ctx = Fixture.CreateContext())
+            {
+                // The query still ignores the trailing whitespace,
+                // but the materialized object won't have any trailing whitespace.
+                var fromDb = ctx.CharacterTestEntities.Single(x => x.Character6 == "12345    ");
+
+                // BUG: Why isn't the local cache clean? This shouldn't have the trailing whitespace.
+                Assert.Equal("12345 ", fromDb.Character6);
             }
         }
 
