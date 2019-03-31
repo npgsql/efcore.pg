@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using GeoAPI.Geometries;
@@ -42,10 +43,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 return new SqlFunctionExpression("ST_AsBinary",      typeof(byte[]),   new[] { e.Object });
             case "AsText":
                 return new SqlFunctionExpression("ST_AsText",        typeof(string),   new[] { e.Object });
-            case "Buffer" when e.Arguments.Count == 1:
-                return new SqlFunctionExpression("ST_Buffer",        typeof(Geometry), new[] { e.Object, e.Arguments[0] });
-            case "Buffer" when e.Arguments.Count == 2:
-                return new SqlFunctionExpression("ST_Buffer",        typeof(Geometry), new[] { e.Object, e.Arguments[0], e.Arguments[1] });
+            case "Buffer":
+                return new SqlFunctionExpression("ST_Buffer",        typeof(Geometry), new[] { e.Object }.Concat(e.Arguments));
             case "Contains":
                 return new SqlFunctionExpression("ST_Contains",      typeof(bool),     new[] { e.Object, e.Arguments[0] });
             case "ConvexHull":

@@ -18,7 +18,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
     public class NpgsqlGeometryMemberTranslator : IMemberTranslator
     {
-        private static readonly CaseWhenClause[] _ogcGeometryTypeWhenThenList = new[]
+        static readonly CaseWhenClause[] _ogcGeometryTypeWhenThenList = new[]
         {
             new CaseWhenClause(Expression.Constant("ST_CircularString"), Expression.Constant(OgcGeometryType.CircularString)),
             new CaseWhenClause(Expression.Constant("ST_CompoundCurve"), Expression.Constant(OgcGeometryType.CompoundCurve)),
