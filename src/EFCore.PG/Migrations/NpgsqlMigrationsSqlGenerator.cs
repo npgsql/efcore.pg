@@ -84,8 +84,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             #region Customized base call
 
-            // TODO: Could EF Core make this easier to override?
-
             builder.Append("CREATE ");
 
             if (operation[NpgsqlAnnotationNames.UnloggedTable] is bool unlogged && unlogged)
@@ -98,33 +96,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             using (builder.Indent())
             {
-                for (var i = 0; i < operation.Columns.Count; i++)
-                {
-                    var column = operation.Columns[i];
-                    ColumnDefinition(column, model, builder);
-
-                    if (i != operation.Columns.Count - 1)
-                        builder.AppendLine(",");
-                }
-
-                if (operation.PrimaryKey != null)
-                {
-                    builder.AppendLine(",");
-                    PrimaryKeyConstraint(operation.PrimaryKey, model, builder);
-                }
-
-                foreach (var uniqueConstraint in operation.UniqueConstraints)
-                {
-                    builder.AppendLine(",");
-                    UniqueConstraint(uniqueConstraint, model, builder);
-                }
-
-                foreach (var foreignKey in operation.ForeignKeys)
-                {
-                    builder.AppendLine(",");
-                    ForeignKeyConstraint(foreignKey, model, builder);
-                }
-
+                base.CreateTableColumns(operation, model, builder);
+                base.CreateTableConstraints(operation, model, builder);
                 builder.AppendLine();
             }
 
