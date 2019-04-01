@@ -2,6 +2,7 @@ using System;
 using System.Data.Common;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
@@ -36,6 +37,8 @@ namespace Microsoft.EntityFrameworkCore
             var extension = (NpgsqlOptionsExtension)GetOrCreateExtension(optionsBuilder).WithConnectionString(connectionString);
             ((IDbContextOptionsBuilderInfrastructure)optionsBuilder).AddOrUpdateExtension(extension);
 
+            ConfigureWarnings(optionsBuilder);
+
             npgsqlOptionsAction?.Invoke(new NpgsqlDbContextOptionsBuilder(optionsBuilder));
 
             return optionsBuilder;
@@ -65,6 +68,8 @@ namespace Microsoft.EntityFrameworkCore
 
             var extension = (NpgsqlOptionsExtension)GetOrCreateExtension(optionsBuilder).WithConnection(connection);
             ((IDbContextOptionsBuilderInfrastructure)optionsBuilder).AddOrUpdateExtension(extension);
+
+            ConfigureWarnings(optionsBuilder);
 
             npgsqlOptionsAction?.Invoke(new NpgsqlDbContextOptionsBuilder(optionsBuilder));
 
@@ -123,5 +128,17 @@ namespace Microsoft.EntityFrameworkCore
             => optionsBuilder.Options.FindExtension<NpgsqlOptionsExtension>() is NpgsqlOptionsExtension existing
                 ? new NpgsqlOptionsExtension(existing)
                 : new NpgsqlOptionsExtension();
+
+        private static void ConfigureWarnings(DbContextOptionsBuilder optionsBuilder)
+        {
+            var coreOptionsExtension = optionsBuilder.Options.FindExtension<CoreOptionsExtension>() ?? new CoreOptionsExtension();
+
+            coreOptionsExtension =
+                coreOptionsExtension.WithWarningsConfiguration(
+                    coreOptionsExtension.WarningsConfiguration.TryWithExplicit(
+                        NpgsqlEventId.AutoPrepareDisabledWarning, WarningBehavior.Log));
+
+            ((IDbContextOptionsBuilderInfrastructure)optionsBuilder).AddOrUpdateExtension(coreOptionsExtension);
+        }
     }
 }

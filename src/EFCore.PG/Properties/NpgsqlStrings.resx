@@ -195,4 +195,8 @@
     <value>Index '{name}' on table {tableName} cannot be scaffolded because it includes a column that cannot be scaffolded (e.g. enum).</value>
     <comment>Warning NpgsqlEventId.UnsupportedColumnIndexSkippedWarning string string</comment>
   </data>
+  <data name="LogAutoPrepareDisabled" xml:space="preserve">
+    <value>Automatic preparation is set to zero and disabled for the connection to database '{database}' on server '{server}'.</value>
+    <comment>Warning NpgsqlEventId.AutoPrepareDisabledWarning string string</comment>
+  </data>
 </root>

@@ -16,7 +16,7 @@
     <PackageLicenseExpression>PostgreSQL</PackageLicenseExpression>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>git://github.com/npgsql/Npgsql.EntityFrameworkCore.PostgreSQL</RepositoryUrl>
-    <LangVersion>latest</LangVersion>
+    <LangVersion>8</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <!-- PrivateAssets="none" is set to flow the EF Core analyzer to users referencing this package

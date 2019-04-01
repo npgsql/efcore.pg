@@ -551,6 +551,34 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
             return (EventDefinition<string, string>)definition;
         }
 
+
+        /// <summary>
+
+        ///     Automatic preparation is set to zero and disabled for the connection to database '{database}' on server '{server}'.
+
+        /// </summary>
+
+        public static EventDefinition<string, string> LogAutoPrepareDisabled([NotNull] IDiagnosticsLogger logger)
+        {
+            var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogAutoPrepareDisabled;
+            if (definition == null)
+            {
+                definition = LazyInitializer.EnsureInitialized<EventDefinitionBase>(
+                    ref ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogAutoPrepareDisabled,
+                    () => new EventDefinition<string, string>(
+                        logger.Options,
+                        NpgsqlEventId.AutoPrepareDisabledWarning,
+                        LogLevel.Warning,
+                        "NpgsqlEventId.AutoPrepareDisabledWarning",
+                        level => LoggerMessage.Define<string, string>(
+                            level,
+                            NpgsqlEventId.AutoPrepareDisabledWarning,
+                            _resourceManager.GetString("LogAutoPrepareDisabled"))));
+            }
+
+            return (EventDefinition<string, string>)definition;
+        }
+
     }
 }
 

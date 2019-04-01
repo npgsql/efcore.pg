@@ -1,3 +1,5 @@
+﻿using System;
+using System.Data.Common;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -6,6 +8,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
 {
     public static class NpgsqlLoggerExtensions
     {
+        #region Scaffolding events
+
         public static void MissingSchemaWarning(
             [NotNull] this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
             [CanBeNull] string schemaName)
@@ -176,5 +180,49 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
             }
             // No DiagnosticsSource events because these are purely design-time messages
         }
+
+        #endregion
+
+        #region Connection events
+
+        public static void AutoPrepareDisabledWarning(
+            [NotNull] this IDiagnosticsLogger<DbLoggerCategory.Database.Connection> diagnostics,
+            [NotNull] DbConnection connection,
+            Guid connectionId)
+        {
+            var definition = NpgsqlStrings.LogAutoPrepareDisabled;
+
+            var warningBehavior = definition.GetLogBehavior(diagnostics);
+            if (warningBehavior != WarningBehavior.Ignore)
+            {
+                definition.Log(
+                    diagnostics,
+                    warningBehavior,
+                    connection.Database,
+                    connection.DataSource);
+            }
+
+            if (diagnostics.DiagnosticSource.IsEnabled(definition.EventId.Name))
+            {
+                diagnostics.DiagnosticSource.Write(
+                    definition.EventId.Name,
+                    new ConnectionEventData(
+                        definition,
+                        AutoPrepareDisabled,
+                        connection,
+                        connectionId,
+                        false,
+                        DateTimeOffset.UtcNow));
+            }
+
+            static string AutoPrepareDisabled(EventDefinitionBase def, EventData payload)
+            {
+                var d = (EventDefinition<string, string>)def;
+                var p = (ConnectionEventData)payload;
+                return d.GenerateMessage(p.Connection.Database, p.Connection.DataSource);
+            }
+        }
+
+        #endregion
     }
 }

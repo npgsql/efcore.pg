@@ -51,11 +51,19 @@ namespace Microsoft.EntityFrameworkCore.Diagnostics
             EnumColumnSkippedWarning,
             ExpressionIndexSkippedWarning,
             UnsupportedColumnIndexSkippedWarning,
-            UnsupportedConstraintIndexSkippedWarning
+            UnsupportedConstraintIndexSkippedWarning,
+
+            // Connection events
+            AutoPrepareDisabledWarning
         }
 
         static readonly string ScaffoldingPrefix = DbLoggerCategory.Scaffolding.Name + ".";
         static EventId MakeScaffoldingId(Id id) => new EventId((int)id, ScaffoldingPrefix + id);
+
+        static readonly string ConnectionPrefix = DbLoggerCategory.Database.Connection.Name + ".";
+        static EventId MakeConnectionId(Id id) => new EventId((int)id, ConnectionPrefix + id);
+
+        #region Scaffolding events
 
         /// <summary>
         ///   <para>
@@ -206,5 +214,21 @@ namespace Microsoft.EntityFrameworkCore.Diagnostics
         ///   </para>
         /// </summary>
         public static readonly EventId UnsupportedColumnConstraintSkippedWarning = MakeScaffoldingId(Id.UnsupportedConstraintIndexSkippedWarning);
+
+        #endregion
+
+        #region Connection events
+
+        /// <summary>
+        ///   <para>
+        ///     Automatic preparation is set to zero and disabled for the connection to database '{database}' on server '{server}'.
+        ///   </para>
+        ///   <para>
+        ///     This event is in the <see cref="DbLoggerCategory.Database.Connection" /> category.
+        ///   </para>
+        /// </summary>
+        public static readonly EventId AutoPrepareDisabledWarning = MakeConnectionId(Id.AutoPrepareDisabledWarning);
+
+        #endregion
     }
 }

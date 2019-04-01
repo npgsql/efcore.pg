@@ -1,10 +1,10 @@
 using System.Data.Common;
-using System.Linq;
 using System.Net.Security;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 {
@@ -22,7 +22,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             : base(dependencies)
         {
             var npgsqlOptions =
-                dependencies.ContextOptions.Extensions.OfType<NpgsqlOptionsExtension>().FirstOrDefault();
+                dependencies.ContextOptions.FindExtension<NpgsqlOptionsExtension>() ?? new NpgsqlOptionsExtension();
 
             ProvideClientCertificatesCallback = npgsqlOptions.ProvideClientCertificatesCallback;
             RemoteCertificateValidationCallback = npgsqlOptions.RemoteCertificateValidationCallback;
@@ -35,6 +35,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 conn.ProvideClientCertificatesCallback = ProvideClientCertificatesCallback;
             if (RemoteCertificateValidationCallback != null)
                 conn.UserCertificateValidationCallback = RemoteCertificateValidationCallback;
+            if (conn.Settings.MaxAutoPrepare == 0)
+                Dependencies.ConnectionLogger.AutoPrepareDisabledWarning(conn, ConnectionId);
             return conn;
         }
 
