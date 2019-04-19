@@ -12,6 +12,9 @@ using Remotion.Linq.Clauses;
 using Remotion.Linq.Clauses.Expressions;
 using Remotion.Linq.Clauses.ResultOperators;
 
+// For GetPropertyPath, which will disappear in 3.0
+#pragma warning disable EF1001
+
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
 {
     /// <summary>
