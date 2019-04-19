@@ -150,10 +150,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 }, cancellationToken);
 
         protected override bool HasTables()
-            => (bool)CreateHasTablesCommand().ExecuteScalar(_connection);
+            => (bool)CreateHasTablesCommand().ExecuteScalar(_connection, null, Dependencies.CommandLogger);
 
         protected override async Task<bool> HasTablesAsync(CancellationToken cancellationToken = default)
-            => (bool)(await CreateHasTablesCommand().ExecuteScalarAsync(_connection, cancellationToken: cancellationToken));
+            => (bool)(await CreateHasTablesCommand().ExecuteScalarAsync(_connection, null, Dependencies.CommandLogger, cancellationToken));
 
         IRelationalCommand CreateHasTablesCommand()
             => _rawSqlCommandBuilder
