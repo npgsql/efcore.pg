@@ -3,6 +3,7 @@ using System.Diagnostics;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.ValueGeneration;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
@@ -14,7 +15,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
     /// </summary>
     public class NpgsqlValueGeneratorCache : ValueGeneratorCache, INpgsqlValueGeneratorCache
     {
-        private readonly ConcurrentDictionary<string, NpgsqlSequenceValueGeneratorState> _sequenceGeneratorCache
+        readonly ConcurrentDictionary<string, NpgsqlSequenceValueGeneratorState> _sequenceGeneratorCache
             = new ConcurrentDictionary<string, NpgsqlSequenceValueGeneratorState>();
 
         /// <summary>
@@ -30,10 +31,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
         ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
         ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
-        public virtual NpgsqlSequenceValueGeneratorState GetOrAddSequenceState(IProperty property)
+        public virtual NpgsqlSequenceValueGeneratorState GetOrAddSequenceState(
+            IProperty property,
+            IRelationalConnection connection)
         {
-            Check.NotNull(property, nameof(property));
-
             var sequence = property.Npgsql().FindHiLoSequence();
 
             Debug.Assert(sequence != null);

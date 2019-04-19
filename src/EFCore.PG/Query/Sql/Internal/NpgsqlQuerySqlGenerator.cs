@@ -39,9 +39,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
             [NotNull] QuerySqlGeneratorDependencies dependencies,
             [NotNull] SelectExpression selectExpression,
             bool reverseNullOrderingEnabled,
-            Version postgresVersion,
-            DiagnosticsLoggers loggers)
-            : base(dependencies, selectExpression, loggers)
+            Version postgresVersion)
+            : base(dependencies, selectExpression)
         {
             _reverseNullOrderingEnabled = reverseNullOrderingEnabled;
             _postgresVersion = postgresVersion;

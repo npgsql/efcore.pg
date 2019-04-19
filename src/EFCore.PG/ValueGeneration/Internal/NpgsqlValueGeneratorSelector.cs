@@ -1,7 +1,9 @@
 ﻿using System;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.ValueGeneration;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
@@ -12,17 +14,22 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
     public class NpgsqlValueGeneratorSelector : RelationalValueGeneratorSelector
     {
         readonly INpgsqlSequenceValueGeneratorFactory _sequenceFactory;
-
         readonly INpgsqlRelationalConnection _connection;
+        readonly IRawSqlCommandBuilder _rawSqlCommandBuilder;
+        readonly IDiagnosticsLogger<DbLoggerCategory.Database.Command> _commandLogger;
 
         public NpgsqlValueGeneratorSelector(
             [NotNull] ValueGeneratorSelectorDependencies dependencies,
             [NotNull] INpgsqlSequenceValueGeneratorFactory sequenceFactory,
-            [NotNull] INpgsqlRelationalConnection connection)
+            [NotNull] INpgsqlRelationalConnection connection,
+            [NotNull] IRawSqlCommandBuilder rawSqlCommandBuilder,
+            [NotNull] IDiagnosticsLogger<DbLoggerCategory.Database.Command> commandLogger)
             : base(dependencies)
         {
             _sequenceFactory = sequenceFactory;
             _connection = connection;
+            _rawSqlCommandBuilder = rawSqlCommandBuilder;
+            _commandLogger = commandLogger;
         }
 
         /// <summary>
@@ -38,7 +45,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
 
             return property.GetValueGeneratorFactory() == null
                    && property.Npgsql().ValueGenerationStrategy == NpgsqlValueGenerationStrategy.SequenceHiLo
-                ? _sequenceFactory.Create(property, Cache.GetOrAddSequenceState(property), _connection)
+                ? _sequenceFactory.Create(
+                    property,
+                    Cache.GetOrAddSequenceState(property, _connection),
+                    _connection,
+                    _rawSqlCommandBuilder,
+                    _commandLogger)
                 : base.Select(property, entityType);
         }
 
