@@ -25,7 +25,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
     /// <summary>
     /// The default database model factory for Npgsql.
     /// </summary>
-    public class NpgsqlDatabaseModelFactory : IDatabaseModelFactory
+    public class NpgsqlDatabaseModelFactory : DatabaseModelFactory
     {
         #region Fields
 
@@ -75,24 +75,24 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
             => _logger = Check.NotNull(logger, nameof(logger));
 
         /// <inheritdoc />
-        public virtual DatabaseModel Create(string connectionString, IEnumerable<string> tables, IEnumerable<string> schemas)
+        public override DatabaseModel Create(string connectionString, DatabaseModelFactoryOptions options)
         {
             Check.NotEmpty(connectionString, nameof(connectionString));
-            Check.NotNull(tables, nameof(tables));
-            Check.NotNull(schemas, nameof(schemas));
+            Check.NotNull(options, nameof(options));
 
             using (var connection = new NpgsqlConnection(connectionString))
             {
-                return Create(connection, tables, schemas);
+                return Create(connection, options);
             }
         }
 
         /// <inheritdoc />
-        public virtual DatabaseModel Create(DbConnection dbConnection, IEnumerable<string> tables, IEnumerable<string> schemas)
+        public override DatabaseModel Create(DbConnection dbConnection, DatabaseModelFactoryOptions options)
         {
             Check.NotNull(dbConnection, nameof(dbConnection));
-            Check.NotNull(tables, nameof(tables));
-            Check.NotNull(schemas, nameof(schemas));
+            Check.NotNull(options, nameof(options));
+
+            var databaseModel = new DatabaseModel();
 
             var connection = (NpgsqlConnection)dbConnection;
 
@@ -103,15 +103,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
 
             try
             {
-                var databaseModel = new DatabaseModel
-                {
-                    DatabaseName = connection.Database,
-                    DefaultSchema = "public"
-                };
+                databaseModel.DatabaseName = connection.Database;
+                databaseModel.DefaultSchema = "public";
 
-                var schemaList = schemas.ToList();
+                var schemaList = options.Schemas.ToList();
                 var schemaFilter = GenerateSchemaFilter(schemaList);
-                var tableList = tables.ToList();
+                var tableList = options.Tables.ToList();
                 var tableFilter = GenerateTableFilter(tableList.Select(ParseSchemaTable).ToList(), schemaFilter);
 
                 var enums = GetEnums(connection, databaseModel);
