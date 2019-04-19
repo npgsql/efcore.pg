@@ -20,6 +20,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact(Skip="https://github.com/aspnet/EntityFrameworkCore/pull/11069")]
         public override void From_sql_queryable_simple_projection_composed() {}
 
+        [Fact(Skip="https://github.com/aspnet/EntityFrameworkCore/pull/15423")]
+        public override void FromSqlRaw_does_not_parameterize_interpolated_string() {}
+
         protected override DbParameter CreateDbParameter(string name, object value)
             => new NpgsqlParameter
             {

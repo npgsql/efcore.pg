@@ -79,6 +79,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
             //{ typeof(Period).GetRuntimeMethod(nameof(Period.FromNanoseconds),  new[] { typeof(long) }), "" },
         };
 
+#pragma warning disable EF1001
         /// <inheritdoc />
         [CanBeNull]
         public Expression Translate(MethodCallExpression e, IDiagnosticsLogger<DbLoggerCategory.Query> logger)
@@ -98,5 +99,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
             }
             return null;
         }
+#pragma warning restore EF1001
     }
 }

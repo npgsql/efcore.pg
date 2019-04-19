@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
@@ -29,9 +30,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
                 .ForNpgsqlUseSequenceHiLo()
                 .Model;
 
+            model.RemoveAnnotation(CoreAnnotationNames.ProductVersion);
+
+            //throw new Exception("Annotations: " + string.Join(", ", model.GetAnnotations().Select(a => a.Name)));
+
             var annotations = model.GetAnnotations().OrderBy(a => a.Name).ToList();
-            //throw new Exception($"WAT: " + string.Join(", ", annotations.Select(a => a.Name)));
-            Assert.Equal(5, annotations.Count);
+            Assert.Equal(4, annotations.Count);
 
             // Note that the annotation order is different with Npgsql than the SqlServer (N vs. S...)
             Assert.Equal(NpgsqlAnnotationNames.HiLoSequenceName, annotations.ElementAt(0).Name);
@@ -40,16 +44,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
             Assert.Equal(NpgsqlAnnotationNames.ValueGenerationStrategy, annotations.ElementAt(1).Name);
             Assert.Equal(NpgsqlValueGenerationStrategy.SequenceHiLo, annotations.ElementAt(1).Value);
 
-            Assert.Equal(CoreAnnotationNames.ProductVersionAnnotation, annotations[2].Name);
-
-            Assert.Equal(RelationalAnnotationNames.MaxIdentifierLength, annotations[3].Name);
+            Assert.Equal(RelationalAnnotationNames.MaxIdentifierLength, annotations[2].Name);
 
             Assert.Equal(
                 RelationalAnnotationNames.SequencePrefix +
                 "." +
                 NpgsqlModelAnnotations.DefaultHiLoSequenceName,
-                annotations.ElementAt(4).Name);
-            Assert.NotNull(annotations.ElementAt(4).Value);
+                annotations.ElementAt(3).Name);
+            Assert.NotNull(annotations.ElementAt(3).Value);
         }
     }
 }

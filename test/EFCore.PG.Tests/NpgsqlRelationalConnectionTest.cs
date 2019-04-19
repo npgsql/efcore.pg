@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Microsoft.Extensions.Logging;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics.Internal;
 using Xunit;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
@@ -62,11 +63,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 new DiagnosticsLogger<DbLoggerCategory.Database.Transaction>(
                     new LoggerFactory(),
                     new LoggingOptions(),
-                    new DiagnosticListener("FakeDiagnosticListener")),
+                    new DiagnosticListener("FakeDiagnosticListener"),
+                    new NpgsqlLoggingDefinitions()),
                 new DiagnosticsLogger<DbLoggerCategory.Database.Connection>(
                     new LoggerFactory(),
                     new LoggingOptions(),
-                    new DiagnosticListener("FakeDiagnosticListener")),
+                    new DiagnosticListener("FakeDiagnosticListener"),
+                    new NpgsqlLoggingDefinitions()),
                 new NamedConnectionStringResolver(options),
                 new RelationalTransactionFactory(new RelationalTransactionFactoryDependencies()));
         }

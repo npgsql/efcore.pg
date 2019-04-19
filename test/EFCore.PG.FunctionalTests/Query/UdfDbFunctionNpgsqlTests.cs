@@ -221,7 +221,7 @@ WHERE c.""Id"" = @__customerId_1
 LIMIT 2");
         }
 
-        [Fact]
+        [Fact(Skip = "Issue #14935. Cannot eval 'where (2 == AddOneStatic([c].Id))'")]
         public override void Scalar_Nested_Function_Unwind_Client_Eval_Where_Static()
         {
             base.Scalar_Nested_Function_Unwind_Client_Eval_Where_Static();
@@ -231,7 +231,7 @@ LIMIT 2");
 FROM ""Customers"" AS c");
         }
 
-        [Fact]
+        [Fact(Skip = "Issue #14935. Cannot eval 'orderby AddOneStatic([c].Id) asc'")]
         public override void Scalar_Nested_Function_Unwind_Client_Eval_OrderBy_Static()
         {
             base.Scalar_Nested_Function_Unwind_Client_Eval_OrderBy_Static();
@@ -252,7 +252,7 @@ FROM ""Customers"" AS c
 ORDER BY c.""Id""");
         }
 
-        [Fact]
+        [Fact(Skip = "Issue #14935. Cannot eval 'where (2 == AddOneStatic(Abs(CustomerOrderCountWithClientStatic([c].Id))))'")]
         public override void Scalar_Nested_Function_Client_BCL_UDF_Static()
         {
             base.Scalar_Nested_Function_Client_BCL_UDF_Static();
@@ -262,7 +262,7 @@ ORDER BY c.""Id""");
 FROM ""Customers"" AS c");
         }
 
-        [Fact]
+        [Fact(Skip = "Issue #14935. Cannot eval 'where (2 == AddOneStatic(CustomerOrderCountWithClientStatic(Abs([c].Id))))'")]
         public override void Scalar_Nested_Function_Client_UDF_BCL_Static()
         {
             base.Scalar_Nested_Function_Client_UDF_BCL_Static();
@@ -272,7 +272,7 @@ FROM ""Customers"" AS c");
 FROM ""Customers"" AS c");
         }
 
-        [Fact]
+        [Fact(Skip = "Issue #14935. Cannot eval 'where (2 == Abs(AddOneStatic(CustomerOrderCountWithClientStatic([c].Id))))'")]
         public override void Scalar_Nested_Function_BCL_Client_UDF_Static()
         {
             base.Scalar_Nested_Function_BCL_Client_UDF_Static();
@@ -282,7 +282,7 @@ FROM ""Customers"" AS c");
 FROM ""Customers"" AS c");
         }
 
-        [Fact]
+        [Fact(Skip = "Issue #14935. Cannot eval 'where (1 == Abs(CustomerOrderCountWithClientStatic(AddOneStatic([c].Id))))'")]
         public override void Scalar_Nested_Function_BCL_UDF_Client_Static()
         {
             base.Scalar_Nested_Function_BCL_UDF_Client_Static();
@@ -292,7 +292,7 @@ FROM ""Customers"" AS c");
 FROM ""Customers"" AS c");
         }
 
-        [Fact]
+        [Fact(Skip = "Issue #14935. Cannot eval 'where (1 == CustomerOrderCountWithClientStatic(Abs(AddOneStatic([c].Id))))'")]
         public override void Scalar_Nested_Function_UDF_BCL_Client_Static()
         {
             base.Scalar_Nested_Function_UDF_BCL_Client_Static();
@@ -302,7 +302,7 @@ FROM ""Customers"" AS c");
 FROM ""Customers"" AS c");
         }
 
-        [Fact]
+        [Fact(Skip = "Issue #14935. Cannot eval 'where (1 == CustomerOrderCountWithClientStatic(AddOneStatic(Abs([c].Id))))'")]
         public override void Scalar_Nested_Function_UDF_Client_BCL_Static()
         {
             base.Scalar_Nested_Function_UDF_Client_BCL_Static();
@@ -312,7 +312,7 @@ FROM ""Customers"" AS c");
 FROM ""Customers"" AS c");
         }
 
-        [Fact]
+        [Fact(Skip = "Issue #14935. Cannot eval 'where (3 == AddOneStatic(Abs([c].Id)))'")]
         public override void Scalar_Nested_Function_Client_BCL_Static()
         {
             base.Scalar_Nested_Function_Client_BCL_Static();
@@ -322,7 +322,7 @@ FROM ""Customers"" AS c");
 FROM ""Customers"" AS c");
         }
 
-        [Fact]
+        [Fact(Skip = "Issue #14935. Cannot eval 'where (2 == AddOneStatic(CustomerOrderCountWithClientStatic([c].Id)))'")]
         public override void Scalar_Nested_Function_Client_UDF_Static()
         {
             base.Scalar_Nested_Function_Client_UDF_Static();
@@ -332,7 +332,7 @@ FROM ""Customers"" AS c");
 FROM ""Customers"" AS c");
         }
 
-        [Fact]
+        [Fact(Skip = "Issue #14935. Cannot eval 'where (3 == Abs(AddOneStatic([c].Id)))'")]
         public override void Scalar_Nested_Function_BCL_Client_Static()
         {
             base.Scalar_Nested_Function_BCL_Client_Static();
@@ -354,7 +354,7 @@ WHERE 3 = ABS(customer_order_count(c.""Id""))
 LIMIT 2");
         }
 
-        [Fact]
+        [Fact(Skip = "Issue #14935. Cannot eval 'where (2 == CustomerOrderCountWithClientStatic(AddOneStatic([c].Id)))'")]
         public override void Scalar_Nested_Function_UDF_Client_Static()
         {
             base.Scalar_Nested_Function_UDF_Client_Static();
@@ -602,7 +602,7 @@ WHERE c.""Id"" = @__customerId_2
 LIMIT 2");
         }
 
-        [Fact]
+        [Fact(Skip = "Issue #14935. Cannot eval 'where (2 == __context_0.AddOneInstance([c].Id))'")]
         public override void Scalar_Nested_Function_Unwind_Client_Eval_Where_Instance()
         {
             base.Scalar_Nested_Function_Unwind_Client_Eval_Where_Instance();
@@ -612,7 +612,7 @@ LIMIT 2");
 FROM ""Customers"" AS c");
         }
 
-        [Fact]
+        [Fact(Skip = "Issue #14935. Cannot eval 'orderby __context_0.AddOneInstance([c].Id) asc'")]
         public override void Scalar_Nested_Function_Unwind_Client_Eval_OrderBy_Instance()
         {
             base.Scalar_Nested_Function_Unwind_Client_Eval_OrderBy_Instance();
@@ -633,7 +633,7 @@ FROM ""Customers"" AS c
 ORDER BY c.""Id""");
         }
 
-        [Fact]
+        [Fact(Skip = "Issue #14935. Cannot eval 'where (2 == __context_0.AddOneInstance(Abs(__context_0.CustomerOrderCountWithClientInstance([c].Id))))'")]
         public override void Scalar_Nested_Function_Client_BCL_UDF_Instance()
         {
             base.Scalar_Nested_Function_Client_BCL_UDF_Instance();
@@ -643,7 +643,7 @@ ORDER BY c.""Id""");
 FROM ""Customers"" AS c");
         }
 
-        [Fact]
+        [Fact(Skip = "Issue #14935. Cannot eval 'where (2 == __context_0.AddOneInstance(__context_0.CustomerOrderCountWithClientInstance(Abs([c].Id))))'")]
         public override void Scalar_Nested_Function_Client_UDF_BCL_Instance()
         {
             base.Scalar_Nested_Function_Client_UDF_BCL_Instance();
@@ -653,7 +653,7 @@ FROM ""Customers"" AS c");
 FROM ""Customers"" AS c");
         }
 
-        [Fact]
+        [Fact(Skip = "Issue #14935. Cannot eval 'where (2 == Abs(__context_0.AddOneInstance(__context_0.CustomerOrderCountWithClientInstance([c].Id))))'")]
         public override void Scalar_Nested_Function_BCL_Client_UDF_Instance()
         {
             base.Scalar_Nested_Function_BCL_Client_UDF_Instance();
@@ -663,7 +663,7 @@ FROM ""Customers"" AS c");
 FROM ""Customers"" AS c");
         }
 
-        [Fact]
+        [Fact(Skip = "Issue #14935. Cannot eval 'where (1 == Abs(__context_0.CustomerOrderCountWithClientInstance(__context_0.AddOneInstance([c].Id))))'")]
         public override void Scalar_Nested_Function_BCL_UDF_Client_Instance()
         {
             base.Scalar_Nested_Function_BCL_UDF_Client_Instance();
@@ -673,7 +673,7 @@ FROM ""Customers"" AS c");
 FROM ""Customers"" AS c");
         }
 
-        [Fact]
+        [Fact(Skip = "Issue #14935. Cannot eval 'where (1 == __context_0.CustomerOrderCountWithClientInstance(Abs(__context_0.AddOneInstance([c].Id))))'")]
         public override void Scalar_Nested_Function_UDF_BCL_Client_Instance()
         {
             base.Scalar_Nested_Function_UDF_BCL_Client_Instance();
@@ -683,7 +683,7 @@ FROM ""Customers"" AS c");
 FROM ""Customers"" AS c");
         }
 
-        [Fact]
+        [Fact(Skip = "Issue #14935. Cannot eval 'where (1 == __context_0.CustomerOrderCountWithClientInstance(__context_0.AddOneInstance(Abs([c].Id))))'")]
         public override void Scalar_Nested_Function_UDF_Client_BCL_Instance()
         {
             base.Scalar_Nested_Function_UDF_Client_BCL_Instance();
@@ -693,7 +693,7 @@ FROM ""Customers"" AS c");
 FROM ""Customers"" AS c");
         }
 
-        [Fact]
+        [Fact(Skip = "Issue #14935. Cannot eval 'where (3 == __context_0.AddOneInstance(Abs([c].Id)))'")]
         public override void Scalar_Nested_Function_Client_BCL_Instance()
         {
             base.Scalar_Nested_Function_Client_BCL_Instance();
@@ -703,7 +703,7 @@ FROM ""Customers"" AS c");
 FROM ""Customers"" AS c");
         }
 
-        [Fact]
+        [Fact(Skip = "Issue #14935. Cannot eval 'where (2 == __context_0.AddOneInstance(__context_0.CustomerOrderCountWithClientInstance([c].Id)))'")]
         public override void Scalar_Nested_Function_Client_UDF_Instance()
         {
             base.Scalar_Nested_Function_Client_UDF_Instance();
@@ -713,7 +713,7 @@ FROM ""Customers"" AS c");
 FROM ""Customers"" AS c");
         }
 
-        [Fact]
+        [Fact(Skip = "Issue #14935. Cannot eval 'where (3 == Abs(__context_0.AddOneInstance([c].Id)))'")]
         public override void Scalar_Nested_Function_BCL_Client_Instance()
         {
             base.Scalar_Nested_Function_BCL_Client_Instance();
@@ -735,7 +735,7 @@ WHERE 3 = ABS(customer_order_count(c.""Id""))
 LIMIT 2");
         }
 
-        [Fact]
+        [Fact(Skip = "Issue #14935. Cannot eval 'where (2 == __context_0.CustomerOrderCountWithClientInstance(__context_0.AddOneInstance([c].Id)))'")]
         public override void Scalar_Nested_Function_UDF_Client_Instance()
         {
             base.Scalar_Nested_Function_UDF_Client_Instance();
@@ -843,37 +843,37 @@ LIMIT 2");
                 base.Seed(context);
 
                 // TODO: The OR REPLACE shouldn't be needed, but the fixture attempts to recreate the function and PG errors
-                context.Database.ExecuteSqlCommand(
+                context.Database.ExecuteSqlRaw(
                     @"CREATE OR REPLACE FUNCTION customer_order_count (""customerId"" INTEGER)
                                                     RETURNS INTEGER
                                                     AS $$ SELECT COUNT(""Id"")::INTEGER FROM ""Orders"" WHERE ""CustomerId"" = $1 $$
                                                     LANGUAGE SQL");
 
-                context.Database.ExecuteSqlCommand(
+                context.Database.ExecuteSqlRaw(
                     @"CREATE OR REPLACE FUNCTION star_value (""starCount"" INTEGER, value TEXT)
                                                     RETURNS TEXT
                                                     AS $$ SELECT repeat('*', $1) || $2 $$
                                                     LANGUAGE SQL");
 
-                context.Database.ExecuteSqlCommand(
+                context.Database.ExecuteSqlRaw(
                     @"CREATE OR REPLACE FUNCTION star_value (""starCount"" INTEGER, value INTEGER)
                                                     RETURNS TEXT
                                                     AS $$ SELECT repeat('*', $1) || $2 $$
                                                     LANGUAGE SQL");
 
-                context.Database.ExecuteSqlCommand(
+                context.Database.ExecuteSqlRaw(
                     @"CREATE OR REPLACE FUNCTION dollar_value (""starCount"" INTEGER, value TEXT)
                                                     RETURNS TEXT
                                                     AS $$ SELECT repeat('$', $1) || $2 $$
                                                     LANGUAGE SQL");
 
-                context.Database.ExecuteSqlCommand(
+                context.Database.ExecuteSqlRaw(
                     @"CREATE OR REPLACE FUNCTION get_reporting_period_start_date (period INTEGER)
                                                     RETURNS DATE
                                                     AS $$ SELECT DATE '1998-01-01' $$
                                                     LANGUAGE SQL");
 
-                context.Database.ExecuteSqlCommand(
+                context.Database.ExecuteSqlRaw(
                     @"CREATE OR REPLACE FUNCTION get_customer_with_most_orders_after_date (searchDate TIMESTAMP)
                                                     RETURNS INTEGER
                                                     AS $$ SELECT ""CustomerId""
@@ -884,22 +884,22 @@ LIMIT 2");
                                                           LIMIT 1 $$
                                                     LANGUAGE SQL");
 
-                context.Database.ExecuteSqlCommand(
+                context.Database.ExecuteSqlRaw(
                     @"CREATE OR REPLACE FUNCTION is_top_customer (""customerId"" INTEGER)
                                                     RETURNS BOOL
                                                     AS $$ SELECT $1 = 1 $$
                                                     LANGUAGE SQL");
 
-                context.Database.ExecuteSqlCommand(
+                context.Database.ExecuteSqlRaw(
                     @"CREATE SCHEMA IF NOT EXISTS dbo");
 
-                context.Database.ExecuteSqlCommand(
+                context.Database.ExecuteSqlRaw(
                     @"CREATE OR REPLACE FUNCTION dbo.""IdentityString"" (""customerName"" TEXT)
                                                     RETURNS TEXT
                                                     AS $$ SELECT $1 $$
                                                     LANGUAGE SQL");
 
-                context.Database.ExecuteSqlCommand(
+                context.Database.ExecuteSqlRaw(
                     @"CREATE OR REPLACE FUNCTION is_date(s TEXT)
                                                     RETURNS BOOLEAN AS $$
                                                     BEGIN

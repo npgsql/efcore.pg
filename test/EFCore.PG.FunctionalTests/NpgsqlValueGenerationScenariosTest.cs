@@ -209,7 +209,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                     .Entity<Blog>()
                     .Property(e => e.Id)
                     .HasDefaultValueSql("nextval('\"MySequence\"')")
-                    .Metadata.BeforeSaveBehavior = PropertySaveBehavior.Throw;
+                    .Metadata.SetBeforeSaveBehavior(PropertySaveBehavior.Throw);
             }
         }
 
@@ -411,7 +411,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 modelBuilder.Entity<Blog>()
                     .Property(e => e.CreatedOn)
                     .HasDefaultValueSql("now()")
-                    .Metadata.BeforeSaveBehavior = PropertySaveBehavior.Throw;
+                    .Metadata.SetBeforeSaveBehavior(PropertySaveBehavior.Throw);
             }
         }
 
