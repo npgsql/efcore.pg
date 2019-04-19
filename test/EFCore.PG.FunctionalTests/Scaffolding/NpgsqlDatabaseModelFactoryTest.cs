@@ -6,11 +6,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Scaffolding;
 using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.Logging;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
@@ -1243,8 +1245,8 @@ CREATE TABLE ""Blank"" (
 
                     var (_, Id, Message, _, _) = Assert.Single(Fixture.ListLoggerFactory.Log.Where(t => t.Level == LogLevel.Warning));
 
-                    Assert.Equal(NpgsqlStrings.LogMissingSchema.EventId, Id);
-                    Assert.Equal(NpgsqlStrings.LogMissingSchema.GenerateMessage("MySchema"), Message);
+                    Assert.Equal(NpgsqlResources.LogMissingSchema(new TestLogger<NpgsqlLoggingDefinitions>()).EventId, Id);
+                    Assert.Equal(NpgsqlResources.LogMissingSchema(new TestLogger<NpgsqlLoggingDefinitions>()).GenerateMessage("MySchema"), Message);
                 },
                 @"DROP TABLE ""Blank""");
 
@@ -1262,8 +1264,8 @@ CREATE TABLE ""Blank"" (
 
                     var (_, Id, Message, _, _) = Assert.Single(Fixture.ListLoggerFactory.Log.Where(t => t.Level == LogLevel.Warning));
 
-                    Assert.Equal(NpgsqlStrings.LogMissingTable.EventId, Id);
-                    Assert.Equal(NpgsqlStrings.LogMissingTable.GenerateMessage("MyTable"), Message);
+                    Assert.Equal(NpgsqlResources.LogMissingTable(new TestLogger<NpgsqlLoggingDefinitions>()).EventId, Id);
+                    Assert.Equal(NpgsqlResources.LogMissingTable(new TestLogger<NpgsqlLoggingDefinitions>()).GenerateMessage("MyTable"), Message);
                 },
                 @"DROP TABLE ""Blank""");
 
@@ -1285,8 +1287,10 @@ CREATE TABLE ""DependentTable"" (
                 {
                     var (_, Id, Message, _, _) = Assert.Single(Fixture.ListLoggerFactory.Log.Where(t => t.Level == LogLevel.Warning));
 
-                    Assert.Equal(NpgsqlStrings.LogPrincipalTableNotInSelectionSet.EventId, Id);
-                    Assert.Equal(NpgsqlStrings.LogPrincipalTableNotInSelectionSet.GenerateMessage("MYFK", "public.DependentTable", "public.PrincipalTable"), Message);
+                    Assert.Equal(NpgsqlResources.LogPrincipalTableNotInSelectionSet(new TestLogger<NpgsqlLoggingDefinitions>()).EventId, Id);
+                    Assert.Equal(
+                        NpgsqlResources.LogPrincipalTableNotInSelectionSet(new TestLogger<NpgsqlLoggingDefinitions>()).GenerateMessage(
+                            "MYFK", "public.DependentTable", "public.PrincipalTable"), Message);
                 },
                 @"
 DROP TABLE ""DependentTable"";
@@ -1723,9 +1727,12 @@ CREATE TABLE column_types (
                     new DiagnosticsLogger<DbLoggerCategory.Scaffolding>(
                         Fixture.ListLoggerFactory,
                         new LoggingOptions(),
-                        new DiagnosticListener("Fake")));
+                        new DiagnosticListener("Fake"),
+                        new NpgsqlLoggingDefinitions()));
 
-                var databaseModel = databaseModelFactory.Create(Fixture.TestStore.ConnectionString, tables, schemas);
+                var databaseModel = databaseModelFactory.Create(
+                    Fixture.TestStore.ConnectionString,
+                    new DatabaseModelFactoryOptions(tables, schemas));
                 Assert.NotNull(databaseModel);
                 asserter(databaseModel);
             }

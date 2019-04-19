@@ -21,7 +21,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
         public virtual IRelationalCommandBuilder Create()
             => new TestRelationalCommandBuilder(Dependencies);
 
-#pragma warning disable EF1001
         class TestRelationalCommandBuilder : IRelationalCommandBuilder
         {
             readonly List<IRelationalParameter> _parameters = new List<IRelationalParameter>();
@@ -83,7 +82,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
 
             public int CommandTextLength => Instance.Length;
         }
-#pragma warning restore EF1001
 
         class TestRelationalCommand : IRelationalCommand
         {

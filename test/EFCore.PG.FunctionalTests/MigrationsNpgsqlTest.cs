@@ -34,6 +34,7 @@ BEGIN
     IF NOT EXISTS(SELECT 1 FROM ""__EFMigrationsHistory"" WHERE ""MigrationId"" = '00000000000001_Migration1') THEN
     CREATE TABLE ""Table1"" (
         ""Id"" integer NOT NULL,
+        ""Foo"" integer NOT NULL,
         CONSTRAINT ""PK_Table1"" PRIMARY KEY (""Id"")
     );
     END IF;
@@ -50,7 +51,7 @@ END $$;
 DO $$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM ""__EFMigrationsHistory"" WHERE ""MigrationId"" = '00000000000002_Migration2') THEN
-    ALTER TABLE ""Table1"" RENAME TO ""Table2"";
+    ALTER TABLE ""Table1"" RENAME COLUMN ""Foo"" TO ""Bar"";
     END IF;
 END $$;
 
@@ -82,7 +83,7 @@ END $$;
 DO $$
 BEGIN
     IF EXISTS(SELECT 1 FROM ""__EFMigrationsHistory"" WHERE ""MigrationId"" = '00000000000002_Migration2') THEN
-    ALTER TABLE ""Table2"" RENAME TO ""Table1"";
+    ALTER TABLE ""Table1"" RENAME COLUMN ""Bar"" TO ""Foo"";
     END IF;
 END $$;
 

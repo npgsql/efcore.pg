@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.EntityFrameworkCore.Update;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
@@ -22,29 +23,29 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update
             optionsBuilder.UseNpgsql("Database=Crunchie", b => b.MaxBatchSize(1));
 
             var typeMapper = new NpgsqlTypeMappingSource(
-                new TypeMappingSourceDependencies (
-                    new ValueConverterSelector(new ValueConverterSelectorDependencies()),
-                    Array.Empty<ITypeMappingSourcePlugin>()
-                ),
-                new RelationalTypeMappingSourceDependencies(Array.Empty<IRelationalTypeMappingSourcePlugin>()),
+                TestServiceFactory.Instance.Create<TypeMappingSourceDependencies>(),
+                TestServiceFactory.Instance.Create<RelationalTypeMappingSourceDependencies>(),
                 new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
-                new NpgsqlOptions()
-            );
+                new NpgsqlOptions());
+
+            var logger = new FakeDiagnosticsLogger<DbLoggerCategory.Database.Command>();
+
             var factory = new NpgsqlModificationCommandBatchFactory(
                 new ModificationCommandBatchFactoryDependencies(
                     new RelationalCommandBuilderFactory(
-                        typeMapper),
-                    new RelationalSqlGenerationHelper(
+                        new RelationalCommandBuilderDependencies(
+                            typeMapper)),
+                    new NpgsqlSqlGenerationHelper(
                         new RelationalSqlGenerationHelperDependencies()),
                     new NpgsqlUpdateSqlGenerator(
                         new UpdateSqlGeneratorDependencies(
-                            new RelationalSqlGenerationHelper(
+                            new NpgsqlSqlGenerationHelper(
                                 new RelationalSqlGenerationHelperDependencies()),
                             typeMapper)),
                     new TypedRelationalValueBufferFactoryFactory(
                         new RelationalValueBufferFactoryDependencies(
                             typeMapper, new CoreSingletonOptions())),
-                    new FakeDiagnosticsLogger<DbLoggerCategory.Database.Command>()),
+                    logger),
                 optionsBuilder.Options);
 
             var batch = factory.Create();
@@ -60,29 +61,29 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update
             optionsBuilder.UseNpgsql("Database=Crunchie");
 
             var typeMapper = new NpgsqlTypeMappingSource(
-                new TypeMappingSourceDependencies (
-                    new ValueConverterSelector(new ValueConverterSelectorDependencies()),
-                    Array.Empty<ITypeMappingSourcePlugin>()
-                ),
-                new RelationalTypeMappingSourceDependencies(Array.Empty<IRelationalTypeMappingSourcePlugin>()),
+                TestServiceFactory.Instance.Create<TypeMappingSourceDependencies>(),
+                TestServiceFactory.Instance.Create<RelationalTypeMappingSourceDependencies>(),
                 new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
-                new NpgsqlOptions()
-            );
+                new NpgsqlOptions());
+
+            var logger = new FakeDiagnosticsLogger<DbLoggerCategory.Database.Command>();
+
             var factory = new NpgsqlModificationCommandBatchFactory(
                 new ModificationCommandBatchFactoryDependencies(
                     new RelationalCommandBuilderFactory(
-                        typeMapper),
-                    new RelationalSqlGenerationHelper(
+                        new RelationalCommandBuilderDependencies(
+                            typeMapper)),
+                    new NpgsqlSqlGenerationHelper(
                         new RelationalSqlGenerationHelperDependencies()),
                     new NpgsqlUpdateSqlGenerator(
                         new UpdateSqlGeneratorDependencies(
-                            new RelationalSqlGenerationHelper(
+                            new NpgsqlSqlGenerationHelper(
                                 new RelationalSqlGenerationHelperDependencies()),
                             typeMapper)),
                     new TypedRelationalValueBufferFactoryFactory(
                         new RelationalValueBufferFactoryDependencies(
                             typeMapper, new CoreSingletonOptions())),
-                    new FakeDiagnosticsLogger<DbLoggerCategory.Database.Command>()),
+                    logger),
                 optionsBuilder.Options);
 
             var batch = factory.Create();

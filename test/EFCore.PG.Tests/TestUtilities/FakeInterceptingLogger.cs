@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Logging;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
@@ -9,8 +10,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
     public class FakeDiagnosticsLogger<T> : IDiagnosticsLogger<T>, ILogger
         where T : LoggerCategory<T>, new()
     {
-        // ReSharper disable once UnassignedGetOnlyAutoProperty
-        public ILoggingOptions Options { get; }
+        public ILoggingOptions Options { get; } = new LoggingOptions();
 
         public bool ShouldLogSensitiveData() => false;
 
@@ -29,8 +29,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
 
         public bool IsEnabled(LogLevel logLevel) => true;
 
-        public WarningBehavior GetLogBehavior(EventId eventId, LogLevel logLevel) => WarningBehavior.Log;
+        public bool IsEnabled(EventId eventId, LogLevel logLevel) => true;
 
         public IDisposable BeginScope<TState>(TState state) => null;
+
+        public virtual LoggingDefinitions Definitions { get; } = new RelationalLoggingDefinitions();
     }
 }
