@@ -1,5 +1,6 @@
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions.Internal;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Query;
@@ -77,8 +78,8 @@ namespace Microsoft.Extensions.DependencyInjection
                     .TryAdd<ISqlGenerationHelper, NpgsqlSqlGenerationHelper>()
                     .TryAdd<IMigrationsAnnotationProvider, NpgsqlMigrationsAnnotationProvider>()
                     .TryAdd<IModelValidator, NpgsqlModelValidator>()
+                    .TryAdd<IProviderConventionSetBuilder, NpgsqlConventionSetBuilder>()
                     .TryAdd<IRelationalValueBufferFactoryFactory, TypedRelationalValueBufferFactoryFactory>()
-                    .TryAdd<IConventionSetBuilder, NpgsqlConventionSetBuilder>()
                     .TryAdd<IUpdateSqlGenerator, NpgsqlUpdateSqlGenerator>()
                     .TryAdd<IModificationCommandBatchFactory, NpgsqlModificationCommandBatchFactory>()
                     .TryAdd<IValueGeneratorSelector, NpgsqlValueGeneratorSelector>()

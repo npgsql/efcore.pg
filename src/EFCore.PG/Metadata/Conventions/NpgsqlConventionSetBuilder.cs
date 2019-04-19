@@ -1,25 +1,31 @@
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions.Internal;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
 {
+    [EntityFrameworkInternal]
     public class NpgsqlConventionSetBuilder : RelationalConventionSetBuilder
     {
-        public NpgsqlConventionSetBuilder([NotNull] RelationalConventionSetBuilderDependencies dependencies)
-            : base(dependencies)
+        [EntityFrameworkInternal]
+        public NpgsqlConventionSetBuilder(
+            [NotNull] ProviderConventionSetBuilderDependencies dependencies,
+            [NotNull] RelationalConventionSetBuilderDependencies relationalDependencies)
+            : base(dependencies, relationalDependencies)
         {
         }
 
-        public override ConventionSet AddConventions(ConventionSet conventionSet)
+        [EntityFrameworkInternal]
+        public override ConventionSet CreateConventionSet()
         {
-            Check.NotNull(conventionSet, nameof(conventionSet));
-
-            base.AddConventions(conventionSet);
+            var conventionSet = base.CreateConventionSet();
 
             var valueGenerationStrategyConvention = new NpgsqlValueGenerationStrategyConvention();
             conventionSet.ModelInitializedConventions.Add(valueGenerationStrategyConvention);
@@ -28,6 +34,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
             return conventionSet;
         }
 
+        [EntityFrameworkInternal]
         public static ConventionSet Build()
         {
             var serviceProvider = new ServiceCollection()
