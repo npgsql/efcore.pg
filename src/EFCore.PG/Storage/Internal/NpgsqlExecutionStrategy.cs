@@ -25,6 +25,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         {
             try
             {
+#pragma warning disable EF1001
                 return operation(Dependencies.CurrentDbContext.Context, state);
             }
             catch (Exception ex)
@@ -46,7 +47,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         {
             try
             {
+#pragma warning disable EF1001
                 return await operation(Dependencies.CurrentDbContext.Context, state, cancellationToken);
+#pragma warning restore EF1001
             }
             catch (Exception ex)
             {
