@@ -1,6 +1,6 @@
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.EntityFrameworkCore.Internal;
 
 namespace System.Reflection
 {
@@ -31,10 +31,12 @@ namespace System.Reflection
             {
                 return targetMember;
             }
+
             if (targetMember is MethodInfo targetMethod)
             {
                 return targetMethod.OnInterface(interfaceType);
             }
+
             if (targetMember is PropertyInfo targetProperty)
             {
                 var targetGetMethod = targetProperty.GetMethod;
@@ -63,11 +65,42 @@ namespace System.Reflection
             }
 
             var map = targetMethod.DeclaringType.GetInterfaceMap(interfaceType);
-            var index = map.TargetMethods.IndexOf(targetMethod);
+            var index = map.TargetMethods.IndexOf(targetMethod, MemberInfoComparer.Instance);
 
             return index != -1
                 ? map.InterfaceMethods[index]
                 : targetMethod;
         }
+
+        public static string GetSimpleMemberName(this MemberInfo member)
+        {
+            var name = member.Name;
+            var index = name.LastIndexOf('.');
+            return index >= 0 ? name.Substring(index + 1) : name;
+        }
+
+        class MemberInfoComparer : IEqualityComparer<MemberInfo>
+        {
+            public static readonly MemberInfoComparer Instance = new MemberInfoComparer();
+
+            public bool Equals(MemberInfo x, MemberInfo y)
+                => x.IsSameAs(y);
+
+            public int GetHashCode(MemberInfo obj)
+                => obj.GetHashCode();
+        }
+
+        static int IndexOf<T>(this IEnumerable<T> source, T item, IEqualityComparer<T> comparer)
+            => source.Select(
+                    (x, index) =>
+                        comparer.Equals(item, x) ? index : -1)
+                .FirstOr(x => x != -1, -1);
+
+        static T FirstOr<T>(this IEnumerable<T> source, T alternate)
+            => source.DefaultIfEmpty(alternate).First();
+
+        static T FirstOr<T>(this IEnumerable<T> source, Func<T, bool> predicate, T alternate)
+            => source.Where(predicate).FirstOr(alternate);
+
     }
 }
