@@ -30,7 +30,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 FROM ""Customers"" AS c
 WHERE CASE
     WHEN is_date(c.""FirstName"") = TRUE
-    THEN TRUE::bool ELSE FALSE::bool
+    THEN TRUE ELSE FALSE
 END = FALSE");
         }
 
@@ -415,7 +415,7 @@ LIMIT 2");
 FROM ""Customers"" AS c
 WHERE CASE
     WHEN is_date(c.""FirstName"") = TRUE
-    THEN TRUE::bool ELSE FALSE::bool
+    THEN TRUE ELSE FALSE
 END = FALSE");
         }
 

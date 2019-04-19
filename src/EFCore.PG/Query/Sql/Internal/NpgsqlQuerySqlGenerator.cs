@@ -35,12 +35,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
         IRelationalTypeMappingSource TypeMappingSource => Dependencies.TypeMappingSource;
 
         /// <inheritdoc />
-        protected override string TypedTrueLiteral { get; } = "TRUE::bool";
-
-        /// <inheritdoc />
-        protected override string TypedFalseLiteral { get; } = "FALSE::bool";
-
-        /// <inheritdoc />
         public NpgsqlQuerySqlGenerator(
             [NotNull] QuerySqlGeneratorDependencies dependencies,
             [NotNull] SelectExpression selectExpression,
