@@ -69,7 +69,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors
 
         /// <inheritdoc />
         protected override Expression VisitSubQuery(SubQueryExpression expression)
-            => base.VisitSubQuery(expression) ?? VisitLikeAnyAll(expression) ?? VisitEqualsAny(expression);
+            => VisitLikeAnyAll(expression) ?? VisitEqualsAny(expression) ?? base.VisitSubQuery(expression);
 
         /// <inheritdoc />
         protected override Expression VisitBinary(BinaryExpression expression)
