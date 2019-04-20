@@ -31,9 +31,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         }
 
         protected virtual bool SetHiLoSequenceName([CanBeNull] string value)
-            => Annotations.SetAnnotation(
-                NpgsqlAnnotationNames.HiLoSequenceName,
-                Check.NullButNotEmpty(value, nameof(value)));
+        {
+            Check.NullButNotEmpty(value, nameof(value));
+
+            return value == null
+                ? Annotations.RemoveAnnotation(NpgsqlAnnotationNames.HiLoSequenceName)
+                : Annotations.SetAnnotation(NpgsqlAnnotationNames.HiLoSequenceName, value);
+        }
 
         public virtual string HiLoSequenceSchema
         {
@@ -43,9 +47,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         }
 
         protected virtual bool SetHiLoSequenceSchema([CanBeNull] string value)
-            => Annotations.SetAnnotation(
-                NpgsqlAnnotationNames.HiLoSequenceSchema,
-                Check.NullButNotEmpty(value, nameof(value)));
+        {
+            Check.NullButNotEmpty(value, nameof(value));
+
+            return value == null
+                ? Annotations.RemoveAnnotation(NpgsqlAnnotationNames.HiLoSequenceSchema)
+                : Annotations.SetAnnotation(NpgsqlAnnotationNames.HiLoSequenceSchema, value);
+        }
 
         #endregion
 
