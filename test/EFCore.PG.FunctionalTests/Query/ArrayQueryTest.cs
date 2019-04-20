@@ -66,17 +66,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             }
         }
 
-        [Fact]
-        public void Index_multidimensional()
-        {
-            using (var ctx = Fixture.CreateContext())
-            {
-                // Operations on multidimensional arrays aren't mapped to SQL yet
-                var actual = ctx.SomeEntities.Where(e => e.SomeMatrix[0, 0] == 5).ToList();
-                Assert.Equal(1, actual.Count);
-            }
-        }
-
         #endregion
 
         #region Equality
@@ -224,11 +213,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                                Text = x.SomeText
                            });
 
-                var _ = anon.Where(x => matches.Any(m => EF.Functions.Like(m, x.Text))).ToList();
-
-                AssertDoesNotContainInSql("LIKE");
-                AssertDoesNotContainInSql("ANY");
-                AssertDoesNotContainInSql("@__matches_0");
+                Assert.Throws<InvalidOperationException>(() =>
+                    anon.Where(x => matches.Any(m => EF.Functions.Like(m, x.Text))).ToList());
             }
         }
 

@@ -74,12 +74,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             AssertContainsSqlFragment("DATE_PART('second', o.\"OrderDate\")");
         }
 
-        // ReSharper disable once RedundantOverriddenMember
-        public override async Task Where_datetime_millisecond_component(bool isAsync)
-        {
-            // SQL translation not implemented, too annoying
-            await base.Where_datetime_millisecond_component(isAsync);
-        }
+        [Theory(Skip = "SQL translation not implemented, too annoying")]
+        public override Task Where_datetime_millisecond_component(bool isAsync) => null;
 
         [Theory]
         [MemberData(nameof(IsAsyncData))]
@@ -98,5 +94,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             await base.Where_string_indexof(isAsync);
             AssertContainsSqlFragment("WHERE ((STRPOS(c.\"City\", 'Sea') - 1) <> -1)");
         }
+
+        [Theory(Skip = "Translation not implemented yet, #873")]
+        public override Task Where_datetimeoffset_now_component(bool isAsync) => null;
+
+        [Theory(Skip = "Translation not implemented yet, #873")]
+        public override Task Where_datetimeoffset_utcnow_component(bool isAsync) => null;
+
+        [Theory(Skip = "PostgreSQL only has log(x, base) over numeric, may be possible to cast back and forth though")]
+        public override Task Where_math_log_new_base(bool isAsync) => null;
+
+        [Theory(Skip = "Convert on DateTime not yet supported")]
+        public override Task Convert_ToString(bool isAsync) => null;
     }
 }
