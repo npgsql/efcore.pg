@@ -312,7 +312,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             if (IsSystemColumn(operation.Name))
                 return;
 
-            var type = operation.ColumnType ?? GetColumnType(operation.Schema, operation.Table, operation.Name, operation.ClrType, null, operation.MaxLength, operation.IsFixedLength, false, model);
+            var type = operation.ColumnType ?? GetColumnType(operation.Schema, operation.Table, operation.Name, operation, model);
 
             string newSequenceName = null;
             var defaultValueSql = operation.DefaultValueSql;
@@ -961,46 +961,35 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             string schema,
             string table,
             string name,
-            Type clrType,
-            string type,
-            bool? unicode,
-            int? maxLength,
-            bool? fixedLength,
-            bool rowVersion,
-            bool nullable,
-            object defaultValue,
-            string defaultValueSql,
-            string computedColumnSql,
-            IAnnotatable annotatable,
+            ColumnOperation operation,
             IModel model,
             MigrationCommandListBuilder builder)
         {
             Check.NotEmpty(name, nameof(name));
-            Check.NotNull(annotatable, nameof(annotatable));
-            Check.NotNull(clrType, nameof(clrType));
+            Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
-            if (type == null)
-                type = GetColumnType(schema, table, name, clrType, unicode, maxLength, fixedLength, rowVersion, model);
+            if (operation.ColumnType == null)
+                operation.ColumnType = GetColumnType(schema, table, name, operation, model);
 
-            CheckForOldValueGenerationAnnotation(annotatable);
-            var valueGenerationStrategy = annotatable[NpgsqlAnnotationNames.ValueGenerationStrategy] as NpgsqlValueGenerationStrategy?;
+            CheckForOldValueGenerationAnnotation(operation);
+            var valueGenerationStrategy = operation[NpgsqlAnnotationNames.ValueGenerationStrategy] as NpgsqlValueGenerationStrategy?;
             if (valueGenerationStrategy == NpgsqlValueGenerationStrategy.SerialColumn)
             {
-                switch (type)
+                switch (operation.ColumnType)
                 {
                 case "int":
                 case "int4":
                 case "integer":
-                    type = "serial";
+                    operation.ColumnType = "serial";
                     break;
                 case "bigint":
                 case "int8":
-                    type = "bigserial";
+                    operation.ColumnType = "bigserial";
                     break;
                 case "smallint":
                 case "int2":
-                    type = "smallserial";
+                    operation.ColumnType = "smallserial";
                     break;
                 }
             }
@@ -1009,17 +998,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 schema,
                 table,
                 name,
-                clrType,
-                type,
-                unicode,
-                maxLength,
-                fixedLength,
-                rowVersion,
-                nullable,
-                defaultValue,
-                defaultValueSql,
-                computedColumnSql,
-                annotatable,
+                operation,
                 model,
                 builder);
 
@@ -1033,26 +1012,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 break;
             }
         }
-
-        // Required to "activate" IsFixedLength
-        protected override void ColumnDefinition(AddColumnOperation operation, IModel model, MigrationCommandListBuilder builder)
-            => ColumnDefinition(
-                operation.Schema,
-                operation.Table,
-                operation.Name,
-                operation.ClrType,
-                operation.ColumnType,
-                operation.IsUnicode,
-                operation.MaxLength,
-                operation.IsFixedLength,
-                operation.IsRowVersion,
-                operation.IsNullable,
-                operation.DefaultValue,
-                operation.DefaultValueSql,
-                operation.ComputedColumnSql,
-                operation,
-                model,
-                builder);
 
 #pragma warning disable 618
         // Version 1.0 had a bad strategy for expressing serial columns, which depended on a

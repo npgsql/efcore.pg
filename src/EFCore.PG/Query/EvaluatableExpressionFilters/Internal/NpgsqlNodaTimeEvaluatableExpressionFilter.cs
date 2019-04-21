@@ -26,6 +26,9 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 
+// Note: EvaluatableExpressionFilterBase will be disappearing in 3.0, at least in its current form
+#pragma warning disable EF1001
+
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.EvaluatableExpressionFilters.Internal
 {
     // TODO: This is a hack until https://github.com/aspnet/EntityFrameworkCore/issues/13454 is done

@@ -2,7 +2,8 @@
   <Import Project="..\Directory.Build.props" />
 
   <PropertyGroup>
-    <NoWarn>$(NoWarn);xUnit1004</NoWarn>
+    <!-- There's lots of use of internal EF Core APIs from the tests, suppress the analyzer warnings for those -->
+    <NoWarn>$(NoWarn);xUnit1004;EF1001</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

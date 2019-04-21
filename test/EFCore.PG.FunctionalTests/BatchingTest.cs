@@ -5,10 +5,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Diagnostics.Internal;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.TestUtilities;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
@@ -174,9 +177,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
                         context.SaveChanges();
 
-                        Assert.Contains(minBatchSize == 3
-                                ? RelationalStrings.LogBatchReadyForExecution.GenerateMessage(3)
-                                : RelationalStrings.LogBatchSmallerThanMinBatchSize.GenerateMessage(3, 4),
+                        Assert.Contains(
+                            minBatchSize == 3
+                                ? RelationalResources.LogBatchReadyForExecution(new TestLogger<NpgsqlLoggingDefinitions>()).GenerateMessage(3)
+                                : RelationalResources.LogBatchSmallerThanMinBatchSize(new TestLogger<NpgsqlLoggingDefinitions>()).GenerateMessage(3, 4),
                             Fixture.TestSqlLoggerFactory.Log.Select(l => l.Message));
 
                         Assert.Equal(minBatchSize <= 3 ? 2 : 4, Fixture.TestSqlLoggerFactory.SqlStatements.Count);
@@ -225,11 +229,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
             protected override void OnModelCreating(ModelBuilder modelBuilder)
             {
-                modelBuilder.Entity<Owner>().Property(o => o.Version)
-                    .HasColumnName("xmin")
-                    .HasColumnType("xid")
-                    .ValueGeneratedOnAddOrUpdate()
-                    .IsConcurrencyToken();
+                modelBuilder.Entity<Owner>(
+                    b =>
+                    {
+                        b.Property(e => e.Id).ValueGeneratedOnAdd();
+                        b.Property(e => e.Version)
+                            .HasColumnName("xmin")
+                            .HasColumnType("xid")
+                            .ValueGeneratedOnAddOrUpdate()
+                            .IsConcurrencyToken();
+                    });
 
                 modelBuilder.Entity<Blog>().Property(b => b.Version)
                     .HasColumnName("xmin")
@@ -271,7 +280,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
             protected override void Seed(PoolableDbContext context)
             {
-                context.Database.EnsureCreated();
+                context.Database.EnsureCreatedResiliently();
             }
 
             public DbContext CreateContext(int minBatchSize)

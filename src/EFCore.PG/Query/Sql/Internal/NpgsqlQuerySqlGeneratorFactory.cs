@@ -25,12 +25,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
             => _npgsqlOptions = Check.NotNull(npgsqlOptions, nameof(npgsqlOptions));
 
         /// <inheritdoc />
-        public override IQuerySqlGenerator CreateDefault(SelectExpression selectExpression, DiagnosticsLoggers loggers)
+        public override IQuerySqlGenerator CreateDefault(SelectExpression selectExpression)
             => new NpgsqlQuerySqlGenerator(
                 Dependencies,
                 Check.NotNull(selectExpression, nameof(selectExpression)),
                 _npgsqlOptions.ReverseNullOrderingEnabled,
-                _npgsqlOptions.PostgresVersion,
-                loggers);
+                _npgsqlOptions.PostgresVersion);
     }
 }

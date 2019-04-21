@@ -1,9 +1,7 @@
-﻿using System.Diagnostics;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
+using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics
+namespace Microsoft.EntityFrameworkCore.Diagnostics
 {
     /// <summary>
     ///   <para>

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.EntityFrameworkCore.Update;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
@@ -20,30 +21,29 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Update
         public void AddCommand_returns_false_when_max_batch_size_is_reached()
         {
             var typeMapper = new NpgsqlTypeMappingSource(
-                new TypeMappingSourceDependencies (
-                    new ValueConverterSelector(new ValueConverterSelectorDependencies()),
-                    Array.Empty<ITypeMappingSourcePlugin>()
-                ),
-                new RelationalTypeMappingSourceDependencies(Array.Empty<IRelationalTypeMappingSourcePlugin>()),
+                TestServiceFactory.Instance.Create<TypeMappingSourceDependencies>(),
+                TestServiceFactory.Instance.Create<RelationalTypeMappingSourceDependencies>(),
                 new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
-                new NpgsqlOptions()
-            );
+                new NpgsqlOptions());
+
+            var logger = new FakeDiagnosticsLogger<DbLoggerCategory.Database.Command>();
 
             var batch = new NpgsqlModificationCommandBatch(
                 new ModificationCommandBatchFactoryDependencies(
                     new RelationalCommandBuilderFactory(
-                        typeMapper),
-                    new RelationalSqlGenerationHelper(
+                        new RelationalCommandBuilderDependencies(
+                            typeMapper)),
+                    new NpgsqlSqlGenerationHelper(
                         new RelationalSqlGenerationHelperDependencies()),
                     new NpgsqlUpdateSqlGenerator(
                         new UpdateSqlGeneratorDependencies(
-                            new RelationalSqlGenerationHelper(
+                            new NpgsqlSqlGenerationHelper(
                                 new RelationalSqlGenerationHelperDependencies()),
                             typeMapper)),
                     new TypedRelationalValueBufferFactoryFactory(
                         new RelationalValueBufferFactoryDependencies(
                             typeMapper, new CoreSingletonOptions())),
-                    new FakeDiagnosticsLogger<DbLoggerCategory.Database.Command>()),
+                    logger),
                 1);
 
             Assert.True(

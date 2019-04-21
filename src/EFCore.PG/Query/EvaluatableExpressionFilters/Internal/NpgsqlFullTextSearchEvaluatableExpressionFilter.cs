@@ -5,8 +5,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 using NpgsqlTypes;
 
+// Note: EvaluatableExpressionFilterBase will be disappearing in 3.0, at least in its current form
+#pragma warning disable EF1001
+
 // TODO: https://github.com/aspnet/EntityFrameworkCore/issues/11466 may provide a better way for implementing
 // this (we're currently replacing an internal service
+
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.EvaluatableExpressionFilters.Internal
 {
     /// <summary>

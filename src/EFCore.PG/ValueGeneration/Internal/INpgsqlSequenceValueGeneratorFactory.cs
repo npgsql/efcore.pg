@@ -1,5 +1,8 @@
 ﻿using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.ValueGeneration;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
@@ -18,6 +21,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
         ValueGenerator Create(
             [NotNull] IProperty property,
             [NotNull] NpgsqlSequenceValueGeneratorState generatorState,
-            [NotNull] INpgsqlRelationalConnection connection);
+            [NotNull] INpgsqlRelationalConnection connection,
+            [NotNull] IRawSqlCommandBuilder rawSqlCommandBuilder,
+            [NotNull] IDiagnosticsLogger<DbLoggerCategory.Database.Command> commandLogger);
     }
 }

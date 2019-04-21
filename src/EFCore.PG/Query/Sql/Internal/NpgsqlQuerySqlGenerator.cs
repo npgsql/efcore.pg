@@ -35,19 +35,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
         IRelationalTypeMappingSource TypeMappingSource => Dependencies.TypeMappingSource;
 
         /// <inheritdoc />
-        protected override string TypedTrueLiteral { get; } = "TRUE::bool";
-
-        /// <inheritdoc />
-        protected override string TypedFalseLiteral { get; } = "FALSE::bool";
-
-        /// <inheritdoc />
         public NpgsqlQuerySqlGenerator(
             [NotNull] QuerySqlGeneratorDependencies dependencies,
             [NotNull] SelectExpression selectExpression,
             bool reverseNullOrderingEnabled,
-            Version postgresVersion,
-            DiagnosticsLoggers loggers)
-            : base(dependencies, selectExpression, loggers)
+            Version postgresVersion)
+            : base(dependencies, selectExpression)
         {
             _reverseNullOrderingEnabled = reverseNullOrderingEnabled;
             _postgresVersion = postgresVersion;

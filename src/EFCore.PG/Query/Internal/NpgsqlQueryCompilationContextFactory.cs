@@ -2,6 +2,9 @@
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 
+// This class will change significantly in 3.0
+#pragma warning disable EF1001
+
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 {
     public class NpgsqlQueryCompilationContextFactory : RelationalQueryCompilationContextFactory

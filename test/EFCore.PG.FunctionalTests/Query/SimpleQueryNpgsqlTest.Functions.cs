@@ -178,16 +178,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             AssertContainsSqlFragment("WHERE c.\"CompanyName\" ~ ('(?px)' || '^ A')");
         }
 
-        [Theory]
-        [MemberData(nameof(IsAsyncData))]
-        public async Task Regex_IsMatchOptionsUnsupported(bool isAsync)
-        {
-            await AssertQuery<Customer>(
-                isAsync,
-                cs => cs.Where(c => Regex.IsMatch(c.CompanyName, "^A", RegexOptions.RightToLeft)),
-                entryCount: 4);
-            Assert.DoesNotContain("WHERE c.\"CompanyName\" ~ ", Fixture.TestSqlLoggerFactory.Sql);
-        }
+        [Fact]
+        public void Regex_IsMatchOptionsUnsupported()
+            => Assert.Throws<InvalidOperationException>(() =>
+                Fixture.CreateContext().Customers.Where(c => Regex.IsMatch(c.CompanyName, "^A", RegexOptions.RightToLeft)).ToList());
 
         #endregion Regex
 
@@ -203,7 +197,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [MemberData(nameof(IsAsyncData))]
         public virtual async Task OrderBy_Guid_NewGuid(bool isAsync)
         {
-            await AssertQuery<OrderDetail>(isAsync, ods => ods.OrderBy(od => Guid.NewGuid()), entryCount: 2155);
+            await AssertQuery<OrderDetail>(isAsync, ods => ods.OrderBy(od => Guid.NewGuid()).Select(x => x), entryCount: 2155);
             AssertContainsSqlFragment("ORDER BY uuid_generate_v4()");
         }
 

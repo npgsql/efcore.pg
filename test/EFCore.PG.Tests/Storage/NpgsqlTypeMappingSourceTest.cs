@@ -113,6 +113,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
                 // This means we currently don't support ranges over types without NpgsqlDbType, which are accessible via
                 // NpgsqlParameter.DataTypeName
                 public DummyMapping() : base("dummy", typeof(DummyType), System.Data.DbType.Guid) {}
+
+                DummyMapping(RelationalTypeMappingParameters parameters) : base(parameters) {}
+
+                protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
+                    => new DummyMapping(parameters);
             }
         }
 

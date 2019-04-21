@@ -5,6 +5,9 @@ using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 
+// Note: RelationalEvaluatableExpressionFilter will be disappearing in 3.0, at least in its current form
+#pragma warning disable EF1001
+
 // ReSharper disable UnusedMember.Global
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.EvaluatableExpressionFilters.Internal
 {
