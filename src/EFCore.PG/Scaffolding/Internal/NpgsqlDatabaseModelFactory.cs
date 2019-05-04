@@ -48,10 +48,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
                 TimeSpan.FromMilliseconds(1000.0));
 
         /// <summary>
-        /// Tables which are considered to be system tables and should not get scaffolded, e.g. the support table
+        /// Tables and views which are considered to be system tables and should not get scaffolded, e.g. the support table
         /// created by the PostGIS extension.
         /// </summary>
-        [NotNull] [ItemNotNull] static readonly string[] SystemTables = { "spatial_ref_sys" };
+        [NotNull] [ItemNotNull] static readonly string[] SystemTablesAndViews =
+        {
+            "spatial_ref_sys", "geography_columns", "geometry_columns", "raster_columns", "raster_overviews"
+        };
 
         /// <summary>
         /// The types used for serial columns.
@@ -138,9 +141,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
 
                     // Remove some tables which shouldn't get scaffolded, unless they're explicitly mentioned
                     // in the table list
-                    if (SystemTables.Contains(table.Name) && !tableList.Contains(table.Name))
+                    if (SystemTablesAndViews.Contains(table.Name) && !tableList.Contains(table.Name))
                     {
-                        databaseModel.Tables.RemoveAt(i);
+                        databaseModel.Tables.RemoveAt(i--);
                         continue;
                     }
 
@@ -200,7 +203,7 @@ FROM pg_class AS cls
 JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
 LEFT OUTER JOIN pg_description AS des ON des.objoid = cls.oid AND des.objsubid=0
 WHERE
-  cls.relkind = 'r' AND
+  cls.relkind IN ('r', 'v', 'm') AND
   ns.nspname NOT IN ('pg_catalog', 'information_schema') AND
   cls.relname <> '{HistoryRepository.DefaultTableName}'
   {filter}";
@@ -280,7 +283,7 @@ LEFT OUTER JOIN pg_type AS elemtyp ON (elemtyp.oid = typ.typelem)
 LEFT OUTER JOIN pg_type AS basetyp ON (basetyp.oid = typ.typbasetype)
 LEFT OUTER JOIN pg_description AS des ON des.objoid = cls.oid AND des.objsubid = attnum
 WHERE
-  relkind = 'r' AND
+  relkind IN ('r', 'v', 'm') AND
   nspname NOT IN ('pg_catalog', 'information_schema') AND
   attnum > 0 AND
   cls.relname <> '{HistoryRepository.DefaultTableName}'
