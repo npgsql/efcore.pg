@@ -441,6 +441,68 @@ CREATE TABLE ""Blogs"" (
                 @"DROP TABLE ""Blogs""");
 
         [Fact]
+        public void Create_view_columns()
+        {
+            Test(
+                @"
+CREATE VIEW ""BlogsView""
+ AS
+SELECT
+ 100::int AS ""Id"",
+ ''::text AS ""Name"";",
+                Enumerable.Empty<string>(),
+                Enumerable.Empty<string>(),
+                dbModel =>
+                {
+                    var table = dbModel.Tables.Single();
+
+                    Assert.Equal(2, table.Columns.Count);
+                    Assert.Equal(null, table.PrimaryKey);
+                    Assert.All(
+                        table.Columns, c =>
+                        {
+                            Assert.Equal("public", c.Table.Schema);
+                            Assert.Equal("BlogsView", c.Table.Name);
+                        });
+
+                    Assert.Single(table.Columns.Where(c => c.Name == "Id"));
+                    Assert.Single(table.Columns.Where(c => c.Name == "Name"));
+                },
+                @"DROP VIEW ""BlogsView"";");
+        }
+
+        [Fact]
+        public void Create_materialized_view_columns()
+        {
+            Test(
+                @"
+CREATE MATERIALIZED VIEW ""BlogsView""
+ AS
+SELECT
+ 100::int AS ""Id"",
+ ''::text AS ""Name"";",
+                Enumerable.Empty<string>(),
+                Enumerable.Empty<string>(),
+                dbModel =>
+                {
+                    var table = dbModel.Tables.Single();
+
+                    Assert.Equal(2, table.Columns.Count);
+                    Assert.Equal(null, table.PrimaryKey);
+                    Assert.All(
+                        table.Columns, c =>
+                        {
+                            Assert.Equal("public", c.Table.Schema);
+                            Assert.Equal("BlogsView", c.Table.Name);
+                        });
+
+                    Assert.Single(table.Columns.Where(c => c.Name == "Id"));
+                    Assert.Single(table.Columns.Where(c => c.Name == "Name"));
+                },
+                @"DROP MATERIALIZED VIEW ""BlogsView"";");
+        }
+
+        [Fact]
         public void Create_primary_key()
             => Test(@"
 CREATE TABLE ""PrimaryKeyTable"" (
