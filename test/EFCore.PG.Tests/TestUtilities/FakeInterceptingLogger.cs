@@ -3,6 +3,7 @@ using System.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Internal;
+using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.Logging;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
@@ -33,6 +34,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
 
         public IDisposable BeginScope<TState>(TState state) => null;
 
-        public virtual LoggingDefinitions Definitions { get; } = new RelationalLoggingDefinitions();
+        public virtual LoggingDefinitions Definitions { get; } = new TestRelationalLoggingDefinitions();
     }
 }

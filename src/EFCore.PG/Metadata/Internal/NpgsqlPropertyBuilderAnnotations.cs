@@ -11,6 +11,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
     /// </summary>
     public class NpgsqlPropertyBuilderAnnotations : NpgsqlPropertyAnnotations
     {
+#pragma warning disable EF1001
         /// <summary>
         ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
         ///     directly from your code. This API may change or be removed in future releases.
@@ -21,6 +22,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
             : base(new RelationalAnnotationsBuilder(internalBuilder, configurationSource))
         {
         }
+#pragma warning restore EF1001
 
         /// <summary>
         ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
@@ -34,11 +36,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
         /// </summary>
         protected override bool ShouldThrowOnConflict => false;
 
+#pragma warning disable EF1001
         /// <summary>
         ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
         ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
         protected override bool ShouldThrowOnInvalidConfiguration => Annotations.ConfigurationSource == ConfigurationSource.Explicit;
+#pragma warning restore EF1001
 
 #pragma warning disable 109
         /// <summary>

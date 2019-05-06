@@ -1,4 +1,5 @@
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions.Internal;
@@ -11,6 +12,7 @@ using Microsoft.EntityFrameworkCore.Query.Sql;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Update;
 using Microsoft.EntityFrameworkCore.ValueGeneration;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
@@ -72,6 +74,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             var builder =
                 new EntityFrameworkRelationalServicesBuilder(serviceCollection)
+                    .TryAdd<LoggingDefinitions, NpgsqlLoggingDefinitions>()
                     .TryAdd<IDatabaseProvider, DatabaseProvider<NpgsqlOptionsExtension>>()
                     .TryAdd<IValueGeneratorCache>(p => p.GetService<INpgsqlValueGeneratorCache>())
                     .TryAdd<IRelationalTypeMappingSource, NpgsqlTypeMappingSource>()
