@@ -247,6 +247,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 "    \"SSN\" char(11) NULL," + EOL +
                 "    PRIMARY KEY (\"Id\")," + EOL +
                 "    UNIQUE (\"SSN\")," + EOL +
+                "    CHECK (SSN > 0)," + EOL +
                 "    FOREIGN KEY (\"EmployerId\") REFERENCES \"Companies\" (\"Id\")" + EOL +
                 ");" + EOL,
                 Sql);

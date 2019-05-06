@@ -10,6 +10,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
     {
         protected override ICollection<Type> IgnoredTestBases { get; } = new HashSet<Type>
         {
+            typeof(UpdatesTestBase<>),            // https://github.com/aspnet/entityframeworkcore/issues/14055
+            typeof(UpdatesRelationalTestBase<>),  // https://github.com/aspnet/entityframeworkcore/issues/14055
+
             // The following are ignored because we haven't gotten around to doing them, not because they're
             // inherently not supported
             typeof(ComplexNavigationsWeakQueryTestBase<>),
