@@ -116,7 +116,7 @@ public partial class CreateProductTable : Migration
     protected override void Down(MigrationBuilder migrationBuilder)
     {
         // Migrations for dropping of the column and the index will appear here, all we need to do is drop the trigger:
-        migrationBuilder.Sql("DROP TRIGGER product_search_vector");
+        migrationBuilder.Sql("DROP TRIGGER product_search_vector_update");
     }
 }
 ```
