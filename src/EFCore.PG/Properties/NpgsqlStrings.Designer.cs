@@ -554,7 +554,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
 
         /// <summary>
 
-        ///     Automatic preparation is set to zero and disabled for the connection to database '{database}' on server '{server}'.
+        ///     A connection to database '{database}' on server '{server}' is being made without automatic preparation. Consider enabling this feature to significantly improve performance. See https://www.npgsql.org/doc/prepare for more details.
 
         /// </summary>
 

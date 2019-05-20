@@ -196,7 +196,7 @@
     <comment>Warning NpgsqlEventId.UnsupportedColumnIndexSkippedWarning string string</comment>
   </data>
   <data name="LogAutoPrepareDisabled" xml:space="preserve">
-    <value>Automatic preparation is set to zero and disabled for the connection to database '{database}' on server '{server}'.</value>
+    <value>A connection to database '{database}' on server '{server}' is being made without automatic preparation. Consider enabling this feature to significantly improve performance. See https://www.npgsql.org/doc/prepare for more details.</value>
     <comment>Warning NpgsqlEventId.AutoPrepareDisabledWarning string string</comment>
   </data>
 </root>

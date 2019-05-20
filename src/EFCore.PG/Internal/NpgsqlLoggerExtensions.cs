@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Data.Common;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
