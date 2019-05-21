@@ -59,6 +59,15 @@ FROM ""PolygonEntity"" AS e");
 FROM ""PolygonEntity"" AS e");
         }
 
+        public override async Task Buffer_quadrantSegments(bool isAsync)
+        {
+            await base.Buffer_quadrantSegments(isAsync);
+
+            AssertSql(
+                @"SELECT e.""Id"", ST_Buffer(e.""Polygon"", 1.0, 8) AS ""Buffer""
+FROM ""PolygonEntity"" AS e");
+        }
+
         public override async Task Centroid(bool isAsync)
         {
             await base.Centroid(isAsync);
@@ -248,6 +257,15 @@ FROM ""PolygonEntity"" AS e");
 FROM ""LineStringEntity"" AS e");
         }
 
+        public override async Task InteriorPoint(bool isAsync)
+        {
+            await base.InteriorPoint(isAsync);
+
+            AssertSql(
+                @"SELECT e.""Id"", ST_PointOnSurface(e.""Polygon"") AS ""InteriorPoint"", e.""Polygon""
+FROM ""PolygonEntity"" AS e");
+        }
+
         public override async Task Intersection(bool isAsync)
         {
             await base.Intersection(isAsync);
@@ -393,6 +411,30 @@ FROM ""PolygonEntity"" AS e");
 FROM ""LineStringEntity"" AS e");
         }
 
+        public override async Task OgcGeometryType(bool isAsync)
+        {
+            await base.OgcGeometryType(isAsync);
+
+            AssertSql(
+                @"SELECT e.""Id"", CASE ST_GeometryType(e.""Point"")
+    WHEN 'ST_CircularString' THEN 8
+    WHEN 'ST_CompoundCurve' THEN 9
+    WHEN 'ST_CurvePolygon' THEN 10
+    WHEN 'ST_GeometryCollection' THEN 7
+    WHEN 'ST_LineString' THEN 2
+    WHEN 'ST_MultiCurve' THEN 11
+    WHEN 'ST_MultiLineString' THEN 5
+    WHEN 'ST_MultiPoint' THEN 4
+    WHEN 'ST_MultiPolygon' THEN 6
+    WHEN 'ST_MultiSurface' THEN 12
+    WHEN 'ST_Point' THEN 1
+    WHEN 'ST_Polygon' THEN 3
+    WHEN 'ST_PolyhedralSurface' THEN 15
+    WHEN 'ST_Tin' THEN 16
+END AS ""OgcGeometryType""
+FROM ""PointEntity"" AS e");
+        }
+
         public override async Task Overlaps(bool isAsync)
         {
             await base.Overlaps(isAsync);
@@ -508,8 +550,14 @@ SELECT e.""Id"", ST_Union(e.""Polygon"", @__polygon_0) AS ""Union""
 FROM ""PolygonEntity"" AS e");
         }
 
-        [ConditionalTheory(Skip="ST_Union() with only one parameter is an aggregate function in PostGIS")]
-        public override Task Union_void(bool isAsync) => null;
+        public override async Task Union_void(bool isAsync)
+        {
+            await base.Union_void(isAsync);
+
+            AssertSql(
+                @"SELECT e.""Id"", ST_UnaryUnion(e.""MultiLineString"") AS ""Union""
+FROM ""MultiLineStringEntity"" AS e");
+        }
 
         public override async Task Within(bool isAsync)
         {

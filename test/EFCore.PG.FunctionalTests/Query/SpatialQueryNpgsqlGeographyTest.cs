@@ -53,6 +53,15 @@ FROM ""PointEntity"" AS e");
 FROM ""PolygonEntity"" AS e");
         }
 
+        public override async Task Buffer_quadrantSegments(bool isAsync)
+        {
+            await base.Buffer_quadrantSegments(isAsync);
+
+            AssertSql(
+                @"SELECT e.""Id"", ST_Buffer(e.""Polygon"", 1.0, 8) AS ""Buffer""
+FROM ""PolygonEntity"" AS e");
+        }
+
         public override async Task Centroid(bool isAsync)
         {
             await base.Centroid(isAsync);
@@ -184,11 +193,13 @@ FROM ""PointEntity"" AS e");
         public override Task IsSimple(bool isAsync)                  => Task.CompletedTask;
         public override Task IsValid(bool isAsync)                   => Task.CompletedTask;
         public override Task Item(bool isAsync)                      => Task.CompletedTask;
+        public override Task InteriorPoint(bool isAsync)             => Task.CompletedTask;
         public override Task LineString_Count(bool isAsync)          => Task.CompletedTask;
         public override Task M(bool isAsync)                         => Task.CompletedTask;
         public override Task NumGeometries(bool isAsync)             => Task.CompletedTask;
         public override Task NumInteriorRings(bool isAsync)          => Task.CompletedTask;
         public override Task NumPoints(bool isAsync)                 => Task.CompletedTask;
+        public override Task OgcGeometryType(bool isAsync)           => Task.CompletedTask;
         public override Task Overlaps(bool isAsync)                  => Task.CompletedTask;
         public override Task PointOnSurface(bool isAsync)            => Task.CompletedTask;
         public override Task Relate(bool isAsync)                    => Task.CompletedTask;

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using GeoAPI.Geometries;
@@ -43,7 +44,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             case "AsText":
                 return new SqlFunctionExpression("ST_AsText",        typeof(string),   new[] { e.Object });
             case "Buffer":
-                return new SqlFunctionExpression("ST_Buffer",        typeof(Geometry), new[] { e.Object, e.Arguments[0] });
+                return new SqlFunctionExpression("ST_Buffer",        typeof(Geometry), new[] { e.Object }.Concat(e.Arguments));
             case "Contains":
                 return new SqlFunctionExpression("ST_Contains",      typeof(bool),     new[] { e.Object, e.Arguments[0] });
             case "ConvexHull":
@@ -91,7 +92,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             case "Touches":
                 return new SqlFunctionExpression("ST_Touches",       typeof(bool),     new[] { e.Object, e.Arguments[0] });
             case "Union" when e.Arguments.Count == 0:
-                return null;  // ST_Union() with only one parameter is an aggregate function in PostGIS
+                return new SqlFunctionExpression("ST_UnaryUnion",    typeof(Geometry), new[] { e.Object });
             case "Union" when e.Arguments.Count == 1:
                 return new SqlFunctionExpression("ST_Union",        typeof(Geometry),  new[] { e.Object, e.Arguments[0] });
             case "Within":
