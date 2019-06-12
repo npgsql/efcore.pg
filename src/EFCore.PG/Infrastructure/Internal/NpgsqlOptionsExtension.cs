@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Net.Security;
 using System.Text;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 using NpgsqlTypes;
@@ -17,6 +17,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
     /// </summary>
     public class NpgsqlOptionsExtension : RelationalOptionsExtension
     {
+        long? _serviceProviderHash;
         [NotNull] readonly List<UserRangeDefinition> _userRangeDefinitions;
         string _logFragment;
 
@@ -286,9 +287,29 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         }
 
         #endregion Authentication
+
+        public override long GetServiceProviderHashCode()
+        {
+            unchecked
+            {
+                if (_serviceProviderHash == null)
+                {
+                    _serviceProviderHash = _userRangeDefinitions.Aggregate(
+                        base.GetServiceProviderHashCode(),
+                        (h, ud) => (h * 397) ^ ud.GetHashCode());
+                    _serviceProviderHash = (_serviceProviderHash * 397) ^ AdminDatabase?.GetHashCode() ?? 0L;
+                    _serviceProviderHash = (_serviceProviderHash * 397) ^ (PostgresVersion?.GetHashCode() ?? 0L);
+                    _serviceProviderHash = (_serviceProviderHash * 397) ^ (ProvideClientCertificatesCallback?.GetHashCode() ?? 0L);
+                    _serviceProviderHash = (_serviceProviderHash * 397) ^ (RemoteCertificateValidationCallback?.GetHashCode() ?? 0L);
+                    _serviceProviderHash = (_serviceProviderHash * 397) ^ ReverseNullOrdering.GetHashCode();
+                }
+
+                return _serviceProviderHash.Value;
+            }
+        }
     }
 
-    public class UserRangeDefinition
+    public class UserRangeDefinition : IEquatable<UserRangeDefinition>
     {
         /// <summary>
         /// The name of the PostgreSQL range type to be mapped.
@@ -328,6 +349,28 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
             SubtypeClrType = Check.NotNull(subtypeClrType, nameof(subtypeClrType));
             SubtypeName = subtypeName;
         }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                var hashCode = RangeName.GetHashCode();
+                hashCode = (hashCode * 397) ^ (SchemaName != null ? SchemaName.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ SubtypeClrType.GetHashCode();
+                hashCode = (hashCode * 397) ^ (SubtypeName != null ? SubtypeName.GetHashCode() : 0);
+                return hashCode;
+            }
+        }
+
+        public override bool Equals(object obj) => obj is UserRangeDefinition urd && Equals(urd);
+
+        public bool Equals(UserRangeDefinition other)
+            => ReferenceEquals(this, other) ||
+               !(other is null) &&
+               string.Equals(RangeName, other.RangeName) &&
+               string.Equals(SchemaName, other.SchemaName) &&
+               SubtypeClrType == other.SubtypeClrType &&
+               string.Equals(SubtypeName, other.SubtypeName);
 
         public void Deconstruct(
             [NotNull] out string rangeName,
