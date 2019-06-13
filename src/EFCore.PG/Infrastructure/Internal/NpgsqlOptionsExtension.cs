@@ -355,9 +355,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
             unchecked
             {
                 var hashCode = RangeName.GetHashCode();
-                hashCode = (hashCode * 397) ^ (SchemaName != null ? SchemaName.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (SchemaName?.GetHashCode() ?? 0);
                 hashCode = (hashCode * 397) ^ SubtypeClrType.GetHashCode();
-                hashCode = (hashCode * 397) ^ (SubtypeName != null ? SubtypeName.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ (SubtypeName?.GetHashCode() ?? 0);
                 return hashCode;
             }
         }
@@ -367,10 +367,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         public bool Equals(UserRangeDefinition other)
             => ReferenceEquals(this, other) ||
                !(other is null) &&
-               string.Equals(RangeName, other.RangeName) &&
-               string.Equals(SchemaName, other.SchemaName) &&
+               RangeName == other.RangeName &&
+               SchemaName == other.SchemaName &&
                SubtypeClrType == other.SubtypeClrType &&
-               string.Equals(SubtypeName, other.SubtypeName);
+               SubtypeName == other.SubtypeName;
 
         public void Deconstruct(
             [NotNull] out string rangeName,
