@@ -22,7 +22,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.EvaluatableExpressionFilte
             new List<IEvaluatableExpressionFilter>
             {
                 new NpgsqlFullTextSearchEvaluatableExpressionFilter(),
-                new NpgsqlNodaTimeEvaluatableExpressionFilter()
+                new NpgsqlNodaTimeEvaluatableExpressionFilter(),
+                new NpgsqlPGroongaEvaluatableExpressionFilter()
             };
 
         /// <inheritdoc />
