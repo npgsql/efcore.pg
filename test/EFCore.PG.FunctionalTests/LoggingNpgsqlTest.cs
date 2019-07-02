@@ -39,6 +39,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         }
 
         [Fact]
+        public void Logs_context_initialization_provide_password_callback()
+        {
+            ProvidePasswordCallback passwordCallback = (h,p,d,u) => "password";
+            Assert.Equal(
+                ExpectedMessage($"ProvidePasswordCallback " + DefaultOptions),
+                ActualMessage(s => CreateOptionsBuilder(s, b => ((NpgsqlDbContextOptionsBuilder)b).ProvidePasswordCallback(passwordCallback))));
+        }
+
+        [Fact]
         public void Logs_context_initialization_remote_certificate_validation_callback()
         {
             RemoteCertificateValidationCallback testCallback = (sender, certificate, chain, sslPolicyErrors) => true;
