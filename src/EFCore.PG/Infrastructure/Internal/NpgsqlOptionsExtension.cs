@@ -51,6 +51,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         public RemoteCertificateValidationCallback RemoteCertificateValidationCallback { get; private set; }
 
         /// <summary>
+        /// The specified <see cref="ProvidePasswordCallback"/>.
+        /// </summary>
+        [CanBeNull]
+        public ProvidePasswordCallback ProvidePasswordCallback { get; private set; }
+
+        /// <summary>
         /// True if reverse null ordering is enabled; otherwise, false.
         /// </summary>
         public bool ReverseNullOrdering { get; private set; }
@@ -73,6 +79,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
             PostgresVersion = copyFrom.PostgresVersion;
             ProvideClientCertificatesCallback = copyFrom.ProvideClientCertificatesCallback;
             RemoteCertificateValidationCallback = copyFrom.RemoteCertificateValidationCallback;
+            ProvidePasswordCallback = copyFrom.ProvidePasswordCallback;
             ReverseNullOrdering = copyFrom.ReverseNullOrdering;
         }
 
@@ -185,6 +192,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
             return clone;
         }
 
+        /// <summary>
+        /// Returns a copy of the current instance with the specified <see cref="ProvidePasswordCallback"/>.
+        /// </summary>
+        /// <param name="callback">The specified callback.</param>
+        [NotNull]
+        public virtual NpgsqlOptionsExtension WithProvidePasswordCallback([CanBeNull] ProvidePasswordCallback callback)
+        {
+            var clone = (NpgsqlOptionsExtension)Clone();
+
+            clone.ProvidePasswordCallback = callback;
+
+            return clone;
+        }
+
         #endregion Authentication
 
         #region Infrastructure
@@ -227,32 +248,37 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
 
                     if (Extension.AdminDatabase != null)
                     {
-                        builder.Append("AdminDatabase=").Append(Extension.AdminDatabase).Append(' ');
+                        builder.Append(nameof(Extension.AdminDatabase)).Append("=").Append(Extension.AdminDatabase).Append(' ');
                     }
 
                     if (Extension.PostgresVersion != null)
                     {
-                        builder.Append("PostgresVersion=").Append(Extension.PostgresVersion).Append(' ');
+                        builder.Append(nameof(Extension.PostgresVersion)).Append("=").Append(Extension.PostgresVersion).Append(' ');
                     }
 
                     if (Extension.ProvideClientCertificatesCallback != null)
                     {
-                        builder.Append("ProvideClientCertificatesCallback ");
+                        builder.Append(nameof(Extension.ProvideClientCertificatesCallback)).Append(" ");
                     }
 
                     if (Extension.RemoteCertificateValidationCallback != null)
                     {
-                        builder.Append("RemoteCertificateValidationCallback ");
+                        builder.Append(nameof(Extension.RemoteCertificateValidationCallback)).Append(" ");
+                    }
+
+                    if (Extension.ProvidePasswordCallback != null)
+                    {
+                        builder.Append(nameof(Extension.ProvidePasswordCallback)).Append(" ");
                     }
 
                     if (Extension.ReverseNullOrdering)
                     {
-                        builder.Append("ReverseNullOrdering ");
+                        builder.Append(nameof(Extension.ReverseNullOrdering)).Append(" ");;
                     }
 
                     if (Extension.UserRangeDefinitions.Count > 0)
                     {
-                        builder.Append("UserRangeDefinitions=[");
+                        builder.Append(nameof(Extension.UserRangeDefinitions)).Append("=[");
                         foreach (var item in Extension.UserRangeDefinitions)
                         {
                             builder.Append(item.SubtypeClrType).Append("=>");
@@ -289,6 +315,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
                         _serviceProviderHash = (_serviceProviderHash * 397) ^ (Extension.PostgresVersion?.GetHashCode() ?? 0L);
                         _serviceProviderHash = (_serviceProviderHash * 397) ^ (Extension.ProvideClientCertificatesCallback?.GetHashCode() ?? 0L);
                         _serviceProviderHash = (_serviceProviderHash * 397) ^ (Extension.RemoteCertificateValidationCallback?.GetHashCode() ?? 0L);
+                        _serviceProviderHash = (_serviceProviderHash * 397) ^ (Extension.ProvidePasswordCallback?.GetHashCode() ?? 0L);
                         _serviceProviderHash = (_serviceProviderHash * 397) ^ Extension.ReverseNullOrdering.GetHashCode();
                     }
 
@@ -313,6 +340,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
 
                 debugInfo["Npgsql.EntityFrameworkCore.PostgreSQL:" + nameof(NpgsqlDbContextOptionsBuilder.ProvideClientCertificatesCallback)]
                     = (Extension.ProvideClientCertificatesCallback?.GetHashCode() ?? 0).ToString(CultureInfo.InvariantCulture);
+
+                debugInfo["Npgsql.EntityFrameworkCore.PostgreSQL:" + nameof(NpgsqlDbContextOptionsBuilder.ProvidePasswordCallback)]
+                    = (Extension.ProvidePasswordCallback?.GetHashCode() ?? 0).ToString(CultureInfo.InvariantCulture);
 
                 foreach (var rangeDefinition in Extension._userRangeDefinitions)
                 {

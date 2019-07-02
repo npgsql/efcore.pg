@@ -13,6 +13,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
     {
         ProvideClientCertificatesCallback ProvideClientCertificatesCallback { get; }
         RemoteCertificateValidationCallback RemoteCertificateValidationCallback { get; }
+        ProvidePasswordCallback ProvidePasswordCallback { get; }
+
 
         /// <summary>
         ///     Indicates whether the store connection supports ambient transactions
@@ -27,6 +29,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
             ProvideClientCertificatesCallback = npgsqlOptions.ProvideClientCertificatesCallback;
             RemoteCertificateValidationCallback = npgsqlOptions.RemoteCertificateValidationCallback;
+            ProvidePasswordCallback = npgsqlOptions.ProvidePasswordCallback;
         }
 
         protected override DbConnection CreateDbConnection()
@@ -36,6 +39,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 conn.ProvideClientCertificatesCallback = ProvideClientCertificatesCallback;
             if (RemoteCertificateValidationCallback != null)
                 conn.UserCertificateValidationCallback = RemoteCertificateValidationCallback;
+            if (ProvidePasswordCallback != null)
+                conn.ProvidePasswordCallback = ProvidePasswordCallback;
             return conn;
         }
 

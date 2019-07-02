@@ -110,6 +110,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         public virtual void RemoteCertificateValidationCallback([CanBeNull] RemoteCertificateValidationCallback callback)
             => WithOption(e => e.WithRemoteCertificateValidationCallback(callback));
 
+        /// <summary>
+        /// Configures the <see cref="DbContext"/> to use the specified <see cref="ProvidePasswordCallback"/>.
+        /// </summary>
+        /// <param name="callback">The callback to use.</param>
+        public virtual void ProvidePasswordCallback([CanBeNull] ProvidePasswordCallback callback)
+            => WithOption(e => e.WithProvidePasswordCallback(callback));
+
         #endregion Authentication
 
         #region Retrying execution strategy
