@@ -1,11 +1,14 @@
 using System;
-using System.Linq.Expressions;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Query.Expressions;
-using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
+using Microsoft.EntityFrameworkCore.Relational.Query.Pipeline;
+using Microsoft.EntityFrameworkCore.Relational.Query.Pipeline.SqlExpressions;
+using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using NpgsqlTypes;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
@@ -18,102 +21,131 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     /// </remarks>
     public class NpgsqlRangeTranslator : IMethodCallTranslator, IMemberTranslator
     {
+        [NotNull]
+        readonly ISqlExpressionFactory _sqlExpressionFactory;
+        [NotNull]
+        readonly RelationalTypeMapping _boolMapping;
+
+        public NpgsqlRangeTranslator(ISqlExpressionFactory sqlExpressionFactory)
+        {
+            _sqlExpressionFactory = sqlExpressionFactory;
+            _boolMapping = sqlExpressionFactory.FindMapping(typeof(bool));
+        }
+
         /// <inheritdoc />
         [CanBeNull]
-        public Expression Translate(MethodCallExpression e, IDiagnosticsLogger<DbLoggerCategory.Query> logger)
+        public SqlExpression Translate(SqlExpression instance, MethodInfo method, IList<SqlExpression> arguments)
         {
-            if (e.Method.DeclaringType != typeof(NpgsqlRangeExtensions))
+            if (method.DeclaringType != typeof(NpgsqlRangeExtensions))
                 return null;
 
-            switch (e.Method.Name)
+            if (method.Name == nameof(NpgsqlRangeExtensions.Merge))
             {
-            case nameof(NpgsqlRangeExtensions.Contains):
-                return new CustomBinaryExpression(e.Arguments[0], e.Arguments[1], "@>", typeof(bool));
+                var inferredMapping = ExpressionExtensions.InferTypeMapping(arguments[0], arguments[1]);
+                return new SqlFunctionExpression(
+                    "range_merge",
+                    new[] {
+                        _sqlExpressionFactory.ApplyTypeMapping(arguments[0], inferredMapping),
+                        _sqlExpressionFactory.ApplyTypeMapping(arguments[1], inferredMapping)
+                    },
+                    method.ReturnType,
+                    inferredMapping);
+            }
 
-            case nameof(NpgsqlRangeExtensions.ContainedBy):
-                return new CustomBinaryExpression(e.Arguments[0], e.Arguments[1], "<@", typeof(bool));
+            return method.Name switch
+            {
+                nameof(NpgsqlRangeExtensions.Contains) when arguments[0].Type == arguments[1].Type => BoolReturningOnTwoRanges("@>"),
 
-            case nameof(NpgsqlRangeExtensions.Overlaps):
-                return new CustomBinaryExpression(e.Arguments[0], e.Arguments[1], "&&", typeof(bool));
+                // Default to element contained in range
+                nameof(NpgsqlRangeExtensions.Contains) =>
+                    new SqlCustomBinaryExpression(
+                        _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[0]), // TODO: Infer the range mapping from the subtype's...
+                        arguments[0].TypeMapping is NpgsqlRangeTypeMapping rangeMapping
+                            ? _sqlExpressionFactory.ApplyTypeMapping(arguments[1], rangeMapping.SubtypeMapping)
+                            : _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[1]),
+                        "@>",
+                        typeof(bool),
+                        _boolMapping),
 
-            case nameof(NpgsqlRangeExtensions.IsStrictlyLeftOf):
-                return new CustomBinaryExpression(e.Arguments[0], e.Arguments[1], "<<", typeof(bool));
+                nameof(NpgsqlRangeExtensions.ContainedBy)          => BoolReturningOnTwoRanges("<@"),
+                nameof(NpgsqlRangeExtensions.Overlaps)             => BoolReturningOnTwoRanges("&&"),
+                nameof(NpgsqlRangeExtensions.IsStrictlyLeftOf)     => BoolReturningOnTwoRanges("<<"),
+                nameof(NpgsqlRangeExtensions.IsStrictlyRightOf)    => BoolReturningOnTwoRanges(">>"),
+                nameof(NpgsqlRangeExtensions.DoesNotExtendRightOf) => BoolReturningOnTwoRanges("&<"),
+                nameof(NpgsqlRangeExtensions.DoesNotExtendLeftOf)  => BoolReturningOnTwoRanges("&>"),
+                nameof(NpgsqlRangeExtensions.IsAdjacentTo)         => BoolReturningOnTwoRanges("-|-"),
 
-            case nameof(NpgsqlRangeExtensions.IsStrictlyRightOf):
-                return new CustomBinaryExpression(e.Arguments[0], e.Arguments[1], ">>", typeof(bool));
+                nameof(NpgsqlRangeExtensions.Union)                => RangeReturningOnTwoRanges("+"),
+                nameof(NpgsqlRangeExtensions.Intersect)            => RangeReturningOnTwoRanges("*"),
+                nameof(NpgsqlRangeExtensions.Except)               => RangeReturningOnTwoRanges("-"),
 
-            case nameof(NpgsqlRangeExtensions.DoesNotExtendRightOf):
-                return new CustomBinaryExpression(e.Arguments[0], e.Arguments[1], "&<", typeof(bool));
+                _ => null
+            };
 
-            case nameof(NpgsqlRangeExtensions.DoesNotExtendLeftOf):
-                return new CustomBinaryExpression(e.Arguments[0], e.Arguments[1], "&>", typeof(bool));
+            SqlCustomBinaryExpression BoolReturningOnTwoRanges(string @operator)
+            {
+                var inferredMapping = ExpressionExtensions.InferTypeMapping(arguments[0], arguments[1]);
+                return new SqlCustomBinaryExpression(
+                    _sqlExpressionFactory.ApplyTypeMapping(arguments[0], inferredMapping),
+                    _sqlExpressionFactory.ApplyTypeMapping(arguments[1], inferredMapping),
+                    @operator,
+                    typeof(bool),
+                    _boolMapping);
+            }
 
-            case nameof(NpgsqlRangeExtensions.IsAdjacentTo):
-                return new CustomBinaryExpression(e.Arguments[0], e.Arguments[1], "-|-", typeof(bool));
-
-            case nameof(NpgsqlRangeExtensions.Union):
-                return new CustomBinaryExpression(e.Arguments[0], e.Arguments[1], "+", e.Arguments[0].Type);
-
-            case nameof(NpgsqlRangeExtensions.Intersect):
-                return new CustomBinaryExpression(e.Arguments[0], e.Arguments[1], "*", e.Arguments[0].Type);
-
-            case nameof(NpgsqlRangeExtensions.Except):
-                return new CustomBinaryExpression(e.Arguments[0], e.Arguments[1], "-", e.Arguments[0].Type);
-
-            case nameof(NpgsqlRangeExtensions.Merge):
-                return new SqlFunctionExpression("range_merge", e.Type, new[] { e.Arguments[0], e.Arguments[1] });
-
-            default:
-                return null;
+            SqlCustomBinaryExpression RangeReturningOnTwoRanges(string @operator)
+            {
+                var inferredMapping = ExpressionExtensions.InferTypeMapping(arguments[0], arguments[1]);
+                return new SqlCustomBinaryExpression(
+                    _sqlExpressionFactory.ApplyTypeMapping(arguments[0], inferredMapping),
+                    _sqlExpressionFactory.ApplyTypeMapping(arguments[1], inferredMapping),
+                    @operator,
+                    method.ReturnType,
+                    inferredMapping);
             }
         }
 
         /// <inheritdoc />
         [CanBeNull]
-        public Expression Translate(MemberExpression e)
+        public SqlExpression Translate(SqlExpression instance, MemberInfo member, Type returnType)
         {
-            var type = e.Member.DeclaringType;
+            var type = member.DeclaringType;
             if (type == null || !type.IsGenericType || type.GetGenericTypeDefinition() != typeof(NpgsqlRange<>))
                 return null;
 
-            switch (e.Member.Name)
+            if (member.Name == nameof(NpgsqlRange<int>.LowerBound) || member.Name == nameof(NpgsqlRange<int>.UpperBound))
             {
-            case nameof(NpgsqlRange<int>.LowerBound):
-            {
-                var lower = new SqlFunctionExpression("lower", e.Type, new[] { e.Expression });
+                var typeMapping = instance.TypeMapping is NpgsqlRangeTypeMapping rangeMapping
+                    ? rangeMapping.SubtypeMapping
+                    : _sqlExpressionFactory.FindMapping(returnType);
 
-                return e.Type.IsNullableType()
-                    ? lower
-                    : new SqlFunctionExpression("COALESCE", e.Type, new Expression[] { lower, Expression.Default(e.Type) });
+                var accessorName = member.Name == nameof(NpgsqlRange<int>.LowerBound) ? "lower" : "upper";
+                var accessor = _sqlExpressionFactory.Function(accessorName, new[] { instance }, returnType, typeMapping);
+
+                return returnType.IsNullableType()
+                    ? accessor
+                    : _sqlExpressionFactory.Function(
+                        "COALESCE",
+                        new SqlExpression[] { accessor, _sqlExpressionFactory.Constant(GetDefaultValue(returnType)) },
+                        returnType,
+                        typeMapping);
             }
 
-            case nameof(NpgsqlRange<int>.UpperBound):
+            return member.Name switch
             {
-                var upper = new SqlFunctionExpression("upper", e.Type, new[] { e.Expression });
+            nameof(NpgsqlRange<int>.IsEmpty)               => _sqlExpressionFactory.Function("isempty",   new[] { instance }, returnType, _boolMapping),
+            nameof(NpgsqlRange<int>.LowerBoundIsInclusive) => _sqlExpressionFactory.Function("lower_inc", new[] { instance }, returnType, _boolMapping),
+            nameof(NpgsqlRange<int>.UpperBoundIsInclusive) => _sqlExpressionFactory.Function("upper_inc", new[] { instance }, returnType, _boolMapping),
+            nameof(NpgsqlRange<int>.LowerBoundInfinite)    => _sqlExpressionFactory.Function("lower_inf", new[] { instance }, returnType, _boolMapping),
+            nameof(NpgsqlRange<int>.UpperBoundInfinite)    => _sqlExpressionFactory.Function("upper_inf", new[] { instance }, returnType, _boolMapping),
 
-                return e.Type.IsNullableType()
-                    ? upper
-                    : new SqlFunctionExpression("COALESCE", e.Type, new Expression[] { upper, Expression.Default(e.Type) });
-            }
-
-            case nameof(NpgsqlRange<int>.IsEmpty):
-                return new SqlFunctionExpression("isempty", e.Type, new[] { e.Expression });
-
-            case nameof(NpgsqlRange<int>.LowerBoundIsInclusive):
-                return new SqlFunctionExpression("lower_inc", e.Type, new[] { e.Expression });
-
-            case nameof(NpgsqlRange<int>.UpperBoundIsInclusive):
-                return new SqlFunctionExpression("upper_inc", e.Type, new[] { e.Expression });
-
-            case nameof(NpgsqlRange<int>.LowerBoundInfinite):
-                return new SqlFunctionExpression("lower_inf", e.Type, new[] { e.Expression });
-
-            case nameof(NpgsqlRange<int>.UpperBoundInfinite):
-                return new SqlFunctionExpression("upper_inf", e.Type, new[] { e.Expression });
-
-            default:
-                return null;
-            }
+            _ => null
+            };
         }
+
+        static readonly ConcurrentDictionary<Type, object> _defaults = new ConcurrentDictionary<Type, object>();
+
+        static object GetDefaultValue(Type type)
+            => type.IsValueType ? _defaults.GetOrAdd(type, Activator.CreateInstance) : null;
     }
 }

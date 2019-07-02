@@ -32,7 +32,7 @@ namespace Microsoft.EntityFrameworkCore
             Check.NotNull(indexBuilder, nameof(indexBuilder));
             Check.NullButNotEmpty(method, nameof(method));
 
-            indexBuilder.Metadata.Npgsql().Method = method;
+            indexBuilder.Metadata.SetNpgsqlMethod(method);
 
             return indexBuilder;
         }
@@ -53,7 +53,7 @@ namespace Microsoft.EntityFrameworkCore
             Check.NotNull(indexBuilder, nameof(indexBuilder));
             Check.NullButNotEmpty(operators, nameof(operators));
 
-            indexBuilder.Metadata.Npgsql().Operators = operators;
+            indexBuilder.Metadata.SetNpgsqlOperators(operators);
 
             return indexBuilder;
         }
@@ -74,7 +74,7 @@ namespace Microsoft.EntityFrameworkCore
             Check.NotNull(indexBuilder, nameof(indexBuilder));
             Check.NullButNotEmpty(values, nameof(values));
 
-            indexBuilder.Metadata.Npgsql().Collation = values;
+            indexBuilder.Metadata.SetNpgsqlCollation(values);
 
             return indexBuilder;
         }
@@ -96,7 +96,7 @@ namespace Microsoft.EntityFrameworkCore
             Check.NullButNotEmpty(values, nameof(values));
 
             if (!SortOrderHelper.IsDefaultSortOrder(values))
-                indexBuilder.Metadata.Npgsql().SortOrder = values;
+                indexBuilder.Metadata.SetNpgsqlSortOrder(values);
 
             return indexBuilder;
         }
@@ -117,10 +117,10 @@ namespace Microsoft.EntityFrameworkCore
             Check.NotNull(indexBuilder, nameof(indexBuilder));
             Check.NullButNotEmpty(values, nameof(values));
 
-            var sortOrders = indexBuilder.Metadata.Npgsql().SortOrder;
+            var sortOrders = indexBuilder.Metadata.GetNpgsqlSortOrder();
 
             if (!SortOrderHelper.IsDefaultNullSortOrder(values, sortOrders))
-                indexBuilder.Metadata.Npgsql().NullSortOrder = values;
+                indexBuilder.Metadata.SetNpgsqlNullSortOrder(values);
 
             return indexBuilder;
         }
@@ -137,12 +137,12 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns> A builder to further configure the index. </returns>
         public static IndexBuilder ForNpgsqlInclude(
             [NotNull] this IndexBuilder indexBuilder,
-            [CanBeNull, ItemNotNull] params string[] propertyNames)
+            [NotNull, ItemNotNull] params string[] propertyNames)
         {
             Check.NotNull(indexBuilder, nameof(indexBuilder));
             Check.NullButNotEmpty(propertyNames, nameof(propertyNames));
 
-            indexBuilder.Metadata.Npgsql().IncludeProperties = propertyNames;
+            indexBuilder.Metadata.SetNpgsqlIncludeProperties(propertyNames);
 
             return indexBuilder;
         }

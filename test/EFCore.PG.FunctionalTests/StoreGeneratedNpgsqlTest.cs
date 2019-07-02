@@ -27,7 +27,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 modelBuilder.Entity<Gumball>(
                     b =>
                     {
-                        b.Property(e => e.Id).UseNpgsqlSerialColumn();
+                        b.Property(e => e.Id).ForNpgsqlUseSerialColumn();
                         b.Property(e => e.Identity).HasDefaultValue("Banana Joe");
                         b.Property(e => e.IdentityReadOnlyBeforeSave).HasDefaultValue("Doughnut Sheriff");
                         b.Property(e => e.IdentityReadOnlyAfterSave).HasDefaultValue("Anton");

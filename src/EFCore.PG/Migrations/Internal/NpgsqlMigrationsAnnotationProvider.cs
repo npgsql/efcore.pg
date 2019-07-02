@@ -18,10 +18,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal
 
         public override IEnumerable<IAnnotation> For(IEntityType entityType)
         {
-            if (entityType.Npgsql().Comment != null)
-                yield return new Annotation(NpgsqlAnnotationNames.Comment, entityType.Npgsql().Comment);
-            if (entityType.Npgsql().IsUnlogged)
-                yield return new Annotation(NpgsqlAnnotationNames.UnloggedTable, entityType.Npgsql().IsUnlogged);
+            if (entityType.GetNpgsqlComment() is string comment)
+                yield return new Annotation(NpgsqlAnnotationNames.Comment, comment);
+            if (entityType.GetNpgsqlIsUnlogged())
+                yield return new Annotation(NpgsqlAnnotationNames.UnloggedTable, entityType.GetNpgsqlIsUnlogged());
             if (entityType[CockroachDbAnnotationNames.InterleaveInParent] != null)
                 yield return new Annotation(CockroachDbAnnotationNames.InterleaveInParent, entityType[CockroachDbAnnotationNames.InterleaveInParent]);
             foreach (var storageParamAnnotation in entityType.GetAnnotations()
@@ -33,26 +33,26 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal
 
         public override IEnumerable<IAnnotation> For(IProperty property)
         {
-            if (property.Npgsql().ValueGenerationStrategy is NpgsqlValueGenerationStrategy npgsqlValueGenerationStrategy)
+            if (property.GetNpgsqlValueGenerationStrategy() is NpgsqlValueGenerationStrategy npgsqlValueGenerationStrategy)
                 yield return new Annotation(NpgsqlAnnotationNames.ValueGenerationStrategy, npgsqlValueGenerationStrategy);
-            if (property.Npgsql().Comment is string comment)
+            if (property.GetNpgsqlComment() is string comment)
                 yield return new Annotation(NpgsqlAnnotationNames.Comment, comment);
         }
 
         public override IEnumerable<IAnnotation> For(IIndex index)
         {
-            if (index.Npgsql().Method != null)
-                yield return new Annotation(NpgsqlAnnotationNames.IndexMethod, index.Npgsql().Method);
-            if (index.Npgsql().Operators != null)
-                yield return new Annotation(NpgsqlAnnotationNames.IndexOperators, index.Npgsql().Operators);
-            if (index.Npgsql().Collation != null)
-                yield return new Annotation(NpgsqlAnnotationNames.IndexCollation, index.Npgsql().Collation);
-            if (index.Npgsql().SortOrder != null)
-                yield return new Annotation(NpgsqlAnnotationNames.IndexSortOrder, index.Npgsql().SortOrder);
-            if (index.Npgsql().NullSortOrder != null)
-                yield return new Annotation(NpgsqlAnnotationNames.IndexNullSortOrder, index.Npgsql().NullSortOrder);
-            if (index.Npgsql().IncludeProperties != null)
-                yield return new Annotation(NpgsqlAnnotationNames.IndexInclude, index.Npgsql().IncludeProperties);
+            if (index.GetNpgsqlMethod() is string method)
+                yield return new Annotation(NpgsqlAnnotationNames.IndexMethod, method);
+            if (index.GetNpgsqlOperators() is IReadOnlyList<string> operators)
+                yield return new Annotation(NpgsqlAnnotationNames.IndexOperators, operators);
+            if (index.GetNpgsqlCollation() is IReadOnlyList<string> collation)
+                yield return new Annotation(NpgsqlAnnotationNames.IndexCollation, collation);
+            if (index.GetNpgsqlSortOrder() is IReadOnlyList<SortOrder> sortOrder)
+                yield return new Annotation(NpgsqlAnnotationNames.IndexSortOrder, sortOrder);
+            if (index.GetNpgsqlNullSortOrder() is IReadOnlyList<SortOrder> nullSortOrder)
+                yield return new Annotation(NpgsqlAnnotationNames.IndexNullSortOrder, nullSortOrder);
+            if (index.GetNpgsqlIncludeProperties() is IReadOnlyList<string> includeProperties)
+                yield return new Annotation(NpgsqlAnnotationNames.IndexInclude, includeProperties);
         }
 
         public override IEnumerable<IAnnotation> For(IModel model)

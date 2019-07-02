@@ -53,7 +53,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
             => (long)Convert.ChangeType(
                 _rawSqlCommandBuilder
                     .Build(_sqlGenerator.GenerateNextSequenceValueOperation(_sequence.Name, _sequence.Schema))
-                    .ExecuteScalar(_connection, null, _commandLogger),
+                    .ExecuteScalar(
+                        new RelationalCommandParameterObject(
+                            _connection,
+                            null,
+                            null,
+                            _commandLogger)),
                 typeof(long),
                 CultureInfo.InvariantCulture);
 
@@ -65,7 +70,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
             => (long)Convert.ChangeType(
                 await _rawSqlCommandBuilder
                     .Build(_sqlGenerator.GenerateNextSequenceValueOperation(_sequence.Name, _sequence.Schema))
-                    .ExecuteScalarAsync(_connection, null, _commandLogger, cancellationToken: cancellationToken),
+                    .ExecuteScalarAsync(
+                        new RelationalCommandParameterObject(
+                            _connection,
+                            null,
+                            null,
+                            _commandLogger),
+                        cancellationToken),
                 typeof(long),
                 CultureInfo.InvariantCulture);
 

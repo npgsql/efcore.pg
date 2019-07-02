@@ -5,7 +5,8 @@ using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
-    public class TableSplittingNpgsqlTest : TableSplittingTestBase
+    // Disabled upstream
+    internal class TableSplittingNpgsqlTest : TableSplittingTestBase
     {
         public TableSplittingNpgsqlTest(ITestOutputHelper testOutputHelper)
             : base(testOutputHelper)

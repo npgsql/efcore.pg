@@ -1,4 +1,5 @@
-﻿using System.Data.Common;
+﻿using System;
+using System.Data.Common;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -10,6 +11,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
         public RelationalTransaction Create(
             IRelationalConnection connection,
             DbTransaction transaction,
+            Guid transactionId,
             IDiagnosticsLogger<DbLoggerCategory.Database.Transaction> logger,
             bool transactionOwned)
             => new TestRelationalTransaction(connection, transaction, logger, transactionOwned);
@@ -24,7 +26,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             DbTransaction transaction,
             IDiagnosticsLogger<DbLoggerCategory.Database.Transaction> logger,
             bool transactionOwned)
-            : base(connection, transaction, logger, transactionOwned)
+            : base(connection, transaction, new Guid(), logger, transactionOwned)
         {
             _testConnection = (TestNpgsqlConnection)connection;
         }
@@ -44,6 +46,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
                     {
                         this.GetDbTransaction().Commit();
                     }
+
                     _testConnection.DbConnection.Close();
                     throw new PostgresException { SqlState = _testConnection.ErrorCode };
                 }

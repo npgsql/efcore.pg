@@ -8,7 +8,8 @@ using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public class WarningsNpgsqlTest : WarningsTestBase<WarningsNpgsqlFixture>
+    // TODO: Currently disabled upstream
+    internal class WarningsNpgsqlTest : WarningsTestBase<WarningsNpgsqlFixture>
     {
         public WarningsNpgsqlTest(WarningsNpgsqlFixture fixture)
             : base(fixture)

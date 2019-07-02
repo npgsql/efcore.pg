@@ -34,14 +34,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
             public override bool SupportsBinaryKeys => true;
 
-            public override DateTime DefaultDateTime => new DateTime();
+            public override bool SupportsDecimalComparisons => true;
 
-            public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
-                => base
-                    .AddOptions(builder)
-                    .ConfigureWarnings(
-                        c => c.Log(RelationalEventId.QueryClientEvaluationWarning)
-                            .Log(RelationalEventId.ValueConversionSqlLiteralWarning));
+            public override DateTime DefaultDateTime => new DateTime();
 
             // TODO: Remove the following after https://github.com/aspnet/EntityFrameworkCore/pull/11587 is merged
             protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)

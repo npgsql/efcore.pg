@@ -7,7 +7,7 @@ using Xunit.Abstractions;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
     // ReSharper disable once UnusedMember.Global
-    // Disabling for now, see https://github.com/aspnet/entityframeworkcore/issues/14055
+    // Disabled, see https://github.com/aspnet/EntityFrameworkCore/issues/15425
     internal class UpdatesNpgsqlTest : UpdatesRelationalTestBase<UpdatesNpgsqlFixture>
     {
         // ReSharper disable once UnusedParameter.Local
@@ -22,10 +22,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 var entityType = context.Model.FindEntityType(typeof(
                     LoginEntityTypeWithAnExtremelyLongAndOverlyConvolutedNameThatIsUsedToVerifyThatTheStoreIdentifierGenerationLengthLimitIsWorkingCorrectly
                 ));
-                Assert.Equal("LoginEntityTypeWithAnExtremelyLongAndOverlyConvolutedNameThatI~", entityType.Relational().TableName);
-                Assert.Equal("PK_LoginEntityTypeWithAnExtremelyLongAndOverlyConvolutedNameTh~", entityType.GetKeys().Single().Relational().Name);
-                Assert.Equal("FK_LoginEntityTypeWithAnExtremelyLongAndOverlyConvolutedNameTh~", entityType.GetForeignKeys().Single().Relational().ConstraintName);
-                Assert.Equal("IX_LoginEntityTypeWithAnExtremelyLongAndOverlyConvolutedNameTh~", entityType.GetIndexes().Single().Relational().Name);
+                Assert.Equal(
+                    "LoginEntityTypeWithAnExtremelyLongAndOverlyConvolutedNameThatI~",
+                    entityType.GetTableName());
+                Assert.Equal(
+                    "PK_LoginEntityTypeWithAnExtremelyLongAndOverlyConvolutedNameTh~",
+                    entityType.GetKeys().Single().GetName());
+                Assert.Equal(
+                    "FK_LoginEntityTypeWithAnExtremelyLongAndOverlyConvolutedNameTh~",
+                    entityType.GetForeignKeys().Single().GetConstraintName());
+                Assert.Equal(
+                    "IX_LoginEntityTypeWithAnExtremelyLongAndOverlyConvolutedNameTh~",
+                    entityType.GetIndexes().Single().GetName());
 
                 var entityType2 = context.Model.FindEntityType(
                     typeof(
@@ -34,15 +42,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
                 Assert.Equal(
                     "LoginEntityTypeWithAnExtremelyLongAndOverlyConvolutedNameThatIsUsedToVerifyThatTheStoreIdentifierGenerationLengthLimitIsWorkin~1",
-                    entityType2.Relational().TableName);
+                    entityType2.GetTableName());
 
                 Assert.Equal(
                     "ExtraPropertyWithAnExtremelyLongAndOverlyConvolutedNameThatIsUsedToVerifyThatTheStoreIdentifierGenerationLengthLimitIsWorkingCo~",
-                    entityType2.GetProperties().ElementAt(1).Relational().ColumnName);
+                    entityType2.GetProperties().ElementAt(1).GetColumnName());
 
                 Assert.Equal(
                     "ExtraPropertyWithAnExtremelyLongAndOverlyConvolutedNameThatIsUsedToVerifyThatTheStoreIdentifierGenerationLengthLimitIsWorkingC~1",
-                    entityType2.GetProperties().ElementAt(2).Relational().ColumnName);
+                    entityType2.GetProperties().ElementAt(2).GetColumnName());
 
             }
         }

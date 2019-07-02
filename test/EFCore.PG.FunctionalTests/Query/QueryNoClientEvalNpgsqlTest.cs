@@ -2,7 +2,8 @@
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public class QueryNoClientEvalNpgsqlTest : QueryNoClientEvalTestBase<QueryNoClientEvalNpgsqlFixture>
+    // TODO: Disabled upstream
+    internal class QueryNoClientEvalNpgsqlTest : QueryNoClientEvalTestBase<QueryNoClientEvalNpgsqlFixture>
     {
         public QueryNoClientEvalNpgsqlTest(QueryNoClientEvalNpgsqlFixture fixture)
             : base(fixture)

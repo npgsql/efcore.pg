@@ -3,6 +3,11 @@
     public enum NpgsqlValueGenerationStrategy
     {
         /// <summary>
+        /// No Npgsql-specific strategy.
+        /// </summary>
+        None,
+
+        /// <summary>
         /// <para>
         /// A sequence-based hi-lo pattern where blocks of IDs are allocated from the server and
         /// used client-side for generating keys.

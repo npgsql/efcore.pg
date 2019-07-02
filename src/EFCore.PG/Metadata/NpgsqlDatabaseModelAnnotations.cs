@@ -1,3 +1,4 @@
+#if PREVIEW7
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
@@ -34,3 +35,4 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             => PostgresExtension.GetOrAddPostgresExtension((IMutableAnnotatable)Metadata, schema, name, version);
     }
 }
+#endif

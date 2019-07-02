@@ -684,7 +684,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             GenerateEnumStatements(operation, model, builder);
             GenerateRangeStatements(operation, model, builder);
 
-            foreach (var extension in operation.Npgsql().PostgresExtensions)
+            foreach (var extension in operation.GetPostgresExtensions())
                 GenerateCreateExtension(extension, model, builder);
 
             builder.EndCommand();
@@ -723,21 +723,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 [NotNull] IModel model,
                 [NotNull] MigrationCommandListBuilder builder)
         {
-            foreach (var enumTypeToCreate in operation.Npgsql().PostgresEnums
-                .Where(ne => operation.Npgsql().OldPostgresEnums.All(oe => oe.Name != ne.Name)))
+            foreach (var enumTypeToCreate in operation.GetPostgresEnums()
+                .Where(ne => operation.GetOldPostgresEnums().All(oe => oe.Name != ne.Name)))
             {
                 GenerateCreateEnum(enumTypeToCreate, model, builder);
             }
 
-            foreach (var enumTypeToDrop in operation.Npgsql().OldPostgresEnums
-                .Where(oe => operation.Npgsql().PostgresEnums.All(ne => ne.Name != oe.Name)))
+            foreach (var enumTypeToDrop in operation.GetOldPostgresEnums()
+                .Where(oe => operation.GetPostgresEnums().All(ne => ne.Name != oe.Name)))
             {
                 GenerateDropEnum(enumTypeToDrop, model, builder);
             }
 
             // TODO: Some forms of enum alterations are actually supported...
-            if (operation.Npgsql().PostgresEnums.FirstOrDefault(nr =>
-                operation.Npgsql().OldPostgresEnums.Any(or => or.Name == nr.Name)
+            if (operation.GetPostgresEnums().FirstOrDefault(nr =>
+                operation.GetOldPostgresEnums().Any(or => or.Name == nr.Name)
             ) is PostgresEnum enumTypeToAlter)
             {
                 throw new NotSupportedException($"Altering enum type ${enumTypeToAlter} isn't supported.");
@@ -749,7 +749,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             [NotNull] IModel model,
             [NotNull] MigrationCommandListBuilder builder)
         {
-            var schema = enumType.Schema ?? model.Relational().DefaultSchema;
+            var schema = enumType.Schema ?? model.GetDefaultSchema();
 
             // Schemas are normally created (or rather ensured) by the model differ, which scans all tables, sequences
             // and other database objects. However, it isn't aware of enums, so we always ensure schema on enum creation.
@@ -779,7 +779,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             [NotNull] IModel model,
             [NotNull] MigrationCommandListBuilder builder)
         {
-            var schema = enumType.Schema ?? model.Relational().DefaultSchema;
+            var schema = enumType.Schema ?? model.GetDefaultSchema();
 
             builder
                 .Append("DROP TYPE ")
@@ -796,20 +796,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 [NotNull] IModel model,
                 [NotNull] MigrationCommandListBuilder builder)
         {
-            foreach (var rangeTypeToCreate in operation.Npgsql().PostgresRanges
-                .Where(ne => operation.Npgsql().OldPostgresRanges.All(oe => oe.Name != ne.Name)))
+            foreach (var rangeTypeToCreate in operation.GetPostgresRanges()
+                .Where(ne => operation.GetOldPostgresRanges().All(oe => oe.Name != ne.Name)))
             {
                 GenerateCreateRange(rangeTypeToCreate, model, builder);
             }
 
-            foreach (var rangeTypeToDrop in operation.Npgsql().OldPostgresRanges
-                .Where(oe => operation.Npgsql().PostgresRanges.All(ne => ne.Name != oe.Name)))
+            foreach (var rangeTypeToDrop in operation.GetOldPostgresRanges()
+                .Where(oe => operation.GetPostgresRanges().All(ne => ne.Name != oe.Name)))
             {
                 GenerateDropRange(rangeTypeToDrop, model, builder);
             }
 
-            if (operation.Npgsql().PostgresRanges.FirstOrDefault(nr =>
-                operation.Npgsql().OldPostgresRanges.Any(or => or.Name == nr.Name)
+            if (operation.GetPostgresRanges().FirstOrDefault(nr =>
+                operation.GetOldPostgresRanges().Any(or => or.Name == nr.Name)
             ) is PostgresRange rangeTypeToAlter)
             {
                 throw new NotSupportedException($"Altering range type ${rangeTypeToAlter} isn't supported.");
@@ -821,7 +821,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             [NotNull] IModel model,
             [NotNull] MigrationCommandListBuilder builder)
         {
-            var schema = rangeType.Schema ?? model.Relational().DefaultSchema;
+            var schema = rangeType.Schema ?? model.GetDefaultSchema();
 
             // Schemas are normally created (or rather ensured) by the model differ, which scans all tables, sequences
             // and other database objects. However, it isn't aware of ranges, so we always ensure schema on range creation.
@@ -859,7 +859,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             [NotNull] IModel model,
             [NotNull] MigrationCommandListBuilder builder)
         {
-            var schema = rangeType.Schema ?? model.Relational().DefaultSchema;
+            var schema = rangeType.Schema ?? model.GetDefaultSchema();
 
             builder
                 .Append("DROP TYPE ")
@@ -920,7 +920,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             foreach (var modificationCommand in operation.GenerateModificationCommands(model))
             {
                 var overridingSystemValue = modificationCommand.ColumnModifications.Any(m =>
-                    m.Property?.Npgsql().ValueGenerationStrategy == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn);
+                    m.Property?.GetNpgsqlValueGenerationStrategy() == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn);
                 ((NpgsqlUpdateSqlGenerator)Dependencies.UpdateSqlGenerator).AppendInsertOperation(
                     sqlBuilder,
                     modificationCommand,

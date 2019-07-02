@@ -1,13 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
-using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
+using Microsoft.EntityFrameworkCore.Relational.Query.Pipeline;
+using Microsoft.EntityFrameworkCore.Relational.Query.Pipeline.SqlExpressions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
@@ -41,20 +37,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             typeof(string)
         };
 
-        static readonly IEnumerable<MethodInfo> SupportedMethods =
-            TypeMapping.Keys
-                .SelectMany(t => typeof(Convert).GetTypeInfo().GetDeclaredMethods(t)
-                    .Where(m => m.GetParameters().Length == 1
-                                && SupportedTypes.Contains(m.GetParameters().First().ParameterType)));
+        static readonly List<MethodInfo> SupportedMethods
+            = TypeMapping.Keys
+                .SelectMany(
+                    t => typeof(Convert).GetTypeInfo().GetDeclaredMethods(t)
+                        .Where(
+                            m => m.GetParameters().Length == 1
+                                 && SupportedTypes.Contains(m.GetParameters().First().ParameterType)))
+                .ToList();
 
-        /// <inheritdoc />
-        [CanBeNull]
-        public virtual Expression Translate(MethodCallExpression methodCallExpression, IDiagnosticsLogger<DbLoggerCategory.Query> logger)
-            => SupportedMethods.Contains(methodCallExpression.Method)
-                ? new ExplicitStoreTypeCastExpression(
-                    methodCallExpression.Arguments[0],
-                    methodCallExpression.Type,
-                    TypeMapping[methodCallExpression.Method.Name])
+        readonly ISqlExpressionFactory _sqlExpressionFactory;
+
+        public NpgsqlConvertTranslator(ISqlExpressionFactory sqlExpressionFactory)
+            => _sqlExpressionFactory = sqlExpressionFactory;
+
+        public SqlExpression Translate(SqlExpression instance, MethodInfo method, IList<SqlExpression> arguments)
+            => SupportedMethods.Contains(method)
+                ? _sqlExpressionFactory.Convert(arguments[0], method.ReturnType)
                 : null;
     }
 }

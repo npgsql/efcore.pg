@@ -934,7 +934,7 @@ GROUP BY
                         continue;
 
                     // TODO: how/should we query the schema?
-                    databaseModel.Npgsql().GetOrAddPostgresExtension(null, name, installedVersion);
+                    databaseModel.GetOrAddPostgresExtension(null, name, installedVersion);
                 }
             }
         }

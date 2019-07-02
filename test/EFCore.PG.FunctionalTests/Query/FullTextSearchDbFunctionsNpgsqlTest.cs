@@ -7,6 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities.Xunit;
 using NpgsqlTypes;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
@@ -14,10 +15,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
     {
         protected NorthwindQueryNpgsqlFixture<NoopModelCustomizer> Fixture { get; }
 
-        public FullTextSearchDbFunctionsNpgsqlTest(NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture)
+        public FullTextSearchDbFunctionsNpgsqlTest(NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture, ITestOutputHelper testOutputHelper)
         {
             Fixture = fixture;
             Fixture.TestSqlLoggerFactory.Clear();
+            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
         [Fact]
@@ -30,12 +32,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             }
 
             AssertSql(
-                @"SELECT CAST('a b' AS tsvector)
+                @"SELECT 'a b'::tsvector
 FROM ""Customers"" AS c
 LIMIT 1");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/16680")]
         public void ArrayToTsVector()
         {
             using (var context = CreateContext())
@@ -88,7 +90,7 @@ LIMIT 1");
             }
 
             AssertSql(
-                @"SELECT to_tsvector(CAST('english' AS regconfig), c.""CompanyName"")
+                @"SELECT to_tsvector('english', c.""CompanyName"")
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -106,7 +108,7 @@ LIMIT 1");
             AssertSql(
                 @"@__config_1='english'
 
-SELECT to_tsvector(CAST(@__config_1 AS regconfig), c.""CompanyName"")
+SELECT to_tsvector(@__config_1::regconfig, c.""CompanyName"")
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -121,7 +123,7 @@ LIMIT 1");
             }
 
             AssertSql(
-                @"SELECT CAST('a & b' AS tsquery)
+                @"SELECT 'a & b'::tsquery
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -151,7 +153,7 @@ LIMIT 1");
             }
 
             AssertSql(
-                @"SELECT plainto_tsquery(CAST('english' AS regconfig), 'a')
+                @"SELECT plainto_tsquery('english', 'a')
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -169,7 +171,7 @@ LIMIT 1");
             AssertSql(
                 @"@__config_1='english'
 
-SELECT plainto_tsquery(CAST(@__config_1 AS regconfig), 'a')
+SELECT plainto_tsquery(@__config_1::regconfig, 'a')
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -199,7 +201,7 @@ LIMIT 1");
             }
 
             AssertSql(
-                @"SELECT phraseto_tsquery(CAST('english' AS regconfig), 'a b')
+                @"SELECT phraseto_tsquery('english', 'a b')
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -217,7 +219,7 @@ LIMIT 1");
             AssertSql(
                 @"@__config_1='english'
 
-SELECT phraseto_tsquery(CAST(@__config_1 AS regconfig), 'a b')
+SELECT phraseto_tsquery(@__config_1::regconfig, 'a b')
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -247,7 +249,7 @@ LIMIT 1");
             }
 
             AssertSql(
-                @"SELECT to_tsquery(CAST('english' AS regconfig), 'a & b')
+                @"SELECT to_tsquery('english', 'a & b')
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -265,7 +267,7 @@ LIMIT 1");
             AssertSql(
                 @"@__config_1='english'
 
-SELECT to_tsquery(CAST(@__config_1 AS regconfig), 'a & b')
+SELECT to_tsquery(@__config_1::regconfig, 'a & b')
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -295,7 +297,7 @@ LIMIT 1");
             }
 
             AssertSql(
-                @"SELECT websearch_to_tsquery(CAST('english' AS regconfig), 'a OR b')
+                @"SELECT websearch_to_tsquery('english', 'a OR b')
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -313,7 +315,7 @@ LIMIT 1");
             AssertSql(
                 @"@__config_1='english'
 
-SELECT websearch_to_tsquery(CAST(@__config_1 AS regconfig), 'a OR b')
+SELECT websearch_to_tsquery(@__config_1::regconfig, 'a OR b')
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -487,7 +489,7 @@ LIMIT 1");
             }
 
             AssertSql(
-                @"SELECT ts_headline(CAST('english' AS regconfig), 'a b c', to_tsquery('b'), 'MinWords=1, MaxWords=2')
+                @"SELECT ts_headline('english', 'a b c', to_tsquery('b'), 'MinWords=1, MaxWords=2')
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -511,7 +513,7 @@ LIMIT 1");
             AssertSql(
                 @"@__config_1='english'
 
-SELECT ts_headline(CAST(@__config_1 AS regconfig), 'a b c', to_tsquery('b'), 'MinWords=1, MaxWords=2')
+SELECT ts_headline(@__config_1::regconfig, 'a b c', to_tsquery('b'), 'MinWords=1, MaxWords=2')
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -619,7 +621,7 @@ LIMIT 1");
             }
 
             AssertSql(
-                @"SELECT (to_tsvector('b') || to_tsvector('c'))
+                @"SELECT to_tsvector('b') || to_tsvector('c')
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -641,7 +643,7 @@ FROM ""Customers"" AS c
 LIMIT 1");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/16680")]
         public void Setweight_With_Enum_And_Lexemes()
         {
             using (var context = CreateContext())
@@ -675,7 +677,7 @@ FROM ""Customers"" AS c
 LIMIT 1");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/16680")]
         public void Setweight_With_Char_And_Lexemes()
         {
             using (var context = CreateContext())
@@ -709,7 +711,7 @@ FROM ""Customers"" AS c
 LIMIT 1");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/16680")]
         public void Delete_With_Multiple_Lexemes()
         {
             using (var context = CreateContext())
@@ -726,7 +728,7 @@ FROM ""Customers"" AS c
 LIMIT 1");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/16680")]
         public void Filter()
         {
             using (var context = CreateContext())
@@ -814,7 +816,7 @@ FROM ""Customers"" AS c
 LIMIT 1");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/16680")]
         public void Rank_With_Weights()
         {
             using (var context = CreateContext())
@@ -834,7 +836,7 @@ FROM ""Customers"" AS c
 LIMIT 1");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/16680")]
         public void Rank_With_Weights_And_Normalization()
         {
             using (var context = CreateContext())
@@ -892,7 +894,7 @@ FROM ""Customers"" AS c
 LIMIT 1");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/16680")]
         public void RankCoverDensity_With_Weights()
         {
             using (var context = CreateContext())
@@ -912,7 +914,7 @@ FROM ""Customers"" AS c
 LIMIT 1");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/16680")]
         public void RankCoverDensity_With_Weights_And_Normalization()
         {
             using (var context = CreateContext())

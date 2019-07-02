@@ -2,16 +2,16 @@ using System;
 using System.Linq.Expressions;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal;
+using Microsoft.EntityFrameworkCore.Query.Internal;
+using Microsoft.EntityFrameworkCore.Relational.Query.Pipeline.SqlExpressions;
+using Microsoft.EntityFrameworkCore.Storage;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Pipeline;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
 {
-    public class RegexMatchExpression : Expression
+    public class RegexMatchExpression : SqlExpression, IEquatable<RegexMatchExpression>
     {
-        /// <inheritdoc />
-        public override ExpressionType NodeType => ExpressionType.Extension;
-
         /// <inheritdoc />
         public override Type Type => typeof(bool);
 
@@ -19,13 +19,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         /// The match expression.
         /// </summary>
         [NotNull]
-        public virtual Expression Match { get; }
+        public virtual SqlExpression Match { get; }
 
         /// <summary>
         /// The pattern to match.
         /// </summary>
         [NotNull]
-        public virtual Expression Pattern { get; }
+        public virtual SqlExpression Pattern { get; }
 
         /// <summary>
         /// The options for regular expression evaluation.
@@ -38,11 +38,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         /// <param name="match">The expression to match.</param>
         /// <param name="pattern">The pattern to match.</param>
         /// <param name="options">The options for regular expression evaluation.</param>
-        /// <exception cref="ArgumentNullException" />
-        public RegexMatchExpression([NotNull] Expression match, [NotNull] Expression pattern, RegexOptions options)
+        /// <param name="typeMapping">The type mapping for the expression.</param>
+        public RegexMatchExpression(
+            [NotNull] SqlExpression match,
+            [NotNull] SqlExpression pattern,
+            RegexOptions options,
+            RelationalTypeMapping typeMapping)
+            : base(typeof(bool), typeMapping)
         {
-            Match = Check.NotNull(match, nameof(match));
-            Pattern = Check.NotNull(pattern, nameof(pattern));
+            Match = match;
+            Pattern = pattern;
             Options = options;
         }
 
@@ -54,14 +59,33 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
 
         /// <inheritdoc />
         protected override Expression VisitChildren(ExpressionVisitor visitor)
-        {
-            var match = visitor.Visit(Match) ?? Match;
-            var pattern = visitor.Visit(Pattern) ?? Pattern;
+            => Update((SqlExpression)visitor.Visit(Match), (SqlExpression)visitor.Visit(Pattern));
 
-            return
-                match != Match || pattern != Pattern
-                    ? new RegexMatchExpression(match, pattern, Options)
-                    : this;
+        public RegexMatchExpression Update(SqlExpression match, SqlExpression pattern)
+            => match != Match || pattern != Pattern
+                ? new RegexMatchExpression(match, pattern, Options, TypeMapping)
+                : this;
+
+        public bool Equals(RegexMatchExpression other)
+            => ReferenceEquals(this, other) ||
+                   other is object &&
+                   base.Equals(other) &&
+                   Match.Equals(other.Match) &&
+                   Pattern.Equals(other.Pattern) &&
+                   Options.Equals(other.Options);
+
+        public override bool Equals(object other)
+            => other is RegexMatchExpression otherRegexMatch && Equals(otherRegexMatch);
+
+        public override int GetHashCode()
+            => HashCode.Combine(base.GetHashCode(), Match, Pattern, Options);
+
+        /// <inheritdoc />
+        public override void Print(ExpressionPrinter expressionPrinter)
+        {
+            expressionPrinter.Visit(Match);
+            expressionPrinter.StringBuilder.Append(" ~ ");
+            expressionPrinter.Visit(Pattern);
         }
 
         /// <inheritdoc />

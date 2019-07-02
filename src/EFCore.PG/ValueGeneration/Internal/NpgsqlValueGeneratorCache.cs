@@ -35,7 +35,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
             IProperty property,
             IRelationalConnection connection)
         {
-            var sequence = property.Npgsql().FindHiLoSequence();
+            //var sequence = property.GetNpgsql().FindHiLoSequence();
+            var sequence = property.FindNpgsqlHiLoSequence();
 
             Debug.Assert(sequence != null);
 
@@ -44,7 +45,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
                 sequenceName => new NpgsqlSequenceValueGeneratorState(sequence));
         }
 
-        private static string GetSequenceName(ISequence sequence)
+        static string GetSequenceName(ISequence sequence)
             => (sequence.Schema == null ? "" : sequence.Schema + ".") + sequence.Name;
     }
 }

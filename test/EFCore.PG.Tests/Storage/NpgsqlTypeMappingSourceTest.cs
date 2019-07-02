@@ -1,3 +1,4 @@
+#if PREVIEW8
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -128,3 +129,4 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         #endregion Support
     }
 }
+#endif

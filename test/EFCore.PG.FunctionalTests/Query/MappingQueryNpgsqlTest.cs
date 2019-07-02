@@ -25,9 +25,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 modelBuilder.Entity<MappedCustomer>(
                     e =>
                     {
-                        e.Property(c => c.CompanyName2).Metadata.Npgsql().ColumnName = "CompanyName";
-                        e.Metadata.Npgsql().TableName = "Customers";
-                        e.Metadata.Npgsql().Schema = "public";
+                        e.Property(c => c.CompanyName2).Metadata.SetColumnName("CompanyName");
+                        e.Metadata.SetTableName("Customers");
+                        e.Metadata.SetSchema("public");
                     });
 
                 modelBuilder.Entity<MappedEmployee>()

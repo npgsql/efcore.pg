@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿#if PREVIEW7
+using System.Collections.Generic;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
 
@@ -33,3 +34,4 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             => base.AddTranslators(translators);
     }
 }
+#endif

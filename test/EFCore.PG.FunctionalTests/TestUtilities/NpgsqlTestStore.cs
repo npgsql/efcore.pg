@@ -38,22 +38,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
         public static NpgsqlTestStore GetOrCreate(string name, string scriptPath)
             => new NpgsqlTestStore(name, scriptPath: scriptPath);
 
-        public static NpgsqlTestStore Create(string name, bool useFileName = false)
-            => new NpgsqlTestStore(name, useFileName, shared: false);
+        public static NpgsqlTestStore Create(string name)
+            => new NpgsqlTestStore(name, shared: false);
 
-        public static NpgsqlTestStore CreateInitialized(string name, bool useFileName = false, bool? multipleActiveResultSets = null)
-            => new NpgsqlTestStore(name, useFileName, shared: false, multipleActiveResultSets: multipleActiveResultSets)
+        public static NpgsqlTestStore CreateInitialized(string name)
+            => new NpgsqlTestStore(name, shared: false)
                 .InitializeNpgsql(null, (Func<DbContext>)null, null);
 
-        public static NpgsqlTestStore CreateScratch(bool createDatabase = true)
-            => new NpgsqlTestStore(GetScratchDbName()).CreateTransient(createDatabase, true);
-
-        private NpgsqlTestStore(
+        NpgsqlTestStore(
             string name,
-            // ReSharper disable once UnusedParameter.Local
-            bool useFileName = false,
-            // ReSharper disable once UnusedParameter.Local
-            bool? multipleActiveResultSets = null,
             string scriptPath = null,
             bool shared = true)
             : base(name, shared)
@@ -81,9 +74,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             IServiceProvider serviceProvider, Func<NpgsqlTestStore, DbContext> createContext, Action<DbContext> seed)
             => InitializeNpgsql(serviceProvider, () => createContext(this), seed);
 
-        protected override void Initialize(Func<DbContext> createContext, Action<DbContext> seed)
+        protected override void Initialize(Func<DbContext> createContext, Action<DbContext> seed, Action<DbContext> clean)
         {
-            if (CreateDatabase())
+            if (CreateDatabase(clean))
             {
                 if (_scriptPath != null)
                 {
@@ -93,8 +86,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
                 {
                     using (var context = createContext())
                     {
-                        context.Database.EnsureCreated();
-                        seed(context);
+                        context.Database.EnsureCreatedResiliently();
+                        seed?.Invoke(context);
                     }
                 }
             }
@@ -115,7 +108,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             return name;
         }
 
-        bool CreateDatabase()
+        bool CreateDatabase(Action<DbContext> clean)
         {
             using (var master = new NpgsqlConnection(CreateAdminConnectionString()))
             {
@@ -126,8 +119,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
                         return false;
                     }
 
-                    using (var context = new DbContext(AddProviderOptions(new DbContextOptionsBuilder()).Options))
+                    using (var context = new DbContext(
+                        AddProviderOptions(
+                                new DbContextOptionsBuilder()
+                                    .EnableServiceProviderCaching(false))
+                            .Options))
                     {
+                        clean?.Invoke(context);
                         Clean(context);
                         return true;
                     }
@@ -195,6 +193,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
         string _connectionString;
         bool _deleteDatabase;
 
+#if PREVIEW7
         NpgsqlTestStore CreateTransient(bool createDatabase, bool deleteDatabase)
         {
             _connectionString = CreateConnectionString(Name);
@@ -214,6 +213,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             _deleteDatabase = deleteDatabase;
             return this;
         }
+#endif
 
         // ReSharper disable once UnusedMember.Local
         static void Clean(string name)

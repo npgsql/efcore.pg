@@ -6,11 +6,11 @@ using System.Net;
 using System.Net.NetworkInformation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestUtilities;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities.Xunit;
 using Xunit;
+using Xunit.Abstractions;
+// ReSharper disable ConvertToConstant.Local
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
@@ -24,28 +24,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
     {
         #region Setup
 
-        /// <summary>
-        /// Provides resources for unit tests.
-        /// </summary>
         NetworkAddressQueryNpgsqlFixture Fixture { get; }
 
-        /// <summary>
-        /// Initializes resources for unit tests.
-        /// </summary>
-        /// <param name="fixture"> The fixture of resources for testing. </param>
-        public NetworkQueryNpgsqlTest(NetworkAddressQueryNpgsqlFixture fixture)
+        public NetworkQueryNpgsqlTest(NetworkAddressQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
         {
             Fixture = fixture;
             Fixture.TestSqlLoggerFactory.Clear();
+            Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
         #endregion
 
         #region BugTests
 
-        /// <summary>
-        /// Demonstrates parameter duplication.
-        /// </summary>
         [Fact(Skip = nameof(NetworkQueryNpgsqlTest))]
         public void Demonstrate_ValueTypeParametersAreDuplicated()
         {
@@ -68,111 +59,69 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         #region ParseTests
 
-        /// <summary>
-        /// Tests translation for <see cref="IPAddress.Parse(string)"/>.
-        /// </summary>
         [Fact]
         public void IPAddress_inet_parse_column()
         {
             using (var context = Fixture.CreateContext())
             {
-                var _ =
-                    context.NetTestEntities
-                           .Where(x => x.Inet.Equals(IPAddress.Parse(x.TextInet)))
-                           .ToArray();
-
-                AssertContainsSql("WHERE (x.\"Inet\" = CAST(x.\"TextInet\" AS inet))");
+                var count = context.NetTestEntities.Count(x => x.Inet.Equals(IPAddress.Parse(x.TextInet)));
+                Assert.Equal(9, count);
+                AssertContainsSql(@"CAST(n.""TextInet"" AS inet)");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="IPAddress.Parse(string)"/>.
-        /// </summary>
         [Fact]
         public void PhysicalAddress_macaddr_parse_column()
         {
             using (var context = Fixture.CreateContext())
             {
-                var _ =
-                    context.NetTestEntities
-                           .Where(x => x.Macaddr.Equals(PhysicalAddress.Parse(x.TextMacaddr)))
-                           .ToArray();
-
-                AssertContainsSql("WHERE (x.\"Macaddr\" = CAST(x.\"TextMacaddr\" AS macaddr))");
+                var count = context.NetTestEntities.Count(x => x.Macaddr.Equals(PhysicalAddress.Parse(x.TextMacaddr)));
+                Assert.Equal(9, count);
+                AssertContainsSql(@"CAST(n.""TextMacaddr"" AS macaddr)");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="IPAddress.Parse(string)"/>.
-        /// </summary>
         [Fact]
         public void IPAddress_inet_parse_literal()
         {
             using (var context = Fixture.CreateContext())
             {
-                var _ =
-                    context.NetTestEntities
-                           .Where(x => x.Inet.Equals(IPAddress.Parse("127.0.0.1")))
-                           .ToArray();
-
-                AssertContainsSql("WHERE x.\"Inet\" = INET '127.0.0.1'");
+                var count = context.NetTestEntities.Count(x => x.Inet.Equals(IPAddress.Parse("192.168.1.2")));
+                Assert.Equal(1, count);
+                AssertContainsSql("INET '192.168.1.2'");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="IPAddress.Parse(string)"/>.
-        /// </summary>
         [Fact]
         public void PhysicalAddress_macaddr_parse_literal()
         {
             using (var context = Fixture.CreateContext())
             {
-                var _ =
-                    context.NetTestEntities
-                           .Where(x => x.Macaddr.Equals(PhysicalAddress.Parse("12-34-56-00-00-00")))
-                           .ToArray();
-
-                AssertContainsSql("WHERE x.\"Macaddr\" = MACADDR '123456000000'");
+                var count = context.NetTestEntities.Count(x => x.Macaddr.Equals(PhysicalAddress.Parse("12-34-56-00-00-02")));
+                Assert.Equal(1, count);
+                AssertContainsSql("MACADDR '123456000002'");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="IPAddress.Parse(string)"/>.
-        /// </summary>
         [Fact]
         public void IPAddress_inet_parse_parameter()
         {
             using (var context = Fixture.CreateContext())
             {
-                // ReSharper disable once ConvertToConstant.Local
-                var inet = "127.0.0.1";
-
-                var _ =
-                    context.NetTestEntities
-                           .Where(x => x.Inet.Equals(IPAddress.Parse(inet)))
-                           .ToArray();
-
-                AssertContainsSql("WHERE x.\"Inet\" = @__Parse_0");
+                var inet = "192.168.1.2";
+                var count = context.NetTestEntities.Count(x => x.Inet.Equals(IPAddress.Parse(inet)));
+                Assert.Equal(1, count);
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="IPAddress.Parse(string)"/>.
-        /// </summary>
         [Fact]
         public void PhysicalAddress_macaddr_parse_parameter()
         {
             using (var context = Fixture.CreateContext())
             {
-                // ReSharper disable once ConvertToConstant.Local
-                var macaddr = "12-34-56-00-00-00";
-
-                var _ =
-                    context.NetTestEntities
-                           .Where(x => x.Macaddr.Equals(PhysicalAddress.Parse(macaddr)))
-                           .ToArray();
-
-                AssertContainsSql("WHERE x.\"Macaddr\" = @__Parse_0");
+                var macaddr = "12-34-56-00-00-01";
+                var count = context.NetTestEntities.Count(x => x.Macaddr.Equals(PhysicalAddress.Parse(macaddr)));
+                Assert.Equal(1, count);
             }
         }
 
@@ -180,28 +129,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         #region RelationalOperatorTests
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.LessThan(DbFunctions,IPAddress,IPAddress)"/>.
-        /// </summary>
-        [Fact(Skip = "https://github.com/npgsql/npgsql/issues/2360")]
+        [Fact]
         public void IPAddress_inet_LessThan_inet()
         {
             using (var context = Fixture.CreateContext())
             {
-                var inet = IPAddress.Any;
-
-                var _ =
-                    context.NetTestEntities
-                           .Where(x => EF.Functions.LessThan(x.Inet, inet))
-                           .ToArray();
-
-                AssertContainsSql("WHERE (x.\"Inet\" < @__inet_1) = TRUE");
+                var count = context.NetTestEntities.Count(x => EF.Functions.LessThan(x.Inet, IPAddress.Parse("192.168.1.7")));
+                Assert.Equal(count, 6);
+                AssertContainsSql(@"WHERE n.""Inet"" < INET '192.168.1.7'");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.LessThan(DbFunctions,ValueTuple{IPAddress,int},ValueTuple{IPAddress,int})"/>.
-        /// </summary>
         [Fact]
         public void ValueTuple_cidr_LessThan_cidr()
         {
@@ -214,68 +152,43 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => EF.Functions.LessThan(x.Cidr, cidr))
                            .ToArray();
 
-                AssertContainsSql("WHERE (x.\"Cidr\" < @__cidr_1) = TRUE");
+                AssertContainsSql(@"n.""Cidr"" < @__cidr_1");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.LessThan(DbFunctions,PhysicalAddress,PhysicalAddress)"/>.
-        /// </summary>
         [Fact]
         public void PhysicalAddress_macaddr_LessThan_macaddr()
         {
             using (var context = Fixture.CreateContext())
             {
-                var macaddr = new PhysicalAddress(new byte[6]);
-
-                var _ =
-                    context.NetTestEntities
-                           .Where(x => EF.Functions.LessThan(x.Macaddr, macaddr))
-                           .ToArray();
-
-                AssertContainsSql("WHERE (x.\"Macaddr\" < @__macaddr_1) = TRUE");
+                var count = context.NetTestEntities.Count(x => EF.Functions.LessThan(x.Macaddr, PhysicalAddress.Parse("12-34-56-00-00-07")));
+                Assert.Equal(count, 6);
+                AssertContainsSql(@"""Macaddr"" < MACADDR '123456000007'");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.LessThan(DbFunctions,PhysicalAddress,PhysicalAddress)"/>.
-        /// </summary>
-        [MinimumPostgresVersionFact(10, 0)]
+        [Fact]
         public void PhysicalAddress_macaddr8_LessThan_macaddr8()
         {
             using (var context = Fixture.CreateContext())
             {
-                var _ =
-                    context.NetTestEntities
-                           .Where(x => EF.Functions.LessThan(x.Macaddr8, x.Macaddr8))
-                           .ToArray();
-
-                AssertContainsSql("WHERE (x.\"Macaddr8\" < x.\"Macaddr8\") = TRUE");
+                var count = context.NetTestEntities.Count(x => EF.Functions.LessThan(x.Macaddr8, PhysicalAddress.Parse("08-00-2B-01-02-03-04-07")));
+                Assert.Equal(count, 6);
+                AssertContainsSql(@"""Macaddr8"" < MACADDR8 '08002B0102030407'");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.LessThanOrEqual(DbFunctions,IPAddress,IPAddress)"/>.
-        /// </summary>
-        [Fact(Skip = "https://github.com/npgsql/npgsql/issues/2360")]
+        [Fact]
         public void IPAddress_inet_LessThanOrEqual_inet()
         {
             using (var context = Fixture.CreateContext())
             {
-                var inet = IPAddress.Any;
-
-                var _ =
-                    context.NetTestEntities
-                           .Where(x => EF.Functions.LessThanOrEqual(x.Inet, inet))
-                           .ToArray();
-
-                AssertContainsSql("WHERE (x.\"Inet\" <= @__inet_1) = TRUE");
+                var count = context.NetTestEntities.Count(x => EF.Functions.LessThanOrEqual(x.Inet, IPAddress.Parse("192.168.1.7")));
+                Assert.Equal(count, 7);
+                AssertContainsSql(@"WHERE n.""Inet"" <= INET '192.168.1.7'");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.LessThanOrEqual(DbFunctions,ValueTuple{IPAddress,int},ValueTuple{IPAddress,int})"/>.
-        /// </summary>
         [Fact]
         public void ValueTuple_cidr_LessThanOrEqual_cidr()
         {
@@ -288,68 +201,42 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => EF.Functions.LessThanOrEqual(x.Cidr, cidr))
                            .ToArray();
 
-                AssertContainsSql("WHERE (x.\"Cidr\" <= @__cidr_1) = TRUE");
+                AssertContainsSql(@"n.""Cidr"" <= @__cidr_1");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.LessThanOrEqual(DbFunctions,PhysicalAddress,PhysicalAddress)"/>.
-        /// </summary>
         [Fact]
         public void PhysicalAddress_macaddr_LessThanOrEqual_macaddr()
         {
             using (var context = Fixture.CreateContext())
             {
-                var macaddr = new PhysicalAddress(new byte[6]);
-
-                var _ =
-                    context.NetTestEntities
-                           .Where(x => EF.Functions.LessThanOrEqual(x.Macaddr, macaddr))
-                           .ToArray();
-
-                AssertContainsSql("WHERE (x.\"Macaddr\" <= @__macaddr_1) = TRUE");
+                var count = context.NetTestEntities.Count(x => EF.Functions.LessThanOrEqual(x.Macaddr, PhysicalAddress.Parse("12-34-56-00-00-07")));
+                Assert.Equal(count, 7);
+                AssertContainsSql(@"""Macaddr"" <= MACADDR '123456000007'");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.LessThanOrEqual(DbFunctions,PhysicalAddress,PhysicalAddress)"/>.
-        /// </summary>
-        [MinimumPostgresVersionFact(10, 0)]
+        [Fact]
         public void PhysicalAddress_macaddr8_LessThanOrEqual_macaddr8()
         {
             using (var context = Fixture.CreateContext())
             {
-                var _ =
-                    context.NetTestEntities
-                           .Where(x => EF.Functions.LessThanOrEqual(x.Macaddr8, x.Macaddr8))
-                           .ToArray();
-
-                AssertContainsSql("WHERE (x.\"Macaddr8\" <= x.\"Macaddr8\") = TRUE");
-            }
+                var count = context.NetTestEntities.Count(x => EF.Functions.LessThanOrEqual(x.Macaddr8, PhysicalAddress.Parse("08-00-2B-01-02-03-04-07")));
+                Assert.Equal(count, 7);
+                AssertContainsSql(@"""Macaddr8"" <= MACADDR8 '08002B0102030407'");            }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.GreaterThanOrEqual(DbFunctions,IPAddress,IPAddress)"/>.
-        /// </summary>
-        [Fact(Skip = "https://github.com/npgsql/npgsql/issues/2360")]
+        [Fact]
         public void IPAddress_inet_GreaterThanOrEqual_inet()
         {
             using (var context = Fixture.CreateContext())
             {
-                var inet = IPAddress.Any;
-
-                var _ =
-                    context.NetTestEntities
-                           .Where(x => EF.Functions.GreaterThanOrEqual(x.Inet, inet))
-                           .ToArray();
-
-                AssertContainsSql("WHERE (x.\"Inet\" >= @__inet_1) = TRUE");
+                var count = context.NetTestEntities.Count(x => EF.Functions.GreaterThanOrEqual(x.Inet, IPAddress.Parse("192.168.1.7")));
+                Assert.Equal(count, 3);
+                AssertContainsSql(@"WHERE n.""Inet"" >= INET '192.168.1.7'");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.GreaterThanOrEqual(DbFunctions,ValueTuple{IPAddress,int},ValueTuple{IPAddress,int})"/>.
-        /// </summary>
         [Fact]
         public void ValueTuple_cidr_GreaterThanOrEqual_cidr()
         {
@@ -362,68 +249,43 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => EF.Functions.GreaterThanOrEqual(x.Cidr, cidr))
                            .ToArray();
 
-                AssertContainsSql("WHERE (x.\"Cidr\" >= @__cidr_1) = TRUE");
+                AssertContainsSql(@"n.""Cidr"" >= @__cidr_1");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.GreaterThanOrEqual(DbFunctions,PhysicalAddress,PhysicalAddress)"/>.
-        /// </summary>
         [Fact]
         public void PhysicalAddress_macaddr_GreaterThanOrEqual_macaddr()
         {
             using (var context = Fixture.CreateContext())
             {
-                var macaddr = new PhysicalAddress(new byte[6]);
-
-                var _ =
-                    context.NetTestEntities
-                           .Where(x => EF.Functions.GreaterThanOrEqual(x.Macaddr, macaddr))
-                           .ToArray();
-
-                AssertContainsSql("WHERE (x.\"Macaddr\" >= @__macaddr_1) = TRUE");
+                var count = context.NetTestEntities.Count(x => EF.Functions.GreaterThanOrEqual(x.Macaddr, PhysicalAddress.Parse("12-34-56-00-00-07")));
+                Assert.Equal(count, 3);
+                AssertContainsSql(@"""Macaddr"" >= MACADDR '123456000007'");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.GreaterThanOrEqual(DbFunctions,PhysicalAddress,PhysicalAddress)"/>.
-        /// </summary>
-        [MinimumPostgresVersionFact(10, 0)]
+        [Fact]
         public void PhysicalAddress_macaddr8_GreaterThanOrEqual_macaddr8()
         {
             using (var context = Fixture.CreateContext())
             {
-                var _ =
-                    context.NetTestEntities
-                           .Where(x => EF.Functions.GreaterThanOrEqual(x.Macaddr8, x.Macaddr8))
-                           .ToArray();
-
-                AssertContainsSql("WHERE (x.\"Macaddr8\" >= x.\"Macaddr8\") = TRUE");
+                var count = context.NetTestEntities.Count(x => EF.Functions.GreaterThanOrEqual(x.Macaddr8, PhysicalAddress.Parse("08-00-2B-01-02-03-04-07")));
+                Assert.Equal(count, 3);
+                AssertContainsSql(@"""Macaddr8"" >= MACADDR8 '08002B0102030407'");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.GreaterThan(DbFunctions,IPAddress,IPAddress)"/>.
-        /// </summary>
-        [Fact(Skip = "https://github.com/npgsql/npgsql/issues/2360")]
+        [Fact]
         public void IPAddress_inet_GreaterThan_inet()
         {
             using (var context = Fixture.CreateContext())
             {
-                var inet = IPAddress.Any;
-
-                var _ =
-                    context.NetTestEntities
-                           .Where(x => EF.Functions.GreaterThan(x.Inet, inet))
-                           .ToArray();
-
-                AssertContainsSql("WHERE (x.\"Inet\" > @__inet_1) = TRUE");
+                var count = context.NetTestEntities.Count(x => EF.Functions.GreaterThan(x.Inet, IPAddress.Parse("192.168.1.7")));
+                Assert.Equal(count, 2);
+                AssertContainsSql(@"WHERE n.""Inet"" > INET '192.168.1.7'");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.GreaterThan(DbFunctions,ValueTuple{IPAddress,int},ValueTuple{IPAddress,int})"/>.
-        /// </summary>
         [Fact]
         public void ValueTuple_cidr_GreaterThan_cidr()
         {
@@ -436,43 +298,29 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => EF.Functions.GreaterThan(x.Cidr, cidr))
                            .ToArray();
 
-                AssertContainsSql("WHERE (x.\"Cidr\" > @__cidr_1) = TRUE");
+                AssertContainsSql(@"n.""Cidr"" > @__cidr_1");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.GreaterThan(DbFunctions,PhysicalAddress,PhysicalAddress)"/>.
-        /// </summary>
         [Fact]
         public void PhysicalAddress_macaddr_GreaterThan_macaddr()
         {
             using (var context = Fixture.CreateContext())
             {
-                var macaddr = new PhysicalAddress(new byte[6]);
-
-                var _ =
-                    context.NetTestEntities
-                           .Where(x => EF.Functions.GreaterThan(x.Macaddr, macaddr))
-                           .ToArray();
-
-                AssertContainsSql("WHERE (x.\"Macaddr\" > @__macaddr_1) = TRUE");
+                var count = context.NetTestEntities.Count(x => EF.Functions.GreaterThan(x.Macaddr, PhysicalAddress.Parse("12-34-56-00-00-07")));
+                Assert.Equal(count, 2);
+                AssertContainsSql(@"""Macaddr"" > MACADDR '123456000007'");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.GreaterThan(DbFunctions,PhysicalAddress,PhysicalAddress)"/>.
-        /// </summary>
-        [MinimumPostgresVersionFact(10, 0)]
+        [Fact]
         public void PhysicalAddress_macaddr8_GreaterThan_macaddr8()
         {
             using (var context = Fixture.CreateContext())
             {
-                var _ =
-                    context.NetTestEntities
-                           .Where(x => EF.Functions.GreaterThan(x.Macaddr8, x.Macaddr8))
-                           .ToArray();
-
-                AssertContainsSql("WHERE (x.\"Macaddr8\" > x.\"Macaddr8\") = TRUE");
+                var count = context.NetTestEntities.Count(x => EF.Functions.GreaterThan(x.Macaddr8, PhysicalAddress.Parse("08-00-2B-01-02-03-04-07")));
+                Assert.Equal(count, 2);
+                AssertContainsSql(@"""Macaddr8"" > MACADDR8 '08002B0102030407'");
             }
         }
 
@@ -480,10 +328,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         #region ContainmentOperatorTests
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.ContainedBy(DbFunctions,IPAddress,IPAddress)"/>.
-        /// </summary>
-        [Fact(Skip = "https://github.com/npgsql/npgsql/issues/2360")]
+        [Fact]
         public void IPAddress_inet_ContainedBy_inet()
         {
             using (var context = Fixture.CreateContext())
@@ -495,13 +340,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => EF.Functions.ContainedBy(x.Inet, inet))
                            .ToArray();
 
-                AssertContainsSql("WHERE (x.\"Inet\" << @__inet_1) = TRUE");
+                AssertContainsSql(@"n.""Inet"" << @__inet_1");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.ContainedBy(DbFunctions,IPAddress,ValueTuple{IPAddress,int})"/>.
-        /// </summary>
         [Fact]
         public void IPAddress_inet_ContainedBy_cidr()
         {
@@ -514,13 +356,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => EF.Functions.ContainedBy(x.Inet, cidr))
                            .ToArray();
 
-                AssertContainsSql("WHERE (x.\"Inet\" << @__cidr_1) = TRUE");
+                AssertContainsSql(@"n.""Inet"" << @__cidr_1");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.ContainedBy(DbFunctions,ValueTuple{IPAddress,int},ValueTuple{IPAddress,int})"/>.
-        /// </summary>
         [Fact]
         public void ValueTuple_cidr_ContainedBy_cidr()
         {
@@ -533,14 +372,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => EF.Functions.ContainedBy(x.Cidr, cidr))
                            .ToArray();
 
-                AssertContainsSql("WHERE (x.\"Cidr\" << @__cidr_1) = TRUE");
+                AssertContainsSql(@"n.""Cidr"" << @__cidr_1");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.ContainedByOrEqual(DbFunctions,IPAddress,IPAddress)"/>.
-        /// </summary>
-        [Fact(Skip = "https://github.com/npgsql/npgsql/issues/2360")]
+        [Fact]
         public void IPAddress_inet_ContainedByOrEqual_inet()
         {
             using (var context = Fixture.CreateContext())
@@ -552,13 +388,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => EF.Functions.ContainedByOrEqual(x.Inet, inet))
                            .ToArray();
 
-                AssertContainsSql("WHERE (x.\"Inet\" <<= @__inet_1) = TRUE");
+                AssertContainsSql(@"n.""Inet"" <<= @__inet_1");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.ContainedByOrEqual(DbFunctions,IPAddress,ValueTuple{IPAddress,int})"/>.
-        /// </summary>
         [Fact]
         public void IPAddress_inet_ContainedByOrEqual_cidr()
         {
@@ -571,13 +404,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => EF.Functions.ContainedByOrEqual(x.Inet, cidr))
                            .ToArray();
 
-                AssertContainsSql("WHERE (x.\"Inet\" <<= @__cidr_1) = TRUE");
+                AssertContainsSql(@"n.""Inet"" <<= @__cidr_1");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.ContainedByOrEqual(DbFunctions,ValueTuple{IPAddress,int},ValueTuple{IPAddress,int})"/>.
-        /// </summary>
         [Fact]
         public void ValueTuple_cidr_ContainedByOrEqual_cidr()
         {
@@ -590,14 +420,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => EF.Functions.ContainedByOrEqual(x.Cidr, cidr))
                            .ToArray();
 
-                AssertContainsSql("WHERE (x.\"Cidr\" <<= @__cidr_1) = TRUE");
+                AssertContainsSql(@"n.""Cidr"" <<= @__cidr_1");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.Contains(DbFunctions,IPAddress,IPAddress)"/>.
-        /// </summary>
-        [Fact(Skip = "https://github.com/npgsql/npgsql/issues/2360")]
+        [Fact]
         public void IPAddress_inet_Contains_inet()
         {
             using (var context = Fixture.CreateContext())
@@ -609,14 +436,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => EF.Functions.Contains(x.Inet, inet))
                            .ToArray();
 
-                AssertContainsSql("WHERE (x.\"Inet\" >> @__inet_1) = TRUE");
+                AssertContainsSql(@"n.""Inet"" >> @__inet_1");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.Contains(DbFunctions,ValueTuple{IPAddress,int},IPAddress)"/>.
-        /// </summary>
-        [Fact(Skip = "https://github.com/npgsql/npgsql/issues/2360")]
+        [Fact]
         public void ValueTuple_cidr_Contains_inet()
         {
             using (var context = Fixture.CreateContext())
@@ -628,13 +452,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => EF.Functions.Contains(x.Cidr, inet))
                            .ToArray();
 
-                AssertContainsSql("WHERE (x.\"Cidr\" >> @__inet_1) = TRUE");
+                AssertContainsSql(@"n.""Cidr"" >> @__inet_1");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.Contains(DbFunctions,ValueTuple{IPAddress,int},ValueTuple{IPAddress,int})"/>.
-        /// </summary>
         [Fact]
         public void ValueTuple_cidr_Contains_cidr()
         {
@@ -647,14 +468,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => EF.Functions.Contains(x.Cidr, cidr))
                            .ToArray();
 
-                AssertContainsSql("WHERE (x.\"Cidr\" >> @__cidr_1) = TRUE");
+                AssertContainsSql(@"n.""Cidr"" >> @__cidr_1");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.ContainsOrEqual(DbFunctions,IPAddress,IPAddress)"/>.
-        /// </summary>
-        [Fact(Skip = "https://github.com/npgsql/npgsql/issues/2360")]
+        [Fact]
         public void IPAddress_inet_ContainsOrEqual_inet()
         {
             using (var context = Fixture.CreateContext())
@@ -666,14 +484,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => EF.Functions.ContainsOrEqual(x.Inet, inet))
                            .ToArray();
 
-                AssertContainsSql("WHERE (x.\"Inet\" >>= @__inet_1) = TRUE");
+                AssertContainsSql(@"n.""Inet"" >>= @__inet_1");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.ContainsOrEqual(DbFunctions,ValueTuple{IPAddress,int},IPAddress)"/>.
-        /// </summary>
-        [Fact(Skip = "https://github.com/npgsql/npgsql/issues/2360")]
+        [Fact]
         public void ValueTuple_cidr_ContainsOrEqual_inet()
         {
             using (var context = Fixture.CreateContext())
@@ -685,13 +500,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => EF.Functions.ContainsOrEqual(x.Cidr, inet))
                            .ToArray();
 
-                AssertContainsSql("WHERE (x.\"Cidr\" >>= @__inet_1) = TRUE");
+                AssertContainsSql(@"n.""Cidr"" >>= @__inet_1");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.ContainsOrEqual(DbFunctions,ValueTuple{IPAddress,int},ValueTuple{IPAddress,int})"/>.
-        /// </summary>
         [Fact]
         public void ValueTuple_cidr_ContainsOrEqual_cidr()
         {
@@ -704,14 +516,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => EF.Functions.ContainsOrEqual(x.Cidr, cidr))
                            .ToArray();
 
-                AssertContainsSql("WHERE (x.\"Cidr\" >>= @__cidr_1) = TRUE");
+                AssertContainsSql(@"n.""Cidr"" >>= @__cidr_1");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.ContainsOrContainedBy(DbFunctions,IPAddress,IPAddress)"/>.
-        /// </summary>
-        [Fact(Skip = "https://github.com/npgsql/npgsql/issues/2360")]
+        [Fact]
         public void IPAddress_inet_ContainsOrContainedBy_inet()
         {
             using (var context = Fixture.CreateContext())
@@ -723,13 +532,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => EF.Functions.ContainsOrContainedBy(x.Inet, inet))
                            .ToArray();
 
-                AssertContainsSql("WHERE (x.\"Inet\" && @__inet_1) = TRUE");
+                AssertContainsSql(@"n.""Inet"" && @__inet_1");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.ContainsOrContainedBy(DbFunctions,IPAddress,ValueTuple{IPAddress,int})"/>.
-        /// </summary>
         [Fact]
         public void IPAddress_inet_ContainsOrContainedBy_cidr()
         {
@@ -742,14 +548,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => EF.Functions.ContainsOrContainedBy(x.Inet, cidr))
                            .ToArray();
 
-                AssertContainsSql("WHERE (x.\"Inet\" && @__cidr_1) = TRUE");
+                AssertContainsSql(@"n.""Inet"" && @__cidr_1");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.ContainsOrContainedBy(DbFunctions,ValueTuple{IPAddress,int},IPAddress)"/>.
-        /// </summary>
-        [Fact(Skip = "https://github.com/npgsql/npgsql/issues/2360")]
+        [Fact]
         public void ValueTuple_cidr_ContainsOrContainedBy_inet()
         {
             using (var context = Fixture.CreateContext())
@@ -761,13 +564,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => EF.Functions.ContainsOrContainedBy(x.Cidr, inet))
                            .ToArray();
 
-                AssertContainsSql("WHERE (x.\"Cidr\" && @__inet_1) = TRUE");
+                AssertContainsSql(@"n.""Cidr"" && @__inet_1");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.ContainsOrContainedBy(DbFunctions,ValueTuple{IPAddress,int},ValueTuple{IPAddress,int})"/>.
-        /// </summary>
         [Fact]
         public void ValueTuple_cidr_ContainsOrContainedBy_cidr()
         {
@@ -780,7 +580,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Where(x => EF.Functions.ContainsOrContainedBy(x.Cidr, cidr))
                            .ToArray();
 
-                AssertContainsSql("WHERE (x.\"Cidr\" && @__cidr_1) = TRUE");
+                AssertContainsSql(@"n.""Cidr"" && @__cidr_1");
             }
         }
 
@@ -788,9 +588,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         #region BitwiseOperatorTests
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.BitwiseNot(DbFunctions,IPAddress)"/>.
-        /// </summary>
         [Fact]
         public void IPAddress_inet_BitwiseNot()
         {
@@ -801,13 +598,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Select(x => EF.Functions.BitwiseNot(x.Inet))
                            .ToArray();
 
-                AssertContainsSql("SELECT ~x.\"Inet\"");
+                AssertContainsSql(@"~n.""Inet""");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.BitwiseNot(DbFunctions,ValueTuple{IPAddress,int})"/>.
-        /// </summary>
         [Fact]
         public void ValueTuple_cidr_BitwiseNot()
         {
@@ -818,13 +612,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Select(x => EF.Functions.BitwiseNot(x.Cidr))
                            .ToArray();
 
-                AssertContainsSql("SELECT ~x.\"Cidr\"");
+                AssertContainsSql(@"~n.""Cidr""");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.BitwiseNot(DbFunctions,PhysicalAddress)"/>.
-        /// </summary>
         [Fact]
         public void PhysicalAddress_macaddr_BitwiseNot()
         {
@@ -835,14 +626,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Select(x => EF.Functions.BitwiseNot(x.Macaddr))
                            .ToArray();
 
-                AssertContainsSql("SELECT ~x.\"Macaddr\"");
+                AssertContainsSql(@"~n.""Macaddr""");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.BitwiseNot(DbFunctions,PhysicalAddress)"/>.
-        /// </summary>
-        [MinimumPostgresVersionFact(10, 0)]
+        [Fact]
         public void PhysicalAddress_macaddr8_BitwiseNot()
         {
             using (var context = Fixture.CreateContext())
@@ -852,32 +640,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Select(x => EF.Functions.BitwiseNot(x.Macaddr8))
                            .ToArray();
 
-                AssertContainsSql("SELECT ~x.\"Macaddr8\"");
+                AssertContainsSql(@"~n.""Macaddr8""");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.BitwiseAnd(DbFunctions,IPAddress,IPAddress)"/>.
-        /// </summary>
-        [Fact(Skip = "https://github.com/npgsql/npgsql/issues/2360")]
+        [Fact]
         public void IPAddress_inet_BitwiseAnd_inet()
         {
             using (var context = Fixture.CreateContext())
             {
                 var inet = IPAddress.Any;
+                var count = context.NetTestEntities.Count(x => x.Inet == EF.Functions.BitwiseAnd(x.Inet, inet));
+                Assert.Equal(0, count);
 
-                var _ =
-                    context.NetTestEntities
-                           .Select(x => EF.Functions.BitwiseAnd(x.Inet, inet))
-                           .ToArray();
-
-                AssertContainsSql("SELECT (x.\"Inet\" & @__inet_1)");
+                AssertContainsSql(@"n.""Inet"" & @__inet_1");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.BitwiseAnd(DbFunctions,ValueTuple{IPAddress,int},ValueTuple{IPAddress,int})"/>.
-        /// </summary>
         [Fact]
         public void ValueTuple_cidr_BitwiseAnd_cidr()
         {
@@ -890,13 +669,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Select(x => EF.Functions.BitwiseAnd(x.Cidr, cidr))
                            .ToArray();
 
-                AssertContainsSql("SELECT (x.\"Cidr\" & @__cidr_1)");
+                AssertContainsSql(@"n.""Cidr"" & @__cidr_1");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.BitwiseAnd(DbFunctions,PhysicalAddress,PhysicalAddress)"/>.
-        /// </summary>
         [Fact]
         public void PhysicalAddress_macaddr_BitwiseAnd_macaddr()
         {
@@ -909,14 +685,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Select(x => EF.Functions.BitwiseAnd(x.Macaddr, macaddr))
                            .ToArray();
 
-                AssertContainsSql("SELECT (x.\"Macaddr\" & @__macaddr_1)");
+                AssertContainsSql(@"n.""Macaddr"" & @__macaddr_1");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.BitwiseAnd(DbFunctions,PhysicalAddress,PhysicalAddress)"/>.
-        /// </summary>
-        [MinimumPostgresVersionFact(10, 0)]
+        [Fact]
         public void PhysicalAddress_macaddr8_BitwiseAnd_macaddr8()
         {
             using (var context = Fixture.CreateContext())
@@ -926,14 +699,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Select(x => EF.Functions.BitwiseAnd(x.Macaddr8, x.Macaddr8))
                            .ToArray();
 
-                AssertContainsSql("SELECT (x.\"Macaddr8\" & x.\"Macaddr8\")");
+                AssertContainsSql(@"n.""Macaddr8"" & n.""Macaddr8""");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.BitwiseOr(DbFunctions,IPAddress,IPAddress)"/>.
-        /// </summary>
-        [Fact(Skip = "https://github.com/npgsql/npgsql/issues/2360")]
+        [Fact]
         public void IPAddress_inet_BitwiseOr_inet()
         {
             using (var context = Fixture.CreateContext())
@@ -945,13 +715,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Select(x => EF.Functions.BitwiseOr(x.Inet, inet))
                            .ToArray();
 
-                AssertContainsSql("SELECT (x.\"Inet\" | @__inet_1)");
+                AssertContainsSql(@"n.""Inet"" | @__inet_1");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.BitwiseOr(DbFunctions,ValueTuple{IPAddress,int},ValueTuple{IPAddress,int})"/>.
-        /// </summary>
         [Fact]
         public void ValueTuple_cidr_BitwiseOr_cidr()
         {
@@ -964,13 +731,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Select(x => EF.Functions.BitwiseOr(x.Cidr, cidr))
                            .ToArray();
 
-                AssertContainsSql("SELECT (x.\"Cidr\" | @__cidr_1)");
+                AssertContainsSql(@"n.""Cidr"" | @__cidr_1");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.BitwiseOr(DbFunctions,PhysicalAddress,PhysicalAddress)"/>.
-        /// </summary>
         [Fact]
         public void PhysicalAddress_macaddr_BitwiseOr_macaddr()
         {
@@ -983,14 +747,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Select(x => EF.Functions.BitwiseOr(x.Macaddr, macaddr))
                            .ToArray();
 
-                AssertContainsSql("SELECT (x.\"Macaddr\" | @__macaddr_1)");
+                AssertContainsSql(@"n.""Macaddr"" | @__macaddr_1");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.BitwiseOr(DbFunctions,PhysicalAddress,PhysicalAddress)"/>.
-        /// </summary>
-        [MinimumPostgresVersionFact(10, 0)]
+        [Fact]
         public void PhysicalAddress_macaddr8_BitwiseOr_macaddr8()
         {
             using (var context = Fixture.CreateContext())
@@ -1000,7 +761,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Select(x => EF.Functions.BitwiseOr(x.Macaddr8, x.Macaddr8))
                            .ToArray();
 
-                AssertContainsSql("SELECT (x.\"Macaddr8\" | x.\"Macaddr8\")");
+                AssertContainsSql(@"n.""Macaddr8"" | n.""Macaddr8""");
             }
         }
 
@@ -1008,26 +769,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         #region ArithmeticOperatorTests
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.Add(DbFunctions,IPAddress,int)"/>.
-        /// </summary>
         [Fact]
         public void IPAddress_inet_Add_int()
         {
             using (var context = Fixture.CreateContext())
             {
-                var _ =
-                    context.NetTestEntities
-                           .Select(x => EF.Functions.Add(x.Inet, 1))
-                           .ToArray();
-
-                AssertContainsSql("SELECT (x.\"Inet\" + 1)");
+                var actual = context.NetTestEntities.Single(x => EF.Functions.Add(x.Inet, 1) == IPAddress.Parse("192.168.1.2")).Inet;
+                Assert.Equal(actual, IPAddress.Parse("192.168.1.1"));
+                AssertContainsSql("\"Inet\" + 1");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.Add(DbFunctions,ValueTuple{IPAddress,int},int)"/>.
-        /// </summary>
         [Fact]
         public void ValueTuple_cidr_Add_int()
         {
@@ -1038,30 +790,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Select(x => EF.Functions.Add(x.Cidr, 1))
                            .ToArray();
 
-                AssertContainsSql("SELECT (x.\"Cidr\" + 1)");
+                AssertContainsSql(@"n.""Cidr"" + 1");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.Subtract(DbFunctions,IPAddress,int)"/>.
-        /// </summary>
         [Fact]
         public void IPAddress_inet_Subtract_int()
         {
             using (var context = Fixture.CreateContext())
             {
-                var _ =
-                    context.NetTestEntities
-                           .Select(x => EF.Functions.Subtract(x.Inet, 1))
-                           .ToArray();
-
-                AssertContainsSql("SELECT (x.\"Inet\" - 1)");
+                var actual = context.NetTestEntities.Single(x => EF.Functions.Subtract(x.Inet, 1) == IPAddress.Parse("192.168.1.1")).Inet;
+                Assert.Equal(actual, IPAddress.Parse("192.168.1.2"));
+                AssertContainsSql("\"Inet\" - 1");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.Subtract(DbFunctions,ValueTuple{IPAddress,int},int)"/>.
-        /// </summary>
         [Fact]
         public void ValueTuple_cidr_Subtract_int()
         {
@@ -1072,14 +815,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Select(x => EF.Functions.Subtract(x.Cidr, 1))
                            .ToArray();
 
-                AssertContainsSql("SELECT (x.\"Cidr\" - 1)");
+                AssertContainsSql(@"n.""Cidr"" - 1");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.Subtract(DbFunctions,IPAddress,IPAddress)"/>.
-        /// </summary>
-        [Fact(Skip = "https://github.com/npgsql/npgsql/issues/2360")]
+        [Fact]
         public void IPAddress_inet_Subtract_inet()
         {
             using (var context = Fixture.CreateContext())
@@ -1091,13 +831,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Select(x => EF.Functions.Subtract(x.Inet, inet))
                            .ToArray();
 
-                AssertContainsSql("SELECT (x.\"Inet\" - @__inet_1)");
+                AssertContainsSql(@"n.""Inet"" - @__inet_1");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.Subtract(DbFunctions,ValueTuple{IPAddress,int},ValueTuple{IPAddress,int})"/>.
-        /// </summary>
         [Fact]
         public void ValueTuple_cidr_Subtract_cidr()
         {
@@ -1110,7 +847,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Select(x => EF.Functions.Subtract(x.Cidr, cidr))
                            .ToArray();
 
-                AssertContainsSql("SELECT (x.\"Cidr\" - @__cidr_1)");
+                AssertContainsSql(@"n.""Cidr"" - @__cidr_1");
             }
         }
 
@@ -1118,9 +855,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         #region FunctionTests
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.Abbreviate(DbFunctions,IPAddress)"/>.
-        /// </summary>
         [Fact]
         public void IPAddress_inet_Abbreviate()
         {
@@ -1131,13 +865,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Select(x => EF.Functions.Abbreviate(x.Inet))
                            .ToArray();
 
-                AssertContainsSql("SELECT abbrev(x.\"Inet\")");
+                AssertContainsSql(@"abbrev(n.""Inet"")");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.Abbreviate(DbFunctions,ValueTuple{IPAddress,int})"/>.
-        /// </summary>
         [Fact]
         public void ValueTuple_cidr_Abbreviate()
         {
@@ -1148,13 +879,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Select(x => EF.Functions.Abbreviate(x.Cidr))
                            .ToArray();
 
-                AssertContainsSql("SELECT abbrev(x.\"Cidr\")");
+                AssertContainsSql(@"abbrev(n.""Cidr"")");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.Broadcast(DbFunctions,IPAddress)"/>.
-        /// </summary>
         [Fact]
         public void IPAddress_inet_Broadcast()
         {
@@ -1165,13 +893,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Select(x => EF.Functions.Broadcast(x.Inet))
                            .ToArray();
 
-                AssertContainsSql("SELECT broadcast(x.\"Inet\")");
+                AssertContainsSql(@"broadcast(n.""Inet"")");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.Broadcast(DbFunctions,ValueTuple{IPAddress,int})"/>.
-        /// </summary>
         [Fact]
         public void ValueTuple_cidr_Broadcast()
         {
@@ -1182,13 +907,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Select(x => EF.Functions.Broadcast(x.Cidr))
                            .ToArray();
 
-                AssertContainsSql("SELECT broadcast(x.\"Cidr\")");
+                AssertContainsSql(@"broadcast(n.""Cidr"")");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.Family(DbFunctions,IPAddress)"/>.
-        /// </summary>
         [Fact]
         public void IPAddress_inet_Family()
         {
@@ -1199,13 +921,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Select(x => EF.Functions.Family(x.Inet))
                            .ToArray();
 
-                AssertContainsSql("SELECT family(x.\"Inet\")");
+                AssertContainsSql(@"family(n.""Inet"")");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.Family(DbFunctions,ValueTuple{IPAddress,int})"/>.
-        /// </summary>
         [Fact]
         public void ValueTuple_cidr_Family()
         {
@@ -1216,13 +935,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Select(x => EF.Functions.Family(x.Cidr))
                            .ToArray();
 
-                AssertContainsSql("SELECT family(x.\"Cidr\")");
+                AssertContainsSql(@"family(n.""Cidr"")");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.Host(DbFunctions,IPAddress)"/>.
-        /// </summary>
         [Fact]
         public void IPAddress_inet_Host()
         {
@@ -1233,13 +949,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Select(x => EF.Functions.Host(x.Inet))
                            .ToArray();
 
-                AssertContainsSql("SELECT host(x.\"Inet\")");
+                AssertContainsSql(@"host(n.""Inet"")");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.Host(DbFunctions,ValueTuple{IPAddress,int})"/>.
-        /// </summary>
         [Fact]
         public void ValueTuple_cidr_Host()
         {
@@ -1250,13 +963,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Select(x => EF.Functions.Host(x.Cidr))
                            .ToArray();
 
-                AssertContainsSql("SELECT host(x.\"Cidr\")");
+                AssertContainsSql(@"host(n.""Cidr"")");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.HostMask(DbFunctions,IPAddress)"/>.
-        /// </summary>
         [Fact]
         public void IPAddress_inet_HostMask()
         {
@@ -1267,13 +977,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Select(x => EF.Functions.HostMask(x.Inet))
                            .ToArray();
 
-                AssertContainsSql("SELECT hostmask(x.\"Inet\")");
+                AssertContainsSql(@"hostmask(n.""Inet"")");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.HostMask(DbFunctions,ValueTuple{IPAddress,int})"/>.
-        /// </summary>
         [Fact]
         public void ValueTuple_cidr_HostMask()
         {
@@ -1284,13 +991,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Select(x => EF.Functions.HostMask(x.Cidr))
                            .ToArray();
 
-                AssertContainsSql("SELECT hostmask(x.\"Cidr\")");
+                AssertContainsSql(@"hostmask(n.""Cidr"")");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.MaskLength(DbFunctions,IPAddress)"/>.
-        /// </summary>
         [Fact]
         public void IPAddress_inet_MaskLength()
         {
@@ -1301,13 +1005,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Select(x => EF.Functions.MaskLength(x.Inet))
                            .ToArray();
 
-                AssertContainsSql("SELECT masklen(x.\"Inet\")");
+                AssertContainsSql(@"masklen(n.""Inet"")");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.MaskLength(DbFunctions,ValueTuple{IPAddress,int})"/>.
-        /// </summary>
         [Fact]
         public void ValueTuple_cidr_MaskLength()
         {
@@ -1318,13 +1019,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Select(x => EF.Functions.MaskLength(x.Cidr))
                            .ToArray();
 
-                AssertContainsSql("SELECT masklen(x.\"Cidr\")");
+                AssertContainsSql(@"masklen(n.""Cidr"")");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.Netmask(DbFunctions,IPAddress)"/>.
-        /// </summary>
         [Fact]
         public void IPAddress_inet_Netmask()
         {
@@ -1335,13 +1033,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Select(x => EF.Functions.Netmask(x.Inet))
                            .ToArray();
 
-                AssertContainsSql("SELECT netmask(x.\"Inet\")");
+                AssertContainsSql(@"netmask(n.""Inet"")");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.Netmask(DbFunctions,ValueTuple{IPAddress,int})"/>.
-        /// </summary>
         [Fact]
         public void ValueTuple_cidr_Netmask()
         {
@@ -1352,13 +1047,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Select(x => EF.Functions.Netmask(x.Cidr))
                            .ToArray();
 
-                AssertContainsSql("SELECT netmask(x.\"Cidr\")");
+                AssertContainsSql(@"netmask(n.""Cidr"")");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.Network(DbFunctions,IPAddress)"/>.
-        /// </summary>
         [Fact]
         public void IPAddress_inet_Network()
         {
@@ -1369,13 +1061,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Select(x => EF.Functions.Network(x.Inet))
                            .ToArray();
 
-                AssertContainsSql("SELECT network(x.\"Inet\")");
+                AssertContainsSql(@"network(n.""Inet"")");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.Network(DbFunctions,ValueTuple{IPAddress,int})"/>.
-        /// </summary>
         [Fact]
         public void ValueTuple_cidr_Network()
         {
@@ -1386,13 +1075,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Select(x => EF.Functions.Network(x.Cidr))
                            .ToArray();
 
-                AssertContainsSql("SELECT network(x.\"Cidr\")");
+                AssertContainsSql(@"network(n.""Cidr"")");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.SetMaskLength(DbFunctions,IPAddress,int)"/>.
-        /// </summary>
         [Fact]
         public void IPAddress_inet_SetMaskLength()
         {
@@ -1403,13 +1089,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Select(x => EF.Functions.SetMaskLength(x.Inet, default))
                            .ToArray();
 
-                AssertContainsSql("SELECT set_masklen(x.\"Inet\", 0)");
+                AssertContainsSql(@"set_masklen(n.""Inet"", 0)");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.SetMaskLength(DbFunctions,ValueTuple{IPAddress,int},int)"/>.
-        /// </summary>
         [Fact]
         public void ValueTuple_cidr_SetMaskLength()
         {
@@ -1420,13 +1103,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Select(x => EF.Functions.SetMaskLength(x.Cidr, default))
                            .ToArray();
 
-                AssertContainsSql("SELECT set_masklen(x.\"Cidr\", 0)");
+                AssertContainsSql(@"set_masklen(n.""Cidr"", 0)");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.Text(DbFunctions,IPAddress)"/>.
-        /// </summary>
         [Fact]
         public void IPAddress_inet_Text()
         {
@@ -1437,13 +1117,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Select(x => EF.Functions.Text(x.Inet))
                            .ToArray();
 
-                AssertContainsSql("SELECT text(x.\"Inet\")");
+                AssertContainsSql(@"text(n.""Inet"")");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.Text(DbFunctions,ValueTuple{IPAddress,int})"/>.
-        /// </summary>
         [Fact]
         public void ValueTuple_cidr_Text()
         {
@@ -1454,14 +1131,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Select(x => EF.Functions.Text(x.Cidr))
                            .ToArray();
 
-                AssertContainsSql("SELECT text(x.\"Cidr\")");
+                AssertContainsSql(@"text(n.""Cidr"")");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.SameFamily(DbFunctions,IPAddress,IPAddress)"/>.
-        /// </summary>
-        [Fact(Skip = "https://github.com/npgsql/npgsql/issues/2360")]
+        [Fact]
         public void IPAddress_inet_SameFamily()
         {
             using (var context = Fixture.CreateContext())
@@ -1473,13 +1147,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Select(x => EF.Functions.SameFamily(x.Inet, inet))
                            .ToArray();
 
-                AssertContainsSql("SELECT inet_same_family(x.\"Inet\", @__inet_1)");
+                AssertContainsSql(@"inet_same_family(n.""Inet"", @__inet_1)");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.SameFamily(DbFunctions,ValueTuple{IPAddress,int},ValueTuple{IPAddress,int})"/>.
-        /// </summary>
         [Fact]
         public void ValueTuple_cidr_SameFamily()
         {
@@ -1492,14 +1163,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Select(x => EF.Functions.SameFamily(x.Cidr, cidr))
                            .ToArray();
 
-                AssertContainsSql("SELECT inet_same_family(x.\"Cidr\", @__cidr_1)");
+                AssertContainsSql(@"inet_same_family(n.""Cidr"", @__cidr_1)");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.Merge(DbFunctions,IPAddress,IPAddress)"/>.
-        /// </summary>
-        [Fact(Skip = "https://github.com/npgsql/npgsql/issues/2360")]
+        [Fact]
         public void IPAddress_inet_Merge()
         {
             using (var context = Fixture.CreateContext())
@@ -1511,13 +1179,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Select(x => EF.Functions.Merge(x.Inet, inet))
                            .ToArray();
 
-                AssertContainsSql("SELECT inet_merge(x.\"Inet\", @__inet_1)");
+                AssertContainsSql(@"inet_merge(n.""Inet"", @__inet_1)");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.Merge(DbFunctions,ValueTuple{IPAddress,int},ValueTuple{IPAddress,int})"/>.
-        /// </summary>
         [Fact]
         public void ValueTuple_cidr_Merge()
         {
@@ -1530,13 +1195,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Select(x => EF.Functions.Merge(x.Cidr, cidr))
                            .ToArray();
 
-                AssertContainsSql("SELECT inet_merge(x.\"Cidr\", @__cidr_1)");
+                AssertContainsSql(@"inet_merge(n.""Cidr"", @__cidr_1)");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.Truncate(DbFunctions,PhysicalAddress)"/>.
-        /// </summary>
         [Fact]
         public void PhysicalAddress_macaddr_Truncate()
         {
@@ -1547,14 +1209,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Select(x => EF.Functions.Truncate(x.Macaddr))
                            .ToArray();
 
-                AssertContainsSql("SELECT trunc(x.\"Macaddr\")");
+                AssertContainsSql(@"trunc(n.""Macaddr"")");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.Truncate(DbFunctions,PhysicalAddress)"/>.
-        /// </summary>
-        [MinimumPostgresVersionFact(10, 0)]
+        [Fact]
         public void PhysicalAddress_macaddr8_Truncate()
         {
             using (var context = Fixture.CreateContext())
@@ -1564,14 +1223,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Select(x => EF.Functions.Truncate(x.Macaddr8))
                            .ToArray();
 
-                AssertContainsSql("SELECT trunc(x.\"Macaddr8\")");
+                AssertContainsSql(@"trunc(n.""Macaddr8"")");
             }
         }
 
-        /// <summary>
-        /// Tests translation for <see cref="NpgsqlNetworkExtensions.Set7BitMac8(DbFunctions,PhysicalAddress)"/>.
-        /// </summary>
-        [MinimumPostgresVersionFact(10, 0)]
+        [Fact]
         public void PhysicalAddress_macaddr8_Set7BitMac8()
         {
             using (var context = Fixture.CreateContext())
@@ -1581,7 +1237,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                            .Select(x => EF.Functions.Set7BitMac8(x.Macaddr8))
                            .ToArray();
 
-                AssertContainsSql("SELECT macaddr8_set7bit(x.\"Macaddr8\")");
+                AssertContainsSql(@"macaddr8_set7bit(n.""Macaddr8"")");
             }
         }
 
@@ -1592,74 +1248,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         /// <summary>
         /// Represents a fixture suitable for testing network address operators.
         /// </summary>
-        public class NetworkAddressQueryNpgsqlFixture : IDisposable
+        public class NetworkAddressQueryNpgsqlFixture : SharedStoreFixtureBase<NetContext>
         {
-            /// <summary>
-            /// The <see cref="NpgsqlTestStore"/> used for testing.
-            /// </summary>
-            readonly NpgsqlTestStore _testStore;
-
-            /// <summary>
-            /// The <see cref="DbContextOptions"/> used for testing.
-            /// </summary>
-            readonly DbContextOptions _options;
-
-            /// <summary>
-            /// The logger factory used for testing.
-            /// </summary>
-            public TestSqlLoggerFactory TestSqlLoggerFactory { get; }
-
-            /// <summary>
-            /// Initializes a <see cref="NetworkAddressQueryNpgsqlFixture"/>.
-            /// </summary>
-            // ReSharper disable once UnusedMember.Global
-            public NetworkAddressQueryNpgsqlFixture()
-            {
-                TestSqlLoggerFactory = new TestSqlLoggerFactory();
-
-                _testStore = NpgsqlTestStore.CreateScratch();
-
-                _options =
-                    new DbContextOptionsBuilder()
-                        .UseNpgsql(_testStore.ConnectionString, b => b.ApplyConfiguration())
-                        .UseInternalServiceProvider(
-                            new ServiceCollection()
-                                .AddEntityFrameworkNpgsql()
-                                .AddSingleton<ILoggerFactory>(TestSqlLoggerFactory)
-                                .BuildServiceProvider())
-                        .Options;
-
-                using (var context = CreateContext())
-                {
-                    context.Database.EnsureCreated();
-
-// BUG: This throws for some reason
-//                    for (int i = 0; i < 10; i++)
-//                    {
-//                        context.NetTestEntities
-//                               .Add(
-//                                   new NetTestEntity
-//                                   {
-//                                       Id = i,
-//                                       Inet = new IPAddress(i),
-//                                       Cidr = (IPAddress: new IPAddress(i), Subnet: i)
-//                                   });
-//                    }
-
-                    context.SaveChanges();
-                }
-            }
-
-            /// <summary>
-            /// Creates a new <see cref="NetContext"/>.
-            /// </summary>
-            /// <returns>
-            /// A <see cref="NetContext"/> for testing.
-            /// </returns>
-            public NetContext CreateContext() => new NetContext(_options);
-
-            /// <inheritdoc />
-            public void Dispose() => _testStore.Dispose();
+            protected override string StoreName => "NetworkQueryTest";
+            protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+            public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
+            protected override void Seed(NetContext context) => NetContext.Seed(context);
         }
 
         /// <summary>
@@ -1709,7 +1303,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         /// <summary>
         /// Represents a database suitable for testing network address operators.
         /// </summary>
-        public class NetContext : DbContext
+        public class NetContext : PoolableDbContext
         {
             /// <summary>
             /// Represents a set of entities with <see cref="IPAddress"/> properties.
@@ -1724,18 +1318,34 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             /// </param>
             public NetContext(DbContextOptions options) : base(options) {}
 
-            protected override void OnModelCreating(ModelBuilder modelBuilder)
+            public static void Seed(NetContext context)
             {
-                if (TestEnvironment.PostgresVersion < new Version(10, 0))
-                    modelBuilder.Entity<NetTestEntity>().Ignore(x => x.Macaddr8);
-
-                base.OnModelCreating(modelBuilder);
+                for (var i = 1; i <= 9; i++)
+                {
+                    var ip = IPAddress.Parse("192.168.1." + i);
+                    var macaddr = PhysicalAddress.Parse("12-34-56-00-00-0" + i);
+                    var macaddr8 = PhysicalAddress.Parse("08-00-2B-01-02-03-04-0" + i);
+                    context.NetTestEntities.Add(
+                       new NetTestEntity
+                       {
+                           Id = i,
+                           Inet = ip,
+                           Cidr = (IPAddress: IPAddress.Parse("192.168.1.0"), Subnet: 24),
+                           Macaddr = macaddr,
+                           Macaddr8 = macaddr8,
+                           TextInet = ip.ToString(),
+                           TextMacaddr = macaddr.ToString()
+                       });
+                }
+                context.SaveChanges();
             }
         }
 
         #endregion
 
         #region Helpers
+
+        void AssertSql(params string[] expected) => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
         /// <summary>
         /// Asserts that the SQL fragment appears in the logs.

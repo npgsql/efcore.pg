@@ -1643,7 +1643,7 @@ CREATE EXTENSION pgcrypto;",
                 Enumerable.Empty<string>(),
                 dbModel =>
                 {
-                    var extensions = dbModel.Npgsql().PostgresExtensions;
+                    var extensions = dbModel.GetPostgresExtensions();
                     Assert.Equal(2, extensions.Count);
                     Assert.Single(extensions, e => e.Name == "hstore");
                     Assert.Single(extensions, e => e.Name == "pgcrypto");
@@ -1660,7 +1660,7 @@ CREATE TABLE foo (mood mood UNIQUE);",
                 Enumerable.Empty<string>(),
                 dbModel =>
                 {
-                    var enums = dbModel.Npgsql().PostgresEnums;
+                    var enums = dbModel.GetPostgresEnums();
                     Assert.Equal(2, enums.Count);
 
                     var mood = enums.Single(e => e.Schema == null);

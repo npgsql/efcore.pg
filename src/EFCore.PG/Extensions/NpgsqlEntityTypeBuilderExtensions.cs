@@ -48,7 +48,7 @@ namespace Microsoft.EntityFrameworkCore
         {
             Check.NotNull(entityTypeBuilder, nameof(entityTypeBuilder));
 
-            entityTypeBuilder.Metadata.Npgsql().SetStorageParameter(parameterName, parameterValue);
+            entityTypeBuilder.Metadata.SetNpgsqlStorageParameter(parameterName, parameterValue);
 
             return entityTypeBuilder;
         }
@@ -85,7 +85,7 @@ namespace Microsoft.EntityFrameworkCore
             Check.NotNull(entityTypeBuilder, nameof(entityTypeBuilder));
             Check.NullButNotEmpty(comment, nameof(comment));
 
-            entityTypeBuilder.Metadata.Npgsql().Comment = comment;
+            entityTypeBuilder.Metadata.SetNpgsqlComment(comment);
 
             return entityTypeBuilder;
         }
@@ -125,7 +125,7 @@ namespace Microsoft.EntityFrameworkCore
         {
             Check.NotNull(entityTypeBuilder, nameof(entityTypeBuilder));
 
-            entityTypeBuilder.Metadata.Npgsql().IsUnlogged = isUnlogged;
+            entityTypeBuilder.Metadata.SetNpgsqlIsUnlogged(isUnlogged);
 
             return entityTypeBuilder;
         }
@@ -163,11 +163,11 @@ namespace Microsoft.EntityFrameworkCore
 
             var parentEntity = entityTypeBuilder.Metadata.Model.FindEntityType(parentTableType);
             if (parentEntity == null)
-                throw new Exception("Entity not found in model: " + parentTableType);
+                throw new ArgumentException("Entity not found in model for type: " + parentTableType, nameof(parentTableType));
 
-            var interleaveInParent = entityTypeBuilder.Metadata.Npgsql().CockroachDbInterleaveInParent;
-            interleaveInParent.ParentTableSchema = parentEntity.Relational().Schema;
-            interleaveInParent.ParentTableName = parentEntity.Relational().TableName;
+            var interleaveInParent = entityTypeBuilder.Metadata.GetNpgsqlCockroachDbInterleaveInParent();
+            interleaveInParent.ParentTableSchema = parentEntity.GetSchema();
+            interleaveInParent.ParentTableName = parentEntity.GetTableName();
             interleaveInParent.InterleavePrefix = interleavePrefix;
 
             return entityTypeBuilder;

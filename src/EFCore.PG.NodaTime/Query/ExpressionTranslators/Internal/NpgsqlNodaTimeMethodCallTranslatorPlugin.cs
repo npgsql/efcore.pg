@@ -1,39 +1,12 @@
-#region License
-
-// The PostgreSQL License
-//
-// Copyright (C) 2016 The Npgsql Development Team
-//
-// Permission to use, copy, modify, and distribute this software and its
-// documentation for any purpose, without fee, and without a written
-// agreement is hereby granted, provided that the above copyright notice
-// and this paragraph and the following two paragraphs appear in all copies.
-//
-// IN NO EVENT SHALL THE NPGSQL DEVELOPMENT TEAM BE LIABLE TO ANY PARTY
-// FOR DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES,
-// INCLUDING LOST PROFITS, ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS
-// DOCUMENTATION, EVEN IF THE NPGSQL DEVELOPMENT TEAM HAS BEEN ADVISED OF
-// THE POSSIBILITY OF SUCH DAMAGE.
-//
-// THE NPGSQL DEVELOPMENT TEAM SPECIFICALLY DISCLAIMS ANY WARRANTIES,
-// INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
-// AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
-// ON AN "AS IS" BASIS, AND THE NPGSQL DEVELOPMENT TEAM HAS NO OBLIGATIONS
-// TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
-
-#endregion
-
 using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
 using System.Reflection;
 using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Query.Expressions;
-using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
+using Microsoft.EntityFrameworkCore.Relational.Query.Pipeline;
+using Microsoft.EntityFrameworkCore.Relational.Query.Pipeline.SqlExpressions;
 using NodaTime;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Pipeline;
 
 // ReSharper disable once CheckNamespace
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
@@ -46,10 +19,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
     /// </remarks>
     public class NpgsqlNodaTimeMethodCallTranslatorPlugin : IMethodCallTranslatorPlugin
     {
-        public virtual IEnumerable<IMethodCallTranslator> Translators { get; } = new IMethodCallTranslator[]
+        public NpgsqlNodaTimeMethodCallTranslatorPlugin(ISqlExpressionFactory sqlExpressionFactory)
         {
-            new NpgsqlNodaTimeMethodCallTranslator()
-        };
+            Translators = new IMethodCallTranslator[]
+            {
+                new NpgsqlNodaTimeMethodCallTranslator((NpgsqlSqlExpressionFactory)sqlExpressionFactory),
+            };
+        }
+
+        public virtual IEnumerable<IMethodCallTranslator> Translators { get; }
     }
 
     /// <summary>
@@ -57,6 +35,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
     /// </summary>
     public class NpgsqlNodaTimeMethodCallTranslator : IMethodCallTranslator
     {
+        readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
+
         /// <summary>
         /// The static method info for <see cref="T:SystemClock.GetCurrentInstant()"/>.
         /// </summary>
@@ -79,22 +59,30 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
             //{ typeof(Period).GetRuntimeMethod(nameof(Period.FromNanoseconds),  new[] { typeof(long) }), "" },
         };
 
+        public NpgsqlNodaTimeMethodCallTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory)
+            => _sqlExpressionFactory = sqlExpressionFactory;
+
 #pragma warning disable EF1001
         /// <inheritdoc />
         [CanBeNull]
-        public Expression Translate(MethodCallExpression e, IDiagnosticsLogger<DbLoggerCategory.Query> logger)
+        public SqlExpression Translate(SqlExpression instance, MethodInfo method, IList<SqlExpression> arguments)
         {
-            if (e.Method == GetCurrentInstant)
-                return new AtTimeZoneExpression(new SqlFunctionExpression("NOW", e.Type), "UTC", e.Type);
+            if (method == GetCurrentInstant)
+            {
+                return _sqlExpressionFactory.AtTimeZone(
+                    _sqlExpressionFactory.Function("NOW", Array.Empty<SqlExpression>(), method.ReturnType),
+                    _sqlExpressionFactory.Constant("UTC"),
+                    method.ReturnType);
+            }
 
-            // TODO: Version compat? See DateTime.Add* translator
-            var declaringType = e.Method.DeclaringType;
+            var declaringType = method.DeclaringType;
             if (declaringType == typeof(Period))
             {
-                return PeriodPethodMap.TryGetValue(e.Method, out var datePart)
-                    ? new PgFunctionExpression("MAKE_INTERVAL", typeof(Period), new Dictionary<string, Expression> {
-                          [datePart] = e.Arguments[0]
-                      })
+                return PeriodPethodMap.TryGetValue(method, out var datePart)
+                    ? new PgFunctionExpression(
+                        "MAKE_INTERVAL",
+                        new Dictionary<string, SqlExpression> { [datePart] = _sqlExpressionFactory.Constant(arguments[0]) },
+                        typeof(Period))
                     : null;
             }
             return null;

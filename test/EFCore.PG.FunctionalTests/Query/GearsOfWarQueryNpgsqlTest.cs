@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.Query;
 using Xunit;
@@ -43,6 +44,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         public override Task Where_datetimeoffset_now(bool isAsync) => Task.CompletedTask;
         public override Task Where_datetimeoffset_utcnow(bool isAsync) => Task.CompletedTask;
+
+        [ConditionalTheory(Skip = "DateTimeOffset.Date isn't currently translated")]
+        public override Task DateTimeOffset_Contains_Less_than_Greater_than(bool isAsync) => Task.CompletedTask;
 
         #endregion Ignore DateTimeOffset tests
     }

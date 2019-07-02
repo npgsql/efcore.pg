@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.Query;
-using Microsoft.EntityFrameworkCore.TestUtilities.Xunit;
 using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
@@ -20,5 +19,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         [ConditionalTheory(Skip = "Disabled in EFCore, https://github.com/aspnet/EntityFrameworkCore/issues/15064")]
         public override Task Include_reference_collection_order_by_reference_navigation(bool isAsync) => null;
+
+        [ConditionalTheory(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/16693")]
+        public override Task Include13(bool isAsync) => null;
+
+        [ConditionalTheory(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/16693")]
+        public override Task Include14(bool isAsync) => null;
     }
 }

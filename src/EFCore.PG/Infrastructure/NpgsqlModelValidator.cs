@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
@@ -29,11 +30,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
             : base(dependencies, relationalDependencies)
             => _postgresVersion = Check.NotNull(npgsqlOptions, nameof(npgsqlOptions)).PostgresVersion;
 
-        public override void Validate(IModel model, DiagnosticsLoggers loggers)
+        public override void Validate(IModel model, IDiagnosticsLogger<DbLoggerCategory.Model.Validation> logger)
         {
-            base.Validate(model, loggers);
+            base.Validate(model, logger);
 
             ValidateIdentityVersionCompatibility(model);
+            ValidateIndexIncludeProperties(model);
         }
 
         /// <summary>
@@ -45,7 +47,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
             if (VersionAtLeast(10, 0))
                 return;
 
-            var strategy = model.Npgsql().ValueGenerationStrategy;
+            var strategy = model.GetNpgsqlValueGenerationStrategy();
 
             if (strategy == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn ||
                 strategy == NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
@@ -55,13 +57,53 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
 
             foreach (var property in model.GetEntityTypes().SelectMany(e => e.GetProperties()))
             {
-                var propertyStrategy = property.Npgsql().ValueGenerationStrategy;
+                var propertyStrategy = property.GetNpgsqlValueGenerationStrategy();
 
                 if (propertyStrategy == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn ||
                     propertyStrategy == NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
                 {
                     throw new InvalidOperationException(
                         $"{property.DeclaringEntityType}.{property.Name}: '{propertyStrategy}' requires PostgreSQL 10.0 or later.");
+                }
+            }
+        }
+
+        protected virtual void ValidateIndexIncludeProperties([NotNull] IModel model)
+        {
+            foreach (var index in model.GetEntityTypes().SelectMany(t => t.GetDeclaredIndexes()))
+            {
+                var includeProperties = index.GetNpgsqlIncludeProperties();
+                if (includeProperties?.Count > 0)
+                {
+                    var notFound = includeProperties
+                        .FirstOrDefault(i => index.DeclaringEntityType.FindProperty(i) == null);
+
+                    if (notFound != null)
+                    {
+                        throw new InvalidOperationException(
+                            NpgsqlStrings.IncludePropertyNotFound(index.DeclaringEntityType.DisplayName(), notFound));
+                    }
+
+                    var duplicate = includeProperties
+                        .GroupBy(i => i)
+                        .Where(g => g.Count() > 1)
+                        .Select(y => y.Key)
+                        .FirstOrDefault();
+
+                    if (duplicate != null)
+                    {
+                        throw new InvalidOperationException(
+                            NpgsqlStrings.IncludePropertyDuplicated(index.DeclaringEntityType.DisplayName(), duplicate));
+                    }
+
+                    var inIndex = includeProperties
+                        .FirstOrDefault(i => index.Properties.Any(p => i == p.Name));
+
+                    if (inIndex != null)
+                    {
+                        throw new InvalidOperationException(
+                            NpgsqlStrings.IncludePropertyInIndex(index.DeclaringEntityType.DisplayName(), inIndex));
+                    }
                 }
             }
         }

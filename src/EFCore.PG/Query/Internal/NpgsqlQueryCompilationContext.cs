@@ -1,4 +1,5 @@
-﻿using JetBrains.Annotations;
+﻿#if PREVIEW7
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 
@@ -24,3 +25,4 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         public override int MaxTableAliasLength => 63;
     }
 }
+#endif

@@ -45,6 +45,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update
                     new TypedRelationalValueBufferFactoryFactory(
                         new RelationalValueBufferFactoryDependencies(
                             typeMapper, new CoreSingletonOptions())),
+                    new CurrentDbContext(new FakeDbContext()),
                     logger),
                 optionsBuilder.Options);
 
@@ -83,6 +84,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update
                     new TypedRelationalValueBufferFactoryFactory(
                         new RelationalValueBufferFactoryDependencies(
                             typeMapper, new CoreSingletonOptions())),
+                    new CurrentDbContext(new FakeDbContext()),
                     logger),
                 optionsBuilder.Options);
 
@@ -90,6 +92,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update
 
             Assert.True(batch.AddCommand(new ModificationCommand("T1", null, new ParameterNameGenerator().GenerateNext, false, null)));
             Assert.True(batch.AddCommand(new ModificationCommand("T1", null, new ParameterNameGenerator().GenerateNext, false, null)));
+        }
+
+        class FakeDbContext : DbContext
+        {
         }
     }
 }

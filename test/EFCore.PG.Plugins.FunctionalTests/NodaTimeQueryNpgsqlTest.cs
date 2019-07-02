@@ -28,7 +28,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             {
                 var d = ctx.NodaTimeTypes.Single(t => t.LocalDate < new LocalDate(2018, 4, 21));
                 Assert.Equal(new LocalDate(2018, 4, 20), d.LocalDate);
-                Assert.Contains(@"WHERE t.""LocalDate"" < DATE '2018-04-21'", Sql);
+                Assert.Contains(@"n.""LocalDate"" < DATE '2018-04-21'", Sql);
             }
         }
 
@@ -41,7 +41,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             {
                 var d = ctx.NodaTimeTypes.Single(t => t.LocalDateTime.Year == 2018);
                 Assert.Equal(new LocalDateTime(2018, 4, 20, 10, 31, 33, 666), d.LocalDateTime);
-                Assert.Contains(@"WHERE CAST(DATE_PART('year', t.""LocalDateTime"") AS integer) = 2018", Sql);
+                Assert.Contains(@"DATE_PART('year', n.""LocalDateTime"")::INT = 2018", Sql);
             }
         }
 
@@ -52,7 +52,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             {
                 var d = ctx.NodaTimeTypes.Single(t => t.LocalDateTime.Month == 4);
                 Assert.Equal(new LocalDateTime(2018, 4, 20, 10, 31, 33, 666), d.LocalDateTime);
-                Assert.Contains(@"WHERE CAST(DATE_PART('month', t.""LocalDateTime"") AS integer) = 4", Sql);
+                Assert.Contains(@"DATE_PART('month', n.""LocalDateTime"")::INT = 4", Sql);
             }
         }
 
@@ -63,7 +63,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             {
                 var d = ctx.NodaTimeTypes.Single(t => t.LocalDateTime.DayOfYear == 110);
                 Assert.Equal(new LocalDateTime(2018, 4, 20, 10, 31, 33, 666), d.LocalDateTime);
-                Assert.Contains(@"WHERE CAST(DATE_PART('doy', t.""LocalDateTime"") AS integer) = 110", Sql);
+                Assert.Contains(@"DATE_PART('doy', n.""LocalDateTime"")::INT = 110", Sql);
             }
         }
 
@@ -74,7 +74,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             {
                 var d = ctx.NodaTimeTypes.Single(t => t.LocalDateTime.Day == 20);
                 Assert.Equal(new LocalDateTime(2018, 4, 20, 10, 31, 33, 666), d.LocalDateTime);
-                Assert.Contains(@"WHERE CAST(DATE_PART('day', t.""LocalDateTime"") AS integer) = 20", Sql);
+                Assert.Contains(@"DATE_PART('day', n.""LocalDateTime"")::INT = 20", Sql);
             }
         }
 
@@ -85,7 +85,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             {
                 var d = ctx.NodaTimeTypes.Single(t => t.LocalDateTime.Hour == 10);
                 Assert.Equal(new LocalDateTime(2018, 4, 20, 10, 31, 33, 666), d.LocalDateTime);
-                Assert.Contains(@"WHERE CAST(DATE_PART('hour', t.""LocalDateTime"") AS integer) = 10", Sql);
+                Assert.Contains(@"DATE_PART('hour', n.""LocalDateTime"")::INT = 10", Sql);
             }
         }
 
@@ -96,7 +96,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             {
                 var d = ctx.NodaTimeTypes.Single(t => t.LocalDateTime.Minute == 31);
                 Assert.Equal(new LocalDateTime(2018, 4, 20, 10, 31, 33, 666), d.LocalDateTime);
-                Assert.Contains(@"WHERE CAST(DATE_PART('minute', t.""LocalDateTime"") AS integer) = 31", Sql);
+                Assert.Contains(@"DATE_PART('minute', n.""LocalDateTime"")::INT = 31", Sql);
             }
         }
 
@@ -107,7 +107,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             {
                 var d = ctx.NodaTimeTypes.Single(t => t.LocalDateTime.Second == 33);
                 Assert.Equal(new LocalDateTime(2018, 4, 20, 10, 31, 33, 666), d.LocalDateTime);
-                Assert.Contains(@"WHERE CAST(FLOOR(DATE_PART('second', t.""LocalDateTime"")) AS integer) = 33", Sql);
+                Assert.Contains(@"FLOOR(DATE_PART('second', n.""LocalDateTime""))::INT = 33", Sql);
             }
         }
 
@@ -118,7 +118,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             {
                 var d = ctx.NodaTimeTypes.Single(t => t.LocalDateTime.Date == new LocalDate(2018, 4, 20));
                 Assert.Equal(new LocalDateTime(2018, 4, 20, 10, 31, 33, 666), d.LocalDateTime);
-                Assert.Contains(@"WHERE DATE_TRUNC('day', t.""LocalDateTime"") = DATE '2018-04-20'", Sql);
+                Assert.Contains(@"DATE_TRUNC('day', n.""LocalDateTime"") = DATE '2018-04-20'", Sql);
             }
         }
 
@@ -129,7 +129,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             {
                 var d = ctx.NodaTimeTypes.Single(t => t.LocalDateTime.DayOfWeek == IsoDayOfWeek.Friday);
                 Assert.Equal(new LocalDateTime(2018, 4, 20, 10, 31, 33, 666), d.LocalDateTime);
-                Assert.Contains(@"DATE_PART('dow', t.""LocalDateTime"")", Sql);
+                Assert.Contains(@"CASE
+    WHEN FLOOR(DATE_PART('dow', n.""LocalDateTime""))::INT = 0 THEN 7
+    ELSE FLOOR(DATE_PART('dow', n.""LocalDateTime""))::INT
+END = 5", Sql);
             }
         }
 
@@ -144,7 +147,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             {
                 var d = ctx.NodaTimeTypes.Single(t => t.LocalDate.Year == 2018);
                 Assert.Equal(new LocalDate(2018, 4, 20), d.LocalDate);
-                Assert.Contains(@"WHERE CAST(DATE_PART('year', t.""LocalDate"") AS integer) = 2018", Sql);
+                Assert.Contains(@"DATE_PART('year', n.""LocalDate"")::INT = 2018", Sql);
             }
         }
 
@@ -155,7 +158,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             {
                 var d = ctx.NodaTimeTypes.Single(t => t.LocalDate.Month == 4);
                 Assert.Equal(new LocalDate(2018, 4, 20), d.LocalDate);
-                Assert.Contains(@"WHERE CAST(DATE_PART('month', t.""LocalDate"") AS integer) = 4", Sql);
+                Assert.Contains(@"DATE_PART('month', n.""LocalDate"")::INT = 4", Sql);
             }
         }
 
@@ -166,7 +169,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             {
                 var d = ctx.NodaTimeTypes.Single(t => t.LocalDate.DayOfYear == 110);
                 Assert.Equal(new LocalDate(2018, 4, 20), d.LocalDate);
-                Assert.Contains(@"WHERE CAST(DATE_PART('doy', t.""LocalDate"") AS integer) = 110", Sql);
+                Assert.Contains(@"DATE_PART('doy', n.""LocalDate"")::INT = 110", Sql);
             }
         }
 
@@ -177,7 +180,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             {
                 var d = ctx.NodaTimeTypes.Single(t => t.LocalDate.Day == 20);
                 Assert.Equal(new LocalDate(2018, 4, 20), d.LocalDate);
-                Assert.Contains(@"WHERE CAST(DATE_PART('day', t.""LocalDate"") AS integer) = 20", Sql);
+                Assert.Contains(@"DATE_PART('day', n.""LocalDate"")::INT = 20", Sql);
             }
         }
 
@@ -192,7 +195,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             {
                 var d = ctx.NodaTimeTypes.Single(t => t.LocalTime.Hour == 10);
                 Assert.Equal(new LocalTime(10, 31, 33, 666), d.LocalTime);
-                Assert.Contains(@"WHERE CAST(DATE_PART('hour', t.""LocalTime"") AS integer) = 10", Sql);
+                Assert.Contains(@"DATE_PART('hour', n.""LocalTime"")::INT = 10", Sql);
             }
         }
 
@@ -203,7 +206,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             {
                 var d = ctx.NodaTimeTypes.Single(t => t.LocalTime.Minute == 31);
                 Assert.Equal(new LocalTime(10, 31, 33, 666), d.LocalTime);
-                Assert.Contains(@"WHERE CAST(DATE_PART('minute', t.""LocalTime"") AS integer) = 31", Sql);
+                Assert.Contains(@"DATE_PART('minute', n.""LocalTime"")::INT = 31", Sql);
             }
         }
 
@@ -214,7 +217,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             {
                 var d = ctx.NodaTimeTypes.Single(t => t.LocalTime.Second == 33);
                 Assert.Equal(new LocalTime(10, 31, 33, 666), d.LocalTime);
-                Assert.Contains(@"WHERE CAST(FLOOR(DATE_PART('second', t.""LocalTime"")) AS integer) = 33", Sql);
+                Assert.Contains(@"FLOOR(DATE_PART('second', n.""LocalTime""))::INT = 33", Sql);
             }
         }
 
@@ -229,7 +232,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             {
                 var d = ctx.NodaTimeTypes.Single(t => t.Period.Years == 2018);
                 Assert.Equal(_defaultPeriod, d.Period);
-                Assert.Contains(@"WHERE CAST(DATE_PART('year', t.""Period"") AS integer) = 2018", Sql);
+                Assert.Contains(@"DATE_PART('year', n.""Period"")::INT = 2018", Sql);
             }
         }
 
@@ -323,7 +326,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         }
 */
 
-        [Fact]
+        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/16550")]
         public void Period_from_days()
         {
             using (var ctx = CreateContext())
@@ -334,7 +337,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             }
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/16550")]
         public void Period_from_seconds()
         {
             using (var ctx = CreateContext())
@@ -355,7 +358,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             using (var ctx = CreateContext())
             {
                 var _ = ctx.NodaTimeTypes.Single(t => t.DateRange.Contains(new LocalDate(2018, 4, 21)));
-                Assert.Contains(@"t.""DateRange"" @> DATE '2018-04-21'", Sql);
+                Assert.Contains(@"n.""DateRange"" @> DATE '2018-04-21'", Sql);
             }
         }
 
@@ -369,7 +372,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             using (var ctx = CreateContext())
             {
                 var _ = ctx.NodaTimeTypes.Where(t => t.Instant < SystemClock.Instance.GetCurrentInstant()).ToArray();
-                Assert.Contains("WHERE t.\"Instant\" < NOW() AT TIME ZONE 'UTC'", Sql);
+                Assert.Contains(@"WHERE n.""Instant"" < NOW() AT TIME ZONE 'UTC'", Sql);
             }
         }
 

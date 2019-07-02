@@ -758,7 +758,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         public void EnsurePostgresExtension()
         {
             var op = new AlterDatabaseOperation();
-            op.Npgsql().GetOrAddPostgresExtension(null, "hstore", null);
+            op.GetOrAddPostgresExtension(null, "hstore", null);
             Generate(op);
 
             Assert.Equal(
@@ -770,7 +770,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         public void EnsurePostgresExtension_with_schema()
         {
             var op = new AlterDatabaseOperation();
-            op.Npgsql().GetOrAddPostgresExtension("myschema", "hstore", null);
+            op.GetOrAddPostgresExtension("myschema", "hstore", null);
             Generate(op);
 
             Assert.Equal(

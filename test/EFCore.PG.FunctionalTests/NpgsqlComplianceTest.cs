@@ -10,8 +10,26 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
     {
         protected override ICollection<Type> IgnoredTestBases { get; } = new HashSet<Type>
         {
-            typeof(UpdatesTestBase<>),            // https://github.com/aspnet/entityframeworkcore/issues/14055
-            typeof(UpdatesRelationalTestBase<>),  // https://github.com/aspnet/entityframeworkcore/issues/14055
+            // These tests are ignored as of 3.0.0-preview7 - the list was copied from SqlServer
+            typeof(ComplexNavigationsWeakQueryTestBase<>), // issue #15285
+            typeof(FiltersInheritanceTestBase<>),          // issue #15264
+            typeof(FiltersTestBase<>),                     // issue #15264
+            typeof(OwnedQueryTestBase<>),                  // issue #15285
+            typeof(QueryFilterFuncletizationTestBase<>),   // issue #15264
+            typeof(RelationalOwnedQueryTestBase<>),        // issue #15285
+            // Query pipeline
+            typeof(ConcurrencyDetectorTestBase<>),
+            typeof(CompiledQueryTestBase<>),
+            typeof(InheritanceRelationshipsQueryTestBase<>),
+            typeof(QueryNavigationsTestBase<>),
+            typeof(ConcurrencyDetectorRelationalTestBase<>),
+            typeof(GearsOfWarFromSqlQueryTestBase<>),
+            typeof(QueryNoClientEvalTestBase<>),
+            typeof(WarningsTestBase<>),
+
+            // https://github.com/aspnet/EntityFrameworkCore/issues/15425
+            typeof(UpdatesTestBase<>),
+            typeof(UpdatesRelationalTestBase<>),
 
             // The following are ignored because we haven't gotten around to doing them, not because they're
             // inherently not supported

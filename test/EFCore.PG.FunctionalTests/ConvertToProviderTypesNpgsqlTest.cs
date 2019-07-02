@@ -77,6 +77,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
             public override bool SupportsBinaryKeys => true;
 
+            public override bool SupportsDecimalComparisons => true;
+
             public override DateTime DefaultDateTime => new DateTime();
 
             // TODO: Remove the following after https://github.com/aspnet/EntityFrameworkCore/pull/11587 is merged
