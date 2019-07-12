@@ -1,8 +1,8 @@
 using System;
 using System.Data.Common;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
@@ -129,7 +129,7 @@ namespace Microsoft.EntityFrameworkCore
                 ? new NpgsqlOptionsExtension(existing)
                 : new NpgsqlOptionsExtension();
 
-        private static void ConfigureWarnings(DbContextOptionsBuilder optionsBuilder)
+        static void ConfigureWarnings(DbContextOptionsBuilder optionsBuilder)
         {
             var coreOptionsExtension = optionsBuilder.Options.FindExtension<CoreOptionsExtension>() ?? new CoreOptionsExtension();
 

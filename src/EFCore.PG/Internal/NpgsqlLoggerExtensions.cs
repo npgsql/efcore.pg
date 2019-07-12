@@ -190,7 +190,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
             [NotNull] DbConnection connection,
             Guid connectionId)
         {
-            var definition = NpgsqlStrings.LogAutoPrepareDisabled;
+            var definition = NpgsqlResources.LogAutoPrepareDisabled(diagnostics);
 
             var warningBehavior = definition.GetLogBehavior(diagnostics);
             if (warningBehavior != WarningBehavior.Ignore)

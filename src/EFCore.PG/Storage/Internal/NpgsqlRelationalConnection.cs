@@ -11,9 +11,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
     public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationalConnection
     {
         /// <summary>
-        /// True if the connection settings have already been validated; otherwise, false.
+        /// True if an auto-prepare disabled warning has already been issued; otherwise, false.
         /// </summary>
-        bool _validated;
+        static bool _warnedAutoPrepareDisabled;
 
         ProvideClientCertificatesCallback ProvideClientCertificatesCallback { get; }
         RemoteCertificateValidationCallback RemoteCertificateValidationCallback { get; }
@@ -41,13 +41,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             if (RemoteCertificateValidationCallback != null)
                 conn.UserCertificateValidationCallback = RemoteCertificateValidationCallback;
 
-            if (_validated)
-                return conn;
-
-            if (conn.Settings.MaxAutoPrepare == 0)
+            if (!_warnedAutoPrepareDisabled && conn.Settings.MaxAutoPrepare == 0)
+            {
                 Dependencies.ConnectionLogger.AutoPrepareDisabledWarning(conn, ConnectionId);
+                _warnedAutoPrepareDisabled = true;
+            }
 
-            _validated = true;
             return conn;
         }
 

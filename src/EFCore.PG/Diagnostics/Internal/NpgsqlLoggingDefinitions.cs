@@ -20,5 +20,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics.Internal
         public EventDefinitionBase LogExpressionIndexSkipped;
         public EventDefinitionBase LogUnsupportedColumnConstraintSkipped;
         public EventDefinitionBase LogUnsupportedColumnIndexSkipped;
+        public EventDefinitionBase LogAutoPrepareDisabled;
     }
 }
