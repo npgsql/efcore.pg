@@ -26,6 +26,6 @@
     <ProjectReference Include="..\EFCore.PG\EFCore.PG.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Npgsql.NetTopologySuite" Version="4.0.4.1" />
+    <PackageReference Include="Npgsql.NetTopologySuite" Version="$(NpgsqlVersion)" />
   </ItemGroup>
 </Project>

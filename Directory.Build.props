@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup Label="Package Versions">
-    <NpgsqlVersion>4.0.4</NpgsqlVersion>
-    <EFCoreVersion>2.1.4</EFCoreVersion>
+    <NpgsqlVersion>4.0.7</NpgsqlVersion>
+    <EFCoreVersion>2.1.11</EFCoreVersion>
     <MicrosoftExtensionsVersion>2.1.1</MicrosoftExtensionsVersion>
   </PropertyGroup>
 </Project>
