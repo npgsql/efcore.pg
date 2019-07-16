@@ -987,7 +987,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(name, schema))
                 .Append(" SET SCHEMA ")
                 .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(newSchema))
-                .AppendLine(';');
+                .AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
         }
 
         #endregion Utilities
