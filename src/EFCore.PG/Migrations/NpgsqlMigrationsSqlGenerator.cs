@@ -957,7 +957,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(name, schema))
                 .Append(" RENAME TO ")
                 .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(newName))
-                .AppendLine(';');
+                .AppendLine(Dependencies.SqlGenerationHelper.StatementTerminator);
         }
 
         /// <summary>
