@@ -1,0 +1,81 @@
+name: 3.0.0-ci.$(Date:yyyyMMdd).$(Rev:r) # equal to $(Build.BuildNumber)
+trigger:
+  branches:
+    include:
+    - dev
+    - master
+    - hotfix/*
+    - release/*
+variables:
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+  DOTNET_SDK_VERSION: '3.0.100-preview3-010431'
+jobs:
+- job: Linux
+  pool:
+    vmImage: ubuntu-16.04
+  steps:
+  - bash: sudo sh .build/setup_postgres.sh
+    displayName: 'Start PostgreSQL'
+  - task: DotNetCoreInstaller@0
+    displayName: 'Install .NET Core SDK'
+    inputs:
+      packageType: 'sdk'
+      version: '$(DOTNET_SDK_VERSION)'
+  - task: DotNetCoreCLI@2
+    displayName: 'Test'
+    inputs:
+      command: 'test'
+      configuration: 'Debug'
+      projects: 'test/**/*.csproj'
+      publishTestResults: true
+- job: Windows
+  pool:
+    vmImage: vs2017-win2016
+  steps:
+  - powershell: Write-Host "##vso[task.setvariable variable=truncated_sha1]$($env:BUILD_SOURCEVERSION.subString(0, 9))";
+    displayName: 'Assign truncated SHA1 to environment variable'
+  - powershell: .build/setup_postgres.ps1
+    displayName: 'Start PostgreSQL'
+  - task: DotNetCoreInstaller@0
+    displayName: 'Install .NET Core SDK'
+    inputs:
+      packageType: 'sdk'
+      version: '$(DOTNET_SDK_VERSION)'
+  - task: DotNetCoreCLI@2
+    displayName: 'Test'
+    inputs:
+      command: 'test'
+      configuration: 'Debug'
+      projects: 'test/**/*.csproj'
+      publishTestResults: true
+  - task: DotNetCoreCLI@2
+    displayName: 'Package'
+    inputs:
+      command: 'pack'
+      configuration: 'Release'
+      buildProperties: 'Version=$(Build.BuildNumber)+sha.$(truncated_sha1)'
+      packagesToPack: 'src/**/*.csproj'
+      packDirectory: '$(System.DefaultWorkingDirectory)'
+      verbosityPack: 'normal'
+  # TODO: needed because DotNetCoreCLI@2 doesn't support authenticated feeds yet.
+  # TODO: see https://github.com/Microsoft/azure-pipelines-tasks/issues/7160
+  - task: NuGetToolInstaller@0
+    inputs:
+      versionSpec: '4.3.0'
+  - task: NuGetCommand@2
+    displayName: 'Publish to MyGet (unstable)'
+    condition: succeeded()
+    inputs:
+      command: 'push'
+      nuGetFeedType: 'external'
+      packagesToPush: '**/*.nupkg'
+      publishFeedCredentials: 'npgsql-unstable' # TODO: add service connection named 'npgsql-unstable' with url 'https://www.myget.org/F/npgsql-unstable/api/v2/package'
+  - task: NuGetCommand@2
+    displayName: 'Publish to MyGet (stable)'
+    condition: and(succeeded(), startsWith(variables['Build.SourceBranchName'], 'hotfix/'))
+    inputs:
+      command: 'push'
+      nuGetFeedType: 'external'
+      packagesToPush: '**/*.nupkg'
+      publishFeedCredentials: 'npgsql-stable' # TODO: add service connection named 'npgsql-stable' with url 'https://www.myget.org/F/npgsql/api/v2/package'
