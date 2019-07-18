@@ -9,10 +9,18 @@ bigsql/pgc install pg11
 bigsql/pgc list --extensions pg11
 bigsql/pgc install postgis25-pg11
 
-# Start PostgreSQL
+# Initialize PostgreSQL
 bigsql/pg11/bin/initdb -D PGDATA -E UTF8 -U postgres
-bigsql/pg11/bin/pg_ctl register -D PGDATA -N postgresql -S demand
-net start postgresql
+
+# Start PostgreSQL
+try {
+bigsql/pg11/bin/pg_ctl -D PGDATA -l logfile start
+}
+catch
+{
+cat logfile
+}
+
 
 # Configure test account
 bigsql/pg11/bin/psql -U postgres -c "CREATE USER npgsql_tests WITH PASSWORD 'npgsql_tests' SUPERUSER";
