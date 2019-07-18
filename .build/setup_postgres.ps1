@@ -2,9 +2,11 @@
 powershell -c "Invoke-Expression ((New-Object Net.WebClient).DownloadString('https://s3.amazonaws.com/pgcentral/install.ps1'))";
 
 # Install PostgreSQL
+bigsql/pgc list
 bigsql/pgc install pg11
 
 # Install PostGIS
+bigsql/pgc list --extensions pg11
 bigsql/pgc install postgis25-pg11
 
 # Start PostgreSQL
