@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <VersionPrefix>$(EFCoreVersion)</VersionPrefix>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
@@ -32,6 +32,6 @@
     <ProjectReference Include="..\EFCore.PG\EFCore.PG.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Npgsql.NetTopologySuite" Version="4.0.4.1" />
+    <PackageReference Include="Npgsql.NetTopologySuite" Version="$(NpgsqlVersion)" />
   </ItemGroup>
 </Project>
