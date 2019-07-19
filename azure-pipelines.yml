@@ -123,7 +123,7 @@ jobs:
     inputs:
       command: 'push'
       nuGetFeedType: 'external'
-      packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.snupkg'
+      packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.snupkg'
       publishFeedCredentials: 'npgsql-unstable'
 
   - task: NuGetCommand@2
@@ -132,5 +132,5 @@ jobs:
     inputs:
       command: 'push'
       nuGetFeedType: 'external'
-      packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.snupkg'
+      packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.snupkg'
       publishFeedCredentials: 'npgsql-stable'
