@@ -1424,11 +1424,13 @@ DROP TABLE ""PrincipalTable"";");
         #region PostgreSQL-specific
 
         [Fact]
-        public void SequenceSerial()
-        {
-            Test(
-                @"
-CREATE TABLE ""SerialSequence"" (""Id"" serial PRIMARY KEY)",
+        public void SequenceSerial() =>
+            Test(@"
+CREATE TABLE serial_sequence (id serial PRIMARY KEY);
+CREATE TABLE ""SerialSequence"" (""Id"" serial PRIMARY KEY);
+CREATE SCHEMA my_schema;
+CREATE TABLE my_schema.serial_sequence_in_schema (Id serial PRIMARY KEY);
+CREATE TABLE my_schema.""SerialSequenceInSchema"" (""Id"" serial PRIMARY KEY);",
                 Enumerable.Empty<string>(),
                 Enumerable.Empty<string>(),
                 dbModel =>
@@ -1437,13 +1439,14 @@ CREATE TABLE ""SerialSequence"" (""Id"" serial PRIMARY KEY)",
                     Assert.Empty(dbModel.Sequences);
 
                     // Now make sure the field itself is properly reverse-engineered.
-                    var column = dbModel.Tables.Single().Columns.Single();
-                    Assert.Equal(ValueGenerated.OnAdd, column.ValueGenerated);
-                    Assert.Null(column.DefaultValueSql);
-                    Assert.Equal(NpgsqlValueGenerationStrategy.SerialColumn, (NpgsqlValueGenerationStrategy)column[NpgsqlAnnotationNames.ValueGenerationStrategy]);
+                    foreach (var column in dbModel.Tables.Select(t => t.Columns.Single()))
+                    {
+                        Assert.Equal(ValueGenerated.OnAdd, column.ValueGenerated);
+                        Assert.Null(column.DefaultValueSql);
+                        Assert.Equal(NpgsqlValueGenerationStrategy.SerialColumn, (NpgsqlValueGenerationStrategy)column[NpgsqlAnnotationNames.ValueGenerationStrategy]);
+                    }
                 },
-                @"DROP TABLE ""SerialSequence""");
-        }
+                @"DROP TABLE serial_sequence; DROP TABLE ""SerialSequence""; DROP SCHEMA my_schema CASCADE");
 
         [Fact]
         public void SequenceNonSerial()

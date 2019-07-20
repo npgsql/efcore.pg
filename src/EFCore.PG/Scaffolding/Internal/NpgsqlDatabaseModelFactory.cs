@@ -366,18 +366,28 @@ ORDER BY attnum";
                             column[NpgsqlAnnotationNames.ValueGenerationStrategy] = NpgsqlValueGenerationStrategy.IdentityByDefaultColumn;
                             break;
                         default:
-                            if (SerialTypes.Contains(systemTypeName) &&
-                                column.DefaultValueSql == $"nextval('{column.Table.Name}_{column.Name}_seq'::regclass)" ||
-                                column.DefaultValueSql == $"nextval('\"{column.Table.Name}_{column.Name}_seq\"'::regclass)")
+                            // Hacky but necessary...
+                            // We identify serial columns by examining their default expression, and reverse-engineer these as ValueGenerated.OnAdd.
+                            // We can't actually parse this since the table and column names are concatenated and may contain arbitrary underscores,
+                            // so we construct various possibilities and compare against them.
+                            // TODO: Think about composite keys? Do serial magic only for non-composite.
+                            if (SerialTypes.Contains(systemTypeName))
                             {
-                                // Hacky but necessary...
-                                // We identify serial columns by examining their default expression,
-                                // and reverse-engineer these as ValueGenerated.OnAdd
-                                // TODO: Think about composite keys? Do serial magic only for non-composite.
-                                column.DefaultValueSql = null;
-                                // Serial is the default value generation strategy, so NpgsqlAnnotationCodeGenerator
-                                // makes sure it isn't actually rendered
-                                column[NpgsqlAnnotationNames.ValueGenerationStrategy] = NpgsqlValueGenerationStrategy.SerialColumn;
+                                var seqName = $"{column.Table.Name}_{column.Name}_seq";
+                                if (column.Table.Schema == "public" &&
+                                    (column.DefaultValueSql == $"nextval('{seqName}'::regclass)" ||
+                                    column.DefaultValueSql == $"nextval('\"{seqName}\"'::regclass)")
+                                    ||  // non-public schema
+                                    column.DefaultValueSql == $"nextval('{column.Table.Schema}.{seqName}'::regclass)" ||
+                                    column.DefaultValueSql == $"nextval('{column.Table.Schema}.\"{seqName}\"'::regclass)" ||
+                                    column.DefaultValueSql == $"nextval('\"{column.Table.Schema}\".{seqName}'::regclass)" ||
+                                    column.DefaultValueSql == $"nextval('\"{column.Table.Schema}\".\"{seqName}\"'::regclass)")
+                                {
+                                    column.DefaultValueSql = null;
+                                    // Serial is the default value generation strategy, so NpgsqlAnnotationCodeGenerator
+                                    // makes sure it isn't actually rendered
+                                    column[NpgsqlAnnotationNames.ValueGenerationStrategy] = NpgsqlValueGenerationStrategy.SerialColumn;
+                                }
                             }
 
                             break;
@@ -776,7 +786,7 @@ LEFT OUTER JOIN pg_namespace AS ownerns ON ownerns.oid = tblcls.relnamespace
                 while (reader.Read())
                 {
                     // If the sequence is OWNED BY a column which is a serial, we skip it. The sequence will be created implicitly.
-                    if (!reader.IsDBNull(10))
+                    if (!reader.IsDBNull(reader.GetOrdinal("owner_column")))
                     {
                         var ownerSchema = reader.GetValueOrDefault<string>("owner_schema");
                         var ownerTable = reader.GetValueOrDefault<string>("owner_table");
