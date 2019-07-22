@@ -13,14 +13,7 @@ bigsql/pgc install postgis25-pg11
 bigsql/pg11/bin/initdb -D PGDATA -E UTF8 -U postgres
 
 # Start PostgreSQL
-try {
 bigsql/pg11/bin/pg_ctl -D PGDATA -l logfile start
-}
-catch
-{
-cat logfile
-}
-
 
 # Configure test account
-bigsql/pg11/bin/psql -U postgres -c "CREATE USER npgsql_tests WITH PASSWORD 'npgsql_tests' SUPERUSER";
+bigsql/pg11/bin/psql -U postgres -c "CREATE ROLE npgsql_tests SUPERUSER LOGIN PASSWORD 'npgsql_tests'";

@@ -9,14 +9,17 @@ resources:
   containers:
   - container: postgres_11
     image: mdillon/postgis:11
+    options: "--name postgres"
     ports:
     - 5432:5432
   - container: postgres_10
     image: mdillon/postgis:10
+    options: "--name postgres"
     ports:
     - 5432:5432
   - container: postgres_9_6
     image: mdillon/postgis:9.6
+    options: "--name postgres"
     ports:
     - 5432:5432
 
@@ -45,12 +48,8 @@ jobs:
       echo "##vso[task.setvariable variable=truncated_sha1]$TRUNCATED_SHA1";
     displayName: 'Assign truncated SHA1 to environment variable'
 
-  - bash: |
-      docker exec -d $[variables['postgres_service']] apt-get -y install postgresql-11-postgis-2.5
-      docker exec -d $[variables['postgres_service']] apt-get -y install postgresql-11-postgis-2.5-scripts
-      sudo apt-get install -y postgresql-client
-      psql -h localhost -U postgres -c "CREATE USER npgsql_tests WITH PASSWORD 'npgsql_tests' SUPERUSER"
-    displayName: 'Start PostgreSQL'
+  - bash: docker exec -t -u 0 postgres psql -U postgres -c "CREATE ROLE npgsql_tests SUPERUSER LOGIN PASSWORD 'npgsql_tests'"
+    displayName: 'Setup PostgreSQL'
 
   - task: DotNetCoreInstaller@1
     displayName: 'Install .NET Core SDK'
@@ -93,6 +92,7 @@ jobs:
       artifactName: 'linux-build'
 
 - job: Windows
+
   pool:
     vmImage: 'vs2017-win2016'
 
