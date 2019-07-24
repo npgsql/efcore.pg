@@ -83,9 +83,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         /// <inheritdoc />
         public override void Print(ExpressionPrinter expressionPrinter)
         {
+#pragma warning disable EF1001
             expressionPrinter.Visit(Match);
             expressionPrinter.StringBuilder.Append(" ~ ");
             expressionPrinter.Visit(Pattern);
+#pragma warning restore EF1001
         }
 
         /// <inheritdoc />

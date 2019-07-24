@@ -295,6 +295,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
 
         public override void Print(ExpressionPrinter expressionPrinter)
         {
+#pragma warning disable EF1001
             var sb = expressionPrinter.StringBuilder;
 
             if (!string.IsNullOrEmpty(Schema))
@@ -319,6 +320,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
             }
 
             expressionPrinter.StringBuilder.Append(")");
+#pragma warning restore EF1001
         }
 
         /// <inheritdoc />

@@ -8,7 +8,9 @@ using NpgsqlTypes;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 {
+#pragma warning disable EF1001
     public class NpgsqlEvaluatableExpressionFilter : RelationalEvaluatableExpressionFilter
+#pragma warning restore EF1001
     {
         [NotNull] static readonly MethodInfo TsQueryParse =
             typeof(NpgsqlTsQuery).GetRuntimeMethod(nameof(NpgsqlTsQuery.Parse), new[] { typeof(string) });
@@ -41,7 +43,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 return false;
             }
 
+#pragma warning disable EF1001
             return base.IsEvaluatableExpression(expression);
+#pragma warning restore EF1001
         }
     }
 }
