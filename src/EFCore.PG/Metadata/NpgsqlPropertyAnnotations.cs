@@ -112,17 +112,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             }
 
             var modelStrategy = Property.DeclaringEntityType.Model.Npgsql().ValueGenerationStrategy;
+            var propertyType = Property.GetProviderClrType() ?? Property.ClrType;
 
-            if (modelStrategy == NpgsqlValueGenerationStrategy.SequenceHiLo && Property.ClrType.IsInteger())
+            if (modelStrategy == NpgsqlValueGenerationStrategy.SequenceHiLo && propertyType.IsInteger())
                 return NpgsqlValueGenerationStrategy.SequenceHiLo;
 
-            if (modelStrategy == NpgsqlValueGenerationStrategy.SerialColumn && Property.ClrType.IsIntegerForIdentityOrSerial())
+            if (modelStrategy == NpgsqlValueGenerationStrategy.SerialColumn && propertyType.IsIntegerForIdentityOrSerial())
                 return NpgsqlValueGenerationStrategy.SerialColumn;
 
-            if (modelStrategy == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn && Property.ClrType.IsIntegerForIdentityOrSerial())
+            if (modelStrategy == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn && propertyType.IsIntegerForIdentityOrSerial())
                 return NpgsqlValueGenerationStrategy.IdentityAlwaysColumn;
 
-            if (modelStrategy == NpgsqlValueGenerationStrategy.IdentityByDefaultColumn && Property.ClrType.IsIntegerForIdentityOrSerial())
+            if (modelStrategy == NpgsqlValueGenerationStrategy.IdentityByDefaultColumn && propertyType.IsIntegerForIdentityOrSerial())
                 return NpgsqlValueGenerationStrategy.IdentityByDefaultColumn;
 
             return null;
@@ -132,7 +133,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         {
             if (value != null)
             {
-                var propertyType = Property.ClrType;
+                var propertyType = Property.GetProviderClrType() ?? Property.ClrType;
 
                 if (value == NpgsqlValueGenerationStrategy.SerialColumn && !propertyType.IsIntegerForIdentityOrSerial())
                 {
