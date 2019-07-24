@@ -6,7 +6,6 @@ using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Relational.Query.Pipeline;
 using Microsoft.EntityFrameworkCore.Relational.Query.Pipeline.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
@@ -15,11 +14,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     /// </summary>
     public class NpgsqlDateTimeMethodTranslator : IMethodCallTranslator
     {
-        /// <summary>
-        /// The minimum backend version supported by this translator.
-        /// </summary>
-        [NotNull] static readonly Version MinimumSupportedVersion = new Version(9, 4);
-
         /// <summary>
         /// The mapping of supported method translations.
         /// </summary>

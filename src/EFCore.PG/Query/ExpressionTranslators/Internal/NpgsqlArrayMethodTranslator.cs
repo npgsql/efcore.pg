@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -9,7 +8,6 @@ using Microsoft.EntityFrameworkCore.Relational.Query.Pipeline;
 using Microsoft.EntityFrameworkCore.Relational.Query.Pipeline.SqlExpressions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Pipeline;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
@@ -47,12 +45,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             var arrayOperand = arguments[0];
 
             if (method.IsClosedFormOf(SequenceEqualMethodInfo) && arguments[1].Type.IsArray)
-            {
-                var typeMapping = ExpressionExtensions.InferTypeMapping(arrayOperand, arguments[1]);
-                return _sqlExpressionFactory.Equal(
-                    _sqlExpressionFactory.ApplyTypeMapping(arrayOperand, typeMapping),
-                    _sqlExpressionFactory.ApplyTypeMapping(arguments[1], typeMapping));
-            }
+                return _sqlExpressionFactory.Equal(arrayOperand, arguments[1]);
 
             // Predicate-less Any - translate to a simple length check.
             if (method.IsClosedFormOf(LinqMethodHelpers.EnumerableAnyMethodInfo))
@@ -60,13 +53,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 return _sqlExpressionFactory.GreaterThan(
                     _sqlExpressionFactory.Function(
                         "array_length",
-                        new[]
-                        {
-                            _sqlExpressionFactory.ApplyDefaultTypeMapping(arrayOperand),
-                            _sqlExpressionFactory.Constant(1)
-                        },
-                        typeof(int),
-                        _sqlExpressionFactory.FindMapping(typeof(int))),
+                        new[] { arrayOperand, _sqlExpressionFactory.Constant(1) },
+                        typeof(int)),
                     _sqlExpressionFactory.Constant(1));
             }
 
