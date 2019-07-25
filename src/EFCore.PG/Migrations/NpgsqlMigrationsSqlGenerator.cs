@@ -548,7 +548,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         protected override void Generate(
             CreateIndexOperation operation,
             IModel model,
-            MigrationCommandListBuilder builder)
+            MigrationCommandListBuilder builder,
+            bool terminate = true)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
@@ -584,9 +585,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             IndexOptions(operation, model, builder);
 
-            builder.AppendLine(';');
-
-            EndStatement(builder);
+            if (terminate)
+            {
+                builder.AppendLine(';');
+                EndStatement(builder);
+            }
         }
 
         protected override void IndexOptions(CreateIndexOperation operation, IModel model, MigrationCommandListBuilder builder)
@@ -869,17 +872,24 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
         #endregion Range management
 
-        protected override void Generate(DropIndexOperation operation, IModel model, MigrationCommandListBuilder builder)
+        protected override void Generate(
+            DropIndexOperation operation,
+            IModel model,
+            MigrationCommandListBuilder builder,
+            bool terminate = true)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
             builder
                 .Append("DROP INDEX ")
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name, operation.Schema))
-                .AppendLine(';');
+                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name, operation.Schema));
 
-            EndStatement(builder);
+            if (terminate)
+            {
+                builder.AppendLine(';');
+                EndStatement(builder);
+            }
         }
 
         protected override void Generate(
@@ -908,10 +918,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         /// <param name="operation"> The operation. </param>
         /// <param name="model"> The target model which may be <c>null</c> if the operations exist without a model. </param>
         /// <param name="builder"> The command builder to use to build the commands. </param>
+        /// <param name="terminate"> Indicates whether or not to terminate the command after generating SQL for the operation. </param>
         protected override void Generate(
             InsertDataOperation operation,
             IModel model,
-            MigrationCommandListBuilder builder)
+            MigrationCommandListBuilder builder,
+            bool terminate = true)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
@@ -928,9 +940,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                     overridingSystemValue);
             }
 
+
             builder.Append(sqlBuilder.ToString());
 
-            builder.EndCommand();
+            if (terminate)
+                builder.EndCommand();
         }
 
         protected override void Generate(CreateSequenceOperation operation, IModel model, MigrationCommandListBuilder builder)

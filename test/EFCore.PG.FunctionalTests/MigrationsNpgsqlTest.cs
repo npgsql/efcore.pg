@@ -256,6 +256,15 @@ ORDER BY table_name, ordinal_position
 #pragma warning restore 612, 618
             }
         }
+
+        [ConditionalFact(Skip = "Implement")]
+        public override void Can_diff_against_3_0_ASP_NET_Identity_model() {}
+
+        [ConditionalFact(Skip = "Implement")]
+        public override void Can_diff_against_2_2_ASP_NET_Identity_model() {}
+
+        [ConditionalFact(Skip = "Implement")]
+        public override void Can_diff_against_2_1_ASP_NET_Identity_model() {}
     }
 }
 

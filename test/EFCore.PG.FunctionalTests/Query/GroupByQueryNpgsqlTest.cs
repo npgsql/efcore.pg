@@ -16,9 +16,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
-        [ConditionalTheory(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/16693")]
-        public override Task GroupBy_aggregate_projecting_conditional_expression_based_on_group_key(bool isAsync) => null;
-
         protected override void ClearLog()
             => Fixture.TestSqlLoggerFactory.Clear();
     }

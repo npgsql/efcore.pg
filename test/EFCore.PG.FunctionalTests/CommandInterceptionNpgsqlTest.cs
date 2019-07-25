@@ -9,10 +9,9 @@ using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
-    public class CommandInterceptionNpgsqlTest
-        : CommandInterceptionTestBase, IClassFixture<CommandInterceptionNpgsqlTest.InterceptionNpgsqlFixture>
+    public abstract class CommandInterceptionNpgsqlTestBase : CommandInterceptionTestBase
     {
-        public CommandInterceptionNpgsqlTest(InterceptionNpgsqlFixture fixture)
+        public CommandInterceptionNpgsqlTestBase(InterceptionNpgsqlFixtureBase fixture)
             : base(fixture)
         {
         }
@@ -30,24 +29,51 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         public override Task Intercept_non_query_to_replace_execution(bool async, bool inject) => null;
 
         [ConditionalTheory(Skip = "https://github.com/aspnet/EntityFrameworkCore/issues/16701")]
-        public override Task Intercept_non_query_to_replaceresult(bool async, bool inject) => null;
-
-        [ConditionalTheory(Skip = "https://github.com/aspnet/EntityFrameworkCore/issues/16701")]
         public override Task Intercept_non_query_with_explicitly_composed_app_interceptor(bool async) => null;
 
         [ConditionalTheory(Skip = "https://github.com/aspnet/EntityFrameworkCore/issues/16701")]
         public override Task Intercept_non_query_with_two_injected_interceptors(bool async) => null;
 
-        public class InterceptionNpgsqlFixture : InterceptionFixtureBase
+        [ConditionalTheory(Skip = "https://github.com/aspnet/EntityFrameworkCore/issues/16701")]
+        public override Task Intercept_non_query_to_replace_result(bool async, bool inject) => null;
+
+        public abstract class InterceptionNpgsqlFixtureBase : InterceptionFixtureBase
         {
             protected override string StoreName => "CommandInterception";
-
             protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
 
             protected override IServiceCollection InjectInterceptors(
                 IServiceCollection serviceCollection,
                 IEnumerable<IInterceptor> injectedInterceptors)
                 => base.InjectInterceptors(serviceCollection.AddEntityFrameworkNpgsql(), injectedInterceptors);
+        }
+
+        public class CommandInterceptionNpgsqlTest
+            : CommandInterceptionNpgsqlTestBase, IClassFixture<CommandInterceptionNpgsqlTest.InterceptionNpgsqlFixture>
+        {
+            public CommandInterceptionNpgsqlTest(InterceptionNpgsqlFixture fixture)
+                : base(fixture)
+            {
+            }
+
+            public class InterceptionNpgsqlFixture : InterceptionNpgsqlFixtureBase
+            {
+                protected override bool ShouldSubscribeToDiagnosticListener => false;
+            }
+        }
+
+        public class CommandInterceptionWithDiagnosticsNpgsqlTest
+            : CommandInterceptionNpgsqlTestBase, IClassFixture<CommandInterceptionWithDiagnosticsNpgsqlTest.InterceptionNpgsqlFixture>
+        {
+            public CommandInterceptionWithDiagnosticsNpgsqlTest(InterceptionNpgsqlFixture fixture)
+                : base(fixture)
+            {
+            }
+
+            public class InterceptionNpgsqlFixture : InterceptionNpgsqlFixtureBase
+            {
+                protected override bool ShouldSubscribeToDiagnosticListener => true;
+            }
         }
     }
 }

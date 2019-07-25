@@ -1,10 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Query.Pipeline;
-using Microsoft.EntityFrameworkCore.Relational.Query.Pipeline;
+using Microsoft.EntityFrameworkCore.Query;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Pipeline
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 {
-    public class NpgsqlSqlTranslatingExpressionVisitorFactory : RelationalSqlTranslatingExpressionVisitorFactory
+    public class NpgsqlSqlTranslatingExpressionVisitorFactory : IRelationalSqlTranslatingExpressionVisitorFactory
     {
         readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
         readonly IMemberTranslatorProvider _memberTranslatorProvider;
@@ -14,14 +13,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Pipeline
             ISqlExpressionFactory sqlExpressionFactory,
             IMemberTranslatorProvider memberTranslatorProvider,
             IMethodCallTranslatorProvider methodCallTranslatorProvider)
-            : base(sqlExpressionFactory, memberTranslatorProvider, methodCallTranslatorProvider)
         {
             _sqlExpressionFactory = (NpgsqlSqlExpressionFactory)sqlExpressionFactory;
             _memberTranslatorProvider = memberTranslatorProvider;
             _methodCallTranslatorProvider = methodCallTranslatorProvider;
         }
 
-        public override RelationalSqlTranslatingExpressionVisitor Create(
+        public virtual RelationalSqlTranslatingExpressionVisitor Create(
             IModel model,
             QueryableMethodTranslatingExpressionVisitor queryableMethodTranslatingExpressionVisitor)
             => new NpgsqlSqlTranslatingExpressionVisitor(

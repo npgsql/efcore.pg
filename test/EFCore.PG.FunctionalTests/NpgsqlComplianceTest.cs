@@ -40,7 +40,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             typeof(ComplexNavigationsWeakQueryTestBase<>),
             typeof(FunkyDataQueryTestBase<>),
             typeof(LoggingRelationalTestBase<,>),
-            typeof(AsyncFromSqlSprocQueryTestBase<>),
             typeof(FromSqlSprocQueryTestBase<>)
         };
 

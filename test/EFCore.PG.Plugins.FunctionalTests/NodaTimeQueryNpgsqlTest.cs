@@ -329,25 +329,25 @@ LIMIT 2", Sql, ignoreLineEndingDifferences: true);
         }
 */
 
-        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/16550")]
+        [Fact]
         public void Period_from_days()
         {
             using (var ctx = CreateContext())
             {
                 // ReSharper disable once PossibleUnintendedReferenceComparison
                 Assert.Null(ctx.NodaTimeTypes.SingleOrDefault(t => t.Period == Period.FromDays(t.Id)));
-                Assert.Contains(@"MAKE_INTERVAL(days => t.""Id"")", Sql);
+                Assert.Contains(@"MAKE_INTERVAL(days => n.""Id"")", Sql);
             }
         }
 
-        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/16550")]
+        [Fact]
         public void Period_from_seconds()
         {
             using (var ctx = CreateContext())
             {
                 // ReSharper disable once PossibleUnintendedReferenceComparison
                 Assert.Null(ctx.NodaTimeTypes.SingleOrDefault(t => t.Period == Period.FromSeconds(t.Id)));
-                Assert.Contains(@"MAKE_INTERVAL(secs => t.""Id"")", Sql);
+                Assert.Contains(@"MAKE_INTERVAL(secs => CAST(n.""Id"" AS bigint))", Sql);
             }
         }
 

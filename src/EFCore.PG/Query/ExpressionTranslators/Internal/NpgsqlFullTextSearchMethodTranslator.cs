@@ -1,15 +1,14 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Relational.Query.Pipeline;
-using Microsoft.EntityFrameworkCore.Relational.Query.Pipeline.SqlExpressions;
+using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Pipeline;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 using NpgsqlTypes;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
@@ -43,7 +42,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
         /// <inheritdoc />
         [CanBeNull]
-        public SqlExpression Translate(SqlExpression instance, MethodInfo method, IList<SqlExpression> arguments)
+        public SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
         {
             if (method == TsQueryParse || method == TsVectorParse)
                 return _sqlExpressionFactory.Convert(arguments[0], method.ReturnType);
@@ -101,11 +100,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
                 if (method.Name == nameof(NpgsqlFullTextSearchLinqExtensions.SetWeight))
                 {
-                    if (arguments[1].Type == typeof(NpgsqlTsVector.Lexeme.Weight))
-                        arguments[1] = arguments[1] is SqlConstantExpression weightExpression
+                    var newArgs = new List<SqlExpression>(arguments);
+                    if (newArgs[1].Type == typeof(NpgsqlTsVector.Lexeme.Weight))
+                        newArgs[1] = newArgs[1] is SqlConstantExpression weightExpression
                             ? _sqlExpressionFactory.Constant(weightExpression.Value.ToString()[0])
                             : throw new ArgumentException("Enum 'weight' argument for 'SetWeight' must be a constant expression.");
-                    return _sqlExpressionFactory.Function("setweight", arguments, method.ReturnType);
+                    return _sqlExpressionFactory.Function("setweight", newArgs, method.ReturnType);
                 }
 
                 return method.Name switch
@@ -171,8 +171,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     nameof(NpgsqlFullTextSearchLinqExtensions.Delete)
                         => _sqlExpressionFactory.Function("ts_delete", arguments, method.ReturnType, _tsVectorMapping),
 
+                    // TODO: Here we need to cast the char[] array we got into a "char"[] internal array...
                     nameof(NpgsqlFullTextSearchLinqExtensions.Filter)
-                        => _sqlExpressionFactory.Function("ts_filter", arguments, typeof(NpgsqlTsVector), _tsVectorMapping),
+                        => throw new NotImplementedException(),
+                        //=> _sqlExpressionFactory.Function("ts_filter", arguments, typeof(NpgsqlTsVector), _tsVectorMapping),
 
                     nameof(NpgsqlFullTextSearchLinqExtensions.GetLength)
                         => _sqlExpressionFactory.Function("length", arguments, method.ReturnType, _sqlExpressionFactory.FindMapping(typeof(int))),
