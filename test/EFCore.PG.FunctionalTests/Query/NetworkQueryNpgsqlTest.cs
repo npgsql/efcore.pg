@@ -167,7 +167,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             }
         }
 
-        [Fact]
+        [MinimumPostgresVersionFact(10, 0)]
         public void PhysicalAddress_macaddr8_LessThan_macaddr8()
         {
             using (var context = Fixture.CreateContext())
@@ -216,7 +216,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             }
         }
 
-        [Fact]
+        [MinimumPostgresVersionFact(10, 0)]
         public void PhysicalAddress_macaddr8_LessThanOrEqual_macaddr8()
         {
             using (var context = Fixture.CreateContext())
@@ -264,7 +264,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             }
         }
 
-        [Fact]
+        [MinimumPostgresVersionFact(10, 0)]
         public void PhysicalAddress_macaddr8_GreaterThanOrEqual_macaddr8()
         {
             using (var context = Fixture.CreateContext())
@@ -313,7 +313,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             }
         }
 
-        [Fact]
+        [MinimumPostgresVersionFact(10, 0)]
         public void PhysicalAddress_macaddr8_GreaterThan_macaddr8()
         {
             using (var context = Fixture.CreateContext())
@@ -630,7 +630,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             }
         }
 
-        [Fact]
+        [MinimumPostgresVersionFact(10, 0)]
         public void PhysicalAddress_macaddr8_BitwiseNot()
         {
             using (var context = Fixture.CreateContext())
@@ -689,7 +689,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             }
         }
 
-        [Fact]
+        [MinimumPostgresVersionFact(10, 0)]
         public void PhysicalAddress_macaddr8_BitwiseAnd_macaddr8()
         {
             using (var context = Fixture.CreateContext())
@@ -751,7 +751,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             }
         }
 
-        [Fact]
+        [MinimumPostgresVersionFact(10, 0)]
         public void PhysicalAddress_macaddr8_BitwiseOr_macaddr8()
         {
             using (var context = Fixture.CreateContext())
@@ -1213,7 +1213,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             }
         }
 
-        [Fact]
+        [MinimumPostgresVersionFact(10, 0)]
         public void PhysicalAddress_macaddr8_Truncate()
         {
             using (var context = Fixture.CreateContext())
@@ -1227,7 +1227,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             }
         }
 
-        [Fact]
+        [MinimumPostgresVersionFact(10, 0)]
         public void PhysicalAddress_macaddr8_Set7BitMac8()
         {
             using (var context = Fixture.CreateContext())
@@ -1317,6 +1317,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             /// The options to be used for configuration.
             /// </param>
             public NetContext(DbContextOptions options) : base(options) {}
+
+            protected override void OnModelCreating(ModelBuilder modelBuilder)
+            {
+                if (TestEnvironment.PostgresVersion < new Version(10, 0))
+                    modelBuilder.Entity<NetTestEntity>().Ignore(x => x.Macaddr8);
+
+                base.OnModelCreating(modelBuilder);
+            }
 
             public static void Seed(NetContext context)
             {
