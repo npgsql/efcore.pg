@@ -21,9 +21,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             {
                 base.OnModelCreating<TMessage, TProduct, TProductPhoto, TProductReview, TComputerDetail, TDimensions>(builder);
 
-                builder.Entity<TMessage>().Property(e => e.MessageId).ForNpgsqlUseIdentityColumn();
-                builder.Entity<TProductPhoto>().Property(e => e.PhotoId).ForNpgsqlUseIdentityColumn();
-                builder.Entity<TProductReview>().Property(e => e.ReviewId).ForNpgsqlUseIdentityColumn();
+                builder.Entity<TMessage>().Property(e => e.MessageId).ForNpgsqlUseSerialColumn();
+                builder.Entity<TProductPhoto>().Property(e => e.PhotoId).ForNpgsqlUseSerialColumn();
+                builder.Entity<TProductReview>().Property(e => e.ReviewId).ForNpgsqlUseSerialColumn();
             }
         }
     }
