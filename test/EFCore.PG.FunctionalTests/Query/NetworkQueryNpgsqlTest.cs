@@ -1330,7 +1330,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                        {
                            Id = i,
                            Inet = ip,
-                           Cidr = (IPAddress: IPAddress.Parse("192.168.1.0"), Subnet: 24),
+                           Cidr = (Address: IPAddress.Parse("192.168.1.0"), Subnet: 24),
                            Macaddr = macaddr,
                            Macaddr8 = macaddr8,
                            TextInet = ip.ToString(),

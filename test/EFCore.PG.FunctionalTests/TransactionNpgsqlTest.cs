@@ -40,10 +40,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             }
         }
 
-        public void Dispose()
-        {
-           TestNpgsqlRetryingExecutionStrategy.Suspended = true;
-        }
+        public void Dispose() => TestNpgsqlRetryingExecutionStrategy.Suspended = true;
 
         protected override DbContext CreateContextWithConnectionString()
         {
@@ -68,10 +65,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
             {
                 new NpgsqlDbContextOptionsBuilder(
-                        base.AddOptions(builder)
-                            .ConfigureWarnings(
-                                w => w.Log(RelationalEventId.QueryClientEvaluationWarning)
-                                    .Log(CoreEventId.FirstWithoutOrderByAndFilterWarning)))
+                        base.AddOptions(builder))
                     .MaxBatchSize(1);
                 return builder;
             }

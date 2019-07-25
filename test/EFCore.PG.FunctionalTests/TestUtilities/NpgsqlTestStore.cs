@@ -189,10 +189,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
                 }, "");
         }
 
-        NpgsqlConnection _connection;
-        string _connectionString;
-        bool _deleteDatabase;
-
         // ReSharper disable once UnusedMember.Local
         static void Clean(string name)
         {
@@ -402,18 +398,6 @@ SELECT pg_terminate_backend (pg_stat_activity.pid)
             }
 
             return command;
-        }
-
-        public override void Dispose()
-        {
-            base.Dispose();
-
-            _connection?.Dispose();
-
-            if (_deleteDatabase)
-            {
-                DeleteDatabase();
-            }
         }
 
         public static string CreateConnectionString(string name)
