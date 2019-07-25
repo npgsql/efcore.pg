@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+using System;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.TestUtilities;
@@ -47,7 +48,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
                 protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
                 {
-                    modelBuilder.ForNpgsqlUseIdentityColumns();
+                    if (TestEnvironment.PostgresVersion >= new Version(10, 0))
+                        modelBuilder.ForNpgsqlUseIdentityColumns();
 
                     base.OnModelCreating(modelBuilder, context);
                 }

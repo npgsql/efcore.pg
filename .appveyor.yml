@@ -34,8 +34,3 @@ test_script:
   - dotnet test test\EFCore.PG.FunctionalTests\EFCore.PG.FunctionalTests.csproj
 artifacts:
   - path: 'src\**\*.nupkg'
-deploy:
-  - provider: Environment
-    name: EFCore.PG Github
-    on:
-      deploy_github_release: true

@@ -43,9 +43,7 @@ jobs:
     postgres: $[variables['postgres_service']]
 
   steps:
-  - bash: |
-      export TRUNCATED_SHA1=${BUILD_SOURCEVERSION:0:9}
-      echo "##vso[task.setvariable variable=truncated_sha1]$TRUNCATED_SHA1";
+  - bash: echo "##vso[task.setvariable variable=truncated_sha1]${BUILD_SOURCEVERSION:0:9}"
     displayName: 'Assign truncated SHA1 to environment variable'
 
   - bash: docker exec -t -u 0 postgres psql -U postgres -c "CREATE ROLE npgsql_tests SUPERUSER LOGIN PASSWORD 'npgsql_tests'"
@@ -66,29 +64,29 @@ jobs:
       publishTestResults: true
 
   - task: DotNetCoreCLI@2
-    displayName: 'Pack Nuget packages'
+    displayName: 'Pack NuGet packages (CI versions)'
     inputs:
       buildProperties: 'Version=$(Build.BuildNumber)+sha.$(truncated_sha1)'
       command: 'pack'
       configuration: 'Release'
       includeSymbols: false
-      outputDir: '$(Build.ArtifactStagingDirectory)'
+      outputDir: '$(Build.StagingDirectory)/ci'
       packagesToPack: 'src/**/*.csproj'
 
   - task: DotNetCoreCLI@2
-    displayName: 'Pack symbol packages'
+    displayName: 'Pack symbol packages (CI versions)'
     inputs:
       buildProperties: 'Version=$(Build.BuildNumber)+sha.$(truncated_sha1)'
       command: 'pack'
       configuration: 'Release'
       includeSymbols: true
-      outputDir: '$(Build.ArtifactStagingDirectory)'
+      outputDir: '$(Build.StagingDirectory)/ci'
       packagesToPack: 'src/**/*.csproj'
 
   - task: PublishBuildArtifacts@1
     displayName: 'Publish artifacts'
     inputs:
-      pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      pathtoPublish: '$(Build.StagingDirectory)'
       artifactName: 'linux-build'
 
 - job: Windows
@@ -97,7 +95,7 @@ jobs:
     vmImage: 'vs2017-win2016'
 
   steps:
-  - powershell: Write-Host "##vso[task.setvariable variable=truncated_sha1]$($env:BUILD_SOURCEVERSION.subString(0, 9))";
+  - powershell: Write-Host "##vso[task.setvariable variable=truncated_sha1]$($env:BUILD_SOURCEVERSION.subString(0, 9))"
     displayName: 'Assign truncated SHA1 to environment variable'
 
   - powershell: .build/setup_postgres.ps1
@@ -118,29 +116,47 @@ jobs:
       publishTestResults: true
 
   - task: DotNetCoreCLI@2
-    displayName: 'Pack Nuget packages'
+    displayName: 'Pack NuGet packages (CI versions)'
     inputs:
       buildProperties: 'Version=$(Build.BuildNumber)+sha.$(truncated_sha1)'
       command: 'pack'
       configuration: 'Release'
       includeSymbols: false
-      outputDir: '$(Build.ArtifactStagingDirectory)'
+      outputDir: '$(Build.StagingDirectory)/ci'
       packagesToPack: 'src/**/*.csproj'
 
   - task: DotNetCoreCLI@2
-    displayName: 'Pack symbol packages'
+    displayName: 'Pack NuGet packages (Release versions)'
+    inputs:
+      command: 'pack'
+      configuration: 'Release'
+      includeSymbols: false
+      outputDir: '$(Build.StagingDirectory)/release'
+      packagesToPack: 'src/**/*.csproj'
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Pack symbol packages (CI versions)'
     inputs:
       buildProperties: 'Version=$(Build.BuildNumber)+sha.$(truncated_sha1)'
       command: 'pack'
       configuration: 'Release'
       includeSymbols: true
-      outputDir: '$(Build.ArtifactStagingDirectory)'
+      outputDir: '$(Build.StagingDirectory)/ci'
+      packagesToPack: 'src/**/*.csproj'
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Pack symbol packages (Release versions)'
+    inputs:
+      command: 'pack'
+      configuration: 'Release'
+      includeSymbols: true
+      outputDir: '$(Build.StagingDirectory)/release'
       packagesToPack: 'src/**/*.csproj'
 
   - task: PublishBuildArtifacts@1
     displayName: 'Publish artifacts'
     inputs:
-      pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      pathtoPublish: '$(Build.StagingDirectory)'
       artifactName: 'windows-build'
 
   - task: NuGetToolInstaller@1 # TODO: needed because DotNetCoreCLI@2 doesn't support authenticated feeds yet. See: https://github.com/Microsoft/azure-pipelines-tasks/issues/7160
@@ -150,11 +166,11 @@ jobs:
 
   - task: NuGetCommand@2
     displayName: 'Publish to MyGet (unstable)'
-    condition: succeeded()
+    condition: and(succeeded(), not(startsWith(variables['Build.SourceBranch'], 'refs/heads/hotfix/')))
     inputs:
       command: 'push'
       nuGetFeedType: 'external'
-      packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.snupkg'
+      packagesToPush: '$(Build.StagingDirectory)/ci/*.nupkg;!$(Build.StagingDirectory)/ci/*.symbols.nupkg;!$(Build.StagingDirectory)/ci/*.snupkg'
       publishFeedCredentials: 'npgsql-unstable'
 
   - task: NuGetCommand@2
@@ -163,5 +179,13 @@ jobs:
     inputs:
       command: 'push'
       nuGetFeedType: 'external'
-      packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.snupkg'
+      packagesToPush: '$(Build.StagingDirectory)/ci/*.nupkg;!$(Build.StagingDirectory)/ci/*.symbols.nupkg;!$(Build.StagingDirectory)/ci/*.snupkg'
       publishFeedCredentials: 'npgsql-stable'
+
+  - task: GitHubRelease@0
+    displayName: 'Publish GitHub Release'
+    condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'))
+    inputs:
+      assets: '$(Build.StagingDirectory)/release'
+      gitHubConnection: 'efcore.pg-releases'
+      isPreRelease: contains(variables['Build.SourceBranch'], '-preview')
