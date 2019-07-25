@@ -1,4 +1,4 @@
-using System.Linq;
+#if PREVIEW8
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.TestModels.SpatialModel;
@@ -604,3 +604,4 @@ FROM ""PointEntity"" AS e");
         void AssertSql(params string[] expected) => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
     }
 }
+#endif

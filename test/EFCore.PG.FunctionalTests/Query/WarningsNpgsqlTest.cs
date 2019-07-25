@@ -6,16 +6,18 @@ using Microsoft.EntityFrameworkCore.TestUtilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics.Internal;
 using Xunit;
 
+#pragma warning disable EF1001
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public class WarningsNpgsqlTest : WarningsTestBase<WarningsNpgsqlFixture>
+    // TODO: Currently disabled upstream
+    internal class WarningsNpgsqlTest : WarningsTestBase<QueryNoClientEvalNpgsqlFixture>
     {
-        public WarningsNpgsqlTest(WarningsNpgsqlFixture fixture)
+        public WarningsNpgsqlTest(QueryNoClientEvalNpgsqlFixture fixture)
             : base(fixture)
         {
-            fixture.TestSqlLoggerFactory.Clear();
         }
 
+#pragma warning disable CS0612 // Type or member is obsolete
         public override void Last_without_order_by_issues_client_eval_warning()
         {
             base.Last_without_order_by_issues_client_eval_warning();
@@ -76,6 +78,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 Fixture.TestSqlLoggerFactory.Log.Select(l => l.Message));
         }
 
+#pragma warning restore CS0612 // Type or member is obsolete
         public override void Comparing_collection_navigation_to_null_issues_possible_unintended_consequences_warning()
         {
             base.Comparing_collection_navigation_to_null_issues_possible_unintended_consequences_warning();

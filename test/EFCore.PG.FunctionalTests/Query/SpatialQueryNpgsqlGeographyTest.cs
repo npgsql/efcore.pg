@@ -1,3 +1,4 @@
+#if PREVIEW8
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.Query;
@@ -219,3 +220,4 @@ FROM ""PointEntity"" AS e");
         void AssertSql(params string[] expected) => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
     }
 }
+#endif

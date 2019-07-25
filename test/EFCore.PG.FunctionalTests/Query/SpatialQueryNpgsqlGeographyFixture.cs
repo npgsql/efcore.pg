@@ -1,3 +1,4 @@
+#if PREVIEW8
 using System.Threading;
 using GeoAPI;
 using GeoAPI.Geometries;
@@ -59,3 +60,4 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         }
     }
 }
+#endif

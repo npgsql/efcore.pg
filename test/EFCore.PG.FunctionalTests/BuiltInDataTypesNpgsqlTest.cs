@@ -39,9 +39,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
                 Assert.Equal(0, results.Count);
                 Assert.Equal(
-                    @"SELECT e.""Int""
-FROM ""MappedNullableDataTypes"" AS e
-WHERE e.""TimeSpanAsTime"" = TIME '00:01:02'",
+                    @"SELECT m.""Int""
+FROM ""MappedNullableDataTypes"" AS m
+WHERE (m.""TimeSpanAsTime"" = TIME '00:01:02') AND (m.""TimeSpanAsTime"" IS NOT NULL)",
                     Sql,
                     ignoreLineEndingDifferences: true);
             }
@@ -64,9 +64,9 @@ WHERE e.""TimeSpanAsTime"" = TIME '00:01:02'",
                 Assert.Equal(
                     @"@__timeSpan_0='02:01:00' (Nullable = true) (DbType = Object)
 
-SELECT e.""Int""
-FROM ""MappedNullableDataTypes"" AS e
-WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
+SELECT m.""Int""
+FROM ""MappedNullableDataTypes"" AS m
+WHERE ((m.""TimeSpanAsTime"" = @__timeSpan_0) AND ((m.""TimeSpanAsTime"" IS NOT NULL) AND (@__timeSpan_0 IS NOT NULL))) OR ((m.""TimeSpanAsTime"" IS NULL) AND (@__timeSpan_0 IS NULL))",
                     Sql,
                     ignoreLineEndingDifferences: true);
             }
@@ -402,14 +402,16 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
                 // ReSharper disable once PossibleUnintendedReferenceComparison
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.PhysicalAddressAsMacaddr == param26));
 
-                NpgsqlPoint? param27 = null;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.NpgsqlPointAsPoint == param27));
+                // PostgreSQL does not support equality comparison on geometry types, see https://www.postgresql.org/docs/current/functions-geometry.html
+                //NpgsqlPoint? param27 = null;
+                //Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.NpgsqlPointAsPoint == param27));
 
                 string param28 = null;
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.StringAsJsonb == param28));
 
-                string param29 = null;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.StringAsJson == param29));
+                // PostgreSQL does not support equality comparison on json
+                //string param29 = null;
+                //Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.StringAsJson == param29));
 
                 Dictionary<string, string> param30 = null;
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.DictionaryAsHstore == param30));
@@ -710,6 +712,168 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
         [Fact(Skip="https://github.com/aspnet/EntityFrameworkCore/issues/14159")]
         public override void Can_query_using_any_data_type_shadow() {}
 
+        public override void Can_query_with_null_parameters_using_any_nullable_data_type()
+        {
+            using (var context = CreateContext())
+            {
+                context.Set<BuiltInNullableDataTypes>().Add(
+                    new BuiltInNullableDataTypes
+                    {
+                        Id = 711
+                    });
+
+                Assert.Equal(1, context.SaveChanges());
+            }
+
+            using (var context = CreateContext())
+            {
+                var entity = context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711).ToList().Single();
+
+                short? param1 = null;
+                Assert.Same(
+                    entity,
+                    context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.TestNullableInt16 == param1).ToList().Single());
+                Assert.Same(
+                    entity,
+                    context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && (long?)(int?)e.TestNullableInt16 == param1).ToList()
+                        .Single());
+
+                int? param2 = null;
+                Assert.Same(
+                    entity,
+                    context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.TestNullableInt32 == param2).ToList().Single());
+
+                long? param3 = null;
+                Assert.Same(
+                    entity,
+                    context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.TestNullableInt64 == param3).ToList().Single());
+
+                double? param4 = null;
+                Assert.Same(
+                    entity,
+                    context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.TestNullableDouble == param4).ToList().Single());
+
+                decimal? param5 = null;
+                Assert.Same(
+                    entity,
+                    context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.TestNullableDecimal == param5).ToList().Single());
+
+                DateTime? param6 = null;
+                Assert.Same(
+                    entity,
+                    context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.TestNullableDateTime == param6).ToList().Single());
+
+                // We don't support DateTimeOffset
+
+                TimeSpan? param8 = null;
+                Assert.Same(
+                    entity,
+                    context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.TestNullableTimeSpan == param8).ToList().Single());
+
+                float? param9 = null;
+                Assert.Same(
+                    entity,
+                    context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.TestNullableSingle == param9).ToList().Single());
+
+                bool? param10 = null;
+                Assert.Same(
+                    entity,
+                    context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.TestNullableBoolean == param10).ToList().Single());
+
+                // We don't support byte
+
+                Enum64? param12 = null;
+                Assert.Same(
+                    entity, context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.Enum64 == param12).ToList().Single());
+
+                Enum32? param13 = null;
+                Assert.Same(
+                    entity, context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.Enum32 == param13).ToList().Single());
+
+                Enum16? param14 = null;
+                Assert.Same(
+                    entity, context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.Enum16 == param14).ToList().Single());
+
+                Enum8? param15 = null;
+                Assert.Same(
+                    entity, context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.Enum8 == param15).ToList().Single());
+
+                var entityType = context.Model.FindEntityType(typeof(BuiltInNullableDataTypes));
+                if (entityType.FindProperty(nameof(BuiltInNullableDataTypes.TestNullableUnsignedInt16)) != null)
+                {
+                    ushort? param16 = null;
+                    Assert.Same(
+                        entity,
+                        context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.TestNullableUnsignedInt16 == param16).ToList()
+                            .Single());
+                }
+
+                if (entityType.FindProperty(nameof(BuiltInNullableDataTypes.TestNullableUnsignedInt32)) != null)
+                {
+                    uint? param17 = null;
+                    Assert.Same(
+                        entity,
+                        context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.TestNullableUnsignedInt32 == param17).ToList()
+                            .Single());
+                }
+
+                if (entityType.FindProperty(nameof(BuiltInNullableDataTypes.TestNullableUnsignedInt64)) != null)
+                {
+                    ulong? param18 = null;
+                    Assert.Same(
+                        entity,
+                        context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.TestNullableUnsignedInt64 == param18).ToList()
+                            .Single());
+                }
+
+                if (entityType.FindProperty(nameof(BuiltInNullableDataTypes.TestNullableCharacter)) != null)
+                {
+                    char? param19 = null;
+                    Assert.Same(
+                        entity,
+                        context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.TestNullableCharacter == param19).ToList()
+                            .Single());
+                }
+
+                if (entityType.FindProperty(nameof(BuiltInNullableDataTypes.TestNullableSignedByte)) != null)
+                {
+                    sbyte? param20 = null;
+                    Assert.Same(
+                        entity,
+                        context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.TestNullableSignedByte == param20).ToList()
+                            .Single());
+                }
+
+                if (entityType.FindProperty(nameof(BuiltInNullableDataTypes.EnumU64)) != null)
+                {
+                    EnumU64? param21 = null;
+                    Assert.Same(
+                        entity, context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.EnumU64 == param21).ToList().Single());
+                }
+
+                if (entityType.FindProperty(nameof(BuiltInNullableDataTypes.EnumU32)) != null)
+                {
+                    EnumU32? param22 = null;
+                    Assert.Same(
+                        entity, context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.EnumU32 == param22).ToList().Single());
+                }
+
+                if (entityType.FindProperty(nameof(BuiltInNullableDataTypes.EnumU16)) != null)
+                {
+                    EnumU16? param23 = null;
+                    Assert.Same(
+                        entity, context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.EnumU16 == param23).ToList().Single());
+                }
+
+                if (entityType.FindProperty(nameof(BuiltInNullableDataTypes.EnumS8)) != null)
+                {
+                    EnumS8? param24 = null;
+                    Assert.Same(
+                        entity, context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.EnumS8 == param24).ToList().Single());
+                }
+            }
+        }
+
         string Sql => Fixture.TestSqlLoggerFactory.Sql;
 
         static readonly string EOL = Environment.NewLine;
@@ -723,6 +887,8 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
             public override bool SupportsUnicodeToAnsiConversion => false;
 
             public override bool SupportsLargeStringComparisons => true;
+
+            public override bool SupportsDecimalComparisons => true;
 
             protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
 
@@ -809,11 +975,6 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
                 modelBuilder.Entity<MappedNullableDataTypes>().Property(x => x.RankingNormalization).HasColumnType("integer");
                 modelBuilder.Entity<MappedNullableDataTypes>().Property(x => x.Regconfig).HasColumnType("regconfig");
             }
-
-            public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
-                => base.AddOptions(builder).ConfigureWarnings(
-                    c => c
-                        .Log(RelationalEventId.QueryClientEvaluationWarning));
 
             public override bool SupportsBinaryKeys => true;
 

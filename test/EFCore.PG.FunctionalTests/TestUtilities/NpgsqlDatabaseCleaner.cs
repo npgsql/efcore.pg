@@ -38,6 +38,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
         const string GetExtensions = @"
 SELECT name FROM pg_available_extensions WHERE installed_version IS NOT NULL AND name <> 'plpgsql'";
 
+        const string GetUserDefinedRangesEnums = @"
+SELECT ns.nspname, typname
+FROM pg_type
+JOIN pg_namespace AS ns ON ns.oid = pg_type.typnamespace
+WHERE typtype IN ('r', 'e') AND nspname <> 'pg_catalog'";
+
         public override void Clean(DatabaseFacade facade)
         {
             // The following is somewhat hacky
@@ -51,16 +57,32 @@ SELECT name FROM pg_available_extensions WHERE installed_version IS NOT NULL AND
                 connection.Open();
                 try
                 {
-                    var dbConnection = (NpgsqlConnection)connection.DbConnection;
+                    var conn = (NpgsqlConnection)connection.DbConnection;
 
                     List<string> extensions;
-                    using (var cmd = new NpgsqlCommand(GetExtensions, dbConnection))
+                    using (var cmd = new NpgsqlCommand(GetExtensions, conn))
                     using (var reader = cmd.ExecuteReader())
                         extensions = reader.Cast<DbDataRecord>().Select(r => r.GetString(0)).ToList();
 
-                    var dropExtensionsSql = string.Join("", extensions.Select(e => $"DROP EXTENSION \"{e}\" CASCADE;"));
-                    using (var cmd = new NpgsqlCommand(dropExtensionsSql, dbConnection))
-                        cmd.ExecuteNonQuery();
+                    if (extensions.Any())
+                    {
+                        var dropExtensionsSql = string.Join("", extensions.Select(e => $"DROP EXTENSION \"{e}\" CASCADE;"));
+                        using (var cmd = new NpgsqlCommand(dropExtensionsSql, conn))
+                            cmd.ExecuteNonQuery();
+                    }
+
+                    // Drop user-defined ranges and enums, cascading to all tables which depend on them
+                    List<(string Schema, string Name)> userDefinedTypes;
+                    using (var cmd = new NpgsqlCommand(GetUserDefinedRangesEnums, conn))
+                    using (var reader = cmd.ExecuteReader())
+                        userDefinedTypes = reader.Cast<DbDataRecord>().Select(r => (r.GetString(0), r.GetString(1))).ToList();
+
+                    if (userDefinedTypes.Any())
+                    {
+                        var dropTypes = string.Join("", userDefinedTypes.Select(t => $@"DROP TYPE ""{t.Schema}"".""{t.Name}"" CASCADE;"));
+                        using (var cmd = new NpgsqlCommand(dropTypes, conn))
+                            cmd.ExecuteNonQuery();
+                    }
                 }
                 finally
                 {
@@ -73,16 +95,14 @@ SELECT name FROM pg_available_extensions WHERE installed_version IS NOT NULL AND
 
         protected override string BuildCustomSql(DatabaseModel databaseModel)
             // Some extensions create tables (e.g. PostGIS), so we must drop them first.
-            => databaseModel.Npgsql()
-                            .PostgresExtensions
+            => databaseModel.GetPostgresExtensions()
                             .Select(e => _sqlGenerationHelper.DelimitIdentifier(e.Name, e.Schema))
                             .Aggregate(new StringBuilder(),
                                 (builder, s) => builder.Append("DROP EXTENSION ").Append(s).Append(";"),
                                 builder => builder.ToString());
 
         protected override string BuildCustomEndingSql(DatabaseModel databaseModel)
-            => databaseModel.Npgsql()
-                            .PostgresEnums
+            => databaseModel.GetPostgresEnums()
                             .Select(e => _sqlGenerationHelper.DelimitIdentifier(e.Name, e.Schema))
                             .Aggregate(new StringBuilder(),
                                 (builder, s) => builder.Append("DROP TYPE ").Append(s).Append(" CASCADE;"),

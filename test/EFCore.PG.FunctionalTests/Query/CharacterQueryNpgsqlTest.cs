@@ -1,16 +1,23 @@
-using System;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestUtilities;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     public class CharacterQueryNpgsqlTest : IClassFixture<CharacterQueryNpgsqlTest.CharacterQueryNpgsqlFixture>
     {
+        CharacterQueryNpgsqlFixture Fixture { get; }
+
+        public CharacterQueryNpgsqlTest(CharacterQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
+        {
+            Fixture = fixture;
+            Fixture.TestSqlLoggerFactory.Clear();
+            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        }
+
         #region Tests
 
         [Fact]
@@ -148,81 +155,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         #endregion
 
-        #region Support
-
-        /// <summary>
-        /// Provides resources for unit tests.
-        /// </summary>
-        CharacterQueryNpgsqlFixture Fixture { get; }
-
-        /// <summary>
-        /// Initializes resources for unit tests.
-        /// </summary>
-        /// <param name="fixture">The fixture of resources for testing.</param>
-        public CharacterQueryNpgsqlTest(CharacterQueryNpgsqlFixture fixture)
-        {
-            Fixture = fixture;
-            Fixture.TestSqlLoggerFactory.Clear();
-        }
-
-        #endregion
-
         #region Fixture
 
         // ReSharper disable once ClassNeverInstantiated.Global
         /// <summary>
         /// Represents a fixture suitable for testing character data.
         /// </summary>
-        public class CharacterQueryNpgsqlFixture : IDisposable
+        public class CharacterQueryNpgsqlFixture : SharedStoreFixtureBase<CharacterContext>
         {
-            /// <summary>
-            /// The <see cref="NpgsqlTestStore"/> used for testing.
-            /// </summary>
-            readonly NpgsqlTestStore _testStore;
-
-            /// <summary>
-            /// The <see cref="DbContextOptions"/> used for testing.
-            /// </summary>
-            readonly DbContextOptions _options;
-
-            /// <summary>
-            /// The logger factory used for testing.
-            /// </summary>
-            public TestSqlLoggerFactory TestSqlLoggerFactory { get; }
-
-            /// <summary>
-            /// Initializes a <see cref="CharacterQueryNpgsqlTest.CharacterQueryNpgsqlFixture"/>.
-            /// </summary>
-            // ReSharper disable once UnusedMember.Global
-            public CharacterQueryNpgsqlFixture()
-            {
-                TestSqlLoggerFactory = new TestSqlLoggerFactory();
-
-                _testStore = NpgsqlTestStore.CreateScratch();
-
-                _options =
-                    new DbContextOptionsBuilder()
-                        .UseNpgsql(_testStore.ConnectionString, b => b.ApplyConfiguration())
-                        .UseInternalServiceProvider(
-                            new ServiceCollection()
-                                .AddEntityFrameworkNpgsql()
-                                .AddSingleton<ILoggerFactory>(TestSqlLoggerFactory)
-                                .BuildServiceProvider())
-                        .Options;
-
-                using (var context = CreateContext())
-                {
-                    context.Database.EnsureCreated();
-                }
-            }
-
-            /// <summary>
-            /// Creates a new <see cref="CharacterContext"/>.
-            /// </summary>
-            /// <returns>
-            /// A <see cref="CharacterContext"/> for testing.
-            /// </returns>
-            public CharacterContext CreateContext() => new CharacterContext(_options);
+            protected override string StoreName => "CharacterQueryNpgsqlTest";
+            protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+            public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
 
             /// <summary>
             /// Clears the entities in the context.
@@ -239,9 +182,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                     ctx.SaveChanges();
                 }
             }
-
-            /// <inheritdoc />
-            public void Dispose() => _testStore.Dispose();
         }
 
         public class CharacterTestEntity
@@ -250,8 +190,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             public string Character6 { get; set; }
         }
 
-        public class CharacterContext : DbContext
-        {
+        public class CharacterContext : PoolableDbContext{
             public DbSet<CharacterTestEntity> CharacterTestEntities { get; set; }
 
             /// <summary>

@@ -114,7 +114,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
 
         [Fact]
         public void GenerateCodeLiteral_returns_macaddr_literal()
-            => Assert.Equal("System.Net.NetworkInformation.PhysicalAddress.Parse(\"001122334455\")", CodeLiteral(PhysicalAddress.Parse("00-11-22-33-44-55")));
+            => Assert.Equal(@"System.Net.NetworkInformation.PhysicalAddress.Parse(""001122334455"")", CodeLiteral(PhysicalAddress.Parse("00-11-22-33-44-55")));
 
         [Fact]
         public void GenerateSqlLiteral_returns_macaddr8_literal()
@@ -122,7 +122,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
 
         [Fact]
         public void GenerateCodeLiteral_returns_macaddr8_literal()
-            => Assert.Equal("System.Net.NetworkInformation.PhysicalAddress.Parse(\"0011223344556677\")", CodeLiteral(PhysicalAddress.Parse("00-11-22-33-44-55-66-77")));
+            => Assert.Equal(@"System.Net.NetworkInformation.PhysicalAddress.Parse(""0011223344556677"")", CodeLiteral(PhysicalAddress.Parse("00-11-22-33-44-55-66-77")));
 
         [Fact]
         public void GenerateSqlLiteral_returns_inet_literal()
@@ -130,7 +130,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
 
         [Fact]
         public void GenerateCodeLiteral_returns_inet_literal()
-            => Assert.Equal("System.Net.IPAddress.Parse(\"192.168.1.1\")", CodeLiteral(IPAddress.Parse("192.168.1.1")));
+            => Assert.Equal(@"System.Net.IPAddress.Parse(""192.168.1.1"")", CodeLiteral(IPAddress.Parse("192.168.1.1")));
 
         [Fact]
         public void GenerateSqlLiteral_returns_cidr_literal()
@@ -138,7 +138,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
 
         [Fact]
         public void GenerateCodeLiteral_returns_cidr_literal()
-            => Assert.Equal("new System.ValueTuple<System.Net.IPAddress, int>(System.Net.IPAddress.Parse(\"192.168.1.0\"), 24)", CodeLiteral((IPAddress.Parse("192.168.1.0"), 24)));
+            => Assert.Equal(@"new System.ValueTuple<System.Net.IPAddress, int>(System.Net.IPAddress.Parse(""192.168.1.0""), 24)", CodeLiteral((IPAddress.Parse("192.168.1.0"), 24)));
 
         #endregion Networking
 
@@ -323,11 +323,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
 
         [Fact]
         public void GenerateSqlLiteral_returns_jsonb_literal()
-            => Assert.Equal(@"JSONB '{""a"":1}'", GetMapping("jsonb").GenerateSqlLiteral(@"{""a"":1}"));
+            => Assert.Equal(@"'{""a"":1}'", GetMapping("jsonb").GenerateSqlLiteral(@"{""a"":1}"));
 
         [Fact]
         public void GenerateSqlLiteral_returns_json_literal()
-            => Assert.Equal(@"JSON '{""a"":1}'", GetMapping("json").GenerateSqlLiteral(@"{""a"":1}"));
+            => Assert.Equal(@"'{""a"":1}'", GetMapping("json").GenerateSqlLiteral(@"{""a"":1}"));
 
         [Fact]
         public void GenerateSqlLiteral_returns_enum_literal()
@@ -352,7 +352,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
                 new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
                 new NpgsqlSnakeCaseNameTranslator());
 
-            Assert.Equal("'sad'::\"DummyEnum\"", mapping.GenerateSqlLiteral(DummyEnum.Sad));
+            Assert.Equal(@"'sad'::""DummyEnum""", mapping.GenerateSqlLiteral(DummyEnum.Sad));
         }
 
         enum DummyEnum

@@ -17,9 +17,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
     /// </summary>
     public class NpgsqlOptionsExtension : RelationalOptionsExtension
     {
-        long? _serviceProviderHash;
+        DbContextOptionsExtensionInfo _info;
         [NotNull] readonly List<UserRangeDefinition> _userRangeDefinitions;
-        string _logFragment;
 
         /// <summary>
         /// The name of the database for administrative operations.
@@ -77,109 +76,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
             ReverseNullOrdering = copyFrom.ReverseNullOrdering;
         }
 
-        /// <inheritdoc />
-        [NotNull]
-        protected override RelationalOptionsExtension Clone() => new NpgsqlOptionsExtension(this);
-
-        /// <inheritdoc />
-        public override bool ApplyServices(IServiceCollection services)
-        {
-            Check.NotNull(services, nameof(services));
-
-            services.AddEntityFrameworkNpgsql();
-
-            return true;
-        }
-
         // The following is a hack to set the default minimum batch size to 2 in Npgsql
         // See https://github.com/aspnet/EntityFrameworkCore/pull/10091
         public override int? MinBatchSize => base.MinBatchSize ?? 2;
-
-        /// <inheritdoc />
-        public override void PopulateDebugInfo(IDictionary<string, string> debugInfo)
-        {
-            debugInfo["Npgsql.EntityFrameworkCore.PostgreSQL:" + nameof(NpgsqlDbContextOptionsBuilder.UseAdminDatabase)]
-                = (AdminDatabase?.GetHashCode() ?? 0).ToString(CultureInfo.InvariantCulture);
-
-            debugInfo["Npgsql.EntityFrameworkCore.PostgreSQL:" + nameof(NpgsqlDbContextOptionsBuilder.SetPostgresVersion)]
-                = (PostgresVersion?.GetHashCode() ?? 0).ToString(CultureInfo.InvariantCulture);
-
-            debugInfo["Npgsql.EntityFrameworkCore.PostgreSQL:" + nameof(NpgsqlDbContextOptionsBuilder.ReverseNullOrdering)]
-                = ReverseNullOrdering.GetHashCode().ToString(CultureInfo.InvariantCulture);
-
-            debugInfo["Npgsql.EntityFrameworkCore.PostgreSQL:" + nameof(NpgsqlDbContextOptionsBuilder.RemoteCertificateValidationCallback)]
-                = (RemoteCertificateValidationCallback?.GetHashCode() ?? 0).ToString(CultureInfo.InvariantCulture);
-
-            debugInfo["Npgsql.EntityFrameworkCore.PostgreSQL:" + nameof(NpgsqlDbContextOptionsBuilder.ProvideClientCertificatesCallback)]
-                = (ProvideClientCertificatesCallback?.GetHashCode() ?? 0).ToString(CultureInfo.InvariantCulture);
-
-            foreach (var rangeDefinition in _userRangeDefinitions)
-            {
-                debugInfo["Npgsql.EntityFrameworkCore.PostgreSQL:" + nameof(NpgsqlDbContextOptionsBuilder.MapRange) + ":" + rangeDefinition.SubtypeClrType.Name]
-                    = rangeDefinition.GetHashCode().ToString(CultureInfo.InvariantCulture);
-            }
-        }
-
-        [NotNull]
-        public override string LogFragment
-        {
-            get
-            {
-                if (_logFragment != null)
-                    return _logFragment;
-
-                var builder = new StringBuilder(base.LogFragment);
-
-                if (AdminDatabase != null)
-                {
-                    builder.Append("AdminDatabase=").Append(AdminDatabase).Append(' ');
-                }
-
-                if (PostgresVersion != null)
-                {
-                    builder.Append("PostgresVersion=").Append(PostgresVersion).Append(' ');
-                }
-
-                if (ProvideClientCertificatesCallback != null)
-                {
-                    builder.Append("ProvideClientCertificatesCallback ");
-                }
-
-                if (RemoteCertificateValidationCallback != null)
-                {
-                    builder.Append("RemoteCertificateValidationCallback ");
-                }
-
-                if (ReverseNullOrdering)
-                {
-                    builder.Append("ReverseNullOrdering ");
-                }
-
-                if (UserRangeDefinitions.Count > 0)
-                {
-                    builder.Append("UserRangeDefinitions=[");
-                    foreach (var item in UserRangeDefinitions)
-                    {
-                        builder.Append(item.SubtypeClrType).Append("=>");
-
-                        if (item.SchemaName != null)
-                            builder.Append(item.SchemaName).Append(".");
-
-                        builder.Append(item.RangeName);
-
-                        if (item.SubtypeName != null)
-                            builder.Append("(").Append(item.SubtypeName).Append(")");
-
-                        builder.Append(";");
-                    }
-
-                    builder.Length = builder.Length -1;
-                    builder.Append("] ");
-                }
-
-                return _logFragment = builder.ToString();
-            }
-        }
 
         /// <summary>
         /// Returns a copy of the current instance configured with the specified range mapping.
@@ -288,25 +187,142 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
 
         #endregion Authentication
 
-        public override long GetServiceProviderHashCode()
-        {
-            unchecked
-            {
-                if (_serviceProviderHash == null)
-                {
-                    _serviceProviderHash = _userRangeDefinitions.Aggregate(
-                        base.GetServiceProviderHashCode(),
-                        (h, ud) => (h * 397) ^ ud.GetHashCode());
-                    _serviceProviderHash = (_serviceProviderHash * 397) ^ AdminDatabase?.GetHashCode() ?? 0L;
-                    _serviceProviderHash = (_serviceProviderHash * 397) ^ (PostgresVersion?.GetHashCode() ?? 0L);
-                    _serviceProviderHash = (_serviceProviderHash * 397) ^ (ProvideClientCertificatesCallback?.GetHashCode() ?? 0L);
-                    _serviceProviderHash = (_serviceProviderHash * 397) ^ (RemoteCertificateValidationCallback?.GetHashCode() ?? 0L);
-                    _serviceProviderHash = (_serviceProviderHash * 397) ^ ReverseNullOrdering.GetHashCode();
-                }
+        #region Infrastructure
 
-                return _serviceProviderHash.Value;
+        /// <inheritdoc />
+        [NotNull]
+        protected override RelationalOptionsExtension Clone() => new NpgsqlOptionsExtension(this);
+
+        /// <inheritdoc />
+        public override void ApplyServices(IServiceCollection services)
+            => services.AddEntityFrameworkNpgsql();
+
+        /// <inheritdoc />
+        public override DbContextOptionsExtensionInfo Info
+            => _info ??= new ExtensionInfo(this);
+
+        sealed class ExtensionInfo : RelationalExtensionInfo
+        {
+            long? _serviceProviderHash;
+            string _logFragment;
+
+            public ExtensionInfo(IDbContextOptionsExtension extension)
+                : base(extension)
+            {
+            }
+
+            new NpgsqlOptionsExtension Extension => (NpgsqlOptionsExtension)base.Extension;
+
+            public override bool IsDatabaseProvider => true;
+
+            [NotNull]
+            public override string LogFragment
+            {
+                get
+                {
+                    if (_logFragment != null)
+                        return _logFragment;
+
+                    var builder = new StringBuilder(base.LogFragment);
+
+                    if (Extension.AdminDatabase != null)
+                    {
+                        builder.Append("AdminDatabase=").Append(Extension.AdminDatabase).Append(' ');
+                    }
+
+                    if (Extension.PostgresVersion != null)
+                    {
+                        builder.Append("PostgresVersion=").Append(Extension.PostgresVersion).Append(' ');
+                    }
+
+                    if (Extension.ProvideClientCertificatesCallback != null)
+                    {
+                        builder.Append("ProvideClientCertificatesCallback ");
+                    }
+
+                    if (Extension.RemoteCertificateValidationCallback != null)
+                    {
+                        builder.Append("RemoteCertificateValidationCallback ");
+                    }
+
+                    if (Extension.ReverseNullOrdering)
+                    {
+                        builder.Append("ReverseNullOrdering ");
+                    }
+
+                    if (Extension.UserRangeDefinitions.Count > 0)
+                    {
+                        builder.Append("UserRangeDefinitions=[");
+                        foreach (var item in Extension.UserRangeDefinitions)
+                        {
+                            builder.Append(item.SubtypeClrType).Append("=>");
+
+                            if (item.SchemaName != null)
+                                builder.Append(item.SchemaName).Append(".");
+
+                            builder.Append(item.RangeName);
+
+                            if (item.SubtypeName != null)
+                                builder.Append("(").Append(item.SubtypeName).Append(")");
+
+                            builder.Append(";");
+                        }
+
+                        builder.Length = builder.Length -1;
+                        builder.Append("] ");
+                    }
+
+                    return _logFragment = builder.ToString();
+                }
+            }
+
+            public override long GetServiceProviderHashCode()
+            {
+                unchecked
+                {
+                    if (_serviceProviderHash == null)
+                    {
+                        _serviceProviderHash = Extension._userRangeDefinitions.Aggregate(
+                            base.GetServiceProviderHashCode(),
+                            (h, ud) => (h * 397) ^ ud.GetHashCode());
+                        _serviceProviderHash = (_serviceProviderHash * 397) ^ Extension.AdminDatabase?.GetHashCode() ?? 0L;
+                        _serviceProviderHash = (_serviceProviderHash * 397) ^ (Extension.PostgresVersion?.GetHashCode() ?? 0L);
+                        _serviceProviderHash = (_serviceProviderHash * 397) ^ (Extension.ProvideClientCertificatesCallback?.GetHashCode() ?? 0L);
+                        _serviceProviderHash = (_serviceProviderHash * 397) ^ (Extension.RemoteCertificateValidationCallback?.GetHashCode() ?? 0L);
+                        _serviceProviderHash = (_serviceProviderHash * 397) ^ Extension.ReverseNullOrdering.GetHashCode();
+                    }
+
+                    return _serviceProviderHash.Value;
+                }
+            }
+
+            /// <inheritdoc />
+            public override void PopulateDebugInfo(IDictionary<string, string> debugInfo)
+            {
+                debugInfo["Npgsql.EntityFrameworkCore.PostgreSQL:" + nameof(NpgsqlDbContextOptionsBuilder.UseAdminDatabase)]
+                    = (Extension.AdminDatabase?.GetHashCode() ?? 0).ToString(CultureInfo.InvariantCulture);
+
+                debugInfo["Npgsql.EntityFrameworkCore.PostgreSQL:" + nameof(NpgsqlDbContextOptionsBuilder.SetPostgresVersion)]
+                    = (Extension.PostgresVersion?.GetHashCode() ?? 0).ToString(CultureInfo.InvariantCulture);
+
+                debugInfo["Npgsql.EntityFrameworkCore.PostgreSQL:" + nameof(NpgsqlDbContextOptionsBuilder.ReverseNullOrdering)]
+                    = Extension.ReverseNullOrdering.GetHashCode().ToString(CultureInfo.InvariantCulture);
+
+                debugInfo["Npgsql.EntityFrameworkCore.PostgreSQL:" + nameof(NpgsqlDbContextOptionsBuilder.RemoteCertificateValidationCallback)]
+                    = (Extension.RemoteCertificateValidationCallback?.GetHashCode() ?? 0).ToString(CultureInfo.InvariantCulture);
+
+                debugInfo["Npgsql.EntityFrameworkCore.PostgreSQL:" + nameof(NpgsqlDbContextOptionsBuilder.ProvideClientCertificatesCallback)]
+                    = (Extension.ProvideClientCertificatesCallback?.GetHashCode() ?? 0).ToString(CultureInfo.InvariantCulture);
+
+                foreach (var rangeDefinition in Extension._userRangeDefinitions)
+                {
+                    debugInfo["Npgsql.EntityFrameworkCore.PostgreSQL:" + nameof(NpgsqlDbContextOptionsBuilder.MapRange) + ":" + rangeDefinition.SubtypeClrType.Name]
+                        = rangeDefinition.GetHashCode().ToString(CultureInfo.InvariantCulture);
+                }
             }
         }
+
+        #endregion Infrastructure
     }
 
     public class UserRangeDefinition : IEquatable<UserRangeDefinition>

@@ -2,13 +2,11 @@ using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions.Infrastructure;
-using Microsoft.EntityFrameworkCore.Metadata.Conventions.Internal;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Query;
-using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
-using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors;
 using Microsoft.EntityFrameworkCore.Query.Internal;
-using Microsoft.EntityFrameworkCore.Query.Sql;
+using Microsoft.EntityFrameworkCore.Query.Pipeline;
+using Microsoft.EntityFrameworkCore.Relational.Query.Pipeline;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Update;
 using Microsoft.EntityFrameworkCore.ValueGeneration;
@@ -19,16 +17,13 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query.EvaluatableExpressionFilters.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Pipeline;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal;
-using ReLinq = Remotion.Linq.Parsing.ExpressionVisitors.TreeEvaluation;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection
@@ -92,15 +87,14 @@ namespace Microsoft.Extensions.DependencyInjection
                     .TryAdd<IHistoryRepository, NpgsqlHistoryRepository>()
                     .TryAdd<ICompiledQueryCacheKeyGenerator, NpgsqlCompiledQueryCacheKeyGenerator>()
                     .TryAdd<IExecutionStrategyFactory, NpgsqlExecutionStrategyFactory>()
-                    .TryAdd<IQueryCompilationContextFactory, NpgsqlQueryCompilationContextFactory>()
-                    .TryAdd<IMemberTranslator, NpgsqlCompositeMemberTranslator>()
-                    .TryAdd<ICompositeMethodCallTranslator, NpgsqlCompositeMethodCallTranslator>()
-                    .TryAdd<IExpressionFragmentTranslator, NpgsqlCompositeExpressionFragmentTranslator>()
+                    .TryAdd<IQueryableMethodTranslatingExpressionVisitorFactory, NpgsqlQueryableMethodTranslatingExpressionVisitorFactory>()
+                    .TryAdd<IMethodCallTranslatorProvider, NpgsqlMethodCallTranslatorProvider>()
+                    .TryAdd<IMemberTranslatorProvider, NpgsqlMemberTranslatorProvider>()
+                    .TryAdd<IEvaluatableExpressionFilter, NpgsqlEvaluatableExpressionFilter>()
                     .TryAdd<IQuerySqlGeneratorFactory, NpgsqlQuerySqlGeneratorFactory>()
-                    .TryAdd<ISqlTranslatingExpressionVisitorFactory, NpgsqlSqlTranslatingExpressionVisitorFactory>()
+                    .TryAdd<IRelationalSqlTranslatingExpressionVisitorFactory, NpgsqlSqlTranslatingExpressionVisitorFactory>()
+                    .TryAdd<ISqlExpressionFactory, NpgsqlSqlExpressionFactory>()
                     .TryAdd<ISingletonOptions, INpgsqlOptions>(p => p.GetService<INpgsqlOptions>())
-                    .TryAdd<ReLinq.IEvaluatableExpressionFilter, ReLinqNpgsqlCompositeEvaluatableExpressionFilter>()
-                    .TryAdd<IEvaluatableExpressionFilter, NpgsqlCompositeEvaluatableExpressionFilter>()
                     .TryAddProviderSpecificServices(
                         b => b
                              .TryAddSingleton<INpgsqlValueGeneratorCache, NpgsqlValueGeneratorCache>()

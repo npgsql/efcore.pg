@@ -17,9 +17,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact(Skip = "https://github.com/aspnet/EntityFramework/issues/6563")]
         public override void Bad_data_error_handling_invalid_cast_projection() {}
 
-        [Fact(Skip="https://github.com/aspnet/EntityFrameworkCore/pull/11069")]
-        public override void From_sql_queryable_simple_projection_composed() {}
-
         [Fact(Skip="https://github.com/aspnet/EntityFrameworkCore/pull/15423")]
         public override void FromSqlRaw_does_not_parameterize_interpolated_string() {}
 

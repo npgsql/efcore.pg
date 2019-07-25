@@ -46,10 +46,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         readonly NpgsqlCharacterTypeMapping    _char               = new NpgsqlCharacterTypeMapping("character");
         readonly CharTypeMapping               _singleChar         = new CharTypeMapping("character(1)", DbType.String);
         readonly NpgsqlCharacterTypeMapping    _stringAsSingleChar = new NpgsqlCharacterTypeMapping("character(1)");
-        readonly NpgsqlJsonbTypeMapping        _jsonb              = new NpgsqlJsonbTypeMapping();
-        readonly NpgsqlJsonTypeMapping         _json               = new NpgsqlJsonTypeMapping();
-        readonly NpgsqlXmlTypeMapping          _xml                = new NpgsqlXmlTypeMapping();
-        readonly NpgsqlCitextTypeMapping       _citext             = new NpgsqlCitextTypeMapping();
+        readonly NpgsqlStringTypeMapping       _jsonb              = new NpgsqlStringTypeMapping("jsonb", NpgsqlDbType.Jsonb);
+        readonly NpgsqlStringTypeMapping       _json               = new NpgsqlStringTypeMapping("json", NpgsqlDbType.Json);
+        readonly NpgsqlStringTypeMapping       _xml                = new NpgsqlStringTypeMapping("xml", NpgsqlDbType.Xml);
+        readonly NpgsqlStringTypeMapping       _citext             = new NpgsqlStringTypeMapping("citext", NpgsqlDbType.Citext);
 
         // Date/Time types
         readonly NpgsqlDateTypeMapping         _date               = new NpgsqlDateTypeMapping();
@@ -103,6 +103,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         readonly NpgsqlByteArrayTypeMapping    _bytea              = new NpgsqlByteArrayTypeMapping();
         readonly NpgsqlHstoreTypeMapping       _hstore             = new NpgsqlHstoreTypeMapping();
         readonly NpgsqlTidTypeMapping          _tid                = new NpgsqlTidTypeMapping();
+
+        // Special stuff
+        // ReSharper disable once InconsistentNaming
+        public readonly StringTypeMapping      EStringTypeMapping  = new NpgsqlEStringTypeMapping();
 
         #endregion Mappings
 
@@ -408,9 +412,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 var elementType = clrType.GetElementType();
                 Debug.Assert(elementType != null, "Detected array type but element type is null");
 
-                // If an element isn't supported, neither is its array
+                // If an element isn't supported, neither is its array. If the element is only supported via value
+                // conversion we also don't support it.
                 var elementMapping = (RelationalTypeMapping)FindMapping(elementType);
-                if (elementMapping == null)
+                if (elementMapping == null || elementMapping.Converter != null)
                     return null;
 
                 // Arrays of arrays aren't supported (as opposed to multidimensional arrays) by PostgreSQL

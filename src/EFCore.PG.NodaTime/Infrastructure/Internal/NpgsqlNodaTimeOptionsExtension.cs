@@ -12,20 +12,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
 {
     public class NpgsqlNodaTimeOptionsExtension : IDbContextOptionsExtension
     {
-        public virtual string LogFragment => "using NodaTime ";
+        DbContextOptionsExtensionInfo _info;
 
-        public virtual bool ApplyServices(IServiceCollection services)
-        {
-            services.AddEntityFrameworkNpgsqlNodaTime();
+        public virtual void ApplyServices(IServiceCollection services)
+            => services.AddEntityFrameworkNpgsqlNodaTime();
 
-            return false;
-        }
-
-        public virtual long GetServiceProviderHashCode() => 0;
-
-        public void PopulateDebugInfo(IDictionary<string, string> debugInfo)
-        {
-        }
+        public virtual DbContextOptionsExtensionInfo Info
+            => _info ??= new ExtensionInfo(this);
 
         public virtual void Validate(IDbContextOptions options)
         {
@@ -41,6 +34,26 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
                     }
                 }
             }
+        }
+
+        sealed class ExtensionInfo : DbContextOptionsExtensionInfo
+        {
+            public ExtensionInfo(IDbContextOptionsExtension extension)
+                : base(extension)
+            {
+            }
+
+            new NpgsqlNodaTimeOptionsExtension Extension
+                => (NpgsqlNodaTimeOptionsExtension)base.Extension;
+
+            public override bool IsDatabaseProvider => false;
+
+            public override long GetServiceProviderHashCode() => 0;
+
+            public override void PopulateDebugInfo(IDictionary<string, string> debugInfo)
+                => debugInfo["Npgsql:" + nameof(NpgsqlNodaTimeDbContextOptionsBuilderExtensions.UseNodaTime)] = "1";
+
+            public override string LogFragment => "using NodaTime ";
         }
     }
 }

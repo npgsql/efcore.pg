@@ -25,11 +25,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         {
             public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ServiceProvider.GetRequiredService<ILoggerFactory>();
             protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
-
-            public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
-                => base.AddOptions(builder).ConfigureWarnings(
-                    c => c
-                        .Log(RelationalEventId.QueryClientEvaluationWarning));
         }
     }
 }

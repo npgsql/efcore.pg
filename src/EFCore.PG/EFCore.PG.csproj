@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.1</TargetFrameworks>
     <AssemblyName>Npgsql.EntityFrameworkCore.PostgreSQL</AssemblyName>
     <RootNamespace>Npgsql.EntityFrameworkCore.PostgreSQL</RootNamespace>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -16,7 +16,6 @@
     <PackageLicenseExpression>PostgreSQL</PackageLicenseExpression>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>git://github.com/npgsql/Npgsql.EntityFrameworkCore.PostgreSQL</RepositoryUrl>
-    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <!-- PrivateAssets="none" is set to flow the EF Core analyzer to users referencing this package

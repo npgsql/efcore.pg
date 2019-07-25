@@ -43,6 +43,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Update
                     new TypedRelationalValueBufferFactoryFactory(
                         new RelationalValueBufferFactoryDependencies(
                             typeMapper, new CoreSingletonOptions())),
+                    new CurrentDbContext(new FakeDbContext()),
                     logger),
                 1);
 
@@ -52,6 +53,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Update
             Assert.False(
                 batch.AddCommand(
                     new ModificationCommand("T1", null, new ParameterNameGenerator().GenerateNext, false, null)));
+        }
+
+        class FakeDbContext : DbContext
+        {
         }
     }
 }

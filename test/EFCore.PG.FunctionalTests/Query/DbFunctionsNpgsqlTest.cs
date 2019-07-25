@@ -81,7 +81,7 @@ WHERE c.""ContactName"" LIKE '\' ESCAPE ''");
             AssertSql(
                 @"SELECT COUNT(*)::INT
 FROM ""Customers"" AS c
-WHERE c.""ContactName"" ILIKE '%M%' = TRUE");
+WHERE c.""ContactName"" ILIKE '%M%'");
         }
 
         [Fact]
@@ -97,7 +97,7 @@ WHERE c.""ContactName"" ILIKE '%M%' = TRUE");
             AssertSql(
                 @"SELECT COUNT(*)::INT
 FROM ""Customers"" AS c
-WHERE c.""ContactName"" ILIKE '!%' ESCAPE '!' = TRUE");
+WHERE c.""ContactName"" ILIKE '!%' ESCAPE '!'");
         }
 
         void AssertSql(params string[] expected)

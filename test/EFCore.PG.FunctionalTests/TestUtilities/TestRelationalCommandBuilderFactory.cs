@@ -99,99 +99,101 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
 
             public IReadOnlyList<IRelationalParameter> Parameters => _realRelationalCommand.Parameters;
 
-            public int ExecuteNonQuery(
-                IRelationalConnection connection,
-                IReadOnlyDictionary<string, object> parameterValues,
-                IDiagnosticsLogger<DbLoggerCategory.Database.Command> logger)
+            public int ExecuteNonQuery(RelationalCommandParameterObject parameterObject)
             {
+                var connection = parameterObject.Connection;
                 var errorNumber = PreExecution(connection);
 
-                var result = _realRelationalCommand.ExecuteNonQuery(connection, parameterValues, logger);
+                var result = _realRelationalCommand.ExecuteNonQuery(parameterObject);
                 if (errorNumber != null)
                 {
                     connection.DbConnection.Close();
                     throw new PostgresException { SqlState = errorNumber };
                 }
+
                 return result;
             }
 
             public Task<int> ExecuteNonQueryAsync(
-                IRelationalConnection connection, IReadOnlyDictionary<string, object> parameterValues,
-                IDiagnosticsLogger<DbLoggerCategory.Database.Command> logger,
+                RelationalCommandParameterObject parameterObject,
                 CancellationToken cancellationToken = new CancellationToken())
             {
+                var connection = parameterObject.Connection;
                 var errorNumber = PreExecution(connection);
 
-                var result = _realRelationalCommand.ExecuteNonQueryAsync(connection, parameterValues, logger, cancellationToken);
+                var result = _realRelationalCommand.ExecuteNonQueryAsync(parameterObject, cancellationToken);
                 if (errorNumber != null)
                 {
                     connection.DbConnection.Close();
                     throw new PostgresException { SqlState = errorNumber };
                 }
+
                 return result;
             }
 
-            public object ExecuteScalar(
-                IRelationalConnection connection,
-                IReadOnlyDictionary<string, object> parameterValues,
-                IDiagnosticsLogger<DbLoggerCategory.Database.Command> logger)
+            public object ExecuteScalar(RelationalCommandParameterObject parameterObject)
             {
+                var connection = parameterObject.Connection;
                 var errorNumber = PreExecution(connection);
 
-                var result = _realRelationalCommand.ExecuteScalar(connection, parameterValues, logger);
+                var result = _realRelationalCommand.ExecuteScalar(parameterObject);
                 if (errorNumber != null)
                 {
                     connection.DbConnection.Close();
                     throw new PostgresException { SqlState = errorNumber };
                 }
+
                 return result;
             }
 
             public async Task<object> ExecuteScalarAsync(
-                IRelationalConnection connection, IReadOnlyDictionary<string, object> parameterValues,
-                IDiagnosticsLogger<DbLoggerCategory.Database.Command> logger,
+                RelationalCommandParameterObject parameterObject,
                 CancellationToken cancellationToken = new CancellationToken())
             {
+                var connection = parameterObject.Connection;
                 var errorNumber = PreExecution(connection);
 
-                var result = await _realRelationalCommand.ExecuteScalarAsync(connection, parameterValues, logger, cancellationToken);
+                var result = await _realRelationalCommand.ExecuteScalarAsync(parameterObject, cancellationToken);
                 if (errorNumber != null)
                 {
                     connection.DbConnection.Close();
                     throw new PostgresException { SqlState = errorNumber };
                 }
+
                 return result;
             }
 
-            public RelationalDataReader ExecuteReader(
-                IRelationalConnection connection,
-                IReadOnlyDictionary<string, object> parameterValues,
-                IDiagnosticsLogger<DbLoggerCategory.Database.Command> logger)
+            public RelationalDataReader ExecuteReader(RelationalCommandParameterObject parameterObject)
             {
+                var connection = parameterObject.Connection;
                 var errorNumber = PreExecution(connection);
 
-                var result = _realRelationalCommand.ExecuteReader(connection, parameterValues, logger);
+                var result = _realRelationalCommand.ExecuteReader(parameterObject);
                 if (errorNumber != null)
                 {
                     connection.DbConnection.Close();
+                    result.Dispose(); // Normally, in non-test case, reader is disposed by using in caller code
                     throw new PostgresException { SqlState = errorNumber };
                 }
+
                 return result;
             }
 
             public async Task<RelationalDataReader> ExecuteReaderAsync(
-                IRelationalConnection connection, IReadOnlyDictionary<string, object> parameterValues,
-                IDiagnosticsLogger<DbLoggerCategory.Database.Command> logger,
+                RelationalCommandParameterObject parameterObject,
                 CancellationToken cancellationToken = new CancellationToken())
             {
+                var connection = parameterObject.Connection;
                 var errorNumber = PreExecution(connection);
 
-                var result = await _realRelationalCommand.ExecuteReaderAsync(connection, parameterValues, logger, cancellationToken);
+                var result = await _realRelationalCommand.ExecuteReaderAsync(parameterObject, cancellationToken);
                 if (errorNumber != null)
                 {
                     connection.DbConnection.Close();
+                    result.Dispose(); // Normally, in non-test case, reader is disposed by using in caller code
                     throw new PostgresException { SqlState = errorNumber };
                 }
+
                 return result;
             }
 

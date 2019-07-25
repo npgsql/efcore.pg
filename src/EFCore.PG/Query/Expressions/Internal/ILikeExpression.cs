@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Linq.Expressions;
 using JetBrains.Annotations;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
+using Microsoft.EntityFrameworkCore.Query.Internal;
+using Microsoft.EntityFrameworkCore.Relational.Query.Pipeline.SqlExpressions;
+using Microsoft.EntityFrameworkCore.Storage;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Pipeline;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
 {
@@ -10,43 +12,25 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
     /// Represents a PostgreSQL ILIKE expression.
     /// </summary>
     // ReSharper disable once InconsistentNaming
-    public class ILikeExpression : Expression, IEquatable<ILikeExpression>
+    public class ILikeExpression : SqlExpression, IEquatable<ILikeExpression>
     {
-        /// <inheritdoc />
-        public override ExpressionType NodeType => ExpressionType.Extension;
-
-        /// <inheritdoc />
-        public override Type Type => typeof(bool);
-
         /// <summary>
         /// The match expression.
         /// </summary>
         [NotNull]
-        public virtual Expression Match { get; }
+        public virtual SqlExpression Match { get; }
 
         /// <summary>
         /// The pattern to match.
         /// </summary>
         [NotNull]
-        public virtual Expression Pattern { get; }
+        public virtual SqlExpression Pattern { get; }
 
         /// <summary>
         /// The escape character to use in <see cref="Pattern"/>.
         /// </summary>
         [CanBeNull]
-        public virtual Expression EscapeChar { get; }
-
-        /// <summary>
-        /// Constructs a <see cref="ILikeExpression"/>.
-        /// </summary>
-        /// <param name="match">The expression to match.</param>
-        /// <param name="pattern">The pattern to match.</param>
-        /// <exception cref="ArgumentNullException" />
-        public ILikeExpression([NotNull] Expression match, [NotNull] Expression pattern)
-        {
-            Match = Check.NotNull(match, nameof(match));
-            Pattern = Check.NotNull(pattern, nameof(pattern));
-        }
+        public virtual SqlExpression EscapeChar { get; }
 
         /// <summary>
         /// Constructs a <see cref="ILikeExpression"/>.
@@ -55,10 +39,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         /// <param name="pattern">The pattern to match.</param>
         /// <param name="escapeChar">The escape character to use in <paramref name="pattern"/>.</param>
         /// <exception cref="ArgumentNullException" />
-        public ILikeExpression([NotNull] Expression match, [NotNull] Expression pattern, [CanBeNull] Expression escapeChar)
+        public ILikeExpression([NotNull] SqlExpression match, [NotNull] SqlExpression pattern, [CanBeNull] SqlExpression escapeChar, RelationalTypeMapping typeMapping)
+            : base(typeof(bool), typeMapping)
         {
-            Match = Check.NotNull(match, nameof(match));
-            Pattern = Check.NotNull(pattern, nameof(pattern));
+            Match = match;
+            Pattern = pattern;
             EscapeChar = escapeChar;
         }
 
@@ -70,37 +55,44 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
 
         /// <inheritdoc />
         protected override Expression VisitChildren(ExpressionVisitor visitor)
-        {
-            var match = visitor.Visit(Match) ?? Match;
-            var pattern = visitor.Visit(Pattern) ?? Pattern;
-            var escapeChar = visitor.Visit(EscapeChar);
+            => Update(
+                (SqlExpression)visitor.Visit(Match),
+                (SqlExpression)visitor.Visit(Pattern),
+                (SqlExpression)visitor.Visit(EscapeChar));
 
-            return
-                match != Match || pattern != Pattern || escapeChar != EscapeChar
-                    ? new ILikeExpression(match, pattern, escapeChar)
-                    : this;
-        }
+        public ILikeExpression Update(SqlExpression match, SqlExpression pattern, SqlExpression escapeChar)
+            => match == Match && pattern == Pattern && escapeChar == EscapeChar
+                ? this
+                : new ILikeExpression(match, pattern, escapeChar, TypeMapping);
 
         /// <inheritdoc />
         public override bool Equals(object obj) => obj is ILikeExpression other && Equals(other);
 
         /// <inheritdoc />
         public bool Equals(ILikeExpression other)
-            => other != null &&
+            => ReferenceEquals(this, other) ||
+               other is object &&
+               base.Equals(other) &&
                Equals(Match, other.Match) &&
                Equals(Pattern, other.Pattern) &&
                Equals(EscapeChar, other.EscapeChar);
 
         /// <inheritdoc />
-        public override int GetHashCode()
+        public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), Match, Pattern, EscapeChar);
+
+        public override void Print(ExpressionPrinter expressionPrinter)
         {
-            unchecked
+#pragma warning disable EF1001
+            expressionPrinter.Visit(Match);
+            expressionPrinter.StringBuilder.Append(" ILIKE ");
+            expressionPrinter.Visit(Pattern);
+
+            if (EscapeChar != null)
             {
-                var hashCode = Match.GetHashCode();
-                hashCode = (hashCode * 397) ^ Pattern.GetHashCode();
-                hashCode = (hashCode * 397) ^ (EscapeChar?.GetHashCode() ?? 0);
-                return hashCode;
+                expressionPrinter.StringBuilder.Append(" ESCAPE ");
+                expressionPrinter.Visit(EscapeChar);
             }
+#pragma warning restore EF1001
         }
 
         /// <inheritdoc />

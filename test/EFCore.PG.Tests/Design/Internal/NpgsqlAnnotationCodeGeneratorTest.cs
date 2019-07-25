@@ -18,14 +18,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
                 "Post",
                 x =>
                 {
-                    x.Property<int>("Id").UseNpgsqlIdentityAlwaysColumn();
+                    x.Property<int>("Id").ForNpgsqlUseIdentityAlwaysColumn();
                 });
             var property = modelBuilder.Model.FindEntityType("Post").GetProperties().Single();
             var annotation = property.FindAnnotation(NpgsqlAnnotationNames.ValueGenerationStrategy);
 
             var result = generator.GenerateFluentApi(property, annotation);
 
-            Assert.Equal("UseNpgsqlIdentityAlwaysColumn", result.Method);
+            Assert.Equal("ForNpgsqlUseIdentityAlwaysColumn", result.Method);
 
             Assert.Equal(0, result.Arguments.Count);
         }

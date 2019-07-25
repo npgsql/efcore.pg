@@ -1,9 +1,6 @@
-using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.EntityFrameworkCore.Storage.Internal;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.EntityFrameworkCore.Update;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
@@ -45,6 +42,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update
                     new TypedRelationalValueBufferFactoryFactory(
                         new RelationalValueBufferFactoryDependencies(
                             typeMapper, new CoreSingletonOptions())),
+                    new CurrentDbContext(new FakeDbContext()),
                     logger),
                 optionsBuilder.Options);
 
@@ -83,6 +81,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update
                     new TypedRelationalValueBufferFactoryFactory(
                         new RelationalValueBufferFactoryDependencies(
                             typeMapper, new CoreSingletonOptions())),
+                    new CurrentDbContext(new FakeDbContext()),
                     logger),
                 optionsBuilder.Options);
 
@@ -90,6 +89,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update
 
             Assert.True(batch.AddCommand(new ModificationCommand("T1", null, new ParameterNameGenerator().GenerateNext, false, null)));
             Assert.True(batch.AddCommand(new ModificationCommand("T1", null, new ParameterNameGenerator().GenerateNext, false, null)));
+        }
+
+        class FakeDbContext : DbContext
+        {
         }
     }
 }

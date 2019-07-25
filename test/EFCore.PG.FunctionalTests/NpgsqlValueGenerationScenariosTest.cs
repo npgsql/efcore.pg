@@ -589,7 +589,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
         public abstract class ContextBase : DbContext
         {
-            readonly string _databaseName;
+            private readonly string _databaseName;
 
             protected ContextBase(string databaseName)
             {
@@ -603,24 +603,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             public DbSet<ConcurrentBlog> ConcurrentBlogs { get; set; }
 
             protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-            => optionsBuilder.UseNpgsql(NpgsqlTestStore.CreateConnectionString(_databaseName), b => b.ApplyConfiguration());
-
-            protected override void OnModelCreating(ModelBuilder modelBuilder)
-            {
-                modelBuilder.HasPostgresExtension("uuid-ossp");
-            }
-        }
-
-        public class TestBase<TContext>
-            where TContext : ContextBase, new()
-        {
-            public TestBase()
-            {
-                using (var context = new TContext())
-                {
-                    context.Database.EnsureDeleted();
-                }
-            }
+                => optionsBuilder
+                    .EnableServiceProviderCaching(false)
+                    .UseNpgsql(
+                        NpgsqlTestStore.CreateConnectionString(_databaseName),
+                        b => b.ApplyConfiguration());
         }
     }
 }

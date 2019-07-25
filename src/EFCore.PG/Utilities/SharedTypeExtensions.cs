@@ -39,15 +39,6 @@ namespace System
                    || type == typeof(sbyte);
         }
 
-        public static bool IsIntegerForIdentityOrSerial(this Type type)
-        {
-            type = type.UnwrapNullableType();
-
-            return type == typeof(int)
-                   || type == typeof(long)
-                   || type == typeof(short);
-        }
-
         public static PropertyInfo GetAnyProperty(this Type type, string name)
         {
             var props = type.GetRuntimeProperties().Where(p => p.Name == name).ToList();

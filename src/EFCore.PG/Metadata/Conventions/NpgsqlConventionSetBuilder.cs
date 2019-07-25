@@ -3,11 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions.Infrastructure;
-using Microsoft.EntityFrameworkCore.Metadata.Conventions.Internal;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
 {
@@ -27,11 +23,31 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
         {
             var conventionSet = base.CreateConventionSet();
 
-            var valueGenerationStrategyConvention = new NpgsqlValueGenerationStrategyConvention();
+            var valueGenerationStrategyConvention = new NpgsqlValueGenerationStrategyConvention(Dependencies, RelationalDependencies);
             conventionSet.ModelInitializedConventions.Add(valueGenerationStrategyConvention);
-#pragma warning disable EF1001
-            conventionSet.ModelInitializedConventions.Add(new RelationalMaxIdentifierLengthConvention(63));
-#pragma warning restore EF1001
+            conventionSet.ModelInitializedConventions.Add(new RelationalMaxIdentifierLengthConvention(63, Dependencies, RelationalDependencies));
+
+            var valueGenerationConvention = new NpgsqlValueGenerationConvention(Dependencies, RelationalDependencies);
+            ReplaceConvention(conventionSet.EntityTypeBaseTypeChangedConventions, valueGenerationConvention);
+
+            ReplaceConvention(conventionSet.EntityTypePrimaryKeyChangedConventions, valueGenerationConvention);
+
+            ReplaceConvention(conventionSet.ForeignKeyAddedConventions, valueGenerationConvention);
+
+            ReplaceConvention(conventionSet.ForeignKeyRemovedConventions, valueGenerationConvention);
+
+            ConventionSet.AddBefore(
+                conventionSet.ModelFinalizedConventions,
+                valueGenerationStrategyConvention,
+                typeof(ValidatingConvention));
+
+            var storeGenerationConvention =
+                new NpgsqlStoreGenerationConvention(Dependencies, RelationalDependencies);
+            ReplaceConvention(conventionSet.PropertyAnnotationChangedConventions, storeGenerationConvention);
+            ReplaceConvention(
+                conventionSet.PropertyAnnotationChangedConventions, (RelationalValueGenerationConvention)valueGenerationConvention);
+
+            ReplaceConvention(conventionSet.ModelFinalizedConventions, storeGenerationConvention);
 
             return conventionSet;
         }

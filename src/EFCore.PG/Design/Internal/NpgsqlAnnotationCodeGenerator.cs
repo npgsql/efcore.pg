@@ -139,11 +139,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
                 switch ((NpgsqlValueGenerationStrategy)annotation.Value)
                 {
                 case NpgsqlValueGenerationStrategy.SerialColumn:
-                    return new MethodCallCodeFragment(nameof(NpgsqlPropertyBuilderExtensions.UseNpgsqlSerialColumn));
+                    return new MethodCallCodeFragment(nameof(NpgsqlPropertyBuilderExtensions.ForNpgsqlUseSerialColumn));
                 case NpgsqlValueGenerationStrategy.IdentityAlwaysColumn:
-                    return new MethodCallCodeFragment(nameof(NpgsqlPropertyBuilderExtensions.UseNpgsqlIdentityAlwaysColumn));
+                    return new MethodCallCodeFragment(nameof(NpgsqlPropertyBuilderExtensions.ForNpgsqlUseIdentityAlwaysColumn));
                 case NpgsqlValueGenerationStrategy.IdentityByDefaultColumn:
-                    return new MethodCallCodeFragment(nameof(NpgsqlPropertyBuilderExtensions.UseNpgsqlIdentityByDefaultColumn));
+                    return new MethodCallCodeFragment(nameof(NpgsqlPropertyBuilderExtensions.ForNpgsqlUseIdentityByDefaultColumn));
                 case NpgsqlValueGenerationStrategy.SequenceHiLo:
                     throw new Exception($"Unexpected {NpgsqlValueGenerationStrategy.SequenceHiLo} value generation strategy when scaffolding");
                 default:

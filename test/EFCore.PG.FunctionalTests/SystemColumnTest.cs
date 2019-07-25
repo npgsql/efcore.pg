@@ -1,12 +1,24 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.TestUtilities;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
-    public class SystemColumnTest : IDisposable
+    public class SystemColumnTest : IClassFixture<SystemColumnTest.SystemColumnFixture>
     {
+        SystemColumnFixture Fixture { get; }
+
+        public SystemColumnTest(SystemColumnFixture fixture, ITestOutputHelper testOutputHelper)
+        {
+            Fixture = fixture;
+            Fixture.TestSqlLoggerFactory.Clear();
+            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        }
+
         [Fact]
         public void Xmin()
         {
@@ -25,9 +37,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             }
         }
 
-        class SystemColumnContext : DbContext
+        public class SystemColumnContext : PoolableDbContext
         {
-            internal SystemColumnContext(DbContextOptions options) : base(options) {}
+            public SystemColumnContext(DbContextOptions options) : base(options) {}
 
             // ReSharper disable once UnusedAutoPropertyAccessor.Local
             public DbSet<SomeEntity> Entities { get; set; }
@@ -52,23 +64,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             // ReSharper restore UnusedAutoPropertyAccessor.Global
         }
 
-        public SystemColumnTest()
+        SystemColumnContext CreateContext() => Fixture.CreateContext();
+
+        public class SystemColumnFixture : SharedStoreFixtureBase<SystemColumnContext>
         {
-            _testStore = NpgsqlTestStore.CreateScratch();
-
-            _options = new DbContextOptionsBuilder()
-                .UseNpgsql(_testStore.ConnectionString)
-                .Options;
-
-            using (var context = CreateContext())
-                context.Database.EnsureCreated();
+            protected override string StoreName => "SystemColumnTest";
+            protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+            public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
         }
-
-        SystemColumnContext CreateContext() => new SystemColumnContext(_options);
-
-        readonly DbContextOptions _options;
-        readonly NpgsqlTestStore _testStore;
-
-        public void Dispose() => _testStore.Dispose();
     }
 }

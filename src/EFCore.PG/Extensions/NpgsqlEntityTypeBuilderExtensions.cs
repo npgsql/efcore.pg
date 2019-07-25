@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 // ReSharper disable once CheckNamespace
@@ -48,7 +49,7 @@ namespace Microsoft.EntityFrameworkCore
         {
             Check.NotNull(entityTypeBuilder, nameof(entityTypeBuilder));
 
-            entityTypeBuilder.Metadata.Npgsql().SetStorageParameter(parameterName, parameterValue);
+            entityTypeBuilder.Metadata.SetNpgsqlStorageParameter(parameterName, parameterValue);
 
             return entityTypeBuilder;
         }
@@ -68,6 +69,49 @@ namespace Microsoft.EntityFrameworkCore
             where TEntity : class
             => (EntityTypeBuilder<TEntity>)ForNpgsqlSetStorageParameter((EntityTypeBuilder)entityTypeBuilder, parameterName, parameterValue);
 
+        /// <summary>
+        /// Sets a PostgreSQL storage parameter on the table created for this entity.
+        /// </summary>
+        /// <remarks>
+        /// See https://www.postgresql.org/docs/current/static/sql-createtable.html#SQL-CREATETABLE-STORAGE-PARAMETERS
+        /// </remarks>
+        /// <param name="entityTypeBuilder"> The builder for the entity type being configured. </param>
+        /// <param name="parameterName"> The name of the storage parameter. </param>
+        /// <param name="parameterValue"> The value of the storage parameter. </param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        /// <returns> The same builder instance so that multiple calls can be chained. </returns>
+        public static IConventionEntityTypeBuilder ForNpgsqlSetStorageParameter(
+            [NotNull] this IConventionEntityTypeBuilder entityTypeBuilder, string parameterName, object parameterValue, bool fromDataAnnotation = false)
+        {
+            if (entityTypeBuilder.ForNpgsqlCanSetStorageParameter(parameterName, parameterValue, fromDataAnnotation))
+            {
+                entityTypeBuilder.Metadata.SetNpgsqlStorageParameter(parameterName, parameterValue);
+
+                return entityTypeBuilder;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Returns a value indicating whether the PostgreSQL storage parameter on the table created for this entity.
+        /// </summary>
+        /// <remarks>
+        /// See https://www.postgresql.org/docs/current/static/sql-createtable.html#SQL-CREATETABLE-STORAGE-PARAMETERS
+        /// </remarks>
+        /// <param name="entityTypeBuilder"> The builder for the entity type being configured. </param>
+        /// <param name="parameterName"> The name of the storage parameter. </param>
+        /// <param name="parameterValue"> The value of the storage parameter. </param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        /// <returns><c>true</c> if the mapped table can be configured as with the storage parameter.</returns>
+        public static bool ForNpgsqlCanSetStorageParameter(
+            [NotNull] this IConventionEntityTypeBuilder entityTypeBuilder, string parameterName, object parameterValue, bool fromDataAnnotation = false)
+        {
+            Check.NotNull(entityTypeBuilder, nameof(entityTypeBuilder));
+
+            return entityTypeBuilder.CanSetAnnotation(NpgsqlAnnotationNames.StorageParameterPrefix + parameterName, parameterValue, fromDataAnnotation);
+        }
+
         #endregion Storage parameters
 
         #region Comment
@@ -85,7 +129,7 @@ namespace Microsoft.EntityFrameworkCore
             Check.NotNull(entityTypeBuilder, nameof(entityTypeBuilder));
             Check.NullButNotEmpty(comment, nameof(comment));
 
-            entityTypeBuilder.Metadata.Npgsql().Comment = comment;
+            entityTypeBuilder.Metadata.SetNpgsqlComment(comment);
 
             return entityTypeBuilder;
         }
@@ -125,14 +169,14 @@ namespace Microsoft.EntityFrameworkCore
         {
             Check.NotNull(entityTypeBuilder, nameof(entityTypeBuilder));
 
-            entityTypeBuilder.Metadata.Npgsql().IsUnlogged = isUnlogged;
+            entityTypeBuilder.Metadata.SetNpgsqlIsUnlogged(isUnlogged);
 
             return entityTypeBuilder;
         }
 
         // ReSharper disable once CommentTypo
         /// <summary>
-        /// Configures the entity to use an unlogged table when targeting Npgsql.
+        /// Configures the mapped table to use an unlogged table when targeting Npgsql.
         /// </summary>
         /// <param name="entityTypeBuilder">The builder for the entity type being configured.</param>
         /// <param name="isUnlogged">True to configure the entity to use an unlogged table; otherwise, false.</param>
@@ -147,6 +191,55 @@ namespace Microsoft.EntityFrameworkCore
             bool isUnlogged = true)
             where TEntity : class
             => (EntityTypeBuilder<TEntity>)ForNpgsqlIsUnlogged((EntityTypeBuilder)entityTypeBuilder, isUnlogged);
+
+        /// <summary>
+        /// Configures the mapped table to use an unlogged table when targeting Npgsql.
+        /// </summary>
+        /// <param name="entityTypeBuilder">The builder for the entity type being configured.</param>
+        /// <param name="isUnlogged">True to configure the entity to use an unlogged table; otherwise, false.</param>
+        /// <param name="fromDataAnnotation"> Indicates whether the configuration was specified using a data annotation. </param>
+        /// <returns>
+        /// The same builder instance so that multiple calls can be chained.
+        /// </returns>
+        /// <remarks>
+        /// See: https://www.postgresql.org/docs/current/sql-createtable.html#SQL-CREATETABLE-UNLOGGED
+        /// </remarks>
+        public static IConventionEntityTypeBuilder ForNpgsqlIsUnlogged(
+            [NotNull] this IConventionEntityTypeBuilder entityTypeBuilder,
+            bool isUnlogged = true,
+            bool fromDataAnnotation = false)
+        {
+            if (entityTypeBuilder.ForNpgsqlCanSetIsUnlogged(isUnlogged, fromDataAnnotation))
+            {
+                entityTypeBuilder.Metadata.SetNpgsqlIsUnlogged(isUnlogged, fromDataAnnotation);
+
+                return entityTypeBuilder;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Returns a value indicating whether the mapped table can be configured to use an unlogged table when targeting Npgsql.
+        /// </summary>
+        /// <param name="entityTypeBuilder">The builder for the entity type being configured.</param>
+        /// <param name="isUnlogged">True to configure the entity to use an unlogged table; otherwise, false.</param>
+        /// <param name="fromDataAnnotation"> Indicates whether the configuration was specified using a data annotation. </param>
+        /// <returns>
+        /// The same builder instance so that multiple calls can be chained.
+        /// </returns>
+        /// <remarks>
+        /// See: https://www.postgresql.org/docs/current/sql-createtable.html#SQL-CREATETABLE-UNLOGGED
+        /// </remarks>
+        public static bool ForNpgsqlCanSetIsUnlogged(
+            [NotNull] this IConventionEntityTypeBuilder entityTypeBuilder,
+            bool isUnlogged = true,
+            bool fromDataAnnotation = false)
+        {
+            Check.NotNull(entityTypeBuilder, nameof(entityTypeBuilder));
+
+            return entityTypeBuilder.CanSetAnnotation(NpgsqlAnnotationNames.UnloggedTable, isUnlogged, fromDataAnnotation);
+        }
 
         #endregion
 
@@ -163,11 +256,11 @@ namespace Microsoft.EntityFrameworkCore
 
             var parentEntity = entityTypeBuilder.Metadata.Model.FindEntityType(parentTableType);
             if (parentEntity == null)
-                throw new Exception("Entity not found in model: " + parentTableType);
+                throw new ArgumentException("Entity not found in model for type: " + parentTableType, nameof(parentTableType));
 
-            var interleaveInParent = entityTypeBuilder.Metadata.Npgsql().CockroachDbInterleaveInParent;
-            interleaveInParent.ParentTableSchema = parentEntity.Relational().Schema;
-            interleaveInParent.ParentTableName = parentEntity.Relational().TableName;
+            var interleaveInParent = entityTypeBuilder.Metadata.GetNpgsqlCockroachDbInterleaveInParent();
+            interleaveInParent.ParentTableSchema = parentEntity.GetSchema();
+            interleaveInParent.ParentTableName = parentEntity.GetTableName();
             interleaveInParent.InterleavePrefix = interleavePrefix;
 
             return entityTypeBuilder;

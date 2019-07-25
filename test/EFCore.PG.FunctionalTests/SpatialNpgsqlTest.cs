@@ -1,3 +1,4 @@
+#if PREVIEW8
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -15,3 +16,4 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             => facade.UseTransaction(transaction.GetDbTransaction());
     }
 }
+#endif

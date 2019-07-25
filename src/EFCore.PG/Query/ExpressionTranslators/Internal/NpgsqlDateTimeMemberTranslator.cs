@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Linq.Expressions;
 using System.Reflection;
 using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Query.Expressions;
-using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
+using Microsoft.EntityFrameworkCore.Relational.Query.Pipeline;
+using Microsoft.EntityFrameworkCore.Relational.Query.Pipeline.SqlExpressions;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Pipeline;
 using NpgsqlTypes;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
@@ -17,95 +16,63 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     /// </remarks>
     public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
     {
-        /// <summary>
-        /// The static <see cref="PropertyInfo"/> for <see cref="T:DateTime.Now"/>.
-        /// </summary>
-        [NotNull] static readonly PropertyInfo Now = typeof(DateTime).GetRuntimeProperty(nameof(DateTime.Now));
+        readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
 
-        /// <summary>
-        /// The static <see cref="PropertyInfo"/> for <see cref="T:DateTime.UtcNow"/>.
-        /// </summary>
-        [NotNull] static readonly PropertyInfo UtcNow = typeof(DateTime).GetRuntimeProperty(nameof(DateTime.UtcNow));
-
-        /// <summary>
-        /// The static <see cref="PropertyInfo"/> for <see cref="T:DateTime.Today"/>.
-        /// </summary>
-        [NotNull] static readonly PropertyInfo Today = typeof(DateTime).GetRuntimeProperty(nameof(DateTime.Today));
+        public NpgsqlDateTimeMemberTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory)
+            => _sqlExpressionFactory = sqlExpressionFactory;
 
         /// <inheritdoc />
         [CanBeNull]
-        public virtual Expression Translate(MemberExpression e)
+        public SqlExpression Translate(SqlExpression instance, MemberInfo member, Type returnType)
         {
-            if (e.Expression == null)
-                return TranslateStatic(e);
-
-            var type = e.Expression?.Type;
-            if (type != typeof(DateTime) &&
-                type != typeof(NpgsqlDateTime) &&
-                type != typeof(NpgsqlDate))
+            var type = member.DeclaringType;
+            if (type != typeof(DateTime) && type != typeof(NpgsqlDateTime) && type != typeof(NpgsqlDate))
                 return null;
 
-            switch (e.Member.Name)
+            return member.Name switch
             {
-            case nameof(DateTime.Year):
-                return GetDatePartExpression(e, "year");
-            case nameof(DateTime.Month):
-                return GetDatePartExpression(e, "month");
-            case nameof(DateTime.DayOfYear):
-                return GetDatePartExpression(e, "doy");
-            case nameof(DateTime.Day):
-                return GetDatePartExpression(e, "day");
-            case nameof(DateTime.Hour):
-                return GetDatePartExpression(e, "hour");
-            case nameof(DateTime.Minute):
-                return GetDatePartExpression(e, "minute");
-            case nameof(DateTime.Second):
-                return GetDatePartExpression(e, "second");
+                nameof(DateTime.Now)       => _sqlExpressionFactory.Function("NOW", Array.Empty<SqlExpression>(), returnType),
+                nameof(DateTime.UtcNow)    =>
+                    _sqlExpressionFactory.AtTimeZone(
+                        _sqlExpressionFactory.Function("NOW", Array.Empty<SqlExpression>(), returnType),
+                        _sqlExpressionFactory.Constant("UTC"),
+                        returnType),
 
-            case nameof(DateTime.Millisecond):
-                // Too annoying
-                return null;
+                nameof(DateTime.Today)     => _sqlExpressionFactory.Function(
+                    "DATE_TRUNC",
+                    new SqlExpression[]
+                    {
+                        _sqlExpressionFactory.Constant("day"),
+                        _sqlExpressionFactory.Function("NOW", Array.Empty<SqlExpression>(), returnType)
+                    },
+                    returnType),
 
-            case nameof(DateTime.DayOfWeek):
+                nameof(DateTime.Year)      => GetDatePartExpression(instance, "year"),
+                nameof(DateTime.Month)     => GetDatePartExpression(instance, "month"),
+                nameof(DateTime.DayOfYear) => GetDatePartExpression(instance, "doy"),
+                nameof(DateTime.Day)       => GetDatePartExpression(instance, "day"),
+                nameof(DateTime.Hour)      => GetDatePartExpression(instance, "hour"),
+                nameof(DateTime.Minute)    => GetDatePartExpression(instance, "minute"),
+                nameof(DateTime.Second)    => GetDatePartExpression(instance, "second"),
+
+                nameof(DateTime.Millisecond) => null, // Too annoying
+
                 // .NET's DayOfWeek is an enum, but its int values happen to correspond to PostgreSQL
-                return GetDatePartExpression(e, "dow", true);
+                nameof(DateTime.DayOfWeek) => GetDatePartExpression(instance, "dow", true),
 
-            case nameof(DateTime.Date):
-                return new SqlFunctionExpression("DATE_TRUNC", e.Type, new[] { Expression.Constant("day"), e.Expression });
+                nameof(DateTime.Date) => _sqlExpressionFactory.Function("DATE_TRUNC", new[] { _sqlExpressionFactory.Constant("day"), instance }, returnType),
 
-            case nameof(DateTime.TimeOfDay):
-                // TODO: Technically possible simply via casting to PG time,
+                // TODO: Technically possible simply via casting to PG time, should be better in EF Core 3.0
                 // but ExplicitCastExpression only allows casting to PG types that
                 // are default-mapped from CLR types (timespan maps to interval,
                 // which timestamp cannot be cast into)
-                return null;
+                nameof(DateTime.TimeOfDay) => null,
 
-            case nameof(DateTime.Ticks):
                 // TODO: Should be possible
-                return null;
+                nameof(DateTime.Ticks) => null,
 
-            default:
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Translates static members of <see cref="DateTime"/>.
-        /// </summary>
-        /// <param name="e">The member expression.</param>
-        /// <returns>
-        /// The translated expression or null.
-        /// </returns>
-        [CanBeNull]
-        static Expression TranslateStatic([NotNull] MemberExpression e)
-        {
-            if (e.Member.Equals(Now))
-                return new SqlFunctionExpression("NOW", e.Type);
-            if (e.Member.Equals(UtcNow))
-                return new AtTimeZoneExpression(new SqlFunctionExpression("NOW", e.Type), "UTC", e.Type);
-            if (e.Member.Equals(Today))
-                return new SqlFunctionExpression("DATE_TRUNC", e.Type, new Expression[] { Expression.Constant("day"), new SqlFunctionExpression("NOW", e.Type) });
-            return null;
+                _ => null
+            };
         }
 
         /// <summary>
@@ -122,18 +89,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         /// This also gets rid of sub-second components when retrieving seconds.
         /// </remarks>
         [NotNull]
-        static Expression GetDatePartExpression(
-            [NotNull] MemberExpression e,
+        SqlExpression GetDatePartExpression(
+            [NotNull] SqlExpression instance,
             [NotNull] string partName,
             bool floor = false)
         {
-            var result =
-                new SqlFunctionExpression("DATE_PART", typeof(double), new[] { Expression.Constant(partName), e.Expression });
+            var result = _sqlExpressionFactory.Function(
+                "DATE_PART",
+                new[]
+                {
+                    _sqlExpressionFactory.Constant(partName),
+                    instance
+                }, typeof(double));
 
             if (floor)
-                result = new SqlFunctionExpression("FLOOR", typeof(double), new[] { result });
+                result = _sqlExpressionFactory.Function("FLOOR", new[] { result }, typeof(double));
 
-            return new ExplicitStoreTypeCastExpression(result, typeof(int), "int");
+            return _sqlExpressionFactory.Convert(result, typeof(int));
         }
     }
 }

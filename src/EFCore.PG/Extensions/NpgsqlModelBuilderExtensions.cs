@@ -3,8 +3,10 @@ using System.Linq;
 using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Npgsql;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 using Npgsql.NameTranslation;
 using NpgsqlTypes;
@@ -39,18 +41,66 @@ namespace Microsoft.EntityFrameworkCore
 
             var model = modelBuilder.Model;
 
-            name = name ?? NpgsqlModelAnnotations.DefaultHiLoSequenceName;
+            name ??= NpgsqlModelExtensions.DefaultHiLoSequenceName;
 
-            if (model.Npgsql().FindSequence(name, schema) == null)
+            if (model.FindSequence(name, schema) == null)
             {
                 modelBuilder.HasSequence(name, schema).IncrementsBy(10);
             }
 
-            model.Npgsql().ValueGenerationStrategy = NpgsqlValueGenerationStrategy.SequenceHiLo;
-            model.Npgsql().HiLoSequenceName = name;
-            model.Npgsql().HiLoSequenceSchema = schema;
+            model.SetNpgsqlValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
+            model.SetNpgsqlHiLoSequenceName(name);
+            model.SetNpgsqlHiLoSequenceSchema(schema);
 
             return modelBuilder;
+        }
+
+        /// <summary>
+        ///     Configures the database sequence used for the hi-lo pattern to generate values for key properties
+        ///     marked as <see cref="ValueGenerated.OnAdd" />, when targeting PostgreSQL.
+        /// </summary>
+        /// <param name="modelBuilder"> The model builder. </param>
+        /// <param name="name"> The name of the sequence. </param>
+        /// <param name="schema">The schema of the sequence. </param>
+        /// <param name="fromDataAnnotation"> Indicates whether the configuration was specified using a data annotation. </param>
+        /// <returns> A builder to further configure the sequence. </returns>
+        public static IConventionSequenceBuilder ForNpgsqlHasHiLoSequence(
+            [NotNull] this IConventionModelBuilder modelBuilder,
+            [CanBeNull] string name,
+            [CanBeNull] string schema,
+            bool fromDataAnnotation = false)
+        {
+            if (!modelBuilder.ForNpgsqlCanSetHiLoSequence(name, schema))
+            {
+                return null;
+            }
+
+            modelBuilder.Metadata.SetNpgsqlHiLoSequenceName(name, fromDataAnnotation);
+            modelBuilder.Metadata.SetNpgsqlHiLoSequenceSchema(schema, fromDataAnnotation);
+
+            return name == null ? null : modelBuilder.HasSequence(name, schema, fromDataAnnotation);
+        }
+
+        /// <summary>
+        ///     Returns a value indicating whether the given name and schema can be set for the hi-lo sequence.
+        /// </summary>
+        /// <param name="modelBuilder"> The model builder. </param>
+        /// <param name="name"> The name of the sequence. </param>
+        /// <param name="schema">The schema of the sequence. </param>
+        /// <param name="fromDataAnnotation"> Indicates whether the configuration was specified using a data annotation. </param>
+        /// <returns> <c>true</c> if the given name and schema can be set for the hi-lo sequence. </returns>
+        public static bool ForNpgsqlCanSetHiLoSequence(
+            [NotNull] this IConventionModelBuilder modelBuilder,
+            [CanBeNull] string name,
+            [CanBeNull] string schema,
+            bool fromDataAnnotation = false)
+        {
+            Check.NotNull(modelBuilder, nameof(modelBuilder));
+            Check.NullButNotEmpty(name, nameof(name));
+            Check.NullButNotEmpty(schema, nameof(schema));
+
+            return modelBuilder.CanSetAnnotation(NpgsqlAnnotationNames.HiLoSequenceName, name, fromDataAnnotation)
+                   && modelBuilder.CanSetAnnotation(NpgsqlAnnotationNames.HiLoSequenceSchema, schema, fromDataAnnotation);
         }
 
         /// <summary>
@@ -67,9 +117,9 @@ namespace Microsoft.EntityFrameworkCore
 
             var property = modelBuilder.Model;
 
-            property.Npgsql().ValueGenerationStrategy = NpgsqlValueGenerationStrategy.SerialColumn;
-            property.Npgsql().HiLoSequenceName = null;
-            property.Npgsql().HiLoSequenceSchema = null;
+            property.SetNpgsqlValueGenerationStrategy(NpgsqlValueGenerationStrategy.SerialColumn);
+            property.SetNpgsqlHiLoSequenceName(null);
+            property.SetNpgsqlHiLoSequenceSchema(null);
 
             return modelBuilder;
         }
@@ -96,9 +146,9 @@ namespace Microsoft.EntityFrameworkCore
 
             var property = modelBuilder.Model;
 
-            property.Npgsql().ValueGenerationStrategy = NpgsqlValueGenerationStrategy.IdentityAlwaysColumn;
-            property.Npgsql().HiLoSequenceName = null;
-            property.Npgsql().HiLoSequenceSchema = null;
+            property.SetNpgsqlValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityAlwaysColumn);
+            property.SetNpgsqlHiLoSequenceName(null);
+            property.SetNpgsqlHiLoSequenceSchema(null);
 
             return modelBuilder;
         }
@@ -121,9 +171,9 @@ namespace Microsoft.EntityFrameworkCore
 
             var property = modelBuilder.Model;
 
-            property.Npgsql().ValueGenerationStrategy = NpgsqlValueGenerationStrategy.IdentityByDefaultColumn;
-            property.Npgsql().HiLoSequenceName = null;
-            property.Npgsql().HiLoSequenceSchema = null;
+            property.SetNpgsqlValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+            property.SetNpgsqlHiLoSequenceName(null);
+            property.SetNpgsqlHiLoSequenceSchema(null);
 
             return modelBuilder;
         }
@@ -142,6 +192,35 @@ namespace Microsoft.EntityFrameworkCore
         public static ModelBuilder ForNpgsqlUseIdentityColumns(
             [NotNull] this ModelBuilder modelBuilder)
             => modelBuilder.ForNpgsqlUseIdentityByDefaultColumns();
+
+        /// <summary>
+        /// Configures the value generation strategy for the key property, when targeting PostgreSQL.
+        /// </summary>
+        /// <param name="modelBuilder">The builder for the property being configured.</param>
+        /// <param name="valueGenerationStrategy">The value generation strategy.</param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        /// <returns>
+        /// The same builder instance if the configuration was applied, <c>null</c> otherwise.
+        /// </returns>
+        public static IConventionModelBuilder ForNpgsqlHasValueGenerationStrategy(
+            [NotNull] this IConventionModelBuilder modelBuilder,
+            NpgsqlValueGenerationStrategy? valueGenerationStrategy,
+            bool fromDataAnnotation = false)
+        {
+            if (modelBuilder.CanSetAnnotation(
+                NpgsqlAnnotationNames.ValueGenerationStrategy, valueGenerationStrategy, fromDataAnnotation))
+            {
+                modelBuilder.Metadata.SetNpgsqlValueGenerationStrategy(valueGenerationStrategy, fromDataAnnotation);
+                if (valueGenerationStrategy != NpgsqlValueGenerationStrategy.SequenceHiLo)
+                {
+                    modelBuilder.ForNpgsqlHasHiLoSequence(null, null, fromDataAnnotation);
+                }
+
+                return modelBuilder;
+            }
+
+            return null;
+        }
 
         #endregion Identity
 
@@ -172,7 +251,8 @@ namespace Microsoft.EntityFrameworkCore
             Check.NullButNotEmpty(schema, nameof(schema));
             Check.NotEmpty(name, nameof(name));
 
-            modelBuilder.Model.Npgsql().GetOrAddPostgresExtension(schema, name, version);
+            modelBuilder.Model.GetOrAddPostgresExtension(schema, name, version);
+
             return modelBuilder;
         }
 
@@ -223,7 +303,7 @@ namespace Microsoft.EntityFrameworkCore
             Check.NotEmpty(name, nameof(name));
             Check.NotNull(labels, nameof(labels));
 
-            modelBuilder.Model.Npgsql().GetOrAddPostgresEnum(schema, name, labels);
+            modelBuilder.Model.GetOrAddPostgresEnum(schema, name, labels);
             return modelBuilder;
         }
 
@@ -292,7 +372,7 @@ namespace Microsoft.EntityFrameworkCore
             Check.NotNull(modelBuilder, nameof(modelBuilder));
             Check.NotEmpty(templateDatabaseName, nameof(templateDatabaseName));
 
-            modelBuilder.Model.Npgsql().DatabaseTemplate = templateDatabaseName;
+            modelBuilder.Model.SetNpgsqlDatabaseTemplate(templateDatabaseName);
             return modelBuilder;
         }
 
@@ -335,7 +415,7 @@ namespace Microsoft.EntityFrameworkCore
             Check.NotEmpty(name, nameof(name));
             Check.NotEmpty(subtype, nameof(subtype));
 
-            modelBuilder.Model.Npgsql().GetOrAddPostgresRange(
+            modelBuilder.Model.GetOrAddPostgresRange(
                 schema,
                 name,
                 subtype,
@@ -373,7 +453,7 @@ namespace Microsoft.EntityFrameworkCore
             Check.NotNull(modelBuilder, nameof(modelBuilder));
             Check.NotEmpty(tablespace, nameof(tablespace));
 
-            modelBuilder.Model.Npgsql().Tablespace = tablespace;
+            modelBuilder.Model.SetNpgsqlTablespace(tablespace);
             return modelBuilder;
         }
 
