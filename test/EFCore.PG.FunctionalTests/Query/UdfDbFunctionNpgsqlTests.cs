@@ -1,8 +1,7 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
-using Microsoft.EntityFrameworkCore.Query.Expressions;
-using Microsoft.EntityFrameworkCore.Relational.Query.Pipeline.SqlExpressions;
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
@@ -772,13 +771,13 @@ LIMIT 2");
 
                 // ReSharper disable once AssignNullToNotNullAttribute
                 modelBuilder.HasDbFunction(methodInfo)
-                    .HasTranslation(args => new SqlFunctionExpression("length", args, methodInfo.ReturnType, null));
+                    .HasTranslation(args => SqlFunctionExpression.Create("length", args, methodInfo.ReturnType, null));
 
                 var methodInfo2 = typeof(UDFSqlContext).GetMethod(nameof(MyCustomLengthInstance));
 
                 // ReSharper disable once AssignNullToNotNullAttribute
                 modelBuilder.HasDbFunction(methodInfo2)
-                    .HasTranslation(args => new SqlFunctionExpression("length", args, methodInfo2.ReturnType, null));
+                    .HasTranslation(args => SqlFunctionExpression.Create("length", args, methodInfo2.ReturnType, null));
             }
         }
 
@@ -806,12 +805,12 @@ LIMIT 2");
                 modelBuilder.HasDbFunction(typeof(UDFSqlContext).GetMethod(nameof(GetReportingPeriodStartDateStatic))).HasName("get_reporting_period_start_date");
                 var isDateMethodInfo = typeof(UDFSqlContext).GetMethod(nameof(IsDateStatic));
                 modelBuilder.HasDbFunction(isDateMethodInfo)
-                    .HasTranslation(args => new SqlFunctionExpression("is_date", args, isDateMethodInfo.ReturnType, null));
+                    .HasTranslation(args => SqlFunctionExpression.Create("is_date", args, isDateMethodInfo.ReturnType, null));
 
                 var methodInfo = typeof(UDFSqlContext).GetMethod(nameof(MyCustomLengthStatic));
 
                 modelBuilder.HasDbFunction(methodInfo)
-                    .HasTranslation(args => new SqlFunctionExpression("length", args, methodInfo.ReturnType, null));
+                    .HasTranslation(args => SqlFunctionExpression.Create("length", args, methodInfo.ReturnType, null));
 
                 //Instance
                 modelBuilder.HasDbFunction(typeof(UDFSqlContext).GetMethod(nameof(CustomerOrderCountInstance))).HasName("customer_order_count");
@@ -822,14 +821,14 @@ LIMIT 2");
                 modelBuilder.HasDbFunction(typeof(UDFSqlContext).GetMethod(nameof(GetReportingPeriodStartDateInstance))).HasName("get_reporting_period_start_date");
                 var isDateMethodInfo2 = typeof(UDFSqlContext).GetMethod(nameof(IsDateInstance));
                 modelBuilder.HasDbFunction(isDateMethodInfo2)
-                    .HasTranslation(args => new SqlFunctionExpression("is_date", args, isDateMethodInfo2.ReturnType, null));
+                    .HasTranslation(args => SqlFunctionExpression.Create("is_date", args, isDateMethodInfo2.ReturnType, null));
 
                 modelBuilder.HasDbFunction(typeof(UDFSqlContext).GetMethod(nameof(DollarValueInstance))).HasName("dollar_value");
 
                 var methodInfo2 = typeof(UDFSqlContext).GetMethod(nameof(MyCustomLengthInstance));
 
                 modelBuilder.HasDbFunction(methodInfo2)
-                    .HasTranslation(args => new SqlFunctionExpression("length", args, methodInfo2.ReturnType, null));
+                    .HasTranslation(args => SqlFunctionExpression.Create("length", args, methodInfo2.ReturnType, null));
                 // ReSharper restore AssignNullToNotNullAttribute
             }
         }

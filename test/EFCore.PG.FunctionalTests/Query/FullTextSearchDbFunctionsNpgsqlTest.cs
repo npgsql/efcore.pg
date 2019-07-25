@@ -37,7 +37,7 @@ FROM ""Customers"" AS c
 LIMIT 1");
         }
 
-        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/16680")]
+        [Fact]
         public void ArrayToTsVector()
         {
             using (var context = CreateContext())
@@ -643,7 +643,7 @@ FROM ""Customers"" AS c
 LIMIT 1");
         }
 
-        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/16680")]
+        [Fact]
         public void Setweight_With_Enum_And_Lexemes()
         {
             using (var context = CreateContext())
@@ -677,7 +677,7 @@ FROM ""Customers"" AS c
 LIMIT 1");
         }
 
-        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/16680")]
+        [Fact]
         public void Setweight_With_Char_And_Lexemes()
         {
             using (var context = CreateContext())
@@ -711,7 +711,7 @@ FROM ""Customers"" AS c
 LIMIT 1");
         }
 
-        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/16680")]
+        [Fact]
         public void Delete_With_Multiple_Lexemes()
         {
             using (var context = CreateContext())
@@ -728,7 +728,7 @@ FROM ""Customers"" AS c
 LIMIT 1");
         }
 
-        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/16680")]
+        [Fact(Skip = "Need to reimplement with \"char\"[]")]
         public void Filter()
         {
             using (var context = CreateContext())
@@ -816,7 +816,7 @@ FROM ""Customers"" AS c
 LIMIT 1");
         }
 
-        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/16680")]
+        [Fact]
         public void Rank_With_Weights()
         {
             using (var context = CreateContext())
@@ -836,7 +836,7 @@ FROM ""Customers"" AS c
 LIMIT 1");
         }
 
-        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/16680")]
+        [Fact]
         public void Rank_With_Weights_And_Normalization()
         {
             using (var context = CreateContext())
@@ -894,7 +894,7 @@ FROM ""Customers"" AS c
 LIMIT 1");
         }
 
-        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/16680")]
+        [Fact]
         public void RankCoverDensity_With_Weights()
         {
             using (var context = CreateContext())
@@ -914,7 +914,7 @@ FROM ""Customers"" AS c
 LIMIT 1");
         }
 
-        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/16680")]
+        [Fact]
         public void RankCoverDensity_With_Weights_And_Normalization()
         {
             using (var context = CreateContext())

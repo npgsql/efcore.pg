@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Relational.Query.Pipeline;
-using Microsoft.EntityFrameworkCore.Relational.Query.Pipeline.SqlExpressions;
+using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using NodaTime;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Pipeline;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 
 // ReSharper disable once CheckNamespace
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
@@ -65,7 +65,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
 #pragma warning disable EF1001
         /// <inheritdoc />
         [CanBeNull]
-        public SqlExpression Translate(SqlExpression instance, MethodInfo method, IList<SqlExpression> arguments)
+        public SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
         {
             if (method == GetCurrentInstant)
             {
@@ -81,7 +81,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
                 return PeriodMethodMap.TryGetValue(method, out var datePart)
                     ? new PgFunctionExpression(
                         "MAKE_INTERVAL",
-                        new Dictionary<string, SqlExpression> { [datePart] = _sqlExpressionFactory.Constant(arguments[0]) },
+                        new Dictionary<string, SqlExpression>
+                        {
+                            [datePart] = _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[0])
+                        },
                         typeof(Period))
                     : null;
             }

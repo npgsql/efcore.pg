@@ -150,20 +150,29 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 }, cancellationToken);
 
         public override bool HasTables()
-            => (bool)CreateHasTablesCommand().ExecuteScalar(
-                new RelationalCommandParameterObject(
+            => Dependencies.ExecutionStrategyFactory
+                .Create()
+                .Execute(
                     _connection,
-                    null,
-                    Dependencies.CurrentDbContext.Context,
-                    Dependencies.CommandLogger));
+                    connection => (bool)CreateHasTablesCommand()
+                                      .ExecuteScalar(
+                                          new RelationalCommandParameterObject(
+                                              connection,
+                                              null,
+                                              Dependencies.CurrentContext.Context,
+                                              Dependencies.CommandLogger)));
 
-        public override async Task<bool> HasTablesAsync(CancellationToken cancellationToken = default)
-            => (bool)await CreateHasTablesCommand().ExecuteScalarAsync(
-                new RelationalCommandParameterObject(
-                    _connection,
-                    null,
-                    Dependencies.CurrentDbContext.Context,
-                    Dependencies.CommandLogger), cancellationToken);
+        public override Task<bool> HasTablesAsync(CancellationToken cancellationToken = default)
+            => Dependencies.ExecutionStrategyFactory.Create().ExecuteAsync(
+                _connection,
+                async (connection, ct) => (bool)await CreateHasTablesCommand()
+                                              .ExecuteScalarAsync(
+                                                  new RelationalCommandParameterObject(
+                                                      connection,
+                                                      null,
+                                                      Dependencies.CurrentContext.Context,
+                                                      Dependencies.CommandLogger),
+                                                  cancellationToken: ct), cancellationToken);
 
         IRelationalCommand CreateHasTablesCommand()
             => _rawSqlCommandBuilder

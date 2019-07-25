@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Relational.Query.Pipeline;
-using Microsoft.EntityFrameworkCore.Relational.Query.Pipeline.SqlExpressions;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Pipeline;
+using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
@@ -31,7 +31,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
         /// <inheritdoc />
         [CanBeNull]
-        public SqlExpression Translate(SqlExpression instance, MethodInfo method, IList<SqlExpression> arguments)
+        public SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
         {
             if (method != IsMatch && method != IsMatchWithRegexOptions)
                 return null;

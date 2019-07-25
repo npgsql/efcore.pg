@@ -5,14 +5,14 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Relational.Query.Pipeline;
-using Microsoft.EntityFrameworkCore.Relational.Query.Pipeline.SqlExpressions;
+using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 using NpgsqlTypes;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Pipeline
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 {
     /// <summary>
     /// The default query SQL generator for Npgsql.
@@ -92,7 +92,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Pipeline
             var result = base.VisitOrdering(ordering);
 
             if (_reverseNullOrderingEnabled)
-                Sql.Append(ordering.Ascending ? " NULLS FIRST" : " NULLS LAST");
+                Sql.Append(ordering.IsAscending ? " NULLS FIRST" : " NULLS LAST");
 
             return result;
         }
@@ -417,8 +417,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Pipeline
                     .Append(".");
             }
 
+            // TODO: Quote user-defined function names with upper-case
             Sql
-                .Append(_sqlGenerationHelper.DelimitIdentifier(sqlFunctionExpression.FunctionName))
+                .Append(sqlFunctionExpression.FunctionName)
                 .Append("(");
 
             GenerateList(sqlFunctionExpression.PositionalArguments, e => Visit(e));

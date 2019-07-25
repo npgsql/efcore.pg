@@ -35,7 +35,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         #region Where
 
-        [Fact(Skip = "Awaiting Smit's commit to support enum constants (for preview8)")]
+        [Fact]
         public void Where_with_constant()
         {
             using (var ctx = Fixture.CreateContext())
@@ -43,20 +43,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 var x = ctx.SomeEntities.Single(e => e.MappedEnum == MappedEnum.Sad);
                 Assert.Equal(MappedEnum.Sad, x.MappedEnum);
 
-                AssertContainsInSql("WHERE e.\"MappedEnum\" = 'sad'::test.mapped_enum");
+                AssertContainsInSql(@"WHERE s.""MappedEnum"" = 'sad'::test.mapped_enum");
             }
         }
 
-        [Fact(Skip = "Awaiting Smit's commit to support enum constants (for preview8)")]
+        [Fact]
         public void Where_with_constant_schema_qualified()
         {
             using (var ctx = Fixture.CreateContext())
             {
                 var x = ctx.SomeEntities.Single(e => e.SchemaQualifiedEnum == SchemaQualifiedEnum.Happy);
                 Assert.Equal(SchemaQualifiedEnum.Happy, x.SchemaQualifiedEnum);
-                AssertSql(@"");
 
-                AssertContainsInSql("WHERE e.\"SchemaQualifiedEnum\" = 'Happy (PgName)'::test.schema_qualified_enum");
+                AssertContainsInSql(@"WHERE s.""SchemaQualifiedEnum"" = 'Happy (PgName)'::test.schema_qualified_enum");
             }
         }
 

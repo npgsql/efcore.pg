@@ -1,22 +1,23 @@
 using System;
 using System.Text.RegularExpressions;
-using Microsoft.EntityFrameworkCore.Relational.Query.Pipeline;
-using Microsoft.EntityFrameworkCore.Relational.Query.Pipeline.SqlExpressions;
+using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Pipeline
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 {
     public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
     {
         readonly IRelationalTypeMappingSource _typeMappingSource;
         readonly RelationalTypeMapping _boolTypeMapping;
 
-        public NpgsqlSqlExpressionFactory(IRelationalTypeMappingSource typeMappingSource) : base(typeMappingSource)
+        public NpgsqlSqlExpressionFactory(SqlExpressionFactoryDependencies dependencies)
+            : base(dependencies)
         {
-            _typeMappingSource = typeMappingSource;
-            _boolTypeMapping = typeMappingSource.FindMapping(typeof(bool));
+            _typeMappingSource = dependencies.TypeMappingSource;
+            _boolTypeMapping = _typeMappingSource.FindMapping(typeof(bool));
         }
 
         public RegexMatchExpression RegexMatch(SqlExpression match, SqlExpression pattern, RegexOptions options)
@@ -72,20 +73,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Pipeline
         public ILikeExpression ILike(SqlExpression match, SqlExpression pattern, SqlExpression escapeChar = null)
             => (ILikeExpression)ApplyDefaultTypeMapping(new ILikeExpression(match, pattern, escapeChar, null));
 
-        // TODO: delete this in preview8!
-        public new SqlExpression ApplyDefaultTypeMapping(SqlExpression sqlExpression)
-        {
-            if (sqlExpression == null
-                || sqlExpression.TypeMapping != null)
-            {
-                return sqlExpression;
-            }
-
-            return ApplyTypeMapping(sqlExpression, _typeMappingSource.FindMapping(sqlExpression.Type));
-        }
-
-        // TODO: change to override in preview8!
-        public new SqlExpression ApplyTypeMapping(SqlExpression sqlExpression, RelationalTypeMapping typeMapping)
+        public override SqlExpression ApplyTypeMapping(SqlExpression sqlExpression, RelationalTypeMapping typeMapping)
         {
             if (sqlExpression == null
                 || sqlExpression.TypeMapping != null)
@@ -99,6 +87,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Pipeline
                 ArrayAnyAllExpression e      => ApplyTypeMappingOnArrayAnyAll(e),
                 ArrayIndexExpression e       => ApplyTypeMappingOnArrayIndex(e),
                 ILikeExpression e            => ApplyTypeMappingOnILike(e),
+                PgFunctionExpression e       => e.ApplyTypeMapping(typeMapping),
 
                 _ => base.ApplyTypeMapping(sqlExpression, typeMapping)
             };

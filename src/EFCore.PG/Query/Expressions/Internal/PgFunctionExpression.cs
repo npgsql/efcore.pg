@@ -5,10 +5,10 @@ using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Query.Internal;
-using Microsoft.EntityFrameworkCore.Relational.Query.Pipeline.SqlExpressions;
+using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Pipeline;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 // ReSharper disable ArgumentsStyleLiteral
@@ -23,18 +23,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         /// <summary>
         /// An empty instance of <see cref="ReadOnlyDictionary{TKey,TValue}"/>.
         /// </summary>
-        [NotNull] static readonly ReadOnlyDictionary<string, SqlExpression> EmptyNamedArguments =
+        [NotNull] static readonly ReadOnlyDictionary<string, SqlExpression> _emptyNamedArguments =
             new ReadOnlyDictionary<string, SqlExpression>(new Dictionary<string, SqlExpression>());
+
+        static readonly IReadOnlyList<SqlExpression> _emptyList = new List<SqlExpression>();
 
         /// <summary>
         /// The backing field for <see cref="PositionalArguments"/>.
         /// </summary>
-        [NotNull] [ItemNotNull] readonly ReadOnlyCollection<SqlExpression> _positionalArguments;
+        [NotNull] [ItemNotNull] readonly IReadOnlyList<SqlExpression> _positionalArguments;
 
         /// <summary>
         /// The backing field for <see cref="NamedArguments"/>.
         /// </summary>
-        [NotNull] readonly ReadOnlyDictionary<string, SqlExpression> _namedArguments;
+        [NotNull] readonly IReadOnlyDictionary<string, SqlExpression> _namedArguments;
 
         /// <summary>
         /// Gets the name of the function.
@@ -73,6 +75,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         [NotNull]
         public virtual IReadOnlyDictionary<string, SqlExpression> NamedArguments => _namedArguments;
 
+        #region Constructors
+
         /// <summary>
         /// Initializes a new instance of the <see cref="PgFunctionExpression" /> class.
         /// </summary>
@@ -87,8 +91,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
                 instance: null,
                 Check.NotEmpty(functionName, nameof(functionName)),
                 schema: null,
-                Enumerable.Empty<SqlExpression>(),
-                EmptyNamedArguments,
+                _emptyList,
+                _emptyNamedArguments,
                 Check.NotNull(returnType, nameof(returnType)),
                 typeMapping) {}
 
@@ -101,7 +105,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         /// <param name="typeMapping">The type mapping corresponding to the return type, or null to allow inference.</param>
         public PgFunctionExpression(
             [NotNull] string functionName,
-            [NotNull] IEnumerable<SqlExpression> positionalArguments,
+            [NotNull] IReadOnlyList<SqlExpression> positionalArguments,
             [NotNull] Type returnType,
             RelationalTypeMapping typeMapping = null)
             : this(
@@ -109,7 +113,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
                 Check.NotEmpty(functionName, nameof(functionName)),
                 schema: null,
                 Check.NotNull(positionalArguments, nameof(positionalArguments)),
-                EmptyNamedArguments,
+                _emptyNamedArguments,
                 Check.NotNull(returnType, nameof(returnType)),
                 typeMapping) {}
 
@@ -122,14 +126,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         /// <param name="typeMapping">The type mapping corresponding to the return type, or null to allow inference.</param>
         public PgFunctionExpression(
             [NotNull] string functionName,
-            [NotNull] IDictionary<string, SqlExpression> namedArguments,
+            [NotNull] IReadOnlyDictionary<string, SqlExpression> namedArguments,
             [NotNull] Type returnType,
             RelationalTypeMapping typeMapping = null)
             : this(
                 instance: null,
                 Check.NotEmpty(functionName, nameof(functionName)),
                 schema: null,
-                Enumerable.Empty<SqlExpression>(),
+                _emptyList,
                 namedArguments,
                 Check.NotNull(returnType, nameof(returnType)),
                 typeMapping) {}
@@ -145,7 +149,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         public PgFunctionExpression(
             [NotNull] string functionName,
             [CanBeNull] string schema,
-            [NotNull] IEnumerable<SqlExpression> positionalArguments,
+            [NotNull] IReadOnlyList<SqlExpression> positionalArguments,
             [NotNull] Type returnType,
             RelationalTypeMapping typeMapping = null)
             : this(
@@ -153,7 +157,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
                 Check.NotEmpty(functionName, nameof(functionName)),
                 schema,
                 Check.NotNull(positionalArguments, nameof(positionalArguments)),
-                EmptyNamedArguments,
+                _emptyNamedArguments,
                 Check.NotNull(returnType, nameof(returnType)),
                 typeMapping) {}
 
@@ -168,7 +172,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         public PgFunctionExpression(
             [NotNull] SqlExpression instance,
             [NotNull] string functionName,
-            [NotNull] IEnumerable<SqlExpression> positionalArguments,
+            [NotNull] IReadOnlyList<SqlExpression> positionalArguments,
             [NotNull] Type returnType,
             RelationalTypeMapping typeMapping = null)
             : this(
@@ -176,7 +180,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
                 Check.NotEmpty(functionName, nameof(functionName)),
                 schema: null,
                 Check.NotNull(positionalArguments, nameof(positionalArguments)),
-                EmptyNamedArguments,
+                _emptyNamedArguments,
                 Check.NotNull(returnType, nameof(returnType)),
                 typeMapping) {}
 
@@ -192,8 +196,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         public PgFunctionExpression(
             [NotNull] SqlExpression instance,
             [NotNull] string functionName,
-            [NotNull] IEnumerable<SqlExpression> positionalArguments,
-            [NotNull] IDictionary<string, SqlExpression> namedArguments,
+            [NotNull] IReadOnlyList<SqlExpression> positionalArguments,
+            [NotNull] IReadOnlyDictionary<string, SqlExpression> namedArguments,
             [NotNull] Type returnType,
             RelationalTypeMapping typeMapping = null)
             : this(
@@ -219,8 +223,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
             [CanBeNull] SqlExpression instance,
             [NotNull] string functionName,
             [CanBeNull] string schema,
-            [NotNull] IEnumerable<SqlExpression> positionalArguments,
-            [NotNull] IDictionary<string, SqlExpression> namedArguments,
+            [NotNull] IReadOnlyList<SqlExpression> positionalArguments,
+            [NotNull] IReadOnlyDictionary<string, SqlExpression> namedArguments,
             [NotNull] Type returnType,
             RelationalTypeMapping typeMapping = null)
             : base(returnType, typeMapping)
@@ -228,9 +232,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
             Instance = instance;
             FunctionName = functionName;
             Schema = schema;
-            _positionalArguments = positionalArguments.ToList().AsReadOnly();
-            _namedArguments = new ReadOnlyDictionary<string, SqlExpression>(namedArguments);
+            _positionalArguments = positionalArguments;
+            _namedArguments = namedArguments;
         }
+
+        #endregion Constructors
 
         /// <inheritdoc />
         protected override Expression Accept(ExpressionVisitor visitor)
@@ -242,7 +248,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         protected override Expression VisitChildren(ExpressionVisitor visitor)
         {
             var instance = (SqlExpression)visitor.Visit(Instance);
-            var positionalArguments = visitor.VisitAndConvert(_positionalArguments, nameof(VisitChildren));
+            var positionalArguments = new SqlExpression[PositionalArguments.Count];
+            for (var i = 0; i < positionalArguments.Length; i++)
+                positionalArguments[i] = (SqlExpression)visitor.Visit(PositionalArguments[i]);
 
             // TODO: Inefficient, instantiate new dictionary only if there are changes
             var namedArguments = new Dictionary<string, SqlExpression>(_namedArguments.Count);
@@ -252,10 +260,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
             return Update(instance, positionalArguments, namedArguments);
         }
 
-        public PgFunctionExpression Update(SqlExpression instance, IEnumerable<SqlExpression> positionalArguments, IDictionary<string, SqlExpression> namedArguments)
+        public PgFunctionExpression Update(SqlExpression instance, IReadOnlyList<SqlExpression> positionalArguments, IReadOnlyDictionary<string, SqlExpression> namedArguments)
             => instance == Instance && positionalArguments == PositionalArguments && namedArguments == NamedArguments
                 ? this
                 : new PgFunctionExpression(instance, FunctionName, Schema, positionalArguments, namedArguments, Type, TypeMapping);
+
+        public virtual PgFunctionExpression ApplyTypeMapping(RelationalTypeMapping typeMapping)
+            => new PgFunctionExpression(Instance, FunctionName, Schema, PositionalArguments, NamedArguments, Type, typeMapping ?? TypeMapping);
 
         /// <inheritdoc />
         public override bool Equals(object obj) => obj is PgFunctionExpression pgFunction && Equals(pgFunction);

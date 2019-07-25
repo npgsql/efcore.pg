@@ -20,15 +20,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         #region Overrides
 
-        [ConditionalTheory(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/16640")]
-        public override Task Union_Take_Union_Take(bool isAsync) => null;
-
         public override async Task Select_expression_date_add_year(bool isAsync)
         {
             await base.Select_expression_date_add_year(isAsync);
 
             AssertSql(
-                @"SELECT CAST((o.""OrderDate"" + INTERVAL '1 years') AS timestamp without time zone) AS ""OrderDate""
+                @"SELECT o.""OrderDate"" + INTERVAL '1 years' AS ""OrderDate""
 FROM ""Orders"" AS o
 WHERE (o.""OrderDate"" IS NOT NULL)");
         }
@@ -52,14 +49,14 @@ WHERE (o.""OrderDate"" IS NOT NULL)");
             AssertSql(
                 @"@__years_0='2'
 
-SELECT CAST((o.""OrderDate"" + CAST((@__years_0 || ' years') AS interval)) AS timestamp without time zone) AS ""OrderDate""
+SELECT o.""OrderDate"" + CAST((@__years_0 || ' years') AS interval) AS ""OrderDate""
 FROM ""Orders"" AS o
 WHERE (o.""OrderDate"" IS NOT NULL)");
         }
 
-        public override async Task Contains_with_local_int_array_closure(bool isAsync)
+        public override async Task Contains_with_local_uint_array_closure(bool isAsync)
         {
-            await base.Contains_with_local_int_array_closure(isAsync);
+            await base.Contains_with_local_uint_array_closure(isAsync);
 
             // This test invokes Contains() on a uint array, but PostgreSQL doesn't support uint. As a result,
             // we can't do the PostgreSQL-specific x = ANY (a,b,c) optimization and allow EF Core to expand the
@@ -75,9 +72,9 @@ FROM ""Employees"" AS e
 WHERE e.""EmployeeID"" IN (0)");
         }
 
-        public override async Task Contains_with_local_nullable_int_array_closure(bool isAsync)
+        public override async Task Contains_with_local_nullable_uint_array_closure(bool isAsync)
         {
-            await base.Contains_with_local_nullable_int_array_closure(isAsync);
+            await base.Contains_with_local_nullable_uint_array_closure(isAsync);
 
             // As above in Contains_with_local_int_array_closure
 
