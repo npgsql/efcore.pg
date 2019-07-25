@@ -19,6 +19,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities.Xunit;
 using Xunit;
 
 // ReSharper disable InconsistentNaming
@@ -40,11 +41,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding
 
         [Fact]
         public void Create_sequences_with_facets()
-            => Test(@"
+        {
+            var supportsDataType = TestEnvironment.PostgresVersion >= new Version(10, 0);
+
+            Test($@"
 CREATE SEQUENCE ""DefaultFacetsSequence"";
 
 CREATE SEQUENCE db2.""CustomFacetsSequence""
-    AS int
+    {(supportsDataType ? "AS int" : null)}
     START WITH 1
     INCREMENT BY 2
     MAXVALUE 8
@@ -67,7 +71,7 @@ CREATE SEQUENCE db2.""CustomFacetsSequence""
                     var customSequence = dbModel.Sequences.First(ds => ds.Name == "CustomFacetsSequence");
                     Assert.Equal("db2", customSequence.Schema);
                     Assert.Equal("CustomFacetsSequence", customSequence.Name);
-                    Assert.Equal("integer", customSequence.StoreType);
+                    Assert.Equal(supportsDataType ? "integer" : "bigint", customSequence.StoreType);
                     Assert.True(customSequence.IsCyclic);
                     Assert.Equal(2, customSequence.IncrementBy);
                     Assert.Equal(1, customSequence.StartValue);
@@ -77,8 +81,9 @@ CREATE SEQUENCE db2.""CustomFacetsSequence""
                 @"
 DROP SEQUENCE ""DefaultFacetsSequence"";
 DROP SEQUENCE db2.""CustomFacetsSequence""");
+        }
 
-        [Fact]
+        [MinimumPostgresVersionFact(11, 0)]
         public void Sequence_min_max_start_values_are_null_if_default()
             => Test(@"
 CREATE SEQUENCE ""SmallIntSequence"" AS smallint;
@@ -1409,7 +1414,7 @@ CREATE TABLE ""NonSerialSequence"" (""Id"" integer PRIMARY KEY DEFAULT nextval('
 DROP TABLE ""NonSerialSequence"";
 DROP SEQUENCE ""SomeSequence""");
 
-        [Fact]
+        [MinimumPostgresVersionFact(11, 0)]
         public void Identity()
             => Test(@"
 CREATE TABLE identity (
@@ -1554,13 +1559,9 @@ CREATE INDEX ix_without ON ""IndexNullSortOrder"" (a, b);",
                 },
                 @"DROP TABLE ""IndexNullSortOrder""");
 
-        [Fact]
+        [MinimumPostgresVersionFact(11, 0)]
         public void Index_covering()
-        {
-            if (Fixture.TestStore.GetPostgresVersion() < new Version(11, 0))
-                return;
-
-            Test(@"
+            => Test(@"
 CREATE TABLE ""IndexCovering"" (a text, b text, c text);
 CREATE INDEX ix_with ON ""IndexCovering"" (a) INCLUDE (b, c);
 CREATE INDEX ix_without ON ""IndexCovering"" (a, b, c);",
@@ -1580,7 +1581,6 @@ CREATE INDEX ix_without ON ""IndexCovering"" (a, b, c);",
 
                 },
                 @"DROP TABLE ""IndexCovering""");
-        }
 
         [Fact]
         public void Comments()
@@ -1598,7 +1598,7 @@ COMMENT ON COLUMN comment.a IS 'column comment'",
                 },
                 "DROP TABLE comment");
 
-        [Fact]
+        [MinimumPostgresVersionFact(11, 0)]
         public void Sequence_types()
             => Test(@"
 CREATE SEQUENCE ""SmallIntSequence"" AS smallint;
