@@ -27,7 +27,7 @@ before_build:
 build_script:
   - dotnet pack src\EFCore.PG\EFCore.PG.csproj -c Release
   - dotnet pack src\EFCore.PG.NodaTime\EFCore.PG.NodaTime.csproj -c Release
-  - dotnet pack src\EFCore.PG.NTS\EFCore.PG.NTS.csproj -c Release
+  #- dotnet pack src\EFCore.PG.NTS\EFCore.PG.NTS.csproj -c Release
 test_script:
   - dotnet test test\EFCore.PG.Tests\EFCore.PG.Tests.csproj
   - dotnet test test\EFCore.PG.Plugins.FunctionalTests\EFCore.PG.Plugins.FunctionalTests.csproj

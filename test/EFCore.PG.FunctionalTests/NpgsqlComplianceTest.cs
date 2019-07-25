@@ -31,6 +31,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             typeof(UpdatesTestBase<>),
             typeof(UpdatesRelationalTestBase<>),
 
+            // Spatial support punted to preview8
+            typeof(SpatialTestBase<>),
+            typeof(SpatialQueryTestBase<>),
+
             // The following are ignored because we haven't gotten around to doing them, not because they're
             // inherently not supported
             typeof(ComplexNavigationsWeakQueryTestBase<>),
