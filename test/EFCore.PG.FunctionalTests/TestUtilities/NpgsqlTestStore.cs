@@ -193,28 +193,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
         string _connectionString;
         bool _deleteDatabase;
 
-#if PREVIEW7
-        NpgsqlTestStore CreateTransient(bool createDatabase, bool deleteDatabase)
-        {
-            _connectionString = CreateConnectionString(Name);
-            _connection = new NpgsqlConnection(_connectionString);
-
-            if (createDatabase)
-            {
-                CreateDatabase();
-
-                OpenConnection();
-            }
-            else if (DatabaseExists(Name))
-            {
-                DeleteDatabase();
-            }
-
-            _deleteDatabase = deleteDatabase;
-            return this;
-        }
-#endif
-
         // ReSharper disable once UnusedMember.Local
         static void Clean(string name)
         {

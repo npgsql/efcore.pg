@@ -87,9 +87,6 @@ namespace Microsoft.Extensions.DependencyInjection
                     .TryAdd<IHistoryRepository, NpgsqlHistoryRepository>()
                     .TryAdd<ICompiledQueryCacheKeyGenerator, NpgsqlCompiledQueryCacheKeyGenerator>()
                     .TryAdd<IExecutionStrategyFactory, NpgsqlExecutionStrategyFactory>()
-#if PREVIEW7
-                    //.TryAdd<IExpressionFragmentTranslator, NpgsqlCompositeExpressionFragmentTranslator>()
-#endif
                     .TryAdd<IQueryableMethodTranslatingExpressionVisitorFactory, NpgsqlQueryableMethodTranslatingExpressionVisitorFactory>()
                     .TryAdd<IMethodCallTranslatorProvider, NpgsqlMethodCallTranslatorProvider>()
                     .TryAdd<IMemberTranslatorProvider, NpgsqlMemberTranslatorProvider>()

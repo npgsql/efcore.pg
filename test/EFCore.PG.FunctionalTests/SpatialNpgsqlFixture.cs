@@ -1,4 +1,4 @@
-#if PREVIEW7
+#if PREVIEW8
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.DependencyInjection;
