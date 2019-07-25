@@ -129,10 +129,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             {
                 var d = ctx.NodaTimeTypes.Single(t => t.LocalDateTime.DayOfWeek == IsoDayOfWeek.Friday);
                 Assert.Equal(new LocalDateTime(2018, 4, 20, 10, 31, 33, 666), d.LocalDateTime);
-                Assert.Contains(@"CASE
+                Assert.Equal(@"SELECT n.""Id"", n.""DateRange"", n.""Instant"", n.""LocalDate"", n.""LocalDateTime"", n.""LocalTime"", n.""OffsetTime"", n.""Period"", n.""ZonedDateTime""
+FROM ""NodaTimeTypes"" AS n
+WHERE CASE
     WHEN FLOOR(DATE_PART('dow', n.""LocalDateTime""))::INT = 0 THEN 7
     ELSE FLOOR(DATE_PART('dow', n.""LocalDateTime""))::INT
-END = 5", Sql);
+END = 5
+LIMIT 2", Sql, ignoreLineEndingDifferences: true);
             }
         }
 
