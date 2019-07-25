@@ -1,8 +1,11 @@
+using System.Collections;
 using System.Collections.Generic;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore
@@ -33,6 +36,16 @@ namespace Microsoft.EntityFrameworkCore
             => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexMethod, method);
 
         /// <summary>
+        /// Sets the index method to be used, or <c>null</c> if it hasn't been specified.
+        /// <c>null</c> selects the default (currently <c>btree</c>).
+        /// </summary>
+        /// <remarks>
+        /// http://www.postgresql.org/docs/current/static/sql-createindex.html
+        /// </remarks>
+        public static void SetNpgsqlMethod([NotNull] this IConventionIndex index, [CanBeNull] string method, bool fromDataAnnotation = false)
+            => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexMethod, method, fromDataAnnotation);
+
+        /// <summary>
         /// Returns the column operators to be used, or <c>null</c> if they have not been specified.
         /// </summary>
         /// <remarks>
@@ -49,6 +62,15 @@ namespace Microsoft.EntityFrameworkCore
         /// </remarks>
         public static void SetNpgsqlOperators([NotNull] this IMutableIndex index, [CanBeNull] IReadOnlyList<string> operators)
             => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexMethod, operators);
+
+        /// <summary>
+        /// Sets the column operators to be used, or <c>null</c> if they have not been specified.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/static/indexes-opclass.html
+        /// </remarks>
+        public static void SetNpgsqlOperators([NotNull] this IConventionIndex index, [CanBeNull] IReadOnlyList<string> operators, bool fromDataAnnotation)
+            => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexMethod, operators, fromDataAnnotation);
 
         /// <summary>
         /// Returns the column collations to be used, or <c>null</c> if they have not been specified.
@@ -69,6 +91,15 @@ namespace Microsoft.EntityFrameworkCore
             => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexCollation, collations);
 
         /// <summary>
+        /// Sets the column collations to be used, or <c>null</c> if they have not been specified.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/static/indexes-collations.html
+        /// </remarks>
+        public static void SetNpgsqlCollation([NotNull] this IConventionIndex index, [CanBeNull] IReadOnlyList<string> collations, bool fromDataAnnotation)
+            => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexCollation, collations, fromDataAnnotation);
+
+        /// <summary>
         /// Returns the column sort orders to be used, or <c>null</c> if they have not been specified.
         /// </summary>
         /// <remarks>
@@ -85,6 +116,15 @@ namespace Microsoft.EntityFrameworkCore
         /// </remarks>
         public static void SetNpgsqlSortOrder([NotNull] this IMutableIndex index, [CanBeNull] IReadOnlyList<SortOrder> sortOrder)
             => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexSortOrder, sortOrder);
+
+        /// <summary>
+        /// Sets the column sort orders to be used, or <c>null</c> if they have not been specified.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
+        /// </remarks>
+        public static void SetNpgsqlSortOrder([NotNull] this IConventionIndex index, [CanBeNull] IReadOnlyList<SortOrder> sortOrder, bool fromDataAnnotation)
+            => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexSortOrder, sortOrder, fromDataAnnotation);
 
         /// <summary>
         /// Returns the column NULL sort orders to be used, or <c>null</c> if they have not been specified.
@@ -104,6 +144,15 @@ namespace Microsoft.EntityFrameworkCore
         public static void SetNpgsqlNullSortOrder([NotNull] this IMutableIndex index, [CanBeNull] IReadOnlyList<NullSortOrder> nullSortOrder)
             => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexNullSortOrder, nullSortOrder);
 
+        /// <summary>
+        /// Sets the column NULL sort orders to be used, or <c>null</c> if they have not been specified.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
+        /// </remarks>
+        public static void SetNpgsqlNullSortOrder([NotNull] this IConventionIndex index,
+            [CanBeNull] IReadOnlyList<NullSortOrder> nullSortOrder, bool fromDataAnnotation)
+            => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexNullSortOrder, nullSortOrder, fromDataAnnotation);
 
         #region Included properties
 

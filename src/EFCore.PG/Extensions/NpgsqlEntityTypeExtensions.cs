@@ -27,6 +27,9 @@ namespace Microsoft.EntityFrameworkCore
         public static void SetNpgsqlStorageParameter([NotNull] this IMutableEntityType entityType, string parameterName, object parameterValue)
             => entityType.SetOrRemoveAnnotation(NpgsqlAnnotationNames.StorageParameterPrefix + parameterName, parameterValue);
 
+        public static void SetNpgsqlStorageParameter([NotNull] this IConventionEntityType entityType, string parameterName, object parameterValue, bool fromDataAnnotation = false)
+            => entityType.SetOrRemoveAnnotation(NpgsqlAnnotationNames.StorageParameterPrefix + parameterName, parameterValue, fromDataAnnotation);
+
         public static string GetNpgsqlComment([NotNull] this IEntityType entityType)
             => (string)entityType[NpgsqlAnnotationNames.Comment];
 
@@ -38,6 +41,9 @@ namespace Microsoft.EntityFrameworkCore
 
         public static void SetNpgsqlIsUnlogged([NotNull] this IMutableEntityType entityType, bool isUnlogged)
             => entityType.SetOrRemoveAnnotation(NpgsqlAnnotationNames.UnloggedTable, isUnlogged);
+
+        public static void SetNpgsqlIsUnlogged([NotNull] this IConventionEntityType entityType, bool isUnlogged, bool fromDataAnnotation = false)
+            => entityType.SetOrRemoveAnnotation(NpgsqlAnnotationNames.UnloggedTable, isUnlogged, fromDataAnnotation);
 
         public static CockroachDbInterleaveInParent GetNpgsqlCockroachDbInterleaveInParent([NotNull] this IEntityType entityType)
             => new CockroachDbInterleaveInParent(entityType);

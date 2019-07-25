@@ -14,7 +14,7 @@ namespace Microsoft.EntityFrameworkCore
     /// </summary>
     public static class NpgsqlPropertyBuilderExtensions
     {
-        #region Value generation strategy
+        #region HiLo
 
         /// <summary>
         /// Configures the property to use a sequence-based hi-lo pattern to generate values for new entities,
@@ -115,6 +115,10 @@ namespace Microsoft.EntityFrameworkCore
                    && propertyBuilder.CanSetAnnotation(NpgsqlAnnotationNames.HiLoSequenceSchema, schema, fromDataAnnotation);
         }
 
+        #endregion HiLo
+
+        #region Serial
+
         /// <summary>
         /// Configures the property to use the PostgreSQL SERIAL feature to generate values for new entities,
         /// when targeting PostgreSQL. This method sets the property to be <see cref="ValueGenerated.OnAdd" />.
@@ -144,6 +148,32 @@ namespace Microsoft.EntityFrameworkCore
         public static PropertyBuilder<TProperty> ForNpgsqlUseSerialColumn<TProperty>(
             [NotNull] this PropertyBuilder<TProperty> propertyBuilder)
             => (PropertyBuilder<TProperty>)ForNpgsqlUseSerialColumn((PropertyBuilder)propertyBuilder);
+
+        /// <summary>
+        /// Configures the property to use the PostgreSQL SERIAL feature to generate values for new entities,
+        /// when targeting PostgreSQL. This method sets the property to be <see cref="ValueGenerated.OnAdd" />.
+        /// </summary>
+        /// <param name="propertyBuilder"> The builder for the property being configured.</param>
+        /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+        public static IConventionPropertyBuilder ForNpgsqlUseSerialColumn(
+            [NotNull] this IConventionPropertyBuilder propertyBuilder)
+        {
+            if (propertyBuilder.ForNpgsqlCanSetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SerialColumn))
+            {
+                var property = propertyBuilder.Metadata;
+                property.SetNpgsqlValueGenerationStrategy(NpgsqlValueGenerationStrategy.SerialColumn);
+                property.SetNpgsqlHiLoSequenceName(null);
+                property.SetNpgsqlHiLoSequenceSchema(null);
+
+                return propertyBuilder;
+            }
+
+            return null;
+        }
+
+        #endregion Serial
+
+        #region Identity always
 
         /// <summary>
         /// <para>
@@ -182,6 +212,36 @@ namespace Microsoft.EntityFrameworkCore
         public static PropertyBuilder<TProperty> ForNpgsqlUseIdentityAlwaysColumn<TProperty>(
             [NotNull] this PropertyBuilder<TProperty> propertyBuilder)
             => (PropertyBuilder<TProperty>)ForNpgsqlUseIdentityAlwaysColumn((PropertyBuilder)propertyBuilder);
+
+        /// <summary>
+        /// <para>
+        /// Configures the property to use the PostgreSQL IDENTITY feature to generate values for new entities,
+        /// when targeting PostgreSQL. This method sets the property to be <see cref="ValueGenerated.OnAdd" />.
+        /// Values for this property will always be generated as identity, and the application will not be able
+        /// to override this behavior by providing a value.
+        /// </para>
+        /// <para>Available only starting PostgreSQL 10.</para>
+        /// </summary>
+        /// <param name="propertyBuilder"> The builder for the property being configured.</param>
+        /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+        public static IConventionPropertyBuilder ForNpgsqlUseIdentityAlwaysColumn([NotNull] this IConventionPropertyBuilder propertyBuilder)
+        {
+            if (propertyBuilder.ForNpgsqlCanSetValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityAlwaysColumn))
+            {
+                var property = propertyBuilder.Metadata;
+                property.SetNpgsqlValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityAlwaysColumn);
+                property.SetNpgsqlHiLoSequenceName(null);
+                property.SetNpgsqlHiLoSequenceSchema(null);
+
+                return propertyBuilder;
+            }
+
+            return null;
+        }
+
+        #endregion Identity always
+
+        #region Identity by default
 
         /// <summary>
         /// <para>
@@ -233,6 +293,32 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="propertyBuilder"> The builder for the property being configured.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+        public static IConventionPropertyBuilder ForNpgsqlUseIdentityByDefaultColumn([NotNull] this IConventionPropertyBuilder propertyBuilder)
+        {
+            if (propertyBuilder.ForNpgsqlCanSetValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityByDefaultColumn))
+            {
+                var property = propertyBuilder.Metadata;
+                property.SetNpgsqlValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+                property.SetNpgsqlHiLoSequenceName(null);
+                property.SetNpgsqlHiLoSequenceSchema(null);
+
+                return propertyBuilder;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// <para>
+        /// Configures the property to use the PostgreSQL IDENTITY feature to generate values for new entities,
+        /// when targeting PostgreSQL. This method sets the property to be <see cref="ValueGenerated.OnAdd" />.
+        /// Values for this property will be generated as identity by default, but the application will be able
+        /// to override this behavior by providing a value.
+        /// </para>
+        /// <para>Available only starting PostgreSQL 10.</para>
+        /// </summary>
+        /// <param name="propertyBuilder"> The builder for the property being configured.</param>
+        /// <returns>The same builder instance so that multiple calls can be chained.</returns>
         public static PropertyBuilder ForNpgsqlUseIdentityColumn(
             [NotNull] this PropertyBuilder propertyBuilder)
             => propertyBuilder.ForNpgsqlUseIdentityByDefaultColumn();
@@ -252,6 +338,10 @@ namespace Microsoft.EntityFrameworkCore
         public static PropertyBuilder<TProperty> ForNpgsqlUseIdentityColumn<TProperty>(
             [NotNull] this PropertyBuilder<TProperty> propertyBuilder)
             => propertyBuilder.ForNpgsqlUseIdentityByDefaultColumn();
+
+        #endregion Identity by default
+
+        #region General value generation strategy
 
         /// <summary>
         /// Configures the value generation strategy for the key property, when targeting PostgreSQL.
@@ -282,7 +372,27 @@ namespace Microsoft.EntityFrameworkCore
             return null;
         }
 
-        #endregion Value generation strategy
+        /// <summary>
+        /// Returns a value indicating whether the given value can be set as the value generation strategy.
+        /// </summary>
+        /// <param name="propertyBuilder">The builder for the property being configured.</param>
+        /// <param name="valueGenerationStrategy">The value generation strategy.</param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        /// <returns><c>true</c> if the given value can be set as the default value generation strategy.</returns>
+        public static bool ForNpgsqlCanSetValueGenerationStrategy(
+            [NotNull] this IConventionPropertyBuilder propertyBuilder,
+            NpgsqlValueGenerationStrategy? valueGenerationStrategy,
+            bool fromDataAnnotation = false)
+        {
+            Check.NotNull(propertyBuilder, nameof(propertyBuilder));
+
+            return (valueGenerationStrategy == null
+                    || NpgsqlPropertyExtensions.IsCompatibleWithValueGeneration(propertyBuilder.Metadata))
+                   && propertyBuilder.CanSetAnnotation(
+                       NpgsqlAnnotationNames.ValueGenerationStrategy, valueGenerationStrategy, fromDataAnnotation);
+        }
+
+        #endregion General value generation strategy
 
         #region Comment
 
