@@ -32,6 +32,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 Sql);
         }
 
+        [ConditionalFact]
+        public virtual void AddColumnOperation_with_computedSql()
+        {
+            Generate(
+                new AddColumnOperation
+                {
+                    Table = "People",
+                    Name = "FullName",
+                    ClrType = typeof(string),
+                    ComputedColumnSql = @"""FirstName"" || ' ' || ""LastName"""
+                });
+
+            Assert.Equal(
+                @"ALTER TABLE ""People"" ADD ""FullName"" text GENERATED ALWAYS AS (""FirstName"" || ' ' || ""LastName"") STORED;" + EOL,
+                Sql);
+        }
+
         public override void AddColumnOperation_without_column_type()
         {
             base.AddColumnOperation_without_column_type();
@@ -608,6 +625,26 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             Assert.Equal(@"ALTER TABLE ""People"" ALTER COLUMN ""Id"" TYPE bigint;" + EOL +
                          @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET NOT NULL;" + EOL,
                 Sql);
+        }
+
+        [ConditionalFact]
+        public void AlterColumnOperation_computed()
+        {
+            Generate(
+                new AlterColumnOperation
+                {
+                    Table = "People",
+                    Name = "FullName",
+                    ClrType = typeof(string),
+                    ComputedColumnSql = @"""FirstName"" || ' ' || ""LastName"""
+                });
+
+            Assert.Equal(@"ALTER TABLE ""People"" DROP COLUMN ""FullName"";
+GO
+
+ALTER TABLE ""People"" ADD ""FullName"" text GENERATED ALWAYS AS (""FirstName"" || ' ' || ""LastName"") STORED;
+",
+                Sql, ignoreLineEndingDifferences: true);
         }
 
         #endregion Value generation alter

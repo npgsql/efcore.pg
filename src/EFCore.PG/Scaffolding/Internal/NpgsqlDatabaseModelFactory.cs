@@ -259,6 +259,7 @@ SELECT
   description,
   attisdropped,
   {(connection.PostgreSqlVersion >= new Version(10, 0) ? "attidentity" : "''::\"char\" as attidentity")},
+  {(connection.PostgreSqlVersion >= new Version(12, 0) ? "attgenerated" : "''::\"char\" as attgenerated")},
   format_type(typ.oid, atttypmod) AS formatted_typname,
   format_type(basetyp.oid, typ.typtypmod) AS formatted_basetypname,
   CASE
@@ -311,8 +312,6 @@ ORDER BY attnum";
                             Table = table,
                             Name = record.GetValueOrDefault<string>("attname"),
                             IsNullable = record.GetValueOrDefault<bool>("nullable"),
-                            DefaultValueSql = record.GetValueOrDefault<string>("default"),
-                            ComputedColumnSql = null
                         };
 
                         // We need to know about dropped columns because constraints take them into
@@ -356,6 +355,15 @@ ORDER BY attnum";
                             column.IsNullable,
                             column.DefaultValueSql);
 
+                        // Default values and PostgreSQL 12 generated columns
+                        if (record.GetValueOrDefault<char>("attgenerated") == 's')
+                            column.ComputedColumnSql = record.GetValueOrDefault<string>("default");
+                        else
+                        {
+                            column.DefaultValueSql = record.GetValueOrDefault<string>("default");
+                            AdjustDefaults(column, systemTypeName);
+                        }
+
                         // Identify IDENTITY columns, as well as SERIAL ones.
                         switch (record.GetValueOrDefault<char>("attidentity"))
                         {
@@ -395,8 +403,6 @@ ORDER BY attnum";
 
                         if (column[NpgsqlAnnotationNames.ValueGenerationStrategy] != null)
                             column.ValueGenerated = ValueGenerated.OnAdd;
-
-                        AdjustDefaults(column, systemTypeName);
 
                         if (record.GetValueOrDefault<string>("description") is string comment)
                             column[NpgsqlAnnotationNames.Comment] = comment;
