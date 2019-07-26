@@ -165,10 +165,10 @@ LIMIT 2");
             public EnumContext(DbContextOptions options) : base(options) {}
 
             protected override void OnModelCreating(ModelBuilder builder)
-                => builder.ForNpgsqlHasEnum("mapped_enum", new[] { "happy", "sad" })
-                          .ForNpgsqlHasEnum<InferredEnum>()
+                => builder.HasPostgresEnum("mapped_enum", new[] { "happy", "sad" })
+                          .HasPostgresEnum<InferredEnum>()
                           .HasDefaultSchema("test")
-                          .ForNpgsqlHasEnum<SchemaQualifiedEnum>();
+                          .HasPostgresEnum<SchemaQualifiedEnum>();
 
             public static void Seed(EnumContext context)
             {

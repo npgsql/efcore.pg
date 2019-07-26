@@ -73,7 +73,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             }
 
             protected override void OnModelCreating(ModelBuilder modelBuilder)
-                => modelBuilder.ForNpgsqlUseSequenceHiLo();
+                => modelBuilder.UseHiLo();
         }
 
         [Fact]

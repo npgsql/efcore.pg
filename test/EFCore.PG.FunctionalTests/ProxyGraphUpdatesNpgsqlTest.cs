@@ -49,7 +49,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
                 {
                     if (TestEnvironment.PostgresVersion >= new Version(10, 0))
-                        modelBuilder.ForNpgsqlUseIdentityColumns();
+                        modelBuilder.UseIdentityColumns();
 
                     base.OnModelCreating(modelBuilder, context);
                 }

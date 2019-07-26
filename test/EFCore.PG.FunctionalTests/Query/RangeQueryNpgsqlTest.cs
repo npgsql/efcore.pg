@@ -599,8 +599,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
             /// <inheritdoc />
             protected override void OnModelCreating(ModelBuilder builder)
-                => builder.ForNpgsqlHasRange("floatrange", "real")
-                          .ForNpgsqlHasRange("test", "Schema_Range", "double precision");
+                => builder.HasPostgresRange("floatrange", "real")
+                          .HasPostgresRange("test", "Schema_Range", "double precision");
 
             public static void Seed(RangeContext context)
             {

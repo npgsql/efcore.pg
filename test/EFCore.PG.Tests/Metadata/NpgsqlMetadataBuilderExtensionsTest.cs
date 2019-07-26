@@ -22,16 +22,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             var builder = CreateBuilder();
 
             Assert.NotNull(builder
-                .ForNpgsqlHasValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo));
+                .HasValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo));
             Assert.Equal(NpgsqlValueGenerationStrategy.SequenceHiLo, builder.Metadata.GetNpgsqlValueGenerationStrategy());
 
             Assert.NotNull(builder
-                    .ForNpgsqlHasValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityByDefaultColumn, fromDataAnnotation: true));
+                    .HasValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityByDefaultColumn, fromDataAnnotation: true));
             Assert.Equal(
                 NpgsqlValueGenerationStrategy.IdentityByDefaultColumn, builder.Metadata.GetNpgsqlValueGenerationStrategy());
 
             Assert.Null(builder
-                .ForNpgsqlHasValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo));
+                .HasValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo));
             Assert.Equal(NpgsqlValueGenerationStrategy.IdentityByDefaultColumn, builder.Metadata.GetNpgsqlValueGenerationStrategy());
 
             Assert.Equal(
@@ -44,13 +44,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         {
             var typeBuilder = CreateBuilder().Entity(typeof(Splot));
 
-            Assert.NotNull(typeBuilder.ForNpgsqlIsUnlogged());
+            Assert.NotNull(typeBuilder.IsUnlogged());
             Assert.True(typeBuilder.Metadata.GetNpgsqlIsUnlogged());
 
-            Assert.NotNull(typeBuilder.ForNpgsqlIsUnlogged(false, fromDataAnnotation: true));
+            Assert.NotNull(typeBuilder.IsUnlogged(false, fromDataAnnotation: true));
             Assert.False(typeBuilder.Metadata.GetNpgsqlIsUnlogged());
 
-            Assert.Null(typeBuilder.ForNpgsqlIsUnlogged(true));
+            Assert.Null(typeBuilder.IsUnlogged(true));
             Assert.False(typeBuilder.Metadata.GetNpgsqlIsUnlogged());
 
             Assert.Equal(
@@ -65,13 +65,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
                 .Entity(typeof(Splot))
                 .Property(typeof(int), "Id");
 
-            Assert.NotNull(propertyBuilder.ForNpgsqlHasHiLoSequence("Splew", null));
+            Assert.NotNull(propertyBuilder.HasHiLoSequence("Splew", null));
             Assert.Equal("Splew", propertyBuilder.Metadata.GetNpgsqlHiLoSequenceName());
 
-            Assert.NotNull(propertyBuilder.ForNpgsqlHasHiLoSequence("Splow", null, fromDataAnnotation: true));
+            Assert.NotNull(propertyBuilder.HasHiLoSequence("Splow", null, fromDataAnnotation: true));
             Assert.Equal("Splow", propertyBuilder.Metadata.GetNpgsqlHiLoSequenceName());
 
-            Assert.Null(propertyBuilder.ForNpgsqlHasHiLoSequence("Splod", null));
+            Assert.Null(propertyBuilder.HasHiLoSequence("Splod", null));
             Assert.Equal("Splow", propertyBuilder.Metadata.GetNpgsqlHiLoSequenceName());
 
             Assert.Equal(
@@ -89,12 +89,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             Assert.Equal(
                 NpgsqlStrings.SequenceBadType("Name", nameof(Splot), "string"),
                 Assert.Throws<ArgumentException>(
-                    () => propertyBuilder.ForNpgsqlHasValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo)).Message);
+                    () => propertyBuilder.HasValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo)).Message);
 
             Assert.Equal(
                 NpgsqlStrings.SequenceBadType("Name", nameof(Splot), "string"),
                 Assert.Throws<ArgumentException>(
-                    () => new PropertyBuilder((IMutableProperty)propertyBuilder.Metadata).ForNpgsqlUseSequenceHiLo()).Message);
+                    () => new PropertyBuilder((IMutableProperty)propertyBuilder.Metadata).UseHiLo()).Message);
         }
 
         [ConditionalFact]
@@ -105,13 +105,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             var idProperty = entityTypeBuilder.Property(typeof(int), "Id").Metadata;
             var indexBuilder = entityTypeBuilder.HasIndex(new[] { idProperty });
 
-            Assert.NotNull(indexBuilder.ForNpgsqlHasMethod("gin"));
+            Assert.NotNull(indexBuilder.HasMethod("gin"));
             Assert.Equal("gin", indexBuilder.Metadata.GetNpgsqlMethod());
 
-            Assert.NotNull(indexBuilder.ForNpgsqlHasMethod("gist", fromDataAnnotation: true));
+            Assert.NotNull(indexBuilder.HasMethod("gist", fromDataAnnotation: true));
             Assert.Equal("gist", indexBuilder.Metadata.GetNpgsqlMethod());
 
-            Assert.Null(indexBuilder.ForNpgsqlHasMethod("gin"));
+            Assert.Null(indexBuilder.HasMethod("gin"));
             Assert.Equal("gist", indexBuilder.Metadata.GetNpgsqlMethod());
 
             Assert.Equal(
