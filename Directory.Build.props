@@ -3,6 +3,7 @@
   <PropertyGroup>
     <LangVersion>8.0</LangVersion>
     <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
+    <NoWarn>NU5105</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup Label="Package Versions">
