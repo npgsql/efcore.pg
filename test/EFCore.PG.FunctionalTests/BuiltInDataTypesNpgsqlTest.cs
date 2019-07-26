@@ -905,7 +905,7 @@ WHERE ((m.""TimeSpanAsTime"" = @__timeSpan_0) AND ((m.""TimeSpanAsTime"" IS NOT 
                 ((NpgsqlTypeMappingSource)context.GetService<ITypeMappingSource>()).LoadUserDefinedTypeMappings(context.GetService<ISqlGenerationHelper>());
 
                 modelBuilder.HasPostgresExtension("hstore");
-                modelBuilder.ForNpgsqlHasEnum("mood", new[] { "happy", "sad" });
+                modelBuilder.HasPostgresEnum("mood", new[] { "happy", "sad" });
 
                 MakeRequired<MappedDataTypes>(modelBuilder);
 

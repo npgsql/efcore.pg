@@ -27,7 +27,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
         public void Annotations_are_added_when_conventional_model_builder_is_used_with_sequences()
         {
             var model = NpgsqlTestHelpers.Instance.CreateConventionBuilder()
-                .ForNpgsqlUseSequenceHiLo()
+                .UseHiLo()
                 .Model;
 
             model.RemoveAnnotation(CoreAnnotationNames.ProductVersion);

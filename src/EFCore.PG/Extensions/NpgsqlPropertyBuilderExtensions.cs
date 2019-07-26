@@ -24,7 +24,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="name"> The comment of the sequence.</param>
         /// <param name="schema"> The schema of the sequence.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-        public static PropertyBuilder ForNpgsqlUseSequenceHiLo(
+        public static PropertyBuilder UseHiLo(
             [NotNull] this PropertyBuilder propertyBuilder,
             [CanBeNull] string name = null,
             [CanBeNull] string schema = null)
@@ -59,11 +59,11 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="name"> The comment of the sequence.</param>
         /// <param name="schema"> The schema of the sequence.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-        public static PropertyBuilder<TProperty> ForNpgsqlUseSequenceHiLo<TProperty>(
+        public static PropertyBuilder<TProperty> UseHiLo<TProperty>(
             [NotNull] this PropertyBuilder<TProperty> propertyBuilder,
             [CanBeNull] string name = null,
             [CanBeNull] string schema = null)
-            => (PropertyBuilder<TProperty>)ForNpgsqlUseSequenceHiLo((PropertyBuilder)propertyBuilder, name, schema);
+            => (PropertyBuilder<TProperty>)UseHiLo((PropertyBuilder)propertyBuilder, name, schema);
 
         /// <summary>
         /// Configures the database sequence used for the hi-lo pattern to generate values for the key property,
@@ -74,13 +74,13 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="schema">The schema of the sequence.</param>
         /// <param name="fromDataAnnotation"> Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns>A builder to further configure the sequence.</returns>
-        public static IConventionSequenceBuilder ForNpgsqlHasHiLoSequence(
+        public static IConventionSequenceBuilder HasHiLoSequence(
             [NotNull] this IConventionPropertyBuilder propertyBuilder,
             [CanBeNull] string name,
             [CanBeNull] string schema,
             bool fromDataAnnotation = false)
         {
-            if (!propertyBuilder.ForNpgsqlCanSetHiLoSequence(name, schema))
+            if (!propertyBuilder.CanSetHiLoSequence(name, schema))
             {
                 return null;
             }
@@ -101,7 +101,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="schema">The schema of the sequence.</param>
         /// <param name="fromDataAnnotation"> Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns><c>true</c> if the given name and schema can be set for the hi-lo sequence.</returns>
-        public static bool ForNpgsqlCanSetHiLoSequence(
+        public static bool CanSetHiLoSequence(
             [NotNull] this IConventionPropertyBuilder propertyBuilder,
             [CanBeNull] string name,
             [CanBeNull] string schema,
@@ -125,7 +125,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="propertyBuilder"> The builder for the property being configured.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-        public static PropertyBuilder ForNpgsqlUseSerialColumn(
+        public static PropertyBuilder UseSerialColumn(
             [NotNull] this PropertyBuilder propertyBuilder)
         {
             Check.NotNull(propertyBuilder, nameof(propertyBuilder));
@@ -145,9 +145,9 @@ namespace Microsoft.EntityFrameworkCore
         /// <typeparam name="TProperty"> The type of the property being configured.</typeparam>
         /// <param name="propertyBuilder"> The builder for the property being configured.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-        public static PropertyBuilder<TProperty> ForNpgsqlUseSerialColumn<TProperty>(
+        public static PropertyBuilder<TProperty> UseSerialColumn<TProperty>(
             [NotNull] this PropertyBuilder<TProperty> propertyBuilder)
-            => (PropertyBuilder<TProperty>)ForNpgsqlUseSerialColumn((PropertyBuilder)propertyBuilder);
+            => (PropertyBuilder<TProperty>)UseSerialColumn((PropertyBuilder)propertyBuilder);
 
         /// <summary>
         /// Configures the property to use the PostgreSQL SERIAL feature to generate values for new entities,
@@ -155,10 +155,10 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="propertyBuilder"> The builder for the property being configured.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-        public static IConventionPropertyBuilder ForNpgsqlUseSerialColumn(
+        public static IConventionPropertyBuilder UseSerialColumn(
             [NotNull] this IConventionPropertyBuilder propertyBuilder)
         {
-            if (propertyBuilder.ForNpgsqlCanSetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SerialColumn))
+            if (propertyBuilder.CanSetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SerialColumn))
             {
                 var property = propertyBuilder.Metadata;
                 property.SetNpgsqlValueGenerationStrategy(NpgsqlValueGenerationStrategy.SerialColumn);
@@ -186,7 +186,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="propertyBuilder"> The builder for the property being configured.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-        public static PropertyBuilder ForNpgsqlUseIdentityAlwaysColumn([NotNull] this PropertyBuilder propertyBuilder)
+        public static PropertyBuilder UseIdentityAlwaysColumn([NotNull] this PropertyBuilder propertyBuilder)
         {
             Check.NotNull(propertyBuilder, nameof(propertyBuilder));
 
@@ -209,9 +209,9 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="propertyBuilder"> The builder for the property being configured.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-        public static PropertyBuilder<TProperty> ForNpgsqlUseIdentityAlwaysColumn<TProperty>(
+        public static PropertyBuilder<TProperty> UseIdentityAlwaysColumn<TProperty>(
             [NotNull] this PropertyBuilder<TProperty> propertyBuilder)
-            => (PropertyBuilder<TProperty>)ForNpgsqlUseIdentityAlwaysColumn((PropertyBuilder)propertyBuilder);
+            => (PropertyBuilder<TProperty>)UseIdentityAlwaysColumn((PropertyBuilder)propertyBuilder);
 
         /// <summary>
         /// <para>
@@ -224,9 +224,9 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="propertyBuilder"> The builder for the property being configured.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-        public static IConventionPropertyBuilder ForNpgsqlUseIdentityAlwaysColumn([NotNull] this IConventionPropertyBuilder propertyBuilder)
+        public static IConventionPropertyBuilder UseIdentityAlwaysColumn([NotNull] this IConventionPropertyBuilder propertyBuilder)
         {
-            if (propertyBuilder.ForNpgsqlCanSetValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityAlwaysColumn))
+            if (propertyBuilder.CanSetValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityAlwaysColumn))
             {
                 var property = propertyBuilder.Metadata;
                 property.SetNpgsqlValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityAlwaysColumn);
@@ -254,7 +254,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="propertyBuilder"> The builder for the property being configured.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-        public static PropertyBuilder ForNpgsqlUseIdentityByDefaultColumn([NotNull] this PropertyBuilder propertyBuilder)
+        public static PropertyBuilder UseIdentityByDefaultColumn([NotNull] this PropertyBuilder propertyBuilder)
         {
             Check.NotNull(propertyBuilder, nameof(propertyBuilder));
 
@@ -278,9 +278,9 @@ namespace Microsoft.EntityFrameworkCore
         /// <typeparam name="TProperty"> The type of the property being configured.</typeparam>
         /// <param name="propertyBuilder"> The builder for the property being configured.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-        public static PropertyBuilder<TProperty> ForNpgsqlUseIdentityByDefaultColumn<TProperty>(
+        public static PropertyBuilder<TProperty> UseIdentityByDefaultColumn<TProperty>(
             [NotNull] this PropertyBuilder<TProperty> propertyBuilder)
-            => (PropertyBuilder<TProperty>)ForNpgsqlUseIdentityByDefaultColumn((PropertyBuilder)propertyBuilder);
+            => (PropertyBuilder<TProperty>)UseIdentityByDefaultColumn((PropertyBuilder)propertyBuilder);
 
         /// <summary>
         /// <para>
@@ -293,9 +293,9 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="propertyBuilder"> The builder for the property being configured.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-        public static IConventionPropertyBuilder ForNpgsqlUseIdentityByDefaultColumn([NotNull] this IConventionPropertyBuilder propertyBuilder)
+        public static IConventionPropertyBuilder UseIdentityByDefaultColumn([NotNull] this IConventionPropertyBuilder propertyBuilder)
         {
-            if (propertyBuilder.ForNpgsqlCanSetValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityByDefaultColumn))
+            if (propertyBuilder.CanSetValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityByDefaultColumn))
             {
                 var property = propertyBuilder.Metadata;
                 property.SetNpgsqlValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
@@ -319,9 +319,9 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="propertyBuilder"> The builder for the property being configured.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-        public static PropertyBuilder ForNpgsqlUseIdentityColumn(
+        public static PropertyBuilder UseIdentityColumn(
             [NotNull] this PropertyBuilder propertyBuilder)
-            => propertyBuilder.ForNpgsqlUseIdentityByDefaultColumn();
+            => propertyBuilder.UseIdentityByDefaultColumn();
 
         /// <summary>
         /// <para>
@@ -335,9 +335,9 @@ namespace Microsoft.EntityFrameworkCore
         /// <typeparam name="TProperty"> The type of the property being configured.</typeparam>
         /// <param name="propertyBuilder"> The builder for the property being configured.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-        public static PropertyBuilder<TProperty> ForNpgsqlUseIdentityColumn<TProperty>(
+        public static PropertyBuilder<TProperty> UseIdentityColumn<TProperty>(
             [NotNull] this PropertyBuilder<TProperty> propertyBuilder)
-            => propertyBuilder.ForNpgsqlUseIdentityByDefaultColumn();
+            => propertyBuilder.UseIdentityByDefaultColumn();
 
         #endregion Identity by default
 
@@ -352,7 +352,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns>
         /// The same builder instance if the configuration was applied, <c>null</c> otherwise.
         /// </returns>
-        public static IConventionPropertyBuilder ForNpgsqlHasValueGenerationStrategy(
+        public static IConventionPropertyBuilder HasValueGenerationStrategy(
             [NotNull] this IConventionPropertyBuilder propertyBuilder,
             NpgsqlValueGenerationStrategy? valueGenerationStrategy,
             bool fromDataAnnotation = false)
@@ -363,7 +363,7 @@ namespace Microsoft.EntityFrameworkCore
                 propertyBuilder.Metadata.SetNpgsqlValueGenerationStrategy(valueGenerationStrategy, fromDataAnnotation);
                 if (valueGenerationStrategy != NpgsqlValueGenerationStrategy.SequenceHiLo)
                 {
-                    propertyBuilder.ForNpgsqlHasHiLoSequence(null, null, fromDataAnnotation);
+                    propertyBuilder.HasHiLoSequence(null, null, fromDataAnnotation);
                 }
 
                 return propertyBuilder;
@@ -379,7 +379,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="valueGenerationStrategy">The value generation strategy.</param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns><c>true</c> if the given value can be set as the default value generation strategy.</returns>
-        public static bool ForNpgsqlCanSetValueGenerationStrategy(
+        public static bool CanSetValueGenerationStrategy(
             [NotNull] this IConventionPropertyBuilder propertyBuilder,
             NpgsqlValueGenerationStrategy? valueGenerationStrategy,
             bool fromDataAnnotation = false)
@@ -430,15 +430,28 @@ namespace Microsoft.EntityFrameworkCore
         #region Obsolete
 
         /// <summary>
-        /// Configures the property to use the PostgreSQL SERIAL feature to generate values for new entities,
+        /// Configures the property to use a sequence-based hi-lo pattern to generate values for new entities,
         /// when targeting PostgreSQL. This method sets the property to be <see cref="ValueGenerated.OnAdd" />.
         /// </summary>
-        /// <typeparam name="TProperty"> The type of the property being configured.</typeparam>
         /// <param name="propertyBuilder"> The builder for the property being configured.</param>
+        /// <param name="name"> The comment of the sequence.</param>
+        /// <param name="schema"> The schema of the sequence.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-        [Obsolete("Use ForNpgsqlUseSerialColumn instead")]
-        public static PropertyBuilder UseNpgsqlSerialColumn([NotNull] this PropertyBuilder propertyBuilder)
-            => propertyBuilder.ForNpgsqlUseSerialColumn();
+        [Obsolete("Use UseHiLo")]
+        public static PropertyBuilder ForNpgsqlUseSequenceHiLo([NotNull] this PropertyBuilder propertyBuilder, [CanBeNull] string name = null, [CanBeNull] string schema = null)
+            => propertyBuilder.UseHiLo(name, schema);
+
+        /// <summary>
+        /// Configures the property to use a sequence-based hi-lo pattern to generate values for new entities,
+        /// when targeting PostgreSQL. This method sets the property to be <see cref="ValueGenerated.OnAdd" />.
+        /// </summary>
+        /// <param name="propertyBuilder"> The builder for the property being configured.</param>
+        /// <param name="name"> The comment of the sequence.</param>
+        /// <param name="schema"> The schema of the sequence.</param>
+        /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+        [Obsolete("Use UseHiLo")]
+        public static PropertyBuilder<TProperty> ForNpgsqlUseSequenceHiLo<TProperty>([NotNull] this PropertyBuilder<TProperty> propertyBuilder, [CanBeNull] string name = null, [CanBeNull] string schema = null)
+            => propertyBuilder.UseHiLo(name, schema);
 
         /// <summary>
         /// Configures the property to use the PostgreSQL SERIAL feature to generate values for new entities,
@@ -447,10 +460,21 @@ namespace Microsoft.EntityFrameworkCore
         /// <typeparam name="TProperty"> The type of the property being configured.</typeparam>
         /// <param name="propertyBuilder"> The builder for the property being configured.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-        [Obsolete("Use ForNpgsqlUseSerialColumn instead")]
+        [Obsolete("Use UseSerialColumn")]
+        public static PropertyBuilder UseNpgsqlSerialColumn([NotNull] this PropertyBuilder propertyBuilder)
+            => propertyBuilder.UseSerialColumn();
+
+        /// <summary>
+        /// Configures the property to use the PostgreSQL SERIAL feature to generate values for new entities,
+        /// when targeting PostgreSQL. This method sets the property to be <see cref="ValueGenerated.OnAdd" />.
+        /// </summary>
+        /// <typeparam name="TProperty"> The type of the property being configured.</typeparam>
+        /// <param name="propertyBuilder"> The builder for the property being configured.</param>
+        /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+        [Obsolete("Use UseSerialColumn")]
         public static PropertyBuilder<TProperty> UseNpgsqlSerialColumn<TProperty>(
             [NotNull] this PropertyBuilder<TProperty> propertyBuilder)
-            => propertyBuilder.ForNpgsqlUseSerialColumn();
+            => propertyBuilder.UseSerialColumn();
 
         /// <summary>
         /// <para>
@@ -463,9 +487,9 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="propertyBuilder"> The builder for the property being configured.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-        [Obsolete("Use ForNpgsqlUseIdentityAlwaysColumn")]
+        [Obsolete("Use UseIdentityAlwaysColumn")]
         public static PropertyBuilder UseNpgsqlIdentityAlwaysColumn([NotNull] this PropertyBuilder propertyBuilder)
-            => propertyBuilder.ForNpgsqlUseIdentityAlwaysColumn();
+            => propertyBuilder.UseIdentityAlwaysColumn();
 
         /// <summary>
         /// <para>
@@ -478,10 +502,10 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="propertyBuilder"> The builder for the property being configured.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-        [Obsolete("Use ForNpgsqlUseIdentityAlwaysColumn")]
+        [Obsolete("Use UseIdentityAlwaysColumn")]
         public static PropertyBuilder<TProperty> UseNpgsqlIdentityAlwaysColumn<TProperty>(
             [NotNull] this PropertyBuilder<TProperty> propertyBuilder)
-            => propertyBuilder.ForNpgsqlUseIdentityAlwaysColumn();
+            => propertyBuilder.UseIdentityAlwaysColumn();
 
         /// <summary>
         /// <para>
@@ -494,9 +518,9 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="propertyBuilder"> The builder for the property being configured.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-        [Obsolete("Use ForNpgsqlUseIdentityByDefaultColumn")]
+        [Obsolete("Use UseIdentityByDefaultColumn")]
         public static PropertyBuilder UseNpgsqlIdentityByDefaultColumn([NotNull] this PropertyBuilder propertyBuilder)
-            => propertyBuilder.ForNpgsqlUseIdentityByDefaultColumn();
+            => propertyBuilder.UseIdentityByDefaultColumn();
 
         /// <summary>
         /// <para>
@@ -510,10 +534,10 @@ namespace Microsoft.EntityFrameworkCore
         /// <typeparam name="TProperty"> The type of the property being configured.</typeparam>
         /// <param name="propertyBuilder"> The builder for the property being configured.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-        [Obsolete("Use ForNpgsqlUseIdentityByDefaultColumn")]
+        [Obsolete("Use UseIdentityByDefaultColumn")]
         public static PropertyBuilder<TProperty> UseNpgsqlIdentityByDefaultColumn<TProperty>(
             [NotNull] this PropertyBuilder<TProperty> propertyBuilder)
-            => propertyBuilder.ForNpgsqlUseIdentityByDefaultColumn();
+            => propertyBuilder.UseIdentityByDefaultColumn();
 
         /// <summary>
         /// <para>
@@ -526,10 +550,10 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="propertyBuilder"> The builder for the property being configured.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-        [Obsolete("Use ForNpgsqlUseIdentityColumn")]
+        [Obsolete("Use UseIdentityColumn")]
         public static PropertyBuilder UseNpgsqlIdentityColumn(
             [NotNull] this PropertyBuilder propertyBuilder)
-            => propertyBuilder.ForNpgsqlUseIdentityColumn();
+            => propertyBuilder.UseIdentityColumn();
 
         /// <summary>
         /// <para>
@@ -543,10 +567,10 @@ namespace Microsoft.EntityFrameworkCore
         /// <typeparam name="TProperty"> The type of the property being configured.</typeparam>
         /// <param name="propertyBuilder"> The builder for the property being configured.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-        [Obsolete("Use ForNpgsqlUseIdentityColumn")]
+        [Obsolete("Use UseIdentityColumn")]
         public static PropertyBuilder<TProperty> UseNpgsqlIdentityColumn<TProperty>(
             [NotNull] this PropertyBuilder<TProperty> propertyBuilder)
-            => propertyBuilder.ForNpgsqlUseIdentityColumn();
+            => propertyBuilder.UseIdentityColumn();
 
         #endregion Obsolete
     }

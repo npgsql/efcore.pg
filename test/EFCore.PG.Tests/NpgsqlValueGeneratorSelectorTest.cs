@@ -48,7 +48,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
             if (setSequences)
             {
-                builder.ForNpgsqlUseSequenceHiLo();
+                builder.UseHiLo();
                 Assert.NotNull(builder.Model.FindSequence(NpgsqlModelExtensions.DefaultHiLoSequenceName));
             }
 
@@ -162,10 +162,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             builder.Entity<AnEntity>();
 
             builder
-                .ForNpgsqlUseSequenceHiLo()
+                .UseHiLo()
                 .HasSequence<int>(NpgsqlModelExtensions.DefaultHiLoSequenceName);
 
-            var model = builder.ForNpgsqlUseSequenceHiLo().FinalizeModel();
+            var model = builder.UseHiLo().FinalizeModel();
             var entityType = model.FindEntityType(typeof(AnEntity));
 
             var selector = NpgsqlTestHelpers.Instance.CreateContextServices(model).GetRequiredService<IValueGeneratorSelector>();
