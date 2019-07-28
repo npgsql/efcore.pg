@@ -119,8 +119,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             Check.NotNull(entityType, nameof(entityType));
             Check.NotNull(annotation, nameof(annotation));
 
+#pragma warning disable 618
             if (annotation.Name == NpgsqlAnnotationNames.Comment)
                 return new MethodCallCodeFragment(nameof(NpgsqlEntityTypeBuilderExtensions.ForNpgsqlHasComment), annotation.Value);
+#pragma warning restore 618
 
             if (annotation.Name == NpgsqlAnnotationNames.UnloggedTable)
                 return new MethodCallCodeFragment(nameof(NpgsqlEntityTypeBuilderExtensions.IsUnlogged), annotation.Value);
@@ -150,8 +152,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
                     throw new ArgumentOutOfRangeException();
                 }
 
+#pragma warning disable 618
             case NpgsqlAnnotationNames.Comment:
                 return new MethodCallCodeFragment(nameof(NpgsqlPropertyBuilderExtensions.ForNpgsqlHasComment), annotation.Value);
+#pragma warning restore 618
             }
 
             return null;

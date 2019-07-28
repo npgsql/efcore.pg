@@ -1006,32 +1006,41 @@ ALTER TABLE ""People"" ADD ""FullName"" text GENERATED ALWAYS AS (""FirstName"" 
 
         #endregion
 
-        #region PostgreSQL comments
+        #region Comments
 
-        [Fact]
-        public void CreateTableOperation_with_comment()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void CreateTableOperation_with_comment(bool newCommentSupport)
         {
-            Generate(
-                new CreateTableOperation
+            var op = new CreateTableOperation
+            {
+                Name = "People",
+                Schema = "dbo",
+                Columns =
                 {
-                    Name = "People",
-                    Schema = "dbo",
-                    Columns =
+                    new AddColumnOperation
                     {
-                        new AddColumnOperation
-                        {
-                            Name = "Id",
-                            Table = "People",
-                            ClrType = typeof(int),
-                            IsNullable = false
-                        },
+                        Name = "Id",
+                        Table = "People",
+                        ClrType = typeof(int),
+                        IsNullable = false
                     },
-                    PrimaryKey = new AddPrimaryKeyOperation
-                    {
-                        Columns = new[] { "Id" }
-                    },
-                    [NpgsqlAnnotationNames.Comment] = "Some comment",
-                });
+                },
+                PrimaryKey = new AddPrimaryKeyOperation
+                {
+                    Columns = new[] { "Id" }
+                }
+            };
+
+#pragma warning disable 618
+            if (newCommentSupport)
+                op.Comment = "Some comment";
+            else
+                op[NpgsqlAnnotationNames.Comment] = "Some comment";
+#pragma warning restore 618
+
+            Generate(op);
 
             Assert.Equal(
                 "CREATE TABLE dbo.\"People\" (" + EOL +
@@ -1042,25 +1051,32 @@ ALTER TABLE ""People"" ADD ""FullName"" text GENERATED ALWAYS AS (""FirstName"" 
                 Sql);
         }
 
-        [Fact]
-        public void CreateTableOperation_with_comment_on_column()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void CreateTableOperation_with_comment_on_column(bool newCommentSupport)
         {
+            var addColumnOp = new AddColumnOperation
+            {
+                Name = "Id",
+                Table = "People",
+                ClrType = typeof(int),
+                IsNullable = false
+            };
+
+#pragma warning disable 618
+            if (newCommentSupport)
+                addColumnOp.Comment = "Some comment";
+            else
+                addColumnOp[NpgsqlAnnotationNames.Comment] = "Some comment";
+#pragma warning restore 618
+
             Generate(
                 new CreateTableOperation
                 {
                     Name = "People",
                     Schema = "dbo",
-                    Columns =
-                    {
-                        new AddColumnOperation
-                        {
-                            Name = "Id",
-                            Table = "People",
-                            ClrType = typeof(int),
-                            IsNullable = false,
-                            [NpgsqlAnnotationNames.Comment] = "Some comment",
-                        }
-                    },
+                    Columns = { addColumnOp },
                     PrimaryKey = new AddPrimaryKeyOperation
                     {
                         Columns = new[] { "Id" }
@@ -1076,42 +1092,74 @@ ALTER TABLE ""People"" ADD ""FullName"" text GENERATED ALWAYS AS (""FirstName"" 
                 Sql);
         }
 
-        [Fact]
-        public void AlterTable_change_comment()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void AlterTable_change_comment(bool newCommentSupport)
         {
-            Generate(
-                new AlterTableOperation
-                {
-                    Name = "People",
-                    Schema = "dbo",
-                    OldTable = new Annotatable { [NpgsqlAnnotationNames.Comment] = "Old comment" },
-                    [NpgsqlAnnotationNames.Comment] = "New comment"
-                });
+            var op = new AlterTableOperation
+            {
+                Name = "People",
+                Schema = "dbo",
+                OldTable = new Annotatable()
+            };
+
+#pragma warning disable 618
+            if (newCommentSupport)
+            {
+                //op.OldTable.Comment = "Old comment";
+                op[NpgsqlAnnotationNames.Comment] = "New comment";
+                return; // TODO: https://github.com/aspnet/EntityFrameworkCore/issues/16798
+            }
+            else
+            {
+                op.OldTable[NpgsqlAnnotationNames.Comment] = "Old comment";
+                op.Comment = "New comment";
+            }
+#pragma warning restore 618
+
+            Generate(op);
 
             Assert.Equal(
                 "COMMENT ON TABLE dbo.\"People\" IS 'New comment';" + EOL,
                 Sql);
         }
 
-        [Fact]
-        public void AlterTable_remove_comment()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void AlterTable_remove_comment(bool newCommentSupport)
         {
-            Generate(
-                new AlterTableOperation
-                {
-                    Name = "People",
-                    Schema = "dbo",
-                    OldTable = new Annotatable { [NpgsqlAnnotationNames.Comment] = "New comment" }
-                });
+            var op = new AlterTableOperation
+            {
+                Name = "People",
+                Schema = "dbo",
+                OldTable = new Annotatable()
+            };
+
+#pragma warning disable 618
+            if (newCommentSupport)
+            {
+                //op.OldTable.Comment = "Old comment";
+                return; // TODO: https://github.com/aspnet/EntityFrameworkCore/issues/16798
+            }
+            else
+                op.OldTable[NpgsqlAnnotationNames.Comment] = "Old comment";
+#pragma warning restore 618
+
+            Generate(op);
+
             Assert.Equal(
                 "COMMENT ON TABLE dbo.\"People\" IS NULL;" + EOL,
                 Sql);
         }
 
-        [Fact]
-        public void AddColumnOperation_with_comment()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void AddColumnOperation_with_comment(bool newCommentSupport)
         {
-            Generate(new AddColumnOperation
+            var op = new AddColumnOperation
             {
                 Schema = "dbo",
                 Table = "People",
@@ -1119,8 +1167,16 @@ ALTER TABLE ""People"" ADD ""FullName"" text GENERATED ALWAYS AS (""FirstName"" 
                 ClrType = typeof(int),
                 ColumnType = "int",
                 IsNullable = false,
-                [NpgsqlAnnotationNames.Comment] = "Some comment",
-            });
+            };
+
+#pragma warning disable 618
+            if (newCommentSupport)
+                op.Comment = "Some comment";
+            else
+                op[NpgsqlAnnotationNames.Comment] = "Some comment";
+#pragma warning restore 618
+
+            Generate(op);
 
             Assert.Equal(
                 "ALTER TABLE dbo.\"People\" ADD foo int NOT NULL;" + EOL +
@@ -1128,22 +1184,37 @@ ALTER TABLE ""People"" ADD ""FullName"" text GENERATED ALWAYS AS (""FirstName"" 
                 Sql);
         }
 
-        [Fact]
-        public void AlterColumn_change_comment()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void AlterColumn_change_comment(bool newCommentSupport)
         {
-            Generate(
-                new AlterColumnOperation
-                {
-                    Table = "People",
-                    Schema = "dbo",
-                    Name = "LuckyNumber",
-                    ClrType = typeof(int),
-                    ColumnType = "int",
-                    IsNullable = false,
-                    DefaultValue = 7,
-                    OldColumn = new ColumnOperation { [NpgsqlAnnotationNames.Comment] = "Old comment" },
-                    [NpgsqlAnnotationNames.Comment] = "New comment"
-                });
+            var op = new AlterColumnOperation
+            {
+                Table = "People",
+                Schema = "dbo",
+                Name = "LuckyNumber",
+                ClrType = typeof(int),
+                ColumnType = "int",
+                IsNullable = false,
+                DefaultValue = 7,
+                OldColumn = new ColumnOperation(),
+            };
+
+#pragma warning disable 618
+            if (newCommentSupport)
+            {
+                op.OldColumn.Comment = "Old comment";
+                op.Comment = "New comment";
+            }
+            else
+            {
+                op.OldColumn[NpgsqlAnnotationNames.Comment] = "Old comment";
+                op[NpgsqlAnnotationNames.Comment] = "New comment";
+            }
+#pragma warning restore 618
+
+            Generate(op);
 
             Assert.Equal(
                 @"ALTER TABLE dbo.""People"" ALTER COLUMN ""LuckyNumber"" TYPE int;" + EOL +
@@ -1153,21 +1224,31 @@ ALTER TABLE ""People"" ADD ""FullName"" text GENERATED ALWAYS AS (""FirstName"" 
                 Sql);
         }
 
-        [Fact]
-        public void AlterColumn_remove_comment()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public void AlterColumn_remove_comment(bool newCommentSupport)
         {
-            Generate(
-                new AlterColumnOperation
-                {
-                    Table = "People",
-                    Schema = "dbo",
-                    Name = "LuckyNumber",
-                    ClrType = typeof(int),
-                    ColumnType = "int",
-                    IsNullable = false,
-                    DefaultValue = 7,
-                    OldColumn = new ColumnOperation { [NpgsqlAnnotationNames.Comment] = "Old comment" }
-                });
+            var op = new AlterColumnOperation
+            {
+                Table = "People",
+                Schema = "dbo",
+                Name = "LuckyNumber",
+                ClrType = typeof(int),
+                ColumnType = "int",
+                IsNullable = false,
+                DefaultValue = 7,
+                OldColumn = new ColumnOperation()
+            };
+
+#pragma warning disable 618
+            if (newCommentSupport)
+                op.OldColumn.Comment = "Old comment";
+            else
+                op.OldColumn[NpgsqlAnnotationNames.Comment] = "Old comment";
+#pragma warning restore 618
+
+            Generate(op);
 
             Assert.Equal(
                 @"ALTER TABLE dbo.""People"" ALTER COLUMN ""LuckyNumber"" TYPE int;" + EOL +

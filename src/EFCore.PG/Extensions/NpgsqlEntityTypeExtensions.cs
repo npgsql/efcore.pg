@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
@@ -30,12 +31,6 @@ namespace Microsoft.EntityFrameworkCore
         public static void SetNpgsqlStorageParameter([NotNull] this IConventionEntityType entityType, string parameterName, object parameterValue, bool fromDataAnnotation = false)
             => entityType.SetOrRemoveAnnotation(NpgsqlAnnotationNames.StorageParameterPrefix + parameterName, parameterValue, fromDataAnnotation);
 
-        public static string GetNpgsqlComment([NotNull] this IEntityType entityType)
-            => (string)entityType[NpgsqlAnnotationNames.Comment];
-
-        public static void SetNpgsqlComment([NotNull] this IMutableEntityType entityType, [CanBeNull] string comment)
-            => entityType.SetOrRemoveAnnotation(NpgsqlAnnotationNames.Comment, comment);
-
         public static bool GetNpgsqlIsUnlogged([NotNull] this IEntityType entityType)
             => entityType[NpgsqlAnnotationNames.UnloggedTable] as bool? ?? false;
 
@@ -47,5 +42,17 @@ namespace Microsoft.EntityFrameworkCore
 
         public static CockroachDbInterleaveInParent GetNpgsqlCockroachDbInterleaveInParent([NotNull] this IEntityType entityType)
             => new CockroachDbInterleaveInParent(entityType);
+
+        #region Obsolete
+
+        [Obsolete("Replaced by built-in EF Core support, use HasComment on EntityTypeBuilder")]
+        public static string GetNpgsqlComment([NotNull] this IEntityType entityType)
+            => (string)entityType[NpgsqlAnnotationNames.Comment];
+
+        [Obsolete("Replaced by built-in EF Core support, use HasComment on EntityTypeBuilder")]
+        public static void SetNpgsqlComment([NotNull] this IMutableEntityType entityType, [CanBeNull] string comment)
+            => entityType.SetOrRemoveAnnotation(NpgsqlAnnotationNames.Comment, comment);
+
+        #endregion Obsolete
     }
 }

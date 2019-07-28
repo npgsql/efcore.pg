@@ -394,39 +394,6 @@ namespace Microsoft.EntityFrameworkCore
 
         #endregion General value generation strategy
 
-        #region Comment
-
-        /// <summary>
-        /// Configures the comment set on the column when targeting Npgsql.
-        /// </summary>
-        /// <param name="propertyBuilder"> The builder for the property being configured.</param>
-        /// <param name="comment"> The comment of the column.</param>
-        /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-        public static PropertyBuilder ForNpgsqlHasComment(
-            [NotNull] this PropertyBuilder propertyBuilder,
-            [CanBeNull] string comment)
-        {
-            Check.NotNull(propertyBuilder, nameof(propertyBuilder));
-            Check.NullButNotEmpty(comment, nameof(comment));
-
-            propertyBuilder.Metadata.SetNpgsqlComment(comment);
-
-            return propertyBuilder;
-        }
-
-        /// <summary>
-        /// Configures the comment set on the column when targeting Npgsql.
-        /// </summary>
-        /// <param name="propertyBuilder"> The builder for the property being configured.</param>
-        /// <param name="comment"> The comment of the column.</param>
-        /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-        public static PropertyBuilder<TEntity> ForNpgsqlHasComment<TEntity>(
-            [NotNull] this PropertyBuilder<TEntity> propertyBuilder,
-            [CanBeNull] string comment)
-        => (PropertyBuilder<TEntity>)ForNpgsqlHasComment((PropertyBuilder)propertyBuilder, comment);
-
-        #endregion Comment
-
         #region Obsolete
 
         /// <summary>
@@ -571,6 +538,37 @@ namespace Microsoft.EntityFrameworkCore
         public static PropertyBuilder<TProperty> UseNpgsqlIdentityColumn<TProperty>(
             [NotNull] this PropertyBuilder<TProperty> propertyBuilder)
             => propertyBuilder.UseIdentityColumn();
+
+        /// <summary>
+        /// Configures the comment set on the column when targeting Npgsql.
+        /// </summary>
+        /// <param name="propertyBuilder"> The builder for the property being configured.</param>
+        /// <param name="comment"> The comment of the column.</param>
+        /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+        [Obsolete("Use HasComment")]
+        public static PropertyBuilder ForNpgsqlHasComment(
+            [NotNull] this PropertyBuilder propertyBuilder,
+            [CanBeNull] string comment)
+        {
+            Check.NotNull(propertyBuilder, nameof(propertyBuilder));
+            Check.NullButNotEmpty(comment, nameof(comment));
+
+            propertyBuilder.Metadata.SetNpgsqlComment(comment);
+
+            return propertyBuilder;
+        }
+
+        /// <summary>
+        /// Configures the comment set on the column when targeting Npgsql.
+        /// </summary>
+        /// <param name="propertyBuilder"> The builder for the property being configured.</param>
+        /// <param name="comment"> The comment of the column.</param>
+        /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+        [Obsolete("Use HasComment")]
+        public static PropertyBuilder<TEntity> ForNpgsqlHasComment<TEntity>(
+            [NotNull] this PropertyBuilder<TEntity> propertyBuilder,
+            [CanBeNull] string comment)
+            => (PropertyBuilder<TEntity>)ForNpgsqlHasComment((PropertyBuilder)propertyBuilder, comment);
 
         #endregion Obsolete
     }

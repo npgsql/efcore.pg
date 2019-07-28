@@ -1651,8 +1651,8 @@ COMMENT ON COLUMN comment.a IS 'column comment'",
                 dbModel =>
                 {
                     var table = dbModel.Tables.Single();
-                    Assert.Equal("table comment", table.FindAnnotation(NpgsqlAnnotationNames.Comment).Value);
-                    Assert.Equal("column comment", table.Columns.Single().FindAnnotation(NpgsqlAnnotationNames.Comment).Value);
+                    Assert.Equal("table comment", table.Comment);
+                    Assert.Equal("column comment", table.Columns.Single().Comment);
                 },
                 "DROP TABLE comment");
 

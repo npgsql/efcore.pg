@@ -227,14 +227,16 @@ namespace Microsoft.EntityFrameworkCore
 
         #endregion Value generation
 
-        #region Comment
+        #region Obsolete
 
+        [Obsolete("Use HasComment")]
         public static string GetNpgsqlComment([NotNull] this IProperty property)
             => (string)property[NpgsqlAnnotationNames.Comment];
 
+        [Obsolete("Use HasComment")]
         public static void SetNpgsqlComment([NotNull] this IMutableProperty property, [CanBeNull] string comment)
             => property.SetOrRemoveAnnotation(NpgsqlAnnotationNames.Comment, comment);
 
-        #endregion Comment
+        #endregion Obsolete
     }
 }

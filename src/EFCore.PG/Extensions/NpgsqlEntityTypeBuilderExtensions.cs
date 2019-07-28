@@ -130,41 +130,6 @@ namespace Microsoft.EntityFrameworkCore
 
         #endregion Storage parameters
 
-        #region Comment
-
-        /// <summary>
-        ///     Configures the comment set on the table when targeting Npgsql.
-        /// </summary>
-        /// <param name="entityTypeBuilder"> The builder for the entity type being configured. </param>
-        /// <param name="comment"> The name of the table. </param>
-        /// <returns> The same builder instance so that multiple calls can be chained. </returns>
-        public static EntityTypeBuilder ForNpgsqlHasComment(
-            [NotNull] this EntityTypeBuilder entityTypeBuilder,
-            [CanBeNull] string comment)
-        {
-            Check.NotNull(entityTypeBuilder, nameof(entityTypeBuilder));
-            Check.NullButNotEmpty(comment, nameof(comment));
-
-            entityTypeBuilder.Metadata.SetNpgsqlComment(comment);
-
-            return entityTypeBuilder;
-        }
-
-        /// <summary>
-        ///     Configures the comment set on the table when targeting Npgsql.
-        /// </summary>
-        /// <typeparam name="TEntity"> The entity type being configured. </typeparam>
-        /// <param name="entityTypeBuilder"> The builder for the entity type being configured. </param>
-        /// <param name="comment"> The name of the table. </param>
-        /// <returns> The same builder instance so that multiple calls can be chained. </returns>
-        public static EntityTypeBuilder<TEntity> ForNpgsqlHasComment<TEntity>(
-            [NotNull] this EntityTypeBuilder<TEntity> entityTypeBuilder,
-            [CanBeNull] string comment)
-            where TEntity : class
-        => (EntityTypeBuilder<TEntity>)ForNpgsqlHasComment((EntityTypeBuilder)entityTypeBuilder, comment);
-
-        #endregion Comment
-
         #region Unlogged Table
 
         /// <summary>
@@ -394,6 +359,39 @@ namespace Microsoft.EntityFrameworkCore
             [NotNull] List<string> interleavePrefix)
             where TEntity : class
             => entityTypeBuilder.UseCockroachDbInterleaveInParent(parentTableType, interleavePrefix);
+
+        /// <summary>
+        /// Configures the comment set on the table when targeting Npgsql.
+        /// </summary>
+        /// <param name="entityTypeBuilder">The builder for the entity type being configured.</param>
+        /// <param name="comment">The name of the table.</param>
+        /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+        [Obsolete("Use HasComment")]
+        public static EntityTypeBuilder ForNpgsqlHasComment(
+            [NotNull] this EntityTypeBuilder entityTypeBuilder,
+            [CanBeNull] string comment)
+        {
+            Check.NotNull(entityTypeBuilder, nameof(entityTypeBuilder));
+            Check.NullButNotEmpty(comment, nameof(comment));
+
+            entityTypeBuilder.Metadata.SetNpgsqlComment(comment);
+
+            return entityTypeBuilder;
+        }
+
+        /// <summary>
+        /// Configures the comment set on the table when targeting Npgsql.
+        /// </summary>
+        /// <typeparam name="TEntity">The entity type being configured.</typeparam>
+        /// <param name="entityTypeBuilder"> The builder for the entity type being configured.</param>
+        /// <param name="comment">The name of the table.</param>
+        /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+        [Obsolete("Use HasComment")]
+        public static EntityTypeBuilder<TEntity> ForNpgsqlHasComment<TEntity>(
+            [NotNull] this EntityTypeBuilder<TEntity> entityTypeBuilder,
+            [CanBeNull] string comment)
+            where TEntity : class
+            => (EntityTypeBuilder<TEntity>)ForNpgsqlHasComment((EntityTypeBuilder)entityTypeBuilder, comment);
 
         #endregion Obsolete
     }

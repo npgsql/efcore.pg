@@ -21,7 +21,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
         public const string DatabaseTemplate = Prefix + "DatabaseTemplate";
         public const string Tablespace = Prefix + "Tablespace";
         public const string StorageParameterPrefix = Prefix + "StorageParameter:";
-        public const string Comment = Prefix + "Comment";
         public const string UnloggedTable = Prefix + "UnloggedTable";
 
         // Database model annotations
@@ -45,5 +44,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
 
         [Obsolete("Replaced by ValueGenerationStrategy.SerialColumn")]
         public const string ValueGeneratedOnAdd = Prefix + "ValueGeneratedOnAdd";
+
+        [Obsolete("Replaced by built-in EF Core support, use HasComment on EntityTypeBuilder")]
+        public const string Comment = Prefix + "Comment";
     }
 }

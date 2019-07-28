@@ -18,8 +18,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal
 
         public override IEnumerable<IAnnotation> For(IEntityType entityType)
         {
+#pragma warning disable 618
             if (entityType.GetNpgsqlComment() is string comment)
                 yield return new Annotation(NpgsqlAnnotationNames.Comment, comment);
+#pragma warning restore 618
             if (entityType.GetNpgsqlIsUnlogged())
                 yield return new Annotation(NpgsqlAnnotationNames.UnloggedTable, entityType.GetNpgsqlIsUnlogged());
             if (entityType[CockroachDbAnnotationNames.InterleaveInParent] != null)
@@ -35,8 +37,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal
         {
             if (property.GetNpgsqlValueGenerationStrategy() is NpgsqlValueGenerationStrategy npgsqlValueGenerationStrategy)
                 yield return new Annotation(NpgsqlAnnotationNames.ValueGenerationStrategy, npgsqlValueGenerationStrategy);
+#pragma warning disable 618
             if (property.GetNpgsqlComment() is string comment)
                 yield return new Annotation(NpgsqlAnnotationNames.Comment, comment);
+#pragma warning restore 618
         }
 
         public override IEnumerable<IAnnotation> For(IIndex index)
