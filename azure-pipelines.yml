@@ -196,7 +196,7 @@ jobs:
       assets: '$(Build.StagingDirectory)/release/*'
       gitHubConnection: 'efcore.pg-releases'
       isPreRelease: true
-      releaseNotes: '$(EFCORE_PG_RELEASE_NOTES)'
+      releaseNotesFile: '$(EFCORE_PG_RELEASE_NOTES)'
 
   - task: GitHubRelease@0
     displayName: 'Publish GitHub Release'
@@ -205,4 +205,4 @@ jobs:
       assets: '$(Build.StagingDirectory)/release/*'
       gitHubConnection: 'efcore.pg-releases'
       isPreRelease: false
-      releaseNotes: '$(EFCORE_PG_RELEASE_NOTES)'
+      releaseNotesFile: '$(EFCORE_PG_RELEASE_NOTES)'
