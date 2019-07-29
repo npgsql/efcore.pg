@@ -10,6 +10,7 @@ variables:
   DOTNET_CLI_TELEMETRY_OPTOUT: 1
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
   DOTNET_SDK_VERSION: '3.0.100-preview7-012821'
+  EFCORE_PG_RELEASE_NOTES: 'doc/release-notes/3.0.md'
 
 resources:
   containers:
@@ -195,6 +196,7 @@ jobs:
       assets: '$(Build.StagingDirectory)/release/*'
       gitHubConnection: 'efcore.pg-releases'
       isPreRelease: true
+      releaseNotes: '$(EFCORE_PG_RELEASE_NOTES)'
 
   - task: GitHubRelease@0
     displayName: 'Publish GitHub Release'
@@ -203,3 +205,4 @@ jobs:
       assets: '$(Build.StagingDirectory)/release/*'
       gitHubConnection: 'efcore.pg-releases'
       isPreRelease: false
+      releaseNotes: '$(EFCORE_PG_RELEASE_NOTES)'
