@@ -15,6 +15,4 @@ artifacts/
 # Roslyn cache directories
 *.ide/
 TestResult.xml
-# Docker
-.build/docker/
-!.build/docker/current
+

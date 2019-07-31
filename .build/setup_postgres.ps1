@@ -13,8 +13,8 @@ bigsql/pgc install postgis25-pg11
 bigsql/pg11/bin/initdb -D PGDATA -E UTF8 -U postgres
 
 # Configure PostgreSQL
-cp .build/docker/current/server.crt PGDATA/
-cp .build/docker/current/server.key PGDATA/
+cp .build/docker/server.crt PGDATA/
+cp .build/docker/server.key PGDATA/
 
 # Start PostgreSQL
 bigsql/pg11/bin/pg_ctl -D PGDATA -l logfile -o '-c max_prepared_transactions=10 -c ssl=true' start

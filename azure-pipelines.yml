@@ -10,23 +10,23 @@ variables:
   DOTNET_CLI_TELEMETRY_OPTOUT: 1
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
   DOTNET_SDK_VERSION: '3.0.100-preview7-012821'
-  EFCORE_PG_RELEASE_NOTES: 'doc/release-notes/3.0.md'
+  RELEASE_NOTES_FILE: 'doc/release-notes/3.0.md'
+  GITHUB_SERVICE_CONNECTION: 'efcore.pg-releases'
 
 resources:
   containers:
   - container: postgres_11
-    image: austindrenski/npgsql-postgres:11
-    options: "--name postgres"
+    image: npgsql/postgres:11
     ports:
     - 5432:5432
+
   - container: postgres_10
-    image: austindrenski/npgsql-postgres:10
-    options: "--name postgres"
+    image: npgsql/postgres:10
     ports:
     - 5432:5432
+
   - container: postgres_9_6
-    image: austindrenski/npgsql-postgres:9.6
-    options: "--name postgres"
+    image: npgsql/postgres:9.6
     ports:
     - 5432:5432
 
@@ -41,8 +41,10 @@ jobs:
     matrix:
       postgres_11:
         postgres_service: postgres_11
+
       postgres_10:
         postgres_service: postgres_10
+
       postgres_9_6:
         postgres_service: postgres_9_6
 
@@ -191,15 +193,15 @@ jobs:
     condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'), contains(variables['Build.SourceBranch'], '-preview'))
     inputs:
       assets: '$(Build.StagingDirectory)/release/*'
-      gitHubConnection: 'efcore.pg-releases'
+      gitHubConnection: '$(GITHUB_SERVICE_CONNECTION)'
       isPreRelease: true
-      releaseNotesFile: '$(EFCORE_PG_RELEASE_NOTES)'
+      releaseNotesFile: '$(RELEASE_NOTES_FILE)'
 
   - task: GitHubRelease@0
     displayName: 'Publish GitHub Release'
     condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'), not(contains(variables['Build.SourceBranch'], '-preview')))
     inputs:
       assets: '$(Build.StagingDirectory)/release/*'
-      gitHubConnection: 'efcore.pg-releases'
+      gitHubConnection: '$(GITHUB_SERVICE_CONNECTION)'
       isPreRelease: false
-      releaseNotesFile: '$(EFCORE_PG_RELEASE_NOTES)'
+      releaseNotesFile: '$(RELEASE_NOTES_FILE)'
