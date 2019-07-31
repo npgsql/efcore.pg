@@ -123,6 +123,9 @@ namespace Microsoft.EntityFrameworkCore
         /// Configures the property to use the PostgreSQL SERIAL feature to generate values for new entities,
         /// when targeting PostgreSQL. This method sets the property to be <see cref="ValueGenerated.OnAdd" />.
         /// </summary>
+        /// <para>
+        /// This option should be considered deprecated starting with PostgreSQL 10, consider using <see cref="UseIdentityColumn"/> instead.
+        /// </para>
         /// <param name="propertyBuilder"> The builder for the property being configured.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
         public static PropertyBuilder UseSerialColumn(
@@ -142,6 +145,9 @@ namespace Microsoft.EntityFrameworkCore
         /// Configures the property to use the PostgreSQL SERIAL feature to generate values for new entities,
         /// when targeting PostgreSQL. This method sets the property to be <see cref="ValueGenerated.OnAdd" />.
         /// </summary>
+        /// <para>
+        /// This option should be considered deprecated starting with PostgreSQL 10, consider using <see cref="UseIdentityColumn"/> instead.
+        /// </para>
         /// <typeparam name="TProperty"> The type of the property being configured.</typeparam>
         /// <param name="propertyBuilder"> The builder for the property being configured.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
@@ -153,6 +159,9 @@ namespace Microsoft.EntityFrameworkCore
         /// Configures the property to use the PostgreSQL SERIAL feature to generate values for new entities,
         /// when targeting PostgreSQL. This method sets the property to be <see cref="ValueGenerated.OnAdd" />.
         /// </summary>
+        /// <para>
+        /// This option should be considered deprecated starting with PostgreSQL 10, consider using <see cref="UseIdentityColumn"/> instead.
+        /// </para>
         /// <param name="propertyBuilder"> The builder for the property being configured.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
         public static IConventionPropertyBuilder UseSerialColumn(
@@ -250,7 +259,9 @@ namespace Microsoft.EntityFrameworkCore
         /// Values for this property will be generated as identity by default, but the application will be able
         /// to override this behavior by providing a value.
         /// </para>
-        /// <para>Available only starting PostgreSQL 10.</para>
+        /// <para>
+        /// This is the default behavior when targeting PostgreSQL. Available only starting PostgreSQL 10.
+        /// </para>
         /// </summary>
         /// <param name="propertyBuilder"> The builder for the property being configured.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
@@ -273,7 +284,9 @@ namespace Microsoft.EntityFrameworkCore
         /// Values for this property will be generated as identity by default, but the application will be able
         /// to override this behavior by providing a value.
         /// </para>
-        /// <para>Available only starting PostgreSQL 10.</para>
+        /// <para>
+        /// This is the default behavior when targeting PostgreSQL. Available only starting PostgreSQL 10.
+        /// </para>
         /// </summary>
         /// <typeparam name="TProperty"> The type of the property being configured.</typeparam>
         /// <param name="propertyBuilder"> The builder for the property being configured.</param>
@@ -289,7 +302,9 @@ namespace Microsoft.EntityFrameworkCore
         /// Values for this property will be generated as identity by default, but the application will be able
         /// to override this behavior by providing a value.
         /// </para>
-        /// <para>Available only starting PostgreSQL 10.</para>
+        /// <para>
+        /// This is the default behavior when targeting PostgreSQL. Available only starting PostgreSQL 10.
+        /// </para>
         /// </summary>
         /// <param name="propertyBuilder"> The builder for the property being configured.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
@@ -315,7 +330,10 @@ namespace Microsoft.EntityFrameworkCore
         /// Values for this property will be generated as identity by default, but the application will be able
         /// to override this behavior by providing a value.
         /// </para>
-        /// <para>Available only starting PostgreSQL 10.</para>
+        /// <para>
+        /// This internally calls <see cref="UseIdentityByDefaultColumn(Microsoft.EntityFrameworkCore.Metadata.Builders.PropertyBuilder)"/>.
+        /// This is the default behavior when targeting PostgreSQL. Available only starting PostgreSQL 10.
+        /// </para>
         /// </summary>
         /// <param name="propertyBuilder"> The builder for the property being configured.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
@@ -330,7 +348,10 @@ namespace Microsoft.EntityFrameworkCore
         /// Values for this property will be generated as identity by default, but the application will be able
         /// to override this behavior by providing a value.
         /// </para>
-        /// <para>Available only starting PostgreSQL 10.</para>
+        /// <para>
+        /// This internally calls <see cref="UseIdentityByDefaultColumn(Microsoft.EntityFrameworkCore.Metadata.Builders.PropertyBuilder)"/>.
+        /// This is the default behavior when targeting PostgreSQL. Available only starting PostgreSQL 10.
+        /// </para>
         /// </summary>
         /// <typeparam name="TProperty"> The type of the property being configured.</typeparam>
         /// <param name="propertyBuilder"> The builder for the property being configured.</param>

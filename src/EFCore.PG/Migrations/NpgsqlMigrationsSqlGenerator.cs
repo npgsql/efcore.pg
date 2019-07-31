@@ -990,7 +990,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         {
             Check.NotNull(operation, nameof(operation));
 
-            if (VersionAtLeast(10, 0))
+            if (_postgresVersion.AtLeast(10, 0))
             {
                 base.Generate(operation, model, builder);
             }
@@ -1209,17 +1209,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         #endregion Storage parameter utilities
 
         #region Helpers
-
-        /// <summary>
-        /// True if <see cref="_postgresVersion"/> is null, greater than, or equal to the specified version.
-        /// </summary>
-        /// <param name="major">The major version.</param>
-        /// <param name="minor">The minor version.</param>
-        /// <returns>
-        /// True if <see cref="_postgresVersion"/> is null, greater than, or equal to the specified version.
-        /// </returns>
-        bool VersionAtLeast(int major, int minor)
-            => _postgresVersion is null || new Version(major, minor) <= _postgresVersion;
 
         string IndexColumnList(IndexColumn[] columns, string method)
         {

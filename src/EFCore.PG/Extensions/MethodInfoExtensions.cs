@@ -3,7 +3,7 @@ using System.Reflection;
 using JetBrains.Annotations;
 
 // ReSharper disable once CheckNamespace
-namespace Microsoft.EntityFrameworkCore
+namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
     [DebuggerStepThrough]
     internal static class MethodInfoExtensions

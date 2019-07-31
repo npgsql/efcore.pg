@@ -108,9 +108,13 @@ namespace Microsoft.EntityFrameworkCore
         #region Serial
 
         /// <summary>
+        /// <para>
         /// Configures the model to use the PostgreSQL SERIAL feature to generate values for properties
-        /// marked as <see cref="ValueGenerated.OnAdd" />, when targeting PostgreSQL. This is the default
-        /// behavior when targeting PostgreSQL.
+        /// marked as <see cref="ValueGenerated.OnAdd" />, when targeting PostgreSQL.
+        /// </para>
+        /// <para>
+        /// This option should be considered deprecated starting with PostgreSQL 10, consider using <see cref="UseIdentityColumns"/> instead.
+        /// </para>
         /// </summary>
         /// <param name="modelBuilder">The model builder.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
@@ -164,7 +168,9 @@ namespace Microsoft.EntityFrameworkCore
         /// columns will be generated as identity by default, but the application will be able to override
         /// this behavior by providing a value.
         /// </para>
-        /// <para>Available only starting PostgreSQL 10.</para>
+        /// <para>
+        /// This is the default behavior when targeting PostgreSQL. Available only starting PostgreSQL 10.
+        /// </para>
         /// </summary>
         /// <param name="modelBuilder">The model builder.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
@@ -189,7 +195,9 @@ namespace Microsoft.EntityFrameworkCore
         /// columns will be generated as identity by default, but the application will be able to override
         /// this behavior by providing a value.
         /// </para>
-        /// <para>Available only starting PostgreSQL 10.</para>
+        /// <para>
+        /// This is the default behavior when targeting PostgreSQL. Available only starting PostgreSQL 10.
+        /// </para>
         /// </summary>
         /// <param name="modelBuilder">The model builder.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>

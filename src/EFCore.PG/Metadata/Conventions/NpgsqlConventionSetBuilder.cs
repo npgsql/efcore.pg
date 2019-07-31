@@ -1,29 +1,33 @@
+using System;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
 {
     [EntityFrameworkInternal]
     public class NpgsqlConventionSetBuilder : RelationalConventionSetBuilder
     {
+        [CanBeNull] readonly Version _postgresVersion;
+
         [EntityFrameworkInternal]
         public NpgsqlConventionSetBuilder(
             [NotNull] ProviderConventionSetBuilderDependencies dependencies,
-            [NotNull] RelationalConventionSetBuilderDependencies relationalDependencies)
+            [NotNull] RelationalConventionSetBuilderDependencies relationalDependencies,
+            [NotNull] INpgsqlOptions npgsqlOptions)
             : base(dependencies, relationalDependencies)
-        {
-        }
+            => _postgresVersion = npgsqlOptions.PostgresVersion;
 
         [EntityFrameworkInternal]
         public override ConventionSet CreateConventionSet()
         {
             var conventionSet = base.CreateConventionSet();
 
-            var valueGenerationStrategyConvention = new NpgsqlValueGenerationStrategyConvention(Dependencies, RelationalDependencies);
+            var valueGenerationStrategyConvention = new NpgsqlValueGenerationStrategyConvention(Dependencies, RelationalDependencies, _postgresVersion);
             conventionSet.ModelInitializedConventions.Add(valueGenerationStrategyConvention);
             conventionSet.ModelInitializedConventions.Add(new RelationalMaxIdentifierLengthConvention(63, Dependencies, RelationalDependencies));
 

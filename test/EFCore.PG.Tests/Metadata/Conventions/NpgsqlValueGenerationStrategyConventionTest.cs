@@ -1,8 +1,6 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
@@ -19,8 +17,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
             var annotations = model.GetAnnotations().OrderBy(a => a.Name).ToList();
             Assert.Equal(3, annotations.Count);
 
+            // TODO for PG9.6 testing: make this conditional
             Assert.Equal(NpgsqlAnnotationNames.ValueGenerationStrategy, annotations.First().Name);
-            Assert.Equal(NpgsqlValueGenerationStrategy.SerialColumn, annotations.First().Value);
+            Assert.Equal(NpgsqlValueGenerationStrategy.IdentityByDefaultColumn, annotations.First().Value);
         }
 
         [Fact]
