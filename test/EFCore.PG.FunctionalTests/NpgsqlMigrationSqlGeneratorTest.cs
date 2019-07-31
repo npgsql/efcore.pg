@@ -1331,7 +1331,7 @@ ALTER TABLE ""People"" ADD ""FullName"" text GENERATED ALWAYS AS (""FirstName"" 
                 "CREATE SEQUENCE public.short_sequence AS smallint",
                 Sql);
 
-            using(TestHelpers.WithPostgresVersion(new Version(9, 5)))
+            using (TestHelpers.WithPostgresVersion(new Version(9, 5)))
             {
                 Generate(
                     new CreateSequenceOperation {

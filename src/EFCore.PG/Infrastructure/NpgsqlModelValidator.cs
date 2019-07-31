@@ -44,7 +44,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         /// <param name="model">The model to validate.</param>
         protected virtual void ValidateIdentityVersionCompatibility([NotNull] IModel model)
         {
-            if (VersionAtLeast(10, 0))
+            if (_postgresVersion.AtLeast(10, 0))
                 return;
 
             var strategy = model.GetValueGenerationStrategy();
@@ -52,7 +52,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
             if (strategy == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn ||
                 strategy == NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
             {
-                throw new InvalidOperationException($"'{strategy}' requires PostgreSQL 10.0 or later.");
+                throw new InvalidOperationException(
+                    $"'{strategy}' requires PostgreSQL 10.0 or later. " +
+                    "If you're using an older version, set PostgreSQL compatibility mode by calling " +
+                    $"'optionsBuilder.{nameof(NpgsqlDbContextOptionsBuilder.SetPostgresVersion)}()' in your model's OnConfiguring. " +
+                    "See the docs for more info.");
             }
 
             foreach (var property in model.GetEntityTypes().SelectMany(e => e.GetProperties()))
@@ -107,11 +111,5 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
                 }
             }
         }
-
-        #region Helpers
-
-        bool VersionAtLeast(int major, int minor) => _postgresVersion is null || new Version(major, minor) <= _postgresVersion;
-
-        #endregion
     }
 }

@@ -25,10 +25,12 @@ resources:
     ports:
     - 5432:5432
 
-  - container: postgres_9_6
-    image: npgsql/postgres:9.6
-    ports:
-    - 5432:5432
+# Disabled during the switch to identity columns by default.
+# Need to have tests running in the proper compatibility mode.
+#  - container: postgres_9_6
+#    image: npgsql/postgres:9.6
+#    ports:
+#    - 5432:5432
 
 jobs:
 
@@ -45,8 +47,8 @@ jobs:
       postgres_10:
         postgres_service: postgres_10
 
-      postgres_9_6:
-        postgres_service: postgres_9_6
+#      postgres_9_6:
+#        postgres_service: postgres_9_6
 
   services:
     postgres: $[variables['postgres_service']]

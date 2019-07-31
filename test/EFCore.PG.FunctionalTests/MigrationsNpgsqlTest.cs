@@ -8,7 +8,6 @@ using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.EntityFrameworkCore.TestUtilities.Xunit;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
@@ -40,24 +39,24 @@ CreatedTable
     ColumnWithDefaultToAlter int4 NULL DEFAULT 1
 
 Foos
-    Id int4 NOT NULL DEFAULT nextval('""Foos_Id_seq""'::regclass)
+    Id int4 NOT NULL
 ",
                 sql,
                 ignoreLineEndingDifferences: true);
         }
 
-        protected override void BuildSecondMigration(MigrationBuilder migrationBuilder)
-        {
-            base.BuildSecondMigration(migrationBuilder);
-
-            for (var i = migrationBuilder.Operations.Count - 1; i >= 0; i--)
-            {
-                var operation = migrationBuilder.Operations[i];
-                if (operation is AlterColumnOperation ||
-                    operation is DropColumnOperation)
-                    migrationBuilder.Operations.RemoveAt(i);
-            }
-        }
+//        protected override void BuildSecondMigration(MigrationBuilder migrationBuilder)
+//        {
+//            base.BuildSecondMigration(migrationBuilder);
+//
+//            for (var i = migrationBuilder.Operations.Count - 1; i >= 0; i--)
+//            {
+//                var operation = migrationBuilder.Operations[i];
+//                if (operation is AlterColumnOperation ||
+//                    operation is DropColumnOperation)
+//                    migrationBuilder.Operations.RemoveAt(i);
+//            }
+//        }
 
         protected override void AssertSecondMigration(DbConnection connection)
         {
@@ -66,11 +65,10 @@ Foos
                 @"
 CreatedTable
     Id int4 NOT NULL
-    ColumnWithDefaultToDrop int4 NULL DEFAULT 0
-    ColumnWithDefaultToAlter int4 NULL DEFAULT 1
+    ColumnWithDefaultToAlter int4 NULL
 
 Foos
-    Id int4 NOT NULL DEFAULT nextval('""Foos_Id_seq""'::regclass)
+    Id int4 NOT NULL
 ",
                 sql,
                 ignoreLineEndingDifferences: true);
@@ -187,6 +185,11 @@ ORDER BY table_name, ordinal_position
 
         public override void Can_diff_against_2_2_model()
         {
+//            using (var context = new ModelSnapshot22.BloggingContext())
+//            {
+//                DiffSnapshot(new BloggingContextModelSnapshot22(), context);
+//            }
+//
             using (var context = new ModelSnapshot22.BloggingContext())
             {
                 var snapshot = new BloggingContextModelSnapshot22();
@@ -209,14 +212,14 @@ ORDER BY table_name, ordinal_position
                     .HasAnnotation("ProductVersion", "2.2.4-servicing-10062")
                     .HasAnnotation("Relational:MaxIdentifierLength", 128)
                     .HasAnnotation("Npgsql:ValueGenerationStrategy",
-                        NpgsqlValueGenerationStrategy.SerialColumn);
+                        NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                 modelBuilder.Entity("ModelSnapshot22.Blog", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasAnnotation("Npgsql:ValueGenerationStrategy",
-                            NpgsqlValueGenerationStrategy.SerialColumn);
+                            NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<string>("Name");
 
@@ -230,7 +233,7 @@ ORDER BY table_name, ordinal_position
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasAnnotation("Npgsql:ValueGenerationStrategy",
-                            NpgsqlValueGenerationStrategy.SerialColumn);
+                            NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<int?>("BlogId");
 

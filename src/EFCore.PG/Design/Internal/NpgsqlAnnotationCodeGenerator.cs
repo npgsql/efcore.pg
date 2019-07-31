@@ -1,10 +1,12 @@
 using System;
 using System.Diagnostics;
+using System.Linq;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
@@ -49,14 +51,22 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             Check.NotNull(property, nameof(property));
             Check.NotNull(annotation, nameof(annotation));
 
-            // Serial is the default value generation strategy.
-            // So if ValueGenerated is OnAdd (which it must be if serial is set), make sure
-            // ValueGenerationStrategy.Serial isn't code-generated because it's by-convention.
-            if (annotation.Name == NpgsqlAnnotationNames.ValueGenerationStrategy
-                && (NpgsqlValueGenerationStrategy)annotation.Value == NpgsqlValueGenerationStrategy.SerialColumn)
+            // The default by-convention value generation strategy is serial in pre-10 PostgreSQL,
+            // and IdentityByDefault otherwise.
+            if (annotation.Name == NpgsqlAnnotationNames.ValueGenerationStrategy)
             {
                 Debug.Assert(property.ValueGenerated == ValueGenerated.OnAdd);
-                return true;
+
+                // Note: both serial and identity-by-default columns are considered by-convention - we don't want
+                // to assume that the PostgreSQL version of the scaffolded database necessarily determines the
+                // version of the database that the scaffolded model will target. This makes life difficult for
+                // models with mixed strategies but that's an edge case.
+                return (NpgsqlValueGenerationStrategy)annotation.Value switch
+                {
+                    NpgsqlValueGenerationStrategy.SerialColumn => true,
+                    NpgsqlValueGenerationStrategy.IdentityByDefaultColumn => true,
+                    _ => false
+                };
             }
 
             return false;
