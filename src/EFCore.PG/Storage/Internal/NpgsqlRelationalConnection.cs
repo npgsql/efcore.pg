@@ -51,7 +51,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             var relationalOptions = RelationalOptionsExtension.Extract(Dependencies.ContextOptions);
             var connectionString = csb.ToString();
 
-            relationalOptions = relationalOptions.ConnectionString != null
+            relationalOptions = relationalOptions.Connection != null
                 ? relationalOptions.WithConnection(((NpgsqlConnection)DbConnection).CloneWith(connectionString))
                 : relationalOptions.WithConnectionString(connectionString);
 
