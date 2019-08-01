@@ -3,6 +3,7 @@ using System.Linq;
 using System.Net.Security;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 
@@ -46,9 +47,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 Database = adminDb,
                 Pooling = false
             };
-            var masterConn = ((NpgsqlConnection)DbConnection).CloneWith(csb.ToString());
+
+            var relationalOptions = RelationalOptionsExtension.Extract(Dependencies.ContextOptions);
+            var connectionString = csb.ToString();
+
+            relationalOptions = relationalOptions.ConnectionString != null
+                ? relationalOptions.WithConnection(((NpgsqlConnection)DbConnection).CloneWith(connectionString))
+                : relationalOptions.WithConnectionString(connectionString);
+
             var optionsBuilder = new DbContextOptionsBuilder();
-            optionsBuilder.UseNpgsql(masterConn);
+            ((IDbContextOptionsBuilderInfrastructure)optionsBuilder).AddOrUpdateExtension(relationalOptions);
 
             return new NpgsqlRelationalConnection(Dependencies.With(optionsBuilder.Options));
         }
