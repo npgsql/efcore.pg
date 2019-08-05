@@ -8,8 +8,6 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 using Xunit;
 
-#pragma warning disable EF1001
-
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 {
     public class NpgsqlInternalMetadataBuilderExtensionsTest

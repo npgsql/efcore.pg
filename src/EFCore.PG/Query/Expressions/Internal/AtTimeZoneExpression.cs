@@ -68,11 +68,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
 
         public override void Print(ExpressionPrinter expressionPrinter)
         {
-#pragma warning disable EF1001
             expressionPrinter.Visit(Timestamp);
-            expressionPrinter.StringBuilder.Append(" AT TIME ZONE ");
+            expressionPrinter.Append(" AT TIME ZONE ");
             expressionPrinter.Visit(TimeZone);
-#pragma warning restore EF1001
         }
 
         /// <inheritdoc />

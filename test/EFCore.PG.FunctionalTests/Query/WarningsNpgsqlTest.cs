@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore.TestUtilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics.Internal;
 using Xunit;
 
-#pragma warning disable EF1001
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     // TODO: Currently disabled upstream

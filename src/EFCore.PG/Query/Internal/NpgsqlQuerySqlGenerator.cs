@@ -34,13 +34,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 
         /// <inheritdoc />
         public NpgsqlQuerySqlGenerator(
-            IRelationalCommandBuilderFactory relationalCommandBuilderFactory,
-            ISqlGenerationHelper sqlGenerationHelper,
+            QuerySqlGeneratorDependencies dependencies,
             bool reverseNullOrderingEnabled,
             Version postgresVersion)
-            : base(relationalCommandBuilderFactory, sqlGenerationHelper)
+            : base(dependencies)
         {
-            _sqlGenerationHelper = sqlGenerationHelper;
+            _sqlGenerationHelper = dependencies.SqlGenerationHelper;
             _reverseNullOrderingEnabled = reverseNullOrderingEnabled;
             _postgresVersion = postgresVersion;
         }

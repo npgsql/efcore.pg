@@ -82,17 +82,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
 
         public override void Print(ExpressionPrinter expressionPrinter)
         {
-#pragma warning disable EF1001
             expressionPrinter.Visit(Match);
-            expressionPrinter.StringBuilder.Append(" ILIKE ");
+            expressionPrinter.Append(" ILIKE ");
             expressionPrinter.Visit(Pattern);
 
             if (EscapeChar != null)
             {
-                expressionPrinter.StringBuilder.Append(" ESCAPE ");
+                expressionPrinter.Append(" ESCAPE ");
                 expressionPrinter.Visit(EscapeChar);
             }
-#pragma warning restore EF1001
         }
 
         /// <inheritdoc />

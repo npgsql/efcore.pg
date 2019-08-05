@@ -106,12 +106,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         /// <inheritdoc />
         public override void Print(ExpressionPrinter expressionPrinter)
         {
-#pragma warning disable EF1001
             expressionPrinter.Visit(Operand);
-            expressionPrinter.StringBuilder.Append($" = {Operator} (");
+            expressionPrinter.Append($" = {Operator} (");
             expressionPrinter.Visit(Array);
-            expressionPrinter.StringBuilder.Append(')');
-#pragma warning restore EF1001
+            expressionPrinter.Append(')');
         }
 
         /// <inheritdoc />

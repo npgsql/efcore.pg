@@ -306,14 +306,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
 
         public override void Print(ExpressionPrinter expressionPrinter)
         {
-#pragma warning disable EF1001
-            var sb = expressionPrinter.StringBuilder;
-
             if (!string.IsNullOrEmpty(Schema))
-                sb.Append(Schema).Append(".");
-            sb.Append(FunctionName);
+                expressionPrinter.Append(Schema).Append(".");
+            expressionPrinter.Append(FunctionName);
 
-            sb.Append("(");
+            expressionPrinter.Append("(");
             expressionPrinter.VisitList(PositionalArguments);
 
             var hasArguments = PositionalArguments.Count > 0 && NamedArguments.Count > 0;
@@ -321,17 +318,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
             foreach (var kv in NamedArguments)
             {
                 if (hasArguments)
-                    sb.Append(", ");
+                    expressionPrinter.Append(", ");
                 else
                     hasArguments = true;
 
-                sb.Append(kv.Key).Append(" => ");
+                expressionPrinter.Append(kv.Key).Append(" => ");
 
                 expressionPrinter.Visit(kv.Value);
             }
 
-            expressionPrinter.StringBuilder.Append(")");
-#pragma warning restore EF1001
+            expressionPrinter.Append(")");
         }
 
         /// <inheritdoc />
