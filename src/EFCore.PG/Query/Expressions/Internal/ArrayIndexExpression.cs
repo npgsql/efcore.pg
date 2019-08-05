@@ -76,12 +76,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
 
         public override void Print(ExpressionPrinter expressionPrinter)
         {
-#pragma warning disable EF1001
             expressionPrinter.Visit(Array);
-            expressionPrinter.StringBuilder.Append('[');
+            expressionPrinter.Append('[');
             expressionPrinter.Visit(Index);
-            expressionPrinter.StringBuilder.Append(']');
-#pragma warning restore EF1001
+            expressionPrinter.Append(']');
         }
 
         public override string ToString() => $"{Array}[{Index}]";

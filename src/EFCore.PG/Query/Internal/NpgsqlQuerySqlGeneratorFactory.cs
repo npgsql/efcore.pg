@@ -10,24 +10,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
     /// </summary>
     public class NpgsqlQuerySqlGeneratorFactory : IQuerySqlGeneratorFactory
     {
-        [NotNull] readonly IRelationalCommandBuilderFactory _commandBuilderFactory;
-        [NotNull] readonly ISqlGenerationHelper _sqlGenerationHelper;
+        [NotNull] readonly QuerySqlGeneratorDependencies _dependencies;
         [NotNull] readonly INpgsqlOptions _npgsqlOptions;
 
         public NpgsqlQuerySqlGeneratorFactory(
-            IRelationalCommandBuilderFactory commandBuilderFactory,
-            ISqlGenerationHelper sqlGenerationHelper,
+            QuerySqlGeneratorDependencies dependencies,
             [NotNull] INpgsqlOptions npgsqlOptions)
         {
-            _commandBuilderFactory = commandBuilderFactory;
-            _sqlGenerationHelper = sqlGenerationHelper;
+            _dependencies = dependencies;
             _npgsqlOptions = npgsqlOptions;
         }
 
         public virtual QuerySqlGenerator Create()
             => new NpgsqlQuerySqlGenerator(
-                _commandBuilderFactory,
-                _sqlGenerationHelper,
+                _dependencies,
                 _npgsqlOptions.ReverseNullOrderingEnabled,
                 _npgsqlOptions.PostgresVersion);
     }

@@ -2,15 +2,12 @@ using System.Linq.Expressions;
 using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Query.Internal;
+using Microsoft.EntityFrameworkCore.Query;
 using NpgsqlTypes;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 {
-#pragma warning disable EF1001
     public class NpgsqlEvaluatableExpressionFilter : RelationalEvaluatableExpressionFilter
-#pragma warning restore EF1001
     {
         [NotNull] static readonly MethodInfo TsQueryParse =
             typeof(NpgsqlTsQuery).GetRuntimeMethod(nameof(NpgsqlTsQuery.Parse), new[] { typeof(string) });
@@ -18,7 +15,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         [NotNull] static readonly MethodInfo TsVectorParse =
             typeof(NpgsqlTsVector).GetRuntimeMethod(nameof(NpgsqlTsVector.Parse), new[] { typeof(string) });
 
-        public NpgsqlEvaluatableExpressionFilter([NotNull] IModel model) : base(model) {}
+        public NpgsqlEvaluatableExpressionFilter(
+            [NotNull] EvaluatableExpressionFilterDependencies dependencies,
+            [NotNull] RelationalEvaluatableExpressionFilterDependencies relationalDependencies)
+            : base(dependencies, relationalDependencies)
+        {}
 
         public override bool IsEvaluatableExpression(Expression expression)
         {
@@ -43,9 +44,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 return false;
             }
 
-#pragma warning disable EF1001
             return base.IsEvaluatableExpression(expression);
-#pragma warning restore EF1001
         }
     }
 }

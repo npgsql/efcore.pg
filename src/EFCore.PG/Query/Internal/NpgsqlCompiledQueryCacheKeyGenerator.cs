@@ -3,8 +3,6 @@ using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 
-#pragma warning disable EF1001
-
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 {
     public class NpgsqlCompiledQueryCacheKeyGenerator : RelationalCompiledQueryCacheKeyGenerator
@@ -21,10 +19,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 GenerateCacheKeyCore(query, async),
                 RelationalDependencies.ContextOptions.FindExtension<NpgsqlOptionsExtension>()?.ReverseNullOrdering ?? false);
 
-        private struct NpgsqlCompiledQueryCacheKey
+        struct NpgsqlCompiledQueryCacheKey
         {
-            private readonly RelationalCompiledQueryCacheKey _relationalCompiledQueryCacheKey;
-            private readonly bool _reverseNullOrdering;
+            readonly RelationalCompiledQueryCacheKey _relationalCompiledQueryCacheKey;
+            readonly bool _reverseNullOrdering;
 
             public NpgsqlCompiledQueryCacheKey(
                 RelationalCompiledQueryCacheKey relationalCompiledQueryCacheKey, bool reverseNullOrdering)
@@ -38,7 +36,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                    && obj is NpgsqlCompiledQueryCacheKey
                    && Equals((NpgsqlCompiledQueryCacheKey)obj);
 
-            private bool Equals(NpgsqlCompiledQueryCacheKey other)
+            bool Equals(NpgsqlCompiledQueryCacheKey other)
                 => _relationalCompiledQueryCacheKey.Equals(other._relationalCompiledQueryCacheKey)
                    && _reverseNullOrdering == other._reverseNullOrdering;
 

@@ -82,11 +82,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
 
         public override void Print(ExpressionPrinter expressionPrinter)
         {
-#pragma warning disable EF1001
             expressionPrinter.Visit(Left);
-            expressionPrinter.StringBuilder.Append(Operator);
+            expressionPrinter.Append(Operator);
             expressionPrinter.Visit(Right);
-#pragma warning restore EF1001
         }
 
         /// <inheritdoc />

@@ -26,13 +26,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
 
         public NpgsqlSqlTranslatingExpressionVisitor(
+            RelationalSqlTranslatingExpressionVisitorDependencies dependencies,
             IModel model,
-            QueryableMethodTranslatingExpressionVisitor queryableMethodTranslatingExpressionVisitor,
-            NpgsqlSqlExpressionFactory sqlExpressionFactory,
-            IMemberTranslatorProvider memberTranslatorProvider,
-            IMethodCallTranslatorProvider methodCallTranslatorProvider)
-            : base(model, queryableMethodTranslatingExpressionVisitor, sqlExpressionFactory, memberTranslatorProvider, methodCallTranslatorProvider)
-            => _sqlExpressionFactory = sqlExpressionFactory;
+            QueryableMethodTranslatingExpressionVisitor queryableMethodTranslatingExpressionVisitor)
+            : base(dependencies, model, queryableMethodTranslatingExpressionVisitor)
+            => _sqlExpressionFactory = (NpgsqlSqlExpressionFactory)dependencies.SqlExpressionFactory;
 
         // PostgreSQL COUNT() always returns bigint, so we need to downcast to int
         // TODO: Translate Count with predicate for GroupBy (see base implementation)

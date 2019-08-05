@@ -64,9 +64,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
             {
                 using (var context = serviceScope.ServiceProvider.GetService<DbContext>())
                 {
-#pragma warning disable EF1001
                     return ConventionSet.CreateConventionSet(context);
-#pragma warning restore EF1001
                 }
             }
         }
