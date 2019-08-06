@@ -74,15 +74,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
                 .HasIndex(e => e.Id)
                 .Metadata;
 
-            Assert.Null(index.GetNpgsqlMethod());
+            Assert.Null(index.GetMethod());
 
-            index.SetNpgsqlMethod("gin");
+            index.SetMethod("gin");
 
-            Assert.Equal("gin", index.GetNpgsqlMethod());
+            Assert.Equal("gin", index.GetMethod());
 
-            index.SetNpgsqlMethod(null);
+            index.SetMethod(null);
 
-            Assert.Null(index.GetNpgsqlMethod());
+            Assert.Null(index.GetMethod());
         }
 
         [ConditionalFact]
@@ -231,15 +231,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             var modelBuilder = GetModelBuilder();
             var model = modelBuilder.Model;
 
-            Assert.Equal(NpgsqlValueGenerationStrategy.SerialColumn, model.GetNpgsqlValueGenerationStrategy());
+            Assert.Equal(NpgsqlValueGenerationStrategy.SerialColumn, model.GetValueGenerationStrategy());
 
-            model.SetNpgsqlValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
+            model.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
 
-            Assert.Equal(NpgsqlValueGenerationStrategy.SequenceHiLo, model.GetNpgsqlValueGenerationStrategy());
+            Assert.Equal(NpgsqlValueGenerationStrategy.SequenceHiLo, model.GetValueGenerationStrategy());
 
-            model.SetNpgsqlValueGenerationStrategy(null);
+            model.SetValueGenerationStrategy(null);
 
-            Assert.Null(model.GetNpgsqlValueGenerationStrategy());
+            Assert.Null(model.GetValueGenerationStrategy());
         }
 
         [ConditionalFact]
@@ -248,13 +248,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             var modelBuilder = GetModelBuilder();
             var model = modelBuilder.Model;
 
-            model.SetNpgsqlHiLoSequenceName("Tasty.Snook");
+            model.SetHiLoSequenceName("Tasty.Snook");
 
-            Assert.Equal("Tasty.Snook", model.GetNpgsqlHiLoSequenceName());
+            Assert.Equal("Tasty.Snook", model.GetHiLoSequenceName());
 
-            model.SetNpgsqlHiLoSequenceName(null);
+            model.SetHiLoSequenceName(null);
 
-            Assert.Equal(NpgsqlModelExtensions.DefaultHiLoSequenceName, model.GetNpgsqlHiLoSequenceName());
+            Assert.Equal(NpgsqlModelExtensions.DefaultHiLoSequenceName, model.GetHiLoSequenceName());
         }
 
         [ConditionalFact]
@@ -263,39 +263,39 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             var modelBuilder = GetModelBuilder();
             var model = modelBuilder.Model;
 
-            Assert.Null(model.GetNpgsqlHiLoSequenceSchema());
+            Assert.Null(model.GetHiLoSequenceSchema());
 
-            model.SetNpgsqlHiLoSequenceSchema("Tasty.Snook");
+            model.SetHiLoSequenceSchema("Tasty.Snook");
 
-            Assert.Equal("Tasty.Snook", model.GetNpgsqlHiLoSequenceSchema());
+            Assert.Equal("Tasty.Snook", model.GetHiLoSequenceSchema());
 
-            model.SetNpgsqlHiLoSequenceSchema(null);
+            model.SetHiLoSequenceSchema(null);
 
-            Assert.Null(model.GetNpgsqlHiLoSequenceSchema());
+            Assert.Null(model.GetHiLoSequenceSchema());
         }
 
         [ConditionalFact]
         public void Can_get_and_set_value_generation_on_property()
         {
             var modelBuilder = GetModelBuilder();
-            modelBuilder.Model.SetNpgsqlValueGenerationStrategy(null);
+            modelBuilder.Model.SetValueGenerationStrategy(null);
 
             var property = modelBuilder
                 .Entity<Customer>()
                 .Property(e => e.Id)
                 .Metadata;
 
-            Assert.Equal(NpgsqlValueGenerationStrategy.None, property.GetNpgsqlValueGenerationStrategy());
+            Assert.Equal(NpgsqlValueGenerationStrategy.None, property.GetValueGenerationStrategy());
             Assert.Equal(ValueGenerated.OnAdd, property.ValueGenerated);
 
-            property.SetNpgsqlValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
+            property.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
 
-            Assert.Equal(NpgsqlValueGenerationStrategy.SequenceHiLo, property.GetNpgsqlValueGenerationStrategy());
+            Assert.Equal(NpgsqlValueGenerationStrategy.SequenceHiLo, property.GetValueGenerationStrategy());
             Assert.Equal(ValueGenerated.OnAdd, property.ValueGenerated);
 
-            property.SetNpgsqlValueGenerationStrategy(null);
+            property.SetValueGenerationStrategy(null);
 
-            Assert.Equal(NpgsqlValueGenerationStrategy.None, property.GetNpgsqlValueGenerationStrategy());
+            Assert.Equal(NpgsqlValueGenerationStrategy.None, property.GetValueGenerationStrategy());
             Assert.Equal(ValueGenerated.OnAdd, property.ValueGenerated);
         }
 
@@ -309,15 +309,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
                 .Property(e => e.NullableInt).ValueGeneratedOnAdd()
                 .Metadata;
 
-            Assert.Equal(NpgsqlValueGenerationStrategy.SerialColumn, property.GetNpgsqlValueGenerationStrategy());
+            Assert.Equal(NpgsqlValueGenerationStrategy.SerialColumn, property.GetValueGenerationStrategy());
 
-            property.SetNpgsqlValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
+            property.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
 
-            Assert.Equal(NpgsqlValueGenerationStrategy.SequenceHiLo, property.GetNpgsqlValueGenerationStrategy());
+            Assert.Equal(NpgsqlValueGenerationStrategy.SequenceHiLo, property.GetValueGenerationStrategy());
 
-            property.SetNpgsqlValueGenerationStrategy(null);
+            property.SetValueGenerationStrategy(null);
 
-            Assert.Equal(NpgsqlValueGenerationStrategy.SerialColumn, property.GetNpgsqlValueGenerationStrategy());
+            Assert.Equal(NpgsqlValueGenerationStrategy.SerialColumn, property.GetValueGenerationStrategy());
         }
 
         [ConditionalFact]
@@ -330,16 +330,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
                 .Property(e => e.Id)
                 .Metadata;
 
-            Assert.Null(property.GetNpgsqlHiLoSequenceName());
-            Assert.Null(((IProperty)property).GetNpgsqlHiLoSequenceName());
+            Assert.Null(property.GetHiLoSequenceName());
+            Assert.Null(((IProperty)property).GetHiLoSequenceName());
 
-            property.SetNpgsqlHiLoSequenceName("Snook");
+            property.SetHiLoSequenceName("Snook");
 
-            Assert.Equal("Snook", property.GetNpgsqlHiLoSequenceName());
+            Assert.Equal("Snook", property.GetHiLoSequenceName());
 
-            property.SetNpgsqlHiLoSequenceName(null);
+            property.SetHiLoSequenceName(null);
 
-            Assert.Null(property.GetNpgsqlHiLoSequenceName());
+            Assert.Null(property.GetHiLoSequenceName());
         }
 
         [ConditionalFact]
@@ -352,15 +352,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
                 .Property(e => e.Id)
                 .Metadata;
 
-            Assert.Null(property.GetNpgsqlHiLoSequenceSchema());
+            Assert.Null(property.GetHiLoSequenceSchema());
 
-            property.SetNpgsqlHiLoSequenceSchema("Tasty");
+            property.SetHiLoSequenceSchema("Tasty");
 
-            Assert.Equal("Tasty", property.GetNpgsqlHiLoSequenceSchema());
+            Assert.Equal("Tasty", property.GetHiLoSequenceSchema());
 
-            property.SetNpgsqlHiLoSequenceSchema(null);
+            property.SetHiLoSequenceSchema(null);
 
-            Assert.Null(property.GetNpgsqlHiLoSequenceSchema());
+            Assert.Null(property.GetHiLoSequenceSchema());
         }
 
         [ConditionalFact]
@@ -375,20 +375,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 
             modelBuilder.Model.AddSequence("DaneelOlivaw");
 
-            Assert.Null(property.FindNpgsqlHiLoSequence());
+            Assert.Null(property.FindHiLoSequence());
 
-            property.SetNpgsqlHiLoSequenceName("DaneelOlivaw");
+            property.SetHiLoSequenceName("DaneelOlivaw");
 
-            Assert.Null(property.FindNpgsqlHiLoSequence());
+            Assert.Null(property.FindHiLoSequence());
 
-            modelBuilder.Model.SetNpgsqlValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+            modelBuilder.Model.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
-            Assert.Null(property.FindNpgsqlHiLoSequence());
+            Assert.Null(property.FindHiLoSequence());
 
-            modelBuilder.Model.SetNpgsqlValueGenerationStrategy(null);
-            property.SetNpgsqlValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+            modelBuilder.Model.SetValueGenerationStrategy(null);
+            property.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
-            Assert.Null(property.FindNpgsqlHiLoSequence());
+            Assert.Null(property.FindHiLoSequence());
         }
 
         [ConditionalFact]
@@ -403,10 +403,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
                 .Metadata;
 
             modelBuilder.Model.AddSequence("DaneelOlivaw");
-            property.SetNpgsqlHiLoSequenceName("DaneelOlivaw");
-            property.SetNpgsqlValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
+            property.SetHiLoSequenceName("DaneelOlivaw");
+            property.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
 
-            Assert.Equal("DaneelOlivaw", property.FindNpgsqlHiLoSequence().Name);
+            Assert.Equal("DaneelOlivaw", property.FindHiLoSequence().Name);
         }
 
         [ConditionalFact]
@@ -421,10 +421,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
                 .Metadata;
 
             modelBuilder.Model.AddSequence("DaneelOlivaw");
-            modelBuilder.Model.SetNpgsqlValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
-            property.SetNpgsqlHiLoSequenceName("DaneelOlivaw");
+            modelBuilder.Model.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
+            property.SetHiLoSequenceName("DaneelOlivaw");
 
-            Assert.Equal("DaneelOlivaw", property.FindNpgsqlHiLoSequence().Name);
+            Assert.Equal("DaneelOlivaw", property.FindHiLoSequence().Name);
         }
 
         [ConditionalFact]
@@ -439,10 +439,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
                 .Metadata;
 
             modelBuilder.Model.AddSequence("DaneelOlivaw");
-            modelBuilder.Model.SetNpgsqlHiLoSequenceName("DaneelOlivaw");
-            property.SetNpgsqlValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
+            modelBuilder.Model.SetHiLoSequenceName("DaneelOlivaw");
+            property.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
 
-            Assert.Equal("DaneelOlivaw", property.FindNpgsqlHiLoSequence().Name);
+            Assert.Equal("DaneelOlivaw", property.FindHiLoSequence().Name);
         }
 
         [ConditionalFact]
@@ -458,10 +458,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
                 .Metadata;
 
             modelBuilder.Model.AddSequence("DaneelOlivaw");
-            modelBuilder.Model.SetNpgsqlValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
-            modelBuilder.Model.SetNpgsqlHiLoSequenceName("DaneelOlivaw");
+            modelBuilder.Model.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
+            modelBuilder.Model.SetHiLoSequenceName("DaneelOlivaw");
 
-            Assert.Equal("DaneelOlivaw", property.FindNpgsqlHiLoSequence().Name);
+            Assert.Equal("DaneelOlivaw", property.FindHiLoSequence().Name);
         }
 
         [ConditionalFact]
@@ -476,12 +476,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
                 .Metadata;
 
             modelBuilder.Model.AddSequence("DaneelOlivaw", "R");
-            property.SetNpgsqlHiLoSequenceName("DaneelOlivaw");
-            property.SetNpgsqlHiLoSequenceSchema("R");
-            property.SetNpgsqlValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
+            property.SetHiLoSequenceName("DaneelOlivaw");
+            property.SetHiLoSequenceSchema("R");
+            property.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
 
-            Assert.Equal("DaneelOlivaw", property.FindNpgsqlHiLoSequence().Name);
-            Assert.Equal("R", property.FindNpgsqlHiLoSequence().Schema);
+            Assert.Equal("DaneelOlivaw", property.FindHiLoSequence().Name);
+            Assert.Equal("R", property.FindHiLoSequence().Schema);
         }
 
         [ConditionalFact]
@@ -496,12 +496,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
                 .Metadata;
 
             modelBuilder.Model.AddSequence("DaneelOlivaw", "R");
-            modelBuilder.Model.SetNpgsqlValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
-            property.SetNpgsqlHiLoSequenceName("DaneelOlivaw");
-            property.SetNpgsqlHiLoSequenceSchema("R");
+            modelBuilder.Model.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
+            property.SetHiLoSequenceName("DaneelOlivaw");
+            property.SetHiLoSequenceSchema("R");
 
-            Assert.Equal("DaneelOlivaw", property.FindNpgsqlHiLoSequence().Name);
-            Assert.Equal("R", property.FindNpgsqlHiLoSequence().Schema);
+            Assert.Equal("DaneelOlivaw", property.FindHiLoSequence().Name);
+            Assert.Equal("R", property.FindHiLoSequence().Schema);
         }
 
         [ConditionalFact]
@@ -516,12 +516,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
                 .Metadata;
 
             modelBuilder.Model.AddSequence("DaneelOlivaw", "R");
-            modelBuilder.Model.SetNpgsqlHiLoSequenceName("DaneelOlivaw");
-            modelBuilder.Model.SetNpgsqlHiLoSequenceSchema("R");
-            property.SetNpgsqlValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
+            modelBuilder.Model.SetHiLoSequenceName("DaneelOlivaw");
+            modelBuilder.Model.SetHiLoSequenceSchema("R");
+            property.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
 
-            Assert.Equal("DaneelOlivaw", property.FindNpgsqlHiLoSequence().Name);
-            Assert.Equal("R", property.FindNpgsqlHiLoSequence().Schema);
+            Assert.Equal("DaneelOlivaw", property.FindHiLoSequence().Name);
+            Assert.Equal("R", property.FindHiLoSequence().Schema);
         }
 
         [ConditionalFact]
@@ -536,12 +536,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
                 .Metadata;
 
             modelBuilder.Model.AddSequence("DaneelOlivaw", "R");
-            modelBuilder.Model.SetNpgsqlValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
-            modelBuilder.Model.SetNpgsqlHiLoSequenceName("DaneelOlivaw");
-            modelBuilder.Model.SetNpgsqlHiLoSequenceSchema("R");
+            modelBuilder.Model.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
+            modelBuilder.Model.SetHiLoSequenceName("DaneelOlivaw");
+            modelBuilder.Model.SetHiLoSequenceSchema("R");
 
-            Assert.Equal("DaneelOlivaw", property.FindNpgsqlHiLoSequence().Name);
-            Assert.Equal("R", property.FindNpgsqlHiLoSequence().Schema);
+            Assert.Equal("DaneelOlivaw", property.FindHiLoSequence().Name);
+            Assert.Equal("R", property.FindHiLoSequence().Schema);
         }
 
         private static ModelBuilder GetModelBuilder() => NpgsqlTestHelpers.Instance.CreateConventionBuilder();

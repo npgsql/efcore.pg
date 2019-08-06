@@ -20,7 +20,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="model"> The model. </param>
         /// <returns> The name to use for the default hi-lo sequence. </returns>
-        public static string GetNpgsqlHiLoSequenceName([NotNull] this IModel model)
+        public static string GetHiLoSequenceName([NotNull] this IModel model)
             => (string)model[NpgsqlAnnotationNames.HiLoSequenceName]
                ?? DefaultHiLoSequenceName;
 
@@ -29,7 +29,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="model"> The model. </param>
         /// <param name="name"> The value to set. </param>
-        public static void SetNpgsqlHiLoSequenceName([NotNull] this IMutableModel model, [CanBeNull] string name)
+        public static void SetHiLoSequenceName([NotNull] this IMutableModel model, [CanBeNull] string name)
         {
             Check.NullButNotEmpty(name, nameof(name));
 
@@ -42,7 +42,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="model"> The model. </param>
         /// <param name="name"> The value to set. </param>
         /// <param name="fromDataAnnotation"> Indicates whether the configuration was specified using a data annotation. </param>
-        public static void SetNpgsqlHiLoSequenceName(
+        public static void SetHiLoSequenceName(
             [NotNull] this IConventionModel model, [CanBeNull] string name, bool fromDataAnnotation = false)
         {
             Check.NullButNotEmpty(name, nameof(name));
@@ -55,7 +55,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="model"> The model. </param>
         /// <returns> The <see cref="ConfigurationSource" /> for the default hi-lo sequence name. </returns>
-        public static ConfigurationSource? GetNpgsqlHiLoSequenceNameConfigurationSource([NotNull] this IConventionModel model)
+        public static ConfigurationSource? GetHiLoSequenceNameConfigurationSource([NotNull] this IConventionModel model)
             => model.FindAnnotation(NpgsqlAnnotationNames.HiLoSequenceName)?.GetConfigurationSource();
 
         /// <summary>
@@ -64,7 +64,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="model"> The model. </param>
         /// <returns> The schema to use for the default hi-lo sequence. </returns>
-        public static string GetNpgsqlHiLoSequenceSchema([NotNull] this IModel model)
+        public static string GetHiLoSequenceSchema([NotNull] this IModel model)
             => (string)model[NpgsqlAnnotationNames.HiLoSequenceSchema];
 
         /// <summary>
@@ -72,7 +72,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="model"> The model. </param>
         /// <param name="value"> The value to set. </param>
-        public static void SetNpgsqlHiLoSequenceSchema([NotNull] this IMutableModel model, [CanBeNull] string value)
+        public static void SetHiLoSequenceSchema([NotNull] this IMutableModel model, [CanBeNull] string value)
         {
             Check.NullButNotEmpty(value, nameof(value));
 
@@ -85,7 +85,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="model"> The model. </param>
         /// <param name="value"> The value to set. </param>
         /// <param name="fromDataAnnotation"> Indicates whether the configuration was specified using a data annotation. </param>
-        public static void SetNpgsqlHiLoSequenceSchema(
+        public static void SetHiLoSequenceSchema(
             [NotNull] this IConventionModel model, [CanBeNull] string value, bool fromDataAnnotation = false)
         {
             Check.NullButNotEmpty(value, nameof(value));
@@ -98,7 +98,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="model"> The model. </param>
         /// <returns> The <see cref="ConfigurationSource" /> for the default hi-lo sequence schema. </returns>
-        public static ConfigurationSource? GetNpgsqlHiLoSequenceSchemaConfigurationSource([NotNull] this IConventionModel model)
+        public static ConfigurationSource? GetHiLoSequenceSchemaConfigurationSource([NotNull] this IConventionModel model)
             => model.FindAnnotation(NpgsqlAnnotationNames.HiLoSequenceSchema)?.GetConfigurationSource();
 
         #endregion
@@ -111,7 +111,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="model"> The model. </param>
         /// <returns> The default <see cref="NpgsqlValueGenerationStrategy" />. </returns>
-        public static NpgsqlValueGenerationStrategy? GetNpgsqlValueGenerationStrategy([NotNull] this IModel model)
+        public static NpgsqlValueGenerationStrategy? GetValueGenerationStrategy([NotNull] this IModel model)
             => (NpgsqlValueGenerationStrategy?)model[NpgsqlAnnotationNames.ValueGenerationStrategy];
 
         /// <summary>
@@ -120,7 +120,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="model"> The model. </param>
         /// <param name="value"> The value to set. </param>
-        public static void SetNpgsqlValueGenerationStrategy([NotNull] this IMutableModel model, NpgsqlValueGenerationStrategy? value)
+        public static void SetValueGenerationStrategy([NotNull] this IMutableModel model, NpgsqlValueGenerationStrategy? value)
             => model.SetOrRemoveAnnotation(NpgsqlAnnotationNames.ValueGenerationStrategy, value);
 
         /// <summary>
@@ -130,7 +130,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="model"> The model. </param>
         /// <param name="value"> The value to set. </param>
         /// <param name="fromDataAnnotation"> Indicates whether the configuration was specified using a data annotation. </param>
-        public static void SetNpgsqlValueGenerationStrategy(
+        public static void SetValueGenerationStrategy(
             [NotNull] this IConventionModel model, NpgsqlValueGenerationStrategy? value, bool fromDataAnnotation = false)
             => model.SetOrRemoveAnnotation(NpgsqlAnnotationNames.ValueGenerationStrategy, value, fromDataAnnotation);
 
@@ -139,7 +139,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="model"> The model. </param>
         /// <returns> The <see cref="ConfigurationSource" /> for the default <see cref="NpgsqlValueGenerationStrategy" />. </returns>
-        public static ConfigurationSource? GetNpgsqlValueGenerationStrategyConfigurationSource([NotNull] this IConventionModel model)
+        public static ConfigurationSource? GetValueGenerationStrategyConfigurationSource([NotNull] this IConventionModel model)
             => model.FindAnnotation(NpgsqlAnnotationNames.ValueGenerationStrategy)?.GetConfigurationSource();
 
         #endregion
@@ -201,19 +201,19 @@ namespace Microsoft.EntityFrameworkCore
 
         #region Database Template
 
-        public static string GetNpgsqlDatabaseTemplate([NotNull] this IModel model)
+        public static string GetDatabaseTemplate([NotNull] this IModel model)
             => (string)model[NpgsqlAnnotationNames.DatabaseTemplate];
 
-        public static void SetNpgsqlDatabaseTemplate([NotNull] this IMutableModel model, [CanBeNull] string template)
+        public static void SetDatabaseTemplate([NotNull] this IMutableModel model, [CanBeNull] string template)
             => model.SetOrRemoveAnnotation(NpgsqlAnnotationNames.DatabaseTemplate, template);
         #endregion
 
         #region Tablespace
 
-        public static string GetNpgsqlTablespace([NotNull] this IModel model)
+        public static string GetTablespace([NotNull] this IModel model)
             => (string)model[NpgsqlAnnotationNames.Tablespace];
 
-        public static void SetNpgsqlTablespace([NotNull] this IMutableModel model, [CanBeNull] string tablespace)
+        public static void SetTablespace([NotNull] this IMutableModel model, [CanBeNull] string tablespace)
             => model.SetOrRemoveAnnotation(NpgsqlAnnotationNames.Tablespace, tablespace);
 
         #endregion

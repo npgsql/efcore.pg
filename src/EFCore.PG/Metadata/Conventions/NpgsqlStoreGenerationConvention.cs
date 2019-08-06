@@ -97,8 +97,8 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Conventions
 
         protected override void Validate(IConventionProperty property)
         {
-            if (property.GetNpgsqlValueGenerationStrategyConfigurationSource() != null
-                && property.GetNpgsqlValueGenerationStrategy() != NpgsqlValueGenerationStrategy.None)
+            if (property.GetValueGenerationStrategyConfigurationSource() != null
+                && property.GetValueGenerationStrategy() != NpgsqlValueGenerationStrategy.None)
             {
                 if (property.GetDefaultValue() != null)
                 {

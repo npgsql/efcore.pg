@@ -38,7 +38,7 @@ namespace Microsoft.EntityFrameworkCore
             Check.NotNull(indexBuilder, nameof(indexBuilder));
             Check.NullButNotEmpty(method, nameof(method));
 
-            indexBuilder.Metadata.SetNpgsqlMethod(method);
+            indexBuilder.Metadata.SetMethod(method);
 
             return indexBuilder;
         }
@@ -74,7 +74,7 @@ namespace Microsoft.EntityFrameworkCore
         {
             if (indexBuilder.ForNpgsqlCanSetHasMethod(method, fromDataAnnotation))
             {
-                indexBuilder.Metadata.SetNpgsqlMethod(method, fromDataAnnotation);
+                indexBuilder.Metadata.SetMethod(method, fromDataAnnotation);
 
                 return indexBuilder;
             }
@@ -122,7 +122,7 @@ namespace Microsoft.EntityFrameworkCore
             Check.NotNull(indexBuilder, nameof(indexBuilder));
             Check.NullButNotEmpty(operators, nameof(operators));
 
-            indexBuilder.Metadata.SetNpgsqlOperators(operators);
+            indexBuilder.Metadata.SetOperators(operators);
 
             return indexBuilder;
         }
@@ -158,7 +158,7 @@ namespace Microsoft.EntityFrameworkCore
         {
             if (indexBuilder.ForNpgsqlCanSetHasOperators(operators, fromDataAnnotation))
             {
-                indexBuilder.Metadata.SetNpgsqlOperators(operators, fromDataAnnotation);
+                indexBuilder.Metadata.SetOperators(operators, fromDataAnnotation);
 
                 return indexBuilder;
             }
@@ -206,7 +206,7 @@ namespace Microsoft.EntityFrameworkCore
             Check.NotNull(indexBuilder, nameof(indexBuilder));
             Check.NullButNotEmpty(values, nameof(values));
 
-            indexBuilder.Metadata.SetNpgsqlCollation(values);
+            indexBuilder.Metadata.SetCollation(values);
 
             return indexBuilder;
         }
@@ -242,7 +242,7 @@ namespace Microsoft.EntityFrameworkCore
         {
             if (indexBuilder.ForNpgsqlCanSetHasCollation(values, fromDataAnnotation))
             {
-                indexBuilder.Metadata.SetNpgsqlCollation(values, fromDataAnnotation);
+                indexBuilder.Metadata.SetCollation(values, fromDataAnnotation);
 
                 return indexBuilder;
             }
@@ -291,7 +291,7 @@ namespace Microsoft.EntityFrameworkCore
             Check.NullButNotEmpty(values, nameof(values));
 
             if (!SortOrderHelper.IsDefaultSortOrder(values))
-                indexBuilder.Metadata.SetNpgsqlSortOrder(values);
+                indexBuilder.Metadata.SetSortOrder(values);
 
             return indexBuilder;
         }
@@ -331,7 +331,7 @@ namespace Microsoft.EntityFrameworkCore
                 Check.NullButNotEmpty(values, nameof(values));
 
                 if (!SortOrderHelper.IsDefaultSortOrder(values))
-                    indexBuilder.Metadata.SetNpgsqlSortOrder(values, fromDataAnnotation);
+                    indexBuilder.Metadata.SetSortOrder(values, fromDataAnnotation);
 
                 return indexBuilder;
             }
@@ -379,10 +379,10 @@ namespace Microsoft.EntityFrameworkCore
             Check.NotNull(indexBuilder, nameof(indexBuilder));
             Check.NullButNotEmpty(values, nameof(values));
 
-            var sortOrders = indexBuilder.Metadata.GetNpgsqlSortOrder();
+            var sortOrders = indexBuilder.Metadata.GetSortOrder();
 
             if (!SortOrderHelper.IsDefaultNullSortOrder(values, sortOrders))
-                indexBuilder.Metadata.SetNpgsqlNullSortOrder(values);
+                indexBuilder.Metadata.SetNullSortOrder(values);
 
             return indexBuilder;
         }
@@ -418,10 +418,10 @@ namespace Microsoft.EntityFrameworkCore
         {
             if (indexBuilder.ForNpgsqlCanSetHasNullSortOrder(values, fromDataAnnotation))
             {
-                var sortOrders = indexBuilder.Metadata.GetNpgsqlSortOrder();
+                var sortOrders = indexBuilder.Metadata.GetSortOrder();
 
                 if (!SortOrderHelper.IsDefaultNullSortOrder(values, sortOrders))
-                    indexBuilder.Metadata.SetNpgsqlNullSortOrder(values, fromDataAnnotation);
+                    indexBuilder.Metadata.SetNullSortOrder(values, fromDataAnnotation);
 
                 return indexBuilder;
             }
@@ -470,7 +470,7 @@ namespace Microsoft.EntityFrameworkCore
             Check.NotNull(indexBuilder, nameof(indexBuilder));
             Check.NullButNotEmpty(propertyNames, nameof(propertyNames));
 
-            indexBuilder.Metadata.SetNpgsqlIncludeProperties(propertyNames);
+            indexBuilder.Metadata.SetIncludeProperties(propertyNames);
 
             return indexBuilder;
         }
@@ -524,7 +524,7 @@ namespace Microsoft.EntityFrameworkCore
         {
             if (indexBuilder.ForNpgsqlCanSetInclude(propertyNames, fromDataAnnotation))
             {
-                indexBuilder.Metadata.SetNpgsqlIncludeProperties(propertyNames, fromDataAnnotation);
+                indexBuilder.Metadata.SetIncludeProperties(propertyNames, fromDataAnnotation);
 
                 return indexBuilder;
             }
@@ -547,9 +547,9 @@ namespace Microsoft.EntityFrameworkCore
             Check.NotNull(indexBuilder, nameof(indexBuilder));
 
             return (fromDataAnnotation ? ConfigurationSource.DataAnnotation : ConfigurationSource.Convention)
-                   .Overrides(indexBuilder.Metadata.GetNpgsqlIncludePropertiesConfigurationSource())
+                   .Overrides(indexBuilder.Metadata.GetIncludePropertiesConfigurationSource())
                    || StructuralComparisons.StructuralEqualityComparer.Equals(
-                       propertyNames, indexBuilder.Metadata.GetNpgsqlIncludeProperties());
+                       propertyNames, indexBuilder.Metadata.GetIncludeProperties());
         }
 
         #endregion Include

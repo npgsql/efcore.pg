@@ -21,31 +21,31 @@ namespace Microsoft.EntityFrameworkCore
                     a => a.Value
                 );
 
-        public static string GetNpgsqlStorageParameter([NotNull] this IEntityType entityType, string parameterName)
+        public static string GetStorageParameter([NotNull] this IEntityType entityType, string parameterName)
             => (string)entityType[NpgsqlAnnotationNames.StorageParameterPrefix + parameterName];
 
-        public static void SetNpgsqlStorageParameter([NotNull] this IMutableEntityType entityType, string parameterName, object parameterValue)
+        public static void SetStorageParameter([NotNull] this IMutableEntityType entityType, string parameterName, object parameterValue)
             => entityType.SetOrRemoveAnnotation(NpgsqlAnnotationNames.StorageParameterPrefix + parameterName, parameterValue);
 
-        public static void SetNpgsqlStorageParameter([NotNull] this IConventionEntityType entityType, string parameterName, object parameterValue, bool fromDataAnnotation = false)
+        public static void SetStorageParameter([NotNull] this IConventionEntityType entityType, string parameterName, object parameterValue, bool fromDataAnnotation = false)
             => entityType.SetOrRemoveAnnotation(NpgsqlAnnotationNames.StorageParameterPrefix + parameterName, parameterValue, fromDataAnnotation);
 
-        public static string GetNpgsqlComment([NotNull] this IEntityType entityType)
+        public static string GetComment([NotNull] this IEntityType entityType)
             => (string)entityType[NpgsqlAnnotationNames.Comment];
 
-        public static void SetNpgsqlComment([NotNull] this IMutableEntityType entityType, [CanBeNull] string comment)
+        public static void SetComment([NotNull] this IMutableEntityType entityType, [CanBeNull] string comment)
             => entityType.SetOrRemoveAnnotation(NpgsqlAnnotationNames.Comment, comment);
 
-        public static bool GetNpgsqlIsUnlogged([NotNull] this IEntityType entityType)
+        public static bool GetIsUnlogged([NotNull] this IEntityType entityType)
             => entityType[NpgsqlAnnotationNames.UnloggedTable] as bool? ?? false;
 
-        public static void SetNpgsqlIsUnlogged([NotNull] this IMutableEntityType entityType, bool isUnlogged)
+        public static void SetIsUnlogged([NotNull] this IMutableEntityType entityType, bool isUnlogged)
             => entityType.SetOrRemoveAnnotation(NpgsqlAnnotationNames.UnloggedTable, isUnlogged);
 
-        public static void SetNpgsqlIsUnlogged([NotNull] this IConventionEntityType entityType, bool isUnlogged, bool fromDataAnnotation = false)
+        public static void SetIsUnlogged([NotNull] this IConventionEntityType entityType, bool isUnlogged, bool fromDataAnnotation = false)
             => entityType.SetOrRemoveAnnotation(NpgsqlAnnotationNames.UnloggedTable, isUnlogged, fromDataAnnotation);
 
-        public static CockroachDbInterleaveInParent GetNpgsqlCockroachDbInterleaveInParent([NotNull] this IEntityType entityType)
+        public static CockroachDbInterleaveInParent GetCockroachDbInterleaveInParent([NotNull] this IEntityType entityType)
             => new CockroachDbInterleaveInParent(entityType);
     }
 }

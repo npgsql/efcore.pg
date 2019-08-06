@@ -36,7 +36,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
             IRelationalConnection connection)
         {
             //var sequence = property.GetNpgsql().FindHiLoSequence();
-            var sequence = property.FindNpgsqlHiLoSequence();
+            var sequence = property.FindHiLoSequence();
 
             Debug.Assert(sequence != null);
 

@@ -50,7 +50,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
                 foreach (var property in entityType.GetDeclaredProperties())
                 {
                     // Needed for the annotation to show up in the model snapshot
-                    var strategy = property.GetNpgsqlValueGenerationStrategy();
+                    var strategy = property.GetValueGenerationStrategy();
                     if (strategy != NpgsqlValueGenerationStrategy.None)
                     {
                         property.Builder.HasValueGenerationStrategy(strategy);

@@ -22,7 +22,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// http://www.postgresql.org/docs/current/static/sql-createindex.html
         /// </remarks>
-        public static string GetNpgsqlMethod([NotNull] this IIndex index)
+        public static string GetMethod([NotNull] this IIndex index)
             => (string)index[NpgsqlAnnotationNames.IndexMethod];
 
         /// <summary>
@@ -32,7 +32,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// http://www.postgresql.org/docs/current/static/sql-createindex.html
         /// </remarks>
-        public static void SetNpgsqlMethod([NotNull] this IMutableIndex index, [CanBeNull] string method)
+        public static void SetMethod([NotNull] this IMutableIndex index, [CanBeNull] string method)
             => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexMethod, method);
 
         /// <summary>
@@ -42,7 +42,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// http://www.postgresql.org/docs/current/static/sql-createindex.html
         /// </remarks>
-        public static void SetNpgsqlMethod([NotNull] this IConventionIndex index, [CanBeNull] string method, bool fromDataAnnotation = false)
+        public static void SetMethod([NotNull] this IConventionIndex index, [CanBeNull] string method, bool fromDataAnnotation = false)
             => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexMethod, method, fromDataAnnotation);
 
         /// <summary>
@@ -51,7 +51,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// https://www.postgresql.org/docs/current/static/indexes-opclass.html
         /// </remarks>
-        public static IReadOnlyList<string> GetNpgsqlOperators([NotNull] this IIndex index)
+        public static IReadOnlyList<string> GetOperators([NotNull] this IIndex index)
             => (IReadOnlyList<string>)index[NpgsqlAnnotationNames.IndexOperators];
 
         /// <summary>
@@ -60,7 +60,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// https://www.postgresql.org/docs/current/static/indexes-opclass.html
         /// </remarks>
-        public static void SetNpgsqlOperators([NotNull] this IMutableIndex index, [CanBeNull] IReadOnlyList<string> operators)
+        public static void SetOperators([NotNull] this IMutableIndex index, [CanBeNull] IReadOnlyList<string> operators)
             => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexMethod, operators);
 
         /// <summary>
@@ -69,7 +69,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// https://www.postgresql.org/docs/current/static/indexes-opclass.html
         /// </remarks>
-        public static void SetNpgsqlOperators([NotNull] this IConventionIndex index, [CanBeNull] IReadOnlyList<string> operators, bool fromDataAnnotation)
+        public static void SetOperators([NotNull] this IConventionIndex index, [CanBeNull] IReadOnlyList<string> operators, bool fromDataAnnotation)
             => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexMethod, operators, fromDataAnnotation);
 
         /// <summary>
@@ -78,7 +78,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// https://www.postgresql.org/docs/current/static/indexes-collations.html
         /// </remarks>
-        public static IReadOnlyList<string> GetNpgsqlCollation([NotNull] this IIndex index)
+        public static IReadOnlyList<string> GetCollation([NotNull] this IIndex index)
             => (IReadOnlyList<string>)index[NpgsqlAnnotationNames.IndexCollation];
 
         /// <summary>
@@ -87,7 +87,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// https://www.postgresql.org/docs/current/static/indexes-collations.html
         /// </remarks>
-        public static void SetNpgsqlCollation([NotNull] this IMutableIndex index, [CanBeNull] IReadOnlyList<string> collations)
+        public static void SetCollation([NotNull] this IMutableIndex index, [CanBeNull] IReadOnlyList<string> collations)
             => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexCollation, collations);
 
         /// <summary>
@@ -96,7 +96,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// https://www.postgresql.org/docs/current/static/indexes-collations.html
         /// </remarks>
-        public static void SetNpgsqlCollation([NotNull] this IConventionIndex index, [CanBeNull] IReadOnlyList<string> collations, bool fromDataAnnotation)
+        public static void SetCollation([NotNull] this IConventionIndex index, [CanBeNull] IReadOnlyList<string> collations, bool fromDataAnnotation)
             => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexCollation, collations, fromDataAnnotation);
 
         /// <summary>
@@ -105,7 +105,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
         /// </remarks>
-        public static IReadOnlyList<SortOrder> GetNpgsqlSortOrder([NotNull] this IIndex index)
+        public static IReadOnlyList<SortOrder> GetSortOrder([NotNull] this IIndex index)
             => (IReadOnlyList<SortOrder>)index[NpgsqlAnnotationNames.IndexSortOrder];
 
         /// <summary>
@@ -114,7 +114,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
         /// </remarks>
-        public static void SetNpgsqlSortOrder([NotNull] this IMutableIndex index, [CanBeNull] IReadOnlyList<SortOrder> sortOrder)
+        public static void SetSortOrder([NotNull] this IMutableIndex index, [CanBeNull] IReadOnlyList<SortOrder> sortOrder)
             => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexSortOrder, sortOrder);
 
         /// <summary>
@@ -123,7 +123,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
         /// </remarks>
-        public static void SetNpgsqlSortOrder([NotNull] this IConventionIndex index, [CanBeNull] IReadOnlyList<SortOrder> sortOrder, bool fromDataAnnotation)
+        public static void SetSortOrder([NotNull] this IConventionIndex index, [CanBeNull] IReadOnlyList<SortOrder> sortOrder, bool fromDataAnnotation)
             => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexSortOrder, sortOrder, fromDataAnnotation);
 
         /// <summary>
@@ -132,7 +132,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
         /// </remarks>
-        public static IReadOnlyList<NullSortOrder> GetNpgsqlNullSortOrder([NotNull] this IIndex index)
+        public static IReadOnlyList<NullSortOrder> GetNullSortOrder([NotNull] this IIndex index)
             => (IReadOnlyList<NullSortOrder>)index[NpgsqlAnnotationNames.IndexNullSortOrder];
 
         /// <summary>
@@ -141,7 +141,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
         /// </remarks>
-        public static void SetNpgsqlNullSortOrder([NotNull] this IMutableIndex index, [CanBeNull] IReadOnlyList<NullSortOrder> nullSortOrder)
+        public static void SetNullSortOrder([NotNull] this IMutableIndex index, [CanBeNull] IReadOnlyList<NullSortOrder> nullSortOrder)
             => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexNullSortOrder, nullSortOrder);
 
         /// <summary>
@@ -150,7 +150,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
         /// </remarks>
-        public static void SetNpgsqlNullSortOrder([NotNull] this IConventionIndex index,
+        public static void SetNullSortOrder([NotNull] this IConventionIndex index,
             [CanBeNull] IReadOnlyList<NullSortOrder> nullSortOrder, bool fromDataAnnotation)
             => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexNullSortOrder, nullSortOrder, fromDataAnnotation);
 
@@ -161,7 +161,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="index">The index.</param>
         /// <returns>The included property names, or <c>null</c> if they have not been specified.</returns>
-        public static IReadOnlyList<string> GetNpgsqlIncludeProperties([NotNull] this IIndex index)
+        public static IReadOnlyList<string> GetIncludeProperties([NotNull] this IIndex index)
             => (IReadOnlyList<string>)index[NpgsqlAnnotationNames.IndexInclude];
 
         /// <summary>
@@ -169,7 +169,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="index">The index.</param>
         /// <param name="properties">The value to set.</param>
-        public static void SetNpgsqlIncludeProperties([NotNull] this IMutableIndex index, [NotNull] IReadOnlyList<string> properties)
+        public static void SetIncludeProperties([NotNull] this IMutableIndex index, [NotNull] IReadOnlyList<string> properties)
             => index.SetOrRemoveAnnotation(
                 NpgsqlAnnotationNames.IndexInclude,
                 properties);
@@ -180,7 +180,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="index">The index.</param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <param name="properties">The value to set.</param>
-        public static void SetNpgsqlIncludeProperties(
+        public static void SetIncludeProperties(
             [NotNull] this IConventionIndex index, [NotNull] IReadOnlyList<string> properties, bool fromDataAnnotation = false)
             => index.SetOrRemoveAnnotation(
                 NpgsqlAnnotationNames.IndexInclude,
@@ -192,7 +192,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="index">The index.</param>
         /// <returns>The <see cref="ConfigurationSource" /> for the included property names.</returns>
-        public static ConfigurationSource? GetNpgsqlIncludePropertiesConfigurationSource([NotNull] this IConventionIndex index)
+        public static ConfigurationSource? GetIncludePropertiesConfigurationSource([NotNull] this IConventionIndex index)
             => index.FindAnnotation(NpgsqlAnnotationNames.IndexInclude)?.GetConfigurationSource();
 
         #endregion Included properties
