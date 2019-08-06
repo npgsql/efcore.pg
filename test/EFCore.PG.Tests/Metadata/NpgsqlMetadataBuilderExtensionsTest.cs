@@ -21,16 +21,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 
             Assert.NotNull(builder
                 .HasValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo));
-            Assert.Equal(NpgsqlValueGenerationStrategy.SequenceHiLo, builder.Metadata.GetNpgsqlValueGenerationStrategy());
+            Assert.Equal(NpgsqlValueGenerationStrategy.SequenceHiLo, builder.Metadata.GetValueGenerationStrategy());
 
             Assert.NotNull(builder
                     .HasValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityByDefaultColumn, fromDataAnnotation: true));
             Assert.Equal(
-                NpgsqlValueGenerationStrategy.IdentityByDefaultColumn, builder.Metadata.GetNpgsqlValueGenerationStrategy());
+                NpgsqlValueGenerationStrategy.IdentityByDefaultColumn, builder.Metadata.GetValueGenerationStrategy());
 
             Assert.Null(builder
                 .HasValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo));
-            Assert.Equal(NpgsqlValueGenerationStrategy.IdentityByDefaultColumn, builder.Metadata.GetNpgsqlValueGenerationStrategy());
+            Assert.Equal(NpgsqlValueGenerationStrategy.IdentityByDefaultColumn, builder.Metadata.GetValueGenerationStrategy());
 
             Assert.Equal(
                 1, builder.Metadata.GetAnnotations().Count(
@@ -43,13 +43,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             var typeBuilder = CreateBuilder().Entity(typeof(Splot));
 
             Assert.NotNull(typeBuilder.IsUnlogged());
-            Assert.True(typeBuilder.Metadata.GetNpgsqlIsUnlogged());
+            Assert.True(typeBuilder.Metadata.GetIsUnlogged());
 
             Assert.NotNull(typeBuilder.IsUnlogged(false, fromDataAnnotation: true));
-            Assert.False(typeBuilder.Metadata.GetNpgsqlIsUnlogged());
+            Assert.False(typeBuilder.Metadata.GetIsUnlogged());
 
             Assert.Null(typeBuilder.IsUnlogged(true));
-            Assert.False(typeBuilder.Metadata.GetNpgsqlIsUnlogged());
+            Assert.False(typeBuilder.Metadata.GetIsUnlogged());
 
             Assert.Equal(
                 1, typeBuilder.Metadata.GetAnnotations().Count(
@@ -64,13 +64,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
                 .Property(typeof(int), "Id");
 
             Assert.NotNull(propertyBuilder.HasHiLoSequence("Splew", null));
-            Assert.Equal("Splew", propertyBuilder.Metadata.GetNpgsqlHiLoSequenceName());
+            Assert.Equal("Splew", propertyBuilder.Metadata.GetHiLoSequenceName());
 
             Assert.NotNull(propertyBuilder.HasHiLoSequence("Splow", null, fromDataAnnotation: true));
-            Assert.Equal("Splow", propertyBuilder.Metadata.GetNpgsqlHiLoSequenceName());
+            Assert.Equal("Splow", propertyBuilder.Metadata.GetHiLoSequenceName());
 
             Assert.Null(propertyBuilder.HasHiLoSequence("Splod", null));
-            Assert.Equal("Splow", propertyBuilder.Metadata.GetNpgsqlHiLoSequenceName());
+            Assert.Equal("Splow", propertyBuilder.Metadata.GetHiLoSequenceName());
 
             Assert.Equal(
                 1, propertyBuilder.Metadata.GetAnnotations().Count(
@@ -104,13 +104,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             var indexBuilder = entityTypeBuilder.HasIndex(new[] { idProperty });
 
             Assert.NotNull(indexBuilder.HasMethod("gin"));
-            Assert.Equal("gin", indexBuilder.Metadata.GetNpgsqlMethod());
+            Assert.Equal("gin", indexBuilder.Metadata.GetMethod());
 
             Assert.NotNull(indexBuilder.HasMethod("gist", fromDataAnnotation: true));
-            Assert.Equal("gist", indexBuilder.Metadata.GetNpgsqlMethod());
+            Assert.Equal("gist", indexBuilder.Metadata.GetMethod());
 
             Assert.Null(indexBuilder.HasMethod("gin"));
-            Assert.Equal("gist", indexBuilder.Metadata.GetNpgsqlMethod());
+            Assert.Equal("gist", indexBuilder.Metadata.GetMethod());
 
             Assert.Equal(
                 1, indexBuilder.Metadata.GetAnnotations().Count(

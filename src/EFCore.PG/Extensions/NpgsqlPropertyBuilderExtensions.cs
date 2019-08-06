@@ -44,9 +44,9 @@ namespace Microsoft.EntityFrameworkCore
                 model.AddSequence(name, schema).IncrementBy = 10;
             }
 
-            property.SetNpgsqlValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
-            property.SetNpgsqlHiLoSequenceName(name);
-            property.SetNpgsqlHiLoSequenceSchema(schema);
+            property.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
+            property.SetHiLoSequenceName(name);
+            property.SetHiLoSequenceSchema(schema);
 
             return propertyBuilder;
         }
@@ -85,8 +85,8 @@ namespace Microsoft.EntityFrameworkCore
                 return null;
             }
 
-            propertyBuilder.Metadata.SetNpgsqlHiLoSequenceName(name, fromDataAnnotation);
-            propertyBuilder.Metadata.SetNpgsqlHiLoSequenceSchema(schema, fromDataAnnotation);
+            propertyBuilder.Metadata.SetHiLoSequenceName(name, fromDataAnnotation);
+            propertyBuilder.Metadata.SetHiLoSequenceSchema(schema, fromDataAnnotation);
 
             return name == null
                 ? null
@@ -131,9 +131,9 @@ namespace Microsoft.EntityFrameworkCore
             Check.NotNull(propertyBuilder, nameof(propertyBuilder));
 
             var property = propertyBuilder.Metadata;
-            property.SetNpgsqlValueGenerationStrategy(NpgsqlValueGenerationStrategy.SerialColumn);
-            property.SetNpgsqlHiLoSequenceName(null);
-            property.SetNpgsqlHiLoSequenceSchema(null);
+            property.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SerialColumn);
+            property.SetHiLoSequenceName(null);
+            property.SetHiLoSequenceSchema(null);
 
             return propertyBuilder;
         }
@@ -161,9 +161,9 @@ namespace Microsoft.EntityFrameworkCore
             if (propertyBuilder.CanSetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SerialColumn))
             {
                 var property = propertyBuilder.Metadata;
-                property.SetNpgsqlValueGenerationStrategy(NpgsqlValueGenerationStrategy.SerialColumn);
-                property.SetNpgsqlHiLoSequenceName(null);
-                property.SetNpgsqlHiLoSequenceSchema(null);
+                property.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SerialColumn);
+                property.SetHiLoSequenceName(null);
+                property.SetHiLoSequenceSchema(null);
 
                 return propertyBuilder;
             }
@@ -191,9 +191,9 @@ namespace Microsoft.EntityFrameworkCore
             Check.NotNull(propertyBuilder, nameof(propertyBuilder));
 
             var property = propertyBuilder.Metadata;
-            property.SetNpgsqlValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityAlwaysColumn);
-            property.SetNpgsqlHiLoSequenceName(null);
-            property.SetNpgsqlHiLoSequenceSchema(null);
+            property.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityAlwaysColumn);
+            property.SetHiLoSequenceName(null);
+            property.SetHiLoSequenceSchema(null);
 
             return propertyBuilder;
         }
@@ -229,9 +229,9 @@ namespace Microsoft.EntityFrameworkCore
             if (propertyBuilder.CanSetValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityAlwaysColumn))
             {
                 var property = propertyBuilder.Metadata;
-                property.SetNpgsqlValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityAlwaysColumn);
-                property.SetNpgsqlHiLoSequenceName(null);
-                property.SetNpgsqlHiLoSequenceSchema(null);
+                property.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityAlwaysColumn);
+                property.SetHiLoSequenceName(null);
+                property.SetHiLoSequenceSchema(null);
 
                 return propertyBuilder;
             }
@@ -259,9 +259,9 @@ namespace Microsoft.EntityFrameworkCore
             Check.NotNull(propertyBuilder, nameof(propertyBuilder));
 
             var property = propertyBuilder.Metadata;
-            property.SetNpgsqlValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
-            property.SetNpgsqlHiLoSequenceName(null);
-            property.SetNpgsqlHiLoSequenceSchema(null);
+            property.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+            property.SetHiLoSequenceName(null);
+            property.SetHiLoSequenceSchema(null);
 
             return propertyBuilder;
         }
@@ -298,9 +298,9 @@ namespace Microsoft.EntityFrameworkCore
             if (propertyBuilder.CanSetValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityByDefaultColumn))
             {
                 var property = propertyBuilder.Metadata;
-                property.SetNpgsqlValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
-                property.SetNpgsqlHiLoSequenceName(null);
-                property.SetNpgsqlHiLoSequenceSchema(null);
+                property.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+                property.SetHiLoSequenceName(null);
+                property.SetHiLoSequenceSchema(null);
 
                 return propertyBuilder;
             }
@@ -360,7 +360,7 @@ namespace Microsoft.EntityFrameworkCore
             if (propertyBuilder.CanSetAnnotation(
                 NpgsqlAnnotationNames.ValueGenerationStrategy, valueGenerationStrategy, fromDataAnnotation))
             {
-                propertyBuilder.Metadata.SetNpgsqlValueGenerationStrategy(valueGenerationStrategy, fromDataAnnotation);
+                propertyBuilder.Metadata.SetValueGenerationStrategy(valueGenerationStrategy, fromDataAnnotation);
                 if (valueGenerationStrategy != NpgsqlValueGenerationStrategy.SequenceHiLo)
                 {
                     propertyBuilder.HasHiLoSequence(null, null, fromDataAnnotation);
@@ -409,7 +409,7 @@ namespace Microsoft.EntityFrameworkCore
             Check.NotNull(propertyBuilder, nameof(propertyBuilder));
             Check.NullButNotEmpty(comment, nameof(comment));
 
-            propertyBuilder.Metadata.SetNpgsqlComment(comment);
+            NpgsqlPropertyExtensions.SetComment(propertyBuilder.Metadata, comment);
 
             return propertyBuilder;
         }

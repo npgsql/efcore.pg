@@ -65,7 +65,7 @@ namespace Microsoft.EntityFrameworkCore
         {
             Check.NotNull(entityTypeBuilder, nameof(entityTypeBuilder));
 
-            entityTypeBuilder.Metadata.SetNpgsqlStorageParameter(parameterName, parameterValue);
+            entityTypeBuilder.Metadata.SetStorageParameter(parameterName, parameterValue);
 
             return entityTypeBuilder;
         }
@@ -101,7 +101,7 @@ namespace Microsoft.EntityFrameworkCore
         {
             if (entityTypeBuilder.ForNpgsqlCanSetStorageParameter(parameterName, parameterValue, fromDataAnnotation))
             {
-                entityTypeBuilder.Metadata.SetNpgsqlStorageParameter(parameterName, parameterValue);
+                entityTypeBuilder.Metadata.SetStorageParameter(parameterName, parameterValue);
 
                 return entityTypeBuilder;
             }
@@ -145,7 +145,7 @@ namespace Microsoft.EntityFrameworkCore
             Check.NotNull(entityTypeBuilder, nameof(entityTypeBuilder));
             Check.NullButNotEmpty(comment, nameof(comment));
 
-            entityTypeBuilder.Metadata.SetNpgsqlComment(comment);
+            NpgsqlEntityTypeExtensions.SetComment(entityTypeBuilder.Metadata, comment);
 
             return entityTypeBuilder;
         }
@@ -184,7 +184,7 @@ namespace Microsoft.EntityFrameworkCore
         {
             Check.NotNull(entityTypeBuilder, nameof(entityTypeBuilder));
 
-            entityTypeBuilder.Metadata.SetNpgsqlIsUnlogged(isUnlogged);
+            entityTypeBuilder.Metadata.SetIsUnlogged(isUnlogged);
 
             return entityTypeBuilder;
         }
@@ -225,7 +225,7 @@ namespace Microsoft.EntityFrameworkCore
         {
             if (entityTypeBuilder.ForNpgsqlCanSetIsUnlogged(isUnlogged, fromDataAnnotation))
             {
-                entityTypeBuilder.Metadata.SetNpgsqlIsUnlogged(isUnlogged, fromDataAnnotation);
+                entityTypeBuilder.Metadata.SetIsUnlogged(isUnlogged, fromDataAnnotation);
 
                 return entityTypeBuilder;
             }
@@ -272,7 +272,7 @@ namespace Microsoft.EntityFrameworkCore
             if (parentEntity == null)
                 throw new ArgumentException("Entity not found in model for type: " + parentTableType, nameof(parentTableType));
 
-            var interleaveInParent = entityTypeBuilder.Metadata.GetNpgsqlCockroachDbInterleaveInParent();
+            var interleaveInParent = entityTypeBuilder.Metadata.GetCockroachDbInterleaveInParent();
             interleaveInParent.ParentTableSchema = parentEntity.GetSchema();
             interleaveInParent.ParentTableName = parentEntity.GetTableName();
             interleaveInParent.InterleavePrefix = interleavePrefix;

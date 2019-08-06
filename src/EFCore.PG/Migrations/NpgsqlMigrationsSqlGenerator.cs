@@ -971,7 +971,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             foreach (var modificationCommand in operation.GenerateModificationCommands(model))
             {
                 var overridingSystemValue = modificationCommand.ColumnModifications.Any(m =>
-                    m.Property?.GetNpgsqlValueGenerationStrategy() == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn);
+                    m.Property?.GetValueGenerationStrategy() == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn);
                 ((NpgsqlUpdateSqlGenerator)Dependencies.UpdateSqlGenerator).AppendInsertOperation(
                     sqlBuilder,
                     modificationCommand,

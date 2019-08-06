@@ -18,7 +18,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="property"> The property.</param>
         /// <returns>The name to use for the hi-lo sequence.</returns>
-        public static string GetNpgsqlHiLoSequenceName([NotNull] this IProperty property)
+        public static string GetHiLoSequenceName([NotNull] this IProperty property)
             => (string)property[NpgsqlAnnotationNames.HiLoSequenceName];
 
         /// <summary>
@@ -26,7 +26,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="property">The property.</param>
         /// <param name="name">The sequence name to use.</param>
-        public static void SetNpgsqlHiLoSequenceName([NotNull] this IMutableProperty property, [CanBeNull] string name)
+        public static void SetHiLoSequenceName([NotNull] this IMutableProperty property, [CanBeNull] string name)
             => property.SetOrRemoveAnnotation(
                 NpgsqlAnnotationNames.HiLoSequenceName,
                 Check.NullButNotEmpty(name, nameof(name)));
@@ -37,7 +37,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="property">The property.</param>
         /// <param name="name">The sequence name to use.</param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
-        public static void SetNpgsqlHiLoSequenceName(
+        public static void SetHiLoSequenceName(
             [NotNull] this IConventionProperty property, [CanBeNull] string name, bool fromDataAnnotation = false)
             => property.SetOrRemoveAnnotation(
                 NpgsqlAnnotationNames.HiLoSequenceName,
@@ -49,7 +49,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="property">The property.</param>
         /// <returns>The <see cref="ConfigurationSource" /> for the hi-lo sequence name.</returns>
-        public static ConfigurationSource? GetNpgsqlHiLoSequenceNameConfigurationSource([NotNull] this IConventionProperty property)
+        public static ConfigurationSource? GetHiLoSequenceNameConfigurationSource([NotNull] this IConventionProperty property)
             => property.FindAnnotation(NpgsqlAnnotationNames.HiLoSequenceName)?.GetConfigurationSource();
 
         /// <summary>
@@ -57,7 +57,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="property">The property.</param>
         /// <returns>The schema to use for the hi-lo sequence.</returns>
-        public static string GetNpgsqlHiLoSequenceSchema([NotNull] this IProperty property)
+        public static string GetHiLoSequenceSchema([NotNull] this IProperty property)
             => (string)property[NpgsqlAnnotationNames.HiLoSequenceSchema];
 
         /// <summary>
@@ -65,7 +65,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="property">The property.</param>
         /// <param name="schema">The schema to use.</param>
-        public static void SetNpgsqlHiLoSequenceSchema([NotNull] this IMutableProperty property, [CanBeNull] string schema)
+        public static void SetHiLoSequenceSchema([NotNull] this IMutableProperty property, [CanBeNull] string schema)
             => property.SetOrRemoveAnnotation(
                 NpgsqlAnnotationNames.HiLoSequenceSchema,
                 Check.NullButNotEmpty(schema, nameof(schema)));
@@ -76,7 +76,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="property">The property.</param>
         /// <param name="schema">The schema to use.</param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
-        public static void SetNpgsqlHiLoSequenceSchema(
+        public static void SetHiLoSequenceSchema(
             [NotNull] this IConventionProperty property, [CanBeNull] string schema, bool fromDataAnnotation = false)
             => property.SetOrRemoveAnnotation(
                 NpgsqlAnnotationNames.HiLoSequenceSchema,
@@ -88,27 +88,27 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="property">The property.</param>
         /// <returns>The <see cref="ConfigurationSource" /> for the hi-lo sequence schema.</returns>
-        public static ConfigurationSource? GetNpgsqlHiLoSequenceSchemaConfigurationSource([NotNull] this IConventionProperty property)
+        public static ConfigurationSource? GetHiLoSequenceSchemaConfigurationSource([NotNull] this IConventionProperty property)
             => property.FindAnnotation(NpgsqlAnnotationNames.HiLoSequenceSchema)?.GetConfigurationSource();
 
         /// <summary>
         /// Finds the <see cref="ISequence" /> in the model to use for the hi-lo pattern.
         /// </summary>
         /// <returns>The sequence to use, or <c>null</c> if no sequence exists in the model.</returns>
-        public static ISequence FindNpgsqlHiLoSequence([NotNull] this IProperty property)
+        public static ISequence FindHiLoSequence([NotNull] this IProperty property)
         {
             var model = property.DeclaringEntityType.Model;
 
-            if (property.GetNpgsqlValueGenerationStrategy() != NpgsqlValueGenerationStrategy.SequenceHiLo)
+            if (property.GetValueGenerationStrategy() != NpgsqlValueGenerationStrategy.SequenceHiLo)
             {
                 return null;
             }
 
-            var sequenceName = property.GetNpgsqlHiLoSequenceName()
-                               ?? model.GetNpgsqlHiLoSequenceName();
+            var sequenceName = property.GetHiLoSequenceName()
+                               ?? model.GetHiLoSequenceName();
 
-            var sequenceSchema = property.GetNpgsqlHiLoSequenceSchema()
-                                 ?? model.GetNpgsqlHiLoSequenceSchema();
+            var sequenceSchema = property.GetHiLoSequenceSchema()
+                                 ?? model.GetHiLoSequenceSchema();
 
             return model.FindSequence(sequenceName, sequenceSchema);
         }
@@ -124,7 +124,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </para>
         /// </summary>
         /// <returns>The strategy, or <see cref="NpgsqlValueGenerationStrategy.None"/> if none was set.</returns>
-        public static NpgsqlValueGenerationStrategy GetNpgsqlValueGenerationStrategy([NotNull] this IProperty property)
+        public static NpgsqlValueGenerationStrategy GetValueGenerationStrategy([NotNull] this IProperty property)
         {
             var annotation = property[NpgsqlAnnotationNames.ValueGenerationStrategy];
             if (annotation != null)
@@ -142,7 +142,7 @@ namespace Microsoft.EntityFrameworkCore
                 return NpgsqlValueGenerationStrategy.None;
             }
 
-            return property.DeclaringEntityType.Model.GetNpgsqlValueGenerationStrategy()
+            return property.DeclaringEntityType.Model.GetValueGenerationStrategy()
                 ?? NpgsqlValueGenerationStrategy.None;
         }
 
@@ -151,10 +151,10 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="property">The property.</param>
         /// <param name="value">The strategy to use.</param>
-        public static void SetNpgsqlValueGenerationStrategy(
+        public static void SetValueGenerationStrategy(
             [NotNull] this IMutableProperty property, NpgsqlValueGenerationStrategy? value)
         {
-            CheckNpgsqlValueGenerationStrategy(property, value);
+            CheckValueGenerationStrategy(property, value);
 
             property.SetOrRemoveAnnotation(NpgsqlAnnotationNames.ValueGenerationStrategy, value);
         }
@@ -165,15 +165,15 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="property">The property.</param>
         /// <param name="value">The strategy to use.</param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
-        public static void SetNpgsqlValueGenerationStrategy(
+        public static void SetValueGenerationStrategy(
             [NotNull] this IConventionProperty property, NpgsqlValueGenerationStrategy? value, bool fromDataAnnotation = false)
         {
-            CheckNpgsqlValueGenerationStrategy(property, value);
+            CheckValueGenerationStrategy(property, value);
 
             property.SetOrRemoveAnnotation(NpgsqlAnnotationNames.ValueGenerationStrategy, value, fromDataAnnotation);
         }
 
-        static void CheckNpgsqlValueGenerationStrategy(IProperty property, NpgsqlValueGenerationStrategy? value)
+        static void CheckValueGenerationStrategy(IProperty property, NpgsqlValueGenerationStrategy? value)
         {
             if (value != null)
             {
@@ -202,7 +202,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="property">The property.</param>
         /// <returns>The <see cref="ConfigurationSource" /> for the <see cref="NpgsqlValueGenerationStrategy" />.</returns>
-        public static ConfigurationSource? GetNpgsqlValueGenerationStrategyConfigurationSource(
+        public static ConfigurationSource? GetValueGenerationStrategyConfigurationSource(
             [NotNull] this IConventionProperty property)
             => property.FindAnnotation(NpgsqlAnnotationNames.ValueGenerationStrategy)?.GetConfigurationSource();
 
@@ -229,10 +229,10 @@ namespace Microsoft.EntityFrameworkCore
 
         #region Comment
 
-        public static string GetNpgsqlComment([NotNull] this IProperty property)
+        public static string GetComment([NotNull] this IProperty property)
             => (string)property[NpgsqlAnnotationNames.Comment];
 
-        public static void SetNpgsqlComment([NotNull] this IMutableProperty property, [CanBeNull] string comment)
+        public static void SetComment([NotNull] this IMutableProperty property, [CanBeNull] string comment)
             => property.SetOrRemoveAnnotation(NpgsqlAnnotationNames.Comment, comment);
 
         #endregion Comment

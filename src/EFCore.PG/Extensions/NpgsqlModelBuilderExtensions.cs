@@ -48,9 +48,9 @@ namespace Microsoft.EntityFrameworkCore
                 modelBuilder.HasSequence(name, schema).IncrementsBy(10);
             }
 
-            model.SetNpgsqlValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
-            model.SetNpgsqlHiLoSequenceName(name);
-            model.SetNpgsqlHiLoSequenceSchema(schema);
+            model.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
+            model.SetHiLoSequenceName(name);
+            model.SetHiLoSequenceSchema(schema);
 
             return modelBuilder;
         }
@@ -75,8 +75,8 @@ namespace Microsoft.EntityFrameworkCore
                 return null;
             }
 
-            modelBuilder.Metadata.SetNpgsqlHiLoSequenceName(name, fromDataAnnotation);
-            modelBuilder.Metadata.SetNpgsqlHiLoSequenceSchema(schema, fromDataAnnotation);
+            modelBuilder.Metadata.SetHiLoSequenceName(name, fromDataAnnotation);
+            modelBuilder.Metadata.SetHiLoSequenceSchema(schema, fromDataAnnotation);
 
             return name == null ? null : modelBuilder.HasSequence(name, schema, fromDataAnnotation);
         }
@@ -121,9 +121,9 @@ namespace Microsoft.EntityFrameworkCore
 
             var property = modelBuilder.Model;
 
-            property.SetNpgsqlValueGenerationStrategy(NpgsqlValueGenerationStrategy.SerialColumn);
-            property.SetNpgsqlHiLoSequenceName(null);
-            property.SetNpgsqlHiLoSequenceSchema(null);
+            property.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SerialColumn);
+            property.SetHiLoSequenceName(null);
+            property.SetHiLoSequenceSchema(null);
 
             return modelBuilder;
         }
@@ -150,9 +150,9 @@ namespace Microsoft.EntityFrameworkCore
 
             var property = modelBuilder.Model;
 
-            property.SetNpgsqlValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityAlwaysColumn);
-            property.SetNpgsqlHiLoSequenceName(null);
-            property.SetNpgsqlHiLoSequenceSchema(null);
+            property.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityAlwaysColumn);
+            property.SetHiLoSequenceName(null);
+            property.SetHiLoSequenceSchema(null);
 
             return modelBuilder;
         }
@@ -175,9 +175,9 @@ namespace Microsoft.EntityFrameworkCore
 
             var property = modelBuilder.Model;
 
-            property.SetNpgsqlValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
-            property.SetNpgsqlHiLoSequenceName(null);
-            property.SetNpgsqlHiLoSequenceSchema(null);
+            property.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+            property.SetHiLoSequenceName(null);
+            property.SetHiLoSequenceSchema(null);
 
             return modelBuilder;
         }
@@ -214,7 +214,7 @@ namespace Microsoft.EntityFrameworkCore
             if (modelBuilder.CanSetAnnotation(
                 NpgsqlAnnotationNames.ValueGenerationStrategy, valueGenerationStrategy, fromDataAnnotation))
             {
-                modelBuilder.Metadata.SetNpgsqlValueGenerationStrategy(valueGenerationStrategy, fromDataAnnotation);
+                modelBuilder.Metadata.SetValueGenerationStrategy(valueGenerationStrategy, fromDataAnnotation);
                 if (valueGenerationStrategy != NpgsqlValueGenerationStrategy.SequenceHiLo)
                 {
                     modelBuilder.HasHiLoSequence(null, null, fromDataAnnotation);
@@ -376,7 +376,7 @@ namespace Microsoft.EntityFrameworkCore
             Check.NotNull(modelBuilder, nameof(modelBuilder));
             Check.NotEmpty(templateDatabaseName, nameof(templateDatabaseName));
 
-            modelBuilder.Model.SetNpgsqlDatabaseTemplate(templateDatabaseName);
+            modelBuilder.Model.SetDatabaseTemplate(templateDatabaseName);
             return modelBuilder;
         }
 
@@ -457,7 +457,7 @@ namespace Microsoft.EntityFrameworkCore
             Check.NotNull(modelBuilder, nameof(modelBuilder));
             Check.NotEmpty(tablespace, nameof(tablespace));
 
-            modelBuilder.Model.SetNpgsqlTablespace(tablespace);
+            modelBuilder.Model.SetTablespace(tablespace);
             return modelBuilder;
         }
 

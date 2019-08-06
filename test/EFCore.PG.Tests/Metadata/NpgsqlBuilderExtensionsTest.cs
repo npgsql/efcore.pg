@@ -18,7 +18,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
                 .UseCockroachDbInterleaveInParent(typeof(Customer), new List<string> { "col_a", "col_b" });
 
             var entityType = modelBuilder.Model.FindEntityType(typeof(Customer));
-            var interleaveInParent = entityType.GetNpgsqlCockroachDbInterleaveInParent();
+            var interleaveInParent = entityType.GetCockroachDbInterleaveInParent();
 
             Assert.Equal("my_schema", interleaveInParent.ParentTableSchema);
             Assert.Equal("customers", interleaveInParent.ParentTableName);

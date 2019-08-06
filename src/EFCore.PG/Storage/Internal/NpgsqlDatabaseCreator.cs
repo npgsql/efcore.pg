@@ -188,8 +188,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 new NpgsqlCreateDatabaseOperation
                 {
                     Name = _connection.DbConnection.Database,
-                    Template = Dependencies.Model.GetNpgsqlDatabaseTemplate(),
-                    Tablespace = Dependencies.Model.GetNpgsqlTablespace()
+                    Template = Dependencies.Model.GetDatabaseTemplate(),
+                    Tablespace = Dependencies.Model.GetTablespace()
                 }
             });
 

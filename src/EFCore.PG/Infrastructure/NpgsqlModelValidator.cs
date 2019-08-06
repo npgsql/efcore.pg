@@ -47,7 +47,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
             if (VersionAtLeast(10, 0))
                 return;
 
-            var strategy = model.GetNpgsqlValueGenerationStrategy();
+            var strategy = model.GetValueGenerationStrategy();
 
             if (strategy == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn ||
                 strategy == NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
@@ -57,7 +57,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
 
             foreach (var property in model.GetEntityTypes().SelectMany(e => e.GetProperties()))
             {
-                var propertyStrategy = property.GetNpgsqlValueGenerationStrategy();
+                var propertyStrategy = property.GetValueGenerationStrategy();
 
                 if (propertyStrategy == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn ||
                     propertyStrategy == NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
@@ -72,7 +72,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         {
             foreach (var index in model.GetEntityTypes().SelectMany(t => t.GetDeclaredIndexes()))
             {
-                var includeProperties = index.GetNpgsqlIncludeProperties();
+                var includeProperties = index.GetIncludeProperties();
                 if (includeProperties?.Count > 0)
                 {
                     var notFound = includeProperties

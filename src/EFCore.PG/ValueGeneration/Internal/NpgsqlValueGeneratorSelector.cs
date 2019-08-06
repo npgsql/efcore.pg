@@ -44,7 +44,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
             Check.NotNull(entityType, nameof(entityType));
 
             return property.GetValueGeneratorFactory() == null
-                   && property.GetNpgsqlValueGenerationStrategy() == NpgsqlValueGenerationStrategy.SequenceHiLo
+                   && property.GetValueGenerationStrategy() == NpgsqlValueGenerationStrategy.SequenceHiLo
                 ? _sequenceFactory.Create(
                     property,
                     Cache.GetOrAddSequenceState(property, _connection),
