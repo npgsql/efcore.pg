@@ -120,7 +120,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             Check.NotNull(annotation, nameof(annotation));
 
             if (annotation.Name == NpgsqlAnnotationNames.Comment)
-                return new MethodCallCodeFragment(nameof(NpgsqlEntityTypeBuilderExtensions.ForNpgsqlHasComment), annotation.Value);
+                return new MethodCallCodeFragment(nameof(NpgsqlEntityTypeBuilderExtensions.HasComment), annotation.Value);
 
             if (annotation.Name == NpgsqlAnnotationNames.UnloggedTable)
                 return new MethodCallCodeFragment(nameof(NpgsqlEntityTypeBuilderExtensions.IsUnlogged), annotation.Value);
@@ -151,7 +151,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
                 }
 
             case NpgsqlAnnotationNames.Comment:
-                return new MethodCallCodeFragment(nameof(NpgsqlPropertyBuilderExtensions.ForNpgsqlHasComment), annotation.Value);
+                return new MethodCallCodeFragment(nameof(NpgsqlPropertyBuilderExtensions.HasComment), annotation.Value);
             }
 
             return null;

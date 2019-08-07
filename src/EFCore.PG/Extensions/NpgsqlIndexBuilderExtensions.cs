@@ -72,7 +72,7 @@ namespace Microsoft.EntityFrameworkCore
             [CanBeNull] string method,
             bool fromDataAnnotation = false)
         {
-            if (indexBuilder.ForNpgsqlCanSetHasMethod(method, fromDataAnnotation))
+            if (indexBuilder.CanSetHasMethod(method, fromDataAnnotation))
             {
                 indexBuilder.Metadata.SetMethod(method, fromDataAnnotation);
 
@@ -92,7 +92,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="method">The name of the index.</param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns><c>true</c> if the index can be configured with the method</returns>
-        public static bool ForNpgsqlCanSetHasMethod(
+        public static bool CanSetHasMethod(
             [NotNull] this IConventionIndexBuilder indexBuilder,
             [CanBeNull] string method,
             bool fromDataAnnotation = false)
@@ -156,7 +156,7 @@ namespace Microsoft.EntityFrameworkCore
             [CanBeNull, ItemNotNull] IReadOnlyList<string> operators,
             bool fromDataAnnotation)
         {
-            if (indexBuilder.ForNpgsqlCanSetHasOperators(operators, fromDataAnnotation))
+            if (indexBuilder.CanSetHasOperators(operators, fromDataAnnotation))
             {
                 indexBuilder.Metadata.SetOperators(operators, fromDataAnnotation);
 
@@ -176,7 +176,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="operators">The operators to use for each column.</param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns><c>true</c> if the index can be configured with the method.</returns>
-        public static bool ForNpgsqlCanSetHasOperators(
+        public static bool CanSetHasOperators(
             [NotNull] this IConventionIndexBuilder indexBuilder,
             [CanBeNull, ItemNotNull] IReadOnlyList<string> operators,
             bool fromDataAnnotation)
@@ -240,7 +240,7 @@ namespace Microsoft.EntityFrameworkCore
             [CanBeNull, ItemNotNull] IReadOnlyList<string> values,
             bool fromDataAnnotation)
         {
-            if (indexBuilder.ForNpgsqlCanSetHasCollation(values, fromDataAnnotation))
+            if (indexBuilder.CanSetHasCollation(values, fromDataAnnotation))
             {
                 indexBuilder.Metadata.SetCollation(values, fromDataAnnotation);
 
@@ -260,7 +260,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="values">The sort options to use for each column.</param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns>A builder to further configure the index.</returns>
-        public static bool ForNpgsqlCanSetHasCollation(
+        public static bool CanSetHasCollation(
             [NotNull] this IConventionIndexBuilder indexBuilder,
             [CanBeNull, ItemNotNull] IReadOnlyList<string> values,
             bool fromDataAnnotation)
@@ -325,7 +325,7 @@ namespace Microsoft.EntityFrameworkCore
             [CanBeNull] IReadOnlyList<SortOrder> values,
             bool fromDataAnnotation)
         {
-            if (indexBuilder.ForNpgsqlCanSetHasSortOrder(values, fromDataAnnotation))
+            if (indexBuilder.CanSetHasSortOrder(values, fromDataAnnotation))
             {
                 Check.NotNull(indexBuilder, nameof(indexBuilder));
                 Check.NullButNotEmpty(values, nameof(values));
@@ -349,7 +349,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="values">The sort order to use for each column.</param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns>A builder to further configure the index.</returns>
-        public static bool ForNpgsqlCanSetHasSortOrder(
+        public static bool CanSetHasSortOrder(
             [NotNull] this IConventionIndexBuilder indexBuilder,
             [CanBeNull] IReadOnlyList<SortOrder> values,
             bool fromDataAnnotation)
@@ -416,7 +416,7 @@ namespace Microsoft.EntityFrameworkCore
             IReadOnlyList<NullSortOrder> values,
             bool fromDataAnnotation)
         {
-            if (indexBuilder.ForNpgsqlCanSetHasNullSortOrder(values, fromDataAnnotation))
+            if (indexBuilder.CanSetHasNullSortOrder(values, fromDataAnnotation))
             {
                 var sortOrders = indexBuilder.Metadata.GetSortOrder();
 
@@ -439,7 +439,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="values">The sort order to use for each column.</param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns>A builder to further configure the index.</returns>
-        public static bool ForNpgsqlCanSetHasNullSortOrder(
+        public static bool CanSetHasNullSortOrder(
             [NotNull] this IConventionIndexBuilder indexBuilder,
             IReadOnlyList<NullSortOrder> values,
             bool fromDataAnnotation)
@@ -522,7 +522,7 @@ namespace Microsoft.EntityFrameworkCore
             [NotNull] IReadOnlyList<string> propertyNames,
             bool fromDataAnnotation = false)
         {
-            if (indexBuilder.ForNpgsqlCanSetInclude(propertyNames, fromDataAnnotation))
+            if (indexBuilder.CanSetInclude(propertyNames, fromDataAnnotation))
             {
                 indexBuilder.Metadata.SetIncludeProperties(propertyNames, fromDataAnnotation);
 
@@ -539,7 +539,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="propertyNames"> An array of property names to be used in 'include' clause. </param>
         /// <param name="fromDataAnnotation"> Indicates whether the configuration was specified using a data annotation. </param>
         /// <returns> <c>true</c> if the given include properties can be set. </returns>
-        public static bool ForNpgsqlCanSetInclude(
+        public static bool CanSetInclude(
             [NotNull] this IConventionIndexBuilder indexBuilder,
             [CanBeNull] IReadOnlyList<string> propertyNames,
             bool fromDataAnnotation = false)

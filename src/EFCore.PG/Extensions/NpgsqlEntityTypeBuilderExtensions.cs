@@ -99,7 +99,7 @@ namespace Microsoft.EntityFrameworkCore
         public static IConventionEntityTypeBuilder SetStorageParameter(
             [NotNull] this IConventionEntityTypeBuilder entityTypeBuilder, string parameterName, object parameterValue, bool fromDataAnnotation = false)
         {
-            if (entityTypeBuilder.ForNpgsqlCanSetStorageParameter(parameterName, parameterValue, fromDataAnnotation))
+            if (entityTypeBuilder.CanSetStorageParameter(parameterName, parameterValue, fromDataAnnotation))
             {
                 entityTypeBuilder.Metadata.SetStorageParameter(parameterName, parameterValue);
 
@@ -120,7 +120,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="parameterValue"> The value of the storage parameter. </param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns><c>true</c> if the mapped table can be configured as with the storage parameter.</returns>
-        public static bool ForNpgsqlCanSetStorageParameter(
+        public static bool CanSetStorageParameter(
             [NotNull] this IConventionEntityTypeBuilder entityTypeBuilder, string parameterName, object parameterValue, bool fromDataAnnotation = false)
         {
             Check.NotNull(entityTypeBuilder, nameof(entityTypeBuilder));
@@ -138,7 +138,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="entityTypeBuilder"> The builder for the entity type being configured. </param>
         /// <param name="comment"> The name of the table. </param>
         /// <returns> The same builder instance so that multiple calls can be chained. </returns>
-        public static EntityTypeBuilder ForNpgsqlHasComment(
+        public static EntityTypeBuilder HasComment(
             [NotNull] this EntityTypeBuilder entityTypeBuilder,
             [CanBeNull] string comment)
         {
@@ -157,11 +157,11 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="entityTypeBuilder"> The builder for the entity type being configured. </param>
         /// <param name="comment"> The name of the table. </param>
         /// <returns> The same builder instance so that multiple calls can be chained. </returns>
-        public static EntityTypeBuilder<TEntity> ForNpgsqlHasComment<TEntity>(
+        public static EntityTypeBuilder<TEntity> HasComment<TEntity>(
             [NotNull] this EntityTypeBuilder<TEntity> entityTypeBuilder,
             [CanBeNull] string comment)
             where TEntity : class
-        => (EntityTypeBuilder<TEntity>)ForNpgsqlHasComment((EntityTypeBuilder)entityTypeBuilder, comment);
+        => (EntityTypeBuilder<TEntity>)HasComment((EntityTypeBuilder)entityTypeBuilder, comment);
 
         #endregion Comment
 
@@ -223,7 +223,7 @@ namespace Microsoft.EntityFrameworkCore
             bool isUnlogged = true,
             bool fromDataAnnotation = false)
         {
-            if (entityTypeBuilder.ForNpgsqlCanSetIsUnlogged(isUnlogged, fromDataAnnotation))
+            if (entityTypeBuilder.CanSetIsUnlogged(isUnlogged, fromDataAnnotation))
             {
                 entityTypeBuilder.Metadata.SetIsUnlogged(isUnlogged, fromDataAnnotation);
 
@@ -245,7 +245,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// See: https://www.postgresql.org/docs/current/sql-createtable.html#SQL-CREATETABLE-UNLOGGED
         /// </remarks>
-        public static bool ForNpgsqlCanSetIsUnlogged(
+        public static bool CanSetIsUnlogged(
             [NotNull] this IConventionEntityTypeBuilder entityTypeBuilder,
             bool isUnlogged = true,
             bool fromDataAnnotation = false)

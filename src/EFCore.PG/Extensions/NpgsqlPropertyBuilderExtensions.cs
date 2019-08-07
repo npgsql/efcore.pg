@@ -402,7 +402,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="propertyBuilder"> The builder for the property being configured.</param>
         /// <param name="comment"> The comment of the column.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-        public static PropertyBuilder ForNpgsqlHasComment(
+        public static PropertyBuilder HasComment(
             [NotNull] this PropertyBuilder propertyBuilder,
             [CanBeNull] string comment)
         {
@@ -420,10 +420,10 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="propertyBuilder"> The builder for the property being configured.</param>
         /// <param name="comment"> The comment of the column.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-        public static PropertyBuilder<TEntity> ForNpgsqlHasComment<TEntity>(
+        public static PropertyBuilder<TEntity> HasComment<TEntity>(
             [NotNull] this PropertyBuilder<TEntity> propertyBuilder,
             [CanBeNull] string comment)
-        => (PropertyBuilder<TEntity>)ForNpgsqlHasComment((PropertyBuilder)propertyBuilder, comment);
+        => (PropertyBuilder<TEntity>)HasComment((PropertyBuilder)propertyBuilder, comment);
 
         #endregion Comment
 
