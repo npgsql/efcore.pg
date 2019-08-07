@@ -596,24 +596,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             builder.Append("CREATE ");
 
             if (operation.IsUnique)
-            {
                 builder.Append("UNIQUE ");
-            }
+
+            builder.Append("INDEX ");
+
+            if (operation[NpgsqlAnnotationNames.CreatedConcurrently] is bool concurrently && concurrently)
+                builder.Append("CONCURRENTLY ");
 
             builder
-                .Append("INDEX ")
                 .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name))
                 .Append(" ON ")
                 .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Table, operation.Schema));
 
             var method = operation[NpgsqlAnnotationNames.IndexMethod] as string;
-
             if (method?.Length > 0)
-            {
-                builder
-                    .Append(" USING ")
-                    .Append(method);
-            }
+                builder.Append(" USING ").Append(method);
 
             var indexColumns = GetIndexColumns(operation);
 

@@ -533,11 +533,11 @@ namespace Microsoft.EntityFrameworkCore
         }
 
         /// <summary>
-        ///     Returns a value indicating whether the given include properties can be set.
+        /// Returns a value indicating whether the given include properties can be set.
         /// </summary>
-        /// <param name="indexBuilder"> The builder for the index being configured. </param>
-        /// <param name="propertyNames"> An array of property names to be used in 'include' clause. </param>
-        /// <param name="fromDataAnnotation"> Indicates whether the configuration was specified using a data annotation. </param>
+        /// <param name="indexBuilder">The builder for the index being configured.</param>
+        /// <param name="propertyNames">An array of property names to be used in 'include' clause.</param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns> <c>true</c> if the given include properties can be set. </returns>
         public static bool CanSetInclude(
             [NotNull] this IConventionIndexBuilder indexBuilder,
@@ -553,6 +553,88 @@ namespace Microsoft.EntityFrameworkCore
         }
 
         #endregion Include
+
+        #region Created concurrently
+
+        /// <summary>
+        /// When this option is used, PostgreSQL will build the index without taking any locks that prevent concurrent inserts,
+        /// updates, or deletes on the table; whereas a standard index build locks out writes (but not reads) on the table until it's done.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/sql-createindex.html#SQL-CREATEINDEX-CONCURRENTLY
+        /// </remarks>
+        /// <param name="indexBuilder">The builder for the index being configured.</param>
+        /// <param name="createdConcurrently">A value indicating whether the index is created with the "concurrently" option.</param>
+        /// <returns>A builder to further configure the index.</returns>
+        public static IndexBuilder IsCreatedConcurrently([NotNull] this IndexBuilder indexBuilder, bool createdConcurrently = false)
+        {
+            Check.NotNull(indexBuilder, nameof(indexBuilder));
+
+            indexBuilder.Metadata.SetIsCreatedConcurrently(createdConcurrently);
+
+            return indexBuilder;
+        }
+
+        /// <summary>
+        /// When this option is used, PostgreSQL will build the index without taking any locks that prevent concurrent inserts,
+        /// updates, or deletes on the table; whereas a standard index build locks out writes (but not reads) on the table until it's done.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/sql-createindex.html#SQL-CREATEINDEX-CONCURRENTLY
+        /// </remarks>
+        /// <param name="indexBuilder">The builder for the index being configured.</param>
+        /// <param name="createdConcurrently">A value indicating whether the index is created with the "concurrently" option.</param>
+        /// <returns>A builder to further configure the index.</returns>
+        public static IndexBuilder<TEntity> IsCreatedConcurrently<TEntity>([NotNull] this IndexBuilder<TEntity> indexBuilder, bool createdConcurrently = false)
+            => (IndexBuilder<TEntity>)IsCreatedConcurrently((IndexBuilder)indexBuilder, createdConcurrently);
+
+        /// <summary>
+        /// When this option is used, PostgreSQL will build the index without taking any locks that prevent concurrent inserts,
+        /// updates, or deletes on the table; whereas a standard index build locks out writes (but not reads) on the table until it's done.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/sql-createindex.html#SQL-CREATEINDEX-CONCURRENTLY
+        /// </remarks>
+        /// <param name="indexBuilder">The builder for the index being configured.</param>
+        /// <param name="createdConcurrently">A value indicating whether the index is created with the "concurrently" option.</param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        /// <returns>A builder to further configure the index.</returns>
+        public static IConventionIndexBuilder IsCreatedConcurrently(
+            [NotNull] this IConventionIndexBuilder indexBuilder,
+            bool? createdConcurrently,
+            bool fromDataAnnotation = false)
+        {
+            if (indexBuilder.CanSetIsCreatedConcurrently(createdConcurrently, fromDataAnnotation))
+            {
+                indexBuilder.Metadata.SetIsCreatedConcurrently(createdConcurrently);
+
+                return indexBuilder;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Returns a value indicating whether concurrent creation for the index can be set.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/sql-createindex.html#SQL-CREATEINDEX-CONCURRENTLY
+        /// </remarks>
+        /// <param name="indexBuilder">The builder for the index being configured.</param>
+        /// <param name="createdConcurrently">A value indicating whether the index is created with the "concurrently" option.</param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        /// <returns>A builder to further configure the index.</returns>
+        public static bool CanSetIsCreatedConcurrently(
+            [NotNull] this IConventionIndexBuilder indexBuilder,
+            bool? createdConcurrently,
+            bool fromDataAnnotation = false)
+        {
+            Check.NotNull(indexBuilder, nameof(indexBuilder));
+
+            return indexBuilder.CanSetAnnotation(NpgsqlAnnotationNames.CreatedConcurrently, createdConcurrently, fromDataAnnotation);
+        }
+
+        #endregion Created concurrently
 
         #region Obsolete
 
