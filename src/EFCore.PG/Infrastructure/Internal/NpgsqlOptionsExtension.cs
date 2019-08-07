@@ -367,16 +367,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         }
 
         public override int GetHashCode()
-        {
-            unchecked
-            {
-                var hashCode = RangeName.GetHashCode();
-                hashCode = (hashCode * 397) ^ (SchemaName?.GetHashCode() ?? 0);
-                hashCode = (hashCode * 397) ^ SubtypeClrType.GetHashCode();
-                hashCode = (hashCode * 397) ^ (SubtypeName?.GetHashCode() ?? 0);
-                return hashCode;
-            }
-        }
+            => HashCode.Combine(RangeName, SchemaName, SubtypeClrType, SubtypeName);
 
         public override bool Equals(object obj) => obj is UserRangeDefinition urd && Equals(urd);
 

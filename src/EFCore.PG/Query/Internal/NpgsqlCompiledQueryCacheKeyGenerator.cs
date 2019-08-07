@@ -1,4 +1,5 @@
-﻿using System.Linq.Expressions;
+﻿using System;
+using System.Linq.Expressions;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
@@ -40,13 +41,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 => _relationalCompiledQueryCacheKey.Equals(other._relationalCompiledQueryCacheKey)
                    && _reverseNullOrdering == other._reverseNullOrdering;
 
-            public override int GetHashCode()
-            {
-                unchecked
-                {
-                    return (_relationalCompiledQueryCacheKey.GetHashCode() * 397) ^ _reverseNullOrdering.GetHashCode();
-                }
-            }
+            public override int GetHashCode() => HashCode.Combine(_relationalCompiledQueryCacheKey, _reverseNullOrdering);
         }
     }
 }
