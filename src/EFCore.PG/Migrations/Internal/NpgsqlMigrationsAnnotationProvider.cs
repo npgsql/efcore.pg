@@ -58,6 +58,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal
                 yield return new Annotation(NpgsqlAnnotationNames.IndexNullSortOrder, nullSortOrder);
             if (index.GetIncludeProperties() is IReadOnlyList<string> includeProperties)
                 yield return new Annotation(NpgsqlAnnotationNames.IndexInclude, includeProperties);
+
+            var isCreatedConcurrently = index.IsCreatedConcurrently();
+            if (isCreatedConcurrently.HasValue)
+            {
+                yield return new Annotation(
+                    NpgsqlAnnotationNames.CreatedConcurrently,
+                    isCreatedConcurrently.Value);
+            }
         }
 
         public override IEnumerable<IAnnotation> For(IModel model)

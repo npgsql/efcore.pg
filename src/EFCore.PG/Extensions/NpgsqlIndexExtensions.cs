@@ -196,5 +196,43 @@ namespace Microsoft.EntityFrameworkCore
             => index.FindAnnotation(NpgsqlAnnotationNames.IndexInclude)?.GetConfigurationSource();
 
         #endregion Included properties
+
+        #region Created concurrently
+
+        /// <summary>
+        /// Returns a value indicating whether the index is created concurrently.
+        /// </summary>
+        /// <param name="index">The index.</param>
+        /// <returns><c>true</c> if the index is created concurrently.</returns>
+        public static bool? IsCreatedConcurrently([NotNull] this IIndex index)
+            => (bool?)index[NpgsqlAnnotationNames.CreatedConcurrently];
+
+        /// <summary>
+        /// Sets a value indicating whether the index is created concurrently.
+        /// </summary>
+        /// <param name="index">The index.</param>
+        /// <param name="createdConcurrently">The value to set.</param>
+        public static void SetIsCreatedConcurrently([NotNull] this IMutableIndex index, bool? createdConcurrently)
+            => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.CreatedConcurrently, createdConcurrently);
+
+        /// <summary>
+        /// Sets a value indicating whether the index is created concurrently.
+        /// </summary>
+        /// <param name="index">The index.</param>
+        /// <param name="createdConcurrently">The value to set.</param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        public static void SetIsCreatedConcurrently(
+            [NotNull] this IConventionIndex index, bool? createdConcurrently, bool fromDataAnnotation = false)
+            => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.CreatedConcurrently, createdConcurrently, fromDataAnnotation);
+
+        /// <summary>
+        /// Returns the <see cref="ConfigurationSource" /> for whether the index is created concurrently.
+        /// </summary>
+        /// <param name="index">The index.</param>
+        /// <returns>The <see cref="ConfigurationSource" /> for whether the index is created concurrently.</returns>
+        public static ConfigurationSource? GetIsCreatedConcurrentlyConfigurationSource([NotNull] this IConventionIndex index)
+            => index.FindAnnotation(NpgsqlAnnotationNames.CreatedConcurrently)?.GetConfigurationSource();
+
+        #endregion Created concurrently
     }
 }

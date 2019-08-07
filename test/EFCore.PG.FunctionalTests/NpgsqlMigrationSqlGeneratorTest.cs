@@ -787,6 +787,23 @@ ALTER TABLE ""People"" ADD ""FullName"" text GENERATED ALWAYS AS (""FirstName"" 
                 Sql);
         }
 
+        [Fact]
+        public void CreateIndexOperation_concurrently()
+        {
+            Generate(new CreateIndexOperation
+            {
+                Name = "IX_People_Name",
+                Table = "People",
+                Schema = "dbo",
+                Columns = new[] { "FirstName" },
+                [NpgsqlAnnotationNames.CreatedConcurrently] = true
+            });
+
+            Assert.Equal(
+                "CREATE INDEX CONCURRENTLY \"IX_People_Name\" ON dbo.\"People\" (\"FirstName\");" + EOL,
+                Sql);
+        }
+
         #endregion Indexes
 
         #region PostgreSQL extensions
