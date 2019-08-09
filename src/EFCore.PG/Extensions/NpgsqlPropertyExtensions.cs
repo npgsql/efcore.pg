@@ -1,5 +1,8 @@
 using System;
+using System.Globalization;
+using System.Text;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -111,6 +114,24 @@ namespace Microsoft.EntityFrameworkCore
                                  ?? model.GetHiLoSequenceSchema();
 
             return model.FindSequence(sequenceName, sequenceSchema);
+        }
+
+        /// <summary>
+        /// Removes all identity sequence annotations from the property.
+        /// </summary>
+        public static void RemoveHiLoOptions([NotNull] this IMutableProperty property)
+        {
+            property.SetHiLoSequenceName(null);
+            property.SetHiLoSequenceSchema(null);
+        }
+
+        /// <summary>
+        /// Removes all identity sequence annotations from the property.
+        /// </summary>
+        public static void RemoveHiLoOptions([NotNull] this IConventionProperty property)
+        {
+            property.SetHiLoSequenceName(null);
+            property.SetHiLoSequenceSchema(null);
         }
 
         #endregion Hi-lo
@@ -226,6 +247,236 @@ namespace Microsoft.EntityFrameworkCore
         }
 
         #endregion Value generation
+
+        #region Identity sequence options
+
+        /// <summary>
+        /// Returns the identity start value.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <returns>The identity start value.</returns>
+        public static long? GetIdentityStartValue([NotNull] this IProperty property)
+            => IdentitySequenceOptionsData.Get(property).StartValue;
+
+        /// <summary>
+        /// Sets the identity start value.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <param name="startValue">The value to set.</param>
+        public static void SetIdentityStartValue([NotNull] this IMutableProperty property, long? startValue)
+        {
+            var options = IdentitySequenceOptionsData.Get(property);
+            options.StartValue = startValue;
+            property.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IdentityOptions, options.Serialize());
+        }
+
+        /// <summary>
+        /// Sets the identity start value.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <param name="startValue">The value to set.</param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        public static void SetIdentityStartValue(
+            [NotNull] this IConventionProperty property, long? startValue, bool fromDataAnnotation = false)
+        {
+            var options = IdentitySequenceOptionsData.Get(property);
+            options.StartValue = startValue;
+            property.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IdentityOptions, options.Serialize(), fromDataAnnotation);
+        }
+
+        /// <summary>
+        /// Returns the identity increment value.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <returns>The identity increment value.</returns>
+        public static long? GetIdentityIncrementBy([NotNull] this IProperty property)
+            => IdentitySequenceOptionsData.Get(property).IncrementBy;
+
+        /// <summary>
+        /// Sets the identity increment value.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <param name="incrementBy">The value to set.</param>
+        public static void SetIdentityIncrementBy([NotNull] this IMutableProperty property, long? incrementBy)
+        {
+            var options = IdentitySequenceOptionsData.Get(property);
+            options.IncrementBy = incrementBy ?? 1;
+            property.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IdentityOptions, options.Serialize());
+        }
+
+        /// <summary>
+        /// Sets the identity increment value.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <param name="incrementBy">The value to set.</param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        public static void SetIdentityIncrementBy(
+            [NotNull] this IConventionProperty property, long? incrementBy, bool fromDataAnnotation = false)
+        {
+            var options = IdentitySequenceOptionsData.Get(property);
+            options.IncrementBy = incrementBy ?? 1;
+            property.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IdentityOptions, options.Serialize(), fromDataAnnotation);
+        }
+
+        /// <summary>
+        /// Returns the identity minimum value.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <returns>The identity minimum value.</returns>
+        public static long? GetIdentityMinValue([NotNull] this IProperty property)
+            => IdentitySequenceOptionsData.Get(property).MinValue;
+
+        /// <summary>
+        /// Sets the identity minimum value.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <param name="minValue">The value to set.</param>
+        public static void SetIdentityMinValue([NotNull] this IMutableProperty property, long? minValue)
+        {
+            var options = IdentitySequenceOptionsData.Get(property);
+            options.MinValue = minValue;
+            property.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IdentityOptions, options.Serialize());
+        }
+
+        /// <summary>
+        /// Sets the identity minimum value.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <param name="minValue">The value to set.</param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        public static void SetIdentityMinValue(
+            [NotNull] this IConventionProperty property, long? minValue, bool fromDataAnnotation = false)
+        {
+            var options = IdentitySequenceOptionsData.Get(property);
+            options.MinValue = minValue;
+            property.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IdentityOptions, options.Serialize(), fromDataAnnotation);
+        }
+
+        /// <summary>
+        /// Returns the identity maximum value.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <returns>The identity maximum value.</returns>
+        public static long? GetIdentityMaxValue([NotNull] this IProperty property)
+            => IdentitySequenceOptionsData.Get(property).MaxValue;
+
+        /// <summary>
+        /// Sets the identity maximum value.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <param name="maxValue">The value to set.</param>
+        public static void SetIdentityMaxValue([NotNull] this IMutableProperty property, long? maxValue)
+        {
+            var options = IdentitySequenceOptionsData.Get(property);
+            options.MaxValue = maxValue;
+            property.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IdentityOptions, options.Serialize());
+        }
+
+        /// <summary>
+        /// Sets the identity maximum value.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <param name="maxValue">The value to set.</param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        public static void SetIdentityMaxValue(
+            [NotNull] this IConventionProperty property, long? maxValue, bool fromDataAnnotation = false)
+        {
+            var options = IdentitySequenceOptionsData.Get(property);
+            options.MaxValue = maxValue;
+            property.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IdentityOptions, options.Serialize(), fromDataAnnotation);
+        }
+
+        /// <summary>
+        /// Returns whether the identity's sequence is cyclic.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <returns>Whether the identity's sequence is cyclic.</returns>
+        public static bool? GetIdentityIsCyclic([NotNull] this IProperty property)
+            => IdentitySequenceOptionsData.Get(property).IsCyclic;
+
+        /// <summary>
+        /// Sets whether the identity's sequence is cyclic.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <param name="isCyclic">The value to set.</param>
+        public static void SetIdentityIsCyclic([NotNull] this IMutableProperty property, bool? isCyclic)
+        {
+            var options = IdentitySequenceOptionsData.Get(property);
+            options.IsCyclic = isCyclic ?? false;
+            property.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IdentityOptions, options.Serialize());
+        }
+
+        /// <summary>
+        /// Sets whether the identity's sequence is cyclic.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <param name="isCyclic">The value to set.</param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        public static void SetIdentityIsCyclic(
+            [NotNull] this IConventionProperty property, bool? isCyclic, bool fromDataAnnotation = false)
+        {
+            var options = IdentitySequenceOptionsData.Get(property);
+            options.IsCyclic = isCyclic ?? false;
+            property.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IdentityOptions, options.Serialize(), fromDataAnnotation);
+        }
+
+        /// <summary>
+        /// Returns the number of sequence numbers to be preallocated and stored in memory for faster access.
+        /// Defaults to 1 (no cache).
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <returns>The number of sequence numbers to be cached.</returns>
+        public static long? GetIdentityNumbersToCache([NotNull] this IProperty property)
+            => IdentitySequenceOptionsData.Get(property).NumbersToCache;
+
+        /// <summary>
+        /// Sets the number of sequence numbers to be preallocated and stored in memory for faster access.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <param name="numbersToCache">The value to set.</param>
+        public static void SetIdentityNumbersToCache([NotNull] this IMutableProperty property, long? numbersToCache)
+        {
+            var options = IdentitySequenceOptionsData.Get(property);
+            options.NumbersToCache = numbersToCache ?? 1;
+            property.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IdentityOptions, options.Serialize());
+        }
+
+        /// <summary>
+        /// Sets the number of sequence numbers to be preallocated and stored in memory for faster access.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <param name="numbersToCache">The value to set.</param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        public static void SetIdentityNumbersToCache(
+            [NotNull] this IConventionProperty property, long? numbersToCache, bool fromDataAnnotation = false)
+        {
+            var options = IdentitySequenceOptionsData.Get(property);
+            options.NumbersToCache = numbersToCache ?? 1;
+            property.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IdentityOptions, options.Serialize(), fromDataAnnotation);
+        }
+
+        /// <summary>
+        /// Returns the <see cref="ConfigurationSource" /> for the identity sequence options.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <returns>The <see cref="ConfigurationSource" /> for the identity sequence options.</returns>
+        public static ConfigurationSource? GetIdentityOptionsConfigurationSource([NotNull] this IConventionProperty property)
+            => property.FindAnnotation(NpgsqlAnnotationNames.IdentityOptions)?.GetConfigurationSource();
+
+
+        /// <summary>
+        /// Removes identity sequence options from the property.
+        /// </summary>
+        public static void RemoveIdentityOptions([NotNull] this IMutableProperty property)
+            => property.RemoveAnnotation(NpgsqlAnnotationNames.IdentityOptions);
+
+        /// <summary>
+        /// Removes identity sequence options from the property.
+        /// </summary>
+        public static void RemoveIdentityOptions([NotNull] this IConventionProperty property)
+            => property.RemoveAnnotation(NpgsqlAnnotationNames.IdentityOptions);
+
+        #endregion Identity sequence options
 
         #region Comment
 

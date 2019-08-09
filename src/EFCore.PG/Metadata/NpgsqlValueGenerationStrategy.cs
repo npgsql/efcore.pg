@@ -40,4 +40,15 @@
         /// </summary>
         IdentityByDefaultColumn,
     }
+
+    public static class NpgsqlValueGenerationStrategyExtensions
+    {
+        public static bool IsIdentity(this NpgsqlValueGenerationStrategy strategy)
+            => strategy == NpgsqlValueGenerationStrategy.IdentityByDefaultColumn ||
+               strategy == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn;
+
+        public static bool IsIdentity(this NpgsqlValueGenerationStrategy? strategy)
+            => strategy == NpgsqlValueGenerationStrategy.IdentityByDefaultColumn ||
+               strategy == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn;
+    }
 }
