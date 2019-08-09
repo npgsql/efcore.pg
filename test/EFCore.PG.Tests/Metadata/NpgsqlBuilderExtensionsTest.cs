@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.TestModels.Northwind;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
 
@@ -28,7 +29,66 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             Assert.Equal("col_b", interleavePrefix[1]);
         }
 
+        [Fact]
+        public void Can_set_identity_sequence_options_on_property()
+        {
+            var modelBuilder = CreateConventionModelBuilder();
+
+            modelBuilder
+                .Entity<Customer>()
+                .Property(e => e.Id)
+                .UseIdentityByDefaultColumn()
+                .HasIdentityOptions(
+                    startValue: 5,
+                    incrementBy: 2,
+                    minValue: 3,
+                    maxValue: 2000,
+                    isCyclic: true,
+                    numbersToCache: 10);
+
+            var model = modelBuilder.Model;
+            var property = model.FindEntityType(typeof(Customer)).FindProperty("Id");
+
+            Assert.Equal(NpgsqlValueGenerationStrategy.IdentityByDefaultColumn, property.GetValueGenerationStrategy());
+            Assert.Equal(ValueGenerated.OnAdd, property.ValueGenerated);
+            Assert.Equal(5, property.GetIdentityStartValue());
+            Assert.Equal(3, property.GetIdentityMinValue());
+            Assert.Equal(2000, property.GetIdentityMaxValue());
+            Assert.Equal(2, property.GetIdentityIncrementBy());
+            Assert.True(property.GetIdentityIsCyclic());
+            Assert.Equal(10, property.GetIdentityNumbersToCache());
+
+            Assert.Null(model.FindSequence(NpgsqlModelExtensions.DefaultHiLoSequenceName));
+            Assert.Null(model.FindSequence(NpgsqlModelExtensions.DefaultHiLoSequenceName));
+        }
+
         protected virtual ModelBuilder CreateConventionModelBuilder()
             => NpgsqlTestHelpers.Instance.CreateConventionBuilder();
+
+        class Customer
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
+
+            public IEnumerable<Order> Orders { get; set; }
+        }
+
+        class Order
+        {
+            public int OrderId { get; set; }
+
+            public int CustomerId { get; set; }
+            public Customer Customer { get; set; }
+
+            public OrderDetails Details { get; set; }
+        }
+
+        class OrderDetails
+        {
+            public int Id { get; set; }
+
+            public int OrderId { get; set; }
+            public Order Order { get; set; }
+        }
     }
 }

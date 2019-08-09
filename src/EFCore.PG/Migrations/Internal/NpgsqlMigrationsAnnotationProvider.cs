@@ -33,11 +33,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal
 
         public override IEnumerable<IAnnotation> For(IProperty property)
         {
-            if (property.GetValueGenerationStrategy() is NpgsqlValueGenerationStrategy npgsqlValueGenerationStrategy &&
-                npgsqlValueGenerationStrategy != NpgsqlValueGenerationStrategy.None)
+            var valueGenerationStrategy = property.GetValueGenerationStrategy();
+            if (valueGenerationStrategy != NpgsqlValueGenerationStrategy.None)
             {
-                yield return new Annotation(NpgsqlAnnotationNames.ValueGenerationStrategy,
-                    npgsqlValueGenerationStrategy);
+                yield return new Annotation(NpgsqlAnnotationNames.ValueGenerationStrategy, valueGenerationStrategy);
+
+                if (valueGenerationStrategy == NpgsqlValueGenerationStrategy.IdentityByDefaultColumn ||
+                    valueGenerationStrategy == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn)
+                {
+                    if (property[NpgsqlAnnotationNames.IdentityOptions] is string identityOptions)
+                    {
+                        yield return new Annotation(NpgsqlAnnotationNames.IdentityOptions, identityOptions);
+                    }
+                }
             }
 
             if (NpgsqlPropertyExtensions.GetComment(property) is string comment)
