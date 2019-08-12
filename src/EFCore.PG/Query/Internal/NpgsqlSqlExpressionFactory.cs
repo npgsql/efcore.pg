@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
@@ -19,6 +20,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             _typeMappingSource = dependencies.TypeMappingSource;
             _boolTypeMapping = _typeMappingSource.FindMapping(typeof(bool));
         }
+
+        #region Expression factory methods
 
         public RegexMatchExpression RegexMatch(SqlExpression match, SqlExpression pattern, RegexOptions options)
             => (RegexMatchExpression)ApplyDefaultTypeMapping(new RegexMatchExpression(match, pattern, options, null));
@@ -72,6 +75,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 
         public ILikeExpression ILike(SqlExpression match, SqlExpression pattern, SqlExpression escapeChar = null)
             => (ILikeExpression)ApplyDefaultTypeMapping(new ILikeExpression(match, pattern, escapeChar, null));
+
+        #endregion Expression factory methods
 
         public override SqlExpression ApplyTypeMapping(SqlExpression sqlExpression, RelationalTypeMapping typeMapping)
         {

@@ -15,10 +15,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         {
             var npgsqlSqlExpressionFactory = (NpgsqlSqlExpressionFactory)dependencies.SqlExpressionFactory;
             var npgsqlTypeMappingSource = (NpgsqlTypeMappingSource)typeMappingSource;
+            var jsonTranslator = new NpgsqlJsonTranslator(npgsqlSqlExpressionFactory);
 
             AddTranslators(new IMethodCallTranslator[]
             {
-                new NpgsqlArrayMethodTranslator(npgsqlSqlExpressionFactory),
+                new NpgsqlArrayMethodTranslator(npgsqlSqlExpressionFactory, jsonTranslator),
                 new NpgsqlConvertTranslator(npgsqlSqlExpressionFactory),
                 new NpgsqlDateTimeMethodTranslator(npgsqlSqlExpressionFactory, npgsqlTypeMappingSource),
                 new NpgsqlNewGuidTranslator(npgsqlSqlExpressionFactory),
