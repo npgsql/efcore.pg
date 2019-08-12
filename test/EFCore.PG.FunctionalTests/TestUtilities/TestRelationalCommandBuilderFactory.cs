@@ -108,7 +108,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
                 if (errorNumber != null)
                 {
                     connection.DbConnection.Close();
-                    throw new PostgresException { SqlState = errorNumber };
+                    throw new PostgresException("", "", "", errorNumber);
                 }
 
                 return result;
@@ -125,7 +125,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
                 if (errorNumber != null)
                 {
                     connection.DbConnection.Close();
-                    throw new PostgresException { SqlState = errorNumber };
+                    throw new PostgresException("", "", "", errorNumber);
                 }
 
                 return result;
@@ -140,7 +140,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
                 if (errorNumber != null)
                 {
                     connection.DbConnection.Close();
-                    throw new PostgresException { SqlState = errorNumber };
+                    throw new PostgresException("", "", "", errorNumber);
                 }
 
                 return result;
@@ -157,7 +157,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
                 if (errorNumber != null)
                 {
                     connection.DbConnection.Close();
-                    throw new PostgresException { SqlState = errorNumber };
+                    throw new PostgresException("", "", "", errorNumber);
                 }
 
                 return result;
@@ -173,7 +173,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
                 {
                     connection.DbConnection.Close();
                     result.Dispose(); // Normally, in non-test case, reader is disposed by using in caller code
-                    throw new PostgresException { SqlState = errorNumber };
+                    throw new PostgresException("", "", "", errorNumber);
                 }
 
                 return result;
@@ -191,7 +191,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
                 {
                     connection.DbConnection.Close();
                     result.Dispose(); // Normally, in non-test case, reader is disposed by using in caller code
-                    throw new PostgresException { SqlState = errorNumber };
+                    throw new PostgresException("", "", "", errorNumber);
                 }
 
                 return result;
@@ -211,7 +211,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
                         if (fail.Value)
                         {
                             testConnection.DbConnection.Close();
-                            throw new PostgresException { SqlState = testConnection.ErrorCode };
+                            throw new PostgresException("", "", "", testConnection.ErrorCode);
                         }
                         errorNumber = testConnection.ErrorCode;
                     }

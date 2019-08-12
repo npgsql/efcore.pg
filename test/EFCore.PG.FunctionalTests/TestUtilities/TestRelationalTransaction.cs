@@ -48,7 +48,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
                     }
 
                     _testConnection.DbConnection.Close();
-                    throw new PostgresException { SqlState = _testConnection.ErrorCode };
+                    throw new PostgresException("", "", "", _testConnection.ErrorCode);
                 }
             }
 
