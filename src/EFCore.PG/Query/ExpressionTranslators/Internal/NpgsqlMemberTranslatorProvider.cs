@@ -9,17 +9,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     /// </summary>
     public class NpgsqlMemberTranslatorProvider : RelationalMemberTranslatorProvider
     {
+        public NpgsqlJsonTranslator JsonTranslator { get; }
+
         public NpgsqlMemberTranslatorProvider(
             [NotNull] RelationalMemberTranslatorProviderDependencies dependencies)
             : base(dependencies)
         {
             var npgsqlSqlExpressionFactory = (NpgsqlSqlExpressionFactory)dependencies.SqlExpressionFactory;
+            JsonTranslator = new NpgsqlJsonTranslator(npgsqlSqlExpressionFactory);
 
             AddTranslators(
                 new IMemberTranslator[] {
                     new NpgsqlStringMemberTranslator(npgsqlSqlExpressionFactory),
                     new NpgsqlDateTimeMemberTranslator(npgsqlSqlExpressionFactory),
-                    new NpgsqlRangeTranslator(npgsqlSqlExpressionFactory)
+                    new NpgsqlRangeTranslator(npgsqlSqlExpressionFactory),
+                    JsonTranslator
                 });
         }
     }

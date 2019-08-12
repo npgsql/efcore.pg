@@ -489,7 +489,7 @@ WHERE ((m.""TimeSpanAsTime"" = @__timeSpan_0) AND ((m.""TimeSpanAsTime"" IS NOT 
 @p28=''a' & 'b'' (Nullable = false) (DbType = Object)
 @p29=''a' 'b'' (Nullable = false) (DbType = Object)
 @p30='79'
-@p31='{""a"": ""b""}' (Nullable = false)
+@p31='{""a"": ""b""}' (Nullable = false) (DbType = Object)
 @p32='{""a"": ""b""}' (Nullable = false) (DbType = Object)
 @p33='Gumball Rules!' (Nullable = false)
 @p34='Gumball Rules OK' (Nullable = false)

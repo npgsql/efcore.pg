@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -338,6 +339,51 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             Visit(expression.Timestamp);
             Sql.Append(" AT TIME ZONE ");
             Visit(expression.TimeZone);
+            return expression;
+        }
+
+        /// <summary>
+        /// Visits the children of an <see cref="JsonTraversalExpression"/>.
+        /// </summary>
+        /// <param name="expression">The expression.</param>
+        /// <returns>
+        /// An <see cref="Expression"/>.
+        /// </returns>
+        [NotNull]
+        public virtual Expression VisitJsonPathTraversal([NotNull] JsonTraversalExpression expression)
+        {
+            Visit(expression.Expression);
+
+            if (expression.Path.Length == 1)
+            {
+                Sql.Append(expression.ReturnsText ? "->>" : "->");
+                Visit(expression.Path[0]);
+                return expression;
+            }
+
+            // Multiple path components
+            Sql.Append(expression.ReturnsText ? "#>>" : "#>");
+
+            // Use simplified array literal syntax if all path components are constants for cleaner SQL
+            if (expression.Path.All(p => p is SqlConstantExpression))
+            {
+                Sql
+                    .Append("'{")
+                    .Append(string.Join(",", expression.Path.Select(p => ((SqlConstantExpression)p).Value)))
+                    .Append("}'");
+            }
+            else
+            {
+                Sql.Append("ARRAY[");
+                for (var i = 0; i < expression.Path.Length; i++)
+                {
+                    Visit(expression.Path[i]);
+                    if (i < expression.Path.Length - 1)
+                        Sql.Append(',');
+                }
+                Sql.Append("]::TEXT[]");
+            }
+
             return expression;
         }
 

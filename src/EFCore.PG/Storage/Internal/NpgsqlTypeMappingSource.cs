@@ -46,8 +46,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         readonly NpgsqlCharacterTypeMapping    _char               = new NpgsqlCharacterTypeMapping("character");
         readonly CharTypeMapping               _singleChar         = new CharTypeMapping("character(1)", DbType.String);
         readonly NpgsqlCharacterTypeMapping    _stringAsSingleChar = new NpgsqlCharacterTypeMapping("character(1)");
-        readonly NpgsqlStringTypeMapping       _jsonb              = new NpgsqlStringTypeMapping("jsonb", NpgsqlDbType.Jsonb);
-        readonly NpgsqlStringTypeMapping       _json               = new NpgsqlStringTypeMapping("json", NpgsqlDbType.Json);
+        readonly NpgsqlStringTypeMapping       _jsonbString        = new NpgsqlStringTypeMapping("jsonb", NpgsqlDbType.Jsonb);
+        readonly NpgsqlStringTypeMapping       _jsonString         = new NpgsqlStringTypeMapping("json", NpgsqlDbType.Json);
         readonly NpgsqlStringTypeMapping       _xml                = new NpgsqlStringTypeMapping("xml", NpgsqlDbType.Xml);
         readonly NpgsqlStringTypeMapping       _citext             = new NpgsqlStringTypeMapping("citext", NpgsqlDbType.Citext);
 
@@ -150,8 +150,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 { "bigint",                      new[] { _int8                         } },
                 { "int8",                        new[] { _int8                         } },
                 { "text",                        new[] { _text                         } },
-                { "jsonb",                       new[] { _jsonb                        } },
-                { "json",                        new[] { _json                         } },
+                { "jsonb",                       new[] { _jsonbString                  } },
+                { "json",                        new[] { _jsonString                   } },
                 { "xml",                         new[] { _xml                          } },
                 { "citext",                      new[] { _citext                       } },
                 { "character varying",           new[] { _varchar                      } },
@@ -320,6 +320,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                     foreach (var m in mappings)
                         if (m.ClrType == clrType)
                             return m;
+
+                    if (storeTypeName == "jsonb" || storeTypeName == "json")
+                        return new NpgsqlJsonObjectTypeMapping(storeTypeName, clrType);
 
                     return null;
                 }

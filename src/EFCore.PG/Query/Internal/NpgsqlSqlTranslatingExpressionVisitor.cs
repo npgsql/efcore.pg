@@ -6,9 +6,12 @@ using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
-using Microsoft.EntityFrameworkCore.Query.NavigationExpansion.Internal;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
+using ExpressionExtensions = Microsoft.EntityFrameworkCore.Query.ExpressionExtensions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 {
@@ -24,13 +27,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 .GetRuntimeMethod(nameof(NpgsqlDbFunctionsExtensions.ILike), new[] { typeof(DbFunctions), typeof(string), typeof(string) });
 
         readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
+        readonly NpgsqlJsonTranslator _jsonTranslator;
 
         public NpgsqlSqlTranslatingExpressionVisitor(
             RelationalSqlTranslatingExpressionVisitorDependencies dependencies,
             IModel model,
             QueryableMethodTranslatingExpressionVisitor queryableMethodTranslatingExpressionVisitor)
             : base(dependencies, model, queryableMethodTranslatingExpressionVisitor)
-            => _sqlExpressionFactory = (NpgsqlSqlExpressionFactory)dependencies.SqlExpressionFactory;
+        {
+            _sqlExpressionFactory = (NpgsqlSqlExpressionFactory)dependencies.SqlExpressionFactory;
+            _jsonTranslator = ((NpgsqlMemberTranslatorProvider)Dependencies.MemberTranslatorProvider).JsonTranslator;
+        }
 
         // PostgreSQL COUNT() always returns bigint, so we need to downcast to int
         // TODO: Translate Count with predicate for GroupBy (see base implementation)
@@ -60,15 +67,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 if (TranslationFailed(unaryExpression.Operand, Visit(unaryExpression.Operand), out var sqlOperand))
                     return null;
 
-                return _sqlExpressionFactory.Function(
-                    "array_length",
-                    new[]
-                    {
-                        _sqlExpressionFactory.ApplyDefaultTypeMapping(sqlOperand),
-                        _sqlExpressionFactory.Constant(1)
-                    },
-                    typeof(int),
-                    _sqlExpressionFactory.FindMapping(typeof(int)));
+                return _jsonTranslator.TranslateArrayLength(sqlOperand) ??
+                       _sqlExpressionFactory.Function(
+                           "array_length",
+                            new[]
+                            {
+                                _sqlExpressionFactory.ApplyDefaultTypeMapping(sqlOperand),
+                                _sqlExpressionFactory.Constant(1)
+                            },
+                            typeof(int),
+                            _sqlExpressionFactory.FindMapping(typeof(int)));
             }
 
             return base.VisitUnary(unaryExpression);
@@ -166,8 +174,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                     );
                 }
 
-                // Other types should be subscriptable - but PostgreSQL arrays are 1-based, so adjust the index.
-                return _sqlExpressionFactory.ArrayIndex(sqlLeft, GenerateOneBasedIndexExpression(sqlRight));
+                return
+                    // Try translating ArrayIndex inside json column
+                    _jsonTranslator.TranslateMemberAccess(sqlLeft, sqlRight, binaryExpression.Type) ??
+                    // Other types should be subscriptable - but PostgreSQL arrays are 1-based, so adjust the index.
+                    _sqlExpressionFactory.ArrayIndex(sqlLeft, GenerateOneBasedIndexExpression(sqlRight));
             }
 
             return base.VisitBinary(binaryExpression);

@@ -322,14 +322,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         }
 
         [Fact]
-        public void GenerateSqlLiteral_returns_jsonb_literal()
-            => Assert.Equal(@"'{""a"":1}'", GetMapping("jsonb").GenerateSqlLiteral(@"{""a"":1}"));
-
-        [Fact]
-        public void GenerateSqlLiteral_returns_json_literal()
-            => Assert.Equal(@"'{""a"":1}'", GetMapping("json").GenerateSqlLiteral(@"{""a"":1}"));
-
-        [Fact]
         public void GenerateSqlLiteral_returns_enum_literal()
         {
             var mapping = new NpgsqlEnumTypeMapping(
@@ -439,6 +431,76 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
                 .GenerateSqlLiteral(NpgsqlTsRankingNormalization.DivideByLength));
 
         #endregion Full text search
+
+        #region Json
+
+        [Fact]
+        public void GenerateSqlLiteral_returns_jsonb_string_literal()
+            => Assert.Equal(@"'{""a"":1}'", GetMapping("jsonb").GenerateSqlLiteral(@"{""a"":1}"));
+
+        [Fact]
+        public void GenerateSqlLiteral_returns_json_string_literal()
+            => Assert.Equal(@"'{""a"":1}'", GetMapping("json").GenerateSqlLiteral(@"{""a"":1}"));
+
+
+        [Fact]
+        public void GenerateSqlLiteral_returns_jsonb_object_literal()
+        {
+            var literal = Mapper.FindMapping(typeof(Customer), "jsonb").GenerateSqlLiteral(SampleCustomer);
+            Assert.Equal(@"{""Name"":""Joe"",""Age"":25,""IsVip"":false,""Orders"":[" +
+                             @"{""Price"":99.5,""ShippingAddress"":""Some address 1"",""ShippingDate"":""2019-10-01T00:00:00""}," +
+                             @"{""Price"":23,""ShippingAddress"":""Some address 2"",""ShippingDate"":""2019-10-10T00:00:00""}" +
+                         @"]}", literal);
+        }
+
+        [Fact]
+        public void GenerateSqlLiteral_returns_json_object_literal()
+        {
+            var literal = Mapper.FindMapping(typeof(Customer), "json").GenerateSqlLiteral(SampleCustomer);
+            Assert.Equal(@"{""Name"":""Joe"",""Age"":25,""IsVip"":false,""Orders"":[" +
+                             @"{""Price"":99.5,""ShippingAddress"":""Some address 1"",""ShippingDate"":""2019-10-01T00:00:00""}," +
+                             @"{""Price"":23,""ShippingAddress"":""Some address 2"",""ShippingDate"":""2019-10-10T00:00:00""}" +
+                         @"]}", literal);
+        }
+
+        static readonly Customer SampleCustomer = new Customer
+        {
+            Name = "Joe",
+            Age = 25,
+            IsVip = false,
+            Orders = new[]
+            {
+                new Order
+                {
+                    Price = 99.5m,
+                    ShippingAddress = "Some address 1",
+                    ShippingDate = new DateTime(2019, 10, 1)
+                },
+                new Order
+                {
+                    Price = 23,
+                    ShippingAddress = "Some address 2",
+                    ShippingDate = new DateTime(2019, 10, 10)
+                }
+            }
+        };
+
+        public class Customer
+        {
+            public string Name { get; set; }
+            public int Age { get; set; }
+            public bool IsVip { get; set; }
+            public Order[] Orders { get; set; }
+        }
+
+        public class Order
+        {
+            public decimal Price { get; set; }
+            public string ShippingAddress { get; set; }
+            public DateTime ShippingDate { get; set; }
+        }
+
+        #endregion Json
 
         #region Support
 

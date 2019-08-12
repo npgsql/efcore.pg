@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
@@ -28,9 +27,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
         [NotNull]
         readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
+        [NotNull]
+        readonly NpgsqlJsonTranslator _jsonTranslator;
 
-        public NpgsqlArrayMethodTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory)
-            => _sqlExpressionFactory = sqlExpressionFactory;
+        public NpgsqlArrayMethodTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory, NpgsqlJsonTranslator jsonTranslator)
+        {
+            _sqlExpressionFactory = sqlExpressionFactory;
+            _jsonTranslator = jsonTranslator;
+        }
 
         [CanBeNull]
         public SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
@@ -49,12 +53,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             // Predicate-less Any - translate to a simple length check.
             if (method.IsClosedFormOf(LinqMethodHelpers.EnumerableAnyMethodInfo))
             {
-                return _sqlExpressionFactory.GreaterThan(
-                    _sqlExpressionFactory.Function(
-                        "array_length",
-                        new[] { arrayOperand, _sqlExpressionFactory.Constant(1) },
-                        typeof(int)),
-                    _sqlExpressionFactory.Constant(1));
+                return
+                    _sqlExpressionFactory.GreaterThan(
+                        _jsonTranslator.TranslateArrayLength(arrayOperand) ??
+                        _sqlExpressionFactory.Function(
+                            "array_length",
+                            new[] { arrayOperand, _sqlExpressionFactory.Constant(1) },
+                            typeof(int)),
+                        _sqlExpressionFactory.Constant(1));
             }
 
             // Note that .Where(e => new[] { "a", "b", "c" }.Any(p => e.SomeText == p)))
