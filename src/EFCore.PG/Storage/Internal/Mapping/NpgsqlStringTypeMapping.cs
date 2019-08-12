@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Data.Common;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -26,6 +26,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         public NpgsqlStringTypeMapping([NotNull] string storeType, NpgsqlDbType npgsqlDbType)
             : base(storeType)
             => NpgsqlDbType = npgsqlDbType;
+
+        protected NpgsqlStringTypeMapping(
+            RelationalTypeMappingParameters parameters,
+            NpgsqlDbType npgsqlDbType)
+            : base(parameters)
+            => NpgsqlDbType = npgsqlDbType;
+
+        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
+            => new NpgsqlStringTypeMapping(parameters, NpgsqlDbType);
 
         protected override void ConfigureParameter(DbParameter parameter)
         {
