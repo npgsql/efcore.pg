@@ -65,22 +65,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             MigrationCommandListBuilder builder,
             bool terminate)
         {
-            // Filter out any system columns
-            if (operation.Columns.Any(c => IsSystemColumn(c.Name)))
-            {
-                var filteredOperation = new CreateTableOperation
-                {
-                    Name = operation.Name,
-                    Schema = operation.Schema,
-                    PrimaryKey = operation.PrimaryKey,
-                };
-                filteredOperation.Columns.AddRange(operation.Columns.Where(c => !_systemColumnNames.Contains(c.Name)));
-                filteredOperation.ForeignKeys.AddRange(operation.ForeignKeys);
-                filteredOperation.UniqueConstraints.AddRange(operation.UniqueConstraints);
-                operation = filteredOperation;
-            }
-
-            #region Customized base call
+            operation.Columns.RemoveAll(c => IsSystemColumn(c.Name));
 
             builder.Append("CREATE ");
 
@@ -100,8 +85,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             }
 
             builder.Append(")");
-
-            #endregion
 
             // CockroachDB "interleave in parent" (https://www.cockroachlabs.com/docs/stable/interleave-in-parent.html)
             if (operation[CockroachDbAnnotationNames.InterleaveInParent] is string)
