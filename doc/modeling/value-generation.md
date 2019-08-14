@@ -1,7 +1,7 @@
 # Value Generation
 
 > [!CAUTION]
-> The default value generation strategy has changed from the older SERIAL columns to the newer IDENTITY columns. Read the below carefully if you are migrating an existing database.
+> In 3.0.0 (preview), the default value generation strategy has changed from the older SERIAL columns to the newer IDENTITY columns. Read the below carefully if you are migrating an existing database.
 
 > [!NOTE]
 > It's recommended that you start by reading the general [Entity Framework Core docs on generated properties](https://docs.microsoft.com/en-us/ef/core/modeling/generated-properties).
@@ -19,10 +19,10 @@ The Npgsql EF Core provider allows you to choose which of the above you want on 
 * *Serial*: the traditional PostgreSQL serial column. This will create the column with the `serial` datatype. Recommended only if you are using an older PostgreSQL version.
 * *Sequence HiLo*: See below
 
-Since version 3.0.0, the Npgsql provider generates "identity by default" columns for ID columns. In other words, when `ValueGeneratedOnAdd` is specified on a `short`, `int` or `long` property, the Npgsql provider will automatically map it to an "identity by default" column. Note that EF Core will automatically recognize key properties by convention (e.g. a property called `Id` in your entity) and will implicitly set them to `ValueGeneratedOnAdd`; a standard model with ID columns should automatically get created with "identity by default" columns.
+Prior to version 3.0, the Npgsql provider generates "serial" columns for ID columns; starting with version 3.0, it generates "identity by default" instead. In other words, when `ValueGeneratedOnAdd` is specified on a `short`, `int` or `long` property, the Npgsql provider will automatically map it to a serial or identity column. Note that EF Core will automatically recognize key properties by convention (e.g. a property called `Id` in your entity) and will implicitly set them to `ValueGeneratedOnAdd`; a standard model with ID columns should automatically get created with the appropriate column type.
 
 > [!CAUTION]
-> Changing a value generation is a significant change to an existing database. If you have an existing database with migrations, the first migration created after upgrading to version 3.0 will produce a migration that will alter your tables and convert serial columns to identity ones. This is a sensitive, one-time migration operation that should be done with care, and carefully tested before deployment to production.
+> Since the default strategy has changed, if you have an existing database with migrations, the the first migration created after upgrading to version 3.0 will alter your tables and convert serial columns to identity ones. This is a sensitive, one-time migration operation that should be done with care, and carefully tested before deployment to production. Changing a value generation is a significant change to an existing database.
 
 You can easily control the value generation strategy for the entire model. For example, to opt out of the change to identity columns, simply place the following in your context's `OnModelCreating()`:
 
@@ -93,4 +93,21 @@ See [the PostgreSQL docs on UUID for more details](https://www.postgresql.org/do
 
 ## Computed Columns (On Add or Update)
 
-PostgreSQL does not support computed columns.
+Version 3.0 (preview) adds support for the upcoming PostgreSQL 12 generated columns. The following 
+
+```c#
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    modelBuilder.Entity<Person>()
+      .Property(p => p.DisplayName)
+      .HasComputedColumnSql(@"""FirstName"" || ' ' || ""LastName""");
+}
+```
+
+Will cause the following migration SQL to be generated
+
+```sql
+ALTER TABLE ""Person"" ADD ""DisplayName"" text GENERATED ALWAYS AS (""FirstName"" || ' ' || ""LastName"") STORED;
+```
+
+Note that this is a *stored* column - it is computed once when the row is updated, and takes space on disk. Virtual computed columns, which are computed on each select, are not yet supported by PostgreSQL.
