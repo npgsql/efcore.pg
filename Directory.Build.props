@@ -9,8 +9,8 @@
   <PropertyGroup Label="Package Versions">
     <VersionPrefix>3.0.0</VersionPrefix>
     <NpgsqlVersion>4.0.7</NpgsqlVersion>
-    <EFCoreVersion>3.0.0-preview8.19381.5</EFCoreVersion>
-    <MicrosoftExtensionsVersion>3.0.0-preview8.19381.3</MicrosoftExtensionsVersion>
+    <EFCoreVersion>3.0.0-preview8.19405.11</EFCoreVersion>
+    <MicrosoftExtensionsVersion>3.0.0-preview8.19405.4</MicrosoftExtensionsVersion>
   </PropertyGroup>
 
 </Project>
