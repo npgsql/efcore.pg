@@ -10,7 +10,7 @@
     <VersionPrefix>3.0.0</VersionPrefix>
     <NpgsqlVersion>4.1.0-preview1</NpgsqlVersion>
     <EFCoreVersion>3.0.0-preview8.19405.11</EFCoreVersion>
-    <MicrosoftExtensionsVersion>3.0.0-preview8.19405.4</MicrosoftExtensionsVersion>
+    <MicrosoftExtensionsVersion>3.0.0-preview9.19417.1</MicrosoftExtensionsVersion>
   </PropertyGroup>
 
 </Project>
