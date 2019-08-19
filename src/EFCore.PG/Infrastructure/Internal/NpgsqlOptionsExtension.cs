@@ -248,37 +248,37 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
 
                     if (Extension.AdminDatabase != null)
                     {
-                        builder.Append("AdminDatabase=").Append(Extension.AdminDatabase).Append(' ');
+                        builder.Append(nameof(Extension.AdminDatabase)).Append("=").Append(Extension.AdminDatabase).Append(' ');
                     }
 
                     if (Extension.PostgresVersion != null)
                     {
-                        builder.Append("PostgresVersion=").Append(Extension.PostgresVersion).Append(' ');
+                        builder.Append(nameof(Extension.PostgresVersion)).Append("=").Append(Extension.PostgresVersion).Append(' ');
                     }
 
                     if (Extension.ProvideClientCertificatesCallback != null)
                     {
-                        builder.Append("ProvideClientCertificatesCallback ");
+                        builder.Append(nameof(Extension.ProvideClientCertificatesCallback)).Append(" ");
                     }
 
                     if (Extension.RemoteCertificateValidationCallback != null)
                     {
-                        builder.Append("RemoteCertificateValidationCallback ");
+                        builder.Append(nameof(Extension.RemoteCertificateValidationCallback)).Append(" ");
                     }
 
                     if (Extension.ProvidePasswordCallback != null)
                     {
-                        builder.Append("ProvidePasswordCallback ");
+                        builder.Append(nameof(Extension.ProvidePasswordCallback)).Append(" ");
                     }
 
                     if (Extension.ReverseNullOrdering)
                     {
-                        builder.Append("ReverseNullOrdering ");
+                        builder.Append(nameof(Extension.ReverseNullOrdering)).Append(" ");;
                     }
 
                     if (Extension.UserRangeDefinitions.Count > 0)
                     {
-                        builder.Append("UserRangeDefinitions=[");
+                        builder.Append(nameof(Extension.UserRangeDefinitions)).Append("=[");
                         foreach (var item in Extension.UserRangeDefinitions)
                         {
                             builder.Append(item.SubtypeClrType).Append("=>");
