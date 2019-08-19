@@ -367,12 +367,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 {
                     // TODO: It would be better to actually select for the owned sequence.
                     // This would require plpgsql.
-                    var sequenceName = Dependencies.SqlGenerationHelper.DelimitIdentifier($"{operation.Table}_{operation.Name}_seq");
+                    var sequence = Dependencies.SqlGenerationHelper.DelimitIdentifier($"{operation.Table}_{operation.Name}_seq", operation.Schema);
                     switch (newStrategy)
                     {
                     case null:
                         // Drop the serial, converting the column to a regular int
-                        builder.AppendLine($"DROP SEQUENCE {sequenceName} CASCADE;");
+                        builder.AppendLine($"DROP SEQUENCE {sequence} CASCADE;");
                         break;
                     case NpgsqlValueGenerationStrategy.IdentityAlwaysColumn:
                     case NpgsqlValueGenerationStrategy.IdentityByDefaultColumn:
@@ -380,13 +380,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                         var identityTypeClause = newStrategy == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn
                             ? "ALWAYS"
                             : "BY DEFAULT";
-                        var oldSequenceName = Dependencies.SqlGenerationHelper.DelimitIdentifier($"{operation.Table}_{operation.Name}_old_seq");
+                        var oldSequence = Dependencies.SqlGenerationHelper.DelimitIdentifier($"{operation.Table}_{operation.Name}_old_seq", operation.Schema);
+                        var oldSequenceWithoutSchema = Dependencies.SqlGenerationHelper.DelimitIdentifier($"{operation.Table}_{operation.Name}_old_seq");
                         builder
-                            .AppendLine($"ALTER SEQUENCE {sequenceName} RENAME TO {oldSequenceName};")
+                            .AppendLine($"ALTER SEQUENCE {sequence} RENAME TO {oldSequenceWithoutSchema};")
                             .AppendLine($"ALTER TABLE {table} ALTER COLUMN {column} DROP DEFAULT;")
                             .AppendLine($"ALTER TABLE {table} ALTER COLUMN {column} ADD GENERATED {identityTypeClause} AS IDENTITY;")
-                            .AppendLine($"SELECT * FROM setval('{sequenceName}', nextval('{oldSequenceName}'), false);")
-                            .AppendLine($"DROP SEQUENCE {oldSequenceName};");
+                            .AppendLine($"SELECT * FROM setval('{sequence}', nextval('{oldSequence}'), false);")
+                            .AppendLine($"DROP SEQUENCE {oldSequence};");
                         break;
                     default:
                         throw new NotSupportedException($"Don't know how to migrate serial column to {newStrategy}");
