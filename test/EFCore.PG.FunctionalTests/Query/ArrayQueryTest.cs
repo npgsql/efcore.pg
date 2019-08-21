@@ -154,7 +154,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             {
                 var x = ctx.SomeEntities.Single(e => e.SomeArray.Length == 2);
                 Assert.Equal(new[] { 3, 4 }, x.SomeArray);
-                AssertContainsInSql(@"WHERE array_length(e.""SomeArray"", 1) = 2");
+                AssertContainsInSql(@"WHERE COALESCE(array_length(e.""SomeArray"", 1), 0) = 2");
+            }
+        }
+
+        [Fact]
+        public void Length_empty()
+        {
+            using (var ctx = Fixture.CreateContext())
+            {
+                var x = ctx.SomeEntities.Single(e => e.SomeArray.Length == 0);
+                Assert.Equal(3, x.Id);
+
+                AssertContainsInSql(@"WHERE COALESCE(array_length(e.""SomeArray"", 1), 0) = 0");
             }
         }
 
@@ -166,7 +178,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 // TODO: This fails
                 var x = ctx.SomeEntities.Single(e => EF.Property<int[]>(e, nameof(SomeArrayEntity.SomeArray)).Length == 2);
                 Assert.Equal(new[] { 3, 4 }, x.SomeArray);
-                AssertContainsInSql(@"WHERE array_length(e.""SomeArray"", 1) = 2");
+                AssertContainsInSql(@"WHERE COALESCE(array_length(e.""SomeArray"", 1), 0) = 2");
             }
         }
 
@@ -297,6 +309,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                             SomeBytea = new byte[] { 5, 6, 7 },
                             SomeMatrix = new[,] { { 10, 11 }, { 12, 13 } },
                             SomeList = new List<int> { 3, 4 }
+                        },
+                        new SomeArrayEntity
+                        {
+                            Id = 3,
+                            SomeArray = new int[0],
+                            SomeBytea = new byte[] { 50, 60, 70 },
+                            SomeMatrix = new[,] { { 100, 110 }, { 120, 130 } },
+                            SomeList = new List<int>(),
+                            SomeText = ""
                         });
                     ctx.SaveChanges();
                 }
