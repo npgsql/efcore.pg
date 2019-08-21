@@ -195,7 +195,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal
         {
             if (expression.NodeType == ExpressionType.ArrayLength)
             {
-                VisitSqlFunction(new SqlFunctionExpression("array_length", typeof(int), new[] { expression.Operand, Expression.Constant(1) }));
+                Visit(Expression.Coalesce(
+                    new SqlFunctionExpression("array_length", typeof(int?), new[] { expression.Operand, Expression.Constant(1) }),
+                    Expression.Constant(0)));
+
                 return expression;
             }
 
