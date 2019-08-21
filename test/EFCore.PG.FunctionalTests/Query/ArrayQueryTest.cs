@@ -142,7 +142,7 @@ LIMIT 2");            }
 
         #region Containment
 
-        [Fact]
+        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/issues/17374")]
         public void Contains_with_literal()
         {
             using (var ctx = Fixture.CreateContext())
@@ -158,7 +158,7 @@ LIMIT 2");
             }
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/issues/17374")]
         public void Contains_with_parameter()
         {
             using (var ctx = Fixture.CreateContext())
@@ -178,7 +178,7 @@ LIMIT 2");
             }
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/issues/17374")]
         public void Contains_with_column()
         {
             using (var ctx = Fixture.CreateContext())
@@ -242,7 +242,7 @@ LIMIT 2");            }
 
         #region AnyAll
 
-        [Fact]
+        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/issues/17374")]
         public void Any_no_predicate()
         {
             using (var ctx = Fixture.CreateContext())

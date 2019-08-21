@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using JetBrains.Annotations;
@@ -25,6 +26,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         [NotNull] static readonly MethodInfo ILike2MethodInfo =
             typeof(NpgsqlDbFunctionsExtensions)
                 .GetRuntimeMethod(nameof(NpgsqlDbFunctionsExtensions.ILike), new[] { typeof(DbFunctions), typeof(string), typeof(string) });
+
+        [NotNull] static readonly MethodInfo EnumerableAnyWithPredicate =
+            typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
+                .Single(mi => mi.Name == nameof(Enumerable.Any) && mi.GetParameters().Length == 2);
+
+        [NotNull] static readonly MethodInfo EnumerableAll =
+            typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
+                .Single(mi => mi.Name == nameof(Enumerable.All) && mi.GetParameters().Length == 2);
 
         readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
         readonly NpgsqlJsonTranslator _jsonTranslator;
@@ -90,16 +99,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 // Pattern match for .Where(e => new[] { "a", "b", "c" }.Any(p => EF.Functions.Like(e.SomeText, p))),
                 // which we translate to WHERE s.""SomeText"" LIKE ANY (ARRAY['a','b','c']) (see test Any_like)
                 // Note: NavigationExpander normalized Any(x) to Where(x).Any()
-                if (methodCall.Method.IsClosedFormOf(LinqMethodHelpers.EnumerableAnyMethodInfo) &&
-                    methodCall.Arguments[0] is MethodCallExpression innerMethodCall &&
-                    innerMethodCall.Method.IsClosedFormOf(LinqMethodHelpers.EnumerableWhereMethodInfo) &&
-                    innerMethodCall.Arguments[0].Type.IsArray &&
-                    innerMethodCall.Arguments[1] is LambdaExpression wherePredicate &&
+                if (methodCall.Method.IsClosedFormOf(EnumerableAnyWithPredicate) &&
+                    methodCall.Arguments[0].Type.IsArray &&
+                    methodCall.Arguments[1] is LambdaExpression wherePredicate &&
                     wherePredicate.Body is MethodCallExpression wherePredicateMethodCall && (
                         wherePredicateMethodCall.Method == Like2MethodInfo ||
                         wherePredicateMethodCall.Method == ILike2MethodInfo))
                 {
-                    var array = (SqlExpression)Visit(innerMethodCall.Arguments[0]);
+                    var array = (SqlExpression)Visit(methodCall.Arguments[0]);
                     var match = (SqlExpression)Visit(wherePredicateMethodCall.Arguments[1]);
 
                     return _sqlExpressionFactory.ArrayAnyAll(match, array, ArrayComparisonType.Any,
@@ -109,7 +116,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 
             // Same for All (but without the normalization
             {
-                if (methodCall.Method.IsClosedFormOf(LinqMethodHelpers.EnumerableAllMethodInfo) &&
+                if (methodCall.Method.IsClosedFormOf(EnumerableAll) &&
                     methodCall.Arguments[0].Type.IsArray &&
                     methodCall.Arguments[1] is LambdaExpression wherePredicate &&
                     wherePredicate.Body is MethodCallExpression wherePredicateMethodCall && (

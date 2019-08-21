@@ -237,7 +237,7 @@ namespace Microsoft.EntityFrameworkCore
             var type = property.ClrType;
 
             return type.IsIntegerForValueGeneration()
-                   && (property.FindMapping()?.Converter ?? property.GetValueConverter()) == null;
+                   && (property.FindTypeMapping()?.Converter ?? property.GetValueConverter()) == null;
         }
 
         static bool IsIntegerForValueGeneration(this Type type)

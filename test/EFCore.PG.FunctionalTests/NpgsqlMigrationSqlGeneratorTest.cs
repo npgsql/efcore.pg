@@ -1167,7 +1167,7 @@ WITH (fillfactor=70, user_catalog_table=true);
                 {
                     Name = "People",
                     Schema = "dbo",
-                    OldTable = new Annotatable
+                    OldTable = new TableOperation
                     {
                         [NpgsqlAnnotationNames.StorageParameterPrefix + "fillfactor"] = 70,
                         [NpgsqlAnnotationNames.StorageParameterPrefix + "user_catalog_table"] = true,
@@ -1350,7 +1350,7 @@ COMMENT ON COLUMN dbo.""People"".""Id"" IS 'Some comment';
                 {
                     Name = "People",
                     Schema = "dbo",
-                    OldTable = new Annotatable { [NpgsqlAnnotationNames.Comment] = "Old comment" },
+                    OldTable = new TableOperation { [NpgsqlAnnotationNames.Comment] = "Old comment" },
                     [NpgsqlAnnotationNames.Comment] = "New comment"
                 });
 
@@ -1367,7 +1367,7 @@ COMMENT ON COLUMN dbo.""People"".""Id"" IS 'Some comment';
                 {
                     Name = "People",
                     Schema = "dbo",
-                    OldTable = new Annotatable { [NpgsqlAnnotationNames.Comment] = "New comment" }
+                    OldTable = new TableOperation { [NpgsqlAnnotationNames.Comment] = "New comment" }
                 });
             AssertSql(
                 @"COMMENT ON TABLE dbo.""People"" IS NULL;
@@ -1472,7 +1472,7 @@ COMMENT ON COLUMN dbo.""People"".""LuckyNumber"" IS NULL;
                 {
                     Name = "People",
                     Schema = "dbo",
-                    OldTable = new Annotatable(),
+                    OldTable = new TableOperation(),
                     [NpgsqlAnnotationNames.UnloggedTable] = true
                 });
 
@@ -1488,7 +1488,7 @@ COMMENT ON COLUMN dbo.""People"".""LuckyNumber"" IS NULL;
                 {
                     Name = "People",
                     Schema = "dbo",
-                    OldTable = new Annotatable { [NpgsqlAnnotationNames.UnloggedTable] = true },
+                    OldTable = new TableOperation { [NpgsqlAnnotationNames.UnloggedTable] = true },
                     [NpgsqlAnnotationNames.UnloggedTable] = false
                 });
 
@@ -1504,7 +1504,7 @@ COMMENT ON COLUMN dbo.""People"".""LuckyNumber"" IS NULL;
                 {
                     Name = "People",
                     Schema = "dbo",
-                    OldTable = new Annotatable { [NpgsqlAnnotationNames.UnloggedTable] = true }
+                    OldTable = new TableOperation { [NpgsqlAnnotationNames.UnloggedTable] = true }
                 });
 
             AssertSql(@"ALTER TABLE dbo.""People"" SET LOGGED;
@@ -1519,7 +1519,7 @@ COMMENT ON COLUMN dbo.""People"".""LuckyNumber"" IS NULL;
                 {
                     Name = "People",
                     Schema = "dbo",
-                    OldTable = new Annotatable { [NpgsqlAnnotationNames.UnloggedTable] = false }
+                    OldTable = new TableOperation { [NpgsqlAnnotationNames.UnloggedTable] = false }
                 });
 
             AssertSql("");

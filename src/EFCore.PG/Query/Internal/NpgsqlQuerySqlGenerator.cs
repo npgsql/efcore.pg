@@ -107,6 +107,22 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 
         #region Visitors
 
+        protected override Expression VisitCrossApply(CrossApplyExpression crossApplyExpression)
+        {
+            Sql.Append("JOIN LATERAL ");
+            Visit(crossApplyExpression.Table);
+            Sql.Append(" ON TRUE");
+            return crossApplyExpression;
+        }
+
+        protected override Expression VisitOuterApply(OuterApplyExpression outerApplyExpression)
+        {
+            Sql.Append("LEFT JOIN LATERAL ");
+            Visit(outerApplyExpression.Table);
+            Sql.Append(" ON TRUE");
+            return outerApplyExpression;
+        }
+
         /// <inheritdoc />
         protected override Expression VisitSqlBinary(SqlBinaryExpression binary)
         {
@@ -209,23 +225,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             return base.VisitSqlUnary(sqlUnaryExpression);
         }
 
-        protected override void GenerateSetOperationOperand(
-            SelectExpression setOperationExpression,
-            SelectExpression operandExpression)
+        protected override void GenerateSetOperationOperand(SetOperationBase setOperation, SelectExpression operand)
         {
             // PostgreSQL allows ORDER BY and LIMIT in set operation operands, but requires parentheses
-            if (operandExpression.Orderings.Count > 0 || operandExpression.Limit != null)
+            if (operand.Orderings.Count > 0 || operand.Limit != null)
             {
                 Sql.AppendLine("(");
                 using (Sql.Indent())
                 {
-                    Visit(operandExpression);
+                    Visit(operand);
                 }
                 Sql.AppendLine().Append(")");
                 return;
             }
 
-            base.GenerateSetOperationOperand(setOperationExpression, operandExpression);
+            base.GenerateSetOperationOperand(setOperation, operand);
         }
 
         /// <summary>
