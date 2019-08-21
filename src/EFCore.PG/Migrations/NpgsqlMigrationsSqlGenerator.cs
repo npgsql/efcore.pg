@@ -63,8 +63,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             CreateTableOperation operation,
             IModel model,
             MigrationCommandListBuilder builder,
-            bool terminate)
+            bool terminate = true)
         {
+            if (!terminate && operation.Comment != null)
+                throw new ArgumentException($"When generating migrations SQL for {nameof(CreateTableOperation)}, can't produce unterminated SQL with comments");
+
             operation.Columns.RemoveAll(c => IsSystemColumn(c.Name));
 
             builder.Append("CREATE ");
@@ -114,7 +117,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             }
 
             // Comment on the table
-            if (operation[NpgsqlAnnotationNames.Comment] is string comment && comment.Length > 0)
+            if (operation.Comment != null)
             {
                 builder.AppendLine(';');
 
@@ -124,13 +127,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                     .Append("COMMENT ON TABLE ")
                     .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name, operation.Schema))
                     .Append(" IS ")
-                    .Append(stringTypeMapping.GenerateSqlLiteral(comment));
+                    .Append(stringTypeMapping.GenerateSqlLiteral(operation.Comment));
             }
 
             // Comments on the columns
-            foreach (var columnOp in operation.Columns.Where(c => c[NpgsqlAnnotationNames.Comment] != null))
+            foreach (var columnOp in operation.Columns.Where(c => c.Comment != null))
             {
-                var columnComment = columnOp[NpgsqlAnnotationNames.Comment];
+                var columnComment = columnOp.Comment;
                 builder.AppendLine(';');
 
                 var stringTypeMapping = Dependencies.TypeMappingSource.GetMapping(typeof(string));
@@ -200,10 +203,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             }
 
             // Comment
-            var oldComment = operation.OldTable[NpgsqlAnnotationNames.Comment] as string;
-            var newComment = operation[NpgsqlAnnotationNames.Comment] as string;
-
-            if (oldComment != newComment)
+            if (operation.Comment != operation.OldTable.Comment)
             {
                 var stringTypeMapping = Dependencies.TypeMappingSource.GetMapping(typeof(string));
 
@@ -211,7 +211,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                     .Append("COMMENT ON TABLE ")
                     .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name, operation.Schema))
                     .Append(" IS ")
-                    .Append(stringTypeMapping.GenerateSqlLiteral(newComment));
+                    .Append(stringTypeMapping.GenerateSqlLiteral(operation.Comment));
 
                 builder.AppendLine(';');
                 madeChanges = true;
@@ -241,7 +241,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             DropColumnOperation operation,
             IModel model,
             MigrationCommandListBuilder builder,
-            bool terminate)
+            bool terminate = true)
         {
             // Never touch system columns
             if (IsSystemColumn(operation.Name))
@@ -254,15 +254,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             AddColumnOperation operation,
             IModel model,
             MigrationCommandListBuilder builder,
-            bool terminate)
+            bool terminate = true)
         {
+            if (!terminate && operation.Comment != null)
+                throw new ArgumentException($"When generating migrations SQL for {nameof(AddColumnOperation)}, can't produce unterminated SQL with comments");
+
             // Never touch system columns
             if (IsSystemColumn(operation.Name))
                 return;
 
             base.Generate(operation, model, builder, terminate: false);
 
-            if (operation[NpgsqlAnnotationNames.Comment] is string comment && comment.Length > 0)
+            if (operation.Comment != null)
             {
                 builder.AppendLine(';');
 
@@ -274,7 +277,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                     .Append('.')
                     .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name))
                     .Append(" IS ")
-                    .Append(stringTypeMapping.GenerateSqlLiteral(comment));
+                    .Append(stringTypeMapping.GenerateSqlLiteral(operation.Comment));
             }
 
             if (terminate)
@@ -550,10 +553,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             }
 
             // Comment
-            var oldComment = operation.OldColumn[NpgsqlAnnotationNames.Comment] as string;
-            var newComment = operation[NpgsqlAnnotationNames.Comment] as string;
-
-            if (oldComment != newComment)
+            if (operation.Comment != operation.OldColumn.Comment)
             {
                 var stringTypeMapping = Dependencies.TypeMappingSource.GetMapping(typeof(string));
 
@@ -563,7 +563,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                     .Append('.')
                     .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name))
                     .Append(" IS ")
-                    .Append(stringTypeMapping.GenerateSqlLiteral(newComment))
+                    .Append(stringTypeMapping.GenerateSqlLiteral(operation.Comment))
                     .AppendLine(';');
             }
 

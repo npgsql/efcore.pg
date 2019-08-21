@@ -18,8 +18,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal
 
         public override IEnumerable<IAnnotation> For(IEntityType entityType)
         {
-            if (NpgsqlEntityTypeExtensions.GetComment(entityType) is string comment)
-                yield return new Annotation(NpgsqlAnnotationNames.Comment, comment);
             if (entityType.GetIsUnlogged())
                 yield return new Annotation(NpgsqlAnnotationNames.UnloggedTable, entityType.GetIsUnlogged());
             if (entityType[CockroachDbAnnotationNames.InterleaveInParent] != null)
@@ -47,9 +45,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal
                     }
                 }
             }
-
-            if (NpgsqlPropertyExtensions.GetComment(property) is string comment)
-                yield return new Annotation(NpgsqlAnnotationNames.Comment, comment);
         }
 
         public override IEnumerable<IAnnotation> For(IIndex index)

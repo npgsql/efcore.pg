@@ -1,12 +1,10 @@
 using System;
 using System.Diagnostics;
-using System.Linq;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
@@ -129,9 +127,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             Check.NotNull(entityType, nameof(entityType));
             Check.NotNull(annotation, nameof(annotation));
 
-            if (annotation.Name == NpgsqlAnnotationNames.Comment)
-                return new MethodCallCodeFragment(nameof(NpgsqlEntityTypeBuilderExtensions.HasComment), annotation.Value);
-
             if (annotation.Name == NpgsqlAnnotationNames.UnloggedTable)
                 return new MethodCallCodeFragment(nameof(NpgsqlEntityTypeBuilderExtensions.IsUnlogged), annotation.Value);
 
@@ -164,9 +159,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
                     identityOptions.MaxValue,
                     identityOptions.IsCyclic ? true : (bool?)null,
                     identityOptions.NumbersToCache == 1 ? null : (long?)identityOptions.NumbersToCache);
-
-            case NpgsqlAnnotationNames.Comment:
-                return new MethodCallCodeFragment(nameof(NpgsqlPropertyBuilderExtensions.HasComment), annotation.Value);
             }
 
             return null;
