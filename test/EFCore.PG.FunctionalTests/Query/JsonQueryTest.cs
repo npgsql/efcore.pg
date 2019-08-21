@@ -238,7 +238,7 @@ LIMIT 2");
             }
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/issues/17374")]
         public void Array_Any_toplevel()
         {
             using (var ctx = Fixture.CreateContext())

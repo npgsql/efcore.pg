@@ -24,7 +24,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             {
                 base.OnModelCreating(modelBuilder, context);
 
-                modelBuilder.Entity<BlogQuery>().HasNoKey().ToTable("Blog");
+                modelBuilder.Entity<BlogQuery>().HasNoKey().ToQuery(
+                    () => context.Set<BlogQuery>().FromSqlRaw(@"SELECT * FROM ""Blog"""));
             }
         }
     }

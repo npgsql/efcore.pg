@@ -17,13 +17,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     /// </remarks>
     public class NpgsqlArrayMethodTranslator : IMethodCallTranslator
     {
-        static readonly MethodInfo SequenceEqualMethodInfo = typeof(Enumerable).GetTypeInfo().GetDeclaredMethods(nameof(Enumerable.SequenceEqual)).Single(m =>
-                m.IsGenericMethodDefinition &&
-                m.GetParameters().Length == 2);
+        [NotNull] static readonly MethodInfo SequenceEqual =
+            typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
+                .Single(m => m.Name == nameof(Enumerable.SequenceEqual) && m.GetParameters().Length == 2);
 
-        static readonly MethodInfo ContainsMethodInfo = typeof(Enumerable).GetTypeInfo().GetDeclaredMethods(nameof(Enumerable.Contains)).Single(m =>
-            m.IsGenericMethodDefinition &&
-            m.GetParameters().Length == 2);
+        [NotNull] static readonly MethodInfo Contains =
+            typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
+                .Single(m => m.Name == nameof(Enumerable.Contains) && m.GetParameters().Length == 2);
+
+        [NotNull] static readonly MethodInfo EnumerableAnyWithoutPredicate =
+            typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
+                .Single(mi => mi.Name == nameof(Enumerable.Any) && mi.GetParameters().Length == 1);
+
 
         [NotNull]
         readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
@@ -47,11 +52,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
             var arrayOperand = arguments[0];
 
-            if (method.IsClosedFormOf(SequenceEqualMethodInfo) && arguments[1].Type.IsArray)
+            if (method.IsClosedFormOf(SequenceEqual) && arguments[1].Type.IsArray)
                 return _sqlExpressionFactory.Equal(arrayOperand, arguments[1]);
 
             // Predicate-less Any - translate to a simple length check.
-            if (method.IsClosedFormOf(LinqMethodHelpers.EnumerableAnyMethodInfo))
+            if (method.IsClosedFormOf(EnumerableAnyWithoutPredicate))
             {
                 return
                     _sqlExpressionFactory.GreaterThan(
@@ -79,7 +84,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             // We still apply this translation when it's on a column expression, since that can't work anyway with
             // EF Core's parameter to constant expansion
 
-            if (method.IsClosedFormOf(ContainsMethodInfo) &&
+            if (method.IsClosedFormOf(Contains) &&
                 arrayOperand is ColumnExpression &&
                 //!(arrayOperand is SqlConstantExpression) &&   // When the null semantics issue is resolved
                 _sqlExpressionFactory.FindMapping(arrayOperand.Type) != null)

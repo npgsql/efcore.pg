@@ -18,6 +18,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
+        [ConditionalTheory(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/17379")]
+        public override Task SelectMany_correlated_with_outer_2(bool isAsync) => null;
+
+        [ConditionalTheory(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/17379")]
+        public override Task SelectMany_correlated_with_outer_4(bool isAsync) => null;
+
         #region Overrides
 
         public override async Task Select_expression_date_add_year(bool isAsync)

@@ -442,7 +442,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                             }, model, builder);
 
                             builder.Append(alterBase).Append("SET");
-                            DefaultValue(null, $@"nextval('{Dependencies.SqlGenerationHelper.DelimitIdentifier(newSequenceName, operation.Schema)}')", builder);
+                            DefaultValue(null, $@"nextval('{Dependencies.SqlGenerationHelper.DelimitIdentifier(newSequenceName, operation.Schema)}')", type, builder);
                             builder.AppendLine(';');
                             // Note: we also need to set the sequence ownership, this is done below after the ALTER COLUMN
                             break;
@@ -527,7 +527,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 if (operation.DefaultValue != null || defaultValueSql != null)
                 {
                     builder.Append("SET");
-                    DefaultValue(operation.DefaultValue, defaultValueSql, builder);
+                    DefaultValue(operation.DefaultValue, defaultValueSql, type, builder);
                 }
                 else
                     builder.Append("DROP DEFAULT");

@@ -2,6 +2,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
 using NpgsqlTypes;
 
@@ -21,7 +22,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             : base(dependencies, relationalDependencies)
         {}
 
-        public override bool IsEvaluatableExpression(Expression expression)
+        public override bool IsEvaluatableExpression(Expression expression, IModel model)
         {
             // Full text search
             if (expression is MethodCallExpression e && (
@@ -44,7 +45,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 return false;
             }
 
-            return base.IsEvaluatableExpression(expression);
+            return base.IsEvaluatableExpression(expression, model);
         }
     }
 }
