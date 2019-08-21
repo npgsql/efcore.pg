@@ -30,12 +30,6 @@ namespace Microsoft.EntityFrameworkCore
         public static void SetStorageParameter([NotNull] this IConventionEntityType entityType, string parameterName, object parameterValue, bool fromDataAnnotation = false)
             => entityType.SetOrRemoveAnnotation(NpgsqlAnnotationNames.StorageParameterPrefix + parameterName, parameterValue, fromDataAnnotation);
 
-        public static string GetComment([NotNull] this IEntityType entityType)
-            => (string)entityType[NpgsqlAnnotationNames.Comment];
-
-        public static void SetComment([NotNull] this IMutableEntityType entityType, [CanBeNull] string comment)
-            => entityType.SetOrRemoveAnnotation(NpgsqlAnnotationNames.Comment, comment);
-
         public static bool GetIsUnlogged([NotNull] this IEntityType entityType)
             => entityType[NpgsqlAnnotationNames.UnloggedTable] as bool? ?? false;
 

@@ -268,6 +268,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
     CHECK (SSN > 0),
     FOREIGN KEY (""EmployerId"") REFERENCES ""Companies"" (""Id"")
 );
+COMMENT ON TABLE dbo.""People"" IS 'Table comment';
+COMMENT ON COLUMN dbo.""People"".""EmployerId"" IS 'Employer ID comment';
 ");
         }
 
@@ -1282,6 +1284,7 @@ ALTER TABLE dbo.""People"" RESET (user_catalog_table);
                 {
                     Name = "People",
                     Schema = "dbo",
+                    Comment = "Some comment",
                     Columns =
                     {
                         new AddColumnOperation
@@ -1295,8 +1298,7 @@ ALTER TABLE dbo.""People"" RESET (user_catalog_table);
                     PrimaryKey = new AddPrimaryKeyOperation
                     {
                         Columns = new[] { "Id" }
-                    },
-                    [NpgsqlAnnotationNames.Comment] = "Some comment",
+                    }
                 });
 
             AssertSql(
@@ -1324,7 +1326,7 @@ COMMENT ON TABLE dbo.""People"" IS 'Some comment';
                             Table = "People",
                             ClrType = typeof(int),
                             IsNullable = false,
-                            [NpgsqlAnnotationNames.Comment] = "Some comment",
+                            Comment = "Some comment"
                         }
                     },
                     PrimaryKey = new AddPrimaryKeyOperation
@@ -1350,8 +1352,8 @@ COMMENT ON COLUMN dbo.""People"".""Id"" IS 'Some comment';
                 {
                     Name = "People",
                     Schema = "dbo",
-                    OldTable = new TableOperation { [NpgsqlAnnotationNames.Comment] = "Old comment" },
-                    [NpgsqlAnnotationNames.Comment] = "New comment"
+                    Comment = "New comment",
+                    OldTable = new TableOperation { Comment = "Old comment" }
                 });
 
             AssertSql(
@@ -1367,7 +1369,7 @@ COMMENT ON COLUMN dbo.""People"".""Id"" IS 'Some comment';
                 {
                     Name = "People",
                     Schema = "dbo",
-                    OldTable = new TableOperation { [NpgsqlAnnotationNames.Comment] = "New comment" }
+                    OldTable = new TableOperation { Comment = "New comment" }
                 });
             AssertSql(
                 @"COMMENT ON TABLE dbo.""People"" IS NULL;
@@ -1385,7 +1387,7 @@ COMMENT ON COLUMN dbo.""People"".""Id"" IS 'Some comment';
                 ClrType = typeof(int),
                 ColumnType = "int",
                 IsNullable = false,
-                [NpgsqlAnnotationNames.Comment] = "Some comment",
+                Comment = "Some comment"
             });
 
             AssertSql(
@@ -1407,8 +1409,8 @@ COMMENT ON COLUMN dbo.""People"".foo IS 'Some comment';
                     ColumnType = "int",
                     IsNullable = false,
                     DefaultValue = 7,
-                    OldColumn = new ColumnOperation { [NpgsqlAnnotationNames.Comment] = "Old comment" },
-                    [NpgsqlAnnotationNames.Comment] = "New comment"
+                    Comment = "New comment",
+                    OldColumn = new ColumnOperation { Comment = "Old comment" }
                 });
 
             AssertSql(
@@ -1432,7 +1434,7 @@ COMMENT ON COLUMN dbo.""People"".""LuckyNumber"" IS 'New comment';
                     ColumnType = "int",
                     IsNullable = false,
                     DefaultValue = 7,
-                    OldColumn = new ColumnOperation { [NpgsqlAnnotationNames.Comment] = "Old comment" }
+                    OldColumn = new ColumnOperation { Comment = "Old comment" }
                 });
 
             AssertSql(

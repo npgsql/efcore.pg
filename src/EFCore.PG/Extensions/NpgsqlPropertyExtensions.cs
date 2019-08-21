@@ -477,15 +477,5 @@ namespace Microsoft.EntityFrameworkCore
             => property.RemoveAnnotation(NpgsqlAnnotationNames.IdentityOptions);
 
         #endregion Identity sequence options
-
-        #region Comment
-
-        public static string GetComment([NotNull] this IProperty property)
-            => (string)property[NpgsqlAnnotationNames.Comment];
-
-        public static void SetComment([NotNull] this IMutableProperty property, [CanBeNull] string comment)
-            => property.SetOrRemoveAnnotation(NpgsqlAnnotationNames.Comment, comment);
-
-        #endregion Comment
     }
 }

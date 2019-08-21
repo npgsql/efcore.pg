@@ -612,40 +612,39 @@ namespace Microsoft.EntityFrameworkCore
 
         #endregion Identity options
 
-        #region Comment
+        #region Obsolete
 
         /// <summary>
-        /// Configures the comment set on the column when targeting Npgsql.
+        /// Configures a comment to be applied to the column.
         /// </summary>
-        /// <param name="propertyBuilder"> The builder for the property being configured.</param>
-        /// <param name="comment"> The comment of the column.</param>
+        /// <param name="propertyBuilder">The builder for the property being configured.</param>
+        /// <param name="comment">The comment for the column.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-        public static PropertyBuilder HasComment(
+        [Obsolete("Use HasComment")]
+        public static PropertyBuilder ForNpgsqlHasComment(
             [NotNull] this PropertyBuilder propertyBuilder,
             [CanBeNull] string comment)
         {
             Check.NotNull(propertyBuilder, nameof(propertyBuilder));
             Check.NullButNotEmpty(comment, nameof(comment));
 
-            NpgsqlPropertyExtensions.SetComment(propertyBuilder.Metadata, comment);
+            propertyBuilder.HasComment(comment);
 
             return propertyBuilder;
         }
 
         /// <summary>
-        /// Configures the comment set on the column when targeting Npgsql.
+        /// Configures a comment to be applied to the column.
         /// </summary>
-        /// <param name="propertyBuilder"> The builder for the property being configured.</param>
-        /// <param name="comment"> The comment of the column.</param>
+        /// <typeparam name="TEntity">The entity type being configured.</typeparam>
+        /// <param name="propertyBuilder">The builder for the property being configured.</param>
+        /// <param name="comment">The comment for the column.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-        public static PropertyBuilder<TEntity> HasComment<TEntity>(
+        [Obsolete("Use HasComment")]
+        public static PropertyBuilder<TEntity> ForNpgsqlHasComment<TEntity>(
             [NotNull] this PropertyBuilder<TEntity> propertyBuilder,
             [CanBeNull] string comment)
-        => (PropertyBuilder<TEntity>)HasComment((PropertyBuilder)propertyBuilder, comment);
-
-        #endregion Comment
-
-        #region Obsolete
+            => (PropertyBuilder<TEntity>)ForNpgsqlHasComment((PropertyBuilder)propertyBuilder, comment);
 
         /// <summary>
         /// Configures the property to use a sequence-based hi-lo pattern to generate values for new entities,

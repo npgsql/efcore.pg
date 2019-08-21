@@ -222,7 +222,7 @@ WHERE
                     };
 
                     if (reader.GetValueOrDefault<string>("description") is string comment)
-                        table[NpgsqlAnnotationNames.Comment] = comment;
+                        table.Comment = comment;
 
                     tables.Add(table);
                 }
@@ -433,7 +433,7 @@ ORDER BY attnum";
                         }
 
                         if (record.GetValueOrDefault<string>("description") is string comment)
-                            column[NpgsqlAnnotationNames.Comment] = comment;
+                            column.Comment = comment;
 
                         table.Columns.Add(column);
                     }
