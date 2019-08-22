@@ -68,15 +68,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                     return null;
 
                 return _jsonTranslator.TranslateArrayLength(sqlOperand) ??
-                       _sqlExpressionFactory.Function(
-                           "array_length",
-                            new[]
-                            {
-                                _sqlExpressionFactory.ApplyDefaultTypeMapping(sqlOperand),
-                                _sqlExpressionFactory.Constant(1)
-                            },
-                            typeof(int),
-                            _sqlExpressionFactory.FindMapping(typeof(int)));
+                       _sqlExpressionFactory.Function("cardinality", new[] { sqlOperand }, typeof(int?));
             }
 
             return base.VisitUnary(unaryExpression);

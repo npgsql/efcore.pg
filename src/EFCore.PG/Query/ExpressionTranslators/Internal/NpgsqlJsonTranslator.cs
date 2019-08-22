@@ -70,7 +70,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             {
                 return _sqlExpressionFactory.Function(
                     mapping.IsJsonb ? "jsonb_array_length" : "json_array_length",
-                    new[] { expression }, typeof(int));
+                    new[] { expression }, typeof(int?));
             }
 
             if (expression.RemoveConvert() is JsonTraversalExpression traversal)
@@ -87,7 +87,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 var jsonMapping = (NpgsqlJsonObjectTypeMapping)traversal.Expression.TypeMapping;
                 return _sqlExpressionFactory.Function(
                     jsonMapping.IsJsonb ? "jsonb_array_length" : "json_array_length",
-                    new[] { newTraversal }, typeof(int));
+                    new[] { newTraversal }, typeof(int?));
             }
 
             return null;

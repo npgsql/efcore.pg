@@ -56,11 +56,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 return
                     _sqlExpressionFactory.GreaterThan(
                         _jsonTranslator.TranslateArrayLength(arrayOperand) ??
-                        _sqlExpressionFactory.Function(
-                            "array_length",
-                            new[] { arrayOperand, _sqlExpressionFactory.Constant(1) },
-                            typeof(int)),
-                        _sqlExpressionFactory.Constant(1));
+                        _sqlExpressionFactory.Function("cardinality", arguments, typeof(int?)),
+                        _sqlExpressionFactory.Constant(0));
             }
 
             // Note that .Where(e => new[] { "a", "b", "c" }.Any(p => e.SomeText == p)))
