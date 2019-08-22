@@ -209,7 +209,7 @@ LIMIT 2");
                 AssertSql(
                     @"SELECT s.""Id"", s.""SomeArray"", s.""SomeBytea"", s.""SomeList"", s.""SomeMatrix"", s.""SomeText""
 FROM ""SomeEntities"" AS s
-WHERE (array_length(s.""SomeArray"", 1) = 2) AND (array_length(s.""SomeArray"", 1) IS NOT NULL)
+WHERE (cardinality(s.""SomeArray"") = 2) AND (cardinality(s.""SomeArray"") IS NOT NULL)
 LIMIT 2");            }
         }
 
@@ -224,7 +224,7 @@ LIMIT 2");            }
                 AssertSql(
                     @"SELECT s.""Id"", s.""SomeArray"", s.""SomeBytea"", s.""SomeList"", s.""SomeMatrix"", s.""SomeText""
 FROM ""SomeEntities"" AS s
-WHERE (array_length(s.""SomeArray"", 1) = 2) AND (array_length(s.""SomeArray"", 1) IS NOT NULL)
+WHERE (cardinality(s.""SomeArray"") = 2) AND (cardinality(s.""SomeArray"") IS NOT NULL)
 LIMIT 2");            }
         }
 
@@ -234,7 +234,7 @@ LIMIT 2");            }
             using (var ctx = Fixture.CreateContext())
             {
                 var _ = ctx.SomeEntities.Where(e => new[] { 1, 2, 3 }.Length == e.Id).ToList();
-                AssertDoesNotContainInSql("array_length");
+                AssertDoesNotContainInSql("cardinality");
             }
         }
 
@@ -253,7 +253,7 @@ LIMIT 2");            }
                 AssertSql(
                     @"SELECT COUNT(*)::INT
 FROM ""SomeEntities"" AS s
-WHERE array_length(s.""SomeArray"", 1) > 1");
+WHERE cardinality(s.""SomeArray"") > 0");
             }
         }
 

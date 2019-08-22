@@ -249,7 +249,7 @@ LIMIT 2");
                 AssertSql(
                     @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
-WHERE jsonb_array_length(j.""ToplevelArray"") > 1
+WHERE jsonb_array_length(j.""ToplevelArray"") > 0
 LIMIT 2");
             }
         }
