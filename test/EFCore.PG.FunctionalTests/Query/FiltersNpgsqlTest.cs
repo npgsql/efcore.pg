@@ -3,7 +3,6 @@ using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    // ReSharper disable once UnusedMember.Global
     public class FiltersNpgsqlTest : FiltersTestBase<NorthwindQueryNpgsqlFixture<NorthwindFiltersCustomizer>>
     {
         // ReSharper disable once UnusedParameter.Local
