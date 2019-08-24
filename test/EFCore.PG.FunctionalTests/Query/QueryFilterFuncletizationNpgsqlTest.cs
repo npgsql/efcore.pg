@@ -5,7 +5,6 @@ using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    // ReSharper disable once UnusedMember.Global
     public class QueryFilterFuncletizationNpgsqlTest
         : QueryFilterFuncletizationTestBase<QueryFilterFuncletizationNpgsqlTest.QueryFilterFuncletizationNpgsqlFixture>
     {

@@ -8,8 +8,7 @@ using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
-    // TODO: See Issue#14534 in EF Core
-    internal class ConcurrencyDetectorNpgsqlTest : ConcurrencyDetectorRelationalTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
+    public class ConcurrencyDetectorNpgsqlTest : ConcurrencyDetectorRelationalTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
     {
         public ConcurrencyDetectorNpgsqlTest(NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture)
             : base(fixture)

@@ -6,9 +6,7 @@ using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
-    // ReSharper disable once UnusedMember.Global
-    // Disabled, see https://github.com/aspnet/EntityFrameworkCore/issues/15425
-    internal class UpdatesNpgsqlTest : UpdatesRelationalTestBase<UpdatesNpgsqlFixture>
+    public class UpdatesNpgsqlTest : UpdatesRelationalTestBase<UpdatesNpgsqlFixture>
     {
         // ReSharper disable once UnusedParameter.Local
         public UpdatesNpgsqlTest(UpdatesNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
@@ -41,17 +39,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                     ));
 
                 Assert.Equal(
-                    "LoginEntityTypeWithAnExtremelyLongAndOverlyConvolutedNameThatIsUsedToVerifyThatTheStoreIdentifierGenerationLengthLimitIsWorkin~1",
+                    "LoginEntityTypeWithAnExtremelyLongAndOverlyConvolutedNameThat~1",
                     entityType2.GetTableName());
-
                 Assert.Equal(
-                    "ExtraPropertyWithAnExtremelyLongAndOverlyConvolutedNameThatIsUsedToVerifyThatTheStoreIdentifierGenerationLengthLimitIsWorkingCo~",
+                    "PK_LoginDetails",
+                    entityType2.GetKeys().Single().GetName());
+                Assert.Equal(
+                    "ExtraPropertyWithAnExtremelyLongAndOverlyConvolutedNameThatIsU~",
                     entityType2.GetProperties().ElementAt(1).GetColumnName());
-
                 Assert.Equal(
-                    "ExtraPropertyWithAnExtremelyLongAndOverlyConvolutedNameThatIsUsedToVerifyThatTheStoreIdentifierGenerationLengthLimitIsWorkingC~1",
+                    "ExtraPropertyWithAnExtremelyLongAndOverlyConvolutedNameThatIs~1",
                     entityType2.GetProperties().ElementAt(2).GetColumnName());
-
+                Assert.Equal(
+                    "IX_LoginEntityTypeWithAnExtremelyLongAndOverlyConvolutedNameT~1",
+                    entityType2.GetIndexes().Single().GetName());
             }
         }
     }
