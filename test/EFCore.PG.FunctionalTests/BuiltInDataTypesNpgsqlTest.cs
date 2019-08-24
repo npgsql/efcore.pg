@@ -8,7 +8,6 @@ using Xunit.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.TestUtilities;
@@ -16,7 +15,6 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using NpgsqlTypes;
 
-// ReSharper disable InconsistentNaming
 namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
     public class BuiltInDataTypesNpgsqlTest : BuiltInDataTypesTestBase<BuiltInDataTypesNpgsqlTest.BuiltInDataTypesNpgsqlFixture>
@@ -24,7 +22,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         // ReSharper disable once UnusedParameter.Local
         public BuiltInDataTypesNpgsqlTest(BuiltInDataTypesNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
-            => Fixture.TestSqlLoggerFactory.Clear();
+        {
+            Fixture.TestSqlLoggerFactory.Clear();
+            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        }
 
         [Fact]
         public void Sql_translation_uses_type_mapper_when_constant()
@@ -38,12 +39,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                         .ToList();
 
                 Assert.Equal(0, results.Count);
-                Assert.Equal(
+
+                AssertSql(
                     @"SELECT m.""Int""
 FROM ""MappedNullableDataTypes"" AS m
-WHERE (m.""TimeSpanAsTime"" = TIME '00:01:02') AND (m.""TimeSpanAsTime"" IS NOT NULL)",
-                    Sql,
-                    ignoreLineEndingDifferences: true);
+WHERE (m.""TimeSpanAsTime"" = TIME '00:01:02') AND (m.""TimeSpanAsTime"" IS NOT NULL)");
             }
         }
 
@@ -61,14 +61,13 @@ WHERE (m.""TimeSpanAsTime"" = TIME '00:01:02') AND (m.""TimeSpanAsTime"" IS NOT 
                         .ToList();
 
                 Assert.Equal(0, results.Count);
-                Assert.Equal(
+
+                AssertSql(
                     @"@__timeSpan_0='02:01:00' (Nullable = true) (DbType = Object)
 
 SELECT m.""Int""
 FROM ""MappedNullableDataTypes"" AS m
-WHERE ((m.""TimeSpanAsTime"" = @__timeSpan_0) AND ((m.""TimeSpanAsTime"" IS NOT NULL) AND (@__timeSpan_0 IS NOT NULL))) OR ((m.""TimeSpanAsTime"" IS NULL) AND (@__timeSpan_0 IS NULL))",
-                    Sql,
-                    ignoreLineEndingDifferences: true);
+WHERE ((m.""TimeSpanAsTime"" = @__timeSpan_0) AND ((m.""TimeSpanAsTime"" IS NOT NULL) AND (@__timeSpan_0 IS NOT NULL))) OR ((m.""TimeSpanAsTime"" IS NULL) AND (@__timeSpan_0 IS NULL))");
             }
         }
 
@@ -506,7 +505,7 @@ WHERE ((m.""TimeSpanAsTime"" = @__timeSpan_0) AND ((m.""TimeSpanAsTime"" IS NOT 
         }
 
         string DumpParameters()
-            => Fixture.TestSqlLoggerFactory.Parameters.Single().Replace(", ", EOL);
+            => Fixture.TestSqlLoggerFactory.Parameters.Single().Replace(", ", Environment.NewLine);
 
         // ReSharper disable once UnusedMember.Local
         // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
@@ -874,9 +873,31 @@ WHERE ((m.""TimeSpanAsTime"" = @__timeSpan_0) AND ((m.""TimeSpanAsTime"" IS NOT 
             }
         }
 
-        string Sql => Fixture.TestSqlLoggerFactory.Sql;
+        [ConditionalFact]
+        public void Sum_Conversions()
+        {
+            using (var context = CreateContext())
+            {
+                // PostgreSQL SUM() returns numeric for bigint input, bigint for int/smallint inuts.
+                // Make sure the proper conversion is done
+                var sum1 = context.Set<MappedDataTypes>().Sum(m => m.LongAsBigint);
+                var sum2 = context.Set<MappedDataTypes>().Sum(m => m.Int);
+                var sum3 = context.Set<MappedDataTypes>().Sum(m => m.ShortAsSmallint);
 
-        static readonly string EOL = Environment.NewLine;
+                AssertSql(
+                    @"SELECT SUM(m.""LongAsBigint"")::bigint
+FROM ""MappedDataTypes"" AS m",
+                    //
+                    @"SELECT SUM(m.""Int"")::INT
+FROM ""MappedDataTypes"" AS m",
+                    //
+                    @"SELECT SUM(CAST(m.""ShortAsSmallint"" AS integer))::INT
+FROM ""MappedDataTypes"" AS m");
+            }
+        }
+
+        void AssertSql(params string[] expected)
+            => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
         public class BuiltInDataTypesNpgsqlFixture : BuiltInDataTypesFixtureBase
         {

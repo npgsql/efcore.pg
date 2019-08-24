@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
@@ -56,17 +57,32 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                     _sqlExpressionFactory.Function("COUNT", new[] { _sqlExpressionFactory.Fragment("*") }, typeof(long))),
                 typeof(int), _sqlExpressionFactory.FindMapping(typeof(int)));
 
-//            // In PostgreSQL SUM() doesn't return the same type as its argument for smallint, int and bigint.
-//            // Cast to get the same type.
-//            // http://www.postgresql.org/docs/current/static/functions-aggregate.html
-//            if (sqlFunctionExpression.FunctionName == "SUM")
-//        {
-//            if (sqlFunctionExpression.Type == typeof(int))
-//                Sql.Append("::INT");
-//            else if (sqlFunctionExpression.Type == typeof(short))
-//                Sql.Append("::SMALLINT");
-//            return expr;
-//        }
+        // In PostgreSQL SUM() doesn't return the same type as its argument for smallint, int and bigint.
+        // Cast to get the same type.
+        // http://www.postgresql.org/docs/current/static/functions-aggregate.html
+        public override SqlExpression TranslateSum(Expression expression)
+        {
+            var sqlExpression = expression as SqlExpression ??
+                                Translate(expression) ??
+                                throw new InvalidOperationException(CoreStrings.TranslationFailed(expression.Print()));
+
+            var inputType = sqlExpression.Type.UnwrapNullableType();
+
+            // Note that there is no Sum over short in LINQ
+            if (inputType == typeof(int))
+                return _sqlExpressionFactory.Convert(
+                    _sqlExpressionFactory.Function("SUM", new[] { sqlExpression }, typeof(long)),
+                    inputType,
+                    sqlExpression.TypeMapping);
+
+            if (inputType == typeof(long))
+                return _sqlExpressionFactory.Convert(
+                    _sqlExpressionFactory.Function("SUM", new[] { sqlExpression }, typeof(decimal)),
+                    inputType,
+                    sqlExpression.TypeMapping);
+
+            return _sqlExpressionFactory.Function("SUM", new[] { sqlExpression }, inputType, sqlExpression.TypeMapping);
+        }
 
         /// <inheritdoc />
         protected override Expression VisitUnary(UnaryExpression unaryExpression)
