@@ -277,7 +277,9 @@ SELECT
   END AS default,
 
   -- Sequence options for identity columns
-  format_type(seqtypid, 0) AS seqtype, seqstart, seqmin, seqmax, seqincrement, seqcycle, seqcache
+  {(connection.PostgreSqlVersion >= new Version(10, 0) ?
+  "format_type(seqtypid, 0) AS seqtype, seqstart, seqmin, seqmax, seqincrement, seqcycle, seqcache" :
+  "NULL AS seqtype, NULL AS seqstart, NULL AS seqmin, NULL AS seqmax, NULL AS seqincrement, NULL AS seqcycle, NULL AS seqcache")}
 
 FROM pg_class AS cls
 JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
@@ -289,7 +291,7 @@ LEFT JOIN pg_type AS basetyp ON (basetyp.oid = typ.typbasetype)
 LEFT JOIN pg_description AS des ON des.objoid = cls.oid AND des.objsubid = attnum
 -- Bring in identity sequences the depend on this column
 LEFT JOIN pg_depend AS dep ON dep.refobjid = cls.oid AND dep.refobjsubid = attr.attnum AND dep.deptype = 'i'
-LEFT JOIN pg_sequence AS seq ON seq.seqrelid = dep.objid
+{(connection.PostgreSqlVersion >= new Version(10, 0) ? "LEFT JOIN pg_sequence AS seq ON seq.seqrelid = dep.objid" : "")}
 WHERE
   cls.relkind IN ('r', 'v', 'm') AND
   nspname NOT IN ('pg_catalog', 'information_schema') AND
@@ -829,15 +831,23 @@ WHERE
             [CanBeNull] Func<string, string> schemaFilter,
             [NotNull] IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
         {
+            // Note: we consult information_schema.sequences instead of pg_sequence but the latter was only introduced in PG 10
             var commandText = $@"
 SELECT
-    nspname, relname,
-    format_type(typ.oid, 0) AS seqtype,
-    seqstart, seqmin, seqmax, seqincrement, seqcycle, seqcache
-FROM pg_class AS cls
-JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
-JOIN pg_sequence AS seq ON seq.seqrelid = cls.oid
-JOIN pg_type AS typ ON typ.oid = seq.seqtypid
+  sequence_schema, sequence_name,
+  data_type AS seqtype,
+  start_value::bigint AS seqstart,
+  minimum_value::bigint AS seqmin,
+  maximum_value::bigint AS seqmax,
+  increment::bigint AS seqincrement,
+  1::bigint AS seqcache,
+  CASE
+    WHEN cycle_option = 'YES' THEN TRUE
+    ELSE FALSE
+  END AS seqcycle
+FROM information_schema.sequences
+JOIN pg_namespace AS ns ON ns.nspname = sequence_schema
+JOIN pg_class AS cls ON cls.relnamespace = ns.oid AND cls.relname = sequence_name
 WHERE
   cls.relkind = 'S'
   /* AND seqtype IN ('integer', 'bigint', 'smallint') */
@@ -853,8 +863,8 @@ WHERE
                     var seqInfo = ReadSequenceInfo(record, connection.PostgreSqlVersion);
                     var sequence = new DatabaseSequence
                     {
-                        Schema = reader.GetValueOrDefault<string>("nspname"),
-                        Name = reader.GetValueOrDefault<string>("relname"),
+                        Schema = reader.GetValueOrDefault<string>("sequence_schema"),
+                        Name = reader.GetValueOrDefault<string>("sequence_name"),
                         StoreType = seqInfo.StoreType,
                         StartValue = seqInfo.StartValue,
                         MinValue = seqInfo.MinValue,
@@ -1002,7 +1012,7 @@ GROUP BY nspname, typname";
             var startValue = record.GetValueOrDefault<long>("seqstart");
             var minValue = record.GetValueOrDefault<long>("seqmin");
             var maxValue = record.GetValueOrDefault<long>("seqmax");
-            var incrementBy = (int)record.GetValueOrDefault<long>("seqincrement");
+            var incrementBy = record.GetValueOrDefault<long>("seqincrement");
             var isCyclic = record.GetValueOrDefault<bool>("seqcycle");
             var numbersToCache = (int)record.GetValueOrDefault<long>("seqcache");
 
