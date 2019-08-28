@@ -1,4 +1,3 @@
-#if PREVIEW8
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.TestUtilities;
@@ -37,4 +36,3 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         }
     }
 }
-#endif

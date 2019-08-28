@@ -3,8 +3,8 @@ using System.Data.Common;
 using System.Text;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using GeoAPI.Geometries;
 using JetBrains.Annotations;
+using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
 using NpgsqlTypes;
 
@@ -34,7 +34,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
         protected override string GenerateNonNullSqlLiteral(object value)
         {
-            var geometry = (IGeometry)value;
+            var geometry = (Geometry)value;
             var builder = new StringBuilder();
 
             builder
@@ -61,9 +61,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             public NullValueConverter() : base(t => t, t => t) {}
         }
 
-        protected override string AsText(object value) => ((IGeometry)value).AsText();
+        protected override string AsText(object value) => ((Geometry)value).AsText();
 
-        protected override int GetSrid(object value) => ((IGeometry)value).SRID;
+        protected override int GetSrid(object value) => ((Geometry)value).SRID;
 
         protected override Type WKTReaderType => typeof(WKTReader);
     }

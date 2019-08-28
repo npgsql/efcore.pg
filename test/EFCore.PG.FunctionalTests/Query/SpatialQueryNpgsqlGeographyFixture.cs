@@ -1,12 +1,10 @@
-#if PREVIEW8
 using System.Threading;
-using GeoAPI;
-using GeoAPI.Geometries;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using NetTopologySuite;
+using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
@@ -14,10 +12,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     public class SpatialQueryNpgsqlGeographyFixture : SpatialQueryRelationalFixture
     {
-        IGeometryServices _geometryServices;
-        IGeometryFactory _geometryFactory;
+        NtsGeometryServices _geometryServices;
+        GeometryFactory _geometryFactory;
 
-        public IGeometryServices GeometryServices
+        public NtsGeometryServices GeometryServices
             => LazyInitializer.EnsureInitialized(
                 ref _geometryServices,
                 () => new NtsGeometryServices(
@@ -25,7 +23,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                     NtsGeometryServices.Instance.DefaultPrecisionModel,
                     4326));
 
-        public override IGeometryFactory GeometryFactory
+        public override GeometryFactory GeometryFactory
             => LazyInitializer.EnsureInitialized(
                 ref _geometryFactory,
                 () => GeometryServices.CreateGeometryFactory());
@@ -60,4 +58,3 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         }
     }
 }
-#endif
