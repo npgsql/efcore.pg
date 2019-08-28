@@ -1,6 +1,6 @@
-using GeoAPI.Geometries;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using NetTopologySuite.Geometries;
 using Npgsql;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
@@ -22,8 +22,8 @@ namespace Microsoft.EntityFrameworkCore
         /// </returns>
         public static NpgsqlDbContextOptionsBuilder UseNetTopologySuite(
             [NotNull] this NpgsqlDbContextOptionsBuilder optionsBuilder,
-            ICoordinateSequenceFactory coordinateSequenceFactory = null,
-            IPrecisionModel precisionModel = null,
+            CoordinateSequenceFactory coordinateSequenceFactory = null,
+            PrecisionModel precisionModel = null,
             Ordinates handleOrdinates = Ordinates.None,
             bool geographyAsDefault = false)
         {

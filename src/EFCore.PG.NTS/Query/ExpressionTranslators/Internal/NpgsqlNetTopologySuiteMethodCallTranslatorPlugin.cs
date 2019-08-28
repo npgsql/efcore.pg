@@ -1,14 +1,11 @@
-using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
-using GeoAPI.Geometries;
 using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Query.Expressions;
-using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
+using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
+using Microsoft.EntityFrameworkCore.Storage;
 using NetTopologySuite.Geometries;
 
 // ReSharper disable once CheckNamespace
@@ -16,10 +13,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 {
     public class NpgsqlNetTopologySuiteMethodCallTranslatorPlugin : IMethodCallTranslatorPlugin
     {
-        public virtual IEnumerable<IMethodCallTranslator> Translators { get; } = new IMethodCallTranslator[]
-        {
-            new NpgsqlGeometryMethodTranslator()
-        };
+        public NpgsqlNetTopologySuiteMethodCallTranslatorPlugin(
+            IRelationalTypeMappingSource typeMappingSource,
+            ISqlExpressionFactory sqlExpressionFactory)
+            => Translators = new IMethodCallTranslator[]
+            {
+                new NpgsqlGeometryMethodTranslator(sqlExpressionFactory, typeMappingSource),
+            };
+
+        public virtual IEnumerable<IMethodCallTranslator> Translators { get; }
     }
 
     /// <summary>
@@ -28,94 +30,90 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     public class NpgsqlGeometryMethodTranslator : IMethodCallTranslator
     {
         static readonly MethodInfo _collectionItem =
-            typeof(IGeometryCollection).GetRuntimeProperty("Item").GetMethod;
+            typeof(GeometryCollection).GetRuntimeProperty("Item").GetMethod;
+
+        readonly ISqlExpressionFactory _sqlExpressionFactory;
+        readonly IRelationalTypeMappingSource _typeMappingSource;
+
+        public NpgsqlGeometryMethodTranslator(ISqlExpressionFactory sqlExpressionFactory, IRelationalTypeMappingSource typeMappingSource)
+        {
+            _sqlExpressionFactory = sqlExpressionFactory;
+            _typeMappingSource = typeMappingSource;
+        }
 
         /// <inheritdoc />
         [CanBeNull]
-        public virtual Expression Translate(MethodCallExpression e, IDiagnosticsLogger<DbLoggerCategory.Query> logger)
+        public virtual SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
         {
-            if (!typeof(IGeometry).IsAssignableFrom(e.Method.DeclaringType))
+            if (!typeof(Geometry).IsAssignableFrom(method.DeclaringType))
                 return null;
 
-            switch (e.Method.Name)
+            var typeMapping = ExpressionExtensions.InferTypeMapping(
+                arguments.Prepend(instance).Where(e => typeof(Geometry).IsAssignableFrom(e.Type)).ToArray());
+
+            Debug.Assert(typeMapping != null, "At least one argument must have typeMapping.");
+            var storeType = typeMapping.StoreType;
+            var resultGeometryTypeMapping = typeof(Geometry).IsAssignableFrom(method.ReturnType)
+                ? _typeMappingSource.FindMapping(method.ReturnType, storeType)
+                : null;
+
+            instance = _sqlExpressionFactory.ApplyTypeMapping(instance, _typeMappingSource.FindMapping(instance.Type, storeType));
+
+            var typeMappedArguments = new List<SqlExpression>();
+            foreach (var argument in arguments)
             {
-            case "AsBinary":
-                return new SqlFunctionExpression("ST_AsBinary",      typeof(byte[]),   new[] { e.Object });
-            case "AsText":
-                return new SqlFunctionExpression("ST_AsText",        typeof(string),   new[] { e.Object });
-            case "Buffer":
-                return new SqlFunctionExpression("ST_Buffer",        typeof(Geometry), new[] { e.Object }.Concat(e.Arguments));
-            case "Contains":
-                return new SqlFunctionExpression("ST_Contains",      typeof(bool),     new[] { e.Object, e.Arguments[0] });
-            case "ConvexHull":
-                return new SqlFunctionExpression("ST_ConvexHull",    typeof(Geometry), new[] { e.Object });
-            case "CoveredBy":
-                return new SqlFunctionExpression("ST_CoveredBy",     typeof(bool),     new[] { e.Object, e.Arguments[0] });
-            case "Covers":
-                return new SqlFunctionExpression("ST_Covers",        typeof(bool),     new[] { e.Object, e.Arguments[0] });
-            case "Crosses":
-                return new SqlFunctionExpression("ST_Crosses",       typeof(bool),     new[] { e.Object, e.Arguments[0] });
-            case "Disjoint":
-                return new SqlFunctionExpression("ST_Disjoint",      typeof(bool),     new[] { e.Object, e.Arguments[0] });
-            case "Difference":
-                return new SqlFunctionExpression("ST_Difference",    typeof(Geometry), new[] { e.Object, e.Arguments[0] });
-            case "Distance":
-                return new SqlFunctionExpression("ST_Distance",      typeof(double),   new[] { e.Object, e.Arguments[0] });
-            case "EqualsExact":
-                return Expression.Equal(e.Object, e.Arguments[0]);
-            case "EqualsTopologically":
-                return new SqlFunctionExpression("ST_Equals",        typeof(bool),     new[] { e.Object, e.Arguments[0] });
-            case "GetGeometryN":
-                return GenerateOneBasedFunctionExpression("ST_GeometryN", e.Type, e.Object, e.Arguments[0]);
-            case "GetInteriorRingN":
-                return GenerateOneBasedFunctionExpression("ST_InteriorRingN", e.Type, e.Object, e.Arguments[0]);
-            case "GetPointN":
-                return GenerateOneBasedFunctionExpression("ST_PointN", e.Type, e.Object, e.Arguments[0]);
-            case "Intersection":
-                return new SqlFunctionExpression("ST_Intersection",  typeof(Geometry), new[] { e.Object, e.Arguments[0] });
-            case "Intersects":
-                return new SqlFunctionExpression("ST_Intersects",    typeof(bool),     new[] { e.Object, e.Arguments[0] });
-            case "IsWithinDistance":
-                return new SqlFunctionExpression("ST_DWithin",       typeof(bool),     new[] { e.Object, e.Arguments[0], e.Arguments[1] });
-            case "Overlaps":
-                return new SqlFunctionExpression("ST_Overlaps",      typeof(bool),     new[] { e.Object, e.Arguments[0] });
-            case "Relate":
-                return new SqlFunctionExpression("ST_Relate",        typeof(bool),     new[] { e.Object, e.Arguments[0], e.Arguments[1] });
-            case "Reverse":
-                return new SqlFunctionExpression("ST_Reverse",       typeof(Geometry), new[] { e.Object });
-            case "SymmetricDifference":
-                return new SqlFunctionExpression("ST_SymDifference", typeof(Geometry), new[] { e.Object, e.Arguments[0] });
-            case "ToBinary":
-                return new SqlFunctionExpression("ST_AsBinary",      typeof(byte[]),   new[] { e.Object });
-            case "ToText":
-                return new SqlFunctionExpression("ST_AsText",        typeof(string),   new[] { e.Object });
-            case "Touches":
-                return new SqlFunctionExpression("ST_Touches",       typeof(bool),     new[] { e.Object, e.Arguments[0] });
-            case "Union" when e.Arguments.Count == 0:
-                return new SqlFunctionExpression("ST_UnaryUnion",    typeof(Geometry), new[] { e.Object });
-            case "Union" when e.Arguments.Count == 1:
-                return new SqlFunctionExpression("ST_Union",        typeof(Geometry),  new[] { e.Object, e.Arguments[0] });
-            case "Within":
-                return new SqlFunctionExpression("ST_Within",       typeof(bool),      new[] { e.Object, e.Arguments[0] });
+                typeMappedArguments.Add(
+                    _sqlExpressionFactory.ApplyTypeMapping(
+                        argument,
+                        typeof(Geometry).IsAssignableFrom(argument.Type)
+                            ? _typeMappingSource.FindMapping(argument.Type, storeType)
+                            : _typeMappingSource.FindMapping(argument.Type)));
             }
+            arguments = typeMappedArguments;
 
-            // IGeometryCollection[index]
-            var method = e.Method.OnInterface(typeof(IGeometryCollection));
-            if (Equals(method, _collectionItem))
-                return GenerateOneBasedFunctionExpression("ST_GeometryN", e.Type, e.Object, e.Arguments[0]);
-
-            return null;
-        }
-
-        // NetTopologySuite uses 0-based indexing, but PostGIS uses 1-based
-        static SqlFunctionExpression GenerateOneBasedFunctionExpression(
-            string functionName, Type returnType, Expression obj, Expression arg)
-            => new SqlFunctionExpression(functionName, returnType, new[]
+            return method.Name switch
             {
-                obj,
-                arg is ConstantExpression constant
-                    ? (Expression)Expression.Constant((int)constant.Value + 1)
-                    : Expression.Add(arg, Expression.Constant(1))
-            });
+            nameof(Geometry.AsBinary)            => _sqlExpressionFactory.Function("ST_AsBinary",      new[] { instance }, typeof(byte[])),
+            nameof(Geometry.AsText)              => _sqlExpressionFactory.Function("ST_AsText",        new[] { instance }, typeof(string)),
+            nameof(Geometry.Buffer)              => _sqlExpressionFactory.Function("ST_Buffer",        new[] { instance }.Concat(arguments), typeof(Geometry), resultGeometryTypeMapping),
+            nameof(Geometry.Contains)            => _sqlExpressionFactory.Function("ST_Contains",      new[] { instance, arguments[0] }, typeof(bool)),
+            nameof(Geometry.ConvexHull)          => _sqlExpressionFactory.Function("ST_ConvexHull",    new[] { instance }, typeof(Geometry), resultGeometryTypeMapping),
+            nameof(Geometry.CoveredBy)           => _sqlExpressionFactory.Function("ST_CoveredBy",     new[] { instance, arguments[0] }, typeof(bool)),
+            nameof(Geometry.Covers)              => _sqlExpressionFactory.Function("ST_Covers",        new[] { instance, arguments[0] }, typeof(bool)),
+            nameof(Geometry.Crosses)             => _sqlExpressionFactory.Function("ST_Crosses",       new[] { instance, arguments[0] }, typeof(bool)),
+            nameof(Geometry.Disjoint)            => _sqlExpressionFactory.Function("ST_Disjoint",      new[] { instance, arguments[0] }, typeof(bool)),
+            nameof(Geometry.Difference)          => _sqlExpressionFactory.Function("ST_Difference",    new[] { instance, arguments[0] }, typeof(Geometry), resultGeometryTypeMapping),
+            nameof(Geometry.Distance)            => _sqlExpressionFactory.Function("ST_Distance",      new[] { instance, arguments[0] }, typeof(double)),
+            nameof(Geometry.EqualsExact)         => _sqlExpressionFactory.Equal(instance, arguments[0]),
+            nameof(Geometry.EqualsTopologically) => _sqlExpressionFactory.Function("ST_Equals",        new[] { instance, arguments[0] }, typeof(bool)),
+            nameof(Geometry.GetGeometryN)        => _sqlExpressionFactory.Function("ST_GeometryN",     new[] { instance, OneBased(arguments[0]) }, typeof(Geometry), resultGeometryTypeMapping),
+            nameof(Polygon.GetInteriorRingN)     => _sqlExpressionFactory.Function("ST_InteriorRingN", new[] { instance, OneBased(arguments[0]) }, typeof(Geometry), resultGeometryTypeMapping),
+            nameof(LineString.GetPointN)         => _sqlExpressionFactory.Function("ST_PointN",        new[] { instance, OneBased(arguments[0]) }, typeof(Geometry), resultGeometryTypeMapping),
+            nameof(Geometry.Intersection)        => _sqlExpressionFactory.Function("ST_Intersection",  new[] { instance, arguments[0] }, typeof(Geometry), resultGeometryTypeMapping),
+            nameof(Geometry.Intersects)          => _sqlExpressionFactory.Function("ST_Intersects",    new[] { instance, arguments[0] }, typeof(bool)),
+            nameof(Geometry.IsWithinDistance)    => _sqlExpressionFactory.Function("ST_DWithin",       new[] { instance, arguments[0], arguments[1] }, typeof(bool)),
+            nameof(Geometry.Overlaps)            => _sqlExpressionFactory.Function("ST_Overlaps",      new[] { instance, arguments[0] }, typeof(bool)),
+            nameof(Geometry.Relate)              => _sqlExpressionFactory.Function("ST_Relate",        new[] { instance, arguments[0], arguments[1] }, typeof(bool)),
+            nameof(Geometry.Reverse)             => _sqlExpressionFactory.Function("ST_Reverse",       new[] { instance }, typeof(Geometry), resultGeometryTypeMapping),
+            nameof(Geometry.SymmetricDifference) => _sqlExpressionFactory.Function("ST_SymDifference", new[] { instance, arguments[0] }, typeof(Geometry), resultGeometryTypeMapping),
+            nameof(Geometry.ToBinary)            => _sqlExpressionFactory.Function("ST_AsBinary",      new[] { instance }, typeof(byte[])),
+            nameof(Geometry.ToText)              => _sqlExpressionFactory.Function("ST_AsText",        new[] { instance }, typeof(string)),
+            nameof(Geometry.Touches)             => _sqlExpressionFactory.Function("ST_Touches",       new[] { instance, arguments[0] }, typeof(bool)),
+            nameof(Geometry.Within)              => _sqlExpressionFactory.Function("ST_Within",        new[] { instance, arguments[0] }, typeof(bool)),
+
+            nameof(Geometry.Union) when arguments.Count == 0 => _sqlExpressionFactory.Function("ST_UnaryUnion", new[] { instance }, typeof(Geometry), resultGeometryTypeMapping),
+            nameof(Geometry.Union) when arguments.Count == 1 => _sqlExpressionFactory.Function("ST_Union",      new[] { instance, arguments[0] }, typeof(Geometry), resultGeometryTypeMapping),
+
+            _ => method.OnInterface(typeof(GeometryCollection)) is MethodInfo collectionMethod && collectionMethod == null
+                 ? _sqlExpressionFactory.Function("ST_GeometryN", new[] { instance, OneBased(arguments[0]) }, typeof(Geometry), resultGeometryTypeMapping)
+                 : null
+            };
+
+            // NetTopologySuite uses 0-based indexing, but PostGIS uses 1-based
+            SqlExpression OneBased(SqlExpression arg)
+                => arg is SqlConstantExpression constant
+                    ? _sqlExpressionFactory.Constant((int)constant.Value + 1, constant.TypeMapping)
+                    : (SqlExpression)_sqlExpressionFactory.Add(arg, _sqlExpressionFactory.Constant(1));
+        }
     }
 }

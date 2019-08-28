@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using GeoAPI.Geometries;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Storage;
+using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
@@ -17,13 +17,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
         static readonly Dictionary<string, Type> SubTypeNameToClrType = new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase)
         {
-            { "POINT",              typeof(IPoint) },
-            { "LINESTRING",         typeof(ILineString) },
-            { "POLYGON",            typeof(IPolygon) },
-            { "MULTIPOINT",         typeof(IMultiPoint) },
-            { "MULTILINESTRING",    typeof(IMultiLineString) },
-            { "MULTIPOLYGON",       typeof(IMultiPolygon) },
-            { "GEOMETRYCOLLECTION", typeof(IGeometryCollection) }
+            { "POINT",              typeof(Point) },
+            { "LINESTRING",         typeof(LineString) },
+            { "POLYGON",            typeof(Polygon) },
+            { "MULTIPOINT",         typeof(MultiPoint) },
+            { "MULTILINESTRING",    typeof(MultiLineString) },
+            { "MULTIPOLYGON",       typeof(MultiPolygon) },
+            { "GEOMETRYCOLLECTION", typeof(GeometryCollection) }
         };
 
         public NpgsqlNetTopologySuiteTypeMappingSourcePlugin([NotNull] INpgsqlNetTopologySuiteOptions options)
@@ -36,7 +36,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             var storeTypeName = mappingInfo.StoreTypeName;
             var isGeography = _options.IsGeographyDefault;
 
-            if (clrType != null && !typeof(IGeometry).IsAssignableFrom(clrType))
+            if (clrType != null && !typeof(Geometry).IsAssignableFrom(clrType))
                 return null;
 
             if (storeTypeName != null)
@@ -49,7 +49,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
             return clrType != null || storeTypeName != null
                 ? (RelationalTypeMapping)Activator.CreateInstance(
-                    typeof(NpgsqlGeometryTypeMapping<>).MakeGenericType(clrType ?? typeof(IGeometry)),
+                    typeof(NpgsqlGeometryTypeMapping<>).MakeGenericType(clrType ?? typeof(Geometry)),
                     storeTypeName ?? (isGeography ? "geography" : "geometry"),
                     isGeography)
                 : null;

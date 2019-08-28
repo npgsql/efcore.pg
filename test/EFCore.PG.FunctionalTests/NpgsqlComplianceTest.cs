@@ -10,10 +10,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
     {
         protected override ICollection<Type> IgnoredTestBases { get; } = new HashSet<Type>
         {
-            // Spatial support disabled for now, waiting for NetTopologySuite 2.0
-            typeof(SpatialTestBase<>),
-            typeof(SpatialQueryTestBase<>),
-
             // TODO
             typeof(FromSqlSprocQueryTestBase<>)
         };
