@@ -46,7 +46,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
             [NotNull] SqlExpression right,
             [NotNull] string binaryOperator,
             [NotNull] Type type,
-            [CanBeNull] RelationalTypeMapping typeMapping)
+            [CanBeNull] RelationalTypeMapping typeMapping = null)
             : base(type, typeMapping)
         {
             Left = Check.NotNull(left, nameof(left));

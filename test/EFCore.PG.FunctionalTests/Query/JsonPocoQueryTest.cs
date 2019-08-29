@@ -9,11 +9,11 @@ using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public class JsonQueryTest  : IClassFixture<JsonQueryTest.JsonQueryFixture>
+    public class JsonPocoQueryTest  : IClassFixture<JsonPocoQueryTest.JsonPocoQueryFixture>
     {
-        JsonQueryFixture Fixture { get; }
+        JsonPocoQueryFixture Fixture { get; }
 
-        public JsonQueryTest(JsonQueryFixture fixture, ITestOutputHelper testOutputHelper)
+        public JsonPocoQueryTest(JsonPocoQueryFixture fixture, ITestOutputHelper testOutputHelper)
         {
             Fixture = fixture;
             Fixture.TestSqlLoggerFactory.Clear();
@@ -26,6 +26,25 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using (var ctx = Fixture.CreateContext())
             {
                 var x = ctx.JsonbEntities.Single(e => e.Id == 1);
+                var customer = x.Customer;
+                Assert.Equal("Joe", customer.Name);
+                Assert.Equal(25, customer.Age);
+                var orders = customer.Orders;
+                Assert.Equal(99.5m, orders[0].Price);
+                Assert.Equal("Some address 1", orders[0].ShippingAddress);
+                Assert.Equal(new DateTime(2019, 10, 1), orders[0].ShippingDate);
+                Assert.Equal(23, orders[1].Price);
+                Assert.Equal("Some address 2", orders[1].ShippingAddress);
+                Assert.Equal(new DateTime(2019, 10, 10), orders[1].ShippingDate);
+            }
+        }
+
+        [Fact]
+        public void Roundtrip_json()
+        {
+            using (var ctx = Fixture.CreateContext())
+            {
+                var x = ctx.JsonEntities.Single(e => e.Id == 1);
                 var customer = x.Customer;
                 Assert.Equal("Joe", customer.Name);
                 Assert.Equal(25, customer.Age);
@@ -70,7 +89,7 @@ FROM ""JsonbEntities"" AS j
 WHERE (j.""Id"" = @__p_0) AND (@__p_0 IS NOT NULL)
 LIMIT 1",
                     //
-                    @"@__expected_0='Npgsql.EntityFrameworkCore.PostgreSQL.Query.JsonQueryTest+Customer' (DbType = Object)
+                    @"@__expected_0='Npgsql.EntityFrameworkCore.PostgreSQL.Query.JsonPocoQueryTest+Customer' (DbType = Object)
 
 SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
@@ -92,25 +111,6 @@ LIMIT 2");
 FROM ""JsonbEntities"" AS j
 WHERE j.""Customer""->>'Name' = 'Joe'
 LIMIT 2");
-            }
-        }
-
-        [Fact]
-        public void Roundtrip_json()
-        {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var x = ctx.JsonEntities.Single(e => e.Id == 1);
-                var customer = x.Customer;
-                Assert.Equal("Joe", customer.Name);
-                Assert.Equal(25, customer.Age);
-                var orders = customer.Orders;
-                Assert.Equal(99.5m, orders[0].Price);
-                Assert.Equal("Some address 1", orders[0].ShippingAddress);
-                Assert.Equal(new DateTime(2019, 10, 1), orders[0].ShippingDate);
-                Assert.Equal(23, orders[1].Price);
-                Assert.Equal("Some address 2", orders[1].ShippingAddress);
-                Assert.Equal(new DateTime(2019, 10, 10), orders[1].ShippingDate);
             }
         }
 
@@ -173,7 +173,7 @@ LIMIT 2");
                 AssertSql(
                     @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
-WHERE CAST(j.""Customer""#>>'{Statistics,Visits}' AS integer) = 4
+WHERE CAST(j.""Customer""#>>'{Statistics,Visits}' AS bigint) = 4
 LIMIT 2");
             }
         }
@@ -273,6 +273,22 @@ LIMIT 2");
                     @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
 WHERE jsonb_array_length(j.""Customer""->'Orders') = 2
+LIMIT 2");
+            }
+        }
+
+        [Fact]
+        public void Array_Length_json()
+        {
+            using (var ctx = Fixture.CreateContext())
+            {
+                var x = ctx.JsonEntities.Single(e => e.Customer.Orders.Length == 2);
+                Assert.Equal("Joe", x.Customer.Name);
+
+                AssertSql(
+                    @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
+FROM ""JsonEntities"" AS j
+WHERE json_array_length(j.""Customer""->'Orders') = 2
 LIMIT 2");
             }
         }
@@ -413,9 +429,9 @@ LIMIT 2");
             public string[] ToplevelArray { get; set; }
         }
 
-        public class JsonQueryFixture : SharedStoreFixtureBase<JsonQueryContext>
+        public class JsonPocoQueryFixture : SharedStoreFixtureBase<JsonQueryContext>
         {
-            protected override string StoreName => "JsonQueryTest";
+            protected override string StoreName => "JsonPocoQueryTest";
             protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
             public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
             protected override void Seed(JsonQueryContext context) => JsonQueryContext.Seed(context);
@@ -432,7 +448,7 @@ LIMIT 2");
 
         public class Statistics
         {
-            public int Visits { get; set; }
+            public long Visits { get; set; }
             public int Purchases { get; set; }
             public NestedStatistics Nested { get; set; }
         }

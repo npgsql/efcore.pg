@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using System.Text;
 using System.Text.Json;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -11,16 +13,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     /// A mapping for an arbitrary user POCO to PostgreSQL jsonb or json.
     /// For mapping to .NET string, see <see cref="NpgsqlStringTypeMapping"/>.
     /// </summary>
-    public class NpgsqlJsonObjectTypeMapping : NpgsqlTypeMapping
+    public class NpgsqlJsonTypeMapping : NpgsqlTypeMapping
     {
-        public NpgsqlJsonObjectTypeMapping([NotNull] string storeType, [NotNull] Type clrType)
+        public NpgsqlJsonTypeMapping([NotNull] string storeType, [NotNull] Type clrType)
             : base(storeType, clrType, storeType == "jsonb" ? NpgsqlDbType.Jsonb : NpgsqlDbType.Json)
         {
             if (storeType != "json" && storeType != "jsonb")
                 throw new ArgumentException($"{nameof(storeType)} must be 'json' or 'jsonb'", nameof(storeType));
         }
 
-        protected NpgsqlJsonObjectTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
+        protected NpgsqlJsonTypeMapping(RelationalTypeMappingParameters parameters, NpgsqlDbType npgsqlDbType)
             : base(parameters, npgsqlDbType)
         {
         }
@@ -28,12 +30,26 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         public bool IsJsonb => StoreType == "jsonb";
 
         protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
-            => new NpgsqlJsonObjectTypeMapping(parameters, NpgsqlDbType);
+            => new NpgsqlJsonTypeMapping(parameters, NpgsqlDbType);
 
         protected virtual string EscapeSqlLiteral([NotNull] string literal)
             => Check.NotNull(literal, nameof(literal)).Replace("'", "''");
 
         protected override string GenerateNonNullSqlLiteral(object value)
-            => $"'{EscapeSqlLiteral(JsonSerializer.Serialize(value))}'";
+        {
+            if (value is JsonDocument || value is JsonElement)
+            {
+                using var stream = new MemoryStream();
+                using var writer = new Utf8JsonWriter(stream);
+                if (value is JsonDocument doc)
+                    doc.WriteTo(writer);
+                else
+                    ((JsonElement)value).WriteTo(writer);
+                writer.Flush();
+                return $"'{EscapeSqlLiteral(Encoding.UTF8.GetString(stream.ToArray()))}'";
+            }
+
+            return $"'{EscapeSqlLiteral(JsonSerializer.Serialize(value))}'";
+        }
     }
 }

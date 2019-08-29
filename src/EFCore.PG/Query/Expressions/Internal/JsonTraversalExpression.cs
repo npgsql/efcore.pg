@@ -69,6 +69,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
                 ? this
                 : new JsonTraversalExpression(expression, path, ReturnsText, Type, TypeMapping);
 
+        public JsonTraversalExpression Append(SqlExpression pathComponent)
+        {
+            var oldPath = Path;
+            var newPath = new SqlExpression[oldPath.Length + 1];
+            Array.Copy(oldPath, newPath, oldPath.Length);
+            newPath[^1] = pathComponent;
+            return new JsonTraversalExpression(Expression, newPath, ReturnsText, Type,TypeMapping);
+        }
+
         /// <inheritdoc />
         public override bool Equals(object obj) => Equals(obj as JsonTraversalExpression);
 

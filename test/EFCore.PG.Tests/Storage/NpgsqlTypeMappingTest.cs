@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -461,6 +462,38 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
                              @"{""Price"":99.5,""ShippingAddress"":""Some address 1"",""ShippingDate"":""2019-10-01T00:00:00""}," +
                              @"{""Price"":23,""ShippingAddress"":""Some address 2"",""ShippingDate"":""2019-10-10T00:00:00""}" +
                          @"]}'", literal);
+        }
+
+        [Fact]
+        public void GenerateSqlLiteral_returns_jsonb_document_literal()
+        {
+            var json = @"{""Name"":""Joe"",""Age"":25}";
+            var literal = Mapper.FindMapping(typeof(JsonDocument), "jsonb").GenerateSqlLiteral(JsonDocument.Parse(json));
+            Assert.Equal($"'{json}'", literal);
+        }
+
+        [Fact]
+        public void GenerateSqlLiteral_returns_json_document_literal()
+        {
+            var json = @"{""Name"":""Joe"",""Age"":25}";
+            var literal = Mapper.FindMapping(typeof(JsonDocument), "json").GenerateSqlLiteral(JsonDocument.Parse(json));
+            Assert.Equal($"'{json}'", literal);
+        }
+
+        [Fact]
+        public void GenerateSqlLiteral_returns_jsonb_element_literal()
+        {
+            var json = @"{""Name"":""Joe"",""Age"":25}";
+            var literal = Mapper.FindMapping(typeof(JsonElement), "jsonb").GenerateSqlLiteral(JsonDocument.Parse(json).RootElement);
+            Assert.Equal($"'{json}'", literal);
+        }
+
+        [Fact]
+        public void GenerateSqlLiteral_returns_json_element_literal()
+        {
+            var json = @"{""Name"":""Joe"",""Age"":25}";
+            var literal = Mapper.FindMapping(typeof(JsonElement), "json").GenerateSqlLiteral(JsonDocument.Parse(json).RootElement);
+            Assert.Equal($"'{json}'", literal);
         }
 
         static readonly Customer SampleCustomer = new Customer

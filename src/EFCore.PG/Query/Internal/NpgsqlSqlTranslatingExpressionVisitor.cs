@@ -37,7 +37,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 .Single(mi => mi.Name == nameof(Enumerable.All) && mi.GetParameters().Length == 2);
 
         readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
-        readonly NpgsqlJsonTranslator _jsonTranslator;
+        readonly NpgsqlJsonPocoTranslator _jsonPocoTranslator;
 
         public NpgsqlSqlTranslatingExpressionVisitor(
             RelationalSqlTranslatingExpressionVisitorDependencies dependencies,
@@ -46,7 +46,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             : base(dependencies, model, queryableMethodTranslatingExpressionVisitor)
         {
             _sqlExpressionFactory = (NpgsqlSqlExpressionFactory)dependencies.SqlExpressionFactory;
-            _jsonTranslator = ((NpgsqlMemberTranslatorProvider)Dependencies.MemberTranslatorProvider).JsonTranslator;
+            _jsonPocoTranslator = ((NpgsqlMemberTranslatorProvider)Dependencies.MemberTranslatorProvider).JsonPocoTranslator;
         }
 
         // PostgreSQL COUNT() always returns bigint, so we need to downcast to int
@@ -92,7 +92,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 if (TranslationFailed(unaryExpression.Operand, Visit(unaryExpression.Operand), out var sqlOperand))
                     return null;
 
-                return _jsonTranslator.TranslateArrayLength(sqlOperand) ??
+                return _jsonPocoTranslator.TranslateArrayLength(sqlOperand) ??
                        _sqlExpressionFactory.Function("cardinality", new[] { sqlOperand }, typeof(int?));
             }
 
@@ -191,7 +191,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 
                 return
                     // Try translating ArrayIndex inside json column
-                    _jsonTranslator.TranslateMemberAccess(sqlLeft, sqlRight, binaryExpression.Type) ??
+                    _jsonPocoTranslator.TranslateMemberAccess(sqlLeft, sqlRight, binaryExpression.Type) ??
                     // Other types should be subscriptable - but PostgreSQL arrays are 1-based, so adjust the index.
                     _sqlExpressionFactory.ArrayIndex(sqlLeft, GenerateOneBasedIndexExpression(sqlRight));
             }
