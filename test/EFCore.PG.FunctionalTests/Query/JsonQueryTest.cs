@@ -4,7 +4,6 @@ using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
-using Npgsql.Logging;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -18,7 +17,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             Fixture = fixture;
             Fixture.TestSqlLoggerFactory.Clear();
-            Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
         [Fact]
@@ -37,6 +36,46 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 Assert.Equal(23, orders[1].Price);
                 Assert.Equal("Some address 2", orders[1].ShippingAddress);
                 Assert.Equal(new DateTime(2019, 10, 10), orders[1].ShippingDate);
+            }
+        }
+
+        [Fact]
+        public void Literal()
+        {
+            using (var ctx = Fixture.CreateContext())
+            {
+                Assert.Empty(ctx.JsonbEntities.Where(e => e.Customer == new Customer { Name = "Test customer", Age = 80 }));
+
+                AssertSql(
+                    @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
+FROM ""JsonbEntities"" AS j
+WHERE (j.""Customer"" = '{""Name"":""Test customer"",""Age"":80,""IsVip"":false,""Statistics"":null,""Orders"":null}') AND (j.""Customer"" IS NOT NULL)");
+            }
+        }
+
+        [Fact]
+        public void Parameter()
+        {
+            using (var ctx = Fixture.CreateContext())
+            {
+                var expected = ctx.JsonbEntities.Find(1).Customer;
+                var actual = ctx.JsonbEntities.Single(e => e.Customer == expected).Customer;
+                Assert.Equal(actual.Name, expected.Name);
+
+                AssertSql(
+                    @"@__p_0='1'
+
+SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
+FROM ""JsonbEntities"" AS j
+WHERE (j.""Id"" = @__p_0) AND (@__p_0 IS NOT NULL)
+LIMIT 1",
+                    //
+                    @"@__expected_0='Npgsql.EntityFrameworkCore.PostgreSQL.Query.JsonQueryTest+Customer' (DbType = Object)
+
+SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
+FROM ""JsonbEntities"" AS j
+WHERE ((j.""Customer"" = @__expected_0) AND ((j.""Customer"" IS NOT NULL) AND (@__expected_0 IS NOT NULL))) OR ((j.""Customer"" IS NULL) AND (@__expected_0 IS NULL))
+LIMIT 2");
             }
         }
 

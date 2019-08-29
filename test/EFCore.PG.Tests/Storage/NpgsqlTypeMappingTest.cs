@@ -447,20 +447,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         public void GenerateSqlLiteral_returns_jsonb_object_literal()
         {
             var literal = Mapper.FindMapping(typeof(Customer), "jsonb").GenerateSqlLiteral(SampleCustomer);
-            Assert.Equal(@"{""Name"":""Joe"",""Age"":25,""IsVip"":false,""Orders"":[" +
+            Assert.Equal(@"'{""Name"":""Joe"",""Age"":25,""IsVip"":false,""Orders"":[" +
                              @"{""Price"":99.5,""ShippingAddress"":""Some address 1"",""ShippingDate"":""2019-10-01T00:00:00""}," +
                              @"{""Price"":23,""ShippingAddress"":""Some address 2"",""ShippingDate"":""2019-10-10T00:00:00""}" +
-                         @"]}", literal);
+                         @"]}'", literal);
         }
 
         [Fact]
         public void GenerateSqlLiteral_returns_json_object_literal()
         {
             var literal = Mapper.FindMapping(typeof(Customer), "json").GenerateSqlLiteral(SampleCustomer);
-            Assert.Equal(@"{""Name"":""Joe"",""Age"":25,""IsVip"":false,""Orders"":[" +
+            Assert.Equal(@"'{""Name"":""Joe"",""Age"":25,""IsVip"":false,""Orders"":[" +
                              @"{""Price"":99.5,""ShippingAddress"":""Some address 1"",""ShippingDate"":""2019-10-01T00:00:00""}," +
                              @"{""Price"":23,""ShippingAddress"":""Some address 2"",""ShippingDate"":""2019-10-10T00:00:00""}" +
-                         @"]}", literal);
+                         @"]}'", literal);
         }
 
         static readonly Customer SampleCustomer = new Customer
