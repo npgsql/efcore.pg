@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Runtime.CompilerServices;
@@ -1056,7 +1057,6 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns>
         /// A <see cref="NotSupportedException"/>.
         /// </returns>
-        [NotNull]
         static NotSupportedException ClientEvaluationNotSupportedException([CallerMemberName] string method = default)
             => new NotSupportedException($"{method} is only intended for use via SQL translation as part of an EF Core LINQ query.");
 

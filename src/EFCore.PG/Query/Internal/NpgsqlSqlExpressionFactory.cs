@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore.Query;
@@ -75,6 +77,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 
         public ILikeExpression ILike(SqlExpression match, SqlExpression pattern, SqlExpression escapeChar = null)
             => (ILikeExpression)ApplyDefaultTypeMapping(new ILikeExpression(match, pattern, escapeChar, null));
+
+        public JsonTraversalExpression JsonTraversal(
+            SqlExpression expression,
+            IEnumerable<SqlExpression> path,
+            bool returnsText,
+            Type type,
+            RelationalTypeMapping typeMapping = null)
+            => new JsonTraversalExpression(
+                ApplyDefaultTypeMapping(expression),
+                path.Select(ApplyDefaultTypeMapping).ToArray(),
+                returnsText,
+                type,
+                typeMapping);
 
         #endregion Expression factory methods
 

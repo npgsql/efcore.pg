@@ -7,19 +7,20 @@ using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
-    public class NpgsqlJsonTranslator : IMemberTranslator
+    public class NpgsqlJsonPocoTranslator : IMemberTranslator
     {
         [NotNull]
-        readonly ISqlExpressionFactory _sqlExpressionFactory;
+        readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
 
         [NotNull]
         readonly RelationalTypeMapping _stringTypeMapping;
 
-        public NpgsqlJsonTranslator(ISqlExpressionFactory sqlExpressionFactory)
+        public NpgsqlJsonPocoTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory)
         {
             _sqlExpressionFactory = sqlExpressionFactory;
             _stringTypeMapping = sqlExpressionFactory.FindMapping(typeof(string));
@@ -30,34 +31,22 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
         public SqlExpression TranslateMemberAccess(SqlExpression instance, SqlExpression member, Type returnType)
         {
-            if (instance is ColumnExpression columnExpression &&
-                columnExpression.TypeMapping is NpgsqlJsonObjectTypeMapping)
-            {
-                var traversal = new JsonTraversalExpression(
-                    _sqlExpressionFactory.ApplyDefaultTypeMapping(columnExpression),
-                    new[] { _sqlExpressionFactory.ApplyDefaultTypeMapping(member) },
-                    returnsText: true,
-                    typeof(string),
-                    _stringTypeMapping);
+            // The first time we see a JSON traversal it's on a column - create a JsonTraversalExpression.
+            // Traversals on top of that get appended into the same expression.
 
-                return ConvertFromText(traversal, returnType);
+            if (instance is ColumnExpression columnExpression &&
+                columnExpression.TypeMapping is NpgsqlJsonTypeMapping)
+            {
+                return ConvertFromText(
+                    _sqlExpressionFactory.JsonTraversal(columnExpression, new[] { member }, true, typeof(string), _stringTypeMapping),
+                    returnType);
             }
 
             if (instance.RemoveConvert() is JsonTraversalExpression prevPathTraversal)
             {
-                var oldPath = prevPathTraversal.Path;
-                var newPath = new SqlExpression[oldPath.Length + 1];
-                Array.Copy(oldPath, newPath, oldPath.Length);
-                newPath[^1] = _sqlExpressionFactory.ApplyDefaultTypeMapping(member);
-
-                var traversal = new JsonTraversalExpression(
-                    prevPathTraversal.Expression,
-                    newPath,
-                    returnsText: true,
-                    typeof(string),
-                    _stringTypeMapping);
-
-                return ConvertFromText(traversal, returnType);
+                return ConvertFromText(
+                    prevPathTraversal.Append(_sqlExpressionFactory.ApplyDefaultTypeMapping(member)),
+                    returnType);
             }
 
             return null;
@@ -66,11 +55,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         public SqlExpression TranslateArrayLength(SqlExpression expression)
         {
             if (expression is ColumnExpression columnExpression &&
-                columnExpression.TypeMapping is NpgsqlJsonObjectTypeMapping mapping)
+                columnExpression.TypeMapping is NpgsqlJsonTypeMapping mapping)
             {
                 return _sqlExpressionFactory.Function(
                     mapping.IsJsonb ? "jsonb_array_length" : "json_array_length",
-                    new[] { expression }, typeof(int?));
+                    new[] { expression }, typeof(int));
             }
 
             if (expression.RemoveConvert() is JsonTraversalExpression traversal)
@@ -84,10 +73,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     lastPathComponent.Type,
                     _sqlExpressionFactory.FindMapping(lastPathComponent.Type));
 
-                var jsonMapping = (NpgsqlJsonObjectTypeMapping)traversal.Expression.TypeMapping;
+                var jsonMapping = (NpgsqlJsonTypeMapping)traversal.Expression.TypeMapping;
                 return _sqlExpressionFactory.Function(
                     jsonMapping.IsJsonb ? "jsonb_array_length" : "json_array_length",
-                    new[] { newTraversal }, typeof(int?));
+                    new[] { newTraversal }, typeof(int));
             }
 
             return null;

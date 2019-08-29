@@ -33,12 +33,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         [NotNull]
         readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
         [NotNull]
-        readonly NpgsqlJsonTranslator _jsonTranslator;
+        readonly NpgsqlJsonPocoTranslator _jsonPocoTranslator;
 
-        public NpgsqlArrayMethodTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory, NpgsqlJsonTranslator jsonTranslator)
+        public NpgsqlArrayMethodTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory, NpgsqlJsonPocoTranslator jsonPocoTranslator)
         {
             _sqlExpressionFactory = sqlExpressionFactory;
-            _jsonTranslator = jsonTranslator;
+            _jsonPocoTranslator = jsonPocoTranslator;
         }
 
         [CanBeNull]
@@ -60,7 +60,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             {
                 return
                     _sqlExpressionFactory.GreaterThan(
-                        _jsonTranslator.TranslateArrayLength(arrayOperand) ??
+                        _jsonPocoTranslator.TranslateArrayLength(arrayOperand) ??
                         _sqlExpressionFactory.Function("cardinality", arguments, typeof(int?)),
                         _sqlExpressionFactory.Constant(0));
             }

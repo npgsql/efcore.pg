@@ -15,7 +15,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         {
             var npgsqlSqlExpressionFactory = (NpgsqlSqlExpressionFactory)dependencies.SqlExpressionFactory;
             var npgsqlTypeMappingSource = (NpgsqlTypeMappingSource)typeMappingSource;
-            var jsonTranslator = new NpgsqlJsonTranslator(npgsqlSqlExpressionFactory);
+            var jsonTranslator = new NpgsqlJsonPocoTranslator(npgsqlSqlExpressionFactory);
 
             AddTranslators(new IMethodCallTranslator[]
             {
@@ -30,7 +30,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 new NpgsqlRegexIsMatchTranslator(npgsqlSqlExpressionFactory),
                 new NpgsqlFullTextSearchMethodTranslator(npgsqlSqlExpressionFactory, npgsqlTypeMappingSource),
                 new NpgsqlRangeTranslator(npgsqlSqlExpressionFactory),
-                new NpgsqlNetworkTranslator(npgsqlSqlExpressionFactory, typeMappingSource)
+                new NpgsqlNetworkTranslator(npgsqlSqlExpressionFactory, typeMappingSource),
+                new NpgsqlJsonDomTranslator(npgsqlSqlExpressionFactory, typeMappingSource)
             });
         }
     }
