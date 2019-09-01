@@ -3,6 +3,7 @@
 	<!-- Code editing -->
 	<s:String x:Key="/Default/CodeEditing/Localization/Localizable/@EntryValue">No</s:String>
 	<s:Boolean x:Key="/Default/CodeInspection/Highlighting/ReadSettingsFromFileLevel/@EntryValue">True</s:Boolean>
+        <s:String x:Key="/Default/CodeInspection/Highlighting/UsageCheckingInspectionLevel/@EntryValue">InternalsOnly</s:String>
 
 	<!-- Code inspection -->
 	<s:Boolean x:Key="/Default/CodeInspection/ImplicitNullability/Enabled/@EntryValue">True</s:Boolean>
