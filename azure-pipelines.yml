@@ -97,113 +97,113 @@ jobs:
       pathtoPublish: '$(Build.StagingDirectory)'
       artifactName: 'linux-build'
 
-- job: Windows
+#- job: Windows
 
-  pool:
-    vmImage: 'vs2017-win2016'
+#  pool:
+#    vmImage: 'vs2017-win2016'
 
-  steps:
-  - powershell: Write-Host "##vso[task.setvariable variable=truncated_sha1]$($env:BUILD_SOURCEVERSION.subString(0, 9))"
-    displayName: 'Assign truncated SHA1 to environment variable'
+#  steps:
+#  - powershell: Write-Host "##vso[task.setvariable variable=truncated_sha1]$($env:BUILD_SOURCEVERSION.subString(0, 9))"
+#    displayName: 'Assign truncated SHA1 to environment variable'
 
-  - powershell: .build/setup_postgres.ps1
-    displayName: 'Start PostgreSQL'
+#  - powershell: .build/setup_postgres.ps1
+#    displayName: 'Start PostgreSQL'
 
-  - task: DotNetCoreInstaller@1
-    displayName: 'Install .NET Core SDK'
-    inputs:
-      packageType: 'sdk'
-      version: '$(DOTNET_SDK_VERSION)'
+#  - task: DotNetCoreInstaller@1
+#    displayName: 'Install .NET Core SDK'
+#    inputs:
+#      packageType: 'sdk'
+#      version: '$(DOTNET_SDK_VERSION)'
 
-  - task: DotNetCoreCLI@2
-    displayName: 'Test'
-    inputs:
-      command: 'test'
-      configuration: 'Debug'
-      projects: 'test/**/*.csproj'
-      publishTestResults: true
+#  - task: DotNetCoreCLI@2
+#    displayName: 'Test'
+#    inputs:
+#      command: 'test'
+#      configuration: 'Debug'
+#      projects: 'test/**/*.csproj'
+#      publishTestResults: true
 
-  - task: DotNetCoreCLI@2
-    displayName: 'Pack NuGet packages (CI versions)'
-    inputs:
-      buildProperties: 'Version=$(Build.BuildNumber)+sha.$(truncated_sha1)'
-      command: 'pack'
-      configuration: 'Release'
-      includeSymbols: false
-      outputDir: '$(Build.StagingDirectory)/ci'
-      packagesToPack: 'src/**/*.csproj'
+#  - task: DotNetCoreCLI@2
+#    displayName: 'Pack NuGet packages (CI versions)'
+#    inputs:
+#      buildProperties: 'Version=$(Build.BuildNumber)+sha.$(truncated_sha1)'
+#      command: 'pack'
+#      configuration: 'Release'
+#      includeSymbols: false
+#      outputDir: '$(Build.StagingDirectory)/ci'
+#      packagesToPack: 'src/**/*.csproj'
 
-  - task: DotNetCoreCLI@2
-    displayName: 'Pack NuGet packages (Release versions)'
-    inputs:
-      command: 'pack'
-      configuration: 'Release'
-      includeSymbols: false
-      outputDir: '$(Build.StagingDirectory)/release'
-      packagesToPack: 'src/**/*.csproj'
+#  - task: DotNetCoreCLI@2
+#    displayName: 'Pack NuGet packages (Release versions)'
+#    inputs:
+#      command: 'pack'
+#      configuration: 'Release'
+#      includeSymbols: false
+#      outputDir: '$(Build.StagingDirectory)/release'
+#      packagesToPack: 'src/**/*.csproj'
 
-  - task: DotNetCoreCLI@2
-    displayName: 'Pack symbol packages (CI versions)'
-    inputs:
-      buildProperties: 'Version=$(Build.BuildNumber)+sha.$(truncated_sha1)'
-      command: 'pack'
-      configuration: 'Release'
-      includeSymbols: true
-      outputDir: '$(Build.StagingDirectory)/ci'
-      packagesToPack: 'src/**/*.csproj'
+#  - task: DotNetCoreCLI@2
+#    displayName: 'Pack symbol packages (CI versions)'
+#    inputs:
+#      buildProperties: 'Version=$(Build.BuildNumber)+sha.$(truncated_sha1)'
+#      command: 'pack'
+#      configuration: 'Release'
+#      includeSymbols: true
+#      outputDir: '$(Build.StagingDirectory)/ci'
+#      packagesToPack: 'src/**/*.csproj'
 
-  - task: DotNetCoreCLI@2
-    displayName: 'Pack symbol packages (Release versions)'
-    inputs:
-      command: 'pack'
-      configuration: 'Release'
-      includeSymbols: true
-      outputDir: '$(Build.StagingDirectory)/release'
-      packagesToPack: 'src/**/*.csproj'
+#  - task: DotNetCoreCLI@2
+#    displayName: 'Pack symbol packages (Release versions)'
+#    inputs:
+#      command: 'pack'
+#      configuration: 'Release'
+#      includeSymbols: true
+#      outputDir: '$(Build.StagingDirectory)/release'
+#      packagesToPack: 'src/**/*.csproj'
 
-  - task: PublishBuildArtifacts@1
-    displayName: 'Publish artifacts'
-    inputs:
-      pathtoPublish: '$(Build.StagingDirectory)'
-      artifactName: 'windows-build'
+#  - task: PublishBuildArtifacts@1
+#    displayName: 'Publish artifacts'
+#    inputs:
+#      pathtoPublish: '$(Build.StagingDirectory)'
+#      artifactName: 'windows-build'
 
-  - task: NuGetToolInstaller@1 # TODO: needed because DotNetCoreCLI@2 doesn't support authenticated feeds yet. See: https://github.com/Microsoft/azure-pipelines-tasks/issues/7160
-    displayName: 'Install NuGet CLI'
-    inputs:
-      versionSpec: '4.3.0'
+#  - task: NuGetToolInstaller@1 # TODO: needed because DotNetCoreCLI@2 doesn't support authenticated feeds yet. See: https://github.com/Microsoft/azure-pipelines-tasks/issues/7160
+#    displayName: 'Install NuGet CLI'
+#    inputs:
+#      versionSpec: '4.3.0'
 
-  - task: NuGetCommand@2
-    displayName: 'Publish to MyGet (unstable)'
-    condition: and(succeeded(), not(startsWith(variables['Build.SourceBranch'], 'refs/heads/hotfix/')))
-    inputs:
-      command: 'push'
-      nuGetFeedType: 'external'
-      packagesToPush: '$(Build.StagingDirectory)/ci/*.nupkg;!$(Build.StagingDirectory)/ci/*.symbols.nupkg;!$(Build.StagingDirectory)/ci/*.snupkg'
-      publishFeedCredentials: 'npgsql-unstable'
+#  - task: NuGetCommand@2
+#    displayName: 'Publish to MyGet (unstable)'
+#    condition: and(succeeded(), not(startsWith(variables['Build.SourceBranch'], 'refs/heads/hotfix/')))
+#    inputs:
+#      command: 'push'
+#      nuGetFeedType: 'external'
+#      packagesToPush: '$(Build.StagingDirectory)/ci/*.nupkg;!$(Build.StagingDirectory)/ci/*.symbols.nupkg;!$(Build.StagingDirectory)/ci/*.snupkg'
+#      publishFeedCredentials: 'npgsql-unstable'
 
-  - task: NuGetCommand@2
-    displayName: 'Publish to MyGet (stable)'
-    condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/heads/hotfix/'))
-    inputs:
-      command: 'push'
-      nuGetFeedType: 'external'
-      packagesToPush: '$(Build.StagingDirectory)/ci/*.nupkg;!$(Build.StagingDirectory)/ci/*.symbols.nupkg;!$(Build.StagingDirectory)/ci/*.snupkg'
-      publishFeedCredentials: 'npgsql-stable'
+#  - task: NuGetCommand@2
+#    displayName: 'Publish to MyGet (stable)'
+#    condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/heads/hotfix/'))
+#    inputs:
+#      command: 'push'
+#      nuGetFeedType: 'external'
+#      packagesToPush: '$(Build.StagingDirectory)/ci/*.nupkg;!$(Build.StagingDirectory)/ci/*.symbols.nupkg;!$(Build.StagingDirectory)/ci/*.snupkg'
+#      publishFeedCredentials: 'npgsql-stable'
 
-  - task: GitHubRelease@0
-    displayName: 'Publish GitHub Pre-release'
-    condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'), contains(variables['Build.SourceBranch'], '-preview'))
-    inputs:
-      assets: '$(Build.StagingDirectory)/release/*'
-      gitHubConnection: '$(GITHUB_SERVICE_CONNECTION)'
-      isPreRelease: true
-      releaseNotesFile: '$(RELEASE_NOTES_FILE)'
+#  - task: GitHubRelease@0
+#    displayName: 'Publish GitHub Pre-release'
+#    condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'), contains(variables['Build.SourceBranch'], '-preview'))
+#    inputs:
+#      assets: '$(Build.StagingDirectory)/release/*'
+#      gitHubConnection: '$(GITHUB_SERVICE_CONNECTION)'
+#      isPreRelease: true
+#      releaseNotesFile: '$(RELEASE_NOTES_FILE)'
 
-  - task: GitHubRelease@0
-    displayName: 'Publish GitHub Release'
-    condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'), not(contains(variables['Build.SourceBranch'], '-preview')))
-    inputs:
-      assets: '$(Build.StagingDirectory)/release/*'
-      gitHubConnection: '$(GITHUB_SERVICE_CONNECTION)'
-      isPreRelease: false
-      releaseNotesFile: '$(RELEASE_NOTES_FILE)'
+#  - task: GitHubRelease@0
+#    displayName: 'Publish GitHub Release'
+#    condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/v'), not(contains(variables['Build.SourceBranch'], '-preview')))
+#    inputs:
+#      assets: '$(Build.StagingDirectory)/release/*'
+#      gitHubConnection: '$(GITHUB_SERVICE_CONNECTION)'
+#      isPreRelease: false
+#      releaseNotesFile: '$(RELEASE_NOTES_FILE)'
