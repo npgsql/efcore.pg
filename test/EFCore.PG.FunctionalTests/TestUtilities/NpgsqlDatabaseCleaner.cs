@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Data.Common;
 using System.Diagnostics;
 using System.Linq;
@@ -35,15 +36,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
         protected override bool AcceptIndex(DatabaseIndex index)
             => false;
 
-        const string GetExtensions = @"
-SELECT name FROM pg_available_extensions WHERE installed_version IS NOT NULL AND name <> 'plpgsql'";
-
-        const string GetUserDefinedRangesEnums = @"
-SELECT ns.nspname, typname
-FROM pg_type
-JOIN pg_namespace AS ns ON ns.oid = pg_type.typnamespace
-WHERE typtype IN ('r', 'e') AND nspname <> 'pg_catalog'";
-
         public override void Clean(DatabaseFacade facade)
         {
             // The following is somewhat hacky
@@ -58,31 +50,9 @@ WHERE typtype IN ('r', 'e') AND nspname <> 'pg_catalog'";
                 try
                 {
                     var conn = (NpgsqlConnection)connection.DbConnection;
-
-                    List<string> extensions;
-                    using (var cmd = new NpgsqlCommand(GetExtensions, conn))
-                    using (var reader = cmd.ExecuteReader())
-                        extensions = reader.Cast<DbDataRecord>().Select(r => r.GetString(0)).ToList();
-
-                    if (extensions.Any())
-                    {
-                        var dropExtensionsSql = string.Join("", extensions.Select(e => $"DROP EXTENSION \"{e}\" CASCADE;"));
-                        using (var cmd = new NpgsqlCommand(dropExtensionsSql, conn))
-                            cmd.ExecuteNonQuery();
-                    }
-
-                    // Drop user-defined ranges and enums, cascading to all tables which depend on them
-                    List<(string Schema, string Name)> userDefinedTypes;
-                    using (var cmd = new NpgsqlCommand(GetUserDefinedRangesEnums, conn))
-                    using (var reader = cmd.ExecuteReader())
-                        userDefinedTypes = reader.Cast<DbDataRecord>().Select(r => (r.GetString(0), r.GetString(1))).ToList();
-
-                    if (userDefinedTypes.Any())
-                    {
-                        var dropTypes = string.Join("", userDefinedTypes.Select(t => $@"DROP TYPE ""{t.Schema}"".""{t.Name}"" CASCADE;"));
-                        using (var cmd = new NpgsqlCommand(dropTypes, conn))
-                            cmd.ExecuteNonQuery();
-                    }
+                    DropExtensions(conn);
+                    DropTypes(conn);
+                    DropFunctions(conn);
                 }
                 finally
                 {
@@ -91,6 +61,82 @@ WHERE typtype IN ('r', 'e') AND nspname <> 'pg_catalog'";
             }
 
             base.Clean(facade);
+        }
+
+        void DropExtensions(NpgsqlConnection conn)
+        {
+            const string getExtensions = @"
+SELECT name FROM pg_available_extensions WHERE installed_version IS NOT NULL AND name <> 'plpgsql'";
+
+            List<string> extensions;
+            using (var cmd = new NpgsqlCommand(getExtensions, conn))
+            {
+                using var reader = cmd.ExecuteReader();
+                extensions = reader.Cast<DbDataRecord>().Select(r => r.GetString(0)).ToList();
+            }
+
+            if (extensions.Any())
+            {
+                var dropExtensionsSql = string.Join("", extensions.Select(e => $"DROP EXTENSION \"{e}\" CASCADE;"));
+                using var cmd = new NpgsqlCommand(dropExtensionsSql, conn);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        /// <summary>
+        /// Drop user-defined ranges and enums, cascading to all tables which depend on them
+        /// </summary>
+        void DropTypes(NpgsqlConnection conn)
+        {
+            const string getUserDefinedRangesEnums = @"
+SELECT ns.nspname, typname
+FROM pg_type
+JOIN pg_namespace AS ns ON ns.oid = pg_type.typnamespace
+WHERE typtype IN ('r', 'e') AND nspname <> 'pg_catalog'";
+
+            (string Schema, string Name)[] userDefinedTypes;
+            using (var cmd = new NpgsqlCommand(getUserDefinedRangesEnums, conn))
+            {
+                using var reader = cmd.ExecuteReader();
+                userDefinedTypes = reader.Cast<DbDataRecord>().Select(r => (r.GetString(0), r.GetString(1))).ToArray();
+            }
+
+            if (userDefinedTypes.Any())
+            {
+                var dropTypes = string.Concat(userDefinedTypes.Select(t => $@"DROP TYPE ""{t.Schema}"".""{t.Name}"" CASCADE;"));
+                using var cmd = new NpgsqlCommand(dropTypes, conn);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        /// <summary>
+        /// Drop all user-defined functions and procedures
+        /// </summary>
+        void DropFunctions(NpgsqlConnection conn)
+        {
+            const string getUserDefinedFunctions = @"
+SELECT 'DROP ROUTINE ""' || nspname || '"".""' || proname || '""(' || oidvectortypes(proargtypes) || ');' FROM pg_proc
+JOIN pg_namespace AS ns ON ns.oid = pg_proc.pronamespace
+WHERE
+        nspname NOT IN ('pg_catalog', 'information_schema') AND
+    NOT EXISTS (
+            SELECT * FROM pg_depend AS dep
+            WHERE dep.classid = (SELECT oid FROM pg_class WHERE relname = 'pg_proc') AND
+                    dep.objid = pg_proc.oid AND
+                    deptype = 'e');";
+
+            string dropSql;
+            using (var cmd = new NpgsqlCommand(getUserDefinedFunctions, conn))
+            {
+                using var reader = cmd.ExecuteReader();
+                dropSql = string.Join("", reader.Cast<DbDataRecord>().Select(r => r.GetString(0)));
+            }
+
+            if (dropSql != "")
+            {
+                using var cmd = new NpgsqlCommand(dropSql, conn);
+                cmd.ExecuteNonQuery();
+            }
         }
 
         protected override string BuildCustomSql(DatabaseModel databaseModel)

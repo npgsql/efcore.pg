@@ -31,7 +31,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             AssertSql(
                 @"SELECT COUNT(*)::INT
 FROM ""Customers"" AS c
-WHERE (is_date(c.""FirstName"") = FALSE) AND (is_date(c.""FirstName"") IS NOT NULL)");
+WHERE (""IsDate""(c.""FirstName"") = FALSE) AND (""IsDate""(c.""FirstName"") IS NOT NULL)");
         }
 
         [Fact]
@@ -60,7 +60,7 @@ LIMIT 2");
             AssertSql(
                 @"@__customerId_0='1'
 
-SELECT customer_order_count(@__customerId_0)
+SELECT ""CustomerOrderCount""(@__customerId_0)
 FROM ""Customers"" AS c");
         }
 
@@ -70,7 +70,7 @@ FROM ""Customers"" AS c");
             base.Scalar_Function_Anonymous_Type_Select_Correlated_Static();
 
             AssertSql(
-                @"SELECT c.""LastName"", customer_order_count(c.""Id"") AS ""OrderCount""
+                @"SELECT c.""LastName"", ""CustomerOrderCount""(c.""Id"") AS ""OrderCount""
 FROM ""Customers"" AS c
 WHERE c.""Id"" = 1
 LIMIT 2");
@@ -82,7 +82,7 @@ LIMIT 2");
             base.Scalar_Function_Anonymous_Type_Select_Not_Correlated_Static();
 
             AssertSql(
-                @"SELECT c.""LastName"", customer_order_count(1) AS ""OrderCount""
+                @"SELECT c.""LastName"", ""CustomerOrderCount""(1) AS ""OrderCount""
 FROM ""Customers"" AS c
 WHERE c.""Id"" = 1
 LIMIT 2");
@@ -96,7 +96,7 @@ LIMIT 2");
             AssertSql(
                 @"@__customerId_0='1'
 
-SELECT c.""LastName"", customer_order_count(@__customerId_0) AS ""OrderCount""
+SELECT c.""LastName"", ""CustomerOrderCount""(@__customerId_0) AS ""OrderCount""
 FROM ""Customers"" AS c
 WHERE (c.""Id"" = @__customerId_0) AND (@__customerId_0 IS NOT NULL)
 LIMIT 2");
@@ -111,7 +111,7 @@ LIMIT 2");
                 @"@__starCount_1='3'
 @__customerId_0='3'
 
-SELECT c.""LastName"", star_value(@__starCount_1, customer_order_count(@__customerId_0)) AS ""OrderCount""
+SELECT c.""LastName"", ""StarValue""(@__starCount_1, ""CustomerOrderCount""(@__customerId_0)) AS ""OrderCount""
 FROM ""Customers"" AS c
 WHERE (c.""Id"" = @__customerId_0) AND (@__customerId_0 IS NOT NULL)
 LIMIT 2");
@@ -125,7 +125,7 @@ LIMIT 2");
             AssertSql(
                 @"SELECT LOWER(CAST(c.""Id"" AS text))
 FROM ""Customers"" AS c
-WHERE is_top_customer(c.""Id"")");
+WHERE ""IsTopCustomer""(c.""Id"")");
         }
 
         [Fact]
@@ -138,7 +138,7 @@ WHERE is_top_customer(c.""Id"")");
 
 SELECT c.""Id""
 FROM ""Customers"" AS c
-WHERE (get_customer_with_most_orders_after_date(@__startDate_0) = c.""Id"") AND (get_customer_with_most_orders_after_date(@__startDate_0) IS NOT NULL)
+WHERE (""GetCustomerWithMostOrdersAfterDate""(@__startDate_0) = c.""Id"") AND (""GetCustomerWithMostOrdersAfterDate""(@__startDate_0) IS NOT NULL)
 LIMIT 2");
         }
 
@@ -152,7 +152,7 @@ LIMIT 2");
 
 SELECT c.""Id""
 FROM ""Customers"" AS c
-WHERE (c.""Id"" = get_customer_with_most_orders_after_date(get_reporting_period_start_date(@__period_0))) AND (get_customer_with_most_orders_after_date(get_reporting_period_start_date(@__period_0)) IS NOT NULL)
+WHERE (c.""Id"" = ""GetCustomerWithMostOrdersAfterDate""(""GetReportingPeriodStartDate""(@__period_0))) AND (""GetCustomerWithMostOrdersAfterDate""(""GetReportingPeriodStartDate""(@__period_0)) IS NOT NULL)
 LIMIT 2");
         }
 
@@ -164,7 +164,7 @@ LIMIT 2");
             AssertSql(
                 @"SELECT c.""Id""
 FROM ""Customers"" AS c
-WHERE c.""Id"" = get_customer_with_most_orders_after_date(get_reporting_period_start_date(0))
+WHERE c.""Id"" = ""GetCustomerWithMostOrdersAfterDate""(""GetReportingPeriodStartDate""(0))
 LIMIT 2");
         }
 
@@ -174,7 +174,7 @@ LIMIT 2");
             base.Scalar_Function_Let_Correlated_Static();
 
             AssertSql(
-                @"SELECT c.""LastName"", customer_order_count(c.""Id"") AS ""OrderCount""
+                @"SELECT c.""LastName"", ""CustomerOrderCount""(c.""Id"") AS ""OrderCount""
 FROM ""Customers"" AS c
 WHERE c.""Id"" = 2
 LIMIT 2");
@@ -186,7 +186,7 @@ LIMIT 2");
             base.Scalar_Function_Let_Not_Correlated_Static();
 
             AssertSql(
-                @"SELECT c.""LastName"", customer_order_count(2) AS ""OrderCount""
+                @"SELECT c.""LastName"", ""CustomerOrderCount""(2) AS ""OrderCount""
 FROM ""Customers"" AS c
 WHERE c.""Id"" = 2
 LIMIT 2");
@@ -200,7 +200,7 @@ LIMIT 2");
             AssertSql(
                 @"@__customerId_0='2'
 
-SELECT c.""LastName"", customer_order_count(@__customerId_0) AS ""OrderCount""
+SELECT c.""LastName"", ""CustomerOrderCount""(@__customerId_0) AS ""OrderCount""
 FROM ""Customers"" AS c
 WHERE (c.""Id"" = @__customerId_0) AND (@__customerId_0 IS NOT NULL)
 LIMIT 2");
@@ -215,7 +215,7 @@ LIMIT 2");
                 @"@__starCount_0='3'
 @__customerId_1='1'
 
-SELECT c.""LastName"", star_value(@__starCount_0, customer_order_count(@__customerId_1)) AS ""OrderCount""
+SELECT c.""LastName"", ""StarValue""(@__starCount_0, ""CustomerOrderCount""(@__customerId_1)) AS ""OrderCount""
 FROM ""Customers"" AS c
 WHERE (c.""Id"" = @__customerId_1) AND (@__customerId_1 IS NOT NULL)
 LIMIT 2");
@@ -350,7 +350,7 @@ FROM ""Customers"" AS c");
             AssertSql(
                 @"SELECT c.""Id""
 FROM ""Customers"" AS c
-WHERE 3 = ABS(customer_order_count(c.""Id""))
+WHERE 3 = ABS(""CustomerOrderCount""(c.""Id""))
 LIMIT 2");
         }
 
@@ -372,7 +372,7 @@ FROM ""Customers"" AS c");
             AssertSql(
                 @"SELECT c.""Id""
 FROM ""Customers"" AS c
-WHERE 3 = customer_order_count(ABS(c.""Id""))
+WHERE 3 = ""CustomerOrderCount""(ABS(c.""Id""))
 LIMIT 2");
         }
 
@@ -399,7 +399,7 @@ LIMIT 1");
             base.Scalar_Function_Non_Static();
 
             AssertSql(
-                @"SELECT star_value(4, c.""Id"") AS ""Id"", dollar_value(2, c.""LastName"") AS ""LastName""
+                @"SELECT ""StarValue""(4, c.""Id"") AS ""Id"", ""DollarValue""(2, c.""LastName"") AS ""LastName""
 FROM ""Customers"" AS c
 WHERE c.""Id"" = 1
 LIMIT 2");
@@ -413,7 +413,7 @@ LIMIT 2");
             AssertSql(
                 @"SELECT COUNT(*)::INT
 FROM ""Customers"" AS c
-WHERE (is_date(c.""FirstName"") = FALSE) AND (is_date(c.""FirstName"") IS NOT NULL)");
+WHERE (""IsDate""(c.""FirstName"") = FALSE) AND (""IsDate""(c.""FirstName"") IS NOT NULL)");
         }
 
         [Fact]
@@ -438,7 +438,7 @@ LIMIT 2");
             AssertSql(
                 @"@__customerId_1='1'
 
-SELECT customer_order_count(@__customerId_1)
+SELECT ""CustomerOrderCount""(@__customerId_1)
 FROM ""Customers"" AS c");
         }
 
@@ -448,7 +448,7 @@ FROM ""Customers"" AS c");
             base.Scalar_Function_Anonymous_Type_Select_Correlated_Instance();
 
             AssertSql(
-                @"SELECT c.""LastName"", customer_order_count(c.""Id"") AS ""OrderCount""
+                @"SELECT c.""LastName"", ""CustomerOrderCount""(c.""Id"") AS ""OrderCount""
 FROM ""Customers"" AS c
 WHERE c.""Id"" = 1
 LIMIT 2");
@@ -460,7 +460,7 @@ LIMIT 2");
             base.Scalar_Function_Anonymous_Type_Select_Not_Correlated_Instance();
 
             AssertSql(
-                @"SELECT c.""LastName"", customer_order_count(1) AS ""OrderCount""
+                @"SELECT c.""LastName"", ""CustomerOrderCount""(1) AS ""OrderCount""
 FROM ""Customers"" AS c
 WHERE c.""Id"" = 1
 LIMIT 2");
@@ -474,7 +474,7 @@ LIMIT 2");
             AssertSql(
                 @"@__customerId_0='1'
 
-SELECT c.""LastName"", customer_order_count(@__customerId_0) AS ""OrderCount""
+SELECT c.""LastName"", ""CustomerOrderCount""(@__customerId_0) AS ""OrderCount""
 FROM ""Customers"" AS c
 WHERE (c.""Id"" = @__customerId_0) AND (@__customerId_0 IS NOT NULL)
 LIMIT 2");
@@ -489,7 +489,7 @@ LIMIT 2");
                 @"@__starCount_2='3'
 @__customerId_0='3'
 
-SELECT c.""LastName"", star_value(@__starCount_2, customer_order_count(@__customerId_0)) AS ""OrderCount""
+SELECT c.""LastName"", ""StarValue""(@__starCount_2, ""CustomerOrderCount""(@__customerId_0)) AS ""OrderCount""
 FROM ""Customers"" AS c
 WHERE (c.""Id"" = @__customerId_0) AND (@__customerId_0 IS NOT NULL)
 LIMIT 2");
@@ -503,7 +503,7 @@ LIMIT 2");
             AssertSql(
                 @"SELECT LOWER(CAST(c.""Id"" AS text))
 FROM ""Customers"" AS c
-WHERE is_top_customer(c.""Id"")");
+WHERE ""IsTopCustomer""(c.""Id"")");
         }
 
         [Fact]
@@ -516,7 +516,7 @@ WHERE is_top_customer(c.""Id"")");
 
 SELECT c.""Id""
 FROM ""Customers"" AS c
-WHERE (get_customer_with_most_orders_after_date(@__startDate_1) = c.""Id"") AND (get_customer_with_most_orders_after_date(@__startDate_1) IS NOT NULL)
+WHERE (""GetCustomerWithMostOrdersAfterDate""(@__startDate_1) = c.""Id"") AND (""GetCustomerWithMostOrdersAfterDate""(@__startDate_1) IS NOT NULL)
 LIMIT 2");
         }
 
@@ -530,7 +530,7 @@ LIMIT 2");
 
 SELECT c.""Id""
 FROM ""Customers"" AS c
-WHERE (c.""Id"" = get_customer_with_most_orders_after_date(get_reporting_period_start_date(@__period_1))) AND (get_customer_with_most_orders_after_date(get_reporting_period_start_date(@__period_1)) IS NOT NULL)
+WHERE (c.""Id"" = ""GetCustomerWithMostOrdersAfterDate""(""GetReportingPeriodStartDate""(@__period_1))) AND (""GetCustomerWithMostOrdersAfterDate""(""GetReportingPeriodStartDate""(@__period_1)) IS NOT NULL)
 LIMIT 2");
         }
 
@@ -542,7 +542,7 @@ LIMIT 2");
             AssertSql(
                 @"SELECT c.""Id""
 FROM ""Customers"" AS c
-WHERE c.""Id"" = get_customer_with_most_orders_after_date(get_reporting_period_start_date(0))
+WHERE c.""Id"" = ""GetCustomerWithMostOrdersAfterDate""(""GetReportingPeriodStartDate""(0))
 LIMIT 2");
         }
 
@@ -552,7 +552,7 @@ LIMIT 2");
             base.Scalar_Function_Let_Correlated_Instance();
 
             AssertSql(
-                @"SELECT c.""LastName"", customer_order_count(c.""Id"") AS ""OrderCount""
+                @"SELECT c.""LastName"", ""CustomerOrderCount""(c.""Id"") AS ""OrderCount""
 FROM ""Customers"" AS c
 WHERE c.""Id"" = 2
 LIMIT 2");
@@ -564,7 +564,7 @@ LIMIT 2");
             base.Scalar_Function_Let_Not_Correlated_Instance();
 
             AssertSql(
-                @"SELECT c.""LastName"", customer_order_count(2) AS ""OrderCount""
+                @"SELECT c.""LastName"", ""CustomerOrderCount""(2) AS ""OrderCount""
 FROM ""Customers"" AS c
 WHERE c.""Id"" = 2
 LIMIT 2");
@@ -578,7 +578,7 @@ LIMIT 2");
             AssertSql(
                 @"@__8__locals1_customerId_1='2'
 
-SELECT c.""LastName"", customer_order_count(@__8__locals1_customerId_1) AS ""OrderCount""
+SELECT c.""LastName"", ""CustomerOrderCount""(@__8__locals1_customerId_1) AS ""OrderCount""
 FROM ""Customers"" AS c
 WHERE (c.""Id"" = @__8__locals1_customerId_1) AND (@__8__locals1_customerId_1 IS NOT NULL)
 LIMIT 2");
@@ -593,7 +593,7 @@ LIMIT 2");
                 @"@__starCount_1='3'
 @__customerId_2='1'
 
-SELECT c.""LastName"", star_value(@__starCount_1, customer_order_count(@__customerId_2)) AS ""OrderCount""
+SELECT c.""LastName"", ""StarValue""(@__starCount_1, ""CustomerOrderCount""(@__customerId_2)) AS ""OrderCount""
 FROM ""Customers"" AS c
 WHERE (c.""Id"" = @__customerId_2) AND (@__customerId_2 IS NOT NULL)
 LIMIT 2");
@@ -728,7 +728,7 @@ FROM ""Customers"" AS c");
             AssertSql(
                 @"SELECT c.""Id""
 FROM ""Customers"" AS c
-WHERE 3 = ABS(customer_order_count(c.""Id""))
+WHERE 3 = ABS(""CustomerOrderCount""(c.""Id""))
 LIMIT 2");
         }
 
@@ -750,7 +750,7 @@ FROM ""Customers"" AS c");
             AssertSql(
                 @"SELECT c.""Id""
 FROM ""Customers"" AS c
-WHERE 3 = customer_order_count(ABS(c.""Id""))
+WHERE 3 = ""CustomerOrderCount""(ABS(c.""Id""))
 LIMIT 2");
         }
 
@@ -758,32 +758,6 @@ LIMIT 2");
 
         #endregion
 
-        // ReSharper disable once UnusedMember.Global
-        protected class UDFNpgsqlContext : UDFSqlContext
-        {
-            public UDFNpgsqlContext(DbContextOptions options) : base(options) {}
-
-            protected override void OnModelCreating(ModelBuilder modelBuilder)
-            {
-                base.OnModelCreating(modelBuilder);
-
-                var methodInfo = typeof(UDFSqlContext).GetMethod(nameof(MyCustomLengthStatic));
-
-                // ReSharper disable once AssignNullToNotNullAttribute
-                modelBuilder.HasDbFunction(methodInfo)
-                    .HasTranslation(args => SqlFunctionExpression.Create("length", args, methodInfo.ReturnType, null));
-
-                var methodInfo2 = typeof(UDFSqlContext).GetMethod(nameof(MyCustomLengthInstance));
-
-                // ReSharper disable once AssignNullToNotNullAttribute
-                modelBuilder.HasDbFunction(methodInfo2)
-                    .HasTranslation(args => SqlFunctionExpression.Create("length", args, methodInfo2.ReturnType, null));
-            }
-        }
-
-        // We override our own context because we don't support functions with upper-case names for now,
-        // and this is how things are hard-coded in UDFSqlContext
-        // See https://github.com/aspnet/EntityFrameworkCore/issues/12757
         protected class NpgsqlUDFSqlContext : UDFSqlContext
         {
             public NpgsqlUDFSqlContext(DbContextOptions options)
@@ -793,43 +767,24 @@ LIMIT 2");
 
             protected override void OnModelCreating(ModelBuilder modelBuilder)
             {
-                // ReSharper disable AssignNullToNotNullAttribute
                 base.OnModelCreating(modelBuilder);
 
-                //Static
-                modelBuilder.HasDbFunction(typeof(UDFSqlContext).GetMethod(nameof(CustomerOrderCountStatic))).HasName("customer_order_count");
-                modelBuilder.HasDbFunction(typeof(UDFSqlContext).GetMethod(nameof(CustomerOrderCountWithClientStatic))).HasName("customer_order_count");
-                modelBuilder.HasDbFunction(typeof(UDFSqlContext).GetMethod(nameof(StarValueStatic))).HasName("star_value");
-                modelBuilder.HasDbFunction(typeof(UDFSqlContext).GetMethod(nameof(IsTopCustomerStatic))).HasName("is_top_customer");
-                modelBuilder.HasDbFunction(typeof(UDFSqlContext).GetMethod(nameof(GetCustomerWithMostOrdersAfterDateStatic))).HasName("get_customer_with_most_orders_after_date");
-                modelBuilder.HasDbFunction(typeof(UDFSqlContext).GetMethod(nameof(GetReportingPeriodStartDateStatic))).HasName("get_reporting_period_start_date");
+                // IsDate is a built-in SQL Server function, that in the base class is mapped as built-in, which means we
+                // don't get any quotes. We remap it as non-built-in by including a (null) schema.
                 var isDateMethodInfo = typeof(UDFSqlContext).GetMethod(nameof(IsDateStatic));
                 modelBuilder.HasDbFunction(isDateMethodInfo)
-                    .HasTranslation(args => SqlFunctionExpression.Create("is_date", args, isDateMethodInfo.ReturnType, null));
-
-                var methodInfo = typeof(UDFSqlContext).GetMethod(nameof(MyCustomLengthStatic));
-
-                modelBuilder.HasDbFunction(methodInfo)
-                    .HasTranslation(args => SqlFunctionExpression.Create("length", args, methodInfo.ReturnType, null));
-
-                //Instance
-                modelBuilder.HasDbFunction(typeof(UDFSqlContext).GetMethod(nameof(CustomerOrderCountInstance))).HasName("customer_order_count");
-                modelBuilder.HasDbFunction(typeof(UDFSqlContext).GetMethod(nameof(CustomerOrderCountWithClientInstance))).HasName("customer_order_count");
-                modelBuilder.HasDbFunction(typeof(UDFSqlContext).GetMethod(nameof(StarValueInstance))).HasName("star_value");
-                modelBuilder.HasDbFunction(typeof(UDFSqlContext).GetMethod(nameof(IsTopCustomerInstance))).HasName("is_top_customer");
-                modelBuilder.HasDbFunction(typeof(UDFSqlContext).GetMethod(nameof(GetCustomerWithMostOrdersAfterDateInstance))).HasName("get_customer_with_most_orders_after_date");
-                modelBuilder.HasDbFunction(typeof(UDFSqlContext).GetMethod(nameof(GetReportingPeriodStartDateInstance))).HasName("get_reporting_period_start_date");
+                    .HasTranslation(args => SqlFunctionExpression.Create((string)null, "IsDate", args, isDateMethodInfo.ReturnType, null));
                 var isDateMethodInfo2 = typeof(UDFSqlContext).GetMethod(nameof(IsDateInstance));
                 modelBuilder.HasDbFunction(isDateMethodInfo2)
-                    .HasTranslation(args => SqlFunctionExpression.Create("is_date", args, isDateMethodInfo2.ReturnType, null));
+                    .HasTranslation(args => SqlFunctionExpression.Create((string)null, "IsDate", args, isDateMethodInfo2.ReturnType, null));
 
-                modelBuilder.HasDbFunction(typeof(UDFSqlContext).GetMethod(nameof(DollarValueInstance))).HasName("dollar_value");
-
+                // Base class maps to len(), but in PostgreSQL it's called length()
+                var methodInfo = typeof(UDFSqlContext).GetMethod(nameof(MyCustomLengthStatic));
+                modelBuilder.HasDbFunction(methodInfo)
+                    .HasTranslation(args => SqlFunctionExpression.Create("length", args, methodInfo.ReturnType, null));
                 var methodInfo2 = typeof(UDFSqlContext).GetMethod(nameof(MyCustomLengthInstance));
-
                 modelBuilder.HasDbFunction(methodInfo2)
                     .HasTranslation(args => SqlFunctionExpression.Create("length", args, methodInfo2.ReturnType, null));
-                // ReSharper restore AssignNullToNotNullAttribute
             }
         }
 
@@ -843,39 +798,38 @@ LIMIT 2");
             {
                 base.Seed(context);
 
-                // TODO: The OR REPLACE shouldn't be needed, but the fixture attempts to recreate the function and PG errors
                 context.Database.ExecuteSqlRaw(
-                    @"CREATE OR REPLACE FUNCTION customer_order_count (""customerId"" INTEGER)
+                    @"CREATE FUNCTION ""CustomerOrderCount"" (""customerId"" INTEGER)
                                                     RETURNS INTEGER
                                                     AS $$ SELECT COUNT(""Id"")::INTEGER FROM ""Orders"" WHERE ""CustomerId"" = $1 $$
                                                     LANGUAGE SQL");
 
                 context.Database.ExecuteSqlRaw(
-                    @"CREATE OR REPLACE FUNCTION star_value (""starCount"" INTEGER, value TEXT)
+                    @"CREATE FUNCTION ""StarValue"" (""starCount"" INTEGER, value TEXT)
                                                     RETURNS TEXT
                                                     AS $$ SELECT repeat('*', $1) || $2 $$
                                                     LANGUAGE SQL");
 
                 context.Database.ExecuteSqlRaw(
-                    @"CREATE OR REPLACE FUNCTION star_value (""starCount"" INTEGER, value INTEGER)
+                    @"CREATE FUNCTION ""StarValue"" (""starCount"" INTEGER, value INTEGER)
                                                     RETURNS TEXT
                                                     AS $$ SELECT repeat('*', $1) || $2 $$
                                                     LANGUAGE SQL");
 
                 context.Database.ExecuteSqlRaw(
-                    @"CREATE OR REPLACE FUNCTION dollar_value (""starCount"" INTEGER, value TEXT)
+                    @"CREATE FUNCTION ""DollarValue"" (""starCount"" INTEGER, value TEXT)
                                                     RETURNS TEXT
                                                     AS $$ SELECT repeat('$', $1) || $2 $$
                                                     LANGUAGE SQL");
 
                 context.Database.ExecuteSqlRaw(
-                    @"CREATE OR REPLACE FUNCTION get_reporting_period_start_date (period INTEGER)
+                    @"CREATE FUNCTION ""GetReportingPeriodStartDate"" (period INTEGER)
                                                     RETURNS DATE
                                                     AS $$ SELECT DATE '1998-01-01' $$
                                                     LANGUAGE SQL");
 
                 context.Database.ExecuteSqlRaw(
-                    @"CREATE OR REPLACE FUNCTION get_customer_with_most_orders_after_date (searchDate TIMESTAMP)
+                    @"CREATE FUNCTION ""GetCustomerWithMostOrdersAfterDate"" (searchDate TIMESTAMP)
                                                     RETURNS INTEGER
                                                     AS $$ SELECT ""CustomerId""
                                                           FROM ""Orders""
@@ -886,7 +840,7 @@ LIMIT 2");
                                                     LANGUAGE SQL");
 
                 context.Database.ExecuteSqlRaw(
-                    @"CREATE OR REPLACE FUNCTION is_top_customer (""customerId"" INTEGER)
+                    @"CREATE FUNCTION ""IsTopCustomer"" (""customerId"" INTEGER)
                                                     RETURNS BOOL
                                                     AS $$ SELECT $1 = 1 $$
                                                     LANGUAGE SQL");
@@ -895,13 +849,13 @@ LIMIT 2");
                     @"CREATE SCHEMA IF NOT EXISTS dbo");
 
                 context.Database.ExecuteSqlRaw(
-                    @"CREATE OR REPLACE FUNCTION dbo.""IdentityString"" (""customerName"" TEXT)
+                    @"CREATE FUNCTION dbo.""IdentityString"" (""customerName"" TEXT)
                                                     RETURNS TEXT
                                                     AS $$ SELECT $1 $$
                                                     LANGUAGE SQL");
 
                 context.Database.ExecuteSqlRaw(
-                    @"CREATE OR REPLACE FUNCTION is_date(s TEXT)
+                    @"CREATE FUNCTION ""IsDate""(s TEXT)
                                                     RETURNS BOOLEAN AS $$
                                                     BEGIN
                                                         PERFORM s::DATE;
