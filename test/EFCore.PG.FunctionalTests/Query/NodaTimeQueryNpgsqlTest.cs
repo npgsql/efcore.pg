@@ -9,7 +9,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using NpgsqlTypes;
 using Xunit;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     public class NodaTimeTest : IClassFixture<NodaTimeTest.NodaTimeFixture>
     {
