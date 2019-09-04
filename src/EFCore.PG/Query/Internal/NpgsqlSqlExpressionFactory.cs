@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore.Query;
@@ -94,23 +95,37 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         #endregion Expression factory methods
 
         public override SqlExpression ApplyTypeMapping(SqlExpression sqlExpression, RelationalTypeMapping typeMapping)
+            => sqlExpression == null || sqlExpression.TypeMapping != null
+                ? sqlExpression
+                : sqlExpression switch
+                {
+                    SqlBinaryExpression e        => ApplyTypeMappingOnSqlBinary(e, typeMapping),
+
+                    // PostgreSQL-specific expression types
+                    RegexMatchExpression e       => ApplyTypeMappingOnRegexMatch(e),
+                    ArrayAnyAllExpression e      => ApplyTypeMappingOnArrayAnyAll(e),
+                    ArrayIndexExpression e       => ApplyTypeMappingOnArrayIndex(e),
+                    ILikeExpression e            => ApplyTypeMappingOnILike(e),
+                    PgFunctionExpression e       => e.ApplyTypeMapping(typeMapping),
+
+                    _ => base.ApplyTypeMapping(sqlExpression, typeMapping)
+                };
+
+        SqlExpression ApplyTypeMappingOnSqlBinary(SqlBinaryExpression binary, RelationalTypeMapping typeMapping)
         {
-            if (sqlExpression == null
-                || sqlExpression.TypeMapping != null)
+            // The default SqlExpressionFactory behavior is to assume that the two added operands have the same type.
+            // But when we add a DateTime column (which has a type mapping) and a TimeSpan parameter or constant
+            // (which doesn't), the DateTime's mapping gets applied to the TimeSpan, which is wrong.
+            // Recognize this as a special case and apply the default mapping on the right side instead.
+            if (binary.OperatorType == ExpressionType.Add && binary.Right.TypeMapping == null &&
+                    (binary.Left.Type == typeof(DateTime) && binary.Right.Type == typeof(TimeSpan) ||
+                    // Hack since NodaTime is a plugin
+                    binary.Left.Type.FullName != "NodaTime.Period" && binary.Right.Type.FullName == "NodaTime.Period"))
             {
-                return sqlExpression;
+                binary = binary.Update(binary.Left, ApplyDefaultTypeMapping(binary.Right));
             }
 
-            return sqlExpression switch
-            {
-                RegexMatchExpression e       => ApplyTypeMappingOnRegexMatch(e),
-                ArrayAnyAllExpression e      => ApplyTypeMappingOnArrayAnyAll(e),
-                ArrayIndexExpression e       => ApplyTypeMappingOnArrayIndex(e),
-                ILikeExpression e            => ApplyTypeMappingOnILike(e),
-                PgFunctionExpression e       => e.ApplyTypeMapping(typeMapping),
-
-                _ => base.ApplyTypeMapping(sqlExpression, typeMapping)
-            };
+            return base.ApplyTypeMapping(binary, typeMapping);
         }
 
         SqlExpression ApplyTypeMappingOnRegexMatch(RegexMatchExpression regexMatchExpression)

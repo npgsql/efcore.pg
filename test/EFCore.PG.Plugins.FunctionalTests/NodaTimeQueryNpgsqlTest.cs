@@ -32,6 +32,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             }
         }
 
+        [Fact]
+        public void Operator_add_period()
+        {
+            // Note: requires some special type inference logic because we're adding things of different types
+            using (var ctx = CreateContext())
+            {
+                var d = ctx.NodaTimeTypes.Single(t => t.LocalDate + Period.FromMonths(1) > t.LocalDate);
+                Assert.Equal(new LocalDate(2018, 4, 20), d.LocalDate);
+                Assert.Contains(@"(n.""LocalDate"" + INTERVAL 'P1M') > n.""LocalDate""", Sql);
+            }
+        }
+
         #region LocalDateTime members
 
         [Fact]
