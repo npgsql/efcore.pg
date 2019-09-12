@@ -32,6 +32,8 @@
     <ProjectReference Include="..\EFCore.PG\EFCore.PG.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Npgsql.NetTopologySuite" Version="$(NpgsqlVersion)" />
+    <!-- Npgsql.NetTopologySuite 4.1.0 switched to NetTopologySuite 2.0.0. As we're still on NetTopologySuite 1, we
+         set a versioning upper bound to exclude it. -->
+    <PackageReference Include="Npgsql.NetTopologySuite" Version="[$(NpgsqlVersion),4.1.0)" />
   </ItemGroup>
 </Project>
