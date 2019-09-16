@@ -810,23 +810,28 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 [NotNull] MigrationCommandListBuilder builder)
         {
             foreach (var enumTypeToCreate in operation.GetPostgresEnums()
-                .Where(ne => operation.GetOldPostgresEnums().All(oe => oe.Name != ne.Name)))
+                .Where(ne => operation.GetOldPostgresEnums().All(oe => oe.Name != ne.Name || oe.Schema != ne.Schema)))
             {
                 GenerateCreateEnum(enumTypeToCreate, model, builder);
             }
 
             foreach (var enumTypeToDrop in operation.GetOldPostgresEnums()
-                .Where(oe => operation.GetPostgresEnums().All(ne => ne.Name != oe.Name)))
+                .Where(oe => operation.GetPostgresEnums().All(ne => ne.Name != oe.Name || oe.Schema != ne.Schema)))
             {
                 GenerateDropEnum(enumTypeToDrop, model, builder);
             }
 
-            // TODO: Some forms of enum alterations are actually supported...
-            if (operation.GetPostgresEnums().FirstOrDefault(nr =>
-                operation.GetOldPostgresEnums().Any(or => or.Name == nr.Name)
-            ) is PostgresEnum enumTypeToAlter)
+            foreach (var (oldEnum, newEnum)  in operation.GetPostgresEnums()
+                .Select(ne => (
+                    New: ne,
+                    Old: operation.GetOldPostgresEnums().FirstOrDefault(oe => oe.Name == ne.Name && oe.Schema == ne.Schema)))
+                .Where(x => x.Old != null))
             {
-                throw new NotSupportedException($"Altering enum type ${enumTypeToAlter} isn't supported.");
+                if (oldEnum.Labels.SequenceEqual(newEnum.Labels))
+                    continue;
+
+                // TODO: Some forms of enum alterations are actually supported...
+                throw new NotSupportedException($"Altering enum type ${newEnum} isn't supported.");
             }
         }
 

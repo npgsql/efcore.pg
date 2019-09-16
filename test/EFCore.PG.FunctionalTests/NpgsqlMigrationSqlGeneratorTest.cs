@@ -1,8 +1,7 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
@@ -1119,6 +1118,17 @@ CREATE TYPE some_schema.my_enum AS ENUM ('value1', 'value2');
 
             AssertSql(@"DROP TYPE public.my_enum;
 ");
+        }
+
+        [Fact] // #979
+        public void DoNotAlterPostgresEnum()
+        {
+            var op = new AlterDatabaseOperation();
+            PostgresEnum.GetOrAddPostgresEnum(op,             "public", "my_enum", new[] { "value1", "value2" });
+            PostgresEnum.GetOrAddPostgresEnum(op.OldDatabase, "public", "my_enum", new[] { "value1", "value2" });
+            Generate(op);
+
+            AssertSql("");
         }
 
         #endregion Enums
