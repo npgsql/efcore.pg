@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.EntityFrameworkCore.Update;
 using Microsoft.EntityFrameworkCore.ValueGeneration;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics.Internal;
@@ -18,6 +19,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal;
@@ -91,6 +93,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     .TryAdd<IRelationalSqlTranslatingExpressionVisitorFactory, NpgsqlSqlTranslatingExpressionVisitorFactory>()
                     .TryAdd<ISqlExpressionFactory, NpgsqlSqlExpressionFactory>()
                     .TryAdd<ISingletonOptions, INpgsqlOptions>(p => p.GetService<INpgsqlOptions>())
+                    .TryAdd<IValueConverterSelector, NpgsqlValueConverterSelector>()
                     .TryAddProviderSpecificServices(
                         b => b
                              .TryAddSingleton<INpgsqlValueGeneratorCache, NpgsqlValueGeneratorCache>()
