@@ -113,9 +113,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     new[]
                     {
                         instance,
-                        _sqlExpressionFactory.Add(
-                            arguments[0],
-                            _sqlExpressionFactory.Constant(1)),
+                        GenerateOneBasedIndexExpression(arguments[0]),
                         arguments[1]
                     },
                     method.ReturnType,
@@ -290,5 +288,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
             return builder.ToString();
         }
+
+        SqlExpression GenerateOneBasedIndexExpression([NotNull] SqlExpression expression)
+            => expression is SqlConstantExpression constant
+                ? _sqlExpressionFactory.Constant(Convert.ToInt32(constant.Value) + 1, constant.TypeMapping)
+                : (SqlExpression)_sqlExpressionFactory.Add(expression, _sqlExpressionFactory.Constant(1));
     }
 }
