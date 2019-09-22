@@ -1,7 +1,7 @@
 # JSON Mapping
 
 > [!NOTE]
-> This capability was introduced in 3.0.0-preview8, and shouldn't be considered stable yet.
+> This feature was introduced in 3.0.0.
 
 PostgreSQL has rich, built-in support for storing JSON columns and efficiently performing complex queries operations on them. Newcomers can read more about the PostgreSQL support on [the JSON types page](https://www.postgresql.org/docs/current/datatype-json.html), and on the [functions and operators page](https://www.postgresql.org/docs/current/functions-json.html).
 
