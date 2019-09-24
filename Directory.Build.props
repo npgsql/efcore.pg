@@ -12,8 +12,12 @@
 
     <PackageLicenseExpression>PostgreSQL</PackageLicenseExpression>
     <PackageProjectUrl>https://www.npgsql.org</PackageProjectUrl>
-    <PackageIconUrl>http://www.npgsql.org/img/postgresql.gif</PackageIconUrl>
+    <PackageIcon>postgresql.png</PackageIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)postgresql.png" Pack="true" PackagePath="" />
+  </ItemGroup>
 
   <!-- Language configuration -->
   <PropertyGroup>
