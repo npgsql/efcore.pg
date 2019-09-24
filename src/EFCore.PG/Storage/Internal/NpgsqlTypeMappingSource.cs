@@ -47,12 +47,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         readonly NpgsqlCharacterTypeMapping    _char               = new NpgsqlCharacterTypeMapping("character");
         readonly CharTypeMapping               _singleChar         = new CharTypeMapping("character(1)", DbType.String);
         readonly NpgsqlCharacterTypeMapping    _stringAsSingleChar = new NpgsqlCharacterTypeMapping("character(1)");
-        readonly NpgsqlStringTypeMapping       _jsonbString        = new NpgsqlStringTypeMapping("jsonb", NpgsqlDbType.Jsonb);
-        readonly NpgsqlStringTypeMapping       _jsonString         = new NpgsqlStringTypeMapping("json", NpgsqlDbType.Json);
         readonly NpgsqlStringTypeMapping       _xml                = new NpgsqlStringTypeMapping("xml", NpgsqlDbType.Xml);
         readonly NpgsqlStringTypeMapping       _citext             = new NpgsqlStringTypeMapping("citext", NpgsqlDbType.Citext);
 
-        // JSON DOM types (JsonDocument/JsonElement)
+        // JSON mappings
+        readonly NpgsqlJsonTypeMapping         _jsonbString        = new NpgsqlJsonTypeMapping("jsonb", typeof(string));
+        readonly NpgsqlJsonTypeMapping         _jsonString         = new NpgsqlJsonTypeMapping("json", typeof(string));
         readonly NpgsqlJsonTypeMapping         _jsonbDocument      = new NpgsqlJsonTypeMapping("jsonb", typeof(JsonDocument));
         readonly NpgsqlJsonTypeMapping         _jsonDocument       = new NpgsqlJsonTypeMapping("json", typeof(JsonDocument));
         readonly NpgsqlJsonTypeMapping         _jsonbElement       = new NpgsqlJsonTypeMapping("jsonb", typeof(JsonElement));
@@ -157,8 +157,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 { "bigint",                      new[] { _int8                         } },
                 { "int8",                        new[] { _int8                         } },
                 { "text",                        new[] { _text                         } },
-                { "jsonb",                       new RelationalTypeMapping[] { _jsonbString, _jsonbDocument  } },
-                { "json",                        new RelationalTypeMapping[] { _jsonString, _jsonDocument    } },
+                { "jsonb",                       new RelationalTypeMapping[] { _jsonbString, _jsonbDocument, _jsonbElement } },
+                { "json",                        new RelationalTypeMapping[] { _jsonString, _jsonDocument, _jsonElement } },
                 { "xml",                         new[] { _xml                          } },
                 { "citext",                      new[] { _citext                       } },
                 { "character varying",           new[] { _varchar                      } },

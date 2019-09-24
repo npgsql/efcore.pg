@@ -1,15 +1,17 @@
 using System;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestUtilities;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Extensions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public class JsonPocoQueryTest  : IClassFixture<JsonPocoQueryTest.JsonPocoQueryFixture>
+    public class JsonPocoQueryTest : IClassFixture<JsonPocoQueryTest.JsonPocoQueryFixture>
     {
         JsonPocoQueryFixture Fixture { get; }
 
@@ -325,19 +327,175 @@ LIMIT 2");
             }
         }
 
+        #region Functions
+
+        [Fact]
+        public void JsonContains_with_json_element()
+        {
+            using (var ctx = Fixture.CreateContext())
+            {
+                var element = JsonDocument.Parse(@"{""Name"": ""Joe"", ""Age"": 25}").RootElement;
+                var count = ctx.JsonbEntities.Count(e =>
+                    EF.Functions.JsonContains(e.Customer, element));
+                Assert.Equal(1, count);
+
+                AssertSql(
+                    @"@__element_1='{""Name"": ""Joe""
+""Age"": 25}' (DbType = Object)
+
+SELECT COUNT(*)::INT
+FROM ""JsonbEntities"" AS j
+WHERE (j.""Customer"" @> @__element_1)");
+            }
+        }
+
+        [Fact]
+        public void JsonContains_with_string()
+        {
+            using (var ctx = Fixture.CreateContext())
+            {
+                var count = ctx.JsonbEntities.Count(e =>
+                    EF.Functions.JsonContains(e.Customer, @"{""Name"": ""Joe"", ""Age"": 25}"));
+                Assert.Equal(1, count);
+
+                AssertSql(
+                    @"SELECT COUNT(*)::INT
+FROM ""JsonbEntities"" AS j
+WHERE (j.""Customer"" @> '{""Name"": ""Joe"", ""Age"": 25}')");
+            }
+        }
+
+        [Fact]
+        public void JsonContained_with_json_element()
+        {
+            using (var ctx = Fixture.CreateContext())
+            {
+                var element = JsonDocument.Parse(@"{""Name"": ""Joe"", ""Age"": 25}").RootElement;
+                var count = ctx.JsonbEntities.Count(e =>
+                    EF.Functions.JsonContained(element, e.Customer));
+                Assert.Equal(1, count);
+
+                AssertSql(
+                    @"@__element_1='{""Name"": ""Joe""
+""Age"": 25}' (DbType = Object)
+
+SELECT COUNT(*)::INT
+FROM ""JsonbEntities"" AS j
+WHERE (@__element_1 <@ j.""Customer"")");
+            }
+        }
+
+        [Fact]
+        public void JsonContained_with_string()
+        {
+            using (var ctx = Fixture.CreateContext())
+            {
+                var count = ctx.JsonbEntities.Count(e =>
+                    EF.Functions.JsonContained(@"{""Name"": ""Joe"", ""Age"": 25}", e.Customer));
+                Assert.Equal(1, count);
+
+                AssertSql(
+                    @"SELECT COUNT(*)::INT
+FROM ""JsonbEntities"" AS j
+WHERE ('{""Name"": ""Joe"", ""Age"": 25}' <@ j.""Customer"")");
+            }
+        }
+
+        [Fact]
+        public void JsonExists()
+        {
+            using (var ctx = Fixture.CreateContext())
+            {
+                var count = ctx.JsonbEntities.Count(e =>
+                    EF.Functions.JsonExists(e.Customer.Statistics, "Visits"));
+                Assert.Equal(2, count);
+
+                AssertSql(
+                    @"SELECT COUNT(*)::INT
+FROM ""JsonbEntities"" AS j
+WHERE (j.""Customer""->'Statistics' ? 'Visits')");
+            }
+        }
+
+        [Fact]
+        public void JsonExistAny()
+        {
+            using (var ctx = Fixture.CreateContext())
+            {
+                var count = ctx.JsonbEntities.Count(e =>
+                    EF.Functions.JsonExistAny(e.Customer.Statistics, "foo", "Visits" ));
+                Assert.Equal(2, count);
+
+                AssertSql(
+                    @"SELECT COUNT(*)::INT
+FROM ""JsonbEntities"" AS j
+WHERE (j.""Customer""->'Statistics' ?| ARRAY['foo','Visits']::text[])");
+            }
+        }
+
+        [Fact]
+        public void JsonExistAll()
+        {
+            using (var ctx = Fixture.CreateContext())
+            {
+                var count = ctx.JsonbEntities.Count(e =>
+                    EF.Functions.JsonExistAll(e.Customer.Statistics, "foo", "Visits"));
+                Assert.Equal(0, count);
+
+                AssertSql(
+                    @"SELECT COUNT(*)::INT
+FROM ""JsonbEntities"" AS j
+WHERE (j.""Customer""->'Statistics' ?& ARRAY['foo','Visits']::text[])");
+            }
+        }
+
+        [Fact]
+        public void JsonTypeof()
+        {
+            using (var ctx = Fixture.CreateContext())
+            {
+                var count = ctx.JsonbEntities.Count(e =>
+                    EF.Functions.JsonTypeof(e.Customer.Statistics.Visits) == "number");
+                Assert.Equal(2, count);
+
+                AssertSql(
+                    @"SELECT COUNT(*)::INT
+FROM ""JsonbEntities"" AS j
+WHERE jsonb_typeof(j.""Customer""#>'{Statistics,Visits}') = 'number'");
+            }
+        }
+
+        [Fact]
+        public void JsonTypeof_json()
+        {
+            using (var ctx = Fixture.CreateContext())
+            {
+                var count = ctx.JsonEntities.Count(e =>
+                    EF.Functions.JsonTypeof(e.Customer.Statistics.Visits) == "number");
+                Assert.Equal(2, count);
+
+                AssertSql(
+                    @"SELECT COUNT(*)::INT
+FROM ""JsonEntities"" AS j
+WHERE json_typeof(j.""Customer""#>'{Statistics,Visits}') = 'number'");
+            }
+        }
+
+        #endregion Functions
+
         #region Support
 
         void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
-        public class JsonQueryContext : PoolableDbContext
+        public class JsonPocoQueryContext : PoolableDbContext
         {
             public DbSet<JsonbEntity> JsonbEntities { get; set; }
             public DbSet<JsonEntity> JsonEntities { get; set; }
 
-            public JsonQueryContext(DbContextOptions options) : base(options) {}
+            public JsonPocoQueryContext(DbContextOptions options) : base(options) {}
 
-            public static void Seed(JsonQueryContext context)
+            public static void Seed(JsonPocoQueryContext context)
             {
                 context.JsonbEntities.AddRange(
                     new JsonbEntity { Id = 1, Customer = CreateCustomer1(), ToplevelArray = new[] { "one", "two", "three" } },
@@ -429,12 +587,12 @@ LIMIT 2");
             public string[] ToplevelArray { get; set; }
         }
 
-        public class JsonPocoQueryFixture : SharedStoreFixtureBase<JsonQueryContext>
+        public class JsonPocoQueryFixture : SharedStoreFixtureBase<JsonPocoQueryContext>
         {
             protected override string StoreName => "JsonPocoQueryTest";
             protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
             public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
-            protected override void Seed(JsonQueryContext context) => JsonQueryContext.Seed(context);
+            protected override void Seed(JsonPocoQueryContext context) => JsonPocoQueryContext.Seed(context);
         }
 
         public class Customer

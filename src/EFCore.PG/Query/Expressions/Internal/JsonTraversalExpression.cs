@@ -75,7 +75,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
             var newPath = new SqlExpression[oldPath.Length + 1];
             Array.Copy(oldPath, newPath, oldPath.Length);
             newPath[^1] = pathComponent;
-            return new JsonTraversalExpression(Expression, newPath, ReturnsText, Type,TypeMapping);
+            return new JsonTraversalExpression(Expression, newPath, ReturnsText, Type, TypeMapping);
         }
 
         /// <inheritdoc />

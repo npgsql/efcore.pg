@@ -6,7 +6,6 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Extensions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
@@ -40,15 +39,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
         readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
         readonly RelationalTypeMapping _stringTypeMapping;
-        readonly RelationalTypeMapping _boolTypeMapping;
-        readonly RelationalTypeMapping _jsonbTypeMapping;
 
         public NpgsqlJsonDomTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory, IRelationalTypeMappingSource typeMappingSource)
         {
             _sqlExpressionFactory = sqlExpressionFactory;
             _stringTypeMapping = typeMappingSource.FindMapping(typeof(string));
-            _boolTypeMapping = typeMappingSource.FindMapping(typeof(bool));
-            _jsonbTypeMapping = typeMappingSource.FindMapping("jsonb");
         }
 
         public SqlExpression Translate(SqlExpression instance, MemberInfo member, Type returnType)
@@ -68,10 +63,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         }
 
         public SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
-            => TranslateJsonElementMethod(instance, method, arguments) ??
-               TranslateDbFunctionsMethod(method, arguments);
-
-        public SqlExpression TranslateJsonElementMethod(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
         {
             if (method.DeclaringType != typeof(JsonElement) ||
                 !(instance.TypeMapping is NpgsqlJsonTypeMapping mapping))
@@ -117,52 +108,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 throw new InvalidOperationException($"The TryGet* methods on {nameof(JsonElement)} aren't translated yet, use Get* instead.'");
 
             return null;
-        }
-
-        public SqlExpression TranslateDbFunctionsMethod(MethodInfo method, IReadOnlyList<SqlExpression> arguments)
-        {
-            if (arguments.Any(a => a.TypeMapping is NpgsqlJsonTypeMapping jsonMapping && !jsonMapping.IsJsonb))
-                throw new InvalidOperationException("JSON methods on EF.Functions only support the jsonb type, not json.");
-
-            return method.Name switch
-            {
-                nameof(NpgsqlJsonDbFunctionsExtensions.JsonContains) => new SqlCustomBinaryExpression(
-                    _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[1]),
-                    _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[2]),
-                    "@>",
-                    typeof(bool),
-                    _boolTypeMapping),
-
-                nameof(NpgsqlJsonDbFunctionsExtensions.JsonContained) => new SqlCustomBinaryExpression(
-                    _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[1]),
-                    _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[2]),
-                    "<@",
-                    typeof(bool),
-                    _boolTypeMapping),
-
-                nameof(NpgsqlJsonDbFunctionsExtensions.JsonExists) => new SqlCustomBinaryExpression(
-                    _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[1]),
-                    _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[2]),
-                    "?",
-                    typeof(bool),
-                    _boolTypeMapping),
-
-                nameof(NpgsqlJsonDbFunctionsExtensions.JsonExistAny) => new SqlCustomBinaryExpression(
-                    _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[1]),
-                    _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[2]),
-                    "?|",
-                    typeof(bool),
-                    _boolTypeMapping),
-
-                nameof(NpgsqlJsonDbFunctionsExtensions.JsonExistAll) => new SqlCustomBinaryExpression(
-                    _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[1]),
-                    _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[2]),
-                    "?&",
-                    typeof(bool),
-                    _boolTypeMapping),
-
-                _ => null
-            };
         }
 
         // The PostgreSQL traversal operator always returns text, so we need to convert to int, bool, etc.

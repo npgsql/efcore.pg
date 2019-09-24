@@ -37,7 +37,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
         protected override string GenerateNonNullSqlLiteral(object value)
         {
-            if (value is JsonDocument || value is JsonElement)
+            switch (value)
+            {
+            case JsonDocument _:
+            case JsonElement _:
             {
                 using var stream = new MemoryStream();
                 using var writer = new Utf8JsonWriter(stream);
@@ -48,8 +51,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 writer.Flush();
                 return $"'{EscapeSqlLiteral(Encoding.UTF8.GetString(stream.ToArray()))}'";
             }
-
-            return $"'{EscapeSqlLiteral(JsonSerializer.Serialize(value))}'";
+            case string s:
+                return $"'{EscapeSqlLiteral(s)}'";
+            default:  // User POCO
+                return $"'{EscapeSqlLiteral(JsonSerializer.Serialize(value))}'";
+            }
         }
     }
 }
