@@ -11,15 +11,15 @@ using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public class JsonDomQueryTest  : IClassFixture<JsonDomQueryTest.JsonDocumentQueryFixture>
+    public class JsonDomQueryTest : IClassFixture<JsonDomQueryTest.JsonDomQueryFixture>
     {
-        JsonDocumentQueryFixture Fixture { get; }
+        JsonDomQueryFixture Fixture { get; }
 
-        public JsonDomQueryTest(JsonDocumentQueryFixture fixture, ITestOutputHelper testOutputHelper)
+        public JsonDomQueryTest(JsonDomQueryFixture fixture, ITestOutputHelper testOutputHelper)
         {
             Fixture = fixture;
             Fixture.TestSqlLoggerFactory.Clear();
-            Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
         [Fact]
@@ -362,6 +362,8 @@ LIMIT 2");
             }
         }
 
+        #region Functions
+
         [Fact]
         public void JsonContains_with_json_element()
         {
@@ -456,7 +458,7 @@ WHERE (j.""CustomerElement""->'Statistics' ? 'Visits')");
             using (var ctx = Fixture.CreateContext())
             {
                 var count = ctx.JsonbEntities.Count(e =>
-                    EF.Functions.JsonExistAny(e.CustomerElement.GetProperty("Statistics"), new[] { "foo", "Visits" }));
+                    EF.Functions.JsonExistAny(e.CustomerElement.GetProperty("Statistics"), "foo", "Visits"));
                 Assert.Equal(2, count);
 
                 AssertSql(
@@ -472,7 +474,7 @@ WHERE (j.""CustomerElement""->'Statistics' ?| ARRAY['foo','Visits']::text[])");
             using (var ctx = Fixture.CreateContext())
             {
                 var count = ctx.JsonbEntities.Count(e =>
-                    EF.Functions.JsonExistAll(e.CustomerElement.GetProperty("Statistics"), new[] { "foo", "Visits" }));
+                    EF.Functions.JsonExistAll(e.CustomerElement.GetProperty("Statistics"), "foo", "Visits"));
                 Assert.Equal(0, count);
 
                 AssertSql(
@@ -482,19 +484,53 @@ WHERE (j.""CustomerElement""->'Statistics' ?& ARRAY['foo','Visits']::text[])");
             }
         }
 
+        [Fact]
+        public void JsonTypeof()
+        {
+            using (var ctx = Fixture.CreateContext())
+            {
+                var count = ctx.JsonbEntities.Count(e =>
+                    EF.Functions.JsonTypeof(e.CustomerElement.GetProperty("Statistics").GetProperty("Visits")) == "number");
+                Assert.Equal(2, count);
+
+                AssertSql(
+                    @"SELECT COUNT(*)::INT
+FROM ""JsonbEntities"" AS j
+WHERE jsonb_typeof(j.""CustomerElement""#>'{Statistics,Visits}') = 'number'");
+            }
+        }
+
+        [Fact]
+        public void JsonTypeof_json()
+        {
+            using (var ctx = Fixture.CreateContext())
+            {
+                var count = ctx.JsonEntities.Count(e =>
+                    EF.Functions.JsonTypeof(e.CustomerElement.GetProperty("Statistics").GetProperty("Visits")) == "number");
+                Assert.Equal(2, count);
+
+                AssertSql(
+                    @"SELECT COUNT(*)::INT
+FROM ""JsonEntities"" AS j
+WHERE json_typeof(j.""CustomerElement""#>'{Statistics,Visits}') = 'number'");
+            }
+        }
+
+        #endregion Functions
+
         #region Support
 
         void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
-        public class JsonQueryContext : PoolableDbContext
+        public class JsonDomQueryContext : PoolableDbContext
         {
             public DbSet<JsonbEntity> JsonbEntities { get; set; }
             public DbSet<JsonEntity> JsonEntities { get; set; }
 
-            public JsonQueryContext(DbContextOptions options) : base(options) {}
+            public JsonDomQueryContext(DbContextOptions options) : base(options) {}
 
-            public static void Seed(JsonQueryContext context)
+            public static void Seed(JsonDomQueryContext context)
             {
                 var customer1 = CreateCustomer1();
                 var customer2 = CreateCustomer2();
@@ -582,12 +618,12 @@ WHERE (j.""CustomerElement""->'Statistics' ?& ARRAY['foo','Visits']::text[])");
             public JsonElement CustomerElement { get; set; }
         }
 
-        public class JsonDocumentQueryFixture : SharedStoreFixtureBase<JsonQueryContext>
+        public class JsonDomQueryFixture : SharedStoreFixtureBase<JsonDomQueryContext>
         {
             protected override string StoreName => "JsonDomQueryTest";
             protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
             public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
-            protected override void Seed(JsonQueryContext context) => JsonQueryContext.Seed(context);
+            protected override void Seed(JsonDomQueryContext context) => JsonDomQueryContext.Seed(context);
         }
 
         #endregion

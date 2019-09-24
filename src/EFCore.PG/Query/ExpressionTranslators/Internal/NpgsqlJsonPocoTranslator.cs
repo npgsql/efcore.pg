@@ -38,7 +38,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 columnExpression.TypeMapping is NpgsqlJsonTypeMapping)
             {
                 return ConvertFromText(
-                    _sqlExpressionFactory.JsonTraversal(columnExpression, new[] { member }, true, typeof(string), _stringTypeMapping),
+                    _sqlExpressionFactory.JsonTraversal(
+                        columnExpression,
+                        new[] { member },
+                        returnsText: true,
+                        typeof(string),
+                        _stringTypeMapping),
                     returnType);
             }
 
