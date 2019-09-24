@@ -1,5 +1,10 @@
-﻿<Project>
+<Project>
+
   <Import Project="..\Directory.Build.props" />
+
+  <PropertyGroup>
+    <TargetFrameworks>netcoreapp3.0</TargetFrameworks>
+  </PropertyGroup>
 
   <PropertyGroup>
     <!-- There's lots of use of internal EF Core APIs from the tests, suppress the analyzer warnings for those -->
@@ -15,4 +20,9 @@
     <PackageReference Include="xunit.runner.visualstudio" />
     <PackageReference Include="Npgsql" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>
