@@ -1,11 +1,12 @@
 ﻿# [Getting Started](index.md)
 # Release Notes
-## [3.0 (preview)](release-notes/3.0.md)
+## [3.0](release-notes/3.0.md)
 ## [2.2](release-notes/2.2.md)
 ## [2.1](release-notes/2.1.md)
 ## [2.0](release-notes/2.0.md)
 ## [1.1](release-notes/1.1.md)
 # Creating a Model
+## [Table and Column Naming](modeling/table-column-naming.md)
 ## [Generated Properties](modeling/generated-properties.md)
 ## [Indexes](modeling/indexes.md)
 # Mapping and Translation

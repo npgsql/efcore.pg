@@ -1,11 +1,11 @@
-## JSON Mapping
+# JSON Mapping
 
 > [!NOTE]
-> This capability was introduced in 3.0.0-preview8, and shouldn't be considered stable yet.
+> This feature was introduced in 3.0.0.
 
 PostgreSQL has rich, built-in support for storing JSON columns and efficiently performing complex queries operations on them. Newcomers can read more about the PostgreSQL support on [the JSON types page](https://www.postgresql.org/docs/current/datatype-json.html), and on the [functions and operators page](https://www.postgresql.org/docs/current/functions-json.html).
 
-# Mapping POCO types to JSON columns
+## Mapping POCO types to JSON columns
 
 The Npgsql provider allows you to seamlessly map your own complex .NET types to PostgreSQL JSON columns, and then use LINQ to query them efficiently.
 
@@ -47,7 +47,7 @@ When you load your entities, the JSON documents will be seamlessly (and efficien
 
 Note that PostgreSQL supports two flavors of JSON types: the binary `jsonb` and the textual `json`. In almost all cases the `jsonb` type is preferred for efficiency reasons, more detail is available in [the JSON types page](https://www.postgresql.org/docs/current/datatype-json.html).
 
-# Querying JSON columns
+## Querying JSON columns
 
 Saving and loading these documents wouldn't be much use without the ability to query them. You can express your queries via the same LINQ constructs you are already using in EF Core:
 
@@ -64,6 +64,8 @@ SELECT c.""Id"", c.""Customer""
 FROM ""CustomerEntries"" AS c
 WHERE c.""Customer""->>'Name' = 'Joe'
 ```
+
+## Indexing JSON columns
 
 > [!NOTE]
 > A section on indices will be added. In the meantime consult the PostgreSQL documentation and other guides on the Internet.
