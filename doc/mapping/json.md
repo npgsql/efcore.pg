@@ -6,7 +6,7 @@ The Npgsql EF Core provider allows you to map PostgreSQL JSON columns in three d
 
 1. As simple strings
 2. As strongly-typed user-defined types (POCOs)
-3. As System.Text.Json DOM types (JsonDocument or JsonElement)
+3. As [System.Text.Json](https://devblogs.microsoft.com/dotnet/try-the-new-system-text-json-apis/) DOM types (JsonDocument or JsonElement)
 
 > [!NOTE]
 > Mapping to POCO or to System.Text.Json types was introduced in version 3.0.0
@@ -55,7 +55,7 @@ With string mapping, the EF Core provider will save and load properties to datab
 
 ## POCO mapping
 
-If your column's JSON documents have a stable schema, you can map them to your own .NET types (or POCOs). The provider will use [the new System.Text.Json APIs](https://www.postgresql.org/docs/current/datatype-json.html) under the hood to serialize instances to JSON documents before sending them to the database, and to deserialize documents coming from the database back. Just like EF Core can map a .NET type to rows in the table, this capability allows you to map a .NET type to a single JSON column.
+If your column's JSON documents have a stable schema, you can map them to your own .NET types (or POCOs). The provider will use [the new System.Text.Json APIs](https://devblogs.microsoft.com/dotnet/try-the-new-system-text-json-apis/) under the hood to serialize instances to JSON documents before sending them to the database, and to deserialize documents coming from the database back. Just like EF Core can map a .NET type to rows in the table, this capability allows you to map a .NET type to a single JSON column.
 
 Mapping POCOs is extremely easy: simply add a property with your custom POCO type and instruct the provider to map it to JSON:
 
@@ -144,7 +144,7 @@ This provides a seamless mapping approach, and supports embedding nested types a
 
 ## JsonDocument DOM mapping
 
-If your column JSON schema isn't stable, a strongly-typed POCO mapping may not be appropriate. The Npgsql provider also allows you to map the DOM document type provided by [System.Text.Json APIs](https://www.postgresql.org/docs/current/datatype-json.html):
+If your column JSON schema isn't stable, a strongly-typed POCO mapping may not be appropriate. The Npgsql provider also allows you to map the DOM document type provided by [System.Text.Json APIs](https://devblogs.microsoft.com/dotnet/try-the-new-system-text-json-apis/).
 
 ```c#
 public class SomeEntity
@@ -165,7 +165,7 @@ Console.WriteLine(someEntity.Customer.GetProperty("Orders")[0].GetProperty("Pric
 
 ## Querying JSON columns
 
-Saving and loading documentsthese documents wouldn't be much use without the ability to query them. You can express your queries via the same LINQ constructs you are already using in EF Core:
+Saving and loading documents these documents wouldn't be much use without the ability to query them. You can express your queries via the same LINQ constructs you are already using in EF Core:
 
 # [POCO Mapping](#tab/poco)
 
