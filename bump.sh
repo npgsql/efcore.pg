@@ -12,9 +12,11 @@ if [[ $v == *"-" ]]; then
 fi
 
 sed -i 's/^version: .*/version: '$v'-{build}/' .appveyor.yml
-sed -i 's/<VersionPrefix>[^<]*<\/VersionPrefix>/<VersionPrefix>'$v'<\/VersionPrefix>/' {src,test}/*/*.csproj
+sed -i 's/<VersionPrefix>[^<]*<\/VersionPrefix>/<VersionPrefix>'$v'<\/VersionPrefix>/' Directory.Build.props
+sed -i 's/^name: [^-]*-/name: '$v'-/' azure-pipelines.yml
 
 git add .appveyor.yml
-git add {src,test}/*/*.csproj
+git add azure-pipelines.yml
+git add Directory.Build.props
 
 git commit -m "Bump version to $v"
