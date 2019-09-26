@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Data.Common;
 using System.Diagnostics;
 using System.Linq;
@@ -11,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.Logging;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
@@ -19,7 +20,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
 {
     public class NpgsqlDatabaseCleaner : RelationalDatabaseCleaner
     {
-        NpgsqlSqlGenerationHelper _sqlGenerationHelper;
+        readonly NpgsqlSqlGenerationHelper _sqlGenerationHelper;
 
         public NpgsqlDatabaseCleaner()
             => _sqlGenerationHelper = new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies());
@@ -29,13 +30,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
                 new DiagnosticsLogger<DbLoggerCategory.Scaffolding>(
                     loggerFactory,
                     new LoggingOptions(),
-                    new DiagnosticListener("Fake")));
+                    new DiagnosticListener("Fake"),
+                    new NpgsqlLoggingDefinitions()));
 
         protected override bool AcceptIndex(DatabaseIndex index)
             => false;
-
-        const string GetExtensions = @"
-SELECT name FROM pg_available_extensions WHERE installed_version IS NOT NULL AND name <> 'plpgsql'";
 
         public override void Clean(DatabaseFacade facade)
         {
@@ -50,16 +49,10 @@ SELECT name FROM pg_available_extensions WHERE installed_version IS NOT NULL AND
                 connection.Open();
                 try
                 {
-                    var dbConnection = (NpgsqlConnection)connection.DbConnection;
-
-                    List<string> extensions;
-                    using (var cmd = new NpgsqlCommand(GetExtensions, dbConnection))
-                    using (var reader = cmd.ExecuteReader())
-                        extensions = reader.Cast<DbDataRecord>().Select(r => r.GetString(0)).ToList();
-
-                    var dropExtensionsSql = string.Join("", extensions.Select(e => $"DROP EXTENSION \"{e}\" CASCADE;"));
-                    using (var cmd = new NpgsqlCommand(dropExtensionsSql, dbConnection))
-                        cmd.ExecuteNonQuery();
+                    var conn = (NpgsqlConnection)connection.DbConnection;
+                    DropExtensions(conn);
+                    DropTypes(conn);
+                    DropFunctions(conn);
                 }
                 finally
                 {
@@ -70,31 +63,95 @@ SELECT name FROM pg_available_extensions WHERE installed_version IS NOT NULL AND
             base.Clean(facade);
         }
 
-        protected override string BuildCustomSql(DatabaseModel databaseModel)
+        void DropExtensions(NpgsqlConnection conn)
         {
-            // Some extensions create tables (e.g. PostGIS), wo we must drop them first.
-            var sb = new StringBuilder();
+            const string getExtensions = @"
+SELECT name FROM pg_available_extensions WHERE installed_version IS NOT NULL AND name <> 'plpgsql'";
 
-            foreach (var extension in databaseModel.Npgsql().PostgresExtensions)
-                sb
-                    .Append("DROP EXTENSION ")
-                    .Append(_sqlGenerationHelper.DelimitIdentifier(extension.Name, extension.Schema))
-                    .AppendLine(";");
+            List<string> extensions;
+            using (var cmd = new NpgsqlCommand(getExtensions, conn))
+            {
+                using var reader = cmd.ExecuteReader();
+                extensions = reader.Cast<DbDataRecord>().Select(r => r.GetString(0)).ToList();
+            }
 
-            return sb.ToString();
+            if (extensions.Any())
+            {
+                var dropExtensionsSql = string.Join("", extensions.Select(e => $"DROP EXTENSION \"{e}\" CASCADE;"));
+                using var cmd = new NpgsqlCommand(dropExtensionsSql, conn);
+                cmd.ExecuteNonQuery();
+            }
         }
+
+        /// <summary>
+        /// Drop user-defined ranges and enums, cascading to all tables which depend on them
+        /// </summary>
+        void DropTypes(NpgsqlConnection conn)
+        {
+            const string getUserDefinedRangesEnums = @"
+SELECT ns.nspname, typname
+FROM pg_type
+JOIN pg_namespace AS ns ON ns.oid = pg_type.typnamespace
+WHERE typtype IN ('r', 'e') AND nspname <> 'pg_catalog'";
+
+            (string Schema, string Name)[] userDefinedTypes;
+            using (var cmd = new NpgsqlCommand(getUserDefinedRangesEnums, conn))
+            {
+                using var reader = cmd.ExecuteReader();
+                userDefinedTypes = reader.Cast<DbDataRecord>().Select(r => (r.GetString(0), r.GetString(1))).ToArray();
+            }
+
+            if (userDefinedTypes.Any())
+            {
+                var dropTypes = string.Concat(userDefinedTypes.Select(t => $@"DROP TYPE ""{t.Schema}"".""{t.Name}"" CASCADE;"));
+                using var cmd = new NpgsqlCommand(dropTypes, conn);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        /// <summary>
+        /// Drop all user-defined functions and procedures
+        /// </summary>
+        void DropFunctions(NpgsqlConnection conn)
+        {
+            const string getUserDefinedFunctions = @"
+SELECT 'DROP ROUTINE ""' || nspname || '"".""' || proname || '""(' || oidvectortypes(proargtypes) || ');' FROM pg_proc
+JOIN pg_namespace AS ns ON ns.oid = pg_proc.pronamespace
+WHERE
+        nspname NOT IN ('pg_catalog', 'information_schema') AND
+    NOT EXISTS (
+            SELECT * FROM pg_depend AS dep
+            WHERE dep.classid = (SELECT oid FROM pg_class WHERE relname = 'pg_proc') AND
+                    dep.objid = pg_proc.oid AND
+                    deptype = 'e');";
+
+            string dropSql;
+            using (var cmd = new NpgsqlCommand(getUserDefinedFunctions, conn))
+            {
+                using var reader = cmd.ExecuteReader();
+                dropSql = string.Join("", reader.Cast<DbDataRecord>().Select(r => r.GetString(0)));
+            }
+
+            if (dropSql != "")
+            {
+                using var cmd = new NpgsqlCommand(dropSql, conn);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        protected override string BuildCustomSql(DatabaseModel databaseModel)
+            // Some extensions create tables (e.g. PostGIS), so we must drop them first.
+            => databaseModel.GetPostgresExtensions()
+                            .Select(e => _sqlGenerationHelper.DelimitIdentifier(e.Name, e.Schema))
+                            .Aggregate(new StringBuilder(),
+                                (builder, s) => builder.Append("DROP EXTENSION ").Append(s).Append(";"),
+                                builder => builder.ToString());
 
         protected override string BuildCustomEndingSql(DatabaseModel databaseModel)
-        {
-            var sb = new StringBuilder();
-
-            foreach (var enumDef in databaseModel.Npgsql().PostgresEnums)
-                sb
-                    .Append("DROP TYPE ")
-                    .Append(_sqlGenerationHelper.DelimitIdentifier(enumDef.Name, enumDef.Schema))
-                    .AppendLine(" CASCADE;");
-
-            return sb.ToString();
-        }
+            => databaseModel.GetPostgresEnums()
+                            .Select(e => _sqlGenerationHelper.DelimitIdentifier(e.Name, e.Schema))
+                            .Aggregate(new StringBuilder(),
+                                (builder, s) => builder.Append("DROP TYPE ").Append(s).Append(" CASCADE;"),
+                                builder => builder.ToString());
     }
 }

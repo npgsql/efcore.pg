@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -25,7 +25,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
     /// <summary>
     /// The default database model factory for Npgsql.
     /// </summary>
-    public class NpgsqlDatabaseModelFactory : IDatabaseModelFactory
+    public class NpgsqlDatabaseModelFactory : DatabaseModelFactory
     {
         #region Fields
 
@@ -48,10 +48,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
                 TimeSpan.FromMilliseconds(1000.0));
 
         /// <summary>
-        /// Tables which are considered to be system tables and should not get scaffolded, e.g. the support table
+        /// Tables and views which are considered to be system tables and should not get scaffolded, e.g. the support table
         /// created by the PostGIS extension.
         /// </summary>
-        [NotNull] [ItemNotNull] static readonly string[] SystemTables = { "spatial_ref_sys" };
+        [NotNull] [ItemNotNull] static readonly string[] SystemTablesAndViews =
+        {
+            "spatial_ref_sys", "geography_columns", "geometry_columns", "raster_columns", "raster_overviews"
+        };
 
         /// <summary>
         /// The types used for serial columns.
@@ -75,24 +78,24 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
             => _logger = Check.NotNull(logger, nameof(logger));
 
         /// <inheritdoc />
-        public virtual DatabaseModel Create(string connectionString, IEnumerable<string> tables, IEnumerable<string> schemas)
+        public override DatabaseModel Create(string connectionString, DatabaseModelFactoryOptions options)
         {
             Check.NotEmpty(connectionString, nameof(connectionString));
-            Check.NotNull(tables, nameof(tables));
-            Check.NotNull(schemas, nameof(schemas));
+            Check.NotNull(options, nameof(options));
 
             using (var connection = new NpgsqlConnection(connectionString))
             {
-                return Create(connection, tables, schemas);
+                return Create(connection, options);
             }
         }
 
         /// <inheritdoc />
-        public virtual DatabaseModel Create(DbConnection dbConnection, IEnumerable<string> tables, IEnumerable<string> schemas)
+        public override DatabaseModel Create(DbConnection dbConnection, DatabaseModelFactoryOptions options)
         {
             Check.NotNull(dbConnection, nameof(dbConnection));
-            Check.NotNull(tables, nameof(tables));
-            Check.NotNull(schemas, nameof(schemas));
+            Check.NotNull(options, nameof(options));
+
+            var databaseModel = new DatabaseModel();
 
             var connection = (NpgsqlConnection)dbConnection;
 
@@ -103,15 +106,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
 
             try
             {
-                var databaseModel = new DatabaseModel
-                {
-                    DatabaseName = connection.Database,
-                    DefaultSchema = "public"
-                };
+                databaseModel.DatabaseName = connection.Database;
+                databaseModel.DefaultSchema = "public";
 
-                var schemaList = schemas.ToList();
+                var schemaList = options.Schemas.ToList();
                 var schemaFilter = GenerateSchemaFilter(schemaList);
-                var tableList = tables.ToList();
+                var tableList = options.Tables.ToList();
                 var tableFilter = GenerateTableFilter(tableList.Select(ParseSchemaTable).ToList(), schemaFilter);
 
                 var enums = GetEnums(connection, databaseModel);
@@ -127,7 +127,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
                     while (table.Columns.Remove(null)) {}
                 }
 
-                foreach (var sequence in GetSequences(connection, databaseModel.Tables, schemaFilter, _logger))
+                foreach (var sequence in GetSequences(connection, schemaFilter, _logger))
                 {
                     sequence.Database = databaseModel;
                     databaseModel.Sequences.Add(sequence);
@@ -141,9 +141,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
 
                     // Remove some tables which shouldn't get scaffolded, unless they're explicitly mentioned
                     // in the table list
-                    if (SystemTables.Contains(table.Name) && !tableList.Contains(table.Name))
+                    if (SystemTablesAndViews.Contains(table.Name) && !tableList.Contains(table.Name))
                     {
-                        databaseModel.Tables.RemoveAt(i);
+                        databaseModel.Tables.RemoveAt(i--);
                         continue;
                     }
 
@@ -203,7 +203,7 @@ FROM pg_class AS cls
 JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
 LEFT OUTER JOIN pg_description AS des ON des.objoid = cls.oid AND des.objsubid=0
 WHERE
-  cls.relkind = 'r' AND
+  cls.relkind IN ('r', 'v', 'm') AND
   ns.nspname NOT IN ('pg_catalog', 'information_schema') AND
   cls.relname <> '{HistoryRepository.DefaultTableName}'
   {filter}";
@@ -222,7 +222,7 @@ WHERE
                     };
 
                     if (reader.GetValueOrDefault<string>("description") is string comment)
-                        table[NpgsqlAnnotationNames.Comment] = comment;
+                        table.Comment = comment;
 
                     tables.Add(table);
                 }
@@ -252,13 +252,14 @@ WHERE
             var commandText = $@"
 SELECT
   nspname,
-  relname,
+  cls.relname,
   typ.typname,
   basetyp.typname AS basetypname,
   attname,
   description,
   attisdropped,
   {(connection.PostgreSqlVersion >= new Version(10, 0) ? "attidentity" : "''::\"char\" as attidentity")},
+  {(connection.PostgreSqlVersion >= new Version(12, 0) ? "attgenerated" : "''::\"char\" as attgenerated")},
   format_type(typ.oid, atttypmod) AS formatted_typname,
   format_type(basetyp.oid, typ.typtypmod) AS formatted_basetypname,
   CASE
@@ -273,17 +274,26 @@ SELECT
   CASE
     WHEN atthasdef THEN (SELECT pg_get_expr(adbin, cls.oid) FROM pg_attrdef WHERE adrelid = cls.oid AND adnum = attr.attnum)
     ELSE NULL
-  END AS default
+  END AS default,
+
+  -- Sequence options for identity columns
+  {(connection.PostgreSqlVersion >= new Version(10, 0) ?
+  "format_type(seqtypid, 0) AS seqtype, seqstart, seqmin, seqmax, seqincrement, seqcycle, seqcache" :
+  "NULL AS seqtype, NULL AS seqstart, NULL AS seqmin, NULL AS seqmax, NULL AS seqincrement, NULL AS seqcycle, NULL AS seqcache")}
+
 FROM pg_class AS cls
 JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
-LEFT OUTER JOIN pg_attribute AS attr ON attrelid = cls.oid
-LEFT OUTER JOIN pg_type AS typ ON attr.atttypid = typ.oid
-LEFT OUTER JOIN pg_proc ON pg_proc.oid = typ.typreceive
-LEFT OUTER JOIN pg_type AS elemtyp ON (elemtyp.oid = typ.typelem)
-LEFT OUTER JOIN pg_type AS basetyp ON (basetyp.oid = typ.typbasetype)
-LEFT OUTER JOIN pg_description AS des ON des.objoid = cls.oid AND des.objsubid = attnum
+LEFT JOIN pg_attribute AS attr ON attrelid = cls.oid
+LEFT JOIN pg_type AS typ ON attr.atttypid = typ.oid
+LEFT JOIN pg_proc ON pg_proc.oid = typ.typreceive
+LEFT JOIN pg_type AS elemtyp ON (elemtyp.oid = typ.typelem)
+LEFT JOIN pg_type AS basetyp ON (basetyp.oid = typ.typbasetype)
+LEFT JOIN pg_description AS des ON des.objoid = cls.oid AND des.objsubid = attnum
+-- Bring in identity sequences the depend on this column
+LEFT JOIN pg_depend AS dep ON dep.refobjid = cls.oid AND dep.refobjsubid = attr.attnum AND dep.deptype = 'i'
+{(connection.PostgreSqlVersion >= new Version(10, 0) ? "LEFT JOIN pg_sequence AS seq ON seq.seqrelid = dep.objid" : "")}
 WHERE
-  relkind = 'r' AND
+  cls.relkind IN ('r', 'v', 'm') AND
   nspname NOT IN ('pg_catalog', 'information_schema') AND
   attnum > 0 AND
   cls.relname <> '{HistoryRepository.DefaultTableName}'
@@ -311,8 +321,6 @@ ORDER BY attnum";
                             Table = table,
                             Name = record.GetValueOrDefault<string>("attname"),
                             IsNullable = record.GetValueOrDefault<bool>("nullable"),
-                            DefaultValueSql = record.GetValueOrDefault<string>("default"),
-                            ComputedColumnSql = null
                         };
 
                         // We need to know about dropped columns because constraints take them into
@@ -356,28 +364,50 @@ ORDER BY attnum";
                             column.IsNullable,
                             column.DefaultValueSql);
 
+                        // Default values and PostgreSQL 12 generated columns
+                        if (record.GetValueOrDefault<char>("attgenerated") == 's')
+                            column.ComputedColumnSql = record.GetValueOrDefault<string>("default");
+                        else
+                        {
+                            column.DefaultValueSql = record.GetValueOrDefault<string>("default");
+                            AdjustDefaults(column, systemTypeName);
+                        }
+
                         // Identify IDENTITY columns, as well as SERIAL ones.
+                        var isIdentity = false;
                         switch (record.GetValueOrDefault<char>("attidentity"))
                         {
                         case 'a':
                             column[NpgsqlAnnotationNames.ValueGenerationStrategy] = NpgsqlValueGenerationStrategy.IdentityAlwaysColumn;
+                            isIdentity = true;
                             break;
                         case 'd':
                             column[NpgsqlAnnotationNames.ValueGenerationStrategy] = NpgsqlValueGenerationStrategy.IdentityByDefaultColumn;
+                            isIdentity = true;
                             break;
                         default:
-                            if (SerialTypes.Contains(systemTypeName) &&
-                                column.DefaultValueSql == $"nextval('{column.Table.Name}_{column.Name}_seq'::regclass)" ||
-                                column.DefaultValueSql == $"nextval('\"{column.Table.Name}_{column.Name}_seq\"'::regclass)")
+                            // Hacky but necessary...
+                            // We identify serial columns by examining their default expression, and reverse-engineer these as ValueGenerated.OnAdd.
+                            // We can't actually parse this since the table and column names are concatenated and may contain arbitrary underscores,
+                            // so we construct various possibilities and compare against them.
+                            // TODO: Think about composite keys? Do serial magic only for non-composite.
+                            if (SerialTypes.Contains(systemTypeName))
                             {
-                                // Hacky but necessary...
-                                // We identify serial columns by examining their default expression,
-                                // and reverse-engineer these as ValueGenerated.OnAdd
-                                // TODO: Think about composite keys? Do serial magic only for non-composite.
-                                column.DefaultValueSql = null;
-                                // Serial is the default value generation strategy, so NpgsqlAnnotationCodeGenerator
-                                // makes sure it isn't actually rendered
-                                column[NpgsqlAnnotationNames.ValueGenerationStrategy] = NpgsqlValueGenerationStrategy.SerialColumn;
+                                var seqName = $"{column.Table.Name}_{column.Name}_seq";
+                                if (column.Table.Schema == "public" &&
+                                    (column.DefaultValueSql == $"nextval('{seqName}'::regclass)" ||
+                                    column.DefaultValueSql == $"nextval('\"{seqName}\"'::regclass)")
+                                    ||  // non-public schema
+                                    column.DefaultValueSql == $"nextval('{column.Table.Schema}.{seqName}'::regclass)" ||
+                                    column.DefaultValueSql == $"nextval('{column.Table.Schema}.\"{seqName}\"'::regclass)" ||
+                                    column.DefaultValueSql == $"nextval('\"{column.Table.Schema}\".{seqName}'::regclass)" ||
+                                    column.DefaultValueSql == $"nextval('\"{column.Table.Schema}\".\"{seqName}\"'::regclass)")
+                                {
+                                    column.DefaultValueSql = null;
+                                    // Serial is the default value generation strategy, so NpgsqlAnnotationCodeGenerator
+                                    // makes sure it isn't actually rendered
+                                    column[NpgsqlAnnotationNames.ValueGenerationStrategy] = NpgsqlValueGenerationStrategy.SerialColumn;
+                                }
                             }
 
                             break;
@@ -386,10 +416,26 @@ ORDER BY attnum";
                         if (column[NpgsqlAnnotationNames.ValueGenerationStrategy] != null)
                             column.ValueGenerated = ValueGenerated.OnAdd;
 
-                        AdjustDefaults(column, systemTypeName);
+                        if (isIdentity)
+                        {
+                            // Get the options for the associated sequence
+                            var seqInfo = ReadSequenceInfo(record, connection.PostgreSqlVersion);
+                            var sequenceData = new IdentitySequenceOptionsData
+                            {
+                                StartValue = seqInfo.StartValue,
+                                MinValue = seqInfo.MinValue,
+                                MaxValue = seqInfo.MaxValue,
+                                IncrementBy = (int)(seqInfo.IncrementBy ?? 1),
+                                IsCyclic = seqInfo.IsCyclic ?? false,
+                                NumbersToCache = seqInfo.NumbersToCache ?? 1
+                            };
+
+                            if (!sequenceData.Equals(IdentitySequenceOptionsData.Empty))
+                                column[NpgsqlAnnotationNames.IdentityOptions] = sequenceData.Serialize();
+                        }
 
                         if (record.GetValueOrDefault<string>("description") is string comment)
-                            column[NpgsqlAnnotationNames.Comment] = comment;
+                            column.Comment = comment;
 
                         table.Columns.Add(column);
                     }
@@ -420,6 +466,12 @@ ORDER BY attnum";
                 foreach (var opClass in reader.Cast<DbDataRecord>())
                     opClasses[opClass.GetValueOrDefault<uint>("oid")] = (opClass.GetValueOrDefault<string>("opcname"), opClass.GetValueOrDefault<bool>("opcdefault"));
 
+            var collations = new Dictionary<uint, string>();
+            using (var command = new NpgsqlCommand("SELECT oid, collname FROM pg_collation", connection))
+            using (var reader = command.ExecuteReader())
+                foreach (var collation in reader.Cast<DbDataRecord>())
+                    collations[collation.GetValueOrDefault<uint>("oid")] = collation.GetValueOrDefault<string>("collname");
+
             var commandText = $@"
 SELECT
   idxcls.oid AS idx_oid,
@@ -428,9 +480,12 @@ SELECT
   idxcls.relname AS idx_relname,
   indisunique,
   {(connection.PostgreSqlVersion >= new Version(11, 0) ? "indnkeyatts" : "indnatts AS indnkeyatts")},
+  {(connection.PostgreSqlVersion >= new Version(9, 6) ? "pg_indexam_has_property(am.oid, 'can_order') as amcanorder" : "amcanorder")},
   indkey,
   amname,
   indclass,
+  indoption,
+  indcollation,
   CASE
     WHEN indexprs IS NULL THEN NULL
     ELSE pg_get_expr(indexprs, cls.oid)
@@ -543,8 +598,42 @@ WHERE
                             .GetValueOrDefault<uint[]>("indclass")
                             .Select(oid => opClasses.TryGetValue(oid, out var opc) && !opc.IsDefault ? opc.Name : null)
                             .ToArray();
+
                         if (opClassNames.Any(op => op != null))
                             index[NpgsqlAnnotationNames.IndexOperators] = opClassNames;
+
+                        var columnCollations = record
+                            .GetValueOrDefault<uint[]>("indcollation")
+                            .Select(oid => collations.TryGetValue(oid, out var collation) && !string.Equals(collation, "default") ? collation : null)
+                            .ToArray();
+
+                        if (columnCollations.Any(coll => coll != null))
+                            index[NpgsqlAnnotationNames.IndexCollation] = columnCollations;
+
+                        if (record.GetValueOrDefault<bool>("amcanorder"))
+                        {
+                            var options = record.GetValueOrDefault<ushort[]>("indoption");
+
+                            // The first bit specifies whether values are sorted in descending order.
+                            const ushort indoptionDescFlag = 0x0001;
+
+                            var sortOrders = options
+                                .Select(val => (val & indoptionDescFlag) != 0 ? SortOrder.Descending : SortOrder.Ascending)
+                                .ToArray();
+
+                            if (!SortOrderHelper.IsDefaultSortOrder(sortOrders))
+                                index[NpgsqlAnnotationNames.IndexSortOrder] = sortOrders;
+
+                            // The second bit specifies whether NULLs are sorted first instead of last.
+                            const ushort indoptionNullsFirstFlag = 0x0002;
+
+                            var nullSortOrders = options
+                                .Select(val => (val & indoptionNullsFirstFlag) != 0 ? NullSortOrder.NullsFirst : NullSortOrder.NullsLast)
+                                .ToArray();
+
+                            if (!SortOrderHelper.IsDefaultNullSortOrder(nullSortOrders, sortOrders))
+                                index[NpgsqlAnnotationNames.IndexNullSortOrder] = nullSortOrders;
+                        }
 
                         table.Indexes.Add(index);
 
@@ -622,7 +711,6 @@ WHERE
                         {
                             if (table.Columns[pkColumnIndex - 1] is DatabaseColumn pkColumn)
                                 primaryKey.Columns.Add(pkColumn);
-
                             else
                             {
                                 logger.UnsupportedColumnConstraintSkippedWarning(primaryKey.Name, DisplayName(tableSchema, tableName));
@@ -732,7 +820,6 @@ WHERE
         /// Queries the database for defined sequences and registers them with the model.
         /// </summary>
         /// <param name="connection">The database connection.</param>
-        /// <param name="tables">The database tables.</param>
         /// <param name="schemaFilter">The schema filter.</param>
         /// <param name="logger">The diagnostic logger.</param>
         /// <returns>
@@ -741,75 +828,51 @@ WHERE
         [NotNull]
         static IEnumerable<DatabaseSequence> GetSequences(
             [NotNull] NpgsqlConnection connection,
-            [NotNull] IList<DatabaseTable> tables,
             [CanBeNull] Func<string, string> schemaFilter,
             [NotNull] IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
         {
+            // Note: we consult information_schema.sequences instead of pg_sequence but the latter was only introduced in PG 10
             var commandText = $@"
 SELECT
-  sequence_schema,
-  sequence_name,
-  data_type,
-  start_value::bigint,
-  minimum_value::bigint,
-  maximum_value::bigint,
-  increment::int,
+  sequence_schema, sequence_name,
+  data_type AS seqtype,
+  start_value::bigint AS seqstart,
+  minimum_value::bigint AS seqmin,
+  maximum_value::bigint AS seqmax,
+  increment::bigint AS seqincrement,
+  1::bigint AS seqcache,
   CASE
     WHEN cycle_option = 'YES' THEN TRUE
     ELSE FALSE
-  END AS is_cyclic,
-  ownerns.nspname AS owner_schema,
-  tblcls.relname AS owner_table,
-  attname AS owner_column
+  END AS seqcycle
 FROM information_schema.sequences
-JOIN pg_namespace AS seqns ON seqns.nspname = sequence_schema
-JOIN pg_class AS seqcls ON seqcls.relnamespace = seqns.oid AND seqcls.relname = sequence_name AND seqcls.relkind = 'S'
-LEFT OUTER JOIN pg_depend AS dep ON dep.objid = seqcls.oid AND deptype='a'
-LEFT OUTER JOIN pg_class AS tblcls ON tblcls.oid = dep.refobjid
-LEFT OUTER JOIN pg_attribute AS att ON attrelid = dep.refobjid AND attnum = dep.refobjsubid
-LEFT OUTER JOIN pg_namespace AS ownerns ON ownerns.oid = tblcls.relnamespace
-{(schemaFilter != null ? $"WHERE {schemaFilter("sequence_schema")}" : null)}";
+JOIN pg_namespace AS ns ON ns.nspname = sequence_schema
+JOIN pg_class AS cls ON cls.relnamespace = ns.oid AND cls.relname = sequence_name
+WHERE
+  cls.relkind = 'S'
+  /* AND seqtype IN ('integer', 'bigint', 'smallint') */
+  /* Filter out owned serial and identity sequences */
+  AND NOT EXISTS (SELECT * FROM pg_depend AS dep WHERE dep.objid = cls.oid AND dep.deptype IN ('i', 'I', 'a'))
+  {(schemaFilter != null ? $"AND {schemaFilter("nspname")}" : null)}";
 
             using (var command = new NpgsqlCommand(commandText, connection))
             using (var reader = command.ExecuteReader())
             {
-                while (reader.Read())
+                foreach (var record in reader.Cast<DbDataRecord>())
                 {
-                    // If the sequence is OWNED BY a column which is a serial, we skip it. The sequence will be created implicitly.
-                    if (!reader.IsDBNull(10))
-                    {
-                        var ownerSchema = reader.GetValueOrDefault<string>("owner_schema");
-                        var ownerTable = reader.GetValueOrDefault<string>("owner_table");
-                        var ownerColumn = reader.GetValueOrDefault<string>("owner_column");
-
-                        var ownerDatabaseTable = tables.FirstOrDefault(t => t.Name == ownerTable && t.Schema == ownerSchema);
-
-                        // The sequence is owned by a table that isn't being scaffolded because it was excluded
-                        // from the table selection set. Skip the sequence.
-                        if (ownerDatabaseTable == null)
-                            continue;
-
-                        var ownerDatabaseColumn = ownerDatabaseTable.Columns.FirstOrDefault(t => t.Name == ownerColumn);
-
-                        // Don't reverse-engineer sequences which drive serial columns, these are implicitly
-                        // reverse-engineered by the serial column.
-                        if (ownerDatabaseColumn?.ValueGenerated == ValueGenerated.OnAdd)
-                            continue;
-                    }
-
+                    var seqInfo = ReadSequenceInfo(record, connection.PostgreSqlVersion);
                     var sequence = new DatabaseSequence
                     {
                         Schema = reader.GetValueOrDefault<string>("sequence_schema"),
                         Name = reader.GetValueOrDefault<string>("sequence_name"),
-                        StoreType = reader.GetValueOrDefault<string>("data_type"),
-                        StartValue = reader.GetValueOrDefault<long>("start_value"),
-                        MinValue = reader.GetValueOrDefault<long>("minimum_value"),
-                        MaxValue = reader.GetValueOrDefault<long>("maximum_value"),
-                        IncrementBy = reader.GetValueOrDefault<int>("increment"),
-                        IsCyclic = reader.GetValueOrDefault<bool>("is_cyclic")
+                        StoreType = seqInfo.StoreType,
+                        StartValue = seqInfo.StartValue,
+                        MinValue = seqInfo.MinValue,
+                        MaxValue = seqInfo.MaxValue,
+                        IncrementBy = (int?)seqInfo.IncrementBy,
+                        IsCyclic = seqInfo.IsCyclic
                     };
 
-                    SetSequenceStartMinMax(sequence, connection.PostgreSqlVersion, logger);
                     yield return sequence;
                 }
             }
@@ -831,9 +894,7 @@ SELECT
 FROM pg_enum
 JOIN pg_type ON pg_type.oid = enumtypid
 JOIN pg_namespace ON pg_namespace.oid = pg_type.typnamespace
-GROUP BY
-  nspname,
-  typname";
+GROUP BY nspname, typname";
 
             using (var command = new NpgsqlCommand(commandText, connection))
             using (var reader = command.ExecuteReader())
@@ -881,7 +942,7 @@ GROUP BY
                         continue;
 
                     // TODO: how/should we query the schema?
-                    databaseModel.Npgsql().GetOrAddPostgresExtension(null, name, installedVersion);
+                    databaseModel.GetOrAddPostgresExtension(null, name, installedVersion);
                 }
             }
         }
@@ -945,25 +1006,24 @@ GROUP BY
             }
         }
 
-        /// <summary>
-        /// Sets default values (min, max, start) a <see cref="DatabaseSequence"/>.
-        /// </summary>
-        /// <param name="sequence">The sequence to configure.</param>
-        /// <param name="postgresVersion">The PostgreSQL version to target.</param>
-        /// <param name="logger">The diagnostic logger.</param>
-        static void SetSequenceStartMinMax(
-            [NotNull] DatabaseSequence sequence,
-            [NotNull] Version postgresVersion,
-            [NotNull] IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
+        static SequenceInfo ReadSequenceInfo(DbDataRecord record, Version postgresVersion)
         {
+            var storeType = record.GetValueOrDefault<string>("seqtype");
+            var startValue = record.GetValueOrDefault<long>("seqstart");
+            var minValue = record.GetValueOrDefault<long>("seqmin");
+            var maxValue = record.GetValueOrDefault<long>("seqmax");
+            var incrementBy = record.GetValueOrDefault<long>("seqincrement");
+            var isCyclic = record.GetValueOrDefault<bool>("seqcycle");
+            var numbersToCache = (int)record.GetValueOrDefault<long>("seqcache");
+
             long defaultStart, defaultMin, defaultMax;
 
-            switch (sequence.StoreType)
+            switch (storeType)
             {
-            case "smallint" when sequence.IncrementBy > 0:
+            case "smallint" when incrementBy > 0:
                 defaultMin = 1;
                 defaultMax = short.MaxValue;
-                defaultStart = sequence.MinValue ?? 0;
+                defaultStart = minValue;
                 break;
 
             case "smallint":
@@ -972,13 +1032,13 @@ GROUP BY
                     ? short.MinValue
                     : short.MinValue + 1;
                 defaultMax = -1;
-                defaultStart = sequence.MaxValue ?? 0;
+                defaultStart = maxValue;
                 break;
 
-            case "integer" when sequence.IncrementBy > 0:
+            case "integer" when incrementBy > 0:
                 defaultMin = 1;
                 defaultMax = int.MaxValue;
-                defaultStart = sequence.MinValue ?? 0;
+                defaultStart = minValue;
                 break;
 
             case "integer":
@@ -987,13 +1047,13 @@ GROUP BY
                     ? int.MinValue
                     : int.MinValue + 1;
                 defaultMax = -1;
-                defaultStart = sequence.MaxValue ?? 0;
+                defaultStart = maxValue;
                 break;
 
-            case "bigint" when sequence.IncrementBy > 0:
+            case "bigint" when incrementBy > 0:
                 defaultMin = 1;
                 defaultMax = long.MaxValue;
-                defaultStart = sequence.MinValue ?? 0;
+                defaultStart = minValue;
                 break;
 
             case "bigint":
@@ -1002,23 +1062,34 @@ GROUP BY
                     ? long.MinValue
                     : long.MinValue + 1;
                 defaultMax = -1;
-                Debug.Assert(sequence.MaxValue.HasValue);
-                defaultStart = sequence.MaxValue.Value;
+                defaultStart = maxValue;
                 break;
 
             default:
-                logger.Logger.LogWarning($"Sequence with datatype {sequence.StoreType} which isn't an expected sequence type.");
-                return;
+                throw new NotSupportedException($"Sequence has datatype {storeType} which isn't an expected sequence type.");
             }
 
-            if (sequence.StartValue == defaultStart)
-                sequence.StartValue = null;
+            return new SequenceInfo
+            {
+                StoreType = storeType,
+                StartValue = startValue == defaultStart ? null : (long?)startValue,
+                MinValue = minValue == defaultMin ? null : (long?)minValue,
+                MaxValue = maxValue == defaultMax ? null : (long?)maxValue,
+                IncrementBy = incrementBy == 1 ? null : (long?)incrementBy,
+                IsCyclic = isCyclic == false ? null : (bool?)true,
+                NumbersToCache = numbersToCache == 1 ? null : (long?)numbersToCache
+            };
+        }
 
-            if (sequence.MinValue == defaultMin)
-                sequence.MinValue = null;
-
-            if (sequence.MaxValue == defaultMax)
-                sequence.MaxValue = null;
+        class SequenceInfo
+        {
+            public string StoreType { get; set; }
+            public long? StartValue { get; set; }
+            public long? MinValue { get; set; }
+            public long? MaxValue { get; set; }
+            public long? IncrementBy { get; set; }
+            public bool? IsCyclic { get; set; }
+            public long? NumbersToCache { get; set; }
         }
 
         #endregion

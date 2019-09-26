@@ -3,6 +3,7 @@ using System.Linq;
 using System.Net.Security;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 
@@ -12,6 +13,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
     {
         ProvideClientCertificatesCallback ProvideClientCertificatesCallback { get; }
         RemoteCertificateValidationCallback RemoteCertificateValidationCallback { get; }
+        ProvidePasswordCallback ProvidePasswordCallback { get; }
+
 
         /// <summary>
         ///     Indicates whether the store connection supports ambient transactions
@@ -26,6 +29,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
             ProvideClientCertificatesCallback = npgsqlOptions.ProvideClientCertificatesCallback;
             RemoteCertificateValidationCallback = npgsqlOptions.RemoteCertificateValidationCallback;
+            ProvidePasswordCallback = npgsqlOptions.ProvidePasswordCallback;
         }
 
         protected override DbConnection CreateDbConnection()
@@ -35,6 +39,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 conn.ProvideClientCertificatesCallback = ProvideClientCertificatesCallback;
             if (RemoteCertificateValidationCallback != null)
                 conn.UserCertificateValidationCallback = RemoteCertificateValidationCallback;
+            if (ProvidePasswordCallback != null)
+                conn.ProvidePasswordCallback = ProvidePasswordCallback;
             return conn;
         }
 
@@ -46,9 +52,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 Database = adminDb,
                 Pooling = false
             };
-            var masterConn = ((NpgsqlConnection)DbConnection).CloneWith(csb.ToString());
+
+            var relationalOptions = RelationalOptionsExtension.Extract(Dependencies.ContextOptions);
+            var connectionString = csb.ToString();
+
+            relationalOptions = relationalOptions.Connection != null
+                ? relationalOptions.WithConnection(((NpgsqlConnection)DbConnection).CloneWith(connectionString))
+                : relationalOptions.WithConnectionString(connectionString);
+
             var optionsBuilder = new DbContextOptionsBuilder();
-            optionsBuilder.UseNpgsql(masterConn);
+            ((IDbContextOptionsBuilderInfrastructure)optionsBuilder).AddOrUpdateExtension(relationalOptions);
 
             return new NpgsqlRelationalConnection(Dependencies.With(optionsBuilder.Options));
         }

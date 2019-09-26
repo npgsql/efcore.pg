@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.Internal;
 using Microsoft.Extensions.Logging;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics.Internal;
 using Xunit;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
@@ -52,23 +53,29 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
         public static RelationalConnectionDependencies CreateDependencies(DbContextOptions options = null)
         {
-            options = options
-                      ?? new DbContextOptionsBuilder()
-                          .UseNpgsql(@"Host=localhost;Database=NpgsqlConnectionTest;Username=some_user;Password=some_password")
-                          .Options;
+            options ??= new DbContextOptionsBuilder()
+                .UseNpgsql(@"Host=localhost;Database=NpgsqlConnectionTest;Username=some_user;Password=some_password")
+                .Options;
 
             return new RelationalConnectionDependencies(
                 options,
                 new DiagnosticsLogger<DbLoggerCategory.Database.Transaction>(
                     new LoggerFactory(),
                     new LoggingOptions(),
-                    new DiagnosticListener("FakeDiagnosticListener")),
+                    new DiagnosticListener("FakeDiagnosticListener"),
+                    new NpgsqlLoggingDefinitions()),
                 new DiagnosticsLogger<DbLoggerCategory.Database.Connection>(
                     new LoggerFactory(),
                     new LoggingOptions(),
-                    new DiagnosticListener("FakeDiagnosticListener")),
+                    new DiagnosticListener("FakeDiagnosticListener"),
+                    new NpgsqlLoggingDefinitions()),
                 new NamedConnectionStringResolver(options),
-                new RelationalTransactionFactory(new RelationalTransactionFactoryDependencies()));
+                new RelationalTransactionFactory(new RelationalTransactionFactoryDependencies()),
+                new CurrentDbContext(new FakeDbContext()));
+        }
+
+        class FakeDbContext : DbContext
+        {
         }
     }
 }

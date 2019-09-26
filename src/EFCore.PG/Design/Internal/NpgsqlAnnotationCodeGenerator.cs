@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
@@ -49,14 +49,22 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             Check.NotNull(property, nameof(property));
             Check.NotNull(annotation, nameof(annotation));
 
-            // Serial is the default value generation strategy.
-            // So if ValueGenerated is OnAdd (which it must be if serial is set), make sure
-            // ValueGenerationStrategy.Serial isn't code-generated because it's by-convention.
-            if (annotation.Name == NpgsqlAnnotationNames.ValueGenerationStrategy
-                && (NpgsqlValueGenerationStrategy)annotation.Value == NpgsqlValueGenerationStrategy.SerialColumn)
+            // The default by-convention value generation strategy is serial in pre-10 PostgreSQL,
+            // and IdentityByDefault otherwise.
+            if (annotation.Name == NpgsqlAnnotationNames.ValueGenerationStrategy)
             {
                 Debug.Assert(property.ValueGenerated == ValueGenerated.OnAdd);
-                return true;
+
+                // Note: both serial and identity-by-default columns are considered by-convention - we don't want
+                // to assume that the PostgreSQL version of the scaffolded database necessarily determines the
+                // version of the database that the scaffolded model will target. This makes life difficult for
+                // models with mixed strategies but that's an edge case.
+                return (NpgsqlValueGenerationStrategy)annotation.Value switch
+                {
+                    NpgsqlValueGenerationStrategy.SerialColumn => true,
+                    NpgsqlValueGenerationStrategy.IdentityByDefaultColumn => true,
+                    _ => false
+                };
             }
 
             return false;
@@ -80,9 +88,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
                 var enumTypeDef = new PostgresEnum(model, annotation.Name);
 
                 return enumTypeDef.Schema == "public"
-                    ? new MethodCallCodeFragment(nameof(NpgsqlModelBuilderExtensions.ForNpgsqlHasEnum),
+                    ? new MethodCallCodeFragment(nameof(NpgsqlModelBuilderExtensions.HasPostgresEnum),
                         enumTypeDef.Name, enumTypeDef.Labels)
-                    : new MethodCallCodeFragment(nameof(NpgsqlModelBuilderExtensions.ForNpgsqlHasEnum),
+                    : new MethodCallCodeFragment(nameof(NpgsqlModelBuilderExtensions.HasPostgresEnum),
                         enumTypeDef.Schema, enumTypeDef.Name, enumTypeDef.Labels);
             }
 
@@ -95,13 +103,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
                     rangeTypeDef.Collation == null &&
                     rangeTypeDef.SubtypeDiff == null)
                 {
-                    return new MethodCallCodeFragment(nameof(NpgsqlModelBuilderExtensions.ForNpgsqlHasRange),
+                    return new MethodCallCodeFragment(nameof(NpgsqlModelBuilderExtensions.HasPostgresRange),
                         rangeTypeDef.Schema == "public" ? null : rangeTypeDef.Schema,
                         rangeTypeDef.Name,
                         rangeTypeDef.Subtype);
                 }
 
-                return new MethodCallCodeFragment(nameof(NpgsqlModelBuilderExtensions.ForNpgsqlHasRange),
+                return new MethodCallCodeFragment(nameof(NpgsqlModelBuilderExtensions.HasPostgresRange),
                     rangeTypeDef.Schema == "public" ? null : rangeTypeDef.Schema,
                     rangeTypeDef.Name,
                     rangeTypeDef.Subtype,
@@ -119,8 +127,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             Check.NotNull(entityType, nameof(entityType));
             Check.NotNull(annotation, nameof(annotation));
 
-            if (annotation.Name == NpgsqlAnnotationNames.Comment)
-                return new MethodCallCodeFragment(nameof(NpgsqlEntityTypeBuilderExtensions.ForNpgsqlHasComment), annotation.Value);
+            if (annotation.Name == NpgsqlAnnotationNames.UnloggedTable)
+                return new MethodCallCodeFragment(nameof(NpgsqlEntityTypeBuilderExtensions.IsUnlogged), annotation.Value);
 
             return null;
         }
@@ -133,37 +141,45 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             switch (annotation.Name)
             {
             case NpgsqlAnnotationNames.ValueGenerationStrategy:
-                switch ((NpgsqlValueGenerationStrategy)annotation.Value)
+                return new MethodCallCodeFragment(annotation.Value switch
                 {
-                case NpgsqlValueGenerationStrategy.SerialColumn:
-                    return new MethodCallCodeFragment(nameof(NpgsqlPropertyBuilderExtensions.UseNpgsqlSerialColumn));
-                case NpgsqlValueGenerationStrategy.IdentityAlwaysColumn:
-                    return new MethodCallCodeFragment(nameof(NpgsqlPropertyBuilderExtensions.UseNpgsqlIdentityAlwaysColumn));
-                case NpgsqlValueGenerationStrategy.IdentityByDefaultColumn:
-                    return new MethodCallCodeFragment(nameof(NpgsqlPropertyBuilderExtensions.UseNpgsqlIdentityByDefaultColumn));
-                case NpgsqlValueGenerationStrategy.SequenceHiLo:
-                    throw new Exception($"Unexpected {NpgsqlValueGenerationStrategy.SequenceHiLo} value generation strategy when scaffolding");
-                default:
-                    throw new ArgumentOutOfRangeException();
-                }
+                    NpgsqlValueGenerationStrategy.SerialColumn => nameof(NpgsqlPropertyBuilderExtensions.UseSerialColumn),
+                    NpgsqlValueGenerationStrategy.IdentityAlwaysColumn => nameof(NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn),
+                    NpgsqlValueGenerationStrategy.IdentityByDefaultColumn => nameof(NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn),
+                    _ => throw new ArgumentOutOfRangeException()
+                });
 
-            case NpgsqlAnnotationNames.Comment:
-                return new MethodCallCodeFragment(nameof(NpgsqlPropertyBuilderExtensions.ForNpgsqlHasComment), annotation.Value);
+            case NpgsqlAnnotationNames.IdentityOptions:
+                var identityOptions = IdentitySequenceOptionsData.Deserialize((string)annotation.Value);
+                return new MethodCallCodeFragment(
+                    nameof(NpgsqlPropertyBuilderExtensions.HasIdentityOptions),
+                    identityOptions.StartValue,
+                    identityOptions.IncrementBy == 1 ? null : (long?)identityOptions.IncrementBy,
+                    identityOptions.MinValue,
+                    identityOptions.MaxValue,
+                    identityOptions.IsCyclic ? true : (bool?)null,
+                    identityOptions.NumbersToCache == 1 ? null : (long?)identityOptions.NumbersToCache);
             }
 
             return null;
         }
 
         public override MethodCallCodeFragment GenerateFluentApi(IIndex index, IAnnotation annotation)
-        {
-            if (annotation.Name == NpgsqlAnnotationNames.IndexMethod)
-                return new MethodCallCodeFragment(nameof(NpgsqlIndexBuilderExtensions.ForNpgsqlHasMethod), annotation.Value);
-            if (annotation.Name == NpgsqlAnnotationNames.IndexOperators)
-                return new MethodCallCodeFragment(nameof(NpgsqlIndexBuilderExtensions.ForNpgsqlHasOperators), annotation.Value);
-            if (annotation.Name == NpgsqlAnnotationNames.IndexInclude)
-                return new MethodCallCodeFragment(nameof(NpgsqlIndexBuilderExtensions.ForNpgsqlInclude), annotation.Value);
-
-            return null;
-        }
+            => annotation.Name switch
+            {
+                NpgsqlAnnotationNames.IndexMethod
+                    => new MethodCallCodeFragment(nameof(NpgsqlIndexBuilderExtensions.HasMethod), annotation.Value),
+                NpgsqlAnnotationNames.IndexOperators
+                    => new MethodCallCodeFragment(nameof(NpgsqlIndexBuilderExtensions.HasOperators), annotation.Value),
+                NpgsqlAnnotationNames.IndexCollation
+                    => new MethodCallCodeFragment(nameof(NpgsqlIndexBuilderExtensions.HasCollation), annotation.Value),
+                NpgsqlAnnotationNames.IndexSortOrder
+                    => new MethodCallCodeFragment(nameof(NpgsqlIndexBuilderExtensions.HasSortOrder), annotation.Value),
+                NpgsqlAnnotationNames.IndexNullSortOrder
+                    => new MethodCallCodeFragment(nameof(NpgsqlIndexBuilderExtensions.HasNullSortOrder), annotation.Value),
+                NpgsqlAnnotationNames.IndexInclude
+                    => new MethodCallCodeFragment(nameof(NpgsqlIndexBuilderExtensions.IncludeProperties), annotation.Value),
+                _ => null
+            };
     }
 }

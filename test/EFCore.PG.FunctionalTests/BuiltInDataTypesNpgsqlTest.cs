@@ -8,7 +8,6 @@ using Xunit.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.TestUtilities;
@@ -20,6 +19,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
     public class BuiltInDataTypesNpgsqlTest : BuiltInDataTypesTestBase<BuiltInDataTypesNpgsqlTest.BuiltInDataTypesNpgsqlFixture>
     {
+        // ReSharper disable once UnusedParameter.Local
         public BuiltInDataTypesNpgsqlTest(BuiltInDataTypesNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
         {
@@ -39,12 +39,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                         .ToList();
 
                 Assert.Equal(0, results.Count);
-                Assert.Equal(
-                    @"SELECT e.""Int""
-FROM ""MappedNullableDataTypes"" AS e
-WHERE e.""TimeSpanAsTime"" = TIME '00:01:02'",
-                    Sql,
-                    ignoreLineEndingDifferences: true);
+
+                AssertSql(
+                    @"SELECT m.""Int""
+FROM ""MappedNullableDataTypes"" AS m
+WHERE (m.""TimeSpanAsTime"" = TIME '00:01:02') AND (m.""TimeSpanAsTime"" IS NOT NULL)");
             }
         }
 
@@ -62,14 +61,13 @@ WHERE e.""TimeSpanAsTime"" = TIME '00:01:02'",
                         .ToList();
 
                 Assert.Equal(0, results.Count);
-                Assert.Equal(
-                    @"@__timeSpan_0='02:01:00' (DbType = Object)
 
-SELECT e.""Int""
-FROM ""MappedNullableDataTypes"" AS e
-WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
-                    Sql,
-                    ignoreLineEndingDifferences: true);
+                AssertSql(
+                    @"@__timeSpan_0='02:01:00' (Nullable = true) (DbType = Object)
+
+SELECT m.""Int""
+FROM ""MappedNullableDataTypes"" AS m
+WHERE ((m.""TimeSpanAsTime"" = @__timeSpan_0) AND ((m.""TimeSpanAsTime"" IS NOT NULL) AND (@__timeSpan_0 IS NOT NULL))) OR ((m.""TimeSpanAsTime"" IS NULL) AND (@__timeSpan_0 IS NULL))");
             }
         }
 
@@ -108,7 +106,8 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
 
                         StringAsText = "Gumball Rules!",
                         StringAsVarchar = "Gumball Rules OK",
-                        CharAsChar1 = 'f',
+                        // TODO: enable here (and above) after https://github.com/aspnet/EntityFrameworkCore/issues/14159 is fixed
+                        // CharAsChar1 = 'f',
                         CharAsText = 'g',
                         CharAsVarchar = 'h',
                         BytesAsBytea = new byte[] { 86 },
@@ -206,18 +205,23 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
                 TimeSpan? param19 = new TimeSpan(11, 15, 12);
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.TimeSpanAsInterval == param19));
 
+                // ReSharper disable once ConvertToConstant.Local
                 var param20 = "Gumball Rules!";
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.StringAsText == param20));
 
+                // ReSharper disable once ConvertToConstant.Local
                 var param21 = "Gumball Rules OK";
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.StringAsVarchar == param21));
 
-                var param21a = 'f';
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.CharAsChar1 == param21a));
+                // TODO: enable here (and above) after https://github.com/aspnet/EntityFrameworkCore/issues/14159 is fixed
+                // var param21a = 'f';
+                // Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.CharAsChar1 == param21a));
 
+                // ReSharper disable once ConvertToConstant.Local
                 var param21b = 'g';
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.CharAsText == param21b));
 
+                // ReSharper disable once ConvertToConstant.Local
                 var param21c = 'h';
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.CharAsVarchar == param21c));
 
@@ -240,6 +244,7 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
                 // NpgsqlPoint? param27 = new NpgsqlPoint(5.2, 3.3);
                 // Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Point == param27));
 
+                // ReSharper disable once ConvertToConstant.Local
                 var param28 = @"{""a"": ""b""}";
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.StringAsJsonb == param28));
 
@@ -259,6 +264,7 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
                 var param33 = new[] { PhysicalAddress.Parse("08-00-2B-01-02-03"), PhysicalAddress.Parse("08-00-2B-01-02-04") };
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.PhysicalAddressArrayAsMacaddrArray == param33));
 
+                // ReSharper disable once ConvertToConstant.Local
                 var param34 = (uint)int.MaxValue + 1;
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.UintAsXid == param34));
 
@@ -268,12 +274,15 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
                 var param36 = NpgsqlTsVector.Parse("a b");
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.SearchVector == param36));
 
+                // ReSharper disable once ConvertToConstant.Local
                 var param37 = NpgsqlTsRankingNormalization.DivideByLength;
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.RankingNormalization == param37));
 
+                // ReSharper disable once ConvertToConstant.Local
                 var param38 = 12724u;
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Regconfig == param38));
 
+                // ReSharper disable once ConvertToConstant.Local
                 var param39 = Mood.Sad;
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Mood == param39));
             }
@@ -366,8 +375,9 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
                 string param21 = null;
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.StringAsVarchar == param21));
 
-                char? param21a = null;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.CharAsChar1 == param21a));
+                // TODO: enable here (and above) after https://github.com/aspnet/EntityFrameworkCore/issues/14159 is fixed
+                // char? param21a = null;
+                // Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.CharAsChar1 == param21a));
 
                 char? param21b = null;
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.CharAsText == param21b));
@@ -388,16 +398,19 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.EnumAsVarchar == param25));
 
                 PhysicalAddress param26 = null;
+                // ReSharper disable once PossibleUnintendedReferenceComparison
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.PhysicalAddressAsMacaddr == param26));
 
-                NpgsqlPoint? param27 = null;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.NpgsqlPointAsPoint == param27));
+                // PostgreSQL does not support equality comparison on geometry types, see https://www.postgresql.org/docs/current/functions-geometry.html
+                //NpgsqlPoint? param27 = null;
+                //Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.NpgsqlPointAsPoint == param27));
 
                 string param28 = null;
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.StringAsJsonb == param28));
 
-                string param29 = null;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.StringAsJson == param29));
+                // PostgreSQL does not support equality comparison on json
+                //string param29 = null;
+                //Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.StringAsJson == param29));
 
                 Dictionary<string, string> param30 = null;
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.DictionaryAsHstore == param30));
@@ -448,55 +461,57 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
 @p1='True'
 @p2='80'
 @p3='0x56' (Nullable = false)
-@p4='f' (DbType = String)
-@p5='g' (Nullable = false) (Size = 1)
-@p6='h' (Nullable = false) (Size = 1)
-@p7='2015-01-02T00:00:00' (DbType = Date)
-@p8='2015-01-02T10:11:12' (DbType = DateTime)
-@p9='2016-01-02T11:11:12' (DbType = DateTimeOffset)
-@p10='0001-01-01T12:00:00.0000000+02:00' (DbType = Object)
-@p11='101.7'
-@p12='81.1'
-@p13='103.9'
-@p14='System.Collections.Generic.Dictionary`2[System.String,System.String]' (Nullable = false) (DbType = Object)
-@p15='85.5'
+@p4='g' (Nullable = false)
+@p5='h' (Nullable = false)
+@p6='2015-01-02T00:00:00' (DbType = Date)
+@p7='2015-01-02T10:11:12' (DbType = DateTime)
+@p8='2016-01-02T11:11:12' (DbType = DateTimeOffset)
+@p9='0001-01-01T12:00:00.0000000+02:00' (DbType = Object)
+@p10='101.7'
+@p11='81.1'
+@p12='103.9'
+@p13='System.Collections.Generic.Dictionary`2[System.String,System.String]' (Nullable = false) (DbType = Object)
+@p14='85.5'
+@p15='Value4' (Nullable = false)
 @p16='Value4' (Nullable = false)
-@p17='Value4' (Nullable = false)
-@p18='84.4'
-@p19='a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
-@p20='System.Int32[]' (Nullable = false) (DbType = Object)
-@p21='78'
-@p22='Sad' (DbType = Object)
-@p23='(5.2,3.3)' (DbType = Object)
-@p24='[4,8)' (DbType = Object)
-@p25='System.Net.NetworkInformation.PhysicalAddress[]' (Nullable = false) (DbType = Object)
-@p26='08002B010203' (Nullable = false) (DbType = Object)
-@p27='2'
-@p28='12724' (DbType = Object)
-@p29=''a' & 'b'' (Nullable = false) (DbType = Object)
-@p30=''a' 'b'' (Nullable = false) (DbType = Object)
-@p31='79'
-@p32='{""a"": ""b""}' (Nullable = false)
-@p33='{""a"": ""b""}' (Nullable = false) (DbType = Object)
-@p34='Gumball Rules!' (Nullable = false)
-@p35='Gumball Rules OK' (Nullable = false)
+@p17='84.4'
+@p18='a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
+@p19='System.Int32[]' (Nullable = false) (DbType = Object)
+@p20='78'
+@p21='Sad' (DbType = Object)
+@p22='(5.2,3.3)' (DbType = Object)
+@p23='[4,8)' (DbType = Object)
+@p24='System.Net.NetworkInformation.PhysicalAddress[]' (Nullable = false) (DbType = Object)
+@p25='08002B010203' (Nullable = false) (DbType = Object)
+@p26='2'
+@p27='12724' (DbType = Object)
+@p28=''a' & 'b'' (Nullable = false) (DbType = Object)
+@p29=''a' 'b'' (Nullable = false) (DbType = Object)
+@p30='79'
+@p31='{""a"": ""b""}' (Nullable = false) (DbType = Object)
+@p32='{""a"": ""b""}' (Nullable = false) (DbType = Object)
+@p33='Gumball Rules!' (Nullable = false)
+@p34='Gumball Rules OK' (Nullable = false)
+@p35='11:15:12' (DbType = Object)
 @p36='11:15:12' (DbType = Object)
-@p37='11:15:12' (DbType = Object)
-@p38='65535'
-@p39='-1'
-@p40='4294967295'
-@p41='-1'
-@p42='2147483648' (DbType = Object)
-@p43='-1'",
+@p37='65535'
+@p38='-1'
+@p39='4294967295'
+@p40='-1'
+@p41='2147483648' (DbType = Object)
+@p42='-1'",
                     parameters,
                     ignoreLineEndingDifferences: true);
         }
 
         string DumpParameters()
-            => Fixture.TestSqlLoggerFactory.Parameters.Single().Replace(", ", EOL);
+            => Fixture.TestSqlLoggerFactory.Parameters.Single().Replace(", ", Environment.NewLine);
 
+        // ReSharper disable once UnusedMember.Local
+        // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
         static void AssertMappedDataTypes(MappedDataTypes entity, int id)
         {
+            // ReSharper disable once UnusedVariable
             var expected = CreateMappedDataTypes(id);
             Assert.Equal(id, entity.Int);
             Assert.Equal(78, entity.LongAsBigint);
@@ -524,7 +539,8 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
 
             Assert.Equal("Gumball Rules!", entity.StringAsText);
             Assert.Equal("Gumball Rules OK", entity.StringAsVarchar);
-            Assert.Equal('f', entity.CharAsChar1);
+            // TODO: enable here (and above) after https://github.com/aspnet/EntityFrameworkCore/issues/14159 is fixed
+            // Assert.Equal('f', entity.CharAsChar1);
             Assert.Equal('g', entity.CharAsText);
             Assert.Equal('h', entity.CharAsVarchar);
             Assert.Equal(new byte[] { 86 }, entity.BytesAsBytea);
@@ -581,7 +597,8 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
 
                 StringAsText = "Gumball Rules!",
                 StringAsVarchar = "Gumball Rules OK",
-                CharAsChar1 = 'f',
+                // TODO: enable here (and above) after https://github.com/aspnet/EntityFrameworkCore/issues/14159 is fixed
+                // CharAsChar1 = 'f',
                 CharAsText = 'g',
                 CharAsVarchar = 'h',
                 BytesAsBytea = new byte[] { 86 },
@@ -627,7 +644,9 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
             }
         }
 
+        // ReSharper disable ParameterOnlyUsedForPreconditionCheck.Local
         static void AssertNullMappedNullableDataTypes(MappedNullableDataTypes entity, int id)
+        // ReSharper restore ParameterOnlyUsedForPreconditionCheck.Local
         {
             Assert.Equal(id, entity.Int);
             Assert.Null(entity.LongAsBigint);
@@ -656,7 +675,8 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
 
             Assert.Null(entity.StringAsText);
             Assert.Null(entity.StringAsVarchar);
-            Assert.Null(entity.CharAsChar1);
+            // TODO: enable here (and above) after https://github.com/aspnet/EntityFrameworkCore/issues/14159 is fixed
+            // Assert.Null(entity.CharAsChar1);
             Assert.Null(entity.CharAsText);
             Assert.Null(entity.CharAsVarchar);
             Assert.Null(entity.BytesAsBytea);
@@ -685,9 +705,199 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
             Assert.Null(entity.Mood);
         }
 
-        string Sql => Fixture.TestSqlLoggerFactory.Sql;
+        [Fact(Skip="https://github.com/aspnet/EntityFrameworkCore/issues/14159")]
+        public override void Can_query_using_any_data_type_nullable_shadow() {}
 
-        static readonly string EOL = Environment.NewLine;
+        [Fact(Skip="https://github.com/aspnet/EntityFrameworkCore/issues/14159")]
+        public override void Can_query_using_any_data_type_shadow() {}
+
+        public override void Can_query_with_null_parameters_using_any_nullable_data_type()
+        {
+            using (var context = CreateContext())
+            {
+                context.Set<BuiltInNullableDataTypes>().Add(
+                    new BuiltInNullableDataTypes
+                    {
+                        Id = 711
+                    });
+
+                Assert.Equal(1, context.SaveChanges());
+            }
+
+            using (var context = CreateContext())
+            {
+                var entity = context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711).ToList().Single();
+
+                short? param1 = null;
+                Assert.Same(
+                    entity,
+                    context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.TestNullableInt16 == param1).ToList().Single());
+                Assert.Same(
+                    entity,
+                    context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && (long?)(int?)e.TestNullableInt16 == param1).ToList()
+                        .Single());
+
+                int? param2 = null;
+                Assert.Same(
+                    entity,
+                    context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.TestNullableInt32 == param2).ToList().Single());
+
+                long? param3 = null;
+                Assert.Same(
+                    entity,
+                    context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.TestNullableInt64 == param3).ToList().Single());
+
+                double? param4 = null;
+                Assert.Same(
+                    entity,
+                    context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.TestNullableDouble == param4).ToList().Single());
+
+                decimal? param5 = null;
+                Assert.Same(
+                    entity,
+                    context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.TestNullableDecimal == param5).ToList().Single());
+
+                DateTime? param6 = null;
+                Assert.Same(
+                    entity,
+                    context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.TestNullableDateTime == param6).ToList().Single());
+
+                // We don't support DateTimeOffset
+
+                TimeSpan? param8 = null;
+                Assert.Same(
+                    entity,
+                    context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.TestNullableTimeSpan == param8).ToList().Single());
+
+                float? param9 = null;
+                Assert.Same(
+                    entity,
+                    context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.TestNullableSingle == param9).ToList().Single());
+
+                bool? param10 = null;
+                Assert.Same(
+                    entity,
+                    context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.TestNullableBoolean == param10).ToList().Single());
+
+                // We don't support byte
+
+                Enum64? param12 = null;
+                Assert.Same(
+                    entity, context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.Enum64 == param12).ToList().Single());
+
+                Enum32? param13 = null;
+                Assert.Same(
+                    entity, context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.Enum32 == param13).ToList().Single());
+
+                Enum16? param14 = null;
+                Assert.Same(
+                    entity, context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.Enum16 == param14).ToList().Single());
+
+                Enum8? param15 = null;
+                Assert.Same(
+                    entity, context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.Enum8 == param15).ToList().Single());
+
+                var entityType = context.Model.FindEntityType(typeof(BuiltInNullableDataTypes));
+                if (entityType.FindProperty(nameof(BuiltInNullableDataTypes.TestNullableUnsignedInt16)) != null)
+                {
+                    ushort? param16 = null;
+                    Assert.Same(
+                        entity,
+                        context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.TestNullableUnsignedInt16 == param16).ToList()
+                            .Single());
+                }
+
+                if (entityType.FindProperty(nameof(BuiltInNullableDataTypes.TestNullableUnsignedInt32)) != null)
+                {
+                    uint? param17 = null;
+                    Assert.Same(
+                        entity,
+                        context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.TestNullableUnsignedInt32 == param17).ToList()
+                            .Single());
+                }
+
+                if (entityType.FindProperty(nameof(BuiltInNullableDataTypes.TestNullableUnsignedInt64)) != null)
+                {
+                    ulong? param18 = null;
+                    Assert.Same(
+                        entity,
+                        context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.TestNullableUnsignedInt64 == param18).ToList()
+                            .Single());
+                }
+
+                if (entityType.FindProperty(nameof(BuiltInNullableDataTypes.TestNullableCharacter)) != null)
+                {
+                    char? param19 = null;
+                    Assert.Same(
+                        entity,
+                        context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.TestNullableCharacter == param19).ToList()
+                            .Single());
+                }
+
+                if (entityType.FindProperty(nameof(BuiltInNullableDataTypes.TestNullableSignedByte)) != null)
+                {
+                    sbyte? param20 = null;
+                    Assert.Same(
+                        entity,
+                        context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.TestNullableSignedByte == param20).ToList()
+                            .Single());
+                }
+
+                if (entityType.FindProperty(nameof(BuiltInNullableDataTypes.EnumU64)) != null)
+                {
+                    EnumU64? param21 = null;
+                    Assert.Same(
+                        entity, context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.EnumU64 == param21).ToList().Single());
+                }
+
+                if (entityType.FindProperty(nameof(BuiltInNullableDataTypes.EnumU32)) != null)
+                {
+                    EnumU32? param22 = null;
+                    Assert.Same(
+                        entity, context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.EnumU32 == param22).ToList().Single());
+                }
+
+                if (entityType.FindProperty(nameof(BuiltInNullableDataTypes.EnumU16)) != null)
+                {
+                    EnumU16? param23 = null;
+                    Assert.Same(
+                        entity, context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.EnumU16 == param23).ToList().Single());
+                }
+
+                if (entityType.FindProperty(nameof(BuiltInNullableDataTypes.EnumS8)) != null)
+                {
+                    EnumS8? param24 = null;
+                    Assert.Same(
+                        entity, context.Set<BuiltInNullableDataTypes>().Where(e => e.Id == 711 && e.EnumS8 == param24).ToList().Single());
+                }
+            }
+        }
+
+        [ConditionalFact]
+        public void Sum_Conversions()
+        {
+            using (var context = CreateContext())
+            {
+                // PostgreSQL SUM() returns numeric for bigint input, bigint for int/smallint inuts.
+                // Make sure the proper conversion is done
+                var sum1 = context.Set<MappedDataTypes>().Sum(m => m.LongAsBigint);
+                var sum2 = context.Set<MappedDataTypes>().Sum(m => m.Int);
+                var sum3 = context.Set<MappedDataTypes>().Sum(m => m.ShortAsSmallint);
+
+                AssertSql(
+                    @"SELECT SUM(m.""LongAsBigint"")::bigint
+FROM ""MappedDataTypes"" AS m",
+                    //
+                    @"SELECT SUM(m.""Int"")::INT
+FROM ""MappedDataTypes"" AS m",
+                    //
+                    @"SELECT SUM(CAST(m.""ShortAsSmallint"" AS integer))::INT
+FROM ""MappedDataTypes"" AS m");
+            }
+        }
+
+        void AssertSql(params string[] expected)
+            => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
         public class BuiltInDataTypesNpgsqlFixture : BuiltInDataTypesFixtureBase
         {
@@ -699,7 +909,13 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
 
             public override bool SupportsLargeStringComparisons => true;
 
+            public override bool SupportsDecimalComparisons => true;
+
             protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+
+            protected override bool ShouldLogCategory(string logCategory)
+                => logCategory == DbLoggerCategory.Query.Name;
+
             public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ServiceProvider.GetRequiredService<ILoggerFactory>();
 
             protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
@@ -710,7 +926,7 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
                 ((NpgsqlTypeMappingSource)context.GetService<ITypeMappingSource>()).LoadUserDefinedTypeMappings(context.GetService<ISqlGenerationHelper>());
 
                 modelBuilder.HasPostgresExtension("hstore");
-                modelBuilder.ForNpgsqlHasEnum("mood", new[] { "happy", "sad" });
+                modelBuilder.HasPostgresEnum("mood", new[] { "happy", "sad" });
 
                 MakeRequired<MappedDataTypes>(modelBuilder);
 
@@ -781,11 +997,6 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
                 modelBuilder.Entity<MappedNullableDataTypes>().Property(x => x.Regconfig).HasColumnType("regconfig");
             }
 
-            public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
-                => base.AddOptions(builder).ConfigureWarnings(
-                    c => c
-                        .Log(RelationalEventId.QueryClientEvaluationWarning));
-
             public override bool SupportsBinaryKeys => true;
 
             public override DateTime DefaultDateTime => new DateTime();
@@ -793,18 +1004,23 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
 
         protected enum StringEnum16 : short
         {
+            // ReSharper disable once UnusedMember.Global
             Value1 = 1,
+            // ReSharper disable once UnusedMember.Global
             Value2 = 2,
             Value4 = 4
         }
 
         protected enum StringEnumU16 : ushort
         {
+            // ReSharper disable once UnusedMember.Global
             Value1 = 1,
+            // ReSharper disable once UnusedMember.Global
             Value2 = 2,
             Value4 = 4
         }
 
+        // ReSharper disable once MemberCanBePrivate.Global
         protected class MappedDataTypes
         {
             [Column(TypeName = "int")]
@@ -879,8 +1095,9 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
             [Column(TypeName = "varchar")]
             public string StringAsVarchar { get; set; }
 
-            [Column(TypeName = "char(1)")]
-            public char? CharAsChar1 { get; set; }
+            // TODO: enable here (and above) after https://github.com/aspnet/EntityFrameworkCore/issues/14159 is fixed
+            // [Column(TypeName = "char(1)")]
+            // public char? CharAsChar1 { get; set; }
 
             [Column(TypeName = "text")]
             public char? CharAsText { get; set; }
@@ -934,12 +1151,15 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
             public NpgsqlTsRankingNormalization RankingNormalization { get; set; }
             public uint Regconfig { get; set; }
 
+            // ReSharper disable once UnusedAutoPropertyAccessor.Global
             [Column(TypeName = "mood")]
             public Mood Mood { get; set; }
         }
 
+        // ReSharper disable once MemberCanBePrivate.Global
         public class MappedSizedDataTypes
         {
+            // ReSharper disable once UnusedAutoPropertyAccessor.Global
             public int Id { get; set; }
             /*
             public string Char { get; set; }
@@ -958,8 +1178,10 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
             */
         }
 
+        // ReSharper disable once MemberCanBePrivate.Global
         public class MappedScaledDataTypes
         {
+            // ReSharper disable once UnusedAutoPropertyAccessor.Global
             public int Id { get; set; }
             /*
             public float Float { get; set; }
@@ -972,8 +1194,10 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
             */
         }
 
+        // ReSharper disable once MemberCanBePrivate.Global
         public class MappedPrecisionAndScaledDataTypes
         {
+            // ReSharper disable once UnusedAutoPropertyAccessor.Global
             public int Id { get; set; }
             /*
             public decimal Decimal { get; set; }
@@ -982,6 +1206,7 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
             */
         }
 
+        // ReSharper disable once MemberCanBePrivate.Global
         protected class MappedNullableDataTypes
         {
             [Column(TypeName = "int")]
@@ -1056,8 +1281,9 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
             [Column(TypeName = "varchar")]
             public string StringAsVarchar { get; set; }
 
-            [Column(TypeName = "char(1)")]
-            public char? CharAsChar1 { get; set; }
+            // TODO: enable here (and above) after https://github.com/aspnet/EntityFrameworkCore/issues/14159 is fixed
+            // [Column(TypeName = "char(1)")]
+            // public char? CharAsChar1 { get; set; }
 
             [Column(TypeName = "text")]
             public char? CharAsText { get; set; }
@@ -1116,5 +1342,6 @@ WHERE e.""TimeSpanAsTime"" = @__timeSpan_0",
         }
     }
 
+    // ReSharper disable once UnusedMember.Global
     public enum Mood { Happy, Sad };
 }

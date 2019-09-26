@@ -5,15 +5,12 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
+    // ReSharper disable once UnusedMember.Global
     public class MappingQueryNpgsqlTest : MappingQueryTestBase<MappingQueryNpgsqlTest.MappingQueryNpgsqlFixture>
     {
         public MappingQueryNpgsqlTest(MappingQueryNpgsqlFixture fixture)
             : base(fixture)
-        {
-            Fixture.TestSqlLoggerFactory.Clear();
-        }
-
-        private string Sql => Fixture.TestSqlLoggerFactory.Sql;
+            => Fixture.TestSqlLoggerFactory.Clear();
 
         public class MappingQueryNpgsqlFixture : MappingQueryFixtureBase
         {
@@ -28,9 +25,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 modelBuilder.Entity<MappedCustomer>(
                     e =>
                     {
-                        e.Property(c => c.CompanyName2).Metadata.Npgsql().ColumnName = "CompanyName";
-                        e.Metadata.Npgsql().TableName = "Customers";
-                        e.Metadata.Npgsql().Schema = "public";
+                        e.Property(c => c.CompanyName2).Metadata.SetColumnName("CompanyName");
+                        e.Metadata.SetTableName("Customers");
+                        e.Metadata.SetSchema("public");
                     });
 
                 modelBuilder.Entity<MappedEmployee>()

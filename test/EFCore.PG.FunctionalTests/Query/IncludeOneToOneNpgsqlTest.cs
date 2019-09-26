@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using Microsoft.EntityFrameworkCore.Query;
+﻿using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -8,15 +7,13 @@ using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
+    // ReSharper disable once UnusedMember.Global
     public class IncludeOneToOneNpgsqlTest : IncludeOneToOneTestBase<IncludeOneToOneNpgsqlTest.OneToOneQueryNpgsqlFixture>
     {
+        // ReSharper disable once UnusedParameter.Local
         public IncludeOneToOneNpgsqlTest(OneToOneQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
-        {
-            fixture.TestSqlLoggerFactory.Clear();
-        }
-
-        private string Sql => Fixture.TestSqlLoggerFactory.SqlStatements.Last();
+            => Fixture.TestSqlLoggerFactory.Clear();
 
         public class OneToOneQueryNpgsqlFixture : OneToOneQueryFixtureBase
         {

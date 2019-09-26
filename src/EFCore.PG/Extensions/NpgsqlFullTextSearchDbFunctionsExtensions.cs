@@ -10,53 +10,67 @@ namespace Microsoft.EntityFrameworkCore
     {
         /// <summary>
         /// Convert <paramref name="lexemes" /> to a tsvector.
-        /// https://www.postgresql.org/docs/current/static/functions-textsearch.html
         /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/static/functions-textsearch.html
+        /// </remarks>
         public static NpgsqlTsVector ArrayToTsVector(this DbFunctions _, string[] lexemes) =>
             throw new NotSupportedException();
 
         /// <summary>
         /// Reduce <paramref name="document" /> to tsvector.
-        /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-DOCUMENTS
         /// </summary>
+        /// <remarks>
+        /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-DOCUMENTS
+        /// </remarks>
         public static NpgsqlTsVector ToTsVector(this DbFunctions _, string document) =>
             throw new NotSupportedException();
 
         /// <summary>
         /// Reduce <paramref name="document" /> to tsvector using the text search configuration specified
         /// by <paramref name="config" />.
-        /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-DOCUMENTS
         /// </summary>
+        /// <remarks>
+        /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-DOCUMENTS
+        /// </remarks>
         public static NpgsqlTsVector ToTsVector(this DbFunctions _, string config, string document) =>
             throw new NotSupportedException();
 
         /// <summary>
         /// Produce tsquery from <paramref name="query" /> ignoring punctuation.
-        /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES
         /// </summary>
+        /// <remarks>
+        /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES
+        /// </remarks>
         public static NpgsqlTsQuery PlainToTsQuery(this DbFunctions _, string query) =>
             throw new NotSupportedException();
 
         /// <summary>
         /// Produce tsquery from <paramref name="query" /> ignoring punctuation and using the text search
         /// configuration specified by <paramref name="config" />.
-        /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES
         /// </summary>
+        /// <remarks>
+        /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES
+        /// </remarks>
         public static NpgsqlTsQuery PlainToTsQuery(this DbFunctions _, string config, string query) =>
             throw new NotSupportedException();
 
         /// <summary>
         /// Produce tsquery that searches for a phrase from <paramref name="query" /> ignoring punctuation.
-        /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES
         /// </summary>
+        /// <remarks>
+        /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES
+        /// </remarks>
         public static NpgsqlTsQuery PhraseToTsQuery(this DbFunctions _, string query) =>
             throw new NotSupportedException();
 
         /// <summary>
         /// Produce tsquery that searches for a phrase from <paramref name="query" /> ignoring punctuation
         /// and using the text search configuration specified by <paramref name="config" />.
-        /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES
         /// </summary>
+        /// <remarks>
+        /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES
+        /// </remarks>
         public static NpgsqlTsQuery PhraseToTsQuery(this DbFunctions _, string config, string query) =>
             throw new NotSupportedException();
 
@@ -64,8 +78,10 @@ namespace Microsoft.EntityFrameworkCore
         /// Normalize words in <paramref name="query" /> and convert to tsquery. If your input
         /// contains punctuation that should not be treated as text search operators, use
         /// <see cref="PlainToTsQuery(DbFunctions, string)" /> instead.
-        /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES
         /// </summary>
+        /// <remarks>
+        /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES
+        /// </remarks>
         public static NpgsqlTsQuery ToTsQuery(this DbFunctions _, string query) => throw new NotSupportedException();
 
         /// <summary>
@@ -73,9 +89,30 @@ namespace Microsoft.EntityFrameworkCore
         /// configuration specified by <paramref name="config" />. If your input contains punctuation
         /// that should not be treated as text search operators, use
         /// <see cref="PlainToTsQuery(DbFunctions, string, string)" /> instead.
-        /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES
         /// </summary>
+        /// <remarks>
+        /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES
+        /// </remarks>
         public static NpgsqlTsQuery ToTsQuery(this DbFunctions _, string config, string query) =>
+            throw new NotSupportedException();
+
+        /// <summary>
+        /// Convert <paramref name="query" /> tsquery using the simplified websearch syntax.
+        /// </summary>
+        /// <remarks>
+        /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES
+        /// </remarks>
+        public static NpgsqlTsQuery WebSearchToTsQuery(this DbFunctions _, string query) =>
+            throw new NotSupportedException();
+
+        /// <summary>
+        /// Convert <paramref name="query" /> tsquery using the simplified websearch syntax and the text
+        /// search configuration specified by <paramref name="config" />.
+        /// </summary>
+        /// <remarks>
+        /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES
+        /// </remarks>
+        public static NpgsqlTsQuery WebSearchToTsQuery(this DbFunctions _, string config, string query) =>
             throw new NotSupportedException();
     }
 }

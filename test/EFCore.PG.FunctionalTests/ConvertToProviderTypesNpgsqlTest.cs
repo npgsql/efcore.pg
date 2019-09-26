@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -13,12 +12,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
     public class ConvertToProviderTypesNpgsqlTest : ConvertToProviderTypesTestBase<ConvertToProviderTypesNpgsqlTest.ConvertToProviderTypesNpgsqlFixture>
     {
+        // ReSharper disable once UnusedParameter.Local
         public ConvertToProviderTypesNpgsqlTest(ConvertToProviderTypesNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
-        {
-            fixture.TestSqlLoggerFactory.Clear();
-            //fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
-        }
+            => Fixture.TestSqlLoggerFactory.Clear();
 
         [Fact]
         public override void Can_insert_and_read_with_max_length_set()
@@ -73,25 +70,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
             public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ServiceProvider.GetRequiredService<ILoggerFactory>();
 
-            public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
-                => base.AddOptions(builder).ConfigureWarnings(
-                    c => c.Log(RelationalEventId.QueryClientEvaluationWarning));
-
             public override bool SupportsBinaryKeys => true;
 
+            public override bool SupportsDecimalComparisons => true;
+
             public override DateTime DefaultDateTime => new DateTime();
-
-            // TODO: Remove the following after https://github.com/aspnet/EntityFrameworkCore/pull/11587 is merged
-            protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
-            {
-                base.OnModelCreating(modelBuilder, context);
-
-                modelBuilder.Entity<MaxLengthDataTypes>(
-                    b =>
-                    {
-                        b.Property(e => e.ByteArray9000).HasConversion<string>().HasMaxLength(LongStringLength * 2);
-                    });
-            }
         }
     }
 }

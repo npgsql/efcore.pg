@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Text.Json;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -41,15 +42,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         readonly LongTypeMapping               _int8               = new LongTypeMapping("bigint", DbType.Int64);
 
         // Character types
-        readonly NpgsqlStringTypeMapping       _text               = new NpgsqlStringTypeMapping("text");
-        readonly NpgsqlStringTypeMapping       _varchar            = new NpgsqlStringTypeMapping("character varying");
-        readonly NpgsqlStringTypeMapping       _char               = new NpgsqlCharacterTypeMapping("character");
+        readonly StringTypeMapping             _text               = new StringTypeMapping("text", DbType.String);
+        readonly StringTypeMapping             _varchar            = new StringTypeMapping("character varying", DbType.String);
+        readonly NpgsqlCharacterTypeMapping    _char               = new NpgsqlCharacterTypeMapping("character");
         readonly CharTypeMapping               _singleChar         = new CharTypeMapping("character(1)", DbType.String);
-        readonly NpgsqlStringTypeMapping       _stringAsSingleChar = new NpgsqlCharacterTypeMapping("character(1)");
-        readonly NpgsqlJsonbTypeMapping        _jsonb              = new NpgsqlJsonbTypeMapping();
-        readonly NpgsqlJsonTypeMapping         _json               = new NpgsqlJsonTypeMapping();
-        readonly NpgsqlXmlTypeMapping          _xml                = new NpgsqlXmlTypeMapping();
-        readonly NpgsqlCitextTypeMapping       _citext             = new NpgsqlCitextTypeMapping();
+        readonly NpgsqlCharacterTypeMapping    _stringAsSingleChar = new NpgsqlCharacterTypeMapping("character(1)");
+        readonly NpgsqlStringTypeMapping       _xml                = new NpgsqlStringTypeMapping("xml", NpgsqlDbType.Xml);
+        readonly NpgsqlStringTypeMapping       _citext             = new NpgsqlStringTypeMapping("citext", NpgsqlDbType.Citext);
+
+        // JSON mappings
+        readonly NpgsqlJsonTypeMapping         _jsonbString        = new NpgsqlJsonTypeMapping("jsonb", typeof(string));
+        readonly NpgsqlJsonTypeMapping         _jsonString         = new NpgsqlJsonTypeMapping("json", typeof(string));
+        readonly NpgsqlJsonTypeMapping         _jsonbDocument      = new NpgsqlJsonTypeMapping("jsonb", typeof(JsonDocument));
+        readonly NpgsqlJsonTypeMapping         _jsonDocument       = new NpgsqlJsonTypeMapping("json", typeof(JsonDocument));
+        readonly NpgsqlJsonTypeMapping         _jsonbElement       = new NpgsqlJsonTypeMapping("jsonb", typeof(JsonElement));
+        readonly NpgsqlJsonTypeMapping         _jsonElement        = new NpgsqlJsonTypeMapping("json", typeof(JsonElement));
 
         // Date/Time types
         readonly NpgsqlDateTypeMapping         _date               = new NpgsqlDateTypeMapping();
@@ -104,6 +111,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         readonly NpgsqlHstoreTypeMapping       _hstore             = new NpgsqlHstoreTypeMapping();
         readonly NpgsqlTidTypeMapping          _tid                = new NpgsqlTidTypeMapping();
 
+        // Special stuff
+        // ReSharper disable once InconsistentNaming
+        public readonly StringTypeMapping      EStringTypeMapping  = new NpgsqlEStringTypeMapping();
+
         #endregion Mappings
 
         public NpgsqlTypeMappingSource([NotNull] TypeMappingSourceDependencies dependencies,
@@ -146,8 +157,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 { "bigint",                      new[] { _int8                         } },
                 { "int8",                        new[] { _int8                         } },
                 { "text",                        new[] { _text                         } },
-                { "jsonb",                       new[] { _jsonb                        } },
-                { "json",                        new[] { _json                         } },
+                { "jsonb",                       new RelationalTypeMapping[] { _jsonbString, _jsonbDocument, _jsonbElement } },
+                { "json",                        new RelationalTypeMapping[] { _jsonString, _jsonDocument, _jsonElement } },
                 { "xml",                         new[] { _xml                          } },
                 { "citext",                      new[] { _citext                       } },
                 { "character varying",           new[] { _varchar                      } },
@@ -213,6 +224,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 { typeof(int),                          _int4                 },
                 { typeof(long),                         _int8                 },
                 { typeof(string),                       _text                 },
+                { typeof(JsonDocument),                 _jsonbDocument        },
+                { typeof(JsonElement),                  _jsonbElement         },
                 { typeof(char),                         _singleChar           },
                 { typeof(DateTime),                     _timestamp            },
                 { typeof(TimeSpan),                     _interval             },
@@ -223,6 +236,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 { typeof(BitArray),                     _varbit               },
                 { typeof(Dictionary<string, string>),   _hstore               },
                 { typeof(NpgsqlTid),                    _tid                  },
+
                 { typeof(NpgsqlPoint),                  _point                },
                 { typeof(NpgsqlBox),                    _box                  },
                 { typeof(NpgsqlLine),                   _line                 },
@@ -254,9 +268,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         /// This is basically only for test usage.
         /// </summary>
         public void LoadUserDefinedTypeMappings([NotNull] ISqlGenerationHelper sqlGenerationHelper)
-        {
-            SetupEnumMappings(sqlGenerationHelper);
-        }
+            => SetupEnumMappings(sqlGenerationHelper);
 
         /// <summary>
         /// Gets all global enum mappings from the ADO.NET layer and creates mappings for them
@@ -316,6 +328,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                     foreach (var m in mappings)
                         if (m.ClrType == clrType)
                             return m;
+
+                    // Map arbitrary user POCOs to JSON
+                    if (storeTypeName == "jsonb" || storeTypeName == "json")
+                        return new NpgsqlJsonTypeMapping(storeTypeName, clrType);
 
                     return null;
                 }
@@ -408,9 +424,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 var elementType = clrType.GetElementType();
                 Debug.Assert(elementType != null, "Detected array type but element type is null");
 
-                // If an element isn't supported, neither is its array
+                // If an element isn't supported, neither is its array. If the element is only supported via value
+                // conversion we also don't support it.
                 var elementMapping = (RelationalTypeMapping)FindMapping(elementType);
-                if (elementMapping == null)
+                if (elementMapping == null || elementMapping.Converter != null)
                     return null;
 
                 // Arrays of arrays aren't supported (as opposed to multidimensional arrays) by PostgreSQL

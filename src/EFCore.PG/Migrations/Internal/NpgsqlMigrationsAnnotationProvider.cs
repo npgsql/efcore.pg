@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
@@ -18,8 +18,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal
 
         public override IEnumerable<IAnnotation> For(IEntityType entityType)
         {
-            if (entityType.Npgsql().Comment != null)
-                yield return new Annotation(NpgsqlAnnotationNames.Comment, entityType.Npgsql().Comment);
+            if (entityType.GetIsUnlogged())
+                yield return new Annotation(NpgsqlAnnotationNames.UnloggedTable, entityType.GetIsUnlogged());
             if (entityType[CockroachDbAnnotationNames.InterleaveInParent] != null)
                 yield return new Annotation(CockroachDbAnnotationNames.InterleaveInParent, entityType[CockroachDbAnnotationNames.InterleaveInParent]);
             foreach (var storageParamAnnotation in entityType.GetAnnotations()
@@ -31,20 +31,44 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal
 
         public override IEnumerable<IAnnotation> For(IProperty property)
         {
-            if (property.Npgsql().ValueGenerationStrategy is NpgsqlValueGenerationStrategy npgsqlValueGenerationStrategy)
-                yield return new Annotation(NpgsqlAnnotationNames.ValueGenerationStrategy, npgsqlValueGenerationStrategy);
-            if (property.Npgsql().Comment is string comment)
-                yield return new Annotation(NpgsqlAnnotationNames.Comment, comment);
+            var valueGenerationStrategy = property.GetValueGenerationStrategy();
+            if (valueGenerationStrategy != NpgsqlValueGenerationStrategy.None)
+            {
+                yield return new Annotation(NpgsqlAnnotationNames.ValueGenerationStrategy, valueGenerationStrategy);
+
+                if (valueGenerationStrategy == NpgsqlValueGenerationStrategy.IdentityByDefaultColumn ||
+                    valueGenerationStrategy == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn)
+                {
+                    if (property[NpgsqlAnnotationNames.IdentityOptions] is string identityOptions)
+                    {
+                        yield return new Annotation(NpgsqlAnnotationNames.IdentityOptions, identityOptions);
+                    }
+                }
+            }
         }
 
         public override IEnumerable<IAnnotation> For(IIndex index)
         {
-            if (index.Npgsql().Method != null)
-                yield return new Annotation(NpgsqlAnnotationNames.IndexMethod, index.Npgsql().Method);
-            if (index.Npgsql().Operators != null)
-                yield return new Annotation(NpgsqlAnnotationNames.IndexOperators, index.Npgsql().Operators);
-            if (index.Npgsql().IncludeProperties != null)
-                yield return new Annotation(NpgsqlAnnotationNames.IndexInclude, index.Npgsql().IncludeProperties);
+            if (index.GetMethod() is string method)
+                yield return new Annotation(NpgsqlAnnotationNames.IndexMethod, method);
+            if (index.GetOperators() is IReadOnlyList<string> operators)
+                yield return new Annotation(NpgsqlAnnotationNames.IndexOperators, operators);
+            if (index.GetCollation() is IReadOnlyList<string> collation)
+                yield return new Annotation(NpgsqlAnnotationNames.IndexCollation, collation);
+            if (index.GetSortOrder() is IReadOnlyList<SortOrder> sortOrder)
+                yield return new Annotation(NpgsqlAnnotationNames.IndexSortOrder, sortOrder);
+            if (index.GetNullSortOrder() is IReadOnlyList<SortOrder> nullSortOrder)
+                yield return new Annotation(NpgsqlAnnotationNames.IndexNullSortOrder, nullSortOrder);
+            if (index.GetIncludeProperties() is IReadOnlyList<string> includeProperties)
+                yield return new Annotation(NpgsqlAnnotationNames.IndexInclude, includeProperties);
+
+            var isCreatedConcurrently = index.IsCreatedConcurrently();
+            if (isCreatedConcurrently.HasValue)
+            {
+                yield return new Annotation(
+                    NpgsqlAnnotationNames.CreatedConcurrently,
+                    isCreatedConcurrently.Value);
+            }
         }
 
         public override IEnumerable<IAnnotation> For(IModel model)

@@ -5,11 +5,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     public class FiltersNpgsqlTest : FiltersTestBase<NorthwindQueryNpgsqlFixture<NorthwindFiltersCustomizer>>
     {
+        // ReSharper disable once UnusedParameter.Local
         public FiltersNpgsqlTest(NorthwindQueryNpgsqlFixture<NorthwindFiltersCustomizer> fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
-        {
-            fixture.TestSqlLoggerFactory.Clear();
-            //fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
-        }
+            => Fixture.TestSqlLoggerFactory.Clear();
     }
 }

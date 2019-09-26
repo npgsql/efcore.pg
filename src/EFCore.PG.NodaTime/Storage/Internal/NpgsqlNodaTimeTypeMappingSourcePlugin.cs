@@ -8,6 +8,7 @@ using NodaTime;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using NpgsqlTypes;
 
+// ReSharper disable once CheckNamespace
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 {
     public class NpgsqlNodaTimeTypeMappingSourcePlugin : IRelationalTypeMappingSourcePlugin
@@ -149,7 +150,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
                 // TODO: In theory support the multiple mappings just like we do with scalars above
                 // (e.g. DateTimeOffset[] vs. DateTime[]
-                var elementMapping = FindExistingMapping(new RelationalTypeMappingInfo(storeType.Substring(0, storeType.Length - 2)));
+                // TODO: In theory we should parse the element store type to get the base type. This is problematic in plugins
+                // as we have no access to the RelationalTypeMappingSource, where all this happens
+                var elementStoreType = storeType.Substring(0, storeType.Length - 2);
+                var elementMapping = FindExistingMapping(new RelationalTypeMappingInfo(elementStoreType, elementStoreType,
+                    mappingInfo.IsUnicode, mappingInfo.Size, mappingInfo.Precision, mappingInfo.Scale));
                 if (elementMapping != null)
                     return StoreTypeMappings.GetOrAdd(storeType,
                         new RelationalTypeMapping[] { new NpgsqlArrayTypeMapping(storeType, elementMapping) })[0];

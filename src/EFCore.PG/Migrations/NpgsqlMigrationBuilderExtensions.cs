@@ -2,6 +2,7 @@
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 // ReSharper disable once CheckNamespace
@@ -22,7 +23,7 @@ namespace Microsoft.EntityFrameworkCore
             Check.NullButNotEmpty(version, nameof(schema));
 
             var op = new AlterDatabaseOperation();
-            op.Npgsql().GetOrAddPostgresExtension(schema, name, version);
+            op.GetOrAddPostgresExtension(schema, name, version);
             builder.Operations.Add(op);
 
             return builder;

@@ -2,16 +2,17 @@
   <Import Project="..\Directory.Build.props" />
 
   <PropertyGroup>
-    <NoWarn>$(NoWarn);xUnit1004</NoWarn>
+    <!-- There's lots of use of internal EF Core APIs from the tests, suppress the analyzer warnings for those -->
+    <NoWarn>$(NoWarn);xUnit1004;EF1001</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <!-- Using xunit.core and .assert instead of the main package because compilation fails due to warnings triggered by xunit.analyzers. -->
-    <!-- <PackageReference Include="xunit" Version="$(XunitPackageVersion)" /> -->
-    <PackageReference Include="xunit.core" Version="2.4.1" />
-    <PackageReference Include="xunit.assert" Version="2.4.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
-    <PackageReference Include="Npgsql" Version="$(NpgsqlVersion)" />
+    <!-- <PackageReference Include="xunit" /> -->
+    <PackageReference Include="xunit.core" />
+    <PackageReference Include="xunit.assert" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="Npgsql" />
   </ItemGroup>
 </Project>

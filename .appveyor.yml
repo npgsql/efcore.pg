@@ -1,7 +1,7 @@
-image: Visual Studio 2017
-version: 2.2.4-{build}
+image: Visual Studio 2019
+version: 3.0.0-{build}
 services:
-  - postgresql101
+  - postgresql111
 environment:
   global:
     DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
@@ -9,7 +9,7 @@ environment:
     Test__Npgsql__DefaultConnection: Host=localhost;Database=postgres;Username=postgres;Password=Password12!
     PGUSER: postgres
     PGPASSWORD: Password12!
-    POSTGIS_EXE: postgis-bundle-pg10x64-setup-2.5.1-1.exe
+    POSTGIS_EXE: postgis-bundle-pg11x64-setup-2.5.3-1.exe
     NoPackageAnalysis: true  # Suppresses warning about SemVer 2.0.0 version suffixes when packing
 cache:
   - '%USERPROFILE%\.nuget\packages -> **\*.csproj'
@@ -18,8 +18,8 @@ clone_depth: 10
 install:
   - powershell .build\setup_appveyor.ps1
   # The following can be used to install a custom version of .NET Core
-  # - ps: Invoke-WebRequest -Uri "https://raw.githubusercontent.com/dotnet/cli/master/scripts/obtain/dotnet-install.ps1" -OutFile "install-dotnet.ps1"
-  # - ps: .\install-dotnet.ps1 -Version 2.1.300-rc1-008673
+  - ps: Invoke-WebRequest -Uri "https://raw.githubusercontent.com/dotnet/cli/master/scripts/obtain/dotnet-install.ps1" -OutFile "install-dotnet.ps1"
+  - ps: .\install-dotnet.ps1 -Version 3.0.100 -InstallDir "dotnetcli"
   #
   # - ps: $blockRdp = $true; iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
 before_build:
@@ -34,16 +34,3 @@ test_script:
   - dotnet test test\EFCore.PG.FunctionalTests\EFCore.PG.FunctionalTests.csproj
 artifacts:
   - path: 'src\**\*.nupkg'
-deploy:
-  - provider: Environment
-    name: MyGet Unstable
-    on:
-      deploy_myget_unstable: true
-  - provider: Environment
-    name: MyGet Stable
-    on:
-      deploy_myget_stable: true
-  - provider: Environment
-    name: EFCore.PG Github
-    on:
-      deploy_github_release: true

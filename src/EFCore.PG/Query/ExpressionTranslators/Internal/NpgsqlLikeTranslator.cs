@@ -1,11 +1,10 @@
-﻿using System.Linq.Expressions;
+using System.Collections.Generic;
 using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query.Expressions;
-using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
+using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
@@ -36,22 +35,30 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 nameof(NpgsqlDbFunctionsExtensions.ILike),
                 new[] { typeof(DbFunctions), typeof(string), typeof(string), typeof(string) });
 
+        [NotNull]
+        readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="NpgsqlMathTranslator"/> class.
+        /// </summary>
+        /// <param name="sqlExpressionFactory">The SQL expression factory to use when generating expressions..</param>
+        public NpgsqlLikeTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory)
+            => _sqlExpressionFactory = sqlExpressionFactory;
+
         /// <inheritdoc />
         [CanBeNull]
-        public virtual Expression Translate(MethodCallExpression e)
+        public SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
         {
-            Check.NotNull(e, nameof(e));
+            if (method == LikeWithEscape)
+                return _sqlExpressionFactory.Like(arguments[1], arguments[2], arguments[3]);
 
-            if (Equals(e.Method, LikeWithEscape))
-                return new LikeExpression(e.Arguments[1], e.Arguments[2], e.Arguments[3]);
-
-            if (Equals(e.Method, ILikeWithEscape))
-                return new ILikeExpression(e.Arguments[1], e.Arguments[2], e.Arguments[3]);
+            if (method == ILikeWithEscape)
+                return _sqlExpressionFactory.ILike(arguments[1], arguments[2], arguments[3]);
 
             bool sensitive;
-            if (Equals(e.Method, Like))
+            if (method == Like)
                 sensitive = true;
-            else if (Equals(e.Method, ILike))
+            else if (method == ILike)
                 sensitive = false;
             else
                 return null;
@@ -63,18 +70,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             // an ESCAPE clause (better SQL). If we have a constant expression with backslashes or a non-constant
             // expression, we render an ESCAPE clause to disable backslash escaping.
 
-            if (e.Arguments[2] is ConstantExpression constantPattern &&
-                constantPattern.Value is string pattern &&
-                !pattern.Contains("\\"))
+            var (match, pattern) = (arguments[1], arguments[2]);
+
+            if (pattern is SqlConstantExpression constantPattern &&
+                constantPattern.Value is string patternValue &&
+                !patternValue.Contains("\\"))
             {
                 return sensitive
-                    ? new LikeExpression(e.Arguments[1], e.Arguments[2])
-                    : (Expression)new ILikeExpression(e.Arguments[1], e.Arguments[2]);
+                    ? _sqlExpressionFactory.Like(match, pattern)
+                    : (SqlExpression)_sqlExpressionFactory.ILike(match, pattern);
             }
 
             return sensitive
-                ? new LikeExpression(e.Arguments[1], e.Arguments[2], Expression.Constant(string.Empty))
-                : (Expression)new ILikeExpression(e.Arguments[1], e.Arguments[2], Expression.Constant(string.Empty));
+                ? _sqlExpressionFactory.Like(match, pattern, _sqlExpressionFactory.Constant(string.Empty))
+                : (SqlExpression)_sqlExpressionFactory.ILike(match, pattern, _sqlExpressionFactory.Constant(string.Empty));
         }
     }
 }

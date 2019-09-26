@@ -2,159 +2,52 @@
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestUtilities;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public class CompatibilityQueryNpgsqlTest : IClassFixture<CompatibilityQueryNpgsqlTest.CompatibilityQueryNpgsqlFixure>
+    public class CompatibilityQueryNpgsqlTest : IClassFixture<CompatibilityQueryNpgsqlTest.CompatibilityQueryNpgsqlFixture>
     {
         /// <summary>
         /// Provides resources for unit tests.
         /// </summary>
-        CompatibilityQueryNpgsqlFixure Fixture { get; }
+        CompatibilityQueryNpgsqlFixture Fixture { get; }
 
         /// <summary>
         /// Initializes resources for unit tests.
         /// </summary>
         /// <param name="fixture">The fixture of resources for testing.</param>
-        public CompatibilityQueryNpgsqlTest(CompatibilityQueryNpgsqlFixure fixture)
+        public CompatibilityQueryNpgsqlTest(CompatibilityQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
         {
             Fixture = fixture;
             Fixture.TestSqlLoggerFactory.Clear();
+            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
-        #region Tests
+        // CURRENTLY EMPTY
 
-        [Theory]
-        [InlineData("9.4")]
-        [InlineData("9.5")]
-        [InlineData("9.6")]
-        [InlineData("10.0")]
-        [InlineData("10.1")]
-        [InlineData("10.2")]
-        [InlineData("10.3")]
-        [InlineData("10.4")]
-        public void GivenDateTimeAdd_WhenVersionIsSupported_ThenTranslates(string version)
+        CompatibilityContext CreateContext(Version postgresVersion = null)
         {
-            using (CompatibilityContext context = Fixture.CreateContext(postgresVersion: Version.Parse(version)))
-            {
-                // ReSharper disable once ConvertToConstant.Local
-                int years = 2;
-
-                DateTime[] _ =
-                    context.CompatibilityTestEntities
-                           .Select(x => x.DateTime.AddYears(years))
-                           .ToArray();
-
-                AssertContainsSql("SELECT (x.\"DateTime\" + CAST((@__years_0 || ' years') AS interval)");
-            }
+            var builder = new DbContextOptionsBuilder(Fixture.CreateOptions());
+            if (postgresVersion != null)
+                new NpgsqlDbContextOptionsBuilder(builder).SetPostgresVersion(postgresVersion);
+            return new CompatibilityContext(builder.Options);
         }
-
-        [Theory]
-        [InlineData("9.0")]
-        [InlineData("9.1")]
-        [InlineData("9.2")]
-        [InlineData("9.3")]
-        public void GivenDateTimeAdd_WhenVersionIsNotSupported_ThenDoesNotTranslate(string version)
-        {
-            using (CompatibilityContext context = Fixture.CreateContext(postgresVersion: Version.Parse(version)))
-            {
-                // ReSharper disable once ConvertToConstant.Local
-                int years = 2;
-
-                DateTime[] _ =
-                    context.CompatibilityTestEntities
-                           .Select(x => x.DateTime.AddYears(years))
-                           .ToArray();
-
-                AssertDoesNotContainsSql("SELECT (x.\"DateTime\" + MAKE_INTERVAL(years => @__years_0))");
-            }
-        }
-
-        #endregion
 
         #region Fixtures
 
         /// <summary>
         /// Represents a fixture suitable for testing backendVersion.
         /// </summary>
-        public class CompatibilityQueryNpgsqlFixure : IDisposable
+        public class CompatibilityQueryNpgsqlFixture : SharedStoreFixtureBase<CompatibilityContext>
         {
-            /// <summary>
-            /// The <see cref="NpgsqlTestStore"/> used for testing.
-            /// </summary>
-            private readonly NpgsqlTestStore _testStore;
-
-            /// <summary>
-            /// The logger factory used for testing.
-            /// </summary>
-            public TestSqlLoggerFactory TestSqlLoggerFactory { get; }
-
-            /// <summary>
-            /// Initializes a <see cref="CompatibilityQueryNpgsqlFixure"/>.
-            /// </summary>
-            // ReSharper disable once UnusedMember.Global
-            public CompatibilityQueryNpgsqlFixure()
-            {
-                TestSqlLoggerFactory = new TestSqlLoggerFactory();
-
-                _testStore = NpgsqlTestStore.CreateScratch();
-
-                using (CompatibilityContext context = CreateContext())
-                {
-                    context.Database.EnsureCreated();
-
-                    context.CompatibilityTestEntities.AddRange(
-                        new CompatibilityTestEntity
-                        {
-                            Id = 1,
-                            DateTime = new DateTime(2018, 06, 23)
-                        },
-                        new CompatibilityTestEntity
-                        {
-                            Id = 2,
-                            DateTime = new DateTime(2018, 06, 23)
-                        },
-                        new CompatibilityTestEntity
-                        {
-                            Id = 3,
-                            DateTime = new DateTime(2018, 06, 23)
-                        });
-
-                    context.SaveChanges();
-                }
-            }
-
-            /// <inheritdoc />
-            public void Dispose() => _testStore.Dispose();
-
-            /// <summary>
-            /// Creates a new <see cref="CompatibilityContext"/>.
-            /// </summary>
-            /// <param name="postgresVersion">The backend version to target.</param>
-            /// <returns>
-            /// A <see cref="CompatibilityContext"/> for testing.
-            /// </returns>
-            public CompatibilityContext CreateContext(Version postgresVersion = null)
-                => new CompatibilityContext(
-                    new DbContextOptionsBuilder()
-                        .UseNpgsql(
-                            _testStore.ConnectionString,
-                            x =>
-                            {
-                                x.ApplyConfiguration();
-                                if (postgresVersion != null)
-                                    x.SetPostgresVersion(postgresVersion);
-                            })
-                        .UseInternalServiceProvider(
-                            new ServiceCollection()
-                                .AddEntityFrameworkNpgsql()
-                                .AddSingleton<ILoggerFactory>(TestSqlLoggerFactory)
-                                .BuildServiceProvider())
-                        .Options);
+            protected override string StoreName => "CompatibilityTest";
+            protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+            public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
+            protected override void Seed(CompatibilityContext context) => CompatibilityContext.Seed(context);
         }
 
         /// <summary>
@@ -176,7 +69,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         /// <summary>
         /// Represents a database suitable for testing range operators.
         /// </summary>
-        public class CompatibilityContext : DbContext
+        public class CompatibilityContext : PoolableDbContext
         {
             /// <summary>
             /// Represents a set of entities for backendVersion testing.
@@ -188,6 +81,28 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
             /// <inheritdoc />
             protected override void OnModelCreating(ModelBuilder builder) {}
+
+            public static void Seed(CompatibilityContext context)
+            {
+                context.CompatibilityTestEntities.AddRange(
+                    new CompatibilityTestEntity
+                    {
+                        Id = 1,
+                        DateTime = new DateTime(2018, 06, 23)
+                    },
+                    new CompatibilityTestEntity
+                    {
+                        Id = 2,
+                        DateTime = new DateTime(2018, 06, 23)
+                    },
+                    new CompatibilityTestEntity
+                    {
+                        Id = 3,
+                        DateTime = new DateTime(2018, 06, 23)
+                    });
+
+                context.SaveChanges();
+            }
         }
 
         #endregion
@@ -198,19 +113,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         /// Asserts that the SQL fragment appears in the logs.
         /// </summary>
         /// <param name="sql">The SQL statement or fragment to search for in the logs.</param>
-        public void AssertContainsSql(string sql)
-        {
-            Assert.Contains(sql, Fixture.TestSqlLoggerFactory.Sql);
-        }
+        void AssertContainsSql(string sql) => Assert.Contains(sql, Fixture.TestSqlLoggerFactory.Sql);
 
         /// <summary>
         /// Asserts that the SQL fragment does not appears in the logs.
         /// </summary>
         /// <param name="sql">The SQL statement or fragment to search for in the logs.</param>
-        public void AssertDoesNotContainsSql(string sql)
-        {
-            Assert.DoesNotContain(sql, Fixture.TestSqlLoggerFactory.Sql);
-        }
+        void AssertDoesNotContainsSql(string sql) => Assert.DoesNotContain(sql, Fixture.TestSqlLoggerFactory.Sql);
 
         #endregion
     }

@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <VersionPrefix>$(EFCoreVersion)</VersionPrefix>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>netstandard2.1</TargetFrameworks>
     <AssemblyName>Npgsql.EntityFrameworkCore.PostgreSQL</AssemblyName>
     <RootNamespace>Npgsql.EntityFrameworkCore.PostgreSQL</RootNamespace>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -12,20 +11,19 @@
     <Authors>Shay Rojansky;Austin Drenski;Yoh Deadfall;</Authors>
     <Company>Npgsql</Company>
     <PackageTags>npgsql;postgresql;postgres;Entity Framework Core;entity-framework-core;ef;efcore;orm;sql</PackageTags>
-    <Copyright>Copyright 2017 © The Npgsql Development Team</Copyright>
+    <Copyright>Copyright 2019 © The Npgsql Development Team</Copyright>
     <PackageIconUrl>http://www.npgsql.org/img/postgresql.gif</PackageIconUrl>
     <PackageLicenseExpression>PostgreSQL</PackageLicenseExpression>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>git://github.com/npgsql/Npgsql.EntityFrameworkCore.PostgreSQL</RepositoryUrl>
-    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <!-- PrivateAssets="none" is set to flow the EF Core analyzer to users referencing this package
 	 https://github.com/aspnet/EntityFrameworkCore/pull/11350 -->
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="$(EFCoreVersion)" PrivateAssets="none" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="$(EFCoreVersion)" PrivateAssets="none" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" Version="$(EFCoreVersion)" PrivateAssets="none" />
-    <PackageReference Include="Npgsql" Version="$(NpgsqlVersion)" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" PrivateAssets="none" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" PrivateAssets="none" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" PrivateAssets="none" />
+    <PackageReference Include="Npgsql" />
   </ItemGroup>
   <ItemGroup>
     <None Update="Properties\NpgsqlStrings.Designer.tt">

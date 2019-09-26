@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
-using Microsoft.EntityFrameworkCore.Query.Expressions;
-using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
+using System.Reflection;
+using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
@@ -30,17 +30,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             typeof(sbyte),
         };
 
-        public virtual Expression Translate(MethodCallExpression methodCallExpression)
-            => methodCallExpression.Method.Name == nameof(ToString) &&
-               methodCallExpression.Arguments.Count == 0 &&
-               methodCallExpression.Object != null &&
-               SupportedTypes.Contains(
-                   AppContext.TryGetSwitch("Microsoft.EntityFrameworkCore.Issue9894", out var enabled)
-                   && enabled
-                       ? methodCallExpression.Object.Type.UnwrapNullableType().UnwrapEnumType()
-                       : methodCallExpression.Object.Type.UnwrapNullableType()
-               )
-                ? new ExplicitCastExpression(methodCallExpression.Object, typeof(string))
-                : null;
+        readonly ISqlExpressionFactory _sqlExpressionFactory;
+
+        public NpgsqlObjectToStringTranslator(ISqlExpressionFactory sqlExpressionFactory)
+            => _sqlExpressionFactory = sqlExpressionFactory;
+
+        public SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
+            => method.Name == nameof(ToString)
+               && arguments.Count == 0
+               && instance != null
+               && SupportedTypes.Contains(instance.Type.UnwrapNullableType())
+               ? _sqlExpressionFactory.Convert(instance, typeof(string))
+               : null;
     }
 }

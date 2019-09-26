@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
 using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 // ReSharper disable once CheckNamespace
@@ -15,7 +12,15 @@ namespace Microsoft.EntityFrameworkCore
     {
         #region xmin
 
-        public static EntityTypeBuilder ForNpgsqlUseXminAsConcurrencyToken(
+        /// <summary>
+        /// Configures using the auto-updating system column <c>xmin</c> as the optimistic concurrency token.
+        /// </summary>
+        /// <remarks>
+        /// See http://www.npgsql.org/efcore/miscellaneous.html#optimistic-concurrency-and-concurrency-tokens
+        /// </remarks>
+        /// <param name="entityTypeBuilder">The builder for the entity type being configured.</param>
+        /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+        public static EntityTypeBuilder UseXminAsConcurrencyToken(
             [NotNull] this EntityTypeBuilder entityTypeBuilder)
         {
             Check.NotNull(entityTypeBuilder, nameof(entityTypeBuilder));
@@ -28,10 +33,18 @@ namespace Microsoft.EntityFrameworkCore
             return entityTypeBuilder;
         }
 
-        public static EntityTypeBuilder<TEntity> ForNpgsqlUseXminAsConcurrencyToken<TEntity>(
+        /// <summary>
+        /// Configures using the auto-updating system column <c>xmin</c> as the optimistic concurrency token.
+        /// </summary>
+        /// <remarks>
+        /// See http://www.npgsql.org/efcore/miscellaneous.html#optimistic-concurrency-and-concurrency-tokens
+        /// </remarks>
+        /// <param name="entityTypeBuilder">The builder for the entity type being configured.</param>
+        /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+        public static EntityTypeBuilder<TEntity> UseXminAsConcurrencyToken<TEntity>(
             [NotNull] this EntityTypeBuilder<TEntity> entityTypeBuilder)
             where TEntity : class
-            => (EntityTypeBuilder<TEntity>)ForNpgsqlUseXminAsConcurrencyToken((EntityTypeBuilder)entityTypeBuilder);
+            => (EntityTypeBuilder<TEntity>)UseXminAsConcurrencyToken((EntityTypeBuilder)entityTypeBuilder);
 
         #endregion xmin
 
@@ -47,12 +60,12 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="parameterName"> The name of the storage parameter. </param>
         /// <param name="parameterValue"> The value of the storage parameter. </param>
         /// <returns> The same builder instance so that multiple calls can be chained. </returns>
-        public static EntityTypeBuilder ForNpgsqlSetStorageParameter(
+        public static EntityTypeBuilder SetStorageParameter(
             [NotNull] this EntityTypeBuilder entityTypeBuilder, string parameterName, object parameterValue)
         {
             Check.NotNull(entityTypeBuilder, nameof(entityTypeBuilder));
 
-            entityTypeBuilder.Metadata.Npgsql().SetStorageParameter(parameterName, parameterValue);
+            entityTypeBuilder.Metadata.SetStorageParameter(parameterName, parameterValue);
 
             return entityTypeBuilder;
         }
@@ -67,51 +80,151 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="parameterName"> The name of the storage parameter. </param>
         /// <param name="parameterValue"> The value of the storage parameter. </param>
         /// <returns> The same builder instance so that multiple calls can be chained. </returns>
-        public static EntityTypeBuilder<TEntity> ForNpgsqlSetStorageParameter<TEntity>(
+        public static EntityTypeBuilder<TEntity> SetStorageParameter<TEntity>(
             [NotNull] this EntityTypeBuilder<TEntity> entityTypeBuilder, string parameterName, object parameterValue)
             where TEntity : class
-            => (EntityTypeBuilder<TEntity>)ForNpgsqlSetStorageParameter((EntityTypeBuilder)entityTypeBuilder, parameterName, parameterValue);
+            => (EntityTypeBuilder<TEntity>)SetStorageParameter((EntityTypeBuilder)entityTypeBuilder, parameterName, parameterValue);
+
+        /// <summary>
+        /// Sets a PostgreSQL storage parameter on the table created for this entity.
+        /// </summary>
+        /// <remarks>
+        /// See https://www.postgresql.org/docs/current/static/sql-createtable.html#SQL-CREATETABLE-STORAGE-PARAMETERS
+        /// </remarks>
+        /// <param name="entityTypeBuilder"> The builder for the entity type being configured. </param>
+        /// <param name="parameterName"> The name of the storage parameter. </param>
+        /// <param name="parameterValue"> The value of the storage parameter. </param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        /// <returns> The same builder instance so that multiple calls can be chained. </returns>
+        public static IConventionEntityTypeBuilder SetStorageParameter(
+            [NotNull] this IConventionEntityTypeBuilder entityTypeBuilder, string parameterName, object parameterValue, bool fromDataAnnotation = false)
+        {
+            if (entityTypeBuilder.CanSetStorageParameter(parameterName, parameterValue, fromDataAnnotation))
+            {
+                entityTypeBuilder.Metadata.SetStorageParameter(parameterName, parameterValue);
+
+                return entityTypeBuilder;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Returns a value indicating whether the PostgreSQL storage parameter on the table created for this entity.
+        /// </summary>
+        /// <remarks>
+        /// See https://www.postgresql.org/docs/current/static/sql-createtable.html#SQL-CREATETABLE-STORAGE-PARAMETERS
+        /// </remarks>
+        /// <param name="entityTypeBuilder"> The builder for the entity type being configured. </param>
+        /// <param name="parameterName"> The name of the storage parameter. </param>
+        /// <param name="parameterValue"> The value of the storage parameter. </param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        /// <returns><c>true</c> if the mapped table can be configured as with the storage parameter.</returns>
+        public static bool CanSetStorageParameter(
+            [NotNull] this IConventionEntityTypeBuilder entityTypeBuilder, string parameterName, object parameterValue, bool fromDataAnnotation = false)
+        {
+            Check.NotNull(entityTypeBuilder, nameof(entityTypeBuilder));
+
+            return entityTypeBuilder.CanSetAnnotation(NpgsqlAnnotationNames.StorageParameterPrefix + parameterName, parameterValue, fromDataAnnotation);
+        }
 
         #endregion Storage parameters
 
-        #region Comment
+        #region Unlogged Table
 
         /// <summary>
-        ///     Configures the comment set on the table when targeting Npgsql.
+        /// Configures the entity to use an unlogged table when targeting Npgsql.
         /// </summary>
-        /// <param name="entityTypeBuilder"> The builder for the entity type being configured. </param>
-        /// <param name="comment"> The name of the table. </param>
-        /// <returns> The same builder instance so that multiple calls can be chained. </returns>
-        public static EntityTypeBuilder ForNpgsqlHasComment(
+        /// <param name="entityTypeBuilder">The builder for the entity type being configured.</param>
+        /// <param name="isUnlogged">True to configure the entity to use an unlogged table; otherwise, false.</param>
+        /// <returns>
+        /// The same builder instance so that multiple calls can be chained.
+        /// </returns>
+        /// <remarks>
+        /// See: https://www.postgresql.org/docs/current/sql-createtable.html#SQL-CREATETABLE-UNLOGGED
+        /// </remarks>
+        public static EntityTypeBuilder IsUnlogged(
             [NotNull] this EntityTypeBuilder entityTypeBuilder,
-            [CanBeNull] string comment)
+            bool isUnlogged = true)
         {
             Check.NotNull(entityTypeBuilder, nameof(entityTypeBuilder));
-            Check.NullButNotEmpty(comment, nameof(comment));
 
-            entityTypeBuilder.Metadata.Npgsql().Comment = comment;
+            entityTypeBuilder.Metadata.SetIsUnlogged(isUnlogged);
 
             return entityTypeBuilder;
         }
 
         /// <summary>
-        ///     Configures the comment set on the table when targeting Npgsql.
+        /// Configures the mapped table to use an unlogged table when targeting Npgsql.
         /// </summary>
-        /// <typeparam name="TEntity"> The entity type being configured. </typeparam>
-        /// <param name="entityTypeBuilder"> The builder for the entity type being configured. </param>
-        /// <param name="comment"> The name of the table. </param>
-        /// <returns> The same builder instance so that multiple calls can be chained. </returns>
-        public static EntityTypeBuilder<TEntity> ForNpgsqlHasComment<TEntity>(
+        /// <param name="entityTypeBuilder">The builder for the entity type being configured.</param>
+        /// <param name="isUnlogged">True to configure the entity to use an unlogged table; otherwise, false.</param>
+        /// <returns>
+        /// The same builder instance so that multiple calls can be chained.
+        /// </returns>
+        /// <remarks>
+        /// See: https://www.postgresql.org/docs/current/sql-createtable.html#SQL-CREATETABLE-UNLOGGED
+        /// </remarks>
+        public static EntityTypeBuilder<TEntity> IsUnlogged<TEntity>(
             [NotNull] this EntityTypeBuilder<TEntity> entityTypeBuilder,
-            [CanBeNull] string comment)
+            bool isUnlogged = true)
             where TEntity : class
-        => (EntityTypeBuilder<TEntity>)ForNpgsqlHasComment((EntityTypeBuilder)entityTypeBuilder, comment);
+            => (EntityTypeBuilder<TEntity>)IsUnlogged((EntityTypeBuilder)entityTypeBuilder, isUnlogged);
 
-        #endregion Comment
+        /// <summary>
+        /// Configures the mapped table to use an unlogged table when targeting Npgsql.
+        /// </summary>
+        /// <param name="entityTypeBuilder">The builder for the entity type being configured.</param>
+        /// <param name="isUnlogged">True to configure the entity to use an unlogged table; otherwise, false.</param>
+        /// <param name="fromDataAnnotation"> Indicates whether the configuration was specified using a data annotation. </param>
+        /// <returns>
+        /// The same builder instance so that multiple calls can be chained.
+        /// </returns>
+        /// <remarks>
+        /// See: https://www.postgresql.org/docs/current/sql-createtable.html#SQL-CREATETABLE-UNLOGGED
+        /// </remarks>
+        public static IConventionEntityTypeBuilder IsUnlogged(
+            [NotNull] this IConventionEntityTypeBuilder entityTypeBuilder,
+            bool isUnlogged = true,
+            bool fromDataAnnotation = false)
+        {
+            if (entityTypeBuilder.CanSetIsUnlogged(isUnlogged, fromDataAnnotation))
+            {
+                entityTypeBuilder.Metadata.SetIsUnlogged(isUnlogged, fromDataAnnotation);
+
+                return entityTypeBuilder;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Returns a value indicating whether the mapped table can be configured to use an unlogged table when targeting Npgsql.
+        /// </summary>
+        /// <param name="entityTypeBuilder">The builder for the entity type being configured.</param>
+        /// <param name="isUnlogged">True to configure the entity to use an unlogged table; otherwise, false.</param>
+        /// <param name="fromDataAnnotation"> Indicates whether the configuration was specified using a data annotation. </param>
+        /// <returns>
+        /// The same builder instance so that multiple calls can be chained.
+        /// </returns>
+        /// <remarks>
+        /// See: https://www.postgresql.org/docs/current/sql-createtable.html#SQL-CREATETABLE-UNLOGGED
+        /// </remarks>
+        public static bool CanSetIsUnlogged(
+            [NotNull] this IConventionEntityTypeBuilder entityTypeBuilder,
+            bool isUnlogged = true,
+            bool fromDataAnnotation = false)
+        {
+            Check.NotNull(entityTypeBuilder, nameof(entityTypeBuilder));
+
+            return entityTypeBuilder.CanSetAnnotation(NpgsqlAnnotationNames.UnloggedTable, isUnlogged, fromDataAnnotation);
+        }
+
+        #endregion
 
         #region CockroachDB Interleave-in-parent
 
-        public static EntityTypeBuilder ForCockroachDbInterleaveInParent(
+        public static EntityTypeBuilder UseCockroachDbInterleaveInParent(
             [NotNull] this EntityTypeBuilder entityTypeBuilder,
             [NotNull] Type parentTableType,
             [NotNull] List<string> interleavePrefix)
@@ -122,58 +235,165 @@ namespace Microsoft.EntityFrameworkCore
 
             var parentEntity = entityTypeBuilder.Metadata.Model.FindEntityType(parentTableType);
             if (parentEntity == null)
-                throw new Exception("Entity not found in model: " + parentTableType);
+                throw new ArgumentException("Entity not found in model for type: " + parentTableType, nameof(parentTableType));
 
-            var interleaveInParent = entityTypeBuilder.Metadata.Npgsql().CockroachDbInterleaveInParent;
-            interleaveInParent.ParentTableSchema = parentEntity.Relational().Schema;
-            interleaveInParent.ParentTableName = parentEntity.Relational().TableName;
+            var interleaveInParent = entityTypeBuilder.Metadata.GetCockroachDbInterleaveInParent();
+            interleaveInParent.ParentTableSchema = parentEntity.GetSchema();
+            interleaveInParent.ParentTableName = parentEntity.GetTableName();
             interleaveInParent.InterleavePrefix = interleavePrefix;
 
             return entityTypeBuilder;
         }
 
+        public static EntityTypeBuilder<TEntity> UseCockroachDbInterleaveInParent<TEntity>(
+            [NotNull] this EntityTypeBuilder<TEntity> entityTypeBuilder,
+            [NotNull] Type parentTableType,
+            [NotNull] List<string> interleavePrefix)
+            where TEntity : class
+            => (EntityTypeBuilder<TEntity>)UseCockroachDbInterleaveInParent((EntityTypeBuilder)entityTypeBuilder, parentTableType, interleavePrefix);
+
+        #endregion CockroachDB Interleave-in-parent
+
+        #region Obsolete
+
+
+        /// <summary>
+        /// Configures a comment to be applied on the table.
+        /// </summary>
+        /// <param name="entityTypeBuilder">The builder for the entity type being configured.</param>
+        /// <param name="comment">The comment for the table.</param>
+        /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+        [Obsolete("Use HasComment")]
+        public static EntityTypeBuilder ForNpgsqlHasComment(
+            [NotNull] this EntityTypeBuilder entityTypeBuilder,
+            [CanBeNull] string comment)
+        {
+            Check.NotNull(entityTypeBuilder, nameof(entityTypeBuilder));
+            Check.NullButNotEmpty(comment, nameof(comment));
+
+            entityTypeBuilder.HasComment(comment);
+
+            return entityTypeBuilder;
+        }
+
+        /// <summary>
+        /// Configures a comment to be applied on the table.
+        /// </summary>
+        /// <typeparam name="TEntity">The entity type being configured.</typeparam>
+        /// <param name="entityTypeBuilder">The builder for the entity type being configured.</param>
+        /// <param name="comment">The comment for the table.</param>
+        /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+        [Obsolete("Use HasComment")]
+        public static EntityTypeBuilder<TEntity> ForNpgsqlHasComment<TEntity>(
+            [NotNull] this EntityTypeBuilder<TEntity> entityTypeBuilder,
+            [CanBeNull] string comment)
+            where TEntity : class
+            => (EntityTypeBuilder<TEntity>)ForNpgsqlHasComment((EntityTypeBuilder)entityTypeBuilder, comment);
+
+        /// <summary>
+        /// Configures using the auto-updating system column <c>xmin</c> as the optimistic concurrency token.
+        /// </summary>
+        /// <remarks>
+        /// See http://www.npgsql.org/efcore/miscellaneous.html#optimistic-concurrency-and-concurrency-tokens
+        /// </remarks>
+        /// <param name="entityTypeBuilder">The builder for the entity type being configured.</param>
+        /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+        [Obsolete("Use UseXminAsConcurrencyToken")]
+        public static EntityTypeBuilder ForNpgsqlUseXminAsConcurrencyToken([NotNull] this EntityTypeBuilder entityTypeBuilder)
+            => entityTypeBuilder.UseXminAsConcurrencyToken();
+
+        /// <summary>
+        /// Configures using the auto-updating system column <c>xmin</c> as the optimistic concurrency token.
+        /// </summary>
+        /// <remarks>
+        /// See http://www.npgsql.org/efcore/miscellaneous.html#optimistic-concurrency-and-concurrency-tokens
+        /// </remarks>
+        /// <param name="entityTypeBuilder">The builder for the entity type being configured.</param>
+        /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+        [Obsolete("Use UseXminAsConcurrencyToken")]
+        public static EntityTypeBuilder<TEntity> ForNpgsqlUseXminAsConcurrencyToken<TEntity>([NotNull] this EntityTypeBuilder<TEntity> entityTypeBuilder)
+            where TEntity : class
+            => entityTypeBuilder.UseXminAsConcurrencyToken();
+
+        /// <summary>
+        /// Sets a PostgreSQL storage parameter on the table created for this entity.
+        /// </summary>
+        /// <remarks>
+        /// See https://www.postgresql.org/docs/current/static/sql-createtable.html#SQL-CREATETABLE-STORAGE-PARAMETERS
+        /// </remarks>
+        /// <param name="entityTypeBuilder"> The builder for the entity type being configured. </param>
+        /// <param name="parameterName"> The name of the storage parameter. </param>
+        /// <param name="parameterValue"> The value of the storage parameter. </param>
+        /// <returns> The same builder instance so that multiple calls can be chained. </returns>
+        [Obsolete("Use SetStorageParameter")]
+        public static EntityTypeBuilder ForNpgsqlSetStorageParameter(
+            [NotNull] this EntityTypeBuilder entityTypeBuilder, string parameterName, object parameterValue)
+            => entityTypeBuilder.SetStorageParameter(parameterName, parameterValue);
+
+        /// <summary>
+        /// Sets a PostgreSQL storage parameter on the table created for this entity.
+        /// </summary>
+        /// <remarks>
+        /// See https://www.postgresql.org/docs/current/static/sql-createtable.html#SQL-CREATETABLE-STORAGE-PARAMETERS
+        /// </remarks>
+        /// <param name="entityTypeBuilder"> The builder for the entity type being configured. </param>
+        /// <param name="parameterName"> The name of the storage parameter. </param>
+        /// <param name="parameterValue"> The value of the storage parameter. </param>
+        /// <returns> The same builder instance so that multiple calls can be chained. </returns>
+        [Obsolete("Use SetStorageParameter")]
+        public static EntityTypeBuilder<TEntity> ForNpgsqlSetStorageParameter<TEntity>(
+            [NotNull] this EntityTypeBuilder<TEntity> entityTypeBuilder, string parameterName, object parameterValue)
+            where TEntity : class
+            => entityTypeBuilder.SetStorageParameter(parameterName, parameterValue);
+
+        /// <summary>
+        /// Configures the entity to use an unlogged table when targeting Npgsql.
+        /// </summary>
+        /// <param name="entityTypeBuilder">The builder for the entity type being configured.</param>
+        /// <param name="isUnlogged">True to configure the entity to use an unlogged table; otherwise, false.</param>
+        /// <returns>
+        /// The same builder instance so that multiple calls can be chained.
+        /// </returns>
+        /// <remarks>
+        /// See: https://www.postgresql.org/docs/current/sql-createtable.html#SQL-CREATETABLE-UNLOGGED
+        /// </remarks>
+        [Obsolete("Use IsUnlogged")]
+        public static EntityTypeBuilder ForNpgsqlIsUnlogged([NotNull] this EntityTypeBuilder entityTypeBuilder, bool isUnlogged = true)
+            => entityTypeBuilder.IsUnlogged(isUnlogged);
+
+        /// <summary>
+        /// Configures the mapped table to use an unlogged table when targeting Npgsql.
+        /// </summary>
+        /// <param name="entityTypeBuilder">The builder for the entity type being configured.</param>
+        /// <param name="isUnlogged">True to configure the entity to use an unlogged table; otherwise, false.</param>
+        /// <returns>
+        /// The same builder instance so that multiple calls can be chained.
+        /// </returns>
+        /// <remarks>
+        /// See: https://www.postgresql.org/docs/current/sql-createtable.html#SQL-CREATETABLE-UNLOGGED
+        /// </remarks>
+        [Obsolete("Use IsUnlogged")]
+        public static EntityTypeBuilder<TEntity> ForNpgsqlIsUnlogged<TEntity>(
+            [NotNull] this EntityTypeBuilder<TEntity> entityTypeBuilder,
+            bool isUnlogged = true)
+            where TEntity : class
+            => entityTypeBuilder.IsUnlogged(isUnlogged);
+
+        [Obsolete("Use UseCockroachDbInterleaveInParent")]
+        public static EntityTypeBuilder ForCockroachDbInterleaveInParent(
+            [NotNull] this EntityTypeBuilder entityTypeBuilder,
+            [NotNull] Type parentTableType,
+            [NotNull] List<string> interleavePrefix)
+            => entityTypeBuilder.UseCockroachDbInterleaveInParent(parentTableType, interleavePrefix);
+
+        [Obsolete("Use UseCockroachDbInterleaveInParent")]
         public static EntityTypeBuilder<TEntity> ForCockroachDbInterleaveInParent<TEntity>(
             [NotNull] this EntityTypeBuilder<TEntity> entityTypeBuilder,
             [NotNull] Type parentTableType,
             [NotNull] List<string> interleavePrefix)
             where TEntity : class
-            => (EntityTypeBuilder<TEntity>)ForCockroachDbInterleaveInParent((EntityTypeBuilder)entityTypeBuilder, parentTableType, interleavePrefix);
+            => entityTypeBuilder.UseCockroachDbInterleaveInParent(parentTableType, interleavePrefix);
 
-        #endregion CockroachDB Interleave-in-parent
-
-        #region Generic Index
-
-        /// <summary>
-        /// Configures an index on the specified properties. If there is an existing index on the given
-        /// set of properties, then the existing index will be returned for configuration.
-        /// </summary>
-        /// <typeparam name="TEntity"> The entity type being configured. </typeparam>
-        /// <param name="entityTypeBuilder"> The builder for the entity type being configured. </param>
-        /// <param name="indexExpression">
-        ///   <para>
-        ///     A lambda expression representing the property(s) to be included in the index
-        ///     (<c>blog => blog.Url</c>).
-        ///   </para>
-        ///   <para>
-        ///     If the index is made up of multiple properties then specify an anonymous type including the
-        ///     properties (<c>post => new { post.Title, post.BlogId }</c>).
-        ///   </para>
-        /// </param>
-        /// <returns> An object that can be used to configure the index. </returns>
-        public static IndexBuilder<TEntity> ForNpgsqlHasIndex<TEntity>(
-            [NotNull] this EntityTypeBuilder<TEntity> entityTypeBuilder,
-            [NotNull] Expression<Func<TEntity, object>> indexExpression)
-            where TEntity : class
-        {
-            Check.NotNull(entityTypeBuilder, nameof(entityTypeBuilder));
-            Check.NotNull(indexExpression, nameof(indexExpression));
-
-            var builder = ((IInfrastructure<InternalEntityTypeBuilder>)entityTypeBuilder).GetInfrastructure();
-
-            return new IndexBuilder<TEntity>(
-                builder.HasIndex(indexExpression.GetPropertyAccessList(), ConfigurationSource.Explicit));
-        }
-
-        #endregion
+        #endregion Obsolete
     }
 }

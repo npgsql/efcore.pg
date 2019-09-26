@@ -1,10 +1,16 @@
-﻿using System.Data.Common;
+﻿using System;
+using System.Collections.Generic;
+using System.Data.Common;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
-using Microsoft.EntityFrameworkCore.TestUtilities.Xunit;
+using Microsoft.EntityFrameworkCore.Storage;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL
@@ -14,131 +20,43 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         public MigrationsNpgsqlTest(MigrationsNpgsqlFixture fixture)
             : base(fixture) {}
 
-        [ConditionalFact(Skip = "Flaky test")]
-        public override async Task Can_apply_all_migrations_async() => await base.Can_apply_all_migrations_async();
-
-        public override void Can_generate_idempotent_up_scripts()
+        public override void Can_get_active_provider()
         {
-            base.Can_generate_idempotent_up_scripts();
+            base.Can_get_active_provider();
 
-            Assert.Equal(
-                @"CREATE TABLE IF NOT EXISTS ""__EFMigrationsHistory"" (
-    ""MigrationId"" character varying(150) NOT NULL,
-    ""ProductVersion"" character varying(32) NOT NULL,
-    CONSTRAINT ""PK___EFMigrationsHistory"" PRIMARY KEY (""MigrationId"")
-);
-
-
-DO $$
-BEGIN
-    IF NOT EXISTS(SELECT 1 FROM ""__EFMigrationsHistory"" WHERE ""MigrationId"" = '00000000000001_Migration1') THEN
-    CREATE TABLE ""Table1"" (
-        ""Id"" integer NOT NULL,
-        CONSTRAINT ""PK_Table1"" PRIMARY KEY (""Id"")
-    );
-    END IF;
-END $$;
-
-DO $$
-BEGIN
-    IF NOT EXISTS(SELECT 1 FROM ""__EFMigrationsHistory"" WHERE ""MigrationId"" = '00000000000001_Migration1') THEN
-    INSERT INTO ""__EFMigrationsHistory"" (""MigrationId"", ""ProductVersion"")
-    VALUES ('00000000000001_Migration1', '7.0.0-test');
-    END IF;
-END $$;
-
-DO $$
-BEGIN
-    IF NOT EXISTS(SELECT 1 FROM ""__EFMigrationsHistory"" WHERE ""MigrationId"" = '00000000000002_Migration2') THEN
-    ALTER TABLE ""Table1"" RENAME TO ""Table2"";
-    END IF;
-END $$;
-
-DO $$
-BEGIN
-    IF NOT EXISTS(SELECT 1 FROM ""__EFMigrationsHistory"" WHERE ""MigrationId"" = '00000000000002_Migration2') THEN
-    INSERT INTO ""__EFMigrationsHistory"" (""MigrationId"", ""ProductVersion"")
-    VALUES ('00000000000002_Migration2', '7.0.0-test');
-    END IF;
-END $$;
-
-DO $$
-BEGIN
-    IF NOT EXISTS(SELECT 1 FROM ""__EFMigrationsHistory"" WHERE ""MigrationId"" = '00000000000003_Migration3') THEN
-    INSERT INTO ""__EFMigrationsHistory"" (""MigrationId"", ""ProductVersion"")
-    VALUES ('00000000000003_Migration3', '7.0.0-test');
-    END IF;
-END $$;
-",
-                Sql,
-                ignoreLineEndingDifferences: true);
-        }
-
-        public override void Can_generate_idempotent_down_scripts()
-        {
-            base.Can_generate_idempotent_down_scripts();
-
-            Assert.Equal(@"
-DO $$
-BEGIN
-    IF EXISTS(SELECT 1 FROM ""__EFMigrationsHistory"" WHERE ""MigrationId"" = '00000000000002_Migration2') THEN
-    ALTER TABLE ""Table2"" RENAME TO ""Table1"";
-    END IF;
-END $$;
-
-DO $$
-BEGIN
-    IF EXISTS(SELECT 1 FROM ""__EFMigrationsHistory"" WHERE ""MigrationId"" = '00000000000002_Migration2') THEN
-    DELETE FROM ""__EFMigrationsHistory""
-    WHERE ""MigrationId"" = '00000000000002_Migration2';
-    END IF;
-END $$;
-
-DO $$
-BEGIN
-    IF EXISTS(SELECT 1 FROM ""__EFMigrationsHistory"" WHERE ""MigrationId"" = '00000000000001_Migration1') THEN
-    DROP TABLE ""Table1"";
-    END IF;
-END $$;
-
-DO $$
-BEGIN
-    IF EXISTS(SELECT 1 FROM ""__EFMigrationsHistory"" WHERE ""MigrationId"" = '00000000000001_Migration1') THEN
-    DELETE FROM ""__EFMigrationsHistory""
-    WHERE ""MigrationId"" = '00000000000001_Migration1';
-    END IF;
-END $$;
-",
-                Sql,
-                ignoreLineEndingDifferences: true);
+            Assert.Equal("Npgsql.EntityFrameworkCore.PostgreSQL", ActiveProvider);
         }
 
         protected override void AssertFirstMigration(DbConnection connection)
         {
             var sql = GetDatabaseSchemaAsync(connection);
+
             Assert.Equal(
                 @"
 CreatedTable
     Id int4 NOT NULL
     ColumnWithDefaultToDrop int4 NULL DEFAULT 0
     ColumnWithDefaultToAlter int4 NULL DEFAULT 1
+
+Foos
+    Id int4 NOT NULL
 ",
                 sql,
                 ignoreLineEndingDifferences: true);
         }
 
-        protected override void BuildSecondMigration(MigrationBuilder migrationBuilder)
-        {
-            base.BuildSecondMigration(migrationBuilder);
-
-            for (var i = migrationBuilder.Operations.Count - 1; i >= 0; i--)
-            {
-                var operation = migrationBuilder.Operations[i];
-                if (operation is AlterColumnOperation ||
-                    operation is DropColumnOperation)
-                    migrationBuilder.Operations.RemoveAt(i);
-            }
-        }
+//        protected override void BuildSecondMigration(MigrationBuilder migrationBuilder)
+//        {
+//            base.BuildSecondMigration(migrationBuilder);
+//
+//            for (var i = migrationBuilder.Operations.Count - 1; i >= 0; i--)
+//            {
+//                var operation = migrationBuilder.Operations[i];
+//                if (operation is AlterColumnOperation ||
+//                    operation is DropColumnOperation)
+//                    migrationBuilder.Operations.RemoveAt(i);
+//            }
+//        }
 
         protected override void AssertSecondMigration(DbConnection connection)
         {
@@ -147,14 +65,16 @@ CreatedTable
                 @"
 CreatedTable
     Id int4 NOT NULL
-    ColumnWithDefaultToDrop int4 NULL DEFAULT 0
-    ColumnWithDefaultToAlter int4 NULL DEFAULT 1
+    ColumnWithDefaultToAlter int4 NULL
+
+Foos
+    Id int4 NOT NULL
 ",
                 sql,
                 ignoreLineEndingDifferences: true);
         }
 
-        private static string GetDatabaseSchemaAsync(DbConnection connection)
+        static string GetDatabaseSchemaAsync(DbConnection connection)
         {
             var builder = new IndentedStringBuilder();
             var command = connection.CreateCommand();
@@ -216,5 +136,166 @@ ORDER BY table_name, ordinal_position
 
             return builder.ToString();
         }
+
+        [ConditionalFact]
+        public async Task Empty_Migration_Creates_Database()
+        {
+            using (var context = new BloggingContext(
+                Fixture.TestStore.AddProviderOptions(
+                    new DbContextOptionsBuilder().EnableServiceProviderCaching(false)).Options))
+            {
+                var creator = (NpgsqlDatabaseCreator)context.GetService<IRelationalDatabaseCreator>();
+                creator.RetryTimeout = TimeSpan.FromMinutes(10);
+
+                await context.Database.MigrateAsync();
+
+                Assert.True(creator.Exists());
+            }
+        }
+
+        private class BloggingContext : DbContext
+        {
+            public BloggingContext(DbContextOptions options)
+                : base(options)
+            {
+            }
+
+            // ReSharper disable once UnusedMember.Local
+            public DbSet<Blog> Blogs { get; set; }
+
+            // ReSharper disable once ClassNeverInstantiated.Local
+            public class Blog
+            {
+                // ReSharper disable UnusedMember.Local
+                public int Id { get; set; }
+
+                public string Name { get; set; }
+                // ReSharper restore UnusedMember.Local
+            }
+        }
+
+        [DbContext(typeof(BloggingContext))]
+        [Migration("00000000000000_Empty")]
+        public class EmptyMigration : Migration
+        {
+            protected override void Up(MigrationBuilder migrationBuilder)
+            {
+            }
+        }
+
+        public override void Can_diff_against_2_2_model()
+        {
+//            using (var context = new ModelSnapshot22.BloggingContext())
+//            {
+//                DiffSnapshot(new BloggingContextModelSnapshot22(), context);
+//            }
+//
+            using (var context = new ModelSnapshot22.BloggingContext())
+            {
+                var snapshot = new BloggingContextModelSnapshot22();
+                var sourceModel = snapshot.Model;
+                var targetModel = context.Model;
+
+                var modelDiffer = context.GetService<IMigrationsModelDiffer>();
+                var operations = modelDiffer.GetDifferences(sourceModel, targetModel);
+
+                Assert.Equal(0, operations.Count);
+            }
+        }
+
+        public class BloggingContextModelSnapshot22 : ModelSnapshot
+        {
+            protected override void BuildModel(ModelBuilder modelBuilder)
+            {
+#pragma warning disable 612, 618
+                modelBuilder
+                    .HasAnnotation("ProductVersion", "2.2.4-servicing-10062")
+                    .HasAnnotation("Relational:MaxIdentifierLength", 128)
+                    .HasAnnotation("Npgsql:ValueGenerationStrategy",
+                        NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+
+                modelBuilder.Entity("ModelSnapshot22.Blog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy",
+                            NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+
+                    b.Property<string>("Name");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Blogs");
+                });
+
+                modelBuilder.Entity("ModelSnapshot22.Post", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy",
+                            NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+
+                    b.Property<int?>("BlogId");
+
+                    b.Property<string>("Content");
+
+                    b.Property<DateTime>("EditDate");
+
+                    b.Property<string>("Title");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BlogId");
+
+                    b.ToTable("Post");
+                });
+
+                modelBuilder.Entity("ModelSnapshot22.Post", b =>
+                {
+                    b.HasOne("ModelSnapshot22.Blog", "Blog")
+                        .WithMany("Posts")
+                        .HasForeignKey("BlogId");
+                });
+#pragma warning restore 612, 618
+            }
+        }
+
+        [ConditionalFact(Skip = "Implement")]
+        public override void Can_diff_against_3_0_ASP_NET_Identity_model() {}
+
+        [ConditionalFact(Skip = "Implement")]
+        public override void Can_diff_against_2_2_ASP_NET_Identity_model() {}
+
+        [ConditionalFact(Skip = "Implement")]
+        public override void Can_diff_against_2_1_ASP_NET_Identity_model() {}
+    }
+}
+
+namespace ModelSnapshot22
+{
+    public class Blog
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+
+        public ICollection<Post> Posts { get; set; }
+    }
+
+    public class Post
+    {
+        public int Id { get; set; }
+        public string Title { get; set; }
+        public string Content { get; set; }
+        public DateTime EditDate { get; set; }
+
+        public Blog Blog { get; set; }
+    }
+
+    public class BloggingContext : DbContext
+    {
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+            => optionsBuilder.UseNpgsql(TestEnvironment.DefaultConnection);
+
+        public DbSet<Blog> Blogs { get; set; }
     }
 }

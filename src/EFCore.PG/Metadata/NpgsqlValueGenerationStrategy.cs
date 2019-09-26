@@ -3,6 +3,11 @@
     public enum NpgsqlValueGenerationStrategy
     {
         /// <summary>
+        /// No Npgsql-specific strategy.
+        /// </summary>
+        None,
+
+        /// <summary>
         /// <para>
         /// A sequence-based hi-lo pattern where blocks of IDs are allocated from the server and
         /// used client-side for generating keys.
@@ -34,5 +39,16 @@
         /// <para>Available only starting PostgreSQL 10.</para>
         /// </summary>
         IdentityByDefaultColumn,
+    }
+
+    public static class NpgsqlValueGenerationStrategyExtensions
+    {
+        public static bool IsIdentity(this NpgsqlValueGenerationStrategy strategy)
+            => strategy == NpgsqlValueGenerationStrategy.IdentityByDefaultColumn ||
+               strategy == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn;
+
+        public static bool IsIdentity(this NpgsqlValueGenerationStrategy? strategy)
+            => strategy == NpgsqlValueGenerationStrategy.IdentityByDefaultColumn ||
+               strategy == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn;
     }
 }

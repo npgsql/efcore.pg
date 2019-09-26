@@ -3,8 +3,10 @@ using System.Linq;
 using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Npgsql;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 using Npgsql.NameTranslation;
 using NpgsqlTypes;
@@ -18,7 +20,7 @@ namespace Microsoft.EntityFrameworkCore
     [PublicAPI]
     public static class NpgsqlModelBuilderExtensions
     {
-        #region Sequences
+        #region HiLo
 
         /// <summary>
         /// Configures the model to use a sequence-based hi-lo pattern to generate values for properties
@@ -28,7 +30,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="name">The name of the sequence.</param>
         /// <param name="schema">The schema of the sequence.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-        public static ModelBuilder ForNpgsqlUseSequenceHiLo(
+        public static ModelBuilder UseHiLo(
             [NotNull] this ModelBuilder modelBuilder,
             [CanBeNull] string name = null,
             [CanBeNull] string schema = null)
@@ -39,42 +41,98 @@ namespace Microsoft.EntityFrameworkCore
 
             var model = modelBuilder.Model;
 
-            name = name ?? NpgsqlModelAnnotations.DefaultHiLoSequenceName;
+            name ??= NpgsqlModelExtensions.DefaultHiLoSequenceName;
 
-            if (model.Npgsql().FindSequence(name, schema) == null)
+            if (model.FindSequence(name, schema) == null)
             {
                 modelBuilder.HasSequence(name, schema).IncrementsBy(10);
             }
 
-            model.Npgsql().ValueGenerationStrategy = NpgsqlValueGenerationStrategy.SequenceHiLo;
-            model.Npgsql().HiLoSequenceName = name;
-            model.Npgsql().HiLoSequenceSchema = schema;
+            model.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SequenceHiLo);
+            model.SetHiLoSequenceName(name);
+            model.SetHiLoSequenceSchema(schema);
 
             return modelBuilder;
         }
 
         /// <summary>
+        ///     Configures the database sequence used for the hi-lo pattern to generate values for key properties
+        ///     marked as <see cref="ValueGenerated.OnAdd" />, when targeting PostgreSQL.
+        /// </summary>
+        /// <param name="modelBuilder"> The model builder. </param>
+        /// <param name="name"> The name of the sequence. </param>
+        /// <param name="schema">The schema of the sequence. </param>
+        /// <param name="fromDataAnnotation"> Indicates whether the configuration was specified using a data annotation. </param>
+        /// <returns> A builder to further configure the sequence. </returns>
+        public static IConventionSequenceBuilder HasHiLoSequence(
+            [NotNull] this IConventionModelBuilder modelBuilder,
+            [CanBeNull] string name,
+            [CanBeNull] string schema,
+            bool fromDataAnnotation = false)
+        {
+            if (!modelBuilder.CanSetHiLoSequence(name, schema))
+            {
+                return null;
+            }
+
+            modelBuilder.Metadata.SetHiLoSequenceName(name, fromDataAnnotation);
+            modelBuilder.Metadata.SetHiLoSequenceSchema(schema, fromDataAnnotation);
+
+            return name == null ? null : modelBuilder.HasSequence(name, schema, fromDataAnnotation);
+        }
+
+        /// <summary>
+        ///     Returns a value indicating whether the given name and schema can be set for the hi-lo sequence.
+        /// </summary>
+        /// <param name="modelBuilder"> The model builder. </param>
+        /// <param name="name"> The name of the sequence. </param>
+        /// <param name="schema">The schema of the sequence. </param>
+        /// <param name="fromDataAnnotation"> Indicates whether the configuration was specified using a data annotation. </param>
+        /// <returns> <c>true</c> if the given name and schema can be set for the hi-lo sequence. </returns>
+        public static bool CanSetHiLoSequence(
+            [NotNull] this IConventionModelBuilder modelBuilder,
+            [CanBeNull] string name,
+            [CanBeNull] string schema,
+            bool fromDataAnnotation = false)
+        {
+            Check.NotNull(modelBuilder, nameof(modelBuilder));
+            Check.NullButNotEmpty(name, nameof(name));
+            Check.NullButNotEmpty(schema, nameof(schema));
+
+            return modelBuilder.CanSetAnnotation(NpgsqlAnnotationNames.HiLoSequenceName, name, fromDataAnnotation)
+                   && modelBuilder.CanSetAnnotation(NpgsqlAnnotationNames.HiLoSequenceSchema, schema, fromDataAnnotation);
+        }
+
+        #endregion HiLo
+
+        #region Serial
+
+        /// <summary>
+        /// <para>
         /// Configures the model to use the PostgreSQL SERIAL feature to generate values for properties
-        /// marked as <see cref="ValueGenerated.OnAdd" />, when targeting PostgreSQL. This is the default
-        /// behavior when targeting PostgreSQL.
+        /// marked as <see cref="ValueGenerated.OnAdd" />, when targeting PostgreSQL.
+        /// </para>
+        /// <para>
+        /// This option should be considered deprecated starting with PostgreSQL 10, consider using <see cref="UseIdentityColumns"/> instead.
+        /// </para>
         /// </summary>
         /// <param name="modelBuilder">The model builder.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-        public static ModelBuilder ForNpgsqlUseSerialColumns(
+        public static ModelBuilder UseSerialColumns(
             [NotNull] this ModelBuilder modelBuilder)
         {
             Check.NotNull(modelBuilder, nameof(modelBuilder));
 
             var property = modelBuilder.Model;
 
-            property.Npgsql().ValueGenerationStrategy = NpgsqlValueGenerationStrategy.SerialColumn;
-            property.Npgsql().HiLoSequenceName = null;
-            property.Npgsql().HiLoSequenceSchema = null;
+            property.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SerialColumn);
+            property.SetHiLoSequenceName(null);
+            property.SetHiLoSequenceSchema(null);
 
             return modelBuilder;
         }
 
-        #endregion
+        #endregion Serial
 
         #region Identity
 
@@ -89,16 +147,16 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="modelBuilder">The model builder.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-        public static ModelBuilder ForNpgsqlUseIdentityAlwaysColumns(
+        public static ModelBuilder UseIdentityAlwaysColumns(
             [NotNull] this ModelBuilder modelBuilder)
         {
             Check.NotNull(modelBuilder, nameof(modelBuilder));
 
             var property = modelBuilder.Model;
 
-            property.Npgsql().ValueGenerationStrategy = NpgsqlValueGenerationStrategy.IdentityAlwaysColumn;
-            property.Npgsql().HiLoSequenceName = null;
-            property.Npgsql().HiLoSequenceSchema = null;
+            property.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityAlwaysColumn);
+            property.SetHiLoSequenceName(null);
+            property.SetHiLoSequenceSchema(null);
 
             return modelBuilder;
         }
@@ -110,20 +168,22 @@ namespace Microsoft.EntityFrameworkCore
         /// columns will be generated as identity by default, but the application will be able to override
         /// this behavior by providing a value.
         /// </para>
-        /// <para>Available only starting PostgreSQL 10.</para>
+        /// <para>
+        /// This is the default behavior when targeting PostgreSQL. Available only starting PostgreSQL 10.
+        /// </para>
         /// </summary>
         /// <param name="modelBuilder">The model builder.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-        public static ModelBuilder ForNpgsqlUseIdentityByDefaultColumns(
+        public static ModelBuilder UseIdentityByDefaultColumns(
             [NotNull] this ModelBuilder modelBuilder)
         {
             Check.NotNull(modelBuilder, nameof(modelBuilder));
 
             var property = modelBuilder.Model;
 
-            property.Npgsql().ValueGenerationStrategy = NpgsqlValueGenerationStrategy.IdentityByDefaultColumn;
-            property.Npgsql().HiLoSequenceName = null;
-            property.Npgsql().HiLoSequenceSchema = null;
+            property.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+            property.SetHiLoSequenceName(null);
+            property.SetHiLoSequenceSchema(null);
 
             return modelBuilder;
         }
@@ -135,13 +195,44 @@ namespace Microsoft.EntityFrameworkCore
         /// columns will be generated as identity by default, but the application will be able to override
         /// this behavior by providing a value.
         /// </para>
-        /// <para>Available only starting PostgreSQL 10.</para>
+        /// <para>
+        /// This is the default behavior when targeting PostgreSQL. Available only starting PostgreSQL 10.
+        /// </para>
         /// </summary>
         /// <param name="modelBuilder">The model builder.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-        public static ModelBuilder ForNpgsqlUseIdentityColumns(
+        public static ModelBuilder UseIdentityColumns(
             [NotNull] this ModelBuilder modelBuilder)
-            => modelBuilder.ForNpgsqlUseIdentityByDefaultColumns();
+            => modelBuilder.UseIdentityByDefaultColumns();
+
+        /// <summary>
+        /// Configures the value generation strategy for the key property, when targeting PostgreSQL.
+        /// </summary>
+        /// <param name="modelBuilder">The builder for the property being configured.</param>
+        /// <param name="valueGenerationStrategy">The value generation strategy.</param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        /// <returns>
+        /// The same builder instance if the configuration was applied, <c>null</c> otherwise.
+        /// </returns>
+        public static IConventionModelBuilder HasValueGenerationStrategy(
+            [NotNull] this IConventionModelBuilder modelBuilder,
+            NpgsqlValueGenerationStrategy? valueGenerationStrategy,
+            bool fromDataAnnotation = false)
+        {
+            if (modelBuilder.CanSetAnnotation(
+                NpgsqlAnnotationNames.ValueGenerationStrategy, valueGenerationStrategy, fromDataAnnotation))
+            {
+                modelBuilder.Metadata.SetValueGenerationStrategy(valueGenerationStrategy, fromDataAnnotation);
+                if (valueGenerationStrategy != NpgsqlValueGenerationStrategy.SequenceHiLo)
+                {
+                    modelBuilder.HasHiLoSequence(null, null, fromDataAnnotation);
+                }
+
+                return modelBuilder;
+            }
+
+            return null;
+        }
 
         #endregion Identity
 
@@ -172,7 +263,8 @@ namespace Microsoft.EntityFrameworkCore
             Check.NullButNotEmpty(schema, nameof(schema));
             Check.NotEmpty(name, nameof(name));
 
-            modelBuilder.Model.Npgsql().GetOrAddPostgresExtension(schema, name, version);
+            modelBuilder.Model.GetOrAddPostgresExtension(schema, name, version);
+
             return modelBuilder;
         }
 
@@ -213,7 +305,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </remarks>
         /// <exception cref="ArgumentNullException">builder</exception>
         [NotNull]
-        public static ModelBuilder ForNpgsqlHasEnum(
+        public static ModelBuilder HasPostgresEnum(
             [NotNull] this ModelBuilder modelBuilder,
             [CanBeNull] string schema,
             [NotNull] string name,
@@ -223,7 +315,7 @@ namespace Microsoft.EntityFrameworkCore
             Check.NotEmpty(name, nameof(name));
             Check.NotNull(labels, nameof(labels));
 
-            modelBuilder.Model.Npgsql().GetOrAddPostgresEnum(schema, name, labels);
+            modelBuilder.Model.GetOrAddPostgresEnum(schema, name, labels);
             return modelBuilder;
         }
 
@@ -241,11 +333,11 @@ namespace Microsoft.EntityFrameworkCore
         /// </remarks>
         /// <exception cref="ArgumentNullException">builder</exception>
         [NotNull]
-        public static ModelBuilder ForNpgsqlHasEnum(
+        public static ModelBuilder HasPostgresEnum(
             [NotNull] this ModelBuilder modelBuilder,
             [NotNull] string name,
             [NotNull] string[] labels)
-            => modelBuilder.ForNpgsqlHasEnum(null, name, labels);
+            => modelBuilder.HasPostgresEnum(null, name, labels);
 
         /// <summary>
         /// Registers a user-defined enum type in the model.
@@ -265,7 +357,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </remarks>
         /// <exception cref="ArgumentNullException">builder</exception>
         [NotNull]
-        public static ModelBuilder ForNpgsqlHasEnum<TEnum>(
+        public static ModelBuilder HasPostgresEnum<TEnum>(
             [NotNull] this ModelBuilder modelBuilder,
             [CanBeNull] string schema = null,
             [CanBeNull] string name = null,
@@ -275,7 +367,7 @@ namespace Microsoft.EntityFrameworkCore
             if (nameTranslator == null)
                 nameTranslator = NpgsqlConnection.GlobalTypeMapper.DefaultNameTranslator;
 
-            return modelBuilder.ForNpgsqlHasEnum(
+            return modelBuilder.HasPostgresEnum(
                 schema,
                 name ?? GetTypePgName<TEnum>(nameTranslator),
                 GetMemberPgNames<TEnum>(nameTranslator));
@@ -285,14 +377,14 @@ namespace Microsoft.EntityFrameworkCore
 
         #region Templates
 
-        public static ModelBuilder HasDatabaseTemplate(
+        public static ModelBuilder UseDatabaseTemplate(
             [NotNull] this ModelBuilder modelBuilder,
             [NotNull] string templateDatabaseName)
         {
             Check.NotNull(modelBuilder, nameof(modelBuilder));
             Check.NotEmpty(templateDatabaseName, nameof(templateDatabaseName));
 
-            modelBuilder.Model.Npgsql().DatabaseTemplate = templateDatabaseName;
+            modelBuilder.Model.SetDatabaseTemplate(templateDatabaseName);
             return modelBuilder;
         }
 
@@ -321,7 +413,7 @@ namespace Microsoft.EntityFrameworkCore
         /// https://www.postgresql.org/docs/current/static/sql-createtype.html,
         /// </remarks>
         [NotNull]
-        public static ModelBuilder ForNpgsqlHasRange(
+        public static ModelBuilder HasPostgresRange(
             [NotNull] this ModelBuilder modelBuilder,
             [CanBeNull] string schema,
             [NotNull] string name,
@@ -335,7 +427,7 @@ namespace Microsoft.EntityFrameworkCore
             Check.NotEmpty(name, nameof(name));
             Check.NotEmpty(subtype, nameof(subtype));
 
-            modelBuilder.Model.Npgsql().GetOrAddPostgresRange(
+            modelBuilder.Model.GetOrAddPostgresRange(
                 schema,
                 name,
                 subtype,
@@ -356,24 +448,24 @@ namespace Microsoft.EntityFrameworkCore
         /// See https://www.postgresql.org/docs/current/static/rangetypes.html,
         /// https://www.postgresql.org/docs/current/static/sql-createtype.html,
         /// </remarks>
-        public static ModelBuilder ForNpgsqlHasRange(
+        public static ModelBuilder HasPostgresRange(
             [NotNull] this ModelBuilder modelBuilder,
             [NotNull] string name,
             [NotNull] string subtype)
-            => ForNpgsqlHasRange(modelBuilder, null, name, subtype);
+            => HasPostgresRange(modelBuilder, null, name, subtype);
 
         #endregion
 
         #region Tablespaces
 
-        public static ModelBuilder ForNpgsqlUseTablespace(
+        public static ModelBuilder UseTablespace(
             [NotNull] this ModelBuilder modelBuilder,
             [NotNull] string tablespace)
         {
             Check.NotNull(modelBuilder, nameof(modelBuilder));
             Check.NotEmpty(tablespace, nameof(tablespace));
 
-            modelBuilder.Model.Npgsql().Tablespace = tablespace;
+            modelBuilder.Model.SetTablespace(tablespace);
             return modelBuilder;
         }
 
@@ -398,5 +490,202 @@ namespace Microsoft.EntityFrameworkCore
                .ToArray();
 
         #endregion
+
+        #region Obsolete
+
+        /// <summary>
+        /// Configures the model to use a sequence-based hi-lo pattern to generate values for properties
+        /// marked as <see cref="ValueGenerated.OnAdd" />, when targeting PostgreSQL.
+        /// </summary>
+        /// <param name="modelBuilder">The model builder.</param>
+        /// <param name="name">The name of the sequence.</param>
+        /// <param name="schema">The schema of the sequence.</param>
+        /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+        [Obsolete("Use UseHiLo")]
+        public static ModelBuilder ForNpgsqlUseSequenceHiLo([NotNull] this ModelBuilder modelBuilder, [CanBeNull] string name = null, [CanBeNull] string schema = null)
+            => modelBuilder.UseHiLo(name, schema);
+
+        /// <summary>
+        /// Configures the model to use the PostgreSQL SERIAL feature to generate values for properties
+        /// marked as <see cref="ValueGenerated.OnAdd" />, when targeting PostgreSQL. This is the default
+        /// behavior when targeting PostgreSQL.
+        /// </summary>
+        /// <param name="modelBuilder">The model builder.</param>
+        /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+        [Obsolete("Use UseSerialColumns")]
+        public static ModelBuilder ForNpgsqlUseSerialColumns([NotNull] this ModelBuilder modelBuilder)
+            => modelBuilder.UseSerialColumns();
+
+        /// <summary>
+        /// <para>
+        /// Configures the model to use the PostgreSQL IDENTITY feature to generate values for properties
+        /// marked as <see cref="ValueGenerated.OnAdd" />, when targeting PostgreSQL. Values for these
+        /// columns will always be generated as identity, and the application will not be able to override
+        /// this behavior by providing a value.
+        /// </para>
+        /// <para>Available only starting PostgreSQL 10.</para>
+        /// </summary>
+        /// <param name="modelBuilder">The model builder.</param>
+        /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+        [Obsolete("Use UseIdentityAlwaysColumns")]
+        public static ModelBuilder ForNpgsqlUseIdentityAlwaysColumns([NotNull] this ModelBuilder modelBuilder)
+            => modelBuilder.UseIdentityAlwaysColumns();
+
+        /// <summary>
+        /// <para>
+        /// Configures the model to use the PostgreSQL IDENTITY feature to generate values for properties
+        /// marked as <see cref="ValueGenerated.OnAdd" />, when targeting PostgreSQL. Values for these
+        /// columns will be generated as identity by default, but the application will be able to override
+        /// this behavior by providing a value.
+        /// </para>
+        /// <para>Available only starting PostgreSQL 10.</para>
+        /// </summary>
+        /// <param name="modelBuilder">The model builder.</param>
+        /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+        [Obsolete("Use UseIdentityByDefaultColumns")]
+        public static ModelBuilder ForNpgsqlUseIdentityByDefaultColumns([NotNull] this ModelBuilder modelBuilder)
+            => modelBuilder.UseIdentityByDefaultColumns();
+
+        /// <summary>
+        /// <para>
+        /// Configures the model to use the PostgreSQL IDENTITY feature to generate values for properties
+        /// marked as <see cref="ValueGenerated.OnAdd" />, when targeting PostgreSQL. Values for these
+        /// columns will be generated as identity by default, but the application will be able to override
+        /// this behavior by providing a value.
+        /// </para>
+        /// <para>Available only starting PostgreSQL 10.</para>
+        /// </summary>
+        /// <param name="modelBuilder">The model builder.</param>
+        /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+        [Obsolete("Use UseIdentityColumns")]
+        public static ModelBuilder ForNpgsqlUseIdentityColumns([NotNull] this ModelBuilder modelBuilder)
+            => modelBuilder.UseIdentityColumns();
+
+        /// <summary>
+        /// Registers a user-defined enum type in the model.
+        /// </summary>
+        /// <param name="modelBuilder">The model builder in which to create the enum type.</param>
+        /// <param name="schema">The schema in which to create the enum type.</param>
+        /// <param name="name">The name of the enum type to create.</param>
+        /// <param name="labels">The enum label values.</param>
+        /// <returns>
+        /// The updated <see cref="ModelBuilder"/>.
+        /// </returns>
+        /// <remarks>
+        /// See: https://www.postgresql.org/docs/current/static/datatype-enum.html
+        /// </remarks>
+        /// <exception cref="ArgumentNullException">builder</exception>
+        [Obsolete("Use HasPostgresEnum")]
+        public static ModelBuilder ForNpgsqlHasEnum(
+            [NotNull] this ModelBuilder modelBuilder,
+            [CanBeNull] string schema,
+            [NotNull] string name,
+            [NotNull] string[] labels)
+            => modelBuilder.HasPostgresEnum(schema, name, labels);
+
+        /// <summary>
+        /// Registers a user-defined enum type in the model.
+        /// </summary>
+        /// <param name="modelBuilder">The model builder in which to create the enum type.</param>
+        /// <param name="name">The name of the enum type to create.</param>
+        /// <param name="labels">The enum label values.</param>
+        /// <returns>
+        /// The updated <see cref="ModelBuilder"/>.
+        /// </returns>
+        /// <remarks>
+        /// See: https://www.postgresql.org/docs/current/static/datatype-enum.html
+        /// </remarks>
+        /// <exception cref="ArgumentNullException">builder</exception>
+        [Obsolete("Use HasPostgresEnum")]
+        public static ModelBuilder ForNpgsqlHasEnum(
+            [NotNull] this ModelBuilder modelBuilder,
+            [NotNull] string name,
+            [NotNull] string[] labels)
+            => modelBuilder.HasPostgresEnum(name, labels);
+
+        /// <summary>
+        /// Registers a user-defined enum type in the model.
+        /// </summary>
+        /// <param name="modelBuilder">The model builder in which to create the enum type.</param>
+        /// <param name="schema">The schema in which to create the enum type.</param>
+        /// <param name="name">The name of the enum type to create.</param>
+        /// <param name="nameTranslator">
+        /// The translator for name and label inference.
+        /// Defaults to <see cref="NpgsqlSnakeCaseNameTranslator"/>.</param>
+        /// <typeparam name="TEnum"></typeparam>
+        /// <returns>
+        /// The updated <see cref="ModelBuilder"/>.
+        /// </returns>
+        /// <remarks>
+        /// See: https://www.postgresql.org/docs/current/static/datatype-enum.html
+        /// </remarks>
+        /// <exception cref="ArgumentNullException">builder</exception>
+        [Obsolete("Use HasPostgresEnum")]
+        public static ModelBuilder ForNpgsqlHasEnum<TEnum>(
+            [NotNull] this ModelBuilder modelBuilder,
+            [CanBeNull] string schema = null,
+            [CanBeNull] string name = null,
+            [CanBeNull] INpgsqlNameTranslator nameTranslator = null)
+            where TEnum : struct, Enum
+            => modelBuilder.HasPostgresEnum<TEnum>(schema, name, nameTranslator);
+
+        [Obsolete("Use UseDatabaseTemplate")]
+        public static ModelBuilder HasDatabaseTemplate([NotNull] this ModelBuilder modelBuilder, [NotNull] string templateDatabaseName)
+            => modelBuilder.UseDatabaseTemplate(templateDatabaseName);
+
+        /// <summary>
+        /// Registers a user-defined range type in the model.
+        /// </summary>
+        /// <param name="modelBuilder">The model builder on which to create the range type.</param>
+        /// <param name="schema">The schema in which to create the range type.</param>
+        /// <param name="name">The name of the range type to be created.</param>
+        /// <param name="subtype">The subtype (or element type) of the range</param>
+        /// <param name="canonicalFunction">
+        /// An optional PostgreSQL function which converts range values to a canonical form.
+        /// </param>
+        /// <param name="subtypeOpClass">Used to specify a non-default operator class.</param>
+        /// <param name="collation">Used to specify a non-default collation in the range's order.</param>
+        /// <param name="subtypeDiff">
+        /// An optional PostgreSQL function taking two values of the subtype type as argument, and return a double
+        /// precision value representing the difference between the two given values.
+        /// </param>
+        /// <remarks>
+        /// See https://www.postgresql.org/docs/current/static/rangetypes.html,
+        /// https://www.postgresql.org/docs/current/static/sql-createtype.html,
+        /// </remarks>
+        [Obsolete("Use HasPostgresRange")]
+        public static ModelBuilder ForNpgsqlHasRange(
+            [NotNull] this ModelBuilder modelBuilder,
+            [CanBeNull] string schema,
+            [NotNull] string name,
+            [NotNull] string subtype,
+            string canonicalFunction = null,
+            string subtypeOpClass = null,
+            string collation = null,
+            string subtypeDiff = null)
+            => modelBuilder.HasPostgresRange(schema, name, subtype, canonicalFunction, subtype, collation, subtypeDiff);
+
+        /// <summary>
+        /// Registers a user-defined range type in the model.
+        /// </summary>
+        /// <param name="modelBuilder">The model builder on which to create the range type.</param>
+        /// <param name="name">The name of the range type to be created.</param>
+        /// <param name="subtype">The subtype (or element type) of the range</param>
+        /// <remarks>
+        /// See https://www.postgresql.org/docs/current/static/rangetypes.html,
+        /// https://www.postgresql.org/docs/current/static/sql-createtype.html,
+        /// </remarks>
+        [Obsolete("Use HasPostgresRange")]
+        public static ModelBuilder ForNpgsqlHasRange(
+            [NotNull] this ModelBuilder modelBuilder,
+            [NotNull] string name,
+            [NotNull] string subtype)
+            => modelBuilder.HasPostgresRange(name, subtype);
+
+        [Obsolete("Use UseTablespace")]
+        public static ModelBuilder ForNpgsqlUseTablespace([NotNull] this ModelBuilder modelBuilder, [NotNull] string tablespace)
+            => modelBuilder.UseTablespace(tablespace);
+
+        #endregion Obsolete
     }
 }

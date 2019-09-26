@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
 {
@@ -11,14 +11,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
         public const string HiLoSequenceSchema = Prefix + "HiLoSequenceSchema";
         public const string IndexMethod = Prefix + "IndexMethod";
         public const string IndexOperators = Prefix + "IndexOperators";
+        public const string IndexCollation = Prefix + "IndexCollation";
+        public const string IndexSortOrder = Prefix + "IndexSortOrder";
+        public const string IndexNullSortOrder = Prefix + "IndexNullSortOrder";
         public const string IndexInclude = Prefix + "IndexInclude";
+        public const string CreatedConcurrently = Prefix + "CreatedConcurrently";
         public const string PostgresExtensionPrefix = Prefix + "PostgresExtension:";
         public const string EnumPrefix = Prefix + "Enum:";
         public const string RangePrefix = Prefix + "Range:";
         public const string DatabaseTemplate = Prefix + "DatabaseTemplate";
         public const string Tablespace = Prefix + "Tablespace";
         public const string StorageParameterPrefix = Prefix + "StorageParameter:";
-        public const string Comment = Prefix + "Comment";
+        public const string UnloggedTable = Prefix + "UnloggedTable";
+        public const string IdentityOptions = Prefix + "IdentitySequenceOptions";
 
         // Database model annotations
 
@@ -41,5 +46,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
 
         [Obsolete("Replaced by ValueGenerationStrategy.SerialColumn")]
         public const string ValueGeneratedOnAdd = Prefix + "ValueGeneratedOnAdd";
+
+        [Obsolete("Replaced by built-in EF Core support, use HasComment on entities or properties.")]
+        public const string Comment = Prefix + "Comment";
     }
 }

@@ -9,11 +9,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     public class DbFunctionsNpgsqlTest : DbFunctionsTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
     {
+        // ReSharper disable once UnusedParameter.Local
         public DbFunctionsNpgsqlTest(NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
-        {
-            Fixture.TestSqlLoggerFactory.Clear();
-        }
+            => Fixture.TestSqlLoggerFactory.Clear();
 
         public override void Like_literal()
         {
@@ -82,7 +81,7 @@ WHERE c.""ContactName"" LIKE '\' ESCAPE ''");
             AssertSql(
                 @"SELECT COUNT(*)::INT
 FROM ""Customers"" AS c
-WHERE c.""ContactName"" ILIKE '%M%' = TRUE");
+WHERE c.""ContactName"" ILIKE '%M%'");
         }
 
         [Fact]
@@ -98,7 +97,7 @@ WHERE c.""ContactName"" ILIKE '%M%' = TRUE");
             AssertSql(
                 @"SELECT COUNT(*)::INT
 FROM ""Customers"" AS c
-WHERE c.""ContactName"" ILIKE '!%' ESCAPE '!' = TRUE");
+WHERE c.""ContactName"" ILIKE '!%' ESCAPE '!'");
         }
 
         void AssertSql(params string[] expected)

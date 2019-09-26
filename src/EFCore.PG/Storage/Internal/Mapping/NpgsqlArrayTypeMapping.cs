@@ -11,20 +11,29 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     /// </summary>
     /// <remarks>
     /// Note that mapping PostgreSQL arrays to .NET List{T} is also supported via <see cref="NpgsqlListTypeMapping"/>.
+    /// See: https://www.postgresql.org/docs/current/static/arrays.html
     /// </remarks>
     public class NpgsqlArrayTypeMapping : RelationalTypeMapping
     {
+        // ReSharper disable once MemberCanBePrivate.Global
+        /// <summary>
+        /// The relational type mapping used to initialize the array mapping.
+        /// </summary>
         public RelationalTypeMapping ElementMapping { get; }
 
         /// <summary>
         /// Creates the default array mapping (i.e. for the single-dimensional CLR array type)
         /// </summary>
+        /// <param name="storeType">The database type to map.</param>
+        /// <param name="elementMapping">The element type mapping.</param>
         public NpgsqlArrayTypeMapping(string storeType, RelationalTypeMapping elementMapping)
             : this(storeType, elementMapping, elementMapping.ClrType.MakeArrayType()) {}
 
         /// <summary>
         /// Creates the default array mapping (i.e. for the single-dimensional CLR array type)
         /// </summary>
+        /// <param name="elementMapping">The element type mapping.</param>
+        /// <param name="arrayType">The array type to map.</param>
         public NpgsqlArrayTypeMapping(RelationalTypeMapping elementMapping, Type arrayType)
             : this(elementMapping.StoreType + "[]", elementMapping, arrayType) {}
 

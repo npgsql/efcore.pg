@@ -1,36 +1,12 @@
-﻿#region License
-
-// The PostgreSQL License
-//
-// Copyright (C) 2016 The Npgsql Development Team
-//
-// Permission to use, copy, modify, and distribute this software and its
-// documentation for any purpose, without fee, and without a written
-// agreement is hereby granted, provided that the above copyright notice
-// and this paragraph and the following two paragraphs appear in all copies.
-//
-// IN NO EVENT SHALL THE NPGSQL DEVELOPMENT TEAM BE LIABLE TO ANY PARTY
-// FOR DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES,
-// INCLUDING LOST PROFITS, ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS
-// DOCUMENTATION, EVEN IF THE NPGSQL DEVELOPMENT TEAM HAS BEEN ADVISED OF
-// THE POSSIBILITY OF SUCH DAMAGE.
-//
-// THE NPGSQL DEVELOPMENT TEAM SPECIFICALLY DISCLAIMS ANY WARRANTIES,
-// INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
-// AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
-// ON AN "AS IS" BASIS, AND THE NPGSQL DEVELOPMENT TEAM HAS NO OBLIGATIONS
-// TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
-
-#endregion
-
+﻿using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
 using System.Reflection;
 using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Query.Expressions;
-using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
+using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using NodaTime;
 
+// ReSharper disable once CheckNamespace
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
 {
     /// <summary>
@@ -41,10 +17,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
     /// </remarks>
     public class NpgsqlNodaTimeMemberTranslatorPlugin : IMemberTranslatorPlugin
     {
-        public virtual IEnumerable<IMemberTranslator> Translators { get; } = new IMemberTranslator[]
+        public NpgsqlNodaTimeMemberTranslatorPlugin(ISqlExpressionFactory sqlExpressionFactory)
         {
-            new NpgsqlNodaTimeMemberTranslator()
-        };
+            Translators = new IMemberTranslator[]
+            {
+                new NpgsqlNodaTimeMemberTranslator(sqlExpressionFactory),
+            };
+        }
+
+        public virtual IEnumerable<IMemberTranslator> Translators { get; }
     }
 
     /// <summary>
@@ -55,25 +36,33 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
     /// </remarks>
     public class NpgsqlNodaTimeMemberTranslator : IMemberTranslator
     {
+        readonly ISqlExpressionFactory _sqlExpressionFactory;
+
         /// <summary>
         /// The static member info for <see cref="T:SystemClock.Instance"/>.
         /// </summary>
         [NotNull] static readonly MemberInfo Instance =
             typeof(SystemClock).GetRuntimeProperty(nameof(SystemClock.Instance));
 
+        public NpgsqlNodaTimeMemberTranslator(ISqlExpressionFactory sqlExpressionFactory)
+            => _sqlExpressionFactory = sqlExpressionFactory;
+
         /// <inheritdoc />
         [CanBeNull]
-        public Expression Translate(MemberExpression e)
+        public SqlExpression Translate(SqlExpression instance, MemberInfo member, Type returnType)
         {
-            if (e.Member == Instance)
-                return e;
+            // This is necessary to allow translation of methods on SystemClock.Instance
+            if (member == Instance)
+                return _sqlExpressionFactory.Constant(SystemClock.Instance);
 
-            var declaringType = e.Member.DeclaringType;
+            var declaringType = member.DeclaringType;
             if (declaringType == typeof(LocalDateTime) ||
                 declaringType == typeof(LocalDate) ||
                 declaringType == typeof(LocalTime) ||
                 declaringType == typeof(Period))
-                return TranslateDateTime(e);
+            {
+                return TranslateDateTime(instance, member, returnType);
+            }
 
             return null;
         }
@@ -86,36 +75,36 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
         /// The translated expression or null.
         /// </returns>
         [CanBeNull]
-        static Expression TranslateDateTime([NotNull] MemberExpression e)
+        SqlExpression TranslateDateTime(SqlExpression instance, MemberInfo member, Type returnType)
         {
-            switch (e.Member.Name)
+            switch (member.Name)
             {
             case "Year":
             case "Years":
-                return GetDatePartExpression(e, "year");
+                return GetDatePartExpression(instance, "year");
 
             case "Month":
             case "Months":
-                return GetDatePartExpression(e, "month");
+                return GetDatePartExpression(instance, "month");
 
             case "DayOfYear":
-                return GetDatePartExpression(e, "doy");
+                return GetDatePartExpression(instance, "doy");
 
             case "Day":
             case "Days":
-                return GetDatePartExpression(e, "day");
+                return GetDatePartExpression(instance, "day");
 
             case "Hour":
             case "Hours":
-                return GetDatePartExpression(e, "hour");
+                return GetDatePartExpression(instance, "hour");
 
             case "Minute":
             case "Minutes":
-                return GetDatePartExpression(e, "minute");
+                return GetDatePartExpression(instance, "minute");
 
             case "Second":
             case "Seconds":
-                return GetDatePartExpression(e, "second", true);
+                return GetDatePartExpression(instance, "second", true);
 
             case "Millisecond":
             case "Milliseconds":
@@ -125,17 +114,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
                 // Unlike DateTime.DayOfWeek, NodaTime's IsoDayOfWeek enum doesn't exactly correspond to PostgreSQL's
                 // values returned by DATE_PART('dow', ...): in NodaTime Sunday is 7 and not 0, which is None.
                 // So we generate a CASE WHEN expression to translate PostgreSQL's 0 to 7.
-                var getValueExpression = GetDatePartExpression(e, "dow", true);
+                var getValueExpression = GetDatePartExpression(instance, "dow", true);
+                // TODO: Can be simplified once https://github.com/aspnet/EntityFrameworkCore/pull/16726 is in
                 return
-                    Expression.Condition(
-                        Expression.Equal(
-                            getValueExpression,
-                            Expression.Constant(0)),
-                        Expression.Constant(7),
-                        getValueExpression);
+                    _sqlExpressionFactory.Case(
+                        new[]
+                        {
+                            new CaseWhenClause(
+                                _sqlExpressionFactory.Equal(getValueExpression, _sqlExpressionFactory.Constant(0)),
+                                _sqlExpressionFactory.Constant(7))
+                        },
+                        getValueExpression
+                    );
 
             case "Date":
-                return new SqlFunctionExpression("DATE_TRUNC", e.Type, new[] { Expression.Constant("day"), e.Expression });
+                return _sqlExpressionFactory.Function("DATE_TRUNC", new[] { _sqlExpressionFactory.Constant("day"), instance }, returnType);
 
             case "TimeOfDay":
                 // TODO: Technically possible simply via casting to PG time,
@@ -163,18 +156,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
         /// This also gets rid of sub-second components when retrieving seconds.
         /// </remarks>
         [NotNull]
-        static Expression GetDatePartExpression(
-            [NotNull] MemberExpression e,
+        SqlExpression GetDatePartExpression(
+            [NotNull] SqlExpression instance,
             [NotNull] string partName,
             bool floor = false)
         {
-            var result =
-                new SqlFunctionExpression("DATE_PART", typeof(double), new[] { Expression.Constant(partName), e.Expression });
+            var result = _sqlExpressionFactory.Function("DATE_PART", new[] { _sqlExpressionFactory.Constant(partName), instance }, typeof(double));
 
             if (floor)
-                result = new SqlFunctionExpression("FLOOR", typeof(double), new[] { result });
+                result = _sqlExpressionFactory.Function("FLOOR", new[] { result }, typeof(double));
 
-            return new ExplicitCastExpression(result, typeof(int));
+            return _sqlExpressionFactory.Convert(result, typeof(int));
         }
     }
 }

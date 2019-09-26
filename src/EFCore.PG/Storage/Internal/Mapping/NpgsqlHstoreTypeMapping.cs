@@ -6,10 +6,19 @@ using NpgsqlTypes;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 {
+    /// <summary>
+    /// The type mapping for the PostgreSQL hstore type.
+    /// </summary>
+    /// <remarks>
+    /// See: https://www.postgresql.org/docs/current/static/hstore.html
+    /// </remarks>
     public class NpgsqlHstoreTypeMapping : NpgsqlTypeMapping
     {
         static readonly HstoreComparer ComparerInstance = new HstoreComparer();
 
+        /// <summary>
+        /// Constructs an instance of the <see cref="NpgsqlHstoreTypeMapping"/> class.
+        /// </summary>
         public NpgsqlHstoreTypeMapping()
             : base(
                 new RelationalTypeMappingParameters(

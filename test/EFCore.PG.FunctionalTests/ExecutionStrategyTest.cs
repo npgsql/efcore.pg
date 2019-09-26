@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Data;
 using System.Linq;
 using System.Threading;
@@ -39,7 +39,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             Test_commit_failure(true);
         }
 
-        private void Test_commit_failure(bool realFailure)
+        void Test_commit_failure(bool realFailure)
         {
             Test_commit_failure(realFailure, (e, db) => e.ExecuteInTransaction(
                 () => { db.SaveChanges(acceptAllChangesOnSuccess: false); },
@@ -82,7 +82,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 IsolationLevel.Serializable));
         }
 
-        private void Test_commit_failure(bool realFailure, Action<TestNpgsqlRetryingExecutionStrategy, ExecutionStrategyContext> execute)
+        void Test_commit_failure(bool realFailure, Action<TestNpgsqlRetryingExecutionStrategy, ExecutionStrategyContext> execute)
         {
             CleanContext();
 
@@ -117,7 +117,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             return Test_commit_failure_async(true);
         }
 
-        private async Task Test_commit_failure_async(bool realFailure)
+        async Task Test_commit_failure_async(bool realFailure)
         {
             await Test_commit_failure_async(realFailure, (e, db) => e.ExecuteInTransactionAsync(
                 () => db.SaveChangesAsync(acceptAllChangesOnSuccess: false),
@@ -184,7 +184,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 cancellationToken));
         }
 
-        private async Task Test_commit_failure_async(bool realFailure, Func<TestNpgsqlRetryingExecutionStrategy, ExecutionStrategyContext, Task> execute)
+        async Task Test_commit_failure_async(bool realFailure, Func<TestNpgsqlRetryingExecutionStrategy, ExecutionStrategyContext, Task> execute)
         {
             CleanContext();
 
@@ -219,7 +219,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             Test_commit_failure_multiple_SaveChanges(true);
         }
 
-        private void Test_commit_failure_multiple_SaveChanges(bool realFailure)
+        void Test_commit_failure_multiple_SaveChanges(bool realFailure)
         {
             CleanContext();
 
@@ -270,7 +270,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             Test_execution_failure(true);
         }
 
-        private void Test_execution_failure(bool realFailure)
+        void Test_execution_failure(bool realFailure)
         {
             CleanContext();
 
@@ -370,7 +370,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             protected override string StoreName { get; } = nameof(ExecutionStrategyTest);
             protected override bool UsePooling => false;
             public new RelationalTestStore TestStore => (RelationalTestStore)base.TestStore;
-            public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ServiceProvider.GetRequiredService<ILoggerFactory>();
+            public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
             protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
             protected override Type ContextType { get; } = typeof(ExecutionStrategyContext);
 
@@ -388,6 +388,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 new NpgsqlDbContextOptionsBuilder(options).MaxBatchSize(1);
                 return options;
             }
+
+            protected override bool ShouldLogCategory(string logCategory)
+                => logCategory == DbLoggerCategory.Infrastructure.Name;
         }
     }
 }

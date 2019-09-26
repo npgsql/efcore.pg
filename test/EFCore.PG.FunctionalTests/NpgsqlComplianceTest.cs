@@ -10,12 +10,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
     {
         protected override ICollection<Type> IgnoredTestBases { get; } = new HashSet<Type>
         {
-            // The following are ignored because we haven't gotten around to doing them, not because they're
-            // inherently not supported
-            typeof(ComplexNavigationsWeakQueryTestBase<>),
-            typeof(FunkyDataQueryTestBase<>),
-            typeof(LoggingRelationalTestBase<,>),
-            typeof(AsyncFromSqlSprocQueryTestBase<>),
+            // TODO
             typeof(FromSqlSprocQueryTestBase<>)
         };
 

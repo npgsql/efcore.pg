@@ -3,16 +3,18 @@
 using System;
 using System.Reflection;
 using System.Resources;
+using System.Threading;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics;
 using Microsoft.Extensions.Logging;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
 {
     /// <summary>
-    ///		This API supports the Entity Framework Core infrastructure and is not intended to be used
-    ///     directly from your code. This API may change or be removed in future releases.
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
     /// </summary>
     public static class NpgsqlStrings
     {
@@ -42,141 +44,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
                 property, entityType);
 
         /// <summary>
-        ///     Found column with table: {tableName}, column name: {columnName}, data type: {dataType}, nullable: {isNullable}, default value: {defaultValue}
-        /// </summary>
-        public static readonly EventDefinition<string, string, string, bool, string> LogFoundColumn
-            = new EventDefinition<string, string, string, bool, string>(
-                NpgsqlEventId.ColumnFound,
-                LogLevel.Debug,
-                LoggerMessage.Define<string, string, string, bool, string>(
-                    LogLevel.Debug,
-                    NpgsqlEventId.ColumnFound,
-                    _resourceManager.GetString("LogFoundColumn")));
-
-        /// <summary>
-        ///     Found foreign key on table: {tableName}, name: {foreignKeyName}, principal table: {principalTableName}, delete action: {deleteAction}.
-        /// </summary>
-        public static readonly EventDefinition<string, string, string, string> LogFoundForeignKey
-            = new EventDefinition<string, string, string, string>(
-                NpgsqlEventId.ForeignKeyFound,
-                LogLevel.Debug,
-                LoggerMessage.Define<string, string, string, string>(
-                    LogLevel.Debug,
-                    NpgsqlEventId.ForeignKeyFound,
-                    _resourceManager.GetString("LogFoundForeignKey")));
-
-        /// <summary>
-        ///     For foreign key {fkName} on table {tableName}, unable to model the end of the foreign key on principal table {principaltableName}. This is usually because the principal table was not included in the selection set.
-        /// </summary>
-        public static readonly EventDefinition<string, string, string> LogPrincipalTableNotInSelectionSet
-            = new EventDefinition<string, string, string>(
-                NpgsqlEventId.ForeignKeyReferencesMissingPrincipalTableWarning,
-                LogLevel.Warning,
-                LoggerMessage.Define<string, string, string>(
-                    LogLevel.Warning,
-                    NpgsqlEventId.ForeignKeyReferencesMissingPrincipalTableWarning,
-                    _resourceManager.GetString("LogPrincipalTableNotInSelectionSet")));
-
-        /// <summary>
-        ///     Unable to find a schema in the database matching the selected schema {schema}.
-        /// </summary>
-        public static readonly EventDefinition<string> LogMissingSchema
-            = new EventDefinition<string>(
-                NpgsqlEventId.MissingSchemaWarning,
-                LogLevel.Warning,
-                LoggerMessage.Define<string>(
-                    LogLevel.Warning,
-                    NpgsqlEventId.MissingSchemaWarning,
-                    _resourceManager.GetString("LogMissingSchema")));
-
-        /// <summary>
-        ///     Unable to find a table in the database matching the selected table {table}.
-        /// </summary>
-        public static readonly EventDefinition<string> LogMissingTable
-            = new EventDefinition<string>(
-                NpgsqlEventId.MissingTableWarning,
-                LogLevel.Warning,
-                LoggerMessage.Define<string>(
-                    LogLevel.Warning,
-                    NpgsqlEventId.MissingTableWarning,
-                    _resourceManager.GetString("LogMissingTable")));
-
-        /// <summary>
-        ///     Found sequence name: {name}, data type: {dataType}, cyclic: {isCyclic}, increment: {increment}, start: {start}, minimum: {min}, maximum: {max}.
-        /// </summary>
-        public static readonly FallbackEventDefinition LogFoundSequence
-            = new FallbackEventDefinition(
-                NpgsqlEventId.SequenceFound,
-                LogLevel.Debug,
-                _resourceManager.GetString("LogFoundSequence"));
-
-        /// <summary>
-        ///     Found table with name: {name}.
-        /// </summary>
-        public static readonly EventDefinition<string> LogFoundTable
-            = new EventDefinition<string>(
-                NpgsqlEventId.TableFound,
-                LogLevel.Debug,
-                LoggerMessage.Define<string>(
-                    LogLevel.Debug,
-                    NpgsqlEventId.TableFound,
-                    _resourceManager.GetString("LogFoundTable")));
-
-        /// <summary>
         ///     '{entityType1}.{property1}' and '{entityType2}.{property2}' are both mapped to column '{columnName}' in '{table}' but are configured with different value generation strategies.
         /// </summary>
         public static string DuplicateColumnNameValueGenerationStrategyMismatch([CanBeNull] object entityType1, [CanBeNull] object property1, [CanBeNull] object entityType2, [CanBeNull] object property2, [CanBeNull] object columnName, [CanBeNull] object table)
             => string.Format(
                 GetString("DuplicateColumnNameValueGenerationStrategyMismatch", nameof(entityType1), nameof(property1), nameof(entityType2), nameof(property2), nameof(columnName), nameof(table)),
                 entityType1, property1, entityType2, property2, columnName, table);
-
-        /// <summary>
-        ///     Found index with name: {indexName}, table: {tableName}, is unique: {isUnique}.
-        /// </summary>
-        public static readonly EventDefinition<string, string, bool> LogFoundIndex
-            = new EventDefinition<string, string, bool>(
-                NpgsqlEventId.IndexFound,
-                LogLevel.Debug,
-                LoggerMessage.Define<string, string, bool>(
-                    LogLevel.Debug,
-                    NpgsqlEventId.IndexFound,
-                    _resourceManager.GetString("LogFoundIndex")));
-
-        /// <summary>
-        ///     Found primary key with name: {primaryKeyName}, table: {tableName}.
-        /// </summary>
-        public static readonly EventDefinition<string, string> LogFoundPrimaryKey
-            = new EventDefinition<string, string>(
-                NpgsqlEventId.PrimaryKeyFound,
-                LogLevel.Debug,
-                LoggerMessage.Define<string, string>(
-                    LogLevel.Debug,
-                    NpgsqlEventId.PrimaryKeyFound,
-                    _resourceManager.GetString("LogFoundPrimaryKey")));
-
-        /// <summary>
-        ///     Found unique constraint with name: {uniqueConstraintName}, table: {tableName}.
-        /// </summary>
-        public static readonly EventDefinition<string, string> LogFoundUniqueConstraint
-            = new EventDefinition<string, string>(
-                NpgsqlEventId.UniqueConstraintFound,
-                LogLevel.Debug,
-                LoggerMessage.Define<string, string>(
-                    LogLevel.Debug,
-                    NpgsqlEventId.UniqueConstraintFound,
-                    _resourceManager.GetString("LogFoundUniqueConstraint")));
-
-        /// <summary>
-        ///     For foreign key {foreignKeyName} on table {tableName}, unable to find the column called {principalColumnName} on the foreign key's principal table, {principaltableName}. Skipping foreign key.
-        /// </summary>
-        public static readonly EventDefinition<string, string, string, string> LogPrincipalColumnNotFound
-            = new EventDefinition<string, string, string, string>(
-                NpgsqlEventId.ForeignKeyPrincipalColumnMissingWarning,
-                LogLevel.Warning,
-                LoggerMessage.Define<string, string, string, string>(
-                    LogLevel.Warning,
-                    NpgsqlEventId.ForeignKeyPrincipalColumnMissingWarning,
-                    _resourceManager.GetString("LogPrincipalColumnNotFound")));
 
         /// <summary>
         ///     The specified table '{table}' is not valid. Specify tables using the format '[schema].[table]'.
@@ -193,52 +66,28 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
             => GetString("FreeTextFunctionOnClient");
 
         /// <summary>
-        ///     Enum column '{name}' cannot be scaffolded, define a CLR enum type and add the property manually.
+        ///     Include property '{entityType}.{property}' cannot be defined multiple times
         /// </summary>
-        public static readonly EventDefinition<string> LogEnumColumnSkipped
-            = new EventDefinition<string>(
-                NpgsqlEventId.EnumColumnSkippedWarning,
-                LogLevel.Warning,
-                LoggerMessage.Define<string>(
-                    LogLevel.Warning,
-                    NpgsqlEventId.EnumColumnSkippedWarning,
-                    _resourceManager.GetString("LogEnumColumnSkipped")));
+        public static string IncludePropertyDuplicated([CanBeNull] object entityType, [CanBeNull] object property)
+            => string.Format(
+                GetString("IncludePropertyDuplicated", nameof(entityType), nameof(property)),
+                entityType, property);
 
         /// <summary>
-        ///     Expression index '{name}' on table {tableName} cannot be scaffolded, expression indices aren't supported and must be added via raw SQL in migrations.
+        ///     Include property '{entityType}.{property}' is already included in the index
         /// </summary>
-        public static readonly EventDefinition<string, string> LogExpressionIndexSkipped
-            = new EventDefinition<string, string>(
-                NpgsqlEventId.ExpressionIndexSkippedWarning,
-                LogLevel.Warning,
-                LoggerMessage.Define<string, string>(
-                    LogLevel.Warning,
-                    NpgsqlEventId.ExpressionIndexSkippedWarning,
-                    _resourceManager.GetString("LogExpressionIndexSkipped")));
+        public static string IncludePropertyInIndex([CanBeNull] object entityType, [CanBeNull] object property)
+            => string.Format(
+                GetString("IncludePropertyInIndex", nameof(entityType), nameof(property)),
+                entityType, property);
 
         /// <summary>
-        ///     Constraint '{name}' on table {tableName} cannot be scaffolded because it includes a column that cannot be scaffolded (e.g. enum).
+        ///     Include property '{entityType}.{property}' not found
         /// </summary>
-        public static readonly EventDefinition<string, string> LogUnsupportedColumnConstraintSkipped
-            = new EventDefinition<string, string>(
-                NpgsqlEventId.UnsupportedColumnConstraintSkippedWarning,
-                LogLevel.Warning,
-                LoggerMessage.Define<string, string>(
-                    LogLevel.Warning,
-                    NpgsqlEventId.UnsupportedColumnConstraintSkippedWarning,
-                    _resourceManager.GetString("LogUnsupportedColumnConstraintSkipped")));
-
-        /// <summary>
-        ///     Index '{name}' on table {tableName} cannot be scaffolded because it includes a column that cannot be scaffolded (e.g. enum).
-        /// </summary>
-        public static readonly EventDefinition<string, string> LogUnsupportedColumnIndexSkipped
-            = new EventDefinition<string, string>(
-                NpgsqlEventId.UnsupportedColumnIndexSkippedWarning,
-                LogLevel.Warning,
-                LoggerMessage.Define<string, string>(
-                    LogLevel.Warning,
-                    NpgsqlEventId.UnsupportedColumnIndexSkippedWarning,
-                    _resourceManager.GetString("LogUnsupportedColumnIndexSkipped")));
+        public static string IncludePropertyNotFound([CanBeNull] object entityType, [CanBeNull] object property)
+            => string.Format(
+                GetString("IncludePropertyNotFound", nameof(entityType), nameof(property)),
+                entityType, property);
 
         private static string GetString(string name, params string[] formatterNames)
         {
@@ -252,3 +101,376 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         }
     }
 }
+
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
+{
+    /// <summary>
+    ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+    ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+    ///     any release. You should only use it directly in your code with extreme caution and knowing that
+    ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+    /// </summary>
+    public static class NpgsqlResources
+    {
+        private static readonly ResourceManager _resourceManager
+            = new ResourceManager("Npgsql.EntityFrameworkCore.PostgreSQL.Properties.NpgsqlStrings", typeof(NpgsqlResources).GetTypeInfo().Assembly);
+
+        /// <summary>
+        ///     Found column with table: {tableName}, column name: {columnName}, data type: {dataType}, nullable: {isNullable}, default value: {defaultValue}
+        /// </summary>
+        public static EventDefinition<string, string, string, bool, string> LogFoundColumn([NotNull] IDiagnosticsLogger logger)
+        {
+            var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogFoundColumn;
+            if (definition == null)
+            {
+                definition = LazyInitializer.EnsureInitialized<EventDefinitionBase>(
+                    ref ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogFoundColumn,
+                    () => new EventDefinition<string, string, string, bool, string>(
+                        logger.Options,
+                        NpgsqlEventId.ColumnFound,
+                        LogLevel.Debug,
+                        "NpgsqlEventId.ColumnFound",
+                        level => LoggerMessage.Define<string, string, string, bool, string>(
+                            level,
+                            NpgsqlEventId.ColumnFound,
+                            _resourceManager.GetString("LogFoundColumn"))));
+            }
+
+            return (EventDefinition<string, string, string, bool, string>)definition;
+        }
+
+        /// <summary>
+        ///     Found foreign key on table: {tableName}, name: {foreignKeyName}, principal table: {principalTableName}, delete action: {deleteAction}.
+        /// </summary>
+        public static EventDefinition<string, string, string, string> LogFoundForeignKey([NotNull] IDiagnosticsLogger logger)
+        {
+            var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogFoundForeignKey;
+            if (definition == null)
+            {
+                definition = LazyInitializer.EnsureInitialized<EventDefinitionBase>(
+                    ref ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogFoundForeignKey,
+                    () => new EventDefinition<string, string, string, string>(
+                        logger.Options,
+                        NpgsqlEventId.ForeignKeyFound,
+                        LogLevel.Debug,
+                        "NpgsqlEventId.ForeignKeyFound",
+                        level => LoggerMessage.Define<string, string, string, string>(
+                            level,
+                            NpgsqlEventId.ForeignKeyFound,
+                            _resourceManager.GetString("LogFoundForeignKey"))));
+            }
+
+            return (EventDefinition<string, string, string, string>)definition;
+        }
+
+        /// <summary>
+        ///     For foreign key {fkName} on table {tableName}, unable to model the end of the foreign key on principal table {principaltableName}. This is usually because the principal table was not included in the selection set.
+        /// </summary>
+        public static EventDefinition<string, string, string> LogPrincipalTableNotInSelectionSet([NotNull] IDiagnosticsLogger logger)
+        {
+            var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogPrincipalTableNotInSelectionSet;
+            if (definition == null)
+            {
+                definition = LazyInitializer.EnsureInitialized<EventDefinitionBase>(
+                    ref ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogPrincipalTableNotInSelectionSet,
+                    () => new EventDefinition<string, string, string>(
+                        logger.Options,
+                        NpgsqlEventId.ForeignKeyReferencesMissingPrincipalTableWarning,
+                        LogLevel.Warning,
+                        "NpgsqlEventId.ForeignKeyReferencesMissingPrincipalTableWarning",
+                        level => LoggerMessage.Define<string, string, string>(
+                            level,
+                            NpgsqlEventId.ForeignKeyReferencesMissingPrincipalTableWarning,
+                            _resourceManager.GetString("LogPrincipalTableNotInSelectionSet"))));
+            }
+
+            return (EventDefinition<string, string, string>)definition;
+        }
+
+        /// <summary>
+        ///     Unable to find a schema in the database matching the selected schema {schema}.
+        /// </summary>
+        public static EventDefinition<string> LogMissingSchema([NotNull] IDiagnosticsLogger logger)
+        {
+            var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogMissingSchema;
+            if (definition == null)
+            {
+                definition = LazyInitializer.EnsureInitialized<EventDefinitionBase>(
+                    ref ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogMissingSchema,
+                    () => new EventDefinition<string>(
+                        logger.Options,
+                        NpgsqlEventId.MissingSchemaWarning,
+                        LogLevel.Warning,
+                        "NpgsqlEventId.MissingSchemaWarning",
+                        level => LoggerMessage.Define<string>(
+                            level,
+                            NpgsqlEventId.MissingSchemaWarning,
+                            _resourceManager.GetString("LogMissingSchema"))));
+            }
+
+            return (EventDefinition<string>)definition;
+        }
+
+        /// <summary>
+        ///     Unable to find a table in the database matching the selected table {table}.
+        /// </summary>
+        public static EventDefinition<string> LogMissingTable([NotNull] IDiagnosticsLogger logger)
+        {
+            var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogMissingTable;
+            if (definition == null)
+            {
+                definition = LazyInitializer.EnsureInitialized<EventDefinitionBase>(
+                    ref ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogMissingTable,
+                    () => new EventDefinition<string>(
+                        logger.Options,
+                        NpgsqlEventId.MissingTableWarning,
+                        LogLevel.Warning,
+                        "NpgsqlEventId.MissingTableWarning",
+                        level => LoggerMessage.Define<string>(
+                            level,
+                            NpgsqlEventId.MissingTableWarning,
+                            _resourceManager.GetString("LogMissingTable"))));
+            }
+
+            return (EventDefinition<string>)definition;
+        }
+
+        /// <summary>
+        ///     Found sequence name: {name}, data type: {dataType}, cyclic: {isCyclic}, increment: {increment}, start: {start}, minimum: {min}, maximum: {max}.
+        /// </summary>
+        public static FallbackEventDefinition LogFoundSequence([NotNull] IDiagnosticsLogger logger)
+        {
+            var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogFoundSequence;
+            if (definition == null)
+            {
+                definition = LazyInitializer.EnsureInitialized<EventDefinitionBase>(
+                    ref ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogFoundSequence,
+                    () => new FallbackEventDefinition(
+                        logger.Options,
+                        NpgsqlEventId.SequenceFound,
+                        LogLevel.Debug,
+                        "NpgsqlEventId.SequenceFound",
+                        _resourceManager.GetString("LogFoundSequence")));
+            }
+
+            return (FallbackEventDefinition)definition;
+        }
+
+        /// <summary>
+        ///     Found table with name: {name}.
+        /// </summary>
+        public static EventDefinition<string> LogFoundTable([NotNull] IDiagnosticsLogger logger)
+        {
+            var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogFoundTable;
+            if (definition == null)
+            {
+                definition = LazyInitializer.EnsureInitialized<EventDefinitionBase>(
+                    ref ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogFoundTable,
+                    () => new EventDefinition<string>(
+                        logger.Options,
+                        NpgsqlEventId.TableFound,
+                        LogLevel.Debug,
+                        "NpgsqlEventId.TableFound",
+                        level => LoggerMessage.Define<string>(
+                            level,
+                            NpgsqlEventId.TableFound,
+                            _resourceManager.GetString("LogFoundTable"))));
+            }
+
+            return (EventDefinition<string>)definition;
+        }
+
+        /// <summary>
+        ///     Found index with name: {indexName}, table: {tableName}, is unique: {isUnique}.
+        /// </summary>
+        public static EventDefinition<string, string, bool> LogFoundIndex([NotNull] IDiagnosticsLogger logger)
+        {
+            var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogFoundIndex;
+            if (definition == null)
+            {
+                definition = LazyInitializer.EnsureInitialized<EventDefinitionBase>(
+                    ref ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogFoundIndex,
+                    () => new EventDefinition<string, string, bool>(
+                        logger.Options,
+                        NpgsqlEventId.IndexFound,
+                        LogLevel.Debug,
+                        "NpgsqlEventId.IndexFound",
+                        level => LoggerMessage.Define<string, string, bool>(
+                            level,
+                            NpgsqlEventId.IndexFound,
+                            _resourceManager.GetString("LogFoundIndex"))));
+            }
+
+            return (EventDefinition<string, string, bool>)definition;
+        }
+
+        /// <summary>
+        ///     Found primary key with name: {primaryKeyName}, table: {tableName}.
+        /// </summary>
+        public static EventDefinition<string, string> LogFoundPrimaryKey([NotNull] IDiagnosticsLogger logger)
+        {
+            var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogFoundPrimaryKey;
+            if (definition == null)
+            {
+                definition = LazyInitializer.EnsureInitialized<EventDefinitionBase>(
+                    ref ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogFoundPrimaryKey,
+                    () => new EventDefinition<string, string>(
+                        logger.Options,
+                        NpgsqlEventId.PrimaryKeyFound,
+                        LogLevel.Debug,
+                        "NpgsqlEventId.PrimaryKeyFound",
+                        level => LoggerMessage.Define<string, string>(
+                            level,
+                            NpgsqlEventId.PrimaryKeyFound,
+                            _resourceManager.GetString("LogFoundPrimaryKey"))));
+            }
+
+            return (EventDefinition<string, string>)definition;
+        }
+
+        /// <summary>
+        ///     Found unique constraint with name: {uniqueConstraintName}, table: {tableName}.
+        /// </summary>
+        public static EventDefinition<string, string> LogFoundUniqueConstraint([NotNull] IDiagnosticsLogger logger)
+        {
+            var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogFoundUniqueConstraint;
+            if (definition == null)
+            {
+                definition = LazyInitializer.EnsureInitialized<EventDefinitionBase>(
+                    ref ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogFoundUniqueConstraint,
+                    () => new EventDefinition<string, string>(
+                        logger.Options,
+                        NpgsqlEventId.UniqueConstraintFound,
+                        LogLevel.Debug,
+                        "NpgsqlEventId.UniqueConstraintFound",
+                        level => LoggerMessage.Define<string, string>(
+                            level,
+                            NpgsqlEventId.UniqueConstraintFound,
+                            _resourceManager.GetString("LogFoundUniqueConstraint"))));
+            }
+
+            return (EventDefinition<string, string>)definition;
+        }
+
+        /// <summary>
+        ///     For foreign key {foreignKeyName} on table {tableName}, unable to find the column called {principalColumnName} on the foreign key's principal table, {principaltableName}. Skipping foreign key.
+        /// </summary>
+        public static EventDefinition<string, string, string, string> LogPrincipalColumnNotFound([NotNull] IDiagnosticsLogger logger)
+        {
+            var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogPrincipalColumnNotFound;
+            if (definition == null)
+            {
+                definition = LazyInitializer.EnsureInitialized<EventDefinitionBase>(
+                    ref ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogPrincipalColumnNotFound,
+                    () => new EventDefinition<string, string, string, string>(
+                        logger.Options,
+                        NpgsqlEventId.ForeignKeyPrincipalColumnMissingWarning,
+                        LogLevel.Warning,
+                        "NpgsqlEventId.ForeignKeyPrincipalColumnMissingWarning",
+                        level => LoggerMessage.Define<string, string, string, string>(
+                            level,
+                            NpgsqlEventId.ForeignKeyPrincipalColumnMissingWarning,
+                            _resourceManager.GetString("LogPrincipalColumnNotFound"))));
+            }
+
+            return (EventDefinition<string, string, string, string>)definition;
+        }
+
+        /// <summary>
+        ///     Enum column '{name}' cannot be scaffolded, define a CLR enum type and add the property manually.
+        /// </summary>
+        public static EventDefinition<string> LogEnumColumnSkipped([NotNull] IDiagnosticsLogger logger)
+        {
+            var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogEnumColumnSkipped;
+            if (definition == null)
+            {
+                definition = LazyInitializer.EnsureInitialized<EventDefinitionBase>(
+                    ref ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogEnumColumnSkipped,
+                    () => new EventDefinition<string>(
+                        logger.Options,
+                        NpgsqlEventId.EnumColumnSkippedWarning,
+                        LogLevel.Warning,
+                        "NpgsqlEventId.EnumColumnSkippedWarning",
+                        level => LoggerMessage.Define<string>(
+                            level,
+                            NpgsqlEventId.EnumColumnSkippedWarning,
+                            _resourceManager.GetString("LogEnumColumnSkipped"))));
+            }
+
+            return (EventDefinition<string>)definition;
+        }
+
+        /// <summary>
+        ///     Expression index '{name}' on table {tableName} cannot be scaffolded, expression indices aren't supported and must be added via raw SQL in migrations.
+        /// </summary>
+        public static EventDefinition<string, string> LogExpressionIndexSkipped([NotNull] IDiagnosticsLogger logger)
+        {
+            var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogExpressionIndexSkipped;
+            if (definition == null)
+            {
+                definition = LazyInitializer.EnsureInitialized<EventDefinitionBase>(
+                    ref ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogExpressionIndexSkipped,
+                    () => new EventDefinition<string, string>(
+                        logger.Options,
+                        NpgsqlEventId.ExpressionIndexSkippedWarning,
+                        LogLevel.Warning,
+                        "NpgsqlEventId.ExpressionIndexSkippedWarning",
+                        level => LoggerMessage.Define<string, string>(
+                            level,
+                            NpgsqlEventId.ExpressionIndexSkippedWarning,
+                            _resourceManager.GetString("LogExpressionIndexSkipped"))));
+            }
+
+            return (EventDefinition<string, string>)definition;
+        }
+
+        /// <summary>
+        ///     Constraint '{name}' on table {tableName} cannot be scaffolded because it includes a column that cannot be scaffolded (e.g. enum).
+        /// </summary>
+        public static EventDefinition<string, string> LogUnsupportedColumnConstraintSkipped([NotNull] IDiagnosticsLogger logger)
+        {
+            var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogUnsupportedColumnConstraintSkipped;
+            if (definition == null)
+            {
+                definition = LazyInitializer.EnsureInitialized<EventDefinitionBase>(
+                    ref ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogUnsupportedColumnConstraintSkipped,
+                    () => new EventDefinition<string, string>(
+                        logger.Options,
+                        NpgsqlEventId.UnsupportedColumnConstraintSkippedWarning,
+                        LogLevel.Warning,
+                        "NpgsqlEventId.UnsupportedColumnConstraintSkippedWarning",
+                        level => LoggerMessage.Define<string, string>(
+                            level,
+                            NpgsqlEventId.UnsupportedColumnConstraintSkippedWarning,
+                            _resourceManager.GetString("LogUnsupportedColumnConstraintSkipped"))));
+            }
+
+            return (EventDefinition<string, string>)definition;
+        }
+
+        /// <summary>
+        ///     Index '{name}' on table {tableName} cannot be scaffolded because it includes a column that cannot be scaffolded (e.g. enum).
+        /// </summary>
+        public static EventDefinition<string, string> LogUnsupportedColumnIndexSkipped([NotNull] IDiagnosticsLogger logger)
+        {
+            var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogUnsupportedColumnIndexSkipped;
+            if (definition == null)
+            {
+                definition = LazyInitializer.EnsureInitialized<EventDefinitionBase>(
+                    ref ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogUnsupportedColumnIndexSkipped,
+                    () => new EventDefinition<string, string>(
+                        logger.Options,
+                        NpgsqlEventId.UnsupportedColumnIndexSkippedWarning,
+                        LogLevel.Warning,
+                        "NpgsqlEventId.UnsupportedColumnIndexSkippedWarning",
+                        level => LoggerMessage.Define<string, string>(
+                            level,
+                            NpgsqlEventId.UnsupportedColumnIndexSkippedWarning,
+                            _resourceManager.GetString("LogUnsupportedColumnIndexSkipped"))));
+            }
+
+            return (EventDefinition<string, string>)definition;
+        }
+    }
+}
+

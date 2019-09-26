@@ -1,28 +1,3 @@
-#region License
-
-// The PostgreSQL License
-//
-// Copyright (C) 2016 The Npgsql Development Team
-//
-// Permission to use, copy, modify, and distribute this software and its
-// documentation for any purpose, without fee, and without a written
-// agreement is hereby granted, provided that the above copyright notice
-// and this paragraph and the following two paragraphs appear in all copies.
-//
-// IN NO EVENT SHALL THE NPGSQL DEVELOPMENT TEAM BE LIABLE TO ANY PARTY
-// FOR DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES,
-// INCLUDING LOST PROFITS, ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS
-// DOCUMENTATION, EVEN IF THE NPGSQL DEVELOPMENT TEAM HAS BEEN ADVISED OF
-// THE POSSIBILITY OF SUCH DAMAGE.
-//
-// THE NPGSQL DEVELOPMENT TEAM SPECIFICALLY DISCLAIMS ANY WARRANTIES,
-// INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
-// AND FITNESS FOR A PARTICULAR PURPOSE. THE SOFTWARE PROVIDED HEREUNDER IS
-// ON AN "AS IS" BASIS, AND THE NPGSQL DEVELOPMENT TEAM HAS NO OBLIGATIONS
-// TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
-
-#endregion
-
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NodaTime;
@@ -33,6 +8,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Utilties.Util;
 
+// ReSharper disable once CheckNamespace
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 {
     #region timestamp
@@ -43,6 +19,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
         protected TimestampInstantMapping(RelationalTypeMappingParameters parameters)
             : base(parameters, NpgsqlDbType.Timestamp) {}
+
+        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
+            => new TimestampInstantMapping(parameters);
 
         public override RelationalTypeMapping Clone(string storeType, int? size)
             => new TimestampInstantMapping(Parameters.WithStoreTypeAndSize(storeType, size));
@@ -73,6 +52,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
         protected TimestampLocalDateTimeMapping(RelationalTypeMappingParameters parameters)
             : base(parameters, NpgsqlDbType.Timestamp) {}
+
+        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
+            => new TimestampLocalDateTimeMapping(Parameters);
 
         public override RelationalTypeMapping Clone(string storeType, int? size)
             => new TimestampLocalDateTimeMapping(Parameters.WithStoreTypeAndSize(storeType, size));
@@ -109,6 +91,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         protected TimestampTzInstantMapping(RelationalTypeMappingParameters parameters)
             : base(parameters, NpgsqlDbType.TimestampTz) {}
 
+        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
+            => new TimestampTzInstantMapping(parameters);
+
         public override RelationalTypeMapping Clone(string storeType, int? size)
             => new TimestampTzInstantMapping(Parameters.WithStoreTypeAndSize(storeType, size));
 
@@ -138,6 +123,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
         protected TimestampTzOffsetDateTimeMapping(RelationalTypeMappingParameters parameters)
             : base(parameters, NpgsqlDbType.TimestampTz) {}
+
+        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
+            => new TimestampTzOffsetDateTimeMapping(parameters);
 
         public override RelationalTypeMapping Clone(string storeType, int? size)
             => new TimestampTzOffsetDateTimeMapping(Parameters.WithStoreTypeAndSize(storeType, size));
@@ -172,6 +160,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         protected TimestampTzZonedDateTimeMapping(RelationalTypeMappingParameters parameters)
             : base(parameters, NpgsqlDbType.TimestampTz) {}
 
+        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
+            => new TimestampTzZonedDateTimeMapping(parameters);
+
         public override RelationalTypeMapping Clone(string storeType, int? size)
             => new TimestampTzZonedDateTimeMapping(Parameters.WithStoreTypeAndSize(storeType, size));
 
@@ -198,6 +189,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
         protected DateMapping(RelationalTypeMappingParameters parameters)
             : base(parameters, NpgsqlDbType.Date) {}
+
+        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
+            => new DateMapping(parameters);
 
         public override RelationalTypeMapping Clone(string storeType, int? size)
             => new DateMapping(Parameters.WithStoreTypeAndSize(storeType, size));
@@ -235,6 +229,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
         protected TimeMapping(RelationalTypeMappingParameters parameters)
             : base(parameters, NpgsqlDbType.Time) {}
+
+        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
+            => new TimeMapping(parameters);
 
         public override RelationalTypeMapping Clone(string storeType, int? size)
             => new TimeMapping(Parameters.WithStoreTypeAndSize(storeType, size));
@@ -292,6 +289,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         protected TimeTzMapping(RelationalTypeMappingParameters parameters)
             : base(parameters, NpgsqlDbType.TimeTz) {}
 
+        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
+            => new TimeTzMapping(parameters);
+
         public override RelationalTypeMapping Clone(string storeType, int? size)
             => new TimeTzMapping(Parameters.WithStoreTypeAndSize(storeType, size));
 
@@ -332,6 +332,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
         protected IntervalMapping(RelationalTypeMappingParameters parameters)
             : base(parameters, NpgsqlDbType.Interval) {}
+
+        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
+            => new IntervalMapping(parameters);
 
         public override RelationalTypeMapping Clone(string storeType, int? size)
             => new IntervalMapping(Parameters.WithStoreTypeAndSize(storeType, size));

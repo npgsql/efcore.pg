@@ -1,4 +1,4 @@
-﻿using JetBrains.Annotations;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
@@ -10,7 +10,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
             [NotNull] this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
             [CanBeNull] string schemaName)
         {
-            var definition = NpgsqlStrings.LogMissingSchema;
+            var definition = NpgsqlResources.LogMissingSchema(diagnostics);
 
             var warningBehavior = definition.GetLogBehavior(diagnostics);
             if (warningBehavior != WarningBehavior.Ignore)
@@ -27,7 +27,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
             [NotNull] this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
             [CanBeNull] string tableName)
         {
-            var definition = NpgsqlStrings.LogMissingTable;
+            var definition = NpgsqlResources.LogMissingTable(diagnostics);
 
             var warningBehavior = definition.GetLogBehavior(diagnostics);
             if (warningBehavior != WarningBehavior.Ignore)
@@ -46,7 +46,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
             [CanBeNull] string tableName,
             [CanBeNull] string principalTableName)
         {
-            var definition = NpgsqlStrings.LogPrincipalTableNotInSelectionSet;
+            var definition = NpgsqlResources.LogPrincipalTableNotInSelectionSet(diagnostics);
 
             var warningBehavior = definition.GetLogBehavior(diagnostics);
             if (warningBehavior != WarningBehavior.Ignore)
@@ -72,7 +72,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
             bool nullable,
             [CanBeNull] string defaultValue)
         {
-            var definition = NpgsqlStrings.LogFoundColumn;
+            var definition = NpgsqlResources.LogFoundColumn(diagnostics);
 
             var warningBehavior = definition.GetLogBehavior(diagnostics);
             if (warningBehavior != WarningBehavior.Ignore)
@@ -90,7 +90,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
             [NotNull] string uniqueConstraintName,
             [NotNull] string tableName)
         {
-            var definition = NpgsqlStrings.LogFoundUniqueConstraint;
+            var definition = NpgsqlResources.LogFoundUniqueConstraint(diagnostics);
 
             var warningBehavior = definition.GetLogBehavior(diagnostics);
             if (warningBehavior != WarningBehavior.Ignore)
@@ -107,7 +107,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
             [NotNull] this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
             [NotNull] string columnName)
         {
-            var definition = NpgsqlStrings.LogEnumColumnSkipped;
+            var definition = NpgsqlResources.LogEnumColumnSkipped(diagnostics);
 
             var warningBehavior = definition.GetLogBehavior(diagnostics);
             if (warningBehavior != WarningBehavior.Ignore)
@@ -125,7 +125,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
             [NotNull] string indexName,
             [NotNull] string tableName)
         {
-            var definition = NpgsqlStrings.LogExpressionIndexSkipped;
+            var definition = NpgsqlResources.LogExpressionIndexSkipped(diagnostics);
 
             var warningBehavior = definition.GetLogBehavior(diagnostics);
             if (warningBehavior != WarningBehavior.Ignore)
@@ -144,7 +144,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
             [NotNull] string indexName,
             [NotNull] string tableName)
         {
-            var definition = NpgsqlStrings.LogUnsupportedColumnIndexSkipped;
+            var definition = NpgsqlResources.LogUnsupportedColumnIndexSkipped(diagnostics);
 
             var warningBehavior = definition.GetLogBehavior(diagnostics);
             if (warningBehavior != WarningBehavior.Ignore)
@@ -163,7 +163,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
             [NotNull] string indexName,
             [NotNull] string tableName)
         {
-            var definition = NpgsqlStrings.LogUnsupportedColumnConstraintSkipped;
+            var definition = NpgsqlResources.LogUnsupportedColumnConstraintSkipped(diagnostics);
 
             var warningBehavior = definition.GetLogBehavior(diagnostics);
             if (warningBehavior != WarningBehavior.Ignore)

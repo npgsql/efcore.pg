@@ -23,27 +23,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         [Fact(Skip = "Npgsql batches the inserts, creating an implicit transaction which fails the test (see https://github.com/npgsql/npgsql/issues/1307)")]
         public override Task SaveChangesAsync_can_be_used_with_no_transaction() => null;
 
-        // Npgsql throws NotSupportedException while the base test expects InvalidOperationException
-        [Fact]
-        public override void EnlistTransaction_throws_if_another_transaction_started()
-        {
-            using (var transaction = new CommittableTransaction(TimeSpan.FromMinutes(10)))
-            {
-                using (var context = CreateContextWithConnectionString())
-                {
-                    using (context.Database.BeginTransaction())
-                    {
-                        Assert.Throws<NotSupportedException>(
-                            () => context.Database.EnlistTransaction(transaction));
-                    }
-                }
-            }
-        }
-
-        public void Dispose()
-        {
-           TestNpgsqlRetryingExecutionStrategy.Suspended = true;
-        }
+        public void Dispose() => TestNpgsqlRetryingExecutionStrategy.Suspended = true;
 
         protected override DbContext CreateContextWithConnectionString()
         {
@@ -68,10 +48,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
             {
                 new NpgsqlDbContextOptionsBuilder(
-                        base.AddOptions(builder)
-                            .ConfigureWarnings(
-                                w => w.Log(RelationalEventId.QueryClientEvaluationWarning)
-                                    .Log(CoreEventId.FirstWithoutOrderByAndFilterWarning)))
+                        base.AddOptions(builder))
                     .MaxBatchSize(1);
                 return builder;
             }

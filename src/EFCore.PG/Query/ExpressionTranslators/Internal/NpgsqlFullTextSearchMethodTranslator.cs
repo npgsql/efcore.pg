@@ -1,13 +1,14 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query.Expressions;
-using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
+using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
+using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 using NpgsqlTypes;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
@@ -23,202 +24,207 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         static readonly MethodInfo TsVectorParse =
             typeof(NpgsqlTsVector).GetMethod(nameof(NpgsqlTsVector.Parse), BindingFlags.Public | BindingFlags.Static);
 
-        static readonly IReadOnlyDictionary<string, string> SqlNameByMethodName = new Dictionary<string, string>
+        [NotNull]
+        readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
+        readonly RelationalTypeMapping _boolMapping;
+        readonly RelationalTypeMapping _tsQueryMapping;
+        readonly RelationalTypeMapping _tsVectorMapping;
+        readonly RelationalTypeMapping _regconfigMapping;
+
+        public NpgsqlFullTextSearchMethodTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory, IRelationalTypeMappingSource typeMappingSource)
         {
-            [nameof(NpgsqlFullTextSearchDbFunctionsExtensions.ArrayToTsVector)] = "array_to_tsvector",
-            [nameof(NpgsqlFullTextSearchDbFunctionsExtensions.ToTsVector)] = "to_tsvector",
-            [nameof(NpgsqlFullTextSearchDbFunctionsExtensions.PlainToTsQuery)] = "plainto_tsquery",
-            [nameof(NpgsqlFullTextSearchDbFunctionsExtensions.PhraseToTsQuery)] = "phraseto_tsquery",
-            [nameof(NpgsqlFullTextSearchDbFunctionsExtensions.ToTsQuery)] = "to_tsquery"
-        };
+            _sqlExpressionFactory = sqlExpressionFactory;
+            _boolMapping = typeMappingSource.FindMapping(typeof(bool));
+            _tsQueryMapping = typeMappingSource.FindMapping("tsquery");
+            _tsVectorMapping = typeMappingSource.FindMapping("tsvector");
+            _regconfigMapping = typeMappingSource.FindMapping("regconfig");
+        }
 
         /// <inheritdoc />
         [CanBeNull]
-        public Expression Translate(MethodCallExpression e)
+        public SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
         {
-            if (e.Method == TsQueryParse || e.Method == TsVectorParse)
-                return new ExplicitCastExpression(e.Arguments[0], e.Method.ReturnType);
+            if (method == TsQueryParse || method == TsVectorParse)
+                return _sqlExpressionFactory.Convert(arguments[0], method.ReturnType);
 
-            if (e.Method.DeclaringType == typeof(NpgsqlFullTextSearchDbFunctionsExtensions)
-                && SqlNameByMethodName.TryGetValue(e.Method.Name, out var sqlFunctionName))
-                return new SqlFunctionExpression(sqlFunctionName, e.Method.ReturnType, e.Arguments.Skip(1));
+            if (method.DeclaringType == typeof(NpgsqlFullTextSearchDbFunctionsExtensions))
+            {
+                return method.Name switch
+                {
+                    // Methods accepting a configuration (regconfig)
+                    nameof(NpgsqlFullTextSearchDbFunctionsExtensions.ToTsVector)         when arguments.Count == 3 => ConfigAccepting("to_tsvector"),
+                    nameof(NpgsqlFullTextSearchDbFunctionsExtensions.PlainToTsQuery)     when arguments.Count == 3 => ConfigAccepting("plainto_tsquery"),
+                    nameof(NpgsqlFullTextSearchDbFunctionsExtensions.PhraseToTsQuery)    when arguments.Count == 3 => ConfigAccepting("phraseto_tsquery"),
+                    nameof(NpgsqlFullTextSearchDbFunctionsExtensions.ToTsQuery)          when arguments.Count == 3 => ConfigAccepting("to_tsquery"),
+                    nameof(NpgsqlFullTextSearchDbFunctionsExtensions.WebSearchToTsQuery) when arguments.Count == 3 => ConfigAccepting("websearch_to_tsquery"),
 
-            if (e.Method.DeclaringType == typeof(NpgsqlFullTextSearchLinqExtensions))
-                return TryTranslateOperator(e) ?? TryTranslateFunction(e);
+                    // Methods not accepting a configuration
+                    nameof(NpgsqlFullTextSearchDbFunctionsExtensions.ArrayToTsVector)    => NonConfigAccepting("array_to_tsvector"),
+                    nameof(NpgsqlFullTextSearchDbFunctionsExtensions.ToTsVector)         => NonConfigAccepting("to_tsvector"),
+                    nameof(NpgsqlFullTextSearchDbFunctionsExtensions.PlainToTsQuery)     => NonConfigAccepting("plainto_tsquery"),
+                    nameof(NpgsqlFullTextSearchDbFunctionsExtensions.PhraseToTsQuery)    => NonConfigAccepting("phraseto_tsquery"),
+                    nameof(NpgsqlFullTextSearchDbFunctionsExtensions.ToTsQuery)          => NonConfigAccepting("to_tsquery"),
+                    nameof(NpgsqlFullTextSearchDbFunctionsExtensions.WebSearchToTsQuery) => NonConfigAccepting("websearch_to_tsquery"),
+
+                    _ => null
+                };
+            }
+
+            if (method.DeclaringType == typeof(NpgsqlFullTextSearchLinqExtensions))
+            {
+                if (method.Name == nameof(NpgsqlFullTextSearchLinqExtensions.Rank) ||
+                    method.Name == nameof(NpgsqlFullTextSearchLinqExtensions.RankCoverDensity))
+                {
+                    var rankFunctionName = method.Name == nameof(NpgsqlFullTextSearchLinqExtensions.Rank) ? "ts_rank" : "ts_rank_cd";
+
+                    return arguments.Count switch
+                    {
+                        2 => _sqlExpressionFactory.Function(rankFunctionName, arguments, typeof(float), _sqlExpressionFactory.FindMapping(typeof(float))),
+
+                        3 => _sqlExpressionFactory.Function(
+                            rankFunctionName,
+                            new[]
+                            {
+                                arguments[1].Type == typeof(float[]) ? arguments[1] : arguments[0],
+                                arguments[1].Type == typeof(float[]) ? arguments[0] : arguments[1],
+                                arguments[2]
+                            },
+                            typeof(float),
+                            _sqlExpressionFactory.FindMapping(typeof(float))),
+
+                        4 => _sqlExpressionFactory.Function(rankFunctionName, new[] { arguments[1], arguments[0], arguments[2], arguments[3] }, method.ReturnType, _sqlExpressionFactory.FindMapping(typeof(float))),
+
+                        _ => throw new ArgumentException($"Invalid method overload for {rankFunctionName}")
+                    };
+                }
+
+                if (method.Name == nameof(NpgsqlFullTextSearchLinqExtensions.SetWeight))
+                {
+                    var newArgs = new List<SqlExpression>(arguments);
+                    if (newArgs[1].Type == typeof(NpgsqlTsVector.Lexeme.Weight))
+                        newArgs[1] = newArgs[1] is SqlConstantExpression weightExpression
+                            ? _sqlExpressionFactory.Constant(weightExpression.Value.ToString()[0])
+                            : throw new ArgumentException("Enum 'weight' argument for 'SetWeight' must be a constant expression.");
+                    return _sqlExpressionFactory.Function("setweight", newArgs, method.ReturnType);
+                }
+
+                return method.Name switch
+                {
+                    // Operators
+
+                    nameof(NpgsqlFullTextSearchLinqExtensions.And) => QueryReturningOnTwoQueries("&&"),
+                    nameof(NpgsqlFullTextSearchLinqExtensions.Or)  => QueryReturningOnTwoQueries("||"),
+
+                    nameof(NpgsqlFullTextSearchLinqExtensions.ToNegative) => new SqlUnaryExpression(ExpressionType.Not, arguments[0], arguments[0].Type, arguments[0].TypeMapping),
+                    nameof(NpgsqlFullTextSearchLinqExtensions.Contains) => BoolReturningOnTwoQueries("@>"),
+                    nameof(NpgsqlFullTextSearchLinqExtensions.IsContainedIn) => BoolReturningOnTwoQueries("<@"),
+
+                    nameof(NpgsqlFullTextSearchLinqExtensions.Concat) => _sqlExpressionFactory.Add(arguments[0], arguments[1], _tsVectorMapping),
+
+                    nameof(NpgsqlFullTextSearchLinqExtensions.Matches) => new SqlCustomBinaryExpression(
+                        _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[0]),
+                        arguments[1].Type == typeof(string)
+                            ? _sqlExpressionFactory.Function("plainto_tsquery", new[] { arguments[1] }, typeof(NpgsqlTsQuery), _tsQueryMapping)
+                            : _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[1]),
+                        "@@",
+                        typeof(bool),
+                        _boolMapping),
+
+                    // Functions
+
+                    nameof(NpgsqlFullTextSearchLinqExtensions.GetNodeCount)
+                        => _sqlExpressionFactory.Function("numnode", arguments, typeof(int), _sqlExpressionFactory.FindMapping(method.ReturnType)),
+
+                    nameof(NpgsqlFullTextSearchLinqExtensions.GetQueryTree)
+                        => _sqlExpressionFactory.Function("querytree", arguments, typeof(string), _sqlExpressionFactory.FindMapping(method.ReturnType)),
+
+                    nameof(NpgsqlFullTextSearchLinqExtensions.GetResultHeadline) when arguments.Count == 2
+                        => _sqlExpressionFactory.Function("ts_headline", new[] { arguments[1], arguments[0] }, method.ReturnType),
+
+                    nameof(NpgsqlFullTextSearchLinqExtensions.GetResultHeadline) when arguments.Count == 3 => _sqlExpressionFactory.Function(
+                        "ts_headline",
+                        new[] { arguments[1], arguments[0], arguments[2] },
+                        method.ReturnType),
+
+                    nameof(NpgsqlFullTextSearchLinqExtensions.GetResultHeadline) when arguments.Count == 4 => _sqlExpressionFactory.Function(
+                            "ts_headline",
+                            new[]
+                            {
+                                // For the regconfig parameter, if a constant string was provided, just pass it as a string - regconfig-accepting functions
+                                // will implicitly cast to regconfig. For (string!) parameters, we add an explicit cast, since regconfig actually is an OID
+                                // behind the scenes, and for parameter binary transfer no type coercion occurs.
+                                arguments[1] is SqlConstantExpression constant
+                                    ? _sqlExpressionFactory.ApplyDefaultTypeMapping(constant)
+                                    : _sqlExpressionFactory.Convert(arguments[1], typeof(string), _regconfigMapping),
+                                arguments[2],
+                                arguments[0],
+                                arguments[3]
+                            },
+                            method.ReturnType),
+
+                    nameof(NpgsqlFullTextSearchLinqExtensions.Rewrite)
+                        => _sqlExpressionFactory.Function("ts_rewrite", arguments, typeof(NpgsqlTsQuery), _tsQueryMapping),
+
+                    nameof(NpgsqlFullTextSearchLinqExtensions.ToPhrase)
+                        => _sqlExpressionFactory.Function("tsquery_phrase", arguments, typeof(NpgsqlTsQuery), _tsQueryMapping),
+
+                    nameof(NpgsqlFullTextSearchLinqExtensions.Delete)
+                        => _sqlExpressionFactory.Function("ts_delete", arguments, method.ReturnType, _tsVectorMapping),
+
+                    // TODO: Here we need to cast the char[] array we got into a "char"[] internal array...
+                    nameof(NpgsqlFullTextSearchLinqExtensions.Filter)
+                        => throw new NotImplementedException(),
+                        //=> _sqlExpressionFactory.Function("ts_filter", arguments, typeof(NpgsqlTsVector), _tsVectorMapping),
+
+                    nameof(NpgsqlFullTextSearchLinqExtensions.GetLength)
+                        => _sqlExpressionFactory.Function("length", arguments, method.ReturnType, _sqlExpressionFactory.FindMapping(typeof(int))),
+
+                    nameof(NpgsqlFullTextSearchLinqExtensions.ToStripped)
+                        => _sqlExpressionFactory.Function("strip", arguments, method.ReturnType, _tsVectorMapping),
+
+
+                    _ => (SqlExpression)null
+                };
+            }
 
             return null;
-        }
 
-        [CanBeNull]
-        static Expression TryTranslateOperator([NotNull] MethodCallExpression e)
-        {
-            switch (e.Method.Name)
+            SqlExpression ConfigAccepting(string functionName)
+                => _sqlExpressionFactory.Function(functionName, new[]
+                    {
+                        // For the regconfig parameter, if a constant string was provided, just pass it as a string - regconfig-accepting functions
+                        // will implicitly cast to regconfig. For (string!) parameters, we add an explicit cast, since regconfig actually is an OID
+                        // behind the scenes, and for parameter binary transfer no type coercion occurs.
+                        arguments[1] is SqlConstantExpression constant
+                            ? _sqlExpressionFactory.ApplyDefaultTypeMapping(constant)
+                            : _sqlExpressionFactory.Convert(arguments[1], typeof(string), _regconfigMapping),
+                        arguments[2]
+                    },
+                    method.ReturnType,
+                    _sqlExpressionFactory.FindMapping(method.ReturnType));
+
+            SqlExpression NonConfigAccepting(string functionName)
+                => _sqlExpressionFactory.Function(functionName, new[] { arguments[1] }, method.ReturnType, _sqlExpressionFactory.FindMapping(method.ReturnType));
+
+            SqlCustomBinaryExpression QueryReturningOnTwoQueries(string @operator)
             {
-            case nameof(NpgsqlFullTextSearchLinqExtensions.And):
-                return new CustomBinaryExpression(e.Arguments[0], e.Arguments[1], "&&", typeof(NpgsqlTsQuery));
-
-            case nameof(NpgsqlFullTextSearchLinqExtensions.Or):
-                return new CustomBinaryExpression(e.Arguments[0], e.Arguments[1], "||", typeof(NpgsqlTsQuery));
-
-            case nameof(NpgsqlFullTextSearchLinqExtensions.ToNegative):
-                return new CustomUnaryExpression(e.Arguments[0], "!!", typeof(NpgsqlTsQuery));
-
-            case nameof(NpgsqlFullTextSearchLinqExtensions.Contains):
-                return new CustomBinaryExpression(e.Arguments[0], e.Arguments[1], "@>", typeof(bool));
-
-            case nameof(NpgsqlFullTextSearchLinqExtensions.IsContainedIn):
-                return new CustomBinaryExpression(e.Arguments[0], e.Arguments[1], "<@", typeof(bool));
-
-            case nameof(NpgsqlFullTextSearchLinqExtensions.Matches):
-                var secondArgument = e.Arguments[1].Type == typeof(string)
-                    ? new SqlFunctionExpression("plainto_tsquery", typeof(NpgsqlTsQuery), new[] { e.Arguments[1] })
-                    : e.Arguments[1];
-                return new CustomBinaryExpression(e.Arguments[0], secondArgument, "@@", typeof(bool));
-
-            case nameof(NpgsqlFullTextSearchLinqExtensions.Concat):
-                return new CustomBinaryExpression(e.Arguments[0], e.Arguments[1], "||", typeof(NpgsqlTsVector));
-
-            default:
-                return null;
+                var inferredMapping = ExpressionExtensions.InferTypeMapping(arguments[0], arguments[1]);
+                return new SqlCustomBinaryExpression(
+                    _sqlExpressionFactory.ApplyTypeMapping(arguments[0], inferredMapping),
+                    _sqlExpressionFactory.ApplyTypeMapping(arguments[1], inferredMapping),
+                    @operator,
+                    method.ReturnType,
+                    inferredMapping);
             }
-        }
 
-        [CanBeNull]
-        static Expression TryTranslateFunction([NotNull] MethodCallExpression e)
-        {
-            switch (e.Method.Name)
+            SqlCustomBinaryExpression BoolReturningOnTwoQueries(string @operator)
             {
-            case nameof(NpgsqlFullTextSearchLinqExtensions.GetNodeCount):
-                return new SqlFunctionExpression("numnode", e.Method.ReturnType, e.Arguments);
-
-            case nameof(NpgsqlFullTextSearchLinqExtensions.GetQueryTree):
-                return new SqlFunctionExpression("querytree", e.Method.ReturnType, e.Arguments);
-
-            case nameof(NpgsqlFullTextSearchLinqExtensions.GetResultHeadline):
-                switch (e.Arguments.Count)
-                {
-                case 2:
-                    return new SqlFunctionExpression("ts_headline", e.Method.ReturnType, e.Arguments.Reverse());
-
-                case 3:
-                    return new SqlFunctionExpression(
-                        "ts_headline",
-                        e.Method.ReturnType,
-                        new[]
-                        {
-                            e.Arguments[1],
-                            e.Arguments[0],
-                            e.Arguments[2]
-                        });
-
-                case 4:
-                    return new SqlFunctionExpression(
-                        "ts_headline",
-                        e.Method.ReturnType,
-                        new[]
-                        {
-                            e.Arguments[1],
-                            e.Arguments[2],
-                            e.Arguments[0],
-                            e.Arguments[3]
-                        });
-
-                default:
-                    throw new ArgumentException("Invalid method overload for ts_headline", nameof(e));
-                }
-
-            case nameof(NpgsqlFullTextSearchLinqExtensions.Rewrite):
-                return new SqlFunctionExpression("ts_rewrite", e.Method.ReturnType, e.Arguments);
-
-            case nameof(NpgsqlFullTextSearchLinqExtensions.ToPhrase):
-                return new SqlFunctionExpression("tsquery_phrase", e.Method.ReturnType, e.Arguments);
-
-            case nameof(NpgsqlFullTextSearchLinqExtensions.SetWeight):
-                var arguments = e.Arguments.ToArray();
-
-                if (arguments[1].Type == typeof(NpgsqlTsVector.Lexeme.Weight))
-                {
-                    if (!(arguments[1] is ConstantExpression weightExpression))
-                    {
-                        throw new ArgumentException(
-                            "Enum 'weight' argument for 'SetWeight' must be a constant expression.");
-                    }
-
-                    arguments[1] = Expression.Constant(weightExpression.Value.ToString()[0]);
-                }
-
-                return new SqlFunctionExpression("setweight", e.Method.ReturnType, arguments);
-
-            case nameof(NpgsqlFullTextSearchLinqExtensions.Delete):
-                return new SqlFunctionExpression("ts_delete", e.Method.ReturnType, e.Arguments);
-
-            case nameof(NpgsqlFullTextSearchLinqExtensions.Filter):
-                return new SqlFunctionExpression(
-                    "ts_filter",
-                    e.Method.ReturnType,
-                    new[]
-                    {
-                        e.Arguments[0],
-                        new ExplicitStoreTypeCastExpression(e.Arguments[1], typeof(char[]), "\"char\"[]")
-                    });
-
-            case nameof(NpgsqlFullTextSearchLinqExtensions.GetLength):
-                return new SqlFunctionExpression("length", e.Method.ReturnType, e.Arguments);
-
-            case nameof(NpgsqlFullTextSearchLinqExtensions.ToStripped):
-                return new SqlFunctionExpression("strip", e.Method.ReturnType, e.Arguments);
-
-            case nameof(NpgsqlFullTextSearchLinqExtensions.Rank):
-            case nameof(NpgsqlFullTextSearchLinqExtensions.RankCoverDensity):
-                var rankFunctionName = e.Method.Name == nameof(NpgsqlFullTextSearchLinqExtensions.Rank)
-                    ? "ts_rank"
-                    : "ts_rank_cd";
-
-                switch (e.Arguments.Count)
-                {
-                case 2:
-                    return new SqlFunctionExpression(rankFunctionName, e.Method.ReturnType, e.Arguments);
-
-                case 3:
-                    var firstArgument = e.Arguments[0];
-                    var secondArgument = e.Arguments[1];
-                    if (e.Arguments[1].Type == typeof(float[]))
-                    {
-                        var temp = firstArgument;
-                        firstArgument = secondArgument;
-                        secondArgument = temp;
-                    }
-
-                    return new SqlFunctionExpression(
-                        rankFunctionName,
-                        e.Method.ReturnType,
-                        new[]
-                        {
-                            firstArgument,
-                            secondArgument,
-                            e.Arguments[2]
-                        });
-
-                case 4:
-                    return new SqlFunctionExpression(
-                        rankFunctionName,
-                        e.Method.ReturnType,
-                        new[]
-                        {
-                            e.Arguments[1],
-                            e.Arguments[0],
-                            e.Arguments[2],
-                            e.Arguments[3]
-                        });
-
-                default:
-                    throw new ArgumentException(
-                        $"Invalid method overload for {rankFunctionName}",
-                        nameof(e));
-                }
-
-            default:
-                return null;
+                return new SqlCustomBinaryExpression(
+                    _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[0]),
+                    _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[1]),
+                    @operator,
+                    typeof(bool),
+                    _boolMapping);
             }
         }
     }

@@ -38,6 +38,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
             => WithOption(e => e.WithPostgresVersion(postgresVersion));
 
         /// <summary>
+        /// Configures the backend version to target.
+        /// </summary>
+        /// <param name="major">The PostgreSQL major version to target.</param>
+        /// <param name="minor">The PostgreSQL minor version to target.</param>
+        public virtual void SetPostgresVersion(int major, int minor)
+            => SetPostgresVersion(new Version(major, minor));
+
+        /// <summary>
         /// Maps a user-defined PostgreSQL range type for use.
         /// </summary>
         /// <typeparam name="TSubtype">
@@ -101,6 +109,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         /// <param name="callback">The callback to use.</param>
         public virtual void RemoteCertificateValidationCallback([CanBeNull] RemoteCertificateValidationCallback callback)
             => WithOption(e => e.WithRemoteCertificateValidationCallback(callback));
+
+        /// <summary>
+        /// Configures the <see cref="DbContext"/> to use the specified <see cref="ProvidePasswordCallback"/>.
+        /// </summary>
+        /// <param name="callback">The callback to use.</param>
+        public virtual void ProvidePasswordCallback([CanBeNull] ProvidePasswordCallback callback)
+            => WithOption(e => e.WithProvidePasswordCallback(callback));
 
         #endregion Authentication
 

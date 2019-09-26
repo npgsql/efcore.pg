@@ -1,23 +1,23 @@
-﻿using System;
+using System;
 using System.Data.Common;
 using System.Text;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using GeoAPI.Geometries;
 using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
+using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using NpgsqlTypes;
 
+// ReSharper disable once CheckNamespace
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 {
+    [UsedImplicitly]
     public class NpgsqlGeometryTypeMapping<TGeometry> : RelationalGeometryTypeMapping<TGeometry, TGeometry>
     {
         readonly bool _isGeography;
 
-        public NpgsqlGeometryTypeMapping(string storeType) : base(new NullValueConverter(), storeType)
-            => _isGeography = IsGeography(storeType);
+        public NpgsqlGeometryTypeMapping(string storeType, bool isGeography) : base(new NullValueConverter(), storeType)
+            => _isGeography = isGeography;
 
         protected NpgsqlGeometryTypeMapping(RelationalTypeMappingParameters parameters)
             : base(parameters, new NullValueConverter()) {}
@@ -25,7 +25,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
             => new NpgsqlGeometryTypeMapping<TGeometry>(parameters);
 
-        protected override void ConfigureParameter([NotNull] DbParameter parameter)
+        protected override void ConfigureParameter(DbParameter parameter)
         {
             base.ConfigureParameter(parameter);
 
@@ -34,7 +34,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
         protected override string GenerateNonNullSqlLiteral(object value)
         {
-            var geometry = (IGeometry)value;
+            var geometry = (Geometry)value;
             var builder = new StringBuilder();
 
             builder
@@ -56,17 +56,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             return builder.ToString();
         }
 
-        static bool IsGeography(string storeType)
-            => string.Equals(storeType, "geography", StringComparison.OrdinalIgnoreCase);
-
         class NullValueConverter : ValueConverter<TGeometry, TGeometry>
         {
             public NullValueConverter() : base(t => t, t => t) {}
         }
 
-        protected override string AsText(object value) => ((IGeometry)value).AsText();
+        protected override string AsText(object value) => ((Geometry)value).AsText();
 
-        protected override int GetSrid(object value) => ((IGeometry)value).SRID;
+        protected override int GetSrid(object value) => ((Geometry)value).SRID;
 
         protected override Type WKTReaderType => typeof(WKTReader);
     }

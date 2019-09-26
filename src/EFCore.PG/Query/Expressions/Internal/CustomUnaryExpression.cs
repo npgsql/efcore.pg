@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq.Expressions;
 using JetBrains.Annotations;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal

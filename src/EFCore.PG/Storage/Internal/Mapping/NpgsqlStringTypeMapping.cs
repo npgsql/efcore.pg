@@ -2,39 +2,48 @@
 using System.Data.Common;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Storage;
+using NpgsqlTypes;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 {
     /// <summary>
-    /// The type mapping for the PostgreSQL 'text' data type.
+    /// The base class for mapping Npgsql-specific string types. It configures parameters with the
+    /// <see cref="NpgsqlDbType"/> provider-specific type enum.
     /// </summary>
-    /// <remarks>
-    /// See: https://www.postgresql.org/docs/current/static/datatype-character.html
-    /// </remarks>
-    /// <inheritdoc />
     public class NpgsqlStringTypeMapping : StringTypeMapping
     {
-        public NpgsqlStringTypeMapping([NotNull] string storeType, bool unicode = false, int? size = null)
-            : base(storeType, System.Data.DbType.String, unicode, size) {}
+        /// <summary>
+        /// The database type used by Npgsql.
+        /// </summary>
+        public NpgsqlDbType NpgsqlDbType { get; }
 
-        protected NpgsqlStringTypeMapping(RelationalTypeMappingParameters parameters) : base(parameters) {}
+        // ReSharper disable once PublicConstructorInAbstractClass
+        /// <summary>
+        /// Constructs an instance of the <see cref="NpgsqlTypeMapping"/> class.
+        /// </summary>
+        /// <param name="storeType">The database type to map.</param>
+        /// <param name="npgsqlDbType">The database type used by Npgsql.</param>
+        public NpgsqlStringTypeMapping([NotNull] string storeType, NpgsqlDbType npgsqlDbType)
+            : base(storeType)
+            => NpgsqlDbType = npgsqlDbType;
+
+        protected NpgsqlStringTypeMapping(
+            RelationalTypeMappingParameters parameters,
+            NpgsqlDbType npgsqlDbType)
+            : base(parameters)
+            => NpgsqlDbType = npgsqlDbType;
 
         protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
-            => new NpgsqlStringTypeMapping(parameters);
+            => new NpgsqlStringTypeMapping(parameters, NpgsqlDbType);
 
         protected override void ConfigureParameter(DbParameter parameter)
         {
-            // TODO: See #357. We should be able to simply use StringTypeMapping but DbParameter.Size isn't managed properly.
-            if (Size.HasValue)
-            {
-                var value = parameter.Value;
-                var length = (value as string)?.Length;
-                var size = Size.Value;
+            base.ConfigureParameter(parameter);
 
-                parameter.Size = value == null || value == DBNull.Value || length != null && length <= size
-                    ? size
-                    : -1;
-            }
+            if (parameter is NpgsqlParameter npgsqlParameter)
+                npgsqlParameter.NpgsqlDbType = NpgsqlDbType;
+            else
+                throw new InvalidOperationException($"Npgsql-specific type mapping {GetType().Name} being used with non-Npgsql parameter type {parameter.GetType().Name}");
         }
     }
 }

@@ -149,11 +149,30 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                     }
                 }, cancellationToken);
 
-        protected override bool HasTables()
-            => (bool)CreateHasTablesCommand().ExecuteScalar(_connection);
+        public override bool HasTables()
+            => Dependencies.ExecutionStrategyFactory
+                .Create()
+                .Execute(
+                    _connection,
+                    connection => (bool)CreateHasTablesCommand()
+                                      .ExecuteScalar(
+                                          new RelationalCommandParameterObject(
+                                              connection,
+                                              null,
+                                              Dependencies.CurrentContext.Context,
+                                              Dependencies.CommandLogger)));
 
-        protected override async Task<bool> HasTablesAsync(CancellationToken cancellationToken = default)
-            => (bool)(await CreateHasTablesCommand().ExecuteScalarAsync(_connection, cancellationToken: cancellationToken));
+        public override Task<bool> HasTablesAsync(CancellationToken cancellationToken = default)
+            => Dependencies.ExecutionStrategyFactory.Create().ExecuteAsync(
+                _connection,
+                async (connection, ct) => (bool)await CreateHasTablesCommand()
+                                              .ExecuteScalarAsync(
+                                                  new RelationalCommandParameterObject(
+                                                      connection,
+                                                      null,
+                                                      Dependencies.CurrentContext.Context,
+                                                      Dependencies.CommandLogger),
+                                                  cancellationToken: ct), cancellationToken);
 
         IRelationalCommand CreateHasTablesCommand()
             => _rawSqlCommandBuilder
@@ -169,8 +188,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 new NpgsqlCreateDatabaseOperation
                 {
                     Name = _connection.DbConnection.Database,
-                    Template = Dependencies.Model.Npgsql().DatabaseTemplate,
-                    Tablespace = Dependencies.Model.Npgsql().Tablespace
+                    Template = Dependencies.Model.GetDatabaseTemplate(),
+                    Tablespace = Dependencies.Model.GetTablespace()
                 }
             });
 
@@ -294,9 +313,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             var reloadTypes =
                 operations.OfType<AlterDatabaseOperation>()
                           .Any(o =>
-                              o.Npgsql().PostgresExtensions.Any() ||
-                              o.Npgsql().PostgresEnums.Any() ||
-                              o.Npgsql().PostgresRanges.Any());
+                              o.GetPostgresExtensions().Any() ||
+                              o.GetPostgresEnums().Any() ||
+                              o.GetPostgresRanges().Any());
 
             try
             {
@@ -333,9 +352,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             var reloadTypes =
                 operations.OfType<AlterDatabaseOperation>()
                           .Any(o =>
-                              o.Npgsql().PostgresExtensions.Any() ||
-                              o.Npgsql().PostgresEnums.Any() ||
-                              o.Npgsql().PostgresRanges.Any());
+                              o.GetPostgresExtensions().Any() ||
+                              o.GetPostgresEnums().Any() ||
+                              o.GetPostgresRanges().Any());
 
             try
             {

@@ -1,30 +1,28 @@
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Metadata.Conventions.Internal;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Query;
-using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
-using Microsoft.EntityFrameworkCore.Query.ExpressionVisitors;
-using Microsoft.EntityFrameworkCore.Query.Sql;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.EntityFrameworkCore.Update;
 using Microsoft.EntityFrameworkCore.ValueGeneration;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query.EvaluatableExpressionFilters.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionVisitors;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal;
-using Remotion.Linq.Parsing.ExpressionVisitors.TreeEvaluation;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection
@@ -70,14 +68,15 @@ namespace Microsoft.Extensions.DependencyInjection
 
             var builder =
                 new EntityFrameworkRelationalServicesBuilder(serviceCollection)
+                    .TryAdd<LoggingDefinitions, NpgsqlLoggingDefinitions>()
                     .TryAdd<IDatabaseProvider, DatabaseProvider<NpgsqlOptionsExtension>>()
                     .TryAdd<IValueGeneratorCache>(p => p.GetService<INpgsqlValueGeneratorCache>())
                     .TryAdd<IRelationalTypeMappingSource, NpgsqlTypeMappingSource>()
                     .TryAdd<ISqlGenerationHelper, NpgsqlSqlGenerationHelper>()
                     .TryAdd<IMigrationsAnnotationProvider, NpgsqlMigrationsAnnotationProvider>()
                     .TryAdd<IModelValidator, NpgsqlModelValidator>()
+                    .TryAdd<IProviderConventionSetBuilder, NpgsqlConventionSetBuilder>()
                     .TryAdd<IRelationalValueBufferFactoryFactory, TypedRelationalValueBufferFactoryFactory>()
-                    .TryAdd<IConventionSetBuilder, NpgsqlConventionSetBuilder>()
                     .TryAdd<IUpdateSqlGenerator, NpgsqlUpdateSqlGenerator>()
                     .TryAdd<IModificationCommandBatchFactory, NpgsqlModificationCommandBatchFactory>()
                     .TryAdd<IValueGeneratorSelector, NpgsqlValueGeneratorSelector>()
@@ -87,14 +86,14 @@ namespace Microsoft.Extensions.DependencyInjection
                     .TryAdd<IHistoryRepository, NpgsqlHistoryRepository>()
                     .TryAdd<ICompiledQueryCacheKeyGenerator, NpgsqlCompiledQueryCacheKeyGenerator>()
                     .TryAdd<IExecutionStrategyFactory, NpgsqlExecutionStrategyFactory>()
-                    .TryAdd<IQueryCompilationContextFactory, NpgsqlQueryCompilationContextFactory>()
-                    .TryAdd<IMemberTranslator, NpgsqlCompositeMemberTranslator>()
-                    .TryAdd<ICompositeMethodCallTranslator, NpgsqlCompositeMethodCallTranslator>()
-                    .TryAdd<IExpressionFragmentTranslator, NpgsqlCompositeExpressionFragmentTranslator>()
+                    .TryAdd<IMethodCallTranslatorProvider, NpgsqlMethodCallTranslatorProvider>()
+                    .TryAdd<IMemberTranslatorProvider, NpgsqlMemberTranslatorProvider>()
+                    .TryAdd<IEvaluatableExpressionFilter, NpgsqlEvaluatableExpressionFilter>()
                     .TryAdd<IQuerySqlGeneratorFactory, NpgsqlQuerySqlGeneratorFactory>()
-                    .TryAdd<ISqlTranslatingExpressionVisitorFactory, NpgsqlSqlTranslatingExpressionVisitorFactory>()
+                    .TryAdd<IRelationalSqlTranslatingExpressionVisitorFactory, NpgsqlSqlTranslatingExpressionVisitorFactory>()
+                    .TryAdd<ISqlExpressionFactory, NpgsqlSqlExpressionFactory>()
                     .TryAdd<ISingletonOptions, INpgsqlOptions>(p => p.GetService<INpgsqlOptions>())
-                    .TryAdd<IEvaluatableExpressionFilter, NpgsqlCompositeEvaluatableExpressionFilter>()
+                    .TryAdd<IValueConverterSelector, NpgsqlValueConverterSelector>()
                     .TryAddProviderSpecificServices(
                         b => b
                              .TryAddSingleton<INpgsqlValueGeneratorCache, NpgsqlValueGeneratorCache>()

@@ -1,155 +1,203 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.EntityFrameworkCore.Storage.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
 {
     public class TestRelationalCommandBuilderFactory : IRelationalCommandBuilderFactory
     {
-        private readonly IDiagnosticsLogger<DbLoggerCategory.Database.Command> _logger;
-        private readonly IRelationalTypeMappingSource _typeMappingSource;
-
         public TestRelationalCommandBuilderFactory(
-            IDiagnosticsLogger<DbLoggerCategory.Database.Command> logger,
-            IRelationalTypeMappingSource typeMappingSource)
+            RelationalCommandBuilderDependencies dependencies)
         {
-            _logger = logger;
-            _typeMappingSource = typeMappingSource;
+            Dependencies = dependencies;
         }
 
-        public virtual IRelationalCommandBuilder Create()
-            => new TestRelationalCommandBuilder(_logger, _typeMappingSource);
+        public RelationalCommandBuilderDependencies Dependencies { get; }
 
-        private class TestRelationalCommandBuilder : IRelationalCommandBuilder
+        public virtual IRelationalCommandBuilder Create()
+            => new TestRelationalCommandBuilder(Dependencies);
+
+        class TestRelationalCommandBuilder : IRelationalCommandBuilder
         {
-            private readonly IDiagnosticsLogger<DbLoggerCategory.Database.Command> _logger;
+            readonly List<IRelationalParameter> _parameters = new List<IRelationalParameter>();
 
             public TestRelationalCommandBuilder(
-                IDiagnosticsLogger<DbLoggerCategory.Database.Command> logger,
-                IRelationalTypeMappingSource typeMappingSource)
+                RelationalCommandBuilderDependencies dependencies)
             {
-                _logger = logger;
-                ParameterBuilder = new RelationalParameterBuilder(typeMappingSource);
+                Dependencies = dependencies;
             }
 
-            IndentedStringBuilder IInfrastructure<IndentedStringBuilder>.Instance { get; } = new IndentedStringBuilder();
+            public IndentedStringBuilder Instance { get; } = new IndentedStringBuilder();
 
-            public IRelationalParameterBuilder ParameterBuilder { get; }
+            public RelationalCommandBuilderDependencies Dependencies { get; }
+
+            public IReadOnlyList<IRelationalParameter> Parameters => _parameters;
+
+            public IRelationalCommandBuilder AddParameter(IRelationalParameter parameter)
+            {
+                _parameters.Add(parameter);
+
+                return this;
+            }
+
+            public IRelationalTypeMappingSource TypeMappingSource => Dependencies.TypeMappingSource;
 
             public IRelationalCommand Build()
                 => new TestRelationalCommand(
-                    _logger,
-                    ((IInfrastructure<IndentedStringBuilder>)this).Instance.ToString(),
-                    ParameterBuilder.Parameters);
+                    Dependencies,
+                    Instance.ToString(),
+                    Parameters);
+
+            public IRelationalCommandBuilder Append(object value)
+            {
+                Instance.Append(value);
+
+                return this;
+            }
+
+            public IRelationalCommandBuilder AppendLine()
+            {
+                Instance.AppendLine();
+
+                return this;
+            }
+
+            public IRelationalCommandBuilder IncrementIndent()
+            {
+                Instance.IncrementIndent();
+
+                return this;
+            }
+
+            public IRelationalCommandBuilder DecrementIndent()
+            {
+                Instance.DecrementIndent();
+
+                return this;
+            }
+
+            public int CommandTextLength => Instance.Length;
         }
 
-        private class TestRelationalCommand : IRelationalCommand
+        class TestRelationalCommand : IRelationalCommand
         {
-            private readonly RelationalCommand _realRelationalCommand;
+            readonly RelationalCommand _realRelationalCommand;
 
             public TestRelationalCommand(
-                IDiagnosticsLogger<DbLoggerCategory.Database.Command> logger,
+                RelationalCommandBuilderDependencies dependencies,
                 string commandText,
                 IReadOnlyList<IRelationalParameter> parameters)
             {
-                _realRelationalCommand = new RelationalCommand(logger, commandText, parameters);
+                _realRelationalCommand = new RelationalCommand(dependencies, commandText, parameters);
             }
 
             public string CommandText => _realRelationalCommand.CommandText;
 
             public IReadOnlyList<IRelationalParameter> Parameters => _realRelationalCommand.Parameters;
 
-            public int ExecuteNonQuery(
-                IRelationalConnection connection, IReadOnlyDictionary<string, object> parameterValues)
+            public int ExecuteNonQuery(RelationalCommandParameterObject parameterObject)
             {
+                var connection = parameterObject.Connection;
                 var errorNumber = PreExecution(connection);
 
-                var result = _realRelationalCommand.ExecuteNonQuery(connection, parameterValues);
+                var result = _realRelationalCommand.ExecuteNonQuery(parameterObject);
                 if (errorNumber != null)
                 {
                     connection.DbConnection.Close();
-                    throw new PostgresException { SqlState = errorNumber };
+                    throw new PostgresException("", "", "", errorNumber);
                 }
+
                 return result;
             }
 
             public Task<int> ExecuteNonQueryAsync(
-                IRelationalConnection connection, IReadOnlyDictionary<string, object> parameterValues, CancellationToken cancellationToken = new CancellationToken())
+                RelationalCommandParameterObject parameterObject,
+                CancellationToken cancellationToken = new CancellationToken())
             {
+                var connection = parameterObject.Connection;
                 var errorNumber = PreExecution(connection);
 
-                var result = _realRelationalCommand.ExecuteNonQueryAsync(connection, parameterValues, cancellationToken);
+                var result = _realRelationalCommand.ExecuteNonQueryAsync(parameterObject, cancellationToken);
                 if (errorNumber != null)
                 {
                     connection.DbConnection.Close();
-                    throw new PostgresException { SqlState = errorNumber };
+                    throw new PostgresException("", "", "", errorNumber);
                 }
+
                 return result;
             }
 
-            public object ExecuteScalar(
-                IRelationalConnection connection, IReadOnlyDictionary<string, object> parameterValues)
+            public object ExecuteScalar(RelationalCommandParameterObject parameterObject)
             {
+                var connection = parameterObject.Connection;
                 var errorNumber = PreExecution(connection);
 
-                var result = _realRelationalCommand.ExecuteScalar(connection, parameterValues);
+                var result = _realRelationalCommand.ExecuteScalar(parameterObject);
                 if (errorNumber != null)
                 {
                     connection.DbConnection.Close();
-                    throw new PostgresException { SqlState = errorNumber };
+                    throw new PostgresException("", "", "", errorNumber);
                 }
+
                 return result;
             }
 
             public async Task<object> ExecuteScalarAsync(
-                IRelationalConnection connection, IReadOnlyDictionary<string, object> parameterValues, CancellationToken cancellationToken = new CancellationToken())
+                RelationalCommandParameterObject parameterObject,
+                CancellationToken cancellationToken = new CancellationToken())
             {
+                var connection = parameterObject.Connection;
                 var errorNumber = PreExecution(connection);
 
-                var result = await _realRelationalCommand.ExecuteScalarAsync(connection, parameterValues, cancellationToken);
+                var result = await _realRelationalCommand.ExecuteScalarAsync(parameterObject, cancellationToken);
                 if (errorNumber != null)
                 {
                     connection.DbConnection.Close();
-                    throw new PostgresException { SqlState = errorNumber };
+                    throw new PostgresException("", "", "", errorNumber);
                 }
+
                 return result;
             }
 
-            public RelationalDataReader ExecuteReader(
-                IRelationalConnection connection, IReadOnlyDictionary<string, object> parameterValues)
+            public RelationalDataReader ExecuteReader(RelationalCommandParameterObject parameterObject)
             {
+                var connection = parameterObject.Connection;
                 var errorNumber = PreExecution(connection);
 
-                var result = _realRelationalCommand.ExecuteReader(connection, parameterValues);
+                var result = _realRelationalCommand.ExecuteReader(parameterObject);
                 if (errorNumber != null)
                 {
                     connection.DbConnection.Close();
-                    throw new PostgresException { SqlState = errorNumber };
+                    result.Dispose(); // Normally, in non-test case, reader is disposed by using in caller code
+                    throw new PostgresException("", "", "", errorNumber);
                 }
+
                 return result;
             }
 
             public async Task<RelationalDataReader> ExecuteReaderAsync(
-                IRelationalConnection connection, IReadOnlyDictionary<string, object> parameterValues, CancellationToken cancellationToken = new CancellationToken())
+                RelationalCommandParameterObject parameterObject,
+                CancellationToken cancellationToken = new CancellationToken())
             {
+                var connection = parameterObject.Connection;
                 var errorNumber = PreExecution(connection);
 
-                var result = await _realRelationalCommand.ExecuteReaderAsync(connection, parameterValues, cancellationToken);
+                var result = await _realRelationalCommand.ExecuteReaderAsync(parameterObject, cancellationToken);
                 if (errorNumber != null)
                 {
                     connection.DbConnection.Close();
-                    throw new PostgresException { SqlState = errorNumber };
+                    result.Dispose(); // Normally, in non-test case, reader is disposed by using in caller code
+                    throw new PostgresException("", "", "", errorNumber);
                 }
+
                 return result;
             }
 
-            private string PreExecution(IRelationalConnection connection)
+            string PreExecution(IRelationalConnection connection)
             {
                 string errorNumber = null;
                 var testConnection = (TestNpgsqlConnection)connection;
@@ -163,7 +211,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
                         if (fail.Value)
                         {
                             testConnection.DbConnection.Close();
-                            throw new PostgresException { SqlState = testConnection.ErrorCode };
+                            throw new PostgresException("", "", "", testConnection.ErrorCode);
                         }
                         errorNumber = testConnection.ErrorCode;
                     }

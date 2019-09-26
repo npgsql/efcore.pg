@@ -1,4 +1,6 @@
-﻿using System;
+﻿#if DISABLED_FLAKY_ON_APPVEYOR
+
+using System;
 using System.Data;
 using System.Linq;
 using System.Threading;
@@ -10,8 +12,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
-
-#if DISABLED_FLAKY_ON_APPVEYOR
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
@@ -29,7 +29,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             await Exists_returns_false_when_database_doesnt_exist_test(async: true);
         }
 
-        private static async Task Exists_returns_false_when_database_doesnt_exist_test(bool async)
+        static async Task Exists_returns_false_when_database_doesnt_exist_test(bool async)
         {
             using (var testDatabase = NpgsqlTestStore.CreateScratch(createDatabase: false))
             {
@@ -51,7 +51,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             await Exists_returns_true_when_database_exists_test(async: true);
         }
 
-        private static async Task Exists_returns_true_when_database_exists_test(bool async)
+        static async Task Exists_returns_true_when_database_exists_test(bool async)
         {
             using (var testDatabase = NpgsqlTestStore.CreateScratch(createDatabase: true))
             {
@@ -73,7 +73,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             await HasTables_throws_when_database_doesnt_exist_test(async: true);
         }
 
-        private static async Task HasTables_throws_when_database_doesnt_exist_test(bool async)
+        static async Task HasTables_throws_when_database_doesnt_exist_test(bool async)
         {
             using (var testDatabase = NpgsqlTestStore.CreateScratch(createDatabase: false))
             {
@@ -105,7 +105,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             await HasTables_returns_false_when_database_exists_but_has_no_tables_test(async: true);
         }
 
-        private static async Task HasTables_returns_false_when_database_exists_but_has_no_tables_test(bool async)
+        static async Task HasTables_returns_false_when_database_exists_but_has_no_tables_test(bool async)
         {
             using (var testDatabase = NpgsqlTestStore.CreateScratch(createDatabase: true))
             {
@@ -129,7 +129,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             await HasTables_returns_true_when_database_exists_and_has_any_tables_test(async: true);
         }
 
-        private static async Task HasTables_returns_true_when_database_exists_and_has_any_tables_test(bool async)
+        static async Task HasTables_returns_true_when_database_exists_and_has_any_tables_test(bool async)
         {
             using (var testDatabase = NpgsqlTestStore.CreateScratch(createDatabase: true))
             {
@@ -153,7 +153,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             await Delete_will_delete_database_test(async: true);
         }
 
-        private static async Task Delete_will_delete_database_test(bool async)
+        static async Task Delete_will_delete_database_test(bool async)
         {
             using (var testDatabase = NpgsqlTestStore.CreateScratch(createDatabase: true))
             {
@@ -188,7 +188,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             await Delete_throws_when_database_doesnt_exist_test(async: true);
         }
 
-        private static async Task Delete_throws_when_database_doesnt_exist_test(bool async)
+        static async Task Delete_throws_when_database_doesnt_exist_test(bool async)
         {
             using (var testDatabase = NpgsqlTestStore.CreateScratch(createDatabase: false))
             {
@@ -217,7 +217,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             await CreateTables_creates_schema_in_existing_database_test(async: true);
         }
 
-        private static async Task CreateTables_creates_schema_in_existing_database_test(bool async)
+        static async Task CreateTables_creates_schema_in_existing_database_test(bool async)
         {
             using (var testDatabase = NpgsqlTestStore.CreateScratch(createDatabase: true))
             {
@@ -271,7 +271,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             await CreateTables_throws_if_database_does_not_exist_test(async: true);
         }
 
-        private static async Task CreateTables_throws_if_database_does_not_exist_test(bool async)
+        static async Task CreateTables_throws_if_database_does_not_exist_test(bool async)
         {
             using (var testDatabase = NpgsqlTestStore.CreateScratch(createDatabase: false))
             {
@@ -298,7 +298,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             await Create_creates_physical_database_but_not_tables_test(async: true);
         }
 
-        private static async Task Create_creates_physical_database_but_not_tables_test(bool async)
+        static async Task Create_creates_physical_database_but_not_tables_test(bool async)
         {
             using (var testDatabase = NpgsqlTestStore.CreateScratch(createDatabase: false))
             {
@@ -338,7 +338,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             await Create_throws_if_database_already_exists_test(async: true);
         }
 
-        private static async Task Create_throws_if_database_already_exists_test(bool async)
+        static async Task Create_throws_if_database_already_exists_test(bool async)
         {
             using (var testDatabase = NpgsqlTestStore.CreateScratch(createDatabase: true))
             {
@@ -353,7 +353,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             }
         }
 
-        private static IServiceProvider CreateContextServices(NpgsqlTestStore testStore)
+        static IServiceProvider CreateContextServices(NpgsqlTestStore testStore)
             => ((IInfrastructure<IServiceProvider>)new BloggingContext(
                     new DbContextOptionsBuilder()
                         .UseNpgsql(testStore.ConnectionString, b => b.ApplyConfiguration())
@@ -363,12 +363,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                             .AddScoped<IRelationalDatabaseCreator, TestDatabaseCreator>().BuildServiceProvider()).Options))
                 .Instance;
 
-        private static IRelationalDatabaseCreator GetDatabaseCreator(NpgsqlTestStore testStore)
+        static IRelationalDatabaseCreator GetDatabaseCreator(NpgsqlTestStore testStore)
             => CreateContextServices(testStore).GetRequiredService<IRelationalDatabaseCreator>();
 
         /*
         // ReSharper disable once ClassNeverInstantiated.Local
-        private class TestNpgsqlExecutionStrategyFactory : NpgsqlExecutionStrategyFactory
+        class TestNpgsqlExecutionStrategyFactory : NpgsqlExecutionStrategyFactory
         {
             public TestNpgsqlExecutionStrategyFactory(IDbContextOptions options, ICurrentDbContext currentDbContext, ILogger<IExecutionStrategy> logger)
                 : base(options, currentDbContext, logger)
@@ -378,7 +378,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             protected override IExecutionStrategy CreateDefaultStrategy(ExecutionStrategyContext context) => NoopExecutionStrategy.Instance;
         }*/
 
-        private class BloggingContext : DbContext
+        class BloggingContext : DbContext
         {
             public BloggingContext(DbContextOptions options)
                 : base(options)

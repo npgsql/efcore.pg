@@ -4014,3 +4014,55 @@ LIMIT 1");
 
 
 
+Npgsql.EntityFrameworkCore.PostgreSQL.Query.SpatialQueryNpgsqlGeographyTest.<IsWithinDistance>d__9.MoveNext() : line 84
+            AssertSql(
+                @"@__point_0='POINT (0 1)' (DbType = Object)
+
+SELECT e.""Id"", ST_DWithin(e.""Point"", @__point_0, 1.0) AS ""IsWithinDistance""
+FROM ""PointEntity"" AS e");
+
+
+
+Npgsql.EntityFrameworkCore.PostgreSQL.Query.SpatialQueryNpgsqlGeographyTest.<IsWithinDistance>d__9.MoveNext() : line 84
+            AssertSql(
+                @"@__point_0='POINT (0 1)' (DbType = Object)
+
+SELECT e.""Id"", ST_DWithin(e.""Point"", @__point_0, 1.0) AS ""IsWithinDistance""
+FROM ""PointEntity"" AS e");
+
+
+
+System.RuntimeMethodHandle.InvokeMethod(Object target, Object[] arguments, Signature sig, Boolean constructor, Boolean wrapExceptions) : 
+            AssertSql(
+                @"SELECT websearch_to_tsquery('a OR b')
+FROM ""Customers"" AS c
+LIMIT 1");
+
+
+
+System.RuntimeMethodHandle.InvokeMethod(Object target, Object[] arguments, Signature sig, Boolean constructor, Boolean wrapExceptions) : 
+AssertSql(
+@"SELECT websearch_to_tsquery('english', 'a OR b')
+FROM ""Customers"" AS c
+LIMIT 1");
+
+
+
+Npgsql.EntityFrameworkCore.PostgreSQL.Query.FullTextSearchDbFunctionsNpgsqlTest.WebSearchToTsQuery_With_Config_From_Variable() : 
+            AssertSql(
+                @"@__config_1='english'
+
+SELECT websearch_to_tsquery(CAST(@__config_1 AS regconfig), 'a OR b')
+FROM ""Customers"" AS c
+LIMIT 1");
+
+
+
+Npgsql.EntityFrameworkCore.PostgreSQL.Query.FullTextSearchDbFunctionsNpgsqlTest.WebSearchToTsQuery_With_Config() : 
+            AssertSql(
+                @"SELECT websearch_to_tsquery(CAST('english' AS regconfig), 'a OR b')
+FROM ""Customers"" AS c
+LIMIT 1");
+
+
+

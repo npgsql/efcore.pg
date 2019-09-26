@@ -6,8 +6,17 @@ using NpgsqlTypes;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 {
+    /// <summary>
+    /// The type mapping for the PostgreSQL bit string type.
+    /// </summary>
+    /// <remarks>
+    /// See: https://www.postgresql.org/docs/current/static/datatype-bit.html
+    /// </remarks>
     public class NpgsqlBitTypeMapping : NpgsqlTypeMapping
     {
+        /// <summary>
+        /// Constructs an instance of the <see cref="NpgsqlBitTypeMapping"/> class.
+        /// </summary>
         public NpgsqlBitTypeMapping() : base("bit", typeof(BitArray), NpgsqlDbType.Bit) {}
 
         protected NpgsqlBitTypeMapping(RelationalTypeMappingParameters parameters)

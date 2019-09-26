@@ -1,15 +1,19 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Update;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
 {
+    /// <summary>
+    /// The Npgsql-specific implementation for <see cref="ModificationCommandBatch" />.
+    /// </summary>
     /// <remarks>
     /// The usual ModificationCommandBatch implementation is <see cref="AffectedCountModificationCommandBatch"/>,
     /// which selects the number of rows modified via a SQL query.
@@ -28,13 +32,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
         readonly int _maxBatchSize;
         long _parameterCount;
 
+        /// <summary>
+        /// Constructs an instance of the <see cref="NpgsqlModificationCommandBatch"/> class.
+        /// </summary>
+        /// <param name="commandBuilderFactory">The builder to build commands.</param>
+        /// <param name="sqlGenerationHelper">A helper for SQL generation.</param>
+        /// <param name="updateSqlGenerator">A SQL generator for insert, update, and delete commands.</param>
+        /// <param name="valueBufferFactoryFactory">A factory for creating <see cref="ValueBuffer" /> factories.</param>
+        /// <param name="maxBatchSize">The maximum count of commands to batch.</param>
         public NpgsqlModificationCommandBatch(
-            [NotNull] IRelationalCommandBuilderFactory commandBuilderFactory,
-            [NotNull] ISqlGenerationHelper sqlGenerationHelper,
-            [NotNull] IUpdateSqlGenerator updateSqlGenerator,
-            [NotNull] IRelationalValueBufferFactoryFactory valueBufferFactoryFactory,
+            [NotNull] ModificationCommandBatchFactoryDependencies dependencies,
             [CanBeNull] int? maxBatchSize)
-            : base(commandBuilderFactory, sqlGenerationHelper, updateSqlGenerator, valueBufferFactoryFactory)
+            : base(dependencies)
         {
             if (maxBatchSize.HasValue && maxBatchSize.Value <= 0)
                 throw new ArgumentOutOfRangeException(nameof(maxBatchSize), RelationalStrings.InvalidMaxBatchSize);

@@ -17,9 +17,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         {
             base.BuildModelExternal(modelBuilder);
 
-            modelBuilder.Entity<Chassis>().ForNpgsqlUseXminAsConcurrencyToken();
-            modelBuilder.Entity<Driver>().ForNpgsqlUseXminAsConcurrencyToken();
-            modelBuilder.Entity<Team>().ForNpgsqlUseXminAsConcurrencyToken();
+            modelBuilder.Entity<Chassis>().UseXminAsConcurrencyToken();
+            modelBuilder.Entity<Driver>().UseXminAsConcurrencyToken();
+            modelBuilder.Entity<Team>().UseXminAsConcurrencyToken();
         }
     }
 }

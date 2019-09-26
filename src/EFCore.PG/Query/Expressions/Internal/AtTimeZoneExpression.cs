@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Linq.Expressions;
 using JetBrains.Annotations;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Sql.Internal;
+using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
+using Microsoft.EntityFrameworkCore.Storage;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
@@ -9,25 +12,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
     /// <summary>
     /// Represents a PostgreSQL AT TIME ZONE expression.
     /// </summary>
-    public class AtTimeZoneExpression : Expression
+    public class AtTimeZoneExpression : SqlExpression, IEquatable<AtTimeZoneExpression>
     {
-        /// <inheritdoc />
-        public override ExpressionType NodeType => ExpressionType.Extension;
-
-        /// <inheritdoc />
-        public override Type Type { get; }
-
         /// <summary>
         /// The timestamp.
         /// </summary>
         [NotNull]
-        public Expression Timestamp { get; }
+        public SqlExpression Timestamp { get; }
 
         /// <summary>
         /// The time zone.
         /// </summary>
         [NotNull]
-        public string TimeZone { get; }
+        public SqlExpression TimeZone { get; }
 
         /// <summary>
         /// Constructs an <see cref="AtTimeZoneExpression"/>.
@@ -36,11 +33,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         /// <param name="timeZone">The time zone.</param>
         /// <param name="type">The type of the expression.</param>
         /// <exception cref="ArgumentNullException" />
-        public AtTimeZoneExpression([NotNull] Expression timestamp, [NotNull] string timeZone, [NotNull] Type type)
+        public AtTimeZoneExpression([NotNull] SqlExpression timestamp, [NotNull] SqlExpression timeZone, [NotNull] Type type, RelationalTypeMapping typeMapping)
+            : base(type, typeMapping)
         {
             Timestamp = Check.NotNull(timestamp, nameof(timestamp));
             TimeZone = Check.NotNull(timeZone, nameof(timeZone));
-            Type = Check.NotNull(type, nameof(type));
         }
 
         /// <inheritdoc />
@@ -51,13 +48,29 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
 
         /// <inheritdoc />
         protected override Expression VisitChildren(ExpressionVisitor visitor)
-        {
-            var timestamp = visitor.Visit(Timestamp) ?? Timestamp;
+            => Update((SqlExpression)visitor.Visit(Timestamp), (SqlExpression)visitor.Visit(TimeZone));
 
-            return
-                timestamp != Timestamp
-                    ? new AtTimeZoneExpression(timestamp, TimeZone, Type)
-                    : this;
+        public AtTimeZoneExpression Update(SqlExpression timestamp, SqlExpression timeZone)
+            => timestamp == Timestamp && timeZone == TimeZone
+                ? this
+                : new AtTimeZoneExpression(timestamp, TimeZone, Type, TypeMapping);
+
+        public bool Equals(AtTimeZoneExpression other)
+            => ReferenceEquals(this, other) ||
+               other is object &&
+               base.Equals(other) &&
+               Timestamp.Equals(other.Timestamp) &&
+               TimeZone.Equals(other.TimeZone);
+
+        public override bool Equals(object obj) => obj is AtTimeZoneExpression e && Equals(e);
+
+        public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), Timestamp, TimeZone);
+
+        public override void Print(ExpressionPrinter expressionPrinter)
+        {
+            expressionPrinter.Visit(Timestamp);
+            expressionPrinter.Append(" AT TIME ZONE ");
+            expressionPrinter.Visit(TimeZone);
         }
 
         /// <inheritdoc />

@@ -5,6 +5,8 @@ using Xunit;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
+// ReSharper disable IdentifierTypo
+// ReSharper disable StringLiteralTypo
 namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
     public class DefaultValuesTest : IDisposable
@@ -56,6 +58,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 _databaseName = databaseName;
             }
 
+            // ReSharper disable once UnusedAutoPropertyAccessor.Local
             public DbSet<KettleChips> Chips { get; set; }
 
             protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -72,6 +75,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
         class KettleChips
         {
+            // ReSharper disable once UnusedMember.Local
             public int Id { get; set; }
             public string Name { get; set; }
             public DateTime BestBuyDate { get; set; }

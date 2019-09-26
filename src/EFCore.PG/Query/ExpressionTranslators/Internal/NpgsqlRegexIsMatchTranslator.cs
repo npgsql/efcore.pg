@@ -1,9 +1,10 @@
-﻿using System.Linq.Expressions;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
+using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
@@ -23,27 +24,36 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
         const RegexOptions UnsupportedRegexOptions = RegexOptions.RightToLeft | RegexOptions.ECMAScript;
 
+        readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
+
+        public NpgsqlRegexIsMatchTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory)
+            => _sqlExpressionFactory = sqlExpressionFactory;
+
         /// <inheritdoc />
         [CanBeNull]
-        public Expression Translate(MethodCallExpression e)
+        public SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
         {
-            // Regex.IsMatch(string, string)
-            if (e.Method.Equals(IsMatch))
-                return new RegexMatchExpression(e.Arguments[0], e.Arguments[1], RegexOptions.None);
-
-            // Regex.IsMatch(string, string, RegexOptions)
-            if (!e.Method.Equals(IsMatchWithRegexOptions))
+            if (method != IsMatch && method != IsMatchWithRegexOptions)
                 return null;
 
-            if (!(e.Arguments[2] is ConstantExpression constantExpr))
-                return null;
+            var (input, pattern) = (arguments[0], arguments[1]);
+            var typeMapping = ExpressionExtensions.InferTypeMapping(input, pattern);
 
-            var options = (RegexOptions)constantExpr.Value;
+            RegexOptions options;
 
-            return
-                (options & UnsupportedRegexOptions) == 0
-                    ? new RegexMatchExpression(e.Arguments[0], e.Arguments[1], options)
-                    : null;
+            if (method == IsMatch)
+                options = RegexOptions.None;
+            else if (arguments[2] is SqlConstantExpression constantOptionsExpr)
+                options = (RegexOptions)constantOptionsExpr.Value;
+            else
+                return null;  // We don't support non-constant regex options
+
+            return (options & UnsupportedRegexOptions) == 0
+                ? _sqlExpressionFactory.RegexMatch(
+                    _sqlExpressionFactory.ApplyTypeMapping(input, typeMapping),
+                    _sqlExpressionFactory.ApplyTypeMapping(pattern, typeMapping),
+                    options)
+                : null;
         }
     }
 }

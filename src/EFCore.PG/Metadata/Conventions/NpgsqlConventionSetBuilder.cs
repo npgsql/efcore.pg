@@ -1,33 +1,62 @@
+using System;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
-using Microsoft.EntityFrameworkCore.Metadata.Conventions.Internal;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
 {
+    [EntityFrameworkInternal]
     public class NpgsqlConventionSetBuilder : RelationalConventionSetBuilder
     {
-        public NpgsqlConventionSetBuilder([NotNull] RelationalConventionSetBuilderDependencies dependencies)
-            : base(dependencies)
+        [CanBeNull] readonly Version _postgresVersion;
+
+        [EntityFrameworkInternal]
+        public NpgsqlConventionSetBuilder(
+            [NotNull] ProviderConventionSetBuilderDependencies dependencies,
+            [NotNull] RelationalConventionSetBuilderDependencies relationalDependencies,
+            [NotNull] INpgsqlOptions npgsqlOptions)
+            : base(dependencies, relationalDependencies)
+            => _postgresVersion = npgsqlOptions.PostgresVersion;
+
+        [EntityFrameworkInternal]
+        public override ConventionSet CreateConventionSet()
         {
-        }
+            var conventionSet = base.CreateConventionSet();
 
-        public override ConventionSet AddConventions(ConventionSet conventionSet)
-        {
-            Check.NotNull(conventionSet, nameof(conventionSet));
-
-            base.AddConventions(conventionSet);
-
-            var valueGenerationStrategyConvention = new NpgsqlValueGenerationStrategyConvention();
+            var valueGenerationStrategyConvention = new NpgsqlValueGenerationStrategyConvention(Dependencies, RelationalDependencies, _postgresVersion);
             conventionSet.ModelInitializedConventions.Add(valueGenerationStrategyConvention);
-            conventionSet.ModelInitializedConventions.Add(new RelationalMaxIdentifierLengthConvention(63));
+            conventionSet.ModelInitializedConventions.Add(new RelationalMaxIdentifierLengthConvention(63, Dependencies, RelationalDependencies));
+
+            var valueGenerationConvention = new NpgsqlValueGenerationConvention(Dependencies, RelationalDependencies);
+            ReplaceConvention(conventionSet.EntityTypeBaseTypeChangedConventions, valueGenerationConvention);
+
+            ReplaceConvention(conventionSet.EntityTypePrimaryKeyChangedConventions, valueGenerationConvention);
+
+            ReplaceConvention(conventionSet.ForeignKeyAddedConventions, valueGenerationConvention);
+
+            ReplaceConvention(conventionSet.ForeignKeyRemovedConventions, valueGenerationConvention);
+
+            ConventionSet.AddBefore(
+                conventionSet.ModelFinalizedConventions,
+                valueGenerationStrategyConvention,
+                typeof(ValidatingConvention));
+
+            var storeGenerationConvention =
+                new NpgsqlStoreGenerationConvention(Dependencies, RelationalDependencies);
+            ReplaceConvention(conventionSet.PropertyAnnotationChangedConventions, storeGenerationConvention);
+            ReplaceConvention(
+                conventionSet.PropertyAnnotationChangedConventions, (RelationalValueGenerationConvention)valueGenerationConvention);
+
+            ReplaceConvention(conventionSet.ModelFinalizedConventions, storeGenerationConvention);
 
             return conventionSet;
         }
 
+        [EntityFrameworkInternal]
         public static ConventionSet Build()
         {
             var serviceProvider = new ServiceCollection()

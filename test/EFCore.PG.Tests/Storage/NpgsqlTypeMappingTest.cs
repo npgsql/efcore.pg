@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -114,7 +115,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
 
         [Fact]
         public void GenerateCodeLiteral_returns_macaddr_literal()
-            => Assert.Equal("System.Net.NetworkInformation.PhysicalAddress.Parse(\"001122334455\")", CodeLiteral(PhysicalAddress.Parse("00-11-22-33-44-55")));
+            => Assert.Equal(@"System.Net.NetworkInformation.PhysicalAddress.Parse(""001122334455"")", CodeLiteral(PhysicalAddress.Parse("00-11-22-33-44-55")));
 
         [Fact]
         public void GenerateSqlLiteral_returns_macaddr8_literal()
@@ -122,7 +123,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
 
         [Fact]
         public void GenerateCodeLiteral_returns_macaddr8_literal()
-            => Assert.Equal("System.Net.NetworkInformation.PhysicalAddress.Parse(\"0011223344556677\")", CodeLiteral(PhysicalAddress.Parse("00-11-22-33-44-55-66-77")));
+            => Assert.Equal(@"System.Net.NetworkInformation.PhysicalAddress.Parse(""0011223344556677"")", CodeLiteral(PhysicalAddress.Parse("00-11-22-33-44-55-66-77")));
 
         [Fact]
         public void GenerateSqlLiteral_returns_inet_literal()
@@ -130,7 +131,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
 
         [Fact]
         public void GenerateCodeLiteral_returns_inet_literal()
-            => Assert.Equal("System.Net.IPAddress.Parse(\"192.168.1.1\")", CodeLiteral(IPAddress.Parse("192.168.1.1")));
+            => Assert.Equal(@"System.Net.IPAddress.Parse(""192.168.1.1"")", CodeLiteral(IPAddress.Parse("192.168.1.1")));
 
         [Fact]
         public void GenerateSqlLiteral_returns_cidr_literal()
@@ -138,7 +139,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
 
         [Fact]
         public void GenerateCodeLiteral_returns_cidr_literal()
-            => Assert.Equal("new System.ValueTuple<System.Net.IPAddress, int>(System.Net.IPAddress.Parse(\"192.168.1.0\"), 24)", CodeLiteral((IPAddress.Parse("192.168.1.0"), 24)));
+            => Assert.Equal(@"new System.ValueTuple<System.Net.IPAddress, int>(System.Net.IPAddress.Parse(""192.168.1.0""), 24)", CodeLiteral((IPAddress.Parse("192.168.1.0"), 24)));
 
         #endregion Networking
 
@@ -322,14 +323,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         }
 
         [Fact]
-        public void GenerateSqlLiteral_returns_jsonb_literal()
-            => Assert.Equal(@"JSONB '{""a"":1}'", GetMapping("jsonb").GenerateSqlLiteral(@"{""a"":1}"));
-
-        [Fact]
-        public void GenerateSqlLiteral_returns_json_literal()
-            => Assert.Equal(@"JSON '{""a"":1}'", GetMapping("json").GenerateSqlLiteral(@"{""a"":1}"));
-
-        [Fact]
         public void GenerateSqlLiteral_returns_enum_literal()
         {
             var mapping = new NpgsqlEnumTypeMapping(
@@ -352,11 +345,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
                 new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
                 new NpgsqlSnakeCaseNameTranslator());
 
-            Assert.Equal("'sad'::\"DummyEnum\"", mapping.GenerateSqlLiteral(DummyEnum.Sad));
+            Assert.Equal(@"'sad'::""DummyEnum""", mapping.GenerateSqlLiteral(DummyEnum.Sad));
         }
 
         enum DummyEnum
         {
+            // ReSharper disable once UnusedMember.Local
             Happy,
             Sad
         };
@@ -439,6 +433,108 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
 
         #endregion Full text search
 
+        #region Json
+
+        [Fact]
+        public void GenerateSqlLiteral_returns_jsonb_string_literal()
+            => Assert.Equal(@"'{""a"":1}'", GetMapping("jsonb").GenerateSqlLiteral(@"{""a"":1}"));
+
+        [Fact]
+        public void GenerateSqlLiteral_returns_json_string_literal()
+            => Assert.Equal(@"'{""a"":1}'", GetMapping("json").GenerateSqlLiteral(@"{""a"":1}"));
+
+
+        [Fact]
+        public void GenerateSqlLiteral_returns_jsonb_object_literal()
+        {
+            var literal = Mapper.FindMapping(typeof(Customer), "jsonb").GenerateSqlLiteral(SampleCustomer);
+            Assert.Equal(@"'{""Name"":""Joe"",""Age"":25,""IsVip"":false,""Orders"":[" +
+                             @"{""Price"":99.5,""ShippingAddress"":""Some address 1"",""ShippingDate"":""2019-10-01T00:00:00""}," +
+                             @"{""Price"":23,""ShippingAddress"":""Some address 2"",""ShippingDate"":""2019-10-10T00:00:00""}" +
+                         @"]}'", literal);
+        }
+
+        [Fact]
+        public void GenerateSqlLiteral_returns_json_object_literal()
+        {
+            var literal = Mapper.FindMapping(typeof(Customer), "json").GenerateSqlLiteral(SampleCustomer);
+            Assert.Equal(@"'{""Name"":""Joe"",""Age"":25,""IsVip"":false,""Orders"":[" +
+                             @"{""Price"":99.5,""ShippingAddress"":""Some address 1"",""ShippingDate"":""2019-10-01T00:00:00""}," +
+                             @"{""Price"":23,""ShippingAddress"":""Some address 2"",""ShippingDate"":""2019-10-10T00:00:00""}" +
+                         @"]}'", literal);
+        }
+
+        [Fact]
+        public void GenerateSqlLiteral_returns_jsonb_document_literal()
+        {
+            var json = @"{""Name"":""Joe"",""Age"":25}";
+            var literal = Mapper.FindMapping(typeof(JsonDocument), "jsonb").GenerateSqlLiteral(JsonDocument.Parse(json));
+            Assert.Equal($"'{json}'", literal);
+        }
+
+        [Fact]
+        public void GenerateSqlLiteral_returns_json_document_literal()
+        {
+            var json = @"{""Name"":""Joe"",""Age"":25}";
+            var literal = Mapper.FindMapping(typeof(JsonDocument), "json").GenerateSqlLiteral(JsonDocument.Parse(json));
+            Assert.Equal($"'{json}'", literal);
+        }
+
+        [Fact]
+        public void GenerateSqlLiteral_returns_jsonb_element_literal()
+        {
+            var json = @"{""Name"":""Joe"",""Age"":25}";
+            var literal = Mapper.FindMapping(typeof(JsonElement), "jsonb").GenerateSqlLiteral(JsonDocument.Parse(json).RootElement);
+            Assert.Equal($"'{json}'", literal);
+        }
+
+        [Fact]
+        public void GenerateSqlLiteral_returns_json_element_literal()
+        {
+            var json = @"{""Name"":""Joe"",""Age"":25}";
+            var literal = Mapper.FindMapping(typeof(JsonElement), "json").GenerateSqlLiteral(JsonDocument.Parse(json).RootElement);
+            Assert.Equal($"'{json}'", literal);
+        }
+
+        static readonly Customer SampleCustomer = new Customer
+        {
+            Name = "Joe",
+            Age = 25,
+            IsVip = false,
+            Orders = new[]
+            {
+                new Order
+                {
+                    Price = 99.5m,
+                    ShippingAddress = "Some address 1",
+                    ShippingDate = new DateTime(2019, 10, 1)
+                },
+                new Order
+                {
+                    Price = 23,
+                    ShippingAddress = "Some address 2",
+                    ShippingDate = new DateTime(2019, 10, 10)
+                }
+            }
+        };
+
+        public class Customer
+        {
+            public string Name { get; set; }
+            public int Age { get; set; }
+            public bool IsVip { get; set; }
+            public Order[] Orders { get; set; }
+        }
+
+        public class Order
+        {
+            public decimal Price { get; set; }
+            public string ShippingAddress { get; set; }
+            public DateTime ShippingDate { get; set; }
+        }
+
+        #endregion Json
+
         #region Support
 
         static readonly NpgsqlTypeMappingSource Mapper = new NpgsqlTypeMappingSource(
@@ -451,15 +547,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
             new NpgsqlOptions()
         );
 
-        static RelationalTypeMapping GetMapping(string storeType)
-            => Mapper.FindMapping(storeType);
+        static RelationalTypeMapping GetMapping(string storeType) => Mapper.FindMapping(storeType);
 
-        public static RelationalTypeMapping GetMapping(Type clrType)
-            => (RelationalTypeMapping)Mapper.FindMapping(clrType);
+        static RelationalTypeMapping GetMapping(Type clrType) => (RelationalTypeMapping)Mapper.FindMapping(clrType);
 
-        static readonly CSharpHelper _csHelper = new CSharpHelper(Mapper);
+        static readonly CSharpHelper CsHelper = new CSharpHelper(Mapper);
 
-        static string CodeLiteral(object value) => _csHelper.UnknownLiteral(value);
+        static string CodeLiteral(object value) => CsHelper.UnknownLiteral(value);
 
         #endregion Support
     }

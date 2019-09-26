@@ -1,11 +1,13 @@
-﻿using System.Linq.Expressions;
+using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query.Expressions;
-using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators;
+using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
+using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
@@ -18,122 +20,115 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     /// </remarks>
     public class NpgsqlNetworkTranslator : IMethodCallTranslator
     {
-        /// <summary>
-        /// The static method info for <see cref="IPAddress.Parse(string)"/>.
-        /// </summary>
         [NotNull] static readonly MethodInfo IPAddressParse =
             typeof(IPAddress).GetRuntimeMethod(nameof(IPAddress.Parse), new[] { typeof(string) });
 
-        /// <summary>
-        /// The static method info for <see cref="PhysicalAddress.Parse(string)"/>.
-        /// </summary>
         [NotNull] static readonly MethodInfo PhysicalAddressParse =
             typeof(PhysicalAddress).GetRuntimeMethod(nameof(PhysicalAddress.Parse), new[] { typeof(string) });
 
+        [NotNull]
+        readonly ISqlExpressionFactory _sqlExpressionFactory;
+
+        readonly RelationalTypeMapping _boolMapping;
+        readonly RelationalTypeMapping _inetMapping;
+        readonly RelationalTypeMapping _cidrMapping;
+        readonly RelationalTypeMapping _macaddr8Mapping;
+
+        public NpgsqlNetworkTranslator(ISqlExpressionFactory sqlExpressionFactory, IRelationalTypeMappingSource typeMappingSource)
+        {
+            _sqlExpressionFactory = sqlExpressionFactory;
+            _boolMapping = typeMappingSource.FindMapping(typeof(bool));
+            _inetMapping = typeMappingSource.FindMapping("inet");
+            _cidrMapping = typeMappingSource.FindMapping("cidr");
+            _macaddr8Mapping = typeMappingSource.FindMapping("macaddr8");
+        }
+
         /// <inheritdoc />
         [CanBeNull]
-        public Expression Translate(MethodCallExpression expression)
+        public SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
         {
-            var method = expression.Method;
-
             if (method == IPAddressParse)
-                return new ExplicitCastExpression(expression.Arguments[0], typeof(IPAddress));
+                return _sqlExpressionFactory.Convert(arguments[0], typeof(IPAddress), _sqlExpressionFactory.FindMapping(typeof(IPAddress)));
 
             if (method == PhysicalAddressParse)
-                return new ExplicitCastExpression(expression.Arguments[0], typeof(PhysicalAddress));
+                return _sqlExpressionFactory.Convert(arguments[0], typeof(PhysicalAddress), _sqlExpressionFactory.FindMapping(typeof(PhysicalAddress)));
 
             if (method.DeclaringType != typeof(NpgsqlNetworkExtensions))
                 return null;
 
-            switch (method.Name)
+            return method.Name switch
             {
-            case nameof(NpgsqlNetworkExtensions.LessThan):
-                return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], "<", typeof(bool));
+            nameof(NpgsqlNetworkExtensions.LessThan)              => _sqlExpressionFactory.LessThan(arguments[1], arguments[2]),
+            nameof(NpgsqlNetworkExtensions.LessThanOrEqual)       => _sqlExpressionFactory.LessThanOrEqual(arguments[1], arguments[2]),
+            nameof(NpgsqlNetworkExtensions.GreaterThanOrEqual)    => _sqlExpressionFactory.GreaterThanOrEqual(arguments[1], arguments[2]),
+            nameof(NpgsqlNetworkExtensions.GreaterThan)           => _sqlExpressionFactory.GreaterThan(arguments[1], arguments[2]),
 
-            case nameof(NpgsqlNetworkExtensions.LessThanOrEqual):
-                return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], "<=", typeof(bool));
+            nameof(NpgsqlNetworkExtensions.ContainedBy)           => BoolReturningOnTwoNetworkTypes("<<"),
+            nameof(NpgsqlNetworkExtensions.ContainedByOrEqual)    => BoolReturningOnTwoNetworkTypes("<<="),
+            nameof(NpgsqlNetworkExtensions.Contains)              => BoolReturningOnTwoNetworkTypes(">>"),
+            nameof(NpgsqlNetworkExtensions.ContainsOrEqual)       => BoolReturningOnTwoNetworkTypes(">>="),
+            nameof(NpgsqlNetworkExtensions.ContainsOrContainedBy) => BoolReturningOnTwoNetworkTypes("&&"),
 
-            case nameof(NpgsqlNetworkExtensions.GreaterThanOrEqual):
-                return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], ">=", typeof(bool));
+            nameof(NpgsqlNetworkExtensions.BitwiseNot)            => new SqlUnaryExpression(ExpressionType.Not,
+                arguments[1],
+                arguments[1].Type,
+                arguments[1].TypeMapping),
 
-            case nameof(NpgsqlNetworkExtensions.GreaterThan):
-                return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], ">", typeof(bool));
+            nameof(NpgsqlNetworkExtensions.BitwiseAnd) => _sqlExpressionFactory.And(arguments[1], arguments[2]),
+            nameof(NpgsqlNetworkExtensions.BitwiseOr)  => _sqlExpressionFactory.Or(arguments[1], arguments[2]),
 
-            case nameof(NpgsqlNetworkExtensions.ContainedBy):
-                return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], "<<", typeof(bool));
+            // Add/Subtract accept inet + int, so we can't use the default type mapping inference logic which assumes
+            // same-typed operands
+            nameof(NpgsqlNetworkExtensions.Add)
+                => new SqlBinaryExpression(
+                    ExpressionType.Add,
+                    _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[1]),
+                    _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[2]),
+                    arguments[1].Type,
+                    arguments[1].TypeMapping),
 
-            case nameof(NpgsqlNetworkExtensions.ContainedByOrEqual):
-                return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], "<<=", typeof(bool));
+            nameof(NpgsqlNetworkExtensions.Subtract) when arguments[2].Type == typeof(int)
+                => new SqlBinaryExpression(
+                    ExpressionType.Subtract,
+                    _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[1]),
+                    _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[2]),
+                    arguments[1].Type,
+                    arguments[1].TypeMapping),
 
-            case nameof(NpgsqlNetworkExtensions.Contains):
-                return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], ">>", typeof(bool));
+            nameof(NpgsqlNetworkExtensions.Subtract)
+                when arguments[2].Type == typeof(IPAddress) || arguments[2].Type == typeof((IPAddress, int))
+                => new SqlBinaryExpression(
+                    ExpressionType.Subtract,
+                    _sqlExpressionFactory.ApplyTypeMapping(arguments[1], ExpressionExtensions.InferTypeMapping(arguments[1], arguments[2])),
+                    _sqlExpressionFactory.ApplyTypeMapping(arguments[2], ExpressionExtensions.InferTypeMapping(arguments[1], arguments[2])),
+                    arguments[1].Type,
+                    _sqlExpressionFactory.FindMapping(typeof(long))),
 
-            case nameof(NpgsqlNetworkExtensions.ContainsOrEqual):
-                return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], ">>=", typeof(bool));
+            nameof(NpgsqlNetworkExtensions.Abbreviate)    => _sqlExpressionFactory.Function("abbrev",           new[] { arguments[1] }, typeof(string)),
+            nameof(NpgsqlNetworkExtensions.Broadcast)     => _sqlExpressionFactory.Function("broadcast",        new[] { arguments[1] }, typeof(IPAddress), _inetMapping),
+            nameof(NpgsqlNetworkExtensions.Family)        => _sqlExpressionFactory.Function("family",           new[] { arguments[1] }, typeof(int)),
+            nameof(NpgsqlNetworkExtensions.Host)          => _sqlExpressionFactory.Function("host",             new[] { arguments[1] }, typeof(string)),
+            nameof(NpgsqlNetworkExtensions.HostMask)      => _sqlExpressionFactory.Function("hostmask",         new[] { arguments[1] }, typeof(IPAddress), _inetMapping),
+            nameof(NpgsqlNetworkExtensions.MaskLength)    => _sqlExpressionFactory.Function("masklen",          new[] { arguments[1] }, typeof(int)),
+            nameof(NpgsqlNetworkExtensions.Netmask)       => _sqlExpressionFactory.Function("netmask",          new[] { arguments[1] }, typeof(IPAddress), _inetMapping),
+            nameof(NpgsqlNetworkExtensions.Network)       => _sqlExpressionFactory.Function("network",          new[] { arguments[1] }, typeof((IPAddress Address, int Subnet)), _cidrMapping),
+            nameof(NpgsqlNetworkExtensions.SetMaskLength) => _sqlExpressionFactory.Function("set_masklen",      new[] { arguments[1], arguments[2] }, arguments[1].Type, arguments[1].TypeMapping),
+            nameof(NpgsqlNetworkExtensions.Text)          => _sqlExpressionFactory.Function("text",             new[] { arguments[1] }, typeof(string)),
+            nameof(NpgsqlNetworkExtensions.SameFamily)    => _sqlExpressionFactory.Function("inet_same_family", new[] { arguments[1], arguments[2] }, typeof(bool)),
+            nameof(NpgsqlNetworkExtensions.Merge)         => _sqlExpressionFactory.Function("inet_merge",       new[] { arguments[1], arguments[2] }, typeof((IPAddress Address, int Subnet)), _cidrMapping),
+            nameof(NpgsqlNetworkExtensions.Truncate)      => _sqlExpressionFactory.Function("trunc",            new[] { arguments[1] }, typeof(PhysicalAddress), arguments[1].TypeMapping),
+            nameof(NpgsqlNetworkExtensions.Set7BitMac8)   => _sqlExpressionFactory.Function("macaddr8_set7bit", new[] { arguments[1] }, typeof(PhysicalAddress), _macaddr8Mapping),
 
-            case nameof(NpgsqlNetworkExtensions.ContainsOrContainedBy):
-                return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], "&&", typeof(bool));
+            _ => (SqlExpression)null
+            };
 
-            case nameof(NpgsqlNetworkExtensions.BitwiseNot):
-                return new CustomUnaryExpression(expression.Arguments[1], "~", expression.Arguments[1].Type);
-
-            case nameof(NpgsqlNetworkExtensions.BitwiseAnd):
-                return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], "&", expression.Arguments[1].Type);
-
-            case nameof(NpgsqlNetworkExtensions.BitwiseOr):
-                return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], "|", expression.Arguments[1].Type);
-
-            case nameof(NpgsqlNetworkExtensions.Add):
-                return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], "+", expression.Arguments[1].Type);
-
-            case nameof(NpgsqlNetworkExtensions.Subtract):
-                return new CustomBinaryExpression(expression.Arguments[1], expression.Arguments[2], "-", expression.Arguments[1].Type);
-
-            case nameof(NpgsqlNetworkExtensions.Abbreviate):
-                return new SqlFunctionExpression("abbrev", typeof(string), new[] { expression.Arguments[1] });
-
-            case nameof(NpgsqlNetworkExtensions.Broadcast):
-                return new SqlFunctionExpression("broadcast", typeof(IPAddress), new[] { expression.Arguments[1] });
-
-            case nameof(NpgsqlNetworkExtensions.Family):
-                return new SqlFunctionExpression("family", typeof(int), new[] { expression.Arguments[1] });
-
-            case nameof(NpgsqlNetworkExtensions.Host):
-                return new SqlFunctionExpression("host", typeof(string), new[] { expression.Arguments[1] });
-
-            case nameof(NpgsqlNetworkExtensions.HostMask):
-                return new SqlFunctionExpression("hostmask", typeof(IPAddress), new[] { expression.Arguments[1] });
-
-            case nameof(NpgsqlNetworkExtensions.MaskLength):
-                return new SqlFunctionExpression("masklen", typeof(int), new[] { expression.Arguments[1] });
-
-            case nameof(NpgsqlNetworkExtensions.Netmask):
-                return new SqlFunctionExpression("netmask", typeof(IPAddress), new[] { expression.Arguments[1] });
-
-            case nameof(NpgsqlNetworkExtensions.Network):
-                return new SqlFunctionExpression("network", typeof((IPAddress Address, int Subnet)), new[] { expression.Arguments[1] });
-
-            case nameof(NpgsqlNetworkExtensions.SetMaskLength):
-                return new SqlFunctionExpression("set_masklen", expression.Arguments[1].Type, new[] { expression.Arguments[1], expression.Arguments[2] });
-
-            case nameof(NpgsqlNetworkExtensions.Text):
-                return new SqlFunctionExpression("text", typeof(string), new[] { expression.Arguments[1] });
-
-            case nameof(NpgsqlNetworkExtensions.SameFamily):
-                return new SqlFunctionExpression("inet_same_family", typeof(bool), new[] { expression.Arguments[1], expression.Arguments[2] });
-
-            case nameof(NpgsqlNetworkExtensions.Merge):
-                return new SqlFunctionExpression("inet_merge", typeof((IPAddress Address, int Subnet)), new[] { expression.Arguments[1], expression.Arguments[2] });
-
-            case nameof(NpgsqlNetworkExtensions.Truncate):
-                return new SqlFunctionExpression("trunc", typeof(PhysicalAddress), new[] { expression.Arguments[1] });
-
-            case nameof(NpgsqlNetworkExtensions.Set7BitMac8):
-                return new SqlFunctionExpression("macaddr8_set7bit", typeof(PhysicalAddress), new[] { expression.Arguments[1] });
-
-            default:
-                return null;
-            }
+            SqlCustomBinaryExpression BoolReturningOnTwoNetworkTypes(string @operator)
+                => new SqlCustomBinaryExpression(
+                    _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[1]),
+                    _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[2]),
+                    @operator,
+                    typeof(bool),
+                    _boolMapping);
         }
     }
 }

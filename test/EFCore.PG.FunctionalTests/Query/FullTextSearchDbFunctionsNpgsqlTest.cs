@@ -3,8 +3,11 @@ using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestModels.Northwind;
 using Microsoft.EntityFrameworkCore.TestUtilities;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities.Xunit;
 using NpgsqlTypes;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
@@ -12,10 +15,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
     {
         protected NorthwindQueryNpgsqlFixture<NoopModelCustomizer> Fixture { get; }
 
-        public FullTextSearchDbFunctionsNpgsqlTest(NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture)
+        public FullTextSearchDbFunctionsNpgsqlTest(NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture, ITestOutputHelper testOutputHelper)
         {
             Fixture = fixture;
             Fixture.TestSqlLoggerFactory.Clear();
+            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
         [Fact]
@@ -28,7 +32,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             }
 
             AssertSql(
-                @"SELECT CAST('a b' AS tsvector)
+                @"SELECT 'a b'::tsvector
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -92,6 +96,24 @@ LIMIT 1");
         }
 
         [Fact]
+        public void ToTsVector_With_Config_From_Variable()
+        {
+            using (var context = CreateContext())
+            {
+                var config = "english";
+                var tsvector = context.Customers.Select(c => EF.Functions.ToTsVector(config, c.CompanyName)).First();
+                Assert.NotNull(tsvector);
+            }
+
+            AssertSql(
+                @"@__config_1='english'
+
+SELECT to_tsvector(@__config_1::regconfig, c.""CompanyName"")
+FROM ""Customers"" AS c
+LIMIT 1");
+        }
+
+        [Fact]
         public void TsQueryParse_converted_to_cast()
         {
             using (var context = CreateContext())
@@ -101,7 +123,7 @@ LIMIT 1");
             }
 
             AssertSql(
-                @"SELECT CAST('a & b' AS tsquery)
+                @"SELECT 'a & b'::tsquery
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -137,6 +159,24 @@ LIMIT 1");
         }
 
         [Fact]
+        public void PlainToTsQuery_With_Config_From_Variable()
+        {
+            using (var context = CreateContext())
+            {
+                var config = "english";
+                var tsquery = context.Customers.Select(c => EF.Functions.PlainToTsQuery(config, "a")).First();
+                Assert.NotNull(tsquery);
+            }
+
+            AssertSql(
+                @"@__config_1='english'
+
+SELECT plainto_tsquery(@__config_1::regconfig, 'a')
+FROM ""Customers"" AS c
+LIMIT 1");
+        }
+
+        [Fact]
         public void PhraseToTsQuery()
         {
             using (var context = CreateContext())
@@ -167,6 +207,24 @@ LIMIT 1");
         }
 
         [Fact]
+        public void PhraseToTsQuery_With_Config_From_Variable()
+        {
+            using (var context = CreateContext())
+            {
+                var config = "english";
+                var tsquery = context.Customers.Select(c => EF.Functions.PhraseToTsQuery(config, "a b")).First();
+                Assert.NotNull(tsquery);
+            }
+
+            AssertSql(
+                @"@__config_1='english'
+
+SELECT phraseto_tsquery(@__config_1::regconfig, 'a b')
+FROM ""Customers"" AS c
+LIMIT 1");
+        }
+
+        [Fact]
         public void ToTsQuery()
         {
             using (var context = CreateContext())
@@ -192,6 +250,72 @@ LIMIT 1");
 
             AssertSql(
                 @"SELECT to_tsquery('english', 'a & b')
+FROM ""Customers"" AS c
+LIMIT 1");
+        }
+
+        [Fact]
+        public void ToTsQuery_With_Config_From_Variable()
+        {
+            using (var context = CreateContext())
+            {
+                var config = "english";
+                var tsquery = context.Customers.Select(c => EF.Functions.ToTsQuery(config, "a & b")).First();
+                Assert.NotNull(tsquery);
+            }
+
+            AssertSql(
+                @"@__config_1='english'
+
+SELECT to_tsquery(@__config_1::regconfig, 'a & b')
+FROM ""Customers"" AS c
+LIMIT 1");
+        }
+
+        [MinimumPostgresVersionFact(11, 0)]
+        public void WebSearchToTsQuery()
+        {
+            using (var context = CreateContext())
+            {
+                var tsquery = context.Customers.Select(c => EF.Functions.WebSearchToTsQuery("a OR b")).First();
+                Assert.NotNull(tsquery);
+            }
+
+            AssertSql(
+                @"SELECT websearch_to_tsquery('a OR b')
+FROM ""Customers"" AS c
+LIMIT 1");
+        }
+
+        [MinimumPostgresVersionFact(11, 0)]
+        public void WebSearchToTsQuery_With_Config()
+        {
+            using (var context = CreateContext())
+            {
+                var tsquery = context.Customers.Select(c => EF.Functions.WebSearchToTsQuery("english", "a OR b")).First();
+                Assert.NotNull(tsquery);
+            }
+
+            AssertSql(
+                @"SELECT websearch_to_tsquery('english', 'a OR b')
+FROM ""Customers"" AS c
+LIMIT 1");
+        }
+
+        [MinimumPostgresVersionFact(11, 0)]
+        public void WebSearchToTsQuery_With_Config_From_Variable()
+        {
+            using (var context = CreateContext())
+            {
+                var config = "english";
+                var tsquery = context.Customers.Select(c => EF.Functions.WebSearchToTsQuery(config, "a OR b")).First();
+                Assert.NotNull(tsquery);
+            }
+
+            AssertSql(
+                @"@__config_1='english'
+
+SELECT websearch_to_tsquery(@__config_1::regconfig, 'a OR b')
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -371,6 +495,30 @@ LIMIT 1");
         }
 
         [Fact]
+        public void GetResultHeadline_With_Config_From_Variable_And_Options()
+        {
+            using (var context = CreateContext())
+            {
+                var config = "english";
+                var headline = context.Customers
+                    .Select(
+                        c => EF.Functions.ToTsQuery("b").GetResultHeadline(
+                            config,
+                            "a b c",
+                            "MinWords=1, MaxWords=2"))
+                    .First();
+                Assert.NotEmpty(headline);
+            }
+
+            AssertSql(
+                @"@__config_1='english'
+
+SELECT ts_headline(@__config_1::regconfig, 'a b c', to_tsquery('b'), 'MinWords=1, MaxWords=2')
+FROM ""Customers"" AS c
+LIMIT 1");
+        }
+
+        [Fact]
         public void Rewrite()
         {
             using (var context = CreateContext())
@@ -473,7 +621,7 @@ LIMIT 1");
             }
 
             AssertSql(
-                @"SELECT (to_tsvector('b') || to_tsvector('c'))
+                @"SELECT to_tsvector('b') || to_tsvector('c')
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -580,7 +728,7 @@ FROM ""Customers"" AS c
 LIMIT 1");
         }
 
-        [Fact]
+        [Fact(Skip = "Need to reimplement with \"char\"[]")]
         public void Filter()
         {
             using (var context = CreateContext())

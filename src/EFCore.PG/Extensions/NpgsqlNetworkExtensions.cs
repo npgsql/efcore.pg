@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Runtime.CompilerServices;
@@ -648,12 +649,12 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="inet">The inet from which to subtract.</param>
         /// <param name="other">The inet to subtract.</param>
         /// <returns>
-        /// The <see cref="IPAddress"/> augmented by the <paramref name="other"/>.
+        /// The numeric difference between the two given addresses.
         /// </returns>
         /// <exception cref="NotSupportedException">
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
-        public static IPAddress Subtract([CanBeNull] this DbFunctions _, IPAddress inet, IPAddress other)
+        public static int Subtract([CanBeNull] this DbFunctions _, IPAddress inet, IPAddress other)
             => throw ClientEvaluationNotSupportedException();
 
         /// <summary>
@@ -663,12 +664,12 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="cidr">The cidr from which to subtract.</param>
         /// <param name="other">The cidr to subtract.</param>
         /// <returns>
-        /// The (IPAddress Address, int Subnet) augmented by the <paramref name="other"/>.
+        /// The difference between the two addresses.
         /// </returns>
         /// <exception cref="NotSupportedException">
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
-        public static (IPAddress Address, int Subnet) Subtract([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr, (IPAddress Address, int Subnet) other)
+        public static int Subtract([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr, (IPAddress Address, int Subnet) other)
             => throw ClientEvaluationNotSupportedException();
 
         #endregion
@@ -1056,7 +1057,6 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns>
         /// A <see cref="NotSupportedException"/>.
         /// </returns>
-        [NotNull]
         static NotSupportedException ClientEvaluationNotSupportedException([CallerMemberName] string method = default)
             => new NotSupportedException($"{method} is only intended for use via SQL translation as part of an EF Core LINQ query.");
 

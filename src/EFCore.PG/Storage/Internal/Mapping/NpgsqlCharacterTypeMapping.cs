@@ -14,7 +14,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     /// See: https://www.postgresql.org/docs/current/static/datatype-character.html
     /// </remarks>
     /// <inheritdoc />
-    public class NpgsqlCharacterTypeMapping : NpgsqlStringTypeMapping
+    public class NpgsqlCharacterTypeMapping : StringTypeMapping
     {
         /// <summary>
         /// Static <see cref="ValueComparer{T}"/> for fixed-width character types.
@@ -34,13 +34,29 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
         public override ValueComparer KeyComparer => CharacterValueComparer;
 
-        public NpgsqlCharacterTypeMapping([NotNull] string storeType, bool unicode = false, int? size = null)
-            : base(storeType, unicode, size) {}
+        public NpgsqlCharacterTypeMapping([NotNull] string storeType, int? size = null)
+            : this(new RelationalTypeMappingParameters(
+                new CoreTypeMappingParameters(typeof(string)),
+                storeType,
+                size == null ? StoreTypePostfix.None : StoreTypePostfix.Size,
+                System.Data.DbType.StringFixedLength,
+                false,
+                size,
+                true)) {}
 
         protected NpgsqlCharacterTypeMapping(RelationalTypeMappingParameters parameters) : base(parameters) {}
 
         protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
-            => new NpgsqlCharacterTypeMapping(parameters);
+            => new NpgsqlCharacterTypeMapping(new RelationalTypeMappingParameters(
+                parameters.CoreParameters,
+                parameters.StoreType,
+                parameters.Size == null ? StoreTypePostfix.None : StoreTypePostfix.Size,
+                parameters.DbType,
+                parameters.Unicode,
+                parameters.Size,
+                parameters.FixedLength,
+                parameters.Precision,
+                parameters.Scale));
 
         protected override void ConfigureParameter(DbParameter parameter)
         {
