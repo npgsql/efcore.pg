@@ -41,7 +41,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         [NotNull] static readonly MethodInfo TrimBothWithNoParam = typeof(string).GetRuntimeMethod(nameof(string.Trim), Type.EmptyTypes);
         [NotNull] static readonly MethodInfo TrimBothWithChars = typeof(string).GetRuntimeMethod(nameof(string.Trim), new[] { typeof(char[]) });
         [NotNull] static readonly MethodInfo TrimBothWithSingleChar = typeof(string).GetRuntimeMethod(nameof(string.Trim), new[] { typeof(char) });
-        [NotNull] static readonly MethodInfo Substring = typeof(string).GetTypeInfo().GetDeclaredMethods(nameof(string.Substring)).Single(m => m.GetParameters().Length == 2);
+        [NotNull] static readonly MethodInfo Substring = typeof(string).GetTypeInfo().GetDeclaredMethods(nameof(string.Substring)).Single(m => m.GetParameters().Length == 1);
+        [NotNull] static readonly MethodInfo SubstringWithLength = typeof(string).GetTypeInfo().GetDeclaredMethods(nameof(string.Substring)).Single(m => m.GetParameters().Length == 2);
         [NotNull] static readonly MethodInfo Replace = typeof(string).GetRuntimeMethod(nameof(string.Replace), new[] { typeof(string), typeof(string) });
         [NotNull] static readonly MethodInfo PadLeft = typeof(string).GetRuntimeMethod(nameof(string.PadLeft), new[] { typeof(int) });
         [NotNull] static readonly MethodInfo PadLeftWithChar = typeof(string).GetRuntimeMethod(nameof(string.PadLeft), new[] { typeof(int), typeof(char) });
@@ -106,16 +107,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     instance.TypeMapping);
             }
 
-            if (method == Substring)
+            if (method == Substring || method == SubstringWithLength)
             {
+                var args =
+                    method == Substring
+                        ? new[] { instance, GenerateOneBasedIndexExpression(arguments[0]) }
+                        : new[] { instance, GenerateOneBasedIndexExpression(arguments[0]), arguments[1] };
                 return _sqlExpressionFactory.Function(
                     "SUBSTRING",
-                    new[]
-                    {
-                        instance,
-                        GenerateOneBasedIndexExpression(arguments[0]),
-                        arguments[1]
-                    },
+                    args,
                     method.ReturnType,
                     instance.TypeMapping);
             }
