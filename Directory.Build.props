@@ -3,6 +3,6 @@
     <LangVersion>8.0</LangVersion>
     <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
     <NoWarn>NU5105</NoWarn>
-    <VersionPrefix>3.0.0</VersionPrefix>
+    <VersionPrefix>3.0.1</VersionPrefix>
   </PropertyGroup>
 </Project>
