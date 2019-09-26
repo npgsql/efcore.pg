@@ -172,6 +172,35 @@ WHERE e.""EmployeeID"" IN (0)");
 
         #endregion
 
+        #region Substring
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public Task Substring_without_length_with_Index_of(bool isAsync)
+            => AssertQuery<Customer>(isAsync, cs => cs
+                .Where(x => x.Address == "Walserweg 21")
+                .Where(x => x.Address.Substring(x.Address.IndexOf("e")) == "erweg 21"), entryCount: 1);
+
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public Task Substring_without_length_with_constant(bool isAsync)
+            => AssertQuery<Customer>(isAsync, cs => cs
+                //Walserweg 21
+                .Where(x => x.Address.Substring(5) == "rweg 21"), entryCount: 1);
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public Task Substring_without_length_with_closure(bool isAsync)
+        {
+            var startIndex = 5;
+            return AssertQuery<Customer>(isAsync, cs => cs
+                //Walserweg 21
+                .Where(x => x.Address.Substring(startIndex) == "rweg 21"), entryCount: 1);
+        }
+
+        #endregion
+
         #region Array contains
 
         // Note that this also takes care of array.Any(x => x == y)
