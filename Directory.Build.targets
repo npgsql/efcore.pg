@@ -10,9 +10,9 @@
     <PackageReference Update="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="3.0.0" />
     <PackageReference Update="Microsoft.Extensions.Logging" Version="3.0.0" />
 
-    <PackageReference Update="Npgsql" Version="4.1.0-preview2" />
-    <PackageReference Update="Npgsql.NodaTime" Version="4.1.0-preview2" />
-    <PackageReference Update="Npgsql.NetTopologySuite" Version="4.1.0-preview2" />
+    <PackageReference Update="Npgsql" Version="4.1.0" />
+    <PackageReference Update="Npgsql.NodaTime" Version="4.1.0" />
+    <PackageReference Update="Npgsql.NetTopologySuite" Version="4.1.0" />
 
     <PackageReference Update="Microsoft.NET.Test.Sdk" Version="16.3.0" />
     <PackageReference Update="xunit.core" Version="2.4.1" />
