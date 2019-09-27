@@ -26,7 +26,7 @@
     <NoWarn>NU5105</NoWarn>
   </PropertyGroup>
 
-  <!-- Siging configuration -->
+  <!-- Signing configuration -->
   <PropertyGroup>
     <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)Npgsql.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
