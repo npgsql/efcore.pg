@@ -1,0 +1,44 @@
+name: 3.1.0-ci.$(date +%Y%m%d)+sha.${{ github.sha }}
+
+on: [ push, pull_request ]
+
+jobs:
+  build:
+    name: Linux
+
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, windows-latest, macOS-latest ]
+        dotnet: [ '3.0.100' ]
+        postgresql: [ 10, 11 ]
+
+    services:
+      postgresql:
+        image: npgsql/postgres:${{ matrix.postgresql }}
+        ports:
+          - 5432:5432
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v1
+
+    - name: Setup .NET Core SDK
+      if: success()
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: ${{ matrix.dotnet }}
+
+    - name: Test
+      if: success()
+      shell: dotnet test test/**/*.csproj --configuration Debug
+
+    - name: Pack NuGet packages (CI versions)
+      if: success()
+      shell: |
+        VERSION_SUFFIX="-ci.$(date +%Y%m%d)+sha.${GITHUB_SHA:0:9}"
+        dotnet pack src/**/*.csproj --configuration Release --version-suffix $VERSION_SUFFIX
+        dotnet pack src/**/*.csproj --configuration Release --version-suffix $VERSION_SUFFIX --include-symbols
+      env:
+        GITHUB_SHA: ${{ github.sha }}
