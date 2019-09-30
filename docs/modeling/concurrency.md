@@ -14,5 +14,5 @@ To enable this feature on an entity, insert the following code into your context
 ```c#
 protected override void OnModelCreating(ModelBuilder modelBuilder)
     => modelBuilder.Entity<Blog>()
-                   .ForNpgsqlUseXminAsConcurrencyToken();
+                   .UseXminAsConcurrencyToken();
 ```

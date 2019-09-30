@@ -12,14 +12,14 @@ First, you must specify the PostgreSQL enum type on your model, just like you wo
 
 ```c#
 protected override void OnModelCreating(ModelBuilder builder)
-    => builder.ForNpgsqlHasEnum<Mood>();
+    => builder.HasPostgresEnum<Mood>();
 ```
 
 # [Version 2.1](#tab/tabid-2)
 
 ```c#
 protected override void OnModelCreating(ModelBuilder builder)
-    => builder.ForNpgsqlHasEnum("Mood", new[] { "happy", "sad" });
+    => builder.HasPostgresEnum("Mood", new[] { "happy", "sad" });
 ```
 
 ---
@@ -68,7 +68,7 @@ Although PostgreSQL allows [altering enum types](https://www.postgresql.org/docs
 
 ## Scaffolding from an existing database
 
-If you're creating your model from an existing database, the provider will recognize enums in your database, and scaffold the appropriate `ForNpgsqlHasEnum()` lines in your model. However, since the scaffolding process has no knowledge of your CLR type, and will therefore skip your enum columns (warnings will be logged). You will have to create the CLR type, add the global mapping and add the properties to your entities.
+If you're creating your model from an existing database, the provider will recognize enums in your database, and scaffold the appropriate `HasPostgresEnum()` lines in your model. However, since the scaffolding process has no knowledge of your CLR type, and will therefore skip your enum columns (warnings will be logged). You will have to create the CLR type, add the global mapping and add the properties to your entities.
 
 In the future it may be possible to scaffold the actual enum type (and with it the properties), but this doesn't happen at the moment.
 

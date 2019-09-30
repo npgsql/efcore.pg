@@ -30,7 +30,7 @@ PostgreSQL allows you to [attach comments](https://www.postgresql.org/docs/curre
 ```c#
 protected override void OnModelCreating(ModelBuilder modelBuilder)
     => modelBuilder.Entity<MyEntity>()
-                   .ForNpgsqlHasComment("Some comment");
+                   .HasComment("Some comment");
 ```
 
 ## Certificate authentication
@@ -84,7 +84,7 @@ PostgreSQL allows you to locate your database in different parts of your filesys
 
 ```c#
 protected override void OnModelCreating(ModelBuilder modelBuilder)
-    => modelBuilder.ForNpgsqlUseTablespace("my_tablespace");
+    => modelBuilder.UseTablespace("my_tablespace");
 ```
 
 You must have created your tablespace prior to this via the `CREATE TABLESPACE` command - the Npgsql EF Core provider does not do this for you. Note also that specifying a tablespace on specific tables is not supported.
@@ -96,7 +96,7 @@ If you're using CockroachDB, the Npgsql EF Core provider exposes its ["interleav
 ```c#
 protected override void OnModelCreating(ModelBuilder modelBuilder)
     => modelBuilder.Entity<Customer>()
-                   .ForCockroachDbInterleaveInParent(
+                   .UseCockroachDbInterleaveInParent(
                         typeof(ParentEntityType),
                         new List<string> { "prefix_column_1", "prefix_column_2" });
 ```

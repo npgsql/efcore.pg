@@ -59,20 +59,20 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 
 One disadvantage of database-generated values is that these values must be read back from the database after a row is inserted. If you're saving multiple related entities, this means you must perform multiple roundtrips as the first entity's generated key must be read before writing the second one. One solution to this problem is HiLo value generation: rather than relying on the database to generate each and every value, the application "allocates" a range of values, which it can then populate directly on new entities without any additional roundtrips. When the range is exhausted, a new range is allocated. In practical terms, this uses a sequence that increments by some large value (100 by default), allowing the application to insert 100 rows autonomously.
 
-To use HiLo, specify `ForNpgsqlUseSequenceHiLo` on a property in your model's `OnModelCreating`:
+To use HiLo, specify `UseHiLo` on a property in your model's `OnModelCreating`:
 
 ```c#
 protected override void OnModelCreating(ModelBuilder modelBuilder)
     => modelBuilder.Entity<Blog>()
                    .Property(b => b.Id)
-                   .ForNpgsqlUseSequenceHiLo();
+                   .UseHiLo();
 ```
 
 You can also make your model use HiLo everywhere:
 
 ```c#
 protected override void OnModelCreating(ModelBuilder modelBuilder)
-    => modelBuilder.ForNpgsqlUseSequenceHiLo();
+    => modelBuilder.UseHiLo();
 ```
 
 ## Guid/UUID Generation

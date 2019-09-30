@@ -91,7 +91,7 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 {
     modelBuilder.Entity<Product>()
         .HasIndex(p => p.SearchVector)
-        .ForNpgsqlHasMethod("GIN"); // Index method on the search vector (GIN or GIST)
+        .HasMethod("GIN"); // Index method on the search vector (GIN or GIST)
 }
 ```
 

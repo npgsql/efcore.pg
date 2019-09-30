@@ -38,10 +38,10 @@ The above does *not* create the `floatrange` type for you. In order to do that, 
 
 ```c#
 protected override void OnModelCreating(ModelBuilder modelBuilder)
-    => modelBuilder.ForNpgsqlHasRange("floatrange", "real");
+    => modelBuilder.HasPostgresRange("floatrange", "real");
 ```
 
-This will cause the appropriate [`CREATE TYPE ... AS RANGE`](https://www.postgresql.org/docs/current/static/sql-createtype.html) statement to be generated in your migrations, ensuring that your range is created and ready for use. Note that `ForNpgsqlHasRange()` supports additional parameters as supported by PostgreSQL `CREATE TYPE`.
+This will cause the appropriate [`CREATE TYPE ... AS RANGE`](https://www.postgresql.org/docs/current/static/sql-createtype.html) statement to be generated in your migrations, ensuring that your range is created and ready for use. Note that `HasPostgresRange()` supports additional parameters as supported by PostgreSQL `CREATE TYPE`.
 
 # Operation translation
 
