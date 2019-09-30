@@ -67,13 +67,16 @@ namespace ConsoleApp.PostgreSQL
 
 ## Additional configuration for ASP.NET Core applications
 
-Modify the `ConfigureServices` method in `Startup.cs`:
+Consult [this tutorial](https://docs.microsoft.com/en-us/aspnet/core/data/ef-rp/intro) for general information on how to make ASP.NET work with EF Core. For Npgsql specifically, simply place the following in your `ConfigureServices` method in `Startup.cs`:
 
 ```c#
-public IServiceProvider ConfigureServices(IServiceCollection services)
-    => services.AddEntityFrameworkNpgsql()
-               .AddDbContext<BloggingContext>()
-               .BuildServiceProvider();
+public void ConfigureServices(IServiceCollection services)
+{
+    // Other DI initializations
+
+    services.AddDbContext<BloggingContext>(options =>
+            options.UseNpgsql(Configuration.GetConnectionString("BloggingContext")));
+}
 ```
 ## Using an Existing Database (Database-First)
 
