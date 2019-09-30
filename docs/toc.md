@@ -8,6 +8,7 @@
 # Creating a Model
 ## [Table and Column Naming](modeling/table-column-naming.md)
 ## [Generated Properties](modeling/generated-properties.md)
+## [Concurrency Tokens](modeling/concurrency.md)
 ## [Indexes](modeling/indexes.md)
 # Mapping and Translation
 ## [General](mapping/general.md)
