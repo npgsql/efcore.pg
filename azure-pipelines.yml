@@ -1,4 +1,4 @@
-name: 3.0.0-ci.$(Date:yyyyMMdd).$(Rev:r) # equal to $(Build.BuildNumber)
+name: 3.0.1-ci.$(Date:yyyyMMdd).$(Rev:r) # equal to $(Build.BuildNumber)
 
 trigger:
   branches:
