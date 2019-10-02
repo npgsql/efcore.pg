@@ -1,8 +1,8 @@
-﻿using System;
+using System;
+using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 // ReSharper disable once CheckNamespace
@@ -11,6 +11,16 @@ namespace Microsoft.EntityFrameworkCore
     // TODO: This is unused. Can we remove it?
     public static class NpgsqlMigrationBuilderExtensions
     {
+        /// <summary>
+        /// Returns true if the active provider in a migration is the Npgsql provider.
+        /// </summary>
+        /// <param name="builder">The <see cref="MigrationBuilder" />.</param>
+        /// <returns>True if PostgreSQL is being used; false otherwise.</returns>
+        public static bool IsNpgsql([NotNull] this MigrationBuilder builder)
+            => builder.ActiveProvider.Equals(
+                typeof(NpgsqlMigrationBuilderExtensions).GetTypeInfo().Assembly.GetName().Name,
+                StringComparison.Ordinal);
+
         public static MigrationBuilder EnsurePostgresExtension(
             this MigrationBuilder builder,
             [NotNull] string name,
