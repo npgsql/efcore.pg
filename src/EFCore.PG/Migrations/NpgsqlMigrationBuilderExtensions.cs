@@ -14,7 +14,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <summary>
         /// Returns true if the active provider in a migration is the Npgsql provider.
         /// </summary>
-        /// <param name="builder">The <see cref="MigrationBuilder" />.</param>
+        /// The migrationBuilder from the parameters on <see cref="Migration.Up(MigrationBuilder)" /> or
+        /// <see cref="Migration.Down(MigrationBuilder)" />.
         /// <returns>True if PostgreSQL is being used; false otherwise.</returns>
         public static bool IsNpgsql([NotNull] this MigrationBuilder builder)
             => builder.ActiveProvider.Equals(
