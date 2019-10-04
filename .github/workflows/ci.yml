@@ -150,26 +150,26 @@ jobs:
           dotnet nuget push nupkgs/ci/Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.*.nupkg         --api-key $TOKEN --source $SOURCE --symbol-source $SYMBOL
         shell: bash
 
-      - name: Publish packages to GitHub Package Registry
-        env:
-          TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SOURCE: https://nuget.pkg.github.com/npgsql/index.json
-        run: |
-          # dotnet nuget push nupkgs/ci/Npgsql.EntityFrameworkCore.PostgreSQL.*.nupkg                  --api-key $TOKEN --source $SOURCE --symbol-source $SOURCE
-          # dotnet nuget push nupkgs/ci/Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite.*.nupkg --api-key $TOKEN --source $SOURCE --symbol-source $SOURCE
-          # dotnet nuget push nupkgs/ci/Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.*.nupkg         --api-key $TOKEN --source $SOURCE --symbol-source $SOURCE
-
-          # GPR has issues with API keys and `dotnet nuget` doesn't support `sources`...
-          # See: https://github.com/NuGet/Home/issues/8580
-          cd nupkgs/ci
-          curl -o nuget -L https://dist.nuget.org/win-x86-commandline/latest/nuget.exe
-          ./nuget sources add -Name "GitHub" -Source $SOURCE -UserName npgsql -Password $TOKEN
-          ./nuget push "Npgsql.EntityFrameworkCore.PostgreSQL.*.nupkg"                  -Source "GitHub"
-          ./nuget push "Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite.*.nupkg" -Source "GitHub"
-          ./nuget push "Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.*.nupkg"         -Source "GitHub"
-        shell: bash
-
-      # - name: Publish packages (NuGet)
-      #   if: startsWith(github.ref, 'refs/heads/master/')
-      #   run: dotnet nuget push nupkgs/ci/*.nupkg
-      #   shell: bash
+#      - name: Publish packages to GitHub Package Registry
+#        env:
+#          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#          SOURCE: https://nuget.pkg.github.com/npgsql/index.json
+#        run: |
+#          # dotnet nuget push nupkgs/ci/Npgsql.EntityFrameworkCore.PostgreSQL.*.nupkg                  --api-key $TOKEN --source $SOURCE --symbol-source $SOURCE
+#          # dotnet nuget push nupkgs/ci/Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite.*.nupkg --api-key $TOKEN --source $SOURCE --symbol-source $SOURCE
+#          # dotnet nuget push nupkgs/ci/Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.*.nupkg         --api-key $TOKEN --source $SOURCE --symbol-source $SOURCE
+#
+#          # GPR has issues with API keys and `dotnet nuget` doesn't support `sources`...
+#          # See: https://github.com/NuGet/Home/issues/8580
+#          cd nupkgs/ci
+#          curl -o nuget -L https://dist.nuget.org/win-x86-commandline/latest/nuget.exe
+#          ./nuget sources add -Name "GitHub" -Source $SOURCE -UserName npgsql -Password $TOKEN
+#          ./nuget push "Npgsql.EntityFrameworkCore.PostgreSQL.*.nupkg"                  -Source "GitHub"
+#          ./nuget push "Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite.*.nupkg" -Source "GitHub"
+#          ./nuget push "Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.*.nupkg"         -Source "GitHub"
+#        shell: bash
+#
+#      - name: Publish packages (NuGet)
+#        if: startsWith(github.ref, 'refs/heads/master/')
+#        run: dotnet nuget push nupkgs/ci/*.nupkg
+#        shell: bash
