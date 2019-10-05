@@ -1,4 +1,4 @@
-name: EFCore.PG CI
+name: Build
 
 on: push
 
@@ -24,22 +24,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v1
 
-      - name: Start PostgreSQL ${{ matrix.pg_major }} (docker)
+      - name: Start PostgreSQL ${{ matrix.pg_major }} (Linux)
         if: startsWith(matrix.os, 'ubuntu')
-        env:
-          IMAGE: npgsql/postgres:${{ matrix.pg_major }}
-        run: docker run --detach --name postgresql -p 5432:5432 $IMAGE
+        run: docker run --detach --name postgresql -p 5432:5432 npgsql/postgres:${{ matrix.pg_major }}
         shell: bash
 
-      - name: Start PostgreSQL ${{ matrix.pg_major }} (install)
+      - name: Start PostgreSQL ${{ matrix.pg_major }} (Windows)
         if: startsWith(matrix.os, 'windows')
-        env:
-          PG_MAJOR: ${{ matrix.pg_major }}
-          EDB_VERSION: ${{ matrix.edb_version }}
-          POSTGIS_VERSION: ${{ matrix.postgis_version }}
         run: |
           # Install PostgreSQL
-          curl -o pgsql.zip -L https://get.enterprisedb.com/postgresql/postgresql-${EDB_VERSION}-windows-x64-binaries.zip
+          curl -o pgsql.zip -L https://get.enterprisedb.com/postgresql/postgresql-${{ matrix.edb_version }}-windows-x64-binaries.zip
           unzip pgsql.zip -x 'pgsql/include/**' 'pgsql/doc/**' 'pgsql/pgAdmin 4/**' 'pgsql/StackBuilder/**'
 
           # Match Npgsql CI Docker image and stash one level up
@@ -47,8 +41,8 @@ jobs:
           cp {$GITHUB_WORKSPACE/.build/docker,pgsql}/server.key
 
           # Install PostGIS
-          POSTGIS_FILE="postgis-bundle-pg${PG_MAJOR}-${POSTGIS_VERSION}x64"
-          curl -o postgis.zip -L https://download.osgeo.org/postgis/windows/pg${PG_MAJOR}/${POSTGIS_FILE}.zip
+          POSTGIS_FILE="postgis-bundle-pg${{ matrix.pg_major }}-${{ matrix.postgis_version }}x64"
+          curl -o postgis.zip -L https://download.osgeo.org/postgis/windows/pg${{ matrix.pg_major }}/${POSTGIS_FILE}.zip
           unzip postgis.zip -d postgis
           cp -a postgis/$POSTGIS_FILE/. pgsql/
 
@@ -78,52 +72,34 @@ jobs:
         run: dotnet test test/EFCore.PG.Plugins.FunctionalTests --configuration Debug
         shell: bash
 
+  publish:
+    needs: build
+
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+
       - name: Pack NuGet packages (CI versions)
-        env:
-          GITHUB_SHA: ${{ github.sha }}
         run: |
           VERSION_SUFFIX="ci.$(date -u +%Y%m%dT%H%M%S)+sha.${GITHUB_SHA:0:9}"
           dotnet pack src/EFCore.PG          --configuration Release --output nupkgs/ci --version-suffix $VERSION_SUFFIX
-          dotnet pack src/EFCore.PG          --configuration Release --output nupkgs/ci --version-suffix $VERSION_SUFFIX --include-symbols
           dotnet pack src/EFCore.PG.NodaTime --configuration Release --output nupkgs/ci --version-suffix $VERSION_SUFFIX
-          dotnet pack src/EFCore.PG.NodaTime --configuration Release --output nupkgs/ci --version-suffix $VERSION_SUFFIX --include-symbols
           dotnet pack src/EFCore.PG.NTS      --configuration Release --output nupkgs/ci --version-suffix $VERSION_SUFFIX
-          dotnet pack src/EFCore.PG.NTS      --configuration Release --output nupkgs/ci --version-suffix $VERSION_SUFFIX --include-symbols
         shell: bash
 
       - name: Pack NuGet packages (Release versions)
         run: |
           dotnet pack src/EFCore.PG          --configuration Release --output nupkgs/release
-          dotnet pack src/EFCore.PG          --configuration Release --output nupkgs/release --include-symbols
           dotnet pack src/EFCore.PG.NodaTime --configuration Release --output nupkgs/release
-          dotnet pack src/EFCore.PG.NodaTime --configuration Release --output nupkgs/release --include-symbols
           dotnet pack src/EFCore.PG.NTS      --configuration Release --output nupkgs/release
-          dotnet pack src/EFCore.PG.NTS      --configuration Release --output nupkgs/release --include-symbols
         shell: bash
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v1
         with:
-          name: ${{ matrix.os }}_dotnet${{ matrix.dotnet }}_pg${{ matrix.pg_major }}+sha.${{ github.sha }}
-          path: nupkgs
-
-  publish:
-    needs: build
-
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      fail-fast: true
-      matrix:
-        os: [ windows-latest ]
-        dotnet: [ '3.0.100' ]
-        pg_major: [ 11 ]
-
-    steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v1
-        with:
-          name: ${{ matrix.os }}_dotnet${{ matrix.dotnet }}_pg${{ matrix.pg_major }}+sha.${{ github.sha }}
+          name: EFCore.PG+sha.${{ github.sha }}
           path: nupkgs
 
       - name: Publish packages to MyGet (unstable)
