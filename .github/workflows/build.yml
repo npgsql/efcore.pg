@@ -1,0 +1,121 @@
+name: Build
+
+on: push
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, windows-latest ]
+        pg_major: [ 11, 10 ]
+        include:
+          - pg_major: 11
+            edb_version: '11.4-2'
+            postgis_version: '2.5.3'
+          - pg_major: 10
+            edb_version: '10.9-2'
+            postgis_version: '2.5.3'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+
+      - name: Start PostgreSQL ${{ matrix.pg_major }} (Linux)
+        if: startsWith(matrix.os, 'ubuntu')
+        run: docker run --detach --name postgresql -p 5432:5432 npgsql/postgres:${{ matrix.pg_major }}
+        shell: bash
+
+      - name: Start PostgreSQL ${{ matrix.pg_major }} (Windows)
+        if: startsWith(matrix.os, 'windows')
+        run: |
+          # Install PostgreSQL
+          curl -o pgsql.zip -L https://get.enterprisedb.com/postgresql/postgresql-${{ matrix.edb_version }}-windows-x64-binaries.zip
+          unzip pgsql.zip -x 'pgsql/include/**' 'pgsql/doc/**' 'pgsql/pgAdmin 4/**' 'pgsql/StackBuilder/**'
+
+          # Match Npgsql CI Docker image and stash one level up
+          cp {$GITHUB_WORKSPACE/.build/docker,pgsql}/server.crt
+          cp {$GITHUB_WORKSPACE/.build/docker,pgsql}/server.key
+
+          # Install PostGIS
+          POSTGIS_FILE="postgis-bundle-pg${{ matrix.pg_major }}-${{ matrix.postgis_version }}x64"
+          curl -o postgis.zip -L https://download.osgeo.org/postgis/windows/pg${{ matrix.pg_major }}/${POSTGIS_FILE}.zip
+          unzip postgis.zip -d postgis
+          cp -a postgis/$POSTGIS_FILE/. pgsql/
+
+          # Start PostgreSQL
+          pgsql/bin/initdb -D pgsql/PGDATA -E UTF8 -U postgres
+          pgsql/bin/pg_ctl -D pgsql/PGDATA -l logfile -o '-c max_prepared_transactions=10 -c ssl=true -c ssl_cert_file=../server.crt -c ssl_key_file=../server.key' start
+
+          # Configure test account
+          pgsql/bin/psql -U postgres -c "CREATE ROLE npgsql_tests SUPERUSER LOGIN PASSWORD 'npgsql_tests'"
+          pgsql/bin/psql -U postgres -c "CREATE DATABASE npgsql_tests OWNER npgsql_tests"
+        shell: bash
+
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v1.0.2 # Issues with DOTNET_ROOT
+        with:
+          dotnet-version: '3.0.100'
+
+      - name: Test
+        run: dotnet test --configuration Debug
+        shell: bash
+
+  publish:
+    needs: build
+
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+
+      - name: Pack NuGet packages (CI versions)
+        if: startsWith(github.ref, 'refs/heads/hotfix/') == false
+        run: |
+          VERSION_SUFFIX="ci.$(date -u +%Y%m%dT%H%M%S)+sha.${GITHUB_SHA:0:9}"
+          dotnet pack --configuration Release --output nupkgs --version-suffix $VERSION_SUFFIX
+        shell: bash
+
+      - name: Pack NuGet packages (Release versions)
+        if: startsWith(github.ref, 'refs/heads/hotfix/') == true
+        run: dotnet pack --configuration Release --output nupkgs
+        shell: bash
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v1
+        with:
+          name: EFCore.PG+sha.${{ github.sha }}
+          path: nupkgs
+
+      - name: Publish packages to MyGet (vnext)
+        if: startsWith(github.ref, 'refs/heads/hotfix/') == false
+        run: dotnet nuget push nupkgs/*.nupkg --api-key ${{ secrets.MYGET_FEED_VNEXT }} --source https://www.myget.org/F/npgsql-unstable/api/v3/index.json
+        shell: bash
+
+      - name: Publish packages to MyGet (patch)
+        if: startsWith(github.ref, 'refs/heads/hotfix/') == true
+        run: dotnet nuget push nupkgs/*.nupkg --api-key ${{ secrets.MYGET_FEED_PATCH }} --source https://www.myget.org/F/npgsql/api/v3/index.json
+        shell: bash
+
+#      - name: Publish packages to GitHub Package Registry
+#        env:
+#          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#          SOURCE: https://nuget.pkg.github.com/npgsql/index.json
+#        run: |
+#          # dotnet nuget push nupkgs/*.nupkg --api-key ${{ secrets.GITHUB_TOKEN }} --source https://nuget.pkg.github.com/npgsql/index.json
+#
+#          # GPR has issues with API keys and `dotnet nuget` doesn't support `sources`...
+#          # See: https://github.com/NuGet/Home/issues/8580
+#          cd nupkgs
+#          curl -o nuget -L https://dist.nuget.org/win-x86-commandline/latest/nuget.exe
+#          ./nuget sources add -Name "GitHub" -UserName npgsql -Password ${{ secrets.GITHUB_TOKEN }} -Source https://nuget.pkg.github.com/npgsql/index.json
+#          ./nuget push *.nupkg -Source "GitHub"
+#        shell: bash
+#
+#      - name: Publish packages (NuGet)
+#        if: startsWith(github.ref, 'refs/heads/master/')
+#        run: dotnet nuget push nupkgs/*.nupkg
+#        shell: bash
