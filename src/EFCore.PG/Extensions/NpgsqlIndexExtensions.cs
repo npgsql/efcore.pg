@@ -61,7 +61,7 @@ namespace Microsoft.EntityFrameworkCore
         /// https://www.postgresql.org/docs/current/static/indexes-opclass.html
         /// </remarks>
         public static void SetOperators([NotNull] this IMutableIndex index, [CanBeNull] IReadOnlyList<string> operators)
-            => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexMethod, operators);
+            => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexOperators, operators);
 
         /// <summary>
         /// Sets the column operators to be used, or <c>null</c> if they have not been specified.
@@ -70,7 +70,7 @@ namespace Microsoft.EntityFrameworkCore
         /// https://www.postgresql.org/docs/current/static/indexes-opclass.html
         /// </remarks>
         public static void SetOperators([NotNull] this IConventionIndex index, [CanBeNull] IReadOnlyList<string> operators, bool fromDataAnnotation)
-            => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexMethod, operators, fromDataAnnotation);
+            => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexOperators, operators, fromDataAnnotation);
 
         /// <summary>
         /// Returns the column collations to be used, or <c>null</c> if they have not been specified.
