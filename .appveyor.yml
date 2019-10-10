@@ -34,3 +34,4 @@ test_script:
   - dotnet test test\EFCore.PG.FunctionalTests\EFCore.PG.FunctionalTests.csproj
 artifacts:
   - path: 'src\**\*.nupkg'
+  - path: 'src\**\*.snupkg'
