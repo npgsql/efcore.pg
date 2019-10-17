@@ -73,14 +73,12 @@ jobs:
         uses: actions/checkout@v1
 
       - name: Pack NuGet packages (CI versions)
-        if: startsWith(github.ref, 'refs/heads/hotfix/') == false
-        run: |
-          VERSION_SUFFIX="ci.$(date -u +%Y%m%dT%H%M%S)+sha.${GITHUB_SHA:0:9}"
-          dotnet pack --configuration Release --output nupkgs --version-suffix $VERSION_SUFFIX
+        if: startsWith(github.ref, 'refs/heads/')
+        run: dotnet pack --configuration Release --output nupkgs --version-suffix "ci.$(date -u +%Y%m%dT%H%M%S)+sha.${GITHUB_SHA:0:9}"
         shell: bash
 
       - name: Pack NuGet packages (Release versions)
-        if: startsWith(github.ref, 'refs/heads/hotfix/') == true
+        if: startsWith(github.ref, 'refs/tags/v')
         run: dotnet pack --configuration Release --output nupkgs
         shell: bash
 
@@ -91,31 +89,24 @@ jobs:
           path: nupkgs
 
       - name: Publish packages to MyGet (vnext)
-        if: startsWith(github.ref, 'refs/heads/hotfix/') == false
+        if: startsWith(github.ref, 'refs/heads/') && startsWith(github.ref, 'refs/heads/hotfix/') == false
         run: dotnet nuget push nupkgs/*.nupkg --api-key ${{ secrets.MYGET_FEED_VNEXT }} --source https://www.myget.org/F/npgsql-unstable/api/v3/index.json
         shell: bash
 
       - name: Publish packages to MyGet (patch)
-        if: startsWith(github.ref, 'refs/heads/hotfix/') == true
+        if: startsWith(github.ref, 'refs/heads/hotfix/')
         run: dotnet nuget push nupkgs/*.nupkg --api-key ${{ secrets.MYGET_FEED_PATCH }} --source https://www.myget.org/F/npgsql/api/v3/index.json
         shell: bash
 
-#      - name: Publish packages to GitHub Package Registry
-#        env:
-#          TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#          SOURCE: https://nuget.pkg.github.com/npgsql/index.json
-#        run: |
-#          # dotnet nuget push nupkgs/*.nupkg --api-key ${{ secrets.GITHUB_TOKEN }} --source https://nuget.pkg.github.com/npgsql/index.json
-#
-#          # GPR has issues with API keys and `dotnet nuget` doesn't support `sources`...
-#          # See: https://github.com/NuGet/Home/issues/8580
-#          cd nupkgs
-#          curl -o nuget -L https://dist.nuget.org/win-x86-commandline/latest/nuget.exe
-#          ./nuget sources add -Name "GitHub" -UserName npgsql -Password ${{ secrets.GITHUB_TOKEN }} -Source https://nuget.pkg.github.com/npgsql/index.json
-#          ./nuget push *.nupkg -Source "GitHub"
-#        shell: bash
-#
-#      - name: Publish packages (NuGet)
-#        if: startsWith(github.ref, 'refs/heads/master/')
-#        run: dotnet nuget push nupkgs/*.nupkg
-#        shell: bash
+      - name: Publish packages to GitHub Package Registry
+        if: startsWith(github.ref, 'refs/heads/')
+        run: |
+          # dotnet nuget push nupkgs/*.nupkg --api-key ${{ secrets.GITHUB_TOKEN }} --source https://nuget.pkg.github.com/npgsql/index.json
+
+          # GPR has issues with API keys and `dotnet nuget` doesn't support `sources`...
+          # See: https://github.com/NuGet/Home/issues/8580
+          cd nupkgs
+          curl -o nuget -L https://dist.nuget.org/win-x86-commandline/latest/nuget.exe
+          ./nuget sources add -Name "GitHub" -UserName npgsql -Password ${{ secrets.GITHUB_TOKEN }} -Source https://nuget.pkg.github.com/npgsql/index.json
+          ./nuget push "*.nupkg" -Source "GitHub"
+        shell: bash
