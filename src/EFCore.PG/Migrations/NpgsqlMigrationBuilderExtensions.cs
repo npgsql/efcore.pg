@@ -8,7 +8,6 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 // ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore
 {
-    // TODO: This is unused. Can we remove it?
     public static class NpgsqlMigrationBuilderExtensions
     {
         /// <summary>
