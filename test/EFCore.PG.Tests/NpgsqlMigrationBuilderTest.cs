@@ -7,7 +7,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
     public class NpgsqlMigrationBuilderTest
     {
         [Fact]
-        public void IsNpgsql_when_using_EfCorePostgreSql()
+        public void IsNpgsql_when_using_Npgsql()
         {
             var migrationBuilder = new MigrationBuilder("Npgsql.EntityFrameworkCore.PostgreSQL");
             Assert.True(migrationBuilder.IsNpgsql());
