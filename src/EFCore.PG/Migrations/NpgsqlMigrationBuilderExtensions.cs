@@ -15,7 +15,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// The migrationBuilder from the parameters on <see cref="Migration.Up(MigrationBuilder)" /> or
         /// <see cref="Migration.Down(MigrationBuilder)" />.
-        /// <returns>True if PostgreSQL is being used; false otherwise.</returns>
+        /// <returns>True if Npgsql is being used; false otherwise.</returns>
         public static bool IsNpgsql([NotNull] this MigrationBuilder builder)
             => builder.ActiveProvider.Equals(
                 typeof(NpgsqlMigrationBuilderExtensions).GetTypeInfo().Assembly.GetName().Name,
