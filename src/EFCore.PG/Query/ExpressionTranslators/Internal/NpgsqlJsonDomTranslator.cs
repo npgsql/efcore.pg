@@ -130,7 +130,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             case TypeCode.UInt64:
                 return _sqlExpressionFactory.Convert(expression, returnType, _sqlExpressionFactory.FindMapping(returnType));
             default:
-                return expression;
+                    if (returnType == typeof(Guid))
+                    {
+                        return _sqlExpressionFactory.Convert(expression, returnType, _sqlExpressionFactory.FindMapping(returnType)); ;
+                    }
+                    else
+                    {
+                        return expression;
+                    }
             }
         }
     }

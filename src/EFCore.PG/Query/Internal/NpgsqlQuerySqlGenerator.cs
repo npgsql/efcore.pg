@@ -179,11 +179,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 case SqlConstantExpression _:
                 case SqlParameterExpression _:
                 case SqlFunctionExpression _:
+                case JsonTraversalExpression _:
                     var storeType = sqlUnaryExpression.TypeMapping.StoreType;
                     if (storeType == "integer")
                         storeType = "INT";  // Shorthand that looks better in SQL
-
+                    Sql.Append("(");
                     Visit(sqlUnaryExpression.Operand);
+                    Sql.Append(")");
                     Sql.Append("::");
                     Sql.Append(storeType);
                     return sqlUnaryExpression;
