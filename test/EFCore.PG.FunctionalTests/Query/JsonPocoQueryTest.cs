@@ -70,7 +70,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 AssertSql(
                     @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
-WHERE (j.""Customer"" = '{""Name"":""Test customer"",""Age"":80,""IsVip"":false,""Statistics"":null,""Orders"":null}') AND (j.""Customer"" IS NOT NULL)");
+WHERE (j.""Customer"" = '{""Name"":""Test customer"",""Age"":80,""ID"":""00000000-0000-0000-0000-000000000000"",""IsVip"":false,""Statistics"":null,""Orders"":null}') AND (j.""Customer"" IS NOT NULL)");
             }
         }
 

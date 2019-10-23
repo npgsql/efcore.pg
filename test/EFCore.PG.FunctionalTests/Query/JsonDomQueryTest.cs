@@ -109,7 +109,8 @@ FROM ""JsonbEntities"" AS j
 WHERE (j.""Id"" = @__p_0) AND (@__p_0 IS NOT NULL)
 LIMIT 1",
                     //
-                    @"@__expected_0='{""Age"": 25
+                    @"@__expected_0='{""ID"": ""00000000-0000-0000-0000-000000000000""
+""Age"": 25
 ""Name"": ""Joe""
 ""IsVip"": false
 ""Orders"": [{""Price"": 99.5
