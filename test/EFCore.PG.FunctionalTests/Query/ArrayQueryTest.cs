@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestUtilities;
@@ -251,7 +251,7 @@ LIMIT 2");            }
                 Assert.Equal(count, 2);
 
                 AssertSql(
-                    @"SELECT COUNT(*)::INT
+                    @"SELECT (COUNT(*))::INT
 FROM ""SomeEntities"" AS s
 WHERE cardinality(s.""SomeArray"") > 0");
             }

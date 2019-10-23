@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
@@ -29,7 +29,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             base.Scalar_Function_Extension_Method_Static();
 
             AssertSql(
-                @"SELECT COUNT(*)::INT
+                @"SELECT (COUNT(*))::INT
 FROM ""Customers"" AS c
 WHERE (""IsDate""(c.""FirstName"") = FALSE) AND (""IsDate""(c.""FirstName"") IS NOT NULL)");
         }
@@ -411,7 +411,7 @@ LIMIT 2");
             base.Scalar_Function_Extension_Method_Instance();
 
             AssertSql(
-                @"SELECT COUNT(*)::INT
+                @"SELECT (COUNT(*))::INT
 FROM ""Customers"" AS c
 WHERE (""IsDate""(c.""FirstName"") = FALSE) AND (""IsDate""(c.""FirstName"") IS NOT NULL)");
         }

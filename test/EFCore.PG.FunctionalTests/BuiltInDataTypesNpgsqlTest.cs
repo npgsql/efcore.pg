@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
@@ -885,13 +885,13 @@ WHERE ((m.""TimeSpanAsTime"" = @__timeSpan_0) AND ((m.""TimeSpanAsTime"" IS NOT 
                 var sum3 = context.Set<MappedDataTypes>().Sum(m => m.ShortAsSmallint);
 
                 AssertSql(
-                    @"SELECT SUM(m.""LongAsBigint"")::bigint
+                    @"SELECT (SUM(m.""LongAsBigint""))::bigint
 FROM ""MappedDataTypes"" AS m",
                     //
-                    @"SELECT SUM(m.""Int"")::INT
+                    @"SELECT (SUM(m.""Int""))::INT
 FROM ""MappedDataTypes"" AS m",
                     //
-                    @"SELECT SUM(CAST(m.""ShortAsSmallint"" AS integer))::INT
+                    @"SELECT (SUM(CAST(m.""ShortAsSmallint"" AS integer)))::INT
 FROM ""MappedDataTypes"" AS m");
             }
         }

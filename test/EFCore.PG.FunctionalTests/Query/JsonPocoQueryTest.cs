@@ -143,7 +143,7 @@ LIMIT 2");
                 AssertSql(
                     @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
-WHERE CAST(j.""Customer""->>'Age' AS integer) < 30
+WHERE (j.""Customer""->>'Age')::INT < 30
 LIMIT 2");
             }
         }
@@ -159,7 +159,7 @@ LIMIT 2");
                 AssertSql(
                     @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
-WHERE CAST(j.""Customer""->>'IsVip' AS boolean)
+WHERE (j.""Customer""->>'IsVip')::boolean
 LIMIT 2");
             }
         }
@@ -175,7 +175,7 @@ LIMIT 2");
                 AssertSql(
                     @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
-WHERE CAST(j.""Customer""#>>'{Statistics,Visits}' AS bigint) = 4
+WHERE (j.""Customer""#>>'{Statistics,Visits}')::bigint = 4
 LIMIT 2");
             }
         }
@@ -191,7 +191,7 @@ LIMIT 2");
                 AssertSql(
                     @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
-WHERE CAST(j.""Customer""#>>'{Statistics,Nested,SomeProperty}' AS integer) = 10
+WHERE (j.""Customer""#>>'{Statistics,Nested,SomeProperty}')::INT = 10
 LIMIT 2");
             }
         }
@@ -207,7 +207,7 @@ LIMIT 2");
                 AssertSql(
                     @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
-WHERE CAST(j.""Customer""#>>'{Orders,0,Price}' AS numeric) = 99.5
+WHERE (j.""Customer""#>>'{Orders,0,Price}')::numeric = 99.5
 LIMIT 2");
             }
         }
@@ -239,7 +239,7 @@ LIMIT 2");
                 AssertSql(
                     @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
-WHERE CAST(j.""Customer""#>>'{Statistics,Nested,IntArray,1}' AS integer) = 4
+WHERE (j.""Customer""#>>'{Statistics,Nested,IntArray,1}')::INT = 4
 LIMIT 2");
             }
         }
@@ -258,7 +258,7 @@ LIMIT 2");
 
 SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
-WHERE (CAST(j.""Customer""#>>ARRAY['Statistics','Nested','IntArray',@__i_0]::TEXT[] AS integer) = 4) AND (CAST(j.""Customer""#>>ARRAY['Statistics','Nested','IntArray',@__i_0]::TEXT[] AS integer) IS NOT NULL)
+WHERE ((j.""Customer""#>>ARRAY['Statistics','Nested','IntArray',@__i_0]::TEXT[])::INT = 4) AND ((j.""Customer""#>>ARRAY['Statistics','Nested','IntArray',@__i_0]::TEXT[])::INT IS NOT NULL)
 LIMIT 2");
             }
         }
@@ -343,7 +343,7 @@ LIMIT 2");
                     @"@__element_1='{""Name"": ""Joe""
 ""Age"": 25}' (DbType = Object)
 
-SELECT COUNT(*)::INT
+SELECT (COUNT(*))::INT
 FROM ""JsonbEntities"" AS j
 WHERE (j.""Customer"" @> @__element_1)");
             }
@@ -359,7 +359,7 @@ WHERE (j.""Customer"" @> @__element_1)");
                 Assert.Equal(1, count);
 
                 AssertSql(
-                    @"SELECT COUNT(*)::INT
+                    @"SELECT (COUNT(*))::INT
 FROM ""JsonbEntities"" AS j
 WHERE (j.""Customer"" @> '{""Name"": ""Joe"", ""Age"": 25}')");
             }
@@ -379,7 +379,7 @@ WHERE (j.""Customer"" @> '{""Name"": ""Joe"", ""Age"": 25}')");
                     @"@__element_1='{""Name"": ""Joe""
 ""Age"": 25}' (DbType = Object)
 
-SELECT COUNT(*)::INT
+SELECT (COUNT(*))::INT
 FROM ""JsonbEntities"" AS j
 WHERE (@__element_1 <@ j.""Customer"")");
             }
@@ -395,7 +395,7 @@ WHERE (@__element_1 <@ j.""Customer"")");
                 Assert.Equal(1, count);
 
                 AssertSql(
-                    @"SELECT COUNT(*)::INT
+                    @"SELECT (COUNT(*))::INT
 FROM ""JsonbEntities"" AS j
 WHERE ('{""Name"": ""Joe"", ""Age"": 25}' <@ j.""Customer"")");
             }
@@ -411,7 +411,7 @@ WHERE ('{""Name"": ""Joe"", ""Age"": 25}' <@ j.""Customer"")");
                 Assert.Equal(2, count);
 
                 AssertSql(
-                    @"SELECT COUNT(*)::INT
+                    @"SELECT (COUNT(*))::INT
 FROM ""JsonbEntities"" AS j
 WHERE (j.""Customer""->'Statistics' ? 'Visits')");
             }
@@ -427,7 +427,7 @@ WHERE (j.""Customer""->'Statistics' ? 'Visits')");
                 Assert.Equal(2, count);
 
                 AssertSql(
-                    @"SELECT COUNT(*)::INT
+                    @"SELECT (COUNT(*))::INT
 FROM ""JsonbEntities"" AS j
 WHERE (j.""Customer""->'Statistics' ?| ARRAY['foo','Visits']::text[])");
             }
@@ -443,7 +443,7 @@ WHERE (j.""Customer""->'Statistics' ?| ARRAY['foo','Visits']::text[])");
                 Assert.Equal(0, count);
 
                 AssertSql(
-                    @"SELECT COUNT(*)::INT
+                    @"SELECT (COUNT(*))::INT
 FROM ""JsonbEntities"" AS j
 WHERE (j.""Customer""->'Statistics' ?& ARRAY['foo','Visits']::text[])");
             }
@@ -459,7 +459,7 @@ WHERE (j.""Customer""->'Statistics' ?& ARRAY['foo','Visits']::text[])");
                 Assert.Equal(2, count);
 
                 AssertSql(
-                    @"SELECT COUNT(*)::INT
+                    @"SELECT (COUNT(*))::INT
 FROM ""JsonbEntities"" AS j
 WHERE jsonb_typeof(j.""Customer""#>'{Statistics,Visits}') = 'number'");
             }
@@ -475,7 +475,7 @@ WHERE jsonb_typeof(j.""Customer""#>'{Statistics,Visits}') = 'number'");
                 Assert.Equal(2, count);
 
                 AssertSql(
-                    @"SELECT COUNT(*)::INT
+                    @"SELECT (COUNT(*))::INT
 FROM ""JsonEntities"" AS j
 WHERE json_typeof(j.""Customer""#>'{Statistics,Visits}') = 'number'");
             }

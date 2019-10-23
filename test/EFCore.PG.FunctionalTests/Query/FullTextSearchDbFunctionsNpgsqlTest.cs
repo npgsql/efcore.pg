@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestModels.Northwind;
@@ -32,7 +32,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             }
 
             AssertSql(
-                @"SELECT 'a b'::tsvector
+                @"SELECT ('a b')::tsvector
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -108,7 +108,7 @@ LIMIT 1");
             AssertSql(
                 @"@__config_1='english'
 
-SELECT to_tsvector(@__config_1::regconfig, c.""CompanyName"")
+SELECT to_tsvector((@__config_1)::regconfig, c.""CompanyName"")
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -123,7 +123,7 @@ LIMIT 1");
             }
 
             AssertSql(
-                @"SELECT 'a & b'::tsquery
+                @"SELECT ('a & b')::tsquery
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -171,7 +171,7 @@ LIMIT 1");
             AssertSql(
                 @"@__config_1='english'
 
-SELECT plainto_tsquery(@__config_1::regconfig, 'a')
+SELECT plainto_tsquery((@__config_1)::regconfig, 'a')
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -219,7 +219,7 @@ LIMIT 1");
             AssertSql(
                 @"@__config_1='english'
 
-SELECT phraseto_tsquery(@__config_1::regconfig, 'a b')
+SELECT phraseto_tsquery((@__config_1)::regconfig, 'a b')
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -267,7 +267,7 @@ LIMIT 1");
             AssertSql(
                 @"@__config_1='english'
 
-SELECT to_tsquery(@__config_1::regconfig, 'a & b')
+SELECT to_tsquery((@__config_1)::regconfig, 'a & b')
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -315,7 +315,7 @@ LIMIT 1");
             AssertSql(
                 @"@__config_1='english'
 
-SELECT websearch_to_tsquery(@__config_1::regconfig, 'a OR b')
+SELECT websearch_to_tsquery((@__config_1)::regconfig, 'a OR b')
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -513,7 +513,7 @@ LIMIT 1");
             AssertSql(
                 @"@__config_1='english'
 
-SELECT ts_headline(@__config_1::regconfig, 'a b c', to_tsquery('b'), 'MinWords=1, MaxWords=2')
+SELECT ts_headline((@__config_1)::regconfig, 'a b c', to_tsquery('b'), 'MinWords=1, MaxWords=2')
 FROM ""Customers"" AS c
 LIMIT 1");
         }

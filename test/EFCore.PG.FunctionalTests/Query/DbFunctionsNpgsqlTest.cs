@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Xunit;
@@ -26,7 +26,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             }
 
             AssertSql(
-                @"SELECT COUNT(*)::INT
+                @"SELECT (COUNT(*))::INT
 FROM ""Customers"" AS c
 WHERE c.""ContactName"" LIKE '%M%'");
         }
@@ -36,7 +36,7 @@ WHERE c.""ContactName"" LIKE '%M%'");
             base.Like_identity();
 
             AssertSql(
-                @"SELECT COUNT(*)::INT
+                @"SELECT (COUNT(*))::INT
 FROM ""Customers"" AS c
 WHERE c.""ContactName"" LIKE c.""ContactName"" ESCAPE ''");
         }
@@ -46,7 +46,7 @@ WHERE c.""ContactName"" LIKE c.""ContactName"" ESCAPE ''");
             base.Like_literal_with_escape();
 
             AssertSql(
-                @"SELECT COUNT(*)::INT
+                @"SELECT (COUNT(*))::INT
 FROM ""Customers"" AS c
 WHERE c.""ContactName"" LIKE '!%' ESCAPE '!'");
         }
@@ -62,7 +62,7 @@ WHERE c.""ContactName"" LIKE '!%' ESCAPE '!'");
             }
 
             AssertSql(
-                @"SELECT COUNT(*)::INT
+                @"SELECT (COUNT(*))::INT
 FROM ""Customers"" AS c
 WHERE c.""ContactName"" LIKE '\' ESCAPE ''");
         }
@@ -79,7 +79,7 @@ WHERE c.""ContactName"" LIKE '\' ESCAPE ''");
 
             // For the useless = TRUE below see https://github.com/aspnet/EntityFramework/issues/9143
             AssertSql(
-                @"SELECT COUNT(*)::INT
+                @"SELECT (COUNT(*))::INT
 FROM ""Customers"" AS c
 WHERE c.""ContactName"" ILIKE '%M%'");
         }
@@ -95,7 +95,7 @@ WHERE c.""ContactName"" ILIKE '%M%'");
 
             // For the useless = TRUE below see https://github.com/aspnet/EntityFramework/issues/9143
             AssertSql(
-                @"SELECT COUNT(*)::INT
+                @"SELECT (COUNT(*))::INT
 FROM ""Customers"" AS c
 WHERE c.""ContactName"" ILIKE '!%' ESCAPE '!'");
         }
