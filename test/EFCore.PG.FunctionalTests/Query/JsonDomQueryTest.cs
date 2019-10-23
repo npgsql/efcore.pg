@@ -196,6 +196,22 @@ LIMIT 2");
         }
 
         [Fact]
+        public void Guid_output()
+        {
+            using (var ctx = Fixture.CreateContext())
+            {
+                var x = ctx.JsonbEntities.Single(e => e.CustomerElement.GetProperty("ID").GetGuid() == Guid.Empty);
+                Assert.Equal("Joe", x.CustomerElement.GetProperty("Name").GetString());
+
+                AssertSql(
+                    @"SELECT j.""Id"", j.""CustomerDocument"", j.""CustomerElement""
+FROM ""JsonbEntities"" AS j
+WHERE CAST(j.""CustomerElement""->>'ID' AS uuid) = '00000000-0000-0000-0000-000000000000'
+LIMIT 2");
+            }
+        }
+
+        [Fact]
         public void Bool_output()
         {
             using (var ctx = Fixture.CreateContext())
@@ -547,6 +563,7 @@ WHERE json_typeof(j.""CustomerElement""#>'{Statistics,Visits}') = 'number'");
                 {
                     ""Name"": ""Joe"",
                     ""Age"": 25,
+                    ""ID"": ""00000000-0000-0000-0000-000000000000"",
                     ""IsVip"": false,
                     ""Statistics"":
                     {
@@ -577,6 +594,7 @@ WHERE json_typeof(j.""CustomerElement""#>'{Statistics,Visits}') = 'number'");
                 {
                     ""Name"": ""Moe"",
                     ""Age"": 35,
+                    ""ID"": ""3272b593-bfe2-4ecf-81ae-4242b0632465"",
                     ""IsVip"": true,
                     ""Statistics"":
                     {
