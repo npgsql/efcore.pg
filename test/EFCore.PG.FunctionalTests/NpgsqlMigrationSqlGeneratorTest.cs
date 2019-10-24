@@ -717,7 +717,7 @@ ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET NOT NULL;
 ALTER SEQUENCE ""People_Id_seq"" RENAME TO ""People_Id_old_seq"";
 ALTER TABLE ""People"" ALTER COLUMN ""Id"" DROP DEFAULT;
 ALTER TABLE ""People"" ALTER COLUMN ""Id"" ADD GENERATED ALWAYS AS IDENTITY;
-SELECT * FROM setval('""People_Id_seq""', nextval('""People_Id_old_seq""'), false);
+PERFORM setval('""People_Id_seq""', nextval('""People_Id_old_seq""'), false);
 DROP SEQUENCE ""People_Id_old_seq"";
 ");
         }
