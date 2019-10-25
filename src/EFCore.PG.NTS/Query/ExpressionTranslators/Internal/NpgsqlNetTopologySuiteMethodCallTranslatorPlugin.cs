@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -52,11 +53,30 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
         /// <inheritdoc />
         [CanBeNull]
-        public virtual SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
-        {
-            if (!typeof(Geometry).IsAssignableFrom(method.DeclaringType))
-                return null;
+        public virtual SqlExpression Translate(SqlExpression instance, MethodInfo method,
+            IReadOnlyList<SqlExpression> arguments)
+            => typeof(Geometry).IsAssignableFrom(method.DeclaringType)
+                ? TranslateGeometryMethod(instance, method, arguments)
+                : method.DeclaringType == typeof(NpgsqlNetTopologySuiteDbFunctionsExtensions)
+                    ? TranslateDbFunction(instance, method, arguments)
+                    : null;
 
+        protected virtual SqlExpression TranslateDbFunction(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
+            => method.Name switch
+            {
+                nameof(NpgsqlNetTopologySuiteDbFunctionsExtensions.Transform) => _sqlExpressionFactory.Function(
+                    "ST_Transform",
+                    new[] { arguments[1], arguments[2] },
+                    nullable: true,
+                    argumentsPropagateNullability: TrueArrays[2],
+                    method.ReturnType,
+                    arguments[1].TypeMapping),
+
+                _ => null
+            };
+
+        protected virtual SqlExpression TranslateGeometryMethod(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
+        {
             var typeMapping = ExpressionExtensions.InferTypeMapping(
                 arguments.Prepend(instance).Where(e => typeof(Geometry).IsAssignableFrom(e.Type)).ToArray());
 
