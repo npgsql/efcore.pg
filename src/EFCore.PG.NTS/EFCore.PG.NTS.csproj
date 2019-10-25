@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <PackageReference Include="Npgsql.NetTopologySuite" />
+    <PackageReference Include="ProjNet" />
   </ItemGroup>
 
   <ItemGroup>
