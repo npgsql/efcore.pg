@@ -30,7 +30,7 @@ jobs:
             curl -Ls 'http://sbp.enterprisedb.com/applications.xml' |
             sed -n '\#<id>postgresql_${{ matrix.pg_major }}</id>#{n;p;n;p;}' |
             sed -n '\#<platform>windows-x64</platform>#{n;p;}' |
-            sed -E 's#<version>([^<]+)</version>#\1#')
+            sed -E 's#.*<version>([^<]+)</version>#\1#')
 
           # Install PostgreSQL
           echo "Installing PostgreSQL (version: ${EDB_VERSION})"
