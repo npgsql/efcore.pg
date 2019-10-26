@@ -11,13 +11,7 @@ jobs:
       matrix:
         os: [ ubuntu-latest, windows-latest ]
         pg_major: [ 11, 10 ]
-        include:
-          - pg_major: 11
-            edb_version: '11.4-2'
-            postgis_version: '2.5.3'
-          - pg_major: 10
-            edb_version: '10.9-2'
-            postgis_version: '2.5.3'
+        postgis_version: [ '2.5' ]
 
     steps:
       - name: Checkout
@@ -31,17 +25,30 @@ jobs:
       - name: Start PostgreSQL ${{ matrix.pg_major }} (Windows)
         if: startsWith(matrix.os, 'windows')
         run: |
+          # Find EnterpriseDB version number
+          EDB_VERSION=$(\
+            curl -Ls 'http://sbp.enterprisedb.com/applications.xml' |
+            sed -n '\#<id>postgresql_${{ matrix.pg_major }}</id>#{n;p;n;p;}' |
+            sed -n '\#<platform>windows-x64</platform>#{n;p;}' |
+            sed -E 's#<version>([^<]+)</version>#\1#')
+
           # Install PostgreSQL
-          curl -o pgsql.zip -L https://get.enterprisedb.com/postgresql/postgresql-${{ matrix.edb_version }}-windows-x64-binaries.zip
+          echo "Installing PostgreSQL (version: ${EDB_VERSION})"
+          curl -o pgsql.zip -L https://get.enterprisedb.com/postgresql/postgresql-${EDB_VERSION}-windows-x64-binaries.zip
           unzip pgsql.zip -x 'pgsql/include/**' 'pgsql/doc/**' 'pgsql/pgAdmin 4/**' 'pgsql/StackBuilder/**'
 
           # Match Npgsql CI Docker image and stash one level up
           cp {$GITHUB_WORKSPACE/.build/docker,pgsql}/server.crt
           cp {$GITHUB_WORKSPACE/.build/docker,pgsql}/server.key
 
+          # Find OSGEO version number
+          OSGEO_VERSION=$(\
+            curl -Ls https://download.osgeo.org/postgis/windows/pg${{ matrix.pg_major }} |
+            sed -n 's/.*>postgis-bundle-pg${{ matrix.pg_major }}-\(${{ matrix.postgis_version }}.[0-9]\)x64.zip<.*/\1/p')
+
           # Install PostGIS
-          POSTGIS_FILE="postgis-bundle-pg${{ matrix.pg_major }}-${{ matrix.postgis_version }}x64"
-          curl -o postgis.zip -L https://download.osgeo.org/postgis/windows/pg${{ matrix.pg_major }}/${POSTGIS_FILE}.zip
+          echo "Installing PostGIS (version: ${OSGEO_VERSION})"
+          curl -o postgis.zip -L https://download.osgeo.org/postgis/windows/pg${{ matrix.pg_major }}/postgis-bundle-pg${{ matrix.pg_major }}-${OSGEO_VERSION}x64.zip
           unzip postgis.zip -d postgis
           cp -a postgis/$POSTGIS_FILE/. pgsql/
 
