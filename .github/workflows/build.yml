@@ -11,7 +11,12 @@ jobs:
       matrix:
         os: [ ubuntu-latest, windows-latest ]
         pg_major: [ 11, 10 ]
-        postgis_version: [ '2.5' ]
+        postgis_version: [ '3.0', '2.5']
+        include:
+          - pg_major: 11
+            edb_version: '11.4-2'
+          - pg_major: 10
+            edb_version: '10.9-2'
 
     steps:
       - name: Checkout
@@ -32,8 +37,12 @@ jobs:
             sed -n '\#<platform>windows-x64</platform>#{n;p;}' |
             sed -E 's#.*<version>([^<]+)</version>#\1#')
 
+          # Check EDB versions
+          echo "Latest PostgreSQL version from EDB: ${EDB_VERSION}"
+          echo "Installing PostgreSQL version: ${{ matrix.edb_version }}"
+          EDB_VERSION="${{ matrix.edb_version }}"
+
           # Install PostgreSQL
-          echo "Installing PostgreSQL (version: ${EDB_VERSION})"
           curl -o pgsql.zip -L https://get.enterprisedb.com/postgresql/postgresql-${EDB_VERSION}-windows-x64-binaries.zip
           unzip pgsql.zip -x 'pgsql/include/**' 'pgsql/doc/**' 'pgsql/pgAdmin 4/**' 'pgsql/StackBuilder/**'
 
