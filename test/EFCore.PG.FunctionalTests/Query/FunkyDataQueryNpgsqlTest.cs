@@ -21,6 +21,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         public override void String_contains_on_argument_with_wildcard_column() {}
 
         [ConditionalFact(Skip = "https://github.com/npgsql/Npgsql.EntityFrameworkCore.PostgreSQL/issues/996")]
+        public override void String_contains_on_argument_with_wildcard_column_negated() {}
+
+        [ConditionalFact(Skip = "https://github.com/npgsql/Npgsql.EntityFrameworkCore.PostgreSQL/issues/996")]
         public override void String_contains_on_argument_with_wildcard_constant() {}
 
         [ConditionalFact(Skip = "https://github.com/npgsql/Npgsql.EntityFrameworkCore.PostgreSQL/issues/996")]
