@@ -10,14 +10,39 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest, windows-latest ]
-        pg_major: [ 11, 10 ]
+        pg_major: [ 12, 11, 10 ]
+        postgis_version: [ 3, 2.5 ]
         include:
-          - pg_major: 11
+          - os: windows-latest
+            pg_major: 12
+            postgis_version: 3
+            edb_version: '12.0-1'
+            osgeo_version: '3.0.0'
+          - os: windows-latest
+            pg_major: 12
+            postgis_version: 2.5
+            edb_version: '12.0-1'
+            osgeo_version: '2.5.3'
+          - os: windows-latest
+            pg_major: 11
+            postgis_version: 3
             edb_version: '11.4-2'
-            postgis_version: '2.5.3'
-          - pg_major: 10
+            osgeo_version: '3.0.0'
+          - os: windows-latest
+            pg_major: 11
+            postgis_version: 2.5
+            edb_version: '11.4-2'
+            osgeo_version: '2.5.3'
+          - os: windows-latest
+            pg_major: 10
+            postgis_version: 3
             edb_version: '10.9-2'
-            postgis_version: '2.5.3'
+            osgeo_version: '3.0.0'
+          - os: windows-latest
+            pg_major: 10
+            postgis_version: 2.5
+            edb_version: '10.9-2'
+            osgeo_version: '2.5.3'
 
     steps:
       - name: Checkout
@@ -25,7 +50,7 @@ jobs:
 
       - name: Start PostgreSQL ${{ matrix.pg_major }} (Linux)
         if: startsWith(matrix.os, 'ubuntu')
-        run: docker run --detach --name postgresql -p 5432:5432 npgsql/postgres:${{ matrix.pg_major }}
+        run: docker run --detach --name postgresql -p 5432:5432 npgsql/postgres:${{ matrix.pg_major }}-postgis-${{ matrix.postgis_version }}
         shell: bash
 
       - name: Start PostgreSQL ${{ matrix.pg_major }} (Windows)
@@ -40,7 +65,7 @@ jobs:
           cp {$GITHUB_WORKSPACE/.build/docker,pgsql}/server.key
 
           # Install PostGIS
-          POSTGIS_FILE="postgis-bundle-pg${{ matrix.pg_major }}-${{ matrix.postgis_version }}x64"
+          POSTGIS_FILE="postgis-bundle-pg${{ matrix.pg_major }}-${{ matrix.osgeo_version }}x64"
           curl -o postgis.zip -L https://download.osgeo.org/postgis/windows/pg${{ matrix.pg_major }}/${POSTGIS_FILE}.zip
           unzip postgis.zip -d postgis
           cp -a postgis/$POSTGIS_FILE/. pgsql/
