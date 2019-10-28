@@ -11,7 +11,7 @@ jobs:
       matrix:
         os: [ ubuntu-latest, windows-latest ]
         pg_major: [ 12, 11, 10 ]
-        postgis_version: [ 3, 2.5 ]
+        postgis_version: [ 3 ]
         include:
           - os: windows-latest
             pg_major: 12
@@ -19,30 +19,15 @@ jobs:
             edb_version: '12.0-1'
             osgeo_version: '3.0.0'
           - os: windows-latest
-            pg_major: 12
-            postgis_version: 2.5
-            edb_version: '12.0-1'
-            osgeo_version: '2.5.3'
-          - os: windows-latest
             pg_major: 11
             postgis_version: 3
             edb_version: '11.4-2'
             osgeo_version: '3.0.0'
           - os: windows-latest
-            pg_major: 11
-            postgis_version: 2.5
-            edb_version: '11.4-2'
-            osgeo_version: '2.5.3'
-          - os: windows-latest
             pg_major: 10
             postgis_version: 3
             edb_version: '10.9-2'
             osgeo_version: '3.0.0'
-          - os: windows-latest
-            pg_major: 10
-            postgis_version: 2.5
-            edb_version: '10.9-2'
-            osgeo_version: '2.5.3'
 
     steps:
       - name: Checkout
