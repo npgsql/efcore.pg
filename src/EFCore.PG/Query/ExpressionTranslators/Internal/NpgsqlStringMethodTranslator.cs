@@ -68,7 +68,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 var argument = arguments[0];
                 var stringTypeMapping = ExpressionExtensions.InferTypeMapping(instance, argument);
 
-                var strposExpression = _sqlExpressionFactory.Subtract(
+                return _sqlExpressionFactory.Subtract(
                     _sqlExpressionFactory.Function(
                         "STRPOS",
                         new[]
@@ -78,17 +78,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                         },
                         method.ReturnType),
                     _sqlExpressionFactory.Constant(1));
-
-                return _sqlExpressionFactory.Case(
-                    new[]
-                    {
-                        new CaseWhenClause(
-                            _sqlExpressionFactory.Equal(
-                                _sqlExpressionFactory.ApplyTypeMapping(argument, stringTypeMapping),
-                                _sqlExpressionFactory.Constant(string.Empty, stringTypeMapping)),
-                            _sqlExpressionFactory.Constant(0))
-                    },
-                    strposExpression);
             }
 
             if (method == Replace)

@@ -26,6 +26,9 @@ WHERE (c.""Region"" IS NULL) OR ((BTRIM(c.""Region"", E' \t\n\r') = '') AND (BTR
             AssertContainsSqlFragment(@"STRPOS(CAST(o.""EmployeeID"" AS text), '10') > 0");
         }
 
+        [ConditionalTheory(Skip = "Fixed for PostgreSQL 12.1, https://www.postgresql.org/message-id/CADT4RqAz7oN4vkPir86Kg1_mQBmBxCp-L_%3D9vRpgSNPJf0KRkw%40mail.gmail.com")]
+        public override Task Indexof_with_emptystring(bool isAsync) => Task.CompletedTask;
+
         #region Regex
 
         [Theory]
