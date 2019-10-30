@@ -39,13 +39,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
     public class TimestampLocalDateTimeMapping : NpgsqlTypeMapping
     {
-        static readonly ConstructorInfo _ctorInfo1 =
+        static readonly ConstructorInfo Constructor1 =
             typeof(LocalDateTime).GetConstructor(new[] { typeof(int), typeof(int), typeof(int), typeof(int), typeof(int) });
 
-        static readonly ConstructorInfo _ctorInfo2 =
+        static readonly ConstructorInfo Constructor2 =
             typeof(LocalDateTime).GetConstructor(new[] { typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int) });
 
-        static readonly MethodInfo _plusNanosecondsMethodInfo =
+        static readonly MethodInfo PlusNanosecondsMethod =
             typeof(LocalDateTime).GetMethod(nameof(LocalDateTime.PlusNanoseconds), new[] { typeof(long) });
 
         public TimestampLocalDateTimeMapping() : base("timestamp", typeof(LocalDateTime), NpgsqlDbType.Timestamp) {}
@@ -70,13 +70,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         internal static Expression GenerateCodeLiteral(LocalDateTime dateTime)
         {
             if (dateTime.Second == 0 && dateTime.NanosecondOfSecond == 0)
-                return ConstantNew(_ctorInfo1, dateTime.Year, dateTime.Month, dateTime.Day, dateTime.Hour, dateTime.Minute);
+                return ConstantNew(Constructor1, dateTime.Year, dateTime.Month, dateTime.Day, dateTime.Hour, dateTime.Minute);
 
-            var newExpr = ConstantNew(_ctorInfo2, dateTime.Year, dateTime.Month, dateTime.Day, dateTime.Hour, dateTime.Minute, dateTime.Second);
+            var newExpr = ConstantNew(Constructor2, dateTime.Year, dateTime.Month, dateTime.Day, dateTime.Hour, dateTime.Minute, dateTime.Second);
 
             return dateTime.NanosecondOfSecond == 0
                 ? (Expression)newExpr
-                : Expression.Call(newExpr, _plusNanosecondsMethodInfo, Expression.Constant((long)dateTime.NanosecondOfSecond));
+                : Expression.Call(newExpr, PlusNanosecondsMethod, Expression.Constant((long)dateTime.NanosecondOfSecond));
         }
     }
 
@@ -110,13 +110,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
     public class TimestampTzOffsetDateTimeMapping : NpgsqlTypeMapping
     {
-        static readonly ConstructorInfo _ctorInfo =
+        static readonly ConstructorInfo Constructor =
             typeof(OffsetDateTime).GetConstructor(new[] { typeof(LocalDateTime), typeof(Offset) });
 
-        static readonly MethodInfo _offsetFactoryMethodInfo1 =
+        static readonly MethodInfo OffsetFactoryMethod1 =
             typeof(Offset).GetMethod(nameof(Offset.FromHours), new[] { typeof(int) });
 
-        static readonly MethodInfo _offsetFactoryMethodInfo2 =
+        static readonly MethodInfo OffsetFactoryMethod2 =
             typeof(Offset).GetMethod(nameof(Offset.FromSeconds), new[] { typeof(int) });
 
         public TimestampTzOffsetDateTimeMapping() : base("timestamp with time zone", typeof(OffsetDateTime), NpgsqlDbType.TimestampTz) {}
@@ -141,11 +141,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             var offsetDateTime = (OffsetDateTime)value;
             var offsetSeconds = offsetDateTime.Offset.Seconds;
 
-            return Expression.New(_ctorInfo,
+            return Expression.New(Constructor,
                 TimestampLocalDateTimeMapping.GenerateCodeLiteral(offsetDateTime.LocalDateTime),
                 offsetSeconds % 3600 == 0
-                    ? ConstantCall(_offsetFactoryMethodInfo1, offsetSeconds / 3600)
-                    : ConstantCall(_offsetFactoryMethodInfo2, offsetSeconds));
+                    ? ConstantCall(OffsetFactoryMethod1, offsetSeconds / 3600)
+                    : ConstantCall(OffsetFactoryMethod2, offsetSeconds));
         }
     }
 
@@ -182,7 +182,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
     public class DateMapping : NpgsqlTypeMapping
     {
-        static readonly ConstructorInfo _ctorInfo =
+        static readonly ConstructorInfo Constructor =
             typeof(LocalDate).GetConstructor(new[] { typeof(int), typeof(int), typeof(int) });
 
         public DateMapping() : base("date", typeof(LocalDate), NpgsqlDbType.Date) {}
@@ -205,7 +205,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         public override Expression GenerateCodeLiteral(object value)
         {
             var date = (LocalDate)value;
-            return ConstantNew(_ctorInfo, date.Year, date.Month, date.Day);
+            return ConstantNew(Constructor, date.Year, date.Month, date.Day);
         }
     }
 
@@ -215,13 +215,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
     public class TimeMapping : NpgsqlTypeMapping
     {
-        static readonly ConstructorInfo _ctorInfo1 =
+        static readonly ConstructorInfo Constructor1 =
             typeof(LocalTime).GetConstructor(new[] { typeof(int), typeof(int) });
 
-        static readonly ConstructorInfo _ctorInfo2 =
+        static readonly ConstructorInfo Constructor2 =
             typeof(LocalTime).GetConstructor(new[] { typeof(int), typeof(int), typeof(int) });
 
-        static readonly MethodInfo _factoryMethodInfo =
+        static readonly MethodInfo FromHourMinuteSecondNanosecondMethod =
             typeof(LocalTime).GetMethod(nameof(LocalTime.FromHourMinuteSecondNanosecond),
                 new[] { typeof(int), typeof(int), typeof(int), typeof(long) });
 
@@ -245,14 +245,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         public override Expression GenerateCodeLiteral(object value)
         {
             var time = (LocalTime)value;
-
-            if (time.NanosecondOfSecond != 0)
-                return ConstantCall(_factoryMethodInfo, time.Hour, time.Minute, time.Second, (long)time.NanosecondOfSecond);
-
-            if (time.Second != 0)
-                return ConstantNew(_ctorInfo2, time.Hour, time.Minute, time.Second);
-
-            return ConstantNew(_ctorInfo1, time.Hour, time.Minute);
+            return time.NanosecondOfSecond != 0
+                ? ConstantCall(FromHourMinuteSecondNanosecondMethod, time.Hour, time.Minute, time.Second, (long)time.NanosecondOfSecond)
+                : (Expression)(time.Second != 0
+                    ? ConstantNew(Constructor2, time.Hour, time.Minute, time.Second)
+                    : ConstantNew(Constructor1, time.Hour, time.Minute));
         }
     }
 
@@ -262,23 +259,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
     public class TimeTzMapping : NpgsqlTypeMapping
     {
-        static readonly ConstructorInfo _ctorInfo =
+        static readonly ConstructorInfo OffsetTimeConstructor =
             typeof(OffsetTime).GetConstructor(new[] { typeof(LocalTime), typeof(Offset) });
 
-        static readonly ConstructorInfo _localTimeCtorInfo1 =
+        static readonly ConstructorInfo LocalTimeConstructor1 =
             typeof(LocalTime).GetConstructor(new[] { typeof(int), typeof(int) });
 
-        static readonly ConstructorInfo _localTimeCtorInfo2 =
+        static readonly ConstructorInfo LocalTimeConstructor2 =
             typeof(LocalTime).GetConstructor(new[] { typeof(int), typeof(int), typeof(int) });
 
-        static readonly MethodInfo _localTimeFactoryMethodInfo =
+        static readonly MethodInfo LocalTimeFromHourMinuteSecondNanosecondMethod =
             typeof(LocalTime).GetMethod(nameof(LocalTime.FromHourMinuteSecondNanosecond),
                 new[] { typeof(int), typeof(int), typeof(int), typeof(long) });
 
-        static readonly MethodInfo _offsetFactoryMethodInfo1 =
+        static readonly MethodInfo OffsetFromHoursMethod =
             typeof(Offset).GetMethod(nameof(Offset.FromHours), new[] { typeof(int) });
 
-        static readonly MethodInfo _offsetFactoryMethodInfo2 =
+        static readonly MethodInfo OffsetFromSeconds =
             typeof(Offset).GetMethod(nameof(Offset.FromSeconds), new[] { typeof(int) });
 
         static readonly OffsetTimePattern Pattern =
@@ -306,19 +303,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             var offsetTime = (OffsetTime)value;
             var offsetSeconds = offsetTime.Offset.Seconds;
 
-            Expression newLocalTimeExpr = null;
+            Expression newLocalTimeExpr;
             if (offsetTime.NanosecondOfSecond != 0)
-                newLocalTimeExpr = ConstantCall(_localTimeFactoryMethodInfo, offsetTime.Hour, offsetTime.Minute, offsetTime.Second, (long)offsetTime.NanosecondOfSecond);
+                newLocalTimeExpr = ConstantCall(LocalTimeFromHourMinuteSecondNanosecondMethod, offsetTime.Hour, offsetTime.Minute, offsetTime.Second, (long)offsetTime.NanosecondOfSecond);
             else if (offsetTime.Second != 0)
-                newLocalTimeExpr = ConstantNew(_localTimeCtorInfo2, offsetTime.Hour, offsetTime.Minute, offsetTime.Second);
+                newLocalTimeExpr = ConstantNew(LocalTimeConstructor2, offsetTime.Hour, offsetTime.Minute, offsetTime.Second);
             else
-                newLocalTimeExpr = ConstantNew(_localTimeCtorInfo1, offsetTime.Hour, offsetTime.Minute);
+                newLocalTimeExpr = ConstantNew(LocalTimeConstructor1, offsetTime.Hour, offsetTime.Minute);
 
-            return Expression.New(_ctorInfo,
+            return Expression.New(OffsetTimeConstructor,
                 newLocalTimeExpr,
                 offsetSeconds % 3600 == 0
-                    ? ConstantCall(_offsetFactoryMethodInfo1, offsetSeconds / 3600)
-                    : ConstantCall(_offsetFactoryMethodInfo2, offsetSeconds));
+                    ? ConstantCall(OffsetFromHoursMethod, offsetSeconds / 3600)
+                    : ConstantCall(OffsetFromSeconds, offsetSeconds));
         }
     }
 

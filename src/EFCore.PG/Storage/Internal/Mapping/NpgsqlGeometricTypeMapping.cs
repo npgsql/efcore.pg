@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 using Microsoft.EntityFrameworkCore.Storage;
 using NpgsqlTypes;
@@ -28,10 +29,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         public override Expression GenerateCodeLiteral(object value)
         {
             var point = (NpgsqlPoint)value;
-            return Expression.New(
-                typeof(NpgsqlPoint).GetConstructor(new[] { typeof(double), typeof(double) }),
-                Expression.Constant(point.X), Expression.Constant(point.Y));
+            return Expression.New(Constructor, Expression.Constant(point.X), Expression.Constant(point.Y));
         }
+
+        static readonly ConstructorInfo Constructor =
+            typeof(NpgsqlPoint).GetConstructor(new[] { typeof(double), typeof(double) });
     }
 
     public class NpgsqlLineTypeMapping : NpgsqlTypeMapping
@@ -57,9 +59,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         {
             var line = (NpgsqlLine)value;
             return Expression.New(
-                typeof(NpgsqlLine).GetConstructor(new[] { typeof(double), typeof(double), typeof(double) }),
+                Constructor,
                 Expression.Constant(line.A), Expression.Constant(line.B), Expression.Constant(line.C));
         }
+
+        static readonly ConstructorInfo Constructor =
+            typeof(NpgsqlLine).GetConstructor(new[] { typeof(double), typeof(double), typeof(double) });
     }
 
     public class NpgsqlLineSegmentTypeMapping : NpgsqlTypeMapping
@@ -82,10 +87,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         {
             var lseg = (NpgsqlLSeg)value;
             return Expression.New(
-                typeof(NpgsqlLSeg).GetConstructor(new[] { typeof(double), typeof(double), typeof(double), typeof(double) }),
+                Constructor,
                 Expression.Constant(lseg.Start.X), Expression.Constant(lseg.Start.Y),
                 Expression.Constant(lseg.End.X), Expression.Constant(lseg.End.Y));
         }
+
+        static readonly ConstructorInfo Constructor =
+            typeof(NpgsqlLSeg).GetConstructor(new[] { typeof(double), typeof(double), typeof(double), typeof(double) });
     }
 
     public class NpgsqlBoxTypeMapping : NpgsqlTypeMapping
@@ -108,10 +116,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         {
             var box = (NpgsqlBox)value;
             return Expression.New(
-                typeof(NpgsqlBox).GetConstructor(new[] { typeof(double), typeof(double), typeof(double), typeof(double) }),
+                Constructor,
                 Expression.Constant(box.Top), Expression.Constant(box.Right),
                 Expression.Constant(box.Bottom), Expression.Constant(box.Left));
         }
+
+        static readonly ConstructorInfo Constructor =
+            typeof(NpgsqlBox).GetConstructor(new[] { typeof(double), typeof(double), typeof(double), typeof(double) });
     }
 
     public class NpgsqlPathTypeMapping : NpgsqlTypeMapping
@@ -149,13 +160,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         {
             var path = (NpgsqlPath)value;
             return Expression.New(
-                typeof(NpgsqlPath).GetConstructor(new[] { typeof(IEnumerable<NpgsqlPoint>), typeof(bool) }),
+                Constructor,
                 Expression.NewArrayInit(typeof(NpgsqlPoint),
                     path.Select(p => Expression.New(
-                        typeof(NpgsqlPoint).GetConstructor(new[] { typeof(double), typeof(double) }),
+                        PointConstructor,
                         Expression.Constant(p.X), Expression.Constant(p.Y)))),
                 Expression.Constant(path.Open));
         }
+
+        static readonly ConstructorInfo Constructor =
+            typeof(NpgsqlPath).GetConstructor(new[] { typeof(IEnumerable<NpgsqlPoint>), typeof(bool) });
+
+        static readonly ConstructorInfo PointConstructor =
+            typeof(NpgsqlPoint).GetConstructor(new[] { typeof(double), typeof(double) });
     }
 
     public class NpgsqlPolygonTypeMapping : NpgsqlTypeMapping
@@ -191,12 +208,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         {
             var polygon = (NpgsqlPolygon)value;
             return Expression.New(
-                typeof(NpgsqlPolygon).GetConstructor(new[] { typeof(NpgsqlPoint[]) }),
+                Constructor,
                 Expression.NewArrayInit(typeof(NpgsqlPoint),
                     polygon.Select(p => Expression.New(
-                        typeof(NpgsqlPoint).GetConstructor(new[] { typeof(double), typeof(double) }),
+                        PointConstructor,
                         Expression.Constant(p.X), Expression.Constant(p.Y)))));
         }
+
+        static readonly ConstructorInfo Constructor =
+            typeof(NpgsqlPolygon).GetConstructor(new[] { typeof(NpgsqlPoint[]) });
+
+        static readonly ConstructorInfo PointConstructor =
+            typeof(NpgsqlPoint).GetConstructor(new[] { typeof(double), typeof(double) });
     }
 
     public class NpgsqlCircleTypeMapping : NpgsqlTypeMapping
@@ -219,8 +242,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         {
             var circle = (NpgsqlCircle)value;
             return Expression.New(
-                typeof(NpgsqlCircle).GetConstructor(new[] { typeof(double), typeof(double), typeof(double) }),
+                Constructor,
                 Expression.Constant(circle.X), Expression.Constant(circle.Y), Expression.Constant(circle.Radius));
         }
+
+        static readonly ConstructorInfo Constructor =
+            typeof(NpgsqlCircle).GetConstructor(new[] { typeof(double), typeof(double), typeof(double) });
     }
 }

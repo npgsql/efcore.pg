@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Reflection;
 using Microsoft.EntityFrameworkCore.Storage;
 using NpgsqlTypes;
 
@@ -29,9 +30,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             => $"MACADDR '{(PhysicalAddress)value}'";
 
         public override Expression GenerateCodeLiteral(object value)
-            => Expression.Call(
-                typeof(PhysicalAddress).GetMethod("Parse", new[] {typeof(string)}),
-                Expression.Constant(((PhysicalAddress)value).ToString()));
+            => Expression.Call(ParseMethod, Expression.Constant(((PhysicalAddress)value).ToString()));
+
+        static readonly MethodInfo ParseMethod = typeof(PhysicalAddress).GetMethod("Parse", new[] { typeof(string) });
     }
 
     /// <summary>
@@ -57,9 +58,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             => $"MACADDR8 '{(PhysicalAddress)value}'";
 
         public override Expression GenerateCodeLiteral(object value)
-            => Expression.Call(
-                typeof(PhysicalAddress).GetMethod("Parse", new[] {typeof(string)}),
-                Expression.Constant(((PhysicalAddress)value).ToString()));
+            => Expression.Call(ParseMethod, Expression.Constant(((PhysicalAddress)value).ToString()));
+
+        static readonly MethodInfo ParseMethod = typeof(PhysicalAddress).GetMethod("Parse", new[] { typeof(string) });
     }
 
     /// <summary>
@@ -85,9 +86,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             => $"INET '{(IPAddress)value}'";
 
         public override Expression GenerateCodeLiteral(object value)
-            => Expression.Call(
-                typeof(IPAddress).GetMethod("Parse", new[] {typeof(string)}),
-                Expression.Constant(((IPAddress)value).ToString()));
+            => Expression.Call(ParseMethod, Expression.Constant(((IPAddress)value).ToString()));
+
+        static readonly MethodInfo ParseMethod = typeof(IPAddress).GetMethod("Parse", new[] { typeof(string) });
     }
 
     /// <summary>
@@ -119,11 +120,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         {
             var cidr = ((IPAddress Address, int Subnet))value;
             return Expression.New(
-                typeof((IPAddress, int)).GetConstructor(new[] { typeof(IPAddress), typeof(int) }),
-                Expression.Call(
-                    typeof(IPAddress).GetMethod("Parse", new[] {typeof(string)}),
-                    Expression.Constant(cidr.Address.ToString())),
+                Constructor,
+                Expression.Call(ParseMethod, Expression.Constant(cidr.Address.ToString())),
                 Expression.Constant(cidr.Subnet));
         }
+
+        static readonly MethodInfo ParseMethod = typeof(IPAddress).GetMethod("Parse", new[] { typeof(string) });
+
+        static readonly ConstructorInfo Constructor =
+            typeof((IPAddress, int)).GetConstructor(new[] { typeof(IPAddress), typeof(int) });
     }
 }

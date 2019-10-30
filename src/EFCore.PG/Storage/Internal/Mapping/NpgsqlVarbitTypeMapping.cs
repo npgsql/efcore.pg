@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 using Microsoft.EntityFrameworkCore.Storage;
 using NpgsqlTypes;
@@ -33,8 +34,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             var exprs = new Expression[bits.Count];
             for (var i = 0; i < bits.Count; i++)
                 exprs[i] = Expression.Constant(bits[i]);
-            return Expression.New(typeof(BitArray).GetConstructor(new[] { typeof(bool[]) }),
+            return Expression.New(Constructor,
                 Expression.NewArrayInit(typeof(bool), exprs));
         }
+
+        static readonly ConstructorInfo Constructor =
+            typeof(BitArray).GetConstructor(new[] { typeof(bool[]) });
     }
 }
