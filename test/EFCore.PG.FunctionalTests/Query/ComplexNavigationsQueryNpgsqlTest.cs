@@ -1,4 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore.Query;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.TestModels.ComplexNavigationsModel;
+using Microsoft.EntityFrameworkCore.TestUtilities;
+using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
@@ -10,6 +18,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             Fixture.TestSqlLoggerFactory.Clear();
         }
+
+        [ConditionalTheory(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/18679")]
+        [MemberData(nameof(IsAsyncData))]
+        public override Task Include13(bool isAsync) => base.Include13(isAsync);
+
+        [ConditionalTheory(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/18679")]
+        [MemberData(nameof(IsAsyncData))]
+        public override Task Include14(bool isAsync) => base.Include13(isAsync);
 
         // Should be fixed but could not verify as temporarily disabled upstream
 //        [ConditionalTheory(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/12970")]

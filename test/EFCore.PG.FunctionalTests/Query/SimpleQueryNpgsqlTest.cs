@@ -18,11 +18,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
-        [ConditionalTheory(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/17379")]
-        public override Task SelectMany_correlated_with_outer_2(bool isAsync) => null;
+        [ConditionalTheory(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/18674")]
+        [MemberData(nameof(IsAsyncData))]
+        public override Task Default_if_empty_top_level_arg(bool isAsync)
+            => base.Default_if_empty_top_level_arg(isAsync);
+
+        [ConditionalTheory(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/18674")]
+        [MemberData(nameof(IsAsyncData))]
+        public override Task Default_if_empty_top_level_arg_followed_by_projecting_constant(bool isAsync)
+            => base.Default_if_empty_top_level_arg_followed_by_projecting_constant(isAsync);
 
         [ConditionalTheory(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/17379")]
-        public override Task SelectMany_correlated_with_outer_4(bool isAsync) => null;
+        public override Task SelectMany_correlated_with_outer_2(bool isAsync)
+            => base.SelectMany_correlated_with_outer_2(isAsync);
+
+        [ConditionalTheory(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/17379")]
+        public override Task SelectMany_correlated_with_outer_4(bool isAsync)
+            => base.SelectMany_correlated_with_outer_4(isAsync);
 
         #region Overrides
 
@@ -42,9 +54,9 @@ WHERE (o.""OrderDate"" IS NOT NULL)");
         {
             var years = 2;
 
-            await AssertQuery<Order>(
+            await AssertQuery(
                 isAsync,
-                os => os.Where(o => o.OrderDate != null)
+                ss => ss.Set<Order>().Where(o => o.OrderDate != null)
                     .Select(
                         o => new Order
                         {
@@ -101,15 +113,17 @@ WHERE e.""EmployeeID"" IN (0)");
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
         public Task PadLeft_with_constant(bool isAsync)
-            => AssertQuery<Customer>(isAsync, cs => cs
-                .Where(x => x.Address.PadLeft(20).EndsWith("Walserweg 21")),
+            => AssertQuery(
+                isAsync,
+                ss => ss.Set<Customer>().Where(x => x.Address.PadLeft(20).EndsWith("Walserweg 21")),
                 entryCount: 1);
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
         public Task PadLeft_char_with_constant(bool isAsync)
-            => AssertQuery<Customer>(isAsync, cs => cs
-                    .Where(x => x.Address.PadLeft(20, 'a').EndsWith("Walserweg 21")),
+            => AssertQuery(
+                isAsync,
+                ss => ss.Set<Customer>().Where(x => x.Address.PadLeft(20, 'a').EndsWith("Walserweg 21")),
                 entryCount: 1);
 
         [ConditionalTheory]
@@ -118,8 +132,9 @@ WHERE e.""EmployeeID"" IN (0)");
         {
             var length = 20;
 
-            return AssertQuery<Customer>(isAsync, cs => cs
-                    .Where(x => x.Address.PadLeft(length).EndsWith("Walserweg 21")),
+            return AssertQuery(
+                isAsync,
+                ss => ss.Set<Customer>().Where(x => x.Address.PadLeft(length).EndsWith("Walserweg 21")),
                 entryCount: 1);
         }
 
@@ -129,23 +144,26 @@ WHERE e.""EmployeeID"" IN (0)");
         {
             var length = 20;
 
-            return AssertQuery<Customer>(isAsync, cs => cs
-                    .Where(x => x.Address.PadLeft(length, 'a').EndsWith("Walserweg 21")),
+            return AssertQuery(
+                isAsync,
+                ss => ss.Set<Customer>().Where(x => x.Address.PadLeft(length, 'a').EndsWith("Walserweg 21")),
                 entryCount: 1);
         }
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
         public Task PadRight_with_constant(bool isAsync)
-            => AssertQuery<Customer>(isAsync, cs => cs
-                    .Where(x => x.Address.PadRight(20).StartsWith("Walserweg 21")),
+            => AssertQuery(
+                isAsync,
+                ss => ss.Set<Customer>().Where(x => x.Address.PadRight(20).StartsWith("Walserweg 21")),
                 entryCount: 1);
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
         public Task PadRight_char_with_constant(bool isAsync)
-            => AssertQuery<Customer>(isAsync, cs => cs
-                    .Where(x => x.Address.PadRight(20).StartsWith("Walserweg 21")),
+            => AssertQuery(
+                isAsync,
+                ss => ss.Set<Customer>().Where(x => x.Address.PadRight(20).StartsWith("Walserweg 21")),
                 entryCount: 1);
 
         [ConditionalTheory]
@@ -154,8 +172,9 @@ WHERE e.""EmployeeID"" IN (0)");
         {
             var length = 20;
 
-            return AssertQuery<Customer>(isAsync, cs => cs
-                    .Where(x => x.Address.PadRight(length).StartsWith("Walserweg 21")),
+            return AssertQuery(
+                isAsync,
+                ss => ss.Set<Customer>().Where(x => x.Address.PadRight(length).StartsWith("Walserweg 21")),
                 entryCount: 1);
         }
 
@@ -165,8 +184,9 @@ WHERE e.""EmployeeID"" IN (0)");
         {
             var length = 20;
 
-            return AssertQuery<Customer>(isAsync, cs => cs
-                    .Where(x => x.Address.PadRight(length, 'a').StartsWith("Walserweg 21")),
+            return AssertQuery(
+                isAsync,
+                ss => ss.Set<Customer>().Where(x => x.Address.PadRight(length, 'a').StartsWith("Walserweg 21")),
                 entryCount: 1);
         }
 
@@ -177,26 +197,32 @@ WHERE e.""EmployeeID"" IN (0)");
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
         public Task Substring_without_length_with_Index_of(bool isAsync)
-            => AssertQuery<Customer>(isAsync, cs => cs
-                .Where(x => x.Address == "Walserweg 21")
-                .Where(x => x.Address.Substring(x.Address.IndexOf("e")) == "erweg 21"), entryCount: 1);
-
+            => AssertQuery(
+                isAsync,
+                ss => ss.Set<Customer>()
+                    .Where(x => x.Address == "Walserweg 21")
+                    .Where(x => x.Address.Substring(x.Address.IndexOf("e")) == "erweg 21"),
+                entryCount: 1);
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
         public Task Substring_without_length_with_constant(bool isAsync)
-            => AssertQuery<Customer>(isAsync, cs => cs
+            => AssertQuery(
+                isAsync,
                 //Walserweg 21
-                .Where(x => x.Address.Substring(5) == "rweg 21"), entryCount: 1);
+                cs => cs.Set<Customer>().Where(x => x.Address.Substring(5) == "rweg 21"),
+                entryCount: 1);
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
         public Task Substring_without_length_with_closure(bool isAsync)
         {
             var startIndex = 5;
-            return AssertQuery<Customer>(isAsync, cs => cs
+            return AssertQuery(
+                isAsync,
                 //Walserweg 21
-                .Where(x => x.Address.Substring(startIndex) == "rweg 21"), entryCount: 1);
+                ss => ss.Set<Customer>().Where(x => x.Address.Substring(startIndex) == "rweg 21"),
+                entryCount: 1);
         }
 
         #endregion
@@ -208,8 +234,9 @@ WHERE e.""EmployeeID"" IN (0)");
         [MemberData(nameof(IsAsyncData))]
         public async Task Array_Contains_constant(bool isAsync)
         {
-            await AssertQuery<Customer>(isAsync, cs => cs
-                .Where(c => new[] { "ALFKI", "ANATR" }.Contains(c.CustomerID)),
+            await AssertQuery(
+                isAsync,
+                ss => ss.Set<Customer>().Where(c => new[] { "ALFKI", "ANATR" }.Contains(c.CustomerID)),
                 entryCount: 2);
 
             // Note: for constant lists there's no advantage in using the PostgreSQL-specific x = ANY (a b, c), unlike
@@ -227,8 +254,9 @@ WHERE c.""CustomerID"" IN ('ALFKI', 'ANATR')");
         {
             var ids = new[] { "ALFKI", "ANATR" };
 
-            await AssertQuery<Customer>(isAsync, cs => cs
-                    .Where(c => ids.Contains(c.CustomerID)),
+            await AssertQuery(
+                isAsync,
+                ss => ss.Set<Customer>().Where(c => ids.Contains(c.CustomerID)),
                 entryCount: 2);
 
             // Instead of c.""CustomerID"" x in ('ALFKI', 'ANATR') we should generate the PostgreSQL-specific x = ANY (a, b, c), which can
@@ -257,8 +285,9 @@ WHERE c.""CustomerID"" IN ('ALFKI', 'ANATR')");
         {
             var collection = new[] { "A%", "B%", "C%" };
 
-            await AssertQuery<Customer>(isAsync, cs => cs
-                .Where(c => collection.Any(y => EF.Functions.Like(c.Address, y))),
+            await AssertQuery(
+                isAsync,
+                ss => ss.Set<Customer>().Where(c => collection.Any(y => EF.Functions.Like(c.Address, y))),
                 entryCount: 22);
 
             AssertSql(
@@ -275,8 +304,9 @@ WHERE c.""Address"" LIKE ANY (@__collection_0)");
         {
             var collection = new[] { "A%", "B%", "C%" };
 
-            await AssertQuery<Customer>(isAsync, cs => cs
-                    .Where(c => collection.All(y => EF.Functions.Like(c.Address, y))));
+            await AssertQuery(
+                isAsync,
+                ss => ss.Set<Customer>().Where(c => collection.All(y => EF.Functions.Like(c.Address, y))));
 
             AssertSql(
                 @"@__collection_0='System.String[]' (DbType = Object)
@@ -292,8 +322,9 @@ WHERE c.""Address"" LIKE ALL (@__collection_0)");
         {
             var collection = new[] { "a%", "b%", "c%" };
 
-            await AssertQuery<Customer>(isAsync, cs => cs
-                .Where(c => collection.Any(y => EF.Functions.ILike(c.Address, y))),
+            await AssertQuery(
+                isAsync,
+                ss => ss.Set<Customer>().Where(c => collection.Any(y => EF.Functions.ILike(c.Address, y))),
                 entryCount: 22);
 
             AssertSql(
@@ -310,8 +341,9 @@ WHERE c.""Address"" ILIKE ANY (@__collection_0)");
         {
             var collection = new[] { "a%", "b%", "c%" };
 
-            await AssertQuery<Customer>(isAsync, cs => cs
-                    .Where(c => collection.All(y => EF.Functions.ILike(c.Address, y))));
+            await AssertQuery(
+                isAsync,
+                ss => ss.Set<Customer>().Where(c => collection.All(y => EF.Functions.ILike(c.Address, y))));
 
             AssertSql(
                 @"@__collection_0='System.String[]' (DbType = Object)

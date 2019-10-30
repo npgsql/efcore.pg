@@ -74,7 +74,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
 SELECT s.""Id"", s.""EnumValue"", s.""InferredEnum"", s.""MappedEnum"", s.""SchemaQualifiedEnum"", s.""UnmappedEnum""
 FROM test.""SomeEntities"" AS s
-WHERE (s.""MappedEnum"" = @__sad_0) AND (@__sad_0 IS NOT NULL)
+WHERE s.""MappedEnum"" = @__sad_0
 LIMIT 2");
             }
         }
@@ -93,7 +93,7 @@ LIMIT 2");
 
 SELECT s.""Id"", s.""EnumValue"", s.""InferredEnum"", s.""MappedEnum"", s.""SchemaQualifiedEnum"", s.""UnmappedEnum""
 FROM test.""SomeEntities"" AS s
-WHERE (s.""UnmappedEnum"" = @__sad_0) AND (@__sad_0 IS NOT NULL)
+WHERE s.""UnmappedEnum"" = @__sad_0
 LIMIT 2");
             }
         }
@@ -112,7 +112,7 @@ LIMIT 2");
 
 SELECT s.""Id"", s.""EnumValue"", s.""InferredEnum"", s.""MappedEnum"", s.""SchemaQualifiedEnum"", s.""UnmappedEnum""
 FROM test.""SomeEntities"" AS s
-WHERE (s.""UnmappedEnum"" = @__sad_0) AND (@__sad_0 IS NOT NULL)
+WHERE s.""UnmappedEnum"" = @__sad_0
 LIMIT 2");
             }
         }
@@ -131,7 +131,7 @@ LIMIT 2");
 
 SELECT s.""Id"", s.""EnumValue"", s.""InferredEnum"", s.""MappedEnum"", s.""SchemaQualifiedEnum"", s.""UnmappedEnum""
 FROM test.""SomeEntities"" AS s
-WHERE (s.""MappedEnum"" = @__sad_0) AND (@__sad_0 IS NOT NULL)
+WHERE s.""MappedEnum"" = @__sad_0
 LIMIT 2");
             }
         }

@@ -88,14 +88,14 @@ WHERE (j.""Customer"" = '{""Name"":""Test customer"",""Age"":80,""ID"":""0000000
 
 SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
-WHERE (j.""Id"" = @__p_0) AND (@__p_0 IS NOT NULL)
+WHERE j.""Id"" = @__p_0
 LIMIT 1",
                     //
                     @"@__expected_0='Npgsql.EntityFrameworkCore.PostgreSQL.Query.JsonPocoQueryTest+Customer' (DbType = Object)
 
 SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
-WHERE ((j.""Customer"" = @__expected_0) AND ((j.""Customer"" IS NOT NULL) AND (@__expected_0 IS NOT NULL))) OR ((j.""Customer"" IS NULL) AND (@__expected_0 IS NULL))
+WHERE (j.""Customer"" = @__expected_0) AND (j.""Customer"" IS NOT NULL)
 LIMIT 2");
             }
         }

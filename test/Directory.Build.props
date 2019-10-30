@@ -3,12 +3,12 @@
   <Import Project="..\Directory.Build.props" />
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp3.0</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup>
     <!-- There's lots of use of internal EF Core APIs from the tests, suppress the analyzer warnings for those -->
-    <NoWarn>$(NoWarn);xUnit1004;EF1001</NoWarn>
+    <NoWarn>$(NoWarn);xUnit1003;xUnit1004;xUnit1013;EF1001</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

@@ -135,7 +135,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using (var context = Fixture.CreateContext())
             {
                 var count = context.NetTestEntities.Count(x => EF.Functions.LessThan(x.Inet, IPAddress.Parse("192.168.1.7")));
-                Assert.Equal(count, 6);
+                Assert.Equal(6, count);
                 AssertContainsSql(@"WHERE n.""Inet"" < INET '192.168.1.7'");
             }
         }
@@ -162,7 +162,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using (var context = Fixture.CreateContext())
             {
                 var count = context.NetTestEntities.Count(x => EF.Functions.LessThan(x.Macaddr, PhysicalAddress.Parse("12-34-56-00-00-07")));
-                Assert.Equal(count, 6);
+                Assert.Equal(6, count);
                 AssertContainsSql(@"""Macaddr"" < MACADDR '123456000007'");
             }
         }
@@ -173,7 +173,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using (var context = Fixture.CreateContext())
             {
                 var count = context.NetTestEntities.Count(x => EF.Functions.LessThan(x.Macaddr8, PhysicalAddress.Parse("08-00-2B-01-02-03-04-07")));
-                Assert.Equal(count, 6);
+                Assert.Equal(6, count);
                 AssertContainsSql(@"""Macaddr8"" < MACADDR8 '08002B0102030407'");
             }
         }
@@ -184,7 +184,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using (var context = Fixture.CreateContext())
             {
                 var count = context.NetTestEntities.Count(x => EF.Functions.LessThanOrEqual(x.Inet, IPAddress.Parse("192.168.1.7")));
-                Assert.Equal(count, 7);
+                Assert.Equal(7, count);
                 AssertContainsSql(@"WHERE n.""Inet"" <= INET '192.168.1.7'");
             }
         }
@@ -211,7 +211,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using (var context = Fixture.CreateContext())
             {
                 var count = context.NetTestEntities.Count(x => EF.Functions.LessThanOrEqual(x.Macaddr, PhysicalAddress.Parse("12-34-56-00-00-07")));
-                Assert.Equal(count, 7);
+                Assert.Equal(7, count);
                 AssertContainsSql(@"""Macaddr"" <= MACADDR '123456000007'");
             }
         }
@@ -222,7 +222,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using (var context = Fixture.CreateContext())
             {
                 var count = context.NetTestEntities.Count(x => EF.Functions.LessThanOrEqual(x.Macaddr8, PhysicalAddress.Parse("08-00-2B-01-02-03-04-07")));
-                Assert.Equal(count, 7);
+                Assert.Equal(7, count);
                 AssertContainsSql(@"""Macaddr8"" <= MACADDR8 '08002B0102030407'");            }
         }
 
@@ -232,7 +232,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using (var context = Fixture.CreateContext())
             {
                 var count = context.NetTestEntities.Count(x => EF.Functions.GreaterThanOrEqual(x.Inet, IPAddress.Parse("192.168.1.7")));
-                Assert.Equal(count, 3);
+                Assert.Equal(3, count);
                 AssertContainsSql(@"WHERE n.""Inet"" >= INET '192.168.1.7'");
             }
         }
@@ -259,7 +259,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using (var context = Fixture.CreateContext())
             {
                 var count = context.NetTestEntities.Count(x => EF.Functions.GreaterThanOrEqual(x.Macaddr, PhysicalAddress.Parse("12-34-56-00-00-07")));
-                Assert.Equal(count, 3);
+                Assert.Equal(3, count);
                 AssertContainsSql(@"""Macaddr"" >= MACADDR '123456000007'");
             }
         }
@@ -270,7 +270,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using (var context = Fixture.CreateContext())
             {
                 var count = context.NetTestEntities.Count(x => EF.Functions.GreaterThanOrEqual(x.Macaddr8, PhysicalAddress.Parse("08-00-2B-01-02-03-04-07")));
-                Assert.Equal(count, 3);
+                Assert.Equal(3, count);
                 AssertContainsSql(@"""Macaddr8"" >= MACADDR8 '08002B0102030407'");
             }
         }
@@ -281,7 +281,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using (var context = Fixture.CreateContext())
             {
                 var count = context.NetTestEntities.Count(x => EF.Functions.GreaterThan(x.Inet, IPAddress.Parse("192.168.1.7")));
-                Assert.Equal(count, 2);
+                Assert.Equal(2, count);
                 AssertContainsSql(@"WHERE n.""Inet"" > INET '192.168.1.7'");
             }
         }
@@ -308,7 +308,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using (var context = Fixture.CreateContext())
             {
                 var count = context.NetTestEntities.Count(x => EF.Functions.GreaterThan(x.Macaddr, PhysicalAddress.Parse("12-34-56-00-00-07")));
-                Assert.Equal(count, 2);
+                Assert.Equal(2, count);
                 AssertContainsSql(@"""Macaddr"" > MACADDR '123456000007'");
             }
         }
@@ -319,7 +319,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using (var context = Fixture.CreateContext())
             {
                 var count = context.NetTestEntities.Count(x => EF.Functions.GreaterThan(x.Macaddr8, PhysicalAddress.Parse("08-00-2B-01-02-03-04-07")));
-                Assert.Equal(count, 2);
+                Assert.Equal(2, count);
                 AssertContainsSql(@"""Macaddr8"" > MACADDR8 '08002B0102030407'");
             }
         }

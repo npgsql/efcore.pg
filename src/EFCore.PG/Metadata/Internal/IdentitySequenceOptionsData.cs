@@ -79,7 +79,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
                 end = value.IndexOf('\'', end + 2);
             }
 
-            var extracted = value[position..end].Replace("''", "'");
+            var extracted = value.Substring(position, end - position).Replace("''", "'");
             position = end + 1;
 
             return extracted.Length == 0 ? null : extracted;

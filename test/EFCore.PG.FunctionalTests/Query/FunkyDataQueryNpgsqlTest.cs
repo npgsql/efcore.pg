@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.TestModels.FunkyDataModel;
@@ -17,17 +18,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
-        [ConditionalFact(Skip = "https://github.com/npgsql/Npgsql.EntityFrameworkCore.PostgreSQL/issues/996")]
-        public override void String_contains_on_argument_with_wildcard_column() {}
+        [ConditionalTheory(Skip = "https://github.com/npgsql/Npgsql.EntityFrameworkCore.PostgreSQL/issues/996")]
+        public override Task String_contains_on_argument_with_wildcard_column(bool isAsync)
+            => base.String_contains_on_argument_with_wildcard_column(isAsync);
 
-        [ConditionalFact(Skip = "https://github.com/npgsql/Npgsql.EntityFrameworkCore.PostgreSQL/issues/996")]
-        public override void String_contains_on_argument_with_wildcard_column_negated() {}
+        [ConditionalTheory(Skip = "https://github.com/npgsql/Npgsql.EntityFrameworkCore.PostgreSQL/issues/996")]
+        public override Task String_contains_on_argument_with_wildcard_column_negated(bool isAsync)
+            => base.String_contains_on_argument_with_wildcard_column_negated(isAsync);
 
-        [ConditionalFact(Skip = "https://github.com/npgsql/Npgsql.EntityFrameworkCore.PostgreSQL/issues/996")]
-        public override void String_contains_on_argument_with_wildcard_constant() {}
+        [ConditionalTheory(Skip = "https://github.com/npgsql/Npgsql.EntityFrameworkCore.PostgreSQL/issues/996")]
+        public override Task String_contains_on_argument_with_wildcard_constant(bool isAsync)
+            => base.String_contains_on_argument_with_wildcard_constant(isAsync);
 
-        [ConditionalFact(Skip = "https://github.com/npgsql/Npgsql.EntityFrameworkCore.PostgreSQL/issues/996")]
-        public override void String_contains_on_argument_with_wildcard_parameter() {}
+        [ConditionalTheory(Skip = "https://github.com/npgsql/Npgsql.EntityFrameworkCore.PostgreSQL/issues/996")]
+        public override Task String_contains_on_argument_with_wildcard_parameter(bool isAsync)
+            => base.String_contains_on_argument_with_wildcard_parameter(isAsync);
 
         public class FunkyDataQueryNpgsqlFixture : FunkyDataQueryFixtureBase
         {
