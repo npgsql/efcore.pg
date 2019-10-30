@@ -63,9 +63,9 @@ jobs:
         shell: bash
 
       - name: Setup .NET Core SDK
-        uses: actions/setup-dotnet@v1.0.2 # Issues with DOTNET_ROOT
+        uses: actions/setup-dotnet@bb95ce727fd49ec1a65933419cc7c91747785302
         with:
-          dotnet-version: '3.0.100'
+          dotnet-version: '3.1.100-preview1-014459'
 
       - name: Test
         run: dotnet test --configuration Debug
@@ -79,6 +79,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v1
+
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@bb95ce727fd49ec1a65933419cc7c91747785302
+        with:
+          dotnet-version: '3.1.100-preview1-014459'
 
       - name: Pack NuGet packages (CI versions)
         if: startsWith(github.ref, 'refs/heads/')

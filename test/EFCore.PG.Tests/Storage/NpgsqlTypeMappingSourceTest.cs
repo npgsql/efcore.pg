@@ -35,7 +35,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         [InlineData(typeof(NpgsqlRange<DummyType>), "dummyrange")]
         [InlineData(typeof(Geometry), "geometry")]
         [InlineData(typeof(Point), "geometry")]
-        [InlineData(typeof(Point), "geometry")]
         public void By_ClrType(Type clrType, string expectedStoreType)
             => Assert.Equal(expectedStoreType, ((RelationalTypeMapping)Source.FindMapping(clrType)).StoreType);
 

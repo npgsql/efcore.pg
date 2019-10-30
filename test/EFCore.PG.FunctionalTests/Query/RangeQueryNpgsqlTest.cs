@@ -415,8 +415,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             using (var context = Fixture.CreateContext())
             {
                 var e = context.RangeTestEntities.Single(x => x.FloatRange.UpperBound > 5);
-                Assert.Equal(e.FloatRange.LowerBound, 0);
-                Assert.Equal(e.FloatRange.UpperBound, 10);
+                Assert.Equal(0, e.FloatRange.LowerBound);
+                Assert.Equal(10, e.FloatRange.UpperBound);
             }
         }
 
@@ -427,8 +427,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             {
                 var e = context.RangeTestEntities.Single(x => x.SchemaRange == NpgsqlRange<double>.Parse("(0,10)"));
                 AssertContainsSql(@"WHERE r.""SchemaRange"" = '(0,10)'::test.""Schema_Range""");
-                Assert.Equal(e.SchemaRange.LowerBound, 0);
-                Assert.Equal(e.SchemaRange.UpperBound, 10);
+                Assert.Equal(0, e.SchemaRange.LowerBound);
+                Assert.Equal(10, e.SchemaRange.UpperBound);
             }
         }
 

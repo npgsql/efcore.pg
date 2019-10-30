@@ -38,7 +38,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                         .Select(e => e.Int)
                         .ToList();
 
-                Assert.Equal(0, results.Count);
+                Assert.Empty(results);
 
                 AssertSql(
                     @"SELECT m.""Int""
@@ -60,14 +60,14 @@ WHERE (m.""TimeSpanAsTime"" = TIME '00:01:02') AND (m.""TimeSpanAsTime"" IS NOT 
                         .Select(e => e.Int)
                         .ToList();
 
-                Assert.Equal(0, results.Count);
+                Assert.Empty(results);
 
                 AssertSql(
                     @"@__timeSpan_0='02:01:00' (Nullable = true) (DbType = Object)
 
 SELECT m.""Int""
 FROM ""MappedNullableDataTypes"" AS m
-WHERE ((m.""TimeSpanAsTime"" = @__timeSpan_0) AND ((m.""TimeSpanAsTime"" IS NOT NULL) AND (@__timeSpan_0 IS NOT NULL))) OR ((m.""TimeSpanAsTime"" IS NULL) AND (@__timeSpan_0 IS NULL))");
+WHERE (m.""TimeSpanAsTime"" = @__timeSpan_0) AND (m.""TimeSpanAsTime"" IS NOT NULL)");
             }
         }
 

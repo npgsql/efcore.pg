@@ -19,7 +19,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             Fixture = fixture;
             Fixture.TestSqlLoggerFactory.Clear();
-            Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
         [Fact]
@@ -76,7 +76,7 @@ WHERE (j.""CustomerJsonb"" = '{""Name"":""Test customer"",""Age"":80,""IsVip"":f
 
 SELECT j.""Id"", j.""CustomerJson"", j.""CustomerJsonb""
 FROM ""JsonEntities"" AS j
-WHERE (j.""Id"" = @__p_0) AND (@__p_0 IS NOT NULL)
+WHERE j.""Id"" = @__p_0
 LIMIT 1",
                     //
                     @"@__expected_0='{""Age"": 25
@@ -96,7 +96,7 @@ LIMIT 1",
 
 SELECT j.""Id"", j.""CustomerJson"", j.""CustomerJsonb""
 FROM ""JsonEntities"" AS j
-WHERE ((j.""CustomerJsonb"" = @__expected_0) AND ((j.""CustomerJsonb"" IS NOT NULL) AND (@__expected_0 IS NOT NULL))) OR ((j.""CustomerJsonb"" IS NULL) AND (@__expected_0 IS NULL))
+WHERE (j.""CustomerJsonb"" = @__expected_0) AND (j.""CustomerJsonb"" IS NOT NULL)
 LIMIT 2");
             }
         }

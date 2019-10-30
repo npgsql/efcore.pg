@@ -3,7 +3,6 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.TestModels.Northwind;
-using Microsoft.EntityFrameworkCore.TestUtilities.Xunit;
 using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
@@ -27,7 +26,8 @@ WHERE (c.""Region"" IS NULL) OR ((BTRIM(c.""Region"", E' \t\n\r') = '') AND (BTR
         }
 
         [ConditionalTheory(Skip = "Fixed for PostgreSQL 12.1, https://www.postgresql.org/message-id/CADT4RqAz7oN4vkPir86Kg1_mQBmBxCp-L_%3D9vRpgSNPJf0KRkw%40mail.gmail.com")]
-        public override Task Indexof_with_emptystring(bool isAsync) => Task.CompletedTask;
+        public override Task Indexof_with_emptystring(bool isAsync)
+            => base.Indexof_with_emptystring(isAsync);
 
         #region Regex
 
@@ -35,10 +35,11 @@ WHERE (c.""Region"" IS NULL) OR ((BTRIM(c.""Region"", E' \t\n\r') = '') AND (BTR
         [MemberData(nameof(IsAsyncData))]
         public async Task Regex_IsMatch(bool isAsync)
         {
-            await AssertQuery<Customer>(
+            await AssertQuery(
                 isAsync,
-                cs => cs.Where(c => Regex.IsMatch(c.CompanyName, "^A")),
+                cs => cs.Set<Customer>().Where(c => Regex.IsMatch(c.CompanyName, "^A")),
                 entryCount: 4);
+
             AssertContainsSqlFragment(@"WHERE c.""CompanyName"" ~ ('(?p)' || '^A')");
         }
 
@@ -46,10 +47,11 @@ WHERE (c.""Region"" IS NULL) OR ((BTRIM(c.""Region"", E' \t\n\r') = '') AND (BTR
         [MemberData(nameof(IsAsyncData))]
         public async Task Regex_IsMatchOptionsNone(bool isAsync)
         {
-            await AssertQuery<Customer>(
+            await AssertQuery(
                 isAsync,
-                cs => cs.Where(c => Regex.IsMatch(c.CompanyName, "^A", RegexOptions.None)),
+                cs => cs.Set<Customer>().Where(c => Regex.IsMatch(c.CompanyName, "^A", RegexOptions.None)),
                 entryCount: 4);
+
             AssertContainsSqlFragment(@"WHERE c.""CompanyName"" ~ ('(?p)' || '^A')");
         }
 
@@ -57,10 +59,11 @@ WHERE (c.""Region"" IS NULL) OR ((BTRIM(c.""Region"", E' \t\n\r') = '') AND (BTR
         [MemberData(nameof(IsAsyncData))]
         public async Task Regex_IsMatchOptionsIgnoreCase(bool isAsync)
         {
-            await AssertQuery<Customer>(
+            await AssertQuery(
                 isAsync,
-                cs => cs.Where(c => Regex.IsMatch(c.CompanyName, "^a", RegexOptions.IgnoreCase)),
+                cs => cs.Set<Customer>().Where(c => Regex.IsMatch(c.CompanyName, "^a", RegexOptions.IgnoreCase)),
                 entryCount: 4);
+
             AssertContainsSqlFragment(@"WHERE c.""CompanyName"" ~ ('(?ip)' || '^a')");
         }
 
@@ -68,10 +71,11 @@ WHERE (c.""Region"" IS NULL) OR ((BTRIM(c.""Region"", E' \t\n\r') = '') AND (BTR
         [MemberData(nameof(IsAsyncData))]
         public async Task Regex_IsMatchOptionsMultiline(bool isAsync)
         {
-            await AssertQuery<Customer>(
+            await AssertQuery(
                 isAsync,
-                cs => cs.Where(c => Regex.IsMatch(c.CompanyName, "^A", RegexOptions.Multiline)),
+                cs => cs.Set<Customer>().Where(c => Regex.IsMatch(c.CompanyName, "^A", RegexOptions.Multiline)),
                 entryCount: 4);
+
             AssertContainsSqlFragment(@"WHERE c.""CompanyName"" ~ ('(?n)' || '^A')");
         }
 
@@ -80,10 +84,11 @@ WHERE (c.""Region"" IS NULL) OR ((BTRIM(c.""Region"", E' \t\n\r') = '') AND (BTR
         [MemberData(nameof(IsAsyncData))]
         public async Task Regex_IsMatchOptionsSingleline(bool isAsync)
         {
-            await AssertQuery<Customer>(
+            await AssertQuery(
                 isAsync,
-                cs => cs.Where(c => Regex.IsMatch(c.CompanyName, "^A", RegexOptions.Singleline)),
+                cs => cs.Set<Customer>().Where(c => Regex.IsMatch(c.CompanyName, "^A", RegexOptions.Singleline)),
                 entryCount: 4);
+
             AssertContainsSqlFragment(@"WHERE c.""CompanyName"" ~ '^A'");
         }
 
@@ -91,10 +96,11 @@ WHERE (c.""Region"" IS NULL) OR ((BTRIM(c.""Region"", E' \t\n\r') = '') AND (BTR
         [MemberData(nameof(IsAsyncData))]
         public async Task Regex_IsMatchOptionsIgnorePatternWhitespace(bool isAsync)
         {
-            await AssertQuery<Customer>(
+            await AssertQuery(
                 isAsync,
-                cs => cs.Where(c => Regex.IsMatch(c.CompanyName, "^ A", RegexOptions.IgnorePatternWhitespace)),
+                cs => cs.Set<Customer>().Where(c => Regex.IsMatch(c.CompanyName, "^ A", RegexOptions.IgnorePatternWhitespace)),
                 entryCount: 4);
+
             AssertContainsSqlFragment(@"WHERE c.""CompanyName"" ~ ('(?px)' || '^ A')");
         }
 
@@ -110,6 +116,7 @@ WHERE (c.""Region"" IS NULL) OR ((BTRIM(c.""Region"", E' \t\n\r') = '') AND (BTR
         public override async Task Where_guid_newguid(bool isAsync)
         {
             await base.Where_guid_newguid(isAsync);
+
             AssertContainsSqlFragment(@"WHERE uuid_generate_v4() <> '00000000-0000-0000-0000-000000000000'");
         }
 
@@ -117,13 +124,17 @@ WHERE (c.""Region"" IS NULL) OR ((BTRIM(c.""Region"", E' \t\n\r') = '') AND (BTR
         [MemberData(nameof(IsAsyncData))]
         public virtual async Task OrderBy_Guid_NewGuid(bool isAsync)
         {
-            await AssertQuery<OrderDetail>(isAsync, ods => ods.OrderBy(od => Guid.NewGuid()).Select(x => x), entryCount: 2155);
+            await AssertQuery(
+                isAsync,
+                ods => ods.Set<OrderDetail>().OrderBy(od => Guid.NewGuid()).Select(x => x),
+                entryCount: 2155);
+
             AssertContainsSqlFragment(@"ORDER BY uuid_generate_v4()");
         }
 
         #endregion
 
         void AssertContainsSqlFragment(string expectedFragment)
-            => Assert.True(Fixture.TestSqlLoggerFactory.SqlStatements.Any(s => s.Contains(expectedFragment)));
+            => Assert.Contains(Fixture.TestSqlLoggerFactory.SqlStatements, s => s.Contains(expectedFragment));
     }
 }

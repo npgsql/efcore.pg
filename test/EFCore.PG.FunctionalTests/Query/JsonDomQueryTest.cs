@@ -80,14 +80,14 @@ WHERE (j.""CustomerDocument"" = '{""Name"":""Test customer"",""Age"":80}') AND (
 
 SELECT j.""Id"", j.""CustomerDocument"", j.""CustomerElement""
 FROM ""JsonbEntities"" AS j
-WHERE (j.""Id"" = @__p_0) AND (@__p_0 IS NOT NULL)
+WHERE j.""Id"" = @__p_0
 LIMIT 1",
                     //
                     @"@__expected_0='System.Text.Json.JsonDocument' (DbType = Object)
 
 SELECT j.""Id"", j.""CustomerDocument"", j.""CustomerElement""
 FROM ""JsonbEntities"" AS j
-WHERE ((j.""CustomerDocument"" = @__expected_0) AND ((j.""CustomerDocument"" IS NOT NULL) AND (@__expected_0 IS NOT NULL))) OR ((j.""CustomerDocument"" IS NULL) AND (@__expected_0 IS NULL))
+WHERE (j.""CustomerDocument"" = @__expected_0) AND (j.""CustomerDocument"" IS NOT NULL)
 LIMIT 2");
             }
         }
@@ -106,7 +106,7 @@ LIMIT 2");
 
 SELECT j.""Id"", j.""CustomerDocument"", j.""CustomerElement""
 FROM ""JsonbEntities"" AS j
-WHERE (j.""Id"" = @__p_0) AND (@__p_0 IS NOT NULL)
+WHERE j.""Id"" = @__p_0
 LIMIT 1",
                     //
                     @"@__expected_0='{""ID"": ""00000000-0000-0000-0000-000000000000""
@@ -127,7 +127,7 @@ LIMIT 1",
 
 SELECT j.""Id"", j.""CustomerDocument"", j.""CustomerElement""
 FROM ""JsonbEntities"" AS j
-WHERE (j.""CustomerElement"" = @__expected_0) AND (@__expected_0 IS NOT NULL)
+WHERE j.""CustomerElement"" = @__expected_0
 LIMIT 2");
             }
         }
