@@ -1,5 +1,7 @@
 using System;
 using System.IO;
+using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using JetBrains.Annotations;
@@ -53,9 +55,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             }
             case string s:
                 return $"'{EscapeSqlLiteral(s)}'";
-            default:  // User POCO
+            default: // User POCO
                 return $"'{EscapeSqlLiteral(JsonSerializer.Serialize(value))}'";
             }
         }
+
+        public override Expression GenerateCodeLiteral(object value)
+            => value switch
+            {
+                JsonDocument document => Expression.Call(ParseMethod, Expression.Constant(document.RootElement.ToString()), DefaultJsonDocumentOptions),
+                JsonElement _         => throw new NotSupportedException("Cannot currently generate code literals for JsonElement"),
+                string s              => Expression.Constant(s),
+                _                     => throw new NotSupportedException("Cannot generate code literals for JSON POCOs")
+            };
+
+        static readonly Expression DefaultJsonDocumentOptions = Expression.New(typeof(JsonDocumentOptions));
+
+        static readonly MethodInfo ParseMethod =
+            typeof(JsonDocument).GetMethod(nameof(JsonDocument.Parse), new[] { typeof(string), typeof(JsonDocumentOptions) });
     }
 }

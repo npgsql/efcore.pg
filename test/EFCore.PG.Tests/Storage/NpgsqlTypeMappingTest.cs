@@ -496,6 +496,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
             Assert.Equal($"'{json}'", literal);
         }
 
+        [Fact]
+        public void GenerateCodeLiteral_returns_json_document_literal()
+            => Assert.Equal(
+                @"System.Text.Json.JsonDocument.Parse(""{\""Name\"":\""Joe\"",\""Age\"":25}"", new System.Text.Json.JsonDocumentOptions())",
+                CodeLiteral(JsonDocument.Parse(@"{""Name"":""Joe"",""Age"":25}")));
+
         static readonly Customer SampleCustomer = new Customer
         {
             Name = "Joe",
