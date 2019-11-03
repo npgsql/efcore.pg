@@ -1,4 +1,5 @@
 ﻿using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 using Microsoft.EntityFrameworkCore.Storage;
 using NpgsqlTypes;
@@ -30,8 +31,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         public override Expression GenerateCodeLiteral(object value)
         {
             var tid = (NpgsqlTid)value;
-            return Expression.New(typeof(NpgsqlTid).GetConstructor(new[] { typeof(uint), typeof(ushort) }),
-                Expression.Constant(tid.BlockNumber), Expression.Constant(tid.OffsetNumber));
+            return Expression.New(Constructor, Expression.Constant(tid.BlockNumber), Expression.Constant(tid.OffsetNumber));
         }
+
+        static readonly ConstructorInfo Constructor =
+            typeof(NpgsqlTid).GetConstructor(new[] { typeof(uint), typeof(ushort) });
     }
 }
