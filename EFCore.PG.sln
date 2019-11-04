@@ -17,7 +17,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.PG.Tests", "test\EFC
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.PG.FunctionalTests", "test\EFCore.PG.FunctionalTests\EFCore.PG.FunctionalTests.csproj", "{05A7D0B7-4AE1-4BC8-A1BE-2389F1593B2D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.PG.Plugins.FunctionalTests", "test\EFCore.PG.Plugins.FunctionalTests\EFCore.PG.Plugins.FunctionalTests.csproj", "{B78A7825-BE72-4509-B0AD-01EEC67A9624}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.PG.NodaTime.FunctionalTests", "test\EFCore.PG.NodaTime.FunctionalTests\EFCore.PG.NodaTime.FunctionalTests.csproj", "{B78A7825-BE72-4509-B0AD-01EEC67A9624}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.PG.NodaTime", "src\EFCore.PG.NodaTime\EFCore.PG.NodaTime.csproj", "{77F0608F-6D0C-481C-9108-D5176E2EAD69}"
 EndProject
