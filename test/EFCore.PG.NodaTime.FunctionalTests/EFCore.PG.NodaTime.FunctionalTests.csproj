@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <AssemblyName>Npgsql.EntityFrameworkCore.PostgreSQL.Plugins.FunctionalTests</AssemblyName>
+    <AssemblyName>Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.FunctionalTests</AssemblyName>
     <RootNamespace>Npgsql.EntityFrameworkCore.PostgreSQL</RootNamespace>
   </PropertyGroup>
 
