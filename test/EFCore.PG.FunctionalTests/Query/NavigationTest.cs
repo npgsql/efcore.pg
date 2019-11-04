@@ -13,51 +13,49 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Duplicate_entries_are_not_created_for_navigations_to_principal()
         {
-            using (var context = _fixture.CreateContext())
+            using var context = _fixture.CreateContext();
+
+            context.ConfigAction = modelBuilder =>
             {
-                context.ConfigAction = modelBuilder =>
-                {
-                    modelBuilder.Entity<GoTPerson>().HasMany(p => p.Siblings).WithOne(p => p.SiblingReverse).IsRequired(false);
-                    modelBuilder.Entity<GoTPerson>().HasOne(p => p.Lover).WithOne(p => p.LoverReverse).IsRequired(false);
-                    return 0;
-                };
+                modelBuilder.Entity<GoTPerson>().HasMany(p => p.Siblings).WithOne(p => p.SiblingReverse).IsRequired(false);
+                modelBuilder.Entity<GoTPerson>().HasOne(p => p.Lover).WithOne(p => p.LoverReverse).IsRequired(false);
+                return 0;
+            };
 
-                var model = context.Model;
-                var entityType = model.GetEntityTypes().First();
+            var model = context.Model;
+            var entityType = model.GetEntityTypes().First();
 
-                Assert.Equal(
-                    "ForeignKey: GoTPerson {'LoverId'} -> GoTPerson {'Id'} Unique ToDependent: LoverReverse ToPrincipal: Lover",
-                    entityType.GetForeignKeys().First().ToString());
+            Assert.Equal(
+                "ForeignKey: GoTPerson {'LoverId'} -> GoTPerson {'Id'} Unique ToDependent: LoverReverse ToPrincipal: Lover",
+                entityType.GetForeignKeys().First().ToString());
 
-                Assert.Equal(
-                    "ForeignKey: GoTPerson {'SiblingReverseId'} -> GoTPerson {'Id'} ToDependent: Siblings ToPrincipal: SiblingReverse",
-                    entityType.GetForeignKeys().Skip(1).First().ToString());
-            }
+            Assert.Equal(
+                "ForeignKey: GoTPerson {'SiblingReverseId'} -> GoTPerson {'Id'} ToDependent: Siblings ToPrincipal: SiblingReverse",
+                entityType.GetForeignKeys().Skip(1).First().ToString());
         }
 
         [Fact]
         public void Duplicate_entries_are_not_created_for_navigations_to_dependant()
         {
-            using (var context = _fixture.CreateContext())
+            using var context = _fixture.CreateContext();
+
+            context.ConfigAction = modelBuilder =>
             {
-                context.ConfigAction = modelBuilder =>
-                {
-                    modelBuilder.Entity<GoTPerson>().HasOne(p => p.SiblingReverse).WithMany(p => p.Siblings).IsRequired(false);
-                    modelBuilder.Entity<GoTPerson>().HasOne(p => p.Lover).WithOne(p => p.LoverReverse).IsRequired(false);
-                    return 0;
-                };
+                modelBuilder.Entity<GoTPerson>().HasOne(p => p.SiblingReverse).WithMany(p => p.Siblings).IsRequired(false);
+                modelBuilder.Entity<GoTPerson>().HasOne(p => p.Lover).WithOne(p => p.LoverReverse).IsRequired(false);
+                return 0;
+            };
 
-                var model = context.Model;
-                var entityType = model.GetEntityTypes().First();
+            var model = context.Model;
+            var entityType = model.GetEntityTypes().First();
 
-                Assert.Equal(
-                    "ForeignKey: GoTPerson {'LoverId'} -> GoTPerson {'Id'} Unique ToDependent: LoverReverse ToPrincipal: Lover",
-                    entityType.GetForeignKeys().First().ToString());
+            Assert.Equal(
+                "ForeignKey: GoTPerson {'LoverId'} -> GoTPerson {'Id'} Unique ToDependent: LoverReverse ToPrincipal: Lover",
+                entityType.GetForeignKeys().First().ToString());
 
-                Assert.Equal(
-                    "ForeignKey: GoTPerson {'SiblingReverseId'} -> GoTPerson {'Id'} ToDependent: Siblings ToPrincipal: SiblingReverse",
-                    entityType.GetForeignKeys().Skip(1).First().ToString());
-            }
+            Assert.Equal(
+                "ForeignKey: GoTPerson {'SiblingReverseId'} -> GoTPerson {'Id'} ToDependent: Siblings ToPrincipal: SiblingReverse",
+                entityType.GetForeignKeys().Skip(1).First().ToString());
         }
 
         readonly NavigationTestFixture _fixture;

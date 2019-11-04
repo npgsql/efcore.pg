@@ -41,10 +41,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
         public void Dispose()
         {
-            using (var context = new ChipsContext(_serviceProvider, "DefaultKettleChips"))
-            {
-                context.Database.EnsureDeleted();
-            }
+            using var context = new ChipsContext(_serviceProvider, "DefaultKettleChips");
+            context.Database.EnsureDeleted();
         }
 
         class ChipsContext : DbContext

@@ -2,8 +2,6 @@
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestUtilities;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -34,155 +32,133 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         //[Fact]
         public void Max_ushort_ushort()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var _ =
-                    ctx.MathTestEntities
-                       .Select(x => Math.Max(x.UShort, x.UShort))
-                       .ToArray();
+            using var ctx = Fixture.CreateContext();
+            var _ =
+                ctx.MathTestEntities
+                    .Select(x => Math.Max(x.UShort, x.UShort))
+                    .ToArray();
 
-                AssertContainsSql("SELECT GREATEST(x.\"UShort\", x.\"UShort\")");
-            }
+            AssertContainsSql("SELECT GREATEST(x.\"UShort\", x.\"UShort\")");
         }
 
         //[Fact]
         public void Max_uint_uint()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var _ =
-                    ctx.MathTestEntities
-                       .Select(x => Math.Max(x.UInt, x.UInt))
-                       .ToArray();
+            using var ctx = Fixture.CreateContext();
+            var _ =
+                ctx.MathTestEntities
+                    .Select(x => Math.Max(x.UInt, x.UInt))
+                    .ToArray();
 
-                AssertContainsSql("SELECT GREATEST(x.\"UInt\", x.\"UInt\")");
-            }
+            AssertContainsSql("SELECT GREATEST(x.\"UInt\", x.\"UInt\")");
         }
 
         //[Fact]
         public void Max_ulong_ulong()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var _ =
-                    ctx.MathTestEntities
-                       .Select(x => Math.Max(x.ULong, x.ULong))
-                       .ToArray();
+            using var ctx = Fixture.CreateContext();
+            var _ =
+                ctx.MathTestEntities
+                    .Select(x => Math.Max(x.ULong, x.ULong))
+                    .ToArray();
 
-                AssertContainsSql("SELECT GREATEST(x.\"ULong\", x.\"ULong\")");
-            }
+            AssertContainsSql("SELECT GREATEST(x.\"ULong\", x.\"ULong\")");
         }
 
         [Fact]
         public void Max_short_short()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var _ =
-                    ctx.MathTestEntities
-                       .Select(x => Math.Max(x.Short, x.Short))
-                       .ToArray();
+            using var ctx = Fixture.CreateContext();
+            var _ =
+                ctx.MathTestEntities
+                    .Select(x => Math.Max(x.Short, x.Short))
+                    .ToArray();
 
-                AssertContainsSql("SELECT GREATEST(x.\"Short\", x.\"Short\")");
-            }
+            AssertContainsSql("SELECT GREATEST(x.\"Short\", x.\"Short\")");
         }
 
         [Fact]
         public void Max_int_int()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var _ =
-                    ctx.MathTestEntities
-                       .Select(x => Math.Max(x.Int, x.Int))
-                       .ToArray();
+            using var ctx = Fixture.CreateContext();
+            var _ =
+                ctx.MathTestEntities
+                    .Select(x => Math.Max(x.Int, x.Int))
+                    .ToArray();
 
-                AssertContainsSql("SELECT GREATEST(x.\"Int\", x.\"Int\")");
-            }
+            AssertContainsSql("SELECT GREATEST(x.\"Int\", x.\"Int\")");
         }
 
         [Fact]
         public void Max_long_long()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var _ =
-                    ctx.MathTestEntities
-                       .Select(x => Math.Max(x.Long, x.Long))
-                       .ToArray();
+            using var ctx = Fixture.CreateContext();
+            var _ =
+                ctx.MathTestEntities
+                    .Select(x => Math.Max(x.Long, x.Long))
+                    .ToArray();
 
-                AssertContainsSql("SELECT GREATEST(x.\"Long\", x.\"Long\")");
-            }
+            AssertContainsSql("SELECT GREATEST(x.\"Long\", x.\"Long\")");
         }
 
         [Fact]
         public void Max_float_float()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var _ =
-                    ctx.MathTestEntities
-                       .Select(x => Math.Max(x.Float, x.Float))
-                       .ToArray();
+            using var ctx = Fixture.CreateContext();
+            var _ =
+                ctx.MathTestEntities
+                    .Select(x => Math.Max(x.Float, x.Float))
+                    .ToArray();
 
-                AssertContainsSql("SELECT GREATEST(x.\"Float\", x.\"Float\")");
-            }
+            AssertContainsSql("SELECT GREATEST(x.\"Float\", x.\"Float\")");
         }
 
         [Fact]
         public void Max_double_double()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var _ =
-                    ctx.MathTestEntities
-                       .Select(x => Math.Max(x.Double, x.Double))
-                       .ToArray();
+            using var ctx = Fixture.CreateContext();
+            var _ =
+                ctx.MathTestEntities
+                    .Select(x => Math.Max(x.Double, x.Double))
+                    .ToArray();
 
-                AssertContainsSql("SELECT GREATEST(x.\"Double\", x.\"Double\")");
-            }
+            AssertContainsSql("SELECT GREATEST(x.\"Double\", x.\"Double\")");
         }
 
         [Fact]
         public void Max_decimal_decimal()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var _ =
-                    ctx.MathTestEntities
-                       .Select(x => Math.Max(x.Decimal, x.Decimal))
-                       .ToArray();
+            using var ctx = Fixture.CreateContext();
+            var _ =
+                ctx.MathTestEntities
+                    .Select(x => Math.Max(x.Decimal, x.Decimal))
+                    .ToArray();
 
-                AssertContainsSql("SELECT GREATEST(x.\"Decimal\", x.\"Decimal\")");
-            }
+            AssertContainsSql("SELECT GREATEST(x.\"Decimal\", x.\"Decimal\")");
         }
 
         //[Fact]
         public void Max_sbyte_sbyte()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var _ =
-                    ctx.MathTestEntities
-                       .Select(x => Math.Max(x.SByte, x.SByte))
-                       .ToArray();
+            using var ctx = Fixture.CreateContext();
+            var _ =
+                ctx.MathTestEntities
+                    .Select(x => Math.Max(x.SByte, x.SByte))
+                    .ToArray();
 
-                AssertContainsSql("SELECT GREATEST(x.\"SByte\", x.\"SByte\")");
-            }
+            AssertContainsSql("SELECT GREATEST(x.\"SByte\", x.\"SByte\")");
         }
 
         //[Fact]
         public void Max_byte_byte()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var _ =
-                    ctx.MathTestEntities
-                       .Select(x => Math.Max(x.Byte, x.Byte))
-                       .ToArray();
+            using var ctx = Fixture.CreateContext();
+            var _ =
+                ctx.MathTestEntities
+                    .Select(x => Math.Max(x.Byte, x.Byte))
+                    .ToArray();
 
-                AssertContainsSql("SELECT GREATEST(x.\"Byte\", x.\"Byte\")");
-            }
+            AssertContainsSql("SELECT GREATEST(x.\"Byte\", x.\"Byte\")");
         }
 
         #endregion
@@ -192,155 +168,133 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         //[Fact]
         public void Min_ushort_ushort()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var _ =
-                    ctx.MathTestEntities
-                       .Select(x => Math.Min(x.UShort, x.UShort))
-                       .ToArray();
+            using var ctx = Fixture.CreateContext();
+            var _ =
+                ctx.MathTestEntities
+                    .Select(x => Math.Min(x.UShort, x.UShort))
+                    .ToArray();
 
-                AssertContainsSql("SELECT LEAST(x.\"UShort\", x.\"UShort\")");
-            }
+            AssertContainsSql("SELECT LEAST(x.\"UShort\", x.\"UShort\")");
         }
 
         //[Fact]
         public void Min_uint_uint()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var _ =
-                    ctx.MathTestEntities
-                       .Select(x => Math.Min(x.UInt, x.UInt))
-                       .ToArray();
+            using var ctx = Fixture.CreateContext();
+            var _ =
+                ctx.MathTestEntities
+                    .Select(x => Math.Min(x.UInt, x.UInt))
+                    .ToArray();
 
-                AssertContainsSql("SELECT LEAST(x.\"UInt\", x.\"UInt\")");
-            }
+            AssertContainsSql("SELECT LEAST(x.\"UInt\", x.\"UInt\")");
         }
 
         //[Fact]
         public void Min_ulong_ulong()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var _ =
-                    ctx.MathTestEntities
-                       .Select(x => Math.Min(x.ULong, x.ULong))
-                       .ToArray();
+            using var ctx = Fixture.CreateContext();
+            var _ =
+                ctx.MathTestEntities
+                    .Select(x => Math.Min(x.ULong, x.ULong))
+                    .ToArray();
 
-                AssertContainsSql("SELECT LEAST(x.\"ULong\", x.\"ULong\")");
-            }
+            AssertContainsSql("SELECT LEAST(x.\"ULong\", x.\"ULong\")");
         }
 
         [Fact]
         public void Min_short_short()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var _ =
-                    ctx.MathTestEntities
-                       .Select(x => Math.Min(x.Short, x.Short))
-                       .ToArray();
+            using var ctx = Fixture.CreateContext();
+            var _ =
+                ctx.MathTestEntities
+                    .Select(x => Math.Min(x.Short, x.Short))
+                    .ToArray();
 
-                AssertContainsSql("SELECT LEAST(x.\"Short\", x.\"Short\")");
-            }
+            AssertContainsSql("SELECT LEAST(x.\"Short\", x.\"Short\")");
         }
 
         [Fact]
         public void Min_int_int()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var _ =
-                    ctx.MathTestEntities
-                       .Select(x => Math.Min(x.Int, x.Int))
-                       .ToArray();
+            using var ctx = Fixture.CreateContext();
+            var _ =
+                ctx.MathTestEntities
+                    .Select(x => Math.Min(x.Int, x.Int))
+                    .ToArray();
 
-                AssertContainsSql("SELECT LEAST(x.\"Int\", x.\"Int\")");
-            }
+            AssertContainsSql("SELECT LEAST(x.\"Int\", x.\"Int\")");
         }
 
         [Fact]
         public void Min_long_long()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var _ =
-                    ctx.MathTestEntities
-                       .Select(x => Math.Min(x.Long, x.Long))
-                       .ToArray();
+            using var ctx = Fixture.CreateContext();
+            var _ =
+                ctx.MathTestEntities
+                    .Select(x => Math.Min(x.Long, x.Long))
+                    .ToArray();
 
-                AssertContainsSql("SELECT LEAST(x.\"Long\", x.\"Long\")");
-            }
+            AssertContainsSql("SELECT LEAST(x.\"Long\", x.\"Long\")");
         }
 
         [Fact]
         public void Min_float_float()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var _ =
-                    ctx.MathTestEntities
-                       .Select(x => Math.Min(x.Float, x.Float))
-                       .ToArray();
+            using var ctx = Fixture.CreateContext();
+            var _ =
+                ctx.MathTestEntities
+                    .Select(x => Math.Min(x.Float, x.Float))
+                    .ToArray();
 
-                AssertContainsSql("SELECT LEAST(x.\"Float\", x.\"Float\")");
-            }
+            AssertContainsSql("SELECT LEAST(x.\"Float\", x.\"Float\")");
         }
 
         [Fact]
         public void Min_double_double()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var _ =
-                    ctx.MathTestEntities
-                       .Select(x => Math.Min(x.Double, x.Double))
-                       .ToArray();
+            using var ctx = Fixture.CreateContext();
+            var _ =
+                ctx.MathTestEntities
+                    .Select(x => Math.Min(x.Double, x.Double))
+                    .ToArray();
 
-                AssertContainsSql("SELECT LEAST(x.\"Double\", x.\"Double\")");
-            }
+            AssertContainsSql("SELECT LEAST(x.\"Double\", x.\"Double\")");
         }
 
         [Fact]
         public void Min_decimal_decimal()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var _ =
-                    ctx.MathTestEntities
-                       .Select(x => Math.Min(x.Decimal, x.Decimal))
-                       .ToArray();
+            using var ctx = Fixture.CreateContext();
+            var _ =
+                ctx.MathTestEntities
+                    .Select(x => Math.Min(x.Decimal, x.Decimal))
+                    .ToArray();
 
-                AssertContainsSql("SELECT LEAST(x.\"Decimal\", x.\"Decimal\")");
-            }
+            AssertContainsSql("SELECT LEAST(x.\"Decimal\", x.\"Decimal\")");
         }
 
         //[Fact]
         public void Min_sbyte_sbyte()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var _ =
-                    ctx.MathTestEntities
-                       .Select(x => Math.Min(x.SByte, x.SByte))
-                       .ToArray();
+            using var ctx = Fixture.CreateContext();
+            var _ =
+                ctx.MathTestEntities
+                    .Select(x => Math.Min(x.SByte, x.SByte))
+                    .ToArray();
 
-                AssertContainsSql("SELECT LEAST(x.\"SByte\", x.\"SByte\")");
-            }
+            AssertContainsSql("SELECT LEAST(x.\"SByte\", x.\"SByte\")");
         }
 
         //[Fact]
         public void Min_byte_byte()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var _ =
-                    ctx.MathTestEntities
-                       .Select(x => Math.Min(x.Byte, x.Byte))
-                       .ToArray();
+            using var ctx = Fixture.CreateContext();
+            var _ =
+                ctx.MathTestEntities
+                    .Select(x => Math.Min(x.Byte, x.Byte))
+                    .ToArray();
 
-                AssertContainsSql("SELECT LEAST(x.\"Byte\", x.\"Byte\")");
-            }
+            AssertContainsSql("SELECT LEAST(x.\"Byte\", x.\"Byte\")");
         }
 
         #endregion

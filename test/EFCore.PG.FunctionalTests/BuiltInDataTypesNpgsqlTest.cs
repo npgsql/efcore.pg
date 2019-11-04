@@ -30,45 +30,38 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         [Fact]
         public void Sql_translation_uses_type_mapper_when_constant()
         {
-            using (var context = CreateContext())
-            {
-                var results
-                    = context.Set<MappedNullableDataTypes>()
-                        .Where(e => e.TimeSpanAsTime == new TimeSpan(0, 1, 2))
-                        .Select(e => e.Int)
-                        .ToList();
+            using var context = CreateContext();
+            var results = context.Set<MappedNullableDataTypes>()
+                .Where(e => e.TimeSpanAsTime == new TimeSpan(0, 1, 2))
+                .Select(e => e.Int)
+                .ToList();
 
-                Assert.Empty(results);
+            Assert.Empty(results);
 
-                AssertSql(
-                    @"SELECT m.""Int""
+            AssertSql(
+                @"SELECT m.""Int""
 FROM ""MappedNullableDataTypes"" AS m
 WHERE (m.""TimeSpanAsTime"" = TIME '00:01:02') AND (m.""TimeSpanAsTime"" IS NOT NULL)");
-            }
         }
 
         [Fact]
         public void Sql_translation_uses_type_mapper_when_parameter()
         {
-            using (var context = CreateContext())
-            {
-                var timeSpan = new TimeSpan(2, 1, 0);
+            using var context = CreateContext();
+            var timeSpan = new TimeSpan(2, 1, 0);
+            var results = context.Set<MappedNullableDataTypes>()
+                .Where(e => e.TimeSpanAsTime == timeSpan)
+                .Select(e => e.Int)
+                .ToList();
 
-                var results
-                    = context.Set<MappedNullableDataTypes>()
-                        .Where(e => e.TimeSpanAsTime == timeSpan)
-                        .Select(e => e.Int)
-                        .ToList();
+            Assert.Empty(results);
 
-                Assert.Empty(results);
-
-                AssertSql(
-                    @"@__timeSpan_0='02:01:00' (Nullable = true) (DbType = Object)
+            AssertSql(
+                @"@__timeSpan_0='02:01:00' (Nullable = true) (DbType = Object)
 
 SELECT m.""Int""
 FROM ""MappedNullableDataTypes"" AS m
 WHERE (m.""TimeSpanAsTime"" = @__timeSpan_0) AND (m.""TimeSpanAsTime"" IS NOT NULL)");
-            }
         }
 
         [Fact]
@@ -448,12 +441,10 @@ WHERE (m.""TimeSpanAsTime"" = @__timeSpan_0) AND (m.""TimeSpanAsTime"" IS NOT NU
         public virtual void Can_insert_and_read_back_all_mapped_data_types()
         {
             var entity = CreateMappedDataTypes(77);
-            using (var context = CreateContext())
-            {
-                context.Set<MappedDataTypes>().Add(entity);
+            using var context = CreateContext();
+            context.Set<MappedDataTypes>().Add(entity);
 
-                Assert.Equal(1, context.SaveChanges());
-            }
+            Assert.Equal(1, context.SaveChanges());
 
             var parameters = DumpParameters();
             Assert.Equal(
@@ -876,24 +867,23 @@ WHERE (m.""TimeSpanAsTime"" = @__timeSpan_0) AND (m.""TimeSpanAsTime"" IS NOT NU
         [ConditionalFact]
         public void Sum_Conversions()
         {
-            using (var context = CreateContext())
-            {
-                // PostgreSQL SUM() returns numeric for bigint input, bigint for int/smallint inuts.
-                // Make sure the proper conversion is done
-                var sum1 = context.Set<MappedDataTypes>().Sum(m => m.LongAsBigint);
-                var sum2 = context.Set<MappedDataTypes>().Sum(m => m.Int);
-                var sum3 = context.Set<MappedDataTypes>().Sum(m => m.ShortAsSmallint);
+            using var context = CreateContext();
 
-                AssertSql(
-                    @"SELECT SUM(m.""LongAsBigint"")::bigint
+            // PostgreSQL SUM() returns numeric for bigint input, bigint for int/smallint inuts.
+            // Make sure the proper conversion is done
+            var sum1 = context.Set<MappedDataTypes>().Sum(m => m.LongAsBigint);
+            var sum2 = context.Set<MappedDataTypes>().Sum(m => m.Int);
+            var sum3 = context.Set<MappedDataTypes>().Sum(m => m.ShortAsSmallint);
+
+            AssertSql(
+                @"SELECT SUM(m.""LongAsBigint"")::bigint
 FROM ""MappedDataTypes"" AS m",
-                    //
-                    @"SELECT SUM(m.""Int"")::INT
+                //
+                @"SELECT SUM(m.""Int"")::INT
 FROM ""MappedDataTypes"" AS m",
-                    //
-                    @"SELECT SUM(CAST(m.""ShortAsSmallint"" AS integer))::INT
+                //
+                @"SELECT SUM(CAST(m.""ShortAsSmallint"" AS integer))::INT
 FROM ""MappedDataTypes"" AS m");
-            }
         }
 
         void AssertSql(params string[] expected)

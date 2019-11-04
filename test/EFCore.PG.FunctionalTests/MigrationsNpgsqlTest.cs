@@ -93,45 +93,42 @@ ORDER BY table_name, ordinal_position
             var dbName = connection.Database;
             command.Parameters.Add(new NpgsqlParameter { ParameterName = "db", Value = dbName });
 
-            using (var reader = command.ExecuteReader())
+            using var reader = command.ExecuteReader();
+            var first = true;
+            string lastTable = null;
+            while (reader.Read())
             {
-                var first = true;
-                string lastTable = null;
-                while (reader.Read())
+                var currentTable = reader.GetString(0);
+                if (currentTable != lastTable)
                 {
-                    var currentTable = reader.GetString(0);
-                    if (currentTable != lastTable)
-                    {
-                        if (first)
-                            first = false;
-
-                        else
-                            builder.DecrementIndent();
-
-                        builder
-                            .AppendLine()
-                            .AppendLine(currentTable)
-                            .IncrementIndent();
-
-                        lastTable = currentTable;
-                    }
+                    if (first)
+                        first = false;
+                    else
+                        builder.DecrementIndent();
 
                     builder
-                        .Append(reader[1]) // Name
-                        .Append(" ")
-                        .Append(reader[2]) // Type
-                        .Append(" ")
-                        .Append(reader.GetBoolean(3) ? "NULL" : "NOT NULL");
+                        .AppendLine()
+                        .AppendLine(currentTable)
+                        .IncrementIndent();
 
-                    if (!reader.IsDBNull(4))
-                    {
-                        builder
-                            .Append(" DEFAULT ")
-                            .Append(reader[4]);
-                    }
-
-                    builder.AppendLine();
+                    lastTable = currentTable;
                 }
+
+                builder
+                    .Append(reader[1]) // Name
+                    .Append(" ")
+                    .Append(reader[2]) // Type
+                    .Append(" ")
+                    .Append(reader.GetBoolean(3) ? "NULL" : "NOT NULL");
+
+                if (!reader.IsDBNull(4))
+                {
+                    builder
+                        .Append(" DEFAULT ")
+                        .Append(reader[4]);
+                }
+
+                builder.AppendLine();
             }
 
             return builder.ToString();
@@ -140,20 +137,19 @@ ORDER BY table_name, ordinal_position
         [ConditionalFact]
         public async Task Empty_Migration_Creates_Database()
         {
-            using (var context = new BloggingContext(
+            using var context = new BloggingContext(
                 Fixture.TestStore.AddProviderOptions(
-                    new DbContextOptionsBuilder().EnableServiceProviderCaching(false)).Options))
-            {
-                var creator = (NpgsqlDatabaseCreator)context.GetService<IRelationalDatabaseCreator>();
-                creator.RetryTimeout = TimeSpan.FromMinutes(10);
+                    new DbContextOptionsBuilder().EnableServiceProviderCaching(false)).Options);
 
-                await context.Database.MigrateAsync();
+            var creator = (NpgsqlDatabaseCreator)context.GetService<IRelationalDatabaseCreator>();
+            creator.RetryTimeout = TimeSpan.FromMinutes(10);
 
-                Assert.True(creator.Exists());
-            }
+            await context.Database.MigrateAsync();
+
+            Assert.True(creator.Exists());
         }
 
-        private class BloggingContext : DbContext
+        class BloggingContext : DbContext
         {
             public BloggingContext(DbContextOptions options)
                 : base(options)
@@ -190,17 +186,15 @@ ORDER BY table_name, ordinal_position
 //                DiffSnapshot(new BloggingContextModelSnapshot22(), context);
 //            }
 //
-            using (var context = new ModelSnapshot22.BloggingContext())
-            {
-                var snapshot = new BloggingContextModelSnapshot22();
-                var sourceModel = snapshot.Model;
-                var targetModel = context.Model;
+            using var context = new ModelSnapshot22.BloggingContext();
+            var snapshot = new BloggingContextModelSnapshot22();
+            var sourceModel = snapshot.Model;
+            var targetModel = context.Model;
 
-                var modelDiffer = context.GetService<IMigrationsModelDiffer>();
-                var operations = modelDiffer.GetDifferences(sourceModel, targetModel);
+            var modelDiffer = context.GetService<IMigrationsModelDiffer>();
+            var operations = modelDiffer.GetDifferences(sourceModel, targetModel);
 
-                Assert.Equal(0, operations.Count);
-            }
+            Assert.Equal(0, operations.Count);
         }
 
         public class BloggingContextModelSnapshot22 : ModelSnapshot
