@@ -54,7 +54,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 ClearPool();
             }
 
-            Exists(retryOnNotExists: true);
+            Exists();
         }
 
         public override async Task CreateAsync(CancellationToken cancellationToken = default)
@@ -77,77 +77,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 ClearPool();
             }
 
-            await ExistsAsync(retryOnNotExists: true, cancellationToken: cancellationToken);
+            await ExistsAsync(cancellationToken);
         }
-
-        private bool Exists(bool retryOnNotExists)
-          => Dependencies.ExecutionStrategyFactory.Create().Execute(
-              DateTime.UtcNow + RetryTimeout, giveUp =>
-              {
-                  while (true)
-                  {
-                      try
-                      {
-                          using (new TransactionScope(TransactionScopeOption.Suppress))
-                          {
-                              _connection.Open(errorsExpected: true);
-                              _connection.Close();
-                          }
-                          return true;
-                      }
-                      catch (PostgresException e)
-                      {
-                          if (!retryOnNotExists
-                                && IsDoesNotExist(e))
-                          {
-                              return false;
-                          }
-
-                          if (DateTime.UtcNow > giveUp
-                                || !RetryOnExistsFailure(e))
-                          {
-                              throw;
-                          }
-
-                          Thread.Sleep(RetryDelay);
-                      }
-                  }
-              });
-
-        private Task<bool> ExistsAsync(bool retryOnNotExists, CancellationToken cancellationToken)
-            => Dependencies.ExecutionStrategyFactory.Create().ExecuteAsync(
-                DateTime.UtcNow + RetryTimeout, async (giveUp, ct) =>
-                {
-                    while (true)
-                    {
-                        try
-                        {
-                            using (new TransactionScope(TransactionScopeOption.Suppress, TransactionScopeAsyncFlowOption.Enabled))
-                            {
-                                await _connection.OpenAsync(ct, errorsExpected: true);
-
-                                _connection.Close();
-                            }
-                            return true;
-                        }
-                        catch (PostgresException e)
-                        {
-                            if (!retryOnNotExists
-                                && IsDoesNotExist(e))
-                            {
-                                return false;
-                            }
-
-                            if (DateTime.UtcNow > giveUp
-                                || !RetryOnExistsFailure(e))
-                            {
-                                throw;
-                            }
-
-                            await Task.Delay(RetryDelay, ct);
-                        }
-                    }
-                }, cancellationToken);
 
         public override bool HasTables()
             => Dependencies.ExecutionStrategyFactory
@@ -200,16 +131,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 // When checking whether a database exists, pooling must be off, otherwise we may
                 // attempt to reuse a pooled connection, which may be broken (this happened in the tests).
                 var unpooledCsb = new NpgsqlConnectionStringBuilder(_connection.ConnectionString) { Pooling = false };
-                var unpooledConn = ((NpgsqlConnection)_connection.DbConnection).CloneWith(unpooledCsb.ToString());
-                using (unpooledConn)
-                {
-                    using (new TransactionScope(TransactionScopeOption.Suppress))
-                    {
-                        unpooledConn.Open();
-                        unpooledConn.Close();
-                    }
-                }
-
+                using var unpooledConn = ((NpgsqlConnection)_connection.DbConnection).CloneWith(unpooledCsb.ToString());
+                using var _ = new TransactionScope(TransactionScopeOption.Suppress);
+                unpooledConn.Open();
                 return true;
             }
             catch (PostgresException e)
@@ -239,13 +163,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 // When checking whether a database exists, pooling must be off, otherwise we may
                 // attempt to reuse a pooled connection, which may be broken (this happened in the tests).
                 var unpooledCsb = new NpgsqlConnectionStringBuilder(_connection.ConnectionString) { Pooling = false };
-                var unpooledConn = ((NpgsqlConnection)_connection.DbConnection).CloneWith(unpooledCsb.ToString());
-                using (unpooledConn)
-                {
-                    await unpooledConn.OpenAsync(cancellationToken);
-                    unpooledConn.Close();
-                }
-
+                using var unpooledConn = ((NpgsqlConnection)_connection.DbConnection).CloneWith(unpooledCsb.ToString());
+                using var _ = new TransactionScope(TransactionScopeOption.Suppress, TransactionScopeAsyncFlowOption.Enabled);
+                await unpooledConn.OpenAsync(cancellationToken);
                 return true;
             }
             catch (PostgresException e)
@@ -269,18 +189,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         }
 
         // Login failed is thrown when database does not exist (See Issue #776)
-        private static bool IsDoesNotExist(PostgresException exception) => exception.SqlState == "3D000";
-
-        // See Issue #985(EFCore)
-        private bool RetryOnExistsFailure(PostgresException exception)
-        {
-            if (exception.SqlState == "3D000")
-            {
-                ClearPool();
-                return true;
-            }
-            return false;
-        }
+        static bool IsDoesNotExist(PostgresException exception) => exception.SqlState == "3D000";
 
         public override void Delete()
         {
@@ -397,10 +306,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         }
 
         // Clear connection pools in case there are active connections that are pooled
-        private static void ClearAllPools() => NpgsqlConnection.ClearAllPools();
+        static void ClearAllPools() => NpgsqlConnection.ClearAllPools();
 
         // Clear connection pool for the database connection since after the 'create database' call, a previously
         // invalid connection may now be valid.
-        private void ClearPool() => NpgsqlConnection.ClearPool((NpgsqlConnection)_connection.DbConnection);
+        void ClearPool() => NpgsqlConnection.ClearPool((NpgsqlConnection)_connection.DbConnection);
     }
 }
