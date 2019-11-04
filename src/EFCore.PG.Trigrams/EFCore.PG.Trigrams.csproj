@@ -4,8 +4,8 @@
     <Description>pg_trgm module support plugin for PostgreSQL/Npgsql Entity Framework Core provider.</Description>
     <PackageTags>npgsql;postgresql;postgres;Entity Framework Core;entity-framework-core;ef;efcore;orm;sql;pg_trgm;trgm;trigram</PackageTags>
 
-    <AssemblyName>Npgsql.EntityFrameworkCore.PostgreSQL.Trgm</AssemblyName>
-    <RootNamespace>Npgsql.EntityFrameworkCore.PostgreSQL.Trgm</RootNamespace>
+    <AssemblyName>Npgsql.EntityFrameworkCore.PostgreSQL.Trigrams</AssemblyName>
+    <RootNamespace>Npgsql.EntityFrameworkCore.PostgreSQL.Trigrams</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

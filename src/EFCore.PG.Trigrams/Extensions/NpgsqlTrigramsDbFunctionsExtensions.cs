@@ -2,7 +2,7 @@
 
 namespace Microsoft.EntityFrameworkCore
 {
-    public static class NpgsqlTrgmDbFunctionsExtensions
+    public static class NpgsqlTrigramsDbFunctionsExtensions
     {
         /// <summary>
         /// Returns an array of all the trigrams in the given <paramref name="text" />.

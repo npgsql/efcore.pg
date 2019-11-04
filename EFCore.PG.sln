@@ -23,7 +23,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.PG.NodaTime", "src\E
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EFCore.PG.NTS", "src\EFCore.PG.NTS\EFCore.PG.NTS.csproj", "{D7106D61-C7CA-4005-B31F-43281BB397AD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EFCore.PG.Trgm", "src\EFCore.PG.Trgm\EFCore.PG.Trgm.csproj", "{4DEDE46C-FABB-4AD3-A7DF-BF4A3AF00B06}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EFCore.PG.Trigrams", "src\EFCore.PG.Trigrams\EFCore.PG.Trigrams.csproj", "{4DEDE46C-FABB-4AD3-A7DF-BF4A3AF00B06}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

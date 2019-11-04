@@ -9,11 +9,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
 {
-    public class NpgsqlTrgmOptionsExtension : IDbContextOptionsExtension
+    public class NpgsqlTrigramsOptionsExtension : IDbContextOptionsExtension
     {
         public DbContextOptionsExtensionInfo Info => new ExtensionInfo(this);
 
-        public virtual void ApplyServices(IServiceCollection services) => services.AddEntityFrameworkNpgsqlTrgm();
+        public virtual void ApplyServices(IServiceCollection services) => services.AddEntityFrameworkNpgsqlTrigrams();
 
         public virtual void Validate(IDbContextOptions options)
         {
@@ -22,9 +22,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
             {
                 using var scope = internalServiceProvider.CreateScope();
                 var plugins = scope.ServiceProvider.GetService<IEnumerable<IMethodCallTranslatorPlugin>>();
-                if (plugins is null || !plugins.Any(s => s is NpgsqlTrgmMethodCallTranslatorPlugin))
+                if (plugins is null || !plugins.Any(s => s is NpgsqlTrigramsMethodCallTranslatorPlugin))
                 {
-                    throw new InvalidOperationException($"{nameof(NpgsqlTrgmDbContextOptionsBuilderExtensions.UseTrgm)} requires {nameof(NpgsqlTrgmServiceCollectionExtensions.AddEntityFrameworkNpgsqlTrgm)} to be called on the internal service provider used.");
+                    throw new InvalidOperationException($"{nameof(NpgsqlTrigramsDbContextOptionsBuilderExtensions.UseTrigrams)} requires {nameof(NpgsqlTrigramsServiceCollectionExtensions.AddEntityFrameworkNpgsqlTrigrams)} to be called on the internal service provider used.");
                 }
             }
         }
@@ -41,9 +41,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
             public override long GetServiceProviderHashCode() => 0;
 
             public override void PopulateDebugInfo(IDictionary<string, string> debugInfo) =>
-                debugInfo["Npgsql:" + nameof(NpgsqlTrgmDbContextOptionsBuilderExtensions.UseTrgm)] = "1";
+                debugInfo["Npgsql:" + nameof(NpgsqlTrigramsDbContextOptionsBuilderExtensions.UseTrigrams)] = "1";
 
-            public override string LogFragment => "using Trgm ";
+            public override string LogFragment => "using Trigrams ";
         }
     }
 }

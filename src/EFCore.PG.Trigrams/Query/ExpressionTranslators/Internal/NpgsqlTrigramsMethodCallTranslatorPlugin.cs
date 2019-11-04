@@ -5,14 +5,14 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
-    public class NpgsqlTrgmMethodCallTranslatorPlugin : IMethodCallTranslatorPlugin
+    public class NpgsqlTrigramsMethodCallTranslatorPlugin : IMethodCallTranslatorPlugin
     {
-        public NpgsqlTrgmMethodCallTranslatorPlugin(
+        public NpgsqlTrigramsMethodCallTranslatorPlugin(
             IRelationalTypeMappingSource typeMappingSource,
             ISqlExpressionFactory sqlExpressionFactory)
             => Translators = new IMethodCallTranslator[]
             {
-                new NpgsqlTrgmMethodTranslator((NpgsqlSqlExpressionFactory) sqlExpressionFactory, typeMappingSource),
+                new NpgsqlTrigramsMethodTranslator((NpgsqlSqlExpressionFactory) sqlExpressionFactory, typeMappingSource),
             };
 
         public virtual IEnumerable<IMethodCallTranslator> Translators { get; }
