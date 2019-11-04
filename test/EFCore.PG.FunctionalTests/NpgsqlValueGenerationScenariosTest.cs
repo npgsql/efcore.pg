@@ -15,24 +15,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         [Fact]
         public void Insert_with_sequence_id()
         {
-            using (var testStore = NpgsqlTestStore.CreateInitialized(DatabaseName))
+            using var testStore = NpgsqlTestStore.CreateInitialized(DatabaseName);
+
+            using (var context = new BlogContextSequence(testStore.Name))
             {
-                using (var context = new BlogContextSequence(testStore.Name))
-                {
-                    context.Database.EnsureCreated();
+                context.Database.EnsureCreated();
+                context.AddRange(
+                    new Blog { Name = "One Unicorn" },
+                    new Blog { Name = "Two Unicorns" });
+                context.SaveChanges();
+            }
 
-                    context.AddRange(new Blog { Name = "One Unicorn" }, new Blog { Name = "Two Unicorns" });
+            using (var context = new BlogContextSequence(testStore.Name))
+            {
+                var blogs = context.Blogs.OrderBy(e => e.Id).ToList();
 
-                    context.SaveChanges();
-                }
-
-                using (var context = new BlogContextSequence(testStore.Name))
-                {
-                    var blogs = context.Blogs.OrderBy(e => e.Id).ToList();
-
-                    Assert.Equal(1, blogs[0].Id);
-                    Assert.Equal(2, blogs[1].Id);
-                }
+                Assert.Equal(1, blogs[0].Id);
+                Assert.Equal(2, blogs[1].Id);
             }
         }
 
@@ -44,24 +43,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         [Fact]
         public void Insert_with_sequence_HiLo()
         {
-            using (var testStore = NpgsqlTestStore.CreateInitialized(DatabaseName))
+            using var testStore = NpgsqlTestStore.CreateInitialized(DatabaseName);
+
+            using (var context = new BlogContextHiLo(testStore.Name))
             {
-                using (var context = new BlogContextHiLo(testStore.Name))
-                {
-                    context.Database.EnsureCreated();
+                context.Database.EnsureCreated();
+                context.AddRange(
+                    new Blog { Name = "One Unicorn" },
+                    new Blog { Name = "Two Unicorns" });
+                context.SaveChanges();
+            }
 
-                    context.AddRange(new Blog { Name = "One Unicorn" }, new Blog { Name = "Two Unicorns" });
+            using (var context = new BlogContextHiLo(testStore.Name))
+            {
+                var blogs = context.Blogs.OrderBy(e => e.Id).ToList();
 
-                    context.SaveChanges();
-                }
-
-                using (var context = new BlogContextHiLo(testStore.Name))
-                {
-                    var blogs = context.Blogs.OrderBy(e => e.Id).ToList();
-
-                    Assert.Equal(1, blogs[0].Id);
-                    Assert.Equal(2, blogs[1].Id);
-                }
+                Assert.Equal(1, blogs[0].Id);
+                Assert.Equal(2, blogs[1].Id);
             }
         }
 
@@ -79,55 +77,41 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         [Fact]
         public void Insert_with_default_value_from_sequence()
         {
-            using (var testStore = NpgsqlTestStore.CreateInitialized(DatabaseName))
+            using var testStore = NpgsqlTestStore.CreateInitialized(DatabaseName);
+
+            using (var context = new BlogContextDefaultValue(testStore.Name))
             {
-                using (var context = new BlogContextDefaultValue(testStore.Name))
-                {
-                    context.Database.EnsureCreated();
+                context.Database.EnsureCreated();
+                context.AddRange(
+                    new Blog { Name = "One Unicorn" },
+                    new Blog { Name = "Two Unicorns" });
+                context.SaveChanges();
+            }
 
-                    context.AddRange(
-                        new Blog
-                        {
-                            Name = "One Unicorn"
-                        }, new Blog
-                        {
-                            Name = "Two Unicorns"
-                        });
+            using (var context = new BlogContextDefaultValue(testStore.Name))
+            {
+                var blogs = context.Blogs.OrderBy(e => e.Id).ToList();
 
-                    context.SaveChanges();
-                }
+                Assert.Equal(0, blogs[0].Id);
+                Assert.Equal(1, blogs[1].Id);
+            }
 
-                using (var context = new BlogContextDefaultValue(testStore.Name))
-                {
-                    var blogs = context.Blogs.OrderBy(e => e.Id).ToList();
+            using (var context = new BlogContextDefaultValueNoMigrations(testStore.Name))
+            {
+                context.AddRange(
+                    new Blog { Name = "One Unicorn" },
+                    new Blog { Name = "Two Unicorns" });
+                context.SaveChanges();
+            }
 
-                    Assert.Equal(0, blogs[0].Id);
-                    Assert.Equal(1, blogs[1].Id);
-                }
+            using (var context = new BlogContextDefaultValueNoMigrations(testStore.Name))
+            {
+                var blogs = context.Blogs.OrderBy(e => e.Id).ToList();
 
-                using (var context = new BlogContextDefaultValueNoMigrations(testStore.Name))
-                {
-                    context.AddRange(
-                        new Blog
-                        {
-                            Name = "One Unicorn"
-                        }, new Blog
-                        {
-                            Name = "Two Unicorns"
-                        });
-
-                    context.SaveChanges();
-                }
-
-                using (var context = new BlogContextDefaultValueNoMigrations(testStore.Name))
-                {
-                    var blogs = context.Blogs.OrderBy(e => e.Id).ToList();
-
-                    Assert.Equal(0, blogs[0].Id);
-                    Assert.Equal(1, blogs[1].Id);
-                    Assert.Equal(2, blogs[2].Id);
-                    Assert.Equal(3, blogs[3].Id);
-                }
+                Assert.Equal(0, blogs[0].Id);
+                Assert.Equal(1, blogs[1].Id);
+                Assert.Equal(2, blogs[2].Id);
+                Assert.Equal(3, blogs[3].Id);
             }
         }
 
@@ -160,35 +144,32 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             }
 
             protected override void OnModelCreating(ModelBuilder modelBuilder)
-            {
-                modelBuilder
+                => modelBuilder
                     .Entity<Blog>()
                     .Property(e => e.Id)
                     .HasDefaultValue();
-            }
         }
 
         [Fact]
         public void Insert_with_key_default_value_from_sequence()
         {
-            using (var testStore = NpgsqlTestStore.CreateInitialized(DatabaseName))
+            using var testStore = NpgsqlTestStore.CreateInitialized(DatabaseName);
+
+            using (var context = new BlogContextKeyColumnWithDefaultValue(testStore.Name))
             {
-                using (var context = new BlogContextKeyColumnWithDefaultValue(testStore.Name))
-                {
-                    context.Database.EnsureCreated();
+                context.Database.EnsureCreated();
+                context.AddRange(
+                    new Blog { Name = "One Unicorn" },
+                    new Blog { Name = "Two Unicorns" });
+                context.SaveChanges();
+            }
 
-                    context.AddRange(new Blog { Name = "One Unicorn" }, new Blog { Name = "Two Unicorns" });
+            using (var context = new BlogContextKeyColumnWithDefaultValue(testStore.Name))
+            {
+                var blogs = context.Blogs.OrderBy(e => e.Id).ToList();
 
-                    context.SaveChanges();
-                }
-
-                using (var context = new BlogContextKeyColumnWithDefaultValue(testStore.Name))
-                {
-                    var blogs = context.Blogs.OrderBy(e => e.Id).ToList();
-
-                    Assert.Equal(77, blogs[0].Id);
-                    Assert.Equal(78, blogs[1].Id);
-                }
+                Assert.Equal(77, blogs[0].Id);
+                Assert.Equal(78, blogs[1].Id);
             }
         }
 
@@ -216,24 +197,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         [Fact]
         public void Insert_with_explicit_non_default_keys()
         {
-            using (var testStore = NpgsqlTestStore.CreateInitialized(DatabaseName))
+            using var testStore = NpgsqlTestStore.CreateInitialized(DatabaseName);
+
+            using (var context = new BlogContextNoKeyGeneration(testStore.Name))
             {
-                using (var context = new BlogContextNoKeyGeneration(testStore.Name))
-                {
-                    context.Database.EnsureCreated();
+                context.Database.EnsureCreated();
+                context.AddRange(
+                    new Blog { Id = 66, Name = "One Unicorn" },
+                    new Blog { Id = 67, Name = "Two Unicorns" });
+                context.SaveChanges();
+            }
 
-                    context.AddRange(new Blog { Id = 66, Name = "One Unicorn" }, new Blog { Id = 67, Name = "Two Unicorns" });
+            using (var context = new BlogContextNoKeyGeneration(testStore.Name))
+            {
+                var blogs = context.Blogs.OrderBy(e => e.Id).ToList();
 
-                    context.SaveChanges();
-                }
-
-                using (var context = new BlogContextNoKeyGeneration(testStore.Name))
-                {
-                    var blogs = context.Blogs.OrderBy(e => e.Id).ToList();
-
-                    Assert.Equal(66, blogs[0].Id);
-                    Assert.Equal(67, blogs[1].Id);
-                }
+                Assert.Equal(66, blogs[0].Id);
+                Assert.Equal(67, blogs[1].Id);
             }
         }
 
@@ -242,37 +222,32 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             public BlogContextNoKeyGeneration(string databaseName) : base(databaseName) {}
 
             protected override void OnModelCreating(ModelBuilder modelBuilder)
-            {
-                modelBuilder
+                => modelBuilder
                     .Entity<Blog>()
                     .Property(e => e.Id)
                     .ValueGeneratedNever();
-            }
         }
 
         [Fact]
         public void Insert_with_explicit_with_default_keys()
         {
-            using (var testStore = NpgsqlTestStore.CreateInitialized(DatabaseName))
+            using var testStore = NpgsqlTestStore.CreateInitialized(DatabaseName);
+
+            using (var context = new BlogContextNoKeyGenerationNullableKey(testStore.Name))
             {
-                using (var context = new BlogContextNoKeyGenerationNullableKey(testStore.Name))
-                {
-                    context.Database.EnsureCreated();
+                context.Database.EnsureCreated();
+                context.AddRange(
+                    new NullableKeyBlog { Id = 0, Name = "One Unicorn" },
+                    new NullableKeyBlog { Id = 1, Name = "Two Unicorns" });
+                context.SaveChanges();
+            }
 
-                    context.AddRange(
-                        new NullableKeyBlog { Id = 0, Name = "One Unicorn" },
-                        new NullableKeyBlog { Id = 1, Name = "Two Unicorns" });
+            using (var context = new BlogContextNoKeyGenerationNullableKey(testStore.Name))
+            {
+                var blogs = context.NullableKeyBlogs.OrderBy(e => e.Id).ToList();
 
-                    context.SaveChanges();
-                }
-
-                using (var context = new BlogContextNoKeyGenerationNullableKey(testStore.Name))
-                {
-                    var blogs = context.NullableKeyBlogs.OrderBy(e => e.Id).ToList();
-
-                    Assert.Equal(0, blogs[0].Id);
-                    Assert.Equal(1, blogs[1].Id);
-                }
+                Assert.Equal(0, blogs[0].Id);
+                Assert.Equal(1, blogs[1].Id);
             }
         }
 
@@ -284,57 +259,50 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             }
 
             protected override void OnModelCreating(ModelBuilder modelBuilder)
-            {
-                modelBuilder
+                => modelBuilder
                     .Entity<NullableKeyBlog>()
                     .Property(e => e.Id)
                     .ValueGeneratedNever();
-            }
         }
 
         [Fact]
         public void Insert_with_non_key_default_value()
         {
-            using (var testStore = NpgsqlTestStore.CreateInitialized(DatabaseName))
+            using var testStore = NpgsqlTestStore.CreateInitialized(DatabaseName);
+
+            using (var context = new BlogContextNonKeyDefaultValue(testStore.Name))
             {
-                using (var context = new BlogContextNonKeyDefaultValue(testStore.Name))
+                context.Database.EnsureCreated();
+                var blogs = new List<Blog>
                 {
-                    context.Database.EnsureCreated();
+                    new Blog { Name = "One Unicorn" },
+                    new Blog { Name = "Two Unicorns", CreatedOn = new DateTime(1969, 8, 3, 0, 10, 0) }
+                };
+                context.AddRange(blogs);
+                context.SaveChanges();
 
-                    var blogs = new List<Blog>
-                    {
-                        new Blog { Name = "One Unicorn" },
-                        new Blog { Name = "Two Unicorns", CreatedOn = new DateTime(1969, 8, 3, 0, 10, 0) }
-                    };
+                Assert.NotEqual(new DateTime(), blogs[0].CreatedOn);
+                Assert.NotEqual(new DateTime(), blogs[1].CreatedOn);
+            }
 
-                    context.AddRange(blogs);
+            using (var context = new BlogContextNonKeyDefaultValue(testStore.Name))
+            {
+                var blogs = context.Blogs.OrderBy(e => e.Name).ToList();
 
-                    context.SaveChanges();
+                Assert.NotEqual(new DateTime(), blogs[0].CreatedOn);
+                Assert.Equal(new DateTime(1969, 8, 3, 0, 10, 0), blogs[1].CreatedOn);
 
-                    Assert.NotEqual(new DateTime(), blogs[0].CreatedOn);
-                    Assert.NotEqual(new DateTime(), blogs[1].CreatedOn);
-                }
+                blogs[0].CreatedOn = new DateTime(1973, 9, 3, 0, 10, 0);
+                blogs[1].Name = "Zwo Unicorns";
+                context.SaveChanges();
+            }
 
-                using (var context = new BlogContextNonKeyDefaultValue(testStore.Name))
-                {
-                    var blogs = context.Blogs.OrderBy(e => e.Name).ToList();
+            using (var context = new BlogContextNonKeyDefaultValue(testStore.Name))
+            {
+                var blogs = context.Blogs.OrderBy(e => e.Name).ToList();
 
-                    Assert.NotEqual(new DateTime(), blogs[0].CreatedOn);
-                    Assert.Equal(new DateTime(1969, 8, 3, 0, 10, 0), blogs[1].CreatedOn);
-
-                    blogs[0].CreatedOn = new DateTime(1973, 9, 3, 0, 10, 0);
-                    blogs[1].Name = "Zwo Unicorns";
-
-                    context.SaveChanges();
-                }
-
-                using (var context = new BlogContextNonKeyDefaultValue(testStore.Name))
-                {
-                    var blogs = context.Blogs.OrderBy(e => e.Name).ToList();
-
-                    Assert.Equal(new DateTime(1969, 8, 3, 0, 10, 0), blogs[1].CreatedOn);
-                    Assert.Equal(new DateTime(1973, 9, 3, 0, 10, 0), blogs[0].CreatedOn);
-                }
+                Assert.Equal(new DateTime(1969, 8, 3, 0, 10, 0), blogs[1].CreatedOn);
+                Assert.Equal(new DateTime(1973, 9, 3, 0, 10, 0), blogs[0].CreatedOn);
             }
         }
 
@@ -346,56 +314,50 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             }
 
             protected override void OnModelCreating(ModelBuilder modelBuilder)
-            {
-                modelBuilder.Entity<Blog>()
+                => modelBuilder.Entity<Blog>()
                     .Property(e => e.CreatedOn)
                     .ValueGeneratedOnAdd()
                     .HasDefaultValueSql("now()");
-            }
         }
 
         [Fact]
         public void Insert_with_non_key_default_value_readonly()
         {
-            using (var testStore = NpgsqlTestStore.CreateInitialized(DatabaseName))
+            using var testStore = NpgsqlTestStore.CreateInitialized(DatabaseName);
+
+            using (var context = new BlogContextNonKeyReadOnlyDefaultValue(testStore.Name))
             {
-                using (var context = new BlogContextNonKeyReadOnlyDefaultValue(testStore.Name))
-                {
-                    context.Database.EnsureCreated();
+                context.Database.EnsureCreated();
+                context.AddRange(
+                    new Blog { Name = "One Unicorn" },
+                    new Blog { Name = "Two Unicorns" });
+                context.SaveChanges();
+                Assert.NotEqual(new DateTime(), context.Blogs.ToList()[0].CreatedOn);
+            }
 
-                    context.AddRange(
-                        new Blog { Name = "One Unicorn" },
-                        new Blog { Name = "Two Unicorns" });
+            DateTime dateTime0;
 
-                    context.SaveChanges();
+            using (var context = new BlogContextNonKeyReadOnlyDefaultValue(testStore.Name))
+            {
+                var blogs = context.Blogs.OrderBy(e => e.Id).ToList();
 
-                    Assert.NotEqual(new DateTime(), context.Blogs.ToList()[0].CreatedOn);
-                }
+                dateTime0 = blogs[0].CreatedOn;
 
-                DateTime dateTime0;
+                Assert.NotEqual(new DateTime(), dateTime0);
+                Assert.NotEqual(new DateTime(), blogs[1].CreatedOn);
 
-                using (var context = new BlogContextNonKeyReadOnlyDefaultValue(testStore.Name))
-                {
-                    var blogs = context.Blogs.OrderBy(e => e.Id).ToList();
+                blogs[0].Name = "One Pegasus";
+                blogs[1].CreatedOn = new DateTime(1973, 9, 3, 0, 10, 0);
 
-                    dateTime0 = blogs[0].CreatedOn;
+                context.SaveChanges();
+            }
 
-                    Assert.NotEqual(new DateTime(), dateTime0);
-                    Assert.NotEqual(new DateTime(), blogs[1].CreatedOn);
+            using (var context = new BlogContextNonKeyReadOnlyDefaultValue(testStore.Name))
+            {
+                var blogs = context.Blogs.OrderBy(e => e.Id).ToList();
 
-                    blogs[0].Name = "One Pegasus";
-                    blogs[1].CreatedOn = new DateTime(1973, 9, 3, 0, 10, 0);
-
-                    context.SaveChanges();
-                }
-
-                using (var context = new BlogContextNonKeyReadOnlyDefaultValue(testStore.Name))
-                {
-                    var blogs = context.Blogs.OrderBy(e => e.Id).ToList();
-
-                    Assert.Equal(dateTime0, blogs[0].CreatedOn);
-                    Assert.Equal(new DateTime(1973, 9, 3, 0, 10, 0), blogs[1].CreatedOn);
-                }
+                Assert.Equal(dateTime0, blogs[0].CreatedOn);
+                Assert.Equal(new DateTime(1973, 9, 3, 0, 10, 0), blogs[1].CreatedOn);
             }
         }
 
@@ -407,36 +369,34 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             }
 
             protected override void OnModelCreating(ModelBuilder modelBuilder)
-            {
-                modelBuilder.Entity<Blog>()
+                => modelBuilder.Entity<Blog>()
                     .Property(e => e.CreatedOn)
                     .HasDefaultValueSql("now()")
                     .Metadata.SetBeforeSaveBehavior(PropertySaveBehavior.Throw);
-            }
         }
 
         [Fact]
         public void Insert_with_serial_non_id()
         {
-            using (var testStore = NpgsqlTestStore.CreateInitialized(DatabaseName))
+            using var testStore = NpgsqlTestStore.CreateInitialized(DatabaseName);
+
+            int afterSave;
+
+            using (var context = new BlogContextSequenceNonId(testStore.Name))
             {
-                int afterSave;
+                context.Database.EnsureCreated();
 
-                using (var context = new BlogContextSequenceNonId(testStore.Name))
-                {
-                    context.Database.EnsureCreated();
+                var blog = context.Add(new Blog { Name = "One Unicorn" }).Entity;
+                var beforeSave = blog.OtherId;
+                context.SaveChanges();
+                afterSave = blog.OtherId;
 
-                    var blog = context.Add(new Blog { Name = "One Unicorn" }).Entity;
-                    var beforeSave = blog.OtherId;
-                    context.SaveChanges();
-                    afterSave = blog.OtherId;
-                    Assert.NotEqual(beforeSave, afterSave);
-                }
+                Assert.NotEqual(beforeSave, afterSave);
+            }
 
-                using (var context = new BlogContextSequenceNonId(testStore.Name))
-                {
-                    Assert.Equal(afterSave, context.Blogs.Single().OtherId);
-                }
+            using (var context = new BlogContextSequenceNonId(testStore.Name))
+            {
+                Assert.Equal(afterSave, context.Blogs.Single().OtherId);
             }
         }
 
@@ -458,28 +418,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         [Fact]
         public void Insert_with_client_generated_GUID_key()
         {
-            using (var testStore = NpgsqlTestStore.CreateInitialized(DatabaseName))
+            using var testStore = NpgsqlTestStore.CreateInitialized(DatabaseName);
+
+            Guid afterSave;
+            using (var context = new BlogContext(testStore.Name))
             {
-                Guid afterSave;
-                using (var context = new BlogContext(testStore.Name))
-                {
-                    context.Database.EnsureCreated();
+                context.Database.EnsureCreated();
+                var blog = context.Add(new GuidBlog { Name = "One Unicorn" }).Entity;
+                var beforeSave = blog.Id;
+                context.SaveChanges();
+                afterSave = blog.Id;
 
-                    var blog = context.Add(new GuidBlog { Name = "One Unicorn" }).Entity;
+                Assert.Equal(beforeSave, afterSave);
+            }
 
-                    var beforeSave = blog.Id;
-
-                    context.SaveChanges();
-
-                    afterSave = blog.Id;
-
-                    Assert.Equal(beforeSave, afterSave);
-                }
-
-                using (var context = new BlogContext(testStore.Name))
-                {
-                    Assert.Equal(afterSave, context.GuidBlogs.Single().Id);
-                }
+            using (var context = new BlogContext(testStore.Name))
+            {
+                Assert.Equal(afterSave, context.GuidBlogs.Single().Id);
             }
         }
 
@@ -491,40 +446,38 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         [Fact]
         public void Insert_with_server_generated_GUID_key()
         {
-            using (var testStore = NpgsqlTestStore.CreateInitialized(DatabaseName))
+            using var testStore = NpgsqlTestStore.CreateInitialized(DatabaseName);
+
+            Guid afterSave;
+            using (var context = new BlogContextServerGuidKey(testStore.Name))
             {
-                Guid afterSave;
-                using (var context = new BlogContextServerGuidKey(testStore.Name))
-                {
-                    context.Database.EnsureCreated();
+                context.Database.EnsureCreated();
 
-                    var blog = context.Add(
-                        new GuidBlog
-                        {
-                            Name = "One Unicorn"
-                        }).Entity;
+                var blog = context.Add(
+                    new GuidBlog
+                    {
+                        Name = "One Unicorn"
+                    }).Entity;
+                var beforeSave = blog.Id;
+                var beforeSaveNotId = blog.NotId;
 
-                    var beforeSave = blog.Id;
-                    var beforeSaveNotId = blog.NotId;
+                Assert.Equal(default, beforeSave);
+                Assert.Equal(default, beforeSaveNotId);
 
-                    Assert.Equal(default, beforeSave);
-                    Assert.Equal(default, beforeSaveNotId);
+                context.SaveChanges();
 
-                    context.SaveChanges();
+                afterSave = blog.Id;
+                var afterSaveNotId = blog.NotId;
 
-                    afterSave = blog.Id;
-                    var afterSaveNotId = blog.NotId;
+                Assert.NotEqual(default, afterSave);
+                Assert.NotEqual(default, afterSaveNotId);
+                Assert.NotEqual(beforeSave, afterSave);
+                Assert.NotEqual(beforeSaveNotId, afterSaveNotId);
+            }
 
-                    Assert.NotEqual(default, afterSave);
-                    Assert.NotEqual(default, afterSaveNotId);
-                    Assert.NotEqual(beforeSave, afterSave);
-                    Assert.NotEqual(beforeSaveNotId, afterSaveNotId);
-                }
-
-                using (var context = new BlogContextServerGuidKey(testStore.Name))
-                {
-                    Assert.Equal(afterSave, context.GuidBlogs.Single().Id);
-                }
+            using (var context = new BlogContextServerGuidKey(testStore.Name))
+            {
+                Assert.Equal(afterSave, context.GuidBlogs.Single().Id);
             }
         }
 
@@ -589,12 +542,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
         public abstract class ContextBase : DbContext
         {
-            private readonly string _databaseName;
+            readonly string _databaseName;
 
-            protected ContextBase(string databaseName)
-            {
-                _databaseName = databaseName;
-            }
+            protected ContextBase(string databaseName) => _databaseName = databaseName;
 
             public DbSet<Blog> Blogs { get; set; }
             public DbSet<NullableKeyBlog> NullableKeyBlogs { get; set; }

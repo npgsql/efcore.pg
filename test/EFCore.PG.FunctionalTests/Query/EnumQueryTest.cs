@@ -24,11 +24,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Roundtrip()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var x = ctx.SomeEntities.Single(e => e.Id == 1);
-                Assert.Equal(MappedEnum.Happy, x.MappedEnum);
-            }
+            using var ctx = Fixture.CreateContext();
+            var x = ctx.SomeEntities.Single(e => e.Id == 1);
+            Assert.Equal(MappedEnum.Happy, x.MappedEnum);
         }
 
         #endregion
@@ -38,102 +36,90 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Where_with_constant()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var x = ctx.SomeEntities.Single(e => e.MappedEnum == MappedEnum.Sad);
-                Assert.Equal(MappedEnum.Sad, x.MappedEnum);
+            using var ctx = Fixture.CreateContext();
+            var x = ctx.SomeEntities.Single(e => e.MappedEnum == MappedEnum.Sad);
+            Assert.Equal(MappedEnum.Sad, x.MappedEnum);
 
-                AssertContainsInSql(@"WHERE s.""MappedEnum"" = 'sad'::test.mapped_enum");
-            }
+            AssertContainsInSql(@"WHERE s.""MappedEnum"" = 'sad'::test.mapped_enum");
         }
 
         [Fact]
         public void Where_with_constant_schema_qualified()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var x = ctx.SomeEntities.Single(e => e.SchemaQualifiedEnum == SchemaQualifiedEnum.Happy);
-                Assert.Equal(SchemaQualifiedEnum.Happy, x.SchemaQualifiedEnum);
+            using var ctx = Fixture.CreateContext();
+            var x = ctx.SomeEntities.Single(e => e.SchemaQualifiedEnum == SchemaQualifiedEnum.Happy);
+            Assert.Equal(SchemaQualifiedEnum.Happy, x.SchemaQualifiedEnum);
 
-                AssertContainsInSql(@"WHERE s.""SchemaQualifiedEnum"" = 'Happy (PgName)'::test.schema_qualified_enum");
-            }
+            AssertContainsInSql(@"WHERE s.""SchemaQualifiedEnum"" = 'Happy (PgName)'::test.schema_qualified_enum");
         }
 
         [Fact]
         public void Where_with_parameter()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                // ReSharper disable once ConvertToConstant.Local
-                var sad = MappedEnum.Sad;
-                var x = ctx.SomeEntities.Single(e => e.MappedEnum == sad);
-                Assert.Equal(MappedEnum.Sad, x.MappedEnum);
+            using var ctx = Fixture.CreateContext();
+            // ReSharper disable once ConvertToConstant.Local
+            var sad = MappedEnum.Sad;
+            var x = ctx.SomeEntities.Single(e => e.MappedEnum == sad);
+            Assert.Equal(MappedEnum.Sad, x.MappedEnum);
 
-                AssertSql(
-                    @"@__sad_0='Sad' (DbType = Object)
+            AssertSql(
+                @"@__sad_0='Sad' (DbType = Object)
 
 SELECT s.""Id"", s.""EnumValue"", s.""InferredEnum"", s.""MappedEnum"", s.""SchemaQualifiedEnum"", s.""UnmappedEnum""
 FROM test.""SomeEntities"" AS s
 WHERE s.""MappedEnum"" = @__sad_0
 LIMIT 2");
-            }
         }
 
         [Fact]
         public void Where_with_unmapped_enum_parameter_downcasts_are_implicit()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                // ReSharper disable once ConvertToConstant.Local
-                var sad = UnmappedEnum.Sad;
-                var _ = ctx.SomeEntities.Single(e => e.UnmappedEnum == sad);
+            using var ctx = Fixture.CreateContext();
+            // ReSharper disable once ConvertToConstant.Local
+            var sad = UnmappedEnum.Sad;
+            var _ = ctx.SomeEntities.Single(e => e.UnmappedEnum == sad);
 
-                AssertSql(
-                    @"@__sad_0='1'
+            AssertSql(
+                @"@__sad_0='1'
 
 SELECT s.""Id"", s.""EnumValue"", s.""InferredEnum"", s.""MappedEnum"", s.""SchemaQualifiedEnum"", s.""UnmappedEnum""
 FROM test.""SomeEntities"" AS s
 WHERE s.""UnmappedEnum"" = @__sad_0
 LIMIT 2");
-            }
         }
 
         [Fact]
         public void Where_with_unmapped_enum_parameter_downcasts_do_not_matter()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                // ReSharper disable once ConvertToConstant.Local
-                var sad = UnmappedEnum.Sad;
-                var _ = ctx.SomeEntities.Single(e => (int)e.UnmappedEnum == (int)sad);
+            using var ctx = Fixture.CreateContext();
+            // ReSharper disable once ConvertToConstant.Local
+            var sad = UnmappedEnum.Sad;
+            var _ = ctx.SomeEntities.Single(e => (int)e.UnmappedEnum == (int)sad);
 
-                AssertSql(
-                    @"@__sad_0='1'
+            AssertSql(
+                @"@__sad_0='1'
 
 SELECT s.""Id"", s.""EnumValue"", s.""InferredEnum"", s.""MappedEnum"", s.""SchemaQualifiedEnum"", s.""UnmappedEnum""
 FROM test.""SomeEntities"" AS s
 WHERE s.""UnmappedEnum"" = @__sad_0
 LIMIT 2");
-            }
         }
 
         [Fact]
         public void Where_with_mapped_enum_parameter_downcasts_do_not_matter()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                // ReSharper disable once ConvertToConstant.Local
-                var sad = MappedEnum.Sad;
-                var _ = ctx.SomeEntities.Single(e => (int)e.MappedEnum == (int)sad);
+            using var ctx = Fixture.CreateContext();
+            // ReSharper disable once ConvertToConstant.Local
+            var sad = MappedEnum.Sad;
+            var _ = ctx.SomeEntities.Single(e => (int)e.MappedEnum == (int)sad);
 
-                AssertSql(
-                    @"@__sad_0='Sad' (DbType = Object)
+            AssertSql(
+                @"@__sad_0='Sad' (DbType = Object)
 
 SELECT s.""Id"", s.""EnumValue"", s.""InferredEnum"", s.""MappedEnum"", s.""SchemaQualifiedEnum"", s.""UnmappedEnum""
 FROM test.""SomeEntities"" AS s
 WHERE s.""MappedEnum"" = @__sad_0
 LIMIT 2");
-            }
         }
 
         #endregion
