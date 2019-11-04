@@ -13,7 +13,7 @@ namespace Microsoft.EntityFrameworkCore
         /// 
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
-        public static string[] Trigrams(this DbFunctions _, string text) =>
+        public static string[] TrigramsGetTrigrams(this DbFunctions _, string text) =>
             throw new NotSupportedException();
 
         /// <summary>
@@ -26,7 +26,7 @@ namespace Microsoft.EntityFrameworkCore
         /// 
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
-        public static double Similarity(this DbFunctions _, string source, string target) =>
+        public static double TrigramsSimilarity(this DbFunctions _, string source, string target) =>
             throw new NotSupportedException();
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace Microsoft.EntityFrameworkCore
         /// 
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
-        public static double WordSimilarity(this DbFunctions _, string source, string target) =>
+        public static double TrigramsWordSimilarity(this DbFunctions _, string source, string target) =>
             throw new NotSupportedException();
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace Microsoft.EntityFrameworkCore
         /// 
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
-        public static double StrictWordSimilarity(this DbFunctions _, string source, string target) =>
+        public static double TrigramsStrictWordSimilarity(this DbFunctions _, string source, string target) =>
             throw new NotSupportedException();
 
         /// <summary>
@@ -64,7 +64,7 @@ namespace Microsoft.EntityFrameworkCore
         /// 
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
-        public static bool Similar(this DbFunctions _, string source, string target) =>
+        public static bool TrigramsAreSimilar(this DbFunctions _, string source, string target) =>
             throw new NotSupportedException();
 
         /// <summary>
@@ -77,7 +77,7 @@ namespace Microsoft.EntityFrameworkCore
         /// 
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
-        public static bool WordSimilar(this DbFunctions _, string source, string target) =>
+        public static bool TrigramsAreWordSimilar(this DbFunctions _, string source, string target) =>
             throw new NotSupportedException();
 
         /// <summary>
@@ -88,7 +88,7 @@ namespace Microsoft.EntityFrameworkCore
         /// 
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
-        public static bool WordSimilarInverted(this DbFunctions _, string source, string target) =>
+        public static bool TrigramsAreNotWordSimilar(this DbFunctions _, string source, string target) =>
             throw new NotSupportedException();
 
         /// <summary>
@@ -102,7 +102,7 @@ namespace Microsoft.EntityFrameworkCore
         /// 
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
-        public static bool StrictWordSimilar(this DbFunctions _, string source, string target) =>
+        public static bool TrigramsAreStrictWordSimilar(this DbFunctions _, string source, string target) =>
             throw new NotSupportedException();
 
         /// <summary>
@@ -113,7 +113,7 @@ namespace Microsoft.EntityFrameworkCore
         /// 
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
-        public static bool StrictWordSimilarInverted(this DbFunctions _, string source, string target) =>
+        public static bool TrigramsAreNotStrictWordSimilar(this DbFunctions _, string source, string target) =>
             throw new NotSupportedException();
 
         /// <summary>
@@ -124,7 +124,7 @@ namespace Microsoft.EntityFrameworkCore
         /// 
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
-        public static double SimilarityDistance(this DbFunctions _, string source, string target) =>
+        public static double TrigramsSimilarityDistance(this DbFunctions _, string source, string target) =>
             throw new NotSupportedException();
 
         /// <summary>
@@ -135,7 +135,7 @@ namespace Microsoft.EntityFrameworkCore
         /// 
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
-        public static double WordSimilarityDistance(this DbFunctions _, string source, string target) =>
+        public static double TrigramsWordSimilarityDistance(this DbFunctions _, string source, string target) =>
             throw new NotSupportedException();
 
         /// <summary>
@@ -146,7 +146,7 @@ namespace Microsoft.EntityFrameworkCore
         /// 
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
-        public static double WordSimilarityDistanceInverted(this DbFunctions _, string source, string target) =>
+        public static double TrigramsWordSimilarityDistanceInverted(this DbFunctions _, string source, string target) =>
             throw new NotSupportedException();
 
         /// <summary>
@@ -157,7 +157,7 @@ namespace Microsoft.EntityFrameworkCore
         /// 
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
-        public static double StrictWordSimilarityDistance(this DbFunctions _, string source, string target) =>
+        public static double TrigramsStrictWordSimilarityDistance(this DbFunctions _, string source, string target) =>
             throw new NotSupportedException();
 
         /// <summary>
@@ -168,7 +168,7 @@ namespace Microsoft.EntityFrameworkCore
         /// 
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
-        public static double StrictWordSimilarityDistanceInverted(this DbFunctions _, string source, string target) =>
+        public static double TrigramsStrictWordSimilarityDistanceInverted(this DbFunctions _, string source, string target) =>
             throw new NotSupportedException();
     }
 }
