@@ -8,6 +8,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\EFCore.PG\EFCore.PG.csproj" />
     <ProjectReference Include="..\..\src\EFCore.PG.NTS\EFCore.PG.NTS.csproj" />
+    <ProjectReference Include="..\..\src\EFCore.PG.Trigrams\EFCore.PG.Trigrams.csproj" />
   </ItemGroup>
 
   <ItemGroup>
