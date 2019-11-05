@@ -13,7 +13,7 @@ namespace Microsoft.EntityFrameworkCore
         /// 
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
-        public static string[] TrigramsGetTrigrams(this DbFunctions _, string text) =>
+        public static string[] TrigramsShow(this DbFunctions _, string text) =>
             throw new NotSupportedException();
 
         /// <summary>
