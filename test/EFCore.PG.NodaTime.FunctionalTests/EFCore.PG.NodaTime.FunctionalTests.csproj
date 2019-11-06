@@ -9,10 +9,13 @@
     <ProjectReference Include="..\..\src\EFCore.PG.NodaTime\EFCore.PG.NodaTime.csproj" />
     <ProjectReference Include="..\..\src\EFCore.PG\EFCore.PG.csproj" />
     <ProjectReference Include="..\EFCore.PG.FunctionalTests\EFCore.PG.FunctionalTests.csproj" />
+    <ProjectReference Include="..\..\../efcore/src/EFCore.Design/EFCore.Design.csproj" />
   </ItemGroup>
 
   <ItemGroup>
+    <!--
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" />
+    -->
   </ItemGroup>
 
   <ItemGroup>

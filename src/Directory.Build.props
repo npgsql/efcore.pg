@@ -9,7 +9,10 @@
     <Feature>nullablePublicOnly</Feature>
   </PropertyGroup>
 
+  <!-- Microsoft.SourceLink.GitHub causes issues when referencing EF Core via <ProjectReference /> if the versions don't match. Disable.
+
   <ItemGroup>
     <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="All" />
   </ItemGroup>
+  -->
 </Project>
