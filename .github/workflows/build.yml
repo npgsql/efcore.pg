@@ -63,9 +63,7 @@ jobs:
         shell: bash
 
       - name: Setup .NET Core SDK
-        uses: actions/setup-dotnet@bb95ce727fd49ec1a65933419cc7c91747785302
-        with:
-          dotnet-version: '3.1.100-preview1-014459'
+        uses: actions/setup-dotnet@e1b1954735348cd3b65a85ba6659d01f785b970f
 
       - name: Test
         run: dotnet test --configuration Debug
@@ -81,9 +79,7 @@ jobs:
         uses: actions/checkout@v1
 
       - name: Setup .NET Core SDK
-        uses: actions/setup-dotnet@bb95ce727fd49ec1a65933419cc7c91747785302
-        with:
-          dotnet-version: '3.1.100-preview1-014459'
+        uses: actions/setup-dotnet@e1b1954735348cd3b65a85ba6659d01f785b970f
 
       - name: Pack NuGet packages (CI versions)
         if: startsWith(github.ref, 'refs/heads/')
