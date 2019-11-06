@@ -10,7 +10,6 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Update;
 using Microsoft.EntityFrameworkCore.ValueGeneration;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
 {
@@ -56,8 +55,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
                     .ExecuteScalar(
                         new RelationalCommandParameterObject(
                             _connection,
-                            null,
-                            null,
+                            parameterValues: null,
+                            readerColumns: null,
+                            context: null,
                             _commandLogger)),
                 typeof(long),
                 CultureInfo.InvariantCulture);
@@ -73,8 +73,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
                     .ExecuteScalarAsync(
                         new RelationalCommandParameterObject(
                             _connection,
-                            null,
-                            null,
+                            parameterValues: null,
+                            readerColumns: null,
+                            context: null,
                             _commandLogger),
                         cancellationToken),
                 typeof(long),
