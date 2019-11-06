@@ -90,6 +90,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                                           new RelationalCommandParameterObject(
                                               connection,
                                               null,
+                                              null,
                                               Dependencies.CurrentContext.Context,
                                               Dependencies.CommandLogger)));
 
@@ -100,6 +101,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                                               .ExecuteScalarAsync(
                                                   new RelationalCommandParameterObject(
                                                       connection,
+                                                      null,
                                                       null,
                                                       Dependencies.CurrentContext.Context,
                                                       Dependencies.CommandLogger),
