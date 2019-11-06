@@ -31,7 +31,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             AssertSql(
                 @"SELECT COUNT(*)::INT
 FROM ""Customers"" AS c
-WHERE (""IsDate""(c.""FirstName"") = FALSE) AND (""IsDate""(c.""FirstName"") IS NOT NULL)");
+WHERE ""IsDate""(c.""FirstName"") = FALSE");
         }
 
         [Fact]
@@ -138,7 +138,7 @@ WHERE ""IsTopCustomer""(c.""Id"")");
 
 SELECT c.""Id""
 FROM ""Customers"" AS c
-WHERE (""GetCustomerWithMostOrdersAfterDate""(@__startDate_0) = c.""Id"") AND (""GetCustomerWithMostOrdersAfterDate""(@__startDate_0) IS NOT NULL)
+WHERE ""GetCustomerWithMostOrdersAfterDate""(@__startDate_0) = c.""Id""
 LIMIT 2");
         }
 
@@ -152,7 +152,7 @@ LIMIT 2");
 
 SELECT c.""Id""
 FROM ""Customers"" AS c
-WHERE (c.""Id"" = ""GetCustomerWithMostOrdersAfterDate""(""GetReportingPeriodStartDate""(@__period_0))) AND (""GetCustomerWithMostOrdersAfterDate""(""GetReportingPeriodStartDate""(@__period_0)) IS NOT NULL)
+WHERE c.""Id"" = ""GetCustomerWithMostOrdersAfterDate""(""GetReportingPeriodStartDate""(@__period_0))
 LIMIT 2");
         }
 
@@ -413,7 +413,7 @@ LIMIT 2");
             AssertSql(
                 @"SELECT COUNT(*)::INT
 FROM ""Customers"" AS c
-WHERE (""IsDate""(c.""FirstName"") = FALSE) AND (""IsDate""(c.""FirstName"") IS NOT NULL)");
+WHERE ""IsDate""(c.""FirstName"") = FALSE");
         }
 
         [Fact]
@@ -516,7 +516,7 @@ WHERE ""IsTopCustomer""(c.""Id"")");
 
 SELECT c.""Id""
 FROM ""Customers"" AS c
-WHERE (""GetCustomerWithMostOrdersAfterDate""(@__startDate_1) = c.""Id"") AND (""GetCustomerWithMostOrdersAfterDate""(@__startDate_1) IS NOT NULL)
+WHERE ""GetCustomerWithMostOrdersAfterDate""(@__startDate_1) = c.""Id""
 LIMIT 2");
         }
 
@@ -530,7 +530,7 @@ LIMIT 2");
 
 SELECT c.""Id""
 FROM ""Customers"" AS c
-WHERE (c.""Id"" = ""GetCustomerWithMostOrdersAfterDate""(""GetReportingPeriodStartDate""(@__period_1))) AND (""GetCustomerWithMostOrdersAfterDate""(""GetReportingPeriodStartDate""(@__period_1)) IS NOT NULL)
+WHERE c.""Id"" = ""GetCustomerWithMostOrdersAfterDate""(""GetReportingPeriodStartDate""(@__period_1))
 LIMIT 2");
         }
 

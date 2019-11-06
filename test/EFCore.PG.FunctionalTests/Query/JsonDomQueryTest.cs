@@ -64,7 +64,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             AssertSql(
                 @"SELECT j.""Id"", j.""CustomerDocument"", j.""CustomerElement""
 FROM ""JsonbEntities"" AS j
-WHERE (j.""CustomerDocument"" = '{""Name"":""Test customer"",""Age"":80}') AND (j.""CustomerDocument"" IS NOT NULL)");
+WHERE j.""CustomerDocument"" = '{""Name"":""Test customer"",""Age"":80}'");
         }
 
         [Fact]
@@ -87,7 +87,7 @@ LIMIT 1",
 
 SELECT j.""Id"", j.""CustomerDocument"", j.""CustomerElement""
 FROM ""JsonbEntities"" AS j
-WHERE (j.""CustomerDocument"" = @__expected_0) AND (j.""CustomerDocument"" IS NOT NULL)
+WHERE j.""CustomerDocument"" = @__expected_0
 LIMIT 2");
         }
 
@@ -284,7 +284,7 @@ LIMIT 2");
 
 SELECT j.""Id"", j.""CustomerDocument"", j.""CustomerElement""
 FROM ""JsonbEntities"" AS j
-WHERE (CAST(j.""CustomerElement""#>>ARRAY['Statistics','Nested','IntArray',@__i_0]::TEXT[] AS integer) = 4) AND (CAST(j.""CustomerElement""#>>ARRAY['Statistics','Nested','IntArray',@__i_0]::TEXT[] AS integer) IS NOT NULL)
+WHERE CAST(j.""CustomerElement""#>>ARRAY['Statistics','Nested','IntArray',@__i_0]::TEXT[] AS integer) = 4
 LIMIT 2");
         }
 
@@ -316,22 +316,6 @@ WHERE json_array_length(j.""CustomerElement""->'Orders') = 2
 LIMIT 2");
         }
 
-#if ISSUE_17374
-        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/issues/17374")]
-        public void Array_Any_toplevel()
-        {
-            using var ctx = Fixture.CreateContext();
-            var x = ctx.JsonbEntities.Single(e => e.ToplevelArray.Any());
-
-            Assert.Equal("Joe", x.Customer.Name);
-            AssertSql(
-                @"SELECT j.""Id"", j.""Customer""
-FROM ""JsonbEntities"" AS j
-WHERE jsonb_array_length(j.""ToplevelArray"") > 0
-LIMIT 2");
-        }
-#endif
-
         [Fact]
         public void Like()
         {
@@ -342,7 +326,7 @@ LIMIT 2");
             AssertSql(
                 @"SELECT j.""Id"", j.""CustomerDocument"", j.""CustomerElement""
 FROM ""JsonbEntities"" AS j
-WHERE j.""CustomerElement""->>'Name' LIKE 'J%'
+WHERE (j.""CustomerElement""->>'Name' IS NOT NULL) AND (j.""CustomerElement""->>'Name' LIKE 'J%')
 LIMIT 2");
         }
 

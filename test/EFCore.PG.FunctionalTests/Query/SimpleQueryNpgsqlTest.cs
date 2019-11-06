@@ -15,26 +15,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             : base(fixture)
         {
             Fixture.TestSqlLoggerFactory.Clear();
-            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+            Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
-
-        [ConditionalTheory(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/18674")]
-        [MemberData(nameof(IsAsyncData))]
-        public override Task Default_if_empty_top_level_arg(bool isAsync)
-            => base.Default_if_empty_top_level_arg(isAsync);
-
-        [ConditionalTheory(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/18674")]
-        [MemberData(nameof(IsAsyncData))]
-        public override Task Default_if_empty_top_level_arg_followed_by_projecting_constant(bool isAsync)
-            => base.Default_if_empty_top_level_arg_followed_by_projecting_constant(isAsync);
-
-        [ConditionalTheory(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/17379")]
-        public override Task SelectMany_correlated_with_outer_2(bool isAsync)
-            => base.SelectMany_correlated_with_outer_2(isAsync);
-
-        [ConditionalTheory(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/17379")]
-        public override Task SelectMany_correlated_with_outer_4(bool isAsync)
-            => base.SelectMany_correlated_with_outer_4(isAsync);
 
         #region Overrides
 
@@ -82,13 +64,13 @@ WHERE (o.""OrderDate"" IS NOT NULL)");
 
 SELECT e.""EmployeeID"", e.""City"", e.""Country"", e.""FirstName"", e.""ReportsTo"", e.""Title""
 FROM ""Employees"" AS e
-WHERE COALESCE(e.""EmployeeID"" = ANY (@__ids_0), FALSE) OR ((e.""EmployeeID"" IS NULL) AND (array_position(@__ids_0, NULL) IS NOT NULL))",
+WHERE COALESCE(e.""EmployeeID"" = ANY (@__ids_0), FALSE)",
                 //
                 @"@__ids_0='System.Int64[]' (DbType = Object)
 
 SELECT e.""EmployeeID"", e.""City"", e.""Country"", e.""FirstName"", e.""ReportsTo"", e.""Title""
 FROM ""Employees"" AS e
-WHERE COALESCE(e.""EmployeeID"" = ANY (@__ids_0), FALSE) OR ((e.""EmployeeID"" IS NULL) AND (array_position(@__ids_0, NULL) IS NOT NULL))");
+WHERE COALESCE(e.""EmployeeID"" = ANY (@__ids_0), FALSE)");
         }
 
         public override async Task Contains_with_local_nullable_uint_array_closure(bool isAsync)
