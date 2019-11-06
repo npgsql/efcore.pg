@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities.Xunit;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -66,7 +67,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             AssertContainsSql(@"word_similarity(t.""Text"", 'target')");
         }
 
-        [Fact]
+        [MinimumPostgresVersionFact(11, 0)]
         public void TrigramsStrictWordSimilarity()
         {
             using var context = Fixture.CreateContext();
@@ -110,7 +111,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             AssertContainsSql(@"t.""Text"" %> 'target'");
         }
 
-        [Fact]
+        [MinimumPostgresVersionFact(11, 0)]
         public void TrigramsAreStrictWordSimilar()
         {
             using var context = Fixture.CreateContext();
@@ -121,7 +122,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             AssertContainsSql(@"t.""Text"" <<% 'target'");
         }
 
-        [Fact]
+        [MinimumPostgresVersionFact(11, 0)]
         public void TrigramsAreNotStrictWordSimilar()
         {
             using var context = Fixture.CreateContext();
@@ -165,7 +166,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             AssertContainsSql(@"t.""Text"" <->> 'target'");
         }
 
-        [Fact]
+        [MinimumPostgresVersionFact(11, 0)]
         public void TrigramsStrictWordSimilarityDistance()
         {
             using var context = Fixture.CreateContext();
@@ -176,7 +177,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             AssertContainsSql(@"t.""Text"" <<<-> 'target'");
         }
 
-        [Fact]
+        [MinimumPostgresVersionFact(11, 0)]
         public void TrigramsStrictWordSimilarityDistanceInverted()
         {
             using var context = Fixture.CreateContext();
