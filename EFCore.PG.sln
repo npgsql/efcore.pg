@@ -1,4 +1,4 @@
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.2026
 MinimumVisualStudioVersion = 10.0.40219.1
@@ -22,6 +22,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.PG.NodaTime", "src\EFCore.PG.NodaTime\EFCore.PG.NodaTime.csproj", "{77F0608F-6D0C-481C-9108-D5176E2EAD69}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EFCore.PG.NTS", "src\EFCore.PG.NTS\EFCore.PG.NTS.csproj", "{D7106D61-C7CA-4005-B31F-43281BB397AD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EFCore.PG.Trigrams", "src\EFCore.PG.Trigrams\EFCore.PG.Trigrams.csproj", "{4DEDE46C-FABB-4AD3-A7DF-BF4A3AF00B06}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -93,6 +95,18 @@ Global
 		{D7106D61-C7CA-4005-B31F-43281BB397AD}.Release|x64.Build.0 = Release|Any CPU
 		{D7106D61-C7CA-4005-B31F-43281BB397AD}.Release|x86.ActiveCfg = Release|Any CPU
 		{D7106D61-C7CA-4005-B31F-43281BB397AD}.Release|x86.Build.0 = Release|Any CPU
+		{4DEDE46C-FABB-4AD3-A7DF-BF4A3AF00B06}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4DEDE46C-FABB-4AD3-A7DF-BF4A3AF00B06}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4DEDE46C-FABB-4AD3-A7DF-BF4A3AF00B06}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{4DEDE46C-FABB-4AD3-A7DF-BF4A3AF00B06}.Debug|x64.Build.0 = Debug|Any CPU
+		{4DEDE46C-FABB-4AD3-A7DF-BF4A3AF00B06}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{4DEDE46C-FABB-4AD3-A7DF-BF4A3AF00B06}.Debug|x86.Build.0 = Debug|Any CPU
+		{4DEDE46C-FABB-4AD3-A7DF-BF4A3AF00B06}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4DEDE46C-FABB-4AD3-A7DF-BF4A3AF00B06}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4DEDE46C-FABB-4AD3-A7DF-BF4A3AF00B06}.Release|x64.ActiveCfg = Release|Any CPU
+		{4DEDE46C-FABB-4AD3-A7DF-BF4A3AF00B06}.Release|x64.Build.0 = Release|Any CPU
+		{4DEDE46C-FABB-4AD3-A7DF-BF4A3AF00B06}.Release|x86.ActiveCfg = Release|Any CPU
+		{4DEDE46C-FABB-4AD3-A7DF-BF4A3AF00B06}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -104,6 +118,7 @@ Global
 		{B78A7825-BE72-4509-B0AD-01EEC67A9624} = {ED612DB1-AB32-4603-95E7-891BACA71C39}
 		{77F0608F-6D0C-481C-9108-D5176E2EAD69} = {8537E50E-CF7F-49CB-B4EF-3E2A1B11F050}
 		{D7106D61-C7CA-4005-B31F-43281BB397AD} = {8537E50E-CF7F-49CB-B4EF-3E2A1B11F050}
+		{4DEDE46C-FABB-4AD3-A7DF-BF4A3AF00B06} = {8537E50E-CF7F-49CB-B4EF-3E2A1B11F050}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F4EAAE6D-758C-4184-9D8C-7113384B61A8}
