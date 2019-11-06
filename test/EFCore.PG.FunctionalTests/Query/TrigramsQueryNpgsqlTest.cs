@@ -1,16 +1,12 @@
-using System;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities.Xunit;
 using Xunit;
 using Xunit.Abstractions;
-// ReSharper disable ConvertToConstant.Local
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
@@ -40,197 +36,155 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void TrigramsShow()
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var _ =
-                    context.TrigramsTestEntities
-                           .Select(x => EF.Functions.TrigramsShow(x.Text))
-                           .ToArray();
+            using var context = Fixture.CreateContext();
+            var _ = context.TrigramsTestEntities
+                .Select(x => EF.Functions.TrigramsShow(x.Text))
+                .ToArray();
 
-                AssertContainsSql(@"show_trgm(t.""Text"")");
-            }
+            AssertContainsSql(@"show_trgm(t.""Text"")");
         }
 
         [Fact]
         public void TrigramsSimilarity()
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var _ =
-                    context.TrigramsTestEntities
-                           .Select(x => EF.Functions.TrigramsSimilarity(x.Text, "target"))
-                           .ToArray();
+            using var context = Fixture.CreateContext();
+            var _ = context.TrigramsTestEntities
+                .Select(x => EF.Functions.TrigramsSimilarity(x.Text, "target"))
+                .ToArray();
 
-                AssertContainsSql(@"similarity(t.""Text"", 'target')");
-            }
+            AssertContainsSql(@"similarity(t.""Text"", 'target')");
         }
 
         [Fact]
         public void TrigramsWordSimilarity()
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var _ =
-                    context.TrigramsTestEntities
-                           .Select(x => EF.Functions.TrigramsWordSimilarity(x.Text, "target"))
-                           .ToArray();
+            using var context = Fixture.CreateContext();
+            var _ = context.TrigramsTestEntities
+                .Select(x => EF.Functions.TrigramsWordSimilarity(x.Text, "target"))
+                .ToArray();
 
-                AssertContainsSql(@"word_similarity(t.""Text"", 'target')");
-            }
+            AssertContainsSql(@"word_similarity(t.""Text"", 'target')");
         }
 
         [Fact]
         public void TrigramsStrictWordSimilarity()
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var _ =
-                    context.TrigramsTestEntities
-                           .Select(x => EF.Functions.TrigramsStrictWordSimilarity(x.Text, "target"))
-                           .ToArray();
+            using var context = Fixture.CreateContext();
+            var _ = context.TrigramsTestEntities
+                .Select(x => EF.Functions.TrigramsStrictWordSimilarity(x.Text, "target"))
+                .ToArray();
 
-                AssertContainsSql(@"strict_word_similarity(t.""Text"", 'target')");
-            }
+            AssertContainsSql(@"strict_word_similarity(t.""Text"", 'target')");
         }
 
         [Fact]
         public void TrigramsAreSimilar()
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var _ =
-                    context.TrigramsTestEntities
-                           .Select(x => EF.Functions.TrigramsAreSimilar(x.Text, "target"))
-                           .ToArray();
+            using var context = Fixture.CreateContext();
+            var _ = context.TrigramsTestEntities
+                .Select(x => EF.Functions.TrigramsAreSimilar(x.Text, "target"))
+                .ToArray();
 
-                AssertContainsSql(@"t.""Text"" % 'target'");
-            }
+            AssertContainsSql(@"t.""Text"" % 'target'");
         }
 
         [Fact]
         public void TrigramsAreWordSimilar()
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var _ =
-                    context.TrigramsTestEntities
-                           .Select(x => EF.Functions.TrigramsAreWordSimilar(x.Text, "target"))
-                           .ToArray();
+            using var context = Fixture.CreateContext();
+            var _ = context.TrigramsTestEntities
+                .Select(x => EF.Functions.TrigramsAreWordSimilar(x.Text, "target"))
+                .ToArray();
 
-                AssertContainsSql(@"t.""Text"" <% 'target'");
-            }
+            AssertContainsSql(@"t.""Text"" <% 'target'");
         }
 
         [Fact]
         public void TrigramsAreNotWordSimilar()
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var _ =
-                    context.TrigramsTestEntities
-                           .Select(x => EF.Functions.TrigramsAreNotWordSimilar(x.Text, "target"))
-                           .ToArray();
+            using var context = Fixture.CreateContext();
+            var _ = context.TrigramsTestEntities
+                .Select(x => EF.Functions.TrigramsAreNotWordSimilar(x.Text, "target"))
+                .ToArray();
 
-                AssertContainsSql(@"t.""Text"" %> 'target'");
-            }
+            AssertContainsSql(@"t.""Text"" %> 'target'");
         }
 
         [Fact]
         public void TrigramsAreStrictWordSimilar()
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var _ =
-                    context.TrigramsTestEntities
-                           .Select(x => EF.Functions.TrigramsAreStrictWordSimilar(x.Text, "target"))
-                           .ToArray();
+            using var context = Fixture.CreateContext();
+            var _ = context.TrigramsTestEntities
+                .Select(x => EF.Functions.TrigramsAreStrictWordSimilar(x.Text, "target"))
+                .ToArray();
 
-                AssertContainsSql(@"t.""Text"" <<% 'target'");
-            }
+            AssertContainsSql(@"t.""Text"" <<% 'target'");
         }
 
         [Fact]
         public void TrigramsAreNotStrictWordSimilar()
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var _ =
-                    context.TrigramsTestEntities
-                           .Select(x => EF.Functions.TrigramsAreNotStrictWordSimilar(x.Text, "target"))
-                           .ToArray();
+            using var context = Fixture.CreateContext();
+            var _ = context.TrigramsTestEntities
+                .Select(x => EF.Functions.TrigramsAreNotStrictWordSimilar(x.Text, "target"))
+                .ToArray();
 
-                AssertContainsSql(@"t.""Text"" %>> 'target'");
-            }
+            AssertContainsSql(@"t.""Text"" %>> 'target'");
         }
 
         [Fact]
         public void TrigramsSimilarityDistance()
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var _ =
-                    context.TrigramsTestEntities
-                           .Select(x => EF.Functions.TrigramsSimilarityDistance(x.Text, "target"))
-                           .ToArray();
+            using var context = Fixture.CreateContext();
+            var _ = context.TrigramsTestEntities
+                .Select(x => EF.Functions.TrigramsSimilarityDistance(x.Text, "target"))
+                .ToArray();
 
-                AssertContainsSql(@"t.""Text"" <-> 'target'");
-            }
+            AssertContainsSql(@"t.""Text"" <-> 'target'");
         }
 
         [Fact]
         public void TrigramsWordSimilarityDistance()
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var _ =
-                    context.TrigramsTestEntities
-                           .Select(x => EF.Functions.TrigramsWordSimilarityDistance(x.Text, "target"))
-                           .ToArray();
+            using var context = Fixture.CreateContext();
+            var _ = context.TrigramsTestEntities
+                .Select(x => EF.Functions.TrigramsWordSimilarityDistance(x.Text, "target"))
+                .ToArray();
 
-                AssertContainsSql(@"t.""Text"" <<-> 'target'");
-            }
+            AssertContainsSql(@"t.""Text"" <<-> 'target'");
         }
 
         [Fact]
         public void TrigramsWordSimilarityDistanceInverted()
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var _ =
-                    context.TrigramsTestEntities
-                           .Select(x => EF.Functions.TrigramsWordSimilarityDistanceInverted(x.Text, "target"))
-                           .ToArray();
+            using var context = Fixture.CreateContext();
+            var _ = context.TrigramsTestEntities
+                .Select(x => EF.Functions.TrigramsWordSimilarityDistanceInverted(x.Text, "target"))
+                .ToArray();
 
-                AssertContainsSql(@"t.""Text"" <->> 'target'");
-            }
+            AssertContainsSql(@"t.""Text"" <->> 'target'");
         }
 
         [Fact]
         public void TrigramsStrictWordSimilarityDistance()
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var _ =
-                    context.TrigramsTestEntities
-                           .Select(x => EF.Functions.TrigramsStrictWordSimilarityDistance(x.Text, "target"))
-                           .ToArray();
+            using var context = Fixture.CreateContext();
+            var _ = context.TrigramsTestEntities
+                .Select(x => EF.Functions.TrigramsStrictWordSimilarityDistance(x.Text, "target"))
+                .ToArray();
 
-                AssertContainsSql(@"t.""Text"" <<<-> 'target'");
-            }
+            AssertContainsSql(@"t.""Text"" <<<-> 'target'");
         }
 
         [Fact]
         public void TrigramsStrictWordSimilarityDistanceInverted()
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var _ =
-                    context.TrigramsTestEntities
-                           .Select(x => EF.Functions.TrigramsStrictWordSimilarityDistanceInverted(x.Text, "target"))
-                           .ToArray();
+            using var context = Fixture.CreateContext();
+            var _ = context.TrigramsTestEntities
+                .Select(x => EF.Functions.TrigramsStrictWordSimilarityDistanceInverted(x.Text, "target"))
+                .ToArray();
 
-                AssertContainsSql(@"t.""Text"" <->>> 'target'");
-            }
+            AssertContainsSql(@"t.""Text"" <->>> 'target'");
         }
 
         #endregion

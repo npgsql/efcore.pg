@@ -10,7 +10,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <remarks>
         /// The method call is translated to <c>show_trgm(text)</c>.
-        /// 
+        ///
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
         public static string[] TrigramsShow(this DbFunctions _, string text) =>
@@ -23,7 +23,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <remarks>
         /// The method call is translated to <c>similarity(source, target)</c>.
-        /// 
+        ///
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
         public static double TrigramsSimilarity(this DbFunctions _, string source, string target) =>
@@ -36,7 +36,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <remarks>
         /// The method call is translated to <c>word_similarity(source, target)</c>.
-        /// 
+        ///
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
         public static double TrigramsWordSimilarity(this DbFunctions _, string source, string target) =>
@@ -49,7 +49,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <remarks>
         /// The method call is translated to <c>strict_word_similarity(source, target)</c>.
-        /// 
+        ///
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
         public static double TrigramsStrictWordSimilarity(this DbFunctions _, string source, string target) =>
@@ -61,7 +61,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <remarks>
         /// The method call is translated to <c>source % target</c>.
-        /// 
+        ///
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
         public static bool TrigramsAreSimilar(this DbFunctions _, string source, string target) =>
@@ -74,7 +74,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <remarks>
         /// The method call is translated to <c>source &lt;% target</c>.
-        /// 
+        ///
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
         public static bool TrigramsAreWordSimilar(this DbFunctions _, string source, string target) =>
@@ -85,7 +85,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <remarks>
         /// The method call is translated to <c>source %&gt; target</c>.
-        /// 
+        ///
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
         public static bool TrigramsAreNotWordSimilar(this DbFunctions _, string source, string target) =>
@@ -99,7 +99,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <remarks>
         /// The method call is translated to <c>source &lt;&lt;% target</c>.
-        /// 
+        ///
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
         public static bool TrigramsAreStrictWordSimilar(this DbFunctions _, string source, string target) =>
@@ -110,7 +110,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <remarks>
         /// The method call is translated to <c>source %&gt;&gt; target</c>.
-        /// 
+        ///
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
         public static bool TrigramsAreNotStrictWordSimilar(this DbFunctions _, string source, string target) =>
@@ -121,7 +121,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <remarks>
         /// The method call is translated to <c>source &lt;-&gt; target</c>.
-        /// 
+        ///
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
         public static double TrigramsSimilarityDistance(this DbFunctions _, string source, string target) =>
@@ -132,7 +132,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <remarks>
         /// The method call is translated to <c>source &lt;&lt;-&gt; target</c>.
-        /// 
+        ///
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
         public static double TrigramsWordSimilarityDistance(this DbFunctions _, string source, string target) =>
@@ -143,7 +143,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <remarks>
         /// The method call is translated to <c>source &lt;-&gt;&gt; target</c>.
-        /// 
+        ///
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
         public static double TrigramsWordSimilarityDistanceInverted(this DbFunctions _, string source, string target) =>
@@ -154,7 +154,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <remarks>
         /// The method call is translated to <c>source &lt;&lt;&lt;-&gt; target</c>.
-        /// 
+        ///
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
         public static double TrigramsStrictWordSimilarityDistance(this DbFunctions _, string source, string target) =>
@@ -165,7 +165,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <remarks>
         /// The method call is translated to <c>source &lt;-&gt;&gt;&gt; target</c>.
-        /// 
+        ///
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
         public static double TrigramsStrictWordSimilarityDistanceInverted(this DbFunctions _, string source, string target) =>
