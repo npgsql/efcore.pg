@@ -52,10 +52,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         // PostgreSQL COUNT() always returns bigint, so we need to downcast to int
         // TODO: Translate Count with predicate for GroupBy (see base implementation)
         public override SqlExpression TranslateCount(Expression expression = null)
-            => _sqlExpressionFactory.Convert(
+        {
+            if (expression != null)
+            {
+                // TODO: Translate Count with predicate for GroupBy
+                return null;
+            }
+
+            return _sqlExpressionFactory.Convert(
                 _sqlExpressionFactory.ApplyDefaultTypeMapping(
                     _sqlExpressionFactory.Function("COUNT", new[] { _sqlExpressionFactory.Fragment("*") }, typeof(long))),
                 typeof(int), _sqlExpressionFactory.FindMapping(typeof(int)));
+        }
 
         // In PostgreSQL SUM() doesn't return the same type as its argument for smallint, int and bigint.
         // Cast to get the same type.

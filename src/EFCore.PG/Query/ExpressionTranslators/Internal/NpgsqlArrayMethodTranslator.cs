@@ -5,8 +5,10 @@ using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
+using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
@@ -51,18 +53,22 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 return null;
 
             var operand = arguments[0];
-            Type operandElementType;
 
-            if (operand.Type.IsArray)
+            var operandElementType = operand.Type.IsArray
+                ? operand.Type.GetElementType()
+                : operand.Type.IsGenericType && operand.Type.GetGenericTypeDefinition() == typeof(List<>)
+                    ? operand.Type.GetGenericArguments()[0]
+                    : null;
+
+            if (operandElementType == null) // Not an array/list
+                return null;
+
+            // Even if the CLR type is an array/list, it may be mapped to a non-array database type (e.g. via value converters).
+            if (operand.TypeMapping is RelationalTypeMapping typeMapping &&
+                !(typeMapping is NpgsqlArrayTypeMapping) && !(typeMapping is NpgsqlJsonTypeMapping))
             {
-                operandElementType = operand.Type.GetElementType();
+                return null;
             }
-            else if (operand.Type.IsGenericType && operand.Type.GetGenericTypeDefinition() == typeof(List<>))
-            {
-                operandElementType = operand.Type.GetGenericArguments()[0];
-            }
-            else
-                return null;  // Not an array/list
 
             if (method.IsClosedFormOf(SequenceEqual) && arguments[1].Type.IsArray)
                 return _sqlExpressionFactory.Equal(operand, arguments[1]);

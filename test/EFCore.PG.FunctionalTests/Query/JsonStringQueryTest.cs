@@ -60,7 +60,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             AssertSql(
                 @"SELECT j.""Id"", j.""CustomerJson"", j.""CustomerJsonb""
 FROM ""JsonEntities"" AS j
-WHERE (j.""CustomerJsonb"" = '{""Name"":""Test customer"",""Age"":80,""IsVip"":false,""Statistics"":null,""Orders"":null}') AND (j.""CustomerJsonb"" IS NOT NULL)");
+WHERE j.""CustomerJsonb"" = '{""Name"":""Test customer"",""Age"":80,""IsVip"":false,""Statistics"":null,""Orders"":null}'");
         }
 
         [Fact]
@@ -96,7 +96,7 @@ LIMIT 1",
 
 SELECT j.""Id"", j.""CustomerJson"", j.""CustomerJsonb""
 FROM ""JsonEntities"" AS j
-WHERE (j.""CustomerJsonb"" = @__expected_0) AND (j.""CustomerJsonb"" IS NOT NULL)
+WHERE j.""CustomerJsonb"" = @__expected_0
 LIMIT 2");
         }
 

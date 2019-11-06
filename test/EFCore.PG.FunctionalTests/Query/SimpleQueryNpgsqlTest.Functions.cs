@@ -16,7 +16,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             AssertSql(
                 @"SELECT c.""CustomerID"", c.""Address"", c.""City"", c.""CompanyName"", c.""ContactName"", c.""ContactTitle"", c.""Country"", c.""Fax"", c.""Phone"", c.""PostalCode"", c.""Region""
 FROM ""Customers"" AS c
-WHERE (c.""Region"" IS NULL) OR ((BTRIM(c.""Region"", E' \t\n\r') = '') AND (BTRIM(c.""Region"", E' \t\n\r') IS NOT NULL))");
+WHERE (c.""Region"" IS NULL) OR (BTRIM(c.""Region"", E' \t\n\r') = '')");
         }
 
         public override async Task Query_expression_with_to_string_and_contains(bool isAsync)
@@ -117,7 +117,7 @@ WHERE (c.""Region"" IS NULL) OR ((BTRIM(c.""Region"", E' \t\n\r') = '') AND (BTR
         {
             await base.Where_guid_newguid(isAsync);
 
-            AssertContainsSqlFragment(@"WHERE uuid_generate_v4() <> '00000000-0000-0000-0000-000000000000'");
+            AssertContainsSqlFragment(@"uuid_generate_v4() <> '00000000-0000-0000-0000-000000000000'");
         }
 
         [ConditionalTheory]

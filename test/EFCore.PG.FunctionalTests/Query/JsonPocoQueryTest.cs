@@ -71,7 +71,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             AssertSql(
                 @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
-WHERE (j.""Customer"" = '{""Name"":""Test customer"",""Age"":80,""ID"":""00000000-0000-0000-0000-000000000000"",""IsVip"":false,""Statistics"":null,""Orders"":null}') AND (j.""Customer"" IS NOT NULL)");
+WHERE j.""Customer"" = '{""Name"":""Test customer"",""Age"":80,""ID"":""00000000-0000-0000-0000-000000000000"",""IsVip"":false,""Statistics"":null,""Orders"":null}'");
         }
 
         [Fact]
@@ -94,7 +94,7 @@ LIMIT 1",
 
 SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
-WHERE (j.""Customer"" = @__expected_0) AND (j.""Customer"" IS NOT NULL)
+WHERE j.""Customer"" = @__expected_0
 LIMIT 2");
         }
 
@@ -251,7 +251,7 @@ LIMIT 2");
 
 SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
-WHERE (CAST(j.""Customer""#>>ARRAY['Statistics','Nested','IntArray',@__i_0]::TEXT[] AS integer) = 4) AND (CAST(j.""Customer""#>>ARRAY['Statistics','Nested','IntArray',@__i_0]::TEXT[] AS integer) IS NOT NULL)
+WHERE CAST(j.""Customer""#>>ARRAY['Statistics','Nested','IntArray',@__i_0]::TEXT[] AS integer) = 4
 LIMIT 2");
         }
 
@@ -283,7 +283,7 @@ WHERE json_array_length(j.""Customer""->'Orders') = 2
 LIMIT 2");
         }
 
-        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/issues/17374")]
+        [Fact]
         public void Array_Any_toplevel()
         {
             using var ctx = Fixture.CreateContext();
@@ -307,7 +307,7 @@ LIMIT 2");
             AssertSql(
                 @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
-WHERE j.""Customer""->>'Name' LIKE 'J%'
+WHERE (j.""Customer""->>'Name' IS NOT NULL) AND (j.""Customer""->>'Name' LIKE 'J%')
 LIMIT 2");
         }
 

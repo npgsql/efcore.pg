@@ -19,14 +19,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             Fixture.TestSqlLoggerFactory.Clear();
         }
 
-        [ConditionalTheory(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/18679")]
-        [MemberData(nameof(IsAsyncData))]
-        public override Task Include13(bool isAsync) => base.Include13(isAsync);
-
-        [ConditionalTheory(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/18679")]
-        [MemberData(nameof(IsAsyncData))]
-        public override Task Include14(bool isAsync) => base.Include13(isAsync);
-
         // Should be fixed but could not verify as temporarily disabled upstream
 //        [ConditionalTheory(Skip = "https://github.com/aspnet/EntityFrameworkCore/pull/12970")]
 //        [MemberData(nameof(IsAsyncData))]

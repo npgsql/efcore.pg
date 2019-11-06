@@ -41,7 +41,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             AssertSql(
                 @"SELECT m.""Int""
 FROM ""MappedNullableDataTypes"" AS m
-WHERE (m.""TimeSpanAsTime"" = TIME '00:01:02') AND (m.""TimeSpanAsTime"" IS NOT NULL)");
+WHERE m.""TimeSpanAsTime"" = TIME '00:01:02'");
         }
 
         [Fact]
@@ -61,7 +61,7 @@ WHERE (m.""TimeSpanAsTime"" = TIME '00:01:02') AND (m.""TimeSpanAsTime"" IS NOT 
 
 SELECT m.""Int""
 FROM ""MappedNullableDataTypes"" AS m
-WHERE (m.""TimeSpanAsTime"" = @__timeSpan_0) AND (m.""TimeSpanAsTime"" IS NOT NULL)");
+WHERE m.""TimeSpanAsTime"" = @__timeSpan_0");
         }
 
         [Fact]

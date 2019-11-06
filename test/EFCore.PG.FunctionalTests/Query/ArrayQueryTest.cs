@@ -62,7 +62,7 @@ WHERE s.""SomeArray""[1] = 3");
 
 SELECT s.""Id"", s.""SomeArray"", s.""SomeBytea"", s.""SomeList"", s.""SomeMatrix"", s.""SomeText""
 FROM ""SomeEntities"" AS s
-WHERE (s.""SomeArray""[@__x_0 + 1] = 3) AND (s.""SomeArray""[@__x_0 + 1] IS NOT NULL)");
+WHERE s.""SomeArray""[@__x_0 + 1] = 3");
         }
 
         [Fact]
@@ -75,7 +75,7 @@ WHERE (s.""SomeArray""[@__x_0 + 1] = 3) AND (s.""SomeArray""[@__x_0 + 1] IS NOT 
             AssertSql(
                 @"SELECT s.""Id"", s.""SomeArray"", s.""SomeBytea"", s.""SomeList"", s.""SomeMatrix"", s.""SomeText""
 FROM ""SomeEntities"" AS s
-WHERE (get_byte(s.""SomeBytea"", 0) = 3) AND (get_byte(s.""SomeBytea"", 0) IS NOT NULL)");
+WHERE get_byte(s.""SomeBytea"", 0) = 3");
         }
 
         [Fact(Skip = "Disabled since EF Core 3.0")]
@@ -108,7 +108,7 @@ WHERE (get_byte(s.""SomeBytea"", 0) = 3) AND get_byte(s.""SomeBytea"", 0) IS NOT
 
 SELECT s.""Id"", s.""SomeArray"", s.""SomeBytea"", s.""SomeList"", s.""SomeMatrix"", s.""SomeText""
 FROM ""SomeEntities"" AS s
-WHERE (s.""SomeArray"" = @__arr_0) AND (s.""SomeArray"" IS NOT NULL)
+WHERE s.""SomeArray"" = @__arr_0
 LIMIT 2");
         }
 
@@ -122,7 +122,7 @@ LIMIT 2");
             AssertSql(
                 @"SELECT s.""Id"", s.""SomeArray"", s.""SomeBytea"", s.""SomeList"", s.""SomeMatrix"", s.""SomeText""
 FROM ""SomeEntities"" AS s
-WHERE (s.""SomeArray"" = ARRAY[3,4]::integer[]) AND (s.""SomeArray"" IS NOT NULL)
+WHERE s.""SomeArray"" = ARRAY[3,4]::integer[]
 LIMIT 2");
         }
 
@@ -130,7 +130,7 @@ LIMIT 2");
 
         #region Containment
 
-        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/issues/17374")]
+        [Fact]
         public void Contains_with_literal()
         {
             using var ctx = Fixture.CreateContext();
@@ -140,11 +140,11 @@ LIMIT 2");
             AssertSql(
                 @"SELECT s.""Id"", s.""SomeArray"", s.""SomeBytea"", s.""SomeList"", s.""SomeMatrix"", s.""SomeText""
 FROM ""SomeEntities"" AS s
-WHERE 3 = ANY (s.""SomeArray"")
+WHERE COALESCE(3 = ANY (s.""SomeArray""), FALSE)
 LIMIT 2");
         }
 
-        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/issues/17374")]
+        [Fact]
         public void Contains_with_parameter()
         {
             using var ctx = Fixture.CreateContext();
@@ -158,11 +158,11 @@ LIMIT 2");
 
 SELECT s.""Id"", s.""SomeArray"", s.""SomeBytea"", s.""SomeList"", s.""SomeMatrix"", s.""SomeText""
 FROM ""SomeEntities"" AS s
-WHERE @__p_0 = ANY (s.""SomeArray"")
+WHERE COALESCE(@__p_0 = ANY (s.""SomeArray""), FALSE)
 LIMIT 2");
         }
 
-        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/issues/17374")]
+        [Fact]
         public void Contains_with_column()
         {
             using var ctx = Fixture.CreateContext();
@@ -172,7 +172,7 @@ LIMIT 2");
             AssertSql(
                 @"SELECT s.""Id"", s.""SomeArray"", s.""SomeBytea"", s.""SomeList"", s.""SomeMatrix"", s.""SomeText""
 FROM ""SomeEntities"" AS s
-WHERE s.""Id"" + 2 = ANY (s.""SomeArray"")
+WHERE COALESCE(s.""Id"" + 2 = ANY (s.""SomeArray""), FALSE)
 LIMIT 2");
         }
 
@@ -190,7 +190,7 @@ LIMIT 2");
             AssertSql(
                 @"SELECT s.""Id"", s.""SomeArray"", s.""SomeBytea"", s.""SomeList"", s.""SomeMatrix"", s.""SomeText""
 FROM ""SomeEntities"" AS s
-WHERE (cardinality(s.""SomeArray"") = 2) AND (cardinality(s.""SomeArray"") IS NOT NULL)
+WHERE cardinality(s.""SomeArray"") = 2
 LIMIT 2");
         }
 
@@ -204,7 +204,7 @@ LIMIT 2");
             AssertSql(
                 @"SELECT s.""Id"", s.""SomeArray"", s.""SomeBytea"", s.""SomeList"", s.""SomeMatrix"", s.""SomeText""
 FROM ""SomeEntities"" AS s
-WHERE (cardinality(s.""SomeArray"") = 2) AND (cardinality(s.""SomeArray"") IS NOT NULL)
+WHERE cardinality(s.""SomeArray"") = 2
 LIMIT 2");
         }
 
@@ -221,7 +221,7 @@ LIMIT 2");
 
         #region AnyAll
 
-        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/issues/17374")]
+        [Fact]
         public void Any_no_predicate()
         {
             using var ctx = Fixture.CreateContext();
