@@ -502,6 +502,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
                 @"System.Text.Json.JsonDocument.Parse(""{\""Name\"":\""Joe\"",\""Age\"":25}"", new System.Text.Json.JsonDocumentOptions())",
                 CodeLiteral(JsonDocument.Parse(@"{""Name"":""Joe"",""Age"":25}")));
 
+        [Fact]
+        public void GenerateCodeLiteral_returns_json_element_literal()
+            => Assert.Equal(
+                @"System.Text.Json.JsonDocument.Parse(""{\""Name\"":\""Joe\"",\""Age\"":25}"", new System.Text.Json.JsonDocumentOptions()).RootElement",
+                CodeLiteral(JsonDocument.Parse(@"{""Name"":""Joe"",""Age"":25}").RootElement));
+
         static readonly Customer SampleCustomer = new Customer
         {
             Name = "Joe",
