@@ -269,6 +269,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
             var comparer = GetMapping(typeof(int[])).Comparer;
             var snapshot = (int[])comparer.Snapshot(source);
             Assert.Equal(source, snapshot);
+            Assert.NotSame(source, snapshot);
             Assert.True(comparer.Equals(source, snapshot));
             snapshot[1] = 8;
             Assert.False(comparer.Equals(source, snapshot));
@@ -287,6 +288,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
             var comparer = GetMapping(typeof(Dictionary<string, string>[])).Comparer;
             var snapshot = (Dictionary<string, string>[])comparer.Snapshot(source);
             Assert.Equal(source, snapshot);
+            Assert.NotSame(source, snapshot);
             Assert.True(comparer.Equals(source, snapshot));
             snapshot[1]["k2"] = "v8";
             Assert.False(comparer.Equals(source, snapshot));
@@ -317,6 +319,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
             var comparer = GetMapping("hstore").Comparer;
             var snapshot = (Dictionary<string, string>)comparer.Snapshot(source);
             Assert.Equal(source, snapshot);
+            Assert.NotSame(source, snapshot);
             Assert.True(comparer.Equals(source, snapshot));
             snapshot.Remove("k1");
             Assert.False(comparer.Equals(source, snapshot));
