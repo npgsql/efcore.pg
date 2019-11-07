@@ -25,7 +25,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Roundtrip()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var entity = ctx.JsonEntities.Single(e => e.Id == 1);
             PerformAsserts(entity.CustomerJsonb);
             PerformAsserts(entity.CustomerJson);
@@ -54,7 +54,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Literal()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
 
             Assert.Empty(ctx.JsonEntities.Where(e => e.CustomerJsonb == @"{""Name"":""Test customer"",""Age"":80,""IsVip"":false,""Statistics"":null,""Orders"":null}"));
             AssertSql(
@@ -66,7 +66,7 @@ WHERE j.""CustomerJsonb"" = '{""Name"":""Test customer"",""Age"":80,""IsVip"":fa
         [Fact]
         public void Parameter()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var expected = ctx.JsonEntities.Find(1).CustomerJsonb;
             var actual = ctx.JsonEntities.Single(e => e.CustomerJsonb == expected).CustomerJsonb;
 
@@ -105,7 +105,7 @@ LIMIT 2");
 //        [Fact]
 //        public void JsonContains_with_json_element()
 //        {
-//            using (var ctx = Fixture.CreateContext())
+//            using (var ctx = CreateContext())
 //            {
 //                var element = JsonDocument.Parse(@"{""Name"": ""Joe"", ""Age"": 25}").RootElement;
 //                var count = ctx.JsonEntities.Count(e =>
@@ -125,7 +125,7 @@ LIMIT 2");
         [Fact]
         public void JsonContains_with_string()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var count = ctx.JsonEntities.Count(e =>
                 EF.Functions.JsonContains(e.CustomerJsonb, @"{""Name"": ""Joe"", ""Age"": 25}"));
 
@@ -139,7 +139,7 @@ WHERE (j.""CustomerJsonb"" @> '{""Name"": ""Joe"", ""Age"": 25}')");
         [Fact]
         public void JsonContained_with_json_element()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var element = JsonDocument.Parse(@"{""Name"": ""Joe"", ""Age"": 25}").RootElement;
             var count = ctx.JsonEntities.Count(e =>
                 EF.Functions.JsonContained(element, e.CustomerJsonb));
@@ -157,7 +157,7 @@ WHERE (@__element_1 <@ j.""CustomerJsonb"")");
         [Fact]
         public void JsonContained_with_string()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var count = ctx.JsonEntities.Count(e =>
                 EF.Functions.JsonContained(@"{""Name"": ""Joe"", ""Age"": 25}", e.CustomerJsonb));
 
@@ -171,7 +171,7 @@ WHERE ('{""Name"": ""Joe"", ""Age"": 25}' <@ j.""CustomerJsonb"")");
         [Fact]
         public void JsonExists()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var count = ctx.JsonEntities.Count(e =>
                 EF.Functions.JsonExists(e.CustomerJsonb, "Age"));
 
@@ -185,7 +185,7 @@ WHERE (j.""CustomerJsonb"" ? 'Age')");
         [Fact]
         public void JsonExistAny()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var count = ctx.JsonEntities.Count(e =>
                 EF.Functions.JsonExistAny(e.CustomerJsonb, "foo", "Age"));
 
@@ -199,7 +199,7 @@ WHERE (j.""CustomerJsonb"" ?| ARRAY['foo','Age']::text[])");
         [Fact]
         public void JsonExistAll()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var count = ctx.JsonEntities.Count(e =>
                 EF.Functions.JsonExistAll(e.CustomerJsonb, "foo", "Age"));
 
@@ -213,6 +213,8 @@ WHERE (j.""CustomerJsonb"" ?& ARRAY['foo','Age']::text[])");
         #endregion Functions
 
         #region Support
+
+        protected JsonStringQueryContext CreateContext() => Fixture.CreateContext();
 
         void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);

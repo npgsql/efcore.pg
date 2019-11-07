@@ -27,7 +27,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [MemberData(nameof(RangeTheoryData))]
         public void RangeContainsRange(NpgsqlRange<int> range)
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var _ = context.RangeTestEntities
                 .Where(x => x.Range.Contains(range))
                 .ToArray();
@@ -39,7 +39,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [MemberData(nameof(RangeTheoryData))]
         public void RangeDoesNotContainRange(NpgsqlRange<int> range)
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var _ = context.RangeTestEntities
                 .Where(x => !x.Range.Contains(range))
                 .ToArray();
@@ -51,7 +51,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [MemberData(nameof(IntegerTheoryData))]
         public void RangeContainsValue(int value)
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var _ = context.RangeTestEntities
                 .Where(x => x.Range.Contains(value))
                 .ToArray();
@@ -63,7 +63,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [MemberData(nameof(IntegerTheoryData))]
         public void RangeDoesNotContainValue(int value)
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var _ = context.RangeTestEntities
                 .Where(x => !x.Range.Contains(value))
                 .ToArray();
@@ -75,7 +75,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [MemberData(nameof(RangeTheoryData))]
         public void RangeContainedByRange(NpgsqlRange<int> range)
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var _ = context.RangeTestEntities
                 .Where(x => range.ContainedBy(x.Range))
                 .ToArray();
@@ -87,7 +87,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [MemberData(nameof(RangeTheoryData))]
         public void RangeNotContainedByRange(NpgsqlRange<int> range)
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var _ = context.RangeTestEntities
                 .Where(x => !range.ContainedBy(x.Range))
                 .ToArray();
@@ -99,7 +99,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [MemberData(nameof(RangeTheoryData))]
         public void RangeEqualsRange_Operator(NpgsqlRange<int> range)
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var _ = context.RangeTestEntities
                 .Where(x => x.Range == range)
                 .ToArray();
@@ -111,7 +111,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [MemberData(nameof(RangeTheoryData))]
         public void RangeEqualsRange_Method(NpgsqlRange<int> range)
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var _ = context.RangeTestEntities
                 .Where(x => x.Range.Equals(range))
                 .ToArray();
@@ -123,7 +123,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [MemberData(nameof(RangeTheoryData))]
         public void RangeDoesNotEqualsRange_Operator(NpgsqlRange<int> range)
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var _ = context.RangeTestEntities
                 .Where(x => x.Range != range)
                 .ToArray();
@@ -135,7 +135,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [MemberData(nameof(RangeTheoryData))]
         public void RangeDoesNotEqualsRange_Method(NpgsqlRange<int> range)
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var _ = context.RangeTestEntities
                 .Where(x => !x.Range.Equals(range))
                 .ToArray();
@@ -147,7 +147,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [MemberData(nameof(RangeTheoryData))]
         public void RangeOverlapsRange(NpgsqlRange<int> range)
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var _ = context.RangeTestEntities
                 .Where(x => x.Range.Overlaps(range))
                 .ToArray();
@@ -159,7 +159,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [MemberData(nameof(RangeTheoryData))]
         public void RangeDoesNotOverlapRange(NpgsqlRange<int> range)
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var _ = context.RangeTestEntities
                 .Where(x => !x.Range.Overlaps(range))
                 .ToArray();
@@ -171,7 +171,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [MemberData(nameof(RangeTheoryData))]
         public void RangeIsStrictlyLeftOfRange(NpgsqlRange<int> range)
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var _ = context.RangeTestEntities
                 .Where(x => x.Range.IsStrictlyLeftOf(range))
                 .ToArray();
@@ -183,7 +183,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [MemberData(nameof(RangeTheoryData))]
         public void RangeIsNotStrictlyLeftOfRange(NpgsqlRange<int> range)
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var _ = context.RangeTestEntities
                 .Where(x => !x.Range.IsStrictlyLeftOf(range))
                 .ToArray();
@@ -195,7 +195,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [MemberData(nameof(RangeTheoryData))]
         public void RangeIsStrictlyRightOfRange(NpgsqlRange<int> range)
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var _ = context.RangeTestEntities
                 .Where(x => x.Range.IsStrictlyRightOf(range))
                 .ToArray();
@@ -207,7 +207,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [MemberData(nameof(RangeTheoryData))]
         public void RangeIsNotStrictlyRightOfRange(NpgsqlRange<int> range)
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var _ = context.RangeTestEntities
                 .Where(x => !x.Range.IsStrictlyRightOf(range))
                 .ToArray();
@@ -219,7 +219,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [MemberData(nameof(RangeTheoryData))]
         public void RangeDoesNotExtendLeftOfRange(NpgsqlRange<int> range)
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var _ = context.RangeTestEntities
                 .Where(x => x.Range.DoesNotExtendLeftOf(range))
                 .ToArray();
@@ -231,7 +231,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [MemberData(nameof(RangeTheoryData))]
         public void RangeDoesExtendLeftOfRange(NpgsqlRange<int> range)
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var _ = context.RangeTestEntities
                 .Where(x => !x.Range.DoesNotExtendLeftOf(range))
                 .ToArray();
@@ -243,7 +243,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [MemberData(nameof(RangeTheoryData))]
         public void RangeDoesNotExtendRightOfRange(NpgsqlRange<int> range)
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var _ = context.RangeTestEntities
                 .Where(x => x.Range.DoesNotExtendRightOf(range))
                 .ToArray();
@@ -255,7 +255,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [MemberData(nameof(RangeTheoryData))]
         public void RangeDoesExtendRightOfRange(NpgsqlRange<int> range)
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var _ = context.RangeTestEntities
                 .Where(x => !x.Range.DoesNotExtendRightOf(range))
                 .ToArray();
@@ -267,7 +267,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [MemberData(nameof(RangeTheoryData))]
         public void RangeIsAdjacentToRange(NpgsqlRange<int> range)
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var _ = context.RangeTestEntities
                 .Where(x => x.Range.IsAdjacentTo(range))
                 .ToArray();
@@ -279,7 +279,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [MemberData(nameof(RangeTheoryData))]
         public void RangeIsNotAdjacentToRange(NpgsqlRange<int> range)
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var _ = context.RangeTestEntities
                 .Where(x => !x.Range.IsAdjacentTo(range))
                 .ToArray();
@@ -291,7 +291,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [MemberData(nameof(RangeTheoryData))]
         public void RangeUnionRange(NpgsqlRange<int> range)
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var _ = context.RangeTestEntities
                 .Select(x => x.Range.Union(range))
                 .ToArray();
@@ -303,7 +303,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [MemberData(nameof(RangeTheoryData))]
         public void RangeIntersectsRange(NpgsqlRange<int> range)
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var _ = context.RangeTestEntities
                 .Select(x => x.Range.Intersect(range))
                 .ToArray();
@@ -315,7 +315,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [MemberData(nameof(RangeTheoryData))]
         public void RangeExceptRange(NpgsqlRange<int> range)
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             try
             {
                 var _ = context.RangeTestEntities
@@ -337,7 +337,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void UserDefined()
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var e = context.RangeTestEntities.Single(x => x.FloatRange.UpperBound > 5);
 
             Assert.Equal(0, e.FloatRange.LowerBound);
@@ -347,7 +347,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void UserDefinedSchemaQualified()
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var e = context.RangeTestEntities.Single(x => x.SchemaRange == NpgsqlRange<double>.Parse("(0,10)"));
 
             AssertContainsSql(@"WHERE r.""SchemaRange"" = '(0,10)'::test.""Schema_Range""");
@@ -362,7 +362,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void RangeLowerBound()
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var _ = context.RangeTestEntities.Where(x => x.Range.LowerBound == 0).ToArray();
 
             AssertContainsSql(@"COALESCE(lower(r.""Range""), 0)");
@@ -371,7 +371,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void RangeUpperBound()
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var _ = context.RangeTestEntities.Where(x => x.Range.UpperBound == 10).ToArray();
 
             AssertContainsSql(@"COALESCE(upper(r.""Range""), 0)");
@@ -380,7 +380,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void RangeIsEmpty()
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var _ = context.RangeTestEntities.Where(x => x.Range.IsEmpty).ToArray();
 
             AssertContainsSql(@"isempty(r.""Range"")");
@@ -389,7 +389,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void RangeLowerBoundIsInclusive()
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var _ = context.RangeTestEntities.Where(x => x.Range.LowerBoundIsInclusive).ToArray();
 
             AssertContainsSql(@"lower_inc(r.""Range"")");
@@ -398,7 +398,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void RangeUpperBoundIsInclusive()
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var _ = context.RangeTestEntities.Where(x => x.Range.UpperBoundIsInclusive).ToArray();
 
             AssertContainsSql(@"upper_inc(r.""Range"")");
@@ -407,7 +407,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void RangeLowerBoundInfinite()
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var _ = context.RangeTestEntities.Where(x => x.Range.LowerBoundInfinite).ToArray();
 
             AssertContainsSql(@"lower_inf(r.""Range"")");
@@ -416,7 +416,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void RangeUpperBoundInfinite()
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var _ = context.RangeTestEntities.Where(x => x.Range.UpperBoundInfinite).ToArray();
 
             AssertContainsSql(@"upper_inf(r.""Range"")");
@@ -425,7 +425,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void RangeMergeRange()
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var _ = context.RangeTestEntities.Select(x => x.Range.Merge(x.Range)).ToArray();
 
             AssertContainsSql(@"range_merge(r.""Range"", r.""Range"")");
@@ -572,6 +572,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         #endregion
 
         #region Helpers
+
+        protected RangeContext CreateContext() => Fixture.CreateContext();
 
         void AssertContainsSql(string sql) => Assert.Contains(sql, Fixture.TestSqlLoggerFactory.Sql);
 

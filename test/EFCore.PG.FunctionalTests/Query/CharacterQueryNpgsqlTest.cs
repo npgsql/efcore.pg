@@ -26,14 +26,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             Fixture.ClearEntities();
 
             // important: add here so they aren't locally available below.
-            using (var ctx = Fixture.CreateContext())
+            using (var ctx = CreateContext())
             {
                 ctx.CharacterTestEntities.Add(new CharacterTestEntity { Character8 = "12345678" });
                 ctx.CharacterTestEntities.Add(new CharacterTestEntity { Character8 = "123456  " });
                 ctx.SaveChanges();
             }
 
-            using (var ctx = Fixture.CreateContext())
+            using (var ctx = CreateContext())
             {
                 const string update = "update";
 
@@ -61,7 +61,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             Fixture.ClearEntities();
 
             // important: add here so they are locally available below.
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             ctx.CharacterTestEntities.Add(new CharacterTestEntity { Character8 = "12345678" });
             ctx.CharacterTestEntities.Add(new CharacterTestEntity { Character8 = "123456  " });
             ctx.SaveChanges();
@@ -91,7 +91,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             Fixture.ClearEntities();
 
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             const string update = "update";
 
             ctx.CharacterTestEntities.Add(new CharacterTestEntity { Character8 = "12345678" });
@@ -115,7 +115,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             Fixture.ClearEntities();
 
-            using (var ctx = Fixture.CreateContext())
+            using (var ctx = CreateContext())
             {
                 var entity = new CharacterTestEntity { Character8 = "123456  ", Character6 = "12345 " };
                 ctx.CharacterTestEntities.Add(entity);
@@ -138,7 +138,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 Assert.Equal(0, ctx.SaveChanges());
             }
 
-            using (var ctx = Fixture.CreateContext())
+            using (var ctx = CreateContext())
             {
                 // The query still ignores the trailing whitespace,
                 // but the materialized object won't have any trailing whitespace.
@@ -208,6 +208,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         #endregion
 
         #region Helpers
+
+        protected CharacterContext CreateContext() => Fixture.CreateContext();
 
         // ReSharper disable once UnusedMember.Global
         /// <summary>

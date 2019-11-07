@@ -24,7 +24,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Roundtrip()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var x = ctx.SomeEntities.Single(e => e.Id == 1);
             Assert.Equal(MappedEnum.Happy, x.MappedEnum);
         }
@@ -36,7 +36,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Where_with_constant()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var x = ctx.SomeEntities.Single(e => e.MappedEnum == MappedEnum.Sad);
             Assert.Equal(MappedEnum.Sad, x.MappedEnum);
 
@@ -46,7 +46,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Where_with_constant_schema_qualified()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var x = ctx.SomeEntities.Single(e => e.SchemaQualifiedEnum == SchemaQualifiedEnum.Happy);
             Assert.Equal(SchemaQualifiedEnum.Happy, x.SchemaQualifiedEnum);
 
@@ -56,7 +56,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Where_with_parameter()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             // ReSharper disable once ConvertToConstant.Local
             var sad = MappedEnum.Sad;
             var x = ctx.SomeEntities.Single(e => e.MappedEnum == sad);
@@ -74,7 +74,7 @@ LIMIT 2");
         [Fact]
         public void Where_with_unmapped_enum_parameter_downcasts_are_implicit()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             // ReSharper disable once ConvertToConstant.Local
             var sad = UnmappedEnum.Sad;
             var _ = ctx.SomeEntities.Single(e => e.UnmappedEnum == sad);
@@ -91,7 +91,7 @@ LIMIT 2");
         [Fact]
         public void Where_with_unmapped_enum_parameter_downcasts_do_not_matter()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             // ReSharper disable once ConvertToConstant.Local
             var sad = UnmappedEnum.Sad;
             var _ = ctx.SomeEntities.Single(e => (int)e.UnmappedEnum == (int)sad);
@@ -108,7 +108,7 @@ LIMIT 2");
         [Fact]
         public void Where_with_mapped_enum_parameter_downcasts_do_not_matter()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             // ReSharper disable once ConvertToConstant.Local
             var sad = MappedEnum.Sad;
             var _ = ctx.SomeEntities.Single(e => (int)e.MappedEnum == (int)sad);
@@ -125,6 +125,8 @@ LIMIT 2");
         #endregion
 
         #region Support
+
+        protected EnumContext CreateContext() => Fixture.CreateContext();
 
         void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
