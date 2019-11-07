@@ -64,7 +64,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             => value switch
             {
                 JsonDocument document => Expression.Call(ParseMethod, Expression.Constant(document.RootElement.ToString()), DefaultJsonDocumentOptions),
-                JsonElement _         => throw new NotSupportedException("Cannot currently generate code literals for JsonElement"),
+                JsonElement element   => Expression.Property(
+                    Expression.Call(ParseMethod, Expression.Constant(element.ToString()), DefaultJsonDocumentOptions),
+                    nameof(JsonDocument.RootElement)),
                 string s              => Expression.Constant(s),
                 _                     => throw new NotSupportedException("Cannot generate code literals for JSON POCOs")
             };
