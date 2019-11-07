@@ -15,22 +15,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         [Fact]
         public void Creates_Npgsql_Server_connection_string()
         {
-            using (var connection = new NpgsqlRelationalConnection(CreateDependencies()))
-            {
-                Assert.IsType<NpgsqlConnection>(connection.DbConnection);
-            }
+            using var connection = new NpgsqlRelationalConnection(CreateDependencies());
+
+            Assert.IsType<NpgsqlConnection>(connection.DbConnection);
         }
 
         [Fact]
         public void Can_create_master_connection_string()
         {
-            using (var connection = new NpgsqlRelationalConnection(CreateDependencies()))
-            {
-                using (var master = connection.CreateMasterConnection())
-                {
-                    Assert.Equal(@"Host=localhost;Database=postgres;Username=some_user;Password=some_password;Pooling=False", master.ConnectionString);
-                }
-            }
+            using var connection = new NpgsqlRelationalConnection(CreateDependencies());
+            using var master = connection.CreateMasterConnection();
+
+            Assert.Equal(@"Host=localhost;Database=postgres;Username=some_user;Password=some_password;Pooling=False", master.ConnectionString);
         }
 
         [Fact]
@@ -42,13 +38,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                     b => b.UseAdminDatabase("template0"))
                 .Options;
 
-            using (var connection = new NpgsqlRelationalConnection(CreateDependencies(options)))
-            {
-                using (var master = connection.CreateMasterConnection())
-                {
-                    Assert.Equal(@"Host=localhost;Database=template0;Username=some_user;Password=some_password;Pooling=False", master.ConnectionString);
-                }
-            }
+            using var connection = new NpgsqlRelationalConnection(CreateDependencies(options));
+            using var master = connection.CreateMasterConnection();
+
+            Assert.Equal(@"Host=localhost;Database=template0;Username=some_user;Password=some_password;Pooling=False", master.ConnectionString);
         }
 
         public static RelationalConnectionDependencies CreateDependencies(DbContextOptions options = null)
