@@ -19,8 +19,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
     /// </remarks>
     public class TrigramsQueryNpgsqlTest : IClassFixture<TrigramsQueryNpgsqlTest.TrigramsQueryNpgsqlFixture>
     {
-        #region Setup
-
         TrigramsQueryNpgsqlFixture Fixture { get; }
 
         public TrigramsQueryNpgsqlTest(TrigramsQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
@@ -30,14 +28,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
-        #endregion
-
         #region FunctionTests
 
         [Fact]
         public void TrigramsShow()
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var _ = context.TrigramsTestEntities
                 .Select(x => EF.Functions.TrigramsShow(x.Text))
                 .ToArray();
@@ -48,7 +44,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void TrigramsSimilarity()
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var _ = context.TrigramsTestEntities
                 .Select(x => EF.Functions.TrigramsSimilarity(x.Text, "target"))
                 .ToArray();
@@ -59,7 +55,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void TrigramsWordSimilarity()
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var _ = context.TrigramsTestEntities
                 .Select(x => EF.Functions.TrigramsWordSimilarity(x.Text, "target"))
                 .ToArray();
@@ -70,7 +66,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [MinimumPostgresVersionFact(11, 0)]
         public void TrigramsStrictWordSimilarity()
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var _ = context.TrigramsTestEntities
                 .Select(x => EF.Functions.TrigramsStrictWordSimilarity(x.Text, "target"))
                 .ToArray();
@@ -81,7 +77,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void TrigramsAreSimilar()
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var _ = context.TrigramsTestEntities
                 .Select(x => EF.Functions.TrigramsAreSimilar(x.Text, "target"))
                 .ToArray();
@@ -92,7 +88,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void TrigramsAreWordSimilar()
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var _ = context.TrigramsTestEntities
                 .Select(x => EF.Functions.TrigramsAreWordSimilar(x.Text, "target"))
                 .ToArray();
@@ -103,7 +99,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void TrigramsAreNotWordSimilar()
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var _ = context.TrigramsTestEntities
                 .Select(x => EF.Functions.TrigramsAreNotWordSimilar(x.Text, "target"))
                 .ToArray();
@@ -114,7 +110,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [MinimumPostgresVersionFact(11, 0)]
         public void TrigramsAreStrictWordSimilar()
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var _ = context.TrigramsTestEntities
                 .Select(x => EF.Functions.TrigramsAreStrictWordSimilar(x.Text, "target"))
                 .ToArray();
@@ -125,7 +121,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [MinimumPostgresVersionFact(11, 0)]
         public void TrigramsAreNotStrictWordSimilar()
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var _ = context.TrigramsTestEntities
                 .Select(x => EF.Functions.TrigramsAreNotStrictWordSimilar(x.Text, "target"))
                 .ToArray();
@@ -136,7 +132,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void TrigramsSimilarityDistance()
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var _ = context.TrigramsTestEntities
                 .Select(x => EF.Functions.TrigramsSimilarityDistance(x.Text, "target"))
                 .ToArray();
@@ -147,7 +143,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void TrigramsWordSimilarityDistance()
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var _ = context.TrigramsTestEntities
                 .Select(x => EF.Functions.TrigramsWordSimilarityDistance(x.Text, "target"))
                 .ToArray();
@@ -158,7 +154,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void TrigramsWordSimilarityDistanceInverted()
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var _ = context.TrigramsTestEntities
                 .Select(x => EF.Functions.TrigramsWordSimilarityDistanceInverted(x.Text, "target"))
                 .ToArray();
@@ -169,7 +165,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [MinimumPostgresVersionFact(11, 0)]
         public void TrigramsStrictWordSimilarityDistance()
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var _ = context.TrigramsTestEntities
                 .Select(x => EF.Functions.TrigramsStrictWordSimilarityDistance(x.Text, "target"))
                 .ToArray();
@@ -180,7 +176,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [MinimumPostgresVersionFact(11, 0)]
         public void TrigramsStrictWordSimilarityDistanceInverted()
         {
-            using var context = Fixture.CreateContext();
+            using var context = CreateContext();
             var _ = context.TrigramsTestEntities
                 .Select(x => EF.Functions.TrigramsStrictWordSimilarityDistanceInverted(x.Text, "target"))
                 .ToArray();
@@ -277,6 +273,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         #endregion
 
         #region Helpers
+
+        protected TrigramsContext CreateContext() => Fixture.CreateContext();
 
         void AssertSql(params string[] expected) => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 

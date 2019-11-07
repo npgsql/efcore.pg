@@ -25,7 +25,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Roundtrip()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var x = ctx.JsonbEntities.Single(e => e.Id == 1);
             var customer = x.Customer;
 
@@ -45,7 +45,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Roundtrip_json()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var x = ctx.JsonEntities.Single(e => e.Id == 1);
             var customer = x.Customer;
 
@@ -65,7 +65,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Literal()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
 
             Assert.Empty(ctx.JsonbEntities.Where(e => e.Customer == new Customer { Name = "Test customer", Age = 80 }));
             AssertSql(
@@ -77,7 +77,7 @@ WHERE j.""Customer"" = '{""Name"":""Test customer"",""Age"":80,""ID"":""00000000
         [Fact]
         public void Parameter()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var expected = ctx.JsonbEntities.Find(1).Customer;
             var actual = ctx.JsonbEntities.Single(e => e.Customer == expected).Customer;
 
@@ -101,7 +101,7 @@ LIMIT 2");
         [Fact]
         public void Text_output()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var x = ctx.JsonbEntities.Single(e => e.Customer.Name == "Joe");
 
             Assert.Equal("Joe", x.Customer.Name);
@@ -115,7 +115,7 @@ LIMIT 2");
         [Fact]
         public void Text_output_json()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var x = ctx.JsonEntities.Single(e => e.Customer.Name == "Joe");
 
             Assert.Equal("Joe", x.Customer.Name);
@@ -129,7 +129,7 @@ LIMIT 2");
         [Fact]
         public void Integer_output()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var x = ctx.JsonbEntities.Single(e => e.Customer.Age < 30);
 
             Assert.Equal("Joe", x.Customer.Name);
@@ -143,7 +143,7 @@ LIMIT 2");
         [Fact]
         public void Guid_output()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var x = ctx.JsonbEntities.Single(e => e.Customer.ID == Guid.Empty);
 
             Assert.Equal("Joe", x.Customer.Name);
@@ -157,7 +157,7 @@ LIMIT 2");
         [Fact]
         public void Bool_output()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var x = ctx.JsonbEntities.Single(e => e.Customer.IsVip);
 
             Assert.Equal("Moe", x.Customer.Name);
@@ -171,7 +171,7 @@ LIMIT 2");
         [Fact]
         public void Nested()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var x = ctx.JsonbEntities.Single(e => e.Customer.Statistics.Visits == 4);
 
             Assert.Equal("Joe", x.Customer.Name);
@@ -185,7 +185,7 @@ LIMIT 2");
         [Fact]
         public void Nested_twice()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var x = ctx.JsonbEntities.Single(e => e.Customer.Statistics.Nested.SomeProperty == 10);
 
             Assert.Equal("Joe", x.Customer.Name);
@@ -199,7 +199,7 @@ LIMIT 2");
         [Fact]
         public void Array_of_objects()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var x = ctx.JsonbEntities.Single(e => e.Customer.Orders[0].Price == 99.5m);
 
             Assert.Equal("Joe", x.Customer.Name);
@@ -213,7 +213,7 @@ LIMIT 2");
         [Fact]
         public void Array_toplevel()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var x = ctx.JsonbEntities.Single(e => e.ToplevelArray[1] == "two");
 
             Assert.Equal("Joe", x.Customer.Name);
@@ -227,7 +227,7 @@ LIMIT 2");
         [Fact]
         public void Array_nested()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var x = ctx.JsonbEntities.Single(e => e.Customer.Statistics.Nested.IntArray[1] == 4);
 
             Assert.Equal("Joe", x.Customer.Name);
@@ -241,7 +241,7 @@ LIMIT 2");
         [Fact]
         public void Array_parameter_index()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var i = 1;
             var x = ctx.JsonbEntities.Single(e => e.Customer.Statistics.Nested.IntArray[i] == 4);
 
@@ -258,7 +258,7 @@ LIMIT 2");
         [Fact]
         public void Array_Length()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var x = ctx.JsonbEntities.Single(e => e.Customer.Orders.Length == 2);
 
             Assert.Equal("Joe", x.Customer.Name);
@@ -272,7 +272,7 @@ LIMIT 2");
         [Fact]
         public void Array_Length_json()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var x = ctx.JsonEntities.Single(e => e.Customer.Orders.Length == 2);
 
             Assert.Equal("Joe", x.Customer.Name);
@@ -286,7 +286,7 @@ LIMIT 2");
         [Fact]
         public void Array_Any_toplevel()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var x = ctx.JsonbEntities.Single(e => e.ToplevelArray.Any());
 
             Assert.Equal("Joe", x.Customer.Name);
@@ -300,7 +300,7 @@ LIMIT 2");
         [Fact]
         public void Like()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var x = ctx.JsonbEntities.Single(e => e.Customer.Name.StartsWith("J"));
 
             Assert.Equal("Joe", x.Customer.Name);
@@ -316,7 +316,7 @@ LIMIT 2");
         [Fact]
         public void JsonContains_with_json_element()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var element = JsonDocument.Parse(@"{""Name"": ""Joe"", ""Age"": 25}").RootElement;
             var count = ctx.JsonbEntities.Count(e =>
                 EF.Functions.JsonContains(e.Customer, element));
@@ -334,7 +334,7 @@ WHERE (j.""Customer"" @> @__element_1)");
         [Fact]
         public void JsonContains_with_string()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var count = ctx.JsonbEntities.Count(e =>
                 EF.Functions.JsonContains(e.Customer, @"{""Name"": ""Joe"", ""Age"": 25}"));
 
@@ -348,7 +348,7 @@ WHERE (j.""Customer"" @> '{""Name"": ""Joe"", ""Age"": 25}')");
         [Fact]
         public void JsonContained_with_json_element()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var element = JsonDocument.Parse(@"{""Name"": ""Joe"", ""Age"": 25}").RootElement;
             var count = ctx.JsonbEntities.Count(e =>
                 EF.Functions.JsonContained(element, e.Customer));
@@ -366,7 +366,7 @@ WHERE (@__element_1 <@ j.""Customer"")");
         [Fact]
         public void JsonContained_with_string()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var count = ctx.JsonbEntities.Count(e =>
                 EF.Functions.JsonContained(@"{""Name"": ""Joe"", ""Age"": 25}", e.Customer));
 
@@ -380,7 +380,7 @@ WHERE ('{""Name"": ""Joe"", ""Age"": 25}' <@ j.""Customer"")");
         [Fact]
         public void JsonExists()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var count = ctx.JsonbEntities.Count(e =>
                 EF.Functions.JsonExists(e.Customer.Statistics, "Visits"));
 
@@ -394,7 +394,7 @@ WHERE (j.""Customer""->'Statistics' ? 'Visits')");
         [Fact]
         public void JsonExistAny()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var count = ctx.JsonbEntities.Count(e =>
                 EF.Functions.JsonExistAny(e.Customer.Statistics, "foo", "Visits" ));
 
@@ -408,7 +408,7 @@ WHERE (j.""Customer""->'Statistics' ?| ARRAY['foo','Visits']::text[])");
         [Fact]
         public void JsonExistAll()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var count = ctx.JsonbEntities.Count(e =>
                 EF.Functions.JsonExistAll(e.Customer.Statistics, "foo", "Visits"));
 
@@ -422,7 +422,7 @@ WHERE (j.""Customer""->'Statistics' ?& ARRAY['foo','Visits']::text[])");
         [Fact]
         public void JsonTypeof()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var count = ctx.JsonbEntities.Count(e =>
                 EF.Functions.JsonTypeof(e.Customer.Statistics.Visits) == "number");
 
@@ -436,7 +436,7 @@ WHERE jsonb_typeof(j.""Customer""#>'{Statistics,Visits}') = 'number'");
         [Fact]
         public void JsonTypeof_json()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var count = ctx.JsonEntities.Count(e =>
                 EF.Functions.JsonTypeof(e.Customer.Statistics.Visits) == "number");
 
@@ -450,6 +450,8 @@ WHERE json_typeof(j.""Customer""#>'{Statistics,Visits}') = 'number'");
         #endregion Functions
 
         #region Support
+
+        protected JsonPocoQueryContext CreateContext() => Fixture.CreateContext();
 
         void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);

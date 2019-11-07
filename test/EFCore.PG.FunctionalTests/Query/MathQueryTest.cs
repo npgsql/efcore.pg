@@ -32,7 +32,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         //[Fact]
         public void Max_ushort_ushort()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var _ =
                 ctx.MathTestEntities
                     .Select(x => Math.Max(x.UShort, x.UShort))
@@ -44,7 +44,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         //[Fact]
         public void Max_uint_uint()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var _ =
                 ctx.MathTestEntities
                     .Select(x => Math.Max(x.UInt, x.UInt))
@@ -56,7 +56,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         //[Fact]
         public void Max_ulong_ulong()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var _ =
                 ctx.MathTestEntities
                     .Select(x => Math.Max(x.ULong, x.ULong))
@@ -68,7 +68,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Max_short_short()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var _ =
                 ctx.MathTestEntities
                     .Select(x => Math.Max(x.Short, x.Short))
@@ -80,7 +80,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Max_int_int()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var _ =
                 ctx.MathTestEntities
                     .Select(x => Math.Max(x.Int, x.Int))
@@ -92,7 +92,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Max_long_long()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var _ =
                 ctx.MathTestEntities
                     .Select(x => Math.Max(x.Long, x.Long))
@@ -104,7 +104,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Max_float_float()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var _ =
                 ctx.MathTestEntities
                     .Select(x => Math.Max(x.Float, x.Float))
@@ -116,7 +116,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Max_double_double()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var _ =
                 ctx.MathTestEntities
                     .Select(x => Math.Max(x.Double, x.Double))
@@ -128,7 +128,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Max_decimal_decimal()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var _ =
                 ctx.MathTestEntities
                     .Select(x => Math.Max(x.Decimal, x.Decimal))
@@ -140,7 +140,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         //[Fact]
         public void Max_sbyte_sbyte()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var _ =
                 ctx.MathTestEntities
                     .Select(x => Math.Max(x.SByte, x.SByte))
@@ -152,7 +152,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         //[Fact]
         public void Max_byte_byte()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var _ =
                 ctx.MathTestEntities
                     .Select(x => Math.Max(x.Byte, x.Byte))
@@ -168,7 +168,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         //[Fact]
         public void Min_ushort_ushort()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var _ =
                 ctx.MathTestEntities
                     .Select(x => Math.Min(x.UShort, x.UShort))
@@ -180,7 +180,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         //[Fact]
         public void Min_uint_uint()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var _ =
                 ctx.MathTestEntities
                     .Select(x => Math.Min(x.UInt, x.UInt))
@@ -192,7 +192,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         //[Fact]
         public void Min_ulong_ulong()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var _ =
                 ctx.MathTestEntities
                     .Select(x => Math.Min(x.ULong, x.ULong))
@@ -204,7 +204,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Min_short_short()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var _ =
                 ctx.MathTestEntities
                     .Select(x => Math.Min(x.Short, x.Short))
@@ -216,7 +216,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Min_int_int()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var _ =
                 ctx.MathTestEntities
                     .Select(x => Math.Min(x.Int, x.Int))
@@ -228,7 +228,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Min_long_long()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var _ =
                 ctx.MathTestEntities
                     .Select(x => Math.Min(x.Long, x.Long))
@@ -240,7 +240,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Min_float_float()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var _ =
                 ctx.MathTestEntities
                     .Select(x => Math.Min(x.Float, x.Float))
@@ -252,7 +252,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Min_double_double()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var _ =
                 ctx.MathTestEntities
                     .Select(x => Math.Min(x.Double, x.Double))
@@ -264,7 +264,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Min_decimal_decimal()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var _ =
                 ctx.MathTestEntities
                     .Select(x => Math.Min(x.Decimal, x.Decimal))
@@ -276,7 +276,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         //[Fact]
         public void Min_sbyte_sbyte()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var _ =
                 ctx.MathTestEntities
                     .Select(x => Math.Min(x.SByte, x.SByte))
@@ -288,7 +288,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         //[Fact]
         public void Min_byte_byte()
         {
-            using var ctx = Fixture.CreateContext();
+            using var ctx = CreateContext();
             var _ =
                 ctx.MathTestEntities
                     .Select(x => Math.Min(x.Byte, x.Byte))
@@ -347,6 +347,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         #endregion
 
         #region Helpers
+
+        protected MathContext CreateContext() => Fixture.CreateContext();
 
         /// <summary>
         /// Asserts that the SQL fragment appears in the logs.
