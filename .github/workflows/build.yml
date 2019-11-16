@@ -5,13 +5,14 @@ on: push
 jobs:
   build:
     runs-on: ${{ matrix.os }}
+    env:
+      postgis_version: 3
 
     strategy:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest, windows-latest ]
         pg_major: [ 12, 11, 10 ]
-        postgis_version: [ 3 ]
 
     steps:
       - name: Checkout
@@ -19,7 +20,7 @@ jobs:
 
       - name: Start PostgreSQL ${{ matrix.pg_major }} (Linux)
         if: startsWith(matrix.os, 'ubuntu')
-        run: docker run --detach --name postgresql -p 5432:5432 npgsql/postgres:${{ matrix.pg_major }}-postgis-${{ matrix.postgis_version }}
+        run: docker run --detach --name postgresql -p 5432:5432 npgsql/postgres:${{ matrix.pg_major }}-postgis-${postgis_version}
         shell: bash
 
       - name: Start PostgreSQL ${{ matrix.pg_major }} (Windows)
@@ -44,7 +45,7 @@ jobs:
           # Find OSGEO version number
           OSGEO_VERSION=$(\
             curl -Ls https://download.osgeo.org/postgis/windows/pg${{ matrix.pg_major }} |
-            sed -n 's/.*>postgis-bundle-pg${{ matrix.pg_major }}-\(${{ matrix.postgis_version }}.[0-9]*.[0-9]*\)x64.zip<.*/\1/p')
+            sed -n 's/.*>postgis-bundle-pg${{ matrix.pg_major }}-\(${postgis_version}.[0-9]*.[0-9]*\)x64.zip<.*/\1/p')
 
           # Install PostGIS
           echo "Installing PostGIS (version: ${OSGEO_VERSION})"
