@@ -169,6 +169,21 @@ LIMIT 2");
         }
 
         [Fact]
+        public void Nullable()
+        {
+            using var ctx = CreateContext();
+            var x = ctx.JsonbEntities.Single(e => e.Customer.Statistics.Nested.SomeNullableProperty == 20);
+
+            Assert.Equal("Joe", x.Customer.Name);
+
+            AssertSql(
+                @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
+FROM ""JsonbEntities"" AS j
+WHERE CAST(j.""Customer""#>>'{Statistics,Nested,SomeNullableProperty}' AS integer) = 20
+LIMIT 2");
+        }
+
+        [Fact]
         public void Nested()
         {
             using var ctx = CreateContext();
@@ -486,6 +501,7 @@ WHERE json_typeof(j.""Customer""#>'{Statistics,Visits}') = 'number'");
                         Nested = new NestedStatistics
                         {
                             SomeProperty = 10,
+                            SomeNullableProperty = 20,
                             IntArray = new[] { 3, 4 }
                         }
                     },
@@ -519,6 +535,7 @@ WHERE json_typeof(j.""Customer""#>'{Statistics,Visits}') = 'number'");
                         Nested = new NestedStatistics
                         {
                             SomeProperty = 20,
+                            SomeNullableProperty = null,
                             IntArray = new[] { 5, 6 }
                         }
                     },
@@ -585,6 +602,7 @@ WHERE json_typeof(j.""Customer""#>'{Statistics,Visits}') = 'number'");
         public class NestedStatistics
         {
             public int SomeProperty { get; set; }
+            public int? SomeNullableProperty { get; set; }
             public int[] IntArray { get; set; }
         }
 
