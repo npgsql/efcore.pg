@@ -32,17 +32,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
 
         public NpgsqlFuzzyStringMatchMethodTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory, IRelationalTypeMappingSource typeMappingSource)
-        {
-            _sqlExpressionFactory = sqlExpressionFactory;
-        }
+            => _sqlExpressionFactory = sqlExpressionFactory;
 
         /// <inheritdoc />
         public SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
-        {
-            if (Functions.TryGetValue(method, out var function))
-                return _sqlExpressionFactory.Function(function, arguments.Skip(1), method.ReturnType);
-
-            return null;
-        }
+            => Functions.TryGetValue(method, out var function)
+                ? _sqlExpressionFactory.Function(function, arguments.Skip(1), method.ReturnType)
+                : null;
     }
 }

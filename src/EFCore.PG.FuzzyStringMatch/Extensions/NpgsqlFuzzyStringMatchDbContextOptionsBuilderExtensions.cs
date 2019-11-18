@@ -18,7 +18,6 @@ namespace Microsoft.EntityFrameworkCore
             this NpgsqlDbContextOptionsBuilder optionsBuilder)
         {
             var coreOptionsBuilder = ((IRelationalDbContextOptionsBuilderInfrastructure)optionsBuilder).OptionsBuilder;
-
             var extension = coreOptionsBuilder.Options.FindExtension<NpgsqlFuzzyStringMatchOptionsExtension>()
                 ?? new NpgsqlFuzzyStringMatchOptionsExtension();
 
