@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
@@ -10,34 +11,46 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using ExpressionExtensions = Microsoft.EntityFrameworkCore.Query.ExpressionExtensions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 {
     public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExpressionVisitor
     {
-        [NotNull] static readonly MethodInfo Like2MethodInfo =
+        [NotNull]
+        static readonly MethodInfo Like2MethodInfo =
             typeof(DbFunctionsExtensions)
                 .GetRuntimeMethod(nameof(DbFunctionsExtensions.Like), new[] { typeof(DbFunctions), typeof(string), typeof(string) });
 
         // ReSharper disable once InconsistentNaming
-        [NotNull] static readonly MethodInfo ILike2MethodInfo =
+        [NotNull]
+        static readonly MethodInfo ILike2MethodInfo =
             typeof(NpgsqlDbFunctionsExtensions)
                 .GetRuntimeMethod(nameof(NpgsqlDbFunctionsExtensions.ILike), new[] { typeof(DbFunctions), typeof(string), typeof(string) });
 
-        [NotNull] static readonly MethodInfo EnumerableAnyWithPredicate =
+        [NotNull]
+        static readonly MethodInfo EnumerableAnyWithPredicate =
             typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
                 .Single(mi => mi.Name == nameof(Enumerable.Any) && mi.GetParameters().Length == 2);
 
-        [NotNull] static readonly MethodInfo EnumerableAll =
+        [NotNull]
+        static readonly MethodInfo EnumerableAll =
             typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
                 .Single(mi => mi.Name == nameof(Enumerable.All) && mi.GetParameters().Length == 2);
 
+        [NotNull]
+        static readonly MethodInfo Contains =
+            typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
+                .Single(m => m.Name == nameof(Enumerable.Contains) && m.GetParameters().Length == 2);
+
         readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
         readonly NpgsqlJsonPocoTranslator _jsonPocoTranslator;
+
+        [NotNull]
+        readonly RelationalTypeMapping _boolMapping;
 
         public NpgsqlSqlTranslatingExpressionVisitor(
             RelationalSqlTranslatingExpressionVisitorDependencies dependencies,
@@ -47,6 +60,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         {
             _sqlExpressionFactory = (NpgsqlSqlExpressionFactory)dependencies.SqlExpressionFactory;
             _jsonPocoTranslator = ((NpgsqlMemberTranslatorProvider)Dependencies.MemberTranslatorProvider).JsonPocoTranslator;
+            _boolMapping = _sqlExpressionFactory.FindMapping(typeof(bool));
         }
 
         // PostgreSQL COUNT() always returns bigint, so we need to downcast to int
@@ -109,37 +123,52 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 
         protected override Expression VisitMethodCall(MethodCallExpression methodCall)
         {
-            // TODO: Handle List<>
+            var visited = base.VisitMethodCall(methodCall);
+            if (visited != null)
+                return visited;
 
+            // TODO: Handle List<>
+            if (methodCall.Arguments.Count > 0 && methodCall.Arguments[0].Type.IsArray)
+                return VisitArrayMethodCall(methodCall.Method, methodCall.Arguments);
+
+            return null;
+        }
+
+        /// <summary>
+        /// Identifies complex array-related constructs which cannot be translated in regular method translators, since
+        /// they require accessing lambdas.
+        /// </summary>
+        protected virtual Expression VisitArrayMethodCall(MethodInfo method, ReadOnlyCollection<Expression> arguments)
+        {
             {
                 // Pattern match for .Where(e => new[] { "a", "b", "c" }.Any(p => EF.Functions.Like(e.SomeText, p))),
                 // which we translate to WHERE s.""SomeText"" LIKE ANY (ARRAY['a','b','c']) (see test Any_like)
                 // Note: NavigationExpander normalized Any(x) to Where(x).Any()
-                if (methodCall.Method.IsClosedFormOf(EnumerableAnyWithPredicate) &&
-                    methodCall.Arguments[0].Type.IsArray &&
-                    methodCall.Arguments[1] is LambdaExpression wherePredicate &&
+                if (method.IsClosedFormOf(EnumerableAnyWithPredicate) &&
+                    arguments[1] is LambdaExpression wherePredicate &&
                     wherePredicate.Body is MethodCallExpression wherePredicateMethodCall && (
                         wherePredicateMethodCall.Method == Like2MethodInfo ||
                         wherePredicateMethodCall.Method == ILike2MethodInfo))
                 {
-                    var array = (SqlExpression)Visit(methodCall.Arguments[0]);
+                    var array = (SqlExpression)Visit(arguments[0]);
                     var match = (SqlExpression)Visit(wherePredicateMethodCall.Arguments[1]);
 
                     return _sqlExpressionFactory.ArrayAnyAll(match, array, ArrayComparisonType.Any,
                         wherePredicateMethodCall.Method == Like2MethodInfo ? "LIKE" : "ILIKE");
                 }
+
+                // Note: we also handle the above with equality instead of Like, see NpgsqlArrayMethodTranslator
             }
 
-            // Same for All (but without the normalization
             {
-                if (methodCall.Method.IsClosedFormOf(EnumerableAll) &&
-                    methodCall.Arguments[0].Type.IsArray &&
-                    methodCall.Arguments[1] is LambdaExpression wherePredicate &&
+                // Same for All (but without the normalization)
+                if (method.IsClosedFormOf(EnumerableAll) &&
+                    arguments[1] is LambdaExpression wherePredicate &&
                     wherePredicate.Body is MethodCallExpression wherePredicateMethodCall && (
                         wherePredicateMethodCall.Method == Like2MethodInfo ||
                         wherePredicateMethodCall.Method == ILike2MethodInfo))
                 {
-                    var array = (SqlExpression)Visit(methodCall.Arguments[0]);
+                    var array = (SqlExpression)Visit(arguments[0]);
                     var match = (SqlExpression)Visit(wherePredicateMethodCall.Arguments[1]);
 
                     return _sqlExpressionFactory.ArrayAnyAll(match, array, ArrayComparisonType.All,
@@ -147,8 +176,55 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 }
             }
 
-            // Note: we also handle the above with equality instead of Like, see NpgsqlArrayMethodTranslator
-            return base.VisitMethodCall(methodCall);
+            {
+                // Translate e => new[] { 4, 5 }.Any(p => e.SomeArray.Contains(p)),
+                // using array overlap (&&)
+                if (method.IsClosedFormOf(EnumerableAnyWithPredicate) &&
+                    arguments[1] is LambdaExpression wherePredicate &&
+                    wherePredicate.Body is MethodCallExpression wherePredicateMethodCall &&
+                    wherePredicateMethodCall.Method.IsClosedFormOf(Contains) &&
+                    wherePredicateMethodCall.Arguments[0].Type.IsArray &&
+                    wherePredicateMethodCall.Arguments[1] is ParameterExpression parameterExpression &&
+                    parameterExpression == wherePredicate.Parameters[0])
+                {
+                    var array1 = (SqlExpression)Visit(arguments[0]);
+                    var array2 = (SqlExpression)Visit(wherePredicateMethodCall.Arguments[0]);
+                    var inferredMapping = ExpressionExtensions.InferTypeMapping(array1, array2);
+
+                    return new SqlCustomBinaryExpression(
+                        _sqlExpressionFactory.ApplyTypeMapping(array1, inferredMapping),
+                        _sqlExpressionFactory.ApplyTypeMapping(array2, inferredMapping),
+                        "&&",
+                        typeof(bool),
+                        _boolMapping);
+                }
+            }
+
+            {
+                // Translate e => new[] { 4, 5 }.All(p => e.SomeArray.Contains(p)),
+                // using array containment (<@)
+                if (method.IsClosedFormOf(EnumerableAll) &&
+                    arguments[1] is LambdaExpression wherePredicate &&
+                    wherePredicate.Body is MethodCallExpression wherePredicateMethodCall &&
+                    wherePredicateMethodCall.Method.IsClosedFormOf(Contains) &&
+                    wherePredicateMethodCall.Arguments[0].Type.IsArray &&
+                    wherePredicateMethodCall.Arguments[1] is ParameterExpression parameterExpression &&
+                    parameterExpression == wherePredicate.Parameters[0])
+                {
+                    var array1 = (SqlExpression)Visit(arguments[0]);
+                    var array2 = (SqlExpression)Visit(wherePredicateMethodCall.Arguments[0]);
+                    var inferredMapping = ExpressionExtensions.InferTypeMapping(array1, array2);
+
+                    return new SqlCustomBinaryExpression(
+                        _sqlExpressionFactory.ApplyTypeMapping(array1, inferredMapping),
+                        _sqlExpressionFactory.ApplyTypeMapping(array2, inferredMapping),
+                        "<@",
+                        typeof(bool),
+                        _boolMapping);
+                }
+            }
+
+            return null;
         }
 
         /// <inheritdoc />
