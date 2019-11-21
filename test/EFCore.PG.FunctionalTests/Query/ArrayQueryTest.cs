@@ -288,6 +288,55 @@ FROM ""SomeEntities"" AS s
 WHERE s.""SomeText"" LIKE ANY (@__patterns_0)");
         }
 
+        [Fact]
+        public void Any_Contains()
+        {
+            using var ctx = CreateContext();
+
+            var results = ctx.SomeEntities
+                .Where(e => new[] { 2, 3 }.Any(p => e.SomeArray.Contains(p)))
+                .ToList();
+            Assert.Equal(1, Assert.Single(results).Id);
+
+            results = ctx.SomeEntities
+                .Where(e => new[] { 1, 2 }.Any(p => e.SomeArray.Contains(p)))
+                .ToList();
+            Assert.Empty(results);
+
+            AssertSql(
+                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeBytea"", s.""SomeList"", s.""SomeMatrix"", s.""SomeText""
+FROM ""SomeEntities"" AS s
+WHERE (ARRAY[2,3]::integer[] && s.""SomeArray"")",
+                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeBytea"", s.""SomeList"", s.""SomeMatrix"", s.""SomeText""
+FROM ""SomeEntities"" AS s
+WHERE (ARRAY[1,2]::integer[] && s.""SomeArray"")");
+        }
+
+        [Fact]
+        public void All_Contains()
+        {
+            using var ctx = CreateContext();
+
+            var results = ctx.SomeEntities
+                .Where(e => new[] { 5, 6 }.All(p => e.SomeArray.Contains(p)))
+                .ToList();
+            Assert.Equal(2, Assert.Single(results).Id);
+
+            results = ctx.SomeEntities
+                .Where(e => new[] { 4, 5, 6 }.All(p => e.SomeArray.Contains(p)))
+                .ToList();
+            Assert.Empty(results);
+
+            AssertSql(
+                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeBytea"", s.""SomeList"", s.""SomeMatrix"", s.""SomeText""
+FROM ""SomeEntities"" AS s
+WHERE (ARRAY[5,6]::integer[] <@ s.""SomeArray"")",
+                //
+                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeBytea"", s.""SomeList"", s.""SomeMatrix"", s.""SomeText""
+FROM ""SomeEntities"" AS s
+WHERE (ARRAY[4,5,6]::integer[] <@ s.""SomeArray"")");
+        }
+
         #endregion
 
         #region Support
