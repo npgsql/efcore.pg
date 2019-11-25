@@ -65,13 +65,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             {
                 nameof(NpgsqlJsonDbFunctionsExtensions.JsonContains) => new SqlCustomBinaryExpression(
                     _sqlExpressionFactory.ApplyTypeMapping(args[0], _jsonbTypeMapping),
-                    _sqlExpressionFactory.ApplyDefaultTypeMapping(args[1]),
+                    _sqlExpressionFactory.ApplyTypeMapping(args[1], _jsonbTypeMapping),
                     "@>",
                     typeof(bool),
                     _boolTypeMapping),
 
                 nameof(NpgsqlJsonDbFunctionsExtensions.JsonContained) => new SqlCustomBinaryExpression(
-                    _sqlExpressionFactory.ApplyDefaultTypeMapping(args[0]),
+                    _sqlExpressionFactory.ApplyTypeMapping(args[0], _jsonbTypeMapping),
                     _sqlExpressionFactory.ApplyTypeMapping(args[1], _jsonbTypeMapping),
                     "<@",
                     typeof(bool),
