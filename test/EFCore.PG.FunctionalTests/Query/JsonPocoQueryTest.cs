@@ -347,7 +347,7 @@ WHERE (j.""Customer"" @> @__element_1)");
         }
 
         [Fact]
-        public void JsonContains_with_string()
+        public void JsonContains_with_string_literal()
         {
             using var ctx = CreateContext();
             var count = ctx.JsonbEntities.Count(e =>
@@ -358,6 +358,24 @@ WHERE (j.""Customer"" @> @__element_1)");
                 @"SELECT COUNT(*)::INT
 FROM ""JsonbEntities"" AS j
 WHERE (j.""Customer"" @> '{""Name"": ""Joe"", ""Age"": 25}')");
+        }
+
+        [Fact]
+        public void JsonContains_with_string_parameter()
+        {
+            using var ctx = CreateContext();
+            var someJson = @"{""Name"": ""Joe"", ""Age"": 25}";
+            var count = ctx.JsonbEntities.Count(e =>
+                EF.Functions.JsonContains(e.Customer, someJson));
+
+            Assert.Equal(1, count);
+            AssertSql(
+                @"@__someJson_1='{""Name"": ""Joe""
+""Age"": 25}' (DbType = Object)
+
+SELECT COUNT(*)::INT
+FROM ""JsonbEntities"" AS j
+WHERE (j.""Customer"" @> @__someJson_1)");
         }
 
         [Fact]
@@ -379,7 +397,7 @@ WHERE (@__element_1 <@ j.""Customer"")");
         }
 
         [Fact]
-        public void JsonContained_with_string()
+        public void JsonContained_with_string_literal()
         {
             using var ctx = CreateContext();
             var count = ctx.JsonbEntities.Count(e =>
@@ -390,6 +408,24 @@ WHERE (@__element_1 <@ j.""Customer"")");
                 @"SELECT COUNT(*)::INT
 FROM ""JsonbEntities"" AS j
 WHERE ('{""Name"": ""Joe"", ""Age"": 25}' <@ j.""Customer"")");
+        }
+
+        [Fact]
+        public void JsonContained_with_string_parameter()
+        {
+            using var ctx = CreateContext();
+            var someJson = @"{""Name"": ""Joe"", ""Age"": 25}";
+            var count = ctx.JsonbEntities.Count(e =>
+                EF.Functions.JsonContained(someJson, e.Customer));
+
+            Assert.Equal(1, count);
+            AssertSql(
+                @"@__someJson_1='{""Name"": ""Joe""
+""Age"": 25}' (DbType = Object)
+
+SELECT COUNT(*)::INT
+FROM ""JsonbEntities"" AS j
+WHERE (@__someJson_1 <@ j.""Customer"")");
         }
 
         [Fact]
