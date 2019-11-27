@@ -122,6 +122,20 @@ WHERE s.""MappedEnum"" = @__sad_0
 LIMIT 2");
         }
 
+        [Fact]
+        public void Enum_ToString()
+        {
+            using var ctx = CreateContext();
+            // Note we have to specify lower-case since the ADO layer applies naming transformations, not ideal.
+            var _ = ctx.SomeEntities.Single(e => e.MappedEnum.ToString().Contains("sa"));
+
+            AssertSql(
+                @"SELECT s.""Id"", s.""EnumValue"", s.""InferredEnum"", s.""MappedEnum"", s.""SchemaQualifiedEnum"", s.""UnmappedEnum""
+FROM test.""SomeEntities"" AS s
+WHERE STRPOS(CAST(s.""MappedEnum"" AS text), 'sa') > 0
+LIMIT 2");
+        }
+
         #endregion
 
         #region Support

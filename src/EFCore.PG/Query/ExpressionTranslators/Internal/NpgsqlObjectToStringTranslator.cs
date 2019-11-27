@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
@@ -39,7 +40,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             => method.Name == nameof(ToString)
                && arguments.Count == 0
                && instance != null
-               && SupportedTypes.Contains(instance.Type.UnwrapNullableType())
+               && (SupportedTypes.Contains(instance.Type.UnwrapNullableType()) ||
+                   instance.Type.UnwrapNullableType().IsEnum && instance.TypeMapping is NpgsqlEnumTypeMapping)
                ? _sqlExpressionFactory.Convert(instance, typeof(string))
                : null;
     }
