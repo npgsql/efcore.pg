@@ -253,43 +253,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             // The pattern is non-constant, we use LEFT or RIGHT to extract substring and compare.
             // For StartsWith we also first run a LIKE to quickly filter out most non-matching results (sargable, but imprecise
             // because of wildchars).
-            if (startsWith)
-            {
-                var leftPart = _sqlExpressionFactory.Function(
-                    "LEFT",
-                    new[]
-                    {
-                        instance,
-                        _sqlExpressionFactory.Function("LENGTH", new[] { pattern }, typeof(int))
-                    },
-                    typeof(string),
-                    stringTypeMapping);
-
-                return _sqlExpressionFactory.AndAlso(
-                    _sqlExpressionFactory.Like(
-                        instance,
-                        _sqlExpressionFactory.Add(
-                            pattern,
-                            _sqlExpressionFactory.Constant("%"))),
-                    _sqlExpressionFactory.Equal(
-                        instance.TypeMapping == _textTypeMapping
-                            ? (SqlExpression)leftPart
-                            // We have Convert here since LEFT over citext returns text - cast it back.
-                            : _sqlExpressionFactory.Convert(
-                                leftPart,
-                                typeof(string),
-                                instance.TypeMapping),
-                        // The following Convert is only needed because of https://github.com/aspnet/EntityFrameworkCore/issues/19120
-                        pattern.TypeMapping == _textTypeMapping
-                            ? pattern
-                            : _sqlExpressionFactory.Convert(
-                                pattern,
-                                typeof(string),
-                                pattern.TypeMapping)));
-            }
-
-            var rightPart = _sqlExpressionFactory.Function(
-                "RIGHT",
+            SqlExpression leftRight = _sqlExpressionFactory.Function(
+                startsWith ? "LEFT" : "RIGHT",
                 new[]
                 {
                     instance,
@@ -298,21 +263,25 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 typeof(string),
                 stringTypeMapping);
 
-            return _sqlExpressionFactory.Equal(
-                instance.TypeMapping == _textTypeMapping
-                    ? (SqlExpression)rightPart
-                    // We have Convert here since RIGHT over citext returns text - cast it back.
-                    : _sqlExpressionFactory.Convert(
-                        rightPart,
-                        typeof(string),
-                        instance.TypeMapping),
-                // The following Convert is only needed because of https://github.com/aspnet/EntityFrameworkCore/issues/19120
-                pattern.TypeMapping == _textTypeMapping
-                    ? pattern
-                    : _sqlExpressionFactory.Convert(
-                        pattern,
-                        typeof(string),
-                        pattern.TypeMapping));
+            // LEFT/RIGHT of a citext return a text, so for non-default text mappings we apply an explicit cast.
+            if (instance.TypeMapping != _textTypeMapping)
+                leftRight = _sqlExpressionFactory.Convert(leftRight, typeof(string), instance.TypeMapping);
+
+            // Also add an explicit cast on the pattern; this is only required because of
+            // The following is only needed because of https://github.com/aspnet/EntityFrameworkCore/issues/19120
+            var castPattern = pattern.TypeMapping == _textTypeMapping
+                ? pattern
+                : _sqlExpressionFactory.Convert(pattern, typeof(string), pattern.TypeMapping);
+
+            return startsWith
+                ? _sqlExpressionFactory.AndAlso(
+                    _sqlExpressionFactory.Like(
+                        instance,
+                        _sqlExpressionFactory.Add(
+                            pattern,
+                            _sqlExpressionFactory.Constant("%"))),
+                    _sqlExpressionFactory.Equal(leftRight, castPattern))
+                : _sqlExpressionFactory.Equal(leftRight, castPattern);
         }
 
         bool IsLikeWildChar(char c) => c == '%' || c == '_';
