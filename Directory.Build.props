@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Copyright>Copyright 2019 © The Npgsql Development Team</Copyright>
     <Company>Npgsql</Company>
-    <VersionPrefix>3.1.0-preview3</VersionPrefix>
+    <VersionPrefix>3.1.0</VersionPrefix>
 
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>git://github.com/npgsql/efcore.pg</RepositoryUrl>
@@ -24,7 +24,6 @@
     <LangVersion>8.0</LangVersion>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <NoWarn>NU5105</NoWarn>
-    <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
   </PropertyGroup>
 
   <!-- Signing configuration -->
