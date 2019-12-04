@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore.Query;
+using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {

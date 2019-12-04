@@ -25,306 +25,305 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Roundtrip()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var x = ctx.JsonbEntities.Single(e => e.Id == 1);
-                var customer = x.Customer;
-                Assert.Equal("Joe", customer.Name);
-                Assert.Equal(25, customer.Age);
-                var orders = customer.Orders;
-                Assert.Equal(99.5m, orders[0].Price);
-                Assert.Equal("Some address 1", orders[0].ShippingAddress);
-                Assert.Equal(new DateTime(2019, 10, 1), orders[0].ShippingDate);
-                Assert.Equal(23, orders[1].Price);
-                Assert.Equal("Some address 2", orders[1].ShippingAddress);
-                Assert.Equal(new DateTime(2019, 10, 10), orders[1].ShippingDate);
-            }
+            using var ctx = CreateContext();
+            var x = ctx.JsonbEntities.Single(e => e.Id == 1);
+            var customer = x.Customer;
+
+            Assert.Equal("Joe", customer.Name);
+            Assert.Equal(25, customer.Age);
+
+            var orders = customer.Orders;
+
+            Assert.Equal(99.5m, orders[0].Price);
+            Assert.Equal("Some address 1", orders[0].ShippingAddress);
+            Assert.Equal(new DateTime(2019, 10, 1), orders[0].ShippingDate);
+            Assert.Equal(23, orders[1].Price);
+            Assert.Equal("Some address 2", orders[1].ShippingAddress);
+            Assert.Equal(new DateTime(2019, 10, 10), orders[1].ShippingDate);
         }
 
         [Fact]
         public void Roundtrip_json()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var x = ctx.JsonEntities.Single(e => e.Id == 1);
-                var customer = x.Customer;
-                Assert.Equal("Joe", customer.Name);
-                Assert.Equal(25, customer.Age);
-                var orders = customer.Orders;
-                Assert.Equal(99.5m, orders[0].Price);
-                Assert.Equal("Some address 1", orders[0].ShippingAddress);
-                Assert.Equal(new DateTime(2019, 10, 1), orders[0].ShippingDate);
-                Assert.Equal(23, orders[1].Price);
-                Assert.Equal("Some address 2", orders[1].ShippingAddress);
-                Assert.Equal(new DateTime(2019, 10, 10), orders[1].ShippingDate);
-            }
+            using var ctx = CreateContext();
+            var x = ctx.JsonEntities.Single(e => e.Id == 1);
+            var customer = x.Customer;
+
+            Assert.Equal("Joe", customer.Name);
+            Assert.Equal(25, customer.Age);
+
+            var orders = customer.Orders;
+
+            Assert.Equal(99.5m, orders[0].Price);
+            Assert.Equal("Some address 1", orders[0].ShippingAddress);
+            Assert.Equal(new DateTime(2019, 10, 1), orders[0].ShippingDate);
+            Assert.Equal(23, orders[1].Price);
+            Assert.Equal("Some address 2", orders[1].ShippingAddress);
+            Assert.Equal(new DateTime(2019, 10, 10), orders[1].ShippingDate);
         }
 
         [Fact]
         public void Literal()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                Assert.Empty(ctx.JsonbEntities.Where(e => e.Customer == new Customer { Name = "Test customer", Age = 80 }));
+            using var ctx = CreateContext();
 
-                AssertSql(
-                    @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
+            Assert.Empty(ctx.JsonbEntities.Where(e => e.Customer == new Customer { Name = "Test customer", Age = 80 }));
+            AssertSql(
+                @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
-WHERE (j.""Customer"" = '{""Name"":""Test customer"",""Age"":80,""IsVip"":false,""Statistics"":null,""Orders"":null}') AND (j.""Customer"" IS NOT NULL)");
-            }
+WHERE j.""Customer"" = '{""Name"":""Test customer"",""Age"":80,""ID"":""00000000-0000-0000-0000-000000000000"",""IsVip"":false,""Statistics"":null,""Orders"":null}'");
         }
 
         [Fact]
         public void Parameter()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var expected = ctx.JsonbEntities.Find(1).Customer;
-                var actual = ctx.JsonbEntities.Single(e => e.Customer == expected).Customer;
-                Assert.Equal(actual.Name, expected.Name);
+            using var ctx = CreateContext();
+            var expected = ctx.JsonbEntities.Find(1).Customer;
+            var actual = ctx.JsonbEntities.Single(e => e.Customer == expected).Customer;
 
-                AssertSql(
-                    @"@__p_0='1'
+            Assert.Equal(actual.Name, expected.Name);
+            AssertSql(
+                @"@__p_0='1'
 
 SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
-WHERE (j.""Id"" = @__p_0) AND (@__p_0 IS NOT NULL)
+WHERE j.""Id"" = @__p_0
 LIMIT 1",
-                    //
-                    @"@__expected_0='Npgsql.EntityFrameworkCore.PostgreSQL.Query.JsonPocoQueryTest+Customer' (DbType = Object)
+                //
+                @"@__expected_0='Npgsql.EntityFrameworkCore.PostgreSQL.Query.JsonPocoQueryTest+Customer' (DbType = Object)
 
 SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
-WHERE ((j.""Customer"" = @__expected_0) AND ((j.""Customer"" IS NOT NULL) AND (@__expected_0 IS NOT NULL))) OR ((j.""Customer"" IS NULL) AND (@__expected_0 IS NULL))
+WHERE j.""Customer"" = @__expected_0
 LIMIT 2");
-            }
         }
 
         [Fact]
         public void Text_output()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var x = ctx.JsonbEntities.Single(e => e.Customer.Name == "Joe");
-                Assert.Equal("Joe", x.Customer.Name);
+            using var ctx = CreateContext();
+            var x = ctx.JsonbEntities.Single(e => e.Customer.Name == "Joe");
 
-                AssertSql(
-                    @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
+            Assert.Equal("Joe", x.Customer.Name);
+            AssertSql(
+                @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
 WHERE j.""Customer""->>'Name' = 'Joe'
 LIMIT 2");
-            }
         }
 
         [Fact]
         public void Text_output_json()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var x = ctx.JsonEntities.Single(e => e.Customer.Name == "Joe");
-                Assert.Equal("Joe", x.Customer.Name);
+            using var ctx = CreateContext();
+            var x = ctx.JsonEntities.Single(e => e.Customer.Name == "Joe");
 
-                AssertSql(
-                    @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
+            Assert.Equal("Joe", x.Customer.Name);
+            AssertSql(
+                @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonEntities"" AS j
 WHERE j.""Customer""->>'Name' = 'Joe'
 LIMIT 2");
-            }
         }
 
         [Fact]
         public void Integer_output()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var x = ctx.JsonbEntities.Single(e => e.Customer.Age < 30);
-                Assert.Equal("Joe", x.Customer.Name);
+            using var ctx = CreateContext();
+            var x = ctx.JsonbEntities.Single(e => e.Customer.Age < 30);
 
-                AssertSql(
-                    @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
+            Assert.Equal("Joe", x.Customer.Name);
+            AssertSql(
+                @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
 WHERE CAST(j.""Customer""->>'Age' AS integer) < 30
 LIMIT 2");
-            }
+        }
+
+        [Fact]
+        public void Guid_output()
+        {
+            using var ctx = CreateContext();
+            var x = ctx.JsonbEntities.Single(e => e.Customer.ID == Guid.Empty);
+
+            Assert.Equal("Joe", x.Customer.Name);
+            AssertSql(
+                @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
+FROM ""JsonbEntities"" AS j
+WHERE CAST(j.""Customer""->>'ID' AS uuid) = '00000000-0000-0000-0000-000000000000'
+LIMIT 2");
         }
 
         [Fact]
         public void Bool_output()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var x = ctx.JsonbEntities.Single(e => e.Customer.IsVip);
-                Assert.Equal("Moe", x.Customer.Name);
+            using var ctx = CreateContext();
+            var x = ctx.JsonbEntities.Single(e => e.Customer.IsVip);
 
-                AssertSql(
-                    @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
+            Assert.Equal("Moe", x.Customer.Name);
+            AssertSql(
+                @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
 WHERE CAST(j.""Customer""->>'IsVip' AS boolean)
 LIMIT 2");
-            }
+        }
+
+        [Fact]
+        public void Nullable()
+        {
+            using var ctx = CreateContext();
+            var x = ctx.JsonbEntities.Single(e => e.Customer.Statistics.Nested.SomeNullableProperty == 20);
+
+            Assert.Equal("Joe", x.Customer.Name);
+
+            AssertSql(
+                @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
+FROM ""JsonbEntities"" AS j
+WHERE CAST(j.""Customer""#>>'{Statistics,Nested,SomeNullableProperty}' AS integer) = 20
+LIMIT 2");
         }
 
         [Fact]
         public void Nested()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var x = ctx.JsonbEntities.Single(e => e.Customer.Statistics.Visits == 4);
-                Assert.Equal("Joe", x.Customer.Name);
+            using var ctx = CreateContext();
+            var x = ctx.JsonbEntities.Single(e => e.Customer.Statistics.Visits == 4);
 
-                AssertSql(
-                    @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
+            Assert.Equal("Joe", x.Customer.Name);
+            AssertSql(
+                @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
 WHERE CAST(j.""Customer""#>>'{Statistics,Visits}' AS bigint) = 4
 LIMIT 2");
-            }
         }
 
         [Fact]
         public void Nested_twice()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var x = ctx.JsonbEntities.Single(e => e.Customer.Statistics.Nested.SomeProperty == 10);
-                Assert.Equal("Joe", x.Customer.Name);
+            using var ctx = CreateContext();
+            var x = ctx.JsonbEntities.Single(e => e.Customer.Statistics.Nested.SomeProperty == 10);
 
-                AssertSql(
-                    @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
+            Assert.Equal("Joe", x.Customer.Name);
+            AssertSql(
+                @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
 WHERE CAST(j.""Customer""#>>'{Statistics,Nested,SomeProperty}' AS integer) = 10
 LIMIT 2");
-            }
         }
 
         [Fact]
         public void Array_of_objects()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var x = ctx.JsonbEntities.Single(e => e.Customer.Orders[0].Price == 99.5m);
-                Assert.Equal("Joe", x.Customer.Name);
+            using var ctx = CreateContext();
+            var x = ctx.JsonbEntities.Single(e => e.Customer.Orders[0].Price == 99.5m);
 
-                AssertSql(
-                    @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
+            Assert.Equal("Joe", x.Customer.Name);
+            AssertSql(
+                @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
 WHERE CAST(j.""Customer""#>>'{Orders,0,Price}' AS numeric) = 99.5
 LIMIT 2");
-            }
         }
 
         [Fact]
         public void Array_toplevel()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var x = ctx.JsonbEntities.Single(e => e.ToplevelArray[1] == "two");
-                Assert.Equal("Joe", x.Customer.Name);
+            using var ctx = CreateContext();
+            var x = ctx.JsonbEntities.Single(e => e.ToplevelArray[1] == "two");
 
-                AssertSql(
-                    @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
+            Assert.Equal("Joe", x.Customer.Name);
+            AssertSql(
+                @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
 WHERE j.""ToplevelArray""->>1 = 'two'
 LIMIT 2");
-            }
         }
 
         [Fact]
         public void Array_nested()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var x = ctx.JsonbEntities.Single(e => e.Customer.Statistics.Nested.IntArray[1] == 4);
-                Assert.Equal("Joe", x.Customer.Name);
+            using var ctx = CreateContext();
+            var x = ctx.JsonbEntities.Single(e => e.Customer.Statistics.Nested.IntArray[1] == 4);
 
-                AssertSql(
-                    @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
+            Assert.Equal("Joe", x.Customer.Name);
+            AssertSql(
+                @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
 WHERE CAST(j.""Customer""#>>'{Statistics,Nested,IntArray,1}' AS integer) = 4
 LIMIT 2");
-            }
         }
 
         [Fact]
         public void Array_parameter_index()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var i = 1;
-                var x = ctx.JsonbEntities.Single(e => e.Customer.Statistics.Nested.IntArray[i] == 4);
-                Assert.Equal("Joe", x.Customer.Name);
+            using var ctx = CreateContext();
+            var i = 1;
+            var x = ctx.JsonbEntities.Single(e => e.Customer.Statistics.Nested.IntArray[i] == 4);
 
-                AssertSql(
-                    @"@__i_0='1'
+            Assert.Equal("Joe", x.Customer.Name);
+            AssertSql(
+                @"@__i_0='1'
 
 SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
-WHERE (CAST(j.""Customer""#>>ARRAY['Statistics','Nested','IntArray',@__i_0]::TEXT[] AS integer) = 4) AND (CAST(j.""Customer""#>>ARRAY['Statistics','Nested','IntArray',@__i_0]::TEXT[] AS integer) IS NOT NULL)
+WHERE CAST(j.""Customer""#>>ARRAY['Statistics','Nested','IntArray',@__i_0]::TEXT[] AS integer) = 4
 LIMIT 2");
-            }
         }
 
         [Fact]
         public void Array_Length()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var x = ctx.JsonbEntities.Single(e => e.Customer.Orders.Length == 2);
-                Assert.Equal("Joe", x.Customer.Name);
+            using var ctx = CreateContext();
+            var x = ctx.JsonbEntities.Single(e => e.Customer.Orders.Length == 2);
 
-                AssertSql(
-                    @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
+            Assert.Equal("Joe", x.Customer.Name);
+            AssertSql(
+                @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
 WHERE jsonb_array_length(j.""Customer""->'Orders') = 2
 LIMIT 2");
-            }
         }
 
         [Fact]
         public void Array_Length_json()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var x = ctx.JsonEntities.Single(e => e.Customer.Orders.Length == 2);
-                Assert.Equal("Joe", x.Customer.Name);
+            using var ctx = CreateContext();
+            var x = ctx.JsonEntities.Single(e => e.Customer.Orders.Length == 2);
 
-                AssertSql(
-                    @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
+            Assert.Equal("Joe", x.Customer.Name);
+            AssertSql(
+                @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonEntities"" AS j
 WHERE json_array_length(j.""Customer""->'Orders') = 2
 LIMIT 2");
-            }
         }
 
-        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/issues/17374")]
+        [Fact]
         public void Array_Any_toplevel()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var x = ctx.JsonbEntities.Single(e => e.ToplevelArray.Any());
-                Assert.Equal("Joe", x.Customer.Name);
+            using var ctx = CreateContext();
+            var x = ctx.JsonbEntities.Single(e => e.ToplevelArray.Any());
 
-                AssertSql(
-                    @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
+            Assert.Equal("Joe", x.Customer.Name);
+            AssertSql(
+                @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
 WHERE jsonb_array_length(j.""ToplevelArray"") > 0
 LIMIT 2");
-            }
         }
 
         [Fact]
         public void Like()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var x = ctx.JsonbEntities.Single(e => e.Customer.Name.StartsWith("J"));
-                Assert.Equal("Joe", x.Customer.Name);
+            using var ctx = CreateContext();
+            var x = ctx.JsonbEntities.Single(e => e.Customer.Name.StartsWith("J"));
 
-                AssertSql(
-                    @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
+            Assert.Equal("Joe", x.Customer.Name);
+            AssertSql(
+                @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
-WHERE j.""Customer""->>'Name' LIKE 'J%'
+WHERE (j.""Customer""->>'Name' IS NOT NULL) AND (j.""Customer""->>'Name' LIKE 'J%')
 LIMIT 2");
-            }
         }
 
         #region Functions
@@ -332,158 +331,178 @@ LIMIT 2");
         [Fact]
         public void JsonContains_with_json_element()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var element = JsonDocument.Parse(@"{""Name"": ""Joe"", ""Age"": 25}").RootElement;
-                var count = ctx.JsonbEntities.Count(e =>
-                    EF.Functions.JsonContains(e.Customer, element));
-                Assert.Equal(1, count);
+            using var ctx = CreateContext();
+            var element = JsonDocument.Parse(@"{""Name"": ""Joe"", ""Age"": 25}").RootElement;
+            var count = ctx.JsonbEntities.Count(e =>
+                EF.Functions.JsonContains(e.Customer, element));
 
-                AssertSql(
-                    @"@__element_1='{""Name"": ""Joe""
+            Assert.Equal(1, count);
+            AssertSql(
+                @"@__element_1='{""Name"": ""Joe""
 ""Age"": 25}' (DbType = Object)
 
 SELECT COUNT(*)::INT
 FROM ""JsonbEntities"" AS j
 WHERE (j.""Customer"" @> @__element_1)");
-            }
         }
 
         [Fact]
-        public void JsonContains_with_string()
+        public void JsonContains_with_string_literal()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var count = ctx.JsonbEntities.Count(e =>
-                    EF.Functions.JsonContains(e.Customer, @"{""Name"": ""Joe"", ""Age"": 25}"));
-                Assert.Equal(1, count);
+            using var ctx = CreateContext();
+            var count = ctx.JsonbEntities.Count(e =>
+                EF.Functions.JsonContains(e.Customer, @"{""Name"": ""Joe"", ""Age"": 25}"));
 
-                AssertSql(
-                    @"SELECT COUNT(*)::INT
+            Assert.Equal(1, count);
+            AssertSql(
+                @"SELECT COUNT(*)::INT
 FROM ""JsonbEntities"" AS j
 WHERE (j.""Customer"" @> '{""Name"": ""Joe"", ""Age"": 25}')");
-            }
+        }
+
+        [Fact]
+        public void JsonContains_with_string_parameter()
+        {
+            using var ctx = CreateContext();
+            var someJson = @"{""Name"": ""Joe"", ""Age"": 25}";
+            var count = ctx.JsonbEntities.Count(e =>
+                EF.Functions.JsonContains(e.Customer, someJson));
+
+            Assert.Equal(1, count);
+            AssertSql(
+                @"@__someJson_1='{""Name"": ""Joe""
+""Age"": 25}' (DbType = Object)
+
+SELECT COUNT(*)::INT
+FROM ""JsonbEntities"" AS j
+WHERE (j.""Customer"" @> @__someJson_1)");
         }
 
         [Fact]
         public void JsonContained_with_json_element()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var element = JsonDocument.Parse(@"{""Name"": ""Joe"", ""Age"": 25}").RootElement;
-                var count = ctx.JsonbEntities.Count(e =>
-                    EF.Functions.JsonContained(element, e.Customer));
-                Assert.Equal(1, count);
+            using var ctx = CreateContext();
+            var element = JsonDocument.Parse(@"{""Name"": ""Joe"", ""Age"": 25}").RootElement;
+            var count = ctx.JsonbEntities.Count(e =>
+                EF.Functions.JsonContained(element, e.Customer));
 
-                AssertSql(
-                    @"@__element_1='{""Name"": ""Joe""
+            Assert.Equal(1, count);
+            AssertSql(
+                @"@__element_1='{""Name"": ""Joe""
 ""Age"": 25}' (DbType = Object)
 
 SELECT COUNT(*)::INT
 FROM ""JsonbEntities"" AS j
 WHERE (@__element_1 <@ j.""Customer"")");
-            }
         }
 
         [Fact]
-        public void JsonContained_with_string()
+        public void JsonContained_with_string_literal()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var count = ctx.JsonbEntities.Count(e =>
-                    EF.Functions.JsonContained(@"{""Name"": ""Joe"", ""Age"": 25}", e.Customer));
-                Assert.Equal(1, count);
+            using var ctx = CreateContext();
+            var count = ctx.JsonbEntities.Count(e =>
+                EF.Functions.JsonContained(@"{""Name"": ""Joe"", ""Age"": 25}", e.Customer));
 
-                AssertSql(
-                    @"SELECT COUNT(*)::INT
+            Assert.Equal(1, count);
+            AssertSql(
+                @"SELECT COUNT(*)::INT
 FROM ""JsonbEntities"" AS j
 WHERE ('{""Name"": ""Joe"", ""Age"": 25}' <@ j.""Customer"")");
-            }
+        }
+
+        [Fact]
+        public void JsonContained_with_string_parameter()
+        {
+            using var ctx = CreateContext();
+            var someJson = @"{""Name"": ""Joe"", ""Age"": 25}";
+            var count = ctx.JsonbEntities.Count(e =>
+                EF.Functions.JsonContained(someJson, e.Customer));
+
+            Assert.Equal(1, count);
+            AssertSql(
+                @"@__someJson_1='{""Name"": ""Joe""
+""Age"": 25}' (DbType = Object)
+
+SELECT COUNT(*)::INT
+FROM ""JsonbEntities"" AS j
+WHERE (@__someJson_1 <@ j.""Customer"")");
         }
 
         [Fact]
         public void JsonExists()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var count = ctx.JsonbEntities.Count(e =>
-                    EF.Functions.JsonExists(e.Customer.Statistics, "Visits"));
-                Assert.Equal(2, count);
+            using var ctx = CreateContext();
+            var count = ctx.JsonbEntities.Count(e =>
+                EF.Functions.JsonExists(e.Customer.Statistics, "Visits"));
 
-                AssertSql(
-                    @"SELECT COUNT(*)::INT
+            Assert.Equal(2, count);
+            AssertSql(
+                @"SELECT COUNT(*)::INT
 FROM ""JsonbEntities"" AS j
 WHERE (j.""Customer""->'Statistics' ? 'Visits')");
-            }
         }
 
         [Fact]
         public void JsonExistAny()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var count = ctx.JsonbEntities.Count(e =>
-                    EF.Functions.JsonExistAny(e.Customer.Statistics, "foo", "Visits" ));
-                Assert.Equal(2, count);
+            using var ctx = CreateContext();
+            var count = ctx.JsonbEntities.Count(e =>
+                EF.Functions.JsonExistAny(e.Customer.Statistics, "foo", "Visits" ));
 
-                AssertSql(
-                    @"SELECT COUNT(*)::INT
+            Assert.Equal(2, count);
+            AssertSql(
+                @"SELECT COUNT(*)::INT
 FROM ""JsonbEntities"" AS j
 WHERE (j.""Customer""->'Statistics' ?| ARRAY['foo','Visits']::text[])");
-            }
         }
 
         [Fact]
         public void JsonExistAll()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var count = ctx.JsonbEntities.Count(e =>
-                    EF.Functions.JsonExistAll(e.Customer.Statistics, "foo", "Visits"));
-                Assert.Equal(0, count);
+            using var ctx = CreateContext();
+            var count = ctx.JsonbEntities.Count(e =>
+                EF.Functions.JsonExistAll(e.Customer.Statistics, "foo", "Visits"));
 
-                AssertSql(
-                    @"SELECT COUNT(*)::INT
+            Assert.Equal(0, count);
+            AssertSql(
+                @"SELECT COUNT(*)::INT
 FROM ""JsonbEntities"" AS j
 WHERE (j.""Customer""->'Statistics' ?& ARRAY['foo','Visits']::text[])");
-            }
         }
 
         [Fact]
         public void JsonTypeof()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var count = ctx.JsonbEntities.Count(e =>
-                    EF.Functions.JsonTypeof(e.Customer.Statistics.Visits) == "number");
-                Assert.Equal(2, count);
+            using var ctx = CreateContext();
+            var count = ctx.JsonbEntities.Count(e =>
+                EF.Functions.JsonTypeof(e.Customer.Statistics.Visits) == "number");
 
-                AssertSql(
-                    @"SELECT COUNT(*)::INT
+            Assert.Equal(2, count);
+            AssertSql(
+                @"SELECT COUNT(*)::INT
 FROM ""JsonbEntities"" AS j
 WHERE jsonb_typeof(j.""Customer""#>'{Statistics,Visits}') = 'number'");
-            }
         }
 
         [Fact]
         public void JsonTypeof_json()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var count = ctx.JsonEntities.Count(e =>
-                    EF.Functions.JsonTypeof(e.Customer.Statistics.Visits) == "number");
-                Assert.Equal(2, count);
+            using var ctx = CreateContext();
+            var count = ctx.JsonEntities.Count(e =>
+                EF.Functions.JsonTypeof(e.Customer.Statistics.Visits) == "number");
 
-                AssertSql(
-                    @"SELECT COUNT(*)::INT
+            Assert.Equal(2, count);
+            AssertSql(
+                @"SELECT COUNT(*)::INT
 FROM ""JsonEntities"" AS j
 WHERE json_typeof(j.""Customer""#>'{Statistics,Visits}') = 'number'");
-            }
         }
 
         #endregion Functions
 
         #region Support
+
+        protected JsonPocoQueryContext CreateContext() => Fixture.CreateContext();
 
         void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
@@ -509,6 +528,7 @@ WHERE json_typeof(j.""Customer""#>'{Statistics,Visits}') = 'number'");
                 {
                     Name = "Joe",
                     Age = 25,
+                    ID = Guid.Empty,
                     IsVip = false,
                     Statistics = new Statistics
                     {
@@ -517,6 +537,7 @@ WHERE json_typeof(j.""Customer""#>'{Statistics,Visits}') = 'number'");
                         Nested = new NestedStatistics
                         {
                             SomeProperty = 10,
+                            SomeNullableProperty = 20,
                             IntArray = new[] { 3, 4 }
                         }
                     },
@@ -541,6 +562,7 @@ WHERE json_typeof(j.""Customer""#>'{Statistics,Visits}') = 'number'");
                 {
                     Name = "Moe",
                     Age = 35,
+                    ID = Guid.Parse("3272b593-bfe2-4ecf-81ae-4242b0632465"),
                     IsVip = true,
                     Statistics = new Statistics
                     {
@@ -549,6 +571,7 @@ WHERE json_typeof(j.""Customer""#>'{Statistics,Visits}') = 'number'");
                         Nested = new NestedStatistics
                         {
                             SomeProperty = 20,
+                            SomeNullableProperty = null,
                             IntArray = new[] { 5, 6 }
                         }
                     },
@@ -599,6 +622,7 @@ WHERE json_typeof(j.""Customer""#>'{Statistics,Visits}') = 'number'");
         {
             public string Name { get; set; }
             public int Age { get; set; }
+            public Guid ID { get; set; }
             public bool IsVip { get; set; }
             public Statistics Statistics { get; set; }
             public Order[] Orders { get; set; }
@@ -614,6 +638,7 @@ WHERE json_typeof(j.""Customer""#>'{Statistics,Visits}') = 'number'");
         public class NestedStatistics
         {
             public int SomeProperty { get; set; }
+            public int? SomeNullableProperty { get; set; }
             public int[] IntArray { get; set; }
         }
 

@@ -19,29 +19,32 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             Fixture = fixture;
             Fixture.TestSqlLoggerFactory.Clear();
-            Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
         [Fact]
         public void Roundtrip()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var entity = ctx.JsonEntities.Single(e => e.Id == 1);
-                PerformAsserts(entity.CustomerJsonb);
-                PerformAsserts(entity.CustomerJson);
-            }
+            using var ctx = CreateContext();
+            var entity = ctx.JsonEntities.Single(e => e.Id == 1);
+            PerformAsserts(entity.CustomerJsonb);
+            PerformAsserts(entity.CustomerJson);
 
             static void PerformAsserts(string customerText)
             {
                 var customer = JsonDocument.Parse(customerText).RootElement;
+
                 Assert.Equal("Joe", customer.GetProperty("Name").GetString());
                 Assert.Equal(25, customer.GetProperty("Age").GetInt32());
+
                 var order1 = customer.GetProperty("Orders")[0];
+
                 Assert.Equal(99.5m, order1.GetProperty("Price").GetDecimal());
                 Assert.Equal("Some address 1", order1.GetProperty("ShippingAddress").GetString());
                 Assert.Equal(new DateTime(2019, 10, 1), order1.GetProperty("ShippingDate").GetDateTime());
+
                 var order2 = customer.GetProperty("Orders")[1];
+
                 Assert.Equal(23, order2.GetProperty("Price").GetDecimal());
                 Assert.Equal("Some address 2", order2.GetProperty("ShippingAddress").GetString());
                 Assert.Equal(new DateTime(2019, 10, 10), order2.GetProperty("ShippingDate").GetDateTime());
@@ -51,35 +54,32 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Literal()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                Assert.Empty(ctx.JsonEntities.Where(e => e.CustomerJsonb == @"{""Name"":""Test customer"",""Age"":80,""IsVip"":false,""Statistics"":null,""Orders"":null}"));
+            using var ctx = CreateContext();
 
-                AssertSql(
-                    @"SELECT j.""Id"", j.""CustomerJson"", j.""CustomerJsonb""
+            Assert.Empty(ctx.JsonEntities.Where(e => e.CustomerJsonb == @"{""Name"":""Test customer"",""Age"":80,""IsVip"":false,""Statistics"":null,""Orders"":null}"));
+            AssertSql(
+                @"SELECT j.""Id"", j.""CustomerJson"", j.""CustomerJsonb""
 FROM ""JsonEntities"" AS j
-WHERE (j.""CustomerJsonb"" = '{""Name"":""Test customer"",""Age"":80,""IsVip"":false,""Statistics"":null,""Orders"":null}') AND (j.""CustomerJsonb"" IS NOT NULL)");
-            }
+WHERE j.""CustomerJsonb"" = '{""Name"":""Test customer"",""Age"":80,""IsVip"":false,""Statistics"":null,""Orders"":null}'");
         }
 
         [Fact]
         public void Parameter()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var expected = ctx.JsonEntities.Find(1).CustomerJsonb;
-                var actual = ctx.JsonEntities.Single(e => e.CustomerJsonb == expected).CustomerJsonb;
-                Assert.Equal(actual, expected);
+            using var ctx = CreateContext();
+            var expected = ctx.JsonEntities.Find(1).CustomerJsonb;
+            var actual = ctx.JsonEntities.Single(e => e.CustomerJsonb == expected).CustomerJsonb;
 
-                AssertSql(
-                    @"@__p_0='1'
+            Assert.Equal(actual, expected);
+            AssertSql(
+                @"@__p_0='1'
 
 SELECT j.""Id"", j.""CustomerJson"", j.""CustomerJsonb""
 FROM ""JsonEntities"" AS j
-WHERE (j.""Id"" = @__p_0) AND (@__p_0 IS NOT NULL)
+WHERE j.""Id"" = @__p_0
 LIMIT 1",
-                    //
-                    @"@__expected_0='{""Age"": 25
+                //
+                @"@__expected_0='{""Age"": 25
 ""Name"": ""Joe""
 ""IsVip"": false
 ""Orders"": [{""Price"": 99.5
@@ -96,9 +96,8 @@ LIMIT 1",
 
 SELECT j.""Id"", j.""CustomerJson"", j.""CustomerJsonb""
 FROM ""JsonEntities"" AS j
-WHERE ((j.""CustomerJsonb"" = @__expected_0) AND ((j.""CustomerJsonb"" IS NOT NULL) AND (@__expected_0 IS NOT NULL))) OR ((j.""CustomerJsonb"" IS NULL) AND (@__expected_0 IS NULL))
+WHERE j.""CustomerJsonb"" = @__expected_0
 LIMIT 2");
-            }
         }
 
         #region Functions
@@ -106,7 +105,7 @@ LIMIT 2");
 //        [Fact]
 //        public void JsonContains_with_json_element()
 //        {
-//            using (var ctx = Fixture.CreateContext())
+//            using (var ctx = CreateContext())
 //            {
 //                var element = JsonDocument.Parse(@"{""Name"": ""Joe"", ""Age"": 25}").RootElement;
 //                var count = ctx.JsonEntities.Count(e =>
@@ -126,106 +125,96 @@ LIMIT 2");
         [Fact]
         public void JsonContains_with_string()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var count = ctx.JsonEntities.Count(e =>
-                    EF.Functions.JsonContains(e.CustomerJsonb, @"{""Name"": ""Joe"", ""Age"": 25}"));
-                Assert.Equal(1, count);
+            using var ctx = CreateContext();
+            var count = ctx.JsonEntities.Count(e =>
+                EF.Functions.JsonContains(e.CustomerJsonb, @"{""Name"": ""Joe"", ""Age"": 25}"));
 
-                AssertSql(
-                    @"SELECT COUNT(*)::INT
+            Assert.Equal(1, count);
+            AssertSql(
+                @"SELECT COUNT(*)::INT
 FROM ""JsonEntities"" AS j
 WHERE (j.""CustomerJsonb"" @> '{""Name"": ""Joe"", ""Age"": 25}')");
-            }
         }
 
         [Fact]
         public void JsonContained_with_json_element()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var element = JsonDocument.Parse(@"{""Name"": ""Joe"", ""Age"": 25}").RootElement;
-                var count = ctx.JsonEntities.Count(e =>
-                    EF.Functions.JsonContained(element, e.CustomerJsonb));
-                Assert.Equal(1, count);
+            using var ctx = CreateContext();
+            var element = JsonDocument.Parse(@"{""Name"": ""Joe"", ""Age"": 25}").RootElement;
+            var count = ctx.JsonEntities.Count(e =>
+                EF.Functions.JsonContained(element, e.CustomerJsonb));
 
-                AssertSql(
-                    @"@__element_1='{""Name"": ""Joe""
+            Assert.Equal(1, count);
+            AssertSql(
+                @"@__element_1='{""Name"": ""Joe""
 ""Age"": 25}' (DbType = Object)
 
 SELECT COUNT(*)::INT
 FROM ""JsonEntities"" AS j
 WHERE (@__element_1 <@ j.""CustomerJsonb"")");
-            }
         }
 
         [Fact]
         public void JsonContained_with_string()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var count = ctx.JsonEntities.Count(e =>
-                    EF.Functions.JsonContained(@"{""Name"": ""Joe"", ""Age"": 25}", e.CustomerJsonb));
-                Assert.Equal(1, count);
+            using var ctx = CreateContext();
+            var count = ctx.JsonEntities.Count(e =>
+                EF.Functions.JsonContained(@"{""Name"": ""Joe"", ""Age"": 25}", e.CustomerJsonb));
 
-                AssertSql(
-                    @"SELECT COUNT(*)::INT
+            Assert.Equal(1, count);
+            AssertSql(
+                @"SELECT COUNT(*)::INT
 FROM ""JsonEntities"" AS j
 WHERE ('{""Name"": ""Joe"", ""Age"": 25}' <@ j.""CustomerJsonb"")");
-            }
         }
 
         [Fact]
         public void JsonExists()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var count = ctx.JsonEntities.Count(e =>
-                    EF.Functions.JsonExists(e.CustomerJsonb, "Age"));
-                Assert.Equal(2, count);
+            using var ctx = CreateContext();
+            var count = ctx.JsonEntities.Count(e =>
+                EF.Functions.JsonExists(e.CustomerJsonb, "Age"));
 
-                AssertSql(
-                    @"SELECT COUNT(*)::INT
+            Assert.Equal(2, count);
+            AssertSql(
+                @"SELECT COUNT(*)::INT
 FROM ""JsonEntities"" AS j
 WHERE (j.""CustomerJsonb"" ? 'Age')");
-            }
         }
 
         [Fact]
         public void JsonExistAny()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var count = ctx.JsonEntities.Count(e =>
-                    EF.Functions.JsonExistAny(e.CustomerJsonb, "foo", "Age"));
-                Assert.Equal(2, count);
+            using var ctx = CreateContext();
+            var count = ctx.JsonEntities.Count(e =>
+                EF.Functions.JsonExistAny(e.CustomerJsonb, "foo", "Age"));
 
-                AssertSql(
-                    @"SELECT COUNT(*)::INT
+            Assert.Equal(2, count);
+            AssertSql(
+                @"SELECT COUNT(*)::INT
 FROM ""JsonEntities"" AS j
 WHERE (j.""CustomerJsonb"" ?| ARRAY['foo','Age']::text[])");
-            }
         }
 
         [Fact]
         public void JsonExistAll()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var count = ctx.JsonEntities.Count(e =>
-                    EF.Functions.JsonExistAll(e.CustomerJsonb, "foo", "Age"));
-                Assert.Equal(0, count);
+            using var ctx = CreateContext();
+            var count = ctx.JsonEntities.Count(e =>
+                EF.Functions.JsonExistAll(e.CustomerJsonb, "foo", "Age"));
 
-                AssertSql(
-                    @"SELECT COUNT(*)::INT
+            Assert.Equal(0, count);
+            AssertSql(
+                @"SELECT COUNT(*)::INT
 FROM ""JsonEntities"" AS j
 WHERE (j.""CustomerJsonb"" ?& ARRAY['foo','Age']::text[])");
-            }
         }
 
         #endregion Functions
 
         #region Support
+
+        protected JsonStringQueryContext CreateContext() => Fixture.CreateContext();
 
         void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);

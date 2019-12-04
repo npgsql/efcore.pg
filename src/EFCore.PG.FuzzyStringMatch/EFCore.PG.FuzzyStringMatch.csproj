@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Authors>Jean-Philippe Leconte</Authors>
+    <Description>fuzzystrmatch module support plugin for PostgreSQL/Npgsql Entity Framework Core provider.</Description>
+    <PackageTags>npgsql;postgresql;postgres;Entity Framework Core;entity-framework-core;ef;efcore;orm;sql;fuzzystrmatch</PackageTags>
+
+    <AssemblyName>Npgsql.EntityFrameworkCore.PostgreSQL.FuzzyStringMatch</AssemblyName>
+    <RootNamespace>Npgsql.EntityFrameworkCore.PostgreSQL.FuzzyStringMatch</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EFCore.PG\EFCore.PG.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+
+    <Compile Include="..\Shared\*.cs" />
+
+    <None Include="build\**\*">
+      <Pack>True</Pack>
+      <PackagePath>build</PackagePath>
+    </None>
+
+  </ItemGroup>
+
+</Project>

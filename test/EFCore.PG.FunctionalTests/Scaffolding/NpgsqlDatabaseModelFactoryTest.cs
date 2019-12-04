@@ -460,7 +460,7 @@ SELECT
                     var table = dbModel.Tables.Single();
 
                     Assert.Equal(2, table.Columns.Count);
-                    Assert.Equal(null, table.PrimaryKey);
+                    Assert.Null(table.PrimaryKey);
                     Assert.All(
                         table.Columns, c =>
                         {
@@ -491,7 +491,7 @@ SELECT
                     var table = dbModel.Tables.Single();
 
                     Assert.Equal(2, table.Columns.Count);
-                    Assert.Equal(null, table.PrimaryKey);
+                    Assert.Null(table.PrimaryKey);
                     Assert.All(
                         table.Columns, c =>
                         {
@@ -839,7 +839,7 @@ CREATE TABLE ""ComputedValues"" (
                     var columns = dbModel.Tables.Single().Columns;
 
                     // Note that on-the-fly computed columns aren't (yet) supported by PostgreSQL, only stored/persistedcolumns.
-                    Assert.Equal(null, columns.Single(c => c.Name == "SumOfAAndB").DefaultValueSql);
+                    Assert.Null(columns.Single(c => c.Name == "SumOfAAndB").DefaultValueSql);
                     Assert.Equal(@"(""A"" + ""B"")", columns.Single(c => c.Name == "SumOfAAndB").ComputedColumnSql);
                 },
                 @"DROP TABLE ""ComputedValues""");

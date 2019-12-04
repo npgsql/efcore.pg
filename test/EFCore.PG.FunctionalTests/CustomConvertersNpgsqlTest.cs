@@ -1,6 +1,5 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
@@ -13,6 +12,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             : base(fixture)
         {
         }
+
+        [ConditionalFact(Skip = "https://github.com/aspnet/EntityFrameworkCore/issues/18147")]
+        public override void Value_conversion_is_appropriately_used_for_join_condition()
+            => base.Value_conversion_is_appropriately_used_for_join_condition();
+
+        [ConditionalFact(Skip = "https://github.com/aspnet/EntityFrameworkCore/issues/18147")]
+        public override void Value_conversion_is_appropriately_used_for_left_join_condition()
+            => base.Value_conversion_is_appropriately_used_for_left_join_condition();
+
+        [ConditionalFact(Skip = "https://github.com/aspnet/EntityFrameworkCore/issues/18147")]
+        public override void Where_bool_gets_converted_to_equality_when_value_conversion_is_used()
+            => base.Where_bool_gets_converted_to_equality_when_value_conversion_is_used();
 
         // Disabled: PostgreSQL is case-sensitive
         public override void Can_insert_and_read_back_with_case_insensitive_string_key() {}

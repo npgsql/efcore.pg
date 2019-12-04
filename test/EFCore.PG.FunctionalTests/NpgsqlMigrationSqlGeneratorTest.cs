@@ -234,13 +234,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 @"CREATE SEQUENCE dbo.""EntityFrameworkHiLoSequence"" AS integer START WITH 3 INCREMENT BY 1 MINVALUE 2 MAXVALUE 816 CYCLE;
 ");
 
-            using (TestHelpers.WithPostgresVersion(new Version(9, 5)))
-            {
-                base.CreateSequenceOperation_with_minValue_and_maxValue_not_long();
-                AssertSql(
-                    @"CREATE SEQUENCE dbo.""EntityFrameworkHiLoSequence"" START WITH 3 INCREMENT BY 1 MINVALUE 2 MAXVALUE 816 CYCLE;
+            using var _ = TestHelpers.WithPostgresVersion(new Version(9, 5));
+
+            base.CreateSequenceOperation_with_minValue_and_maxValue_not_long();
+            AssertSql(
+                @"CREATE SEQUENCE dbo.""EntityFrameworkHiLoSequence"" START WITH 3 INCREMENT BY 1 MINVALUE 2 MAXVALUE 816 CYCLE;
 ");
-            }
         }
 
         [Fact]
@@ -717,7 +716,7 @@ ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET NOT NULL;
 ALTER SEQUENCE ""People_Id_seq"" RENAME TO ""People_Id_old_seq"";
 ALTER TABLE ""People"" ALTER COLUMN ""Id"" DROP DEFAULT;
 ALTER TABLE ""People"" ALTER COLUMN ""Id"" ADD GENERATED ALWAYS AS IDENTITY;
-SELECT * FROM setval('""People_Id_seq""', nextval('""People_Id_old_seq""'), false);
+PERFORM setval('""People_Id_seq""', nextval('""People_Id_old_seq""'), false);
 DROP SEQUENCE ""People_Id_old_seq"";
 ");
         }
@@ -1615,19 +1614,18 @@ INTERLEAVE IN PARENT my_schema.my_parent (col_a, col_b);
                 @"CREATE SEQUENCE public.short_sequence AS smallint START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE;
 ");
 
-            using (TestHelpers.WithPostgresVersion(new Version(9, 5)))
-            {
-                Generate(
-                    new CreateSequenceOperation {
-                        Name = "short_sequence",
-                        Schema = "public",
-                        ClrType = typeof(short)
-                    });
+            using var _ = TestHelpers.WithPostgresVersion(new Version(9, 5));
 
-                AssertSql(
-                    @"CREATE SEQUENCE public.short_sequence START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE;
+            Generate(
+                new CreateSequenceOperation {
+                    Name = "short_sequence",
+                    Schema = "public",
+                    ClrType = typeof(short)
+                });
+
+            AssertSql(
+                @"CREATE SEQUENCE public.short_sequence START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE;
 ");
-            }
         }
 
         #endregion Sequence data types

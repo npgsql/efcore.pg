@@ -1,7 +1,5 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestUtilities;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -22,19 +20,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         [Fact]
         public void Xmin()
         {
-            using (var context = CreateContext())
-            {
-                var e = new SomeEntity { Name = "Bart" };
-                context.Entities.Add(e);
-                context.SaveChanges();
-                var firstVersion = e.Version;
+            using var context = CreateContext();
 
-                e.Name = "Lisa";
-                context.SaveChanges();
-                var secondVersion = e.Version;
+            var e = new SomeEntity { Name = "Bart" };
+            context.Entities.Add(e);
+            context.SaveChanges();
+            var firstVersion = e.Version;
 
-                Assert.NotEqual(firstVersion, secondVersion);
-            }
+            e.Name = "Lisa";
+            context.SaveChanges();
+            var secondVersion = e.Version;
+
+            Assert.NotEqual(firstVersion, secondVersion);
         }
 
         public class SystemColumnContext : PoolableDbContext

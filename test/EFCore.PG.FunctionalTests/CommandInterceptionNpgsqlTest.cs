@@ -17,25 +17,32 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         }
 
         [ConditionalTheory(Skip = "https://github.com/aspnet/EntityFrameworkCore/issues/16701")]
-        public override Task Intercept_non_query_one_app_and_one_injected_interceptor(bool async) => null;
+        public override Task Intercept_non_query_one_app_and_one_injected_interceptor(bool async)
+            => base.Intercept_non_query_one_app_and_one_injected_interceptor(async);
 
         [ConditionalTheory(Skip = "https://github.com/aspnet/EntityFrameworkCore/issues/16701")]
-        public override Task Intercept_non_query_passively(bool async, bool inject) => null;
+        public override Task Intercept_non_query_passively(bool async, bool inject)
+            => base.Intercept_non_query_passively(async, inject);
 
         [ConditionalTheory(Skip = "https://github.com/aspnet/EntityFrameworkCore/issues/16701")]
-        public override Task Intercept_non_query_to_mutate_command(bool async, bool inject) => null;
+        public override Task Intercept_non_query_to_mutate_command(bool async, bool inject)
+            => base.Intercept_non_query_to_mutate_command(async, inject);
 
         [ConditionalTheory(Skip = "https://github.com/aspnet/EntityFrameworkCore/issues/16701")]
-        public override Task Intercept_non_query_to_replace_execution(bool async, bool inject) => null;
+        public override Task Intercept_non_query_to_replace_execution(bool async, bool inject)
+            => base.Intercept_non_query_to_replace_execution(async, inject);
 
         [ConditionalTheory(Skip = "https://github.com/aspnet/EntityFrameworkCore/issues/16701")]
-        public override Task Intercept_non_query_with_explicitly_composed_app_interceptor(bool async) => null;
+        public override Task Intercept_non_query_with_explicitly_composed_app_interceptor(bool async)
+            => base.Intercept_non_query_with_explicitly_composed_app_interceptor(async);
 
         [ConditionalTheory(Skip = "https://github.com/aspnet/EntityFrameworkCore/issues/16701")]
-        public override Task Intercept_non_query_with_two_injected_interceptors(bool async) => null;
+        public override Task Intercept_non_query_with_two_injected_interceptors(bool async)
+            => base.Intercept_non_query_with_two_injected_interceptors(async);
 
         [ConditionalTheory(Skip = "https://github.com/aspnet/EntityFrameworkCore/issues/16701")]
-        public override Task Intercept_non_query_to_replace_result(bool async, bool inject) => null;
+        public override Task Intercept_non_query_to_replace_result(bool async, bool inject)
+            => base.Intercept_non_query_to_replace_result(async, inject);
 
         public abstract class InterceptionNpgsqlFixtureBase : InterceptionFixtureBase
         {

@@ -15,7 +15,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             => Fixture.TestSqlLoggerFactory.Clear();
 
         [Theory(Skip = "https://github.com/npgsql/Npgsql.EntityFrameworkCore.PostgreSQL/issues/874")]
-        public override Task String_concat_with_null_conditional_argument2(bool isAsync) => Task.CompletedTask;
+        [MemberData(nameof(IsAsyncData))]
+        public override Task String_concat_with_null_conditional_argument2(bool isAsync)
+            => base.String_concat_with_null_conditional_argument2(isAsync);
 
         #region Ignore DateTimeOffset tests
 
@@ -46,7 +48,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         public override Task Where_datetimeoffset_utcnow(bool isAsync) => Task.CompletedTask;
 
         [ConditionalTheory(Skip = "DateTimeOffset.Date isn't currently translated")]
-        public override Task DateTimeOffset_Contains_Less_than_Greater_than(bool isAsync) => Task.CompletedTask;
+        [MemberData(nameof(IsAsyncData))]
+        public override Task DateTimeOffset_Contains_Less_than_Greater_than(bool isAsync)
+            => base.DateTimeOffset_Contains_Less_than_Greater_than(isAsync);
 
         #endregion Ignore DateTimeOffset tests
     }

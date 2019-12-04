@@ -3,12 +3,12 @@
   <PropertyGroup>
     <Copyright>Copyright 2019 © The Npgsql Development Team</Copyright>
     <Company>Npgsql</Company>
-    <VersionPrefix>3.1.0</VersionPrefix>
+    <VersionPrefix>5.0.0-preview1</VersionPrefix>
 
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>git://github.com/npgsql/efcore.pg</RepositoryUrl>
 
-    <TargetFrameworks>netstandard2.1</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
 
     <PackageLicenseExpression>PostgreSQL</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/npgsql/efcore.pg</PackageProjectUrl>
@@ -24,6 +24,7 @@
     <LangVersion>8.0</LangVersion>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <NoWarn>NU5105</NoWarn>
+    <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
   </PropertyGroup>
 
   <!-- Signing configuration -->
