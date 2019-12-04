@@ -1,52 +1,47 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.1</TargetFrameworks>
+    <Authors>Shay Rojansky;Austin Drenski;Yoh Deadfall;</Authors>
+    <Description>PostgreSQL/Npgsql provider for Entity Framework Core.</Description>
+    <PackageTags>npgsql;postgresql;postgres;Entity Framework Core;entity-framework-core;ef;efcore;orm;sql</PackageTags>
+
     <AssemblyName>Npgsql.EntityFrameworkCore.PostgreSQL</AssemblyName>
     <RootNamespace>Npgsql.EntityFrameworkCore.PostgreSQL</RootNamespace>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <AssemblyOriginatorKeyFile>../../Npgsql.snk</AssemblyOriginatorKeyFile>
-    <SignAssembly>true</SignAssembly>
-    <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
-    <Description>PostgreSQL/Npgsql provider for Entity Framework Core.</Description>
-    <Authors>Shay Rojansky;Austin Drenski;Yoh Deadfall;</Authors>
-    <Company>Npgsql</Company>
-    <PackageTags>npgsql;postgresql;postgres;Entity Framework Core;entity-framework-core;ef;efcore;orm;sql</PackageTags>
-    <Copyright>Copyright 2019 © The Npgsql Development Team</Copyright>
-    <PackageIconUrl>http://www.npgsql.org/img/postgresql.gif</PackageIconUrl>
-    <PackageLicenseExpression>PostgreSQL</PackageLicenseExpression>
-    <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>git://github.com/npgsql/Npgsql.EntityFrameworkCore.PostgreSQL</RepositoryUrl>
   </PropertyGroup>
+
   <ItemGroup>
-    <!-- PrivateAssets="none" is set to flow the EF Core analyzer to users referencing this package
-	 https://github.com/aspnet/EntityFrameworkCore/pull/11350 -->
+    <!-- PrivateAssets="none" is set to flow the EF Core analyzer to users referencing this package https://github.com/aspnet/EntityFrameworkCore/pull/11350 -->
     <PackageReference Include="Microsoft.EntityFrameworkCore" PrivateAssets="none" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" PrivateAssets="none" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Abstractions" PrivateAssets="none" />
     <PackageReference Include="Npgsql" />
   </ItemGroup>
+
   <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+  
+  <ItemGroup>
+
     <None Update="Properties\NpgsqlStrings.Designer.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>NpgsqlStrings.Designer.cs</LastGenOutput>
     </None>
+
     <None Update="Properties\SqlServerStrings.Designer.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
-  </ItemGroup>
-  <ItemGroup>
+
     <Compile Update="Properties\NpgsqlStrings.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>NpgsqlStrings.Designer.tt</DependentUpon>
     </Compile>
-  </ItemGroup>
-  <ItemGroup>
+
     <EmbeddedResource Update="Properties\NpgsqlStrings.resx">
       <CustomToolNamespace>Npgsql.EntityFrameworkCore.PostgreSQL.Internal</CustomToolNamespace>
     </EmbeddedResource>
+
   </ItemGroup>
+  
 </Project>

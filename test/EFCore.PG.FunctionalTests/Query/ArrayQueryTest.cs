@@ -24,12 +24,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Roundtrip()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var x = ctx.SomeEntities.Single(e => e.Id == 1);
-                Assert.Equal(new[] { 3, 4 }, x.SomeArray);
-                Assert.Equal(new List<int> { 3, 4 }, x.SomeList);
-            }
+            using var ctx = CreateContext();
+            var x = ctx.SomeEntities.Single(e => e.Id == 1);
+
+            Assert.Equal(new[] { 3, 4 }, x.SomeArray);
+            Assert.Equal(new List<int> { 3, 4 }, x.SomeList);
         }
 
         #endregion
@@ -39,65 +38,57 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void Index_with_constant()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var actual = ctx.SomeEntities.Where(e => e.SomeArray[0] == 3).ToList();
-                Assert.Equal(1, actual.Count);
+            using var ctx = CreateContext();
+            var actual = ctx.SomeEntities.Where(e => e.SomeArray[0] == 3).ToList();
 
-                AssertSql(
-                    @"SELECT s.""Id"", s.""SomeArray"", s.""SomeBytea"", s.""SomeList"", s.""SomeMatrix"", s.""SomeText""
+            Assert.Single(actual);
+            AssertSql(
+                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeBytea"", s.""SomeList"", s.""SomeMatrix"", s.""SomeText""
 FROM ""SomeEntities"" AS s
 WHERE s.""SomeArray""[1] = 3");
-            }
         }
 
         [Fact]
         public void Index_with_non_constant()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                // ReSharper disable once ConvertToConstant.Local
-                var x = 0;
-                var actual = ctx.SomeEntities.Where(e => e.SomeArray[x] == 3).ToList();
-                Assert.Equal(1, actual.Count);
+            using var ctx = CreateContext();
+            // ReSharper disable once ConvertToConstant.Local
+            var x = 0;
+            var actual = ctx.SomeEntities.Where(e => e.SomeArray[x] == 3).ToList();
 
-                AssertSql(
-                    @"@__x_0='0'
+            Assert.Single(actual);
+            AssertSql(
+                @"@__x_0='0'
 
 SELECT s.""Id"", s.""SomeArray"", s.""SomeBytea"", s.""SomeList"", s.""SomeMatrix"", s.""SomeText""
 FROM ""SomeEntities"" AS s
-WHERE (s.""SomeArray""[@__x_0 + 1] = 3) AND (s.""SomeArray""[@__x_0 + 1] IS NOT NULL)");
-            }
+WHERE s.""SomeArray""[@__x_0 + 1] = 3");
         }
 
         [Fact]
         public void Index_bytea_with_constant()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var actual = ctx.SomeEntities.Where(e => e.SomeBytea[0] == 3).ToList();
-                Assert.Equal(1, actual.Count);
+            using var ctx = CreateContext();
+            var actual = ctx.SomeEntities.Where(e => e.SomeBytea[0] == 3).ToList();
 
-                AssertSql(
-                    @"SELECT s.""Id"", s.""SomeArray"", s.""SomeBytea"", s.""SomeList"", s.""SomeMatrix"", s.""SomeText""
+            Assert.Single(actual);
+            AssertSql(
+                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeBytea"", s.""SomeList"", s.""SomeMatrix"", s.""SomeText""
 FROM ""SomeEntities"" AS s
-WHERE (get_byte(s.""SomeBytea"", 0) = 3) AND (get_byte(s.""SomeBytea"", 0) IS NOT NULL)");
-            }
+WHERE get_byte(s.""SomeBytea"", 0) = 3");
         }
 
         [Fact(Skip = "Disabled since EF Core 3.0")]
         public void Index_text_with_constant()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var actual = ctx.SomeEntities.Where(e => e.SomeText[0] == 'f').ToList();
-                Assert.Equal(1, actual.Count);
+            using var ctx = CreateContext();
+            var actual = ctx.SomeEntities.Where(e => e.SomeText[0] == 'f').ToList();
 
-                AssertSql(
-                    @"SELECT s.""Id"", s.""SomeArray"", s.""SomeBytea"", s.""SomeList"", s.""SomeMatrix"", s.""SomeText""
+            Assert.Single(actual);
+            AssertSql(
+                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeBytea"", s.""SomeList"", s.""SomeMatrix"", s.""SomeText""
 FROM ""SomeEntities"" AS s
 WHERE (get_byte(s.""SomeBytea"", 0) = 3) AND get_byte(s.""SomeBytea"", 0) IS NOT NULL");
-            }
         }
 
         #endregion
@@ -107,91 +98,82 @@ WHERE (get_byte(s.""SomeBytea"", 0) = 3) AND get_byte(s.""SomeBytea"", 0) IS NOT
         [Fact]
         public void SequenceEqual_with_parameter()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var arr = new[] { 3, 4 };
-                var x = ctx.SomeEntities.Single(e => e.SomeArray.SequenceEqual(arr));
-                Assert.Equal(new[] { 3, 4 }, x.SomeArray);
+            using var ctx = CreateContext();
+            var arr = new[] { 3, 4 };
+            var x = ctx.SomeEntities.Single(e => e.SomeArray.SequenceEqual(arr));
 
-                AssertSql(
-                    @"@__arr_0='System.Int32[]' (DbType = Object)
+            Assert.Equal(new[] { 3, 4 }, x.SomeArray);
+            AssertSql(
+                @"@__arr_0='System.Int32[]' (DbType = Object)
 
 SELECT s.""Id"", s.""SomeArray"", s.""SomeBytea"", s.""SomeList"", s.""SomeMatrix"", s.""SomeText""
 FROM ""SomeEntities"" AS s
-WHERE ((s.""SomeArray"" = @__arr_0) AND ((s.""SomeArray"" IS NOT NULL) AND (@__arr_0 IS NOT NULL))) OR ((s.""SomeArray"" IS NULL) AND (@__arr_0 IS NULL))
+WHERE s.""SomeArray"" = @__arr_0
 LIMIT 2");
-            }
         }
 
         [Fact]
         public void SequenceEqual_with_array_literal()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var x = ctx.SomeEntities.Single(e => e.SomeArray.SequenceEqual(new[] { 3, 4 }));
-                Assert.Equal(new[] { 3, 4 }, x.SomeArray);
+            using var ctx = CreateContext();
+            var x = ctx.SomeEntities.Single(e => e.SomeArray.SequenceEqual(new[] { 3, 4 }));
 
-                AssertSql(
-                    @"SELECT s.""Id"", s.""SomeArray"", s.""SomeBytea"", s.""SomeList"", s.""SomeMatrix"", s.""SomeText""
+            Assert.Equal(new[] { 3, 4 }, x.SomeArray);
+            AssertSql(
+                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeBytea"", s.""SomeList"", s.""SomeMatrix"", s.""SomeText""
 FROM ""SomeEntities"" AS s
-WHERE (s.""SomeArray"" = ARRAY[3,4]::integer[]) AND (s.""SomeArray"" IS NOT NULL)
-LIMIT 2");            }
+WHERE s.""SomeArray"" = ARRAY[3,4]::integer[]
+LIMIT 2");
         }
 
         #endregion
 
         #region Containment
 
-        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/issues/17374")]
+        [Fact]
         public void Contains_with_literal()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var x = ctx.SomeEntities.Single(e => e.SomeArray.Contains(3));
-                Assert.Equal(new[] { 3, 4 }, x.SomeArray);
+            using var ctx = CreateContext();
+            var x = ctx.SomeEntities.Single(e => e.SomeArray.Contains(3));
 
-                AssertSql(
-                    @"SELECT s.""Id"", s.""SomeArray"", s.""SomeBytea"", s.""SomeList"", s.""SomeMatrix"", s.""SomeText""
+            Assert.Equal(new[] { 3, 4 }, x.SomeArray);
+            AssertSql(
+                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeBytea"", s.""SomeList"", s.""SomeMatrix"", s.""SomeText""
 FROM ""SomeEntities"" AS s
-WHERE 3 = ANY (s.""SomeArray"")
+WHERE COALESCE(3 = ANY (s.""SomeArray""), FALSE)
 LIMIT 2");
-            }
         }
 
-        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/issues/17374")]
+        [Fact]
         public void Contains_with_parameter()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                // ReSharper disable once ConvertToConstant.Local
-                var p = 3;
-                var x = ctx.SomeEntities.Single(e => e.SomeArray.Contains(p));
-                Assert.Equal(new[] { 3, 4 }, x.SomeArray);
+            using var ctx = CreateContext();
+            // ReSharper disable once ConvertToConstant.Local
+            var p = 3;
+            var x = ctx.SomeEntities.Single(e => e.SomeArray.Contains(p));
 
-                AssertSql(
-                    @"@__p_0='3'
+            Assert.Equal(new[] { 3, 4 }, x.SomeArray);
+            AssertSql(
+                @"@__p_0='3'
 
 SELECT s.""Id"", s.""SomeArray"", s.""SomeBytea"", s.""SomeList"", s.""SomeMatrix"", s.""SomeText""
 FROM ""SomeEntities"" AS s
-WHERE @__p_0 = ANY (s.""SomeArray"")
+WHERE COALESCE(@__p_0 = ANY (s.""SomeArray""), FALSE)
 LIMIT 2");
-            }
         }
 
-        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/issues/17374")]
+        [Fact]
         public void Contains_with_column()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var x = ctx.SomeEntities.Single(e => e.SomeArray.Contains(e.Id + 2));
-                Assert.Equal(new[] { 3, 4 }, x.SomeArray);
+            using var ctx = CreateContext();
+            var x = ctx.SomeEntities.Single(e => e.SomeArray.Contains(e.Id + 2));
 
-                AssertSql(
-                    @"SELECT s.""Id"", s.""SomeArray"", s.""SomeBytea"", s.""SomeList"", s.""SomeMatrix"", s.""SomeText""
+            Assert.Equal(new[] { 3, 4 }, x.SomeArray);
+            AssertSql(
+                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeBytea"", s.""SomeList"", s.""SomeMatrix"", s.""SomeText""
 FROM ""SomeEntities"" AS s
-WHERE s.""Id"" + 2 = ANY (s.""SomeArray"")
+WHERE COALESCE(s.""Id"" + 2 = ANY (s.""SomeArray""), FALSE)
 LIMIT 2");
-            }
         }
 
         #endregion
@@ -201,125 +183,165 @@ LIMIT 2");
         [Fact]
         public void Length()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var x = ctx.SomeEntities.Single(e => e.SomeArray.Length == 2);
-                Assert.Equal(new[] { 3, 4 }, x.SomeArray);
+            using var ctx = CreateContext();
+            var x = ctx.SomeEntities.Single(e => e.SomeArray.Length == 2);
 
-                AssertSql(
-                    @"SELECT s.""Id"", s.""SomeArray"", s.""SomeBytea"", s.""SomeList"", s.""SomeMatrix"", s.""SomeText""
+            Assert.Equal(new[] { 3, 4 }, x.SomeArray);
+            AssertSql(
+                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeBytea"", s.""SomeList"", s.""SomeMatrix"", s.""SomeText""
 FROM ""SomeEntities"" AS s
-WHERE (cardinality(s.""SomeArray"") = 2) AND (cardinality(s.""SomeArray"") IS NOT NULL)
-LIMIT 2");            }
+WHERE cardinality(s.""SomeArray"") = 2
+LIMIT 2");
         }
 
         [Fact]
         public void Length_on_EF_Property()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var x = ctx.SomeEntities.Single(e => EF.Property<int[]>(e, nameof(SomeArrayEntity.SomeArray)).Length == 2);
-                Assert.Equal(new[] { 3, 4 }, x.SomeArray);
+            using var ctx = CreateContext();
+            var x = ctx.SomeEntities.Single(e => EF.Property<int[]>(e, nameof(SomeArrayEntity.SomeArray)).Length == 2);
 
-                AssertSql(
-                    @"SELECT s.""Id"", s.""SomeArray"", s.""SomeBytea"", s.""SomeList"", s.""SomeMatrix"", s.""SomeText""
+            Assert.Equal(new[] { 3, 4 }, x.SomeArray);
+            AssertSql(
+                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeBytea"", s.""SomeList"", s.""SomeMatrix"", s.""SomeText""
 FROM ""SomeEntities"" AS s
-WHERE (cardinality(s.""SomeArray"") = 2) AND (cardinality(s.""SomeArray"") IS NOT NULL)
-LIMIT 2");            }
+WHERE cardinality(s.""SomeArray"") = 2
+LIMIT 2");
         }
 
         [Fact]
         public void Length_on_literal_not_translated()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var _ = ctx.SomeEntities.Where(e => new[] { 1, 2, 3 }.Length == e.Id).ToList();
-                AssertDoesNotContainInSql("cardinality");
-            }
+            using var ctx = CreateContext();
+            var _ = ctx.SomeEntities.Where(e => new[] { 1, 2, 3 }.Length == e.Id).ToList();
+
+            AssertDoesNotContainInSql("cardinality");
         }
 
         #endregion
 
         #region AnyAll
 
-        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/issues/17374")]
+        [Fact]
         public void Any_no_predicate()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var count = ctx.SomeEntities.Count(e => e.SomeArray.Any());
-                Assert.Equal(count, 2);
+            using var ctx = CreateContext();
+            var count = ctx.SomeEntities.Count(e => e.SomeArray.Any());
 
-                AssertSql(
-                    @"SELECT COUNT(*)::INT
+            Assert.Equal(2, count);
+            AssertSql(
+                @"SELECT COUNT(*)::INT
 FROM ""SomeEntities"" AS s
 WHERE cardinality(s.""SomeArray"") > 0");
-            }
         }
 
         [Fact]
         public void Any_like()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var _ = ctx.SomeEntities
-                    .Where(e => new[] { "a%", "b%", "c%" }.Any(p => EF.Functions.Like(e.SomeText, p)))
-                    .ToList();
+            using var ctx = CreateContext();
+            var _ = ctx.SomeEntities
+                .Where(e => new[] { "a%", "b%", "c%" }.Any(p => EF.Functions.Like(e.SomeText, p)))
+                .ToList();
 
-                AssertSql(
-                    @"SELECT s.""Id"", s.""SomeArray"", s.""SomeBytea"", s.""SomeList"", s.""SomeMatrix"", s.""SomeText""
+            AssertSql(
+                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeBytea"", s.""SomeList"", s.""SomeMatrix"", s.""SomeText""
 FROM ""SomeEntities"" AS s
 WHERE s.""SomeText"" LIKE ANY (ARRAY['a%','b%','c%']::text[])");
-            }
         }
 
         [Fact]
         public void Any_ilike()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var _ = ctx.SomeEntities
-                    .Where(e => new[] { "a%", "b%", "c%" }.Any(p => EF.Functions.ILike(e.SomeText, p)))
-                    .ToList();
+            using var ctx = CreateContext();
+            var _ = ctx.SomeEntities
+                .Where(e => new[] { "a%", "b%", "c%" }.Any(p => EF.Functions.ILike(e.SomeText, p)))
+                .ToList();
 
-                AssertSql(
-                    @"SELECT s.""Id"", s.""SomeArray"", s.""SomeBytea"", s.""SomeList"", s.""SomeMatrix"", s.""SomeText""
+            AssertSql(
+                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeBytea"", s.""SomeList"", s.""SomeMatrix"", s.""SomeText""
 FROM ""SomeEntities"" AS s
 WHERE s.""SomeText"" ILIKE ANY (ARRAY['a%','b%','c%']::text[])");
-            }
         }
 
         [Fact]
         public void Any_like_anonymous()
         {
-            using (var ctx = Fixture.CreateContext())
-            {
-                var patterns = new[] { "a%", "b%", "c%" };
+            using var ctx = CreateContext();
+            var patterns = new[] { "a%", "b%", "c%" };
 
-                var anon =
-                    ctx.SomeEntities
-                       .Select(
-                           x => new
-                           {
-                               Array = x.SomeArray,
-                               List = x.SomeList,
-                               Text = x.SomeText
-                           });
+            var anon =
+                ctx.SomeEntities
+                    .Select(
+                        x => new
+                        {
+                            Array = x.SomeArray,
+                            List = x.SomeList,
+                            Text = x.SomeText
+                        });
 
-                var _ = anon.Where(x => patterns.Any(p => EF.Functions.Like(x.Text, p))).ToList();
+            var _ = anon.Where(x => patterns.Any(p => EF.Functions.Like(x.Text, p))).ToList();
 
-                AssertSql(
-                    @"@__patterns_0='System.String[]' (DbType = Object)
+            AssertSql(
+                @"@__patterns_0='System.String[]' (DbType = Object)
 
 SELECT s.""SomeArray"" AS ""Array"", s.""SomeList"" AS ""List"", s.""SomeText"" AS ""Text""
 FROM ""SomeEntities"" AS s
 WHERE s.""SomeText"" LIKE ANY (@__patterns_0)");
-            }
+        }
+
+        [Fact]
+        public void Any_Contains()
+        {
+            using var ctx = CreateContext();
+
+            var results = ctx.SomeEntities
+                .Where(e => new[] { 2, 3 }.Any(p => e.SomeArray.Contains(p)))
+                .ToList();
+            Assert.Equal(1, Assert.Single(results).Id);
+
+            results = ctx.SomeEntities
+                .Where(e => new[] { 1, 2 }.Any(p => e.SomeArray.Contains(p)))
+                .ToList();
+            Assert.Empty(results);
+
+            AssertSql(
+                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeBytea"", s.""SomeList"", s.""SomeMatrix"", s.""SomeText""
+FROM ""SomeEntities"" AS s
+WHERE (ARRAY[2,3]::integer[] && s.""SomeArray"")",
+                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeBytea"", s.""SomeList"", s.""SomeMatrix"", s.""SomeText""
+FROM ""SomeEntities"" AS s
+WHERE (ARRAY[1,2]::integer[] && s.""SomeArray"")");
+        }
+
+        [Fact]
+        public void All_Contains()
+        {
+            using var ctx = CreateContext();
+
+            var results = ctx.SomeEntities
+                .Where(e => new[] { 5, 6 }.All(p => e.SomeArray.Contains(p)))
+                .ToList();
+            Assert.Equal(2, Assert.Single(results).Id);
+
+            results = ctx.SomeEntities
+                .Where(e => new[] { 4, 5, 6 }.All(p => e.SomeArray.Contains(p)))
+                .ToList();
+            Assert.Empty(results);
+
+            AssertSql(
+                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeBytea"", s.""SomeList"", s.""SomeMatrix"", s.""SomeText""
+FROM ""SomeEntities"" AS s
+WHERE (ARRAY[5,6]::integer[] <@ s.""SomeArray"")",
+                //
+                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeBytea"", s.""SomeList"", s.""SomeMatrix"", s.""SomeText""
+FROM ""SomeEntities"" AS s
+WHERE (ARRAY[4,5,6]::integer[] <@ s.""SomeArray"")");
         }
 
         #endregion
 
         #region Support
+
+        protected ArrayQueryContext CreateContext() => Fixture.CreateContext();
 
         void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);

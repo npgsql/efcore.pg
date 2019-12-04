@@ -27,382 +27,307 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [MemberData(nameof(RangeTheoryData))]
         public void RangeContainsRange(NpgsqlRange<int> range)
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var _ =
-                    context.RangeTestEntities
-                           .Where(x => x.Range.Contains(range))
-                           .ToArray();
+            using var context = CreateContext();
+            var _ = context.RangeTestEntities
+                .Where(x => x.Range.Contains(range))
+                .ToArray();
 
-                AssertContainsSql(@"r.""Range"" @> @__range_0)");
-            }
+            AssertContainsSql(@"r.""Range"" @> @__range_0)");
         }
 
         [Theory]
         [MemberData(nameof(RangeTheoryData))]
         public void RangeDoesNotContainRange(NpgsqlRange<int> range)
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var _ =
-                    context.RangeTestEntities
-                           .Where(x => !x.Range.Contains(range))
-                           .ToArray();
+            using var context = CreateContext();
+            var _ = context.RangeTestEntities
+                .Where(x => !x.Range.Contains(range))
+                .ToArray();
 
-                AssertContainsSql(@"WHERE NOT ((r.""Range"" @> @__range_0))");
-            }
+            AssertContainsSql(@"WHERE NOT ((r.""Range"" @> @__range_0))");
         }
 
         [Theory]
         [MemberData(nameof(IntegerTheoryData))]
         public void RangeContainsValue(int value)
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var _ =
-                    context.RangeTestEntities
-                           .Where(x => x.Range.Contains(value))
-                           .ToArray();
+            using var context = CreateContext();
+            var _ = context.RangeTestEntities
+                .Where(x => x.Range.Contains(value))
+                .ToArray();
 
-                AssertContainsSql(@"r.""Range"" @> @__value_0)");
-            }
+            AssertContainsSql(@"r.""Range"" @> @__value_0)");
         }
 
         [Theory]
         [MemberData(nameof(IntegerTheoryData))]
         public void RangeDoesNotContainValue(int value)
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var _ =
-                    context.RangeTestEntities
-                           .Where(x => !x.Range.Contains(value))
-                           .ToArray();
+            using var context = CreateContext();
+            var _ = context.RangeTestEntities
+                .Where(x => !x.Range.Contains(value))
+                .ToArray();
 
-                AssertContainsSql(@"WHERE NOT ((r.""Range"" @> @__value_0))");
-            }
+            AssertContainsSql(@"WHERE NOT ((r.""Range"" @> @__value_0))");
         }
 
         [Theory]
         [MemberData(nameof(RangeTheoryData))]
         public void RangeContainedByRange(NpgsqlRange<int> range)
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var _ =
-                    context.RangeTestEntities
-                           .Where(x => range.ContainedBy(x.Range))
-                           .ToArray();
+            using var context = CreateContext();
+            var _ = context.RangeTestEntities
+                .Where(x => range.ContainedBy(x.Range))
+                .ToArray();
 
-                AssertContainsSql(@"@__range_0 <@ r.""Range""");
-            }
+            AssertContainsSql(@"@__range_0 <@ r.""Range""");
         }
 
         [Theory]
         [MemberData(nameof(RangeTheoryData))]
         public void RangeNotContainedByRange(NpgsqlRange<int> range)
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var _ =
-                    context.RangeTestEntities
-                           .Where(x => !range.ContainedBy(x.Range))
-                           .ToArray();
+            using var context = CreateContext();
+            var _ = context.RangeTestEntities
+                .Where(x => !range.ContainedBy(x.Range))
+                .ToArray();
 
-                AssertContainsSql(@"WHERE NOT ((@__range_0 <@ r.""Range""))");
-            }
+            AssertContainsSql(@"WHERE NOT ((@__range_0 <@ r.""Range""))");
         }
 
         [Theory]
         [MemberData(nameof(RangeTheoryData))]
         public void RangeEqualsRange_Operator(NpgsqlRange<int> range)
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var _ =
-                    context.RangeTestEntities
-                           .Where(x => x.Range == range)
-                           .ToArray();
+            using var context = CreateContext();
+            var _ = context.RangeTestEntities
+                .Where(x => x.Range == range)
+                .ToArray();
 
-                AssertContainsSql(@"r.""Range"" = @__range_0");
-            }
+            AssertContainsSql(@"r.""Range"" = @__range_0");
         }
 
         [Theory]
         [MemberData(nameof(RangeTheoryData))]
         public void RangeEqualsRange_Method(NpgsqlRange<int> range)
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var _ =
-                    context.RangeTestEntities
-                           .Where(x => x.Range.Equals(range))
-                           .ToArray();
+            using var context = CreateContext();
+            var _ = context.RangeTestEntities
+                .Where(x => x.Range.Equals(range))
+                .ToArray();
 
-                AssertContainsSql(@"r.""Range"" = @__range_0");
-            }
+            AssertContainsSql(@"r.""Range"" = @__range_0");
         }
 
         [Theory]
         [MemberData(nameof(RangeTheoryData))]
         public void RangeDoesNotEqualsRange_Operator(NpgsqlRange<int> range)
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var _ =
-                    context.RangeTestEntities
-                           .Where(x => x.Range != range)
-                           .ToArray();
+            using var context = CreateContext();
+            var _ = context.RangeTestEntities
+                .Where(x => x.Range != range)
+                .ToArray();
 
-                AssertContainsSql(@"r.""Range"" <> @__range_0");
-            }
+            AssertContainsSql(@"r.""Range"" <> @__range_0");
         }
 
         [Theory]
         [MemberData(nameof(RangeTheoryData))]
         public void RangeDoesNotEqualsRange_Method(NpgsqlRange<int> range)
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var _ =
-                    context.RangeTestEntities
-                           .Where(x => !x.Range.Equals(range))
-                           .ToArray();
+            using var context = CreateContext();
+            var _ = context.RangeTestEntities
+                .Where(x => !x.Range.Equals(range))
+                .ToArray();
 
-                AssertContainsSql(@"r.""Range"" <> @__range_0");
-            }
+            AssertContainsSql(@"r.""Range"" <> @__range_0");
         }
 
         [Theory]
         [MemberData(nameof(RangeTheoryData))]
         public void RangeOverlapsRange(NpgsqlRange<int> range)
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var _ =
-                    context.RangeTestEntities
-                           .Where(x => x.Range.Overlaps(range))
-                           .ToArray();
+            using var context = CreateContext();
+            var _ = context.RangeTestEntities
+                .Where(x => x.Range.Overlaps(range))
+                .ToArray();
 
-                AssertContainsSql(@"r.""Range"" && @__range_0");
-            }
+            AssertContainsSql(@"r.""Range"" && @__range_0");
         }
 
         [Theory]
         [MemberData(nameof(RangeTheoryData))]
         public void RangeDoesNotOverlapRange(NpgsqlRange<int> range)
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var _ =
-                    context.RangeTestEntities
-                           .Where(x => !x.Range.Overlaps(range))
-                           .ToArray();
+            using var context = CreateContext();
+            var _ = context.RangeTestEntities
+                .Where(x => !x.Range.Overlaps(range))
+                .ToArray();
 
-                AssertContainsSql(@"WHERE NOT ((r.""Range"" && @__range_0))");
-            }
+            AssertContainsSql(@"WHERE NOT ((r.""Range"" && @__range_0))");
         }
 
         [Theory]
         [MemberData(nameof(RangeTheoryData))]
         public void RangeIsStrictlyLeftOfRange(NpgsqlRange<int> range)
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var _ =
-                    context.RangeTestEntities
-                           .Where(x => x.Range.IsStrictlyLeftOf(range))
-                           .ToArray();
+            using var context = CreateContext();
+            var _ = context.RangeTestEntities
+                .Where(x => x.Range.IsStrictlyLeftOf(range))
+                .ToArray();
 
-                AssertContainsSql(@"r.""Range"" << @__range_0");
-            }
+            AssertContainsSql(@"r.""Range"" << @__range_0");
         }
 
         [Theory]
         [MemberData(nameof(RangeTheoryData))]
         public void RangeIsNotStrictlyLeftOfRange(NpgsqlRange<int> range)
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var _ =
-                    context.RangeTestEntities
-                           .Where(x => !x.Range.IsStrictlyLeftOf(range))
-                           .ToArray();
+            using var context = CreateContext();
+            var _ = context.RangeTestEntities
+                .Where(x => !x.Range.IsStrictlyLeftOf(range))
+                .ToArray();
 
-                AssertContainsSql(@"WHERE NOT ((r.""Range"" << @__range_0))");
-            }
+            AssertContainsSql(@"WHERE NOT ((r.""Range"" << @__range_0))");
         }
 
         [Theory]
         [MemberData(nameof(RangeTheoryData))]
         public void RangeIsStrictlyRightOfRange(NpgsqlRange<int> range)
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var _ =
-                    context.RangeTestEntities
-                           .Where(x => x.Range.IsStrictlyRightOf(range))
-                           .ToArray();
+            using var context = CreateContext();
+            var _ = context.RangeTestEntities
+                .Where(x => x.Range.IsStrictlyRightOf(range))
+                .ToArray();
 
-                AssertContainsSql(@"r.""Range"" >> @__range_0");
-            }
+            AssertContainsSql(@"r.""Range"" >> @__range_0");
         }
 
         [Theory]
         [MemberData(nameof(RangeTheoryData))]
         public void RangeIsNotStrictlyRightOfRange(NpgsqlRange<int> range)
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var _ =
-                    context.RangeTestEntities
-                           .Where(x => !x.Range.IsStrictlyRightOf(range))
-                           .ToArray();
+            using var context = CreateContext();
+            var _ = context.RangeTestEntities
+                .Where(x => !x.Range.IsStrictlyRightOf(range))
+                .ToArray();
 
-                AssertContainsSql(@"WHERE NOT ((r.""Range"" >> @__range_0))");
-            }
+            AssertContainsSql(@"WHERE NOT ((r.""Range"" >> @__range_0))");
         }
 
         [Theory]
         [MemberData(nameof(RangeTheoryData))]
         public void RangeDoesNotExtendLeftOfRange(NpgsqlRange<int> range)
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var _ =
-                    context.RangeTestEntities
-                           .Where(x => x.Range.DoesNotExtendLeftOf(range))
-                           .ToArray();
+            using var context = CreateContext();
+            var _ = context.RangeTestEntities
+                .Where(x => x.Range.DoesNotExtendLeftOf(range))
+                .ToArray();
 
-                AssertContainsSql(@"r.""Range"" &> @__range_0");
-            }
+            AssertContainsSql(@"r.""Range"" &> @__range_0");
         }
 
         [Theory]
         [MemberData(nameof(RangeTheoryData))]
         public void RangeDoesExtendLeftOfRange(NpgsqlRange<int> range)
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var _ =
-                    context.RangeTestEntities
-                           .Where(x => !x.Range.DoesNotExtendLeftOf(range))
-                           .ToArray();
+            using var context = CreateContext();
+            var _ = context.RangeTestEntities
+                .Where(x => !x.Range.DoesNotExtendLeftOf(range))
+                .ToArray();
 
-                AssertContainsSql(@"WHERE NOT ((r.""Range"" &> @__range_0))");
-            }
+            AssertContainsSql(@"WHERE NOT ((r.""Range"" &> @__range_0))");
         }
 
         [Theory]
         [MemberData(nameof(RangeTheoryData))]
         public void RangeDoesNotExtendRightOfRange(NpgsqlRange<int> range)
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var _ =
-                    context.RangeTestEntities
-                           .Where(x => x.Range.DoesNotExtendRightOf(range))
-                           .ToArray();
+            using var context = CreateContext();
+            var _ = context.RangeTestEntities
+                .Where(x => x.Range.DoesNotExtendRightOf(range))
+                .ToArray();
 
-                AssertContainsSql(@"r.""Range"" &< @__range_0");
-            }
+            AssertContainsSql(@"r.""Range"" &< @__range_0");
         }
 
         [Theory]
         [MemberData(nameof(RangeTheoryData))]
         public void RangeDoesExtendRightOfRange(NpgsqlRange<int> range)
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var _ =
-                    context.RangeTestEntities
-                           .Where(x => !x.Range.DoesNotExtendRightOf(range))
-                           .ToArray();
+            using var context = CreateContext();
+            var _ = context.RangeTestEntities
+                .Where(x => !x.Range.DoesNotExtendRightOf(range))
+                .ToArray();
 
-                AssertContainsSql(@"WHERE NOT ((r.""Range"" &< @__range_0))");
-            }
+            AssertContainsSql(@"WHERE NOT ((r.""Range"" &< @__range_0))");
         }
 
         [Theory]
         [MemberData(nameof(RangeTheoryData))]
         public void RangeIsAdjacentToRange(NpgsqlRange<int> range)
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var _ =
-                    context.RangeTestEntities
-                           .Where(x => x.Range.IsAdjacentTo(range))
-                           .ToArray();
+            using var context = CreateContext();
+            var _ = context.RangeTestEntities
+                .Where(x => x.Range.IsAdjacentTo(range))
+                .ToArray();
 
-                AssertContainsSql(@"r.""Range"" -|- @__range_0");
-            }
+            AssertContainsSql(@"r.""Range"" -|- @__range_0");
         }
 
         [Theory]
         [MemberData(nameof(RangeTheoryData))]
         public void RangeIsNotAdjacentToRange(NpgsqlRange<int> range)
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var _ =
-                    context.RangeTestEntities
-                           .Where(x => !x.Range.IsAdjacentTo(range))
-                           .ToArray();
+            using var context = CreateContext();
+            var _ = context.RangeTestEntities
+                .Where(x => !x.Range.IsAdjacentTo(range))
+                .ToArray();
 
-                AssertContainsSql(@"WHERE NOT ((r.""Range"" -|- @__range_0))");
-            }
+            AssertContainsSql(@"WHERE NOT ((r.""Range"" -|- @__range_0))");
         }
 
         [Theory]
         [MemberData(nameof(RangeTheoryData))]
         public void RangeUnionRange(NpgsqlRange<int> range)
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var _ =
-                    context.RangeTestEntities
-                           .Select(x => x.Range.Union(range))
-                           .ToArray();
+            using var context = CreateContext();
+            var _ = context.RangeTestEntities
+                .Select(x => x.Range.Union(range))
+                .ToArray();
 
-                AssertContainsSql(@"r.""Range"" + @__range_0");
-            }
+            AssertContainsSql(@"r.""Range"" + @__range_0");
         }
 
         [Theory]
         [MemberData(nameof(RangeTheoryData))]
         public void RangeIntersectsRange(NpgsqlRange<int> range)
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var _ =
-                    context.RangeTestEntities
-                           .Select(x => x.Range.Intersect(range))
-                           .ToArray();
+            using var context = CreateContext();
+            var _ = context.RangeTestEntities
+                .Select(x => x.Range.Intersect(range))
+                .ToArray();
 
-                AssertContainsSql(@"r.""Range"" * @__range_0");
-            }
+            AssertContainsSql(@"r.""Range"" * @__range_0");
         }
 
         [Theory]
         [MemberData(nameof(RangeTheoryData))]
         public void RangeExceptRange(NpgsqlRange<int> range)
         {
-            using (var context = Fixture.CreateContext())
+            using var context = CreateContext();
+            try
             {
-                try
-                {
-                    var _ =
-                        context.RangeTestEntities
-                               .Select(x => x.Range.Except(range))
-                               .ToArray();
-                }
-                catch (PostgresException)
-                {
-                    // ignore: Npgsql.PostgresException : 22000: result of range difference would not be contiguous.
-                }
-
-                AssertContainsSql(@"r.""Range"" - @__range_0");
+                var _ = context.RangeTestEntities
+                    .Select(x => x.Range.Except(range))
+                    .ToArray();
             }
+            catch (PostgresException)
+            {
+                // ignore: Npgsql.PostgresException : 22000: result of range difference would not be contiguous.
+            }
+
+            AssertContainsSql(@"r.""Range"" - @__range_0");
         }
 
         #endregion
@@ -412,24 +337,22 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void UserDefined()
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var e = context.RangeTestEntities.Single(x => x.FloatRange.UpperBound > 5);
-                Assert.Equal(e.FloatRange.LowerBound, 0);
-                Assert.Equal(e.FloatRange.UpperBound, 10);
-            }
+            using var context = CreateContext();
+            var e = context.RangeTestEntities.Single(x => x.FloatRange.UpperBound > 5);
+
+            Assert.Equal(0, e.FloatRange.LowerBound);
+            Assert.Equal(10, e.FloatRange.UpperBound);
         }
 
         [Fact]
         public void UserDefinedSchemaQualified()
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var e = context.RangeTestEntities.Single(x => x.SchemaRange == NpgsqlRange<double>.Parse("(0,10)"));
-                AssertContainsSql(@"WHERE r.""SchemaRange"" = '(0,10)'::test.""Schema_Range""");
-                Assert.Equal(e.SchemaRange.LowerBound, 0);
-                Assert.Equal(e.SchemaRange.UpperBound, 10);
-            }
+            using var context = CreateContext();
+            var e = context.RangeTestEntities.Single(x => x.SchemaRange == NpgsqlRange<double>.Parse("(0,10)"));
+
+            AssertContainsSql(@"WHERE r.""SchemaRange"" = '(0,10)'::test.""Schema_Range""");
+            Assert.Equal(0, e.SchemaRange.LowerBound);
+            Assert.Equal(10, e.SchemaRange.UpperBound);
         }
 
         #endregion
@@ -439,81 +362,73 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact]
         public void RangeLowerBound()
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var _ = context.RangeTestEntities.Where(x => x.Range.LowerBound == 0).ToArray();
-                AssertContainsSql(@"COALESCE(lower(r.""Range""), 0)");
-            }
+            using var context = CreateContext();
+            var _ = context.RangeTestEntities.Where(x => x.Range.LowerBound == 0).ToArray();
+
+            AssertContainsSql(@"COALESCE(lower(r.""Range""), 0)");
         }
 
         [Fact]
         public void RangeUpperBound()
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var _ = context.RangeTestEntities.Where(x => x.Range.UpperBound == 10).ToArray();
-                AssertContainsSql(@"COALESCE(upper(r.""Range""), 0)");
-            }
+            using var context = CreateContext();
+            var _ = context.RangeTestEntities.Where(x => x.Range.UpperBound == 10).ToArray();
+
+            AssertContainsSql(@"COALESCE(upper(r.""Range""), 0)");
         }
 
         [Fact]
         public void RangeIsEmpty()
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var _ = context.RangeTestEntities.Where(x => x.Range.IsEmpty).ToArray();
-                AssertContainsSql(@"isempty(r.""Range"")");
-            }
+            using var context = CreateContext();
+            var _ = context.RangeTestEntities.Where(x => x.Range.IsEmpty).ToArray();
+
+            AssertContainsSql(@"isempty(r.""Range"")");
         }
 
         [Fact]
         public void RangeLowerBoundIsInclusive()
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var _ = context.RangeTestEntities.Where(x => x.Range.LowerBoundIsInclusive).ToArray();
-                AssertContainsSql(@"lower_inc(r.""Range"")");
-            }
+            using var context = CreateContext();
+            var _ = context.RangeTestEntities.Where(x => x.Range.LowerBoundIsInclusive).ToArray();
+
+            AssertContainsSql(@"lower_inc(r.""Range"")");
         }
 
         [Fact]
         public void RangeUpperBoundIsInclusive()
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var _ = context.RangeTestEntities.Where(x => x.Range.UpperBoundIsInclusive).ToArray();
-                AssertContainsSql(@"upper_inc(r.""Range"")");
-            }
+            using var context = CreateContext();
+            var _ = context.RangeTestEntities.Where(x => x.Range.UpperBoundIsInclusive).ToArray();
+
+            AssertContainsSql(@"upper_inc(r.""Range"")");
         }
 
         [Fact]
         public void RangeLowerBoundInfinite()
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var _ = context.RangeTestEntities.Where(x => x.Range.LowerBoundInfinite).ToArray();
-                AssertContainsSql(@"lower_inf(r.""Range"")");
-            }
+            using var context = CreateContext();
+            var _ = context.RangeTestEntities.Where(x => x.Range.LowerBoundInfinite).ToArray();
+
+            AssertContainsSql(@"lower_inf(r.""Range"")");
         }
 
         [Fact]
         public void RangeUpperBoundInfinite()
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var _ = context.RangeTestEntities.Where(x => x.Range.UpperBoundInfinite).ToArray();
-                AssertContainsSql(@"upper_inf(r.""Range"")");
-            }
+            using var context = CreateContext();
+            var _ = context.RangeTestEntities.Where(x => x.Range.UpperBoundInfinite).ToArray();
+
+            AssertContainsSql(@"upper_inf(r.""Range"")");
         }
 
         [Fact]
         public void RangeMergeRange()
         {
-            using (var context = Fixture.CreateContext())
-            {
-                var _ = context.RangeTestEntities.Select(x => x.Range.Merge(x.Range)).ToArray();
-                AssertContainsSql(@"range_merge(r.""Range"", r.""Range"")");
-            }
+            using var context = CreateContext();
+            var _ = context.RangeTestEntities.Select(x => x.Range.Merge(x.Range)).ToArray();
+
+            AssertContainsSql(@"range_merge(r.""Range"", r.""Range"")");
         }
 
         #endregion
@@ -657,6 +572,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         #endregion
 
         #region Helpers
+
+        protected RangeContext CreateContext() => Fixture.CreateContext();
 
         void AssertContainsSql(string sql) => Assert.Contains(sql, Fixture.TestSqlLoggerFactory.Sql);
 

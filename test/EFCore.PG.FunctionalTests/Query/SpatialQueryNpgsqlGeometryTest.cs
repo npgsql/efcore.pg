@@ -13,7 +13,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             : base(fixture)
         {
             Fixture.TestSqlLoggerFactory.Clear();
-            Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
         public override async Task Area(bool isAsync)
@@ -218,11 +218,11 @@ FROM ""PolygonEntity"" AS p");
         public override async Task GeometryType(bool isAsync)
         {
             // PostGIS returns "POINT", NTS returns "Point"
-            await AssertQuery<PointEntity>(
+            await AssertQuery(
                 isAsync,
-                es => es.Select(
+                es => es.Set<PointEntity>().Select(
                     e => new { e.Id, GeometryType = e.Point == null ? null : e.Point.GeometryType.ToLower() }),
-                elementSorter: x => x.Id);
+                x => x.Id);
 
 //            AssertSql(
 //                @"SELECT p.""Id"", LOWER(GeometryType(p.""Point"")) AS ""GeometryType""

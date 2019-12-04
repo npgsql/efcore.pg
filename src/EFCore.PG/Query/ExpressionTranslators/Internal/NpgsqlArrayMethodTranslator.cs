@@ -1,11 +1,14 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
+using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
@@ -46,23 +49,37 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         {
             // TODO: Fully support List<>
 
-            if (arguments.Count == 0 || !arguments[0].Type.IsArray &&
-                (!arguments[0].Type.IsGenericType || arguments[0].Type.GetGenericTypeDefinition() != typeof(List<>)))
+            if (arguments.Count == 0)
                 return null;
 
-            var arrayOperand = arguments[0];
+            var operand = arguments[0];
+
+            var operandElementType = operand.Type.IsArray
+                ? operand.Type.GetElementType()
+                : operand.Type.IsGenericType && operand.Type.GetGenericTypeDefinition() == typeof(List<>)
+                    ? operand.Type.GetGenericArguments()[0]
+                    : null;
+
+            if (operandElementType == null) // Not an array/list
+                return null;
+
+            // Even if the CLR type is an array/list, it may be mapped to a non-array database type (e.g. via value converters).
+            if (operand.TypeMapping is RelationalTypeMapping typeMapping &&
+                !(typeMapping is NpgsqlArrayTypeMapping) && !(typeMapping is NpgsqlJsonTypeMapping))
+            {
+                return null;
+            }
 
             if (method.IsClosedFormOf(SequenceEqual) && arguments[1].Type.IsArray)
-                return _sqlExpressionFactory.Equal(arrayOperand, arguments[1]);
+                return _sqlExpressionFactory.Equal(operand, arguments[1]);
 
             // Predicate-less Any - translate to a simple length check.
             if (method.IsClosedFormOf(EnumerableAnyWithoutPredicate))
             {
-                return
-                    _sqlExpressionFactory.GreaterThan(
-                        _jsonPocoTranslator.TranslateArrayLength(arrayOperand) ??
-                        _sqlExpressionFactory.Function("cardinality", arguments, typeof(int?)),
-                        _sqlExpressionFactory.Constant(0));
+                return _sqlExpressionFactory.GreaterThan(
+                    _jsonPocoTranslator.TranslateArrayLength(operand) ??
+                    _sqlExpressionFactory.Function("cardinality", arguments, typeof(int?)),
+                    _sqlExpressionFactory.Constant(0));
             }
 
             // Note that .Where(e => new[] { "a", "b", "c" }.Any(p => e.SomeText == p)))
@@ -73,20 +90,32 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             // since non-PG SQL does not support arrays. If the list is a constant we leave it for regular IN
             // (functionality the same but more familiar).
 
-            // TODO: The following does not work correctly if there are any nulls in a parameterized array, because
-            // of null semantics (test: Contains_on_nullable_array_produces_correct_sql).
-            // https://github.com/aspnet/EntityFrameworkCore/issues/15892 tracks caching based on parameter values,
-            // which should allow us to enable this and have correct behavior.
-
-            // We still apply this translation when it's on a column expression, since that can't work anyway with
-            // EF Core's parameter to constant expansion
+            // Note: we exclude constant array expressions from this PG-specific optimization since the general
+            // EF Core mechanism is fine for that case. After https://github.com/aspnet/EntityFrameworkCore/issues/16375
+            // is done we may not need the check any more.
+            // Note: we exclude arrays/lists over Nullable<T> since the ADO layer doesn't handle them (but will in 5.0)
 
             if (method.IsClosedFormOf(Contains) &&
-                arrayOperand is ColumnExpression &&
-                //!(arrayOperand is SqlConstantExpression) &&   // When the null semantics issue is resolved
-                _sqlExpressionFactory.FindMapping(arrayOperand.Type) != null)
+                _sqlExpressionFactory.FindMapping(operand.Type) != null &&
+                !(operand is SqlConstantExpression) &&
+                Nullable.GetUnderlyingType(operandElementType) == null)
             {
-                return _sqlExpressionFactory.ArrayAnyAll(arguments[1], arrayOperand, ArrayComparisonType.Any, "=");
+                var item = arguments[1];
+                // We require a null semantics check in case the item is null and the array contains a null.
+                // Advanced parameter sniffing would help here: https://github.com/aspnet/EntityFrameworkCore/issues/17598
+                return _sqlExpressionFactory.OrElse(
+                    // We need to coalesce to false since 'x' = ANY ({'y', NULL}) returns null, not false
+                    // (and so will be null when negated too)
+                    _sqlExpressionFactory.Coalesce(
+                        _sqlExpressionFactory.ArrayAnyAll(item, operand, ArrayComparisonType.Any, "="),
+                        _sqlExpressionFactory.Constant(false)),
+                    _sqlExpressionFactory.AndAlso(
+                        _sqlExpressionFactory.IsNull(item),
+                        _sqlExpressionFactory.IsNotNull(
+                            _sqlExpressionFactory.Function(
+                                "array_position",
+                                new[] { operand, _sqlExpressionFactory.Fragment("NULL") },
+                                typeof(int)))));
             }
 
             // Note: we also translate .Where(e => new[] { "a", "b", "c" }.Any(p => EF.Functions.Like(e.SomeText, p)))

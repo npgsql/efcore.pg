@@ -1,4 +1,6 @@
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.Query;
+using Xunit;
 using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query

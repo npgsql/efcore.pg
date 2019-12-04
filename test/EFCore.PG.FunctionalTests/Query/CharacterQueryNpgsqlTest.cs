@@ -26,14 +26,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             Fixture.ClearEntities();
 
             // important: add here so they aren't locally available below.
-            using (var ctx = Fixture.CreateContext())
+            using (var ctx = CreateContext())
             {
                 ctx.CharacterTestEntities.Add(new CharacterTestEntity { Character8 = "12345678" });
                 ctx.CharacterTestEntities.Add(new CharacterTestEntity { Character8 = "123456  " });
                 ctx.SaveChanges();
             }
 
-            using (var ctx = Fixture.CreateContext())
+            using (var ctx = CreateContext())
             {
                 const string update = "update";
 
@@ -61,28 +61,26 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             Fixture.ClearEntities();
 
             // important: add here so they are locally available below.
-            using (var ctx = Fixture.CreateContext())
-            {
-                ctx.CharacterTestEntities.Add(new CharacterTestEntity { Character8 = "12345678" });
-                ctx.CharacterTestEntities.Add(new CharacterTestEntity { Character8 = "123456  " });
-                ctx.SaveChanges();
+            using var ctx = CreateContext();
+            ctx.CharacterTestEntities.Add(new CharacterTestEntity { Character8 = "12345678" });
+            ctx.CharacterTestEntities.Add(new CharacterTestEntity { Character8 = "123456  " });
+            ctx.SaveChanges();
 
-                const string update = "update";
+            const string update = "update";
 
-                var m1 = ctx.CharacterTestEntities.Find("12345678");
-                m1.Character6 = update;
-                ctx.SaveChanges();
+            var m1 = ctx.CharacterTestEntities.Find("12345678");
+            m1.Character6 = update;
+            ctx.SaveChanges();
 
-                var m2 = ctx.CharacterTestEntities.Find("123456  ");
-                m2.Character6 = update;
-                ctx.SaveChanges();
+            var m2 = ctx.CharacterTestEntities.Find("123456  ");
+            m2.Character6 = update;
+            ctx.SaveChanges();
 
-                var item0 = ctx.CharacterTestEntities.Find("12345678").Character6;
-                Assert.Equal(update, item0);
+            var item0 = ctx.CharacterTestEntities.Find("12345678").Character6;
+            Assert.Equal(update, item0);
 
-                var item1 = ctx.CharacterTestEntities.Find("123456  ").Character6;
-                Assert.Equal(update, item1);
-            }
+            var item1 = ctx.CharacterTestEntities.Find("123456  ").Character6;
+            Assert.Equal(update, item1);
         }
 
         /// <summary>
@@ -93,22 +91,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             Fixture.ClearEntities();
 
-            using (var ctx = Fixture.CreateContext())
-            {
-                const string update = "update";
+            using var ctx = CreateContext();
+            const string update = "update";
 
-                ctx.CharacterTestEntities.Add(new CharacterTestEntity { Character8 = "12345678" });
-                ctx.CharacterTestEntities.Add(new CharacterTestEntity { Character8 = "123456  " });
-                ctx.SaveChanges();
+            ctx.CharacterTestEntities.Add(new CharacterTestEntity { Character8 = "12345678" });
+            ctx.CharacterTestEntities.Add(new CharacterTestEntity { Character8 = "123456  " });
+            ctx.SaveChanges();
 
-                var m1 = ctx.CharacterTestEntities.Find("12345678");
-                m1.Character6 = update;
-                ctx.SaveChanges();
+            var m1 = ctx.CharacterTestEntities.Find("12345678");
+            m1.Character6 = update;
+            ctx.SaveChanges();
 
-                var m2 = ctx.CharacterTestEntities.Find("123456  ");
-                m2.Character6 = update;
-                ctx.SaveChanges();
-            }
+            var m2 = ctx.CharacterTestEntities.Find("123456  ");
+            m2.Character6 = update;
+            ctx.SaveChanges();
         }
 
         /// <summary>
@@ -119,7 +115,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             Fixture.ClearEntities();
 
-            using (var ctx = Fixture.CreateContext())
+            using (var ctx = CreateContext())
             {
                 var entity = new CharacterTestEntity { Character8 = "123456  ", Character6 = "12345 " };
                 ctx.CharacterTestEntities.Add(entity);
@@ -142,7 +138,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 Assert.Equal(0, ctx.SaveChanges());
             }
 
-            using (var ctx = Fixture.CreateContext())
+            using (var ctx = CreateContext())
             {
                 // The query still ignores the trailing whitespace,
                 // but the materialized object won't have any trailing whitespace.
@@ -172,15 +168,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             /// </summary>
             public void ClearEntities()
             {
-                using (var ctx = CreateContext())
-                {
-                    var entities = ctx.CharacterTestEntities.ToArray();
+                using var ctx = CreateContext();
+                var entities = ctx.CharacterTestEntities.ToArray();
+                foreach (var e in entities)
+                    ctx.CharacterTestEntities.Remove(e);
 
-                    foreach (var e in entities)
-                        ctx.CharacterTestEntities.Remove(e);
-
-                    ctx.SaveChanges();
-                }
+                ctx.SaveChanges();
             }
         }
 
@@ -215,6 +208,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         #endregion
 
         #region Helpers
+
+        protected CharacterContext CreateContext() => Fixture.CreateContext();
 
         // ReSharper disable once UnusedMember.Global
         /// <summary>

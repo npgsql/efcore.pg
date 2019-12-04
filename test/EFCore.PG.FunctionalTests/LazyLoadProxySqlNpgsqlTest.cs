@@ -1,9 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
@@ -13,6 +13,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         public LazyLoadProxyNpgsqlTest(LoadNpgsqlFixture fixture)
             : base(fixture)
             => Fixture.TestSqlLoggerFactory.Clear();
+
+        [ConditionalFact]  // Requires MARS
+        public override void Top_level_projection_track_entities_before_passing_to_client_method() {}
 
         protected override void ClearLog() => Fixture.TestSqlLoggerFactory.Clear();
 

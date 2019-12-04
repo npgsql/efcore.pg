@@ -26,16 +26,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [Fact(Skip = "Skipped for preview7, edge case")]
         public void Bug278()
         {
-            using (CreateDatabase278())
-            using (var context = new Bug278Context(_options))
+            using var _ = CreateDatabase278();
+            using var context = new Bug278Context(_options);
+            var actual = context.Entities.Select(x => new
             {
-                var actual = context.Entities.Select(x => new
-                {
-                    Codes = x.ChannelCodes.Select(c => (ChannelCode)c)
-                }).ToList()[0];
+                Codes = x.ChannelCodes.Select(c => (ChannelCode)c)
+            }).ToList()[0];
 
-                Assert.Equal(new[] { ChannelCode.Code, ChannelCode.Code }, actual.Codes);
-            }
+            Assert.Equal(new[] { ChannelCode.Code, ChannelCode.Code }, actual.Codes);
         }
 
         NpgsqlTestStore CreateDatabase278()
@@ -79,12 +77,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
             _options = Fixture.CreateOptions(testStore);
 
-            using (var context = contextCreator())
-            {
-                context.Database.EnsureCreatedResiliently();
-                contextInitializer?.Invoke(context);
-            }
-
+            using var context = contextCreator();
+            context.Database.EnsureCreatedResiliently();
+            contextInitializer?.Invoke(context);
             return testStore;
         }
 

@@ -6,6 +6,7 @@ using System.Text;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
+using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
@@ -23,6 +24,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
         readonly ISqlExpressionFactory _sqlExpressionFactory;
         readonly SqlConstantExpression _whitespace;
+        readonly RelationalTypeMapping _textTypeMapping;
 
         #region MethodInfo
 
@@ -41,7 +43,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         [NotNull] static readonly MethodInfo TrimBothWithNoParam = typeof(string).GetRuntimeMethod(nameof(string.Trim), Type.EmptyTypes);
         [NotNull] static readonly MethodInfo TrimBothWithChars = typeof(string).GetRuntimeMethod(nameof(string.Trim), new[] { typeof(char[]) });
         [NotNull] static readonly MethodInfo TrimBothWithSingleChar = typeof(string).GetRuntimeMethod(nameof(string.Trim), new[] { typeof(char) });
-        [NotNull] static readonly MethodInfo Substring = typeof(string).GetTypeInfo().GetDeclaredMethods(nameof(string.Substring)).Single(m => m.GetParameters().Length == 2);
+        [NotNull] static readonly MethodInfo Substring = typeof(string).GetTypeInfo().GetDeclaredMethods(nameof(string.Substring)).Single(m => m.GetParameters().Length == 1);
+        [NotNull] static readonly MethodInfo SubstringWithLength = typeof(string).GetTypeInfo().GetDeclaredMethods(nameof(string.Substring)).Single(m => m.GetParameters().Length == 2);
         [NotNull] static readonly MethodInfo Replace = typeof(string).GetRuntimeMethod(nameof(string.Replace), new[] { typeof(string), typeof(string) });
         [NotNull] static readonly MethodInfo PadLeft = typeof(string).GetRuntimeMethod(nameof(string.PadLeft), new[] { typeof(int) });
         [NotNull] static readonly MethodInfo PadLeftWithChar = typeof(string).GetRuntimeMethod(nameof(string.PadLeft), new[] { typeof(int), typeof(char) });
@@ -58,6 +61,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             _whitespace = _sqlExpressionFactory.Constant(
                 @" \t\n\r",  // TODO: Complete this
                 npgsqlTypeMappingSource.EStringTypeMapping);
+            _textTypeMapping = _sqlExpressionFactory.FindMapping(typeof(string));
         }
 
         public SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
@@ -106,16 +110,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     instance.TypeMapping);
             }
 
-            if (method == Substring)
+            if (method == Substring || method == SubstringWithLength)
             {
+                var args =
+                    method == Substring
+                        ? new[] { instance, GenerateOneBasedIndexExpression(arguments[0]) }
+                        : new[] { instance, GenerateOneBasedIndexExpression(arguments[0]), arguments[1] };
                 return _sqlExpressionFactory.Function(
                     "SUBSTRING",
-                    new[]
-                    {
-                        instance,
-                        GenerateOneBasedIndexExpression(arguments[0]),
-                        arguments[1]
-                    },
+                    args,
                     method.ReturnType,
                     instance.TypeMapping);
             }
@@ -179,7 +182,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 instance = _sqlExpressionFactory.ApplyTypeMapping(instance, stringTypeMapping);
                 pattern = _sqlExpressionFactory.ApplyTypeMapping(pattern, stringTypeMapping);
 
-                return _sqlExpressionFactory.GreaterThan(
+                var strposCheck = _sqlExpressionFactory.GreaterThan(
                     _sqlExpressionFactory.Function(
                         "STRPOS",
                         new[]
@@ -189,6 +192,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                         },
                         typeof(int)),
                     _sqlExpressionFactory.Constant(0));
+
+                if (pattern is SqlConstantExpression constantPattern)
+                {
+                    return (string)constantPattern.Value == string.Empty
+                        ? (SqlExpression)_sqlExpressionFactory.Constant(true)
+                        : strposCheck;
+                }
+
+                return _sqlExpressionFactory.OrElse(
+                    _sqlExpressionFactory.Equal(
+                        pattern,
+                        _sqlExpressionFactory.Constant(string.Empty, stringTypeMapping)),
+                    strposCheck);
             }
 
             if (method == PadLeft || method == PadLeftWithChar || method == PadRight || method == PadRightWithChar)
@@ -224,50 +240,48 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             {
                 // The pattern is constant. Aside from null, we escape all special characters (%, _, \)
                 // in C# and send a simple LIKE
-                if (!(constantExpression.Value is string constantString))
-                    return _sqlExpressionFactory.Like(instance, _sqlExpressionFactory.Constant(null, stringTypeMapping));
-
-                return _sqlExpressionFactory.Like(
-                    instance,
-                    _sqlExpressionFactory.Constant(
-                        startsWith
-                            ? EscapeLikePattern(constantString) + '%'
-                            : '%' + EscapeLikePattern(constantString)));
+                return constantExpression.Value is string constantPattern
+                    ? _sqlExpressionFactory.Like(
+                        instance,
+                        _sqlExpressionFactory.Constant(
+                            startsWith
+                                ? EscapeLikePattern(constantPattern) + '%'
+                                : '%' + EscapeLikePattern(constantPattern)))
+                    : _sqlExpressionFactory.Like(instance, _sqlExpressionFactory.Constant(null, stringTypeMapping));
             }
 
             // The pattern is non-constant, we use LEFT or RIGHT to extract substring and compare.
             // For StartsWith we also first run a LIKE to quickly filter out most non-matching results (sargable, but imprecise
             // because of wildchars).
-            if (startsWith)
-            {
-                return _sqlExpressionFactory.AndAlso(
+            SqlExpression leftRight = _sqlExpressionFactory.Function(
+                startsWith ? "LEFT" : "RIGHT",
+                new[]
+                {
+                    instance,
+                    _sqlExpressionFactory.Function("LENGTH", new[] { pattern }, typeof(int))
+                },
+                typeof(string),
+                stringTypeMapping);
+
+            // LEFT/RIGHT of a citext return a text, so for non-default text mappings we apply an explicit cast.
+            if (instance.TypeMapping != _textTypeMapping)
+                leftRight = _sqlExpressionFactory.Convert(leftRight, typeof(string), instance.TypeMapping);
+
+            // Also add an explicit cast on the pattern; this is only required because of
+            // The following is only needed because of https://github.com/aspnet/EntityFrameworkCore/issues/19120
+            var castPattern = pattern.TypeMapping == _textTypeMapping
+                ? pattern
+                : _sqlExpressionFactory.Convert(pattern, typeof(string), pattern.TypeMapping);
+
+            return startsWith
+                ? _sqlExpressionFactory.AndAlso(
                     _sqlExpressionFactory.Like(
                         instance,
                         _sqlExpressionFactory.Add(
-                            instance,
+                            pattern,
                             _sqlExpressionFactory.Constant("%"))),
-                    _sqlExpressionFactory.Equal(
-                        _sqlExpressionFactory.Function(
-                            "LEFT",
-                            new[] {
-                                instance,
-                                _sqlExpressionFactory.Function("LENGTH", new[] { pattern }, typeof(int))
-                            },
-                            typeof(string),
-                            stringTypeMapping),
-                        pattern));
-            }
-
-            return _sqlExpressionFactory.Equal(
-                _sqlExpressionFactory.Function(
-                    "RIGHT",
-                    new[] {
-                        instance,
-                        _sqlExpressionFactory.Function("LENGTH", new[] { pattern }, typeof(int))
-                    },
-                    typeof(string),
-                    stringTypeMapping),
-                pattern);
+                    _sqlExpressionFactory.Equal(leftRight, castPattern))
+                : _sqlExpressionFactory.Equal(leftRight, castPattern);
         }
 
         bool IsLikeWildChar(char c) => c == '%' || c == '_';

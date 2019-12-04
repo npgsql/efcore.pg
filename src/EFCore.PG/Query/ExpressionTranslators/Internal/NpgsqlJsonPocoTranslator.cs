@@ -47,7 +47,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     returnType);
             }
 
-            if (instance.RemoveConvert() is JsonTraversalExpression prevPathTraversal)
+            if (instance is JsonTraversalExpression prevPathTraversal)
             {
                 return ConvertFromText(
                     prevPathTraversal.Append(_sqlExpressionFactory.ApplyDefaultTypeMapping(member)),
@@ -67,7 +67,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     new[] { expression }, typeof(int));
             }
 
-            if (expression.RemoveConvert() is JsonTraversalExpression traversal)
+            if (expression is JsonTraversalExpression traversal)
             {
                 // The traversal expression has ReturnsText=true (e.g. ->> not ->), so we recreate it to return
                 // the JSON object instead.
@@ -90,7 +90,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         // The PostgreSQL traversal operator always returns text, so we need to convert to int, bool, etc.
         SqlExpression ConvertFromText(SqlExpression expression, Type returnType)
         {
-            switch (Type.GetTypeCode(returnType))
+            switch (Type.GetTypeCode(returnType.UnwrapNullableType()))
             {
             case TypeCode.Boolean:
             case TypeCode.Byte:
@@ -107,7 +107,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             case TypeCode.UInt64:
                 return _sqlExpressionFactory.Convert(expression, returnType, _sqlExpressionFactory.FindMapping(returnType));
             default:
-                return expression;
+                return (returnType == typeof(Guid))
+                    ? _sqlExpressionFactory.Convert(expression, returnType, _sqlExpressionFactory.FindMapping(returnType))
+                    : expression;
             }
         }
     }

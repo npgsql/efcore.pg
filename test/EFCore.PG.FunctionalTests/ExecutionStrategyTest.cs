@@ -107,15 +107,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
         [Fact]
         public Task Does_not_throw_or_retry_on_false_commit_failure_async()
-        {
-            return Test_commit_failure_async(false);
-        }
+            => Test_commit_failure_async(false);
 
         [Fact]
         public Task Retries_on_true_commit_failure_async()
-        {
-            return Test_commit_failure_async(true);
-        }
+            => Test_commit_failure_async(true);
 
         async Task Test_commit_failure_async(bool realFailure)
         {
@@ -209,15 +205,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
         [Fact]
         public void Does_not_throw_or_retry_on_false_commit_failure_multiple_SaveChanges()
-        {
-            Test_commit_failure_multiple_SaveChanges(false);
-        }
+            => Test_commit_failure_multiple_SaveChanges(false);
 
         [Fact]
         public void Retries_on_true_commit_failure_multiple_SaveChanges()
-        {
-            Test_commit_failure_multiple_SaveChanges(true);
-        }
+            => Test_commit_failure_multiple_SaveChanges(true);
 
         void Test_commit_failure_multiple_SaveChanges(bool realFailure)
         {
@@ -260,15 +252,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
         [Fact]
         public void Does_not_throw_or_retry_on_false_execution_failure()
-        {
-            Test_execution_failure(false);
-        }
+            => Test_execution_failure(false);
 
         [Fact]
         public void Retries_on_true_execution_failure()
-        {
-            Test_execution_failure(true);
-        }
+            => Test_execution_failure(true);
 
         void Test_execution_failure(bool realFailure)
         {
@@ -355,13 +343,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
         void CleanContext()
         {
-            using (var context = CreateContext())
+            using var context = CreateContext();
+            foreach (var product in context.Products.ToList())
             {
-                foreach (var product in context.Products.ToList())
-                {
-                    context.Remove(product);
-                    context.SaveChanges();
-                }
+                context.Remove(product);
+                context.SaveChanges();
             }
         }
 
@@ -375,12 +361,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             protected override Type ContextType { get; } = typeof(ExecutionStrategyContext);
 
             protected override IServiceCollection AddServices(IServiceCollection serviceCollection)
-            {
-                return base.AddServices(serviceCollection)
+                => base.AddServices(serviceCollection)
                     .AddSingleton<IRelationalTransactionFactory, TestRelationalTransactionFactory>()
                     .AddScoped<INpgsqlRelationalConnection, TestNpgsqlConnection>()
                     .AddSingleton<IRelationalCommandBuilderFactory, TestRelationalCommandBuilderFactory>();
-            }
 
             public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
             {

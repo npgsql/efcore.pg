@@ -115,11 +115,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     nameof(NpgsqlFullTextSearchLinqExtensions.And) => QueryReturningOnTwoQueries("&&"),
                     nameof(NpgsqlFullTextSearchLinqExtensions.Or)  => QueryReturningOnTwoQueries("||"),
 
-                    nameof(NpgsqlFullTextSearchLinqExtensions.ToNegative) => new SqlUnaryExpression(ExpressionType.Not, arguments[0], arguments[0].Type, arguments[0].TypeMapping),
+                    // TODO: Hack, see #1118
+                    nameof(NpgsqlFullTextSearchLinqExtensions.ToNegative)
+                        => new SqlUnaryExpression(ExpressionType.Negate, arguments[0], arguments[0].Type, arguments[0].TypeMapping),
+
                     nameof(NpgsqlFullTextSearchLinqExtensions.Contains) => BoolReturningOnTwoQueries("@>"),
                     nameof(NpgsqlFullTextSearchLinqExtensions.IsContainedIn) => BoolReturningOnTwoQueries("<@"),
 
-                    nameof(NpgsqlFullTextSearchLinqExtensions.Concat) => _sqlExpressionFactory.Add(arguments[0], arguments[1], _tsVectorMapping),
+                    nameof(NpgsqlFullTextSearchLinqExtensions.Concat)
+                        => _sqlExpressionFactory.Add(arguments[0], arguments[1], _tsVectorMapping),
 
                     nameof(NpgsqlFullTextSearchLinqExtensions.Matches) => new SqlCustomBinaryExpression(
                         _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[0]),

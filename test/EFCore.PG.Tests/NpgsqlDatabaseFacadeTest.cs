@@ -11,104 +11,95 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         [Fact]
         public void IsNpgsql_when_using_OnConfiguring()
         {
-            using (var context = new NpgsqlOnConfiguringContext())
-            {
-                Assert.True(context.Database.IsNpgsql());
-            }
+            using var context = new NpgsqlOnConfiguringContext();
+
+            Assert.True(context.Database.IsNpgsql());
         }
 
         [Fact]
         public void IsNpgsql_in_OnModelCreating_when_using_OnConfiguring()
         {
-            using (var context = new NpgsqlOnModelContext())
-            {
-                var _ = context.Model; // Trigger context initialization
-                Assert.True(context.IsNpgsqlSet);
-            }
+            using var context = new NpgsqlOnModelContext();
+            var _ = context.Model; // Trigger context initialization
+
+            Assert.True(context.IsNpgsqlSet);
         }
 
         [Fact]
         public void IsNpgsql_in_constructor_when_using_OnConfiguring()
         {
-            using (var context = new NpgsqlConstructorContext())
-            {
-                var _ = context.Model; // Trigger context initialization
-                Assert.True(context.IsNpgsqlSet);
-            }
+            using var context = new NpgsqlConstructorContext();
+            var _ = context.Model; // Trigger context initialization
+
+            Assert.True(context.IsNpgsqlSet);
         }
 
         [Fact]
         public void Cannot_use_IsNpgsql_in_OnConfiguring()
         {
-            using (var context = new NpgsqlUseInOnConfiguringContext())
-            {
-                Assert.Equal(
-                    CoreStrings.RecursiveOnConfiguring,
-                    Assert.Throws<InvalidOperationException>(
-                        () =>
-                        {
-                            var _ = context.Model; // Trigger context initialization
-                        }).Message);
-            }
+            using var context = new NpgsqlUseInOnConfiguringContext();
+
+            Assert.Equal(
+                CoreStrings.RecursiveOnConfiguring,
+                Assert.Throws<InvalidOperationException>(
+                    () =>
+                    {
+                        var _ = context.Model; // Trigger context initialization
+                    }).Message);
         }
 
         [Fact]
         public void IsNpgsql_when_using_constructor()
         {
-            using (var context = new ProviderContext(
-                new DbContextOptionsBuilder().UseNpgsql("Database=Maltesers").Options))
-            {
-                Assert.True(context.Database.IsNpgsql());
-            }
+            using var context = new ProviderContext(
+                new DbContextOptionsBuilder().UseNpgsql("Database=Maltesers").Options);
+
+            Assert.True(context.Database.IsNpgsql());
         }
 
         [Fact]
         public void IsNpgsql_in_OnModelCreating_when_using_constructor()
         {
-            using (var context = new ProviderOnModelContext(
-                new DbContextOptionsBuilder().UseNpgsql("Database=Maltesers").Options))
-            {
-                var _ = context.Model; // Trigger context initialization
-                Assert.True(context.IsNpgsqlSet);
-            }
+            using var context = new ProviderOnModelContext(
+                new DbContextOptionsBuilder().UseNpgsql("Database=Maltesers").Options);
+            var _ = context.Model; // Trigger context initialization
+
+            Assert.True(context.IsNpgsqlSet);
         }
 
         [Fact]
         public void IsNpgsql_in_constructor_when_using_constructor()
         {
-            using (var context = new ProviderConstructorContext(
-                new DbContextOptionsBuilder().UseNpgsql("Database=Maltesers").Options))
-            {
-                var _ = context.Model; // Trigger context initialization
-                Assert.True(context.IsNpgsqlSet);
-            }
+            using var context = new ProviderConstructorContext(
+                new DbContextOptionsBuilder().UseNpgsql("Database=Maltesers").Options);
+            var _ = context.Model; // Trigger context initialization
+
+            Assert.True(context.IsNpgsqlSet);
         }
 
         [Fact]
         public void Cannot_use_IsNpgsql_in_OnConfiguring_with_constructor()
         {
-            using (var context = new ProviderUseInOnConfiguringContext(
-                new DbContextOptionsBuilder().UseNpgsql("Database=Maltesers").Options))
-            {
-                Assert.Equal(
-                    CoreStrings.RecursiveOnConfiguring,
-                    Assert.Throws<InvalidOperationException>(
-                        () =>
-                        {
-                            var _ = context.Model; // Trigger context initialization
-                        }).Message);
-            }
+            using var context = new ProviderUseInOnConfiguringContext(
+                new DbContextOptionsBuilder().UseNpgsql("Database=Maltesers").Options);
+
+            Assert.Equal(
+                CoreStrings.RecursiveOnConfiguring,
+                Assert.Throws<InvalidOperationException>(
+                    () =>
+                    {
+                        var _ = context.Model; // Trigger context initialization
+                    }).Message);
         }
 
         /*
         [Fact]
         public void Not_IsNpgsql_when_using_different_provider()
         {
-            using (var context = new ProviderContext(
-                new DbContextOptionsBuilder().UseInMemoryDatabase("Maltesers").Options))
-            {
-                Assert.False(context.Database.IsNpgsql());
-            }
+            using var context = new ProviderContext(
+                new DbContextOptionsBuilder().UseInMemoryDatabase("Maltesers").Options);
+
+            Assert.False(context.Database.IsNpgsql());
         }*/
 
         class ProviderContext : DbContext

@@ -3,7 +3,6 @@ using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
@@ -17,30 +16,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         [Fact]
         public void Can_specify_connection_string_in_OnConfiguring()
         {
-            var serviceProvider
-                = new ServiceCollection()
-                    .AddDbContext<StringInOnConfiguringContext>()
-                    .BuildServiceProvider();
+            var serviceProvider = new ServiceCollection()
+                .AddDbContext<StringInOnConfiguringContext>()
+                .BuildServiceProvider();
 
-            using (NpgsqlTestStore.GetNorthwindStore())
-            {
-                using (var context = serviceProvider.GetRequiredService<StringInOnConfiguringContext>())
-                {
-                    Assert.True(context.Customers.Any());
-                }
-            }
+            using var _ = NpgsqlTestStore.GetNorthwindStore();
+            using var context = serviceProvider.GetRequiredService<StringInOnConfiguringContext>();
+
+            Assert.True(context.Customers.Any());
         }
 
         [Fact]
         public void Can_specify_connection_string_in_OnConfiguring_with_default_service_provider()
         {
-            using (NpgsqlTestStore.GetNorthwindStore())
-            {
-                using (var context = new StringInOnConfiguringContext())
-                {
-                    Assert.True(context.Customers.Any());
-                }
-            }
+            using var _ = NpgsqlTestStore.GetNorthwindStore();
+            using var context = new StringInOnConfiguringContext();
+
+            Assert.True(context.Customers.Any());
         }
 
         class StringInOnConfiguringContext : NorthwindContextBase
@@ -52,30 +44,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         [Fact]
         public void Can_specify_connection_in_OnConfiguring()
         {
-            var serviceProvider
-                = new ServiceCollection()
-                    .AddScoped(p => new NpgsqlConnection(NpgsqlTestStore.NorthwindConnectionString))
-                    .AddDbContext<ConnectionInOnConfiguringContext>().BuildServiceProvider();
+            var serviceProvider = new ServiceCollection()
+                .AddScoped(p => new NpgsqlConnection(NpgsqlTestStore.NorthwindConnectionString))
+                .AddDbContext<ConnectionInOnConfiguringContext>().BuildServiceProvider();
 
-            using (NpgsqlTestStore.GetNorthwindStore())
-            {
-                using (var context = serviceProvider.GetRequiredService<ConnectionInOnConfiguringContext>())
-                {
-                    Assert.True(context.Customers.Any());
-                }
-            }
+            using var _ = NpgsqlTestStore.GetNorthwindStore();
+            using var context = serviceProvider.GetRequiredService<ConnectionInOnConfiguringContext>();
+
+            Assert.True(context.Customers.Any());
         }
 
         [Fact]
         public void Can_specify_connection_in_OnConfiguring_with_default_service_provider()
         {
-            using (NpgsqlTestStore.GetNorthwindStore())
-            {
-                using (var context = new ConnectionInOnConfiguringContext(new NpgsqlConnection(NpgsqlTestStore.NorthwindConnectionString)))
-                {
-                    Assert.True(context.Customers.Any());
-                }
-            }
+            using var _ = NpgsqlTestStore.GetNorthwindStore();
+            using var context = new ConnectionInOnConfiguringContext(new NpgsqlConnection(NpgsqlTestStore.NorthwindConnectionString));
+
+            Assert.True(context.Customers.Any());
         }
 
         class ConnectionInOnConfiguringContext : NorthwindContextBase
@@ -105,31 +90,26 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         [Fact]
         public void Throws_if_no_connection_found_in_config_without_UseNpgsql()
         {
-            var serviceProvider
-                = new ServiceCollection()
-                    .AddDbContext<NoUseNpgsqlContext>().BuildServiceProvider();
+            var serviceProvider = new ServiceCollection()
+                .AddDbContext<NoUseNpgsqlContext>().BuildServiceProvider();
 
-            using (var context = serviceProvider.GetRequiredService<NoUseNpgsqlContext>())
-            {
-                Assert.Equal(
-                    CoreStrings.NoProviderConfigured,
-                    Assert.Throws<InvalidOperationException>(() => context.Customers.Any()).Message);
-            }
+            using var context = serviceProvider.GetRequiredService<NoUseNpgsqlContext>();
+
+            Assert.Equal(
+                CoreStrings.NoProviderConfigured,
+                Assert.Throws<InvalidOperationException>(() => context.Customers.Any()).Message);
         }
 
         [Fact]
         public void Throws_if_no_config_without_UseNpgsql()
         {
-            var serviceProvider
-                = new ServiceCollection()
-                    .AddDbContext<NoUseNpgsqlContext>().BuildServiceProvider();
+            var serviceProvider = new ServiceCollection()
+                .AddDbContext<NoUseNpgsqlContext>().BuildServiceProvider();
+            using var context = serviceProvider.GetRequiredService<NoUseNpgsqlContext>();
 
-            using (var context = serviceProvider.GetRequiredService<NoUseNpgsqlContext>())
-            {
-                Assert.Equal(
-                    CoreStrings.NoProviderConfigured,
-                    Assert.Throws<InvalidOperationException>(() => context.Customers.Any()).Message);
-            }
+            Assert.Equal(
+                CoreStrings.NoProviderConfigured,
+                Assert.Throws<InvalidOperationException>(() => context.Customers.Any()).Message);
         }
 
         // ReSharper disable once ClassNeverInstantiated.Local
@@ -140,33 +120,26 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         [Fact]
         public void Can_depend_on_DbContextOptions()
         {
-            var serviceProvider
-                = new ServiceCollection()
-                    .AddScoped(p => new NpgsqlConnection(NpgsqlTestStore.NorthwindConnectionString))
-                    .AddDbContext<OptionsContext>()
-                    .BuildServiceProvider();
+            var serviceProvider = new ServiceCollection()
+                .AddScoped(p => new NpgsqlConnection(NpgsqlTestStore.NorthwindConnectionString))
+                .AddDbContext<OptionsContext>()
+                .BuildServiceProvider();
 
-            using (NpgsqlTestStore.GetNorthwindStore())
-            {
-                using (var context = serviceProvider.GetRequiredService<OptionsContext>())
-                {
-                    Assert.True(context.Customers.Any());
-                }
-            }
+            using var _ = NpgsqlTestStore.GetNorthwindStore();
+            using var context = serviceProvider.GetRequiredService<OptionsContext>();
+
+            Assert.True(context.Customers.Any());
         }
 
         [Fact]
         public void Can_depend_on_DbContextOptions_with_default_service_provider()
         {
-            using (NpgsqlTestStore.GetNorthwindStore())
-            {
-                using (var context = new OptionsContext(
-                    new DbContextOptions<OptionsContext>(),
-                    new NpgsqlConnection(NpgsqlTestStore.NorthwindConnectionString)))
-                {
-                    Assert.True(context.Customers.Any());
-                }
-            }
+            using var _ = NpgsqlTestStore.GetNorthwindStore();
+            using var context = new OptionsContext(
+                new DbContextOptions<OptionsContext>(),
+                new NpgsqlConnection(NpgsqlTestStore.NorthwindConnectionString));
+
+            Assert.True(context.Customers.Any());
         }
 
         class OptionsContext : NorthwindContextBase
@@ -200,30 +173,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         [Fact]
         public void Can_depend_on_non_generic_options_when_only_one_context()
         {
-            var serviceProvider
-                = new ServiceCollection()
-                    .AddDbContext<NonGenericOptionsContext>()
-                    .BuildServiceProvider();
+            var serviceProvider = new ServiceCollection()
+                .AddDbContext<NonGenericOptionsContext>()
+                .BuildServiceProvider();
 
-            using (NpgsqlTestStore.GetNorthwindStore())
-            {
-                using (var context = serviceProvider.GetRequiredService<NonGenericOptionsContext>())
-                {
-                    Assert.True(context.Customers.Any());
-                }
-            }
+            using var _ = NpgsqlTestStore.GetNorthwindStore();
+            using var context = serviceProvider.GetRequiredService<NonGenericOptionsContext>();
+
+            Assert.True(context.Customers.Any());
         }
 
         [Fact]
         public void Can_depend_on_non_generic_options_when_only_one_context_with_default_service_provider()
         {
-            using (NpgsqlTestStore.GetNorthwindStore())
-            {
-                using (var context = new NonGenericOptionsContext(new DbContextOptions<DbContext>()))
-                {
-                    Assert.True(context.Customers.Any());
-                }
-            }
+            using var _ = NpgsqlTestStore.GetNorthwindStore();
+            using var context = new NonGenericOptionsContext(new DbContextOptions<DbContext>());
+
+            Assert.True(context.Customers.Any());
         }
 
         class NonGenericOptionsContext : NorthwindContextBase
@@ -282,22 +248,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         [Fact]
         public void Can_specify_connection_in_OnConfiguring_and_create_master_connection()
         {
-            using (var conn = new NpgsqlConnection(NpgsqlTestStore.NorthwindConnectionString))
-            {
-                conn.Open();
+            using var conn = new NpgsqlConnection(NpgsqlTestStore.NorthwindConnectionString);
 
-                using (NpgsqlTestStore.GetNorthwindStore())
-                {
-                    using (var context = new ConnectionInOnConfiguringContext(conn))
-                    {
-                        var relationalConn = context.GetService<INpgsqlRelationalConnection>();
-                        using (var masterConn = relationalConn.CreateMasterConnection())
-                        {
-                            masterConn.Open();
-                        }
-                    }
-                }
-            }
+            conn.Open();
+
+            using var _ = NpgsqlTestStore.GetNorthwindStore();
+            using var context = new ConnectionInOnConfiguringContext(conn);
+            var relationalConn = context.GetService<INpgsqlRelationalConnection>();
+            using var masterConn = relationalConn.CreateMasterConnection();
+
+            masterConn.Open();
         }
 
         #endregion
