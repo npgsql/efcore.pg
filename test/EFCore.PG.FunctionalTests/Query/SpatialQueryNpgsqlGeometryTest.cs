@@ -1,7 +1,10 @@
-using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.TestModels.SpatialModel;
+using Microsoft.EntityFrameworkCore.TestUtilities;
+using System.Linq;
+using System.Threading.Tasks;
+using Xunit;
 using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
@@ -536,6 +539,34 @@ FROM ""LineStringEntity"" AS l");
 //
 //SELECT p.""Id"", ST_Touches(p.""Polygon"", @__polygon_0) AS ""Touches""
 //FROM ""PolygonEntity"" AS p");
+        }
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public virtual async Task Transform(bool isAsync)
+        {
+            await AssertQuery(
+                isAsync,
+                ss => ss.Set<PolygonEntity>().Select(e => new { e.Id, Transform = e.Polygon == null ? null : EF.Functions.Transform(e.Polygon, e.Polygon.SRID) }),
+                elementSorter: x => x.Id,
+                elementAsserter: (e, a) =>
+                {
+                    Assert.Equal(e.Id, a.Id);
+                    Assert.Equal(e.Transform?.Centroid, a.Transform?.Centroid, GeometryComparer.Instance);
+
+                    if (e.Transform == null)
+                    {
+                        Assert.Null(a.Transform);
+                    }
+                    else if (AssertDistances)
+                    {
+                        Assert.Equal(e.Transform.Area, a.Transform.Area, precision: 0);
+                    }
+                });
+
+            AssertSql(
+                @"SELECT p.""Id"", ST_Transform(p.""Polygon"", ST_SRID(p.""Polygon"")) AS ""Transform""
+FROM ""PolygonEntity"" AS p");
         }
 
         public override async Task Union(bool isAsync)
