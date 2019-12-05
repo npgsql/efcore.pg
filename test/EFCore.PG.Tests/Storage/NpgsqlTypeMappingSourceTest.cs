@@ -6,6 +6,7 @@ using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using NpgsqlTypes;
 using Xunit;
 
@@ -16,6 +17,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         [Theory]
         [InlineData("integer", typeof(int))]
         [InlineData("integer[]", typeof(int[]))]
+        [InlineData("timestamp with time zone", typeof(DateTime))]
         [InlineData("dummy", typeof(DummyType))]
         [InlineData("int4range", typeof(NpgsqlRange<int>))]
         [InlineData("floatrange", typeof(NpgsqlRange<float>))]
@@ -24,7 +26,55 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         [InlineData("geometry(Polygon)", typeof(Polygon))]
         [InlineData("geography(Point, 4326)", typeof(Point))]
         public void By_StoreType(string storeType, Type expectedClrType)
-            => Assert.Same(expectedClrType, Source.FindMapping(storeType).ClrType);
+        {
+            var mapping = Source.FindMapping(storeType);
+            Assert.Same(expectedClrType, mapping.ClrType);
+            Assert.Null(mapping.Size);
+        }
+
+        [Fact]
+        public void Varchar32()
+        {
+            var mapping = Source.FindMapping("varchar(32)");
+            Assert.Same(typeof(string), mapping.ClrType);
+            Assert.Equal("varchar(32)", mapping.StoreType);
+            Assert.Equal(32, mapping.Size);
+        }
+
+        [Fact]
+        public void Varchar32_Array()
+        {
+            var arrayMapping = Assert.IsType<NpgsqlArrayTypeMapping>(Source.FindMapping("varchar(32)[]"));
+            Assert.Same(typeof(string[]), arrayMapping.ClrType);
+            Assert.Equal("varchar(32)[]", arrayMapping.StoreType);
+            Assert.Null(arrayMapping.Size);
+
+            var elementMapping = arrayMapping.ElementMapping;
+            Assert.Same(typeof(string), elementMapping.ClrType);
+            Assert.Equal("varchar(32)", elementMapping.StoreType);
+            Assert.Equal(32, elementMapping.Size);
+        }
+
+        [Fact]
+        public void Timestamp_without_time_zone_5()
+        {
+            var mapping = Source.FindMapping("timestamp(5) without time zone");
+            Assert.Same(typeof(DateTime), mapping.ClrType);
+            Assert.Equal("timestamp(5) without time zone", mapping.StoreType);
+            // Precision/Scale not actually exposed on RelationalTypeMapping...
+        }
+
+        [Fact]
+        public void Timestamp_without_time_zone_Array_5()
+        {
+            var arrayMapping = Assert.IsType<NpgsqlArrayTypeMapping>(Source.FindMapping("timestamp(5) without time zone[]"));
+            Assert.Same(typeof(DateTime[]), arrayMapping.ClrType);
+            Assert.Equal("timestamp(5) without time zone[]", arrayMapping.StoreType);
+
+            var elementMapping = arrayMapping.ElementMapping;
+            Assert.Same(typeof(DateTime), elementMapping.ClrType);
+            Assert.Equal("timestamp(5) without time zone", elementMapping.StoreType);
+        }
 
         [Theory]
         [InlineData(typeof(int), "integer")]
