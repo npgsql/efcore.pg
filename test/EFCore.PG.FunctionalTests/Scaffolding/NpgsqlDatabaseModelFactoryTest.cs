@@ -707,7 +707,9 @@ CREATE TABLE ""LengthColumns"" (
     ""char10Column"" char(10) NULL,
     ""varchar66Column"" varchar(66) NULL,
     ""bit111Column"" bit(111) NULL,
-    ""varbit123Column"" varbit(123) NULL
+    ""varbit123Column"" varbit(123) NULL,
+    ""varchar66ArrayColumn"" varchar(66)[] NULL,
+    ""varbit123ArrayColumn"" varbit(123)[] NULL
 )",
                 Enumerable.Empty<string>(),
                 Enumerable.Empty<string>(),
@@ -719,6 +721,8 @@ CREATE TABLE ""LengthColumns"" (
                     Assert.Equal("character varying(66)", columns.Single(c => c.Name == "varchar66Column").StoreType);
                     Assert.Equal("bit(111)", columns.Single(c => c.Name == "bit111Column").StoreType);
                     Assert.Equal("bit varying(123)", columns.Single(c => c.Name == "varbit123Column").StoreType);
+                    Assert.Equal("character varying(66)[]", columns.Single(c => c.Name == "varchar66ArrayColumn").StoreType);
+                    Assert.Equal("bit varying(123)[]", columns.Single(c => c.Name == "varbit123ArrayColumn").StoreType);
                 },
                 @"DROP TABLE ""LengthColumns""");
 
