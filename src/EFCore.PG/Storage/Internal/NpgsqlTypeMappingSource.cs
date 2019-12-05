@@ -400,16 +400,25 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         {
             // PostgreSQL array type names are the element plus []
             var storeType = mappingInfo.StoreTypeName;
+            var storeTypeNameBase = mappingInfo.StoreTypeNameBase;
             if (storeType != null)
             {
                 if (!storeType.EndsWith("[]"))
                     return null;
 
+                // Construct a RelationalTypeMappingInfo for the element type and look that up
                 // Note that we scaffold PostgreSQL arrays to C# arrays, not lists (which are also supported)
-
                 // TODO: In theory support the multiple mappings just like we do with scalars above
                 // (e.g. DateTimeOffset[] vs. DateTime[]
-                var elementMapping = FindMapping(storeType.Substring(0, storeType.Length - 2));
+
+                var elementMapping = FindMapping(new RelationalTypeMappingInfo(
+                    storeType.Substring(0, storeType.Length - 2),
+                    storeTypeNameBase.Substring(0, storeTypeNameBase.Length - 2),
+                    mappingInfo.IsUnicode,
+                    mappingInfo.Size,
+                    mappingInfo.Precision,
+                    mappingInfo.Scale));
+
                 if (elementMapping != null)
                     return StoreTypeMappings.GetOrAdd(storeType,
                         new RelationalTypeMapping[] { new NpgsqlArrayTypeMapping(storeType, elementMapping) })[0];
@@ -513,6 +522,61 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             ClrTypeMappings[rangeMapping.ClrType] = rangeMapping;
 
             return rangeMapping;
+        }
+
+        // We override to support parsing array store names (e.g. varchar(32)[]), timestamp(5) with time zone, etc.
+        protected override string ParseStoreTypeName(
+            string storeTypeName,
+            out bool? unicode,
+            out int? size,
+            out int? precision,
+            out int? scale)
+        {
+            unicode = null;
+            size = null;
+            precision = null;
+            scale = null;
+
+            if (storeTypeName != null)
+            {
+                var openParen = storeTypeName.IndexOf("(", StringComparison.Ordinal);
+                if (openParen > 0)
+                {
+                    var closeParen = storeTypeName.IndexOf(")", openParen + 1, StringComparison.Ordinal);
+                    if (closeParen > openParen)
+                    {
+                        var comma = storeTypeName.IndexOf(",", openParen + 1, StringComparison.Ordinal);
+                        if (comma > openParen
+                            && comma < closeParen)
+                        {
+                            if (int.TryParse(storeTypeName.Substring(openParen + 1, comma - openParen - 1), out var parsedPrecision))
+                            {
+                                precision = parsedPrecision;
+                            }
+
+                            if (int.TryParse(storeTypeName.Substring(comma + 1, closeParen - comma - 1), out var parsedScale))
+                            {
+                                scale = parsedScale;
+                            }
+                        }
+                        else if (int.TryParse(
+                            storeTypeName.Substring(openParen + 1, closeParen - openParen - 1).Trim(), out var parsedSize))
+                        {
+                            size = parsedSize;
+                            precision = parsedSize;
+                        }
+
+                        // There may be stuff after the closing parentheses (e.g. varchar(32)[])
+                        var preParens = storeTypeName.Substring(0, openParen).Trim();
+                        var postParens = storeTypeName.Substring(closeParen + 1).TrimEnd();
+                        return postParens.Length > 0
+                            ? preParens + postParens
+                            : preParens;
+                    }
+                }
+            }
+
+            return storeTypeName;
         }
     }
 }
