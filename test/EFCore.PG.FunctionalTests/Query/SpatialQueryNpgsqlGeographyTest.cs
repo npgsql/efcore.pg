@@ -172,34 +172,6 @@ FROM ""PointEntity"" AS p");
 //FROM ""PointEntity"" AS p");
         }
 
-        [ConditionalTheory]
-        [MemberData(nameof(IsAsyncData))]
-        public virtual async Task Transform(bool isAsync)
-        {
-            await AssertQuery(
-                isAsync,
-                ss => ss.Set<PolygonEntity>().Select(e => new { e.Id, Transform = e.Polygon == null ? null : EF.Functions.Transform(e.Polygon, e.Polygon.SRID) }),
-                elementSorter: x => x.Id,
-                elementAsserter: (e, a) =>
-                {
-                    Assert.Equal(e.Id, a.Id);
-                    Assert.Equal(e.Transform?.Centroid, a.Transform?.Centroid, GeometryComparer.Instance);
-
-                    if (e.Transform == null)
-                    {
-                        Assert.Null(a.Transform);
-                    }
-                    else if (AssertDistances)
-                    {
-                        Assert.Equal(e.Transform.Area, a.Transform.Area, precision: 0);
-                    }
-                });
-
-            AssertSql(
-                @"SELECT p.""Id"", ST_Transform(p.""Polygon"", ST_SRID(p.""Polygon"")) AS ""Transform""
-FROM ""PolygonEntity"" AS p");
-        }
-
         #region Not supported on geography
 
         public override Task Boundary(bool isAsync)                  => Task.CompletedTask;
@@ -238,6 +210,12 @@ FROM ""PolygonEntity"" AS p");
         public override Task StartPoint(bool isAsync)                => Task.CompletedTask;
         public override Task SymmetricDifference(bool isAsync)       => Task.CompletedTask;
         public override Task Touches(bool isAsync)                   => Task.CompletedTask;
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "xUnit1026:Theory methods should use all of their parameters")]
+        public virtual Task Transform(bool isAsync)                  => Task.CompletedTask;
+
         public override Task Union(bool isAsync)                     => Task.CompletedTask;
         public override Task Union_void(bool isAsync)                => Task.CompletedTask;
         public override Task Within(bool isAsync)                    => Task.CompletedTask;

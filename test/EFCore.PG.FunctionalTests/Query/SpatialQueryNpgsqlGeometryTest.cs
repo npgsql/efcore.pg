@@ -547,7 +547,7 @@ FROM ""LineStringEntity"" AS l");
         {
             await AssertQuery(
                 isAsync,
-                ss => ss.Set<PolygonEntity>().Select(e => new { e.Id, Transform = e.Polygon == null ? null : EF.Functions.Transform(e.Polygon, e.Polygon.SRID) }),
+                ss => ss.Set<PolygonEntity>().Select(e => new { e.Id, Transform = e.Polygon == null ? null : e.Polygon.SRID == 0 ? e.Polygon : EF.Functions.Transform(e.Polygon, e.Polygon.SRID) }),
                 elementSorter: x => x.Id,
                 elementAsserter: (e, a) =>
                 {
