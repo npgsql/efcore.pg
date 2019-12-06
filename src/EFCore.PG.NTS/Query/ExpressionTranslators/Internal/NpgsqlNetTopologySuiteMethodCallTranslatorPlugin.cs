@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -20,6 +21,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             => Translators = new IMethodCallTranslator[]
             {
                 new NpgsqlGeometryMethodTranslator(sqlExpressionFactory, typeMappingSource),
+                new NpgsqlGeometryFunctionTranslator(sqlExpressionFactory),
             };
 
         public virtual IEnumerable<IMethodCallTranslator> Translators { get; }
@@ -74,37 +76,36 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
             return method.Name switch
             {
-            nameof(Geometry.AsBinary)                                     => _sqlExpressionFactory.Function("ST_AsBinary",       new[] { instance }, typeof(byte[])),
-            nameof(Geometry.AsText)                                       => _sqlExpressionFactory.Function("ST_AsText",         new[] { instance }, typeof(string)),
-            nameof(Geometry.Buffer)                                       => _sqlExpressionFactory.Function("ST_Buffer",         new[] { instance }.Concat(arguments), typeof(Geometry), resultGeometryTypeMapping),
-            nameof(Geometry.Contains)                                     => _sqlExpressionFactory.Function("ST_Contains",       new[] { instance, arguments[0] }, typeof(bool)),
-            nameof(Geometry.ConvexHull)                                   => _sqlExpressionFactory.Function("ST_ConvexHull",     new[] { instance }, typeof(Geometry), resultGeometryTypeMapping),
-            nameof(Geometry.CoveredBy)                                    => _sqlExpressionFactory.Function("ST_CoveredBy",      new[] { instance, arguments[0] }, typeof(bool)),
-            nameof(Geometry.Covers)                                       => _sqlExpressionFactory.Function("ST_Covers",         new[] { instance, arguments[0] }, typeof(bool)),
-            nameof(Geometry.Crosses)                                      => _sqlExpressionFactory.Function("ST_Crosses",        new[] { instance, arguments[0] }, typeof(bool)),
-            nameof(Geometry.Disjoint)                                     => _sqlExpressionFactory.Function("ST_Disjoint",       new[] { instance, arguments[0] }, typeof(bool)),
-            nameof(Geometry.Difference)                                   => _sqlExpressionFactory.Function("ST_Difference",     new[] { instance, arguments[0] }, typeof(Geometry), resultGeometryTypeMapping),
-            nameof(Geometry.Distance)                                     => _sqlExpressionFactory.Function("ST_Distance",       new[] { instance, arguments[0] }, typeof(double)),
-            nameof(Geometry.EqualsExact)                                  => _sqlExpressionFactory.Function("ST_OrderingEquals", new[] { instance, arguments[0] }, typeof(bool)),
-            nameof(Geometry.EqualsTopologically)                          => _sqlExpressionFactory.Function("ST_Equals",         new[] { instance, arguments[0] }, typeof(bool)),
-            nameof(Geometry.GetGeometryN)                                 => _sqlExpressionFactory.Function("ST_GeometryN",      new[] { instance, OneBased(arguments[0]) }, typeof(Geometry), resultGeometryTypeMapping),
-            nameof(Polygon.GetInteriorRingN)                              => _sqlExpressionFactory.Function("ST_InteriorRingN",  new[] { instance, OneBased(arguments[0]) }, typeof(Geometry), resultGeometryTypeMapping),
-            nameof(LineString.GetPointN)                                  => _sqlExpressionFactory.Function("ST_PointN",         new[] { instance, OneBased(arguments[0]) }, typeof(Geometry), resultGeometryTypeMapping),
-            nameof(Geometry.Intersection)                                 => _sqlExpressionFactory.Function("ST_Intersection",   new[] { instance, arguments[0] }, typeof(Geometry), resultGeometryTypeMapping),
-            nameof(Geometry.Intersects)                                   => _sqlExpressionFactory.Function("ST_Intersects",     new[] { instance, arguments[0] }, typeof(bool)),
-            nameof(Geometry.IsWithinDistance)                             => _sqlExpressionFactory.Function("ST_DWithin",        new[] { instance, arguments[0], arguments[1] }, typeof(bool)),
-            nameof(Geometry.Overlaps)                                     => _sqlExpressionFactory.Function("ST_Overlaps",       new[] { instance, arguments[0] }, typeof(bool)),
-            nameof(Geometry.Relate)                                       => _sqlExpressionFactory.Function("ST_Relate",         new[] { instance, arguments[0], arguments[1] }, typeof(bool)),
-            nameof(Geometry.Reverse)                                      => _sqlExpressionFactory.Function("ST_Reverse",        new[] { instance }, typeof(Geometry), resultGeometryTypeMapping),
-            nameof(Geometry.SymmetricDifference)                          => _sqlExpressionFactory.Function("ST_SymDifference",  new[] { instance, arguments[0] }, typeof(Geometry), resultGeometryTypeMapping),
-            nameof(Geometry.ToBinary)                                     => _sqlExpressionFactory.Function("ST_AsBinary",       new[] { instance }, typeof(byte[])),
-            nameof(Geometry.ToText)                                       => _sqlExpressionFactory.Function("ST_AsText",         new[] { instance }, typeof(string)),
-            nameof(Geometry.Touches)                                      => _sqlExpressionFactory.Function("ST_Touches",        new[] { instance, arguments[0] }, typeof(bool)),
-            nameof(NpgsqlNetTopologySuiteDbFunctionsExtensions.Transform) => _sqlExpressionFactory.Function("ST_Transform",      new[] { instance }.Concat(arguments), typeof(Geometry), resultGeometryTypeMapping),
-            nameof(Geometry.Within)                                       => _sqlExpressionFactory.Function("ST_Within",         new[] { instance, arguments[0] }, typeof(bool)),
+            nameof(Geometry.AsBinary)            => _sqlExpressionFactory.Function("ST_AsBinary",       new[] { instance }, typeof(byte[])),
+            nameof(Geometry.AsText)              => _sqlExpressionFactory.Function("ST_AsText",         new[] { instance }, typeof(string)),
+            nameof(Geometry.Buffer)              => _sqlExpressionFactory.Function("ST_Buffer",         new[] { instance }.Concat(arguments), typeof(Geometry), resultGeometryTypeMapping),
+            nameof(Geometry.Contains)            => _sqlExpressionFactory.Function("ST_Contains",       new[] { instance, arguments[0] }, typeof(bool)),
+            nameof(Geometry.ConvexHull)          => _sqlExpressionFactory.Function("ST_ConvexHull",     new[] { instance }, typeof(Geometry), resultGeometryTypeMapping),
+            nameof(Geometry.CoveredBy)           => _sqlExpressionFactory.Function("ST_CoveredBy",      new[] { instance, arguments[0] }, typeof(bool)),
+            nameof(Geometry.Covers)              => _sqlExpressionFactory.Function("ST_Covers",         new[] { instance, arguments[0] }, typeof(bool)),
+            nameof(Geometry.Crosses)             => _sqlExpressionFactory.Function("ST_Crosses",        new[] { instance, arguments[0] }, typeof(bool)),
+            nameof(Geometry.Disjoint)            => _sqlExpressionFactory.Function("ST_Disjoint",       new[] { instance, arguments[0] }, typeof(bool)),
+            nameof(Geometry.Difference)          => _sqlExpressionFactory.Function("ST_Difference",     new[] { instance, arguments[0] }, typeof(Geometry), resultGeometryTypeMapping),
+            nameof(Geometry.Distance)            => _sqlExpressionFactory.Function("ST_Distance",       new[] { instance, arguments[0] }, typeof(double)),
+            nameof(Geometry.EqualsExact)         => _sqlExpressionFactory.Function("ST_OrderingEquals", new[] { instance, arguments[0] }, typeof(bool)),
+            nameof(Geometry.EqualsTopologically) => _sqlExpressionFactory.Function("ST_Equals",         new[] { instance, arguments[0] }, typeof(bool)),
+            nameof(Geometry.GetGeometryN)        => _sqlExpressionFactory.Function("ST_GeometryN",      new[] { instance, OneBased(arguments[0]) }, typeof(Geometry), resultGeometryTypeMapping),
+            nameof(Polygon.GetInteriorRingN)     => _sqlExpressionFactory.Function("ST_InteriorRingN",  new[] { instance, OneBased(arguments[0]) }, typeof(Geometry), resultGeometryTypeMapping),
+            nameof(LineString.GetPointN)         => _sqlExpressionFactory.Function("ST_PointN",         new[] { instance, OneBased(arguments[0]) }, typeof(Geometry), resultGeometryTypeMapping),
+            nameof(Geometry.Intersection)        => _sqlExpressionFactory.Function("ST_Intersection",   new[] { instance, arguments[0] }, typeof(Geometry), resultGeometryTypeMapping),
+            nameof(Geometry.Intersects)          => _sqlExpressionFactory.Function("ST_Intersects",     new[] { instance, arguments[0] }, typeof(bool)),
+            nameof(Geometry.IsWithinDistance)    => _sqlExpressionFactory.Function("ST_DWithin",        new[] { instance, arguments[0], arguments[1] }, typeof(bool)),
+            nameof(Geometry.Overlaps)            => _sqlExpressionFactory.Function("ST_Overlaps",       new[] { instance, arguments[0] }, typeof(bool)),
+            nameof(Geometry.Relate)              => _sqlExpressionFactory.Function("ST_Relate",         new[] { instance, arguments[0], arguments[1] }, typeof(bool)),
+            nameof(Geometry.Reverse)             => _sqlExpressionFactory.Function("ST_Reverse",        new[] { instance }, typeof(Geometry), resultGeometryTypeMapping),
+            nameof(Geometry.SymmetricDifference) => _sqlExpressionFactory.Function("ST_SymDifference",  new[] { instance, arguments[0] }, typeof(Geometry), resultGeometryTypeMapping),
+            nameof(Geometry.ToBinary)            => _sqlExpressionFactory.Function("ST_AsBinary",       new[] { instance }, typeof(byte[])),
+            nameof(Geometry.ToText)              => _sqlExpressionFactory.Function("ST_AsText",         new[] { instance }, typeof(string)),
+            nameof(Geometry.Touches)             => _sqlExpressionFactory.Function("ST_Touches",        new[] { instance, arguments[0] }, typeof(bool)),
+            nameof(Geometry.Within)              => _sqlExpressionFactory.Function("ST_Within",         new[] { instance, arguments[0] }, typeof(bool)),
 
-            nameof(Geometry.Union) when arguments.Count == 0              => _sqlExpressionFactory.Function("ST_UnaryUnion", new[] { instance }, typeof(Geometry), resultGeometryTypeMapping),
-            nameof(Geometry.Union) when arguments.Count == 1              => _sqlExpressionFactory.Function("ST_Union",      new[] { instance, arguments[0] }, typeof(Geometry), resultGeometryTypeMapping),
+            nameof(Geometry.Union) when arguments.Count == 0 => _sqlExpressionFactory.Function("ST_UnaryUnion", new[] { instance }, typeof(Geometry), resultGeometryTypeMapping),
+            nameof(Geometry.Union) when arguments.Count == 1 => _sqlExpressionFactory.Function("ST_Union",      new[] { instance, arguments[0] }, typeof(Geometry), resultGeometryTypeMapping),
 
             _ => method.OnInterface(typeof(GeometryCollection)) is MethodInfo collectionMethod && collectionMethod == null
                  ? _sqlExpressionFactory.Function("ST_GeometryN", new[] { instance, OneBased(arguments[0]) }, typeof(Geometry), resultGeometryTypeMapping)
@@ -117,5 +118,38 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     ? _sqlExpressionFactory.Constant((int)constant.Value + 1, constant.TypeMapping)
                     : (SqlExpression)_sqlExpressionFactory.Add(arg, _sqlExpressionFactory.Constant(1));
         }
+    }
+
+    /// <summary>
+    /// Translates functions operating on types implementing the <see cref="IGeometry"/> interface.
+    /// </summary>
+    public class NpgsqlGeometryFunctionTranslator : IMethodCallTranslator
+    {
+        static readonly Dictionary<MethodInfo, string> Functions = new Dictionary<MethodInfo, string>
+        {
+            [GetRuntimeMethod(nameof(NpgsqlNetTopologySuiteDbFunctionsExtensions.Transform), new[] { typeof(DbFunctions), typeof(Geometry), typeof(int) })] = "ST_Transform",
+        };
+
+        static MethodInfo GetRuntimeMethod(string name, params Type[] parameters)
+            => typeof(NpgsqlNetTopologySuiteDbFunctionsExtensions).GetRuntimeMethod(name, parameters);
+
+        readonly ISqlExpressionFactory _sqlExpressionFactory;
+
+        public NpgsqlGeometryFunctionTranslator(ISqlExpressionFactory sqlExpressionFactory)
+        {
+            _sqlExpressionFactory = sqlExpressionFactory;
+        }
+
+#pragma warning disable EF1001
+        /// <inheritdoc />
+        [CanBeNull]
+        public virtual SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
+        {
+            if (Functions.TryGetValue(method, out var function))
+                return _sqlExpressionFactory.Function(function, arguments.Skip(1), method.ReturnType);
+
+            return null;
+        }
+#pragma warning restore EF1001
     }
 }
