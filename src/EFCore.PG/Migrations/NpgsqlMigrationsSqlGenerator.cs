@@ -389,7 +389,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                             .AppendLine($"ALTER SEQUENCE {sequence} RENAME TO {oldSequenceWithoutSchema};")
                             .AppendLine($"ALTER TABLE {table} ALTER COLUMN {column} DROP DEFAULT;")
                             .AppendLine($"ALTER TABLE {table} ALTER COLUMN {column} ADD GENERATED {identityTypeClause} AS IDENTITY;")
-                            .AppendLine($"PERFORM setval('{sequence}', nextval('{oldSequence}'), false);")
+                            .AppendLine($"SELECT * FROM setval('{sequence}', nextval('{oldSequence}'), false);")
                             .AppendLine($"DROP SEQUENCE {oldSequence};");
                         break;
                     default:
