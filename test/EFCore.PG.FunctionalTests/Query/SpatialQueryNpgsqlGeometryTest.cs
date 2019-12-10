@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.TestModels.SpatialModel;
+using Microsoft.EntityFrameworkCore.TestUtilities;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
@@ -546,21 +547,17 @@ FROM ""LineStringEntity"" AS l");
         {
             await AssertQuery(
                 isAsync,
-                ss => ss.Set<PolygonEntity>().Select(e => new { e.Id, Transform = e.Polygon == null ? null : EF.Functions.Transform(e.Polygon, 4326) }),
+                ss => ss.Set<PointEntity>().Select(e => new { e.Id, Transform = e.Point == null ? null : EF.Functions.Transform(e.Point, e.Point.SRID) }),
                 elementSorter: x => x.Id,
                 elementAsserter: (e, a) =>
                 {
                     Assert.Equal(e.Id, a.Id);
-
-                    if (e.Transform == null)
-                    {
-                        Assert.Null(a.Transform);
-                    }
+                    Assert.Equal(e.Transform, a.Transform, GeometryComparer.Instance);
                 });
 
             AssertSql(
-                @"SELECT p.""Id"", ST_Transform(p.""Polygon"", 4326) AS ""Transform""
-FROM ""PolygonEntity"" AS p");
+                @"SELECT p.""Id"", ST_Transform(p.""Point"", ST_SRID(p.""Point"")) AS ""Transform""
+FROM ""PointEntity"" AS p");
         }
 
         public override async Task Union(bool isAsync)
