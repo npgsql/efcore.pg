@@ -140,7 +140,7 @@ LIMIT 2");
             AssertSql(
                 @"SELECT s.""Id"", s.""SomeArray"", s.""SomeBytea"", s.""SomeList"", s.""SomeMatrix"", s.""SomeText""
 FROM ""SomeEntities"" AS s
-WHERE COALESCE(3 = ANY (s.""SomeArray""), FALSE)
+WHERE 3 = ANY (s.""SomeArray"")
 LIMIT 2");
         }
 
@@ -158,7 +158,7 @@ LIMIT 2");
 
 SELECT s.""Id"", s.""SomeArray"", s.""SomeBytea"", s.""SomeList"", s.""SomeMatrix"", s.""SomeText""
 FROM ""SomeEntities"" AS s
-WHERE COALESCE(@__p_0 = ANY (s.""SomeArray""), FALSE)
+WHERE @__p_0 = ANY (s.""SomeArray"")
 LIMIT 2");
         }
 
@@ -172,7 +172,7 @@ LIMIT 2");
             AssertSql(
                 @"SELECT s.""Id"", s.""SomeArray"", s.""SomeBytea"", s.""SomeList"", s.""SomeMatrix"", s.""SomeText""
 FROM ""SomeEntities"" AS s
-WHERE COALESCE(s.""Id"" + 2 = ANY (s.""SomeArray""), FALSE)
+WHERE s.""Id"" + 2 = ANY (s.""SomeArray"")
 LIMIT 2");
         }
 
