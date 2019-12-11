@@ -1,7 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestModels.NullSemanticsModel;
 using Microsoft.EntityFrameworkCore.Query;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
+using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
@@ -11,6 +13,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         public NullSemanticsQueryNpgsqlTest(NullSemanticsQueryNpgsqlFixture fixture)
             : base(fixture)
             => Fixture.TestSqlLoggerFactory.Clear();
+
+        [ConditionalFact(Skip = "Null semantics for array ANY not yet implemented, #1142")]
+        public override void Contains_with_local_array_closure_false_with_null() {}
 
         protected override void ClearLog()
             => Fixture.TestSqlLoggerFactory.Clear();

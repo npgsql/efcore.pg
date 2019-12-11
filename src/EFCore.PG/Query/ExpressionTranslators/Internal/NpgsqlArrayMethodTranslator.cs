@@ -101,14 +101,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 Nullable.GetUnderlyingType(operandElementType) == null)
             {
                 var item = arguments[1];
+                // TODO: no null semantics is implemented here (see https://github.com/npgsql/efcore.pg/issues/1142)
                 // We require a null semantics check in case the item is null and the array contains a null.
                 // Advanced parameter sniffing would help here: https://github.com/aspnet/EntityFrameworkCore/issues/17598
+                // We need to coalesce to false since 'x' = ANY ({'y', NULL}) returns null, not false
+                // (and so will be null when negated too)
                 return _sqlExpressionFactory.OrElse(
-                    // We need to coalesce to false since 'x' = ANY ({'y', NULL}) returns null, not false
-                    // (and so will be null when negated too)
-                    _sqlExpressionFactory.Coalesce(
-                        _sqlExpressionFactory.ArrayAnyAll(item, operand, ArrayComparisonType.Any, "="),
-                        _sqlExpressionFactory.Constant(false)),
+                    _sqlExpressionFactory.ArrayAnyAll(item, operand, ArrayComparisonType.Any, "="),
                     _sqlExpressionFactory.AndAlso(
                         _sqlExpressionFactory.IsNull(item),
                         _sqlExpressionFactory.IsNotNull(
