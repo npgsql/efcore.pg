@@ -64,13 +64,13 @@ WHERE (o.""OrderDate"" IS NOT NULL)");
 
 SELECT e.""EmployeeID"", e.""City"", e.""Country"", e.""FirstName"", e.""ReportsTo"", e.""Title""
 FROM ""Employees"" AS e
-WHERE COALESCE(e.""EmployeeID"" = ANY (@__ids_0), FALSE)",
+WHERE e.""EmployeeID"" = ANY (@__ids_0)",
                 //
                 @"@__ids_0='System.Int64[]' (DbType = Object)
 
 SELECT e.""EmployeeID"", e.""City"", e.""Country"", e.""FirstName"", e.""ReportsTo"", e.""Title""
 FROM ""Employees"" AS e
-WHERE COALESCE(e.""EmployeeID"" = ANY (@__ids_0), FALSE)");
+WHERE e.""EmployeeID"" = ANY (@__ids_0)");
         }
 
         public override async Task Contains_with_local_nullable_uint_array_closure(bool isAsync)
@@ -251,7 +251,7 @@ WHERE c.""CustomerID"" IN ('ALFKI', 'ANATR')");
 
 SELECT c.""CustomerID"", c.""Address"", c.""City"", c.""CompanyName"", c.""ContactName"", c.""ContactTitle"", c.""Country"", c.""Fax"", c.""Phone"", c.""PostalCode"", c.""Region""
 FROM ""Customers"" AS c
-WHERE COALESCE(c.""Region"" = ANY (@__regions_0), FALSE) OR ((c.""Region"" IS NULL) AND (array_position(@__regions_0, NULL) IS NOT NULL))");
+WHERE c.""Region"" = ANY (@__regions_0) OR ((c.""Region"" IS NULL) AND (array_position(@__regions_0, NULL) IS NOT NULL))");
         }
 
         [ConditionalTheory]
@@ -274,7 +274,7 @@ WHERE COALESCE(c.""Region"" = ANY (@__regions_0), FALSE) OR ((c.""Region"" IS NU
 
 SELECT c.""CustomerID"", c.""Address"", c.""City"", c.""CompanyName"", c.""ContactName"", c.""ContactTitle"", c.""Country"", c.""Fax"", c.""Phone"", c.""PostalCode"", c.""Region""
 FROM ""Customers"" AS c
-WHERE COALESCE(c.""Region"" = ANY (@__regions_0), FALSE) OR ((c.""Region"" IS NULL) AND (array_position(@__regions_0, NULL) IS NOT NULL))");
+WHERE c.""Region"" = ANY (@__regions_0) OR ((c.""Region"" IS NULL) AND (array_position(@__regions_0, NULL) IS NOT NULL))");
         }
 
         #endregion Array contains
