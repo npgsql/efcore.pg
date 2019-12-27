@@ -1,6 +1,8 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.TestModels.GearsOfWarModel;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -12,12 +14,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         // ReSharper disable once UnusedParameter.Local
         public GearsOfWarQueryNpgsqlTest(GearsOfWarQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
-            => Fixture.TestSqlLoggerFactory.Clear();
+        {
+            Fixture.TestSqlLoggerFactory.Clear();
+            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        }
 
         [Theory(Skip = "https://github.com/npgsql/Npgsql.EntityFrameworkCore.PostgreSQL/issues/874")]
         [MemberData(nameof(IsAsyncData))]
         public override Task String_concat_with_null_conditional_argument2(bool isAsync)
             => base.String_concat_with_null_conditional_argument2(isAsync);
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public virtual Task Where_datetime_subtraction(bool async)
+            => AssertQuery(
+                async,
+                ss => ss.Set<Mission>().Where(m =>
+                    new DateTimeOffset(2, 3, 2, 8, 0, 0, new TimeSpan(-5, 0, 0)) - m.Timeline > TimeSpan.FromDays(3)));
 
         #region Ignore DateTimeOffset tests
 
