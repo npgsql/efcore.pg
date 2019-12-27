@@ -179,6 +179,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
                     => new MethodCallCodeFragment(nameof(NpgsqlIndexBuilderExtensions.HasNullSortOrder), annotation.Value),
                 NpgsqlAnnotationNames.IndexInclude
                     => new MethodCallCodeFragment(nameof(NpgsqlIndexBuilderExtensions.IncludeProperties), annotation.Value),
+                NpgsqlAnnotationNames.IndexToTsVector
+                   => new MethodCallCodeFragment(nameof(NpgsqlIndexBuilderExtensions.UseToTsVector), annotation.Value),
                 _ => null
             };
     }

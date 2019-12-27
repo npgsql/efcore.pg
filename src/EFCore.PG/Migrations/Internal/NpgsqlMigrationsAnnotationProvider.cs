@@ -71,6 +71,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal
                 yield return new Annotation(NpgsqlAnnotationNames.IndexSortOrder, sortOrder);
             if (index.GetNullSortOrder() is IReadOnlyList<SortOrder> nullSortOrder)
                 yield return new Annotation(NpgsqlAnnotationNames.IndexNullSortOrder, nullSortOrder);
+            if (index.GetIndexToTsVectorConfigName() is string configName)
+                yield return new Annotation(NpgsqlAnnotationNames.IndexToTsVector, configName);
             if (index.GetIncludeProperties() is IReadOnlyList<string> includeProperties)
             {
                 yield return new Annotation(

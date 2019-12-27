@@ -188,6 +188,79 @@ namespace Microsoft.EntityFrameworkCore
 
         #endregion Operators
 
+        #region ToTsVector
+
+        /// <summary>
+        /// The PostgreSQL columns transformation to 'to_tsvector()' to be used.
+        /// </summary>
+        /// <param name="indexBuilder">The builder for the index being configured.</param>
+        /// <param name="configName">to_tsvector() function config name.</param>
+        /// <returns></returns>
+        public static IndexBuilder UseToTsVector(
+            [NotNull] this IndexBuilder indexBuilder,
+            [NotNull] string configName)
+        {
+            Check.NotNull(indexBuilder, nameof(indexBuilder));
+            Check.NotNull(configName, nameof(configName));
+
+            indexBuilder.Metadata.SetIndexToTsVectorConfigName(configName);
+            return indexBuilder;
+        }
+
+        /// <summary>
+        /// The PostgreSQL columns transformation to 'to_tsvector()' to be used.
+        /// </summary>
+        /// <param name="indexBuilder">The builder for the index being configured.</param>
+        /// <param name="configName">to_tsvector() function config name.</param>
+        /// <returns></returns>
+        public static IndexBuilder<TEntity> UseToTsVector<TEntity>(
+            [NotNull] this IndexBuilder<TEntity> indexBuilder,
+            [NotNull] string configName)
+            => (IndexBuilder<TEntity>)UseToTsVector((IndexBuilder)indexBuilder, configName);
+
+        /// <summary>
+        /// The PostgreSQL columns transformation to 'to_tsvector()' to be used.
+        /// </summary>
+        /// <param name="indexBuilder">The builder for the index being configured.</param>
+        /// <param name="configName">to_tsvector() function config name.</param>
+        /// <returns></returns>
+        public static IConventionIndexBuilder UseToTsVector(
+            [NotNull] this IConventionIndexBuilder indexBuilder,
+            [NotNull] string configName)
+        {
+            Check.NotNull(indexBuilder, nameof(indexBuilder));
+            Check.NotNull(configName, nameof(configName));
+
+            if (indexBuilder.CanSetToTsVector(configName))
+            {
+                indexBuilder.Metadata.SetIndexToTsVectorConfigName(configName);
+
+                return indexBuilder;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Returns a value indicating whether the PostgreSQL columns transformation to 'to_tsvector()' to be used.
+        /// </summary>
+        /// <param name="indexBuilder">The builder for the index being configured.</param>
+        /// <param name="configName">to_tsvector() function config name.</param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        /// <returns><c>true</c> if the index can be configured with the columns transformation.</returns>
+        public static bool CanSetToTsVector(
+            [NotNull] this IConventionIndexBuilder indexBuilder,
+            [NotNull] string configName,
+            bool fromDataAnnotation = false)
+        {
+            Check.NotNull(indexBuilder, nameof(indexBuilder));
+            Check.NotNull(configName, nameof(configName));
+
+            return indexBuilder.CanSetAnnotation(NpgsqlAnnotationNames.IndexToTsVector, configName, fromDataAnnotation);
+        }
+
+        #endregion ToTsVector
+
         #region Collation
 
         /// <summary>

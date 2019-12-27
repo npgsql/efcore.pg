@@ -667,11 +667,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             if (method?.Length > 0)
                 builder.Append(" USING ").Append(method);
 
+            var toTsVectorConfigName = operation[NpgsqlAnnotationNames.IndexToTsVector] as string;
+
             var indexColumns = GetIndexColumns(operation);
+
+            var columnsExpression = toTsVectorConfigName?.Length > 0
+                ? ColumnsToTsVector(indexColumns.Select(i => i.Name), toTsVectorConfigName, model, operation.Schema, operation.Table)
+                : IndexColumnList(indexColumns, method);
 
             builder
                 .Append(" (")
-                .Append(IndexColumnList(indexColumns, method))
+                .Append(columnsExpression)
                 .Append(")");
 
             IndexOptions(operation, model, builder);
@@ -1167,24 +1173,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                         $"{nameof(NpgsqlAnnotationNames.GeneratedTsVectorConfig)} is present in a migration but " +
                         $"{nameof(NpgsqlAnnotationNames.GeneratedTsVectorProperties)} is absent or empty");
 
-                var stringTypeMapping = Dependencies.TypeMappingSource.GetMapping(typeof(string));
-
-                operation.ComputedColumnSql = new StringBuilder()
-                    .Append("to_tsvector(")
-                    .Append(stringTypeMapping.GenerateSqlLiteral(tsVectorConfig))
-                    .Append(", ")
-                    .Append(string.Join(" || ' ' || ", tsVectorIncludedColumns.Select(GetTsVectorColumnExpression)))
-                    .Append(")")
-                    .ToString();
-
-                string GetTsVectorColumnExpression(string includedColumn)
-                {
-                    var delimitedColumnName = Dependencies.SqlGenerationHelper.DelimitIdentifier(includedColumn);
-                    var property = FindProperty(model, schema, table, includedColumn);
-                    return property?.IsColumnNullable() == true
-                        ? $"coalesce({delimitedColumnName}, '')"
-                        : delimitedColumnName;
-                }
+                operation.ComputedColumnSql = ColumnsToTsVector(tsVectorIncludedColumns, tsVectorConfig, model, schema, table);
             }
 
             base.ColumnDefinition(
@@ -1486,6 +1475,28 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             }
 
             return builder.ToString();
+        }
+
+        string ColumnsToTsVector(IEnumerable<string> columns, string tsVectorConfig, IModel model, string schema, string table)
+        {
+            string GetTsVectorColumnExpression(string column)
+            {
+                var delimitedColumnName = Dependencies.SqlGenerationHelper.DelimitIdentifier(column);
+                var property = FindProperty(model, schema, table, column);
+                return property?.IsColumnNullable() == true
+                    ? $"coalesce({delimitedColumnName}, '')"
+                    : delimitedColumnName;
+            }
+
+            var stringTypeMapping = Dependencies.TypeMappingSource.GetMapping(typeof(string));
+
+            return new StringBuilder()
+                .Append("to_tsvector(")
+                .Append(stringTypeMapping.GenerateSqlLiteral(tsVectorConfig))
+                .Append(", ")
+                .Append(string.Join(" || ' ' || ", columns.Select(GetTsVectorColumnExpression)))
+                .Append(")")
+                .ToString();
         }
 
         static bool TryParseSchema(string identifier, out string name, out string schema)

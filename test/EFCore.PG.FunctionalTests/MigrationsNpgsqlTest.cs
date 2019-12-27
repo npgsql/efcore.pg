@@ -1626,6 +1626,60 @@ ALTER TABLE ""People"" ALTER COLUMN ""Id"" RESTART WITH 20;");
                 @"CREATE INDEX ""IX_People_FirstName_MiddleName_LastName"" ON ""People"" (""FirstName"" NULLS FIRST, ""MiddleName"", ""LastName"" NULLS LAST);");
         }
 
+        [Fact]
+        public virtual async Task Create_index_on_tsvector()
+        {
+            await Test(
+                builder => builder.Entity(
+                    "People", e =>
+                    {
+                        e.Property<int>("Id");
+                        e.Property<string>("FirstName").IsRequired();
+                        e.Property<string>("MiddleName");
+                        e.Property<string>("LastName");
+                    }),
+                builder => { },
+                builder => builder.Entity("People")
+                    .HasIndex("FirstName", "LastName")
+                    .UseToTsVector("simple")
+                ,
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    var index = Assert.Single(table.Indexes);
+
+                    Assert.Equal("simple", index[NpgsqlAnnotationNames.IndexToTsVector]);
+
+                    Assert.Contains(index.Columns, i => i.Name == "FirstName");
+                    Assert.Contains(index.Columns, i => i.Name == "LastName");
+                });
+
+            AssertSql(
+                @"CREATE INDEX ""IX_People_FirstName_LastName"" ON ""People"" (to_tsvector('simple', ""FirstName"" || ' ' || coalesce(""LastName"", '')));");
+        }
+
+        [Fact]
+        public virtual async Task Create_index_on_tsvector_using_gin()
+        {
+            await Test(
+                builder => builder.Entity(
+                    "People", e =>
+                    {
+                        e.Property<int>("Id");
+                        e.Property<string>("FirstName").IsRequired();
+                        e.Property<string>("LastName").IsRequired();
+                    }),
+                builder => { },
+                builder => builder.Entity("People")
+                    .HasIndex("FirstName", "LastName")
+                    .HasMethod("GIN")
+                    .UseToTsVector("simple"),
+                model => { });
+
+            AssertSql(
+                @"CREATE INDEX ""IX_People_FirstName_LastName"" ON ""People"" USING GIN (to_tsvector('simple', ""FirstName"" || ' ' || ""LastName""));");
+        }
+
         public override async Task Drop_index()
         {
             await base.Drop_index();

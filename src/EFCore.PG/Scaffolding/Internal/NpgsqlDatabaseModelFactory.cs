@@ -516,6 +516,15 @@ WHERE
 
                         if (columnIndices.Any(i => i == 0))
                         {
+                            var expressions = record.GetValueOrDefault<string>("exprs");
+
+                            if (expressions?.StartsWith("to_tsvector(") == true)
+                            {
+                                ConfigIndexBaseOnTsVectorExpression(expressions, tableColumns, index);
+                                table.Indexes.Add(index);
+                                continue;
+                            }
+
                             // Expression index, not supported
                             logger.ExpressionIndexSkippedWarning(index.Name, DisplayName(tableSchema, tableName));
                             continue;
@@ -1184,6 +1193,27 @@ GROUP BY nspname, typname";
         /// Wraps a string literal in single quotes.
         /// </summary>
         static string EscapeLiteral(string? s) => $"'{s}'";
+
+        static void ConfigIndexBaseOnTsVectorExpression(string expression, IEnumerable<DatabaseColumn> tableColumns, DatabaseIndex index)
+        {
+            var columnNames = new Regex("\"([^\"])*\"")
+                .Matches(expression)
+                .Select(i => i.Value.Replace("\"", ""))
+                .ToList();
+
+            foreach (var columnName in columnNames)
+            {
+                var column = tableColumns.First(i => i.Name == columnName);
+                index.Columns.Add(column);
+            }
+
+            var configName = new Regex("'([^'])*'")
+                .Match(expression)
+                .Value
+                .Replace("'", "");
+
+            index[NpgsqlAnnotationNames.IndexToTsVector] = configName;
+        }
 
         #endregion
     }
