@@ -15,6 +15,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
         public const string IndexSortOrder = Prefix + "IndexSortOrder";
         public const string IndexNullSortOrder = Prefix + "IndexNullSortOrder";
         public const string IndexInclude = Prefix + "IndexInclude";
+        public const string IndexToTsVector = Prefix + "IndexToTsVector";
         public const string CreatedConcurrently = Prefix + "CreatedConcurrently";
         public const string PostgresExtensionPrefix = Prefix + "PostgresExtension:";
         public const string EnumPrefix = Prefix + "Enum:";

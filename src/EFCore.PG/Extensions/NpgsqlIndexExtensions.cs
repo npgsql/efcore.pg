@@ -234,5 +234,42 @@ namespace Microsoft.EntityFrameworkCore
             => index.FindAnnotation(NpgsqlAnnotationNames.CreatedConcurrently)?.GetConfigurationSource();
 
         #endregion Created concurrently
+
+        #region ToTsVector
+
+        /// <summary>
+        /// Returns the index to tsvector config name to be used, or <c>null</c> if it hasn't been specified.
+        /// </summary>
+        /// <param name="index">The index.</param>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/textsearch-tables.html#TEXTSEARCH-TABLES-INDEX
+        /// </remarks>
+        public static string GetIndexToTsVectorConfigName([NotNull] this IIndex index)
+            => (string)index[NpgsqlAnnotationNames.IndexToTsVector];
+
+        /// <summary>
+        /// Sets the index to tsvector config name to be used.
+        /// </summary>
+        /// <param name="index">The index.</param>
+        /// <param name="configName">The tsvector config name.</param>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/textsearch-tables.html#TEXTSEARCH-TABLES-INDEX
+        /// </remarks>
+        public static void SetIndexToTsVectorConfigName([NotNull] this IMutableIndex index, [CanBeNull] string configName)
+            => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexToTsVector, configName);
+
+        /// <summary>
+        /// Sets the index to tsvector config name to be used.
+        /// </summary>
+        /// <param name="index">The index.</param>
+        /// <param name="configName">The tsvector config name.</param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/textsearch-tables.html#TEXTSEARCH-TABLES-INDEX
+        /// </remarks>
+        public static void SetIndexToTsVectorConfigName([NotNull] this IConventionIndex index, [CanBeNull] string configName, bool fromDataAnnotation = false)
+            => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexToTsVector, configName, fromDataAnnotation);
+
+        #endregion ToTsVector
     }
 }
