@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
@@ -16,12 +15,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
     {
         readonly IRelationalTypeMappingSource _typeMappingSource;
         readonly RelationalTypeMapping _boolTypeMapping;
+        readonly RelationalTypeMapping _intervalTypeMapping;
 
         public NpgsqlSqlExpressionFactory(SqlExpressionFactoryDependencies dependencies)
             : base(dependencies)
         {
             _typeMappingSource = dependencies.TypeMappingSource;
             _boolTypeMapping = _typeMappingSource.FindMapping(typeof(bool));
+            _intervalTypeMapping = _typeMappingSource.FindMapping("interval");
         }
 
         #region Expression factory methods
@@ -113,16 +114,49 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 
         SqlExpression ApplyTypeMappingOnSqlBinary(SqlBinaryExpression binary, RelationalTypeMapping typeMapping)
         {
-            // The default SqlExpressionFactory behavior is to assume that the two added operands have the same type.
-            // But when we add a DateTime column (which has a type mapping) and a TimeSpan parameter or constant
-            // (which doesn't), the DateTime's mapping gets applied to the TimeSpan, which is wrong.
-            // Recognize this as a special case and apply the default mapping on the right side instead.
-            if (binary.OperatorType == ExpressionType.Add && binary.Right.TypeMapping == null &&
-                    (binary.Left.Type == typeof(DateTime) && binary.Right.Type == typeof(TimeSpan) ||
-                    // Hack since NodaTime is a plugin
-                    binary.Left.Type.FullName != "NodaTime.Period" && binary.Right.Type.FullName == "NodaTime.Period"))
+            // The default SqlExpressionFactory behavior is to assume that the two added operands have the same type,
+            // and so to infer one side's mapping from the other if needed. Here we take care of some heterogeneous
+            // operand cases where this doesn't work:
+            // * Period + Period (???)
+
+            if (binary.OperatorType == ExpressionType.Add || binary.OperatorType == ExpressionType.Subtract)
             {
-                binary = binary.Update(binary.Left, ApplyDefaultTypeMapping(binary.Right));
+                var (left, right) = (binary.Left, binary.Right);
+                var leftType = left.Type.UnwrapNullableType();
+                var rightType = right.Type.UnwrapNullableType();
+
+                // DateTime + TimeSpan
+                // DateTimeOffset + TimeSpan
+                // (NodaTime type matching uses string names since NodaTime is a plugin)
+                if (rightType == typeof(TimeSpan) && (
+                        leftType == typeof(DateTime) ||
+                        leftType == typeof(DateTimeOffset)) ||
+                    rightType.FullName == "NodaTime.Period" && (
+                        leftType.FullName == "NodaTime.LocalDateTime" ||
+                        leftType.FullName == "NodaTime.LocalDate" ||
+                        leftType.FullName == "NodaTime.LocalTime"
+                    ))
+                {
+                    var newLeft = ApplyDefaultTypeMapping(left);
+                    var newRight = ApplyDefaultTypeMapping(right);
+                    return new SqlBinaryExpression(binary.OperatorType, newLeft, newRight, binary.Type,
+                        newLeft.TypeMapping);
+                }
+
+                // * DateTime - DateTime
+                // * DateTimeOffset - DateTimeOffset
+                if (binary.OperatorType == ExpressionType.Subtract && (
+                        leftType == typeof(DateTime) && rightType == typeof(DateTime) ||
+                        leftType == typeof(DateTimeOffset) && rightType == typeof(DateTimeOffset)))
+                {
+                    var inferredTypeMapping = typeMapping ?? ExpressionExtensions.InferTypeMapping(left, right);
+                    return new SqlBinaryExpression(
+                        ExpressionType.Subtract,
+                        ApplyTypeMapping(left, inferredTypeMapping),
+                        ApplyTypeMapping(right, inferredTypeMapping),
+                        binary.Type,
+                        _intervalTypeMapping);
+                }
             }
 
             return base.ApplyTypeMapping(binary, typeMapping);
