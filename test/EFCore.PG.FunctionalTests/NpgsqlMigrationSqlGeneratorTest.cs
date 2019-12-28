@@ -1130,6 +1130,39 @@ CREATE TYPE some_schema.my_enum AS ENUM ('value1', 'value2');
             AssertSql("");
         }
 
+        [Fact]
+        public void AddEnumValues()
+        {
+            var op = new AlterDatabaseOperation();
+            PostgresEnum.GetOrAddPostgresEnum(op,             "public", "my_enum", new[] { "value0", "value1", "value2", "value3", "value4" });
+            PostgresEnum.GetOrAddPostgresEnum(op.OldDatabase, "public", "my_enum", new[] { "value1", "value3" });
+            Generate(op);
+
+            AssertSql(
+                @"ALTER TYPE public.my_enum ADD VALUE 'value0' BEFORE 'value1';
+ALTER TYPE public.my_enum ADD VALUE 'value2' BEFORE 'value3';
+ALTER TYPE public.my_enum ADD VALUE 'value4';
+");
+        }
+
+        [Fact]
+        public void DropEnumValueNotSupported()
+        {
+            var op = new AlterDatabaseOperation();
+            PostgresEnum.GetOrAddPostgresEnum(op,             "public", "my_enum", new[] { "value1" });
+            PostgresEnum.GetOrAddPostgresEnum(op.OldDatabase, "public", "my_enum", new[] { "value1", "value2" });
+            Assert.Throws<NotSupportedException>(() => Generate(op));
+        }
+
+        [Fact]
+        public void AlterEnumValueNotSupported()
+        {
+            var op = new AlterDatabaseOperation();
+            PostgresEnum.GetOrAddPostgresEnum(op,             "public", "my_enum", new[] { "value1", "value3" });
+            PostgresEnum.GetOrAddPostgresEnum(op.OldDatabase, "public", "my_enum", new[] { "value1", "value2" });
+            Assert.Throws<NotSupportedException>(() => Generate(op));
+        }
+
         #endregion Enums
 
         #region PostgreSQL Storage Parameters

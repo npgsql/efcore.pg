@@ -21,6 +21,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
     public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
     {
         readonly IMigrationsAnnotationProvider _migrationsAnnotations;
+        readonly RelationalTypeMapping _stringTypeMapping;
 
         /// <summary>
         /// The backend version to target.
@@ -35,6 +36,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         {
             _postgresVersion = npgsqlOptions.PostgresVersion;
             _migrationsAnnotations = migrationsAnnotations;
+            _stringTypeMapping = dependencies.TypeMappingSource.GetMapping(typeof(string))
+                ?? throw new InvalidOperationException("No string type mapping found");
         }
 
         protected override void Generate(MigrationOperation operation, IModel model, MigrationCommandListBuilder builder)
@@ -121,13 +124,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             {
                 builder.AppendLine(';');
 
-                var stringTypeMapping = Dependencies.TypeMappingSource.GetMapping(typeof(string));
-
                 builder
                     .Append("COMMENT ON TABLE ")
                     .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name, operation.Schema))
                     .Append(" IS ")
-                    .Append(stringTypeMapping.GenerateSqlLiteral(operation.Comment));
+                    .Append(_stringTypeMapping.GenerateSqlLiteral(operation.Comment));
             }
 
             // Comments on the columns
@@ -136,15 +137,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 var columnComment = columnOp.Comment;
                 builder.AppendLine(';');
 
-                var stringTypeMapping = Dependencies.TypeMappingSource.GetMapping(typeof(string));
-
                 builder
                     .Append("COMMENT ON COLUMN ")
                     .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name, operation.Schema))
                     .Append('.')
                     .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(columnOp.Name))
                     .Append(" IS ")
-                    .Append(stringTypeMapping.GenerateSqlLiteral(columnComment));
+                    .Append(_stringTypeMapping.GenerateSqlLiteral(columnComment));
             }
 
             if (terminate)
@@ -205,13 +204,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             // Comment
             if (operation.Comment != operation.OldTable.Comment)
             {
-                var stringTypeMapping = Dependencies.TypeMappingSource.GetMapping(typeof(string));
-
                 builder
                     .Append("COMMENT ON TABLE ")
                     .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name, operation.Schema))
                     .Append(" IS ")
-                    .Append(stringTypeMapping.GenerateSqlLiteral(operation.Comment));
+                    .Append(_stringTypeMapping.GenerateSqlLiteral(operation.Comment));
 
                 builder.AppendLine(';');
                 madeChanges = true;
@@ -269,15 +266,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             {
                 builder.AppendLine(';');
 
-                var stringTypeMapping = Dependencies.TypeMappingSource.GetMapping(typeof(string));
-
                 builder
                     .Append("COMMENT ON COLUMN ")
                     .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Table, operation.Schema))
                     .Append('.')
                     .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name))
                     .Append(" IS ")
-                    .Append(stringTypeMapping.GenerateSqlLiteral(operation.Comment));
+                    .Append(_stringTypeMapping.GenerateSqlLiteral(operation.Comment));
             }
 
             if (terminate)
@@ -555,15 +550,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             // Comment
             if (operation.Comment != operation.OldColumn.Comment)
             {
-                var stringTypeMapping = Dependencies.TypeMappingSource.GetMapping(typeof(string));
-
                 builder
                     .Append("COMMENT ON COLUMN ")
                     .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Table, operation.Schema))
                     .Append('.')
                     .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name))
                     .Append(" IS ")
-                    .Append(stringTypeMapping.GenerateSqlLiteral(operation.Comment))
+                    .Append(_stringTypeMapping.GenerateSqlLiteral(operation.Comment))
                     .AppendLine(';');
             }
 
@@ -821,17 +814,37 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 GenerateDropEnum(enumTypeToDrop, model, builder);
             }
 
-            foreach (var (oldEnum, newEnum)  in operation.GetPostgresEnums()
-                .Select(ne => (
-                    New: ne,
-                    Old: operation.GetOldPostgresEnums().FirstOrDefault(oe => oe.Name == ne.Name && oe.Schema == ne.Schema)))
-                .Where(x => x.Old != null))
+            foreach (var (newEnum, oldEnum) in operation.GetPostgresEnums()
+                .Join(operation.GetOldPostgresEnums(),
+                    e => new { e.Name, e.Schema },
+                    e => new { e.Name, e.Schema },
+                    (ne, oe) => (New: ne, Old: oe)))
             {
-                if (oldEnum.Labels.SequenceEqual(newEnum.Labels))
-                    continue;
+                var (oldLabels, newLabels) = (oldEnum.Labels, newEnum.Labels);
 
-                // TODO: Some forms of enum alterations are actually supported...
-                throw new NotSupportedException($"Altering enum type ${newEnum} isn't supported.");
+                // We only support adding enum values - dropping is unsupported by PostgreSQL, and we don't want to
+                // go into rename detection heuristics (users can do that in raw SQL).
+                // See https://www.postgresql.org/docs/current/sql-altertype.html
+
+                if (oldLabels.Except(newLabels).FirstOrDefault() is string removedLabel)
+                    throw new NotSupportedException(
+                        $"Can't remove enum label '{removedLabel}' from enum type '{newEnum}'. " +
+                        "Renaming a label is possible via a raw SQL migration (see "+
+                        "https://www.postgresql.org/docs/current/sql-altertype.html)");
+
+                for (var (newPos, oldPos) = (0, 0); newPos < newLabels.Count; newPos++)
+                {
+                    var newLabel = newLabels[newPos];
+                    var oldLabel = oldPos < oldLabels.Count ? oldLabels[oldPos] : null;
+
+                    if (newLabel == oldLabel)
+                    {
+                        oldPos++;
+                        continue;
+                    }
+
+                    GenerateAddEnumLabel(newEnum, newLabel, oldLabel, model, builder);
+                }
             }
         }
 
@@ -852,12 +865,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(enumType.Name, schema))
                 .Append(" AS ENUM (");
 
-            var stringTypeMapping = Dependencies.TypeMappingSource.GetMapping(typeof(string));
-
             var labels = enumType.Labels;
             for (var i = 0; i < labels.Count; i++)
             {
-                builder.Append(stringTypeMapping.GenerateSqlLiteral(labels[i]));
+                builder.Append(_stringTypeMapping.GenerateSqlLiteral(labels[i]));
                 if (i < labels.Count - 1)
                     builder.Append(", ");
             }
@@ -876,6 +887,31 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 .Append("DROP TYPE ")
                 .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(enumType.Name, schema))
                 .AppendLine(";");
+        }
+
+        protected virtual void GenerateAddEnumLabel(
+            [NotNull] PostgresEnum enumType,
+            [NotNull] string addedLabel,
+            [CanBeNull] string beforeLabel,
+            [NotNull] IModel model,
+            [NotNull] MigrationCommandListBuilder builder)
+        {
+            var schema = enumType.Schema ?? model.GetDefaultSchema();
+
+            builder
+                .Append("ALTER TYPE ")
+                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(enumType.Name, schema))
+                .Append(" ADD VALUE ")
+                .Append(_stringTypeMapping.GenerateSqlLiteral(addedLabel));
+
+            if (beforeLabel != null)
+            {
+                builder
+                    .Append(" BEFORE ")
+                    .Append(_stringTypeMapping.GenerateSqlLiteral(beforeLabel));
+            }
+
+            builder.AppendLine(";");
         }
 
         #endregion Enum management
