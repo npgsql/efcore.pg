@@ -213,7 +213,6 @@ FROM ""PointEntity"" AS p");
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "xUnit1026:Theory methods should use all of their parameters")]
         public virtual Task Transform(bool isAsync)                  => Task.CompletedTask;
 
         public override Task Union(bool isAsync)                     => Task.CompletedTask;
