@@ -213,7 +213,7 @@ FROM ""PointEntity"" AS p");
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
-        public virtual Task Transform(bool isAsync)                  => Task.CompletedTask;
+        public virtual Task Transform(bool isAsync)                  => Task.FromResult(isAsync);
 
         public override Task Union(bool isAsync)                     => Task.CompletedTask;
         public override Task Union_void(bool isAsync)                => Task.CompletedTask;
