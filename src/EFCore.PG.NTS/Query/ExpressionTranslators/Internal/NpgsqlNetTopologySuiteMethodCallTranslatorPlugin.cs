@@ -21,7 +21,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             => Translators = new IMethodCallTranslator[]
             {
                 new NpgsqlGeometryMethodTranslator(sqlExpressionFactory, typeMappingSource),
-                new NpgsqlGeometryFunctionTranslator(sqlExpressionFactory),
             };
 
         public virtual IEnumerable<IMethodCallTranslator> Translators { get; }
@@ -32,6 +31,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     /// </summary>
     public class NpgsqlGeometryMethodTranslator : IMethodCallTranslator
     {
+        static readonly Dictionary<MethodInfo, string> Functions = new Dictionary<MethodInfo, string>
+        {
+            [typeof(NpgsqlNetTopologySuiteDbFunctionsExtensions).GetRuntimeMethod(nameof(NpgsqlNetTopologySuiteDbFunctionsExtensions.Transform), new[] { typeof(DbFunctions), typeof(Geometry), typeof(int) })] = "ST_Transform",
+        };
+
         static readonly MethodInfo _collectionItem =
             typeof(GeometryCollection).GetRuntimeProperty("Item").GetMethod;
 
@@ -48,6 +52,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         [CanBeNull]
         public virtual SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
         {
+            if (Functions.TryGetValue(method, out var function))
+                return _sqlExpressionFactory.Function(function, arguments.Skip(1), method.ReturnType);
+
             if (!typeof(Geometry).IsAssignableFrom(method.DeclaringType))
                 return null;
 
@@ -118,38 +125,5 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     ? _sqlExpressionFactory.Constant((int)constant.Value + 1, constant.TypeMapping)
                     : (SqlExpression)_sqlExpressionFactory.Add(arg, _sqlExpressionFactory.Constant(1));
         }
-    }
-
-    /// <summary>
-    /// Translates functions operating on types implementing the <see cref="IGeometry"/> interface.
-    /// </summary>
-    public class NpgsqlGeometryFunctionTranslator : IMethodCallTranslator
-    {
-        static readonly Dictionary<MethodInfo, string> Functions = new Dictionary<MethodInfo, string>
-        {
-            [GetRuntimeMethod(nameof(NpgsqlNetTopologySuiteDbFunctionsExtensions.Transform), new[] { typeof(DbFunctions), typeof(Geometry), typeof(int) })] = "ST_Transform",
-        };
-
-        static MethodInfo GetRuntimeMethod(string name, params Type[] parameters)
-            => typeof(NpgsqlNetTopologySuiteDbFunctionsExtensions).GetRuntimeMethod(name, parameters);
-
-        readonly ISqlExpressionFactory _sqlExpressionFactory;
-
-        public NpgsqlGeometryFunctionTranslator(ISqlExpressionFactory sqlExpressionFactory)
-        {
-            _sqlExpressionFactory = sqlExpressionFactory;
-        }
-
-#pragma warning disable EF1001
-        /// <inheritdoc />
-        [CanBeNull]
-        public virtual SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
-        {
-            if (Functions.TryGetValue(method, out var function))
-                return _sqlExpressionFactory.Function(function, arguments.Skip(1), method.ReturnType);
-
-            return null;
-        }
-#pragma warning restore EF1001
     }
 }
