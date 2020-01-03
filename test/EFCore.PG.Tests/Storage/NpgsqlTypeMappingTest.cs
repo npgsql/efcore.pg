@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Net;
@@ -308,7 +308,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
                 }));
 
         [Fact]
-        public void ValueComparer_hstore()
+        public void ValueComparer_hstore_as_dictionary()
         {
             var source = new Dictionary<string, string>
             {
@@ -322,6 +322,25 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
             Assert.NotSame(source, snapshot);
             Assert.True(comparer.Equals(source, snapshot));
             snapshot.Remove("k1");
+            Assert.False(comparer.Equals(source, snapshot));
+        }
+
+        [Fact]
+        public void ValueComparer_hstore_as_readonlydictionary()
+        {
+            var sourceAsDict = new Dictionary<string, string>
+            {
+                { "k1", "v1" },
+                { "k2", "v2" }
+            };
+            IReadOnlyDictionary<string, string> source = sourceAsDict;
+
+            var comparer = GetMapping("hstore").Comparer;
+            var snapshot = (IReadOnlyDictionary<string, string>)comparer.Snapshot(source);
+            Assert.Equal(source, snapshot);
+            Assert.NotSame(source, snapshot);
+            Assert.True(comparer.Equals(source, snapshot));
+            sourceAsDict.Remove("k1");
             Assert.False(comparer.Equals(source, snapshot));
         }
 

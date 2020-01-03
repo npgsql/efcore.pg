@@ -104,12 +104,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         readonly NpgsqlRangeTypeMapping        _daterange;
 
         // Other types
-        readonly NpgsqlBoolTypeMapping         _bool               = new NpgsqlBoolTypeMapping();
-        readonly NpgsqlBitTypeMapping          _bit                = new NpgsqlBitTypeMapping();
-        readonly NpgsqlVarbitTypeMapping       _varbit             = new NpgsqlVarbitTypeMapping();
-        readonly NpgsqlByteArrayTypeMapping    _bytea              = new NpgsqlByteArrayTypeMapping();
-        readonly NpgsqlHstoreTypeMapping       _hstore             = new NpgsqlHstoreTypeMapping();
-        readonly NpgsqlTidTypeMapping          _tid                = new NpgsqlTidTypeMapping();
+        readonly NpgsqlBoolTypeMapping          _bool               = new NpgsqlBoolTypeMapping();
+        readonly NpgsqlBitTypeMapping           _bit                = new NpgsqlBitTypeMapping();
+        readonly NpgsqlVarbitTypeMapping        _varbit             = new NpgsqlVarbitTypeMapping();
+        readonly NpgsqlByteArrayTypeMapping     _bytea              = new NpgsqlByteArrayTypeMapping();
+        readonly NpgsqlMutableHstoreTypeMapping _mutableHstore      = new NpgsqlMutableHstoreTypeMapping();
+        readonly NpgsqlImmutableHstoreTypeMapping _immutableHstore    = new NpgsqlImmutableHstoreTypeMapping();
+        readonly NpgsqlTidTypeMapping           _tid                = new NpgsqlTidTypeMapping();
 
         // Special stuff
         // ReSharper disable once InconsistentNaming
@@ -184,7 +185,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 { "bit",                         new[] { _bit                          } },
                 { "bit varying",                 new[] { _varbit                       } },
                 { "varbit",                      new[] { _varbit                       } },
-                { "hstore",                      new[] { _hstore                       } },
+                { "hstore",                      new RelationalTypeMapping[] { _mutableHstore, _immutableHstore } },
                 { "point",                       new[] { _point                        } },
                 { "box",                         new[] { _box                          } },
                 { "line",                        new[] { _line                         } },
@@ -213,46 +214,47 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
             var clrTypeMappings = new Dictionary<Type, RelationalTypeMapping>
             {
-                { typeof(bool),                         _bool                 },
-                { typeof(byte[]),                       _bytea                },
-                { typeof(float),                        _float4               },
-                { typeof(double),                       _float8               },
-                { typeof(decimal),                      _numeric              },
-                { typeof(Guid),                         _uuid                 },
-                { typeof(byte),                         _int2Byte             },
-                { typeof(short),                        _int2                 },
-                { typeof(int),                          _int4                 },
-                { typeof(long),                         _int8                 },
-                { typeof(string),                       _text                 },
-                { typeof(JsonDocument),                 _jsonbDocument        },
-                { typeof(JsonElement),                  _jsonbElement         },
-                { typeof(char),                         _singleChar           },
-                { typeof(DateTime),                     _timestamp            },
-                { typeof(TimeSpan),                     _interval             },
-                { typeof(DateTimeOffset),               _timestamptzDto       },
-                { typeof(PhysicalAddress),              _macaddr              },
-                { typeof(IPAddress),                    _inet                 },
-                { typeof((IPAddress, int)),             _cidr                 },
-                { typeof(BitArray),                     _varbit               },
-                { typeof(Dictionary<string, string>),   _hstore               },
-                { typeof(NpgsqlTid),                    _tid                  },
+                { typeof(bool),                                _bool                 },
+                { typeof(byte[]),                              _bytea                },
+                { typeof(float),                               _float4               },
+                { typeof(double),                              _float8               },
+                { typeof(decimal),                             _numeric              },
+                { typeof(Guid),                                _uuid                 },
+                { typeof(byte),                                _int2Byte             },
+                { typeof(short),                               _int2                 },
+                { typeof(int),                                 _int4                 },
+                { typeof(long),                                _int8                 },
+                { typeof(string),                              _text                 },
+                { typeof(JsonDocument),                        _jsonbDocument        },
+                { typeof(JsonElement),                         _jsonbElement         },
+                { typeof(char),                                _singleChar           },
+                { typeof(DateTime),                            _timestamp            },
+                { typeof(TimeSpan),                            _interval             },
+                { typeof(DateTimeOffset),                      _timestamptzDto       },
+                { typeof(PhysicalAddress),                     _macaddr              },
+                { typeof(IPAddress),                           _inet                 },
+                { typeof((IPAddress, int)),                    _cidr                 },
+                { typeof(BitArray),                            _varbit               },
+                { typeof(IReadOnlyDictionary<string, string>), _immutableHstore      },
+                { typeof(Dictionary<string, string>),          _mutableHstore        },
+                { typeof(NpgsqlTid),                           _tid                  },
 
-                { typeof(NpgsqlPoint),                  _point                },
-                { typeof(NpgsqlBox),                    _box                  },
-                { typeof(NpgsqlLine),                   _line                 },
-                { typeof(NpgsqlLSeg),                   _lseg                 },
-                { typeof(NpgsqlPath),                   _path                 },
-                { typeof(NpgsqlPolygon),                _polygon              },
-                { typeof(NpgsqlCircle),                 _circle               },
+                { typeof(NpgsqlPoint),                         _point                },
+                { typeof(NpgsqlBox),                           _box                  },
+                { typeof(NpgsqlLine),                          _line                 },
+                { typeof(NpgsqlLSeg),                          _lseg                 },
+                { typeof(NpgsqlPath),                          _path                 },
+                { typeof(NpgsqlPolygon),                       _polygon              },
+                { typeof(NpgsqlCircle),                        _circle               },
 
-                { typeof(NpgsqlRange<int>),             _int4range            },
-                { typeof(NpgsqlRange<long>),            _int8range            },
-                { typeof(NpgsqlRange<decimal>),         _numrange             },
-                { typeof(NpgsqlRange<DateTime>),        _tsrange              },
+                { typeof(NpgsqlRange<int>),                    _int4range            },
+                { typeof(NpgsqlRange<long>),                   _int8range            },
+                { typeof(NpgsqlRange<decimal>),                _numrange             },
+                { typeof(NpgsqlRange<DateTime>),               _tsrange              },
 
-                { typeof(NpgsqlTsQuery),                _tsquery              },
-                { typeof(NpgsqlTsVector),               _tsvector             },
-                { typeof(NpgsqlTsRankingNormalization), _rankingNormalization }
+                { typeof(NpgsqlTsQuery),                       _tsquery              },
+                { typeof(NpgsqlTsVector),                      _tsvector             },
+                { typeof(NpgsqlTsRankingNormalization),        _rankingNormalization }
             };
 
             StoreTypeMappings = new ConcurrentDictionary<string, RelationalTypeMapping[]>(storeTypeMappings, StringComparer.OrdinalIgnoreCase);
