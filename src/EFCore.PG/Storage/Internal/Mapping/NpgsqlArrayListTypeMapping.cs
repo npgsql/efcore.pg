@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.Text;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,63 +11,42 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     /// Maps PostgreSQL arrays to <see cref="List{T}"/>.
     /// </summary>
     /// <remarks>
-    /// Note that mapping PostgreSQL arrays to .NET arrays is also supported via <see cref="NpgsqlArrayTypeMapping"/>.
+    /// Note that mapping PostgreSQL arrays to .NET arrays is also supported via <see cref="NpgsqlArrayArrayTypeMapping"/>.
     /// See: https://www.postgresql.org/docs/current/static/arrays.html
     /// </remarks>
-    public class NpgsqlListTypeMapping : RelationalTypeMapping
+    public class NpgsqlArrayListTypeMapping : NpgsqlArrayTypeMapping
     {
-        // ReSharper disable once MemberCanBePrivate.Global
         /// <summary>
-        /// The relational type mapping used to initialize the list mapping.
+        /// Creates the default list mapping.
         /// </summary>
-        public RelationalTypeMapping ElementMapping { get; }
+        /// <param name="storeType">The database type to map.</param>
+        /// <param name="elementMapping">The element type mapping.</param>
+        public NpgsqlArrayListTypeMapping(string storeType, RelationalTypeMapping elementMapping)
+            : this(storeType, elementMapping, typeof(List<>).MakeGenericType(elementMapping.ClrType)) {}
 
         /// <summary>
         /// Creates the default list mapping.
         /// </summary>
         /// <param name="elementMapping">The element type mapping.</param>
         /// <param name="listType">The database type to map.</param>
-        public NpgsqlListTypeMapping(RelationalTypeMapping elementMapping, Type listType)
+        public NpgsqlArrayListTypeMapping(RelationalTypeMapping elementMapping, Type listType)
             : this(elementMapping.StoreType + "[]", elementMapping, listType) {}
 
-        /// <inheritdoc />
-        NpgsqlListTypeMapping(string storeType, RelationalTypeMapping elementMapping, Type listType)
+        NpgsqlArrayListTypeMapping(string storeType, RelationalTypeMapping elementMapping, Type listType)
             : this(new RelationalTypeMappingParameters(
                 new CoreTypeMappingParameters(listType, null, CreateComparer(elementMapping, listType)), storeType
             ), elementMapping) {}
 
-        /// <inheritdoc />
-        protected NpgsqlListTypeMapping(RelationalTypeMappingParameters parameters, RelationalTypeMapping elementMapping)
-            : base(parameters)
-            => ElementMapping = elementMapping;
-
-        /// <inheritdoc />
-        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
-            => new NpgsqlListTypeMapping(parameters, ElementMapping);
-
-        /// <inheritdoc />
-        protected override string GenerateNonNullSqlLiteral(object value)
+        protected NpgsqlArrayListTypeMapping(
+            RelationalTypeMappingParameters parameters, RelationalTypeMapping elementMapping)
+            : base(parameters, elementMapping)
         {
-            var list = (IList)value;
-
-            if (list.GetType().GenericTypeArguments[0] != ElementMapping.ClrType)
-                throw new NotSupportedException("Multidimensional array literals aren't supported");
-
-            var sb = new StringBuilder();
-            sb.Append("ARRAY[");
-            for (var i = 0; i < list.Count; i++)
-            {
-                if (i > 0)
-                    sb.Append(',');
-
-                sb.Append(ElementMapping.GenerateSqlLiteral(list[i]));
-            }
-
-            sb.Append("]::");
-            sb.Append(ElementMapping.StoreType);
-            sb.Append("[]");
-            return sb.ToString();
+            if (!parameters.CoreParameters.ClrType.IsGenericList())
+                throw new ArgumentException("ClrType must be a List<>", nameof(parameters));
         }
+
+        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
+            => new NpgsqlArrayListTypeMapping(parameters, ElementMapping);
 
         #region Value Comparison
 

@@ -13,12 +13,12 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
     /// <summary>
-    /// Translates functions on arrays into their corresponding PostgreSQL operations.
+    /// Translates method and property calls on arrays/lists into their corresponding PostgreSQL operations.
     /// </summary>
     /// <remarks>
     /// https://www.postgresql.org/docs/current/static/functions-array.html
     /// </remarks>
-    public class NpgsqlArrayMethodTranslator : IMethodCallTranslator
+    public class NpgsqlArrayTranslator : IMethodCallTranslator, IMemberTranslator
     {
         [NotNull] static readonly MethodInfo SequenceEqual =
             typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
@@ -38,7 +38,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         [NotNull]
         readonly NpgsqlJsonPocoTranslator _jsonPocoTranslator;
 
-        public NpgsqlArrayMethodTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory, NpgsqlJsonPocoTranslator jsonPocoTranslator)
+        public NpgsqlArrayTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory, NpgsqlJsonPocoTranslator jsonPocoTranslator)
         {
             _sqlExpressionFactory = sqlExpressionFactory;
             _jsonPocoTranslator = jsonPocoTranslator;
@@ -47,7 +47,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         [CanBeNull]
         public SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
         {
-            // TODO: Fully support List<>
+            if (instance != null && instance.Type.IsGenericList() && method.Name == "get_Item" && arguments.Count == 1)
+            {
+                return
+                    // Try translating indexing inside json column
+                    _jsonPocoTranslator.TranslateMemberAccess(instance, arguments[0], method.ReturnType) ??
+                    // Other types should be subscriptable - but PostgreSQL arrays are 1-based, so adjust the index.
+                    _sqlExpressionFactory.ArrayIndex(instance, GenerateOneBasedIndexExpression(arguments[0]));
+            }
 
             if (arguments.Count == 0)
                 return null;
@@ -56,7 +63,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
             var operandElementType = operand.Type.IsArray
                 ? operand.Type.GetElementType()
-                : operand.Type.IsGenericType && operand.Type.GetGenericTypeDefinition() == typeof(List<>)
+                : operand.Type.IsGenericList()
                     ? operand.Type.GetGenericArguments()[0]
                     : null;
 
@@ -122,5 +129,25 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
             return null;
         }
+
+        public SqlExpression Translate(SqlExpression instance, MemberInfo member, Type returnType)
+        {
+            if (instance != null && instance.Type.IsGenericList() && member.Name == nameof(List<object>.Count))
+            {
+                return _jsonPocoTranslator.TranslateArrayLength(instance) ??
+                       _sqlExpressionFactory.Function("cardinality", new[] { instance }, typeof(int?));
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// PostgreSQL array indexing is 1-based. If the index happens to be a constant,
+        /// just increment it. Otherwise, append a +1 in the SQL.
+        /// </summary>
+        SqlExpression GenerateOneBasedIndexExpression([NotNull] SqlExpression expression)
+            => expression is SqlConstantExpression constant
+                ? _sqlExpressionFactory.Constant(Convert.ToInt32(constant.Value) + 1, constant.TypeMapping)
+                : (SqlExpression)_sqlExpressionFactory.Add(expression, _sqlExpressionFactory.Constant(1));
     }
 }

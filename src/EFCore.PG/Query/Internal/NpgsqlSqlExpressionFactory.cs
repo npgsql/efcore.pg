@@ -42,11 +42,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             SqlExpression index,
             RelationalTypeMapping typeMapping = null)
         {
-            // TODO: Support List<>
-            if (!array.Type.IsArray)
-                throw new ArgumentException("Array expression must of an array type", nameof(array));
+            Type elementType;
+            if (array.Type.IsArray)
+                elementType = array.Type.GetElementType();
+            else if (array.Type.IsGenericList())
+                elementType = array.Type.GetGenericArguments()[0];
+            else
+                throw new ArgumentException("Array expression must be of an array or List<> type", nameof(array));
 
-            var elementType = array.Type.GetElementType();
             return (ArrayIndexExpression)ApplyTypeMapping(new ArrayIndexExpression(array, index, elementType, null), typeMapping);
         }
 
@@ -105,7 +108,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                     // PostgreSQL-specific expression types
                     RegexMatchExpression e       => ApplyTypeMappingOnRegexMatch(e),
                     ArrayAnyAllExpression e      => ApplyTypeMappingOnArrayAnyAll(e),
-                    ArrayIndexExpression e       => ApplyTypeMappingOnArrayIndex(e),
+                    ArrayIndexExpression e       => ApplyTypeMappingOnArrayIndex(e, typeMapping),
                     ILikeExpression e            => ApplyTypeMappingOnILike(e),
                     PgFunctionExpression e       => e.ApplyTypeMapping(typeMapping),
 
@@ -194,14 +197,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 _boolTypeMapping);
         }
 
-        SqlExpression ApplyTypeMappingOnArrayIndex(ArrayIndexExpression arrayIndexExpression)
+        SqlExpression ApplyTypeMappingOnArrayIndex(
+            ArrayIndexExpression arrayIndexExpression, RelationalTypeMapping typeMapping)
             => new ArrayIndexExpression(
+                // TODO: Infer the array's mapping from the element
                 ApplyDefaultTypeMapping(arrayIndexExpression.Array),
                 ApplyDefaultTypeMapping(arrayIndexExpression.Index),
                 arrayIndexExpression.Type,
+                // If the array has a type mapping (i.e. column), prefer that just like we prefer column mappings in general
                 arrayIndexExpression.Array.TypeMapping is NpgsqlArrayTypeMapping arrayMapping
                     ? arrayMapping.ElementMapping
-                    : FindMapping(arrayIndexExpression.Type));
+                    : typeMapping ?? FindMapping(arrayIndexExpression.Type));
 
         SqlExpression ApplyTypeMappingOnILike(ILikeExpression ilikeExpression)
         {

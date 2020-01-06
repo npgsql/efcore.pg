@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query;
@@ -28,8 +29,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
             Check.NotNull(array, nameof(array));
             Check.NotNull(index, nameof(index));
 
-            // TODO: Support also List<>
-            if (!array.Type.IsArray)
+            if (!array.Type.IsArray && !array.Type.IsGenericList())
                 throw new ArgumentException("Array expression must of an array type", nameof(array));
             if (index.Type != typeof(int))
                 throw new ArgumentException("Index expression must of type int", nameof(index));
