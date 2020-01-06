@@ -420,8 +420,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                     mappingInfo.Scale));
 
                 if (elementMapping != null)
-                    return StoreTypeMappings.GetOrAdd(storeType,
-                        new RelationalTypeMapping[] { new NpgsqlArrayTypeMapping(storeType, elementMapping) })[0];
+                {
+                    var added = StoreTypeMappings.TryAdd(storeType,
+                        new RelationalTypeMapping[]
+                        {
+                            new NpgsqlArrayArrayTypeMapping(storeType, elementMapping),
+                            new NpgsqlArrayListTypeMapping(storeType, elementMapping)
+                        });
+                    Debug.Assert(added);
+                    var mapping = FindExistingMapping(mappingInfo);
+                    Debug.Assert(mapping != null);
+                    return mapping;
+                }
             }
 
             var clrType = mappingInfo.ClrType;
@@ -443,10 +453,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 if (elementMapping is NpgsqlArrayTypeMapping)
                     return null;
 
-                return ClrTypeMappings.GetOrAdd(clrType, new NpgsqlArrayTypeMapping(elementMapping, clrType));
+                return ClrTypeMappings.GetOrAdd(clrType, new NpgsqlArrayArrayTypeMapping(elementMapping, clrType));
             }
 
-            if (clrType.IsGenericType && clrType.GetGenericTypeDefinition() == typeof(List<>))
+            if (clrType.IsGenericList())
             {
                 var elementType = clrType.GetGenericArguments()[0];
 
@@ -459,7 +469,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 if (elementMapping is NpgsqlArrayTypeMapping)
                     return null;
 
-                return ClrTypeMappings.GetOrAdd(clrType, new NpgsqlListTypeMapping(elementMapping, clrType));
+                return ClrTypeMappings.GetOrAdd(clrType, new NpgsqlArrayListTypeMapping(elementMapping, clrType));
             }
 
             return null;

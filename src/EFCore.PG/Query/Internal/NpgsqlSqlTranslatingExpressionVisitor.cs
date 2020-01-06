@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
@@ -127,9 +128,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             if (visited != null)
                 return visited;
 
-            // TODO: Handle List<>
-            if (methodCall.Arguments.Count > 0 && methodCall.Arguments[0].Type.IsArray)
+            if (methodCall.Arguments.Count > 0 && (
+                    methodCall.Arguments[0].Type.IsArray || methodCall.Arguments[0].Type.IsGenericList()))
+            {
                 return VisitArrayMethodCall(methodCall.Method, methodCall.Arguments);
+            }
 
             return null;
         }
@@ -183,7 +186,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                     arguments[1] is LambdaExpression wherePredicate &&
                     wherePredicate.Body is MethodCallExpression wherePredicateMethodCall &&
                     wherePredicateMethodCall.Method.IsClosedFormOf(Contains) &&
-                    wherePredicateMethodCall.Arguments[0].Type.IsArray &&
+                    wherePredicateMethodCall.Arguments[0].Type.IsArrayOrGenericList() &&
                     wherePredicateMethodCall.Arguments[1] is ParameterExpression parameterExpression &&
                     parameterExpression == wherePredicate.Parameters[0])
                 {
@@ -207,7 +210,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                     arguments[1] is LambdaExpression wherePredicate &&
                     wherePredicate.Body is MethodCallExpression wherePredicateMethodCall &&
                     wherePredicateMethodCall.Method.IsClosedFormOf(Contains) &&
-                    wherePredicateMethodCall.Arguments[0].Type.IsArray &&
+                    wherePredicateMethodCall.Arguments[0].Type.IsArrayOrGenericList() &&
                     wherePredicateMethodCall.Arguments[1] is ParameterExpression parameterExpression &&
                     parameterExpression == wherePredicate.Parameters[0])
                 {

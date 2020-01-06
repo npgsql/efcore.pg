@@ -44,7 +44,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         [Fact]
         public void Varchar32_Array()
         {
-            var arrayMapping = Assert.IsType<NpgsqlArrayTypeMapping>(Source.FindMapping("varchar(32)[]"));
+            var arrayMapping = Assert.IsType<NpgsqlArrayArrayTypeMapping>(Source.FindMapping("varchar(32)[]"));
             Assert.Same(typeof(string[]), arrayMapping.ClrType);
             Assert.Equal("varchar(32)[]", arrayMapping.StoreType);
             Assert.Null(arrayMapping.Size);
@@ -67,7 +67,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         [Fact]
         public void Timestamp_without_time_zone_Array_5()
         {
-            var arrayMapping = Assert.IsType<NpgsqlArrayTypeMapping>(Source.FindMapping("timestamp(5) without time zone[]"));
+            var arrayMapping = Assert.IsType<NpgsqlArrayArrayTypeMapping>(Source.FindMapping("timestamp(5) without time zone[]"));
             Assert.Same(typeof(DateTime[]), arrayMapping.ClrType);
             Assert.Equal("timestamp(5) without time zone[]", arrayMapping.StoreType);
 

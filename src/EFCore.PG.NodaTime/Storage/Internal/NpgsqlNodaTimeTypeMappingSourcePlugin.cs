@@ -155,9 +155,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 var elementStoreType = storeType.Substring(0, storeType.Length - 2);
                 var elementMapping = FindExistingMapping(new RelationalTypeMappingInfo(elementStoreType, elementStoreType,
                     mappingInfo.IsUnicode, mappingInfo.Size, mappingInfo.Precision, mappingInfo.Scale));
+
                 if (elementMapping != null)
-                    return StoreTypeMappings.GetOrAdd(storeType,
-                        new RelationalTypeMapping[] { new NpgsqlArrayTypeMapping(storeType, elementMapping) })[0];
+                {
+                    var added = StoreTypeMappings.TryAdd(storeType,
+                        new RelationalTypeMapping[]
+                        {
+                            new NpgsqlArrayArrayTypeMapping(storeType, elementMapping),
+                            new NpgsqlArrayListTypeMapping(storeType, elementMapping)
+                        });
+                    Debug.Assert(added);
+                    var mapping = FindExistingMapping(mappingInfo);
+                    Debug.Assert(mapping != null);
+                    return mapping;
+                }
             }
 
             var clrType = mappingInfo.ClrType;
@@ -178,7 +189,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 if (elementMapping is NpgsqlArrayTypeMapping)
                     return null;
 
-                return ClrTypeMappings.GetOrAdd(clrType, new NpgsqlArrayTypeMapping(elementMapping, clrType));
+                return ClrTypeMappings.GetOrAdd(clrType, new NpgsqlArrayArrayTypeMapping(elementMapping, clrType));
             }
 
             if (clrType.IsGenericType && clrType.GetGenericTypeDefinition() == typeof(List<>))
@@ -194,7 +205,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 if (elementMapping is NpgsqlArrayTypeMapping)
                     return null;
 
-                return ClrTypeMappings.GetOrAdd(clrType, new NpgsqlListTypeMapping(elementMapping, clrType));
+                return ClrTypeMappings.GetOrAdd(clrType, new NpgsqlArrayListTypeMapping(elementMapping, clrType));
             }
 
             return null;
