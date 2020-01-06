@@ -21,13 +21,9 @@ Special types such as [arrays](array.md) and [enums](enum.md) have their own doc
 
 # Explicitly specifying data types
 
-In some cases, your .NET property type can be mapped to several PostgreSQL data types; a good example is a `string`, which will be mapped to `text` by default, but can also be mapped to `jsonb`. You can explicitly specify the PostgreSQL data type by adding the following to your model's `OnModelCreating`:
+In some cases, your .NET property type can be mapped to several PostgreSQL data types; a good example is a `string`, which will be mapped to `text` by default, but can also be mapped to `jsonb`. You can use either Data Annotation attributes or the Fluent API to configure the PostgreSQL data type:
 
-```c#
-builder.Entity<Blog>()
-       .Property(b => b.SomeStringProperty)
-       .HasColumnType("jsonb");
-```
+## [Data Annotations](#tab/data-annotations)
 
 Or, if you prefer annotations, use a `ColumnAttribute`:
 
@@ -35,6 +31,16 @@ Or, if you prefer annotations, use a `ColumnAttribute`:
 [Column(TypeName="jsonb")]
 public string SomeStringProperty { get; set; }
 ```
+
+## [Fluent API](#tab/fluent-api)
+
+```c#
+builder.Entity<Blog>()
+       .Property(b => b.SomeStringProperty)
+       .HasColumnType("jsonb");
+```
+
+***
 
 ## Operation translation to SQL
 

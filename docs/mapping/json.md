@@ -16,7 +16,7 @@ The Npgsql EF Core provider allows you to map PostgreSQL JSON columns in three d
 
 The simplest form of mapping to JSON is via a regular string property, just like an ordinary text column:
 
-# [Data Annotations](#tab/data-annotations)
+### [Data Annotations](#tab/data-annotations)
 
 ```c#
 public class SomeEntity
@@ -27,7 +27,7 @@ public class SomeEntity
 }
 ```
 
-# [Fluent API](#tab/fluent-api)
+### [Fluent API](#tab/fluent-api)
 
 ```c#
 class MyContext : DbContext
