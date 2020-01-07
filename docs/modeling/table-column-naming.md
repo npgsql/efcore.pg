@@ -8,7 +8,7 @@ Starting with 3.0.0, you can use the [EFCore.NamingConventions](https://github.c
 protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     => optionsBuilder
         .UseNpgsql(...)
-        .UseSnakeCaseNamingConventions();
+        .UseSnakeCaseNamingConvention();
 
 public class Customer {
     public int Id { get; set; }
