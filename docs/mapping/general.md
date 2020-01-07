@@ -25,8 +25,6 @@ In some cases, your .NET property type can be mapped to several PostgreSQL data 
 
 ## [Data Annotations](#tab/data-annotations)
 
-Or, if you prefer annotations, use a `ColumnAttribute`:
-
 ```c#
 [Column(TypeName="jsonb")]
 public string SomeStringProperty { get; set; }
