@@ -308,7 +308,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
                 }));
 
         [Fact]
-        public void ValueComparer_hstore_as_dictionary()
+        public void ValueComparer_hstore_as_Dictionary()
         {
             var source = new Dictionary<string, string>
             {
@@ -326,7 +326,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         }
 
         [Fact]
-        public void ValueComparer_hstore_as_readonlydictionary()
+        public void ValueComparer_hstore_as_IReadOnlyDictionary()
         {
             var sourceAsDict = new Dictionary<string, string>
             {

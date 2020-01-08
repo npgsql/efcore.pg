@@ -41,18 +41,5 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             sb.Append('\'');
             return sb.ToString();
         }
-        protected static bool Compare(IReadOnlyDictionary<string, string> a, IReadOnlyDictionary<string, string> b)
-        {
-            if (a == null)
-                return b == null;
-            if (b == null)
-                return false;
-            if (a.Count != b.Count)
-                return false;
-            foreach (var kv in a)
-                if (!b.TryGetValue(kv.Key, out var bValue) || kv.Value != bValue)
-                    return false;
-            return true;
-        }
     }
 }
