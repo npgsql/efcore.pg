@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Text.Json;
@@ -341,6 +342,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
             Assert.NotSame(source, snapshot);
             Assert.True(comparer.Equals(source, snapshot));
             sourceAsDict.Remove("k1");
+            Assert.False(comparer.Equals(source, snapshot));
+        }
+
+        [Fact]
+        public void ValueComparer_hstore_as_ImmutableDictionary()
+        {
+            var source = ImmutableDictionary<string, string>.Empty
+                .Add("k1", "v1")
+                .Add("k2", "v2");
+
+            var comparer = Mapper.FindMapping(typeof(ImmutableDictionary<string, string>), "hstore").Comparer;
+            var snapshot = comparer.Snapshot(source);
+            Assert.Equal(source, snapshot);
+            Assert.True(comparer.Equals(source, snapshot));
+            source = source.Remove("k1");
             Assert.False(comparer.Equals(source, snapshot));
         }
 

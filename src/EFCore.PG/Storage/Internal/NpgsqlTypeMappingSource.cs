@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Data;
 using System.Diagnostics;
 using System.Linq;
@@ -104,13 +105,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         readonly NpgsqlRangeTypeMapping        _daterange;
 
         // Other types
-        readonly NpgsqlBoolTypeMapping           _bool           = new NpgsqlBoolTypeMapping();
-        readonly NpgsqlBitTypeMapping            _bit            = new NpgsqlBitTypeMapping();
-        readonly NpgsqlVarbitTypeMapping         _varbit         = new NpgsqlVarbitTypeMapping();
-        readonly NpgsqlByteArrayTypeMapping      _bytea          = new NpgsqlByteArrayTypeMapping();
-        readonly NpgsqlMutableHstoreTypeMapping  _hstore         = new NpgsqlMutableHstoreTypeMapping();
-        readonly NpgsqlReadOnlyHstoreTypeMapping _readOnlyHstore = new NpgsqlReadOnlyHstoreTypeMapping();
-        readonly NpgsqlTidTypeMapping            _tid            = new NpgsqlTidTypeMapping();
+        readonly NpgsqlBoolTypeMapping            _bool            = new NpgsqlBoolTypeMapping();
+        readonly NpgsqlBitTypeMapping             _bit             = new NpgsqlBitTypeMapping();
+        readonly NpgsqlVarbitTypeMapping          _varbit          = new NpgsqlVarbitTypeMapping();
+        readonly NpgsqlByteArrayTypeMapping       _bytea           = new NpgsqlByteArrayTypeMapping();
+        readonly NpgsqlMutableHstoreTypeMapping   _hstore          = new NpgsqlMutableHstoreTypeMapping();
+        readonly NpgsqlReadOnlyHstoreTypeMapping  _readOnlyHstore  = new NpgsqlReadOnlyHstoreTypeMapping();
+        readonly NpgsqlImmutableHstoreTypeMapping _immutableHstore = new NpgsqlImmutableHstoreTypeMapping();
+        readonly NpgsqlTidTypeMapping             _tid             = new NpgsqlTidTypeMapping();
 
         // Special stuff
         // ReSharper disable once InconsistentNaming
@@ -185,7 +187,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 { "bit",                         new[] { _bit                          } },
                 { "bit varying",                 new[] { _varbit                       } },
                 { "varbit",                      new[] { _varbit                       } },
-                { "hstore",                      new RelationalTypeMapping[] { _hstore, _readOnlyHstore } },
+                { "hstore",                      new RelationalTypeMapping[] { _hstore, _readOnlyHstore, _immutableHstore } },
                 { "point",                       new[] { _point                        } },
                 { "box",                         new[] { _box                          } },
                 { "line",                        new[] { _line                         } },
@@ -236,6 +238,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 { typeof((IPAddress, int)),                    _cidr                 },
                 { typeof(BitArray),                            _varbit               },
                 { typeof(IReadOnlyDictionary<string, string>), _readOnlyHstore       },
+                { typeof(ImmutableDictionary<string, string>), _immutableHstore      },
                 { typeof(Dictionary<string, string>),          _hstore               },
                 { typeof(NpgsqlTid),                           _tid                  },
 
