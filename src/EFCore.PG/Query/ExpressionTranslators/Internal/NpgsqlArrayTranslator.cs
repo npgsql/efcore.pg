@@ -63,7 +63,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             if (!operand.Type.TryGetElementType(out var operandElementType))
                 return null; // Not an array/list
 
-            // Even if the CLR type is an array/list, it may be mapped to a non-array database type (e.g. via value converters).
+            // The array/list CLR type may be mapped to a non-array database type (e.g. byte[] to bytea, or just
+            // value converters). Make sure we're dealing with an array
+            // Regardless of CLR type, we may be dealing with a non-array database type (e.g. via value converters).
             if (operand.TypeMapping is RelationalTypeMapping typeMapping &&
                 !(typeMapping is NpgsqlArrayTypeMapping) && !(typeMapping is NpgsqlJsonTypeMapping))
             {
