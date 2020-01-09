@@ -19,13 +19,27 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
-        [ConditionalTheory(Skip = "#1225")]
-        public override Task Byte_array_contains_literal(bool async)
-            => base.Byte_array_contains_literal(async);
+        public override async Task Byte_array_contains_literal(bool async)
+        {
+            await base.Byte_array_contains_literal(async);
 
-        [ConditionalTheory(Skip = "#1225")]
-        public override Task Byte_array_contains_parameter(bool async)
-            => base.Byte_array_contains_parameter(async);
+            AssertSql(
+                @"SELECT s.""Id"", s.""Banner"", s.""Banner5"", s.""InternalNumber"", s.""Name""
+FROM ""Squads"" AS s
+WHERE POSITION(BYTEA E'\\x01' IN s.""Banner"") > 0");
+        }
+
+        public override async Task Byte_array_contains_parameter(bool async)
+        {
+            await base.Byte_array_contains_parameter(async);
+
+            AssertSql(
+                @"@__someByte_0='1'
+
+SELECT s.""Id"", s.""Banner"", s.""Banner5"", s.""InternalNumber"", s.""Name""
+FROM ""Squads"" AS s
+WHERE POSITION(SET_BYTE(BYTEA E'\\x00', 0, @__someByte_0) IN s.""Banner"") > 0");
+        }
 
         public override async Task Byte_array_filter_by_length_literal(bool async)
         {

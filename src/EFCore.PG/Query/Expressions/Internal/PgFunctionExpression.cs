@@ -94,11 +94,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
             Check.NotNull(visitor, nameof(visitor));
 
             var visited = base.VisitChildren(visitor);
-            return visited == this
-                ? this
-                : visited is SqlFunctionExpression e
-                    ? new PgFunctionExpression(e.Name, e.Arguments, ArgumentNames, ArgumentSeparators, IsBuiltIn, Type, TypeMapping)
-                    : visited;
+            return visited != this && visited is SqlFunctionExpression e
+                ? new PgFunctionExpression(e.Name, e.Arguments, ArgumentNames, ArgumentSeparators, IsBuiltIn, Type, TypeMapping)
+                : visited;
         }
 
         public override SqlFunctionExpression ApplyTypeMapping([CanBeNull] RelationalTypeMapping typeMapping)
