@@ -10,7 +10,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
     /// PostgreSQL has quite a few custom operators (full text, JSON and many others). Rather than creating expression
     /// types for each, this type represents an arbitrary expression with one operand and an operator.
     /// </summary>
-    public class CustomUnaryExpression : Expression
+    public class SqlCustomUnaryExpression : Expression
     {
         /// <inheritdoc />
         public override ExpressionType NodeType => ExpressionType.Extension;
@@ -36,14 +36,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         public bool Postfix { get; }
 
         /// <summary>
-        /// Constructs a <see cref="CustomUnaryExpression"/>.
+        /// Constructs a <see cref="SqlCustomUnaryExpression"/>.
         /// </summary>
         /// <param name="operand">The expression acted on by the <paramref name="unaryOperator"/>.</param>
         /// <param name="unaryOperator">The operator symbol acting on the expression.</param>
         /// <param name="type">The result type.</param>
         /// <param name="postfix">True if the <paramref name="unaryOperator"/> follows the operand; otherwise, false.</param>
         /// <exception cref="ArgumentNullException" />
-        public CustomUnaryExpression(
+        public SqlCustomUnaryExpression(
             [NotNull] Expression operand,
             [NotNull] string unaryOperator,
             [NotNull] Type type,
@@ -68,7 +68,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
 
             return
                 operand != Operand
-                    ? new CustomUnaryExpression(operand, Operator, Type)
+                    ? new SqlCustomUnaryExpression(operand, Operator, Type)
                     : this;
         }
 

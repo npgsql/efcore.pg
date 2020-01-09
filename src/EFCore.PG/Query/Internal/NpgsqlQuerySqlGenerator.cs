@@ -425,14 +425,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         }
 
         /// <summary>
-        /// Visits the children of a <see cref="CustomUnaryExpression"/>.
+        /// Visits the children of a <see cref="SqlCustomUnaryExpression"/>.
         /// </summary>
         /// <param name="expression">The expression.</param>
         /// <returns>
         /// An <see cref="Expression"/>.
         /// </returns>
         [NotNull]
-        public virtual Expression VisitCustomUnary([NotNull] CustomUnaryExpression expression)
+        public virtual Expression VisitCustomUnary([NotNull] SqlCustomUnaryExpression expression)
         {
             if (expression.Postfix)
             {
