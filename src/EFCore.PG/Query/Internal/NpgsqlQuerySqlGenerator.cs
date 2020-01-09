@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
@@ -464,62 +463,55 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         /// <summary>
         /// Visits the children of a <see cref="PgFunctionExpression"/>.
         /// </summary>
-        /// <param name="sqlFunctionExpression">The expression.</param>
+        /// <param name="e">The expression.</param>
         /// <returns>
         /// An <see cref="Expression"/>.
         /// </returns>
         [NotNull]
-        public virtual Expression VisitPgFunction([NotNull] PgFunctionExpression sqlFunctionExpression)
+        public virtual Expression VisitPgFunction([NotNull] PgFunctionExpression e)
         {
-            if (!string.IsNullOrEmpty(sqlFunctionExpression.Schema))
+            Check.NotNull(e, nameof(e));
+
+            if (e.IsBuiltIn)
             {
-                Sql
-                    .Append(_sqlGenerationHelper.DelimitIdentifier(sqlFunctionExpression.Schema))
-                    .Append(".");
+                Sql.Append(e.Name);
+            }
+            else
+            {
+                if (!string.IsNullOrEmpty(e.Schema))
+                {
+                    Sql
+                        .Append(_sqlGenerationHelper.DelimitIdentifier(e.Schema))
+                        .Append(".");
+                }
+
+                // TODO: Quote user-defined function names with upper-case (also for regular SqlFunctionExpression)
+
+                Sql.Append(_sqlGenerationHelper.DelimitIdentifier(e.Name));
             }
 
-            // TODO: Quote user-defined function names with upper-case
-            Sql
-                .Append(sqlFunctionExpression.FunctionName)
-                .Append("(");
+            Sql.Append("(");
 
-            GenerateList(sqlFunctionExpression.PositionalArguments, e => Visit(e));
-
-            var hasArguments = sqlFunctionExpression.PositionalArguments.Count > 0 && sqlFunctionExpression.NamedArguments.Count > 0;
-
-            foreach (var kv in sqlFunctionExpression.NamedArguments)
+            for (var i = 0; i < e.Arguments.Count; i++)
             {
-                if (hasArguments)
-                    Sql.Append(", ");
-                else
-                    hasArguments = true;
+                if (i < e.ArgumentNames.Count && e.ArgumentNames[i] != null)
+                {
+                    Sql
+                        .Append(e.ArgumentNames[i])
+                        .Append(" => ");
+                }
 
-                Sql.Append(kv.Key).Append(" => ");
+                Visit(e.Arguments[i]);
 
-                Visit(kv.Value);
+                if (i < e.Arguments.Count - 1)
+                    Sql.Append(i < e.ArgumentSeparators.Count && e.ArgumentSeparators[i] != null
+                        ? $" {e.ArgumentSeparators[i]} "
+                        : ", ");
             }
 
             Sql.Append(")");
 
-            return sqlFunctionExpression;
-        }
-
-        void GenerateList<T>(
-            IReadOnlyList<T> items,
-            Action<T> generationAction,
-            Action<IRelationalCommandBuilder> joinAction = null)
-        {
-            joinAction ??= (isb => isb.Append(", "));
-
-            for (var i = 0; i < items.Count; i++)
-            {
-                if (i > 0)
-                {
-                    joinAction(Sql);
-                }
-
-                generationAction(items[i]);
-            }
+            return e;
         }
 
         #endregion
