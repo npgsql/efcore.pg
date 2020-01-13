@@ -181,13 +181,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         SqlExpression ApplyTypeMappingOnArrayAnyAll(ArrayAnyAllExpression arrayAnyAllExpression)
         {
             // Attempt type inference either from the operand to the array or the other way around
-            var arrayMapping = arrayAnyAllExpression.Array.TypeMapping as NpgsqlArrayTypeMapping;
+            var arrayMapping = (NpgsqlArrayTypeMapping)arrayAnyAllExpression.Array.TypeMapping;
 
             var operandMapping = arrayAnyAllExpression.Operand.TypeMapping ??
                                  arrayMapping?.ElementMapping ??
                                  _typeMappingSource.FindMapping(arrayAnyAllExpression.Operand.Type);
 
-            arrayMapping ??= (NpgsqlArrayTypeMapping)_typeMappingSource.FindMapping(arrayAnyAllExpression.Operand.Type.MakeArrayType());
+            // Note that we provide both the array CLR type *and* an array store type constructed from the element's
+            // store type. If we use only the array CLR type, byte[] will yield bytea which we don't want.
+            arrayMapping ??= (NpgsqlArrayTypeMapping)_typeMappingSource.FindMapping(
+                arrayAnyAllExpression.Array.Type, operandMapping.StoreType + "[]");
+
+            if (operandMapping == null || arrayMapping == null)
+                throw new InvalidOperationException("Couldn't find array or element type mapping in ArrayAnyAllExpression");
 
             return new ArrayAnyAllExpression(
                 ApplyTypeMapping(arrayAnyAllExpression.Operand, operandMapping),

@@ -11,8 +11,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     /// Maps PostgreSQL arrays to <see cref="List{T}"/>.
     /// </summary>
     /// <remarks>
+    /// <para>
     /// Note that mapping PostgreSQL arrays to .NET arrays is also supported via <see cref="NpgsqlArrayArrayTypeMapping"/>.
-    /// See: https://www.postgresql.org/docs/current/static/arrays.html
+    /// </para>
+    ///
+    /// <para>See: https://www.postgresql.org/docs/current/static/arrays.html</para>
     /// </remarks>
     public class NpgsqlArrayListTypeMapping : NpgsqlArrayTypeMapping
     {
