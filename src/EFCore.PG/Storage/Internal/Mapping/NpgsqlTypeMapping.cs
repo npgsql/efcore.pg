@@ -39,12 +39,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
         protected override void ConfigureParameter(DbParameter parameter)
         {
+            var npgsqlParameter = parameter as NpgsqlParameter;
+            if (npgsqlParameter == null)
+                throw new ArgumentException($"Npgsql-specific type mapping {GetType()} being used with non-Npgsql parameter type {parameter.GetType().Name}");
+
             base.ConfigureParameter(parameter);
 
-            if (parameter is NpgsqlParameter npgsqlParameter)
-                npgsqlParameter.NpgsqlDbType = NpgsqlDbType;
-            else
-                throw new InvalidOperationException($"Npgsql-specific type mapping {GetType().Name} being used with non-Npgsql parameter type {parameter.GetType().Name}");
+            npgsqlParameter.NpgsqlDbType = NpgsqlDbType;
         }
     }
 }

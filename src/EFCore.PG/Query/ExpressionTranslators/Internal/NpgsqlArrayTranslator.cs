@@ -60,15 +60,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 return null;
 
             var operand = arguments[0];
-
-            var operandElementType = operand.Type.IsArray
-                ? operand.Type.GetElementType()
-                : operand.Type.IsGenericList()
-                    ? operand.Type.GetGenericArguments()[0]
-                    : null;
-
-            if (operandElementType == null) // Not an array/list
-                return null;
+            if (!operand.Type.TryGetElementType(out var operandElementType))
+                return null; // Not an array/list
 
             // Even if the CLR type is an array/list, it may be mapped to a non-array database type (e.g. via value converters).
             if (operand.TypeMapping is RelationalTypeMapping typeMapping &&
@@ -97,30 +90,37 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             // since non-PG SQL does not support arrays. If the list is a constant we leave it for regular IN
             // (functionality the same but more familiar).
 
-            // Note: we exclude constant array expressions from this PG-specific optimization since the general
-            // EF Core mechanism is fine for that case. After https://github.com/aspnet/EntityFrameworkCore/issues/16375
-            // is done we may not need the check any more.
-            // Note: we exclude arrays/lists over Nullable<T> since the ADO layer doesn't handle them (but will in 5.0)
-
             if (method.IsClosedFormOf(Contains) &&
-                _sqlExpressionFactory.FindMapping(operand.Type) != null &&
+                // Exclude constant array expressions from this PG-specific optimization since the general
+                // EF Core mechanism is fine for that case. After https://github.com/aspnet/EntityFrameworkCore/issues/16375
+                // is done we may not need the check any more.
                 !(operand is SqlConstantExpression) &&
+                (
+                    // Handle either parameters (no mapping but supported CLR type), or array columns. We specifically
+                    // don't want to translate if the type mapping is bytea (CLR type is array, but not an array in
+                    // the database).
+                    operand.TypeMapping == null && _sqlExpressionFactory.FindMapping(operand.Type) != null ||
+                    operand.TypeMapping is NpgsqlArrayTypeMapping
+                 ) &&
+                // Exclude arrays/lists over Nullable<T> since the ADO layer doesn't handle them (but will in 5.0)
                 Nullable.GetUnderlyingType(operandElementType) == null)
             {
                 var item = arguments[1];
+                var anyAll = _sqlExpressionFactory.ArrayAnyAll(item, operand, ArrayComparisonType.Any, "=");
+
                 // TODO: no null semantics is implemented here (see https://github.com/npgsql/efcore.pg/issues/1142)
                 // We require a null semantics check in case the item is null and the array contains a null.
                 // Advanced parameter sniffing would help here: https://github.com/aspnet/EntityFrameworkCore/issues/17598
                 // We need to coalesce to false since 'x' = ANY ({'y', NULL}) returns null, not false
                 // (and so will be null when negated too)
                 return _sqlExpressionFactory.OrElse(
-                    _sqlExpressionFactory.ArrayAnyAll(item, operand, ArrayComparisonType.Any, "="),
+                    anyAll,
                     _sqlExpressionFactory.AndAlso(
                         _sqlExpressionFactory.IsNull(item),
                         _sqlExpressionFactory.IsNotNull(
                             _sqlExpressionFactory.Function(
                                 "array_position",
-                                new[] { operand, _sqlExpressionFactory.Fragment("NULL") },
+                                new[] { anyAll.Array, _sqlExpressionFactory.Fragment("NULL") },
                                 typeof(int)))));
             }
 

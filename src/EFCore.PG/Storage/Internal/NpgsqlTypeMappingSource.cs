@@ -301,14 +301,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         protected override RelationalTypeMapping FindMapping(in RelationalTypeMappingInfo mappingInfo) =>
             // First, try any plugins, allowing them to override built-in mappings (e.g. NodaTime)
             base.FindMapping(mappingInfo) ??
-            // Then, any mappings that have already been set up
-            FindExistingMapping(mappingInfo) ??
-            // Try any array mappings which have not yet been set up
+            FindBaseMapping(mappingInfo) ??
             FindArrayMapping(mappingInfo) ??
-            // Try any user-defined range mappings which have not yet been set up
             FindUserRangeMapping(mappingInfo);
 
-        protected virtual RelationalTypeMapping FindExistingMapping(in RelationalTypeMappingInfo mappingInfo)
+        protected virtual RelationalTypeMapping FindBaseMapping(in RelationalTypeMappingInfo mappingInfo)
         {
             var clrType = mappingInfo.ClrType;
             var storeTypeName = mappingInfo.StoreTypeName;
@@ -352,8 +349,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 // we proceed with a CLR type lookup (if the type doesn't exist at all the failure will come later).
             }
 
-            if (clrType == null || !ClrTypeMappings.TryGetValue(clrType, out var mapping))
+            if (clrType == null ||
+                !ClrTypeMappings.TryGetValue(clrType, out var mapping) ||
+                // Special case for byte[] mapped as smallint[] - don't return bytea mapping
+                storeTypeName != null && storeTypeName == "smallint[]")
+            {
                 return null;
+            }
 
             // If needed, clone the mapping with the configured length/precision/scale
             // TODO: Cache size/precision/scale mappings?
@@ -398,43 +400,52 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
         protected virtual RelationalTypeMapping FindArrayMapping(in RelationalTypeMappingInfo mappingInfo)
         {
-            // PostgreSQL array type names are the element plus []
+            var clrType = mappingInfo.ClrType;
+            Type elementClrType = null;
+
+            if (clrType != null && !clrType.TryGetElementType(out elementClrType))
+                return null; // Not an array/list
+
             var storeType = mappingInfo.StoreTypeName;
             var storeTypeNameBase = mappingInfo.StoreTypeNameBase;
             if (storeType != null)
             {
+                // PostgreSQL array type names are the element plus []
                 if (!storeType.EndsWith("[]"))
                     return null;
 
-                // Construct a RelationalTypeMappingInfo for the element type and look that up
-                // Note that we scaffold PostgreSQL arrays to C# arrays, not lists (which are also supported)
-                // TODO: In theory support the multiple mappings just like we do with scalars above
-                // (e.g. DateTimeOffset[] vs. DateTime[]
+                var elementStoreType = storeType.Substring(0, storeType.Length - 2);
+                var elementStoreTypeNameBase = storeTypeNameBase.Substring(0, storeTypeNameBase.Length - 2);
 
-                var elementMapping = FindMapping(new RelationalTypeMappingInfo(
-                    storeType.Substring(0, storeType.Length - 2),
-                    storeTypeNameBase.Substring(0, storeTypeNameBase.Length - 2),
-                    mappingInfo.IsUnicode,
-                    mappingInfo.Size,
-                    mappingInfo.Precision,
-                    mappingInfo.Scale));
+                RelationalTypeMapping elementMapping;
 
-                if (elementMapping != null)
+                if (elementClrType == null)
                 {
-                    var added = StoreTypeMappings.TryAdd(storeType,
-                        new RelationalTypeMapping[]
-                        {
-                            new NpgsqlArrayArrayTypeMapping(storeType, elementMapping),
-                            new NpgsqlArrayListTypeMapping(storeType, elementMapping)
-                        });
-                    Debug.Assert(added);
-                    var mapping = FindExistingMapping(mappingInfo);
-                    Debug.Assert(mapping != null);
-                    return mapping;
+                    elementMapping = FindMapping(new RelationalTypeMappingInfo(
+                        elementStoreType, elementStoreTypeNameBase,
+                        mappingInfo.IsUnicode, mappingInfo.Size, mappingInfo.Precision, mappingInfo.Scale));
                 }
+                else
+                {
+                    elementMapping = FindMapping(new RelationalTypeMappingInfo(
+                        elementClrType, elementStoreType, elementStoreTypeNameBase,
+                        mappingInfo.IsKeyOrIndex, mappingInfo.IsUnicode, mappingInfo.Size, mappingInfo.IsRowVersion,
+                        mappingInfo.IsFixedLength, mappingInfo.Precision, mappingInfo.Scale));
+
+                    // If an element mapping was found only with the help of a value converter, return null and EF will
+                    // construct the corresponding array mapping with a value converter.
+                    if (elementMapping?.Converter != null)
+                        return null;
+                }
+
+                // If no mapping was found for the element, there's no mapping for the array.
+                // Also, arrays of arrays aren't supported (as opposed to multidimensional arrays) by PostgreSQL
+                if (elementMapping == null || elementMapping is NpgsqlArrayTypeMapping)
+                    return null;
+
+                return new NpgsqlArrayArrayTypeMapping(storeType, elementMapping);
             }
 
-            var clrType = mappingInfo.ClrType;
             if (clrType == null)
                 return null;
 
@@ -453,7 +464,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 if (elementMapping is NpgsqlArrayTypeMapping)
                     return null;
 
-                return ClrTypeMappings.GetOrAdd(clrType, new NpgsqlArrayArrayTypeMapping(elementMapping, clrType));
+                return new NpgsqlArrayArrayTypeMapping(elementMapping, clrType);
             }
 
             if (clrType.IsGenericList())
@@ -469,7 +480,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 if (elementMapping is NpgsqlArrayTypeMapping)
                     return null;
 
-                return ClrTypeMappings.GetOrAdd(clrType, new NpgsqlArrayListTypeMapping(elementMapping, clrType));
+                return new NpgsqlArrayListTypeMapping(elementMapping, clrType);
             }
 
             return null;
@@ -525,13 +536,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             if (subtypeMapping == null)
                 throw new Exception($"Could not map range {rangeDefinition.RangeName}, no mapping was found its subtype");
 
-            // Finally, construct a range mapping and add it to our lookup dictionaries - next time it will be found as
-            // an existing mapping
-            var rangeMapping = new NpgsqlRangeTypeMapping(rangeDefinition.RangeName, rangeDefinition.SchemaName, rangeClrType, subtypeMapping, _sqlGenerationHelper);
-            StoreTypeMappings[rangeMapping.StoreType] = new RelationalTypeMapping[] { rangeMapping };
-            ClrTypeMappings[rangeMapping.ClrType] = rangeMapping;
-
-            return rangeMapping;
+            return new NpgsqlRangeTypeMapping(rangeDefinition.RangeName, rangeDefinition.SchemaName, rangeClrType, subtypeMapping, _sqlGenerationHelper);
         }
 
         // We override to support parsing array store names (e.g. varchar(32)[]), timestamp(5) with time zone, etc.

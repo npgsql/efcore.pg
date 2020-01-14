@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Text;
+using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.Diagnostics;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -10,8 +10,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     /// Maps PostgreSQL arrays to .NET arrays. Only single-dimensional arrays are supported.
     /// </summary>
     /// <remarks>
-    /// Note that mapping PostgreSQL arrays to .NET List{T} is also supported via <see cref="NpgsqlArrayListTypeMapping"/>.
-    /// See: https://www.postgresql.org/docs/current/static/arrays.html
+    /// <para>
+    /// Note that mapping PostgreSQL arrays to .NET <see cref="List{T}"/> is also supported via
+    /// <see cref="NpgsqlArrayListTypeMapping"/>.
+    /// </para>
+    ///
+    /// <para>See: https://www.postgresql.org/docs/current/static/arrays.html</para>
     /// </remarks>
     public class NpgsqlArrayArrayTypeMapping : NpgsqlArrayTypeMapping
     {

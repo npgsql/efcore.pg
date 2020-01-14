@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Text;
 using Microsoft.EntityFrameworkCore.Storage;
+using NpgsqlTypes;
+
+#nullable enable
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 {
@@ -19,9 +23,26 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         /// </summary>
         public RelationalTypeMapping ElementMapping { get; }
 
+        /// <summary>
+        /// The database type used by Npgsql.
+        /// </summary>
+        public NpgsqlDbType? NpgsqlDbType { get; }
+
         protected NpgsqlArrayTypeMapping(RelationalTypeMappingParameters parameters, RelationalTypeMapping elementMapping)
             : base(parameters)
-            => ElementMapping = elementMapping;
+        {
+            ElementMapping = elementMapping;
+
+            // If the element mapping has an NpgsqlDbType or DbType, set our own NpgsqlDbType as an array of that.
+            // Otherwise let the ADO.NET layer infer the PostgreSQL type. We can't always let it infer, otherwise
+            // when given a byte[] it will infer byte (but we want smallint[])
+            NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Array |
+                           (elementMapping is NpgsqlTypeMapping elementNpgsqlTypeMapping
+                               ? elementNpgsqlTypeMapping.NpgsqlDbType
+                               : elementMapping.DbType.HasValue
+                                   ? new NpgsqlParameter { DbType = elementMapping.DbType.Value }.NpgsqlDbType
+                                   : default(NpgsqlDbType?));
+        }
 
         // The array-to-array mapping needs to know how to generate an SQL literal for a List<>, and
         // the list-to-array mapping needs to know how to generate an SQL literal for an array.
@@ -51,6 +72,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             sb.Append(ElementMapping.StoreType);
             sb.Append("[]");
             return sb.ToString();
+        }
+
+        protected override void ConfigureParameter(DbParameter parameter)
+        {
+            var npgsqlParameter = parameter as NpgsqlParameter;
+            if (npgsqlParameter == null)
+                throw new ArgumentException($"Npgsql-specific type mapping {GetType()} being used with non-Npgsql parameter type {parameter.GetType().Name}");
+
+            base.ConfigureParameter(parameter);
+
+            if (NpgsqlDbType.HasValue)
+                npgsqlParameter.NpgsqlDbType = NpgsqlDbType.Value;
         }
     }
 }
