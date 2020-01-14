@@ -155,7 +155,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                     return null;
 
                 var elementStoreType = storeType.Substring(0, storeType.Length - 2);
-                var elementStoreTypeNameBase = storeTypeNameBase.Substring(0, storeType.Length - 2);
+                var elementStoreTypeNameBase = storeTypeNameBase.Substring(0, storeTypeNameBase.Length - 2);
 
                 RelationalTypeMapping elementMapping;
 

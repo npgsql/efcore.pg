@@ -36,13 +36,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             // If the element mapping has an NpgsqlDbType or DbType, set our own NpgsqlDbType as an array of that.
             // Otherwise let the ADO.NET layer infer the PostgreSQL type. We can't always let it infer, otherwise
             // when given a byte[] it will infer byte (but we want smallint[])
-            var elementNpgsqlDbType = elementMapping is NpgsqlTypeMapping elementNpgsqlTypeMapping
-                ? elementNpgsqlTypeMapping.NpgsqlDbType
-                : elementMapping.DbType.HasValue
-                    ? new NpgsqlParameter { DbType = elementMapping.DbType.Value }.NpgsqlDbType
-                    : (NpgsqlDbType?)null;
-            if (elementNpgsqlDbType != null)
-                NpgsqlDbType = elementNpgsqlDbType | NpgsqlTypes.NpgsqlDbType.Array;
+            NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Array |
+                           (elementMapping is NpgsqlTypeMapping elementNpgsqlTypeMapping
+                               ? elementNpgsqlTypeMapping.NpgsqlDbType
+                               : elementMapping.DbType.HasValue
+                                   ? new NpgsqlParameter { DbType = elementMapping.DbType.Value }.NpgsqlDbType
+                                   : default(NpgsqlDbType?));
         }
 
         // The array-to-array mapping needs to know how to generate an SQL literal for a List<>, and
@@ -77,15 +76,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
         protected override void ConfigureParameter(DbParameter parameter)
         {
+            var npgsqlParameter = parameter as NpgsqlParameter;
+            if (npgsqlParameter == null)
+                throw new ArgumentException($"Npgsql-specific type mapping {GetType()} being used with non-Npgsql parameter type {parameter.GetType().Name}");
+
             base.ConfigureParameter(parameter);
 
-            if (parameter is NpgsqlParameter npgsqlParameter)
-            {
-                if (NpgsqlDbType.HasValue)
-                    npgsqlParameter.NpgsqlDbType = NpgsqlDbType.Value;
-            }
-            else
-                throw new InvalidOperationException($"Npgsql-specific type mapping {GetType().Name} being used with non-Npgsql parameter type {parameter.GetType().Name}");
+            if (NpgsqlDbType.HasValue)
+                npgsqlParameter.NpgsqlDbType = NpgsqlDbType.Value;
         }
     }
 }

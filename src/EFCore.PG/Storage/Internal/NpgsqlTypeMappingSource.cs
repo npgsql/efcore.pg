@@ -351,7 +351,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
             if (clrType == null ||
                 !ClrTypeMappings.TryGetValue(clrType, out var mapping) ||
-                storeTypeName != null && storeTypeName != mapping.StoreType)
+                // Special case for byte[] mapped as smallint[] - don't return bytea mapping
+                storeTypeName != null && storeTypeName == "smallint[]")
             {
                 return null;
             }
@@ -414,7 +415,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                     return null;
 
                 var elementStoreType = storeType.Substring(0, storeType.Length - 2);
-                var elementStoreTypeNameBase = storeTypeNameBase.Substring(0, storeType.Length - 2);
+                var elementStoreTypeNameBase = storeTypeNameBase.Substring(0, storeTypeNameBase.Length - 2);
 
                 RelationalTypeMapping elementMapping;
 
