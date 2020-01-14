@@ -351,7 +351,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
             if (clrType == null ||
                 !ClrTypeMappings.TryGetValue(clrType, out var mapping) ||
-                storeTypeName != null && mapping.StoreType != storeTypeName)
+                storeTypeName != null && storeTypeName != mapping.StoreType)
             {
                 return null;
             }
