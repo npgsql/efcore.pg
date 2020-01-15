@@ -672,11 +672,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
         protected override void IndexOptions(CreateIndexOperation operation, IModel model, MigrationCommandListBuilder builder)
         {
-            if (operation[NpgsqlAnnotationNames.IndexInclude] is string[] includeProperties && includeProperties.Length > 0)
+            if (operation[NpgsqlAnnotationNames.IndexInclude] is string[] includeColumns && includeColumns.Length > 0)
             {
                 builder
                     .Append(" INCLUDE (")
-                    .Append(ColumnList(includeProperties))
+                    .Append(ColumnList(includeColumns))
                     .Append(")");
             }
 
