@@ -566,7 +566,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="indexBuilder">The builder for the index being configured.</param>
         /// <param name="createdConcurrently">A value indicating whether the index is created with the "concurrently" option.</param>
         /// <returns>A builder to further configure the index.</returns>
-        public static IndexBuilder IsCreatedConcurrently([NotNull] this IndexBuilder indexBuilder, bool createdConcurrently = false)
+        public static IndexBuilder IsCreatedConcurrently([NotNull] this IndexBuilder indexBuilder, bool createdConcurrently = true)
         {
             Check.NotNull(indexBuilder, nameof(indexBuilder));
 
@@ -585,7 +585,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="indexBuilder">The builder for the index being configured.</param>
         /// <param name="createdConcurrently">A value indicating whether the index is created with the "concurrently" option.</param>
         /// <returns>A builder to further configure the index.</returns>
-        public static IndexBuilder<TEntity> IsCreatedConcurrently<TEntity>([NotNull] this IndexBuilder<TEntity> indexBuilder, bool createdConcurrently = false)
+        public static IndexBuilder<TEntity> IsCreatedConcurrently<TEntity>([NotNull] this IndexBuilder<TEntity> indexBuilder, bool createdConcurrently = true)
             => (IndexBuilder<TEntity>)IsCreatedConcurrently((IndexBuilder)indexBuilder, createdConcurrently);
 
         /// <summary>
