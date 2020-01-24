@@ -1368,7 +1368,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
                 if (!string.IsNullOrEmpty(column.Collation))
                 {
-                    builder.Append(" COLLATE ").Append(column.Collation);
+                    builder.Append(" COLLATE ").Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(column.Collation));
                 }
 
                 // Of the built-in access methods, only btree (the default) supports
