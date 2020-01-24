@@ -117,7 +117,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns>A builder to further configure the index.</returns>
         public static IndexBuilder HasOperators(
             [NotNull] this IndexBuilder indexBuilder,
-            [CanBeNull, ItemNotNull] params string[] operators)
+            [CanBeNull] params string[] operators)
         {
             Check.NotNull(indexBuilder, nameof(indexBuilder));
             Check.NullButNotEmpty(operators, nameof(operators));
@@ -138,7 +138,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns>A builder to further configure the index.</returns>
         public static IndexBuilder<TEntity> HasOperators<TEntity>(
             [NotNull] this IndexBuilder<TEntity> indexBuilder,
-            [CanBeNull, ItemNotNull] params string[] operators)
+            [CanBeNull] params string[] operators)
             => (IndexBuilder<TEntity>)HasOperators((IndexBuilder)indexBuilder, operators);
 
         /// <summary>
@@ -153,7 +153,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns>A builder to further configure the index.</returns>
         public static IConventionIndexBuilder HasOperators(
             [NotNull] this IConventionIndexBuilder indexBuilder,
-            [CanBeNull, ItemNotNull] IReadOnlyList<string> operators,
+            [CanBeNull] IReadOnlyList<string> operators,
             bool fromDataAnnotation)
         {
             if (indexBuilder.CanSetHasOperators(operators, fromDataAnnotation))
@@ -178,7 +178,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns><c>true</c> if the index can be configured with the method.</returns>
         public static bool CanSetHasOperators(
             [NotNull] this IConventionIndexBuilder indexBuilder,
-            [CanBeNull, ItemNotNull] IReadOnlyList<string> operators,
+            [CanBeNull] IReadOnlyList<string> operators,
             bool fromDataAnnotation)
         {
             Check.NotNull(indexBuilder, nameof(indexBuilder));
@@ -201,7 +201,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns>A builder to further configure the index.</returns>
         public static IndexBuilder HasCollation(
             [NotNull] this IndexBuilder indexBuilder,
-            [CanBeNull, ItemNotNull] params string[] values)
+            [CanBeNull] params string[] values)
         {
             Check.NotNull(indexBuilder, nameof(indexBuilder));
             Check.NullButNotEmpty(values, nameof(values));
@@ -222,7 +222,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns>A builder to further configure the index.</returns>
         public static IndexBuilder<TEntity> HasCollation<TEntity>(
             [NotNull] this IndexBuilder<TEntity> indexBuilder,
-            [CanBeNull, ItemNotNull] params string[] values)
+            [CanBeNull] params string[] values)
             => (IndexBuilder<TEntity>)HasCollation((IndexBuilder)indexBuilder, values);
 
         /// <summary>
@@ -237,7 +237,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns>A builder to further configure the index.</returns>
         public static IConventionIndexBuilder HasCollation(
             [NotNull] this IConventionIndexBuilder indexBuilder,
-            [CanBeNull, ItemNotNull] IReadOnlyList<string> values,
+            [CanBeNull] IReadOnlyList<string> values,
             bool fromDataAnnotation)
         {
             if (indexBuilder.CanSetHasCollation(values, fromDataAnnotation))
@@ -262,7 +262,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns>A builder to further configure the index.</returns>
         public static bool CanSetHasCollation(
             [NotNull] this IConventionIndexBuilder indexBuilder,
-            [CanBeNull, ItemNotNull] IReadOnlyList<string> values,
+            [CanBeNull] IReadOnlyList<string> values,
             bool fromDataAnnotation)
         {
             Check.NotNull(indexBuilder, nameof(indexBuilder));
