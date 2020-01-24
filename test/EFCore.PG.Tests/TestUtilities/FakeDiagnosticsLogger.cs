@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Diagnostics.Internal;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.Logging;
@@ -17,6 +18,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
         public ILogger Logger => this;
 
         public DiagnosticSource DiagnosticSource { get; } = new DiagnosticListener("Fake");
+
+        public IDbContextLogger DbContextLogger { get; } = new NullDbContextLogger();
 
         public void Log<TState>(
             LogLevel logLevel,

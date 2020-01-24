@@ -357,13 +357,6 @@ ORDER BY attnum";
                             continue;
                         }
 
-                        logger.ColumnFound(
-                            DisplayName(tableSchema, tableName),
-                            column.Name,
-                            formattedTypeName,
-                            column.IsNullable,
-                            column.DefaultValueSql);
-
                         // Default values and PostgreSQL 12 generated columns
                         if (record.GetValueOrDefault<char>("attgenerated") == 's')
                             column.ComputedColumnSql = record.GetValueOrDefault<string>("default");
@@ -436,6 +429,15 @@ ORDER BY attnum";
 
                         if (record.GetValueOrDefault<string>("description") is string comment)
                             column.Comment = comment;
+
+                        logger.ColumnFound(
+                            DisplayName(tableSchema, tableName),
+                            column.Name,
+                            formattedTypeName,
+                            column.IsNullable,
+                            isIdentity,
+                            column.DefaultValueSql,
+                            column.ComputedColumnSql);
 
                         table.Columns.Add(column);
                     }

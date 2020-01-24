@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics.Internal;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
@@ -1901,7 +1902,8 @@ CREATE TABLE column_types (
                         Fixture.ListLoggerFactory,
                         new LoggingOptions(),
                         new DiagnosticListener("Fake"),
-                        new NpgsqlLoggingDefinitions()));
+                        new NpgsqlLoggingDefinitions(),
+                        new NullDbContextLogger()));
 
                 var databaseModel = databaseModelFactory.Create(
                     Fixture.TestStore.ConnectionString,

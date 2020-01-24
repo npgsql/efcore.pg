@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics.Internal;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Scaffolding;
@@ -31,7 +32,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
                     loggerFactory,
                     new LoggingOptions(),
                     new DiagnosticListener("Fake"),
-                    new NpgsqlLoggingDefinitions()));
+                    new NpgsqlLoggingDefinitions(),
+                    new NullDbContextLogger()));
 
         protected override bool AcceptIndex(DatabaseIndex index)
             => false;
