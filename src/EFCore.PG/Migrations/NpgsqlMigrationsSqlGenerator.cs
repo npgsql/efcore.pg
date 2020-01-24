@@ -640,7 +640,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             builder.Append("INDEX ");
 
-            if (operation[NpgsqlAnnotationNames.CreatedConcurrently] is bool concurrently && concurrently)
+            var concurrently = operation[NpgsqlAnnotationNames.CreatedConcurrently] as bool? == true;
+            if (concurrently)
                 builder.Append("CONCURRENTLY ");
 
             builder
@@ -664,7 +665,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             if (terminate)
             {
                 builder.AppendLine(';');
-                EndStatement(builder);
+                // Concurrent indexes cannot be created within a transaction
+                EndStatement(builder, suppressTransaction: concurrently);
             }
         }
 
