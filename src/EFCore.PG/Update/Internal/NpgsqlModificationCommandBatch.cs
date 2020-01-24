@@ -58,11 +58,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
             if (ModificationCommands.Count >= _maxBatchSize)
                 return false;
 
-            var newParamCount = unchecked(_parameterCount + modificationCommand.ColumnModifications.Count);
-            if ((uint)newParamCount > int.MaxValue)
+            var newParamCount = (long)_parameterCount + (long)modificationCommand.ColumnModifications.Count;
+            if (newParamCount > int.MaxValue)
                 return false;
 
-            _parameterCount = newParamCount;
+            _parameterCount = (int)newParamCount;
             return true;
         }
 
