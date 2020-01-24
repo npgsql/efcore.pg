@@ -640,7 +640,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             builder.Append("INDEX ");
 
-            var concurrently = (operation[NpgsqlAnnotationNames.CreatedConcurrently] as bool?).GetValueOrDefault();
+            var concurrently = operation[NpgsqlAnnotationNames.CreatedConcurrently] as bool? == true;
             if (concurrently)
                 builder.Append("CONCURRENTLY ");
 
