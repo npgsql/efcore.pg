@@ -19,6 +19,30 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
+        [ConditionalTheory(Skip = "#1225")]
+        public override Task Byte_array_contains_literal(bool async)
+            => base.Byte_array_contains_literal(async);
+
+        [ConditionalTheory(Skip = "#1225")]
+        public override Task Byte_array_contains_parameter(bool async)
+            => base.Byte_array_contains_parameter(async);
+
+        [ConditionalTheory(Skip = "#1226")]
+        public override Task Byte_array_filter_by_length_literal(bool async)
+            => base.Byte_array_filter_by_length_literal(async);
+
+        [ConditionalTheory(Skip = "#1226")]
+        public override Task Byte_array_filter_by_length_literal_does_not_cast_on_varbinary_n(bool async)
+            => base.Byte_array_filter_by_length_literal_does_not_cast_on_varbinary_n(async);
+
+        [ConditionalTheory(Skip = "#1226")]
+        public override Task Byte_array_filter_by_length_parameter(bool async)
+            => base.Byte_array_filter_by_length_parameter(async);
+
+        [ConditionalFact(Skip = "#1226")]
+        public override void Byte_array_filter_by_length_parameter_compiled()
+            => base.Byte_array_filter_by_length_parameter_compiled();
+
         [Theory(Skip = "https://github.com/npgsql/Npgsql.EntityFrameworkCore.PostgreSQL/issues/874")]
         [MemberData(nameof(IsAsyncData))]
         public override Task String_concat_with_null_conditional_argument2(bool isAsync)
@@ -64,6 +88,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         [MemberData(nameof(IsAsyncData))]
         public override Task DateTimeOffset_Contains_Less_than_Greater_than(bool isAsync)
             => base.DateTimeOffset_Contains_Less_than_Greater_than(isAsync);
+
+        [ConditionalTheory(Skip = "DateTimeOffset.Date isn't currently translated")]
+        [MemberData(nameof(IsAsyncData))]
+        public override Task DateTimeOffset_Date_returns_datetime(bool async)
+            => base.DateTimeOffset_Date_returns_datetime(async);
 
         #endregion Ignore DateTimeOffset tests
     }

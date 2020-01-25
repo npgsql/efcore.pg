@@ -1,12 +1,14 @@
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.TestModels.SpatialModel;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public class SpatialQueryNpgsqlGeometryTest : SpatialQueryTestBase<SpatialQueryNpgsqlGeometryFixture>
+    public class SpatialQueryNpgsqlGeometryTest : SpatialQueryTestBase<SpatialQueryNpgsqlGeometryTest.SpatialQueryNpgsqlGeometryFixture>
     {
         // ReSharper disable once UnusedParameter.Local
         public SpatialQueryNpgsqlGeometryTest(SpatialQueryNpgsqlGeometryFixture fixture, ITestOutputHelper testOutputHelper)
@@ -152,27 +154,8 @@ FROM ""LineStringEntity"" AS l");
 FROM ""PointEntity"" AS p");
         }
 
-        public override async Task Disjoint(bool isAsync)
-        {
-            await base.Disjoint(isAsync);
-
-//            AssertSql(
-//                @"@__point_0='POINT (1 1)' (DbType = Object)
-//
-//SELECT p.""Id"", ST_Disjoint(p.""Polygon"", @__point_0) AS ""Disjoint""
-//FROM ""PolygonEntity"" AS p");
-        }
-
-        public override async Task Distance(bool isAsync)
-        {
-            await base.Distance(isAsync);
-
-//            AssertSql(
-//                @"@__point_0='POINT (0 1)' (DbType = Object)
-//
-//SELECT p.""Id"", ST_Distance(p.""Point"", @__point_0) AS ""Distance""
-//FROM ""PointEntity"" AS p");
-        }
+        // TODO: Disjoint_*
+        // TODO: Distance_*
 
         // PostGIS refuses to operate on points of mixed SRIDs
         public override Task Distance_constant_srid_4326(bool isAsync) => Task.CompletedTask;
@@ -604,5 +587,16 @@ FROM ""PointEntity"" AS p");
         }
 
         void AssertSql(params string[] expected) => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
+
+        public class SpatialQueryNpgsqlGeometryFixture : SpatialQueryNpgsqlFixture
+        {
+            public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
+            {
+                var optionsBuilder = base.AddOptions(builder);
+                new NpgsqlDbContextOptionsBuilder(optionsBuilder).UseNetTopologySuite();
+
+                return optionsBuilder;
+            }
+        }
     }
 }

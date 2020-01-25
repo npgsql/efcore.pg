@@ -1,10 +1,9 @@
 using System;
 using System.Threading.Tasks;
-using System.Transactions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestUtilities;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
 
@@ -29,7 +28,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         {
             var options = Fixture.AddOptions(
                     new DbContextOptionsBuilder()
-                        .UseNpgsql(TestStore.ConnectionString, b => b.ApplyConfiguration().CommandTimeout(NpgsqlTestStore.CommandTimeout)))
+                        .UseNpgsql(
+                            TestStore.ConnectionString,
+                            b => b.ApplyConfiguration().ExecutionStrategy(c => new NpgsqlExecutionStrategy(c))))
                 .UseInternalServiceProvider(Fixture.ServiceProvider);
 
             return new DbContext(options.Options);
@@ -49,7 +50,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             {
                 new NpgsqlDbContextOptionsBuilder(
                         base.AddOptions(builder))
-                    .MaxBatchSize(1);
+                    .ExecutionStrategy(c => new NpgsqlExecutionStrategy(c));
                 return builder;
             }
         }

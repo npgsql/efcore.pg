@@ -153,7 +153,7 @@ LIMIT 2");
 
         #region Count
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/efcore/issues/19715")]
         public void Count()
         {
             using var ctx = CreateContext();
