@@ -382,7 +382,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             var column = model?.GetRelationalModel().FindTable(operation.Table, operation.Schema)
                 ?.Columns.FirstOrDefault(c => c.Name == operation.Name);
-            var type = operation.ColumnType ?? GetColumnType(operation.Schema, operation.Table, operation.Name, operation, model);
 
             if (operation.ComputedColumnSql != null)
             {
@@ -425,30 +424,42 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             }
 
             string newSequenceName = null;
-            var defaultValueSql = operation.DefaultValueSql;
 
             var alterBase = $"ALTER TABLE {DelimitIdentifier(operation.Table, operation.Schema)} " +
                             $"ALTER COLUMN {DelimitIdentifier(operation.Name)} ";
 
             // TYPE + COLLATION
-            builder.Append(alterBase)
-                .Append("TYPE ")
-                .Append(type);
+            var type = operation.ColumnType ??
+                       GetColumnType(operation.Schema, operation.Table, operation.Name, operation, model);
+            var oldType = IsOldColumnSupported(model)
+                ? operation.OldColumn.ColumnType ??
+                  GetColumnType(operation.Schema, operation.Table, operation.Name, operation.OldColumn, model)
+                : null;
 
             // If a collation was defined on the column specifically, via the standard EF mechanism, it will be
             // available in operation.Collation (as usual). If not, there may be a model-wide default column collation,
             // which gets transmitted via the Npgsql-specific annotation.
             var oldCollation = (string)(operation.OldColumn.Collation ?? operation.OldColumn[NpgsqlAnnotationNames.DefaultColumnCollation]);
             var newCollation = (string)(operation.Collation ?? operation[NpgsqlAnnotationNames.DefaultColumnCollation]);
-            if (newCollation != oldCollation)
-                builder.Append(" COLLATE ").Append(DelimitIdentifier(newCollation ?? "default"));
 
-            builder.AppendLine(";");
+            if (type != oldType || newCollation != oldCollation)
+            {
+                builder.Append(alterBase)
+                    .Append("TYPE ")
+                    .Append(type);
 
-            // NOT NULL
-            builder.Append(alterBase)
-                .Append(operation.IsNullable ? "DROP NOT NULL" : "SET NOT NULL")
-                .AppendLine(";");
+                if (newCollation != oldCollation)
+                    builder.Append(" COLLATE ").Append(DelimitIdentifier(newCollation ?? "default"));
+
+                builder.AppendLine(";");
+            }
+
+            if (operation.IsNullable != operation.OldColumn.IsNullable)
+            {
+                builder.Append(alterBase)
+                    .Append(operation.IsNullable ? "DROP NOT NULL" : "SET NOT NULL")
+                    .AppendLine(";");
+            }
 
             CheckForOldValueGenerationAnnotation(operation);
 
@@ -518,6 +529,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                     {
                     case NpgsqlValueGenerationStrategy.IdentityAlwaysColumn:
                     case NpgsqlValueGenerationStrategy.IdentityByDefaultColumn:
+                        builder.Append(alterBase).AppendLine("DROP DEFAULT;");
                         builder.Append(alterBase).Append("ADD");
                         IdentityDefinition(operation, builder);
                         builder.AppendLine(";");
@@ -622,19 +634,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             // DEFAULT.
             // Note that defaults values for value-generated columns (identity, serial) are managed above. This is
             // only for regular columns with user-specified default settings.
-            if (newStrategy == null)
+            if (newStrategy == null &&
+                (operation.DefaultValueSql != operation.OldColumn.DefaultValueSql ||
+                 !Equals(operation.DefaultValue, operation.OldColumn.DefaultValue)))
             {
                 builder.Append(alterBase);
-                if (operation.DefaultValue != null || defaultValueSql != null)
+                if (operation.DefaultValue != null || operation.DefaultValueSql != null)
                 {
                     builder.Append("SET");
-                    DefaultValue(operation.DefaultValue, defaultValueSql, type, builder);
+                    DefaultValue(operation.DefaultValue, operation.DefaultValueSql, type, builder);
                 }
                 else
                     builder.Append("DROP DEFAULT");
                 builder.AppendLine(";");
             }
-
 
             // A sequence has been created because this column was altered to be a serial.
             // Change the sequence's ownership.
