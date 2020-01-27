@@ -49,7 +49,7 @@ WHERE (o.""OrderDate"" IS NOT NULL)");
             AssertSql(
                 @"@__years_0='2'
 
-SELECT o.""OrderDate"" + CAST((@__years_0 || ' years') AS interval) AS ""OrderDate""
+SELECT o.""OrderDate"" + CAST((@__years_0::text || ' years') AS interval) AS ""OrderDate""
 FROM ""Orders"" AS o
 WHERE (o.""OrderDate"" IS NOT NULL)");
         }

@@ -86,7 +86,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 interval = _sqlExpressionFactory.Convert(
                     new SqlBinaryExpression(
                         ExpressionType.Add,
-                        _sqlExpressionFactory.ApplyDefaultTypeMapping(interval),
+                        _sqlExpressionFactory.Convert(interval, typeof(string), _textMapping),
                         _sqlExpressionFactory.Constant(' ' + datePart, _textMapping),
                         typeof(string),
                         _textMapping),
