@@ -27,21 +27,49 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         public override Task Byte_array_contains_parameter(bool async)
             => base.Byte_array_contains_parameter(async);
 
-        [ConditionalTheory(Skip = "#1226")]
-        public override Task Byte_array_filter_by_length_literal(bool async)
-            => base.Byte_array_filter_by_length_literal(async);
+        public override async Task Byte_array_filter_by_length_literal(bool async)
+        {
+            await base.Byte_array_filter_by_length_literal(async);
 
-        [ConditionalTheory(Skip = "#1226")]
-        public override Task Byte_array_filter_by_length_literal_does_not_cast_on_varbinary_n(bool async)
-            => base.Byte_array_filter_by_length_literal_does_not_cast_on_varbinary_n(async);
+            AssertSql(
+                @"SELECT s.""Id"", s.""Banner"", s.""Banner5"", s.""InternalNumber"", s.""Name""
+FROM ""Squads"" AS s
+WHERE LENGTH(s.""Banner"") = 1");
+        }
 
-        [ConditionalTheory(Skip = "#1226")]
-        public override Task Byte_array_filter_by_length_parameter(bool async)
-            => base.Byte_array_filter_by_length_parameter(async);
+        public override async Task Byte_array_filter_by_length_literal_does_not_cast_on_varbinary_n(bool async)
+        {
+            await base.Byte_array_filter_by_length_literal_does_not_cast_on_varbinary_n(async);
 
-        [ConditionalFact(Skip = "#1226")]
+            AssertSql(
+                @"SELECT s.""Id"", s.""Banner"", s.""Banner5"", s.""InternalNumber"", s.""Name""
+FROM ""Squads"" AS s
+WHERE LENGTH(s.""Banner5"") = 5");
+        }
+
+        public override async Task Byte_array_filter_by_length_parameter(bool async)
+        {
+            await base.Byte_array_filter_by_length_parameter(async);
+
+            AssertSql(
+                @"@__p_0='1'
+
+SELECT s.""Id"", s.""Banner"", s.""Banner5"", s.""InternalNumber"", s.""Name""
+FROM ""Squads"" AS s
+WHERE LENGTH(s.""Banner"") = @__p_0");
+        }
+
         public override void Byte_array_filter_by_length_parameter_compiled()
-            => base.Byte_array_filter_by_length_parameter_compiled();
+        {
+            base.Byte_array_filter_by_length_parameter_compiled();
+
+            AssertSql(
+                @"@__byteArrayParam='0x2A80'
+
+SELECT COUNT(*)::INT
+FROM ""Squads"" AS s
+WHERE LENGTH(s.""Banner"") = LENGTH(@__byteArrayParam)");
+        }
 
         [Theory(Skip = "https://github.com/npgsql/Npgsql.EntityFrameworkCore.PostgreSQL/issues/874")]
         [MemberData(nameof(IsAsyncData))]
@@ -95,5 +123,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             => base.DateTimeOffset_Date_returns_datetime(async);
 
         #endregion Ignore DateTimeOffset tests
+
+        void AssertSql(params string[] expected) => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
     }
 }
