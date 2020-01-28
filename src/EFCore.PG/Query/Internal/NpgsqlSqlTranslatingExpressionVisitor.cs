@@ -15,6 +15,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using ExpressionExtensions = Microsoft.EntityFrameworkCore.Query.ExpressionExtensions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
@@ -114,6 +115,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             {
                 if (TranslationFailed(unaryExpression.Operand, Visit(unaryExpression.Operand), out var sqlOperand))
                     return null;
+
+                // Translate Length on byte[], but only if the type mapping is for bytea. There's also array of bytes
+                // (mapped to smallint[]), which is handled below with CARDINALITY.
+                if (sqlOperand.Type == typeof(byte[]) &&
+                    (sqlOperand.TypeMapping == null || sqlOperand.TypeMapping is NpgsqlByteArrayTypeMapping))
+                {
+                    return SqlExpressionFactory.Function(
+                        "LENGTH",
+                        new[] { sqlOperand },
+                        nullResultAllowed: true,
+                        argumentsPropagateNullability: new bool[] { true },
+                        typeof(int));
+                }
 
                 return _jsonPocoTranslator.TranslateArrayLength(sqlOperand) ??
                        _sqlExpressionFactory.Function("cardinality", new[] { sqlOperand }, typeof(int?));
