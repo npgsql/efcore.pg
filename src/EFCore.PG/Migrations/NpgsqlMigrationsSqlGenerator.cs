@@ -829,10 +829,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 // See https://www.postgresql.org/docs/current/sql-altertype.html
 
                 if (oldLabels.Except(newLabels).FirstOrDefault() is string removedLabel)
+                {
                     throw new NotSupportedException(
                         $"Can't remove enum label '{removedLabel}' from enum type '{newEnum}'. " +
-                        "Renaming a label is possible via a raw SQL migration (see "+
+                        "Renaming a label is possible via a raw SQL migration (see " +
                         "https://www.postgresql.org/docs/current/sql-altertype.html)");
+                }
 
                 for (var (newPos, oldPos) = (0, 0); newPos < newLabels.Count; newPos++)
                 {
@@ -914,6 +916,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             }
 
             builder.AppendLine(";");
+
+            // Adding an enum label cannot be done in a transaction prior to PG12
+            if (_postgresVersion.IsUnder(12))
+                EndStatement(builder, suppressTransaction: true);
         }
 
         #endregion Enum management
