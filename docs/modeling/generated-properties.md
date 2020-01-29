@@ -6,7 +6,7 @@
 > [!NOTE]
 > It's recommended that you start by reading the general [Entity Framework Core docs on generated properties](https://docs.microsoft.com/en-us/ef/core/modeling/generated-properties).
 
-## Serial and identity columns (auto-increment)
+## Identity and serial columns (auto-increment)
 
 ### Introduction
 
@@ -22,7 +22,9 @@ The Npgsql EF Core provider allows you to choose which of the above you want on 
 Prior to version 3.0, the Npgsql provider generates "serial" columns for ID columns; starting with version 3.0, it generates "identity by default" instead. In other words, when `ValueGeneratedOnAdd` is specified on a `short`, `int` or `long` property, the Npgsql provider will automatically map it to a serial or identity column. Note that EF Core will automatically recognize key properties by convention (e.g. a property called `Id` in your entity) and will implicitly set them to `ValueGeneratedOnAdd`; a standard model with ID columns should automatically get created with the appropriate column type.
 
 > [!CAUTION]
-> Since the default strategy has changed, if you have an existing database with migrations, the the first migration created after upgrading to version 3.0 will alter your tables and convert serial columns to identity ones. This is a sensitive, one-time migration operation that should be done with care, and carefully tested before deployment to production. Changing a value generation is a significant change to an existing database.
+> Since the default strategy has changed, if you have an existing database with migrations, the the first migration created after upgrading to version 3.0 will alter your tables and convert serial columns to identity ones. This is a sensitive, one-time migration operation that should be done with care, and carefully tested before deployment to production. Changing a value generation strategy is a significant change to an existing database.
+
+### Defining the default strategy for the entire moel
 
 You can easily control the value generation strategy for the entire model. For example, to opt out of the change to identity columns, simply place the following in your context's `OnModelCreating()`:
 
@@ -38,9 +40,32 @@ protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     => optionsBuilder.UseNpgsql("...", o => o.SetPostgresVersion(9, 6));
 ```
 
+### Defining the strategy for a single property
+
+Regardless of the model default, you can define a value-generation strategy on a property-by-property basis:
+
+```c#
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+    => modelBuilder.Entity<Blog>().Property(b => b.Id).UseIdentityAlwaysColumn();
+```
+
+### Identity sequence options
+
+Identity columns have a standard sequence, managed behind the scenes by PostgreSQL; you can customize the sequence options for these. For example, the following makes the column values start at 100:
+
+```c#
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+    => modelBuilder.Entity<Blog>().Property(b => b.Id)
+        .HasIdentityOptions(startValue: 100);
+```
+
+This can be especially useful when seeding data. Seeded data must explicitly specify all columns - including database-generated ones - but the backing sequence for identity columns isn't aware that the values are in use, and will generate conflicting values. This technique allows to start your identity sequence at a value higher than all seeded data values. Another strategy is to seed negative values only, allowing your identity column to start at 1.
+
+It is not possible to specify sequence options for serial columns, but you can set up a sequence separately and configure the column's default value (see [sequence-driven columns](#standard-sequence-driven-columns)).
+
 ## Standard sequence-driven columns
 
-While `serial` sets up a sequence for you, you may want to manage sequence creation yourself. This can be useful for cases where you need to control the sequence's increment value (i.e. increment by 2), populate two columns from the same sequence, etc. Adding a sequence to your model is described in [the general EF Core documentation](https://docs.microsoft.com/ef/core/modeling/relational/sequences); once the sequence is specified, you can simply set a column's default value to extract the next value from that sequence. Note that the SQL used to fetch the next value from a sequence differs across databases (see [the PostgreSQL docs](https://www.postgresql.org/docs/current/static/functions-sequence.html)). Your models' `OnModelCreating` should look like this:
+While identity and serial columns set up a sequence for you behind the scenes, sometimes you may want to manage sequence creation yourself. For example, you may want to have multiple columns drawing their default values from a single sequence. Adding a sequence to your model is described in [the general EF Core documentation](https://docs.microsoft.com/ef/core/modeling/relational/sequences); once the sequence is specified, you can simply set a column's default value to extract the next value from that sequence. Note that the SQL used to fetch the next value from a sequence differs across databases (see [the PostgreSQL docs](https://www.postgresql.org/docs/current/static/functions-sequence.html)). Your models' `OnModelCreating` should look like this:
 
 ```c#
 protected override void OnModelCreating(ModelBuilder modelBuilder)
