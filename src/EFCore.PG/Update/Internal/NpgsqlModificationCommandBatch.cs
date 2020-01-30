@@ -30,7 +30,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
     {
         const int DefaultBatchSize = 1000;
         readonly int _maxBatchSize;
-        long _parameterCount;
+        int _parameterCount;
 
         /// <summary>
         /// Constructs an instance of the <see cref="NpgsqlModificationCommandBatch"/> class.
@@ -51,19 +51,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
             _maxBatchSize = maxBatchSize ?? DefaultBatchSize;
         }
 
-        protected override int GetParameterCount() => (int)_parameterCount;
+        protected override int GetParameterCount() => _parameterCount;
 
         protected override bool CanAddCommand(ModificationCommand modificationCommand)
         {
             if (ModificationCommands.Count >= _maxBatchSize)
                 return false;
 
-            var newParamCount = _parameterCount + modificationCommand.ColumnModifications.Count;
-
+            var newParamCount = (long)_parameterCount + (long)modificationCommand.ColumnModifications.Count;
             if (newParamCount > int.MaxValue)
                 return false;
 
-            _parameterCount = newParamCount;
+            _parameterCount = (int)newParamCount;
             return true;
         }
 
