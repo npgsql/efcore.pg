@@ -978,7 +978,7 @@ ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET CACHE 1;
             });
 
             AssertSql(
-                @"CREATE INDEX ""IX_People_Name"" ON dbo.""People"" (""FirstName"", ""LastName"" COLLATE de_DE);
+                @"CREATE INDEX ""IX_People_Name"" ON dbo.""People"" (""FirstName"", ""LastName"" COLLATE ""de_DE"");
 ");
         }
 

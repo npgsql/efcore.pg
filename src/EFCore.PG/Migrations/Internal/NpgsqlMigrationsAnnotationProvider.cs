@@ -60,7 +60,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal
             if (index.GetNullSortOrder() is IReadOnlyList<SortOrder> nullSortOrder)
                 yield return new Annotation(NpgsqlAnnotationNames.IndexNullSortOrder, nullSortOrder);
             if (index.GetIncludeProperties() is IReadOnlyList<string> includeProperties)
-                yield return new Annotation(NpgsqlAnnotationNames.IndexInclude, includeProperties);
+            {
+                var includeColumns = includeProperties
+                    .Select(p => index.DeclaringEntityType.FindProperty(p).GetColumnName())
+                    .ToArray();
+
+                yield return new Annotation(
+                    NpgsqlAnnotationNames.IndexInclude,
+                    includeColumns);
+            }
 
             var isCreatedConcurrently = index.IsCreatedConcurrently();
             if (isCreatedConcurrently.HasValue)

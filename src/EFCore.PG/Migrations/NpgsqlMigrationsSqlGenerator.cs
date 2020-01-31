@@ -647,7 +647,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             builder.Append("INDEX ");
 
-            if (operation[NpgsqlAnnotationNames.CreatedConcurrently] is bool concurrently && concurrently)
+            var concurrently = operation[NpgsqlAnnotationNames.CreatedConcurrently] as bool? == true;
+            if (concurrently)
                 builder.Append("CONCURRENTLY ");
 
             builder
@@ -671,17 +672,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             if (terminate)
             {
                 builder.AppendLine(';');
-                EndStatement(builder);
+                // Concurrent indexes cannot be created within a transaction
+                EndStatement(builder, suppressTransaction: concurrently);
             }
         }
 
         protected override void IndexOptions(CreateIndexOperation operation, IModel model, MigrationCommandListBuilder builder)
         {
-            if (operation[NpgsqlAnnotationNames.IndexInclude] is string[] includeProperties && includeProperties.Length > 0)
+            if (operation[NpgsqlAnnotationNames.IndexInclude] is string[] includeColumns && includeColumns.Length > 0)
             {
                 builder
                     .Append(" INCLUDE (")
-                    .Append(ColumnList(includeProperties))
+                    .Append(ColumnList(includeColumns))
                     .Append(")");
             }
 
@@ -1366,7 +1368,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
                 if (!string.IsNullOrEmpty(column.Collation))
                 {
-                    builder.Append(" COLLATE ").Append(column.Collation);
+                    builder.Append(" COLLATE ").Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(column.Collation));
                 }
 
                 // Of the built-in access methods, only btree (the default) supports
