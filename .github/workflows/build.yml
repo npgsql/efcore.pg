@@ -2,6 +2,11 @@ name: Build
 
 on: [push, pull_request]
 
+env:
+  dotnet_sdk_version: '5.0.100-alpha.1.20073.4'
+  postgis_version: 3
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+
 jobs:
   build:
     runs-on: ${{ matrix.os }}
@@ -11,7 +16,6 @@ jobs:
       matrix:
         os: [ ubuntu-latest, windows-latest ]
         pg_major: [ 12, 11, 10 ]
-        postgis_version: [ 3 ]
 
     steps:
       - name: Checkout
@@ -19,7 +23,7 @@ jobs:
 
       - name: Start PostgreSQL ${{ matrix.pg_major }} (Linux)
         if: startsWith(matrix.os, 'ubuntu')
-        run: docker run --detach --name postgresql -p 5432:5432 npgsql/postgres:${{ matrix.pg_major }}-postgis-${{ matrix.postgis_version }}
+        run: docker run --detach --name postgresql -p 5432:5432 npgsql/postgres:${{ matrix.pg_major }}-postgis-${{ env.postgis_version }}
         shell: bash
 
       - name: Start PostgreSQL ${{ matrix.pg_major }} (Windows)
@@ -44,7 +48,7 @@ jobs:
           # Find OSGEO version number
           OSGEO_VERSION=$(\
             curl -Ls https://download.osgeo.org/postgis/windows/pg${{ matrix.pg_major }} |
-            sed -n 's/.*>postgis-bundle-pg${{ matrix.pg_major }}-\(${{ matrix.postgis_version }}.[0-9]*.[0-9]*\)x64.zip<.*/\1/p')
+            sed -n 's/.*>postgis-bundle-pg${{ matrix.pg_major }}-\(${{ env.postgis_version }}.[0-9]*.[0-9]*\)x64.zip<.*/\1/p')
 
           # Install PostGIS
           echo "Installing PostGIS (version: ${OSGEO_VERSION})"
@@ -65,7 +69,7 @@ jobs:
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@bb95ce727fd49ec1a65933419cc7c91747785302
         with:
-          dotnet-version: '5.0.100-alpha.1.20073.4'
+          dotnet-version: ${{ env.dotnet_sdk_version }}
 
       - name: Test
         run: dotnet test --configuration Debug
@@ -85,7 +89,7 @@ jobs:
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@bb95ce727fd49ec1a65933419cc7c91747785302
         with:
-          dotnet-version: '5.0.100-alpha.1.20073.4'
+          dotnet-version: ${{ env.dotnet_sdk_version }}
 
       - name: Pack NuGet packages (CI versions)
         if: startsWith(github.ref, 'refs/heads/')
@@ -98,7 +102,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v1
         with:
-          name: EFCore.PG+sha.${{ github.sha }}
+          name: EFCore.PG
           path: nupkgs
 
       - name: Publish packages to MyGet (vnext)
