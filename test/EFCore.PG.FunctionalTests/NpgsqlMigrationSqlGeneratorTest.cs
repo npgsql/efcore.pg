@@ -469,7 +469,7 @@ ALTER TABLE ""People"" ALTER COLUMN ""Name"" DROP DEFAULT;
                 });
 
             AssertSql(
-                @"ALTER TABLE ""People"" ADD foo serial NOT NULL DEFAULT 0;
+                @"ALTER TABLE ""People"" ADD foo serial NOT NULL;
 ");
         }
 
