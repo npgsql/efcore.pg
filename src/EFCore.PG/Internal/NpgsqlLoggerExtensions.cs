@@ -1,6 +1,7 @@
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Logging;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
 {
@@ -12,14 +13,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         {
             var definition = NpgsqlResources.LogMissingSchema(diagnostics);
 
-            var warningBehavior = definition.GetLogBehavior(diagnostics);
-            if (warningBehavior != WarningBehavior.Ignore)
-            {
-                definition.Log(
-                    diagnostics,
-                    warningBehavior,
-                    schemaName);
-            }
+            if (diagnostics.ShouldLog(definition))
+                definition.Log(diagnostics, schemaName);
+
             // No DiagnosticsSource events because these are purely design-time messages
         }
 
@@ -29,14 +25,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         {
             var definition = NpgsqlResources.LogMissingTable(diagnostics);
 
-            var warningBehavior = definition.GetLogBehavior(diagnostics);
-            if (warningBehavior != WarningBehavior.Ignore)
-            {
-                definition.Log(
-                    diagnostics,
-                    warningBehavior,
-                    tableName);
-            }
+            if (diagnostics.ShouldLog(definition))
+                definition.Log(diagnostics, tableName);
+
             // No DiagnosticsSource events because these are purely design-time messages
         }
 
@@ -48,40 +39,41 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         {
             var definition = NpgsqlResources.LogPrincipalTableNotInSelectionSet(diagnostics);
 
-            var warningBehavior = definition.GetLogBehavior(diagnostics);
-            if (warningBehavior != WarningBehavior.Ignore)
-            {
-                definition.Log(
-                    diagnostics,
-                    warningBehavior,
-                    foreignKeyName, tableName, principalTableName);
-            }
+            if (diagnostics.ShouldLog(definition))
+                definition.Log(diagnostics, foreignKeyName, tableName, principalTableName);
 
             // No DiagnosticsSource events because these are purely design-time messages
         }
 
-        /// <summary>
-        ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
-        ///     directly from your code. This API may change or be removed in future releases.
-        /// </summary>
         public static void ColumnFound(
             [NotNull] this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
             [NotNull] string tableName,
             [NotNull] string columnName,
             [NotNull] string dataTypeName,
             bool nullable,
-            [CanBeNull] string defaultValue)
+            bool identity,
+            [CanBeNull] string defaultValue,
+            [CanBeNull] string computedValue)
         {
             var definition = NpgsqlResources.LogFoundColumn(diagnostics);
 
-            var warningBehavior = definition.GetLogBehavior(diagnostics);
-            if (warningBehavior != WarningBehavior.Ignore)
+            if (diagnostics.ShouldLog(definition))
             {
                 definition.Log(
                     diagnostics,
-                    warningBehavior,
-                    tableName, columnName, dataTypeName, nullable, defaultValue);
+                    l => l.LogDebug(
+                        definition.EventId,
+                        null,
+                        definition.MessageFormat,
+                        tableName,
+                        columnName,
+                        dataTypeName,
+                        nullable,
+                        identity,
+                        defaultValue,
+                        computedValue));
             }
+
             // No DiagnosticsSource events because these are purely design-time messages
         }
 
@@ -92,14 +84,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         {
             var definition = NpgsqlResources.LogFoundUniqueConstraint(diagnostics);
 
-            var warningBehavior = definition.GetLogBehavior(diagnostics);
-            if (warningBehavior != WarningBehavior.Ignore)
-            {
-                definition.Log(
-                    diagnostics,
-                    warningBehavior,
-                    uniqueConstraintName, tableName);
-            }
+            if (diagnostics.ShouldLog(definition))
+                definition.Log(diagnostics, uniqueConstraintName, tableName);
+
             // No DiagnosticsSource events because these are purely design-time messages
         }
 
@@ -109,14 +96,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         {
             var definition = NpgsqlResources.LogEnumColumnSkipped(diagnostics);
 
-            var warningBehavior = definition.GetLogBehavior(diagnostics);
-            if (warningBehavior != WarningBehavior.Ignore)
-            {
-                definition.Log(
-                    diagnostics,
-                    warningBehavior,
-                    columnName);
-            }
+            if (diagnostics.ShouldLog(definition))
+                definition.Log(diagnostics, columnName);
+
             // No DiagnosticsSource events because these are purely design-time messages
         }
 
@@ -127,15 +109,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         {
             var definition = NpgsqlResources.LogExpressionIndexSkipped(diagnostics);
 
-            var warningBehavior = definition.GetLogBehavior(diagnostics);
-            if (warningBehavior != WarningBehavior.Ignore)
-            {
-                definition.Log(
-                    diagnostics,
-                    warningBehavior,
-                    indexName,
-                    tableName);
-            }
+            if (diagnostics.ShouldLog(definition))
+                definition.Log(diagnostics, indexName, tableName);
+
             // No DiagnosticsSource events because these are purely design-time messages
         }
 
@@ -146,15 +122,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         {
             var definition = NpgsqlResources.LogUnsupportedColumnIndexSkipped(diagnostics);
 
-            var warningBehavior = definition.GetLogBehavior(diagnostics);
-            if (warningBehavior != WarningBehavior.Ignore)
-            {
-                definition.Log(
-                    diagnostics,
-                    warningBehavior,
-                    indexName,
-                    tableName);
-            }
+            if (diagnostics.ShouldLog(definition))
+                definition.Log(diagnostics, indexName, tableName);
+
             // No DiagnosticsSource events because these are purely design-time messages
         }
 
@@ -165,15 +135,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         {
             var definition = NpgsqlResources.LogUnsupportedColumnConstraintSkipped(diagnostics);
 
-            var warningBehavior = definition.GetLogBehavior(diagnostics);
-            if (warningBehavior != WarningBehavior.Ignore)
-            {
-                definition.Log(
-                    diagnostics,
-                    warningBehavior,
-                    indexName,
-                    tableName);
-            }
+            if (diagnostics.ShouldLog(definition))
+                definition.Log(diagnostics, indexName, tableName);
+
             // No DiagnosticsSource events because these are purely design-time messages
         }
     }

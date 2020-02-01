@@ -1,13 +1,23 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.TestModels.Northwind;
+using Microsoft.EntityFrameworkCore.TestUtilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public partial class SimpleQueryNpgsqlTest
+    public class NorthwindWhereQueryNpgsqlTest : NorthwindWhereQueryTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
     {
+        public NorthwindWhereQueryNpgsqlTest(NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture, ITestOutputHelper testOutputHelper)
+            : base(fixture)
+        {
+            ClearLog();
+            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        }
+
         [Theory(Skip = "SQL translation not implemented, too annoying")]
         public override Task Where_datetime_millisecond_component(bool isAsync)
             => base.Where_datetime_millisecond_component(isAsync);
@@ -20,12 +30,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         public override Task Where_datetimeoffset_utcnow_component(bool isAsync)
             => base.Where_datetimeoffset_utcnow_component(isAsync);
 
-        [Theory(Skip = "PostgreSQL only has log(x, base) over numeric, may be possible to cast back and forth though")]
-        public override Task Where_math_log_new_base(bool isAsync)
-            => base.Where_math_log_new_base(isAsync);
+        void AssertSql(params string[] expected)
+            => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
-        [Theory(Skip = "Convert on DateTime not yet supported")]
-        public override Task Convert_ToString(bool isAsync)
-            => base.Convert_ToString(isAsync);
+        protected override void ClearLog()
+            => Fixture.TestSqlLoggerFactory.Clear();
+
     }
 }

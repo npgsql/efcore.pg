@@ -4,9 +4,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public class NullSemanticsQueryNpgsqlFixture : NullSemanticsQueryRelationalFixture
+    public class NullSemanticsQueryNpgsqlFixture : NullSemanticsQueryFixtureBase
     {
-        protected override string StoreName { get; } = "NullSemanticsQueryTest";
         protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
     }
 }

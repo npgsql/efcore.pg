@@ -257,7 +257,7 @@ namespace Microsoft.EntityFrameworkCore
             [NotNull] this ModelBuilder modelBuilder,
             [CanBeNull] string schema,
             [NotNull] string name,
-            [CanBeNull] string version)
+            [CanBeNull] string version = null)
         {
             Check.NotNull(modelBuilder, nameof(modelBuilder));
             Check.NullButNotEmpty(schema, nameof(schema));

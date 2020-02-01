@@ -1,10 +1,10 @@
 ﻿<Project>
   <ItemGroup>
-    <PackageReference Update="Microsoft.EntityFrameworkCore" Version="3.1.1" />
-    <PackageReference Update="Microsoft.EntityFrameworkCore.Relational" Version="3.1.1" />
-    <PackageReference Update="Microsoft.EntityFrameworkCore.Abstractions" Version="3.1.1" />
-    <PackageReference Update="Microsoft.EntityFrameworkCore.Relational.Specification.Tests" Version="3.1.1" />
-    <PackageReference Update="Microsoft.EntityFrameworkCore.Design" Version="3.1.1" />
+    <PackageReference Update="Microsoft.EntityFrameworkCore" Version="5.0.0-alpha.1.20076.2" />
+    <PackageReference Update="Microsoft.EntityFrameworkCore.Relational" Version="5.0.0-alpha.1.20076.2" />
+    <PackageReference Update="Microsoft.EntityFrameworkCore.Abstractions" Version="5.0.0-alpha.1.20076.2" />
+    <PackageReference Update="Microsoft.EntityFrameworkCore.Relational.Specification.Tests" Version="5.0.0-alpha.1.20076.2" />
+    <PackageReference Update="Microsoft.EntityFrameworkCore.Design" Version="5.0.0-alpha.1.20076.2" />
 
     <PackageReference Update="Microsoft.Extensions.Configuration.Json" Version="3.1.1" />
     <PackageReference Update="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="3.1.1" />

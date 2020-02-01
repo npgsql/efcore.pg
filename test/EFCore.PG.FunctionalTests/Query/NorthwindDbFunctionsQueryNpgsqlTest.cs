@@ -1,18 +1,22 @@
-﻿using System.Linq;
+using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.TestUtilities;
 using Xunit;
 using Xunit.Abstractions;
-using Microsoft.EntityFrameworkCore.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public class DbFunctionsNpgsqlTest : DbFunctionsTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
+    public class NorthwindDbFunctionsQueryNpgsqlTest : NorthwindDbFunctionsQueryTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
     {
-        // ReSharper disable once UnusedParameter.Local
-        public DbFunctionsNpgsqlTest(NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture, ITestOutputHelper testOutputHelper)
+        public NorthwindDbFunctionsQueryNpgsqlTest(NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
-            => Fixture.TestSqlLoggerFactory.Clear();
+        {
+            Fixture.TestSqlLoggerFactory.Clear();
+            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        }
+
+        #region Like / ILike
 
         public override void Like_literal()
         {
@@ -86,6 +90,8 @@ WHERE c.""ContactName"" ILIKE '%M%'");
 FROM ""Customers"" AS c
 WHERE c.""ContactName"" ILIKE '!%' ESCAPE '!'");
         }
+
+        #endregion
 
         void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);

@@ -20,6 +20,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
+#nullable enable
+
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
 {
     /// <summary>
@@ -32,12 +34,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
         /// <summary>
         /// The regular expression formatting string for schema and/or table names.
         /// </summary>
-        [NotNull] const string NamePartRegex = @"(?:(?:""(?<part{0}>(?:(?:"""")|[^""])+)"")|(?<part{0}>[^\.\[""]+))";
+        const string NamePartRegex = @"(?:(?:""(?<part{0}>(?:(?:"""")|[^""])+)"")|(?<part{0}>[^\.\[""]+))";
 
         /// <summary>
         /// The <see cref="Regex"/> to extract the schema and/or table names.
         /// </summary>
-        [NotNull] static readonly Regex SchemaTableNameExtractor =
+        static readonly Regex SchemaTableNameExtractor =
             new Regex(
                 string.Format(
                     CultureInfo.InvariantCulture,
@@ -51,7 +53,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
         /// Tables and views which are considered to be system tables and should not get scaffolded, e.g. the support table
         /// created by the PostGIS extension.
         /// </summary>
-        [NotNull] [ItemNotNull] static readonly string[] SystemTablesAndViews =
+        static readonly string[] SystemTablesAndViews =
         {
             "spatial_ref_sys", "geography_columns", "geometry_columns", "raster_columns", "raster_overviews"
         };
@@ -59,12 +61,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
         /// <summary>
         /// The types used for serial columns.
         /// </summary>
-        [NotNull] [ItemNotNull] static readonly string[] SerialTypes = { "int2", "int4", "int8" };
+        static readonly string[] SerialTypes = { "int2", "int4", "int8" };
 
         /// <summary>
         /// The diagnostic logger instance.
         /// </summary>
-        [NotNull] readonly IDiagnosticsLogger<DbLoggerCategory.Scaffolding> _logger;
+        readonly IDiagnosticsLogger<DbLoggerCategory.Scaffolding> _logger;
 
         #endregion
 
@@ -73,7 +75,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
         /// <summary>
         /// Constructs an instance of the <see cref="NpgsqlDatabaseModelFactory"/> class.
         /// </summary>
-        /// <param name="logger">The diagnostic logger instance.</param>
         public NpgsqlDatabaseModelFactory([NotNull] IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
             => _logger = Check.NotNull(logger, nameof(logger));
 
@@ -83,10 +84,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
             Check.NotEmpty(connectionString, nameof(connectionString));
             Check.NotNull(options, nameof(options));
 
-            using (var connection = new NpgsqlConnection(connectionString))
-            {
-                return Create(connection, options);
-            }
+            using var connection = new NpgsqlConnection(connectionString);
+            return Create(connection, options);
         }
 
         /// <inheritdoc />
@@ -112,11 +111,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
                 var schemaList = options.Schemas.ToList();
                 var schemaFilter = GenerateSchemaFilter(schemaList);
                 var tableList = options.Tables.ToList();
-                var tableFilter = GenerateTableFilter(tableList.Select(ParseSchemaTable).ToList(), schemaFilter);
+                var tableFilter = GenerateTableFilter(tableList.Select(Parse).ToList(), schemaFilter);
 
                 var enums = GetEnums(connection, databaseModel);
 
-                foreach (var table in GetTables(connection, tableFilter, enums, _logger))
+                foreach (var table in GetTables(connection, databaseModel, tableFilter, enums, _logger))
                 {
                     table.Database = databaseModel;
                     databaseModel.Tables.Add(table);
@@ -124,10 +123,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
 
                 foreach (var table in databaseModel.Tables)
                 {
-                    while (table.Columns.Remove(null)) {}
+                    while (table.Columns.Remove(null!)) {}
                 }
 
-                foreach (var sequence in GetSequences(connection, schemaFilter, _logger))
+                foreach (var sequence in GetSequences(connection, databaseModel, schemaFilter, _logger))
                 {
                     sequence.Database = databaseModel;
                     databaseModel.Sequences.Add(sequence);
@@ -150,7 +149,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
                     // We may have dropped or skipped columns. We load these because constraints take them into
                     // account when referencing columns, but must now get rid of them before returning
                     // the database model.
-                    while (table.Columns.Remove(null)) {}
+                    while (table.Columns.Remove(null!)) {}
                 }
 
                 foreach (var schema in schemaList
@@ -161,7 +160,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
 
                 foreach (var table in tableList)
                 {
-                    var (schema, name) = ParseSchemaTable(table);
+                    var (schema, name) = Parse(table);
                     if (!databaseModel.Tables.Any(t => !string.IsNullOrEmpty(schema) && t.Schema == schema || t.Name == name))
                         _logger.MissingTableWarning(table);
                 }
@@ -182,19 +181,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
         /// <summary>
         /// Queries the database for defined tables and registers them with the model.
         /// </summary>
-        /// <param name="connection">The database connection.</param>
-        /// <param name="tableFilter">The table filter fragment.</param>
-        /// <param name="enums">The collection of discovered enums.</param>
-        /// <param name="logger">The diagnostic logger.</param>
-        /// <returns>
-        /// A collection of tables defined in the database.
-        /// </returns>
-        [NotNull]
         static IEnumerable<DatabaseTable> GetTables(
-            [NotNull] NpgsqlConnection connection,
-            [CanBeNull] Func<string, string, string> tableFilter,
-            [NotNull] [ItemNotNull] HashSet<string> enums,
-            [NotNull] IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
+            NpgsqlConnection connection,
+            DatabaseModel databaseModel,
+            Func<string, string, string>? tableFilter,
+            HashSet<string> enums,
+            IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
         {
             var filter = tableFilter != null ? $"AND {tableFilter("ns.nspname", "cls.relname")}" : null;
             var commandText = $@"
@@ -215,14 +207,15 @@ WHERE
             {
                 while (reader.Read())
                 {
-                    var table = new DatabaseTable
-                    {
-                        Schema = reader.GetValueOrDefault<string>("nspname"),
-                        Name = reader.GetValueOrDefault<string>("relname")
-                    };
+                    var schema = reader.GetValueOrDefault<string>("nspname");
+                    var name = reader.GetString("relname");
+                    var comment = reader.GetValueOrDefault<string>("description");
 
-                    if (reader.GetValueOrDefault<string>("description") is string comment)
-                        table.Comment = comment;
+                    var table = new DatabaseTable(databaseModel, name)
+                    {
+                        Schema = schema,
+                        Comment = comment
+                    };
 
                     tables.Add(table);
                 }
@@ -237,17 +230,12 @@ WHERE
         /// <summary>
         /// Queries the database for defined columns and registers them with the model.
         /// </summary>
-        /// <param name="connection">The database connection.</param>
-        /// <param name="tables">The database tables.</param>
-        /// <param name="tableFilter">The table filter fragment.</param>
-        /// <param name="enums">The collection of discovered enums.</param>
-        /// <param name="logger">The diagnostic logger.</param>
         static void GetColumns(
-            [NotNull] NpgsqlConnection connection,
-            [NotNull] IReadOnlyList<DatabaseTable> tables,
-            [CanBeNull] string tableFilter,
-            [NotNull] HashSet<string> enums,
-            [NotNull] IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
+            NpgsqlConnection connection,
+            IReadOnlyList<DatabaseTable> tables,
+            string? tableFilter,
+            HashSet<string> enums,
+            IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
         {
             var commandText = $@"
 SELECT
@@ -304,8 +292,8 @@ ORDER BY attnum";
             using (var reader = command.ExecuteReader())
             {
                 var tableGroups = reader.Cast<DbDataRecord>().GroupBy(ddr => (
-                    tableSchema: ddr.GetValueOrDefault<string>("nspname"),
-                    tableName: ddr.GetValueOrDefault<string>("relname")));
+                    tableSchema: ddr.GetFieldValue<string>("nspname"),
+                    tableName: ddr.GetFieldValue<string>("relname")));
 
                 foreach (var tableGroup in tableGroups)
                 {
@@ -316,53 +304,38 @@ ORDER BY attnum";
 
                     foreach (var record in tableGroup)
                     {
-                        var column = new DatabaseColumn
-                        {
-                            Table = table,
-                            Name = record.GetValueOrDefault<string>("attname"),
-                            IsNullable = record.GetValueOrDefault<bool>("nullable"),
-                        };
+                        var columnName = record.GetFieldValue<string>("attname");
 
                         // We need to know about dropped columns because constraints take them into
                         // account when referencing columns. We'll get rid of them before returning the model.
                         if (record.GetValueOrDefault<bool>("attisdropped"))
                         {
-                            table.Columns.Add(null);
+                            table.Columns.Add(null!);
                             continue;
                         }
 
-                        string systemTypeName;
-                        var formattedTypeName = AdjustFormattedTypeName(record.GetValueOrDefault<string>("formatted_typname"));
+                        var formattedTypeName = AdjustFormattedTypeName(record.GetFieldValue<string>("formatted_typname"));
                         var formattedBaseTypeName = record.GetValueOrDefault<string>("formatted_basetypname");
-                        if (formattedBaseTypeName == null)
+                        var (storeType, systemTypeName) = formattedBaseTypeName == null
+                            ? (formattedTypeName, record.GetFieldValue<string>("typname"))
+                            : (formattedBaseTypeName, record.GetFieldValue<string>("basetypname")); // domain type
+
+                        var column = new DatabaseColumn(table, columnName, storeType)
                         {
-                            column.StoreType = formattedTypeName;
-                            systemTypeName = record.GetValueOrDefault<string>("typname");
-                        }
-                        else
-                        {
-                            // This is a domain type
-                            column.StoreType = formattedBaseTypeName;
-                            systemTypeName = record.GetValueOrDefault<string>("basetypname");
-                        }
+                            IsNullable = record.GetValueOrDefault<bool>("nullable"),
+                        };
 
                         // Enum types cannot be scaffolded for now (nor can domains of enum types),
                         // skip with an informative message
-                        if (enums.Contains(formattedTypeName) || enums.Contains(formattedBaseTypeName))
+                        if (enums.Contains(formattedTypeName) ||
+                            formattedBaseTypeName != null && enums.Contains(formattedBaseTypeName))
                         {
                             logger.EnumColumnSkippedWarning($"{DisplayName(tableSchema, tableName)}.{column.Name}");
                             // We need to know about skipped columns because constraints take them into
                             // account when referencing columns. We'll get rid of them before returning the model.
-                            table.Columns.Add(null);
+                            table.Columns.Add(null!);
                             continue;
                         }
-
-                        logger.ColumnFound(
-                            DisplayName(tableSchema, tableName),
-                            column.Name,
-                            formattedTypeName,
-                            column.IsNullable,
-                            column.DefaultValueSql);
 
                         // Default values and PostgreSQL 12 generated columns
                         if (record.GetValueOrDefault<char>("attgenerated") == 's')
@@ -437,6 +410,15 @@ ORDER BY attnum";
                         if (record.GetValueOrDefault<string>("description") is string comment)
                             column.Comment = comment;
 
+                        logger.ColumnFound(
+                            DisplayName(tableSchema, tableName),
+                            column.Name,
+                            formattedTypeName,
+                            column.IsNullable,
+                            isIdentity,
+                            column.DefaultValueSql,
+                            column.ComputedColumnSql);
+
                         table.Columns.Add(column);
                     }
                 }
@@ -446,17 +428,12 @@ ORDER BY attnum";
         /// <summary>
         /// Queries the database for defined indexes and registers them with the model.
         /// </summary>
-        /// <param name="connection">The database connection.</param>
-        /// <param name="tables">The database tables.</param>
-        /// <param name="tableFilter">The table filter fragment.</param>
-        /// <param name="constraintIndexes">The constraint indexes.</param>
-        /// <param name="logger">The diagnostic logger.</param>
         static void GetIndexes(
-            [NotNull] NpgsqlConnection connection,
-            [NotNull] IReadOnlyList<DatabaseTable> tables,
-            [CanBeNull] string tableFilter,
-            [NotNull] List<uint> constraintIndexes,
-            [NotNull] IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
+            NpgsqlConnection connection,
+            IReadOnlyList<DatabaseTable> tables,
+            string? tableFilter,
+            List<uint> constraintIndexes,
+            IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
         {
             // Load the pg_opclass table (https://www.postgresql.org/docs/current/catalog-pg-opclass.html),
             // which is referenced by the indices we'll load below
@@ -464,13 +441,13 @@ ORDER BY attnum";
             using (var command = new NpgsqlCommand("SELECT oid, opcname, opcdefault FROM pg_opclass", connection))
             using (var reader = command.ExecuteReader())
                 foreach (var opClass in reader.Cast<DbDataRecord>())
-                    opClasses[opClass.GetValueOrDefault<uint>("oid")] = (opClass.GetValueOrDefault<string>("opcname"), opClass.GetValueOrDefault<bool>("opcdefault"));
+                    opClasses[opClass.GetFieldValue<uint>("oid")] = (opClass.GetFieldValue<string>("opcname"), opClass.GetFieldValue<bool>("opcdefault"));
 
             var collations = new Dictionary<uint, string>();
             using (var command = new NpgsqlCommand("SELECT oid, collname FROM pg_collation", connection))
             using (var reader = command.ExecuteReader())
                 foreach (var collation in reader.Cast<DbDataRecord>())
-                    collations[collation.GetValueOrDefault<uint>("oid")] = collation.GetValueOrDefault<string>("collname");
+                    collations[collation.GetFieldValue<uint>("oid")] = collation.GetFieldValue<string>("collname");
 
             var commandText = $@"
 SELECT
@@ -510,8 +487,8 @@ WHERE
             using (var reader = command.ExecuteReader())
             {
                 var tableGroups = reader.Cast<DbDataRecord>().GroupBy(ddr => (
-                    tableSchema: ddr.GetValueOrDefault<string>("nspname"),
-                    tableName: ddr.GetValueOrDefault<string>("cls_relname")));
+                    tableSchema: ddr.GetFieldValue<string>("nspname"),
+                    tableName: ddr.GetFieldValue<string>("cls_relname")));
 
                 foreach (var tableGroup in tableGroups)
                 {
@@ -524,18 +501,17 @@ WHERE
                     {
                         // Constraints are detected separately (see GetConstraints), and we don't want their
                         // supporting indexes to appear independently.
-                        if (constraintIndexes.Contains(record.GetValueOrDefault<uint>("idx_oid")))
+                        if (constraintIndexes.Contains(record.GetFieldValue<uint>("idx_oid")))
                             continue;
 
-                        var index = new DatabaseIndex
+                        var indexName = record.GetFieldValue<string>("idx_relname");
+                        var index = new DatabaseIndex(table, indexName)
                         {
-                            Table = table,
-                            Name = record.GetValueOrDefault<string>("idx_relname"),
-                            IsUnique = record.GetValueOrDefault<bool>("indisunique")
+                            IsUnique = record.GetFieldValue<bool>("indisunique")
                         };
 
-                        var numKeyColumns = record.GetValueOrDefault<short>("indnkeyatts");
-                        var columnIndices = record.GetValueOrDefault<short[]>("indkey");
+                        var numKeyColumns = record.GetFieldValue<short>("indnkeyatts");
+                        var columnIndices = record.GetFieldValue<short[]>("indkey");
                         var tableColumns = (List<DatabaseColumn>)table.Columns;
 
                         if (columnIndices.Any(i => i == 0))
@@ -646,18 +622,12 @@ WHERE
         /// <summary>
         /// Queries the database for defined constraints and registers them with the model.
         /// </summary>
-        /// <param name="connection">The database connection.</param>
-        /// <param name="tables">The database tables.</param>
-        /// <param name="tableFilter">The table filter fragment.</param>
-        /// <param name="constraintIndexes">The constraint indexes.</param>
-        /// <param name="logger">The diagnostic logger.</param>
-        /// <exception cref="InvalidOperationException">Found varying lengths for column and principal column indices.</exception>
         static void GetConstraints(
-            [NotNull] NpgsqlConnection connection,
-            [NotNull] IReadOnlyList<DatabaseTable> tables,
-            [CanBeNull] string tableFilter,
-            [NotNull] out List<uint> constraintIndexes,
-            [NotNull] IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
+            NpgsqlConnection connection,
+            IReadOnlyList<DatabaseTable> tables,
+            string? tableFilter,
+            out List<uint> constraintIndexes,
+            IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
         {
             var commandText = $@"
 SELECT
@@ -688,8 +658,8 @@ WHERE
             {
                 constraintIndexes = new List<uint>();
                 var tableGroups = reader.Cast<DbDataRecord>().GroupBy(ddr => (
-                    tableSchema: ddr.GetValueOrDefault<string>("nspname"),
-                    tableName: ddr.GetValueOrDefault<string>("relname")));
+                    tableSchema: ddr.GetFieldValue<string>("nspname"),
+                    tableName: ddr.GetFieldValue<string>("relname")));
 
                 foreach (var tableGroup in tableGroups)
                 {
@@ -699,15 +669,12 @@ WHERE
                     var table = tables.Single(t => t.Schema == tableSchema && t.Name == tableName);
 
                     // Primary keys
-                    foreach (var primaryKeyRecord in tableGroup.Where(ddr => ddr.GetValueOrDefault<char>("contype") == 'p'))
+                    foreach (var primaryKeyRecord in tableGroup.Where(ddr => ddr.GetFieldValue<char>("contype") == 'p'))
                     {
-                        var primaryKey = new DatabasePrimaryKey
-                        {
-                            Table = table,
-                            Name = primaryKeyRecord.GetValueOrDefault<string>("conname")
-                        };
+                        var pkName = primaryKeyRecord.GetValueOrDefault<string>("conname");
+                        var primaryKey = new DatabasePrimaryKey(table, pkName);
 
-                        foreach (var pkColumnIndex in primaryKeyRecord.GetValueOrDefault<short[]>("conkey"))
+                        foreach (var pkColumnIndex in primaryKeyRecord.GetFieldValue<short[]>("conkey"))
                         {
                             if (table.Columns[pkColumnIndex - 1] is DatabaseColumn pkColumn)
                                 primaryKey.Columns.Add(pkColumn);
@@ -723,20 +690,19 @@ WHERE
                     }
 
                     // Foreign keys
-                    foreach (var foreignKeyRecord in tableGroup.Where(ddr => ddr.GetValueOrDefault<char>("contype") == 'f'))
+                    foreach (var foreignKeyRecord in tableGroup.Where(ddr => ddr.GetFieldValue<char>("contype") == 'f'))
                     {
-                        var fkName = foreignKeyRecord.GetValueOrDefault<string>("conname");
-                        var principalTableSchema = foreignKeyRecord.GetValueOrDefault<string>("fr_nspname");
-                        var principalTableName = foreignKeyRecord.GetValueOrDefault<string>("fr_relname");
-                        var onDeleteAction = foreignKeyRecord.GetValueOrDefault<char>("confdeltype");
+                        var fkName = foreignKeyRecord.GetFieldValue<string>("conname");
+                        var principalTableSchema = foreignKeyRecord.GetFieldValue<string>("fr_nspname");
+                        var principalTableName = foreignKeyRecord.GetFieldValue<string>("fr_relname");
+                        var onDeleteAction = foreignKeyRecord.GetFieldValue<char>("confdeltype");
 
                         var principalTable =
                             tables.FirstOrDefault(t =>
-                                t.Schema == principalTableSchema &&
-                                t.Name == principalTableName)
+                                principalTableSchema == t.Schema && principalTableName == t.Name)
                             ?? tables.FirstOrDefault(t =>
-                                t.Schema.Equals(principalTableSchema, StringComparison.OrdinalIgnoreCase) &&
-                                t.Name.Equals(principalTableName, StringComparison.OrdinalIgnoreCase));
+                                principalTableSchema.Equals(t.Schema, StringComparison.OrdinalIgnoreCase) &&
+                                principalTableName.Equals(t.Name, StringComparison.OrdinalIgnoreCase));
 
                         if (principalTable == null)
                         {
@@ -748,16 +714,13 @@ WHERE
                             continue;
                         }
 
-                        var foreignKey = new DatabaseForeignKey
+                        var foreignKey = new DatabaseForeignKey(table, fkName, principalTable)
                         {
-                            Name = fkName,
-                            Table = table,
-                            PrincipalTable = principalTable,
                             OnDelete = ConvertToReferentialAction(onDeleteAction)
                         };
 
-                        var columnIndices = foreignKeyRecord.GetValueOrDefault<short[]>("conkey");
-                        var principalColumnIndices = foreignKeyRecord.GetValueOrDefault<short[]>("confkey");
+                        var columnIndices = foreignKeyRecord.GetFieldValue<short[]>("conkey");
+                        var principalColumnIndices = foreignKeyRecord.GetFieldValue<short[]>("confkey");
 
                         if (columnIndices.Length != principalColumnIndices.Length)
                             throw new InvalidOperationException("Found varying lengths for column and principal column indices.");
@@ -789,13 +752,9 @@ WHERE
 
                         logger.UniqueConstraintFound(name, DisplayName(tableSchema, tableName));
 
-                        var uniqueConstraint = new DatabaseUniqueConstraint
-                        {
-                            Table = table,
-                            Name = name
-                        };
+                        var uniqueConstraint = new DatabaseUniqueConstraint(table, name);
 
-                        foreach (var columnIndex in record.GetValueOrDefault<short[]>("conkey"))
+                        foreach (var columnIndex in record.GetFieldValue<short[]>("conkey"))
                         {
                             var constraintColumn = table.Columns[columnIndex - 1];
                             if (constraintColumn == null)
@@ -819,17 +778,11 @@ WHERE
         /// <summary>
         /// Queries the database for defined sequences and registers them with the model.
         /// </summary>
-        /// <param name="connection">The database connection.</param>
-        /// <param name="schemaFilter">The schema filter.</param>
-        /// <param name="logger">The diagnostic logger.</param>
-        /// <returns>
-        /// A collection of sequences defined in teh database.
-        /// </returns>
-        [NotNull]
         static IEnumerable<DatabaseSequence> GetSequences(
-            [NotNull] NpgsqlConnection connection,
-            [CanBeNull] Func<string, string> schemaFilter,
-            [NotNull] IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
+            NpgsqlConnection connection,
+            DatabaseModel databaseModel,
+            Func<string, string>? schemaFilter,
+            IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
         {
             // Note: we consult information_schema.sequences instead of pg_sequence but the latter was only introduced in PG 10
             var commandText = $@"
@@ -860,11 +813,13 @@ WHERE
             {
                 foreach (var record in reader.Cast<DbDataRecord>())
                 {
+                    var sequenceName = reader.GetFieldValue<string>("sequence_name");
+                    var sequenceSchema = reader.GetFieldValue<string>("sequence_schema");
+
                     var seqInfo = ReadSequenceInfo(record, connection.PostgreSqlVersion);
-                    var sequence = new DatabaseSequence
+                    var sequence = new DatabaseSequence(databaseModel, sequenceName)
                     {
-                        Schema = reader.GetValueOrDefault<string>("sequence_schema"),
-                        Name = reader.GetValueOrDefault<string>("sequence_name"),
+                        Schema = sequenceSchema,
                         StoreType = seqInfo.StoreType,
                         StartValue = seqInfo.StartValue,
                         MinValue = seqInfo.MinValue,
@@ -881,10 +836,7 @@ WHERE
         /// <summary>
         /// Queries the database for defined enums and registers them with the model.
         /// </summary>
-        /// <param name="connection">The database connection.</param>
-        /// <param name="databaseModel">The database model.</param>
-        [NotNull]
-        static HashSet<string> GetEnums([NotNull] NpgsqlConnection connection, [NotNull] DatabaseModel databaseModel)
+        static HashSet<string> GetEnums(NpgsqlConnection connection, DatabaseModel databaseModel)
         {
             const string commandText = @"
 SELECT
@@ -903,9 +855,9 @@ GROUP BY nspname, typname";
                 var enums = new HashSet<string>();
                 while (reader.Read())
                 {
-                    var schema = reader.GetValueOrDefault<string>("nspname");
-                    var name = reader.GetValueOrDefault<string>("typname");
-                    var labels = reader.GetValueOrDefault<string[]>("labels");
+                    string? schema = reader.GetFieldValue<string>("nspname");
+                    var name = reader.GetFieldValue<string>("typname");
+                    var labels = reader.GetFieldValue<string[]>("labels");
 
                     if (schema == "public")
                         schema = null;
@@ -921,9 +873,7 @@ GROUP BY nspname, typname";
         /// <summary>
         /// Queries the installed database extensions and registers them with the model.
         /// </summary>
-        /// <param name="connection">The database connection.</param>
-        /// <param name="databaseModel">The database model.</param>
-        static void GetExtensions([NotNull] NpgsqlConnection connection, [NotNull] DatabaseModel databaseModel)
+        static void GetExtensions(NpgsqlConnection connection, DatabaseModel databaseModel)
         {
             const string commandText = "SELECT name, default_version, installed_version FROM pg_available_extensions";
             using (var command = new NpgsqlCommand(commandText, connection))
@@ -956,7 +906,7 @@ GROUP BY nspname, typname";
         /// </summary>
         /// <param name="column">The column to configure.</param>
         /// <param name="systemTypeName">The type name of the column.</param>
-        static void AdjustDefaults([NotNull] DatabaseColumn column, [NotNull] string systemTypeName)
+        static void AdjustDefaults(DatabaseColumn column, string systemTypeName)
         {
             var defaultValue = column.DefaultValueSql;
             if (defaultValue == null || defaultValue == "(NULL)")
@@ -1008,7 +958,7 @@ GROUP BY nspname, typname";
 
         static SequenceInfo ReadSequenceInfo(DbDataRecord record, Version postgresVersion)
         {
-            var storeType = record.GetValueOrDefault<string>("seqtype");
+            var storeType = record.GetFieldValue<string>("seqtype");
             var startValue = record.GetValueOrDefault<long>("seqstart");
             var minValue = record.GetValueOrDefault<long>("seqmin");
             var maxValue = record.GetValueOrDefault<long>("seqmax");
@@ -1069,9 +1019,8 @@ GROUP BY nspname, typname";
                 throw new NotSupportedException($"Sequence has datatype {storeType} which isn't an expected sequence type.");
             }
 
-            return new SequenceInfo
+            return new SequenceInfo(storeType)
             {
-                StoreType = storeType,
                 StartValue = startValue == defaultStart ? null : (long?)startValue,
                 MinValue = minValue == defaultMin ? null : (long?)minValue,
                 MaxValue = maxValue == defaultMax ? null : (long?)maxValue,
@@ -1083,6 +1032,7 @@ GROUP BY nspname, typname";
 
         class SequenceInfo
         {
+            public SequenceInfo(string storeType) => StoreType = storeType;
             public string StoreType { get; set; }
             public long? StartValue { get; set; }
             public long? MinValue { get; set; }
@@ -1099,28 +1049,17 @@ GROUP BY nspname, typname";
         /// <summary>
         /// Builds a delegate to generate a schema filter fragment.
         /// </summary>
-        /// <param name="schemas">The list of schema names.</param>
-        /// <returns>
-        /// A delegate that generates a schema filter fragment.
-        /// </returns>
-        [CanBeNull]
-        static Func<string, string> GenerateSchemaFilter([NotNull] IReadOnlyList<string> schemas)
+        static Func<string, string>? GenerateSchemaFilter(IReadOnlyList<string> schemas)
             => schemas.Any()
                 ? s => $"{s} IN ({string.Join(", ", schemas.Select(EscapeLiteral))})"
-                : (Func<string, string>)null;
+                : (Func<string, string>?)null;
 
         /// <summary>
         /// Builds a delegate to generate a table filter fragment.
         /// </summary>
-        /// <param name="tables">The list of tables parsed into tuples of schema name and table name.</param>
-        /// <param name="schemaFilter">The delegate that generates a schema filter fragment.</param>
-        /// <returns>
-        /// A delegate that generates a table filter fragment.
-        /// </returns>
-        [CanBeNull]
-        static Func<string, string, string> GenerateTableFilter(
-            [NotNull] IReadOnlyList<(string Schema, string Table)> tables,
-            [CanBeNull] Func<string, string> schemaFilter)
+        static Func<string, string, string>? GenerateTableFilter(
+            IReadOnlyList<(string? Schema, string Table)> tables,
+            Func<string, string>? schemaFilter)
             => schemaFilter != null || tables.Any()
                 ? (s, t) =>
                 {
@@ -1182,7 +1121,7 @@ GROUP BY nspname, typname";
 
                     return tableFilterBuilder.ToString();
                 }
-                : (Func<string, string, string>)null;
+                : (Func<string, string, string>?)null;
 
         #endregion
 
@@ -1191,12 +1130,7 @@ GROUP BY nspname, typname";
         /// <summary>
         /// Type names as returned by PostgreSQL's format_type need to be cleaned up a bit
         /// </summary>
-        /// <param name="formattedTypeName">The type name to adjust.</param>
-        /// <returns>
-        /// The adjusted type name or the original name if no adjustments were required.
-        /// </returns>
-        [NotNull]
-        static string AdjustFormattedTypeName([NotNull] string formattedTypeName)
+        static string AdjustFormattedTypeName(string formattedTypeName)
         {
             // User-defined types (e.g. enums) with capital letters get formatted with quotes, remove.
             if (formattedTypeName[0] == '"')
@@ -1211,54 +1145,29 @@ GROUP BY nspname, typname";
         /// <summary>
         /// Maps a character to a <see cref="ReferentialAction"/>.
         /// </summary>
-        /// <param name="onDeleteAction">The character to map.</param>
-        /// <returns>
-        /// A <see cref="ReferentialAction"/> associated with the <paramref name="onDeleteAction"/> character.
-        /// </returns>
-        /// <exception cref="ArgumentOutOfRangeException">
-        /// Unknown value <paramref name="onDeleteAction"/> for foreign key deletion action code.
-        /// </exception>
         static ReferentialAction ConvertToReferentialAction(char onDeleteAction)
-        {
-            switch (onDeleteAction)
+            => onDeleteAction switch
             {
-            case 'a':
-                return ReferentialAction.NoAction;
-            case 'r':
-                return ReferentialAction.Restrict;
-            case 'c':
-                return ReferentialAction.Cascade;
-            case 'n':
-                return ReferentialAction.SetNull;
-            case 'd':
-                return ReferentialAction.SetDefault;
-            default:
-                throw new ArgumentOutOfRangeException($"Unknown value {onDeleteAction} for foreign key deletion action code.");
-            }
-        }
+                'a' => ReferentialAction.NoAction,
+                'r' => ReferentialAction.Restrict,
+                'c' => ReferentialAction.Cascade,
+                'n' => ReferentialAction.SetNull,
+                'd' => ReferentialAction.SetDefault,
+                _ => throw new ArgumentOutOfRangeException(
+                    $"Unknown value {onDeleteAction} for foreign key deletion action code.")
+            };
 
         /// <summary>
         /// Constructs the display name given a schema and table name.
         /// </summary>
-        /// <param name="schema">The schema name.</param>
-        /// <param name="name">The table name.</param>
-        /// <returns>
-        /// A display name in the form of 'schema.name' or 'name'.
-        /// </returns>
         // TODO: should this default to/screen out the public schema?
-        [NotNull]
-        static string DisplayName([CanBeNull] string schema, [NotNull] string name)
+        static string DisplayName(string? schema, string name)
             => string.IsNullOrEmpty(schema) ? name : $"{schema}.{name}";
 
         /// <summary>
         /// Parses the table name into a tuple of schema name and table name where the schema may be null.
         /// </summary>
-        /// <param name="table">The name to parse.</param>
-        /// <returns>
-        /// A tuple of schema name and table name where the schema may be null.
-        /// </returns>
-        /// <exception cref="InvalidOperationException">The table name could not be parsed.</exception>
-        static (string Schema, string Table) ParseSchemaTable([NotNull] string table)
+        static (string? Schema, string Table) Parse(string table)
         {
             var match = SchemaTableNameExtractor.Match(table.Trim());
 
@@ -1274,12 +1183,7 @@ GROUP BY nspname, typname";
         /// <summary>
         /// Wraps a string literal in single quotes.
         /// </summary>
-        /// <param name="s">The string literal.</param>
-        /// <returns>
-        /// The string literal wrapped in single quotes.
-        /// </returns>
-        [NotNull]
-        static string EscapeLiteral([CanBeNull] string s) => $"'{s}'";
+        static string EscapeLiteral(string? s) => $"'{s}'";
 
         #endregion
     }

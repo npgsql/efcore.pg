@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public class SpatialQueryNpgsqlGeometryFixture : SpatialQueryRelationalFixture
+    public class SpatialQueryNpgsqlFixture : SpatialQueryRelationalFixture
     {
         protected override ITestStoreFactory TestStoreFactory
             => NpgsqlTestStoreFactory.Instance;
@@ -20,19 +20,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 .AddEntityFrameworkNpgsqlNetTopologySuite();
         }
 
-        public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
-        {
-            var optionsBuilder = base.AddOptions(builder);
-            new NpgsqlDbContextOptionsBuilder(optionsBuilder).UseNetTopologySuite();
-
-            return optionsBuilder;
-        }
-
         protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
         {
             base.OnModelCreating(modelBuilder, context);
 
             modelBuilder.HasPostgresExtension("postgis");
         }
+
+        //protected override bool CanExecuteQueryString => true;
     }
 }

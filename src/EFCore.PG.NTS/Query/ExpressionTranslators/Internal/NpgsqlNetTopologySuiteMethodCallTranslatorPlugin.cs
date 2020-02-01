@@ -71,6 +71,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             }
             arguments = typeMappedArguments;
 
+            if (Equals(method, _collectionItem))
+            {
+                return _sqlExpressionFactory.Function(
+                    "ST_GeometryN",
+                    new[] { instance, OneBased(arguments[0]) },
+                    method.ReturnType,
+                    _typeMappingSource.FindMapping(typeof(Geometry), instance.TypeMapping.StoreType));
+            }
+
             return method.Name switch
             {
             nameof(Geometry.AsBinary)            => _sqlExpressionFactory.Function("ST_AsBinary",       new[] { instance }, typeof(byte[])),
@@ -104,9 +113,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             nameof(Geometry.Union) when arguments.Count == 0 => _sqlExpressionFactory.Function("ST_UnaryUnion", new[] { instance }, typeof(Geometry), resultGeometryTypeMapping),
             nameof(Geometry.Union) when arguments.Count == 1 => _sqlExpressionFactory.Function("ST_Union",      new[] { instance, arguments[0] }, typeof(Geometry), resultGeometryTypeMapping),
 
-            _ => method.OnInterface(typeof(GeometryCollection)) is MethodInfo collectionMethod && collectionMethod == null
-                 ? _sqlExpressionFactory.Function("ST_GeometryN", new[] { instance, OneBased(arguments[0]) }, typeof(Geometry), resultGeometryTypeMapping)
-                 : null
+            _ => null
             };
 
             // NetTopologySuite uses 0-based indexing, but PostGIS uses 1-based

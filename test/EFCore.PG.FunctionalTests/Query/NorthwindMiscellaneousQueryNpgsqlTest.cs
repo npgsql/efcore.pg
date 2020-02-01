@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
@@ -9,16 +9,20 @@ using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public partial class SimpleQueryNpgsqlTest : SimpleQueryTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
+    public class NorthwindMiscellaneousQueryNpgsqlTest : NorthwindMiscellaneousQueryTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
     {
-        public SimpleQueryNpgsqlTest(NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture, ITestOutputHelper testOutputHelper)
+        public NorthwindMiscellaneousQueryNpgsqlTest(NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
         {
-            Fixture.TestSqlLoggerFactory.Clear();
+            ClearLog();
             //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
-        #region Overrides
+        public override async Task Query_expression_with_to_string_and_contains(bool isAsync)
+        {
+            await base.Query_expression_with_to_string_and_contains(isAsync);
+            AssertContainsSqlFragment(@"STRPOS(CAST(o.""EmployeeID"" AS text), '10') > 0");
+        }
 
         public override async Task Select_expression_date_add_year(bool isAsync)
         {
@@ -54,162 +58,7 @@ FROM ""Orders"" AS o
 WHERE (o.""OrderDate"" IS NOT NULL)");
         }
 
-        public override async Task Contains_with_local_uint_array_closure(bool isAsync)
-        {
-            await base.Contains_with_local_uint_array_closure(isAsync);
-
-            // Note: PostgreSQL doesn't support uint, but value converters make this into bigint
-            AssertSql(
-                @"@__ids_0='System.Int64[]' (DbType = Object)
-
-SELECT e.""EmployeeID"", e.""City"", e.""Country"", e.""FirstName"", e.""ReportsTo"", e.""Title""
-FROM ""Employees"" AS e
-WHERE e.""EmployeeID"" = ANY (@__ids_0)",
-                //
-                @"@__ids_0='System.Int64[]' (DbType = Object)
-
-SELECT e.""EmployeeID"", e.""City"", e.""Country"", e.""FirstName"", e.""ReportsTo"", e.""Title""
-FROM ""Employees"" AS e
-WHERE e.""EmployeeID"" = ANY (@__ids_0)");
-        }
-
-        public override async Task Contains_with_local_nullable_uint_array_closure(bool isAsync)
-        {
-            await base.Contains_with_local_nullable_uint_array_closure(isAsync);
-
-            // Note: PostgreSQL doesn't support uint, but value converters make this into bigint
-
-            AssertSql(
-                @"SELECT e.""EmployeeID"", e.""City"", e.""Country"", e.""FirstName"", e.""ReportsTo"", e.""Title""
-FROM ""Employees"" AS e
-WHERE e.""EmployeeID"" IN (0, 1)",
-                //
-                @"SELECT e.""EmployeeID"", e.""City"", e.""Country"", e.""FirstName"", e.""ReportsTo"", e.""Title""
-FROM ""Employees"" AS e
-WHERE e.""EmployeeID"" IN (0)");
-        }
-
-        #endregion
-
-        #region PadLeft, PadRight
-
-        [ConditionalTheory]
-        [MemberData(nameof(IsAsyncData))]
-        public Task PadLeft_with_constant(bool isAsync)
-            => AssertQuery(
-                isAsync,
-                ss => ss.Set<Customer>().Where(x => x.Address.PadLeft(20).EndsWith("Walserweg 21")),
-                entryCount: 1);
-
-        [ConditionalTheory]
-        [MemberData(nameof(IsAsyncData))]
-        public Task PadLeft_char_with_constant(bool isAsync)
-            => AssertQuery(
-                isAsync,
-                ss => ss.Set<Customer>().Where(x => x.Address.PadLeft(20, 'a').EndsWith("Walserweg 21")),
-                entryCount: 1);
-
-        [ConditionalTheory]
-        [MemberData(nameof(IsAsyncData))]
-        public Task PadLeft_with_parameter(bool isAsync)
-        {
-            var length = 20;
-
-            return AssertQuery(
-                isAsync,
-                ss => ss.Set<Customer>().Where(x => x.Address.PadLeft(length).EndsWith("Walserweg 21")),
-                entryCount: 1);
-        }
-
-        [ConditionalTheory]
-        [MemberData(nameof(IsAsyncData))]
-        public Task PadLeft_char_with_parameter(bool isAsync)
-        {
-            var length = 20;
-
-            return AssertQuery(
-                isAsync,
-                ss => ss.Set<Customer>().Where(x => x.Address.PadLeft(length, 'a').EndsWith("Walserweg 21")),
-                entryCount: 1);
-        }
-
-        [ConditionalTheory]
-        [MemberData(nameof(IsAsyncData))]
-        public Task PadRight_with_constant(bool isAsync)
-            => AssertQuery(
-                isAsync,
-                ss => ss.Set<Customer>().Where(x => x.Address.PadRight(20).StartsWith("Walserweg 21")),
-                entryCount: 1);
-
-        [ConditionalTheory]
-        [MemberData(nameof(IsAsyncData))]
-        public Task PadRight_char_with_constant(bool isAsync)
-            => AssertQuery(
-                isAsync,
-                ss => ss.Set<Customer>().Where(x => x.Address.PadRight(20).StartsWith("Walserweg 21")),
-                entryCount: 1);
-
-        [ConditionalTheory]
-        [MemberData(nameof(IsAsyncData))]
-        public Task PadRight_with_parameter(bool isAsync)
-        {
-            var length = 20;
-
-            return AssertQuery(
-                isAsync,
-                ss => ss.Set<Customer>().Where(x => x.Address.PadRight(length).StartsWith("Walserweg 21")),
-                entryCount: 1);
-        }
-
-        [ConditionalTheory]
-        [MemberData(nameof(IsAsyncData))]
-        public Task PadRight_char_with_parameter(bool isAsync)
-        {
-            var length = 20;
-
-            return AssertQuery(
-                isAsync,
-                ss => ss.Set<Customer>().Where(x => x.Address.PadRight(length, 'a').StartsWith("Walserweg 21")),
-                entryCount: 1);
-        }
-
-        #endregion
-
-        #region Substring
-
-        [ConditionalTheory]
-        [MemberData(nameof(IsAsyncData))]
-        public Task Substring_without_length_with_Index_of(bool isAsync)
-            => AssertQuery(
-                isAsync,
-                ss => ss.Set<Customer>()
-                    .Where(x => x.Address == "Walserweg 21")
-                    .Where(x => x.Address.Substring(x.Address.IndexOf("e")) == "erweg 21"),
-                entryCount: 1);
-
-        [ConditionalTheory]
-        [MemberData(nameof(IsAsyncData))]
-        public Task Substring_without_length_with_constant(bool isAsync)
-            => AssertQuery(
-                isAsync,
-                //Walserweg 21
-                cs => cs.Set<Customer>().Where(x => x.Address.Substring(5) == "rweg 21"),
-                entryCount: 1);
-
-        [ConditionalTheory]
-        [MemberData(nameof(IsAsyncData))]
-        public Task Substring_without_length_with_closure(bool isAsync)
-        {
-            var startIndex = 5;
-            return AssertQuery(
-                isAsync,
-                //Walserweg 21
-                ss => ss.Set<Customer>().Where(x => x.Address.Substring(startIndex) == "rweg 21"),
-                entryCount: 1);
-        }
-
-        #endregion
-
+        // TODO: Array tests can probably move to the dedicated ArrayQueryTest suite
         #region Array contains
 
         // Note that this also takes care of array.Any(x => x == y)
@@ -356,12 +205,13 @@ WHERE c.""Address"" ILIKE ALL (@__collection_0)");
         }
 
         #endregion Any/All Like
-
-        #region Helpers
+        protected override void ClearLog()
+            => Fixture.TestSqlLoggerFactory.Clear();
 
         void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
-        #endregion
+        void AssertContainsSqlFragment(string expectedFragment)
+            => Assert.Contains(Fixture.TestSqlLoggerFactory.SqlStatements, s => s.Contains(expectedFragment));
     }
 }

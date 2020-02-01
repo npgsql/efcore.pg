@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics.Internal;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.Internal;
@@ -56,12 +57,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                     new LoggerFactory(),
                     new LoggingOptions(),
                     new DiagnosticListener("FakeDiagnosticListener"),
-                    new NpgsqlLoggingDefinitions()),
+                    new NpgsqlLoggingDefinitions(),
+                    new NullDbContextLogger()),
                 new DiagnosticsLogger<DbLoggerCategory.Database.Connection>(
                     new LoggerFactory(),
                     new LoggingOptions(),
                     new DiagnosticListener("FakeDiagnosticListener"),
-                    new NpgsqlLoggingDefinitions()),
+                    new NpgsqlLoggingDefinitions(),
+                    new NullDbContextLogger()),
                 new NamedConnectionStringResolver(options),
                 new RelationalTransactionFactory(new RelationalTransactionFactoryDependencies()),
                 new CurrentDbContext(new FakeDbContext()));

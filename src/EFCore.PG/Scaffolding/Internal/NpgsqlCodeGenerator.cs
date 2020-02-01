@@ -20,7 +20,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
             string connectionString,
             MethodCallCodeFragment providerOptions)
             => new MethodCallCodeFragment(
-                nameof(NpgsqlDbContextOptionsExtensions.UseNpgsql),
+                nameof(NpgsqlDbContextOptionsBuilderExtensions.UseNpgsql),
                 providerOptions == null
                     ? new object[] { connectionString }
                     : new object[] { connectionString, new NestedClosureCodeFragment("x", providerOptions) });

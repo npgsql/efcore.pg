@@ -116,27 +116,24 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
             = new ResourceManager("Npgsql.EntityFrameworkCore.PostgreSQL.Properties.NpgsqlStrings", typeof(NpgsqlResources).GetTypeInfo().Assembly);
 
         /// <summary>
-        ///     Found column with table: {tableName}, column name: {columnName}, data type: {dataType}, nullable: {isNullable}, default value: {defaultValue}
+        ///     Found foreign key on table: {tableName}, name: {foreignKeyName}, principal table: {principalTableName}, delete action: {deleteAction}.
         /// </summary>
-        public static EventDefinition<string, string, string, bool, string> LogFoundColumn([NotNull] IDiagnosticsLogger logger)
+        public static FallbackEventDefinition LogFoundColumn([NotNull] IDiagnosticsLogger logger)
         {
             var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogFoundColumn;
             if (definition == null)
             {
                 definition = LazyInitializer.EnsureInitialized<EventDefinitionBase>(
                     ref ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogFoundColumn,
-                    () => new EventDefinition<string, string, string, bool, string>(
+                    () => new FallbackEventDefinition(
                         logger.Options,
                         NpgsqlEventId.ColumnFound,
                         LogLevel.Debug,
                         "NpgsqlEventId.ColumnFound",
-                        level => LoggerMessage.Define<string, string, string, bool, string>(
-                            level,
-                            NpgsqlEventId.ColumnFound,
-                            _resourceManager.GetString("LogFoundColumn"))));
+                        _resourceManager.GetString("LogFoundColumn")));
             }
 
-            return (EventDefinition<string, string, string, bool, string>)definition;
+            return (FallbackEventDefinition)definition;
         }
 
         /// <summary>

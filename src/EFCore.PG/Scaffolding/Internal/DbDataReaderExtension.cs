@@ -1,27 +1,35 @@
 ﻿using System.Data.Common;
 using System.Diagnostics;
-using JetBrains.Annotations;
+using System.Diagnostics.CodeAnalysis;
+
+#nullable enable
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
 {
-    public static class DbDataReaderExtension
+    static class DbDataReaderExtension
     {
         [DebuggerStepThrough]
-        public static T GetValueOrDefault<T>([NotNull] this DbDataReader reader, [NotNull] string name)
+        [return: MaybeNull]
+        internal static T GetValueOrDefault<T>(this DbDataReader reader, string name)
         {
             var idx = reader.GetOrdinal(name);
             return reader.IsDBNull(idx)
-                ? default(T)
+                ? default
                 : reader.GetFieldValue<T>(idx);
         }
 
         [DebuggerStepThrough]
-        public static T GetValueOrDefault<T>([NotNull] this DbDataRecord record, [NotNull] string name)
+        [return: MaybeNull]
+        internal static T GetValueOrDefault<T>(this DbDataRecord record, string name)
         {
             var idx = record.GetOrdinal(name);
             return record.IsDBNull(idx)
                 ? default
                 : (T)record.GetValue(idx);
         }
+
+        [DebuggerStepThrough]
+        internal static T GetFieldValue<T>(this DbDataRecord record, string name)
+            => (T)record.GetValue(record.GetOrdinal(name));
     }
 }
