@@ -14,9 +14,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
-        public override async Task Contains_with_local_uint_array_closure(bool isAsync)
+        public override async Task Contains_with_local_uint_array_closure(bool async)
         {
-            await base.Contains_with_local_uint_array_closure(isAsync);
+            await base.Contains_with_local_uint_array_closure(async);
 
             // Note: PostgreSQL doesn't support uint, but value converters make this into bigint
             AssertSql(
@@ -33,9 +33,9 @@ FROM ""Employees"" AS e
 WHERE e.""EmployeeID"" = ANY (@__ids_0)");
         }
 
-        public override async Task Contains_with_local_nullable_uint_array_closure(bool isAsync)
+        public override async Task Contains_with_local_nullable_uint_array_closure(bool async)
         {
-            await base.Contains_with_local_nullable_uint_array_closure(isAsync);
+            await base.Contains_with_local_nullable_uint_array_closure(async);
 
             // Note: PostgreSQL doesn't support uint, but value converters make this into bigint
 

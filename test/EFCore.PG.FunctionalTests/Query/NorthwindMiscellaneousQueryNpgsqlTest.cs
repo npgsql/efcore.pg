@@ -18,15 +18,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
-        public override async Task Query_expression_with_to_string_and_contains(bool isAsync)
+        public override async Task Query_expression_with_to_string_and_contains(bool async)
         {
-            await base.Query_expression_with_to_string_and_contains(isAsync);
+            await base.Query_expression_with_to_string_and_contains(async);
             AssertContainsSqlFragment(@"STRPOS(CAST(o.""EmployeeID"" AS text), '10') > 0");
         }
 
-        public override async Task Select_expression_date_add_year(bool isAsync)
+        public override async Task Select_expression_date_add_year(bool async)
         {
-            await base.Select_expression_date_add_year(isAsync);
+            await base.Select_expression_date_add_year(async);
 
             AssertSql(
                 @"SELECT o.""OrderDate"" + INTERVAL '1 years' AS ""OrderDate""
@@ -36,12 +36,12 @@ WHERE (o.""OrderDate"" IS NOT NULL)");
 
         [Theory]
         [MemberData(nameof(IsAsyncData))]
-        public async Task Select_expression_date_add_year_param(bool isAsync)
+        public async Task Select_expression_date_add_year_param(bool async)
         {
             var years = 2;
 
             await AssertQuery(
-                isAsync,
+                async,
                 ss => ss.Set<Order>().Where(o => o.OrderDate != null)
                     .Select(
                         o => new Order
@@ -64,10 +64,10 @@ WHERE (o.""OrderDate"" IS NOT NULL)");
         // Note that this also takes care of array.Any(x => x == y)
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
-        public async Task Array_Contains_constant(bool isAsync)
+        public async Task Array_Contains_constant(bool async)
         {
             await AssertQuery(
-                isAsync,
+                async,
                 ss => ss.Set<Customer>().Where(c => new[] { "ALFKI", "ANATR" }.Contains(c.CustomerID)),
                 entryCount: 2);
 
@@ -82,12 +82,12 @@ WHERE c.""CustomerID"" IN ('ALFKI', 'ANATR')");
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
-        public async Task Array_Contains_parameter(bool isAsync)
+        public async Task Array_Contains_parameter(bool async)
         {
             var regions = new[] { "UK", "SP" };
 
             await AssertQuery(
-                isAsync,
+                async,
                 ss => ss.Set<Customer>().Where(c => regions.Contains(c.Region)),
                 entryCount: 6);
 
@@ -105,12 +105,12 @@ WHERE c.""Region"" = ANY (@__regions_0) OR ((c.""Region"" IS NULL) AND (array_po
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
-        public async Task Array_Contains_parameter_with_null(bool isAsync)
+        public async Task Array_Contains_parameter_with_null(bool async)
         {
             var regions = new[] { "UK", "SP", null };
 
             await AssertQuery(
-            isAsync,
+            async,
             ss => ss.Set<Customer>().Where(c => regions.Contains(c.Region)),
             entryCount: 66);
 
@@ -132,12 +132,12 @@ WHERE c.""Region"" = ANY (@__regions_0) OR ((c.""Region"" IS NULL) AND (array_po
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
-        public async Task Array_Any_Like(bool isAsync)
+        public async Task Array_Any_Like(bool async)
         {
             var collection = new[] { "A%", "B%", "C%" };
 
             await AssertQuery(
-                isAsync,
+                async,
                 ss => ss.Set<Customer>().Where(c => collection.Any(y => EF.Functions.Like(c.Address, y))),
                 entryCount: 22);
 
@@ -151,12 +151,12 @@ WHERE c.""Address"" LIKE ANY (@__collection_0)");
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
-        public async Task Array_All_Like(bool isAsync)
+        public async Task Array_All_Like(bool async)
         {
             var collection = new[] { "A%", "B%", "C%" };
 
             await AssertQuery(
-                isAsync,
+                async,
                 ss => ss.Set<Customer>().Where(c => collection.All(y => EF.Functions.Like(c.Address, y))));
 
             AssertSql(
@@ -169,12 +169,12 @@ WHERE c.""Address"" LIKE ALL (@__collection_0)");
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
-        public async Task Array_Any_ILike(bool isAsync)
+        public async Task Array_Any_ILike(bool async)
         {
             var collection = new[] { "a%", "b%", "c%" };
 
             await AssertQuery(
-                isAsync,
+                async,
                 ss => ss.Set<Customer>().Where(c => collection.Any(y => EF.Functions.ILike(c.Address, y))),
                 entryCount: 22);
 
@@ -188,12 +188,12 @@ WHERE c.""Address"" ILIKE ANY (@__collection_0)");
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
-        public async Task Array_All_ILike(bool isAsync)
+        public async Task Array_All_ILike(bool async)
         {
             var collection = new[] { "a%", "b%", "c%" };
 
             await AssertQuery(
-                isAsync,
+                async,
                 ss => ss.Set<Customer>().Where(c => collection.All(y => EF.Functions.ILike(c.Address, y))));
 
             AssertSql(

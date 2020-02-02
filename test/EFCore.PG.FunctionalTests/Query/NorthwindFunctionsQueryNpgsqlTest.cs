@@ -19,9 +19,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             ClearLog();
             //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
-        public override async Task IsNullOrWhiteSpace_in_predicate(bool isAsync)
+        public override async Task IsNullOrWhiteSpace_in_predicate(bool async)
         {
-            await base.IsNullOrWhiteSpace_in_predicate(isAsync);
+            await base.IsNullOrWhiteSpace_in_predicate(async);
 
             AssertSql(
                 @"SELECT c.""CustomerID"", c.""Address"", c.""City"", c.""CompanyName"", c.""ContactName"", c.""ContactTitle"", c.""Country"", c.""Fax"", c.""Phone"", c.""PostalCode"", c.""Region""
@@ -30,24 +30,24 @@ WHERE (c.""Region"" IS NULL) OR (BTRIM(c.""Region"", E' \t\n\r') = '')");
         }
 
         [ConditionalTheory(Skip = "Fixed for PostgreSQL 12.1, https://www.postgresql.org/message-id/CADT4RqAz7oN4vkPir86Kg1_mQBmBxCp-L_%3D9vRpgSNPJf0KRkw%40mail.gmail.com")]
-        public override Task Indexof_with_emptystring(bool isAsync)
-            => base.Indexof_with_emptystring(isAsync);
+        public override Task Indexof_with_emptystring(bool async)
+            => base.Indexof_with_emptystring(async);
 
         [Theory(Skip = "PostgreSQL only has log(x, base) over numeric, may be possible to cast back and forth though")]
-        public override Task Where_math_log_new_base(bool isAsync)
-            => base.Where_math_log_new_base(isAsync);
+        public override Task Where_math_log_new_base(bool async)
+            => base.Where_math_log_new_base(async);
 
         [Theory(Skip = "Convert on DateTime not yet supported")]
-        public override Task Convert_ToString(bool isAsync)
-            => base.Convert_ToString(isAsync);
+        public override Task Convert_ToString(bool async)
+            => base.Convert_ToString(async);
 
         #region Substring
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
-        public Task Substring_without_length_with_Index_of(bool isAsync)
+        public Task Substring_without_length_with_Index_of(bool async)
             => AssertQuery(
-                isAsync,
+                async,
                 ss => ss.Set<Customer>()
                     .Where(x => x.Address == "Walserweg 21")
                     .Where(x => x.Address.Substring(x.Address.IndexOf("e")) == "erweg 21"),
@@ -55,20 +55,20 @@ WHERE (c.""Region"" IS NULL) OR (BTRIM(c.""Region"", E' \t\n\r') = '')");
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
-        public Task Substring_without_length_with_constant(bool isAsync)
+        public Task Substring_without_length_with_constant(bool async)
             => AssertQuery(
-                isAsync,
+                async,
                 //Walserweg 21
                 cs => cs.Set<Customer>().Where(x => x.Address.Substring(5) == "rweg 21"),
                 entryCount: 1);
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
-        public Task Substring_without_length_with_closure(bool isAsync)
+        public Task Substring_without_length_with_closure(bool async)
         {
             var startIndex = 5;
             return AssertQuery(
-                isAsync,
+                async,
                 //Walserweg 21
                 ss => ss.Set<Customer>().Where(x => x.Address.Substring(startIndex) == "rweg 21"),
                 entryCount: 1);
@@ -80,10 +80,10 @@ WHERE (c.""Region"" IS NULL) OR (BTRIM(c.""Region"", E' \t\n\r') = '')");
 
         [Theory]
         [MemberData(nameof(IsAsyncData))]
-        public async Task Regex_IsMatch(bool isAsync)
+        public async Task Regex_IsMatch(bool async)
         {
             await AssertQuery(
-                isAsync,
+                async,
                 cs => cs.Set<Customer>().Where(c => Regex.IsMatch(c.CompanyName, "^A")),
                 entryCount: 4);
 
@@ -92,10 +92,10 @@ WHERE (c.""Region"" IS NULL) OR (BTRIM(c.""Region"", E' \t\n\r') = '')");
 
         [Theory]
         [MemberData(nameof(IsAsyncData))]
-        public async Task Regex_IsMatchOptionsNone(bool isAsync)
+        public async Task Regex_IsMatchOptionsNone(bool async)
         {
             await AssertQuery(
-                isAsync,
+                async,
                 cs => cs.Set<Customer>().Where(c => Regex.IsMatch(c.CompanyName, "^A", RegexOptions.None)),
                 entryCount: 4);
 
@@ -104,10 +104,10 @@ WHERE (c.""Region"" IS NULL) OR (BTRIM(c.""Region"", E' \t\n\r') = '')");
 
         [Theory]
         [MemberData(nameof(IsAsyncData))]
-        public async Task Regex_IsMatchOptionsIgnoreCase(bool isAsync)
+        public async Task Regex_IsMatchOptionsIgnoreCase(bool async)
         {
             await AssertQuery(
-                isAsync,
+                async,
                 cs => cs.Set<Customer>().Where(c => Regex.IsMatch(c.CompanyName, "^a", RegexOptions.IgnoreCase)),
                 entryCount: 4);
 
@@ -116,10 +116,10 @@ WHERE (c.""Region"" IS NULL) OR (BTRIM(c.""Region"", E' \t\n\r') = '')");
 
         [Theory]
         [MemberData(nameof(IsAsyncData))]
-        public async Task Regex_IsMatchOptionsMultiline(bool isAsync)
+        public async Task Regex_IsMatchOptionsMultiline(bool async)
         {
             await AssertQuery(
-                isAsync,
+                async,
                 cs => cs.Set<Customer>().Where(c => Regex.IsMatch(c.CompanyName, "^A", RegexOptions.Multiline)),
                 entryCount: 4);
 
@@ -129,10 +129,10 @@ WHERE (c.""Region"" IS NULL) OR (BTRIM(c.""Region"", E' \t\n\r') = '')");
         // ReSharper disable once IdentifierTypo
         [Theory]
         [MemberData(nameof(IsAsyncData))]
-        public async Task Regex_IsMatchOptionsSingleline(bool isAsync)
+        public async Task Regex_IsMatchOptionsSingleline(bool async)
         {
             await AssertQuery(
-                isAsync,
+                async,
                 cs => cs.Set<Customer>().Where(c => Regex.IsMatch(c.CompanyName, "^A", RegexOptions.Singleline)),
                 entryCount: 4);
 
@@ -141,10 +141,10 @@ WHERE (c.""Region"" IS NULL) OR (BTRIM(c.""Region"", E' \t\n\r') = '')");
 
         [Theory]
         [MemberData(nameof(IsAsyncData))]
-        public async Task Regex_IsMatchOptionsIgnorePatternWhitespace(bool isAsync)
+        public async Task Regex_IsMatchOptionsIgnorePatternWhitespace(bool async)
         {
             await AssertQuery(
-                isAsync,
+                async,
                 cs => cs.Set<Customer>().Where(c => Regex.IsMatch(c.CompanyName, "^ A", RegexOptions.IgnorePatternWhitespace)),
                 entryCount: 4);
 
@@ -160,19 +160,19 @@ WHERE (c.""Region"" IS NULL) OR (BTRIM(c.""Region"", E' \t\n\r') = '')");
 
         #region Guid
 
-        public override async Task Where_guid_newguid(bool isAsync)
+        public override async Task Where_guid_newguid(bool async)
         {
-            await base.Where_guid_newguid(isAsync);
+            await base.Where_guid_newguid(async);
 
             AssertContainsSqlFragment(@"uuid_generate_v4() <> '00000000-0000-0000-0000-000000000000'");
         }
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
-        public virtual async Task OrderBy_Guid_NewGuid(bool isAsync)
+        public virtual async Task OrderBy_Guid_NewGuid(bool async)
         {
             await AssertQuery(
-                isAsync,
+                async,
                 ods => ods.Set<OrderDetail>().OrderBy(od => Guid.NewGuid()).Select(x => x),
                 entryCount: 2155);
 
@@ -185,80 +185,80 @@ WHERE (c.""Region"" IS NULL) OR (BTRIM(c.""Region"", E' \t\n\r') = '')");
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
-        public Task PadLeft_with_constant(bool isAsync)
+        public Task PadLeft_with_constant(bool async)
             => AssertQuery(
-                isAsync,
+                async,
                 ss => ss.Set<Customer>().Where(x => x.Address.PadLeft(20).EndsWith("Walserweg 21")),
                 entryCount: 1);
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
-        public Task PadLeft_char_with_constant(bool isAsync)
+        public Task PadLeft_char_with_constant(bool async)
             => AssertQuery(
-                isAsync,
+                async,
                 ss => ss.Set<Customer>().Where(x => x.Address.PadLeft(20, 'a').EndsWith("Walserweg 21")),
                 entryCount: 1);
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
-        public Task PadLeft_with_parameter(bool isAsync)
+        public Task PadLeft_with_parameter(bool async)
         {
             var length = 20;
 
             return AssertQuery(
-                isAsync,
+                async,
                 ss => ss.Set<Customer>().Where(x => x.Address.PadLeft(length).EndsWith("Walserweg 21")),
                 entryCount: 1);
         }
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
-        public Task PadLeft_char_with_parameter(bool isAsync)
+        public Task PadLeft_char_with_parameter(bool async)
         {
             var length = 20;
 
             return AssertQuery(
-                isAsync,
+                async,
                 ss => ss.Set<Customer>().Where(x => x.Address.PadLeft(length, 'a').EndsWith("Walserweg 21")),
                 entryCount: 1);
         }
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
-        public Task PadRight_with_constant(bool isAsync)
+        public Task PadRight_with_constant(bool async)
             => AssertQuery(
-                isAsync,
+                async,
                 ss => ss.Set<Customer>().Where(x => x.Address.PadRight(20).StartsWith("Walserweg 21")),
                 entryCount: 1);
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
-        public Task PadRight_char_with_constant(bool isAsync)
+        public Task PadRight_char_with_constant(bool async)
             => AssertQuery(
-                isAsync,
+                async,
                 ss => ss.Set<Customer>().Where(x => x.Address.PadRight(20).StartsWith("Walserweg 21")),
                 entryCount: 1);
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
-        public Task PadRight_with_parameter(bool isAsync)
+        public Task PadRight_with_parameter(bool async)
         {
             var length = 20;
 
             return AssertQuery(
-                isAsync,
+                async,
                 ss => ss.Set<Customer>().Where(x => x.Address.PadRight(length).StartsWith("Walserweg 21")),
                 entryCount: 1);
         }
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
-        public Task PadRight_char_with_parameter(bool isAsync)
+        public Task PadRight_char_with_parameter(bool async)
         {
             var length = 20;
 
             return AssertQuery(
-                isAsync,
+                async,
                 ss => ss.Set<Customer>().Where(x => x.Address.PadRight(length, 'a').StartsWith("Walserweg 21")),
                 entryCount: 1);
         }
