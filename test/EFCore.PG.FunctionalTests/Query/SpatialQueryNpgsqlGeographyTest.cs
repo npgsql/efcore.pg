@@ -22,54 +22,54 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         protected override bool AssertDistances
             => false;
 
-        public override async Task Area(bool isAsync)
+        public override async Task Area(bool async)
         {
-            await base.Area(isAsync);
+            await base.Area(async);
 
             AssertSql(
                 @"SELECT p.""Id"", ST_Area(p.""Polygon"") AS ""Area""
 FROM ""PolygonEntity"" AS p");
         }
 
-        public override async Task AsBinary(bool isAsync)
+        public override async Task AsBinary(bool async)
         {
-            await base.AsBinary(isAsync);
+            await base.AsBinary(async);
 
 //            AssertSql(
 //                @"SELECT p.""Id"", ST_AsBinary(p.""Point"") AS ""Binary""
 //FROM ""PointEntity"" AS p");
         }
 
-        public override async Task AsText(bool isAsync)
+        public override async Task AsText(bool async)
         {
-            await base.AsText(isAsync);
+            await base.AsText(async);
 
 //            AssertSql(
 //                @"SELECT p.""Id"", ST_AsText(p.""Point"") AS ""Text""
 //FROM ""PointEntity"" AS p");
         }
 
-        public override async Task Buffer(bool isAsync)
+        public override async Task Buffer(bool async)
         {
-            await base.Buffer(isAsync);
+            await base.Buffer(async);
 
 //            AssertSql(
 //                @"SELECT p.""Id"", ST_Buffer(p.""Polygon"", 1.0) AS ""Buffer""
 //FROM ""PolygonEntity"" AS p");
         }
 
-        public override async Task Buffer_quadrantSegments(bool isAsync)
+        public override async Task Buffer_quadrantSegments(bool async)
         {
-            await base.Buffer_quadrantSegments(isAsync);
+            await base.Buffer_quadrantSegments(async);
 
 //            AssertSql(
 //                @"SELECT p.""Id"", ST_Buffer(p.""Polygon"", 1.0, 8) AS ""Buffer""
 //FROM ""PolygonEntity"" AS p");
         }
 
-        public override async Task Centroid(bool isAsync)
+        public override async Task Centroid(bool async)
         {
-            await base.Centroid(isAsync);
+            await base.Centroid(async);
 
             AssertSql(
                 @"SELECT p.""Id"", ST_Centroid(p.""Polygon"") AS ""Centroid""
@@ -78,11 +78,11 @@ FROM ""PolygonEntity"" AS p");
 
         // TODO: Distance_*
 
-        public override async Task GeometryType(bool isAsync)
+        public override async Task GeometryType(bool async)
         {
             // PostGIS returns "POINT", NTS returns "Point"
             await AssertQuery(
-                isAsync,
+                async,
                 es => es.Set<PointEntity>().Select(
                     e => new { e.Id, GeometryType = e.Point == null ? null : e.Point.GeometryType.ToLower() }),
                 x => x.Id);
@@ -92,9 +92,9 @@ FROM ""PolygonEntity"" AS p");
 //FROM ""PointEntity"" AS p");
         }
 
-        public override async Task Intersection(bool isAsync)
+        public override async Task Intersection(bool async)
         {
-            await base.Intersection(isAsync);
+            await base.Intersection(async);
 
 //            AssertSql(
 //                @"@__polygon_0='POLYGON ((0 0
@@ -106,9 +106,9 @@ FROM ""PolygonEntity"" AS p");
 //FROM ""PolygonEntity"" AS p");
         }
 
-        public override async Task Intersects(bool isAsync)
+        public override async Task Intersects(bool async)
         {
-            await base.Intersects(isAsync);
+            await base.Intersects(async);
 
 //            AssertSql(
 //                @"@__lineString_0='LINESTRING (0.5 -0.5
@@ -118,9 +118,9 @@ FROM ""PolygonEntity"" AS p");
 //FROM ""LineStringEntity"" AS l");
         }
 
-        public override async Task IsWithinDistance(bool isAsync)
+        public override async Task IsWithinDistance(bool async)
         {
-            await base.IsWithinDistance(isAsync);
+            await base.IsWithinDistance(async);
 
 //            AssertSql(
 //                @"@__point_0='POINT (0 1)' (DbType = Object)
@@ -129,36 +129,36 @@ FROM ""PolygonEntity"" AS p");
 //FROM ""PointEntity"" AS p");
         }
 
-        public override async Task Length(bool isAsync)
+        public override async Task Length(bool async)
         {
-            await base.Length(isAsync);
+            await base.Length(async);
 
             AssertSql(
                 @"SELECT l.""Id"", ST_Length(l.""LineString"") AS ""Length""
 FROM ""LineStringEntity"" AS l");
         }
 
-        public override async Task SRID(bool isAsync)
+        public override async Task SRID(bool async)
         {
-            await base.SRID(isAsync);
+            await base.SRID(async);
 
             AssertSql(
                 @"SELECT p.""Id"", ST_SRID(p.""Point"") AS ""SRID""
 FROM ""PointEntity"" AS p");
         }
 
-        public override async Task ToBinary(bool isAsync)
+        public override async Task ToBinary(bool async)
         {
-            await base.ToBinary(isAsync);
+            await base.ToBinary(async);
 
 //            AssertSql(
 //                @"SELECT p.""Id"", ST_AsBinary(p.""Point"") AS ""Binary""
 //FROM ""PointEntity"" AS p");
         }
 
-        public override async Task ToText(bool isAsync)
+        public override async Task ToText(bool async)
         {
-            await base.ToText(isAsync);
+            await base.ToText(async);
 
 //            AssertSql(
 //                @"SELECT p.""Id"", ST_AsText(p.""Point"") AS ""Text""
@@ -167,53 +167,53 @@ FROM ""PointEntity"" AS p");
 
         #region Not supported on geography
 
-        public override Task Boundary(bool isAsync)                        => Task.CompletedTask;
-        public override Task Contains(bool isAsync)                        => Task.CompletedTask;
-        public override Task ConvexHull(bool isAsync)                      => Task.CompletedTask;
-        public override Task Crosses(bool isAsync)                         => Task.CompletedTask;
-        public override Task Difference(bool isAsync)                      => Task.CompletedTask;
-        public override Task Dimension(bool isAsync)                       => Task.CompletedTask;
+        public override Task Boundary(bool async)                        => Task.CompletedTask;
+        public override Task Contains(bool async)                        => Task.CompletedTask;
+        public override Task ConvexHull(bool async)                      => Task.CompletedTask;
+        public override Task Crosses(bool async)                         => Task.CompletedTask;
+        public override Task Difference(bool async)                      => Task.CompletedTask;
+        public override Task Dimension(bool async)                       => Task.CompletedTask;
         public override Task Disjoint_with_cast_to_nullable(bool async)    => Task.CompletedTask;
         public override Task Disjoint_without_cast_to_nullable(bool async) => Task.CompletedTask;
         public override Task Disjoint_with_null_check(bool async)          => Task.CompletedTask;
-        public override Task EndPoint(bool isAsync)                        => Task.CompletedTask;
-        public override Task Envelope(bool isAsync)                        => Task.CompletedTask;
-        public override Task EqualsTopologically(bool isAsync)             => Task.CompletedTask;
-        public override Task ExteriorRing(bool isAsync)                    => Task.CompletedTask;
-        public override Task GetGeometryN(bool isAsync)                    => Task.CompletedTask;
-        public override Task GetGeometryN_with_null_argument(bool isAsync) => Task.CompletedTask;
-        public override Task GetInteriorRingN(bool isAsync)                => Task.CompletedTask;
-        public override Task GetPointN(bool isAsync)                       => Task.CompletedTask;
-        public override Task ICurve_IsClosed(bool isAsync)                 => Task.CompletedTask;
-        public override Task IGeometryCollection_Count(bool isAsync)       => Task.CompletedTask;
-        public override Task IMultiCurve_IsClosed(bool isAsync)            => Task.CompletedTask;
-        public override Task IsEmpty(bool isAsync)                         => Task.CompletedTask;
-        public override Task IsEmpty_equal_to_null(bool isAsync)           => Task.CompletedTask;
-        public override Task IsEmpty_not_equal_to_null(bool isAsync)       => Task.CompletedTask;
-        public override Task IsRing(bool isAsync)                          => Task.CompletedTask;
-        public override Task IsSimple(bool isAsync)                        => Task.CompletedTask;
-        public override Task IsValid(bool isAsync)                         => Task.CompletedTask;
-        public override Task Item(bool isAsync)                            => Task.CompletedTask;
-        public override Task InteriorPoint(bool isAsync)                   => Task.CompletedTask;
-        public override Task LineString_Count(bool isAsync)                => Task.CompletedTask;
-        public override Task M(bool isAsync)                               => Task.CompletedTask;
-        public override Task NumGeometries(bool isAsync)                   => Task.CompletedTask;
-        public override Task NumInteriorRings(bool isAsync)                => Task.CompletedTask;
-        public override Task NumPoints(bool isAsync)                       => Task.CompletedTask;
-        public override Task OgcGeometryType(bool isAsync)                 => Task.CompletedTask;
-        public override Task Overlaps(bool isAsync)                        => Task.CompletedTask;
-        public override Task PointOnSurface(bool isAsync)                  => Task.CompletedTask;
-        public override Task Relate(bool isAsync)                          => Task.CompletedTask;
-        public override Task Reverse(bool isAsync)                         => Task.CompletedTask;
-        public override Task StartPoint(bool isAsync)                      => Task.CompletedTask;
-        public override Task SymmetricDifference(bool isAsync)             => Task.CompletedTask;
-        public override Task Touches(bool isAsync)                         => Task.CompletedTask;
-        public override Task Union(bool isAsync)                           => Task.CompletedTask;
-        public override Task Union_void(bool isAsync)                      => Task.CompletedTask;
-        public override Task Within(bool isAsync)                          => Task.CompletedTask;
-        public override Task X(bool isAsync)                               => Task.CompletedTask;
-        public override Task Y(bool isAsync)                               => Task.CompletedTask;
-        public override Task Z(bool isAsync)                               => Task.CompletedTask;
+        public override Task EndPoint(bool async)                        => Task.CompletedTask;
+        public override Task Envelope(bool async)                        => Task.CompletedTask;
+        public override Task EqualsTopologically(bool async)             => Task.CompletedTask;
+        public override Task ExteriorRing(bool async)                    => Task.CompletedTask;
+        public override Task GetGeometryN(bool async)                    => Task.CompletedTask;
+        public override Task GetGeometryN_with_null_argument(bool async) => Task.CompletedTask;
+        public override Task GetInteriorRingN(bool async)                => Task.CompletedTask;
+        public override Task GetPointN(bool async)                       => Task.CompletedTask;
+        public override Task ICurve_IsClosed(bool async)                 => Task.CompletedTask;
+        public override Task IGeometryCollection_Count(bool async)       => Task.CompletedTask;
+        public override Task IMultiCurve_IsClosed(bool async)            => Task.CompletedTask;
+        public override Task IsEmpty(bool async)                         => Task.CompletedTask;
+        public override Task IsEmpty_equal_to_null(bool async)           => Task.CompletedTask;
+        public override Task IsEmpty_not_equal_to_null(bool async)       => Task.CompletedTask;
+        public override Task IsRing(bool async)                          => Task.CompletedTask;
+        public override Task IsSimple(bool async)                        => Task.CompletedTask;
+        public override Task IsValid(bool async)                         => Task.CompletedTask;
+        public override Task Item(bool async)                            => Task.CompletedTask;
+        public override Task InteriorPoint(bool async)                   => Task.CompletedTask;
+        public override Task LineString_Count(bool async)                => Task.CompletedTask;
+        public override Task M(bool async)                               => Task.CompletedTask;
+        public override Task NumGeometries(bool async)                   => Task.CompletedTask;
+        public override Task NumInteriorRings(bool async)                => Task.CompletedTask;
+        public override Task NumPoints(bool async)                       => Task.CompletedTask;
+        public override Task OgcGeometryType(bool async)                 => Task.CompletedTask;
+        public override Task Overlaps(bool async)                        => Task.CompletedTask;
+        public override Task PointOnSurface(bool async)                  => Task.CompletedTask;
+        public override Task Relate(bool async)                          => Task.CompletedTask;
+        public override Task Reverse(bool async)                         => Task.CompletedTask;
+        public override Task StartPoint(bool async)                      => Task.CompletedTask;
+        public override Task SymmetricDifference(bool async)             => Task.CompletedTask;
+        public override Task Touches(bool async)                         => Task.CompletedTask;
+        public override Task Union(bool async)                           => Task.CompletedTask;
+        public override Task Union_void(bool async)                      => Task.CompletedTask;
+        public override Task Within(bool async)                          => Task.CompletedTask;
+        public override Task X(bool async)                               => Task.CompletedTask;
+        public override Task Y(bool async)                               => Task.CompletedTask;
+        public override Task Z(bool async)                               => Task.CompletedTask;
 
         #endregion
 
