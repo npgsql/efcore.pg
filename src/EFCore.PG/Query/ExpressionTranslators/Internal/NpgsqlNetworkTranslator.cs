@@ -69,8 +69,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             nameof(NpgsqlNetworkExtensions.ContainsOrEqual)       => BoolReturningOnTwoNetworkTypes(">>="),
             nameof(NpgsqlNetworkExtensions.ContainsOrContainedBy) => BoolReturningOnTwoNetworkTypes("&&"),
 
-            // TODO: Hack, see #1118
-            nameof(NpgsqlNetworkExtensions.BitwiseNot)            => new SqlUnaryExpression(ExpressionType.Negate,
+            nameof(NpgsqlNetworkExtensions.BitwiseNot)            => new SqlUnaryExpression(ExpressionType.Not,
                 arguments[1],
                 arguments[1].Type,
                 arguments[1].TypeMapping),
