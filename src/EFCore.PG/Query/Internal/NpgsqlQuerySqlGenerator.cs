@@ -193,8 +193,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             }
 
             // Bitwise complement on networking types
-            // TODO: Hack, see #1118
-            case ExpressionType.Negate when
+            case ExpressionType.Not when
                 sqlUnaryExpression.Operand.TypeMapping.ClrType == typeof(IPAddress) ||
                 sqlUnaryExpression.Operand.TypeMapping.ClrType == typeof((IPAddress, int)) ||
                 sqlUnaryExpression.Operand.TypeMapping.ClrType == typeof(PhysicalAddress):
@@ -202,9 +201,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 Visit(sqlUnaryExpression.Operand);
                 return sqlUnaryExpression;
 
-            // Negation on full-text queries
-            // TODO: Hack, see #1118
-            case ExpressionType.Negate when sqlUnaryExpression.Operand.TypeMapping.ClrType == typeof(NpgsqlTsQuery):
+            // Not operation on full-text queries
+            case ExpressionType.Not when sqlUnaryExpression.Operand.TypeMapping.ClrType == typeof(NpgsqlTsQuery):
                 Sql.Append("!!");
                 Visit(sqlUnaryExpression.Operand);
                 return sqlUnaryExpression;

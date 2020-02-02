@@ -115,9 +115,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     nameof(NpgsqlFullTextSearchLinqExtensions.And) => QueryReturningOnTwoQueries("&&"),
                     nameof(NpgsqlFullTextSearchLinqExtensions.Or)  => QueryReturningOnTwoQueries("||"),
 
-                    // TODO: Hack, see #1118
                     nameof(NpgsqlFullTextSearchLinqExtensions.ToNegative)
-                        => new SqlUnaryExpression(ExpressionType.Negate, arguments[0], arguments[0].Type, arguments[0].TypeMapping),
+                        => new SqlUnaryExpression(ExpressionType.Not, arguments[0], arguments[0].Type, arguments[0].TypeMapping),
 
                     nameof(NpgsqlFullTextSearchLinqExtensions.Contains) => BoolReturningOnTwoQueries("@>"),
                     nameof(NpgsqlFullTextSearchLinqExtensions.IsContainedIn) => BoolReturningOnTwoQueries("<@"),
