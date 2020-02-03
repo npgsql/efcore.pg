@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.TestUtilities;
@@ -14,6 +16,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
 
+// ReSharper disable MethodSupportsCancellation
+// ReSharper disable AccessToDisposedClosure
 namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
     public class ExecutionStrategyTest : IClassFixture<ExecutionStrategyTest.ExecutionStrategyFixture>
@@ -27,59 +31,58 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
         protected ExecutionStrategyFixture Fixture { get; }
 
-        [Fact]
-        public void Does_not_throw_or_retry_on_false_commit_failure()
+        [ConditionalTheory]
+        [MemberData(nameof(DataGenerator.GetBoolCombinations), 1, MemberType = typeof(DataGenerator))]
+        public void Handles_commit_failure(bool realFailure)
         {
-            Test_commit_failure(false);
-        }
+            // Use all overloads of ExecuteInTransaction
+            Test_commit_failure(
+                realFailure, (e, db) => e.ExecuteInTransaction(
+                    () => { db.SaveChanges(false); },
+                    () => db.Products.AsNoTracking().Any()));
 
-        [Fact]
-        public void Retries_on_true_commit_failure()
-        {
-            Test_commit_failure(true);
-        }
+            Test_commit_failure(
+                realFailure, (e, db) => e.ExecuteInTransaction(
+                    () => db.SaveChanges(false),
+                    () => db.Products.AsNoTracking().Any()));
 
-        void Test_commit_failure(bool realFailure)
-        {
-            Test_commit_failure(realFailure, (e, db) => e.ExecuteInTransaction(
-                () => { db.SaveChanges(acceptAllChangesOnSuccess: false); },
-                () => db.Products.AsNoTracking().Any()));
+            Test_commit_failure(
+                realFailure, (e, db) => e.ExecuteInTransaction(
+                    db,
+                    c => { c.SaveChanges(false); },
+                    c => c.Products.AsNoTracking().Any()));
 
-            Test_commit_failure(realFailure, (e, db) => e.ExecuteInTransaction(
-                () => db.SaveChanges(acceptAllChangesOnSuccess: false),
-                () => db.Products.AsNoTracking().Any()));
+            Test_commit_failure(
+                realFailure, (e, db) => e.ExecuteInTransaction(
+                    db,
+                    c => c.SaveChanges(false),
+                    c => c.Products.AsNoTracking().Any()));
 
-            Test_commit_failure(realFailure, (e, db) => e.ExecuteInTransaction(
-                db,
-                c => { c.SaveChanges(acceptAllChangesOnSuccess: false); },
-                c => c.Products.AsNoTracking().Any()));
+            Test_commit_failure(
+                realFailure, (e, db) => e.ExecuteInTransaction(
+                    () => { db.SaveChanges(false); },
+                    () => db.Products.AsNoTracking().Any(),
+                    IsolationLevel.Serializable));
 
-            Test_commit_failure(realFailure, (e, db) => e.ExecuteInTransaction(
-                db,
-                c => c.SaveChanges(acceptAllChangesOnSuccess: false),
-                c => c.Products.AsNoTracking().Any()));
+            Test_commit_failure(
+                realFailure, (e, db) => e.ExecuteInTransaction(
+                    () => db.SaveChanges(false),
+                    () => db.Products.AsNoTracking().Any(),
+                    IsolationLevel.Serializable));
 
-            Test_commit_failure(realFailure, (e, db) => e.ExecuteInTransaction(
-                () => { db.SaveChanges(acceptAllChangesOnSuccess: false); },
-                () => db.Products.AsNoTracking().Any(),
-                IsolationLevel.Serializable));
+            Test_commit_failure(
+                realFailure, (e, db) => e.ExecuteInTransaction(
+                    db,
+                    c => { c.SaveChanges(false); },
+                    c => c.Products.AsNoTracking().Any(),
+                    IsolationLevel.Serializable));
 
-            Test_commit_failure(realFailure, (e, db) => e.ExecuteInTransaction(
-                () => db.SaveChanges(acceptAllChangesOnSuccess: false),
-                () => db.Products.AsNoTracking().Any(),
-                IsolationLevel.Serializable));
-
-            Test_commit_failure(realFailure, (e, db) => e.ExecuteInTransaction(
-                db,
-                c => { c.SaveChanges(acceptAllChangesOnSuccess: false); },
-                c => c.Products.AsNoTracking().Any(),
-                IsolationLevel.Serializable));
-
-            Test_commit_failure(realFailure, (e, db) => e.ExecuteInTransaction(
-                db,
-                c => c.SaveChanges(acceptAllChangesOnSuccess: false),
-                c => c.Products.AsNoTracking().Any(),
-                IsolationLevel.Serializable));
+            Test_commit_failure(
+                realFailure, (e, db) => e.ExecuteInTransaction(
+                    db,
+                    c => c.SaveChanges(false),
+                    c => c.Products.AsNoTracking().Any(),
+                    IsolationLevel.Serializable));
         }
 
         void Test_commit_failure(bool realFailure, Action<TestNpgsqlRetryingExecutionStrategy, ExecutionStrategyContext> execute)
@@ -91,10 +94,26 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 var connection = (TestNpgsqlConnection)context.GetService<INpgsqlRelationalConnection>();
 
                 connection.CommitFailures.Enqueue(new bool?[] { realFailure });
+                Fixture.TestSqlLoggerFactory.Clear();
 
                 context.Products.Add(new Product());
                 execute(new TestNpgsqlRetryingExecutionStrategy(context), context);
                 context.ChangeTracker.AcceptAllChanges();
+
+                var retryMessage =
+                    "A transient exception has been encountered during execution and the operation will be retried after 0ms."
+                    + Environment.NewLine
+                    + "Npgsql.PostgresException (0x80004005): XX000";
+                if (realFailure)
+                {
+                    var logEntry = Fixture.TestSqlLoggerFactory.Log.Single(l => l.Id == CoreEventId.ExecutionStrategyRetrying);
+                    Assert.Contains(retryMessage, logEntry.Message);
+                    Assert.Equal(LogLevel.Information, logEntry.Level);
+                }
+                else
+                {
+                    Assert.Empty(Fixture.TestSqlLoggerFactory.Log.Where(l => l.Id == CoreEventId.ExecutionStrategyRetrying));
+                }
 
                 Assert.Equal(realFailure ? 3 : 2, connection.OpenCount);
             }
@@ -105,82 +124,81 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             }
         }
 
-        [Fact]
-        public Task Does_not_throw_or_retry_on_false_commit_failure_async()
-            => Test_commit_failure_async(false);
-
-        [Fact]
-        public Task Retries_on_true_commit_failure_async()
-            => Test_commit_failure_async(true);
-
-        async Task Test_commit_failure_async(bool realFailure)
+        [ConditionalTheory]
+        [MemberData(nameof(DataGenerator.GetBoolCombinations), 1, MemberType = typeof(DataGenerator))]
+        public async Task Handles_commit_failure_async(bool realFailure)
         {
-            await Test_commit_failure_async(realFailure, (e, db) => e.ExecuteInTransactionAsync(
-                () => db.SaveChangesAsync(acceptAllChangesOnSuccess: false),
-                () => db.Products.AsNoTracking().AnyAsync()));
+            // Use all overloads of ExecuteInTransactionAsync
+            await Test_commit_failure_async(
+                realFailure, (e, db) => e.ExecuteInTransactionAsync(
+                    () => db.SaveChangesAsync(false),
+                    () => db.Products.AsNoTracking().AnyAsync()));
 
-            var cancellationToken = CancellationToken.None;
-            await Test_commit_failure_async(realFailure, (e, db) => e.ExecuteInTransactionAsync(
-                async ct => { await db.SaveChangesAsync(acceptAllChangesOnSuccess: false); },
-                ct => db.Products.AsNoTracking().AnyAsync(),
-                cancellationToken));
+            await Test_commit_failure_async(
+                realFailure, (e, db) => e.ExecuteInTransactionAsync(
+                    async ct => { await db.SaveChangesAsync(false); },
+                    ct => db.Products.AsNoTracking().AnyAsync(),
+                    CancellationToken.None));
 
-            await Test_commit_failure_async(realFailure, (e, db) => e.ExecuteInTransactionAsync(
-                ct => db.SaveChangesAsync(acceptAllChangesOnSuccess: false),
-                ct => db.Products.AsNoTracking().AnyAsync(),
-                cancellationToken));
+            await Test_commit_failure_async(
+                realFailure, (e, db) => e.ExecuteInTransactionAsync(
+                    ct => db.SaveChangesAsync(false, ct),
+                    ct => db.Products.AsNoTracking().AnyAsync(),
+                    CancellationToken.None));
 
-            await Test_commit_failure_async(realFailure, (e, db) => e.ExecuteInTransactionAsync(
-                db,
-                async (c, ct) => { await c.SaveChangesAsync(acceptAllChangesOnSuccess: false); },
-                (c, ct) => c.Products.AsNoTracking().AnyAsync(),
-                cancellationToken));
+            await Test_commit_failure_async(
+                realFailure, (e, db) => e.ExecuteInTransactionAsync(
+                    db,
+                    async (c, ct) => { await c.SaveChangesAsync(false, ct); },
+                    (c, ct) => c.Products.AsNoTracking().AnyAsync(),
+                    CancellationToken.None));
 
-            await Test_commit_failure_async(realFailure, (e, db) => e.ExecuteInTransactionAsync(
-                db,
-                (c, ct) => c.SaveChangesAsync(acceptAllChangesOnSuccess: false),
-                (c, ct) => c.Products.AsNoTracking().AnyAsync(),
-                cancellationToken));
+            await Test_commit_failure_async(
+                realFailure, (e, db) => e.ExecuteInTransactionAsync(
+                    db,
+                    (c, ct) => c.SaveChangesAsync(false, ct),
+                    (c, ct) => c.Products.AsNoTracking().AnyAsync(),
+                    CancellationToken.None));
 
-            await Test_commit_failure_async(realFailure, (e, db) => e.ExecuteInTransactionAsync(
-                () => db.SaveChangesAsync(acceptAllChangesOnSuccess: false),
-                () => db.Products.AsNoTracking().AnyAsync(),
-                IsolationLevel.Serializable));
+            await Test_commit_failure_async(
+                realFailure, (e, db) => e.ExecuteInTransactionAsync(
+                    () => db.SaveChangesAsync(false),
+                    () => db.Products.AsNoTracking().AnyAsync(),
+                    IsolationLevel.Serializable));
 
-            await Test_commit_failure_async(realFailure, (e, db) => e.ExecuteInTransactionAsync(
-                async ct => { await db.SaveChangesAsync(acceptAllChangesOnSuccess: false); },
-                ct => db.Products.AsNoTracking().AnyAsync(),
-                IsolationLevel.Serializable,
-                cancellationToken));
+            await Test_commit_failure_async(
+                realFailure, (e, db) => e.ExecuteInTransactionAsync(
+                    async ct => { await db.SaveChangesAsync(false, ct); },
+                    ct => db.Products.AsNoTracking().AnyAsync(ct),
+                    IsolationLevel.Serializable,
+                    CancellationToken.None));
 
-            await Test_commit_failure_async(realFailure, (e, db) => e.ExecuteInTransactionAsync(
-                ct => db.SaveChangesAsync(acceptAllChangesOnSuccess: false),
-                ct => db.Products.AsNoTracking().AnyAsync(),
-                IsolationLevel.Serializable,
-                cancellationToken));
+            await Test_commit_failure_async(
+                realFailure, (e, db) => e.ExecuteInTransactionAsync(
+                    ct => db.SaveChangesAsync(false, ct),
+                    ct => db.Products.AsNoTracking().AnyAsync(ct),
+                    IsolationLevel.Serializable,
+                    CancellationToken.None));
 
-            await Test_commit_failure_async(realFailure, (e, db) => e.ExecuteInTransactionAsync(
-                db,
-                async (c, ct) =>
-                {
-                    await c.SaveChangesAsync(acceptAllChangesOnSuccess: false);
-                },
-                (c, ct) => c.Products.AsNoTracking().AnyAsync(),
-                IsolationLevel.Serializable,
-                cancellationToken));
+            await Test_commit_failure_async(
+                realFailure, (e, db) => e.ExecuteInTransactionAsync(
+                    db,
+                    async (c, ct) => { await c.SaveChangesAsync(false, ct); },
+                    (c, ct) => c.Products.AsNoTracking().AnyAsync(ct),
+                    IsolationLevel.Serializable,
+                    CancellationToken.None));
 
-            await Test_commit_failure_async(realFailure, (e, db) => e.ExecuteInTransactionAsync(
-                db,
-                (c, ct) =>
-                {
-                    return c.SaveChangesAsync(acceptAllChangesOnSuccess: false);
-                },
-                (c, ct) => c.Products.AsNoTracking().AnyAsync(),
-                IsolationLevel.Serializable,
-                cancellationToken));
+            await Test_commit_failure_async(
+                realFailure, (e, db) => e.ExecuteInTransactionAsync(
+                    db,
+                    (c, ct) => c.SaveChangesAsync(false, ct),
+                    (c, ct) => c.Products.AsNoTracking().AnyAsync(ct),
+                    IsolationLevel.Serializable,
+                    CancellationToken.None));
         }
 
-        async Task Test_commit_failure_async(bool realFailure, Func<TestNpgsqlRetryingExecutionStrategy, ExecutionStrategyContext, Task> execute)
+        private async Task Test_commit_failure_async(
+            bool realFailure, Func<TestNpgsqlRetryingExecutionStrategy, ExecutionStrategyContext, Task> execute)
         {
             CleanContext();
 
@@ -189,10 +207,26 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 var connection = (TestNpgsqlConnection)context.GetService<INpgsqlRelationalConnection>();
 
                 connection.CommitFailures.Enqueue(new bool?[] { realFailure });
+                Fixture.TestSqlLoggerFactory.Clear();
 
                 context.Products.Add(new Product());
                 await execute(new TestNpgsqlRetryingExecutionStrategy(context), context);
                 context.ChangeTracker.AcceptAllChanges();
+
+                var retryMessage =
+                    "A transient exception has been encountered during execution and the operation will be retried after 0ms."
+                    + Environment.NewLine
+                    + "Npgsql.PostgresException (0x80004005): XX000";
+                if (realFailure)
+                {
+                    var logEntry = Fixture.TestSqlLoggerFactory.Log.Single(l => l.Id == CoreEventId.ExecutionStrategyRetrying);
+                    Assert.Contains(retryMessage, logEntry.Message);
+                    Assert.Equal(LogLevel.Information, logEntry.Level);
+                }
+                else
+                {
+                    Assert.Empty(Fixture.TestSqlLoggerFactory.Log.Where(l => l.Id == CoreEventId.ExecutionStrategyRetrying));
+                }
 
                 Assert.Equal(realFailure ? 3 : 2, connection.OpenCount);
             }
@@ -203,62 +237,47 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             }
         }
 
-        [Fact]
-        public void Does_not_throw_or_retry_on_false_commit_failure_multiple_SaveChanges()
-            => Test_commit_failure_multiple_SaveChanges(false);
-
-        [Fact]
-        public void Retries_on_true_commit_failure_multiple_SaveChanges()
-            => Test_commit_failure_multiple_SaveChanges(true);
-
-        void Test_commit_failure_multiple_SaveChanges(bool realFailure)
+        [ConditionalTheory]
+        [MemberData(nameof(DataGenerator.GetBoolCombinations), 1, MemberType = typeof(DataGenerator))]
+        public void Handles_commit_failure_multiple_SaveChanges(bool realFailure)
         {
             CleanContext();
 
-            using (var context1 = CreateContext())
+            using var context1 = CreateContext();
+            var connection = (TestNpgsqlConnection)context1.GetService<INpgsqlRelationalConnection>();
+
+            using (var context2 = CreateContext())
             {
-                var connection = (TestNpgsqlConnection)context1.GetService<INpgsqlRelationalConnection>();
+                connection.CommitFailures.Enqueue(new bool?[] { realFailure });
 
-                using (var context2 = CreateContext())
-                {
-                    connection.CommitFailures.Enqueue(new bool?[] { realFailure });
+                context1.Products.Add(new Product());
+                context2.Products.Add(new Product());
 
-                    context1.Products.Add(new Product());
-                    context2.Products.Add(new Product());
+                new TestNpgsqlRetryingExecutionStrategy(context1).ExecuteInTransaction(
+                    context1,
+                    c1 =>
+                    {
+                        context2.Database.UseTransaction(null);
+                        context2.Database.UseTransaction(context1.Database.CurrentTransaction.GetDbTransaction());
 
-                    new TestNpgsqlRetryingExecutionStrategy(context1).ExecuteInTransaction(
-                        context1,
-                        c1 =>
-                        {
-                            context2.Database.UseTransaction(null);
-                            context2.Database.UseTransaction(context1.Database.CurrentTransaction.GetDbTransaction());
+                        c1.SaveChanges(false);
 
-                            c1.SaveChanges(acceptAllChangesOnSuccess: false);
+                        return context2.SaveChanges(false);
+                    },
+                    c => c.Products.AsNoTracking().Any());
 
-                            return context2.SaveChanges(acceptAllChangesOnSuccess: false);
-                        },
-                        c => c.Products.AsNoTracking().Any());
-
-                    context1.ChangeTracker.AcceptAllChanges();
-                    context2.ChangeTracker.AcceptAllChanges();
-                }
-
-                using (var context = CreateContext())
-                {
-                    Assert.Equal(2, context.Products.Count());
-                }
+                context1.ChangeTracker.AcceptAllChanges();
+                context2.ChangeTracker.AcceptAllChanges();
             }
+
+            using var context = CreateContext();
+            Assert.Equal(2, context.Products.Count());
         }
 
-        [Fact]
-        public void Does_not_throw_or_retry_on_false_execution_failure()
-            => Test_execution_failure(false);
-
-        [Fact]
-        public void Retries_on_true_execution_failure()
-            => Test_execution_failure(true);
-
-        void Test_execution_failure(bool realFailure)
+        [ConditionalTheory]
+        [MemberData(nameof(DataGenerator.GetBoolCombinations), 4, MemberType = typeof(DataGenerator))]
+        public async Task Retries_SaveChanges_on_execution_failure(
+            bool realFailure, bool externalStrategy, bool openConnection, bool async)
         {
             CleanContext();
 
@@ -268,21 +287,87 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
                 connection.ExecutionFailures.Enqueue(new bool?[] { null, realFailure });
 
-                context.Products.Add(new Product());
-                context.Products.Add(new Product());
-                new TestNpgsqlRetryingExecutionStrategy(context).ExecuteInTransaction(
-                    context,
-                    c => c.SaveChanges(acceptAllChangesOnSuccess: false),
-                    c =>
+                Assert.Equal(ConnectionState.Closed, context.Database.GetDbConnection().State);
+
+                if (openConnection)
+                {
+                    if (async)
                     {
-                        // This shouldn't be called if SaveChanges failed
-                        Assert.True(false);
-                        return false;
-                    });
-                context.ChangeTracker.AcceptAllChanges();
+                        await context.Database.OpenConnectionAsync();
+                    }
+                    else
+                    {
+                        context.Database.OpenConnection();
+                    }
+
+                    Assert.Equal(ConnectionState.Open, context.Database.GetDbConnection().State);
+                }
+
+                context.Products.Add(new Product());
+                context.Products.Add(new Product());
+
+                if (async)
+                {
+                    if (externalStrategy)
+                    {
+                        await new TestNpgsqlRetryingExecutionStrategy(context).ExecuteInTransactionAsync(
+                            context,
+                            (c, ct) => c.SaveChangesAsync(false, ct),
+                            (c, _) =>
+                            {
+                                Assert.True(false);
+                                return Task.FromResult(false);
+                            });
+
+                        context.ChangeTracker.AcceptAllChanges();
+                    }
+                    else
+                    {
+                        await context.SaveChangesAsync();
+                    }
+                }
+                else
+                {
+                    if (externalStrategy)
+                    {
+                        new TestNpgsqlRetryingExecutionStrategy(context).ExecuteInTransaction(
+                            context,
+                            c => c.SaveChanges(false),
+                            c =>
+                            {
+                                Assert.True(false);
+                                return false;
+                            });
+
+                        context.ChangeTracker.AcceptAllChanges();
+                    }
+                    else
+                    {
+                        context.SaveChanges();
+                    }
+                }
 
                 Assert.Equal(2, connection.OpenCount);
                 Assert.Equal(4, connection.ExecutionCount);
+
+                Assert.Equal(
+                    openConnection
+                        ? ConnectionState.Open
+                        : ConnectionState.Closed, context.Database.GetDbConnection().State);
+
+                if (openConnection)
+                {
+                    if (async)
+                    {
+                        context.Database.CloseConnection();
+                    }
+                    else
+                    {
+                        await context.Database.CloseConnectionAsync();
+                    }
+                }
+
+                Assert.Equal(ConnectionState.Closed, context.Database.GetDbConnection().State);
             }
 
             using (var context = CreateContext())
@@ -291,7 +376,215 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             }
         }
 
-        [Fact]
+        [ConditionalTheory]
+        [MemberData(nameof(DataGenerator.GetBoolCombinations), 2, MemberType = typeof(DataGenerator))]
+        public async Task Retries_query_on_execution_failure(bool externalStrategy, bool async)
+        {
+            CleanContext();
+
+            using (var context = CreateContext())
+            {
+                context.Products.Add(new Product());
+                context.Products.Add(new Product());
+
+                context.SaveChanges();
+            }
+
+            using (var context = CreateContext())
+            {
+                var connection = (TestNpgsqlConnection)context.GetService<INpgsqlRelationalConnection>();
+
+                connection.ExecutionFailures.Enqueue(new bool?[] { true });
+
+                Assert.Equal(ConnectionState.Closed, context.Database.GetDbConnection().State);
+
+                List<Product> list;
+                if (async)
+                {
+                    if (externalStrategy)
+                    {
+                        list = await new TestNpgsqlRetryingExecutionStrategy(context)
+                            .ExecuteAsync(context, (c, ct) => c.Products.ToListAsync(ct), null);
+                    }
+                    else
+                    {
+                        list = await context.Products.ToListAsync();
+                    }
+                }
+                else
+                {
+                    if (externalStrategy)
+                    {
+                        list = new TestNpgsqlRetryingExecutionStrategy(context)
+                            .Execute(context, c => c.Products.ToList(), null);
+                    }
+                    else
+                    {
+                        list = context.Products.ToList();
+                    }
+                }
+
+                Assert.Equal(2, list.Count);
+                Assert.Equal(1, connection.OpenCount);
+                Assert.Equal(2, connection.ExecutionCount);
+
+                Assert.Equal(ConnectionState.Closed, context.Database.GetDbConnection().State);
+            }
+        }
+
+        [ConditionalTheory]
+        [MemberData(nameof(DataGenerator.GetBoolCombinations), 2, MemberType = typeof(DataGenerator))]
+        public async Task Retries_FromSqlRaw_on_execution_failure(bool externalStrategy, bool async)
+        {
+            CleanContext();
+
+            using (var context = CreateContext())
+            {
+                context.Products.Add(new Product());
+                context.Products.Add(new Product());
+
+                context.SaveChanges();
+            }
+
+            using (var context = CreateContext())
+            {
+                var connection = (TestNpgsqlConnection)context.GetService<INpgsqlRelationalConnection>();
+
+                connection.ExecutionFailures.Enqueue(new bool?[] { true });
+
+                Assert.Equal(ConnectionState.Closed, context.Database.GetDbConnection().State);
+
+                List<Product> list;
+                if (async)
+                {
+                    if (externalStrategy)
+                    {
+                        list = await new TestNpgsqlRetryingExecutionStrategy(context)
+                            .ExecuteAsync(
+                                context, (c, ct) => c.Set<Product>().FromSqlRaw(
+                                    @"SELECT ""Id"", ""Name""
+                              FROM ""Products""").ToListAsync(ct), null);
+                    }
+                    else
+                    {
+                        list = await context.Set<Product>().FromSqlRaw(
+                            @"SELECT ""Id"", ""Name""
+                              FROM ""Products""").ToListAsync();
+                    }
+                }
+                else
+                {
+                    if (externalStrategy)
+                    {
+                        list = new TestNpgsqlRetryingExecutionStrategy(context)
+                            .Execute(
+                                context, c => c.Set<Product>().FromSqlRaw(
+                                    @"SELECT ""Id"", ""Name""
+                              FROM ""Products""").ToList(), null);
+                    }
+                    else
+                    {
+                        list = context.Set<Product>().FromSqlRaw(
+                            @"SELECT ""Id"", ""Name""
+                              FROM ""Products""").ToList();
+                    }
+                }
+
+                Assert.Equal(2, list.Count);
+                Assert.Equal(1, connection.OpenCount);
+                Assert.Equal(2, connection.ExecutionCount);
+
+                Assert.Equal(ConnectionState.Closed, context.Database.GetDbConnection().State);
+            }
+        }
+
+        [ConditionalTheory]
+        [MemberData(nameof(DataGenerator.GetBoolCombinations), 2, MemberType = typeof(DataGenerator))]
+        public async Task Retries_OpenConnection_on_execution_failure(bool externalStrategy, bool async)
+        {
+            using var context = CreateContext();
+            var connection = (TestNpgsqlConnection)context.GetService<INpgsqlRelationalConnection>();
+
+            connection.OpenFailures.Enqueue(new bool?[] { true });
+
+            Assert.Equal(ConnectionState.Closed, context.Database.GetDbConnection().State);
+
+            if (async)
+            {
+                if (externalStrategy)
+                {
+                    await new TestNpgsqlRetryingExecutionStrategy(context).ExecuteAsync(
+                        context,
+                        c => c.Database.OpenConnectionAsync());
+                }
+                else
+                {
+                    await context.Database.OpenConnectionAsync();
+                }
+            }
+            else
+            {
+                if (externalStrategy)
+                {
+                    new TestNpgsqlRetryingExecutionStrategy(context).Execute(
+                        context,
+                        c => c.Database.OpenConnection());
+                }
+                else
+                {
+                    context.Database.OpenConnection();
+                }
+            }
+
+            Assert.Equal(2, connection.OpenCount);
+
+            if (async)
+            {
+                context.Database.CloseConnection();
+            }
+            else
+            {
+                await context.Database.CloseConnectionAsync();
+            }
+
+            Assert.Equal(ConnectionState.Closed, context.Database.GetDbConnection().State);
+        }
+
+        [ConditionalTheory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public async Task Retries_BeginTransaction_on_execution_failure(bool async)
+        {
+            using var context = CreateContext();
+            var connection = (TestNpgsqlConnection)context.GetService<INpgsqlRelationalConnection>();
+
+            connection.OpenFailures.Enqueue(new bool?[] { true });
+
+            Assert.Equal(ConnectionState.Closed, context.Database.GetDbConnection().State);
+
+            if (async)
+            {
+                var transaction = await new TestNpgsqlRetryingExecutionStrategy(context).ExecuteAsync(
+                    context,
+                    c => context.Database.BeginTransactionAsync());
+
+                transaction.Dispose();
+            }
+            else
+            {
+                var transaction = new TestNpgsqlRetryingExecutionStrategy(context).Execute(
+                    context,
+                    c => context.Database.BeginTransaction());
+
+                transaction.Dispose();
+            }
+
+            Assert.Equal(2, connection.OpenCount);
+
+            Assert.Equal(ConnectionState.Closed, context.Database.GetDbConnection().State);
+        }
+
+        [ConditionalFact]
         public void Verification_is_retried_using_same_retry_limit()
         {
             CleanContext();
@@ -304,12 +597,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 connection.CommitFailures.Enqueue(new bool?[] { true, true, true, true });
 
                 context.Products.Add(new Product());
-                Assert.Throws<RetryLimitExceededException>(() =>
-                    new TestNpgsqlRetryingExecutionStrategy(context, TimeSpan.FromMilliseconds(100))
-                        .ExecuteInTransaction(
-                            context,
-                            c => c.SaveChanges(acceptAllChangesOnSuccess: false),
-                            c => false));
+                Assert.Throws<RetryLimitExceededException>(
+                    () =>
+                        new TestNpgsqlRetryingExecutionStrategy(context, TimeSpan.FromMilliseconds(100))
+                            .ExecuteInTransaction(
+                                context,
+                                c => c.SaveChanges(false),
+                                c => false));
                 context.ChangeTracker.AcceptAllChanges();
 
                 Assert.Equal(7, connection.OpenCount);
@@ -341,7 +635,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         protected virtual ExecutionStrategyContext CreateContext()
             => (ExecutionStrategyContext)Fixture.CreateContext();
 
-        void CleanContext()
+        private void CleanContext()
         {
             using var context = CreateContext();
             foreach (var product in context.Products.ToList())
@@ -353,8 +647,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
         public class ExecutionStrategyFixture : SharedStoreFixtureBase<DbContext>
         {
-            protected override string StoreName { get; } = nameof(ExecutionStrategyTest);
             protected override bool UsePooling => false;
+            protected override string StoreName { get; } = nameof(ExecutionStrategyTest);
             public new RelationalTestStore TestStore => (RelationalTestStore)base.TestStore;
             public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
             protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;

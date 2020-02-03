@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
-    public class TransactionNpgsqlTest : TransactionTestBase<TransactionNpgsqlTest.TransactionNpgsqlFixture>, IDisposable
+    public class TransactionNpgsqlTest : TransactionTestBase<TransactionNpgsqlTest.TransactionNpgsqlFixture>
     {
         public TransactionNpgsqlTest(TransactionNpgsqlFixture fixture)
             : base(fixture)
@@ -21,8 +21,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
         [Fact(Skip = "Npgsql batches the inserts, creating an implicit transaction which fails the test (see https://github.com/npgsql/npgsql/issues/1307)")]
         public override Task SaveChangesAsync_can_be_used_with_no_transaction() => null;
-
-        public void Dispose() => TestNpgsqlRetryingExecutionStrategy.Suspended = true;
 
         protected override DbContext CreateContextWithConnectionString()
         {

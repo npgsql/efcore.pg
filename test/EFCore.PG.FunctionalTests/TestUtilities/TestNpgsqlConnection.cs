@@ -52,7 +52,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
 
             if (fail.HasValue)
             {
-                throw new NpgsqlException();
+                throw new PostgresException("Simulated failure", "ERROR", "ERROR", ErrorCode);
             }
         }
     }
