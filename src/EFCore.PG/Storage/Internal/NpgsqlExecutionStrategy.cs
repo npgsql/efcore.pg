@@ -9,12 +9,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 {
     public class NpgsqlExecutionStrategy : IExecutionStrategy
     {
-        private ExecutionStrategyDependencies Dependencies { get; }
+        ExecutionStrategyDependencies Dependencies { get; }
 
         public NpgsqlExecutionStrategy([NotNull] ExecutionStrategyDependencies dependencies)
-        {
-            Dependencies = dependencies;
-        }
+            => Dependencies = dependencies;
 
         public virtual bool RetriesOnFailure => false;
 
@@ -27,14 +25,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             {
                 return operation(Dependencies.CurrentContext.Context, state);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ExecutionStrategy.CallOnWrappedException(ex, NpgsqlTransientExceptionDetector.ShouldRetryOn))
             {
-                if (ExecutionStrategy.CallOnWrappedException(ex, NpgsqlTransientExceptionDetector.ShouldRetryOn))
-                {
-                    throw new InvalidOperationException("An exception has been raised that is likely due to a transient failure.", ex);
-                }
-
-                throw;
+                throw new InvalidOperationException("An exception has been raised that is likely due to a transient failure.", ex);
             }
         }
 
@@ -48,14 +41,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             {
                 return await operation(Dependencies.CurrentContext.Context, state, cancellationToken);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ExecutionStrategy.CallOnWrappedException(ex, NpgsqlTransientExceptionDetector.ShouldRetryOn))
             {
-                if (ExecutionStrategy.CallOnWrappedException(ex, NpgsqlTransientExceptionDetector.ShouldRetryOn))
-                {
-                    throw new InvalidOperationException("An exception has been raised that is likely due to a transient failure.", ex);
-                }
-
-                throw;
+                throw new InvalidOperationException("An exception has been raised that is likely due to a transient failure.", ex);
             }
         }
     }

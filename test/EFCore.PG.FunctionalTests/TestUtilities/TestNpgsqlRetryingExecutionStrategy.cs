@@ -6,15 +6,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
 {
     public class TestNpgsqlRetryingExecutionStrategy : NpgsqlRetryingExecutionStrategy
     {
+        const bool ErrorNumberDebugMode = false;
+
         static readonly string[] AdditionalSqlStates =
         {
             "XX000"
         };
 
-        // ReSharper disable once UnusedMember.Global
         public TestNpgsqlRetryingExecutionStrategy()
             : base(
-                new DbContext(new DbContextOptionsBuilder().UseNpgsql(TestEnvironment.DefaultConnection).Options),
+                new DbContext(
+                    new DbContextOptionsBuilder()
+                        .EnableServiceProviderCaching(false)
+                        .UseNpgsql(TestEnvironment.DefaultConnection).Options),
                 DefaultMaxRetryCount, DefaultMaxDelay, AdditionalSqlStates)
         {
         }
@@ -42,27 +46,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
                 return true;
             }
 
-            if (exception is PostgresException postgresException)
+#pragma warning disable 162
+            if (ErrorNumberDebugMode &&
+                exception is PostgresException postgresException)
             {
                 var message = $"Didn't retry on {postgresException.SqlState}";
                 throw new InvalidOperationException(message, exception);
             }
+#pragma warning restore 162
 
-            return false;
+            return exception is InvalidOperationException invalidOperationException
+                   && invalidOperationException.Message == "Internal .Net Framework Data Provider error 6.";
         }
 
-        // ReSharper disable once UnusedMember.Global
         public new virtual TimeSpan? GetNextDelay(Exception lastException)
         {
             ExceptionsEncountered.Add(lastException);
             return base.GetNextDelay(lastException);
-        }
-
-        public new static bool Suspended
-        {
-            // ReSharper disable once UnusedMember.Global
-            get => ExecutionStrategy.Suspended;
-            set => ExecutionStrategy.Suspended = value;
         }
     }
 }

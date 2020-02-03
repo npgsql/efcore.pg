@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.DependencyInjection;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
 
@@ -66,6 +68,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             public class InterceptionNpgsqlFixture : InterceptionNpgsqlFixtureBase
             {
                 protected override bool ShouldSubscribeToDiagnosticListener => false;
+
+                public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
+                {
+                    new NpgsqlDbContextOptionsBuilder(base.AddOptions(builder))
+                        .ExecutionStrategy(d => new NpgsqlExecutionStrategy(d));
+                    return builder;
+                }
             }
         }
 
@@ -80,6 +89,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             public class InterceptionNpgsqlFixture : InterceptionNpgsqlFixtureBase
             {
                 protected override bool ShouldSubscribeToDiagnosticListener => true;
+
+                public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
+                {
+                    new NpgsqlDbContextOptionsBuilder(base.AddOptions(builder))
+                        .ExecutionStrategy(d => new NpgsqlExecutionStrategy(d));
+                    return builder;
+                }
             }
         }
     }

@@ -9,7 +9,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
     public class NpgsqlRetryingExecutionStrategy : ExecutionStrategy
     {
-        private readonly ICollection<string> _additionalErrorCodes;
+        readonly ICollection<string> _additionalErrorCodes;
 
         /// <summary>
         ///     Creates a new instance of <see cref="NpgsqlRetryingExecutionStrategy" />.
@@ -73,9 +73,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             : base(context,
                 maxRetryCount,
                 maxRetryDelay)
-        {
-            _additionalErrorCodes = errorCodesToAdd;
-        }
+            =>  _additionalErrorCodes = errorCodesToAdd;
 
         /// <summary>
         ///     Creates a new instance of <see cref="NpgsqlRetryingExecutionStrategy" />.
@@ -90,26 +88,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             TimeSpan maxRetryDelay,
             [CanBeNull] ICollection<string> errorCodesToAdd)
             : base(dependencies, maxRetryCount, maxRetryDelay)
-        {
-            _additionalErrorCodes = errorCodesToAdd;
-        }
+            => _additionalErrorCodes = errorCodesToAdd;
 
+        // TODO: Unlike SqlException, which seems to also wrap various transport/IO errors
+        // and expose them via error codes, we have NpgsqlException with an inner exception.
+        // Would be good to provide a way to add these into the additional list.
         protected override bool ShouldRetryOn(Exception exception)
-        {
-            if (_additionalErrorCodes != null)
-            {
-                // TODO: Unlike SqlException, which seems to also wrap various transport/IO errors
-                // and expose them via error codes, we have NpgsqlException with an inner exception.
-                // Would be good to provide a way to add these into the additional list.
-                var postgresException = exception as PostgresException;
-                if (postgresException != null)
-                {
-                    if (_additionalErrorCodes.Contains(postgresException.SqlState))
-                        return true;
-                }
-            }
-
-            return NpgsqlTransientExceptionDetector.ShouldRetryOn(exception);
-        }
+            => exception is PostgresException postgresException &&
+               _additionalErrorCodes?.Contains(postgresException.SqlState) == true
+               || NpgsqlTransientExceptionDetector.ShouldRetryOn(exception);
     }
 }

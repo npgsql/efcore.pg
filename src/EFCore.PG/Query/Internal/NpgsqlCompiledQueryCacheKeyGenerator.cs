@@ -34,8 +34,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 
             public override bool Equals(object obj)
                 => !(obj is null)
-                   && obj is NpgsqlCompiledQueryCacheKey
-                   && Equals((NpgsqlCompiledQueryCacheKey)obj);
+                   && obj is NpgsqlCompiledQueryCacheKey key
+                   && Equals(key);
 
             bool Equals(NpgsqlCompiledQueryCacheKey other)
                 => _relationalCompiledQueryCacheKey.Equals(other._relationalCompiledQueryCacheKey)
