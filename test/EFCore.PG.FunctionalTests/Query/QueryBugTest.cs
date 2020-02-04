@@ -1,10 +1,12 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Xunit;
 using Xunit.Abstractions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+// ReSharper disable UnusedAutoPropertyAccessor.Local
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
@@ -18,7 +20,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
-        // ReSharper disable once MemberCanBePrivate.Global
         protected NpgsqlFixture Fixture { get; }
 
         #region Bug278
@@ -46,13 +47,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                     ClearLog();
                 });
 
-        // ReSharper disable once MemberCanBePrivate.Global
         public enum ChannelCode { Code = 1 }
 
-        // ReSharper disable once MemberCanBePrivate.Global
         public class Bug278Entity
         {
-            // ReSharper disable once UnusedMember.Global
             public int Id { get; set; }
             public int[] ChannelCodes { get; set; }
         }
@@ -60,11 +58,41 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         class Bug278Context : DbContext
         {
             public Bug278Context(DbContextOptions options) : base(options) {}
-            // ReSharper disable once UnusedAutoPropertyAccessor.Local
             public DbSet<Bug278Entity> Entities { get; set; }
         }
 
         #endregion Bug278
+
+        #region Bug920
+
+        [Fact]
+        public void Bug920()
+        {
+            using var _ = CreateDatabase920();
+            using var context = new Bug920Context(_options);
+            context.Entities.Add(new Bug920Entity { Enum = Bug920Enum.Two });
+            context.SaveChanges();
+        }
+
+        NpgsqlTestStore CreateDatabase920()
+            => CreateTestStore(() => new Bug920Context(_options), context => ClearLog());
+
+        public enum Bug920Enum { One, Two }
+
+        public class Bug920Entity
+        {
+            public int Id { get; set; }
+            [Column(TypeName="char(3)")]
+            public Bug920Enum Enum { get; set; }
+        }
+
+        class Bug920Context : DbContext
+        {
+            public Bug920Context(DbContextOptions options) : base(options) {}
+            public DbSet<Bug920Entity> Entities { get; set; }
+        }
+
+        #endregion Bug920
 
         DbContextOptions _options;
 

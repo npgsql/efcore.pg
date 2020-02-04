@@ -20,19 +20,24 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         /// Static <see cref="ValueComparer{T}"/> for fixed-width character types.
         /// </summary>
         /// <remarks>
-        /// Comparisons of 'character' data as defined in the SQL standard
-        /// differ dramatically from CLR string comparisons. This value comparer
-        /// adjusts for this by only comparing strings after truncating trailing
+        /// <p>
+        /// Comparisons of 'character' data as defined in the SQL standard differ dramatically from CLR string
+        /// comparisons. This value comparer adjusts for this by only comparing strings after truncating trailing
         /// whitespace.
+        /// </p>
+        /// <p>
+        /// Note that if a value converter is used and the CLR type isn't a string at all, we just use the default
+        /// value converter instead.
+        /// </p>
         /// </remarks>
         [NotNull] static readonly ValueComparer<string> CharacterValueComparer =
             new ValueComparer<string>(
                 (x, y) => EqualsWithoutTrailingWhitespace(x, y),
                 x => GetHashCodeWithoutTrailingWhitespace(x));
 
-        public override ValueComparer Comparer => CharacterValueComparer;
+        public override ValueComparer Comparer => ClrType == typeof(string) ? CharacterValueComparer : base.Comparer;
 
-        public override ValueComparer KeyComparer => CharacterValueComparer;
+        public override ValueComparer KeyComparer => Comparer;
 
         public NpgsqlCharacterTypeMapping([NotNull] string storeType, int? size = null)
             : this(new RelationalTypeMappingParameters(
@@ -40,9 +45,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 storeType,
                 size == null ? StoreTypePostfix.None : StoreTypePostfix.Size,
                 System.Data.DbType.StringFixedLength,
-                false,
+                unicode: false,
                 size,
-                true)) {}
+                fixedLength: true)) {}
 
         protected NpgsqlCharacterTypeMapping(RelationalTypeMappingParameters parameters) : base(parameters) {}
 
