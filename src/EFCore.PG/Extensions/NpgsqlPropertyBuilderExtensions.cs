@@ -640,6 +640,7 @@ namespace Microsoft.EntityFrameworkCore
             Check.NotNull(propertyBuilder, nameof(propertyBuilder));
             Check.NotEmpty(includedPropertyNames, nameof(includedPropertyNames));
 
+            propertyBuilder.HasColumnType("tsvector");
             propertyBuilder.Metadata.SetGeneratedTsVectorConfig(config);
             propertyBuilder.Metadata.SetGeneratedTsVectorProperties(includedPropertyNames);
 
@@ -694,6 +695,7 @@ namespace Microsoft.EntityFrameworkCore
         {
             if (propertyBuilder.CanSetIsGeneratedTsVector(config, includedPropertyNames, fromDataAnnotation))
             {
+                propertyBuilder.HasColumnType("tsvector");
                 propertyBuilder.Metadata.SetGeneratedTsVectorConfig(config, fromDataAnnotation);
                 propertyBuilder.Metadata.SetGeneratedTsVectorProperties(includedPropertyNames, fromDataAnnotation);
 

@@ -10,6 +10,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+using NpgsqlTypes;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -776,7 +777,7 @@ COMMENT ON COLUMN ""People"".""FullName"" IS 'My comment';");
                         e.Property<string>("Description");
                     }),
                 builder => { },
-                builder => builder.Entity("People").Property<string>("TsVector")
+                builder => builder.Entity("People").Property<NpgsqlTsVector>("TsVector")
                     .IsGeneratedTsVector("english", "Title", "Description"),
                 model =>
                 {

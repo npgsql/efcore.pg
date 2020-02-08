@@ -1169,16 +1169,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
                 var stringTypeMapping = Dependencies.TypeMappingSource.GetMapping(typeof(string));
 
-                var sb = new StringBuilder()
+                operation.ComputedColumnSql = new StringBuilder()
                     .Append("to_tsvector(")
                     .Append(stringTypeMapping.GenerateSqlLiteral(tsVectorConfig))
                     .Append(", ")
                     .Append(string.Join(" || ' ' || ", tsVectorIncludedColumns.Select(GetTsVectorColumnExpression)))
                     .Append(")")
                     .ToString();
-
-                operation.ColumnType = "tsvector";
-                operation.ComputedColumnSql = sb;
 
                 string GetTsVectorColumnExpression(string includedColumn)
                 {
