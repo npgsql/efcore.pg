@@ -1,4 +1,5 @@
-﻿using System;
+﻿using System.Collections;
+using System.Collections.Generic;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -611,5 +612,131 @@ namespace Microsoft.EntityFrameworkCore
         }
 
         #endregion Identity options
+
+        #region Generated tsvector column
+
+        // Note: tsvector properties can be configured with a generic API through the entity type builder
+
+        /// <summary>
+        /// Configures the property to be a full-text search tsvector column over the given properties.
+        /// </summary>
+        /// <param name="propertyBuilder">The builder for the property being configured.</param>
+        /// <param name="config">
+        /// <para>
+        /// The text search configuration for this generated tsvector property, or <c>null</c> if this is not a
+        /// generated tsvector property.
+        /// </para>
+        /// <para>
+        /// See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
+        /// </para>
+        /// </param>
+        /// <param name="includedPropertyNames">An array of property names to be included in the tsvector.</param>
+        /// <returns>A builder to further configure the property.</returns>
+        public static PropertyBuilder IsGeneratedTsVector(
+            [NotNull] this PropertyBuilder propertyBuilder,
+            [NotNull] string config,
+            [NotNull] params string[] includedPropertyNames)
+        {
+            Check.NotNull(propertyBuilder, nameof(propertyBuilder));
+            Check.NotEmpty(includedPropertyNames, nameof(includedPropertyNames));
+
+            propertyBuilder.Metadata.SetGeneratedTsVectorConfig(config);
+            propertyBuilder.Metadata.SetGeneratedTsVectorProperties(includedPropertyNames);
+
+            return propertyBuilder;
+        }
+
+        /// <summary>
+        /// Configures the property to be a full-text search tsvector column over the given properties.
+        /// </summary>
+        /// <param name="propertyBuilder">The builder for the property being configured.</param>
+        /// <param name="config">
+        /// <para>
+        /// The text search configuration for this generated tsvector property, or <c>null</c> if this is not a
+        /// generated tsvector property.
+        /// </para>
+        /// <para>
+        /// See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
+        /// </para>
+        /// </param>
+        /// <param name="includedPropertyNames">An array of property names to be included in the tsvector.</param>
+        /// <returns>A builder to further configure the property.</returns>
+        public static PropertyBuilder<TProperty> IsGeneratedTsVector<TProperty>(
+            [NotNull] this PropertyBuilder<TProperty> propertyBuilder,
+            [NotNull] string config,
+            [NotNull] params string[] includedPropertyNames)
+            => (PropertyBuilder<TProperty>)IsGeneratedTsVector((PropertyBuilder)propertyBuilder, config, includedPropertyNames);
+
+        /// <summary>
+        /// Configures the property to be a full-text search tsvector column over the given properties.
+        /// </summary>
+        /// <param name="propertyBuilder">The builder for the property being configured.</param>
+        /// <param name="config">
+        /// <para>
+        /// The text search configuration for this generated tsvector property, or <c>null</c> if this is not a
+        /// generated tsvector property.
+        /// </para>
+        /// <para>
+        /// See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
+        /// </para>
+        /// </param>
+        /// <param name="includedPropertyNames">An array of property names to be included in the tsvector.</param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        /// <returns>
+        /// The same builder instance if the configuration was applied,
+        /// <c>null</c> otherwise.
+        /// </returns>
+        public static IConventionPropertyBuilder IsGeneratedTsVector(
+            [NotNull] this IConventionPropertyBuilder propertyBuilder,
+            [NotNull] string config,
+            [NotNull] IReadOnlyList<string> includedPropertyNames,
+            bool fromDataAnnotation = false)
+        {
+            if (propertyBuilder.CanSetIsGeneratedTsVector(config, includedPropertyNames, fromDataAnnotation))
+            {
+                propertyBuilder.Metadata.SetGeneratedTsVectorConfig(config, fromDataAnnotation);
+                propertyBuilder.Metadata.SetGeneratedTsVectorProperties(includedPropertyNames, fromDataAnnotation);
+
+                return propertyBuilder;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Returns a value indicating whether the property can be configured as a full-text search tsvector column.
+        /// </summary>
+        /// <param name="propertyBuilder">The builder for the property being configured.</param>
+        /// <param name="config">
+        /// <para>
+        /// The text search configuration for this generated tsvector property, or <c>null</c> if this is not a
+        /// generated tsvector property.
+        /// </para>
+        /// <para>
+        /// See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
+        /// </para>
+        /// </param>
+        /// <param name="includedPropertyNames">An array of property names to be included in the tsvector.</param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        /// <returns><c>true</c> if the property can be configured as a full-text search tsvector column.</returns>
+        public static bool CanSetIsGeneratedTsVector(
+            [NotNull] this IConventionPropertyBuilder propertyBuilder,
+            [NotNull] string config,
+            [CanBeNull] IReadOnlyList<string> includedPropertyNames,
+            bool fromDataAnnotation = false)
+        {
+            Check.NotNull(propertyBuilder, nameof(propertyBuilder));
+
+            return (fromDataAnnotation ? ConfigurationSource.DataAnnotation : ConfigurationSource.Convention)
+                   .Overrides(propertyBuilder.Metadata.GetGeneratedTsVectorConfigConfigurationSource()) &&
+                   (fromDataAnnotation ? ConfigurationSource.DataAnnotation : ConfigurationSource.Convention)
+                   .Overrides(propertyBuilder.Metadata.GetGeneratedTsVectorPropertiesConfigurationSource())
+                   ||
+                   config == propertyBuilder.Metadata.GetGeneratedTsVectorConfig() &&
+                   StructuralComparisons.StructuralEqualityComparer.Equals(
+                       includedPropertyNames, propertyBuilder.Metadata.GetGeneratedTsVectorProperties());
+        }
+
+        #endregion Generated tsvector column
     }
 }

@@ -24,6 +24,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
         public const string StorageParameterPrefix = Prefix + "StorageParameter:";
         public const string UnloggedTable = Prefix + "UnloggedTable";
         public const string IdentityOptions = Prefix + "IdentitySequenceOptions";
+        public const string GeneratedTsVectorProperties = Prefix + "GeneratedTsVectorProperties";
+        public const string GeneratedTsVectorConfig = Prefix + "GeneratedTsVectorConfig";
 
         // Database model annotations
 

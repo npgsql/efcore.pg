@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
@@ -47,6 +51,59 @@ namespace Microsoft.EntityFrameworkCore
             => (EntityTypeBuilder<TEntity>)UseXminAsConcurrencyToken((EntityTypeBuilder)entityTypeBuilder);
 
         #endregion xmin
+
+        #region Generated tsvector column
+
+        // Note: actual configuration for generated TsVector properties is on the property
+
+        /// <summary>
+        /// Configures a property on this entity to be a full-text search tsvector column over other given properties.
+        /// </summary>
+        /// <param name="entityTypeBuilder">The builder for the entity being configured.</param>
+        /// <param name="tsVectorPropertyExpression">
+        /// A lambda expression representing the property to be configured as a tsvector column
+        /// (<c>blog => blog.Url</c>).
+        /// </param>
+        /// <param name="config">
+        /// <para>
+        /// The text search configuration for this generated tsvector property, or <c>null</c> if this is not a
+        /// generated tsvector property.
+        /// </para>
+        /// <para>
+        /// See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
+        /// </para>
+        /// </param>
+        /// <param name="includeExpression">
+        /// <para>
+        /// A lambda expression representing the property(s) to be included in the tsvector column
+        /// (<c>blog => blog.Url</c>).
+        /// </para>
+        /// <para>
+        /// If multiple properties are to be included then specify an anonymous type including the
+        /// properties (<c>post => new { post.Title, post.BlogId }</c>).
+        /// </para>
+        /// </param>
+        /// <returns>A builder to further configure the property.</returns>
+        public static EntityTypeBuilder<TEntity> HasGeneratedTsVectorProperty<TEntity, TProperty>(
+            [NotNull] this EntityTypeBuilder<TEntity> entityTypeBuilder,
+            [NotNull] Expression<Func<TEntity, TProperty>> tsVectorPropertyExpression,
+            [NotNull] string config,
+            [NotNull] Expression<Func<TEntity, object>> includeExpression)
+            where TEntity : class
+        {
+            Check.NotNull(entityTypeBuilder, nameof(entityTypeBuilder));
+            Check.NotNull(tsVectorPropertyExpression, nameof(tsVectorPropertyExpression));
+            Check.NotNull(config, nameof(config));
+            Check.NotNull(includeExpression, nameof(includeExpression));
+
+            entityTypeBuilder.Property(tsVectorPropertyExpression).IsGeneratedTsVector(
+                config,
+                includeExpression.GetPropertyAccessList().Select(MemberInfoExtensions.GetSimpleMemberName).ToArray());
+
+            return entityTypeBuilder;
+        }
+
+        #endregion Generated tsvector column
 
         #region Storage parameters
 

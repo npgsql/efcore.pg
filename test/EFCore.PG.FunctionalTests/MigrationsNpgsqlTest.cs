@@ -759,6 +759,37 @@ COMMENT ON COLUMN ""People"".""FullName"" IS 'My comment';");
                 @"ALTER TABLE ""People"" ADD ""Name"" text NULL;");
         }
 
+        [Fact]
+        public virtual async Task Add_column_generated_tsvector()
+        {
+            if (TestEnvironment.PostgresVersion.IsUnder(12))
+            {
+                await Assert.ThrowsAsync<NotSupportedException>(() => base.Add_column_with_computedSql());
+                return;
+            }
+
+            await Test(
+                builder => builder.Entity(
+                    "People", e =>
+                    {
+                        e.Property<string>("Title").IsRequired();
+                        e.Property<string>("Description");
+                    }),
+                builder => { },
+                builder => builder.Entity("People").Property<string>("TsVector")
+                    .IsGeneratedTsVector("english", "Title", "Description"),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    var column = Assert.Single(table.Columns, c => c.Name == "TsVector");
+                    Assert.Equal("tsvector", column.StoreType);
+                    Assert.Equal(@"to_tsvector('english'::regconfig, ((""Title"" || ' '::text) || COALESCE(""Description"", ''::text)))", column.ComputedColumnSql);
+                });
+
+            AssertSql(
+                @"ALTER TABLE ""People"" ADD ""TsVector"" tsvector GENERATED ALWAYS AS (to_tsvector('english', ""Title"" || ' ' || coalesce(""Description"", ''))) STORED;");
+        }
+
         public override async Task Alter_column_change_type()
         {
             await base.Alter_column_change_type();

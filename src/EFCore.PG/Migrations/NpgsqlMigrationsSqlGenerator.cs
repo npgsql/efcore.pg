@@ -1159,6 +1159,37 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 }
             }
 
+            if (operation[NpgsqlAnnotationNames.GeneratedTsVectorConfig] is string tsVectorConfig)
+            {
+                var tsVectorIncludedColumns = operation[NpgsqlAnnotationNames.GeneratedTsVectorProperties] as string[];
+                if (tsVectorIncludedColumns == null)
+                    throw new InvalidOperationException(
+                        $"{nameof(NpgsqlAnnotationNames.GeneratedTsVectorConfig)} is present in a migration but " +
+                        $"{nameof(NpgsqlAnnotationNames.GeneratedTsVectorProperties)} is absent or empty");
+
+                var stringTypeMapping = Dependencies.TypeMappingSource.GetMapping(typeof(string));
+
+                var sb = new StringBuilder()
+                    .Append("to_tsvector(")
+                    .Append(stringTypeMapping.GenerateSqlLiteral(tsVectorConfig))
+                    .Append(", ")
+                    .Append(string.Join(" || ' ' || ", tsVectorIncludedColumns.Select(GetTsVectorColumnExpression)))
+                    .Append(")")
+                    .ToString();
+
+                operation.ColumnType = "tsvector";
+                operation.ComputedColumnSql = sb;
+
+                string GetTsVectorColumnExpression(string includedColumn)
+                {
+                    var delimitedColumnName = Dependencies.SqlGenerationHelper.DelimitIdentifier(includedColumn);
+                    var property = FindProperty(model, schema, table, includedColumn);
+                    return property?.IsColumnNullable() == true
+                        ? $"coalesce({delimitedColumnName}, '')"
+                        : delimitedColumnName;
+                }
+            }
+
             base.ColumnDefinition(
                 schema,
                 table,
