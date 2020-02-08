@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Net;
@@ -237,7 +237,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
 
         [Fact]
         public void GenerateSqlLiteral_returns_varbit_literal()
-            => Assert.Equal("VARBIT B'10'", GetMapping("varbit").GenerateSqlLiteral(new BitArray(new[] { true, false })));
+            => Assert.Equal("B'10'", GetMapping("varbit").GenerateSqlLiteral(new BitArray(new[] { true, false })));
 
         [Fact]
         public void GenerateCodeLiteral_returns_varbit_literal()
@@ -245,7 +245,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
 
         [Fact]
         public void GenerateSqlLiteral_returns_bit_literal()
-            => Assert.Equal("BIT B'10'", GetMapping("bit").GenerateSqlLiteral(new BitArray(new[] { true, false })));
+            => Assert.Equal("B'10'", GetMapping("bit").GenerateSqlLiteral(new BitArray(new[] { true, false })));
 
         [Fact]
         public void GenerateCodeLiteral_returns_bit_literal()
