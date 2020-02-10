@@ -45,6 +45,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal
                     }
                 }
             }
+
+            if (property.GetGeneratedTsVectorConfig() is string tsVectorConfig)
+                yield return new Annotation(NpgsqlAnnotationNames.GeneratedTsVectorConfig, tsVectorConfig);
+
+            if (property.GetGeneratedTsVectorProperties() is IReadOnlyList<string> tsVectorProperties)
+            {
+                yield return new Annotation(
+                    NpgsqlAnnotationNames.GeneratedTsVectorProperties,
+                    tsVectorProperties
+                        .Select(p => property.DeclaringEntityType.FindProperty(p).GetColumnName())
+                        .ToArray());
+            }
         }
 
         public override IEnumerable<IAnnotation> For(IIndex index)
@@ -61,13 +73,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal
                 yield return new Annotation(NpgsqlAnnotationNames.IndexNullSortOrder, nullSortOrder);
             if (index.GetIncludeProperties() is IReadOnlyList<string> includeProperties)
             {
-                var includeColumns = includeProperties
-                    .Select(p => index.DeclaringEntityType.FindProperty(p).GetColumnName())
-                    .ToArray();
-
                 yield return new Annotation(
                     NpgsqlAnnotationNames.IndexInclude,
-                    includeColumns);
+                    includeProperties
+                        .Select(p => index.DeclaringEntityType.FindProperty(p).GetColumnName())
+                        .ToArray());
             }
 
             var isCreatedConcurrently = index.IsCreatedConcurrently();

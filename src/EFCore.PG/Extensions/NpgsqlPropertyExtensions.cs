@@ -1,8 +1,6 @@
 using System;
-using System.Globalization;
-using System.Text;
+using System.Collections.Generic;
 using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -477,5 +475,120 @@ namespace Microsoft.EntityFrameworkCore
             => property.RemoveAnnotation(NpgsqlAnnotationNames.IdentityOptions);
 
         #endregion Identity sequence options
+
+        #region Generated tsvector column
+
+        /// <summary>
+        /// Returns the text search configuration for this generated tsvector property, or <c>null</c> if this is not a
+        /// generated tsvector property.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <returns>
+        /// <para>
+        /// The text search configuration for this generated tsvector property, or <c>null</c> if this is not a
+        /// generated tsvector property.
+        /// </para>
+        /// <para>
+        /// See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
+        /// </para>
+        /// </returns>
+        public static string GetGeneratedTsVectorConfig([NotNull] this IProperty property)
+            => (string)property[NpgsqlAnnotationNames.GeneratedTsVectorConfig];
+
+        /// <summary>
+        /// Sets the text search configuration for this generated tsvector property, or <c>null</c> if this is not a
+        /// generated tsvector property.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <param name="config">
+        /// <para>
+        /// The text search configuration for this generated tsvector property, or <c>null</c> if this is not a
+        /// generated tsvector property.
+        /// </para>
+        /// <para>
+        /// See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
+        /// </para>
+        /// </param>
+        public static void SetGeneratedTsVectorConfig([NotNull] this IMutableProperty property, [CanBeNull] string config)
+            => property.SetOrRemoveAnnotation(NpgsqlAnnotationNames.GeneratedTsVectorConfig, config);
+
+        /// <summary>
+        /// Returns the text search configuration for this generated tsvector property, or <c>null</c> if this is not a
+        /// generated tsvector property.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        /// <param name="config">
+        /// <para>
+        /// The text search configuration for this generated tsvector property, or <c>null</c> if this is not a
+        /// generated tsvector property.
+        /// </para>
+        /// <para>
+        /// See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
+        /// </para>
+        /// </param>
+        public static void SetGeneratedTsVectorConfig(
+            [NotNull] this IConventionProperty property, [NotNull] string config, bool fromDataAnnotation = false)
+            => property.SetOrRemoveAnnotation(
+                NpgsqlAnnotationNames.GeneratedTsVectorConfig,
+                config,
+                fromDataAnnotation);
+
+        /// <summary>
+        /// Returns the <see cref="ConfigurationSource" /> for the text search configuration for the generated tsvector
+        /// property.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <returns>The configuration source for the text search configuration for the generated tsvector property.</returns>
+        public static ConfigurationSource? GetGeneratedTsVectorConfigConfigurationSource([NotNull] this IConventionProperty property)
+            => property.FindAnnotation(NpgsqlAnnotationNames.GeneratedTsVectorConfig)?.GetConfigurationSource();
+
+        /// <summary>
+        /// Returns the properties included in this generated tsvector property, or <c>null</c> if this is not a
+        /// generated tsvector property.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <returns>The included property names, or <c>null</c> if this is not a Generated tsvector column.</returns>
+        public static IReadOnlyList<string> GetGeneratedTsVectorProperties([NotNull] this IProperty property)
+            => (string[])property[NpgsqlAnnotationNames.GeneratedTsVectorProperties];
+
+        /// <summary>
+        /// Sets the properties included in this generated tsvector property, or <c>null</c> to make this a regular,
+        /// non-generated property.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <param name="properties">The included property names.</param>
+        public static void SetGeneratedTsVectorProperties(
+            [NotNull] this IMutableProperty property,
+            [CanBeNull] IReadOnlyList<string> properties)
+            => property.SetOrRemoveAnnotation(
+                NpgsqlAnnotationNames.GeneratedTsVectorProperties,
+                properties);
+
+        /// <summary>
+        /// Sets properties included in this generated tsvector property, or <c>null</c> to make this a regular,
+        /// non-generated property.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        /// <param name="properties">The included property names.</param>
+        public static void SetGeneratedTsVectorProperties(
+            [NotNull] this IConventionProperty property,
+            [CanBeNull] IReadOnlyList<string> properties,
+            bool fromDataAnnotation = false)
+            => property.SetOrRemoveAnnotation(
+                NpgsqlAnnotationNames.GeneratedTsVectorProperties,
+                properties,
+                fromDataAnnotation);
+
+        /// <summary>
+        /// Returns the <see cref="ConfigurationSource" /> for the properties included in the generated tsvector property.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <returns>The configuration source for the properties included in the generated tsvector property.</returns>
+        public static ConfigurationSource? GetGeneratedTsVectorPropertiesConfigurationSource([NotNull] this IConventionProperty property)
+            => property.FindAnnotation(NpgsqlAnnotationNames.GeneratedTsVectorConfig)?.GetConfigurationSource();
+
+        #endregion Generated tsvector column
     }
 }
