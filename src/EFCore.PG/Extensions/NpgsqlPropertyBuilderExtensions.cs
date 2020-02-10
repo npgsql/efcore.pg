@@ -638,6 +638,7 @@ namespace Microsoft.EntityFrameworkCore
             [NotNull] params string[] includedPropertyNames)
         {
             Check.NotNull(propertyBuilder, nameof(propertyBuilder));
+            Check.NotNull(config, nameof(config));
             Check.NotEmpty(includedPropertyNames, nameof(includedPropertyNames));
 
             propertyBuilder.HasColumnType("tsvector");
@@ -689,10 +690,12 @@ namespace Microsoft.EntityFrameworkCore
         /// </returns>
         public static IConventionPropertyBuilder IsGeneratedTsVector(
             [NotNull] this IConventionPropertyBuilder propertyBuilder,
-            [NotNull] string config,
-            [NotNull] IReadOnlyList<string> includedPropertyNames,
+            [CanBeNull] string config,
+            [CanBeNull] IReadOnlyList<string> includedPropertyNames,
             bool fromDataAnnotation = false)
         {
+            Check.NotNull(propertyBuilder, nameof(propertyBuilder));
+
             if (propertyBuilder.CanSetIsGeneratedTsVector(config, includedPropertyNames, fromDataAnnotation))
             {
                 propertyBuilder.HasColumnType("tsvector");
@@ -723,7 +726,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns><c>true</c> if the property can be configured as a full-text search tsvector column.</returns>
         public static bool CanSetIsGeneratedTsVector(
             [NotNull] this IConventionPropertyBuilder propertyBuilder,
-            [NotNull] string config,
+            [CanBeNull] string config,
             [CanBeNull] IReadOnlyList<string> includedPropertyNames,
             bool fromDataAnnotation = false)
         {

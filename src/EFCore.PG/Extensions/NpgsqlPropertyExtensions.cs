@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Text;
 using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -481,7 +478,7 @@ namespace Microsoft.EntityFrameworkCore
 
         #region Generated tsvector column
 
-                /// <summary>
+        /// <summary>
         /// Returns the text search configuration for this generated tsvector property, or <c>null</c> if this is not a
         /// generated tsvector property.
         /// </summary>
@@ -512,7 +509,7 @@ namespace Microsoft.EntityFrameworkCore
         /// See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
         /// </para>
         /// </param>
-        public static void SetGeneratedTsVectorConfig([NotNull] this IMutableProperty property, [NotNull] string config)
+        public static void SetGeneratedTsVectorConfig([NotNull] this IMutableProperty property, [CanBeNull] string config)
             => property.SetOrRemoveAnnotation(NpgsqlAnnotationNames.GeneratedTsVectorConfig, config);
 
         /// <summary>
@@ -561,7 +558,9 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="property">The property.</param>
         /// <param name="properties">The included property names.</param>
-        public static void SetGeneratedTsVectorProperties([NotNull] this IMutableProperty property, [NotNull] IReadOnlyList<string> properties)
+        public static void SetGeneratedTsVectorProperties(
+            [NotNull] this IMutableProperty property,
+            [CanBeNull] IReadOnlyList<string> properties)
             => property.SetOrRemoveAnnotation(
                 NpgsqlAnnotationNames.GeneratedTsVectorProperties,
                 properties);
@@ -574,7 +573,9 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <param name="properties">The included property names.</param>
         public static void SetGeneratedTsVectorProperties(
-            [NotNull] this IConventionProperty property, [NotNull] IReadOnlyList<string> properties, bool fromDataAnnotation = false)
+            [NotNull] this IConventionProperty property,
+            [CanBeNull] IReadOnlyList<string> properties,
+            bool fromDataAnnotation = false)
             => property.SetOrRemoveAnnotation(
                 NpgsqlAnnotationNames.GeneratedTsVectorProperties,
                 properties,
