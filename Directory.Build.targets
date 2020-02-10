@@ -1,18 +1,24 @@
 ﻿<Project>
+  <PropertyGroup>
+    <EFCoreVersion>5.0.0-preview.1.20107.7</EFCoreVersion>
+    <MicrosoftExtensionsVersion>3.1.1</MicrosoftExtensionsVersion>
+    <NpgsqlVersion>4.1.3</NpgsqlVersion>
+  </PropertyGroup>
+
   <ItemGroup>
-    <PackageReference Update="Microsoft.EntityFrameworkCore" Version="5.0.0-alpha.1.20076.2" />
-    <PackageReference Update="Microsoft.EntityFrameworkCore.Relational" Version="5.0.0-alpha.1.20076.2" />
-    <PackageReference Update="Microsoft.EntityFrameworkCore.Abstractions" Version="5.0.0-alpha.1.20076.2" />
-    <PackageReference Update="Microsoft.EntityFrameworkCore.Relational.Specification.Tests" Version="5.0.0-alpha.1.20076.2" />
-    <PackageReference Update="Microsoft.EntityFrameworkCore.Design" Version="5.0.0-alpha.1.20076.2" />
+    <PackageReference Update="Microsoft.EntityFrameworkCore" Version="$(EFCoreVersion)" />
+    <PackageReference Update="Microsoft.EntityFrameworkCore.Relational" Version="$(EFCoreVersion)" />
+    <PackageReference Update="Microsoft.EntityFrameworkCore.Abstractions" Version="$(EFCoreVersion)" />
+    <PackageReference Update="Microsoft.EntityFrameworkCore.Relational.Specification.Tests" Version="$(EFCoreVersion)" />
+    <PackageReference Update="Microsoft.EntityFrameworkCore.Design" Version="$(EFCoreVersion)" />
 
-    <PackageReference Update="Microsoft.Extensions.Configuration.Json" Version="3.1.1" />
-    <PackageReference Update="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="3.1.1" />
-    <PackageReference Update="Microsoft.Extensions.Logging" Version="3.1.1" />
+    <PackageReference Update="Microsoft.Extensions.Configuration.Json" Version="$(MicrosoftExtensionsVersion)" />
+    <PackageReference Update="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="$(MicrosoftExtensionsVersion)" />
+    <PackageReference Update="Microsoft.Extensions.Logging" Version="$(MicrosoftExtensionsVersion)" />
 
-    <PackageReference Update="Npgsql" Version="4.1.3" />
-    <PackageReference Update="Npgsql.NodaTime" Version="4.1.3" />
-    <PackageReference Update="Npgsql.NetTopologySuite" Version="4.1.3" />
+    <PackageReference Update="Npgsql" Version="$(NpgsqlVersion)" />
+    <PackageReference Update="Npgsql.NodaTime" Version="$(NpgsqlVersion)" />
+    <PackageReference Update="Npgsql.NetTopologySuite" Version="$(NpgsqlVersion)" />
 
     <PackageReference Update="Microsoft.SourceLink.GitHub" Version="1.0.0" />
     <PackageReference Update="Microsoft.NET.Test.Sdk" Version="16.4.0" />

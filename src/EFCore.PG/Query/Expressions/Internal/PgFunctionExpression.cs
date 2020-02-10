@@ -71,7 +71,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
             [CanBeNull] RelationalTypeMapping typeMapping)
         : base(
             instance: null, schema: null, name, niladic: false, arguments,
-            nullResultAllowed: true, instancPropagatesNullability: null, argumentsPropagateNullability: arguments.Select(a => false),
+            nullResultAllowed: true, instancePropagatesNullability: null, argumentsPropagateNullability: arguments.Select(a => false),
             builtIn, type, typeMapping)
         {
             Check.NotEmpty(name, nameof(name));
