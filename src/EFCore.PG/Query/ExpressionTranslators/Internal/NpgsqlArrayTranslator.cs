@@ -134,7 +134,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
         public SqlExpression Translate(SqlExpression instance, MemberInfo member, Type returnType)
         {
-            if (instance != null && instance.Type.IsGenericList() && member.Name == nameof(List<object>.Count))
+            if (instance?.Type.IsGenericList() == true &&
+                member.Name == nameof(List<object>.Count) &&
+                (instance.TypeMapping is NpgsqlArrayTypeMapping || instance.TypeMapping is null))
             {
                 return _jsonPocoTranslator.TranslateArrayLength(instance) ??
                        _sqlExpressionFactory.Function("cardinality", new[] { instance }, typeof(int?));

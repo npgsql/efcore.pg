@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.TestUtilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
@@ -15,9 +16,10 @@ using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
-    public class MigrationsInfrastructureNpgsqlTest : MigrationsInfrastructureTestBase<MigrationsNpgsqlFixture>
+    public class MigrationsInfrastructureNpgsqlTest
+        : MigrationsInfrastructureTestBase<MigrationsInfrastructureNpgsqlTest.MigrationsInfrastructureNpgsqlFixture>
     {
-        public MigrationsInfrastructureNpgsqlTest(MigrationsNpgsqlFixture fixture)
+        public MigrationsInfrastructureNpgsqlTest(MigrationsInfrastructureNpgsqlFixture fixture)
             : base(fixture) {}
 
         public override void Can_get_active_provider()
@@ -215,6 +217,21 @@ ORDER BY table_name, ordinal_position
 
         [ConditionalFact(Skip = "Implement")]
         public override void Can_diff_against_2_1_ASP_NET_Identity_model() {}
+
+        public class MigrationsInfrastructureNpgsqlFixture : MigrationsInfrastructureFixtureBase
+        {
+            protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+
+            public override MigrationsContext CreateContext()
+            {
+                var options = AddOptions(
+                        new DbContextOptionsBuilder()
+                            .UseNpgsql(TestStore.ConnectionString, b => b.ApplyConfiguration().CommandTimeout(NpgsqlTestStore.CommandTimeout)))
+                    .UseInternalServiceProvider(ServiceProvider)
+                    .Options;
+                return new MigrationsContext(options);
+            }
+        }
     }
 }
 
