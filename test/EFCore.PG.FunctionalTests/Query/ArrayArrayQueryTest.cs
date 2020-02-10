@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestUtilities;
+using Microsoft.EntityFrameworkCore.TestUtilities.Xunit;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -105,7 +106,7 @@ LIMIT 2");
 
         #region Containment
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/efcore/issues/20369")]
         public void Contains_with_literal()
         {
             using var ctx = CreateContext();
@@ -119,7 +120,7 @@ WHERE 3 = ANY (s.""SomeArray"")
 LIMIT 2");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/efcore/issues/20369")]
         public void Contains_with_parameter()
         {
             using var ctx = CreateContext();
@@ -137,7 +138,7 @@ WHERE @__p_0 = ANY (s.""SomeArray"")
 LIMIT 2");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/efcore/issues/20369")]
         public void Contains_with_column()
         {
             using var ctx = CreateContext();
@@ -280,7 +281,7 @@ FROM ""SomeEntities"" AS s
 WHERE s.""SomeText"" LIKE ANY (@__patterns_0)");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/efcore/issues/20369")]
         public void Any_Contains()
         {
             using var ctx = CreateContext();
@@ -305,7 +306,7 @@ FROM ""SomeEntities"" AS s
 WHERE (ARRAY[1,2]::integer[] && s.""SomeArray"")");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/efcore/issues/20369")]
         public void All_Contains()
         {
             using var ctx = CreateContext();

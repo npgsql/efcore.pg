@@ -20,8 +20,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
-        #region Scalar Tests
-
         #region Static
 
         [Fact]
@@ -756,47 +754,6 @@ LIMIT 2");
         }
 
         #endregion
-
-        #endregion
-
-        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/pull/20138")]
-        public override void QF_CrossJoin_Not_Correlated() {}
-
-        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/pull/20138")]
-        public override void QF_CrossJoin_Parameter() {}
-
-        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/pull/20138")]
-        public override void QF_Join() {}
-
-        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/pull/20138")]
-        public override void QF_LeftJoin_Select_Anonymous() {}
-
-        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/pull/20138")]
-        public override void QF_LeftJoin_Select_Result() {}
-
-        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/pull/20138")]
-        public override void QF_Select_Correlated_Subquery_In_Anonymous_MultipleCollections() {}
-
-        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/pull/20138")]
-        public override void QF_Select_NonCorrelated_Subquery_In_Anonymous() {}
-
-        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/pull/20138")]
-        public override void QF_Select_NonCorrelated_Subquery_In_Anonymous_Parameter() {}
-
-        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/pull/20138")]
-        public override void QF_Stand_Alone() {}
-
-        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/pull/20138")]
-        public override void QF_Stand_Alone_Parameter() {}
-
-        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/pull/20138")]
-        public override void QF_Stand_Alone_With_Translation() {}
-
-        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/pull/20138")]
-        public override void QF_Select_Correlated_Subquery_In_Anonymous_Nested() {}
-
-        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/pull/20138")]
-        public override void QF_Select_Direct_In_Anonymous() {}
 
         protected class NpgsqlUDFSqlContext : UDFSqlContext
         {
