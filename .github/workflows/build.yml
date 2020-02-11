@@ -80,7 +80,7 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    if: github.event_name == 'push' && github.repository == 'npgsql/efcore.pg'
+    if: github.event_name == 'push' && startsWith(github.repository, 'npgsql/')
 
     steps:
       - name: Checkout
