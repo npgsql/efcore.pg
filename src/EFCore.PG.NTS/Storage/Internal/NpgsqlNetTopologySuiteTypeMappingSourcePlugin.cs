@@ -23,7 +23,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             { "MULTIPOINT",         typeof(MultiPoint) },
             { "MULTILINESTRING",    typeof(MultiLineString) },
             { "MULTIPOLYGON",       typeof(MultiPolygon) },
-            { "GEOMETRYCOLLECTION", typeof(GeometryCollection) }
+            { "GEOMETRYCOLLECTION", typeof(GeometryCollection) },
+            { "GEOMETRY",           typeof(Geometry) }
         };
 
         public NpgsqlNetTopologySuiteTypeMappingSourcePlugin([NotNull] INpgsqlNetTopologySuiteOptions options)
