@@ -632,7 +632,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </param>
         /// <param name="includedPropertyNames">An array of property names to be included in the tsvector.</param>
         /// <returns>A builder to further configure the property.</returns>
-        public static PropertyBuilder IsGeneratedTsVector(
+        public static PropertyBuilder IsGeneratedTsVectorColumn(
             [NotNull] this PropertyBuilder propertyBuilder,
             [NotNull] string config,
             [NotNull] params string[] includedPropertyNames)
@@ -642,8 +642,8 @@ namespace Microsoft.EntityFrameworkCore
             Check.NotEmpty(includedPropertyNames, nameof(includedPropertyNames));
 
             propertyBuilder.HasColumnType("tsvector");
-            propertyBuilder.Metadata.SetGeneratedTsVectorConfig(config);
-            propertyBuilder.Metadata.SetGeneratedTsVectorProperties(includedPropertyNames);
+            propertyBuilder.Metadata.SetTsVectorConfig(config);
+            propertyBuilder.Metadata.SetTsVectorProperties(includedPropertyNames);
 
             return propertyBuilder;
         }
@@ -663,11 +663,11 @@ namespace Microsoft.EntityFrameworkCore
         /// </param>
         /// <param name="includedPropertyNames">An array of property names to be included in the tsvector.</param>
         /// <returns>A builder to further configure the property.</returns>
-        public static PropertyBuilder<TProperty> IsGeneratedTsVector<TProperty>(
+        public static PropertyBuilder<TProperty> IsGeneratedTsVectorColumn<TProperty>(
             [NotNull] this PropertyBuilder<TProperty> propertyBuilder,
             [NotNull] string config,
             [NotNull] params string[] includedPropertyNames)
-            => (PropertyBuilder<TProperty>)IsGeneratedTsVector((PropertyBuilder)propertyBuilder, config, includedPropertyNames);
+            => (PropertyBuilder<TProperty>)IsGeneratedTsVectorColumn((PropertyBuilder)propertyBuilder, config, includedPropertyNames);
 
         /// <summary>
         /// Configures the property to be a full-text search tsvector column over the given properties.
@@ -688,7 +688,7 @@ namespace Microsoft.EntityFrameworkCore
         /// The same builder instance if the configuration was applied,
         /// <c>null</c> otherwise.
         /// </returns>
-        public static IConventionPropertyBuilder IsGeneratedTsVector(
+        public static IConventionPropertyBuilder IsGeneratedTsVectorColumn(
             [NotNull] this IConventionPropertyBuilder propertyBuilder,
             [CanBeNull] string config,
             [CanBeNull] IReadOnlyList<string> includedPropertyNames,
@@ -699,8 +699,8 @@ namespace Microsoft.EntityFrameworkCore
             if (propertyBuilder.CanSetIsGeneratedTsVector(config, includedPropertyNames, fromDataAnnotation))
             {
                 propertyBuilder.HasColumnType("tsvector");
-                propertyBuilder.Metadata.SetGeneratedTsVectorConfig(config, fromDataAnnotation);
-                propertyBuilder.Metadata.SetGeneratedTsVectorProperties(includedPropertyNames, fromDataAnnotation);
+                propertyBuilder.Metadata.SetTsVectorConfig(config, fromDataAnnotation);
+                propertyBuilder.Metadata.SetTsVectorProperties(includedPropertyNames, fromDataAnnotation);
 
                 return propertyBuilder;
             }
@@ -733,13 +733,13 @@ namespace Microsoft.EntityFrameworkCore
             Check.NotNull(propertyBuilder, nameof(propertyBuilder));
 
             return (fromDataAnnotation ? ConfigurationSource.DataAnnotation : ConfigurationSource.Convention)
-                   .Overrides(propertyBuilder.Metadata.GetGeneratedTsVectorConfigConfigurationSource()) &&
+                   .Overrides(propertyBuilder.Metadata.GetTsVectorConfigConfigurationSource()) &&
                    (fromDataAnnotation ? ConfigurationSource.DataAnnotation : ConfigurationSource.Convention)
-                   .Overrides(propertyBuilder.Metadata.GetGeneratedTsVectorPropertiesConfigurationSource())
+                   .Overrides(propertyBuilder.Metadata.GetTsVectorPropertiesConfigurationSource())
                    ||
-                   config == propertyBuilder.Metadata.GetGeneratedTsVectorConfig() &&
+                   config == propertyBuilder.Metadata.GetTsVectorConfig() &&
                    StructuralComparisons.StructuralEqualityComparer.Equals(
-                       includedPropertyNames, propertyBuilder.Metadata.GetGeneratedTsVectorProperties());
+                       includedPropertyNames, propertyBuilder.Metadata.GetTsVectorProperties());
         }
 
         #endregion Generated tsvector column

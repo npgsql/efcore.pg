@@ -46,13 +46,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal
                 }
             }
 
-            if (property.GetGeneratedTsVectorConfig() is string tsVectorConfig)
-                yield return new Annotation(NpgsqlAnnotationNames.GeneratedTsVectorConfig, tsVectorConfig);
+            if (property.GetTsVectorConfig() is string tsVectorConfig)
+                yield return new Annotation(NpgsqlAnnotationNames.TsVectorConfig, tsVectorConfig);
 
-            if (property.GetGeneratedTsVectorProperties() is IReadOnlyList<string> tsVectorProperties)
+            if (property.GetTsVectorProperties() is IReadOnlyList<string> tsVectorProperties)
             {
                 yield return new Annotation(
-                    NpgsqlAnnotationNames.GeneratedTsVectorProperties,
+                    NpgsqlAnnotationNames.TsVectorProperties,
                     tsVectorProperties
                         .Select(p => property.DeclaringEntityType.FindProperty(p).GetColumnName())
                         .ToArray());
@@ -71,8 +71,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal
                 yield return new Annotation(NpgsqlAnnotationNames.IndexSortOrder, sortOrder);
             if (index.GetNullSortOrder() is IReadOnlyList<SortOrder> nullSortOrder)
                 yield return new Annotation(NpgsqlAnnotationNames.IndexNullSortOrder, nullSortOrder);
-            if (index.GetIndexToTsVectorConfigName() is string configName)
-                yield return new Annotation(NpgsqlAnnotationNames.IndexToTsVector, configName);
+            if (index.GetTsVectorConfig() is string configName)
+                yield return new Annotation(NpgsqlAnnotationNames.TsVectorConfig, configName);
             if (index.GetIncludeProperties() is IReadOnlyList<string> includeProperties)
             {
                 yield return new Annotation(

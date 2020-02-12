@@ -1,11 +1,8 @@
-using System.Collections;
 using System.Collections.Generic;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore
@@ -15,6 +12,8 @@ namespace Microsoft.EntityFrameworkCore
     /// </summary>
     public static class NpgsqlIndexExtensions
     {
+        #region Method
+
         /// <summary>
         /// Returns the index method to be used, or <c>null</c> if it hasn't been specified.
         /// <c>null</c> selects the default (currently <c>btree</c>).
@@ -45,6 +44,10 @@ namespace Microsoft.EntityFrameworkCore
         public static void SetMethod([NotNull] this IConventionIndex index, [CanBeNull] string method, bool fromDataAnnotation = false)
             => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexMethod, method, fromDataAnnotation);
 
+        #endregion Method
+
+        #region Operators
+
         /// <summary>
         /// Returns the column operators to be used, or <c>null</c> if they have not been specified.
         /// </summary>
@@ -71,6 +74,10 @@ namespace Microsoft.EntityFrameworkCore
         /// </remarks>
         public static void SetOperators([NotNull] this IConventionIndex index, [CanBeNull] IReadOnlyList<string> operators, bool fromDataAnnotation)
             => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexOperators, operators, fromDataAnnotation);
+
+        #endregion Operators
+
+        #region Collation
 
         /// <summary>
         /// Returns the column collations to be used, or <c>null</c> if they have not been specified.
@@ -99,6 +106,10 @@ namespace Microsoft.EntityFrameworkCore
         public static void SetCollation([NotNull] this IConventionIndex index, [CanBeNull] IReadOnlyList<string> collations, bool fromDataAnnotation)
             => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexCollation, collations, fromDataAnnotation);
 
+        #endregion Collation
+
+        #region Sort order
+
         /// <summary>
         /// Returns the column sort orders to be used, or <c>null</c> if they have not been specified.
         /// </summary>
@@ -125,6 +136,10 @@ namespace Microsoft.EntityFrameworkCore
         /// </remarks>
         public static void SetSortOrder([NotNull] this IConventionIndex index, [CanBeNull] IReadOnlyList<SortOrder> sortOrder, bool fromDataAnnotation)
             => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexSortOrder, sortOrder, fromDataAnnotation);
+
+        #endregion Sort order
+
+        #region Null sort order
 
         /// <summary>
         /// Returns the column NULL sort orders to be used, or <c>null</c> if they have not been specified.
@@ -153,6 +168,8 @@ namespace Microsoft.EntityFrameworkCore
         public static void SetNullSortOrder([NotNull] this IConventionIndex index,
             [CanBeNull] IReadOnlyList<NullSortOrder> nullSortOrder, bool fromDataAnnotation)
             => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexNullSortOrder, nullSortOrder, fromDataAnnotation);
+
+        #endregion
 
         #region Included properties
 
@@ -238,37 +255,55 @@ namespace Microsoft.EntityFrameworkCore
         #region ToTsVector
 
         /// <summary>
-        /// Returns the index to tsvector config name to be used, or <c>null</c> if it hasn't been specified.
+        /// Returns the text search configuration for this tsvector expression index, or <c>null</c> if this is not a
+        /// tsvector expression index.
         /// </summary>
         /// <param name="index">The index.</param>
         /// <remarks>
         /// https://www.postgresql.org/docs/current/textsearch-tables.html#TEXTSEARCH-TABLES-INDEX
         /// </remarks>
-        public static string GetIndexToTsVectorConfigName([NotNull] this IIndex index)
-            => (string)index[NpgsqlAnnotationNames.IndexToTsVector];
+        public static string GetTsVectorConfig([NotNull] this IIndex index)
+            => (string)index[NpgsqlAnnotationNames.TsVectorConfig];
 
         /// <summary>
-        /// Sets the index to tsvector config name to be used.
+        /// Sets the text search configuration for this tsvector expression index, or <c>null</c> if this is not a
+        /// tsvector expression index.
         /// </summary>
         /// <param name="index">The index.</param>
-        /// <param name="configName">The tsvector config name.</param>
+        /// <param name="config">
+        /// <para>
+        /// The text search configuration for this generated tsvector property, or <c>null</c> if this is not a
+        /// generated tsvector property.
+        /// </para>
+        /// <para>
+        /// See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
+        /// </para>
+        /// </param>
         /// <remarks>
         /// https://www.postgresql.org/docs/current/textsearch-tables.html#TEXTSEARCH-TABLES-INDEX
         /// </remarks>
-        public static void SetIndexToTsVectorConfigName([NotNull] this IMutableIndex index, [CanBeNull] string configName)
-            => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexToTsVector, configName);
+        public static void SetTsVectorConfig([NotNull] this IMutableIndex index, [CanBeNull] string config)
+            => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.TsVectorConfig, config);
 
         /// <summary>
         /// Sets the index to tsvector config name to be used.
         /// </summary>
         /// <param name="index">The index.</param>
-        /// <param name="configName">The tsvector config name.</param>
+        /// <param name="config">
+        /// <para>
+        /// The text search configuration for this generated tsvector property, or <c>null</c> if this is not a
+        /// generated tsvector property.
+        /// </para>
+        /// <para>
+        /// See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
+        /// </para>
+        /// </param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <remarks>
         /// https://www.postgresql.org/docs/current/textsearch-tables.html#TEXTSEARCH-TABLES-INDEX
         /// </remarks>
-        public static void SetIndexToTsVectorConfigName([NotNull] this IConventionIndex index, [CanBeNull] string configName, bool fromDataAnnotation = false)
-            => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexToTsVector, configName, fromDataAnnotation);
+        public static void SetTsVectorConfig([NotNull] this IConventionIndex index, [CanBeNull] string config, bool fromDataAnnotation = false)
+            => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.TsVectorConfig, config, fromDataAnnotation);
 
         #endregion ToTsVector
     }

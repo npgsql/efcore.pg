@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Scaffolding;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.DependencyInjection;
@@ -771,14 +772,14 @@ COMMENT ON COLUMN ""People"".""FullName"" IS 'My comment';");
 
             await Test(
                 builder => builder.Entity(
-                    "People", e =>
+                    "Blogs", e =>
                     {
                         e.Property<string>("Title").IsRequired();
                         e.Property<string>("Description");
                     }),
                 builder => { },
-                builder => builder.Entity("People").Property<NpgsqlTsVector>("TsVector")
-                    .IsGeneratedTsVector("english", "Title", "Description"),
+                builder => builder.Entity("Blogs").Property<NpgsqlTsVector>("TsVector")
+                    .IsGeneratedTsVectorColumn("english", "Title", "Description"),
                 model =>
                 {
                     var table = Assert.Single(model.Tables);
@@ -788,7 +789,7 @@ COMMENT ON COLUMN ""People"".""FullName"" IS 'My comment';");
                 });
 
             AssertSql(
-                @"ALTER TABLE ""People"" ADD ""TsVector"" tsvector GENERATED ALWAYS AS (to_tsvector('english', ""Title"" || ' ' || coalesce(""Description"", ''))) STORED;");
+                @"ALTER TABLE ""Blogs"" ADD ""TsVector"" tsvector GENERATED ALWAYS AS (to_tsvector('english', ""Title"" || ' ' || coalesce(""Description"", ''))) STORED;");
         }
 
         public override async Task Alter_column_change_type()
@@ -1627,57 +1628,44 @@ ALTER TABLE ""People"" ALTER COLUMN ""Id"" RESTART WITH 20;");
         }
 
         [Fact]
-        public virtual async Task Create_index_on_tsvector()
+        public virtual async Task Create_index_tsvector()
         {
             await Test(
                 builder => builder.Entity(
-                    "People", e =>
+                    "Blogs", e =>
                     {
-                        e.Property<int>("Id");
-                        e.Property<string>("FirstName").IsRequired();
-                        e.Property<string>("MiddleName");
-                        e.Property<string>("LastName");
+                        e.Property<string>("Title").IsRequired();
+                        e.Property<string>("Description");
                     }),
                 builder => { },
-                builder => builder.Entity("People")
-                    .HasIndex("FirstName", "LastName")
-                    .UseToTsVector("simple")
-                ,
-                model =>
-                {
-                    var table = Assert.Single(model.Tables);
-                    var index = Assert.Single(table.Indexes);
-
-                    Assert.Equal("simple", index[NpgsqlAnnotationNames.IndexToTsVector]);
-
-                    Assert.Contains(index.Columns, i => i.Name == "FirstName");
-                    Assert.Contains(index.Columns, i => i.Name == "LastName");
-                });
-
-            AssertSql(
-                @"CREATE INDEX ""IX_People_FirstName_LastName"" ON ""People"" (to_tsvector('simple', ""FirstName"" || ' ' || coalesce(""LastName"", '')));");
-        }
-
-        [Fact]
-        public virtual async Task Create_index_on_tsvector_using_gin()
-        {
-            await Test(
-                builder => builder.Entity(
-                    "People", e =>
-                    {
-                        e.Property<int>("Id");
-                        e.Property<string>("FirstName").IsRequired();
-                        e.Property<string>("LastName").IsRequired();
-                    }),
-                builder => { },
-                builder => builder.Entity("People")
-                    .HasIndex("FirstName", "LastName")
-                    .HasMethod("GIN")
-                    .UseToTsVector("simple"),
+                builder => builder.Entity("Blogs")
+                    .HasIndex("Title", "Description")
+                    .IsTsVectorExpressionIndex("simple"),
                 model => { });
 
             AssertSql(
-                @"CREATE INDEX ""IX_People_FirstName_LastName"" ON ""People"" USING GIN (to_tsvector('simple', ""FirstName"" || ' ' || ""LastName""));");
+                @"CREATE INDEX ""IX_Blogs_Title_Description"" ON ""Blogs"" (to_tsvector('simple', ""Title"" || ' ' || coalesce(""Description"", '')));");
+        }
+
+        [Fact]
+        public virtual async Task Create_index_tsvector_using_gin()
+        {
+            await Test(
+                builder => builder.Entity(
+                    "Blogs", e =>
+                    {
+                        e.Property<string>("Title").IsRequired();
+                        e.Property<string>("Description");
+                    }),
+                builder => { },
+                builder => builder.Entity("Blogs")
+                    .HasIndex("Title", "Description")
+                    .HasMethod("GIN")
+                    .IsTsVectorExpressionIndex("simple"),
+                model => { });
+
+            AssertSql(
+                @"CREATE INDEX ""IX_Blogs_Title_Description"" ON ""Blogs"" USING GIN (to_tsvector('simple', ""Title"" || ' ' || coalesce(""Description"", '')));");
         }
 
         public override async Task Drop_index()
@@ -2153,9 +2141,12 @@ WHERE ""Id"" = 2;");
 
             public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
             {
-                // Various migration operations PG-version sensitive, configure the context with the actual version
-                // we're connecting to.
-                new NpgsqlDbContextOptionsBuilder(base.AddOptions(builder))
+                new NpgsqlDbContextOptionsBuilder(base.AddOptions(builder)
+                        // Some tests create expression indexes, but these cannot be reverse-engineered.
+                        .ConfigureWarnings(
+                            w => { w.Ignore(NpgsqlEventId.ExpressionIndexSkippedWarning); }))
+                    // Various migration operations PG-version sensitive, configure the context with the actual version
+                    // we're connecting to.
                     .SetPostgresVersion(TestEnvironment.PostgresVersion);
 
                 return builder;

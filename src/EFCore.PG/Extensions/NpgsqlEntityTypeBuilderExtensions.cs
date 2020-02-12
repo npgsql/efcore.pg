@@ -84,7 +84,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </para>
         /// </param>
         /// <returns>A builder to further configure the property.</returns>
-        public static EntityTypeBuilder<TEntity> HasGeneratedTsVectorProperty<TEntity, TProperty>(
+        public static EntityTypeBuilder<TEntity> HasGeneratedTsVectorColumn<TEntity, TProperty>(
             [NotNull] this EntityTypeBuilder<TEntity> entityTypeBuilder,
             [NotNull] Expression<Func<TEntity, TProperty>> tsVectorPropertyExpression,
             [NotNull] string config,
@@ -96,7 +96,7 @@ namespace Microsoft.EntityFrameworkCore
             Check.NotNull(config, nameof(config));
             Check.NotNull(includeExpression, nameof(includeExpression));
 
-            entityTypeBuilder.Property(tsVectorPropertyExpression).IsGeneratedTsVector(
+            entityTypeBuilder.Property(tsVectorPropertyExpression).IsGeneratedTsVectorColumn(
                 config,
                 includeExpression.GetPropertyAccessList().Select(MemberInfoExtensions.GetSimpleMemberName).ToArray());
 

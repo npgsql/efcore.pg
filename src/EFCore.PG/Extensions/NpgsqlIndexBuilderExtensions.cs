@@ -5,7 +5,6 @@ using System.Linq;
 using System.Linq.Expressions;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -188,52 +187,78 @@ namespace Microsoft.EntityFrameworkCore
 
         #endregion Operators
 
-        #region ToTsVector
+        #region IsTsVectorExpressionIndex
 
         /// <summary>
-        /// The PostgreSQL columns transformation to 'to_tsvector()' to be used.
+        /// Configures this index to be a full-text tsvector expression index.
         /// </summary>
         /// <param name="indexBuilder">The builder for the index being configured.</param>
-        /// <param name="configName">to_tsvector() function config name.</param>
-        /// <returns></returns>
-        public static IndexBuilder UseToTsVector(
+        /// <param name="config">
+        /// <para>
+        /// The text search configuration for this generated tsvector property, or <c>null</c> if this is not a
+        /// generated tsvector property.
+        /// </para>
+        /// <para>
+        /// See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
+        /// </para>
+        /// </param>
+        /// <returns>A builder to further configure the index.</returns>
+        public static IndexBuilder IsTsVectorExpressionIndex(
             [NotNull] this IndexBuilder indexBuilder,
-            [NotNull] string configName)
+            [NotNull] string config)
         {
             Check.NotNull(indexBuilder, nameof(indexBuilder));
-            Check.NotNull(configName, nameof(configName));
+            Check.NotNull(config, nameof(config));
 
-            indexBuilder.Metadata.SetIndexToTsVectorConfigName(configName);
+            indexBuilder.Metadata.SetTsVectorConfig(config);
             return indexBuilder;
         }
 
         /// <summary>
-        /// The PostgreSQL columns transformation to 'to_tsvector()' to be used.
+        /// Configures this index to be a full-text tsvector expression index.
         /// </summary>
         /// <param name="indexBuilder">The builder for the index being configured.</param>
-        /// <param name="configName">to_tsvector() function config name.</param>
-        /// <returns></returns>
-        public static IndexBuilder<TEntity> UseToTsVector<TEntity>(
+        /// <param name="config">
+        /// <para>
+        /// The text search configuration for this generated tsvector property, or <c>null</c> if this is not a
+        /// generated tsvector property.
+        /// </para>
+        /// <para>
+        /// See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
+        /// </para>
+        /// </param>
+        /// <returns>A builder to further configure the index.</returns>
+        public static IndexBuilder<TEntity> IsTsVectorExpressionIndex<TEntity>(
             [NotNull] this IndexBuilder<TEntity> indexBuilder,
-            [NotNull] string configName)
-            => (IndexBuilder<TEntity>)UseToTsVector((IndexBuilder)indexBuilder, configName);
+            [NotNull] string config)
+            => (IndexBuilder<TEntity>)IsTsVectorExpressionIndex((IndexBuilder)indexBuilder, config);
 
         /// <summary>
-        /// The PostgreSQL columns transformation to 'to_tsvector()' to be used.
+        /// Configures this index to be a full-text tsvector expression index.
         /// </summary>
         /// <param name="indexBuilder">The builder for the index being configured.</param>
-        /// <param name="configName">to_tsvector() function config name.</param>
-        /// <returns></returns>
-        public static IConventionIndexBuilder UseToTsVector(
+        /// <param name="config">
+        /// <para>
+        /// The text search configuration for this generated tsvector property, or <c>null</c> if this is not a
+        /// generated tsvector property.
+        /// </para>
+        /// <para>
+        /// See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
+        /// </para>
+        /// </param>
+        /// <returns>
+        /// The same builder instance if the configuration was applied,
+        /// <c>null</c> otherwise.
+        /// </returns>
+        public static IConventionIndexBuilder IsTsVectorExpressionIndex(
             [NotNull] this IConventionIndexBuilder indexBuilder,
-            [NotNull] string configName)
+            [CanBeNull] string config)
         {
             Check.NotNull(indexBuilder, nameof(indexBuilder));
-            Check.NotNull(configName, nameof(configName));
 
-            if (indexBuilder.CanSetToTsVector(configName))
+            if (indexBuilder.CanSetToTsVector(config))
             {
-                indexBuilder.Metadata.SetIndexToTsVectorConfigName(configName);
+                indexBuilder.Metadata.SetTsVectorConfig(config);
 
                 return indexBuilder;
             }
@@ -242,24 +267,31 @@ namespace Microsoft.EntityFrameworkCore
         }
 
         /// <summary>
-        /// Returns a value indicating whether the PostgreSQL columns transformation to 'to_tsvector()' to be used.
+        /// Returns a value indicating whether the index can be configured as a full-text tsvector expression index.
         /// </summary>
         /// <param name="indexBuilder">The builder for the index being configured.</param>
-        /// <param name="configName">to_tsvector() function config name.</param>
+        /// <param name="config">
+        /// <para>
+        /// The text search configuration for this generated tsvector property, or <c>null</c> if this is not a
+        /// generated tsvector property.
+        /// </para>
+        /// <para>
+        /// See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
+        /// </para>
+        /// </param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
-        /// <returns><c>true</c> if the index can be configured with the columns transformation.</returns>
+        /// <returns><c>true</c> if the index can be configured as a full-text tsvector expression index.</returns>
         public static bool CanSetToTsVector(
             [NotNull] this IConventionIndexBuilder indexBuilder,
-            [NotNull] string configName,
+            [CanBeNull] string config,
             bool fromDataAnnotation = false)
         {
             Check.NotNull(indexBuilder, nameof(indexBuilder));
-            Check.NotNull(configName, nameof(configName));
 
-            return indexBuilder.CanSetAnnotation(NpgsqlAnnotationNames.IndexToTsVector, configName, fromDataAnnotation);
+            return indexBuilder.CanSetAnnotation(NpgsqlAnnotationNames.TsVectorConfig, config, fromDataAnnotation);
         }
 
-        #endregion ToTsVector
+        #endregion IsTsVectorExpressionIndex
 
         #region Collation
 

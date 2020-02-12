@@ -667,13 +667,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             if (method?.Length > 0)
                 builder.Append(" USING ").Append(method);
 
-            var toTsVectorConfigName = operation[NpgsqlAnnotationNames.IndexToTsVector] as string;
-
             var indexColumns = GetIndexColumns(operation);
 
-            var columnsExpression = toTsVectorConfigName?.Length > 0
-                ? ColumnsToTsVector(indexColumns.Select(i => i.Name), toTsVectorConfigName, model, operation.Schema, operation.Table)
-                : IndexColumnList(indexColumns, method);
+            var columnsExpression = operation[NpgsqlAnnotationNames.TsVectorConfig] is string tsVectorConfig
+                 ? ColumnsToTsVector(indexColumns.Select(i => i.Name), tsVectorConfig, model, operation.Schema, operation.Table)
+                 : IndexColumnList(indexColumns, method);
 
             builder
                 .Append(" (")
@@ -1165,13 +1163,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 }
             }
 
-            if (operation[NpgsqlAnnotationNames.GeneratedTsVectorConfig] is string tsVectorConfig)
+            if (operation[NpgsqlAnnotationNames.TsVectorConfig] is string tsVectorConfig)
             {
-                var tsVectorIncludedColumns = operation[NpgsqlAnnotationNames.GeneratedTsVectorProperties] as string[];
+                var tsVectorIncludedColumns = operation[NpgsqlAnnotationNames.TsVectorProperties] as string[];
                 if (tsVectorIncludedColumns == null)
                     throw new InvalidOperationException(
-                        $"{nameof(NpgsqlAnnotationNames.GeneratedTsVectorConfig)} is present in a migration but " +
-                        $"{nameof(NpgsqlAnnotationNames.GeneratedTsVectorProperties)} is absent or empty");
+                        $"{nameof(NpgsqlAnnotationNames.TsVectorConfig)} is present in a migration but " +
+                        $"{nameof(NpgsqlAnnotationNames.TsVectorProperties)} is absent or empty");
 
                 operation.ComputedColumnSql = ColumnsToTsVector(tsVectorIncludedColumns, tsVectorConfig, model, schema, table);
             }
