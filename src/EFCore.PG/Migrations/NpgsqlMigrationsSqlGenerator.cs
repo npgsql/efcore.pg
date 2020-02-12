@@ -670,8 +670,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             var indexColumns = GetIndexColumns(operation);
 
             var columnsExpression = operation[NpgsqlAnnotationNames.TsVectorConfig] is string tsVectorConfig
-                 ? ColumnsToTsVector(indexColumns.Select(i => i.Name), tsVectorConfig, model, operation.Schema, operation.Table)
-                 : IndexColumnList(indexColumns, method);
+                ? ColumnsToTsVector(indexColumns.Select(i => i.Name), tsVectorConfig, model, operation.Schema, operation.Table)
+                : IndexColumnList(indexColumns, method);
 
             builder
                 .Append(" (")
