@@ -15,7 +15,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
         public const string IndexSortOrder = Prefix + "IndexSortOrder";
         public const string IndexNullSortOrder = Prefix + "IndexNullSortOrder";
         public const string IndexInclude = Prefix + "IndexInclude";
-        public const string IndexToTsVector = Prefix + "IndexToTsVector";
         public const string CreatedConcurrently = Prefix + "CreatedConcurrently";
         public const string PostgresExtensionPrefix = Prefix + "PostgresExtension:";
         public const string EnumPrefix = Prefix + "Enum:";
@@ -25,8 +24,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
         public const string StorageParameterPrefix = Prefix + "StorageParameter:";
         public const string UnloggedTable = Prefix + "UnloggedTable";
         public const string IdentityOptions = Prefix + "IdentitySequenceOptions";
-        public const string GeneratedTsVectorProperties = Prefix + "GeneratedTsVectorProperties";
-        public const string GeneratedTsVectorConfig = Prefix + "GeneratedTsVectorConfig";
+        public const string TsVectorConfig = Prefix + "TsVectorConfig";
+        public const string TsVectorProperties = Prefix + "TsVectorProperties";
 
         // Database model annotations
 
