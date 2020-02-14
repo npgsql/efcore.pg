@@ -11,7 +11,6 @@ The Npgsql EF Core provider allows you to map PostgreSQL JSON columns in three d
 > [!NOTE]
 > Mapping to POCO or to System.Text.Json types was introduced in version 3.0.0
 
-
 ## String mapping
 
 The simplest form of mapping to JSON is via a regular string property, just like an ordinary text column:
