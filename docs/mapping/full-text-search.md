@@ -7,10 +7,11 @@ PostgreSQL has [built-in support for full-text search](https://www.postgresql.or
 PostgreSQL full text search types are mapped onto .NET types built-in to Npgsql. The `tsvector` type is mapped to `NpgsqlTsVector` and `tsquery` is mapped to `NpgsqlTsQuery`. This means you can use properties of type `NpgsqlTsVector` directly in your model to create `tsvector` columns. The `NpgsqlTsQuery` type on the other hand, is used in LINQ queries.
 
 ```c#
-public class BlogPost
+public class Product
 {
+    public int Id { get; set; }
     public string Title { get; set; }
-    public string Content { get; set; }
+    public string Description { get; set; }
     public NpgsqlTsVector SearchVector { get; set; }
 }
 ```
@@ -34,48 +35,11 @@ Almost all PostgreSQL full text search functions can be called through LINQ quer
 
 ## Setting up and querying a full text search index on an entity
 
-As [the PostgreSQL documentation](https://www.postgresql.org/docs/current/static/textsearch-tables.html) explains, full-text search requires an index to run efficiently. This section will show two ways to do this, both (currently) requiring raw SQL in your migrations. Read the PostgreSQL docs for more information on the different approaches.
+[As the PostgreSQL documentation explains](https://www.postgresql.org/docs/current/static/textsearch-tables.html), full-text search requires an index to run efficiently. This section will show two ways to do this, each having its benefits and drawbacks. Please read the PostgreSQL docs for more information on the two different approaches.
 
-### Method 1: Expression index
+### Method 1: tsvector column
 
-The simpler method to use full-text search is to set up an expression index. Let's take the following entity:
-
-```c#
-public class Product
-{
-    public int Id { get; set; }
-    public string Name { get; set; }
-    public string Description { get; set; }
-}
-```
-
-Create a migration which will contain the index creation SQL (`dotnet ef migrations add ...`). At this point, open the generated migration with your editor and add the following:
-
-```c#
-protected override void Up(MigrationBuilder migrationBuilder)
-{
-    migrationBuilder.Sql(@"CREATE INDEX fts_idx ON ""Product"" USING GIN (to_tsvector('english', ""Name"" || ' ' || ""Description""));");
-}
-
-protected override void Down(MigrationBuilder migrationBuilder)
-    migrationBuilder.Sql(@"DROP INDEX fts_idx;");
-}
-```
-
-This will create a full-text search index on the `Name` and `Description` columns. You can query as follows:
-
-```c#
-var context = new ProductDbContext();
-var npgsql = context.Products
-    .Where(p => EF.Functions.ToTsVector("english", p.Name + " " + p.Description).Matches("Npgsql"))
-    .ToList();
-```
-
-### Method 2: tsvector column
-
-Instead of an expression index, this method will add a `tsvector` column on your table that updates itself with a trigger.
-
-First, add an `NpgsqlTsVector` property to your entity:
+This method adds a `tsvector` column to your table, that is automatically updated when the row is modified. First, add an `NpgsqlTsVector` property to your entity:
 
 ```c#
 public class Product
@@ -87,7 +51,30 @@ public class Product
 }
 ```
 
-and modify the `OnModelCreating()` of your context class to add an index as follows:
+Setting up the column to be auto-updated depends on your PostgreSQL version. On PostgreSQL 12 and above, the column can be a simple [generated column](../modeling/generated-properties##computed-columns-on-add-or-update), and version 5.0.0 contains sugar for setting that up. In previous versions, you must manually set up database triggers that update the column instead.
+
+# [PostgreSQL 12+](#tab/pg12)
+
+> [!NOTE]
+> The below only works on PostgreSQL 12 and version 5.0.0 of the EF Core provider.
+
+The following will set up a generated `tsvector` column, over which you can easily create an index:
+
+```c#
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    modelBuilder.Entity<Product>()
+        .HasGeneratedTsVectorColumn(
+            p => b.TsVector,
+            "english",  // Text search config
+            p => new { p.Name, p.Description })  // Included properties
+        .HasIndex(b => b.TsVector)
+        .HasMethod("GIN"); // Index method on the search vector (GIN or GIST)
+```
+
+# [Older Versions](#tab/pgold)
+
+First, modify the `OnModelCreating()` of your context class to add an index as follows:
 
 ```c#
 protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -124,11 +111,52 @@ public partial class CreateProductTable : Migration
 }
 ```
 
-Any inserts or updates on the `Products` table will now update the `SearchVector` column and maintain it automatically. You can query it as follows:
+***
+
+Once your auto-updated `tsvector` column is set up, any inserts or updates on the `Products` table will now update the `SearchVector` column and maintain it automatically. You can query it as follows:
 
 ```c#
 var context = new ProductDbContext();
 var npgsql = context.Products
     .Where(p => p.SearchVector.Matches("Npgsql"))
+    .ToList();
+```
+
+### Method 2: Expression index
+
+Version 5.0.0 of the provider includes sugar for defining the appropriate expression index; if you're using an older version, you'll have to define a raw SQL migration yourself.
+
+# [EF Core 5+](#tab/pg12)
+
+```c#
+modelBuilder.Entity<Blog>()
+    .HasIndex(b => new { b.Title, b.Description })
+    .IsTsVectorExpressionIndex("english");
+```
+
+# [Older Versions](#tab/efold)
+
+Create a migration which will contain the index creation SQL (`dotnet ef migrations add ...`). At this point, open the generated migration with your editor and add the following:
+
+```c#
+protected override void Up(MigrationBuilder migrationBuilder)
+{
+    migrationBuilder.Sql(@"CREATE INDEX fts_idx ON ""Product"" USING GIN (to_tsvector('english', ""Name"" || ' ' || ""Description""));");
+}
+
+protected override void Down(MigrationBuilder migrationBuilder)
+    migrationBuilder.Sql(@"DROP INDEX fts_idx;");
+}
+```
+
+***
+
+Once the index is created on the `Title` and `Description` columns, you can query as follows:
+
+```c#
+var context = new ProductDbContext();
+var npgsql = context.Products
+    .Where(p => EF.Functions.ToTsVector("english", p.Title + " " + p.Description)
+        .Matches("Npgsql"))
     .ToList();
 ```
