@@ -119,9 +119,9 @@ See [the PostgreSQL docs on UUID for more details](https://www.postgresql.org/do
 ## Computed Columns (On Add or Update)
 
 > [!NOTE]
-> This feature was introduced in 3.0.0.
+> This feature works only on PostgreSQL 12 or above, and was introduced in version 3.0.0 of the provider.
 
-The upcoming PostgreSQL 12 is adding support for [stored generated columns](https://www.postgresql.org/docs/12/ddl-generated-columns.html), and Npgsql feature supports that feature as well. The following configuration:
+PostgreSQL 12 added support for [stored generated columns](https://www.postgresql.org/docs/12/ddl-generated-columns.html), and Npgsql feature supports that feature as well. The following configuration:
 
 ```c#
 protected override void OnModelCreating(ModelBuilder modelBuilder)
