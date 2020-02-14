@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
+using NpgsqlTypes;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore
@@ -84,9 +85,9 @@ namespace Microsoft.EntityFrameworkCore
         /// </para>
         /// </param>
         /// <returns>A builder to further configure the property.</returns>
-        public static EntityTypeBuilder<TEntity> HasGeneratedTsVectorColumn<TEntity, TProperty>(
+        public static EntityTypeBuilder<TEntity> HasGeneratedTsVectorColumn<TEntity>(
             [NotNull] this EntityTypeBuilder<TEntity> entityTypeBuilder,
-            [NotNull] Expression<Func<TEntity, TProperty>> tsVectorPropertyExpression,
+            [NotNull] Expression<Func<TEntity, NpgsqlTsVector>> tsVectorPropertyExpression,
             [NotNull] string config,
             [NotNull] Expression<Func<TEntity, object>> includeExpression)
             where TEntity : class

@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
+using NpgsqlTypes;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore
@@ -663,11 +664,11 @@ namespace Microsoft.EntityFrameworkCore
         /// </param>
         /// <param name="includedPropertyNames">An array of property names to be included in the tsvector.</param>
         /// <returns>A builder to further configure the property.</returns>
-        public static PropertyBuilder<TProperty> IsGeneratedTsVectorColumn<TProperty>(
-            [NotNull] this PropertyBuilder<TProperty> propertyBuilder,
+        public static PropertyBuilder<NpgsqlTsVector> IsGeneratedTsVectorColumn(
+            [NotNull] this PropertyBuilder<NpgsqlTsVector> propertyBuilder,
             [NotNull] string config,
             [NotNull] params string[] includedPropertyNames)
-            => (PropertyBuilder<TProperty>)IsGeneratedTsVectorColumn((PropertyBuilder)propertyBuilder, config, includedPropertyNames);
+            => (PropertyBuilder<NpgsqlTsVector>)IsGeneratedTsVectorColumn((PropertyBuilder)propertyBuilder, config, includedPropertyNames);
 
         /// <summary>
         /// Configures the property to be a full-text search tsvector column over the given properties.
