@@ -101,6 +101,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             nameof(Geometry.Intersection)        => _sqlExpressionFactory.Function("ST_Intersection",   new[] { instance, arguments[0] }, typeof(Geometry), resultGeometryTypeMapping),
             nameof(Geometry.Intersects)          => _sqlExpressionFactory.Function("ST_Intersects",     new[] { instance, arguments[0] }, typeof(bool)),
             nameof(Geometry.IsWithinDistance)    => _sqlExpressionFactory.Function("ST_DWithin",        new[] { instance, arguments[0], arguments[1] }, typeof(bool)),
+            nameof(Geometry.Normalized)          => _sqlExpressionFactory.Function("ST_Normalize",      new[] { instance }, typeof(Geometry), resultGeometryTypeMapping),
             nameof(Geometry.Overlaps)            => _sqlExpressionFactory.Function("ST_Overlaps",       new[] { instance, arguments[0] }, typeof(bool)),
             nameof(Geometry.Relate)              => _sqlExpressionFactory.Function("ST_Relate",         new[] { instance, arguments[0], arguments[1] }, typeof(bool)),
             nameof(Geometry.Reverse)             => _sqlExpressionFactory.Function("ST_Reverse",        new[] { instance }, typeof(Geometry), resultGeometryTypeMapping),

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.TestModels.SpatialModel;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
+using Xunit;
 using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
@@ -584,6 +585,21 @@ FROM ""PointEntity"" AS p");
             AssertSql(
                 @"SELECT p.""Id"", ST_Z(p.""Point"") AS ""Z""
 FROM ""PointEntity"" AS p");
+        }
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public virtual async Task Normalized(bool async)
+        {
+            await AssertQuery(
+                async,
+                ss => ss.Set<PolygonEntity>().Select(e => new { e.Id, Normalized = e.Polygon.Normalized() }),
+                ss => ss.Set<PolygonEntity>().Select(e => new { e.Id, Normalized = e.Polygon == null ? null : e.Polygon.Normalized() }),
+                elementSorter: x => x.Id);
+
+            AssertSql(
+                @"SELECT p.""Id"", ST_Normalize(p.""Polygon"") AS ""Normalized""
+FROM ""PolygonEntity"" AS p");
         }
 
         void AssertSql(params string[] expected) => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
