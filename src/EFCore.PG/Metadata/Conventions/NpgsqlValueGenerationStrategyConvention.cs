@@ -1,6 +1,7 @@
 ﻿using System;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions.Infrastructure;
@@ -12,7 +13,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
     /// <see cref="NpgsqlValueGenerationStrategy.IdentityByDefaultColumn"/> for newer PostgreSQL versions,
     /// and <see cref="NpgsqlValueGenerationStrategy.SerialColumn"/> for pre-10.0 versions.
     /// </summary>
-    public class NpgsqlValueGenerationStrategyConvention : IModelInitializedConvention, IModelFinalizedConvention
+    public class NpgsqlValueGenerationStrategyConvention : IModelInitializedConvention, IModelFinalizingConvention
     {
         [CanBeNull] readonly Version _postgresVersion;
 
@@ -36,23 +37,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
         /// </summary>
         protected virtual ProviderConventionSetBuilderDependencies Dependencies { get; }
 
-        /// <summary>
-        /// Called after a model is initialized.
-        /// </summary>
-        /// <param name="modelBuilder">The builder for the model.</param>
-        /// <param name="context">Additional information associated with convention execution.</param>
+        /// <inheritdoc />
         public virtual void ProcessModelInitialized(IConventionModelBuilder modelBuilder, IConventionContext<IConventionModelBuilder> context)
             => modelBuilder.HasValueGenerationStrategy(
                 _postgresVersion != null && _postgresVersion < new Version(10, 0)
                     ? NpgsqlValueGenerationStrategy.SerialColumn
                     : NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
-        /// <summary>
-        /// Called after a model is finalized.
-        /// </summary>
-        /// <param name="modelBuilder">The builder for the model.</param>
-        /// <param name="context">Additional information associated with convention execution.</param>
-        public virtual void ProcessModelFinalized(
+        /// <inheritdoc />
+        public virtual void ProcessModelFinalizing(
             IConventionModelBuilder modelBuilder, IConventionContext<IConventionModelBuilder> context)
         {
             foreach (var entityType in modelBuilder.Metadata.GetEntityTypes())

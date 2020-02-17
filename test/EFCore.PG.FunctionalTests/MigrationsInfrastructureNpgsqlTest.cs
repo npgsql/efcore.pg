@@ -136,20 +136,8 @@ ORDER BY table_name, ordinal_position
 
         public override void Can_diff_against_2_2_model()
         {
-//            using (var context = new ModelSnapshot22.BloggingContext())
-//            {
-//                DiffSnapshot(new BloggingContextModelSnapshot22(), context);
-//            }
-//
             using var context = new ModelSnapshot22.BloggingContext();
-            var snapshot = new BloggingContextModelSnapshot22();
-            var sourceModel = snapshot.Model;
-            var targetModel = context.Model;
-
-            var modelDiffer = context.GetService<IMigrationsModelDiffer>();
-            var operations = modelDiffer.GetDifferences(sourceModel, targetModel);
-
-            Assert.Equal(0, operations.Count);
+            DiffSnapshot(new BloggingContextModelSnapshot22(), context);
         }
 
         public class BloggingContextModelSnapshot22 : ModelSnapshot
