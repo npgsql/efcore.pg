@@ -40,18 +40,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
 
             ReplaceConvention(conventionSet.ForeignKeyRemovedConventions, valueGenerationConvention);
 
-            ConventionSet.AddBefore(
-                conventionSet.ModelFinalizedConventions,
-                valueGenerationStrategyConvention,
-                typeof(ValidatingConvention));
-
             var storeGenerationConvention =
                 new NpgsqlStoreGenerationConvention(Dependencies, RelationalDependencies);
             ReplaceConvention(conventionSet.PropertyAnnotationChangedConventions, storeGenerationConvention);
             ReplaceConvention(
                 conventionSet.PropertyAnnotationChangedConventions, (RelationalValueGenerationConvention)valueGenerationConvention);
 
-            ReplaceConvention(conventionSet.ModelFinalizedConventions, storeGenerationConvention);
+            conventionSet.ModelFinalizingConventions.Add(valueGenerationStrategyConvention);
+            ReplaceConvention(conventionSet.ModelFinalizingConventions, storeGenerationConvention);
 
             return conventionSet;
         }
