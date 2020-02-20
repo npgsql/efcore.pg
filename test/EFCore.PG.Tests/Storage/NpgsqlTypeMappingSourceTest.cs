@@ -25,6 +25,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         [InlineData("geometry", typeof(Geometry))]
         [InlineData("geometry(Polygon)", typeof(Polygon))]
         [InlineData("geography(Point, 4326)", typeof(Point))]
+        [InlineData("geometry(pointz, 4326)", typeof(Point))]
+        [InlineData("geography(LineStringZM)", typeof(LineString))]
+        [InlineData("geometry(POLYGONM)", typeof(Polygon))]
         public void By_StoreType(string storeType, Type expectedClrType)
         {
             var mapping = Source.FindMapping(storeType);

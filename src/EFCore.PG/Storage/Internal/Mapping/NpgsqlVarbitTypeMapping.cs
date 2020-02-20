@@ -21,7 +21,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         {
             var bits = (BitArray)value;
             var sb = new StringBuilder();
-            sb.Append("VARBIT B'");
+            sb.Append("B'");
             for (var i = 0; i < bits.Count; i++)
                 sb.Append(bits[i] ? '1' : '0');
             sb.Append('\'');

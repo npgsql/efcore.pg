@@ -15,16 +15,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         // rather late by SingletonOptionsInitializer
         readonly INpgsqlNetTopologySuiteOptions _options;
 
-        static readonly Dictionary<string, Type> SubTypeNameToClrType = new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase)
+        static bool TryGetClrType(string subtypeName, out Type clrType)
         {
-            { "POINT",              typeof(Point) },
-            { "LINESTRING",         typeof(LineString) },
-            { "POLYGON",            typeof(Polygon) },
-            { "MULTIPOINT",         typeof(MultiPoint) },
-            { "MULTILINESTRING",    typeof(MultiLineString) },
-            { "MULTIPOLYGON",       typeof(MultiPolygon) },
-            { "GEOMETRYCOLLECTION", typeof(GeometryCollection) }
-        };
+            clrType = subtypeName switch
+            {
+                "POINT"              => typeof(Point),
+                "LINESTRING"         => typeof(LineString),
+                "POLYGON"            => typeof(Polygon),
+                "MULTIPOINT"         => typeof(MultiPoint),
+                "MULTILINESTRING"    => typeof(MultiLineString),
+                "MULTIPOLYGON"       => typeof(MultiPolygon),
+                "GEOMETRYCOLLECTION" => typeof(GeometryCollection),
+                "GEOMETRY"           => typeof(Geometry),
+                _                    => null
+            };
+
+            return clrType != null;
+        }
 
         public NpgsqlNetTopologySuiteTypeMappingSourcePlugin([NotNull] INpgsqlNetTopologySuiteOptions options)
             => _options = Check.NotNull(options, nameof(options));
@@ -41,7 +48,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
             if (storeTypeName != null)
             {
-                if (!TryParseStoreTypeName(storeTypeName, out isGeography, out var parsedSubtype, out var _))
+                if (!TryParseStoreTypeName(storeTypeName, out _, out isGeography, out var parsedSubtype, out _, out _))
                     return null;
                 if (clrType == null)
                     clrType = parsedSubtype;
@@ -56,22 +63,31 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         }
 
         /// <summary>
-        /// Given a PostGIS store type name (e.g. GEOMETRY, GEOGRAPHY(Point, 4326)), attempts to parse it and return its components.
+        /// Given a PostGIS store type name (e.g. GEOMETRY, GEOGRAPHY(Point, 4326), GEOMETRY(LineStringM, 4326)),
+        /// attempts to parse it and return its components.
         /// </summary>
-        public static bool TryParseStoreTypeName(string storeTypeName, out bool isGeography, out Type clrType, out int srid)
+        public static bool TryParseStoreTypeName(
+            string storeTypeName,
+            out string subtypeName,
+            out bool isGeography,
+            out Type clrType,
+            out int srid,
+            out Ordinates ordinates)
         {
             storeTypeName = storeTypeName.Trim();
+            subtypeName = storeTypeName;
             isGeography = false;
             clrType = null;
             srid = -1;
+            ordinates = Ordinates.AllOrdinates;
 
             var openParen = storeTypeName.IndexOf("(", StringComparison.Ordinal);
 
             var baseType = openParen > 0 ? storeTypeName.Substring(0, openParen).Trim() : storeTypeName;
 
-            if (baseType.Equals("geometry", StringComparison.OrdinalIgnoreCase))
+            if (baseType.Equals("GEOMETRY", StringComparison.OrdinalIgnoreCase))
                 isGeography = false;
-            else if (baseType.Equals("geography", StringComparison.OrdinalIgnoreCase))
+            else if (baseType.Equals("GEOGRAPHY", StringComparison.OrdinalIgnoreCase))
                 isGeography = true;
             else
                 return false;
@@ -83,19 +99,43 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             if (closeParen != storeTypeName.Length - 1)
                 return false;
 
-            string subTypeString;
             var comma = storeTypeName.IndexOf(",", openParen + 1, StringComparison.Ordinal);
             if (comma == -1)
-                subTypeString = storeTypeName.Substring(openParen + 1, closeParen - openParen - 1).Trim();
+                subtypeName = storeTypeName.Substring(openParen + 1, closeParen - openParen - 1).Trim();
             else
             {
-                subTypeString = storeTypeName.Substring(openParen + 1, comma - openParen - 1).Trim();
+                subtypeName = storeTypeName.Substring(openParen + 1, comma - openParen - 1).Trim();
 
                 if (!int.TryParse(storeTypeName.Substring(comma + 1, closeParen - comma - 1).Trim(), out srid))
                     return false;
             }
 
-            return SubTypeNameToClrType.TryGetValue(subTypeString, out clrType);
+            subtypeName = subtypeName.ToUpper();
+
+            // We have geometry(subtype, srid), parse the subtype (POINT, POINTZ, POINTM, POINTZM...)
+
+            if (TryGetClrType(subtypeName, out clrType))
+                return true;
+
+            if (subtypeName.EndsWith("ZM") && TryGetClrType(subtypeName.Substring(0, subtypeName.Length - 2), out clrType))
+            {
+                ordinates = Ordinates.XYZM;
+                return true;
+            }
+
+            if (subtypeName.EndsWith("M") && TryGetClrType(subtypeName.Substring(0, subtypeName.Length - 1), out clrType))
+            {
+                ordinates = Ordinates.XYM;
+                return true;
+            }
+
+            if (subtypeName.EndsWith("Z") && TryGetClrType(subtypeName.Substring(0, subtypeName.Length - 1), out clrType))
+            {
+                ordinates = Ordinates.XYZ;
+                return true;
+            }
+
+            return false;
         }
     }
 }

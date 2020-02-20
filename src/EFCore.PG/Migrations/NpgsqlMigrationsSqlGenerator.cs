@@ -263,6 +263,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             if (IsSystemColumn(operation.Name))
                 return;
 
+            if (operation[NpgsqlAnnotationNames.ValueGenerationStrategy] is NpgsqlValueGenerationStrategy strategy)
+            {
+                switch (strategy)
+                {
+                case NpgsqlValueGenerationStrategy.SerialColumn:
+                case NpgsqlValueGenerationStrategy.IdentityAlwaysColumn:
+                case NpgsqlValueGenerationStrategy.IdentityByDefaultColumn:
+                    // NB: This gets added to all added non-nullable columns by MigrationsModelDiffer. We need to suppress
+                    // it, here because PG can't have both IDENTITY/SERIAL and a DEFAULT constraint on the same column.
+                    operation.DefaultValue = null;
+                    break;
+                }
+            }
+
             base.Generate(operation, model, builder, terminate: false);
 
             if (operation.Comment != null)
@@ -1080,6 +1094,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             var valueGenerationStrategy = operation[NpgsqlAnnotationNames.ValueGenerationStrategy] as NpgsqlValueGenerationStrategy?;
             if (valueGenerationStrategy == NpgsqlValueGenerationStrategy.SerialColumn)
             {
+                if (operation.IsNullable)
+                    throw new NotSupportedException("SERIAL columns can't be nullable");
+
                 switch (operation.ColumnType)
                 {
                 case "int":

@@ -7,6 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="SourceLink.Create.CommandLine" Version="2.8.3" PrivateAssets="All" /> 
+    <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="All" />
   </ItemGroup>
 </Project>
