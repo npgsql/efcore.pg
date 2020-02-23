@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 using NpgsqlTypes;
+using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
@@ -31,20 +32,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
             return member.Name switch
             {
-                nameof(DateTime.Now)       => _sqlExpressionFactory.Function("NOW", Array.Empty<SqlExpression>(), returnType),
+                nameof(DateTime.Now)       => Now(),
                 nameof(DateTime.UtcNow)    =>
-                    _sqlExpressionFactory.AtTimeZone(
-                        _sqlExpressionFactory.Function("NOW", Array.Empty<SqlExpression>(), returnType),
-                        _sqlExpressionFactory.Constant("UTC"),
-                        returnType),
+                    _sqlExpressionFactory.AtTimeZone(Now(), _sqlExpressionFactory.Constant("UTC"), returnType),
 
                 nameof(DateTime.Today)     => _sqlExpressionFactory.Function(
                     "DATE_TRUNC",
-                    new SqlExpression[]
-                    {
-                        _sqlExpressionFactory.Constant("day"),
-                        _sqlExpressionFactory.Function("NOW", Array.Empty<SqlExpression>(), returnType)
-                    },
+                    new SqlExpression[] { _sqlExpressionFactory.Constant("day"), Now() },
+                    nullable: true,
+                    argumentsPropagateNullability: TrueArrays[2],
                     returnType),
 
                 nameof(DateTime.Year)      => GetDatePartExpression(instance, "year"),
@@ -58,9 +54,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 nameof(DateTime.Millisecond) => null, // Too annoying
 
                 // .NET's DayOfWeek is an enum, but its int values happen to correspond to PostgreSQL
-                nameof(DateTime.DayOfWeek) => GetDatePartExpression(instance, "dow", true),
+                nameof(DateTime.DayOfWeek) => GetDatePartExpression(instance, "dow", floor: true),
 
-                nameof(DateTime.Date) => _sqlExpressionFactory.Function("DATE_TRUNC", new[] { _sqlExpressionFactory.Constant("day"), instance }, returnType),
+                nameof(DateTime.Date) => _sqlExpressionFactory.Function(
+                    "DATE_TRUNC",
+                    new[] { _sqlExpressionFactory.Constant("day"), instance },
+                    nullable: true,
+                    argumentsPropagateNullability: TrueArrays[2],
+                    returnType),
 
                 // TODO: Technically possible simply via casting to PG time, should be better in EF Core 3.0
                 // but ExplicitCastExpression only allows casting to PG types that
@@ -73,6 +74,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
                 _ => null
             };
+
+            SqlFunctionExpression Now()
+                => _sqlExpressionFactory.Function(
+                    "NOW",
+                    Array.Empty<SqlExpression>(),
+                    nullable: false,
+                    argumentsPropagateNullability: TrueArrays[0],
+                    returnType);
         }
 
         /// <summary>
@@ -100,10 +109,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 {
                     _sqlExpressionFactory.Constant(partName),
                     instance
-                }, typeof(double));
+                },
+                nullable: true,
+                argumentsPropagateNullability: TrueArrays[2],
+                typeof(double));
 
             if (floor)
-                result = _sqlExpressionFactory.Function("FLOOR", new[] { result }, typeof(double));
+                result = _sqlExpressionFactory.Function(
+                    "FLOOR",
+                    new[] { result },
+                    nullable: true,
+                    argumentsPropagateNullability: TrueArrays[1],
+                    typeof(double));
 
             return _sqlExpressionFactory.Convert(result, typeof(int));
         }

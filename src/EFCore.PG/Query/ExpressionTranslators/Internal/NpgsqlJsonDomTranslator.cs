@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
+using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
@@ -101,7 +102,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             {
                 return _sqlExpressionFactory.Function(
                     mapping.IsJsonb ? "jsonb_array_length" : "json_array_length",
-                    new[] { instance }, typeof(int));
+                    new[] { instance },
+                    nullable: true,
+                    argumentsPropagateNullability: TrueArrays[1],
+                    typeof(int));
             }
 
             if (method.Name.StartsWith("TryGet") && arguments.Count == 0)

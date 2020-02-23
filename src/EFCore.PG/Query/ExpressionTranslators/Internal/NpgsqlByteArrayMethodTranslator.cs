@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -7,6 +6,7 @@ using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
+using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
@@ -55,6 +55,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                         "POSITION",
                         new[] { value, source },
                         new[] { "IN" },   // POSITION(x IN y)
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[2],
                         builtIn: true,
                         typeof(int),
                         null),

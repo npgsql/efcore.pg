@@ -587,6 +587,12 @@ FROM ""PointEntity"" AS p");
 FROM ""PointEntity"" AS p");
         }
 
+        [ConditionalTheory(Skip = "https://github.com/dotnet/efcore/issues/20030")]
+        public override Task Intersects_equal_to_null(bool async) => base.Intersects_equal_to_null(async);
+
+        [ConditionalTheory(Skip = "https://github.com/dotnet/efcore/issues/20030")]
+        public override Task Intersects_not_equal_to_null(bool async) => base.Intersects_not_equal_to_null(async);
+
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
         public virtual async Task Normalized(bool async)

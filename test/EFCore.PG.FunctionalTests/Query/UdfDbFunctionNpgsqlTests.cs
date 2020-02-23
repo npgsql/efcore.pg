@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
@@ -773,18 +774,46 @@ LIMIT 2");
                 // don't get any quotes. We remap it as non-built-in by including a (null) schema.
                 var isDateMethodInfo = typeof(UDFSqlContext).GetMethod(nameof(IsDateStatic));
                 modelBuilder.HasDbFunction(isDateMethodInfo)
-                    .HasTranslation(args => SqlFunctionExpression.Create((string)null, "IsDate", args, isDateMethodInfo.ReturnType, null));
+                    .HasTranslation(args => SqlFunctionExpression.Create(
+                        schema: null,
+                        "IsDate",
+                        args,
+                        nullable: true,
+                        argumentsPropagateNullability: args.Select(a => true).ToList(),
+                        isDateMethodInfo.ReturnType,
+                        typeMapping: null));
+
                 var isDateMethodInfo2 = typeof(UDFSqlContext).GetMethod(nameof(IsDateInstance));
                 modelBuilder.HasDbFunction(isDateMethodInfo2)
-                    .HasTranslation(args => SqlFunctionExpression.Create((string)null, "IsDate", args, isDateMethodInfo2.ReturnType, null));
+                    .HasTranslation(args => SqlFunctionExpression.Create(
+                        schema: null,
+                        "IsDate",
+                        args,
+                        nullable: true,
+                        argumentsPropagateNullability: args.Select(a => true).ToList(),
+                        isDateMethodInfo2.ReturnType,
+                        typeMapping: null));
 
                 // Base class maps to len(), but in PostgreSQL it's called length()
                 var methodInfo = typeof(UDFSqlContext).GetMethod(nameof(MyCustomLengthStatic));
                 modelBuilder.HasDbFunction(methodInfo)
-                    .HasTranslation(args => SqlFunctionExpression.Create("length", args, methodInfo.ReturnType, null));
+                    .HasTranslation(args => SqlFunctionExpression.Create(
+                        "length",
+                        args,
+                        nullable: true,
+                        argumentsPropagateNullability: args.Select(a => true).ToList(),
+                        methodInfo.ReturnType,
+                        typeMapping: null));
+
                 var methodInfo2 = typeof(UDFSqlContext).GetMethod(nameof(MyCustomLengthInstance));
                 modelBuilder.HasDbFunction(methodInfo2)
-                    .HasTranslation(args => SqlFunctionExpression.Create("length", args, methodInfo2.ReturnType, null));
+                    .HasTranslation(args => SqlFunctionExpression.Create(
+                        "length",
+                        args,
+                        nullable: true,
+                        argumentsPropagateNullability: args.Select(a => true).ToList(),
+                        methodInfo2.ReturnType,
+                        typeMapping: null));
             }
         }
 
