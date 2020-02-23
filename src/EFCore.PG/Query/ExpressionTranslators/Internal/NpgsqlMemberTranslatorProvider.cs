@@ -28,7 +28,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     new NpgsqlDateTimeMemberTranslator(npgsqlSqlExpressionFactory),
                     new NpgsqlRangeTranslator(npgsqlSqlExpressionFactory),
                     new NpgsqlJsonDomTranslator(npgsqlSqlExpressionFactory, typeMappingSource),
-                    JsonPocoTranslator
+                    JsonPocoTranslator,
+                    new NpgsqlTimeSpanMemberTranslator(npgsqlSqlExpressionFactory)
                 });
         }
     }
