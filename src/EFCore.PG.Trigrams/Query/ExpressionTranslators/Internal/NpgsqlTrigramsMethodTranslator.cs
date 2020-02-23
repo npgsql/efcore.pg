@@ -46,6 +46,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         readonly RelationalTypeMapping _boolMapping;
         readonly RelationalTypeMapping _floatMapping;
 
+        static readonly bool[][] TrueArrays =
+        {
+            Array.Empty<bool>(),
+            new[] { true },
+            new[] { true, true }
+        };
+
         public NpgsqlTrigramsMethodTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory, IRelationalTypeMappingSource typeMappingSource)
         {
             _sqlExpressionFactory = sqlExpressionFactory;
@@ -58,7 +65,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         public SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
         {
             if (Functions.TryGetValue(method, out var function))
-                return _sqlExpressionFactory.Function(function, arguments.Skip(1), method.ReturnType);
+                return _sqlExpressionFactory.Function(
+                    function,
+                    arguments.Skip(1),
+                    nullable: true,
+                    argumentsPropagateNullability: TrueArrays[arguments.Count - 1],
+                    method.ReturnType);
 
             if (BoolReturningOperators.TryGetValue(method, out var boolOperator))
                 return new SqlCustomBinaryExpression(

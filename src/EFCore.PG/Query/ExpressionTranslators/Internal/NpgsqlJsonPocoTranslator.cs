@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
+using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
@@ -64,7 +65,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             {
                 return _sqlExpressionFactory.Function(
                     mapping.IsJsonb ? "jsonb_array_length" : "json_array_length",
-                    new[] { expression }, typeof(int));
+                    new[] { expression },
+                    nullable: true,
+                    argumentsPropagateNullability: TrueArrays[2],
+                    typeof(int));
             }
 
             if (expression is JsonTraversalExpression traversal)
@@ -81,7 +85,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 var jsonMapping = (NpgsqlJsonTypeMapping)traversal.Expression.TypeMapping;
                 return _sqlExpressionFactory.Function(
                     jsonMapping.IsJsonb ? "jsonb_array_length" : "json_array_length",
-                    new[] { newTraversal }, typeof(int));
+                    new[] { newTraversal },
+                    nullable: true,
+                    argumentsPropagateNullability: TrueArrays[2],
+                    typeof(int));
             }
 
             return null;

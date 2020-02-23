@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
+using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
@@ -31,7 +32,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         [NotNull] static readonly MethodInfo EnumerableAnyWithoutPredicate =
             typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
                 .Single(mi => mi.Name == nameof(Enumerable.Any) && mi.GetParameters().Length == 1);
-
 
         [NotNull]
         readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
@@ -80,7 +80,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             {
                 return _sqlExpressionFactory.GreaterThan(
                     _jsonPocoTranslator.TranslateArrayLength(operand) ??
-                    _sqlExpressionFactory.Function("cardinality", arguments, typeof(int?)),
+                    _sqlExpressionFactory.Function(
+                        "cardinality",
+                        arguments,
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[1],
+                        typeof(int?)),
                     _sqlExpressionFactory.Constant(0));
             }
 
@@ -123,6 +128,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                             _sqlExpressionFactory.Function(
                                 "array_position",
                                 new[] { anyAll.Array, _sqlExpressionFactory.Fragment("NULL") },
+                                nullable: true,
+                                argumentsPropagateNullability: FalseArrays[2],
                                 typeof(int)))));
             }
 
@@ -139,7 +146,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 (instance.TypeMapping is NpgsqlArrayTypeMapping || instance.TypeMapping is null))
             {
                 return _jsonPocoTranslator.TranslateArrayLength(instance) ??
-                       _sqlExpressionFactory.Function("cardinality", new[] { instance }, typeof(int?));
+                       _sqlExpressionFactory.Function(
+                           "cardinality",
+                           new[] { instance },
+                           nullable: true,
+                           argumentsPropagateNullability: TrueArrays[1],
+                           typeof(int?));
             }
 
             return null;

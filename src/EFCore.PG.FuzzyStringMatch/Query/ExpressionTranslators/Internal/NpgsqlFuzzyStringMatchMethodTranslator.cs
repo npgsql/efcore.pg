@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
@@ -31,13 +30,29 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
         readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
 
+        static readonly bool[][] TrueArrays =
+        {
+            Array.Empty<bool>(),
+            new[] { true },
+            new[] { true, true },
+            new[] { true, true, true },
+            new[] { true, true, true, true },
+            new[] { true, true, true, true, true },
+            new[] { true, true, true, true, true, true }
+        };
+
         public NpgsqlFuzzyStringMatchMethodTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory, IRelationalTypeMappingSource typeMappingSource)
             => _sqlExpressionFactory = sqlExpressionFactory;
 
         /// <inheritdoc />
         public SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
             => Functions.TryGetValue(method, out var function)
-                ? _sqlExpressionFactory.Function(function, arguments.Skip(1), method.ReturnType)
+                ? _sqlExpressionFactory.Function(
+                    function,
+                    arguments.Skip(1),
+                    nullable: true,
+                    argumentsPropagateNullability: TrueArrays[arguments.Count - 1],
+                    method.ReturnType)
                 : null;
     }
 }

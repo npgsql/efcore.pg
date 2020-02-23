@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -11,6 +10,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Extensions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
+using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
@@ -54,7 +54,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             {
                 return _sqlExpressionFactory.Function(
                     ((NpgsqlJsonTypeMapping)args[0].TypeMapping).IsJsonb ? "jsonb_typeof" : "json_typeof",
-                    new[] { args[0] }, typeof(string));
+                    new[] { args[0] },
+                    nullable: true,
+                    argumentsPropagateNullability: TrueArrays[1],
+                    typeof(string));
             }
 
             // The following are jsonb-only, not support on json

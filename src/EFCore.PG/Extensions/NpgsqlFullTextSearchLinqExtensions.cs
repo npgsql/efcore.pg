@@ -83,7 +83,7 @@ namespace Microsoft.EntityFrameworkCore
             string options) => throw new NotSupportedException();
 
         /// <summary>
-        /// Searchs <paramref name="query" /> for occurrences of <paramref name="target" />, and replaces
+        /// Searches <paramref name="query" /> for occurrences of <paramref name="target" />, and replaces
         /// each occurrence with a <paramref name="substitute" />. All parameters are of type tsquery.
         /// http://www.postgresql.org/docs/current/static/textsearch-features.html#TEXTSEARCH-MANIPULATE-TSQUERY
         /// </summary>

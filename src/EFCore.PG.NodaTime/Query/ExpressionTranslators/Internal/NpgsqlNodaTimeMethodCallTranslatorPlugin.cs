@@ -59,6 +59,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
             //{ typeof(Period).GetRuntimeMethod(nameof(Period.FromNanoseconds),  new[] { typeof(long) }), "" },
         };
 
+        static readonly bool[][] TrueArrays =
+        {
+            Array.Empty<bool>(),
+            new[] { true },
+            new[] { true, true },
+        };
+
         public NpgsqlNodaTimeMethodCallTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory)
             => _sqlExpressionFactory = sqlExpressionFactory;
 
@@ -70,7 +77,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
             if (method == GetCurrentInstant)
             {
                 return _sqlExpressionFactory.AtTimeZone(
-                    _sqlExpressionFactory.Function("NOW", Array.Empty<SqlExpression>(), method.ReturnType),
+                    _sqlExpressionFactory.Function(
+                        "NOW",
+                        Array.Empty<SqlExpression>(),
+                        nullable: false,
+                        argumentsPropagateNullability: Array.Empty<bool>(),
+                        method.ReturnType),
                     _sqlExpressionFactory.Constant("UTC"),
                     method.ReturnType);
             }
@@ -83,9 +95,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
                         "MAKE_INTERVAL",
                         new[] { _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[0]) },
                         new[] { datePart },
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[1],
                         builtIn: true,
                         typeof(Period),
-                        null)
+                        typeMapping: null)
                     : null;
             }
             return null;

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
@@ -17,6 +16,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using ExpressionExtensions = Microsoft.EntityFrameworkCore.Query.ExpressionExtensions;
+using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 {
@@ -77,7 +77,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 
             return _sqlExpressionFactory.Convert(
                 _sqlExpressionFactory.ApplyDefaultTypeMapping(
-                    _sqlExpressionFactory.Function("COUNT", new[] { _sqlExpressionFactory.Fragment("*") }, typeof(long))),
+                    _sqlExpressionFactory.Function("COUNT",
+                        new[] { _sqlExpressionFactory.Fragment("*") },
+                        nullable: false,
+                        argumentsPropagateNullability: FalseArrays[1],
+                        typeof(long))),
                 typeof(int), _sqlExpressionFactory.FindMapping(typeof(int)));
         }
 
@@ -95,17 +99,33 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             // Note that there is no Sum over short in LINQ
             if (inputType == typeof(int))
                 return _sqlExpressionFactory.Convert(
-                    _sqlExpressionFactory.Function("SUM", new[] { sqlExpression }, typeof(long)),
+                    _sqlExpressionFactory.Function(
+                        "SUM",
+                        new[] { sqlExpression },
+                        nullable: true,
+                        argumentsPropagateNullability: FalseArrays[1],
+                        typeof(long)),
                     inputType,
                     sqlExpression.TypeMapping);
 
             if (inputType == typeof(long))
                 return _sqlExpressionFactory.Convert(
-                    _sqlExpressionFactory.Function("SUM", new[] { sqlExpression }, typeof(decimal)),
+                    _sqlExpressionFactory.Function(
+                        "SUM",
+                        new[] { sqlExpression },
+                        nullable: true,
+                        argumentsPropagateNullability: FalseArrays[1],
+                        typeof(decimal)),
                     inputType,
                     sqlExpression.TypeMapping);
 
-            return _sqlExpressionFactory.Function("SUM", new[] { sqlExpression }, inputType, sqlExpression.TypeMapping);
+            return _sqlExpressionFactory.Function(
+                "SUM",
+                new[] { sqlExpression },
+                nullable: true,
+                argumentsPropagateNullability: FalseArrays[1],
+                inputType,
+                sqlExpression.TypeMapping);
         }
 
         /// <inheritdoc />
@@ -124,13 +144,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                     return SqlExpressionFactory.Function(
                         "LENGTH",
                         new[] { sqlOperand },
-                        nullResultAllowed: true,
-                        argumentsPropagateNullability: new bool[] { true },
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[1],
                         typeof(int));
                 }
 
                 return _jsonPocoTranslator.TranslateArrayLength(sqlOperand) ??
-                       _sqlExpressionFactory.Function("cardinality", new[] { sqlOperand }, typeof(int?));
+                       _sqlExpressionFactory.Function(
+                           "cardinality",
+                           new[] { sqlOperand },
+                           nullable: true,
+                           argumentsPropagateNullability: TrueArrays[1],
+                           typeof(int?));
             }
 
             return base.VisitUnary(unaryExpression);
@@ -285,6 +310,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                             _sqlExpressionFactory.ApplyDefaultTypeMapping(sqlLeft),
                             _sqlExpressionFactory.ApplyDefaultTypeMapping(sqlRight)
                         },
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[2],
                         typeof(byte),
                         _sqlExpressionFactory.FindMapping(typeof(byte))
                     );
