@@ -198,7 +198,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 
             var sequences = model.GetSequences();
 
-            Assert.Equal(2, sequences.Count);
+            Assert.Equal(2, sequences.Count());
             Assert.Contains(sequences, s => s.Name == "Fibonacci");
             Assert.Contains(sequences, s => s.Name == "Golomb");
         }
@@ -215,7 +215,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 
             var sequences = model.GetSequences();
 
-            Assert.Equal(2, sequences.Count);
+            Assert.Equal(2, sequences.Count());
             Assert.Contains(sequences, s => s.Name == "Golomb");
 
             var sequence = sequences.FirstOrDefault(s => s.Name == "Fibonacci");

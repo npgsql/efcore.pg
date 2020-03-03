@@ -204,6 +204,7 @@ FROM ""PointEntity"" AS p");
         public override Task InteriorPoint(bool async)                   => Task.CompletedTask;
         public override Task LineString_Count(bool async)                => Task.CompletedTask;
         public override Task M(bool async)                               => Task.CompletedTask;
+        public override Task Normalized(bool async)                      => Task.CompletedTask;
         public override Task NumGeometries(bool async)                   => Task.CompletedTask;
         public override Task NumInteriorRings(bool async)                => Task.CompletedTask;
         public override Task NumPoints(bool async)                       => Task.CompletedTask;
