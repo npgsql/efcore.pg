@@ -5,6 +5,7 @@ using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
+using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
@@ -105,24 +106,45 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 if (arguments.Count == 2)
                     newArguments[1] = _sqlExpressionFactory.ApplyTypeMapping(arguments[1], typeMapping);
 
-                return _sqlExpressionFactory.Function(sqlFunctionName, newArguments, method.ReturnType, typeMapping);
+                // Note: GREATER/LEAST only return NULL if *all* arguments are null, but we currently can't
+                // convey this.
+                return _sqlExpressionFactory.Function(
+                    sqlFunctionName,
+                    newArguments,
+                    nullable: true,
+                    argumentsPropagateNullability: TrueArrays[newArguments.Length],
+                    method.ReturnType,
+                    typeMapping);
             }
 
             // PostgreSQL sign() returns 1, 0, -1, but in the same type as the argument, so we need to convert
             // the return type to int.
             if (SignMethodInfos.Contains(method))
-                return _sqlExpressionFactory.Convert(
-                    _sqlExpressionFactory.Function("SIGN", arguments, method.ReturnType),
-                    typeof(int), _sqlExpressionFactory.FindMapping(typeof(int)));
+            {
+                return
+                    _sqlExpressionFactory.Convert(
+                        _sqlExpressionFactory.Function(
+                            "SIGN",
+                            arguments,
+                            nullable: true,
+                            argumentsPropagateNullability: TrueArrays[1],
+                            method.ReturnType),
+                        typeof(int),
+                        _sqlExpressionFactory.FindMapping(typeof(int)));
+            }
 
             if (method == RoundDecimalTwoParams)
+            {
                 return _sqlExpressionFactory.Function("ROUND", new[]
                     {
                         _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[0]),
                         _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[1])
                     },
+                    nullable: true,
+                    argumentsPropagateNullability: TrueArrays[2],
                     method.ReturnType,
                     _sqlExpressionFactory.FindMapping(typeof(decimal)));
+            }
 
             return null;
         }

@@ -47,6 +47,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                             _sqlExpressionFactory.Constant(0),
                             arguments[1]
                         },
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[3],
                         typeof(byte[]),
                         typeMapping);
 
