@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Net;
@@ -9,6 +10,7 @@ using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
+using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
@@ -104,23 +106,36 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     arguments[1].Type,
                     _sqlExpressionFactory.FindMapping(typeof(long))),
 
-            nameof(NpgsqlNetworkExtensions.Abbreviate)    => _sqlExpressionFactory.Function("abbrev",           new[] { arguments[1] }, typeof(string)),
-            nameof(NpgsqlNetworkExtensions.Broadcast)     => _sqlExpressionFactory.Function("broadcast",        new[] { arguments[1] }, typeof(IPAddress), _inetMapping),
-            nameof(NpgsqlNetworkExtensions.Family)        => _sqlExpressionFactory.Function("family",           new[] { arguments[1] }, typeof(int)),
-            nameof(NpgsqlNetworkExtensions.Host)          => _sqlExpressionFactory.Function("host",             new[] { arguments[1] }, typeof(string)),
-            nameof(NpgsqlNetworkExtensions.HostMask)      => _sqlExpressionFactory.Function("hostmask",         new[] { arguments[1] }, typeof(IPAddress), _inetMapping),
-            nameof(NpgsqlNetworkExtensions.MaskLength)    => _sqlExpressionFactory.Function("masklen",          new[] { arguments[1] }, typeof(int)),
-            nameof(NpgsqlNetworkExtensions.Netmask)       => _sqlExpressionFactory.Function("netmask",          new[] { arguments[1] }, typeof(IPAddress), _inetMapping),
-            nameof(NpgsqlNetworkExtensions.Network)       => _sqlExpressionFactory.Function("network",          new[] { arguments[1] }, typeof((IPAddress Address, int Subnet)), _cidrMapping),
-            nameof(NpgsqlNetworkExtensions.SetMaskLength) => _sqlExpressionFactory.Function("set_masklen",      new[] { arguments[1], arguments[2] }, arguments[1].Type, arguments[1].TypeMapping),
-            nameof(NpgsqlNetworkExtensions.Text)          => _sqlExpressionFactory.Function("text",             new[] { arguments[1] }, typeof(string)),
-            nameof(NpgsqlNetworkExtensions.SameFamily)    => _sqlExpressionFactory.Function("inet_same_family", new[] { arguments[1], arguments[2] }, typeof(bool)),
-            nameof(NpgsqlNetworkExtensions.Merge)         => _sqlExpressionFactory.Function("inet_merge",       new[] { arguments[1], arguments[2] }, typeof((IPAddress Address, int Subnet)), _cidrMapping),
-            nameof(NpgsqlNetworkExtensions.Truncate)      => _sqlExpressionFactory.Function("trunc",            new[] { arguments[1] }, typeof(PhysicalAddress), arguments[1].TypeMapping),
-            nameof(NpgsqlNetworkExtensions.Set7BitMac8)   => _sqlExpressionFactory.Function("macaddr8_set7bit", new[] { arguments[1] }, typeof(PhysicalAddress), _macaddr8Mapping),
+            nameof(NpgsqlNetworkExtensions.Abbreviate)    => NullPropagatingFunction("abbrev",           new[] { arguments[1] }, typeof(string)),
+            nameof(NpgsqlNetworkExtensions.Broadcast)     => NullPropagatingFunction("broadcast",        new[] { arguments[1] }, typeof(IPAddress), _inetMapping),
+            nameof(NpgsqlNetworkExtensions.Family)        => NullPropagatingFunction("family",           new[] { arguments[1] }, typeof(int)),
+            nameof(NpgsqlNetworkExtensions.Host)          => NullPropagatingFunction("host",             new[] { arguments[1] }, typeof(string)),
+            nameof(NpgsqlNetworkExtensions.HostMask)      => NullPropagatingFunction("hostmask",         new[] { arguments[1] }, typeof(IPAddress), _inetMapping),
+            nameof(NpgsqlNetworkExtensions.MaskLength)    => NullPropagatingFunction("masklen",          new[] { arguments[1] }, typeof(int)),
+            nameof(NpgsqlNetworkExtensions.Netmask)       => NullPropagatingFunction("netmask",          new[] { arguments[1] }, typeof(IPAddress), _inetMapping),
+            nameof(NpgsqlNetworkExtensions.Network)       => NullPropagatingFunction("network",          new[] { arguments[1] }, typeof((IPAddress Address, int Subnet)), _cidrMapping),
+            nameof(NpgsqlNetworkExtensions.SetMaskLength) => NullPropagatingFunction("set_masklen",      new[] { arguments[1], arguments[2] }, arguments[1].Type, arguments[1].TypeMapping),
+            nameof(NpgsqlNetworkExtensions.Text)          => NullPropagatingFunction("text",             new[] { arguments[1] }, typeof(string)),
+            nameof(NpgsqlNetworkExtensions.SameFamily)    => NullPropagatingFunction("inet_same_family", new[] { arguments[1], arguments[2] }, typeof(bool)),
+            nameof(NpgsqlNetworkExtensions.Merge)         => NullPropagatingFunction("inet_merge",       new[] { arguments[1], arguments[2] }, typeof((IPAddress Address, int Subnet)), _cidrMapping),
+            nameof(NpgsqlNetworkExtensions.Truncate)      => NullPropagatingFunction("trunc",            new[] { arguments[1] }, typeof(PhysicalAddress), arguments[1].TypeMapping),
+            nameof(NpgsqlNetworkExtensions.Set7BitMac8)   => NullPropagatingFunction("macaddr8_set7bit", new[] { arguments[1] }, typeof(PhysicalAddress), _macaddr8Mapping),
 
             _ => (SqlExpression)null
             };
+
+            SqlFunctionExpression NullPropagatingFunction(
+                string name,
+                SqlExpression[] arguments,
+                Type returnType,
+                RelationalTypeMapping typeMapping = null)
+                => _sqlExpressionFactory.Function(
+                    name,
+                    arguments,
+                    nullable: true,
+                    argumentsPropagateNullability: TrueArrays[arguments.Length],
+                    returnType,
+                    typeMapping);
 
             SqlCustomBinaryExpression BoolReturningOnTwoNetworkTypes(string @operator)
                 => new SqlCustomBinaryExpression(

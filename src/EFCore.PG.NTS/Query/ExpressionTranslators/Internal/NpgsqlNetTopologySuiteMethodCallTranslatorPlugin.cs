@@ -44,14 +44,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             new[] { true, true, true }
         };
 
-        static readonly bool[][] FalseArrays =
-        {
-            Array.Empty<bool>(),
-            new[] { false },
-            new[] { false, false },
-            new[] { false, false, false }
-        };
-
         public NpgsqlGeometryMethodTranslator(ISqlExpressionFactory sqlExpressionFactory, IRelationalTypeMappingSource typeMappingSource)
         {
             _sqlExpressionFactory = sqlExpressionFactory;
@@ -93,6 +85,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 return _sqlExpressionFactory.Function(
                     "ST_GeometryN",
                     new[] { instance, OneBased(arguments[0]) },
+                    nullable: true,
+                    argumentsPropagateNullability: TrueArrays[2],
                     method.ReturnType,
                     _typeMappingSource.FindMapping(typeof(Geometry), instance.TypeMapping.StoreType));
             }
@@ -134,22 +128,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             _ => null
             };
 
-            SqlFunctionExpression Function(
-                string name,
-                SqlExpression[] arguments,
-                Type returnType,
-                RelationalTypeMapping typeMapping = null)
-                => _sqlExpressionFactory.Function(
-                    name,
-                    arguments,
-                    // Bool-returning functions don't propagate nulls, but return false instead.
-                    // Other functions propagate nulls in the standard way
-                    nullable: returnType != typeof(bool),
-                    argumentsPropagateNullability: returnType == typeof(bool)
-                        ? FalseArrays[arguments.Length]
-                        : TrueArrays[arguments.Length],
-                    returnType,
-                    typeMapping);
+            SqlFunctionExpression Function(string name, SqlExpression[] arguments, Type returnType, RelationalTypeMapping typeMapping = null)
+                => _sqlExpressionFactory.Function(name, arguments,
+                    nullable: true, argumentsPropagateNullability: TrueArrays[arguments.Length],
+                    returnType, typeMapping);
 
             // NetTopologySuite uses 0-based indexing, but PostGIS uses 1-based
             SqlExpression OneBased(SqlExpression arg)

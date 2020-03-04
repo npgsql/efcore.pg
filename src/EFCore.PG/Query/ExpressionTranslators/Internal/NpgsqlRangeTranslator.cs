@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using NpgsqlTypes;
+using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
@@ -48,6 +49,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                         _sqlExpressionFactory.ApplyTypeMapping(arguments[0], inferredMapping),
                         _sqlExpressionFactory.ApplyTypeMapping(arguments[1], inferredMapping)
                     },
+                    nullable: true,
+                    argumentsPropagateNullability: TrueArrays[2],
                     method.ReturnType,
                     inferredMapping);
             }
@@ -120,27 +123,40 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     : _sqlExpressionFactory.FindMapping(returnType);
 
                 var accessorName = member.Name == nameof(NpgsqlRange<int>.LowerBound) ? "lower" : "upper";
-                var accessor = _sqlExpressionFactory.Function(accessorName, new[] { instance }, returnType, typeMapping);
+                var accessor = _sqlExpressionFactory.Function(
+                    accessorName,
+                    new[] { instance },
+                    nullable: true,
+                    argumentsPropagateNullability: TrueArrays[1],
+                    returnType,
+                    typeMapping);
 
                 return returnType.IsNullableType()
                     ? accessor
-                    : _sqlExpressionFactory.Function(
-                        "COALESCE",
-                        new SqlExpression[] { accessor, _sqlExpressionFactory.Constant(GetDefaultValue(returnType)) },
-                        returnType,
+                    : _sqlExpressionFactory.Coalesce(
+                        accessor,
+                        _sqlExpressionFactory.Constant(GetDefaultValue(returnType)),
                         typeMapping);
             }
 
             return member.Name switch
             {
-            nameof(NpgsqlRange<int>.IsEmpty)               => _sqlExpressionFactory.Function("isempty",   new[] { instance }, returnType, _boolMapping),
-            nameof(NpgsqlRange<int>.LowerBoundIsInclusive) => _sqlExpressionFactory.Function("lower_inc", new[] { instance }, returnType, _boolMapping),
-            nameof(NpgsqlRange<int>.UpperBoundIsInclusive) => _sqlExpressionFactory.Function("upper_inc", new[] { instance }, returnType, _boolMapping),
-            nameof(NpgsqlRange<int>.LowerBoundInfinite)    => _sqlExpressionFactory.Function("lower_inf", new[] { instance }, returnType, _boolMapping),
-            nameof(NpgsqlRange<int>.UpperBoundInfinite)    => _sqlExpressionFactory.Function("upper_inf", new[] { instance }, returnType, _boolMapping),
+            nameof(NpgsqlRange<int>.IsEmpty)               => SingleArgBoolFunction("isempty", instance),
+            nameof(NpgsqlRange<int>.LowerBoundIsInclusive) => SingleArgBoolFunction("lower_inc", instance),
+            nameof(NpgsqlRange<int>.UpperBoundIsInclusive) => SingleArgBoolFunction("upper_inc", instance),
+            nameof(NpgsqlRange<int>.LowerBoundInfinite)    => SingleArgBoolFunction("lower_inf", instance),
+            nameof(NpgsqlRange<int>.UpperBoundInfinite)    => SingleArgBoolFunction("upper_inf", instance),
 
             _ => null
             };
+
+            SqlFunctionExpression SingleArgBoolFunction(string name, SqlExpression argument)
+                => _sqlExpressionFactory.Function(
+                    name,
+                    new[] { argument },
+                    nullable: true,
+                    argumentsPropagateNullability: TrueArrays[1],
+                    typeof(bool));
         }
 
         static readonly ConcurrentDictionary<Type, object> _defaults = new ConcurrentDictionary<Type, object>();

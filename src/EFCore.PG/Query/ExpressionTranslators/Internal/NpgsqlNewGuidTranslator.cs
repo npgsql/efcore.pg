@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
+using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
@@ -24,7 +25,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
         public SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
             => MethodInfo.Equals(method)
-                ? _sqlExpressionFactory.Function("uuid_generate_v4", Array.Empty<SqlExpression>(), method.ReturnType)
+                ? _sqlExpressionFactory.Function(
+                    "uuid_generate_v4",
+                    Array.Empty<SqlExpression>(),
+                    nullable: false,
+                    argumentsPropagateNullability: FalseArrays[0],
+                    method.ReturnType)
                 : null;
     }
 }

@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
+using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
@@ -79,6 +80,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                             _sqlExpressionFactory.ApplyTypeMapping(instance, stringTypeMapping),
                             _sqlExpressionFactory.ApplyTypeMapping(argument, stringTypeMapping)
                         },
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[2],
                         method.ReturnType),
                     _sqlExpressionFactory.Constant(1));
             }
@@ -97,6 +100,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                         _sqlExpressionFactory.ApplyTypeMapping(oldValue, stringTypeMapping),
                         _sqlExpressionFactory.ApplyTypeMapping(newValue, stringTypeMapping)
                     },
+                    nullable: true,
+                    argumentsPropagateNullability: TrueArrays[3],
                     method.ReturnType,
                     stringTypeMapping);
             }
@@ -106,6 +111,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 return _sqlExpressionFactory.Function(
                     method == ToLower ? "LOWER" : "UPPER",
                     new[] { instance },
+                    nullable: true,
+                    argumentsPropagateNullability: TrueArrays[1],
                     method.ReturnType,
                     instance.TypeMapping);
             }
@@ -119,6 +126,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 return _sqlExpressionFactory.Function(
                     "SUBSTRING",
                     args,
+                    nullable: true,
+                    argumentsPropagateNullability: TrueArrays[args.Length],
                     method.ReturnType,
                     instance.TypeMapping);
             }
@@ -137,6 +146,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                                 argument,
                                 _whitespace
                             },
+                            nullable: true,
+                            argumentsPropagateNullability: TrueArrays[2],
                             argument.Type,
                             argument.TypeMapping),
                         _sqlExpressionFactory.Constant(string.Empty, argument.TypeMapping)));
@@ -171,6 +182,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                             ? _whitespace
                             : _sqlExpressionFactory.Constant(new string(trimChars))
                     },
+                    nullable: true,
+                    argumentsPropagateNullability: TrueArrays[2],
                     instance.Type,
                     instance.TypeMapping);
             }
@@ -190,6 +203,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                             _sqlExpressionFactory.ApplyTypeMapping(instance, stringTypeMapping),
                             _sqlExpressionFactory.ApplyTypeMapping(pattern, stringTypeMapping)
                         },
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[2],
                         typeof(int)),
                     _sqlExpressionFactory.Constant(0));
 
@@ -217,6 +232,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 return _sqlExpressionFactory.Function(
                     method == PadLeft || method == PadLeftWithChar ? "lpad" : "rpad",
                     args,
+                    nullable: true,
+                    argumentsPropagateNullability: TrueArrays[args.Length],
                     instance.Type,
                     instance.TypeMapping);
             }
@@ -258,8 +275,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 new[]
                 {
                     instance,
-                    _sqlExpressionFactory.Function("LENGTH", new[] { pattern }, typeof(int))
+                    _sqlExpressionFactory.Function(
+                        "LENGTH",
+                        new[] { pattern },
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[1],
+                        typeof(int))
                 },
+                nullable: true,
+                argumentsPropagateNullability: TrueArrays[2],
                 typeof(string),
                 stringTypeMapping);
 

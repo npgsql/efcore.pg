@@ -385,7 +385,7 @@ LIMIT 2");
             AssertSql(
                 @"SELECT dbo.""IdentityString""(c.""FirstName"")
 FROM ""Orders"" AS o
-LEFT JOIN ""Customers"" AS c ON o.""CustomerId"" = c.""Id""
+INNER JOIN ""Customers"" AS c ON o.""CustomerId"" = c.""Id""
 ORDER BY o.""Id""
 LIMIT 1");
         }
@@ -759,6 +759,45 @@ LIMIT 2");
 
         #endregion
 
+        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/pull/20138")]
+        public override void QF_CrossJoin_Not_Correlated() {}
+
+        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/pull/20138")]
+        public override void QF_CrossJoin_Parameter() {}
+
+        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/pull/20138")]
+        public override void QF_Join() {}
+
+        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/pull/20138")]
+        public override void QF_LeftJoin_Select_Anonymous() {}
+
+        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/pull/20138")]
+        public override void QF_LeftJoin_Select_Result() {}
+
+        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/pull/20138")]
+        public override void QF_Select_Correlated_Subquery_In_Anonymous_MultipleCollections() {}
+
+        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/pull/20138")]
+        public override void QF_Select_NonCorrelated_Subquery_In_Anonymous() {}
+
+        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/pull/20138")]
+        public override void QF_Select_NonCorrelated_Subquery_In_Anonymous_Parameter() {}
+
+        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/pull/20138")]
+        public override void QF_Stand_Alone() {}
+
+        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/pull/20138")]
+        public override void QF_Stand_Alone_Parameter() {}
+
+        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/pull/20138")]
+        public override void QF_Stand_Alone_With_Translation() {}
+
+        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/pull/20138")]
+        public override void QF_Select_Correlated_Subquery_In_Anonymous_Nested() {}
+
+        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/pull/20138")]
+        public override void QF_Select_Direct_In_Anonymous() {}
+
         protected class NpgsqlUDFSqlContext : UDFSqlContext
         {
             public NpgsqlUDFSqlContext(DbContextOptions options)
@@ -883,6 +922,63 @@ LIMIT 2");
                                                     AS $$ SELECT $1 $$
                                                     LANGUAGE SQL");
 
+                context.Database.ExecuteSqlRaw(@"
+                    CREATE FUNCTION ""GetCustomerOrderCountByYear""(""customerId"" INT)
+                    RETURNS TABLE (""CustomerId"" INT, ""Count"" INT, ""Year"" INT)
+                    AS $$
+                    SELECT ""CustomerId"", COUNT(""Id"")::INT, EXTRACT(year FROM ""OrderDate"")::INT
+                        FROM ""Orders""
+                        WHERE ""CustomerId"" = $1
+                        GROUP BY ""CustomerId"", EXTRACT(year FROM ""OrderDate"")
+                        ORDER BY EXTRACT(year FROM ""OrderDate"")
+                    $$ LANGUAGE SQL");
+
+                 context.Database.ExecuteSqlRaw(@"
+                    CREATE FUNCTION ""GetTopTwoSellingProducts""()
+                    RETURNS TABLE (""ProductId"" INT, ""AmountSold"" INT)
+                    AS $$
+                        SELECT ""ProductId"", SUM(""Quantity"")::INT AS ""totalSold""
+                        FROM ""LineItem""
+                        GROUP BY ""ProductId""
+                        ORDER BY ""totalSold"" DESC
+                        LIMIT 2
+                    $$ LANGUAGE SQL");
+
+                 context.Database.ExecuteSqlRaw(@"
+                    CREATE FUNCTION ""GetOrdersWithMultipleProducts""(""customerId"" INT)
+                    RETURNS TABLE (""OrderId"" INT, ""CustomerId"" INT, ""OrderDate"" TIMESTAMP)
+                    AS $$
+                        SELECT o.""Id"", $1, ""OrderDate""
+                        FROM ""Orders"" AS o
+                        JOIN ""LineItem"" li ON o.""Id"" = li.""OrderId""
+                        WHERE o.""CustomerId"" = $1
+                        GROUP BY o.""Id"", ""OrderDate""
+                        HAVING COUNT(""ProductId"") > 1
+                    $$ LANGUAGE SQL");
+
+                 context.Database.ExecuteSqlRaw(@"
+                    CREATE FUNCTION ""GetCreditCards"" (""customerId"" INT)
+                    RETURNS TABLE (""Id"" INT, ""CreditCard_CreditCardType"" INT, ""CreditCard_Number"" TEXT)
+                    AS $$
+                        SELECT ""Id"", ""CreditCard_CreditCardType"", ""CreditCard_Number""
+                        FROM ""Customers"" AS c
+                        WHERE c.""CreditCard_CreditCardType"" IS NOT NULL AND c.""CreditCard_Number"" IS NOT NULL
+                            AND c.""Id"" = $1
+                    $$ LANGUAGE SQL");
+
+                 context.Database.ExecuteSqlRaw(@"
+                    CREATE FUNCTION""GetPhoneInformation"" (""customerId"" INT, ""areaCode"" VARCHAR(3))
+                    RETURNS TABLE (""PhoneType"" INT, ""Number"" TEXT, ""CustomerId"" INT, ""Id"" INT)
+                    AS $$
+                        SELECT ""PhoneType"", ""Number"", ""CustomerId"", ""Id""
+                        FROM ""PhoneInformation"" AS pi
+                        WHERE pi.""CustomerId"" = $1 AND POSITION($2 IN pi.""Number"") = 1
+                    $$ LANGUAGE SQL");
+
+                 context.Database.ExecuteSqlRaw(@"
+                    CREATE FUNCTION ""AddValues"" (a INT, b INT) RETURNS INT
+                    AS $$ SELECT $1 + $2 $$ LANGUAGE SQL");
+
                 context.Database.ExecuteSqlRaw(
                     @"CREATE FUNCTION ""IsDate""(s TEXT)
                                                     RETURNS BOOLEAN AS $$
@@ -893,6 +989,7 @@ LIMIT 2");
                                                         RETURN FALSE;
                                                     END;
                                                     $$ LANGUAGE PLPGSQL;");
+
                 context.SaveChanges();
             }
         }
