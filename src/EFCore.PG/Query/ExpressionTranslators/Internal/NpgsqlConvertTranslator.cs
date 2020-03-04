@@ -16,6 +16,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         {
             [nameof(Convert.ToBoolean)] = "bool",
             [nameof(Convert.ToByte)]    = "smallint",
+            [nameof(Convert.ToDateTime)]    = "timestamp with time zone",
             [nameof(Convert.ToDecimal)] = "numeric",
             [nameof(Convert.ToDouble)]  = "double precision",
             [nameof(Convert.ToInt16)]   = "smallint",
@@ -28,6 +29,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         {
             typeof(bool),
             typeof(byte),
+            typeof(DateTime),
             typeof(decimal),
             typeof(double),
             typeof(float),
