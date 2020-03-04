@@ -6,6 +6,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using NpgsqlTypes;
 using System.Linq.Expressions;
 using System.Reflection;
+using NodaTime.TimeZones;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Utilties.Util;
 
 // ReSharper disable once CheckNamespace
@@ -32,9 +33,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         protected override string GenerateNonNullSqlLiteral(object value)
             => $"TIMESTAMP '{InstantPattern.ExtendedIso.Format((Instant)value)}'";
 
-        // GenerateCodeLiteral isn't implemented because round-tripping Instant would require rendering an expression such as
-        // NodaConstants.UnixEpoch + Duration.FromNanoseconds(nanoseconds), which isn't currently supported by EF Core's code
-        // generator
+        public override Expression GenerateCodeLiteral(object value)
+            => GenerateCodeLiteral((Instant)value);
+
+        internal static Expression GenerateCodeLiteral(Instant instant)
+            => Expression.Call(FromUnixTimeTicks, Expression.Constant(instant.ToUnixTimeTicks()));
+
+        static readonly MethodInfo FromUnixTimeTicks
+            = typeof(Instant).GetRuntimeMethod(nameof(Instant.FromUnixTimeTicks), new[] { typeof(long) });
     }
 
     public class TimestampLocalDateTimeMapping : NpgsqlTypeMapping
@@ -103,9 +109,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         protected override string GenerateNonNullSqlLiteral(object value)
             => $"TIMESTAMPTZ '{InstantPattern.ExtendedIso.Format((Instant)value)}'";
 
-        // GenerateCodeLiteral isn't implemented because round-tripping Instant would require rendering an expression such as
-        // NodaConstants.UnixEpoch + Duration.FromNanoseconds(nanoseconds), which isn't currently supported by EF Core's code
-        // generator
+        public override Expression GenerateCodeLiteral(object value)
+            => TimestampInstantMapping.GenerateCodeLiteral((Instant)value);
     }
 
     public class TimestampTzOffsetDateTimeMapping : NpgsqlTypeMapping
@@ -172,8 +177,31 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         protected override string GenerateNonNullSqlLiteral(object value)
             => $"TIMESTAMPTZ '{Pattern.Format((ZonedDateTime)value)}'";
 
-        // GenerateCodeLiteral isn't implemented because round-tripping DateTimeZone would require a property access into
-        // DateTimeZoneProviders, which isn't currently supported by EF Core's code generator
+        public override Expression GenerateCodeLiteral(object value)
+        {
+            var zonedDateTime = (ZonedDateTime)value;
+
+            return Expression.New(
+                Constructor,
+                TimestampInstantMapping.GenerateCodeLiteral(zonedDateTime.ToInstant()),
+                Expression.Call(
+                    Expression.MakeMemberAccess(
+                        null,
+                        TzdbDateTimeZoneSourceDefaultMember),
+                    ForIdMethod,
+                    Expression.Constant(zonedDateTime.Zone.Id)));
+        }
+
+        static readonly ConstructorInfo Constructor =
+            typeof(ZonedDateTime).GetConstructor(new[] { typeof(Instant), typeof(DateTimeZone) });
+
+        static readonly MemberInfo TzdbDateTimeZoneSourceDefaultMember =
+            typeof(TzdbDateTimeZoneSource).GetMember(nameof(TzdbDateTimeZoneSource.Default))[0];
+
+        static readonly MethodInfo ForIdMethod =
+            typeof(TzdbDateTimeZoneSource).GetRuntimeMethod(
+                nameof(TzdbDateTimeZoneSource.ForId),
+                new[] { typeof(string) });
     }
 
     #endregion timestamptz
