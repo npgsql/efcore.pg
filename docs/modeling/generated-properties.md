@@ -24,7 +24,7 @@ Prior to version 3.0, the Npgsql provider generates "serial" columns for ID colu
 > [!CAUTION]
 > Since the default strategy has changed, if you have an existing database with migrations, the the first migration created after upgrading to version 3.0 will alter your tables and convert serial columns to identity ones. This is a sensitive, one-time migration operation that should be done with care, and carefully tested before deployment to production. Changing a value generation strategy is a significant change to an existing database.
 
-### Defining the default strategy for the entire moel
+### Defining the default strategy for the entire model
 
 You can easily control the value generation strategy for the entire model. For example, to opt out of the change to identity columns, simply place the following in your context's `OnModelCreating()`:
 
