@@ -66,6 +66,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         }
 
         [Fact]
+        public void GenerateCodeLiteral_returns_zoned_date_time_literal()
+        {
+            var zonedDateTime = (new LocalDateTime(2018, 4, 20, 10, 31, 33, 666) + Period.FromTicks(6660))
+                .InZone(DateTimeZone.ForOffset(Offset.FromHours(2)), Resolvers.LenientResolver);
+            Assert.Equal(@"new NodaTime.ZonedDateTime(NodaTime.Instant.FromUnixTimeTicks(15242130936666660L), NodaTime.TimeZones.TzdbDateTimeZoneSource.Default.ForId(""UTC+02""))",
+                CodeLiteral(zonedDateTime));
+        }
+
+        [Fact]
         public void GenerateSqlLiteral_returns_offset_date_time_literal()
         {
             var mapping = GetMapping(typeof(OffsetDateTime));
@@ -76,6 +85,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 Offset.FromHours(2));
             Assert.Equal("TIMESTAMPTZ '2018-04-20T10:31:33.666666+02'", mapping.GenerateSqlLiteral(offsetDateTime));
         }
+
+        [Fact]
+        public void GenerateCodeLiteral_returns_instant_literal()
+            => Assert.Equal("NodaTime.Instant.FromUnixTimeTicks(15832607590000000L)",
+                CodeLiteral(Instant.FromUtc(2020, 3, 3, 18, 39, 19)));
 
         [Fact]
         public void GenerateCodeLiteral_returns_offset_date_time_literal()
