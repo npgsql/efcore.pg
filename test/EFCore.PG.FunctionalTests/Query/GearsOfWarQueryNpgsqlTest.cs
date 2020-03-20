@@ -138,6 +138,22 @@ WHERE LENGTH(s.""Banner"") = LENGTH(@__byteArrayParam)");
 
         #endregion Ignore DateTimeOffset tests
 
+        [ConditionalTheory(Skip = "Implemented for the next preview")]
+        [MemberData(nameof(IsAsyncData))]
+        public override Task Where_TimeSpan_Hours(bool async) => base.Where_TimeSpan_Hours(async);
+
+        [ConditionalTheory(Skip = "Implemented for the next preview")]
+        [MemberData(nameof(IsAsyncData))]
+        public override Task Where_TimeSpan_Minutes(bool async) => base.Where_TimeSpan_Hours(async);
+
+        [ConditionalTheory(Skip = "Implemented for the next preview")]
+        [MemberData(nameof(IsAsyncData))]
+        public override Task Where_TimeSpan_Seconds(bool async) => base.Where_TimeSpan_Hours(async);
+
+        [ConditionalTheory(Skip = "Implemented for the next preview")]
+        [MemberData(nameof(IsAsyncData))]
+        public override Task Where_TimeSpan_Milliseconds(bool async) => base.Where_TimeSpan_Hours(async);
+
         void AssertSql(params string[] expected) => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
     }
 }
