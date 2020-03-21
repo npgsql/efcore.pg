@@ -2141,6 +2141,66 @@ WHERE ""AnotherId"" = 11 AND ""Id"" = 2;");
 WHERE ""Id"" = 2;");
         }
 
+        [ConditionalFact]
+        public virtual async Task InsertDataOperation_restarts_identity()
+        {
+            await Test(
+                builder =>
+                {
+                    builder.Entity(
+                        "Person", e =>
+                        {
+                            e.Property<int>("Id").UseIdentityByDefaultColumn();
+                            e.Property<string>("Name");
+                            e.HasKey("Id");
+                        });
+                    builder.Entity(
+                        "Person !@#", e =>
+                        {
+                            e.Property<int>("Id").UseIdentityByDefaultColumn();
+                            e.Property<string>("Name");
+                            e.HasKey("Id");
+                        });
+                },
+                builder => { },
+                builder =>
+                {
+                    builder.Entity("Person").HasData(
+                        new { Id = 1, Name = "Daenerys Targaryen" },
+                        new { Id = 2, Name = "John Snow"});
+                    builder.Entity("Person !@#").HasData(
+                        new { Id = -10, Name = "Daenerys Targaryen" },
+                        new { Id = -20, Name = "John Snow"});
+                },
+                model => { });
+
+            AssertSql(
+                @"INSERT INTO ""Person"" (""Id"", ""Name"")
+VALUES (1, 'Daenerys Targaryen');
+INSERT INTO ""Person"" (""Id"", ""Name"")
+VALUES (2, 'John Snow');",
+                //
+                @"INSERT INTO ""Person !@#"" (""Id"", ""Name"")
+VALUES (-10, 'Daenerys Targaryen');
+INSERT INTO ""Person !@#"" (""Id"", ""Name"")
+VALUES (-20, 'John Snow');",
+                //
+                @"SELECT setval(
+    pg_get_serial_sequence('""Person""', 'Id'),
+    GREATEST(
+        (SELECT MAX(""Id"") FROM ""Person"") + 1,
+        nextval(pg_get_serial_sequence('""Person""', 'Id'))),
+    false);
+SELECT setval(
+    pg_get_serial_sequence('""Person !@#""', 'Id'),
+    GREATEST(
+        (SELECT MAX(""Id"") FROM ""Person !@#"") + 1,
+        nextval(pg_get_serial_sequence('""Person !@#""', 'Id'))),
+    false);");
+        }
+
+        // SELECT setval(pg_get_serial_sequence('""Person !@#""', 'Id'), (SELECT MAX(""Id"") FROM ""Person !@#""));
+
         #endregion
 
         #region PostgreSQL extensions

@@ -38,6 +38,83 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 ?? throw new InvalidOperationException("No string type mapping found");
         }
 
+        public override IReadOnlyList<MigrationCommand> Generate(
+            IReadOnlyList<MigrationOperation> operations,
+            IModel model = null,
+            MigrationsSqlGenerationOptions options = MigrationsSqlGenerationOptions.Default)
+        {
+            var results = base.Generate(operations, model, options);
+
+            // For all tables where we had data seeding insertions, get any identity/serial columns for those tables.
+            var seededGeneratedColumns = operations
+                .OfType<InsertDataOperation>()
+                .Select(o => new { o.Schema, o.Table })
+                .Distinct()
+                .Select(t => new
+                {
+                    t.Schema,
+                    t.Table,
+                    Columns = (model?.GetRelationalModel().FindTable(t.Table, t.Schema)
+                            ?.EntityTypeMappings.Select(m => m.EntityType) ?? Enumerable.Empty<IEntityType>())
+                        .SelectMany(e => e.GetDeclaredProperties()
+                            .Where(p => p.GetValueGenerationStrategy() switch
+                            {
+                                NpgsqlValueGenerationStrategy.IdentityByDefaultColumn => true,
+                                NpgsqlValueGenerationStrategy.IdentityAlwaysColumn => true,
+                                NpgsqlValueGenerationStrategy.SerialColumn => true,
+                                _ => false
+                            })
+                            .Select(p => p.GetColumnName()))
+                })
+                .SelectMany(t => t.Columns.Select(p => new
+                {
+                    t.Schema,
+                    t.Table,
+                    Column = p,
+                }))
+                .ToArray();
+
+            if (seededGeneratedColumns.Any())
+            {
+                var builder = new MigrationCommandListBuilder(Dependencies);
+
+                foreach (var c in seededGeneratedColumns)
+                {
+                    // Weirdly, pg_get_serial_sequence accepts a standard quoted "schema"."table" inside its first
+                    // parameter string literal, but the second one is a column name that shouldn't be double-quoted...
+
+                    var table = Dependencies.SqlGenerationHelper.DelimitIdentifier(c.Table, c.Schema);
+                    var column = Dependencies.SqlGenerationHelper.DelimitIdentifier(c.Column);
+                    var unquotedColumn = c.Column.Replace("'", "''");
+
+                    // When generating idempotent scripts, migration DDL is enclosed in anonymous DO blocks,
+                    // where PERFORM must be used instead of SELECT
+                    var selectOrPerform = Options.HasFlag(MigrationsSqlGenerationOptions.Idempotent)
+                        ? "PERFORM"
+                        : "SELECT";
+
+                    // Set the sequence's value to the greater of:
+                    // 1. Maximum value currently present in the column (i.e. just seeded)
+                    // 2. Current value of the sequence (the max value above could be out of range of the sequence,
+                    //    e.g. negative values seeded)
+                    builder
+                        .AppendLine(
+@$"{selectOrPerform} setval(
+    pg_get_serial_sequence('{table}', '{unquotedColumn}'),
+    GREATEST(
+        (SELECT MAX({column}) FROM {table}) + 1,
+        nextval(pg_get_serial_sequence('{table}', '{unquotedColumn}'))),
+    false);");
+                }
+
+                builder.EndCommand();
+
+                return results.Concat(builder.GetCommandList()).ToArray();
+            }
+
+            return results;
+        }
+
         protected override void Generate(MigrationOperation operation, IModel model, MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
@@ -1212,7 +1289,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                     0,
                     overridingSystemValue);
             }
-
 
             builder.Append(sqlBuilder.ToString());
 
