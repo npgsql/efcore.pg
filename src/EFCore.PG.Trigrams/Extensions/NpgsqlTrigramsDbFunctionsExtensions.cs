@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace Microsoft.EntityFrameworkCore
 {
@@ -13,8 +14,8 @@ namespace Microsoft.EntityFrameworkCore
         ///
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
-        public static string[] TrigramsShow(this DbFunctions _, string text) =>
-            throw new NotSupportedException();
+        public static string[] TrigramsShow(this DbFunctions _, string text)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(TrigramsShow)));
 
         /// <summary>
         /// Returns a number that indicates how similar the two arguments are.
@@ -26,8 +27,8 @@ namespace Microsoft.EntityFrameworkCore
         ///
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
-        public static double TrigramsSimilarity(this DbFunctions _, string source, string target) =>
-            throw new NotSupportedException();
+        public static double TrigramsSimilarity(this DbFunctions _, string source, string target)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(TrigramsSimilarity)));
 
         /// <summary>
         /// Returns a number that indicates the greatest similarity between the set of trigrams
@@ -39,8 +40,8 @@ namespace Microsoft.EntityFrameworkCore
         ///
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
-        public static double TrigramsWordSimilarity(this DbFunctions _, string source, string target) =>
-            throw new NotSupportedException();
+        public static double TrigramsWordSimilarity(this DbFunctions _, string source, string target)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(TrigramsWordSimilarity)));
 
         /// <summary>
         /// Same as word_similarity(text, text), but forces extent boundaries to match word boundaries.
@@ -52,8 +53,8 @@ namespace Microsoft.EntityFrameworkCore
         ///
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
-        public static double TrigramsStrictWordSimilarity(this DbFunctions _, string source, string target) =>
-            throw new NotSupportedException();
+        public static double TrigramsStrictWordSimilarity(this DbFunctions _, string source, string target)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(TrigramsStrictWordSimilarity)));
 
         /// <summary>
         /// Returns true if its arguments have a similarity that is greater than the current similarity
@@ -64,8 +65,8 @@ namespace Microsoft.EntityFrameworkCore
         ///
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
-        public static bool TrigramsAreSimilar(this DbFunctions _, string source, string target) =>
-            throw new NotSupportedException();
+        public static bool TrigramsAreSimilar(this DbFunctions _, string source, string target)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(TrigramsAreSimilar)));
 
         /// <summary>
         /// Returns true if the similarity between the trigram set in the first argument and a continuous
@@ -77,8 +78,8 @@ namespace Microsoft.EntityFrameworkCore
         ///
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
-        public static bool TrigramsAreWordSimilar(this DbFunctions _, string source, string target) =>
-            throw new NotSupportedException();
+        public static bool TrigramsAreWordSimilar(this DbFunctions _, string source, string target)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(TrigramsAreWordSimilar)));
 
         /// <summary>
         /// Commutator of the &lt;% operator.
@@ -88,8 +89,8 @@ namespace Microsoft.EntityFrameworkCore
         ///
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
-        public static bool TrigramsAreNotWordSimilar(this DbFunctions _, string source, string target) =>
-            throw new NotSupportedException();
+        public static bool TrigramsAreNotWordSimilar(this DbFunctions _, string source, string target)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(TrigramsAreNotWordSimilar)));
 
         /// <summary>
         /// Returns true if its second argument has a continuous extent of an ordered trigram set that
@@ -102,8 +103,8 @@ namespace Microsoft.EntityFrameworkCore
         ///
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
-        public static bool TrigramsAreStrictWordSimilar(this DbFunctions _, string source, string target) =>
-            throw new NotSupportedException();
+        public static bool TrigramsAreStrictWordSimilar(this DbFunctions _, string source, string target)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(TrigramsAreStrictWordSimilar)));
 
         /// <summary>
         /// Commutator of the &lt;&lt;% operator.
@@ -113,8 +114,8 @@ namespace Microsoft.EntityFrameworkCore
         ///
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
-        public static bool TrigramsAreNotStrictWordSimilar(this DbFunctions _, string source, string target) =>
-            throw new NotSupportedException();
+        public static bool TrigramsAreNotStrictWordSimilar(this DbFunctions _, string source, string target)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(TrigramsAreNotStrictWordSimilar)));
 
         /// <summary>
         /// Returns the "distance" between the arguments, that is one minus the similarity() value.
@@ -124,8 +125,8 @@ namespace Microsoft.EntityFrameworkCore
         ///
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
-        public static double TrigramsSimilarityDistance(this DbFunctions _, string source, string target) =>
-            throw new NotSupportedException();
+        public static double TrigramsSimilarityDistance(this DbFunctions _, string source, string target)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(TrigramsSimilarityDistance)));
 
         /// <summary>
         /// Returns the "distance" between the arguments, that is one minus the word_similarity() value.
@@ -135,8 +136,8 @@ namespace Microsoft.EntityFrameworkCore
         ///
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
-        public static double TrigramsWordSimilarityDistance(this DbFunctions _, string source, string target) =>
-            throw new NotSupportedException();
+        public static double TrigramsWordSimilarityDistance(this DbFunctions _, string source, string target)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(TrigramsWordSimilarityDistance)));
 
         /// <summary>
         /// Commutator of the &lt;&lt;-&gt; operator.
@@ -146,8 +147,8 @@ namespace Microsoft.EntityFrameworkCore
         ///
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
-        public static double TrigramsWordSimilarityDistanceInverted(this DbFunctions _, string source, string target) =>
-            throw new NotSupportedException();
+        public static double TrigramsWordSimilarityDistanceInverted(this DbFunctions _, string source, string target)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(TrigramsWordSimilarityDistanceInverted)));
 
         /// <summary>
         /// Returns the "distance" between the arguments, that is one minus the strict_word_similarity() value.
@@ -157,8 +158,8 @@ namespace Microsoft.EntityFrameworkCore
         ///
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
-        public static double TrigramsStrictWordSimilarityDistance(this DbFunctions _, string source, string target) =>
-            throw new NotSupportedException();
+        public static double TrigramsStrictWordSimilarityDistance(this DbFunctions _, string source, string target)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(TrigramsStrictWordSimilarityDistance)));
 
         /// <summary>
         /// Commutator of the &lt;&lt;&lt;-&gt; operator.
@@ -168,7 +169,7 @@ namespace Microsoft.EntityFrameworkCore
         ///
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
-        public static double TrigramsStrictWordSimilarityDistanceInverted(this DbFunctions _, string source, string target) =>
-            throw new NotSupportedException();
+        public static double TrigramsStrictWordSimilarityDistanceInverted(this DbFunctions _, string source, string target)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(TrigramsStrictWordSimilarityDistanceInverted)));
     }
 }

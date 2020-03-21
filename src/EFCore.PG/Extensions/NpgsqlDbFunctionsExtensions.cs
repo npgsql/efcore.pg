@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore
@@ -25,7 +26,7 @@ namespace Microsoft.EntityFrameworkCore
             [CanBeNull] this DbFunctions _,
             [CanBeNull] string matchExpression,
             [CanBeNull] string pattern)
-            => ILikeCore(matchExpression, pattern, null);
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(ILike)));
 
         // ReSharper disable once InconsistentNaming
         /// <summary>
@@ -44,95 +45,6 @@ namespace Microsoft.EntityFrameworkCore
             [CanBeNull] string matchExpression,
             [CanBeNull] string pattern,
             [CanBeNull] string escapeCharacter)
-            => ILikeCore(matchExpression, pattern, escapeCharacter);
-
-        /// <remarks>
-        /// Regex special chars defined here:
-        /// https://msdn.microsoft.com/en-us/library/4edbef7e(v=vs.110).aspx
-        /// </remarks>
-        static readonly char[] RegexSpecialChars =
-            { '.', '$', '^', '{', '[', '(', '|', ')', '*', '+', '?', '\\' };
-
-        static readonly string DefaultEscapeRegexCharsPattern =
-            BuildEscapeRegexCharsPattern(RegexSpecialChars);
-
-        static readonly TimeSpan RegexTimeout = TimeSpan.FromMilliseconds(value: 1000.0);
-
-        static string BuildEscapeRegexCharsPattern(IEnumerable<char> regexSpecialChars)
-            => string.Join("|", regexSpecialChars.Select(c => @"\" + c));
-
-        // ReSharper disable once InconsistentNaming
-        static bool ILikeCore(string matchExpression, string pattern, string escapeCharacter)
-        {
-            //TODO: this fixes https://github.com/aspnet/EntityFramework/issues/8656 by insisting that
-            // the "escape character" is a string but just using the first character of that string,
-            // but we may later want to allow the complete string as the "escape character"
-            // in which case we need to change the way we construct the regex below.
-            var singleEscapeCharacter =
-                string.IsNullOrEmpty(escapeCharacter)
-                    ? (char?)null
-                    : escapeCharacter.First();
-
-            if (matchExpression == null || pattern == null)
-                return false;
-
-            if (matchExpression.Equals(pattern))
-                return true;
-
-            if (matchExpression.Length == 0 || pattern.Length == 0)
-                return false;
-
-            var escapeRegexCharsPattern =
-                singleEscapeCharacter == null
-                    ? DefaultEscapeRegexCharsPattern
-                    : BuildEscapeRegexCharsPattern(RegexSpecialChars.Where(c => c != singleEscapeCharacter));
-
-            var regexPattern =
-                Regex.Replace(
-                    pattern,
-                    escapeRegexCharsPattern,
-                    c => @"\" + c,
-                    default,
-                    RegexTimeout);
-
-            var stringBuilder = new StringBuilder();
-
-            for (var i = 0; i < regexPattern.Length; i++)
-            {
-                var c = regexPattern[i];
-                var escaped = i > 0 && regexPattern[i - 1] == singleEscapeCharacter;
-
-                switch (c)
-                {
-                case '_':
-                {
-                    stringBuilder.Append(escaped ? '_' : '.');
-                    break;
-                }
-                case '%':
-                {
-                    stringBuilder.Append(escaped ? "%" : ".*");
-                    break;
-                }
-                default:
-                {
-                    if (c != singleEscapeCharacter)
-                    {
-                        stringBuilder.Append(c);
-                    }
-
-                    break;
-                }
-                }
-            }
-
-            regexPattern = stringBuilder.ToString();
-
-            return Regex.IsMatch(
-                matchExpression,
-                @"\A" + regexPattern + @"\s*\z",
-                RegexOptions.IgnoreCase | RegexOptions.Singleline,
-                RegexTimeout);
-        }
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(ILike)));
     }
 }

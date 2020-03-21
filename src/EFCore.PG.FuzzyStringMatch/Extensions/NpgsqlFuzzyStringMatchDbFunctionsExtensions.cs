@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace Microsoft.EntityFrameworkCore
 {
@@ -12,8 +13,8 @@ namespace Microsoft.EntityFrameworkCore
         ///
         /// See https://www.postgresql.org/docs/current/fuzzystrmatch.html.
         /// </remarks>
-        public static string FuzzyStringMatchSoundex(this DbFunctions _, string text) =>
-            throw new NotSupportedException();
+        public static string FuzzyStringMatchSoundex(this DbFunctions _, string text)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(FuzzyStringMatchSoundex)));
 
         /// <summary>
         /// The difference function converts two strings to their Soundex codes and
@@ -26,8 +27,8 @@ namespace Microsoft.EntityFrameworkCore
         ///
         /// See https://www.postgresql.org/docs/current/fuzzystrmatch.html.
         /// </remarks>
-        public static int FuzzyStringMatchDifference(this DbFunctions _, string source, string target) =>
-            throw new NotSupportedException();
+        public static int FuzzyStringMatchDifference(this DbFunctions _, string source, string target)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(FuzzyStringMatchDifference)));
 
         /// <summary>
         /// Returns the Levenshtein distance between two strings.
@@ -37,8 +38,8 @@ namespace Microsoft.EntityFrameworkCore
         ///
         /// See https://www.postgresql.org/docs/current/fuzzystrmatch.html.
         /// </remarks>
-        public static int FuzzyStringMatchLevenshtein(this DbFunctions _, string source, string target) =>
-            throw new NotSupportedException();
+        public static int FuzzyStringMatchLevenshtein(this DbFunctions _, string source, string target)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(FuzzyStringMatchLevenshtein)));
 
         /// <summary>
         /// Returns the Levenshtein distance between two strings.
@@ -48,8 +49,8 @@ namespace Microsoft.EntityFrameworkCore
         ///
         /// See https://www.postgresql.org/docs/current/fuzzystrmatch.html.
         /// </remarks>
-        public static int FuzzyStringMatchLevenshtein(this DbFunctions _, string source, string target, int insertionCost, int deletionCost, int substitutionCost) =>
-            throw new NotSupportedException();
+        public static int FuzzyStringMatchLevenshtein(this DbFunctions _, string source, string target, int insertionCost, int deletionCost, int substitutionCost)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(FuzzyStringMatchLevenshtein)));
 
         /// <summary>
         /// levenshtein_less_equal is an accelerated version of the Levenshtein function for use when only small distances are of interest.
@@ -61,8 +62,8 @@ namespace Microsoft.EntityFrameworkCore
         ///
         /// See https://www.postgresql.org/docs/current/fuzzystrmatch.html.
         /// </remarks>
-        public static int FuzzyStringMatchLevenshteinLessEqual(this DbFunctions _, string source, string target, int maximumDistance) =>
-            throw new NotSupportedException();
+        public static int FuzzyStringMatchLevenshteinLessEqual(this DbFunctions _, string source, string target, int maximumDistance)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(FuzzyStringMatchLevenshteinLessEqual)));
 
         /// <summary>
         /// levenshtein_less_equal is an accelerated version of the Levenshtein function for use when only small distances are of interest.
@@ -74,8 +75,8 @@ namespace Microsoft.EntityFrameworkCore
         ///
         /// See https://www.postgresql.org/docs/current/fuzzystrmatch.html.
         /// </remarks>
-        public static int FuzzyStringMatchLevenshteinLessEqual(this DbFunctions _, string source, string target, int insertionCost, int deletionCost, int substitutionCost, int maximumDistance) =>
-            throw new NotSupportedException();
+        public static int FuzzyStringMatchLevenshteinLessEqual(this DbFunctions _, string source, string target, int insertionCost, int deletionCost, int substitutionCost, int maximumDistance)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(FuzzyStringMatchLevenshteinLessEqual)));
 
         /// <summary>
         /// The metaphone function converts a string to its Metaphone code.
@@ -85,8 +86,8 @@ namespace Microsoft.EntityFrameworkCore
         ///
         /// See https://www.postgresql.org/docs/current/fuzzystrmatch.html.
         /// </remarks>
-        public static string FuzzyStringMatchMetaphone(this DbFunctions _, string text, int maximumOutputLength) =>
-            throw new NotSupportedException();
+        public static string FuzzyStringMatchMetaphone(this DbFunctions _, string text, int maximumOutputLength)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(FuzzyStringMatchMetaphone)));
 
         /// <summary>
         /// The dmetaphone function converts a string to its primary Double Metaphone code.
@@ -96,8 +97,8 @@ namespace Microsoft.EntityFrameworkCore
         ///
         /// See https://www.postgresql.org/docs/current/fuzzystrmatch.html.
         /// </remarks>
-        public static string FuzzyStringMatchDoubleMetaphone(this DbFunctions _, string text) =>
-            throw new NotSupportedException();
+        public static string FuzzyStringMatchDoubleMetaphone(this DbFunctions _, string text)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(FuzzyStringMatchDoubleMetaphone)));
 
         /// <summary>
         /// The dmetaphone_alt function converts a string to its alternate Double Metaphone code.
@@ -107,7 +108,7 @@ namespace Microsoft.EntityFrameworkCore
         ///
         /// See https://www.postgresql.org/docs/current/fuzzystrmatch.html.
         /// </remarks>
-        public static string FuzzyStringMatchDoubleMetaphoneAlt(this DbFunctions _, string text) =>
-            throw new NotSupportedException();
+        public static string FuzzyStringMatchDoubleMetaphoneAlt(this DbFunctions _, string text)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(FuzzyStringMatchDoubleMetaphoneAlt)));
     }
 }

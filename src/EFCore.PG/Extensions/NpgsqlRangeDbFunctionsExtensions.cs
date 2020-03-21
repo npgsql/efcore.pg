@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using NpgsqlTypes;
 
 // ReSharper disable once CheckNamespace
@@ -9,7 +10,7 @@ namespace Microsoft.EntityFrameworkCore
     /// <summary>
     /// Provides extension methods for <see cref="NpgsqlRange{T}"/> supporting PostgreSQL translation.
     /// </summary>
-    public static class NpgsqlRangeExtensions
+    public static class NpgsqlRangeDbFunctionsExtensions
     {
         /// <summary>
         /// Determines whether a range contains a specified value.
@@ -21,7 +22,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <value>true</value> if the range contains the specified value; otherwise, <value>false</value>.
         /// </returns>
         /// <exception cref="NotSupportedException">{method} is only intended for use via SQL translation as part of an EF Core LINQ query.</exception>
-        public static bool Contains<T>(this NpgsqlRange<T> range, T value) => throw ClientEvaluationNotSupportedException();
+        public static bool Contains<T>(this NpgsqlRange<T> range, T value)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Contains)));
 
         /// <summary>
         /// Determines whether a range contains a specified range.
@@ -33,7 +35,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <value>true</value> if the range contains the specified range; otherwise, <value>false</value>.
         /// </returns>
         /// <exception cref="NotSupportedException">{method} is only intended for use via SQL translation as part of an EF Core LINQ query.</exception>
-        public static bool Contains<T>(this NpgsqlRange<T> a, NpgsqlRange<T> b) => throw ClientEvaluationNotSupportedException();
+        public static bool Contains<T>(this NpgsqlRange<T> a, NpgsqlRange<T> b)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Contains)));
 
         /// <summary>
         /// Determines whether a range is contained by a specified range.
@@ -45,7 +48,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <value>true</value> if the range contains the specified range; otherwise, <value>false</value>.
         /// </returns>
         /// <exception cref="NotSupportedException">{method} is only intended for use via SQL translation as part of an EF Core LINQ query.</exception>
-        public static bool ContainedBy<T>(this NpgsqlRange<T> a, NpgsqlRange<T> b) => throw ClientEvaluationNotSupportedException();
+        public static bool ContainedBy<T>(this NpgsqlRange<T> a, NpgsqlRange<T> b)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(ContainedBy)));
 
         /// <summary>
         /// Determines whether a range overlaps another range.
@@ -57,7 +61,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <value>true</value> if the ranges overlap (share points in common); otherwise, <value>false</value>.
         /// </returns>
         /// <exception cref="NotSupportedException">{method} is only intended for use via SQL translation as part of an EF Core LINQ query.</exception>
-        public static bool Overlaps<T>(this NpgsqlRange<T> a, NpgsqlRange<T> b) => throw ClientEvaluationNotSupportedException();
+        public static bool Overlaps<T>(this NpgsqlRange<T> a, NpgsqlRange<T> b)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Overlaps)));
 
         /// <summary>
         /// Determines whether a range is strictly to the left of another range.
@@ -69,7 +74,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <value>true</value> if the first range is strictly to the left of the second; otherwise, <value>false</value>.
         /// </returns>
         /// <exception cref="NotSupportedException">{method} is only intended for use via SQL translation as part of an EF Core LINQ query.</exception>
-        public static bool IsStrictlyLeftOf<T>(this NpgsqlRange<T> a, NpgsqlRange<T> b) => throw ClientEvaluationNotSupportedException();
+        public static bool IsStrictlyLeftOf<T>(this NpgsqlRange<T> a, NpgsqlRange<T> b)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(IsStrictlyLeftOf)));
 
         /// <summary>
         /// Determines whether a range is strictly to the right of another range.
@@ -81,7 +87,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <value>true</value> if the first range is strictly to the right of the second; otherwise, <value>false</value>.
         /// </returns>
         /// <exception cref="NotSupportedException">{method} is only intended for use via SQL translation as part of an EF Core LINQ query.</exception>
-        public static bool IsStrictlyRightOf<T>(this NpgsqlRange<T> a, NpgsqlRange<T> b) => throw ClientEvaluationNotSupportedException();
+        public static bool IsStrictlyRightOf<T>(this NpgsqlRange<T> a, NpgsqlRange<T> b)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(IsStrictlyRightOf)));
 
         /// <summary>
         /// Determines whether a range does not extend to the left of another range.
@@ -93,7 +100,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <value>true</value> if the first range does not extend to the left of the second; otherwise, <value>false</value>.
         /// </returns>
         /// <exception cref="NotSupportedException">{method} is only intended for use via SQL translation as part of an EF Core LINQ query.</exception>
-        public static bool DoesNotExtendLeftOf<T>(this NpgsqlRange<T> a, NpgsqlRange<T> b) => throw ClientEvaluationNotSupportedException();
+        public static bool DoesNotExtendLeftOf<T>(this NpgsqlRange<T> a, NpgsqlRange<T> b)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(DoesNotExtendLeftOf)));
 
         /// <summary>
         /// Determines whether a range does not extend to the right of another range.
@@ -105,7 +113,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <value>true</value> if the first range does not extend to the right of the second; otherwise, <value>false</value>.
         /// </returns>
         /// <exception cref="NotSupportedException">{method} is only intended for use via SQL translation as part of an EF Core LINQ query.</exception>
-        public static bool DoesNotExtendRightOf<T>(this NpgsqlRange<T> a, NpgsqlRange<T> b) => throw ClientEvaluationNotSupportedException();
+        public static bool DoesNotExtendRightOf<T>(this NpgsqlRange<T> a, NpgsqlRange<T> b)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(DoesNotExtendRightOf)));
 
         /// <summary>
         /// Determines whether a range is adjacent to another range.
@@ -117,7 +126,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <value>true</value> if the ranges are adjacent; otherwise, <value>false</value>.
         /// </returns>
         /// <exception cref="NotSupportedException">{method} is only intended for use via SQL translation as part of an EF Core LINQ query.</exception>
-        public static bool IsAdjacentTo<T>(this NpgsqlRange<T> a, NpgsqlRange<T> b) => throw ClientEvaluationNotSupportedException();
+        public static bool IsAdjacentTo<T>(this NpgsqlRange<T> a, NpgsqlRange<T> b)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(IsAdjacentTo)));
 
         /// <summary>
         /// Returns the set union, which means unique elements that appear in either of two ranges.
@@ -129,7 +139,8 @@ namespace Microsoft.EntityFrameworkCore
         /// The unique elements that appear in either range.
         /// </returns>
         /// <exception cref="NotSupportedException">{method} is only intended for use via SQL translation as part of an EF Core LINQ query.</exception>
-        public static NpgsqlRange<T> Union<T>(this NpgsqlRange<T> a, NpgsqlRange<T> b) => throw ClientEvaluationNotSupportedException();
+        public static NpgsqlRange<T> Union<T>(this NpgsqlRange<T> a, NpgsqlRange<T> b)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Union)));
 
         /// <summary>
         /// Returns the set intersection, which means elements that appear in each of two ranges.
@@ -141,7 +152,8 @@ namespace Microsoft.EntityFrameworkCore
         /// The elements that appear in both ranges.
         /// </returns>
         /// <exception cref="NotSupportedException">{method} is only intended for use via SQL translation as part of an EF Core LINQ query.</exception>
-        public static NpgsqlRange<T> Intersect<T>(this NpgsqlRange<T> a, NpgsqlRange<T> b) => throw ClientEvaluationNotSupportedException();
+        public static NpgsqlRange<T> Intersect<T>(this NpgsqlRange<T> a, NpgsqlRange<T> b)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Intersect)));
 
         /// <summary>
         /// Returns the set difference, which means the elements of one range that do not appear in a second range.
@@ -153,7 +165,8 @@ namespace Microsoft.EntityFrameworkCore
         /// The elements that appear in the first range, but not the second range.
         /// </returns>
         /// <exception cref="NotSupportedException">{method} is only intended for use via SQL translation as part of an EF Core LINQ query.</exception>
-        public static NpgsqlRange<T> Except<T>(this NpgsqlRange<T> a, NpgsqlRange<T> b) => throw ClientEvaluationNotSupportedException();
+        public static NpgsqlRange<T> Except<T>(this NpgsqlRange<T> a, NpgsqlRange<T> b)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Except)));
 
         /// <summary>
         /// Returns the smallest range which includes both of the given ranges.
@@ -165,21 +178,7 @@ namespace Microsoft.EntityFrameworkCore
         /// The smallest range which includes both of the given rangesge.
         /// </returns>
         /// <exception cref="NotSupportedException">{method} is only intended for use via SQL translation as part of an EF Core LINQ query.</exception>
-        public static NpgsqlRange<T> Merge<T>(this NpgsqlRange<T> a, NpgsqlRange<T> b) => throw ClientEvaluationNotSupportedException();
-
-        #region Utilities
-
-        /// <summary>
-        /// Helper method to throw a <see cref="NotSupportedException"/> with the name of the throwing method.
-        /// </summary>
-        /// <param name="method">The method that throws the exception.</param>
-        /// <returns>
-        /// A <see cref="NotSupportedException"/>.
-        /// </returns>
-        [NotNull]
-        static NotSupportedException ClientEvaluationNotSupportedException([CallerMemberName] string method = default)
-            => new NotSupportedException($"{method} is only intended for use via SQL translation as part of an EF Core LINQ query.");
-
-        #endregion
+        public static NpgsqlRange<T> Merge<T>(this NpgsqlRange<T> a, NpgsqlRange<T> b)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Merge)));
     }
 }

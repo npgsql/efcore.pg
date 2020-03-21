@@ -2,6 +2,8 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using NpgsqlTypes;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Extensions
 {
@@ -27,7 +29,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Extensions
         /// See https://www.postgresql.org/docs/current/functions-json.html.
         /// </remarks>
         public static bool JsonContains(this DbFunctions _, object json, object contained)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(JsonContains)));
 
         /// <summary>
         /// Checks if <paramref name="contained"/> is contained in <paramref name="json"/> as top-level entries.
@@ -45,7 +47,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Extensions
         /// See https://www.postgresql.org/docs/current/functions-json.html.
         /// </remarks>
         public static bool JsonContained(this DbFunctions _, object contained, object json)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(JsonContained)));
 
         /// <summary>
         /// Checks if <paramref name="key"/> exists as a top-level key within <paramref name="json"/>.
@@ -61,7 +63,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Extensions
         /// See https://www.postgresql.org/docs/current/functions-json.html.
         /// </remarks>
         public static bool JsonExists(this DbFunctions _, object json, string key)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(JsonExists)));
 
         /// <summary>
         /// Checks if any of the given <paramref name="keys"/> exist as top-level keys within <paramref name="json"/>.
@@ -77,7 +79,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Extensions
         /// See https://www.postgresql.org/docs/current/functions-json.html.
         /// </remarks>
         public static bool JsonExistAny(this DbFunctions _, object json, params string[] keys)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(JsonExistAny)));
 
         /// <summary>
         /// Checks if all of the given <paramref name="keys"/> exist as top-level keys within <paramref name="json"/>.
@@ -93,7 +95,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Extensions
         /// See https://www.postgresql.org/docs/current/functions-json.html.
         /// </remarks>
         public static bool JsonExistAll(this DbFunctions _, object json, params string[] keys)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(JsonExistAll)));
 
         /// <summary>
         /// Returns the type of the outermost JSON value as a text string.
@@ -107,9 +109,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Extensions
         /// See https://www.postgresql.org/docs/current/functions-json.html.
         /// </remarks>
         public static string JsonTypeof(this DbFunctions _, object json)
-            => throw ClientEvaluationNotSupportedException();
-
-        static NotSupportedException ClientEvaluationNotSupportedException([CallerMemberName] string method = default)
-            => new NotSupportedException($"{method} is only intended for use via SQL translation as part of an EF Core LINQ query.");
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(JsonTypeof)));
     }
 }
