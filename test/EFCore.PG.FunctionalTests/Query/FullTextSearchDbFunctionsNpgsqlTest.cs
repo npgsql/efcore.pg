@@ -53,7 +53,7 @@ LIMIT 1");
         {
             using var context = CreateContext();
 
-            Assert.Throws<NotSupportedException>(
+            Assert.Throws<InvalidOperationException>(
                 () => context.Customers
                     .Select(c => EF.Functions.ArrayToTsVector(new[] { c.CompanyName, c.Address }))
                     .First());

@@ -1,5 +1,6 @@
 using NetTopologySuite.Geometries;
 using System;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace Microsoft.EntityFrameworkCore
 {
@@ -15,6 +16,6 @@ namespace Microsoft.EntityFrameworkCore
         /// </remarks>
         public static TGeometry Transform<TGeometry>(this DbFunctions _, TGeometry geometry, int srid)
             where TGeometry : Geometry
-            => throw new NotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Transform)));
     }
 }

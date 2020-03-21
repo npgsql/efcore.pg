@@ -37,10 +37,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         [CanBeNull]
         public SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
         {
-            if (method.DeclaringType != typeof(NpgsqlRangeExtensions))
+            if (method.DeclaringType != typeof(NpgsqlRangeDbFunctionsExtensions))
                 return null;
 
-            if (method.Name == nameof(NpgsqlRangeExtensions.Merge))
+            if (method.Name == nameof(NpgsqlRangeDbFunctionsExtensions.Merge))
             {
                 var inferredMapping = ExpressionExtensions.InferTypeMapping(arguments[0], arguments[1]);
                 return _sqlExpressionFactory.Function(
@@ -57,10 +57,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
             return method.Name switch
             {
-                nameof(NpgsqlRangeExtensions.Contains) when arguments[0].Type == arguments[1].Type => BoolReturningOnTwoRanges("@>"),
+                nameof(NpgsqlRangeDbFunctionsExtensions.Contains) when arguments[0].Type == arguments[1].Type => BoolReturningOnTwoRanges("@>"),
 
                 // Default to element contained in range
-                nameof(NpgsqlRangeExtensions.Contains) =>
+                nameof(NpgsqlRangeDbFunctionsExtensions.Contains) =>
                     new SqlCustomBinaryExpression(
                         _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[0]), // TODO: Infer the range mapping from the subtype's...
                         arguments[0].TypeMapping is NpgsqlRangeTypeMapping rangeMapping
@@ -70,17 +70,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                         typeof(bool),
                         _boolMapping),
 
-                nameof(NpgsqlRangeExtensions.ContainedBy)          => BoolReturningOnTwoRanges("<@"),
-                nameof(NpgsqlRangeExtensions.Overlaps)             => BoolReturningOnTwoRanges("&&"),
-                nameof(NpgsqlRangeExtensions.IsStrictlyLeftOf)     => BoolReturningOnTwoRanges("<<"),
-                nameof(NpgsqlRangeExtensions.IsStrictlyRightOf)    => BoolReturningOnTwoRanges(">>"),
-                nameof(NpgsqlRangeExtensions.DoesNotExtendRightOf) => BoolReturningOnTwoRanges("&<"),
-                nameof(NpgsqlRangeExtensions.DoesNotExtendLeftOf)  => BoolReturningOnTwoRanges("&>"),
-                nameof(NpgsqlRangeExtensions.IsAdjacentTo)         => BoolReturningOnTwoRanges("-|-"),
+                nameof(NpgsqlRangeDbFunctionsExtensions.ContainedBy)          => BoolReturningOnTwoRanges("<@"),
+                nameof(NpgsqlRangeDbFunctionsExtensions.Overlaps)             => BoolReturningOnTwoRanges("&&"),
+                nameof(NpgsqlRangeDbFunctionsExtensions.IsStrictlyLeftOf)     => BoolReturningOnTwoRanges("<<"),
+                nameof(NpgsqlRangeDbFunctionsExtensions.IsStrictlyRightOf)    => BoolReturningOnTwoRanges(">>"),
+                nameof(NpgsqlRangeDbFunctionsExtensions.DoesNotExtendRightOf) => BoolReturningOnTwoRanges("&<"),
+                nameof(NpgsqlRangeDbFunctionsExtensions.DoesNotExtendLeftOf)  => BoolReturningOnTwoRanges("&>"),
+                nameof(NpgsqlRangeDbFunctionsExtensions.IsAdjacentTo)         => BoolReturningOnTwoRanges("-|-"),
 
-                nameof(NpgsqlRangeExtensions.Union)                => RangeReturningOnTwoRanges("+"),
-                nameof(NpgsqlRangeExtensions.Intersect)            => RangeReturningOnTwoRanges("*"),
-                nameof(NpgsqlRangeExtensions.Except)               => RangeReturningOnTwoRanges("-"),
+                nameof(NpgsqlRangeDbFunctionsExtensions.Union)                => RangeReturningOnTwoRanges("+"),
+                nameof(NpgsqlRangeDbFunctionsExtensions.Intersect)            => RangeReturningOnTwoRanges("*"),
+                nameof(NpgsqlRangeDbFunctionsExtensions.Except)               => RangeReturningOnTwoRanges("-"),
 
                 _ => null
             };

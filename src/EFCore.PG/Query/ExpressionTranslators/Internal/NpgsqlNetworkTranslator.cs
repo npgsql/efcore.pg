@@ -55,33 +55,33 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             if (method == PhysicalAddressParse)
                 return _sqlExpressionFactory.Convert(arguments[0], typeof(PhysicalAddress), _sqlExpressionFactory.FindMapping(typeof(PhysicalAddress)));
 
-            if (method.DeclaringType != typeof(NpgsqlNetworkExtensions))
+            if (method.DeclaringType != typeof(NpgsqlNetworkDbFunctionsExtensions))
                 return null;
 
             return method.Name switch
             {
-            nameof(NpgsqlNetworkExtensions.LessThan)              => _sqlExpressionFactory.LessThan(arguments[1], arguments[2]),
-            nameof(NpgsqlNetworkExtensions.LessThanOrEqual)       => _sqlExpressionFactory.LessThanOrEqual(arguments[1], arguments[2]),
-            nameof(NpgsqlNetworkExtensions.GreaterThanOrEqual)    => _sqlExpressionFactory.GreaterThanOrEqual(arguments[1], arguments[2]),
-            nameof(NpgsqlNetworkExtensions.GreaterThan)           => _sqlExpressionFactory.GreaterThan(arguments[1], arguments[2]),
+            nameof(NpgsqlNetworkDbFunctionsExtensions.LessThan)              => _sqlExpressionFactory.LessThan(arguments[1], arguments[2]),
+            nameof(NpgsqlNetworkDbFunctionsExtensions.LessThanOrEqual)       => _sqlExpressionFactory.LessThanOrEqual(arguments[1], arguments[2]),
+            nameof(NpgsqlNetworkDbFunctionsExtensions.GreaterThanOrEqual)    => _sqlExpressionFactory.GreaterThanOrEqual(arguments[1], arguments[2]),
+            nameof(NpgsqlNetworkDbFunctionsExtensions.GreaterThan)           => _sqlExpressionFactory.GreaterThan(arguments[1], arguments[2]),
 
-            nameof(NpgsqlNetworkExtensions.ContainedBy)           => BoolReturningOnTwoNetworkTypes("<<"),
-            nameof(NpgsqlNetworkExtensions.ContainedByOrEqual)    => BoolReturningOnTwoNetworkTypes("<<="),
-            nameof(NpgsqlNetworkExtensions.Contains)              => BoolReturningOnTwoNetworkTypes(">>"),
-            nameof(NpgsqlNetworkExtensions.ContainsOrEqual)       => BoolReturningOnTwoNetworkTypes(">>="),
-            nameof(NpgsqlNetworkExtensions.ContainsOrContainedBy) => BoolReturningOnTwoNetworkTypes("&&"),
+            nameof(NpgsqlNetworkDbFunctionsExtensions.ContainedBy)           => BoolReturningOnTwoNetworkTypes("<<"),
+            nameof(NpgsqlNetworkDbFunctionsExtensions.ContainedByOrEqual)    => BoolReturningOnTwoNetworkTypes("<<="),
+            nameof(NpgsqlNetworkDbFunctionsExtensions.Contains)              => BoolReturningOnTwoNetworkTypes(">>"),
+            nameof(NpgsqlNetworkDbFunctionsExtensions.ContainsOrEqual)       => BoolReturningOnTwoNetworkTypes(">>="),
+            nameof(NpgsqlNetworkDbFunctionsExtensions.ContainsOrContainedBy) => BoolReturningOnTwoNetworkTypes("&&"),
 
-            nameof(NpgsqlNetworkExtensions.BitwiseNot)            => new SqlUnaryExpression(ExpressionType.Not,
+            nameof(NpgsqlNetworkDbFunctionsExtensions.BitwiseNot)            => new SqlUnaryExpression(ExpressionType.Not,
                 arguments[1],
                 arguments[1].Type,
                 arguments[1].TypeMapping),
 
-            nameof(NpgsqlNetworkExtensions.BitwiseAnd) => _sqlExpressionFactory.And(arguments[1], arguments[2]),
-            nameof(NpgsqlNetworkExtensions.BitwiseOr)  => _sqlExpressionFactory.Or(arguments[1], arguments[2]),
+            nameof(NpgsqlNetworkDbFunctionsExtensions.BitwiseAnd) => _sqlExpressionFactory.And(arguments[1], arguments[2]),
+            nameof(NpgsqlNetworkDbFunctionsExtensions.BitwiseOr)  => _sqlExpressionFactory.Or(arguments[1], arguments[2]),
 
             // Add/Subtract accept inet + int, so we can't use the default type mapping inference logic which assumes
             // same-typed operands
-            nameof(NpgsqlNetworkExtensions.Add)
+            nameof(NpgsqlNetworkDbFunctionsExtensions.Add)
                 => new SqlBinaryExpression(
                     ExpressionType.Add,
                     _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[1]),
@@ -89,7 +89,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     arguments[1].Type,
                     arguments[1].TypeMapping),
 
-            nameof(NpgsqlNetworkExtensions.Subtract) when arguments[2].Type == typeof(int)
+            nameof(NpgsqlNetworkDbFunctionsExtensions.Subtract) when arguments[2].Type == typeof(int)
                 => new SqlBinaryExpression(
                     ExpressionType.Subtract,
                     _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[1]),
@@ -97,7 +97,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     arguments[1].Type,
                     arguments[1].TypeMapping),
 
-            nameof(NpgsqlNetworkExtensions.Subtract)
+            nameof(NpgsqlNetworkDbFunctionsExtensions.Subtract)
                 when arguments[2].Type == typeof(IPAddress) || arguments[2].Type == typeof((IPAddress, int))
                 => new SqlBinaryExpression(
                     ExpressionType.Subtract,
@@ -106,20 +106,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     arguments[1].Type,
                     _sqlExpressionFactory.FindMapping(typeof(long))),
 
-            nameof(NpgsqlNetworkExtensions.Abbreviate)    => NullPropagatingFunction("abbrev",           new[] { arguments[1] }, typeof(string)),
-            nameof(NpgsqlNetworkExtensions.Broadcast)     => NullPropagatingFunction("broadcast",        new[] { arguments[1] }, typeof(IPAddress), _inetMapping),
-            nameof(NpgsqlNetworkExtensions.Family)        => NullPropagatingFunction("family",           new[] { arguments[1] }, typeof(int)),
-            nameof(NpgsqlNetworkExtensions.Host)          => NullPropagatingFunction("host",             new[] { arguments[1] }, typeof(string)),
-            nameof(NpgsqlNetworkExtensions.HostMask)      => NullPropagatingFunction("hostmask",         new[] { arguments[1] }, typeof(IPAddress), _inetMapping),
-            nameof(NpgsqlNetworkExtensions.MaskLength)    => NullPropagatingFunction("masklen",          new[] { arguments[1] }, typeof(int)),
-            nameof(NpgsqlNetworkExtensions.Netmask)       => NullPropagatingFunction("netmask",          new[] { arguments[1] }, typeof(IPAddress), _inetMapping),
-            nameof(NpgsqlNetworkExtensions.Network)       => NullPropagatingFunction("network",          new[] { arguments[1] }, typeof((IPAddress Address, int Subnet)), _cidrMapping),
-            nameof(NpgsqlNetworkExtensions.SetMaskLength) => NullPropagatingFunction("set_masklen",      new[] { arguments[1], arguments[2] }, arguments[1].Type, arguments[1].TypeMapping),
-            nameof(NpgsqlNetworkExtensions.Text)          => NullPropagatingFunction("text",             new[] { arguments[1] }, typeof(string)),
-            nameof(NpgsqlNetworkExtensions.SameFamily)    => NullPropagatingFunction("inet_same_family", new[] { arguments[1], arguments[2] }, typeof(bool)),
-            nameof(NpgsqlNetworkExtensions.Merge)         => NullPropagatingFunction("inet_merge",       new[] { arguments[1], arguments[2] }, typeof((IPAddress Address, int Subnet)), _cidrMapping),
-            nameof(NpgsqlNetworkExtensions.Truncate)      => NullPropagatingFunction("trunc",            new[] { arguments[1] }, typeof(PhysicalAddress), arguments[1].TypeMapping),
-            nameof(NpgsqlNetworkExtensions.Set7BitMac8)   => NullPropagatingFunction("macaddr8_set7bit", new[] { arguments[1] }, typeof(PhysicalAddress), _macaddr8Mapping),
+            nameof(NpgsqlNetworkDbFunctionsExtensions.Abbreviate)    => NullPropagatingFunction("abbrev",           new[] { arguments[1] }, typeof(string)),
+            nameof(NpgsqlNetworkDbFunctionsExtensions.Broadcast)     => NullPropagatingFunction("broadcast",        new[] { arguments[1] }, typeof(IPAddress), _inetMapping),
+            nameof(NpgsqlNetworkDbFunctionsExtensions.Family)        => NullPropagatingFunction("family",           new[] { arguments[1] }, typeof(int)),
+            nameof(NpgsqlNetworkDbFunctionsExtensions.Host)          => NullPropagatingFunction("host",             new[] { arguments[1] }, typeof(string)),
+            nameof(NpgsqlNetworkDbFunctionsExtensions.HostMask)      => NullPropagatingFunction("hostmask",         new[] { arguments[1] }, typeof(IPAddress), _inetMapping),
+            nameof(NpgsqlNetworkDbFunctionsExtensions.MaskLength)    => NullPropagatingFunction("masklen",          new[] { arguments[1] }, typeof(int)),
+            nameof(NpgsqlNetworkDbFunctionsExtensions.Netmask)       => NullPropagatingFunction("netmask",          new[] { arguments[1] }, typeof(IPAddress), _inetMapping),
+            nameof(NpgsqlNetworkDbFunctionsExtensions.Network)       => NullPropagatingFunction("network",          new[] { arguments[1] }, typeof((IPAddress Address, int Subnet)), _cidrMapping),
+            nameof(NpgsqlNetworkDbFunctionsExtensions.SetMaskLength) => NullPropagatingFunction("set_masklen",      new[] { arguments[1], arguments[2] }, arguments[1].Type, arguments[1].TypeMapping),
+            nameof(NpgsqlNetworkDbFunctionsExtensions.Text)          => NullPropagatingFunction("text",             new[] { arguments[1] }, typeof(string)),
+            nameof(NpgsqlNetworkDbFunctionsExtensions.SameFamily)    => NullPropagatingFunction("inet_same_family", new[] { arguments[1], arguments[2] }, typeof(bool)),
+            nameof(NpgsqlNetworkDbFunctionsExtensions.Merge)         => NullPropagatingFunction("inet_merge",       new[] { arguments[1], arguments[2] }, typeof((IPAddress Address, int Subnet)), _cidrMapping),
+            nameof(NpgsqlNetworkDbFunctionsExtensions.Truncate)      => NullPropagatingFunction("trunc",            new[] { arguments[1] }, typeof(PhysicalAddress), arguments[1].TypeMapping),
+            nameof(NpgsqlNetworkDbFunctionsExtensions.Set7BitMac8)   => NullPropagatingFunction("macaddr8_set7bit", new[] { arguments[1] }, typeof(PhysicalAddress), _macaddr8Mapping),
 
             _ => (SqlExpression)null
             };

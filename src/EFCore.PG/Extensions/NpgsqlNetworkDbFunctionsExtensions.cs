@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore
@@ -14,7 +15,7 @@ namespace Microsoft.EntityFrameworkCore
     /// <remarks>
     /// See: https://www.postgresql.org/docs/current/static/functions-net.html
     /// </remarks>
-    public static class NpgsqlNetworkExtensions
+    public static class NpgsqlNetworkDbFunctionsExtensions
     {
         #region RelationalOperators
 
@@ -31,7 +32,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static bool LessThan([CanBeNull] this DbFunctions _, IPAddress inet, IPAddress other)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(LessThan)));
 
         /// <summary>
         /// Determines whether an (IPAddress Address, int Subnet) is less than another (IPAddress Address, int Subnet).
@@ -46,7 +47,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static bool LessThan([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr, (IPAddress Address, int Subnet) other)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(LessThan)));
 
         /// <summary>
         /// Determines whether an <see cref="PhysicalAddress"/> is less than another <see cref="PhysicalAddress"/>.
@@ -61,7 +62,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static bool LessThan([CanBeNull] this DbFunctions _, PhysicalAddress macaddr, PhysicalAddress other)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(LessThan)));
 
         /// <summary>
         /// Determines whether an <see cref="IPAddress"/> is less than or equal to another <see cref="IPAddress"/>.
@@ -76,7 +77,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static bool LessThanOrEqual([CanBeNull] this DbFunctions _, IPAddress inet, IPAddress other)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(LessThanOrEqual)));
 
         /// <summary>
         /// Determines whether an (IPAddress Address, int Subnet) is less than or equal to another (IPAddress Address, int Subnet).
@@ -91,7 +92,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static bool LessThanOrEqual([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr, (IPAddress Address, int Subnet) other)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(LessThanOrEqual)));
 
         /// <summary>
         /// Determines whether an <see cref="PhysicalAddress"/> is less than or equal to another <see cref="PhysicalAddress"/>.
@@ -106,7 +107,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static bool LessThanOrEqual([CanBeNull] this DbFunctions _, PhysicalAddress macaddr, PhysicalAddress other)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(LessThanOrEqual)));
 
         /// <summary>
         /// Determines whether an <see cref="IPAddress"/> is greater than or equal to another <see cref="IPAddress"/>.
@@ -121,7 +122,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static bool GreaterThanOrEqual([CanBeNull] this DbFunctions _, IPAddress inet, IPAddress other)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(GreaterThanOrEqual)));
 
         /// <summary>
         /// Determines whether an (IPAddress Address, int Subnet) is greater than or equal to another (IPAddress Address, int Subnet).
@@ -136,7 +137,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static bool GreaterThanOrEqual([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr, (IPAddress Address, int Subnet) other)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(GreaterThanOrEqual)));
 
         /// <summary>
         /// Determines whether an <see cref="PhysicalAddress"/> is greater than or equal to another <see cref="PhysicalAddress"/>.
@@ -151,7 +152,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static bool GreaterThanOrEqual([CanBeNull] this DbFunctions _, PhysicalAddress macaddr, PhysicalAddress other)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(GreaterThanOrEqual)));
 
         /// <summary>
         /// Determines whether an <see cref="IPAddress"/> is greater than another <see cref="IPAddress"/>.
@@ -166,7 +167,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static bool GreaterThan([CanBeNull] this DbFunctions _, IPAddress inet, IPAddress other)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(GreaterThan)));
 
         /// <summary>
         /// Determines whether an (IPAddress Address, int Subnet) is greater than another (IPAddress Address, int Subnet).
@@ -181,7 +182,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static bool GreaterThan([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr, (IPAddress Address, int Subnet) other)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(GreaterThan)));
 
         /// <summary>
         /// Determines whether an <see cref="PhysicalAddress"/> is greater than another <see cref="PhysicalAddress"/>.
@@ -196,7 +197,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static bool GreaterThan([CanBeNull] this DbFunctions _, PhysicalAddress macaddr, PhysicalAddress other)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(GreaterThan)));
 
         #endregion
 
@@ -215,7 +216,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static bool ContainedBy([CanBeNull] this DbFunctions _, IPAddress inet, IPAddress other)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(ContainedBy)));
 
         /// <summary>
         /// Determines whether an <see cref="IPAddress"/> is contained within a network.
@@ -230,7 +231,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static bool ContainedBy([CanBeNull] this DbFunctions _, IPAddress inet, (IPAddress Address, int Subnet) other)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(ContainedBy)));
 
         /// <summary>
         /// Determines whether an (IPAddress Address, int Subnet) is contained within another (IPAddress Address, int Subnet).
@@ -245,7 +246,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static bool ContainedBy([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr, (IPAddress Address, int Subnet) other)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(ContainedBy)));
 
         /// <summary>
         /// Determines whether an <see cref="IPAddress"/> is contained within or equal to another <see cref="IPAddress"/>.
@@ -260,7 +261,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static bool ContainedByOrEqual([CanBeNull] this DbFunctions _, IPAddress inet, IPAddress other)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(ContainedByOrEqual)));
 
         /// <summary>
         /// Determines whether an <see cref="IPAddress"/> is contained within or equal to a network.
@@ -275,7 +276,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static bool ContainedByOrEqual([CanBeNull] this DbFunctions _, IPAddress inet, (IPAddress Address, int Subnet) other)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(ContainedByOrEqual)));
 
         /// <summary>
         /// Determines whether an (IPAddress Address, int Subnet) is contained within or equal to another (IPAddress Address, int Subnet).
@@ -290,7 +291,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static bool ContainedByOrEqual([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr, (IPAddress Address, int Subnet) other)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(ContainedByOrEqual)));
 
         /// <summary>
         /// Determines whether an <see cref="IPAddress"/> contains another <see cref="IPAddress"/>.
@@ -305,7 +306,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static bool Contains([CanBeNull] this DbFunctions _, IPAddress inet, IPAddress other)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Contains)));
 
         /// <summary>
         /// Determines whether a network contains another <see cref="IPAddress"/>.
@@ -320,7 +321,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static bool Contains([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr, IPAddress other)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Contains)));
 
         /// <summary>
         /// Determines whether an (IPAddress Address, int Subnet) contains another (IPAddress Address, int Subnet).
@@ -335,7 +336,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static bool Contains([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr, (IPAddress Address, int Subnet) other)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Contains)));
 
         /// <summary>
         /// Determines whether an <see cref="IPAddress"/> contains or is equal to another <see cref="IPAddress"/>.
@@ -350,7 +351,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static bool ContainsOrEqual([CanBeNull] this DbFunctions _, IPAddress inet, IPAddress other)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(ContainsOrEqual)));
 
         /// <summary>
         /// Determines whether a network contains or is equal to another <see cref="IPAddress"/>.
@@ -365,7 +366,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static bool ContainsOrEqual([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr, IPAddress other)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(ContainsOrEqual)));
 
         /// <summary>
         /// Determines whether an (IPAddress Address, int Subnet) contains or is equal to another (IPAddress Address, int Subnet).
@@ -380,7 +381,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static bool ContainsOrEqual([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr, (IPAddress Address, int Subnet) other)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(ContainsOrEqual)));
 
         /// <summary>
         /// Determines whether an <see cref="IPAddress"/> contains or is contained by another <see cref="IPAddress"/>.
@@ -395,7 +396,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static bool ContainsOrContainedBy([CanBeNull] this DbFunctions _, IPAddress inet, IPAddress other)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(ContainsOrContainedBy)));
 
         /// <summary>
         /// Determines whether a network contains or is contained by an <see cref="IPAddress"/>.
@@ -410,7 +411,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static bool ContainsOrContainedBy([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr, IPAddress other)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(ContainsOrContainedBy)));
 
         /// <summary>
         /// Determines whether an <see cref="IPAddress"/> contains or is contained by a network.
@@ -425,7 +426,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static bool ContainsOrContainedBy([CanBeNull] this DbFunctions _, IPAddress inet, (IPAddress Address, int Subnet) other)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(ContainsOrContainedBy)));
 
         /// <summary>
         /// Determines whether an (IPAddress Address, int Subnet) contains or is contained by another (IPAddress Address, int Subnet).
@@ -440,7 +441,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static bool ContainsOrContainedBy([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr, (IPAddress Address, int Subnet) other)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(ContainsOrContainedBy)));
 
         #endregion
 
@@ -458,7 +459,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static IPAddress BitwiseNot([CanBeNull] this DbFunctions _, IPAddress inet)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(BitwiseNot)));
 
         /// <summary>
         /// Computes the bitwise NOT operation on an (IPAddress Address, int Subnet).
@@ -472,7 +473,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static (IPAddress Address, int Subnet) BitwiseNot([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(BitwiseNot)));
 
         /// <summary>
         /// Computes the bitwise NOT operation on an <see cref="PhysicalAddress"/>.
@@ -486,7 +487,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static PhysicalAddress BitwiseNot([CanBeNull] this DbFunctions _, PhysicalAddress macaddr)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(BitwiseNot)));
 
         /// <summary>
         /// Computes the bitwise AND of two <see cref="IPAddress"/> instances.
@@ -501,7 +502,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static IPAddress BitwiseAnd([CanBeNull] this DbFunctions _, IPAddress inet, IPAddress other)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(BitwiseAnd)));
 
         /// <summary>
         /// Computes the bitwise AND of two (IPAddress Address, int Subnet) instances.
@@ -516,7 +517,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static (IPAddress Address, int Subnet) BitwiseAnd([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr, (IPAddress Address, int Subnet) other)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(BitwiseAnd)));
 
         /// <summary>
         /// Computes the bitwise AND of two <see cref="PhysicalAddress"/> instances.
@@ -531,7 +532,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static PhysicalAddress BitwiseAnd([CanBeNull] this DbFunctions _, PhysicalAddress macaddr, PhysicalAddress other)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(BitwiseAnd)));
 
         /// <summary>
         /// Computes the bitwise OR of two <see cref="IPAddress"/> instances.
@@ -546,7 +547,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static IPAddress BitwiseOr([CanBeNull] this DbFunctions _, IPAddress inet, IPAddress other)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(BitwiseOr)));
 
         /// <summary>
         /// Computes the bitwise OR of two (IPAddress Address, int Subnet) instances.
@@ -561,7 +562,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static (IPAddress Address, int Subnet) BitwiseOr([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr, (IPAddress Address, int Subnet) other)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(BitwiseOr)));
 
         /// <summary>
         /// Computes the bitwise OR of two <see cref="PhysicalAddress"/> instances.
@@ -576,7 +577,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static PhysicalAddress BitwiseOr([CanBeNull] this DbFunctions _, PhysicalAddress macaddr, PhysicalAddress other)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(BitwiseOr)));
 
         #endregion
 
@@ -595,7 +596,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static IPAddress Add([CanBeNull] this DbFunctions _, IPAddress inet, int value)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Add)));
 
         /// <summary>
         /// Adds the <paramref name="value"/> to the (IPAddress Address, int Subnet).
@@ -610,7 +611,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static (IPAddress Address, int Subnet) Add([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr, int value)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Add)));
 
         /// <summary>
         /// Subtracts the <paramref name="value"/> from the <see cref="IPAddress"/>.
@@ -625,7 +626,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static IPAddress Subtract([CanBeNull] this DbFunctions _, IPAddress inet, int value)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Subtract)));
 
         /// <summary>
         /// Subtracts the <paramref name="value"/> from the (IPAddress Address, int Subnet).
@@ -640,7 +641,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static (IPAddress Address, int Subnet) Subtract([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr, int value)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Subtract)));
 
         /// <summary>
         /// Subtracts one <see cref="IPAddress"/> from another <see cref="IPAddress"/>.
@@ -655,7 +656,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static int Subtract([CanBeNull] this DbFunctions _, IPAddress inet, IPAddress other)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Subtract)));
 
         /// <summary>
         /// Subtracts one (IPAddress Address, int Subnet) from another (IPAddress Address, int Subnet).
@@ -670,7 +671,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static int Subtract([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr, (IPAddress Address, int Subnet) other)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Subtract)));
 
         #endregion
 
@@ -688,7 +689,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static string Abbreviate([CanBeNull] this DbFunctions _, IPAddress inet)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Abbreviate)));
 
         /// <summary>
         /// Returns the abbreviated display format as text.
@@ -702,7 +703,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static string Abbreviate([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Abbreviate)));
 
         /// <summary>
         /// Returns the broadcast address for a network.
@@ -716,7 +717,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static IPAddress Broadcast([CanBeNull] this DbFunctions _, IPAddress inet)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Broadcast)));
 
         /// <summary>
         /// Returns the broadcast address for a network.
@@ -730,7 +731,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static IPAddress Broadcast([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Broadcast)));
 
         /// <summary>
         /// Extracts the family of an address; 4 for IPv4, 6 for IPv6.
@@ -744,7 +745,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static int Family([CanBeNull] this DbFunctions _, IPAddress inet)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Family)));
 
         /// <summary>
         /// Extracts the family of an address; 4 for IPv4, 6 for IPv6.
@@ -758,7 +759,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static int Family([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Family)));
 
         /// <summary>
         /// Extracts the host (i.e. the IP address) as text.
@@ -772,7 +773,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static string Host([CanBeNull] this DbFunctions _, IPAddress inet)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Host)));
 
         /// <summary>
         /// Extracts the host (i.e. the IP address) as text.
@@ -786,7 +787,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static string Host([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Host)));
 
         /// <summary>
         /// Constructs the host mask for the network.
@@ -800,7 +801,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static IPAddress HostMask([CanBeNull] this DbFunctions _, IPAddress inet)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(HostMask)));
 
         /// <summary>
         /// Constructs the host mask for the network.
@@ -814,7 +815,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static IPAddress HostMask([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(HostMask)));
 
         /// <summary>
         /// Extracts the length of the subnet mask.
@@ -828,7 +829,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static int MaskLength([CanBeNull] this DbFunctions _, IPAddress inet)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(MaskLength)));
 
         /// <summary>
         /// Extracts the length of the subnet mask.
@@ -842,7 +843,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static int MaskLength([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(MaskLength)));
 
         /// <summary>
         /// Constructs the subnet mask for the network.
@@ -856,7 +857,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static IPAddress Netmask([CanBeNull] this DbFunctions _, IPAddress inet)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Netmask)));
 
         /// <summary>
         /// Constructs the subnet mask for the network.
@@ -870,7 +871,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static IPAddress Netmask([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Netmask)));
 
         /// <summary>
         /// Extracts the network part of the address.
@@ -884,7 +885,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static (IPAddress Address, int Subnet) Network([CanBeNull] this DbFunctions _, IPAddress inet)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Network)));
 
         /// <summary>
         /// Extracts the network part of the address.
@@ -898,7 +899,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static (IPAddress Address, int Subnet) Network([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Network)));
 
         /// <summary>
         /// Sets the length of the subnet mask.
@@ -913,7 +914,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static IPAddress SetMaskLength([CanBeNull] this DbFunctions _, IPAddress inet, int length)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(SetMaskLength)));
 
         /// <summary>
         /// Sets the length of the subnet mask.
@@ -928,7 +929,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static (IPAddress Address, int Subnet) SetMaskLength([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr, int length)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(SetMaskLength)));
 
         /// <summary>
         /// Extracts the IP address and subnet mask as text.
@@ -942,7 +943,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static string Text([CanBeNull] this DbFunctions _, IPAddress inet)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Text)));
 
         /// <summary>
         /// Extracts the IP address and subnet mask as text.
@@ -956,7 +957,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static string Text([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Text)));
 
         /// <summary>
         /// Tests if the addresses are in the same family.
@@ -971,7 +972,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static bool SameFamily([CanBeNull] this DbFunctions _, IPAddress inet, IPAddress other)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(SameFamily)));
 
         /// <summary>
         /// Tests if the addresses are in the same family.
@@ -986,7 +987,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static bool SameFamily([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr, (IPAddress Address, int Subnet) other)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(SameFamily)));
 
         /// <summary>
         /// Constructs the smallest network which includes both of the given networks.
@@ -1001,7 +1002,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static (IPAddress Address, int Subnet) Merge([CanBeNull] this DbFunctions _, IPAddress inet, IPAddress other)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Merge)));
 
         /// <summary>
         /// Constructs the smallest network which includes both of the given networks.
@@ -1016,7 +1017,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static (IPAddress Address, int Subnet) Merge([CanBeNull] this DbFunctions _, (IPAddress Address, int Subnet) cidr, (IPAddress Address, int Subnet) other)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Merge)));
 
         /// <summary>
         /// Sets the last 3 bytes of the MAC address to zero. For macaddr8, the last 5 bytes are set to zero.
@@ -1030,7 +1031,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static PhysicalAddress Truncate([CanBeNull] this DbFunctions _, PhysicalAddress macAddress)
-            => throw ClientEvaluationNotSupportedException();
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Truncate)));
 
         /// <summary>
         /// Sets the 7th bit to one, also known as modified EUI-64, for inclusion in an IPv6 address.
@@ -1044,21 +1045,7 @@ namespace Microsoft.EntityFrameworkCore
         /// This method is only intended for use via SQL translation as part of an EF Core LINQ query.
         /// </exception>
         public static PhysicalAddress Set7BitMac8([CanBeNull] this DbFunctions _, PhysicalAddress macAddress)
-            => throw ClientEvaluationNotSupportedException();
-
-        #endregion
-
-        #region Utilities
-
-        /// <summary>
-        /// Helper method to throw a <see cref="NotSupportedException"/> with the name of the throwing method.
-        /// </summary>
-        /// <param name="method">The method that throws the exception.</param>
-        /// <returns>
-        /// A <see cref="NotSupportedException"/>.
-        /// </returns>
-        static NotSupportedException ClientEvaluationNotSupportedException([CallerMemberName] string method = default)
-            => new NotSupportedException($"{method} is only intended for use via SQL translation as part of an EF Core LINQ query.");
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Set7BitMac8)));
 
         #endregion
     }
