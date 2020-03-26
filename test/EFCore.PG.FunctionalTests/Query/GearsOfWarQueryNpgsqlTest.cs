@@ -65,6 +65,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         public override Task DateTimeOffset_Contains_Less_than_Greater_than(bool isAsync)
             => base.DateTimeOffset_Contains_Less_than_Greater_than(isAsync);
 
+        [ConditionalTheory(Skip = "DateTimeOffset.Date isn't currently translated")]
+        [MemberData(nameof(IsAsyncData))]
+        public override Task DateTimeOffset_Date_returns_datetime(bool async)
+            => base.DateTimeOffset_Date_returns_datetime(async);
+
         #endregion Ignore DateTimeOffset tests
     }
 }
