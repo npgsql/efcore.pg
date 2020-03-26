@@ -351,11 +351,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             var alterBase = $"ALTER TABLE {DelimitIdentifier(operation.Table, operation.Schema)} " +
                             $"ALTER COLUMN {DelimitIdentifier(operation.Name)} ";
 
-            // TYPE
+            // TYPE + COLLATION
             builder.Append(alterBase)
                 .Append("TYPE ")
-                .Append(type)
-                .AppendLine(';');
+                .Append(type);
+
+            var oldCollation = operation.OldColumn[NpgsqlAnnotationNames.Collation] as string;
+            var newCollation = operation[NpgsqlAnnotationNames.Collation] as string;
+            if (newCollation != oldCollation)
+            {
+                builder.Append(" COLLATE ").Append(
+                    Dependencies.SqlGenerationHelper.DelimitIdentifier(newCollation ?? "default"));
+            }
+
+            builder.AppendLine(';');
 
             // NOT NULL
             builder.Append(alterBase)
@@ -739,6 +748,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                     .Append(DelimitIdentifier(operation.Template));
             }
 
+            if (operation.Collation != null)
+            {
+                builder
+                    .Append(" LC_COLLATE ")
+                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Collation));
+            }
+
             if (operation.Tablespace != null)
             {
                 builder
@@ -778,11 +794,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             Check.NotNull(model, nameof(model));
             Check.NotNull(builder, nameof(builder));
 
-            GenerateEnumStatements(operation, model, builder);
-            GenerateRangeStatements(operation, model, builder);
-
             foreach (var extension in operation.GetPostgresExtensions())
                 GenerateCreateExtension(extension, model, builder);
+
+            GenerateCollationStatements(operation, model, builder);
+            GenerateEnumStatements(operation, model, builder);
+            GenerateRangeStatements(operation, model, builder);
 
             builder.EndCommand();
         }
@@ -812,6 +829,94 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             builder.AppendLine(';');
         }
+
+        #region Collation management
+
+        protected virtual void GenerateCollationStatements(
+            [NotNull] AlterDatabaseOperation operation,
+            [NotNull] IModel model,
+            [NotNull] MigrationCommandListBuilder builder)
+        {
+            foreach (var collationToCreate in operation.GetPostgresCollations()
+                .Where(ne => operation.GetOldPostgresCollations().All(oe => oe.Name != ne.Name || oe.Schema != ne.Schema)))
+            {
+                GenerateCreateCollation(collationToCreate, model, builder);
+            }
+
+            foreach (var collationToDrop in operation.GetOldPostgresCollations()
+                .Where(oe => operation.GetPostgresCollations().All(ne => ne.Name != oe.Name || oe.Schema != ne.Schema)))
+            {
+                GenerateDropCollation(collationToDrop, model, builder);
+            }
+
+            foreach (var (newCollation, oldCollation) in operation.GetPostgresCollations()
+                .Join(operation.GetOldPostgresCollations(),
+                    e => new { e.Name, e.Schema },
+                    e => new { e.Name, e.Schema },
+                    (ne, oe) => (New: ne, Old: oe)))
+            {
+                if (newCollation.LcCollate != oldCollation.LcCollate ||
+                    newCollation.LcCtype != oldCollation.LcCtype ||
+                    newCollation.Provider != oldCollation.Provider ||
+                    newCollation.IsDeterministic != oldCollation.IsDeterministic)
+                {
+                    throw new NotSupportedException("Altering an existing collation is not supported.");
+                }
+            }
+        }
+
+        protected virtual void GenerateCreateCollation(
+            [NotNull] PostgresCollation collation,
+            [NotNull] IModel model,
+            [NotNull] MigrationCommandListBuilder builder)
+        {
+            var schema = collation.Schema ?? model.GetDefaultSchema();
+
+            // Schemas are normally created (or rather ensured) by the model differ, which scans all tables, sequences
+            // and other database objects. However, it isn't aware of collation, so we always ensure schema on collation creation.
+            if (schema != null)
+                Generate(new EnsureSchemaOperation { Name = schema }, model, builder);
+
+            builder
+                .Append("CREATE COLLATION ")
+                .Append(DelimitIdentifier(collation.Name, schema))
+                .Append(" (")
+                .IncrementIndent();
+
+            var def = new List<string>
+            {
+                @$"LC_COLLATE = {_stringTypeMapping.GenerateSqlLiteral(collation.LcCollate)}",
+                $"LC_CTYPE = {_stringTypeMapping.GenerateSqlLiteral(collation.LcCtype)}"
+            };
+            if (collation.Provider != null)
+                def.Add($"PROVIDER = {collation.Provider}");
+            if (collation.IsDeterministic != null)
+                def.Add($"DETERMINISTIC = {collation.IsDeterministic}");
+
+            for (var i = 0; i < def.Count; i++)
+                builder
+                    .Append(def[i] + (i == def.Count - 1 ? null : ","))
+                    .AppendLine();
+
+            builder
+                .DecrementIndent()
+                .AppendLine(");");
+        }
+
+        protected virtual void GenerateDropCollation(
+            [NotNull] PostgresCollation collation,
+            [NotNull] IModel model,
+            [NotNull] MigrationCommandListBuilder builder)
+        {
+            var schema = collation.Schema ?? model.GetDefaultSchema();
+
+            builder
+                .Append("DROP COLLATION ")
+                .Append(DelimitIdentifier(collation.Name, schema))
+                .AppendLine(";");
+        }
+
+        #endregion Collation management
 
         #region Enum management
 
@@ -1178,6 +1283,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 model,
                 builder);
 
+            if (operation[NpgsqlAnnotationNames.Collation] is string collation)
+            {
+                builder.Append(" COLLATE ").Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(collation));
+            }
+
             if (valueGenerationStrategy.IsIdentity())
                 IdentityDefinition(operation, builder);
         }
@@ -1516,8 +1626,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
         static IndexColumn[] GetIndexColumns(CreateIndexOperation operation)
         {
+#pragma warning disable 618
+            var collations = (operation[NpgsqlAnnotationNames.Collation] ??
+                              operation[NpgsqlAnnotationNames.IndexCollation]) as string[];
+#pragma warning restore 618
+
             var operators = operation[NpgsqlAnnotationNames.IndexOperators] as string[];
-            var collations = operation[NpgsqlAnnotationNames.IndexCollation] as string[];
             var sortOrders = operation[NpgsqlAnnotationNames.IndexSortOrder] as SortOrder[];
             var nullSortOrders = operation[NpgsqlAnnotationNames.IndexNullSortOrder] as NullSortOrder[];
 

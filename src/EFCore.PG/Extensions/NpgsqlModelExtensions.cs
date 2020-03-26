@@ -208,6 +208,164 @@ namespace Microsoft.EntityFrameworkCore
             => model.SetOrRemoveAnnotation(NpgsqlAnnotationNames.DatabaseTemplate, template);
         #endregion
 
+        #region Collation management
+
+        public static PostgresCollation GetOrAddCollation(
+            [NotNull] this IMutableModel model,
+            [CanBeNull] string schema,
+            [NotNull] string name,
+            [CanBeNull] string lcCollate = null,
+            [CanBeNull] string lcCtype = null,
+            [CanBeNull] string provider = null,
+            [CanBeNull] bool? deterministic = null)
+            => PostgresCollation.GetOrAddCollation(
+                model,
+                schema,
+                name,
+                lcCollate,
+                lcCtype,
+                provider,
+                deterministic);
+
+        public static IReadOnlyList<PostgresCollation> GetCollations([NotNull] this IModel model)
+            => PostgresCollation.GetCollations(model).ToArray();
+
+        #endregion Collation management
+
+        #region Collation
+
+        /// <summary>
+        /// Returns the collation to be used by default when creating columns, or <c>null</c> if it hasn't been specified.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/collation.html
+        /// </remarks>
+        public static string GetCollation([NotNull] this IModel model)
+            => (string)model[NpgsqlAnnotationNames.Collation];
+
+        /// <summary>
+        /// Sets the collation to be used by default when creating columns, or <c>null</c> if it hasn't been specified.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/collation.html
+        /// </remarks>
+        public static void SetCollation([NotNull] this IMutableModel model, [CanBeNull] string collation)
+            => model.SetOrRemoveAnnotation(NpgsqlAnnotationNames.Collation, collation);
+
+        /// <summary>
+        /// Sets the collation to be used by default when creating columns, or <c>null</c> if it hasn't been specified.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/collation.html
+        /// </remarks>
+        public static string SetCollation([NotNull] this IConventionModel model, [CanBeNull] string collation, bool fromDataAnnotation = false)
+        {
+            model.SetOrRemoveAnnotation(NpgsqlAnnotationNames.Collation, collation, fromDataAnnotation);
+            return collation;
+        }
+
+        /// <summary>
+        /// Returns the <see cref="ConfigurationSource" /> for the collation of the database.
+        /// </summary>
+        /// <param name="model">The model.</param>
+        /// <returns>The <see cref="ConfigurationSource" /> for the collation of the database.</returns>
+        public static ConfigurationSource? GetCollationConfigurationSource([NotNull] this IConventionModel model)
+            => model.FindAnnotation(NpgsqlAnnotationNames.Collation)?.GetConfigurationSource();
+
+        #endregion Collation
+
+        #region Case-insensitive collation
+
+        /// <summary>
+        /// Returns the collation to be used by default for explicitly case-insensitive operations,
+        /// or <c>null</c> if it hasn't been specified.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/collation.html
+        /// </remarks>
+        public static string GetCaseInsensitiveCollation([NotNull] this IModel model)
+            => (string)model[NpgsqlAnnotationNames.CaseInsensitiveCollation];
+
+        /// <summary>
+        /// Sets the collation to be used by default for explicitly case-insensitive operations,
+        /// or <c>null</c> if it hasn't been specified.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/collation.html
+        /// </remarks>
+        public static void SetCaseInsensitiveCollation([NotNull] this IMutableModel model, [CanBeNull] string collation)
+            => model.SetOrRemoveAnnotation(NpgsqlAnnotationNames.CaseInsensitiveCollation, collation);
+
+        /// <summary>
+        /// Sets the collation to be used by default for explicitly case-insensitive operations,
+        /// or <c>null</c> if it hasn't been specified.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/collation.html
+        /// </remarks>
+        public static string SetCaseInsensitiveCollation([NotNull] this IConventionModel model, [CanBeNull] string collation, bool fromDataAnnotation = false)
+        {
+            model.SetOrRemoveAnnotation(NpgsqlAnnotationNames.CaseInsensitiveCollation, collation, fromDataAnnotation);
+            return collation;
+        }
+
+        /// <summary>
+        /// Returns the collation to be used by default for explicitly case-insensitive operations,
+        /// or <c>null</c> if it hasn't been specified.
+        /// </summary>
+        /// <param name="model">The model.</param>
+        /// <returns>The <see cref="ConfigurationSource" /> for the collation of the database.</returns>
+        public static ConfigurationSource? GetCaseInsensitiveCollationConfigurationSource([NotNull] this IConventionModel model)
+            => model.FindAnnotation(NpgsqlAnnotationNames.CaseInsensitiveCollation)?.GetConfigurationSource();
+
+        #endregion Case-insensitive collation
+
+        #region Case-sensitive collation
+
+        /// <summary>
+        /// Returns the collation to be used by default for explicitly case-sensitive operations,
+        /// or <c>null</c> if it hasn't been specified.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/collation.html
+        /// </remarks>
+        public static string GetCaseSensitiveCollation([NotNull] this IModel model)
+            => (string)model[NpgsqlAnnotationNames.CaseSensitiveCollation];
+
+        /// <summary>
+        /// Sets the collation to be used by default for explicitly case-sensitive operations,
+        /// or <c>null</c> if it hasn't been specified.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/collation.html
+        /// </remarks>
+        public static void SetCaseSensitiveCollation([NotNull] this IMutableModel model, [CanBeNull] string collation)
+            => model.SetOrRemoveAnnotation(NpgsqlAnnotationNames.CaseSensitiveCollation, collation);
+
+        /// <summary>
+        /// Sets the collation to be used by default for explicitly case-sensitive operations,
+        /// or <c>null</c> if it hasn't been specified.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/collation.html
+        /// </remarks>
+        public static string SetCaseSensitiveCollation([NotNull] this IConventionModel model, [CanBeNull] string collation, bool fromDataAnnotation = false)
+        {
+            model.SetOrRemoveAnnotation(NpgsqlAnnotationNames.CaseSensitiveCollation, collation, fromDataAnnotation);
+            return collation;
+        }
+
+        /// <summary>
+        /// Returns the collation to be used by default for explicitly case-sensitive operations,
+        /// or <c>null</c> if it hasn't been specified.
+        /// </summary>
+        /// <param name="model">The model.</param>
+        /// <returns>The <see cref="ConfigurationSource" /> for the collation of the database.</returns>
+        public static ConfigurationSource? GetCaseSensitiveCollationConfigurationSource([NotNull] this IConventionModel model)
+            => model.FindAnnotation(NpgsqlAnnotationNames.CaseSensitiveCollation)?.GetConfigurationSource();
+
+        #endregion Case-sensitive collation
+
         #region Tablespace
 
         public static string GetTablespace([NotNull] this IModel model)
@@ -217,6 +375,5 @@ namespace Microsoft.EntityFrameworkCore
             => model.SetOrRemoveAnnotation(NpgsqlAnnotationNames.Tablespace, tablespace);
 
         #endregion
-
     }
 }

@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 // ReSharper disable once CheckNamespace
@@ -590,5 +592,145 @@ namespace Microsoft.EntityFrameworkCore
             => property.FindAnnotation(NpgsqlAnnotationNames.TsVectorConfig)?.GetConfigurationSource();
 
         #endregion Generated tsvector column
+
+        #region Collation
+
+        // Note that the model-level collation is specified when creating the database, and applies to all columns
+        // by PostgreSQL. We therefore don't propagate it via metadata.
+
+        /// <summary>
+        /// Returns the collation to be used, or <c>null</c> if it hasn't been specified.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/collation.html
+        /// </remarks>
+        public static string GetCollation([NotNull] this IProperty property)
+            => (string)property[NpgsqlAnnotationNames.Collation];
+
+        /// <summary>
+        /// Sets the collation to be used, or <c>null</c> to make it unspecified.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/collation.html
+        /// </remarks>
+        public static void SetCollation([NotNull] this IMutableProperty property, [CanBeNull] string collation)
+            => property.SetOrRemoveAnnotation(NpgsqlAnnotationNames.Collation, collation);
+
+        /// <summary>
+        /// Sets the collation to be used, or <c>null</c> to make it unspecified.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/collation.html
+        /// </remarks>
+        public static string SetCollation(
+            [NotNull] this IConventionProperty property,
+            [CanBeNull] string collation,
+            bool fromDataAnnotation = false)
+        {
+            property.SetOrRemoveAnnotation(NpgsqlAnnotationNames.Collation, collation, fromDataAnnotation);
+            return collation;
+        }
+
+        /// <summary>
+        /// Returns the <see cref="ConfigurationSource" /> for the collation of the property.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <returns>The <see cref="ConfigurationSource" /> for the collation of the database.</returns>
+        public static ConfigurationSource? GetCollationConfigurationSource([NotNull] this IConventionProperty property)
+            => property.FindAnnotation(NpgsqlAnnotationNames.Collation)?.GetConfigurationSource();
+
+        #endregion Collation
+
+        #region Case-insensitive collation
+
+        /// <summary>
+        /// Returns the case-insensitive collation to be used, or <c>null</c> if it hasn't been specified.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/collation.html
+        /// </remarks>
+        public static string GetCaseInsensitiveCollation([NotNull] this IProperty property)
+            => property[NpgsqlAnnotationNames.CaseInsensitiveCollation] as string ??
+               (property.GetTypeMapping() is StringTypeMapping ? property.DeclaringEntityType.Model.GetCaseInsensitiveCollation() : null);
+
+        /// <summary>
+        /// Sets the case-insensitive collation to be used, or <c>null</c> to make it unspecified.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/collation.html
+        /// </remarks>
+        public static void SetCaseInsensitiveCollation([NotNull] this IMutableProperty property, [CanBeNull] string collation)
+            => property.SetOrRemoveAnnotation(NpgsqlAnnotationNames.CaseInsensitiveCollation, collation);
+
+        /// <summary>
+        /// Sets the case-insensitive collation to be used, or <c>null</c> to make it unspecified.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/collation.html
+        /// </remarks>
+        public static string SetCaseInsensitiveCollation(
+            [NotNull] this IConventionProperty property,
+            [CanBeNull] string collation,
+            bool fromDataAnnotation = false)
+        {
+            property.SetOrRemoveAnnotation(NpgsqlAnnotationNames.CaseInsensitiveCollation, collation, fromDataAnnotation);
+            return collation;
+        }
+
+        /// <summary>
+        /// Returns the <see cref="ConfigurationSource" /> for the case-insensitive collation of the property.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <returns>The <see cref="ConfigurationSource" /> for the collation of the database.</returns>
+        public static ConfigurationSource? GetCaseInsensitiveCollationConfigurationSource([NotNull] this IConventionProperty property)
+            => property.FindAnnotation(NpgsqlAnnotationNames.CaseInsensitiveCollation)?.GetConfigurationSource();
+
+        #endregion Case-insensitive collation
+
+        #region Case-sensitive collation
+
+        /// <summary>
+        /// Returns the case-sensitive collation to be used, or <c>null</c> if it hasn't been specified.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/collation.html
+        /// </remarks>
+        public static string GetCaseSensitiveCollation([NotNull] this IProperty property)
+            => property[NpgsqlAnnotationNames.CaseSensitiveCollation] as string ??
+               (property.GetTypeMapping() is StringTypeMapping ? property.DeclaringEntityType.Model.GetCaseSensitiveCollation() : null);
+
+        /// <summary>
+        /// Sets the case-sensitive collation to be used, or <c>null</c> to make it unspecified.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/collation.html
+        /// </remarks>
+        public static void SetCaseSensitiveCollation([NotNull] this IMutableProperty property, [CanBeNull] string collation)
+            => property.SetOrRemoveAnnotation(NpgsqlAnnotationNames.CaseSensitiveCollation, collation);
+
+        /// <summary>
+        /// Sets the case-sensitive collation to be used, or <c>null</c> to make it unspecified.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/collation.html
+        /// </remarks>
+        public static string SetCaseSensitiveCollation(
+            [NotNull] this IConventionProperty property,
+            [CanBeNull] string collation,
+            bool fromDataAnnotation = false)
+        {
+            property.SetOrRemoveAnnotation(NpgsqlAnnotationNames.CaseSensitiveCollation, collation, fromDataAnnotation);
+            return collation;
+        }
+
+        /// <summary>
+        /// Returns the <see cref="ConfigurationSource" /> for the case-sensitive collation of the property.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <returns>The <see cref="ConfigurationSource" /> for the collation of the database.</returns>
+        public static ConfigurationSource? GetCaseSensitiveCollationConfigurationSource([NotNull] this IConventionProperty property)
+            => property.FindAnnotation(NpgsqlAnnotationNames.CaseSensitiveCollation)?.GetConfigurationSource();
+
+        #endregion Case-sensitive collation
     }
 }

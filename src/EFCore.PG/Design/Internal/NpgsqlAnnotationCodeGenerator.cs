@@ -119,6 +119,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
                     rangeTypeDef.SubtypeDiff);
             }
 
+            if (annotation.Name == NpgsqlAnnotationNames.Collation)
+                return new MethodCallCodeFragment(nameof(NpgsqlModelBuilderExtensions.UseCollation));
+
             return null;
         }
 
@@ -159,6 +162,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
                     identityOptions.MaxValue,
                     identityOptions.IsCyclic ? true : (bool?)null,
                     identityOptions.NumbersToCache == 1 ? null : (long?)identityOptions.NumbersToCache);
+
+            case NpgsqlAnnotationNames.Collation:
+                return new MethodCallCodeFragment(nameof(NpgsqlPropertyBuilderExtensions.UseCollation), annotation.Value);
             }
 
             return null;
@@ -167,12 +173,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
         public override MethodCallCodeFragment GenerateFluentApi(IIndex index, IAnnotation annotation)
             => annotation.Name switch
             {
+                NpgsqlAnnotationNames.Collation
+                    => new MethodCallCodeFragment(nameof(NpgsqlIndexBuilderExtensions.UseCollation), annotation.Value),
                 NpgsqlAnnotationNames.IndexMethod
                     => new MethodCallCodeFragment(nameof(NpgsqlIndexBuilderExtensions.HasMethod), annotation.Value),
                 NpgsqlAnnotationNames.IndexOperators
                     => new MethodCallCodeFragment(nameof(NpgsqlIndexBuilderExtensions.HasOperators), annotation.Value),
-                NpgsqlAnnotationNames.IndexCollation
-                    => new MethodCallCodeFragment(nameof(NpgsqlIndexBuilderExtensions.HasCollation), annotation.Value),
                 NpgsqlAnnotationNames.IndexSortOrder
                     => new MethodCallCodeFragment(nameof(NpgsqlIndexBuilderExtensions.HasSortOrder), annotation.Value),
                 NpgsqlAnnotationNames.IndexNullSortOrder

@@ -66,6 +66,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
                         .Select(p2 => property.DeclaringEntityType.FindProperty(p2).GetColumnName())
                         .ToArray());
             }
+
+            if (column.PropertyMappings.Select(m => m.Property.GetCollation())
+                .FirstOrDefault(c => c != null) is string collation)
+                yield return new Annotation(NpgsqlAnnotationNames.Collation, collation);
         }
 
         public override IEnumerable<IAnnotation> For(ITableIndex index)
@@ -73,12 +77,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
             // Model validation ensures that these facets are the same on all mapped indexes
             var modelIndex = index.MappedIndexes.First();
 
+            if (modelIndex.GetCollation() is IReadOnlyList<string> collation)
+                yield return new Annotation(NpgsqlAnnotationNames.Collation, collation);
             if (modelIndex.GetMethod() is string method)
                 yield return new Annotation(NpgsqlAnnotationNames.IndexMethod, method);
             if (modelIndex.GetOperators() is IReadOnlyList<string> operators)
                 yield return new Annotation(NpgsqlAnnotationNames.IndexOperators, operators);
-            if (modelIndex.GetCollation() is IReadOnlyList<string> collation)
-                yield return new Annotation(NpgsqlAnnotationNames.IndexCollation, collation);
             if (modelIndex.GetSortOrder() is IReadOnlyList<SortOrder> sortOrder)
                 yield return new Annotation(NpgsqlAnnotationNames.IndexSortOrder, sortOrder);
             if (modelIndex.GetNullSortOrder() is IReadOnlyList<SortOrder> nullSortOrder)
@@ -107,6 +111,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
             => model.Model.GetAnnotations().Where(a =>
                 a.Name.StartsWith(NpgsqlAnnotationNames.PostgresExtensionPrefix, StringComparison.Ordinal) ||
                 a.Name.StartsWith(NpgsqlAnnotationNames.EnumPrefix, StringComparison.Ordinal) ||
-                a.Name.StartsWith(NpgsqlAnnotationNames.RangePrefix, StringComparison.Ordinal));
+                a.Name.StartsWith(NpgsqlAnnotationNames.RangePrefix, StringComparison.Ordinal) ||
+                a.Name.StartsWith(NpgsqlAnnotationNames.CollationDefinitionPrefix, StringComparison.Ordinal) ||
+                a.Name == NpgsqlAnnotationNames.Collation);
     }
 }

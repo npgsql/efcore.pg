@@ -9,6 +9,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Operations
         [CanBeNull]
         public virtual string Template { get; set; }
         [CanBeNull]
+        public virtual string Collation { get; set; }
+        [CanBeNull]
         public virtual string Tablespace { get; set; }
     }
 }

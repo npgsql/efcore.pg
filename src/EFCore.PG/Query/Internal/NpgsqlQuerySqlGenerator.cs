@@ -512,6 +512,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             return e;
         }
 
+        [NotNull]
+        public virtual Expression VisitCollation([NotNull] CollateExpression e)
+        {
+            Check.NotNull(e, nameof(e));
+
+            Visit(e.Operand);
+            Sql.Append($@" COLLATE ""{e.Collation}""");
+
+            return e;
+        }
+
         #endregion
     }
 }

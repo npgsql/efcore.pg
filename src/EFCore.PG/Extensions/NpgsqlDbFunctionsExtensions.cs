@@ -46,5 +46,24 @@ namespace Microsoft.EntityFrameworkCore
             [CanBeNull] string pattern,
             [CanBeNull] string escapeCharacter)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(ILike)));
+
+        /// <summary>
+        /// <p>
+        /// Explicitly specifies a collection to be used in a LINQ query. Can be used to generate fragments such as
+        /// <code>WHERE customer.name COLLATE 'de_DE' = 'John Doe'</code>
+        /// </p>
+        /// <p>
+        /// The collation must already exist in the database (see
+        /// <see cref="NpgsqlModelBuilderExtensions.HasCollation(Microsoft.EntityFrameworkCore.ModelBuilder,string,string,string,System.Nullable{bool})" />).
+        /// </p>
+        /// </summary>
+        /// <param name="_">The DbFunctions instance.</param>
+        /// <param name="operand">The operand on which to apply the collation.</param>
+        /// <param name="collation">The name of the collection, which must already exist in the database.</param>
+        public static T ApplyCollation<T>(
+            [NotNull] this DbFunctions _,
+            [NotNull] T operand,
+            [NotNull] string collation)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(ApplyCollation)));
     }
 }

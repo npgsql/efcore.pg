@@ -55,6 +55,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
                     DropExtensions(conn);
                     DropTypes(conn);
                     DropFunctions(conn);
+                    DropCollations(conn);
                 }
                 finally
                 {
@@ -137,6 +138,29 @@ WHERE
             if (dropSql != "")
             {
                 using var cmd = new NpgsqlCommand(dropSql, conn);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        void DropCollations(NpgsqlConnection conn)
+        {
+            const string getUserCollations = @"SELECT nspname, collname
+FROM pg_collation coll
+    JOIN pg_namespace ns ON ns.oid=coll.collnamespace
+    JOIN pg_authid auth ON auth.oid = coll.collowner WHERE rolname <> 'postgres';
+";
+
+            (string Schema, string Name)[] userDefinedTypes;
+            using (var cmd = new NpgsqlCommand(getUserCollations, conn))
+            {
+                using var reader = cmd.ExecuteReader();
+                userDefinedTypes = reader.Cast<DbDataRecord>().Select(r => (r.GetString(0), r.GetString(1))).ToArray();
+            }
+
+            if (userDefinedTypes.Any())
+            {
+                var dropTypes = string.Concat(userDefinedTypes.Select(t => $@"DROP COLLATION ""{t.Schema}"".""{t.Name}"" CASCADE;"));
+                using var cmd = new NpgsqlCommand(dropTypes, conn);
                 cmd.ExecuteNonQuery();
             }
         }

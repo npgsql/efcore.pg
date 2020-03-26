@@ -304,7 +304,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="indexBuilder">The builder for the index being configured.</param>
         /// <param name="values">The sort options to use for each column.</param>
         /// <returns>A builder to further configure the index.</returns>
-        public static IndexBuilder HasCollation(
+        public static IndexBuilder UseCollation(
             [NotNull] this IndexBuilder indexBuilder,
             [CanBeNull] params string[] values)
         {
@@ -325,10 +325,10 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="indexBuilder">The builder for the index being configured.</param>
         /// <param name="values">The sort options to use for each column.</param>
         /// <returns>A builder to further configure the index.</returns>
-        public static IndexBuilder<TEntity> HasCollation<TEntity>(
+        public static IndexBuilder<TEntity> UseCollation<TEntity>(
             [NotNull] this IndexBuilder<TEntity> indexBuilder,
             [CanBeNull] params string[] values)
-            => (IndexBuilder<TEntity>)HasCollation((IndexBuilder)indexBuilder, values);
+            => (IndexBuilder<TEntity>)UseCollation((IndexBuilder)indexBuilder, values);
 
         /// <summary>
         /// The PostgreSQL index collation to be used.
@@ -340,12 +340,12 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="values">The sort options to use for each column.</param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns>A builder to further configure the index.</returns>
-        public static IConventionIndexBuilder HasCollation(
+        public static IConventionIndexBuilder UseCollation(
             [NotNull] this IConventionIndexBuilder indexBuilder,
             [CanBeNull] IReadOnlyList<string> values,
             bool fromDataAnnotation)
         {
-            if (indexBuilder.CanSetHasCollation(values, fromDataAnnotation))
+            if (indexBuilder.CanSetUseCollation(values, fromDataAnnotation))
             {
                 indexBuilder.Metadata.SetCollation(values, fromDataAnnotation);
 
@@ -365,14 +365,17 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="values">The sort options to use for each column.</param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns>A builder to further configure the index.</returns>
-        public static bool CanSetHasCollation(
+        public static bool CanSetUseCollation(
             [NotNull] this IConventionIndexBuilder indexBuilder,
             [CanBeNull] IReadOnlyList<string> values,
             bool fromDataAnnotation)
         {
             Check.NotNull(indexBuilder, nameof(indexBuilder));
 
-            return indexBuilder.CanSetAnnotation(NpgsqlAnnotationNames.IndexCollation, values, fromDataAnnotation);
+#pragma warning disable 618
+            return indexBuilder.CanSetAnnotation(NpgsqlAnnotationNames.Collation, values, fromDataAnnotation) &&
+                   indexBuilder.CanSetAnnotation(NpgsqlAnnotationNames.IndexCollation, values, fromDataAnnotation);
+#pragma warning restore 618
         }
 
         #endregion Collation
@@ -740,5 +743,35 @@ namespace Microsoft.EntityFrameworkCore
         }
 
         #endregion Created concurrently
+
+        #region Obsolete
+
+        [Obsolete("Use UseCollation instead")]
+        public static IndexBuilder HasCollation(
+            [NotNull] this IndexBuilder indexBuilder,
+            [CanBeNull] params string[] values)
+            => indexBuilder.UseCollation(values);
+
+        [Obsolete("Use UseCollation instead")]
+        public static IndexBuilder<TEntity> HasCollation<TEntity>(
+            [NotNull] this IndexBuilder<TEntity> indexBuilder,
+            [CanBeNull] params string[] values)
+            => indexBuilder.UseCollation(values);
+
+        [Obsolete("Use UseCollation instead")]
+        public static IConventionIndexBuilder HasCollation(
+            [NotNull] this IConventionIndexBuilder indexBuilder,
+            [CanBeNull] IReadOnlyList<string> values,
+            bool fromDataAnnotation)
+            => indexBuilder.UseCollation(values, fromDataAnnotation);
+
+        [Obsolete("Use CanSetUseCollation instead")]
+        public static bool CanSetHasCollation(
+            [NotNull] this IConventionIndexBuilder indexBuilder,
+            [CanBeNull] IReadOnlyList<string> values,
+            bool fromDataAnnotation)
+            => indexBuilder.CanSetUseCollation(values, fromDataAnnotation);
+
+        #endregion Obsolete
     }
 }

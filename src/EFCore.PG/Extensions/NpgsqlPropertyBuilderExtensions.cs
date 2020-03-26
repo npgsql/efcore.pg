@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -744,5 +745,317 @@ namespace Microsoft.EntityFrameworkCore
         }
 
         #endregion Generated tsvector column
+
+        #region Collation
+
+        /// <summary>
+        /// <p>
+        /// Configures the property to use the given collation. The database column will be be created with the given
+        /// collation, and it will be used implicitly in all collation-sensitive operations.
+        /// </p>
+        /// <p>
+        /// The collation must already exist in the database (see
+        /// <see cref="NpgsqlModelBuilderExtensions.HasCollation(Microsoft.EntityFrameworkCore.ModelBuilder,string,string,string,System.Nullable{bool})" />).
+        /// </p>
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/collation.html
+        /// </remarks>
+        /// <param name="propertyBuilder">The builder for the property being configured.</param>
+        /// <param name="collation">The collation.</param>
+        /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+        public static PropertyBuilder UseCollation([NotNull] this PropertyBuilder propertyBuilder, [CanBeNull] string collation)
+        {
+            Check.NotNull(propertyBuilder, nameof(propertyBuilder));
+            Check.NullButNotEmpty(collation, nameof(collation));
+
+            propertyBuilder.Metadata.SetCollation(collation);
+
+            return propertyBuilder;
+        }
+
+        /// <summary>
+        /// <p>
+        /// Configures the property to use the given collation. The database column will be be created with the given
+        /// collation, and it will be used implicitly in all collation-sensitive operations.
+        /// </p>
+        /// <p>
+        /// The collation must already exist in the database (see
+        /// <see cref="NpgsqlModelBuilderExtensions.HasCollation(Microsoft.EntityFrameworkCore.ModelBuilder,string,string,string,System.Nullable{bool})" />).
+        /// </p>
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/collation.html
+        /// </remarks>
+        /// <param name="propertyBuilder">The builder for the property being configured.</param>
+        /// <param name="collation">The collation.</param>
+        /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+        public static PropertyBuilder<TProperty> UseCollation<TProperty>(
+            [NotNull] this PropertyBuilder<TProperty> propertyBuilder, [CanBeNull] string collation)
+            => (PropertyBuilder<TProperty>)UseCollation((PropertyBuilder)propertyBuilder, collation);
+
+        /// <summary>
+        /// <p>
+        /// Configures the property to use the given collation. The database column will be be created with the given
+        /// collation, and it will be used implicitly in all collation-sensitive operations.
+        /// </p>
+        /// <p>
+        /// The collation must already exist in the database (see
+        /// <see cref="NpgsqlModelBuilderExtensions.HasCollation(Microsoft.EntityFrameworkCore.ModelBuilder,string,string,string,System.Nullable{bool})" />).
+        /// </p>
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/collation.html
+        /// </remarks>
+        /// <param name="propertyBuilder">The builder for the property being configured.</param>
+        /// <param name="collation">The collation.</param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        /// <returns>A builder to further configure the property.</returns>
+        public static IConventionPropertyBuilder UseCollation(
+            [NotNull] this IConventionPropertyBuilder propertyBuilder,
+            [CanBeNull] string collation,
+            bool fromDataAnnotation = false)
+        {
+            if (propertyBuilder.CanSetUseCollation(collation, fromDataAnnotation))
+            {
+                propertyBuilder.Metadata.SetCollation(collation);
+
+                return propertyBuilder;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Returns a value indicating whether the given value can be set as the collation.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/collation.html
+        /// </remarks>
+        /// <param name="propertyBuilder">The builder for the property being configured.</param>
+        /// <param name="collation">The collation.</param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        /// <returns><c>true</c> if the given value can be set as the collation.</returns>
+        public static bool CanSetUseCollation(
+            [NotNull] this IConventionPropertyBuilder propertyBuilder,
+            [CanBeNull] string collation,
+            bool fromDataAnnotation = false)
+        {
+            Check.NotNull(propertyBuilder, nameof(propertyBuilder));
+
+            return propertyBuilder.CanSetAnnotation(NpgsqlAnnotationNames.Collation, collation, fromDataAnnotation);
+        }
+
+        #endregion Collation
+
+        #region Case-insensitive collation
+
+        /// <summary>
+        /// <p>
+        /// Configures the property to use the given collation for explicitly case-insensitive operations.
+        /// This does not affect the column itself, but operations such as <see cref="string.Equals(string, StringComparison)" />
+        /// which explicitly specify case-insensitivity will apply this collation explicitly within the query.
+        /// </p>
+        /// <p>
+        /// The collation must already exist in the database (see
+        /// <see cref="NpgsqlModelBuilderExtensions.HasCollation(Microsoft.EntityFrameworkCore.ModelBuilder,string,string,string,System.Nullable{bool})" />).
+        /// </p>
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/collation.html
+        /// </remarks>
+        /// <param name="propertyBuilder">The builder for the property being configured.</param>
+        /// <param name="collation">The collation.</param>
+        /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+        public static PropertyBuilder UseCaseInsensitiveCollation([NotNull] this PropertyBuilder propertyBuilder, [CanBeNull] string collation)
+        {
+            Check.NotNull(propertyBuilder, nameof(propertyBuilder));
+            Check.NullButNotEmpty(collation, nameof(collation));
+
+            propertyBuilder.Metadata.SetCaseInsensitiveCollation(collation);
+
+            return propertyBuilder;
+        }
+
+        /// <summary>
+        /// <p>
+        /// Configures the property to use the given collation for explicitly case-insensitive operations.
+        /// This does not affect the column itself, but operations such as <see cref="string.Equals(string, StringComparison)" />
+        /// which explicitly specify case-insensitivity will apply this collation explicitly within the query.
+        /// </p>
+        /// <p>
+        /// The collation must already exist in the database (see
+        /// <see cref="NpgsqlModelBuilderExtensions.HasCollation(Microsoft.EntityFrameworkCore.ModelBuilder,string,string,string,System.Nullable{bool})" />).
+        /// </p>
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/collation.html
+        /// </remarks>
+        /// <param name="propertyBuilder">The builder for the property being configured.</param>
+        /// <param name="collation">The collation.</param>
+        /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+        public static PropertyBuilder<TProperty> UseCaseInsensitiveCollation<TProperty>(
+            [NotNull] this PropertyBuilder<TProperty> propertyBuilder, [CanBeNull] string collation)
+            => (PropertyBuilder<TProperty>)UseCaseInsensitiveCollation((PropertyBuilder)propertyBuilder, collation);
+
+        /// <summary>
+        /// <p>
+        /// Configures the property to use the given collation for explicitly case-insensitive operations.
+        /// This does not affect the column itself, but operations such as <see cref="string.Equals(string, StringComparison)" />
+        /// which explicitly specify case-insensitivity will apply this collation explicitly within the query.
+        /// </p>
+        /// <p>
+        /// The collation must already exist in the database (see
+        /// <see cref="NpgsqlModelBuilderExtensions.HasCollation(Microsoft.EntityFrameworkCore.ModelBuilder,string,string,string,System.Nullable{bool})" />).
+        /// </p>
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/collation.html
+        /// </remarks>
+        /// <param name="propertyBuilder">The builder for the property being configured.</param>
+        /// <param name="collation">The collation.</param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        /// <returns>A builder to further configure the property.</returns>
+        public static IConventionPropertyBuilder UseCaseInsensitiveCollation(
+            [NotNull] this IConventionPropertyBuilder propertyBuilder,
+            [CanBeNull] string collation,
+            bool fromDataAnnotation = false)
+        {
+            if (propertyBuilder.CanSetUseCaseInsensitiveCollation(collation, fromDataAnnotation))
+            {
+                propertyBuilder.Metadata.SetCaseInsensitiveCollation(collation);
+
+                return propertyBuilder;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Returns a value indicating whether the given value can be set as the case-insensitive collation.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/collation.html
+        /// </remarks>
+        /// <param name="propertyBuilder">The builder for the property being configured.</param>
+        /// <param name="collation">The collation.</param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        /// <returns><c>true</c> if the given value can be set as the collation.</returns>
+        public static bool CanSetUseCaseInsensitiveCollation(
+            [NotNull] this IConventionPropertyBuilder propertyBuilder,
+            [CanBeNull] string collation,
+            bool fromDataAnnotation = false)
+        {
+            Check.NotNull(propertyBuilder, nameof(propertyBuilder));
+
+            return propertyBuilder.CanSetAnnotation(NpgsqlAnnotationNames.CaseInsensitiveCollation, collation, fromDataAnnotation);
+        }
+
+        #endregion Case-insensitive collation
+
+        #region Case-sensitive collation
+
+        /// <summary>
+        /// <p>
+        /// Configures the property to use the given collation for explicitly case-sensitive operations.
+        /// This does not affect the column itself, but operations such as <see cref="string.Equals(string, StringComparison)" />
+        /// which explicitly specify case-sensitivity will apply this collation explicitly within the query.
+        /// </p>
+        /// <p>
+        /// The collation must already exist in the database (see
+        /// <see cref="NpgsqlModelBuilderExtensions.HasCollation(Microsoft.EntityFrameworkCore.ModelBuilder,string,string,string,System.Nullable{bool})" />).
+        /// </p>
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/collation.html
+        /// </remarks>
+        /// <param name="propertyBuilder">The builder for the property being configured.</param>
+        /// <param name="collation">The collation.</param>
+        /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+        public static PropertyBuilder UseCaseSensitiveCollation([NotNull] this PropertyBuilder propertyBuilder, [CanBeNull] string collation)
+        {
+            Check.NotNull(propertyBuilder, nameof(propertyBuilder));
+            Check.NullButNotEmpty(collation, nameof(collation));
+
+            propertyBuilder.Metadata.SetCaseSensitiveCollation(collation);
+
+            return propertyBuilder;
+        }
+
+        /// <summary>
+        /// <p>
+        /// Configures the property to use the given collation for explicitly case-sensitive operations.
+        /// This does not affect the column itself, but operations such as <see cref="string.Equals(string, StringComparison)" />
+        /// which explicitly specify case-sensitivity will apply this collation explicitly within the query.
+        /// </p>
+        /// <p>
+        /// The collation must already exist in the database (see
+        /// <see cref="NpgsqlModelBuilderExtensions.HasCollation(Microsoft.EntityFrameworkCore.ModelBuilder,string,string,string,System.Nullable{bool})" />).
+        /// </p>
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/collation.html
+        /// </remarks>
+        /// <param name="propertyBuilder">The builder for the property being configured.</param>
+        /// <param name="collation">The collation.</param>
+        /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+        public static PropertyBuilder<TProperty> UseCaseSensitiveCollation<TProperty>(
+            [NotNull] this PropertyBuilder<TProperty> propertyBuilder, [CanBeNull] string collation)
+            => (PropertyBuilder<TProperty>)UseCaseSensitiveCollation((PropertyBuilder)propertyBuilder, collation);
+
+        /// <summary>
+        /// <p>
+        /// Configures the property to use the given collation for explicitly case-sensitive operations.
+        /// This does not affect the column itself, but operations such as <see cref="string.Equals(string, StringComparison)" />
+        /// which explicitly specify case-sensitivity will apply this collation explicitly within the query.
+        /// </p>
+        /// <p>
+        /// The collation must already exist in the database (see
+        /// <see cref="NpgsqlModelBuilderExtensions.HasCollation(Microsoft.EntityFrameworkCore.ModelBuilder,string,string,string,System.Nullable{bool})" />).
+        /// </p>
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/collation.html
+        /// </remarks>
+        /// <param name="propertyBuilder">The builder for the property being configured.</param>
+        /// <param name="collation">The collation.</param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        /// <returns>A builder to further configure the property.</returns>
+        public static IConventionPropertyBuilder UseCaseSensitiveCollation(
+            [NotNull] this IConventionPropertyBuilder propertyBuilder,
+            [CanBeNull] string collation,
+            bool fromDataAnnotation = false)
+        {
+            if (propertyBuilder.CanSetUseCaseSensitiveCollation(collation, fromDataAnnotation))
+            {
+                propertyBuilder.Metadata.SetCaseSensitiveCollation(collation);
+
+                return propertyBuilder;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Returns a value indicating whether the given value can be set as the case-sensitive collation.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/collation.html
+        /// </remarks>
+        /// <param name="propertyBuilder">The builder for the property being configured.</param>
+        /// <param name="collation">The collation.</param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        /// <returns><c>true</c> if the given value can be set as the collation.</returns>
+        public static bool CanSetUseCaseSensitiveCollation(
+            [NotNull] this IConventionPropertyBuilder propertyBuilder,
+            [CanBeNull] string collation,
+            bool fromDataAnnotation = false)
+        {
+            Check.NotNull(propertyBuilder, nameof(propertyBuilder));
+
+            return propertyBuilder.CanSetAnnotation(NpgsqlAnnotationNames.CaseSensitiveCollation, collation, fromDataAnnotation);
+        }
+
+        #endregion Case-sensitive collation
     }
 }

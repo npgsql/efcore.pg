@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
@@ -48,8 +49,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
                 .Single(m => m.Name == nameof(Enumerable.Contains) && m.GetParameters().Length == 2);
 
+        readonly IModel _model;
         readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
         readonly NpgsqlJsonPocoTranslator _jsonPocoTranslator;
+        readonly ISqlGenerationHelper _sqlGenerationHelper;
 
         [NotNull]
         readonly RelationalTypeMapping _boolMapping;
@@ -57,12 +60,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         public NpgsqlSqlTranslatingExpressionVisitor(
             [NotNull] RelationalSqlTranslatingExpressionVisitorDependencies dependencies,
             [NotNull] QueryCompilationContext queryCompilationContext,
-            [NotNull] QueryableMethodTranslatingExpressionVisitor queryableMethodTranslatingExpressionVisitor)
+            [NotNull] QueryableMethodTranslatingExpressionVisitor queryableMethodTranslatingExpressionVisitor,
+            [NotNull] ISqlGenerationHelper sqlGenerationHelper)
             : base(dependencies, queryCompilationContext, queryableMethodTranslatingExpressionVisitor)
         {
             _sqlExpressionFactory = (NpgsqlSqlExpressionFactory)dependencies.SqlExpressionFactory;
-            _jsonPocoTranslator = ((NpgsqlMemberTranslatorProvider)Dependencies.MemberTranslatorProvider).JsonPocoTranslator;
+            _jsonPocoTranslator = ((NpgsqlMemberTranslatorProvider)dependencies.MemberTranslatorProvider).JsonPocoTranslator;
+            _model = queryCompilationContext.Model;
             _boolMapping = _sqlExpressionFactory.FindMapping(typeof(bool));
+            _sqlGenerationHelper = sqlGenerationHelper;
         }
 
         // PostgreSQL COUNT() always returns bigint, so we need to downcast to int
@@ -161,11 +167,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             return base.VisitUnary(unaryExpression);
         }
 
+        [NotNull] static readonly MethodInfo EqualsWithStringComparison = typeof(string).GetRuntimeMethod(nameof(string.Equals), new[] { typeof(string), typeof(StringComparison) });
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("ReSharper", "HeuristicUnreachableCode")]
         protected override Expression VisitMethodCall(MethodCallExpression methodCall)
         {
             var visited = base.VisitMethodCall(methodCall);
             if (visited != null)
                 return visited;
+
+            if (methodCall.Method == EqualsWithStringComparison)
+                return VisitEqualsWithStringComparison(methodCall);
 
             if (methodCall.Arguments.Count > 0 && (
                     methodCall.Arguments[0].Type.IsArray || methodCall.Arguments[0].Type.IsGenericList()))
@@ -174,6 +186,86 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             }
 
             return null;
+        }
+
+        protected virtual Expression VisitEqualsWithStringComparison(MethodCallExpression methodCall)
+        {
+            if (!(methodCall.Arguments[1] is ConstantExpression stringComparisonExpression &&
+                  stringComparisonExpression.Value is StringComparison stringComparison))
+            {
+                throw new InvalidOperationException("string.Equals(string, StringComparison) is only supported with a constant StringComparison pararmeter.");
+            }
+
+            if (stringComparison != StringComparison.Ordinal &&
+                stringComparison != StringComparison.OrdinalIgnoreCase)
+            {
+                throw new InvalidOperationException($"string.Equals(string, StringComparison) only supports {nameof(StringComparison.Ordinal)} and {nameof(StringComparison.OrdinalIgnoreCase)}.");
+            }
+
+            var isCaseSensitive = stringComparison == StringComparison.Ordinal;
+
+            if (TranslationFailed(methodCall.Object, Visit(methodCall.Object), out var left) ||
+                TranslationFailed(methodCall.Arguments[0], Visit(methodCall.Arguments[0]), out var right))
+            {
+                return null;
+            }
+
+            var leftCollation = ExtractCollation(left, stringComparison);
+            var rightCollation = ExtractCollation(right, stringComparison);
+
+            if (leftCollation is null && rightCollation is null)
+            {
+                throw new InvalidOperationException(
+                    $"Could not find a column configured with a collation for explicitly case-{(isCaseSensitive ? "sensitive" : "insensitive")} operations in the " +
+                    "arguments to string.Equals(string, StringComparison). Please consult the docs.");
+            }
+
+            // Note: PostgreSQL requires the same collation on both sides of the comparison, but we translate anyway
+            // and let it throw.
+
+            return Visit(
+                _sqlExpressionFactory.Equal(
+                    leftCollation == null ? left : new CollateExpression(left, leftCollation),
+                    rightCollation == null ? right : new CollateExpression(right, rightCollation)));
+
+            string ExtractCollation(SqlExpression e, StringComparison stringComparison)
+            {
+                var columns = new ExpressionTypeExtractingExpressionVisitor<ColumnExpression>().Extract(e);
+                if (columns.Count > 1)
+                    throw new InvalidOperationException("Multiple columns on the same side of an string.Equals(string, StringComparison) expression aren't supported.");
+
+                if (columns.Count == 0)
+                    return null;
+
+                var column = columns[0];
+
+                var table = (TableExpression)column.Table;
+                var properties = _model.GetEntityTypes()
+                    .Where(e => e.GetTableName() == table.Name)
+                    .SelectMany(e => e.GetProperties())
+                    .Where(p => p.GetColumnName() == column.Name)
+                    .ToList();
+
+                if (properties.Count == 0)
+                {
+                    throw new InvalidOperationException(
+                        $"Could not match a property to the column {_sqlGenerationHelper.DelimitIdentifier(column.Name)} on " +
+                        $"{_sqlGenerationHelper.DelimitIdentifier(table.Name, table.Schema)}.");
+                }
+
+                if (properties.Count > 1)
+                {
+                    throw new InvalidOperationException(
+                        $"Multiple properties are mapped to the column {_sqlGenerationHelper.DelimitIdentifier(column.Name)} on " +
+                        $"{_sqlGenerationHelper.DelimitIdentifier(table.Name, table.Schema)}. This is not supported for string.Equals(string, StringComparison).");
+                }
+
+                return stringComparison == StringComparison.OrdinalIgnoreCase
+                    ? properties.Single().GetCaseInsensitiveCollation()
+                    : stringComparison == StringComparison.Ordinal
+                        ? properties.Single().GetCaseSensitiveCollation()
+                        : throw new ArgumentException($"Invalid value: {stringComparison}", nameof(stringComparison));
+            }
         }
 
         /// <summary>
@@ -383,5 +475,24 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         }
 
         #endregion Copied from RelationalSqlTranslatingExpressionVisitor
+
+        public class ExpressionTypeExtractingExpressionVisitor<T> : ExpressionVisitor
+        {
+            List<T> _found;
+
+            public List<T> Extract(Expression expression)
+            {
+                _found = new List<T>();
+                Visit(expression);
+                return _found;
+            }
+
+            public override Expression Visit(Expression expression)
+            {
+                if (expression is T t && !_found.Contains(t))
+                    _found.Add(t);
+                return base.Visit(expression);
+            }
+        }
     }
 }
