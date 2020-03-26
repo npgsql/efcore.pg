@@ -1550,6 +1550,47 @@ CREATE TABLE identity (
                 "DROP TABLE identity");
 
         [Fact]
+        public void Column_collation()
+            => Test(@"
+CREATE TABLE ""ColumnCollation"" (
+    column_with text COLLATE ""POSIX"",
+    column_without text)",
+                Enumerable.Empty<string>(),
+                Enumerable.Empty<string>(),
+                dbModel =>
+                {
+                    var table = dbModel.Tables.Single();
+
+                    var columnWith = Assert.Single(table.Columns, c => c.Name == "column_with");
+                    Assert.Equal("POSIX", columnWith[NpgsqlAnnotationNames.Collation]);
+
+                    var columnWithout = Assert.Single(table.Columns, c => c.Name == "column_without");
+                    Assert.Null(columnWithout[NpgsqlAnnotationNames.Collation]);
+                },
+                @"DROP TABLE ""ColumnCollation""");
+
+        [Fact]
+        public void Index_collation()
+            => Test(@"
+CREATE TABLE ""IndexCollation"" (a text, b text);
+CREATE INDEX ix_with ON ""IndexCollation"" (a, b COLLATE ""POSIX"");
+CREATE INDEX ix_without ON ""IndexCollation"" (a, b);",
+                Enumerable.Empty<string>(),
+                Enumerable.Empty<string>(),
+                dbModel =>
+                {
+                    var table = dbModel.Tables.Single();
+
+                    var indexWith = table.Indexes.Single(i => i.Name == "ix_with");
+                    Assert.Equal(new[] { null, "POSIX" },
+                        indexWith.FindAnnotation(NpgsqlAnnotationNames.Collation).Value);
+
+                    var indexWithout = table.Indexes.Single(i => i.Name == "ix_without");
+                    Assert.Null(indexWithout.FindAnnotation(NpgsqlAnnotationNames.Collation));
+                },
+                @"DROP TABLE ""IndexCollation""");
+
+        [Fact]
         public void Index_method()
             => Test(@"
 CREATE TABLE ""IndexMethod"" (a int, b int);
@@ -1595,26 +1636,6 @@ CREATE INDEX ix_without ON ""IndexOperators"" (a, b);",
                     Assert.Null(indexWithout.FindAnnotation(NpgsqlAnnotationNames.IndexOperators));
                 },
                 @"DROP TABLE ""IndexOperators""");
-
-        [Fact]
-        public void Index_collation()
-            => Test(@"
-CREATE TABLE ""IndexCollation"" (a text, b text);
-CREATE INDEX ix_with ON ""IndexCollation"" (a, b COLLATE ""POSIX"");
-CREATE INDEX ix_without ON ""IndexCollation"" (a, b);",
-                Enumerable.Empty<string>(),
-                Enumerable.Empty<string>(),
-                dbModel =>
-                {
-                    var table = dbModel.Tables.Single();
-
-                    var indexWith = table.Indexes.Single(i => i.Name == "ix_with");
-                    Assert.Equal(new[] { null, "POSIX" }, indexWith.FindAnnotation(NpgsqlAnnotationNames.IndexCollation).Value);
-
-                    var indexWithout = table.Indexes.Single(i => i.Name == "ix_without");
-                    Assert.Null(indexWithout.FindAnnotation(NpgsqlAnnotationNames.IndexCollation));
-                },
-                @"DROP TABLE ""IndexCollation""");
 
         [Theory]
         [InlineData("gin", null)]

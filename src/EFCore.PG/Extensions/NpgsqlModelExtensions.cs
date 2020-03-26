@@ -208,6 +208,48 @@ namespace Microsoft.EntityFrameworkCore
             => model.SetOrRemoveAnnotation(NpgsqlAnnotationNames.DatabaseTemplate, template);
         #endregion
 
+        #region Collation
+
+        /// <summary>
+        /// Returns the collation to be used, or <c>null</c> if it hasn't been specified.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/collation.html
+        /// </remarks>
+        public static string GetCollation([NotNull] this IModel model)
+            => (string)model[NpgsqlAnnotationNames.Collation];
+
+        /// <summary>
+        /// Sets the collation to be used, or <c>null</c> to make it unspecified.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/collation.html
+        /// </remarks>
+        public static void SetCollation([NotNull] this IMutableModel model, [CanBeNull] string collation)
+            => model.SetOrRemoveAnnotation(NpgsqlAnnotationNames.Collation, collation);
+
+        /// <summary>
+        /// Sets the collation to be used, or <c>null</c> to make it unspecified.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/collation.html
+        /// </remarks>
+        public static string SetCollation([NotNull] this IConventionModel model, [CanBeNull] string collation, bool fromDataAnnotation = false)
+        {
+            model.SetOrRemoveAnnotation(NpgsqlAnnotationNames.Collation, collation, fromDataAnnotation);
+            return collation;
+        }
+
+        /// <summary>
+        /// Returns the <see cref="ConfigurationSource" /> for the collation of the database.
+        /// </summary>
+        /// <param name="model">The model.</param>
+        /// <returns>The <see cref="ConfigurationSource" /> for the collation of the database.</returns>
+        public static ConfigurationSource? GetCollationConfigurationSource([NotNull] this IConventionModel model)
+            => model.FindAnnotation(NpgsqlAnnotationNames.Collation)?.GetConfigurationSource();
+
+        #endregion Collation
+
         #region Tablespace
 
         public static string GetTablespace([NotNull] this IModel model)
@@ -217,6 +259,5 @@ namespace Microsoft.EntityFrameworkCore
             => model.SetOrRemoveAnnotation(NpgsqlAnnotationNames.Tablespace, tablespace);
 
         #endregion
-
     }
 }

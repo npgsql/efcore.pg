@@ -456,6 +456,77 @@ namespace Microsoft.EntityFrameworkCore
 
         #endregion
 
+        #region Collation
+
+        /// <summary>
+        /// Configures the database to use the given collation as the default for all columns.
+        /// The collation must already exist in PostgreSQL. Once a database has been created, its collation cannot be
+        /// altered.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/collation.html
+        /// </remarks>
+        /// <param name="modelBuilder">The model builder.</param>
+        /// <param name="collation">The collation.</param>
+        /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+        public static ModelBuilder HasCollation([NotNull] this ModelBuilder modelBuilder, [CanBeNull] string collation)
+        {
+            Check.NotNull(modelBuilder, nameof(modelBuilder));
+            Check.NullButNotEmpty(collation, nameof(collation));
+
+            modelBuilder.Model.SetCollation(collation);
+
+            return modelBuilder;
+        }
+
+        /// <summary>
+        /// Configures the database to use the given collation as the default for all columns.
+        /// The collation must already exist in PostgreSQL. Once a database has been created, its collation cannot be
+        /// altered.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/collation.html
+        /// </remarks>
+        /// <param name="modelBuilder">The model builder.</param>
+        /// <param name="collation">The collation.</param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        /// <returns>A builder to further configure the property.</returns>
+        public static IConventionModelBuilder HasCollation(
+            [NotNull] this IConventionModelBuilder modelBuilder,
+            [CanBeNull] string collation,
+            bool fromDataAnnotation = false)
+        {
+            if (modelBuilder.CanSetHasCollation(collation, fromDataAnnotation))
+            {
+                modelBuilder.Metadata.SetCollation(collation);
+                return modelBuilder;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Returns a value indicating whether the given value can be set as the collation.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/collation.html
+        /// </remarks>
+        /// <param name="modelBuilder">The model builder.</param>
+        /// <param name="collation">The collation.</param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        /// <returns><c>true</c> if the given value can be set as the collation.</returns>
+        public static bool CanSetHasCollation(
+            [NotNull] this IConventionModelBuilder modelBuilder,
+            [CanBeNull] string collation,
+            bool fromDataAnnotation = false)
+        {
+            Check.NotNull(modelBuilder, nameof(modelBuilder));
+
+            return modelBuilder.CanSetAnnotation(NpgsqlAnnotationNames.Collation, collation, fromDataAnnotation);
+        }
+
+        #endregion
+
         #region Tablespaces
 
         public static ModelBuilder UseTablespace(

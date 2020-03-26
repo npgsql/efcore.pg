@@ -351,11 +351,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             var alterBase = $"ALTER TABLE {DelimitIdentifier(operation.Table, operation.Schema)} " +
                             $"ALTER COLUMN {DelimitIdentifier(operation.Name)} ";
 
-            // TYPE
+            // TYPE + COLLATION
             builder.Append(alterBase)
                 .Append("TYPE ")
-                .Append(type)
-                .AppendLine(';');
+                .Append(type);
+
+            var oldCollation = operation.OldColumn[NpgsqlAnnotationNames.Collation] as string;
+            var newCollation = operation[NpgsqlAnnotationNames.Collation] as string;
+            if (newCollation != oldCollation)
+            {
+                builder.Append(" COLLATE ").Append(
+                    Dependencies.SqlGenerationHelper.DelimitIdentifier(newCollation ?? "default"));
+            }
+
+            builder.AppendLine(';');
 
             // NOT NULL
             builder.Append(alterBase)
@@ -737,6 +746,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 builder
                     .Append(" TEMPLATE ")
                     .Append(DelimitIdentifier(operation.Template));
+            }
+
+            if (operation.Collation != null)
+            {
+                builder
+                    .Append(" LC_COLLATE ")
+                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Collation));
             }
 
             if (operation.Tablespace != null)
@@ -1178,6 +1194,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 model,
                 builder);
 
+            if (operation[NpgsqlAnnotationNames.Collation] is string collation)
+            {
+                builder.Append(" COLLATE ").Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(collation));
+            }
+
             if (valueGenerationStrategy.IsIdentity())
                 IdentityDefinition(operation, builder);
         }
@@ -1516,8 +1537,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
         static IndexColumn[] GetIndexColumns(CreateIndexOperation operation)
         {
+#pragma warning disable 618
+            var collations = (operation[NpgsqlAnnotationNames.Collation] ??
+                              operation[NpgsqlAnnotationNames.IndexCollation]) as string[];
+#pragma warning restore 618
+
             var operators = operation[NpgsqlAnnotationNames.IndexOperators] as string[];
-            var collations = operation[NpgsqlAnnotationNames.IndexCollation] as string[];
             var sortOrders = operation[NpgsqlAnnotationNames.IndexSortOrder] as SortOrder[];
             var nullSortOrders = operation[NpgsqlAnnotationNames.IndexNullSortOrder] as NullSortOrder[];
 

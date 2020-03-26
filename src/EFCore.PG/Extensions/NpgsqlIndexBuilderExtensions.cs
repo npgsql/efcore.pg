@@ -372,7 +372,10 @@ namespace Microsoft.EntityFrameworkCore
         {
             Check.NotNull(indexBuilder, nameof(indexBuilder));
 
-            return indexBuilder.CanSetAnnotation(NpgsqlAnnotationNames.IndexCollation, values, fromDataAnnotation);
+#pragma warning disable 618
+            return indexBuilder.CanSetAnnotation(NpgsqlAnnotationNames.Collation, values, fromDataAnnotation) &&
+                   indexBuilder.CanSetAnnotation(NpgsqlAnnotationNames.IndexCollation, values, fromDataAnnotation);
+#pragma warning restore 618
         }
 
         #endregion Collation

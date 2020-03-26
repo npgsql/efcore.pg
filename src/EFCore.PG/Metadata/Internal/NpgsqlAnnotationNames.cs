@@ -11,7 +11,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
         public const string HiLoSequenceSchema = Prefix + "HiLoSequenceSchema";
         public const string IndexMethod = Prefix + "IndexMethod";
         public const string IndexOperators = Prefix + "IndexOperators";
-        public const string IndexCollation = Prefix + "IndexCollation";
         public const string IndexSortOrder = Prefix + "IndexSortOrder";
         public const string IndexNullSortOrder = Prefix + "IndexNullSortOrder";
         public const string IndexInclude = Prefix + "IndexInclude";
@@ -26,6 +25,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
         public const string IdentityOptions = Prefix + "IdentitySequenceOptions";
         public const string TsVectorConfig = Prefix + "TsVectorConfig";
         public const string TsVectorProperties = Prefix + "TsVectorProperties";
+        public const string Collation = Prefix + "Collation";
 
         // Database model annotations
 
@@ -51,5 +51,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
 
         [Obsolete("Replaced by built-in EF Core support, use HasComment on entities or properties.")]
         public const string Comment = Prefix + "Comment";
+
+        [Obsolete("Replaced by NpgsqlAnnotationNames.Collation.")]
+        public const string IndexCollation = Prefix + "IndexCollation";
     }
 }

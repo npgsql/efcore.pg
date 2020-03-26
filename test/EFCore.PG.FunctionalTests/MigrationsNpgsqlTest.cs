@@ -792,6 +792,26 @@ COMMENT ON COLUMN ""People"".""FullName"" IS 'My comment';");
                 @"ALTER TABLE ""Blogs"" ADD ""TsVector"" tsvector GENERATED ALWAYS AS (to_tsvector('english', ""Title"" || ' ' || coalesce(""Description"", ''))) STORED;");
         }
 
+        [Fact]
+        public virtual async Task Add_column_collation()
+        {
+            await Test(
+                builder => builder.Entity("People").Property<int>("Id"),
+                builder => { },
+                builder => builder.Entity("People").Property<string>("Name")
+                    .HasCollation("POSIX"),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    Assert.Equal(2, table.Columns.Count);
+                    var nameColumn = Assert.Single(table.Columns, c => c.Name == "Name");
+                    Assert.Equal("POSIX", nameColumn[NpgsqlAnnotationNames.Collation]);
+                });
+
+            AssertSql(
+                @"ALTER TABLE ""People"" ADD ""Name"" text NULL COLLATE ""POSIX"";");
+        }
+
         public override async Task Alter_column_change_type()
         {
             await base.Alter_column_change_type();
@@ -1267,6 +1287,46 @@ ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET NOT NULL;
 ALTER TABLE ""People"" ALTER COLUMN ""Id"" RESTART WITH 20;");
         }
 
+        [Fact]
+        public virtual async Task Alter_column_add_collation()
+        {
+            await Test(
+                builder => builder.Entity("People").Property<string>("Name"),
+                builder => { },
+                builder => builder.Entity("People").Property<string>("Name")
+                    .HasCollation("POSIX"),
+                model =>
+                {
+                    var nameColumn = Assert.Single(Assert.Single(model.Tables).Columns);
+                    Assert.Equal("POSIX", nameColumn[NpgsqlAnnotationNames.Collation]);
+                });
+
+            AssertSql(
+                @"ALTER TABLE ""People"" ALTER COLUMN ""Name"" TYPE text COLLATE ""POSIX"";
+ALTER TABLE ""People"" ALTER COLUMN ""Name"" DROP NOT NULL;
+ALTER TABLE ""People"" ALTER COLUMN ""Name"" DROP DEFAULT;");
+        }
+
+        [Fact]
+        public virtual async Task Alter_column_reset_collation()
+        {
+            await Test(
+                builder => builder.Entity("People").Property<string>("Name"),
+                builder => builder.Entity("People").Property<string>("Name")
+                    .HasCollation("POSIX"),
+                builder => { },
+                model =>
+                {
+                    var nameColumn = Assert.Single(Assert.Single(model.Tables).Columns);
+                    Assert.Null(nameColumn[NpgsqlAnnotationNames.Collation]);
+                });
+
+            AssertSql(
+                @"ALTER TABLE ""People"" ALTER COLUMN ""Name"" TYPE text COLLATE ""default"";
+ALTER TABLE ""People"" ALTER COLUMN ""Name"" DROP NOT NULL;
+ALTER TABLE ""People"" ALTER COLUMN ""Name"" DROP DEFAULT;");
+        }
+
         public override async Task Drop_column()
         {
             await base.Drop_column();
@@ -1519,6 +1579,31 @@ ALTER TABLE ""People"" ALTER COLUMN ""Id"" RESTART WITH 20;");
 
             AssertSql(
                 @"CREATE INDEX CONCURRENTLY ""IX_People_Age"" ON ""People"" (""Age"");");
+        }
+
+        [Fact]
+        public virtual async Task Create_index_with_collation()
+        {
+            await Test(
+                builder => builder.Entity(
+                    "People", e =>
+                    {
+                        e.Property<string>("FirstName");
+                        e.Property<string>("LastName");
+                    }),
+                builder => { },
+                builder => builder.Entity("People")
+                    .HasIndex("FirstName", "LastName")
+                    .HasCollation(null, "POSIX"),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    var index = Assert.Single(table.Indexes);
+                    Assert.Equal(new[] { null, "POSIX" }, index[NpgsqlAnnotationNames.Collation]);
+                });
+
+            AssertSql(
+                @"CREATE INDEX ""IX_People_FirstName_LastName"" ON ""People"" (""FirstName"", ""LastName"" COLLATE ""POSIX"");");
         }
 
         [Fact]

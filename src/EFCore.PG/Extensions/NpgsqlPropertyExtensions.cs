@@ -590,5 +590,50 @@ namespace Microsoft.EntityFrameworkCore
             => property.FindAnnotation(NpgsqlAnnotationNames.TsVectorConfig)?.GetConfigurationSource();
 
         #endregion Generated tsvector column
+
+        #region Collation
+
+        /// <summary>
+        /// Returns the collation to be used, or <c>null</c> if it hasn't been specified.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/collation.html
+        /// </remarks>
+        public static string GetCollation([NotNull] this IProperty property)
+            => (string)property[NpgsqlAnnotationNames.Collation];
+
+        /// <summary>
+        /// Sets the collation to be used, or <c>null</c> to make it unspecified.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/collation.html
+        /// </remarks>
+        public static void SetCollation([NotNull] this IMutableProperty property, [CanBeNull] string collation)
+            => property.SetOrRemoveAnnotation(NpgsqlAnnotationNames.Collation, collation);
+
+        /// <summary>
+        /// Sets the collation to be used, or <c>null</c> to make it unspecified.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/collation.html
+        /// </remarks>
+        public static string SetCollation(
+            [NotNull] this IConventionProperty property,
+            [CanBeNull] string collation,
+            bool fromDataAnnotation = false)
+        {
+            property.SetOrRemoveAnnotation(NpgsqlAnnotationNames.Collation, collation, fromDataAnnotation);
+            return collation;
+        }
+
+        /// <summary>
+        /// Returns the <see cref="ConfigurationSource" /> for the collation of the property.
+        /// </summary>
+        /// <param name="property">The property.</param>
+        /// <returns>The <see cref="ConfigurationSource" /> for the collation of the database.</returns>
+        public static ConfigurationSource? GetCollationConfigurationSource([NotNull] this IConventionProperty property)
+            => property.FindAnnotation(NpgsqlAnnotationNames.Collation)?.GetConfigurationSource();
+
+        #endregion Collation
     }
 }

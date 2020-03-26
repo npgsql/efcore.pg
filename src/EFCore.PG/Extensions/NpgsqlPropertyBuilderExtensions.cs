@@ -744,5 +744,86 @@ namespace Microsoft.EntityFrameworkCore
         }
 
         #endregion Generated tsvector column
+
+        #region Collation
+
+        /// <summary>
+        /// Configures the property to use the given collation. The collation must already exist in PostgreSQL.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/collation.html
+        /// </remarks>
+        /// <param name="propertyBuilder">The builder for the property being configured.</param>
+        /// <param name="collation">The collation.</param>
+        /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+        public static PropertyBuilder HasCollation([NotNull] this PropertyBuilder propertyBuilder, [CanBeNull] string collation)
+        {
+            Check.NotNull(propertyBuilder, nameof(propertyBuilder));
+            Check.NullButNotEmpty(collation, nameof(collation));
+
+            propertyBuilder.Metadata.SetCollation(collation);
+
+            return propertyBuilder;
+        }
+
+        /// <summary>
+        /// Configures the property to use the given collation. The collation must already exist in PostgreSQL.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/collation.html
+        /// </remarks>
+        /// <param name="propertyBuilder">The builder for the property being configured.</param>
+        /// <param name="collation">The collation.</param>
+        /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+        public static PropertyBuilder<TProperty> HasCollation<TProperty>(
+            [NotNull] this PropertyBuilder<TProperty> propertyBuilder, [CanBeNull] string collation)
+            => (PropertyBuilder<TProperty>)HasCollation((PropertyBuilder)propertyBuilder, collation);
+
+        /// <summary>
+        /// Configures the property to use the given collation. The collation must already exist in PostgreSQL.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/collation.html
+        /// </remarks>
+        /// <param name="propertyBuilder">The builder for the property being configured.</param>
+        /// <param name="collation">The collation.</param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        /// <returns>A builder to further configure the property.</returns>
+        public static IConventionPropertyBuilder HasCollation(
+            [NotNull] this IConventionPropertyBuilder propertyBuilder,
+            [CanBeNull] string collation,
+            bool fromDataAnnotation = false)
+        {
+            if (propertyBuilder.CanSetHasCollation(collation, fromDataAnnotation))
+            {
+                propertyBuilder.Metadata.SetCollation(collation);
+
+                return propertyBuilder;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Returns a value indicating whether the given value can be set as the collation.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/collation.html
+        /// </remarks>
+        /// <param name="propertyBuilder">The builder for the property being configured.</param>
+        /// <param name="collation">The collation.</param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        /// <returns><c>true</c> if the given value can be set as the collation.</returns>
+        public static bool CanSetHasCollation(
+            [NotNull] this IConventionPropertyBuilder propertyBuilder,
+            [CanBeNull] string collation,
+            bool fromDataAnnotation = false)
+        {
+            Check.NotNull(propertyBuilder, nameof(propertyBuilder));
+
+            return propertyBuilder.CanSetAnnotation(NpgsqlAnnotationNames.Collation, collation, fromDataAnnotation);
+        }
+
+        #endregion Collation
     }
 }

@@ -51,26 +51,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 ");
         }
 
-        #endregion
-
-        // Which index collations are available on a given PostgreSQL varies (e.g. Linux vs. Windows)
-        // so we test support for this on the generated SQL only, and not against the database in MigrationsNpsqlTest.
         [Fact]
-        public void CreateIndexOperation_collation()
+        public virtual void CreateDatabaseOperation_with_collation()
         {
-            Generate(new CreateIndexOperation
+            Generate(new NpgsqlCreateDatabaseOperation
             {
-                Name = "IX_People_Name",
-                Table = "People",
-                Schema = "dbo",
-                Columns = new[] { "FirstName", "LastName" },
-                [NpgsqlAnnotationNames.IndexCollation] = new[] { null, "de_DE" }
+                Name = "some_db",
+                Collation = "en_US"
             });
 
             AssertSql(
-                @"CREATE INDEX ""IX_People_Name"" ON dbo.""People"" (""FirstName"", ""LastName"" COLLATE ""de_DE"");
+                @"CREATE DATABASE some_db LC_COLLATE ""en_US"";
 ");
         }
+
+        #endregion
 
         #region CockroachDB interleave-in-parent
 

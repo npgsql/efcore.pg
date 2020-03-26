@@ -108,6 +108,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
                 databaseModel.DatabaseName = connection.Database;
                 databaseModel.DefaultSchema = "public";
 
+                PopulateGlobalDatabaseInfo(connection, databaseModel);
+
                 var schemaList = options.Schemas.ToList();
                 var schemaFilter = GenerateSchemaFilter(schemaList);
                 var tableList = options.Tables.ToList();
@@ -178,6 +180,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
 
         #region Type information queries
 
+        static void PopulateGlobalDatabaseInfo(NpgsqlConnection connection, DatabaseModel databaseModel)
+        {
+            var commandText = @"SELECT datcollate FROM pg_database WHERE datname=current_database()";
+            using var command = new NpgsqlCommand(commandText, connection);
+            using var reader = command.ExecuteReader();
+
+            databaseModel[NpgsqlAnnotationNames.Collation] = databaseModel;
+        }
+
         /// <summary>
         /// Queries the database for defined tables and registers them with the model.
         /// </summary>
@@ -245,6 +256,7 @@ SELECT
   basetyp.typname AS basetypname,
   attname,
   description,
+  collname,
   attisdropped,
   {(connection.PostgreSqlVersion >= new Version(10, 0) ? "attidentity" : "''::\"char\" as attidentity")},
   {(connection.PostgreSqlVersion >= new Version(12, 0) ? "attgenerated" : "''::\"char\" as attgenerated")},
@@ -277,6 +289,7 @@ LEFT JOIN pg_proc ON pg_proc.oid = typ.typreceive
 LEFT JOIN pg_type AS elemtyp ON (elemtyp.oid = typ.typelem)
 LEFT JOIN pg_type AS basetyp ON (basetyp.oid = typ.typbasetype)
 LEFT JOIN pg_description AS des ON des.objoid = cls.oid AND des.objsubid = attnum
+LEFT JOIN pg_collation as coll ON coll.oid = attr.attcollation
 -- Bring in identity sequences the depend on this column
 LEFT JOIN pg_depend AS dep ON dep.refobjid = cls.oid AND dep.refobjsubid = attr.attnum AND dep.deptype = 'i'
 {(connection.PostgreSqlVersion >= new Version(10, 0) ? "LEFT JOIN pg_sequence AS seq ON seq.seqrelid = dep.objid" : "")}
@@ -409,6 +422,9 @@ ORDER BY attnum";
 
                         if (record.GetValueOrDefault<string>("description") is string comment)
                             column.Comment = comment;
+
+                        if (record.GetValueOrDefault<string>("collname") is string collation && collation != "default")
+                            column[NpgsqlAnnotationNames.Collation] = collation;
 
                         logger.ColumnFound(
                             DisplayName(tableSchema, tableName),
@@ -584,7 +600,7 @@ WHERE
                             .ToArray();
 
                         if (columnCollations.Any(coll => coll != null))
-                            index[NpgsqlAnnotationNames.IndexCollation] = columnCollations;
+                            index[NpgsqlAnnotationNames.Collation] = columnCollations;
 
                         if (record.GetValueOrDefault<bool>("amcanorder"))
                         {
