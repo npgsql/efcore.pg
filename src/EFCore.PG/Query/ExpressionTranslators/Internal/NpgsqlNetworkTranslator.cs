@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
@@ -22,13 +23,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     /// </remarks>
     public class NpgsqlNetworkTranslator : IMethodCallTranslator
     {
-        [NotNull] static readonly MethodInfo IPAddressParse =
+        static readonly MethodInfo IPAddressParse =
             typeof(IPAddress).GetRuntimeMethod(nameof(IPAddress.Parse), new[] { typeof(string) });
 
-        [NotNull] static readonly MethodInfo PhysicalAddressParse =
+        static readonly MethodInfo PhysicalAddressParse =
             typeof(PhysicalAddress).GetRuntimeMethod(nameof(PhysicalAddress.Parse), new[] { typeof(string) });
 
-        [NotNull]
+        readonly IRelationalTypeMappingSource _typeMappingSource;
         readonly ISqlExpressionFactory _sqlExpressionFactory;
 
         readonly RelationalTypeMapping _boolMapping;
@@ -37,9 +38,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         readonly RelationalTypeMapping _macaddr8Mapping;
 
         public NpgsqlNetworkTranslator(
-            [NotNull] ISqlExpressionFactory sqlExpressionFactory,
-            [NotNull] IRelationalTypeMappingSource typeMappingSource)
+            [NotNull] IRelationalTypeMappingSource typeMappingSource,
+            [NotNull] ISqlExpressionFactory sqlExpressionFactory)
         {
+            _typeMappingSource = typeMappingSource;
             _sqlExpressionFactory = sqlExpressionFactory;
             _boolMapping = typeMappingSource.FindMapping(typeof(bool));
             _inetMapping = typeMappingSource.FindMapping("inet");
@@ -52,10 +54,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         public virtual SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
         {
             if (method == IPAddressParse)
-                return _sqlExpressionFactory.Convert(arguments[0], typeof(IPAddress), _sqlExpressionFactory.FindMapping(typeof(IPAddress)));
+                return _sqlExpressionFactory.Convert(arguments[0], typeof(IPAddress), _typeMappingSource.FindMapping(typeof(IPAddress)));
 
             if (method == PhysicalAddressParse)
-                return _sqlExpressionFactory.Convert(arguments[0], typeof(PhysicalAddress), _sqlExpressionFactory.FindMapping(typeof(PhysicalAddress)));
+                return _sqlExpressionFactory.Convert(arguments[0], typeof(PhysicalAddress), _typeMappingSource.FindMapping(typeof(PhysicalAddress)));
 
             if (method.DeclaringType != typeof(NpgsqlNetworkDbFunctionsExtensions))
                 return null;
@@ -106,7 +108,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     _sqlExpressionFactory.ApplyTypeMapping(arguments[1], ExpressionExtensions.InferTypeMapping(arguments[1], arguments[2])),
                     _sqlExpressionFactory.ApplyTypeMapping(arguments[2], ExpressionExtensions.InferTypeMapping(arguments[1], arguments[2])),
                     arguments[1].Type,
-                    _sqlExpressionFactory.FindMapping(typeof(long))),
+                    _typeMappingSource.FindMapping(typeof(long))),
 
             nameof(NpgsqlNetworkDbFunctionsExtensions.Abbreviate)    => NullPropagatingFunction("abbrev",           new[] { arguments[1] }, typeof(string)),
             nameof(NpgsqlNetworkDbFunctionsExtensions.Broadcast)     => NullPropagatingFunction("broadcast",        new[] { arguments[1] }, typeof(IPAddress), _inetMapping),

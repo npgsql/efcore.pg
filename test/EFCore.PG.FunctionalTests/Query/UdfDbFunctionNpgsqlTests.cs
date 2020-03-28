@@ -10,10 +10,10 @@ using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public class UdfDbFunctionNpgsqlTests : UdfDbFunctionTestBase<UdfDbFunctionNpgsqlTests.Npgsql>
+    public class UdfDbFunctionNpgsqlTests : UdfDbFunctionTestBase<UdfDbFunctionNpgsqlTests.UdfNpgsqlFixture>
     {
         // ReSharper disable once UnusedParameter.Local
-        public UdfDbFunctionNpgsqlTests(Npgsql fixture, ITestOutputHelper testOutputHelper)
+        public UdfDbFunctionNpgsqlTests(UdfNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
         {
             Fixture.TestSqlLoggerFactory.Clear();
@@ -770,7 +770,7 @@ LIMIT 2");
                 // don't get any quotes. We remap it as non-built-in by including a (null) schema.
                 var isDateMethodInfo = typeof(UDFSqlContext).GetMethod(nameof(IsDateStatic));
                 modelBuilder.HasDbFunction(isDateMethodInfo)
-                    .HasTranslation(args => SqlFunctionExpression.Create(
+                    .HasTranslation(args => new SqlFunctionExpression(
                         schema: null,
                         "IsDate",
                         args,
@@ -781,7 +781,7 @@ LIMIT 2");
 
                 var isDateMethodInfo2 = typeof(UDFSqlContext).GetMethod(nameof(IsDateInstance));
                 modelBuilder.HasDbFunction(isDateMethodInfo2)
-                    .HasTranslation(args => SqlFunctionExpression.Create(
+                    .HasTranslation(args => new SqlFunctionExpression(
                         schema: null,
                         "IsDate",
                         args,
@@ -793,7 +793,7 @@ LIMIT 2");
                 // Base class maps to len(), but in PostgreSQL it's called length()
                 var methodInfo = typeof(UDFSqlContext).GetMethod(nameof(MyCustomLengthStatic));
                 modelBuilder.HasDbFunction(methodInfo)
-                    .HasTranslation(args => SqlFunctionExpression.Create(
+                    .HasTranslation(args => new SqlFunctionExpression(
                         "length",
                         args,
                         nullable: true,
@@ -803,7 +803,7 @@ LIMIT 2");
 
                 var methodInfo2 = typeof(UDFSqlContext).GetMethod(nameof(MyCustomLengthInstance));
                 modelBuilder.HasDbFunction(methodInfo2)
-                    .HasTranslation(args => SqlFunctionExpression.Create(
+                    .HasTranslation(args => new SqlFunctionExpression(
                         "length",
                         args,
                         nullable: true,
@@ -813,7 +813,7 @@ LIMIT 2");
             }
         }
 
-        public class Npgsql : UdfFixtureBase
+        public class UdfNpgsqlFixture : UdfFixtureBase
         {
             protected override string StoreName { get; } = "UDFDbFunctionNpgsqlTests";
             protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;

@@ -48,6 +48,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 .Single(m => m.Name == nameof(Enumerable.Contains) && m.GetParameters().Length == 2);
 
         readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
+        readonly IRelationalTypeMappingSource _typeMappingSource;
         readonly NpgsqlJsonPocoTranslator _jsonPocoTranslator;
 
         [NotNull]
@@ -61,7 +62,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         {
             _sqlExpressionFactory = (NpgsqlSqlExpressionFactory)dependencies.SqlExpressionFactory;
             _jsonPocoTranslator = ((NpgsqlMemberTranslatorProvider)Dependencies.MemberTranslatorProvider).JsonPocoTranslator;
-            _boolMapping = _sqlExpressionFactory.FindMapping(typeof(bool));
+            _typeMappingSource = dependencies.TypeMappingSource;
+            _boolMapping = _typeMappingSource.FindMapping(typeof(bool));
         }
 
         // PostgreSQL COUNT() always returns bigint, so we need to downcast to int
@@ -81,7 +83,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                         nullable: false,
                         argumentsPropagateNullability: FalseArrays[1],
                         typeof(long))),
-                typeof(int), _sqlExpressionFactory.FindMapping(typeof(int)));
+                typeof(int), _typeMappingSource.FindMapping(typeof(int)));
         }
 
         // In PostgreSQL SUM() doesn't return the same type as its argument for smallint, int and bigint.
@@ -313,7 +315,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                         nullable: true,
                         argumentsPropagateNullability: TrueArrays[2],
                         typeof(byte),
-                        _sqlExpressionFactory.FindMapping(typeof(byte))
+                        _typeMappingSource.FindMapping(typeof(byte))
                     );
                 }
 

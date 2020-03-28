@@ -143,7 +143,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
 
                     // Remove some tables which shouldn't get scaffolded, unless they're explicitly mentioned
                     // in the table list
-                    if (SystemTablesAndViews.Contains(table.Name) && !tableList.Contains(table.Name))
+                    if (SystemTablesAndViews.Contains(table.Name) && !tableList.Contains(table.Name!))
                     {
                         databaseModel.Tables.RemoveAt(i--);
                         continue;
@@ -223,8 +223,10 @@ WHERE
                     var name = reader.GetString("relname");
                     var comment = reader.GetValueOrDefault<string>("description");
 
-                    var table = new DatabaseTable(databaseModel, name)
+                    var table = new DatabaseTable()
                     {
+                        Database = databaseModel,
+                        Name = name,
                         Schema = schema,
                         Comment = comment
                     };
@@ -334,8 +336,11 @@ ORDER BY attnum";
                             ? (formattedTypeName, record.GetFieldValue<string>("typname"))
                             : (formattedBaseTypeName, record.GetFieldValue<string>("basetypname")); // domain type
 
-                        var column = new DatabaseColumn(table, columnName, storeType)
+                        var column = new DatabaseColumn
                         {
+                            Table = table,
+                            Name = columnName,
+                            StoreType = storeType,
                             IsNullable = record.GetValueOrDefault<bool>("nullable"),
                         };
 
@@ -525,8 +530,10 @@ WHERE
                             continue;
 
                         var indexName = record.GetFieldValue<string>("idx_relname");
-                        var index = new DatabaseIndex(table, indexName)
+                        var index = new DatabaseIndex
                         {
+                            Table = table,
+                            Name = indexName,
                             IsUnique = record.GetFieldValue<bool>("indisunique")
                         };
 
@@ -567,7 +574,7 @@ WHERE
                             foreach (var i in columnIndices.Skip(numKeyColumns))
                             {
                                 if (tableColumns[i - 1] is DatabaseColumn indexKeyColumn)
-                                    nonKeyColumns.Add(indexKeyColumn.Name);
+                                    nonKeyColumns.Add(indexKeyColumn.Name!);
                                 else
                                 {
                                     logger.UnsupportedColumnIndexSkippedWarning(index.Name, DisplayName(tableSchema, tableName));
@@ -692,7 +699,11 @@ WHERE
                     foreach (var primaryKeyRecord in tableGroup.Where(ddr => ddr.GetFieldValue<string>("contype") == "p"))
                     {
                         var pkName = primaryKeyRecord.GetValueOrDefault<string>("conname");
-                        var primaryKey = new DatabasePrimaryKey(table, pkName);
+                        var primaryKey = new DatabasePrimaryKey
+                        {
+                            Table = table,
+                            Name = pkName
+                        };
 
                         foreach (var pkColumnIndex in primaryKeyRecord.GetFieldValue<short[]>("conkey"))
                         {
@@ -728,14 +739,17 @@ WHERE
                         {
                             logger.ForeignKeyReferencesMissingPrincipalTableWarning(
                                 fkName,
-                                DisplayName(table.Schema, table.Name),
+                                DisplayName(table.Schema, table.Name!),
                                 DisplayName(principalTableSchema, principalTableName));
 
                             continue;
                         }
 
-                        var foreignKey = new DatabaseForeignKey(table, fkName, principalTable)
+                        var foreignKey = new DatabaseForeignKey
                         {
+                            Table = table,
+                            Name = fkName,
+                            PrincipalTable = principalTable,
                             OnDelete = ConvertToReferentialAction(onDeleteAction)
                         };
 
@@ -772,7 +786,11 @@ WHERE
 
                         logger.UniqueConstraintFound(name, DisplayName(tableSchema, tableName));
 
-                        var uniqueConstraint = new DatabaseUniqueConstraint(table, name);
+                        var uniqueConstraint = new DatabaseUniqueConstraint
+                        {
+                            Table = table,
+                            Name = name
+                        };
 
                         foreach (var columnIndex in record.GetFieldValue<short[]>("conkey"))
                         {
@@ -837,8 +855,10 @@ WHERE
                     var sequenceSchema = reader.GetFieldValue<string>("sequence_schema");
 
                     var seqInfo = ReadSequenceInfo(record, connection.PostgreSqlVersion);
-                    var sequence = new DatabaseSequence(databaseModel, sequenceName)
+                    var sequence = new DatabaseSequence
                     {
+                        Database = databaseModel,
+                        Name = sequenceName,
                         Schema = sequenceSchema,
                         StoreType = seqInfo.StoreType,
                         StartValue = seqInfo.StartValue,
@@ -875,7 +895,7 @@ GROUP BY nspname, typname";
                 var enums = new HashSet<string>();
                 while (reader.Read())
                 {
-                    string? schema = reader.GetFieldValue<string>("nspname");
+                    var schema = reader.GetFieldValue<string?>("nspname");
                     var name = reader.GetFieldValue<string>("typname");
                     var labels = reader.GetFieldValue<string[]>("labels");
 

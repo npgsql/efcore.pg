@@ -70,7 +70,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         }
 
         /// <inheritdoc />
-        protected override string GenerateOperator(SqlBinaryExpression e)
+        protected override string GetOperator(SqlBinaryExpression e)
             => e.OperatorType switch
             {
                 // PostgreSQL has a special string concatenation operator: ||
@@ -82,7 +82,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                     => " || ",
                 ExpressionType.And when e.Type == typeof(bool)   => " AND ",
                 ExpressionType.Or  when e.Type == typeof(bool)   => " OR ",
-                _ => base.GenerateOperator(e)
+                _ => base.GetOperator(e)
             };
 
         /// <inheritdoc />

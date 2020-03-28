@@ -14,16 +14,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 {
     public class NpgsqlJsonPocoTranslator : IMemberTranslator
     {
-        [NotNull]
+        readonly IRelationalTypeMappingSource _typeMappingSource;
         readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
-
-        [NotNull]
         readonly RelationalTypeMapping _stringTypeMapping;
 
-        public NpgsqlJsonPocoTranslator([NotNull] NpgsqlSqlExpressionFactory sqlExpressionFactory)
+        public NpgsqlJsonPocoTranslator(
+            [NotNull] IRelationalTypeMappingSource typeMappingSource,
+            [NotNull] NpgsqlSqlExpressionFactory sqlExpressionFactory)
         {
+            _typeMappingSource = typeMappingSource;
             _sqlExpressionFactory = sqlExpressionFactory;
-            _stringTypeMapping = sqlExpressionFactory.FindMapping(typeof(string));
+            _stringTypeMapping = typeMappingSource.FindMapping(typeof(string));
         }
 
         public virtual SqlExpression Translate(SqlExpression instance, MemberInfo member, Type returnType)
@@ -80,7 +81,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     traversal.Expression, traversal.Path,
                     returnsText: false,
                     lastPathComponent.Type,
-                    _sqlExpressionFactory.FindMapping(lastPathComponent.Type));
+                    _typeMappingSource.FindMapping(lastPathComponent.Type));
 
                 var jsonMapping = (NpgsqlJsonTypeMapping)traversal.Expression.TypeMapping;
                 return _sqlExpressionFactory.Function(
@@ -112,10 +113,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             case TypeCode.UInt16:
             case TypeCode.UInt32:
             case TypeCode.UInt64:
-                return _sqlExpressionFactory.Convert(expression, returnType, _sqlExpressionFactory.FindMapping(returnType));
+                return _sqlExpressionFactory.Convert(expression, returnType, _typeMappingSource.FindMapping(returnType));
             default:
                 return (returnType == typeof(Guid))
-                    ? _sqlExpressionFactory.Convert(expression, returnType, _sqlExpressionFactory.FindMapping(returnType))
+                    ? _sqlExpressionFactory.Convert(expression, returnType, _typeMappingSource.FindMapping(returnType))
                     : expression;
             }
         }

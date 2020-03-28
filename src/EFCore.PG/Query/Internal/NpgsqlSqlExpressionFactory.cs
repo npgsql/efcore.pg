@@ -219,7 +219,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 // If the array has a type mapping (i.e. column), prefer that just like we prefer column mappings in general
                 arrayIndexExpression.Array.TypeMapping is NpgsqlArrayTypeMapping arrayMapping
                     ? arrayMapping.ElementMapping
-                    : typeMapping ?? FindMapping(arrayIndexExpression.Type));
+                    : typeMapping ?? _typeMappingSource.FindMapping(arrayIndexExpression.Type));
 
         SqlExpression ApplyTypeMappingOnILike(ILikeExpression ilikeExpression)
         {
