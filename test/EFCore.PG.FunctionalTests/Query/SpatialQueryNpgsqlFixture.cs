@@ -27,6 +27,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             modelBuilder.HasPostgresExtension("postgis");
         }
 
-        //protected override bool CanExecuteQueryString => true;
+        // TODO: #1232
+        // protected override bool CanExecuteQueryString => true;
     }
 }

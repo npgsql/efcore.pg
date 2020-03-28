@@ -71,20 +71,19 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Conventions
                 return null;
             }
 
-            return GetValueGenerated(property, tableName, property.DeclaringEntityType.GetSchema());
+            return GetValueGenerated(property, StoreObjectIdentifier.Table(tableName, property.DeclaringEntityType.GetSchema()));
         }
 
         /// <summary>
         /// Returns the store value generation strategy to set for the given property.
         /// </summary>
-        /// <param name="property">The property.</param>
-        /// <param name="tableName">The table name.</param>
-        /// <param name="schema">The schema.</param>
+        /// <param name="property"> The property. </param>
+        /// <param name="storeObject"> The identifier of the store object. </param>
         /// <returns>The store value generation strategy to set for the given property.</returns>
         public static new ValueGenerated? GetValueGenerated(
-            [NotNull] IProperty property, [NotNull] string tableName, [CanBeNull] string schema)
-            => RelationalValueGenerationConvention.GetValueGenerated(property, tableName, schema)
-               ?? (property.GetValueGenerationStrategy(tableName, schema) != NpgsqlValueGenerationStrategy.None
+            [NotNull] IProperty property, StoreObjectIdentifier storeObject)
+            => RelationalValueGenerationConvention.GetValueGenerated(property, storeObject)
+               ?? (property.GetValueGenerationStrategy(storeObject) != NpgsqlValueGenerationStrategy.None
                    ? ValueGenerated.OnAdd
                    : (ValueGenerated?)null);
     }

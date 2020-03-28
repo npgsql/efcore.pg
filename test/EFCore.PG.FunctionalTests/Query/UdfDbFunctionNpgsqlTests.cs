@@ -890,6 +890,17 @@ LIMIT 2");
                         ORDER BY EXTRACT(year FROM ""OrderDate"")
                     $$ LANGUAGE SQL");
 
+                context.Database.ExecuteSqlRaw(@"
+                    CREATE FUNCTION ""GetCustomerOrderCountByYearOnlyFrom2000""(""customerId"" INT, ""onlyFrom2000"" BOOL)
+                    RETURNS TABLE (""CustomerId"" INT, ""Count"" INT, ""Year"" INT)
+                    AS $$
+                    SELECT $1, COUNT(""Id"")::INT, EXTRACT(year FROM ""OrderDate"")::INT
+                        FROM ""Orders""
+                        WHERE ""CustomerId"" = 1 AND (NOT $2 OR $2 IS NULL OR ($2 AND EXTRACT(year FROM ""OrderDate"") = 2000))
+                        GROUP BY ""CustomerId"", EXTRACT(year FROM ""OrderDate"")
+                        ORDER BY EXTRACT(year FROM ""OrderDate"")
+                    $$ LANGUAGE SQL");
+
                  context.Database.ExecuteSqlRaw(@"
                     CREATE FUNCTION ""GetTopTwoSellingProducts""()
                     RETURNS TABLE (""ProductId"" INT, ""AmountSold"" INT)

@@ -95,14 +95,14 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Conventions
             base.ProcessPropertyAnnotationChanged(propertyBuilder, name, annotation, oldAnnotation, context);
         }
 
-        protected override void Validate(IConventionProperty property, string tableName, string schema)
+        protected override void Validate(IConventionProperty property, StoreObjectIdentifier storeObject)
         {
             if (property.GetValueGenerationStrategyConfigurationSource() != null)
             {
-                var generationStrategy = property.GetValueGenerationStrategy(tableName, schema);
+                var generationStrategy = property.GetValueGenerationStrategy(storeObject);
                 if (generationStrategy == NpgsqlValueGenerationStrategy.None)
                 {
-                    base.Validate(property, tableName, schema);
+                    base.Validate(property, storeObject);
                     return;
                 }
 
@@ -128,7 +128,7 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Conventions
                 }
             }
 
-            base.Validate(property, tableName, schema);
+            base.Validate(property, storeObject);
         }
     }
 }

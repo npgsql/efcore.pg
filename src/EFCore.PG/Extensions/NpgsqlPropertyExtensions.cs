@@ -175,18 +175,19 @@ namespace Microsoft.EntityFrameworkCore
         /// If no strategy is set for the property, then the strategy to use will be taken from the <see cref="IModel" />.
         /// </para>
         /// </summary>
-        /// <returns>The strategy, or <see cref="NpgsqlValueGenerationStrategy.None"/> if none was set.</returns>
+        /// <param name="property"> The property. </param>
+        /// <param name="storeObject"> The identifier of the store object. </param>
+        /// <returns> The strategy, or <see cref="NpgsqlValueGenerationStrategy.None" /> if none was set. </returns>
         public static NpgsqlValueGenerationStrategy GetValueGenerationStrategy(
             [NotNull] this IProperty property,
-            [NotNull] string tableName,
-            [CanBeNull] string schema)
+            StoreObjectIdentifier storeObject)
         {
             if (property[NpgsqlAnnotationNames.ValueGenerationStrategy] is object annotation)
                 return (NpgsqlValueGenerationStrategy)annotation;
 
-            if (property.FindSharedTableRootProperty(tableName, schema) is IProperty sharedTableRootProperty)
+            if (property.FindSharedStoreObjectRootProperty(storeObject) is IProperty sharedTableRootProperty)
             {
-                var principalStrategy = sharedTableRootProperty.GetValueGenerationStrategy(tableName, schema);
+                var principalStrategy = sharedTableRootProperty.GetValueGenerationStrategy(storeObject);
                 return principalStrategy switch
                 {
                     NpgsqlValueGenerationStrategy.IdentityByDefaultColumn => principalStrategy,

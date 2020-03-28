@@ -4,12 +4,11 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.GraphUpdates
 {
-    public class ProxyGraphUpdatesNpgsqlTest
+    public abstract class ProxyGraphUpdatesNpgsqlTest
     {
         public abstract class ProxyGraphUpdatesNpgsqlTestBase<TFixture> : ProxyGraphUpdatesTestBase<TFixture>
             where TFixture : ProxyGraphUpdatesNpgsqlTestBase<TFixture>.ProxyGraphUpdatesNpgsqlFixtureBase, new()
@@ -24,7 +23,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.GraphUpdates
 
             public abstract class ProxyGraphUpdatesNpgsqlFixtureBase : ProxyGraphUpdatesFixtureBase
             {
-                public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ServiceProvider.GetRequiredService<ILoggerFactory>();
+                public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
                 protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
             }
         }
@@ -81,7 +80,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.GraphUpdates
 
                 protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
                 {
-                    modelBuilder.UseIdentityColumns();
+                    if (TestEnvironment.PostgresVersion >= new Version(10, 0))
+                        modelBuilder.UseIdentityColumns();
 
                     base.OnModelCreating(modelBuilder, context);
                 }
@@ -110,7 +110,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.GraphUpdates
 
                 protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
                 {
-                    modelBuilder.UseIdentityColumns();
+                    if (TestEnvironment.PostgresVersion >= new Version(10, 0))
+                        modelBuilder.UseIdentityColumns();
 
                     base.OnModelCreating(modelBuilder, context);
                 }

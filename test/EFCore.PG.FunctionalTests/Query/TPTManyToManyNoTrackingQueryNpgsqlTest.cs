@@ -5,14 +5,17 @@ using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public class ManyToManyQueryNpgsqlTest : ManyToManyQueryRelationalTestBase<ManyToManyQueryNpgsqlFixture>
+    public class TPTManyToManyNoTrackingQueryNpgsqlTest : TPTManyToManyNoTrackingQueryRelationalTestBase<TPTManyToManyQueryNpgsqlFixture>
     {
-        public ManyToManyQueryNpgsqlTest(ManyToManyQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
+        public TPTManyToManyNoTrackingQueryNpgsqlTest(TPTManyToManyQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
         {
             Fixture.TestSqlLoggerFactory.Clear();
             //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
+
+        // TODO: #1232
+        // protected override bool CanExecuteQueryString => true;
 
         [ConditionalTheory(Skip = "https://github.com/dotnet/efcore/pull/21895")]
         public override Task Select_skip_navigation_first_or_default(bool async)

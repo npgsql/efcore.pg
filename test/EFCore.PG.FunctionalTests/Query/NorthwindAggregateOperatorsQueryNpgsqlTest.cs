@@ -46,7 +46,7 @@ WHERE e.""EmployeeID"" IN (0, 1)",
                 //
                 @"SELECT e.""EmployeeID"", e.""City"", e.""Country"", e.""FirstName"", e.""ReportsTo"", e.""Title""
 FROM ""Employees"" AS e
-WHERE e.""EmployeeID"" IN (0)");
+WHERE e.""EmployeeID"" = 0");
         }
 
         void AssertSql(params string[] expected)
