@@ -91,6 +91,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                         {
                             Name = "Id",
                             Table = "People",
+                            Schema = "dbo",
                             ClrType = typeof(int),
                             IsNullable = false
                         },

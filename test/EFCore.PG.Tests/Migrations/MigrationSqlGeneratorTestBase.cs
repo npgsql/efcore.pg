@@ -149,8 +149,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         [InlineData(false)]
         [InlineData(true)]
         public virtual void DefaultValue_with_line_breaks(bool isUnicode)
-        {
-            Generate(
+            => Generate(
                 new CreateTableOperation
                 {
                     Name = "TestLineBreaks",
@@ -160,14 +159,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                         new AddColumnOperation
                         {
                             Name = "TestDefaultValue",
-                            Table = "Test",
+                            Table = "TestLineBreaks",
+                            Schema = "dbo",
                             ClrType = typeof(string),
                             DefaultValue = "\r\nVarious Line\rBreaks\n",
                             IsUnicode = isUnicode
                         }
                     }
                 });
-        }
 
         protected TestHelpers TestHelpers { get; }
 

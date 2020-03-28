@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
@@ -38,6 +39,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         [Fact(Skip="https://github.com/dotnet/efcore/issues/18147")]
         public override void Where_bool_gets_converted_to_equality_when_value_conversion_is_used_using_indexer()
             => base.Where_bool_gets_converted_to_equality_when_value_conversion_is_used_using_indexer();
+
+        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/pull/20640")]
+        public override void Object_to_string_conversion() {}
 
         public class CustomConvertersNpgsqlFixture : CustomConvertersFixtureBase
         {

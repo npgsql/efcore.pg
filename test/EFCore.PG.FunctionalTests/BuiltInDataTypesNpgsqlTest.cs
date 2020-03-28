@@ -886,6 +886,9 @@ FROM ""MappedDataTypes"" AS m",
 FROM ""MappedDataTypes"" AS m");
         }
 
+        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/pull/20640")]
+        public override void Object_to_string_conversion() {}
+
         void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
