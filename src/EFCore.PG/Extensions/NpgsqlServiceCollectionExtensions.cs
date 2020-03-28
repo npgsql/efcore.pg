@@ -2,6 +2,7 @@ using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Query;
@@ -14,6 +15,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
@@ -61,7 +63,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     .TryAdd<IValueGeneratorCache>(p => p.GetService<INpgsqlValueGeneratorCache>())
                     .TryAdd<IRelationalTypeMappingSource, NpgsqlTypeMappingSource>()
                     .TryAdd<ISqlGenerationHelper, NpgsqlSqlGenerationHelper>()
-                    .TryAdd<IMigrationsAnnotationProvider, NpgsqlMigrationsAnnotationProvider>()
+                    .TryAdd<IRelationalAnnotationProvider, NpgsqlAnnotationProvider>()
                     .TryAdd<IModelValidator, NpgsqlModelValidator>()
                     .TryAdd<IProviderConventionSetBuilder, NpgsqlConventionSetBuilder>()
                     .TryAdd<IRelationalValueBufferFactoryFactory, TypedRelationalValueBufferFactoryFactory>()
