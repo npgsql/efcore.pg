@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Data.Common;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -53,6 +55,30 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             }
 
             base.Commit();
+        }
+
+        public override async Task CommitAsync(CancellationToken cancellationToken = default)
+        {
+            if (_testConnection.CommitFailures.Count > 0)
+            {
+                var fail = _testConnection.CommitFailures.Dequeue();
+                if (fail.HasValue)
+                {
+                    if (fail.Value)
+                    {
+                        await this.GetDbTransaction().RollbackAsync(cancellationToken);
+                    }
+                    else
+                    {
+                        await this.GetDbTransaction().CommitAsync(cancellationToken);
+                    }
+
+                    await _testConnection.DbConnection.CloseAsync();
+                    throw new PostgresException("", "", "", _testConnection.ErrorCode);
+                }
+            }
+
+            await base.CommitAsync(cancellationToken);
         }
     }
 }

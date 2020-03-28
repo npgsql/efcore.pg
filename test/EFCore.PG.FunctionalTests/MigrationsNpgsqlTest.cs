@@ -470,16 +470,15 @@ ALTER TABLE ""People"" RESET (user_catalog_table);");
                 @"ALTER TABLE ""People"" ADD ""Sum"" integer NOT NULL DEFAULT (1 + 2);");
         }
 
-        [Fact]
-        public override async Task Add_column_with_computedSql()
+        public override async Task Add_column_with_computedSql(bool? computedColumnStored)
         {
             if (TestEnvironment.PostgresVersion.IsUnder(12))
             {
-                await Assert.ThrowsAsync<NotSupportedException>(() => base.Add_column_with_computedSql());
+                await Assert.ThrowsAsync<NotSupportedException>(() => base.Add_column_with_computedSql(computedColumnStored));
                 return;
             }
 
-            await base.Add_column_with_computedSql();
+            await base.Add_column_with_computedSql(computedColumnStored);
 
             AssertSql(
                 @"ALTER TABLE ""People"" ADD ""Sum"" text GENERATED ALWAYS AS (""X"" + ""Y"") STORED;");
@@ -789,10 +788,7 @@ COMMENT ON COLUMN ""People"".""FullName"" IS 'My comment';");
         public virtual async Task Add_column_generated_tsvector()
         {
             if (TestEnvironment.PostgresVersion.IsUnder(12))
-            {
-                await Assert.ThrowsAsync<NotSupportedException>(() => base.Add_column_with_computedSql());
                 return;
-            }
 
             await Test(
                 builder => builder.Entity(
@@ -856,16 +852,15 @@ ALTER TABLE ""People"" ALTER COLUMN ""FirstName"" SET NOT NULL;
 ALTER TABLE ""People"" ALTER COLUMN ""FirstName"" DROP DEFAULT;");
         }
 
-        [Fact]
-        public override async Task Alter_column_make_computed()
+        public override async Task Alter_column_make_computed(bool? computedColumnStored)
         {
             if (TestEnvironment.PostgresVersion.IsUnder(12))
             {
-                await Assert.ThrowsAsync<NotSupportedException>(() => base.Add_column_with_computedSql());
+                await Assert.ThrowsAsync<NotSupportedException>(() => base.Add_column_with_computedSql(computedColumnStored));
                 return;
             }
 
-            await base.Alter_column_make_computed();
+            await base.Alter_column_make_computed(computedColumnStored);
 
             AssertSql(
                 @"ALTER TABLE ""People"" DROP COLUMN ""Sum"";",
@@ -873,12 +868,11 @@ ALTER TABLE ""People"" ALTER COLUMN ""FirstName"" DROP DEFAULT;");
                 @"ALTER TABLE ""People"" ADD ""Sum"" integer GENERATED ALWAYS AS (""X"" + ""Y"") STORED;");
         }
 
-        [Fact]
         public override async Task Alter_column_change_computed()
         {
             if (TestEnvironment.PostgresVersion.IsUnder(12))
             {
-                await Assert.ThrowsAsync<NotSupportedException>(() => base.Add_column_with_computedSql());
+                await Assert.ThrowsAsync<NotSupportedException>(() => base.Alter_column_change_computed());
                 return;
             }
 

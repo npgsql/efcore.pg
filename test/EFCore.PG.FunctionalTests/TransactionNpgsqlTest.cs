@@ -16,11 +16,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         {
         }
 
-        [Fact(Skip= "Npgsql batches the inserts, creating an implicit transaction which fails the test (see https://github.com/npgsql/npgsql/issues/1307)")]
-        public override void SaveChanges_can_be_used_with_no_transaction() {}
-
-        [Fact(Skip = "Npgsql batches the inserts, creating an implicit transaction which fails the test (see https://github.com/npgsql/npgsql/issues/1307)")]
-        public override Task SaveChangesAsync_can_be_used_with_no_transaction() => null;
+        [ConditionalTheory(Skip =
+            "Npgsql batches the inserts, creating an implicit transaction which fails the test (see https://github.com/npgsql/npgsql/issues/1307)")]
+        public override Task SaveChanges_can_be_used_with_no_transaction(bool async)
+            => base.SaveChanges_can_be_used_with_no_transaction(async);
 
         protected override DbContext CreateContextWithConnectionString()
         {
