@@ -57,14 +57,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         #endregion
 
         public NpgsqlStringMethodTranslator(
-            [NotNull] ISqlExpressionFactory sqlExpressionFactory,
-            [NotNull] NpgsqlTypeMappingSource npgsqlTypeMappingSource)
+            [NotNull] NpgsqlTypeMappingSource typeMappingSource,
+            [NotNull] ISqlExpressionFactory sqlExpressionFactory)
         {
             _sqlExpressionFactory = sqlExpressionFactory;
             _whitespace = _sqlExpressionFactory.Constant(
                 @" \t\n\r",  // TODO: Complete this
-                npgsqlTypeMappingSource.EStringTypeMapping);
-            _textTypeMapping = _sqlExpressionFactory.FindMapping(typeof(string));
+                typeMappingSource.EStringTypeMapping);
+            _textTypeMapping = (RelationalTypeMapping)typeMappingSource.FindMapping(typeof(string));
         }
 
         public virtual SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)

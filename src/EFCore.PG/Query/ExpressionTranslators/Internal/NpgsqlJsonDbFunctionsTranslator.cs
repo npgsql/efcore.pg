@@ -23,8 +23,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         readonly RelationalTypeMapping _jsonbTypeMapping;
 
         public NpgsqlJsonDbFunctionsTranslator(
-            [NotNull] NpgsqlSqlExpressionFactory sqlExpressionFactory,
-            [NotNull] IRelationalTypeMappingSource typeMappingSource)
+            [NotNull] IRelationalTypeMappingSource typeMappingSource,
+            [NotNull] NpgsqlSqlExpressionFactory sqlExpressionFactory)
         {
             _sqlExpressionFactory = sqlExpressionFactory;
             _boolTypeMapping = typeMappingSource.FindMapping(typeof(bool));

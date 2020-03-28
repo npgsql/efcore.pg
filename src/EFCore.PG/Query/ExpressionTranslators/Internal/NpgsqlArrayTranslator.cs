@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
@@ -21,27 +22,28 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     /// </remarks>
     public class NpgsqlArrayTranslator : IMethodCallTranslator, IMemberTranslator
     {
-        [NotNull] static readonly MethodInfo SequenceEqual =
+        static readonly MethodInfo SequenceEqual =
             typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
                 .Single(m => m.Name == nameof(Enumerable.SequenceEqual) && m.GetParameters().Length == 2);
 
-        [NotNull] static readonly MethodInfo Contains =
+        static readonly MethodInfo Contains =
             typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
                 .Single(m => m.Name == nameof(Enumerable.Contains) && m.GetParameters().Length == 2);
 
-        [NotNull] static readonly MethodInfo EnumerableAnyWithoutPredicate =
+        static readonly MethodInfo EnumerableAnyWithoutPredicate =
             typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
                 .Single(mi => mi.Name == nameof(Enumerable.Any) && mi.GetParameters().Length == 1);
 
-        [NotNull]
+        readonly IRelationalTypeMappingSource _typeMappingSource;
         readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
-        [NotNull]
         readonly NpgsqlJsonPocoTranslator _jsonPocoTranslator;
 
         public NpgsqlArrayTranslator(
+            [NotNull] IRelationalTypeMappingSource typeMappingSource,
             [NotNull] NpgsqlSqlExpressionFactory sqlExpressionFactory,
             [NotNull] NpgsqlJsonPocoTranslator jsonPocoTranslator)
         {
+            _typeMappingSource = typeMappingSource;
             _sqlExpressionFactory = sqlExpressionFactory;
             _jsonPocoTranslator = jsonPocoTranslator;
         }
@@ -108,7 +110,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     // Handle either parameters (no mapping but supported CLR type), or array columns. We specifically
                     // don't want to translate if the type mapping is bytea (CLR type is array, but not an array in
                     // the database).
-                    operand.TypeMapping == null && _sqlExpressionFactory.FindMapping(operand.Type) != null ||
+                    operand.TypeMapping == null && _typeMappingSource.FindMapping(operand.Type) != null ||
                     operand.TypeMapping is NpgsqlArrayTypeMapping
                  ) &&
                 // Exclude arrays/lists over Nullable<T> since the ADO layer doesn't handle them (but will in 5.0)

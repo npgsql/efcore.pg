@@ -5,6 +5,7 @@ using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
+using Microsoft.EntityFrameworkCore.Storage;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
@@ -80,15 +81,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
         static readonly MethodInfo RoundDecimalTwoParams = typeof(Math).GetRuntimeMethod(nameof(Math.Round), new[] { typeof(decimal), typeof(int) });
 
-        [NotNull]
+        readonly IRelationalTypeMappingSource _typeMappingSource;
         readonly ISqlExpressionFactory _sqlExpressionFactory;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="NpgsqlMathTranslator"/> class.
         /// </summary>
         /// <param name="sqlExpressionFactory">The SQL expression factory to use when generating expressions..</param>
-        public NpgsqlMathTranslator([NotNull] ISqlExpressionFactory sqlExpressionFactory)
-            => _sqlExpressionFactory = sqlExpressionFactory;
+        public NpgsqlMathTranslator(
+            [NotNull] IRelationalTypeMappingSource typeMappingSource,
+            [NotNull] ISqlExpressionFactory sqlExpressionFactory)
+        {
+            _typeMappingSource = typeMappingSource;
+            _sqlExpressionFactory = sqlExpressionFactory;
+        }
 
         /// <inheritdoc />
         [CanBeNull]
@@ -130,7 +136,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                             argumentsPropagateNullability: TrueArrays[1],
                             method.ReturnType),
                         typeof(int),
-                        _sqlExpressionFactory.FindMapping(typeof(int)));
+                        _typeMappingSource.FindMapping(typeof(int)));
             }
 
             if (method == RoundDecimalTwoParams)
@@ -143,7 +149,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[2],
                     method.ReturnType,
-                    _sqlExpressionFactory.FindMapping(typeof(decimal)));
+                    _typeMappingSource.FindMapping(typeof(decimal)));
             }
 
             return null;

@@ -25,7 +25,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         static readonly MethodInfo TsVectorParse =
             typeof(NpgsqlTsVector).GetMethod(nameof(NpgsqlTsVector.Parse), BindingFlags.Public | BindingFlags.Static);
 
-        [NotNull]
+        readonly IRelationalTypeMappingSource _typeMappingSource;
         readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
         readonly RelationalTypeMapping _boolMapping;
         readonly RelationalTypeMapping _tsQueryMapping;
@@ -33,9 +33,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         readonly RelationalTypeMapping _regconfigMapping;
 
         public NpgsqlFullTextSearchMethodTranslator(
-            [NotNull] NpgsqlSqlExpressionFactory sqlExpressionFactory,
-            [NotNull] IRelationalTypeMappingSource typeMappingSource)
+            [NotNull] IRelationalTypeMappingSource typeMappingSource,
+            [NotNull] NpgsqlSqlExpressionFactory sqlExpressionFactory)
         {
+            _typeMappingSource = typeMappingSource;
             _sqlExpressionFactory = sqlExpressionFactory;
             _boolMapping = typeMappingSource.FindMapping(typeof(bool));
             _tsQueryMapping = typeMappingSource.FindMapping("tsquery");
@@ -88,7 +89,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                             nullable: true,
                             argumentsPropagateNullability: TrueArrays[2],
                             typeof(float),
-                            _sqlExpressionFactory.FindMapping(typeof(float))),
+                            _typeMappingSource.FindMapping(typeof(float))),
 
                         3 => _sqlExpressionFactory.Function(
                             rankFunctionName,
@@ -101,7 +102,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                             nullable: true,
                             argumentsPropagateNullability: TrueArrays[3],
                             typeof(float),
-                            _sqlExpressionFactory.FindMapping(typeof(float))),
+                            _typeMappingSource.FindMapping(typeof(float))),
 
                         4 => _sqlExpressionFactory.Function(
                             rankFunctionName,
@@ -109,7 +110,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                             nullable: true,
                             argumentsPropagateNullability: TrueArrays[4],
                             method.ReturnType,
-                            _sqlExpressionFactory.FindMapping(typeof(float))),
+                            _typeMappingSource.FindMapping(typeof(float))),
 
                         _ => throw new ArgumentException($"Invalid method overload for {rankFunctionName}")
                     };
@@ -170,7 +171,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                             nullable: true,
                             argumentsPropagateNullability: TrueArrays[1],
                             typeof(int),
-                            _sqlExpressionFactory.FindMapping(method.ReturnType)),
+                            _typeMappingSource.FindMapping(method.ReturnType)),
 
                     nameof(NpgsqlFullTextSearchLinqExtensions.GetQueryTree)
                         => _sqlExpressionFactory.Function(
@@ -179,7 +180,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                             nullable: true,
                             argumentsPropagateNullability: TrueArrays[1],
                             typeof(string),
-                            _sqlExpressionFactory.FindMapping(method.ReturnType)),
+                            _typeMappingSource.FindMapping(method.ReturnType)),
 
                     nameof(NpgsqlFullTextSearchLinqExtensions.GetResultHeadline) when arguments.Count == 2
                         => _sqlExpressionFactory.Function(
@@ -253,7 +254,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                             nullable: true,
                             argumentsPropagateNullability: TrueArrays[1],
                             method.ReturnType,
-                            _sqlExpressionFactory.FindMapping(typeof(int))),
+                            _typeMappingSource.FindMapping(typeof(int))),
 
                     nameof(NpgsqlFullTextSearchLinqExtensions.ToStripped)
                         => _sqlExpressionFactory.Function(
@@ -284,7 +285,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[arguments.Count],
                     method.ReturnType,
-                    _sqlExpressionFactory.FindMapping(method.ReturnType));
+                    _typeMappingSource.FindMapping(method.ReturnType));
 
             SqlExpression NonConfigAccepting(string functionName)
                 => _sqlExpressionFactory.Function(
@@ -293,7 +294,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[arguments.Count],
                     method.ReturnType,
-                    _sqlExpressionFactory.FindMapping(method.ReturnType));
+                    _typeMappingSource.FindMapping(method.ReturnType));
 
             SqlCustomBinaryExpression QueryReturningOnTwoQueries(string @operator)
             {

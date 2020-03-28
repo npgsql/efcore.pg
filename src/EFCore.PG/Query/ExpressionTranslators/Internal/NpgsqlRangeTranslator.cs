@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using NpgsqlTypes;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
@@ -22,15 +23,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     /// </remarks>
     public class NpgsqlRangeTranslator : IMethodCallTranslator, IMemberTranslator
     {
-        [NotNull]
+        readonly IRelationalTypeMappingSource _typeMappingSource;
         readonly ISqlExpressionFactory _sqlExpressionFactory;
-        [NotNull]
         readonly RelationalTypeMapping _boolMapping;
 
-        public NpgsqlRangeTranslator([NotNull] ISqlExpressionFactory sqlExpressionFactory)
+        public NpgsqlRangeTranslator(
+            [NotNull] IRelationalTypeMappingSource typeMappingSource,
+            [NotNull] ISqlExpressionFactory sqlExpressionFactory)
         {
+            _typeMappingSource = typeMappingSource;
             _sqlExpressionFactory = sqlExpressionFactory;
-            _boolMapping = sqlExpressionFactory.FindMapping(typeof(bool));
+            _boolMapping = typeMappingSource.FindMapping(typeof(bool));
         }
 
         /// <inheritdoc />
@@ -120,7 +123,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             {
                 var typeMapping = instance.TypeMapping is NpgsqlRangeTypeMapping rangeMapping
                     ? rangeMapping.SubtypeMapping
-                    : _sqlExpressionFactory.FindMapping(returnType);
+                    : _typeMappingSource.FindMapping(returnType);
 
                 var accessorName = member.Name == nameof(NpgsqlRange<int>.LowerBound) ? "lower" : "upper";
                 var accessor = _sqlExpressionFactory.Function(
