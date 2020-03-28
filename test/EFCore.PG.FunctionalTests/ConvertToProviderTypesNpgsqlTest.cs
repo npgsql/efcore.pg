@@ -56,9 +56,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             }
         }
 
-        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/pull/20640")]
-        public override void Object_to_string_conversion() {}
-
         public class ConvertToProviderTypesNpgsqlFixture : ConvertToProviderTypesFixtureBase
         {
             public override bool StrictEquality => true;
