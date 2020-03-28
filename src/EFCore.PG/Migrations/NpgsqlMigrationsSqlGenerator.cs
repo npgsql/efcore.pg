@@ -1077,7 +1077,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             Check.NotNull(builder, nameof(builder));
 
             var sqlBuilder = new StringBuilder();
-            foreach (var modificationCommand in operation.GenerateModificationCommands(model))
+            foreach (var modificationCommand in GenerateModificationCommands(operation, model))
             {
                 var overridingSystemValue = modificationCommand.ColumnModifications.Any(m =>
                     m.Property?.GetValueGenerationStrategy() == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn);

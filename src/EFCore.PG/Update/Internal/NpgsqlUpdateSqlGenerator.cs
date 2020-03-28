@@ -30,6 +30,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
             Check.NotNull(commandStringBuilder, nameof(commandStringBuilder));
             Check.NotNull(command, nameof(command));
 
+            var name = command.TableName;
+            var schema = command.Schema;
             var operations = command.ColumnModifications;
 
             var writeOperations = operations.Where(o => o.IsWrite).ToArray();
@@ -39,7 +41,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
             if (overridingSystemValue)
                 commandStringBuilder.AppendLine().Append("OVERRIDING SYSTEM VALUE");
             AppendValuesHeader(commandStringBuilder, writeOperations);
-            AppendValues(commandStringBuilder, writeOperations);
+            AppendValues(commandStringBuilder, name, schema, writeOperations);
             if (readOperations.Length > 0)
                 AppendReturningClause(commandStringBuilder, readOperations);
 
