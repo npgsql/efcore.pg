@@ -18,6 +18,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
+        [ConditionalTheory(Skip = "https://github.com/dotnet/efcore/issues/21341")]
+        public override Task Single_non_scalar_projection_after_skip_uses_join(bool async)
+            => base.Single_non_scalar_projection_after_skip_uses_join(async);
+
         public override async Task Query_expression_with_to_string_and_contains(bool async)
         {
             await base.Query_expression_with_to_string_and_contains(async);
@@ -59,6 +63,7 @@ WHERE (o.""OrderDate"" IS NOT NULL)");
         }
 
         // TODO: Array tests can probably move to the dedicated ArrayQueryTest suite
+
         #region Array contains
 
         // Note that this also takes care of array.Any(x => x == y)

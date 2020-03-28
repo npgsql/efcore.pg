@@ -848,7 +848,7 @@ CREATE TABLE ""ComputedValues"" (
                     var column = columns.Single(c => c.Name == "SumOfAAndB");
                     Assert.Null(column.DefaultValueSql);
                     Assert.Equal(@"(""A"" + ""B"")", column.ComputedColumnSql);
-                    Assert.True(column.ComputedColumnIsStored);
+                    Assert.True(column.IsStored);
                 },
                 @"DROP TABLE ""ComputedValues""");
 

@@ -68,7 +68,6 @@ namespace Microsoft.Extensions.DependencyInjection
                     .TryAdd<IProviderConventionSetBuilder, NpgsqlConventionSetBuilder>()
                     .TryAdd<IRelationalValueBufferFactoryFactory, TypedRelationalValueBufferFactoryFactory>()
                     .TryAdd<IUpdateSqlGenerator, NpgsqlUpdateSqlGenerator>()
-                    .TryAdd<IRelationalTransactionFactory, NpgsqlTransactionFactory>()
                     .TryAdd<IModificationCommandBatchFactory, NpgsqlModificationCommandBatchFactory>()
                     .TryAdd<IValueGeneratorSelector, NpgsqlValueGeneratorSelector>()
                     .TryAdd<IRelationalConnection>(p => p.GetService<INpgsqlRelationalConnection>())

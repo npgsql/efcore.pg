@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Copyright>Copyright 2020 © The Npgsql Development Team</Copyright>
     <Company>Npgsql</Company>
-    <VersionPrefix>5.0.0-preview6</VersionPrefix>
+    <VersionPrefix>5.0.0-preview7</VersionPrefix>
     <TargetFrameworks>netstandard2.1</TargetFrameworks>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <PackageLicenseExpression>PostgreSQL</PackageLicenseExpression>

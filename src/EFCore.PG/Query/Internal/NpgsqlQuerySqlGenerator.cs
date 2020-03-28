@@ -134,6 +134,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         }
 
         /// <inheritdoc />
+        protected override void CheckComposableSql(string sql)
+        {
+            // PostgreSQL supports CTE (WITH) expressions within subqueries, as well as INSERT ... RETURNING ...,
+            // so we allow any raw SQL to be composed over. PostgreSQL will error if it doesn't work.
+        }
+
+        /// <inheritdoc />
         protected override Expression VisitSqlBinary(SqlBinaryExpression binary)
         {
             switch (binary.OperatorType)

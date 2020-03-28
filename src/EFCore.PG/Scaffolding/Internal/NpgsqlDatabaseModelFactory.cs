@@ -370,7 +370,7 @@ ORDER BY attnum";
                         if (record.GetFieldValue<string>("attgenerated") == "s")
                         {
                             column.ComputedColumnSql = record.GetValueOrDefault<string>("default");
-                            column.ComputedColumnIsStored = true;
+                            column.IsStored = true;
                         }
                         else
                         {

@@ -871,18 +871,18 @@ WHERE m.""TimeSpanAsTime"" = @__timeSpan_0");
 
             // PostgreSQL SUM() returns numeric for bigint input, bigint for int/smallint inuts.
             // Make sure the proper conversion is done
-            var sum1 = context.Set<MappedDataTypes>().Sum(m => m.LongAsBigint);
-            var sum2 = context.Set<MappedDataTypes>().Sum(m => m.Int);
-            var sum3 = context.Set<MappedDataTypes>().Sum(m => m.ShortAsSmallint);
+            _ = context.Set<MappedDataTypes>().Sum(m => m.LongAsBigint);
+            _ = context.Set<MappedDataTypes>().Sum(m => m.Int);
+            _ = context.Set<MappedDataTypes>().Sum(m => m.ShortAsSmallint);
 
             AssertSql(
-                @"SELECT SUM(m.""LongAsBigint"")::bigint
+                @"SELECT COALESCE(SUM(m.""LongAsBigint""), 0.0)::bigint
 FROM ""MappedDataTypes"" AS m",
                 //
-                @"SELECT SUM(m.""Int"")::INT
+                @"SELECT COALESCE(SUM(m.""Int""), 0)::INT
 FROM ""MappedDataTypes"" AS m",
                 //
-                @"SELECT SUM(CAST(m.""ShortAsSmallint"" AS integer))::INT
+                @"SELECT COALESCE(SUM(CAST(m.""ShortAsSmallint"" AS integer)), 0)::INT
 FROM ""MappedDataTypes"" AS m");
         }
 

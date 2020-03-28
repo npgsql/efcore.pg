@@ -1,7 +1,7 @@
 ﻿<Project>
   <PropertyGroup>
-    <EFCoreVersion>5.0.0-preview.6.20306.2</EFCoreVersion>
-    <MicrosoftExtensionsVersion>5.0.0-preview.3.20215.2</MicrosoftExtensionsVersion>
+    <EFCoreVersion>5.0.0-preview.7.20318.8</EFCoreVersion>
+    <MicrosoftExtensionsVersion>5.0.0-preview.7.20314.1</MicrosoftExtensionsVersion>
     <NpgsqlVersion>4.1.3</NpgsqlVersion>
   </PropertyGroup>
 

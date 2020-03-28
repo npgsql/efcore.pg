@@ -470,22 +470,22 @@ ALTER TABLE ""People"" RESET (user_catalog_table);");
                 @"ALTER TABLE ""People"" ADD ""Sum"" integer NOT NULL DEFAULT (1 + 2);");
         }
 
-        public override async Task Add_column_with_computedSql(bool? computedColumnStored)
+        public override async Task Add_column_with_computedSql(bool? stored)
         {
             if (TestEnvironment.PostgresVersion.IsUnder(12))
             {
-                await Assert.ThrowsAsync<NotSupportedException>(() => base.Add_column_with_computedSql(computedColumnStored));
+                await Assert.ThrowsAsync<NotSupportedException>(() => base.Add_column_with_computedSql(stored));
                 return;
             }
 
-            if (computedColumnStored != true)
+            if (stored != true)
             {
                 // Non-stored generated columns aren't yet supported (PG12)
-                await Assert.ThrowsAsync<NotSupportedException>(() => base.Add_column_with_computedSql(computedColumnStored));
+                await Assert.ThrowsAsync<NotSupportedException>(() => base.Add_column_with_computedSql(stored));
                 return;
             }
 
-            await base.Add_column_with_computedSql(computedColumnStored: true);
+            await base.Add_column_with_computedSql(stored: true);
 
             AssertSql(
                 @"ALTER TABLE ""People"" ADD ""Sum"" text GENERATED ALWAYS AS (""X"" + ""Y"") STORED;");
@@ -920,22 +920,22 @@ ALTER TABLE ""People"" ALTER COLUMN ""FirstName"" SET NOT NULL;
 ALTER TABLE ""People"" ALTER COLUMN ""FirstName"" DROP DEFAULT;");
         }
 
-        public override async Task Alter_column_make_computed(bool? computedColumnStored)
+        public override async Task Alter_column_make_computed(bool? stored)
         {
             if (TestEnvironment.PostgresVersion.IsUnder(12))
             {
-                await Assert.ThrowsAsync<NotSupportedException>(() => base.Add_column_with_computedSql(computedColumnStored));
+                await Assert.ThrowsAsync<NotSupportedException>(() => base.Add_column_with_computedSql(stored));
                 return;
             }
 
-            if (computedColumnStored != true)
+            if (stored != true)
             {
                 // Non-stored generated columns aren't yet supported (PG12)
-                await Assert.ThrowsAsync<NotSupportedException>(() => base.Add_column_with_computedSql(computedColumnStored));
+                await Assert.ThrowsAsync<NotSupportedException>(() => base.Add_column_with_computedSql(stored));
                 return;
             }
 
-            await base.Alter_column_make_computed(computedColumnStored);
+            await base.Alter_column_make_computed(stored);
 
             AssertSql(
                 @"ALTER TABLE ""People"" DROP COLUMN ""Sum"";",
