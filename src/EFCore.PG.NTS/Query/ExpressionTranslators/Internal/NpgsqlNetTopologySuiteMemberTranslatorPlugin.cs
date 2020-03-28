@@ -123,9 +123,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
             nameof(Geometry.OgcGeometryType)  => _sqlExpressionFactory.Case(
                 Function("ST_GeometryType", new[] { instance }, typeof(string)),
-                _ogcGeometryTypeWhenThenList),
+                _ogcGeometryTypeWhenThenList,
+                elseResult: null),
 
-            _ => (SqlExpression)null
+            _ => null
             };
 
             SqlFunctionExpression Function(string name, SqlExpression[] arguments, Type returnType, RelationalTypeMapping typeMapping = null)

@@ -16,7 +16,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
         public NpgsqlAnnotationCodeGenerator([NotNull] AnnotationCodeGeneratorDependencies dependencies)
             : base(dependencies) {}
 
-        public override bool IsHandledByConvention(IModel model, IAnnotation annotation)
+        protected override bool IsHandledByConvention(IModel model, IAnnotation annotation)
         {
             Check.NotNull(model, nameof(model));
             Check.NotNull(annotation, nameof(annotation));
@@ -30,7 +30,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             return false;
         }
 
-        public override bool IsHandledByConvention(IIndex index, IAnnotation annotation)
+        protected override bool IsHandledByConvention(IIndex index, IAnnotation annotation)
         {
             Check.NotNull(index, nameof(index));
             Check.NotNull(annotation, nameof(annotation));
@@ -44,7 +44,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             return false;
         }
 
-        public override bool IsHandledByConvention(IProperty property, IAnnotation annotation)
+        protected override bool IsHandledByConvention(IProperty property, IAnnotation annotation)
         {
             Check.NotNull(property, nameof(property));
             Check.NotNull(annotation, nameof(annotation));
@@ -70,7 +70,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             return false;
         }
 
-        public override MethodCallCodeFragment GenerateFluentApi(IModel model, IAnnotation annotation)
+        protected override MethodCallCodeFragment GenerateFluentApi(IModel model, IAnnotation annotation)
         {
             Check.NotNull(model, nameof(model));
             Check.NotNull(annotation, nameof(annotation));
@@ -122,7 +122,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             return null;
         }
 
-        public override MethodCallCodeFragment GenerateFluentApi(IEntityType entityType, IAnnotation annotation)
+        protected override MethodCallCodeFragment GenerateFluentApi(IEntityType entityType, IAnnotation annotation)
         {
             Check.NotNull(entityType, nameof(entityType));
             Check.NotNull(annotation, nameof(annotation));
@@ -133,7 +133,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             return null;
         }
 
-        public override MethodCallCodeFragment GenerateFluentApi(IProperty property, IAnnotation annotation)
+        protected override MethodCallCodeFragment GenerateFluentApi(IProperty property, IAnnotation annotation)
         {
             Check.NotNull(property, nameof(property));
             Check.NotNull(annotation, nameof(annotation));
@@ -164,7 +164,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             return null;
         }
 
-        public override MethodCallCodeFragment GenerateFluentApi(IIndex index, IAnnotation annotation)
+        protected override MethodCallCodeFragment GenerateFluentApi(IIndex index, IAnnotation annotation)
             => annotation.Name switch
             {
                 RelationalAnnotationNames.Collation
