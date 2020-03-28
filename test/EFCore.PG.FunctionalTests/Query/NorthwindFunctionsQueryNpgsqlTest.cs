@@ -10,7 +10,7 @@ using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public class NorthwindFunctionsQueryNpgsqlTest : NorthwindFunctionsQueryTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
+    public class NorthwindFunctionsQueryNpgsqlTest : NorthwindFunctionsQueryRelationalTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
     {
         public NorthwindFunctionsQueryNpgsqlTest(
             NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture, ITestOutputHelper testOutputHelper)

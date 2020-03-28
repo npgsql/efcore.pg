@@ -4,7 +4,7 @@ using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public class NorthwindSetOperationsQueryNpgsqlTest : NorthwindSetOperationsQueryTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
+    public class NorthwindSetOperationsQueryNpgsqlTest : NorthwindSetOperationsQueryRelationalTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
     {
         public NorthwindSetOperationsQueryNpgsqlTest(NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)

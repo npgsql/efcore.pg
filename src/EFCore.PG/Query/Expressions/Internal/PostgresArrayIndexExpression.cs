@@ -71,7 +71,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
 
         public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), Array, Index);
 
-        public override void Print(ExpressionPrinter expressionPrinter)
+        protected override void Print(ExpressionPrinter expressionPrinter)
         {
             expressionPrinter.Visit(Array);
             expressionPrinter.Append("[");

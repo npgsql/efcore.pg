@@ -84,7 +84,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
             => HashCode.Combine(base.GetHashCode(), Item, Array, OperatorType);
 
         /// <inheritdoc />
-        public override void Print(ExpressionPrinter expressionPrinter)
+        protected override void Print(ExpressionPrinter expressionPrinter)
         {
             expressionPrinter.Visit(Item);
             expressionPrinter
