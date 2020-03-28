@@ -5,7 +5,7 @@ using Xunit;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     public class ComplexNavigationsQueryNpgsqlTest
-        : ComplexNavigationsQueryTestBase<ComplexNavigationsQueryNpgsqlFixture>
+        : ComplexNavigationsQueryRelationalTestBase<ComplexNavigationsQueryNpgsqlFixture>
     {
         public ComplexNavigationsQueryNpgsqlTest(ComplexNavigationsQueryNpgsqlFixture fixture)
             : base(fixture)

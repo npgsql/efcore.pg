@@ -157,9 +157,36 @@ namespace Microsoft.EntityFrameworkCore
             if (property[NpgsqlAnnotationNames.ValueGenerationStrategy] is object annotation)
                 return (NpgsqlValueGenerationStrategy)annotation;
 
-            if (property.FindSharedRootPrimaryKeyProperty() is IProperty sharedTablePrincipalPrimaryKeyProperty)
+            if (property.ValueGenerated != ValueGenerated.OnAdd
+                || property.IsForeignKey()
+                || property.GetDefaultValue() != null
+                || property.GetDefaultValueSql() != null
+                || property.GetComputedColumnSql() != null)
             {
-                var principalStrategy = sharedTablePrincipalPrimaryKeyProperty.GetValueGenerationStrategy();
+                return NpgsqlValueGenerationStrategy.None;
+            }
+
+            return GetDefaultValueGenerationStrategy(property);
+        }
+
+        /// <summary>
+        /// <para>Returns the <see cref="NpgsqlValueGenerationStrategy" /> to use for the property.</para>
+        /// <para>
+        /// If no strategy is set for the property, then the strategy to use will be taken from the <see cref="IModel" />.
+        /// </para>
+        /// </summary>
+        /// <returns>The strategy, or <see cref="NpgsqlValueGenerationStrategy.None"/> if none was set.</returns>
+        public static NpgsqlValueGenerationStrategy GetValueGenerationStrategy(
+            [NotNull] this IProperty property,
+            [NotNull] string tableName,
+            [CanBeNull] string schema)
+        {
+            if (property[NpgsqlAnnotationNames.ValueGenerationStrategy] is object annotation)
+                return (NpgsqlValueGenerationStrategy)annotation;
+
+            if (property.FindSharedTableRootProperty(tableName, schema) is IProperty sharedTableRootProperty)
+            {
+                var principalStrategy = sharedTableRootProperty.GetValueGenerationStrategy(tableName, schema);
                 return principalStrategy switch
                 {
                     NpgsqlValueGenerationStrategy.IdentityByDefaultColumn => principalStrategy,
@@ -170,17 +197,36 @@ namespace Microsoft.EntityFrameworkCore
             }
 
             if (property.ValueGenerated != ValueGenerated.OnAdd
+                || property.IsForeignKey()
                 || property.GetDefaultValue() != null
                 || property.GetDefaultValueSql() != null
-                || property.GetComputedColumnSql() != null
-                || !IsCompatibleWithValueGeneration(property)
-                || !property.ClrType.IsIntegerForValueGeneration())
+                || property.GetComputedColumnSql() != null)
             {
                 return NpgsqlValueGenerationStrategy.None;
             }
 
-            return property.DeclaringEntityType.Model.GetValueGenerationStrategy()
-                ?? NpgsqlValueGenerationStrategy.None;
+            return GetDefaultValueGenerationStrategy(property);
+        }
+
+        static NpgsqlValueGenerationStrategy GetDefaultValueGenerationStrategy(IProperty property)
+        {
+            var modelStrategy = property.DeclaringEntityType.Model.GetValueGenerationStrategy();
+
+            switch (modelStrategy)
+            {
+            case NpgsqlValueGenerationStrategy.SequenceHiLo:
+            case NpgsqlValueGenerationStrategy.SerialColumn:
+            case NpgsqlValueGenerationStrategy.IdentityAlwaysColumn:
+            case NpgsqlValueGenerationStrategy.IdentityByDefaultColumn:
+                return IsCompatibleWithValueGeneration(property)
+                    ? modelStrategy.Value
+                    : NpgsqlValueGenerationStrategy.None;
+            case NpgsqlValueGenerationStrategy.None:
+            case null:
+                return NpgsqlValueGenerationStrategy.None;
+            default:
+                throw new ArgumentOutOfRangeException();
+            }
         }
 
         /// <summary>
@@ -218,18 +264,18 @@ namespace Microsoft.EntityFrameworkCore
             {
                 var propertyType = property.ClrType;
 
-                if (value == NpgsqlValueGenerationStrategy.SerialColumn && !propertyType.IsIntegerForValueGeneration())
+                if (value == NpgsqlValueGenerationStrategy.SerialColumn && !IsCompatibleWithValueGeneration(property))
                 {
                     throw new ArgumentException($"Serial value generation cannot be used for the property '{property.Name}' on entity type '{property.DeclaringEntityType.DisplayName()}' because the property type is '{propertyType.ShortDisplayName()}'. Serial columns can only be of type short, int or long.");
                 }
 
                 if ((value == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn || value == NpgsqlValueGenerationStrategy.IdentityByDefaultColumn)
-                    && !propertyType.IsIntegerForValueGeneration())
+                    && !IsCompatibleWithValueGeneration(property))
                 {
                     throw new ArgumentException($"Identity value generation cannot be used for the property '{property.Name}' on entity type '{property.DeclaringEntityType.DisplayName()}' because the property type is '{propertyType.ShortDisplayName()}'. Identity columns can only be of type short, int or long.");
                 }
 
-                if (value == NpgsqlValueGenerationStrategy.SequenceHiLo && !propertyType.IsInteger())
+                if (value == NpgsqlValueGenerationStrategy.SequenceHiLo && !IsCompatibleWithValueGeneration(property))
                 {
                     throw new ArgumentException($"PostgreSQL sequences cannot be used to generate values for the property '{property.Name}' on entity type '{property.DeclaringEntityType.DisplayName()}' because the property type is '{propertyType.ShortDisplayName()}'. Sequences can only be used with integer properties.");
                 }
@@ -254,14 +300,8 @@ namespace Microsoft.EntityFrameworkCore
         {
             var type = property.ClrType;
 
-            return type.IsIntegerForValueGeneration()
-                   && (property.FindTypeMapping()?.Converter ?? property.GetValueConverter()) == null;
-        }
-
-        static bool IsIntegerForValueGeneration(this Type type)
-        {
-            type = type.UnwrapNullableType();
-            return type == typeof(int) || type == typeof(long) || type == typeof(short);
+            return type.IsInteger() &&
+                   (property.GetValueConverter() ?? property.FindTypeMapping()?.Converter) == null;
         }
 
         #endregion Value generation

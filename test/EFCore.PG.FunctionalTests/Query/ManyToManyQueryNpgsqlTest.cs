@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
@@ -6,7 +5,7 @@ using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public class ManyToManyQuerySqlServerTest : ManyToManyQueryTestBase<ManyToManyQuerySqlServerTest.ManyToManyQueryNpgsqlFixture>
+    public class ManyToManyQuerySqlServerTest : ManyToManyQueryRelationalTestBase<ManyToManyQuerySqlServerTest.ManyToManyQueryNpgsqlFixture>
     {
         public ManyToManyQuerySqlServerTest(ManyToManyQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
