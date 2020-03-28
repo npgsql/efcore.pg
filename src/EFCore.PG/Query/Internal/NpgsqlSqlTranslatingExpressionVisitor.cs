@@ -141,7 +141,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 if (sqlOperand.Type == typeof(byte[]) &&
                     (sqlOperand.TypeMapping == null || sqlOperand.TypeMapping is NpgsqlByteArrayTypeMapping))
                 {
-                    return SqlExpressionFactory.Function(
+                    return _sqlExpressionFactory.Function(
                         "LENGTH",
                         new[] { sqlOperand },
                         nullable: true,

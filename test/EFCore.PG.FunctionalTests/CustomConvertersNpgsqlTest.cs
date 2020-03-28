@@ -31,6 +31,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         [Fact(Skip="https://github.com/aspnet/EntityFrameworkCore/issues/14159")]
         public override void Can_query_using_any_data_type_nullable_shadow() {}
 
+        [Fact(Skip="https://github.com/dotnet/efcore/issues/18147")]
+        public override void Where_bool_gets_converted_to_equality_when_value_conversion_is_used_using_EFProperty()
+            => base.Where_bool_gets_converted_to_equality_when_value_conversion_is_used_using_EFProperty();
+
+        [Fact(Skip="https://github.com/dotnet/efcore/issues/18147")]
+        public override void Where_bool_gets_converted_to_equality_when_value_conversion_is_used_using_indexer()
+            => base.Where_bool_gets_converted_to_equality_when_value_conversion_is_used_using_indexer();
+
         public class CustomConvertersNpgsqlFixture : CustomConvertersFixtureBase
         {
             public override bool StrictEquality => true;

@@ -914,25 +914,6 @@ LIMIT 2");
                     $$ LANGUAGE SQL");
 
                  context.Database.ExecuteSqlRaw(@"
-                    CREATE FUNCTION ""GetCreditCards"" (""customerId"" INT)
-                    RETURNS TABLE (""Id"" INT, ""CreditCard_CreditCardType"" INT, ""CreditCard_Number"" TEXT)
-                    AS $$
-                        SELECT ""Id"", ""CreditCard_CreditCardType"", ""CreditCard_Number""
-                        FROM ""Customers"" AS c
-                        WHERE c.""CreditCard_CreditCardType"" IS NOT NULL AND c.""CreditCard_Number"" IS NOT NULL
-                            AND c.""Id"" = $1
-                    $$ LANGUAGE SQL");
-
-                 context.Database.ExecuteSqlRaw(@"
-                    CREATE FUNCTION""GetPhoneInformation"" (""customerId"" INT, ""areaCode"" VARCHAR(3))
-                    RETURNS TABLE (""PhoneType"" INT, ""Number"" TEXT, ""CustomerId"" INT, ""Id"" INT)
-                    AS $$
-                        SELECT ""PhoneType"", ""Number"", ""CustomerId"", ""Id""
-                        FROM ""PhoneInformation"" AS pi
-                        WHERE pi.""CustomerId"" = $1 AND POSITION($2 IN pi.""Number"") = 1
-                    $$ LANGUAGE SQL");
-
-                 context.Database.ExecuteSqlRaw(@"
                     CREATE FUNCTION ""AddValues"" (a INT, b INT) RETURNS INT
                     AS $$ SELECT $1 + $2 $$ LANGUAGE SQL");
 

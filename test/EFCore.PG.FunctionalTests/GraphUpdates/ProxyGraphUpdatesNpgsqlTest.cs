@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.GraphUpdates
 {
     public class ProxyGraphUpdatesNpgsqlTest
     {
@@ -74,7 +74,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 protected override string StoreName { get; } = "ProxyGraphChangeTrackingUpdatesTest";
 
                 public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
-                    => base.AddOptions(builder.UseChangeDetectionProxies());
+                    => base.AddOptions(builder.UseChangeTrackingProxies());
 
                 protected override IServiceCollection AddServices(IServiceCollection serviceCollection)
                     => base.AddServices(serviceCollection.AddEntityFrameworkProxies());
@@ -103,7 +103,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 protected override string StoreName { get; } = "ProxyGraphChangeTrackingAndLazyLoadingUpdatesTest";
 
                 public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
-                    => base.AddOptions(builder.UseLazyLoadingProxies().UseChangeDetectionProxies());
+                    => base.AddOptions(builder.UseLazyLoadingProxies().UseChangeTrackingProxies());
 
                 protected override IServiceCollection AddServices(IServiceCollection serviceCollection)
                     => base.AddServices(serviceCollection.AddEntityFrameworkProxies());
