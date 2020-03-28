@@ -1,8 +1,10 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.TestModels.GearsOfWarModel;
+using Microsoft.EntityFrameworkCore.TestUtilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -18,6 +20,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             Fixture.TestSqlLoggerFactory.Clear();
             //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
+
+        [ConditionalTheory(Skip = "https://github.com/dotnet/efcore/pull/21038")]
+        public override Task Include_on_derived_entity_with_cast(bool async)
+            => base.Include_on_derived_entity_with_cast(async);
 
         public override async Task Byte_array_contains_literal(bool async)
         {
