@@ -20,7 +20,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 {
     public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
     {
-        readonly IMigrationsAnnotationProvider _migrationsAnnotations;
         readonly RelationalTypeMapping _stringTypeMapping;
 
         /// <summary>
@@ -30,12 +29,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
         public NpgsqlMigrationsSqlGenerator(
             [NotNull] MigrationsSqlGeneratorDependencies dependencies,
-            [NotNull] IMigrationsAnnotationProvider migrationsAnnotations,
             [NotNull] INpgsqlOptions npgsqlOptions)
             : base(dependencies)
         {
             _postgresVersion = npgsqlOptions.PostgresVersion;
-            _migrationsAnnotations = migrationsAnnotations;
             _stringTypeMapping = dependencies.TypeMappingSource.GetMapping(typeof(string))
                 ?? throw new InvalidOperationException("No string type mapping found");
         }
@@ -305,12 +302,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             if (IsSystemColumn(operation.Name))
                 return;
 
+            var column = model?.GetRelationalModel().FindTable(operation.Table, operation.Schema)
+                ?.Columns.FirstOrDefault(c => c.Name == operation.Name);
             var type = operation.ColumnType ?? GetColumnType(operation.Schema, operation.Table, operation.Name, operation, model);
 
             if (operation.ComputedColumnSql != null)
             {
-                var property = FindProperty(model, operation.Schema, operation.Table, operation.Name);
-
                 // TODO: The following will fail if the column being altered is part of an index.
                 // SqlServer recreates indexes, but wait to see if PostgreSQL will introduce a proper ALTER TABLE ALTER COLUMN
                 // that allows us to do this cleanly.
@@ -321,8 +318,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                     Name = operation.Name
                 };
 
-                if (property != null)
-                    dropColumnOperation.AddAnnotations(_migrationsAnnotations.ForRemove(property));
+                if (column != null)
+                    dropColumnOperation.AddAnnotations(column.GetAnnotations());
 
                 Generate(dropColumnOperation, model, builder);
 
@@ -351,9 +348,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             string newSequenceName = null;
             var defaultValueSql = operation.DefaultValueSql;
 
-            var table = Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Table, operation.Schema);
-            var column = Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name);
-            var alterBase = $"ALTER TABLE {table} ALTER COLUMN {column} ";
+            var alterBase = $"ALTER TABLE {Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Table, operation.Schema)} " +
+                            $"ALTER COLUMN {Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name)} ";
 
             // TYPE
             builder.Append(alterBase)
@@ -396,8 +392,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                         var oldSequenceWithoutSchema = Dependencies.SqlGenerationHelper.DelimitIdentifier($"{operation.Table}_{operation.Name}_old_seq");
                         builder
                             .AppendLine($"ALTER SEQUENCE {sequence} RENAME TO {oldSequenceWithoutSchema};")
-                            .AppendLine($"ALTER TABLE {table} ALTER COLUMN {column} DROP DEFAULT;")
-                            .AppendLine($"ALTER TABLE {table} ALTER COLUMN {column} ADD GENERATED {identityTypeClause} AS IDENTITY;")
+                            .AppendLine($"{alterBase}DROP DEFAULT;")
+                            .AppendLine($"{alterBase}ADD GENERATED {identityTypeClause} AS IDENTITY;")
                             .AppendLine($"SELECT * FROM setval('{sequence}', nextval('{oldSequence}'), false);")
                             .AppendLine($"DROP SEQUENCE {oldSequence};");
                         break;
@@ -1477,11 +1473,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
         string ColumnsToTsVector(IEnumerable<string> columns, string tsVectorConfig, IModel model, string schema, string table)
         {
-            string GetTsVectorColumnExpression(string column)
+            string GetTsVectorColumnExpression(string columnName)
             {
-                var delimitedColumnName = Dependencies.SqlGenerationHelper.DelimitIdentifier(column);
-                var property = FindProperty(model, schema, table, column);
-                return property?.IsColumnNullable() == true
+                var delimitedColumnName = Dependencies.SqlGenerationHelper.DelimitIdentifier(columnName);
+                var column = model?.GetRelationalModel()
+                    .FindTable(table, schema)?.Columns.FirstOrDefault(c => c.Name == columnName);
+                return column?.IsNullable != false
                     ? $"coalesce({delimitedColumnName}, '')"
                     : delimitedColumnName;
             }

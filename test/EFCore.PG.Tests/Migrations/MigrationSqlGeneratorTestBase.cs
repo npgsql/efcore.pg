@@ -6,6 +6,9 @@
 using System;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
@@ -34,7 +37,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         [ConditionalFact]
         public virtual void AddColumnOperation_with_unicode_overridden()
             => Generate(
-                modelBuilder => modelBuilder.Entity("Person").Property<string>("Name").IsUnicode(false),
+                modelBuilder => modelBuilder.Entity<Person>().Property<string>("Name").IsUnicode(false),
                 new AddColumnOperation
                 {
                     Table = "Person",
@@ -73,7 +76,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         [ConditionalFact]
         public virtual void AddColumnOperation_with_maxLength_overridden()
             => Generate(
-                modelBuilder => modelBuilder.Entity("Person").Property<string>("Name").HasMaxLength(30),
+                modelBuilder => modelBuilder.Entity<Person>().Property<string>("Name").HasMaxLength(30),
                 new AddColumnOperation
                 {
                     Table = "Person",
@@ -142,6 +145,30 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             => Generate(
                 new SqlOperation { Sql = "-- I <3 DDL" });
 
+        [ConditionalTheory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public virtual void DefaultValue_with_line_breaks(bool isUnicode)
+        {
+            Generate(
+                new CreateTableOperation
+                {
+                    Name = "TestLineBreaks",
+                    Schema = "dbo",
+                    Columns =
+                    {
+                        new AddColumnOperation
+                        {
+                            Name = "TestDefaultValue",
+                            Table = "Test",
+                            ClrType = typeof(string),
+                            DefaultValue = "\r\nVarious Line\rBreaks\n",
+                            IsUnicode = isUnicode
+                        }
+                    }
+                });
+        }
+
         protected TestHelpers TestHelpers { get; }
 
         protected MigrationSqlGeneratorTestBase(TestHelpers testHelpers)
@@ -158,10 +185,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             modelBuilder.Model.RemoveAnnotation(CoreAnnotationNames.ProductVersion);
             buildAction(modelBuilder);
 
-            var batch = TestHelpers.CreateContextServices().GetRequiredService<IMigrationsSqlGenerator>()
-                .Generate(operation, modelBuilder.Model);
+            var services = TestHelpers.CreateContextServices();
 
-            // Note that GO here is just a delimiter introduced in the tests to indicate a batch boundary
+            IModel model = modelBuilder.Model;
+            var conventionSet = services.GetRequiredService<IConventionSetBuilder>().CreateConventionSet();
+            var relationalModelConvention = conventionSet.ModelFinalizedConventions.OfType<RelationalModelConvention>().First();
+            model = relationalModelConvention.ProcessModelFinalized((IConventionModel)model);
+            model = ((IMutableModel)model).FinalizeModel();
+
+            var batch = services.GetRequiredService<IMigrationsSqlGenerator>().Generate(operation, modelBuilder.Model);
+
             Sql = string.Join(
                 "GO" + EOL + EOL,
                 batch.Select(b => b.CommandText));
@@ -169,5 +202,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
         protected void AssertSql(string expected)
             => Assert.Equal(expected, Sql, ignoreLineEndingDifferences: true);
+
+        protected class Person
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
+        }
     }
 }

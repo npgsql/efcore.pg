@@ -55,10 +55,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         readonly RelationalTypeMapping _boolMapping;
 
         public NpgsqlSqlTranslatingExpressionVisitor(
-            RelationalSqlTranslatingExpressionVisitorDependencies dependencies,
-            IModel model,
-            QueryableMethodTranslatingExpressionVisitor queryableMethodTranslatingExpressionVisitor)
-            : base(dependencies, model, queryableMethodTranslatingExpressionVisitor)
+            [NotNull] RelationalSqlTranslatingExpressionVisitorDependencies dependencies,
+            [NotNull] QueryCompilationContext queryCompilationContext,
+            [NotNull] QueryableMethodTranslatingExpressionVisitor queryableMethodTranslatingExpressionVisitor)
+            : base(dependencies, queryCompilationContext, queryableMethodTranslatingExpressionVisitor)
         {
             _sqlExpressionFactory = (NpgsqlSqlExpressionFactory)dependencies.SqlExpressionFactory;
             _jsonPocoTranslator = ((NpgsqlMemberTranslatorProvider)Dependencies.MemberTranslatorProvider).JsonPocoTranslator;

@@ -5,19 +5,21 @@ using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
 {
-    public class NpgsqlMigrationsAnnotationProvider : MigrationsAnnotationProvider
+    public class NpgsqlAnnotationProvider : RelationalAnnotationProvider
     {
-        public NpgsqlMigrationsAnnotationProvider([NotNull] MigrationsAnnotationProviderDependencies dependencies)
-            : base(dependencies) {}
-
-        public override IEnumerable<IAnnotation> For(IEntityType entityType)
+        public NpgsqlAnnotationProvider([NotNull] RelationalAnnotationProviderDependencies dependencies)
+            : base(dependencies)
         {
+        }
+
+        public override IEnumerable<IAnnotation> For(ITable table)
+        {
+            // Model validation ensures that these facets are the same on all mapped entity types
+            var entityType = table.EntityTypeMappings.First().EntityType;
+
             if (entityType.GetIsUnlogged())
                 yield return new Annotation(NpgsqlAnnotationNames.UnloggedTable, entityType.GetIsUnlogged());
             if (entityType[CockroachDbAnnotationNames.InterleaveInParent] != null)
@@ -29,11 +31,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal
             }
         }
 
-        public override IEnumerable<IAnnotation> For(IProperty property)
+        public override IEnumerable<IAnnotation> For(IColumn column)
         {
-            var valueGenerationStrategy = property.GetValueGenerationStrategy();
-            if (valueGenerationStrategy != NpgsqlValueGenerationStrategy.None)
+            var property = column.PropertyMappings.Select(m => m.Property)
+                .FirstOrDefault(p => p.GetValueGenerationStrategy() != NpgsqlValueGenerationStrategy.None);
+            if (property != null)
             {
+                var valueGenerationStrategy = property.GetValueGenerationStrategy();
                 yield return new Annotation(NpgsqlAnnotationNames.ValueGenerationStrategy, valueGenerationStrategy);
 
                 if (valueGenerationStrategy == NpgsqlValueGenerationStrategy.IdentityByDefaultColumn ||
@@ -46,43 +50,51 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal
                 }
             }
 
-            if (property.GetTsVectorConfig() is string tsVectorConfig)
+            if (column.PropertyMappings.Select(m => m.Property.GetTsVectorConfig())
+                .FirstOrDefault(c => c != null) is string tsVectorConfig)
+            {
                 yield return new Annotation(NpgsqlAnnotationNames.TsVectorConfig, tsVectorConfig);
+            }
 
-            if (property.GetTsVectorProperties() is IReadOnlyList<string> tsVectorProperties)
+            property = column.PropertyMappings.Select(m => m.Property)
+                .FirstOrDefault(p => p.GetTsVectorProperties() != null);
+            if (property != null)
             {
                 yield return new Annotation(
                     NpgsqlAnnotationNames.TsVectorProperties,
-                    tsVectorProperties
-                        .Select(p => property.DeclaringEntityType.FindProperty(p).GetColumnName())
+                    property.GetTsVectorProperties()
+                        .Select(p2 => property.DeclaringEntityType.FindProperty(p2).GetColumnName())
                         .ToArray());
             }
         }
 
-        public override IEnumerable<IAnnotation> For(IIndex index)
+        public override IEnumerable<IAnnotation> For(ITableIndex index)
         {
-            if (index.GetMethod() is string method)
+            // Model validation ensures that these facets are the same on all mapped indexes
+            var modelIndex = index.MappedIndexes.First();
+
+            if (modelIndex.GetMethod() is string method)
                 yield return new Annotation(NpgsqlAnnotationNames.IndexMethod, method);
-            if (index.GetOperators() is IReadOnlyList<string> operators)
+            if (modelIndex.GetOperators() is IReadOnlyList<string> operators)
                 yield return new Annotation(NpgsqlAnnotationNames.IndexOperators, operators);
-            if (index.GetCollation() is IReadOnlyList<string> collation)
+            if (modelIndex.GetCollation() is IReadOnlyList<string> collation)
                 yield return new Annotation(NpgsqlAnnotationNames.IndexCollation, collation);
-            if (index.GetSortOrder() is IReadOnlyList<SortOrder> sortOrder)
+            if (modelIndex.GetSortOrder() is IReadOnlyList<SortOrder> sortOrder)
                 yield return new Annotation(NpgsqlAnnotationNames.IndexSortOrder, sortOrder);
-            if (index.GetNullSortOrder() is IReadOnlyList<SortOrder> nullSortOrder)
+            if (modelIndex.GetNullSortOrder() is IReadOnlyList<SortOrder> nullSortOrder)
                 yield return new Annotation(NpgsqlAnnotationNames.IndexNullSortOrder, nullSortOrder);
-            if (index.GetTsVectorConfig() is string configName)
+            if (modelIndex.GetTsVectorConfig() is string configName)
                 yield return new Annotation(NpgsqlAnnotationNames.TsVectorConfig, configName);
-            if (index.GetIncludeProperties() is IReadOnlyList<string> includeProperties)
+            if (modelIndex.GetIncludeProperties() is IReadOnlyList<string> includeProperties)
             {
                 yield return new Annotation(
                     NpgsqlAnnotationNames.IndexInclude,
                     includeProperties
-                        .Select(p => index.DeclaringEntityType.FindProperty(p).GetColumnName())
+                        .Select(p => modelIndex.DeclaringEntityType.FindProperty(p).GetColumnName())
                         .ToArray());
             }
 
-            var isCreatedConcurrently = index.IsCreatedConcurrently();
+            var isCreatedConcurrently = modelIndex.IsCreatedConcurrently();
             if (isCreatedConcurrently.HasValue)
             {
                 yield return new Annotation(
@@ -91,8 +103,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal
             }
         }
 
-        public override IEnumerable<IAnnotation> For(IModel model)
-            => model.GetAnnotations().Where(a =>
+        public override IEnumerable<IAnnotation> For(IRelationalModel model)
+            => model.Model.GetAnnotations().Where(a =>
                 a.Name.StartsWith(NpgsqlAnnotationNames.PostgresExtensionPrefix, StringComparison.Ordinal) ||
                 a.Name.StartsWith(NpgsqlAnnotationNames.EnumPrefix, StringComparison.Ordinal) ||
                 a.Name.StartsWith(NpgsqlAnnotationNames.RangePrefix, StringComparison.Ordinal));

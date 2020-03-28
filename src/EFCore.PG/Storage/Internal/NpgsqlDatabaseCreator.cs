@@ -217,7 +217,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
         public override void CreateTables()
         {
-            var operations = Dependencies.ModelDiffer.GetDifferences(null, Dependencies.Model);
+            var operations = Dependencies.ModelDiffer.GetDifferences(null, Dependencies.Model.GetRelationalModel());
             var commands = Dependencies.MigrationsSqlGenerator.Generate(operations, Dependencies.Model);
 
             // If a PostgreSQL extension, enum or range was added, we want Npgsql to reload all types at the ADO.NET level.
@@ -256,7 +256,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
         public override async Task CreateTablesAsync(CancellationToken cancellationToken = default)
         {
-            var operations = Dependencies.ModelDiffer.GetDifferences(null, Dependencies.Model);
+            var operations = Dependencies.ModelDiffer.GetDifferences(null, Dependencies.Model.GetRelationalModel());
             var commands = Dependencies.MigrationsSqlGenerator.Generate(operations, Dependencies.Model);
 
             // If a PostgreSQL extension, enum or range was added, we want Npgsql to reload all types at the ADO.NET level.
