@@ -1,6 +1,8 @@
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.TestModels.Northwind;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -18,23 +20,26 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         #region Like / ILike
 
-        public override void Like_literal()
+        public override async Task Like_literal(bool async)
         {
             // PostgreSQL like is case-sensitive, while the EF Core "default" (i.e. SqlServer) is insensitive.
             // So we override and assert only 19 matches unlike the default's 34.
-            using var context = CreateContext();
-            var count = context.Customers.Count(c => EF.Functions.Like(c.ContactName, "%M%"));
+            await AssertCount(
+                async,
+                ss => ss.Set<Customer>(),
+                ss => ss.Set<Customer>(),
+                c => EF.Functions.Like(c.ContactName, "%M%"),
+                c => c.ContactName.Contains("M"));
 
-            Assert.Equal(19, count);
             AssertSql(
                 @"SELECT COUNT(*)::INT
 FROM ""Customers"" AS c
 WHERE c.""ContactName"" LIKE '%M%'");
         }
 
-        public override void Like_identity()
+        public override async Task Like_identity(bool async)
         {
-            base.Like_identity();
+            await base.Like_identity(async);
 
             AssertSql(
                 @"SELECT COUNT(*)::INT
@@ -42,9 +47,9 @@ FROM ""Customers"" AS c
 WHERE c.""ContactName"" LIKE c.""ContactName"" ESCAPE ''");
         }
 
-        public override void Like_literal_with_escape()
+        public override async Task Like_literal_with_escape(bool async)
         {
-            base.Like_literal_with_escape();
+            await base.Like_literal_with_escape(async);
 
             AssertSql(
                 @"SELECT COUNT(*)::INT

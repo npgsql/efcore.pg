@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.Logging;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.GraphUpdates
 {
     public class GraphUpdatesNpgsqlTest
         : GraphUpdatesTestBase<GraphUpdatesNpgsqlTest.GraphUpdatesNpgsqlFixture>
