@@ -2,9 +2,11 @@
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
@@ -14,7 +16,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
         [Fact]
         public void GenerateFluentApi_value_generation()
         {
-            var generator = new NpgsqlAnnotationCodeGenerator(new AnnotationCodeGeneratorDependencies());
+            var generator = new NpgsqlAnnotationCodeGenerator(
+                new AnnotationCodeGeneratorDependencies(
+                    new NpgsqlTypeMappingSource(
+                        new TypeMappingSourceDependencies(
+                                new ValueConverterSelector(new ValueConverterSelectorDependencies()),
+                                Array.Empty<ITypeMappingSourcePlugin>()
+                            ),
+                        new RelationalTypeMappingSourceDependencies(Array.Empty<IRelationalTypeMappingSourcePlugin>()),
+                        new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()))));
             var modelBuilder = new ModelBuilder(NpgsqlConventionSetBuilder.Build());
             modelBuilder.Entity(
                 "Post",
@@ -30,27 +40,31 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             // version of the database that the scaffolded model will target. This makes life difficult for
             // models with mixed strategies but that's an edge case.
 
-            var property = modelBuilder.Model.FindEntityType("Post").GetProperties()
-                .Single(p => p.Name == "IdentityByDefault");
-            var annotation = property.FindAnnotation(NpgsqlAnnotationNames.ValueGenerationStrategy);
-            Assert.True(generator.IsHandledByConvention(property, annotation));
-            var result = generator.GenerateFluentApi(property, annotation);
+            var entity = modelBuilder.Model.FindEntityType("Post");
+
+            var property = entity.GetProperties().Single(p => p.Name == "IdentityByDefault");
+            var annotations = property.GetAnnotations().ToDictionary(a => a.Name, a => a);
+            generator.RemoveAnnotationsHandledByConventions(property, annotations);
+            Assert.Empty(annotations);
+            var result = generator.GenerateFluentApiCalls(property, property.GetAnnotations().ToDictionary(a => a.Name, a => a))
+                .Single();
             Assert.Equal(nameof(NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn), result.Method);
             Assert.Equal(0, result.Arguments.Count);
 
-            property = modelBuilder.Model.FindEntityType("Post").GetProperties()
-                .Single(p => p.Name == "IdentityAlways");
-            annotation = property.FindAnnotation(NpgsqlAnnotationNames.ValueGenerationStrategy);
-            Assert.False(generator.IsHandledByConvention(property, annotation));
-            result = generator.GenerateFluentApi(property, annotation);
+            property = entity.GetProperties().Single(p => p.Name == "IdentityAlways");
+            annotations = property.GetAnnotations().ToDictionary(a => a.Name, a => a);
+            generator.RemoveAnnotationsHandledByConventions(property, annotations);
+            Assert.Contains(annotations, kv => kv.Key == NpgsqlAnnotationNames.ValueGenerationStrategy);
+            result = generator.GenerateFluentApiCalls(property, annotations).Single();
             Assert.Equal(nameof(NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn), result.Method);
             Assert.Equal(0, result.Arguments.Count);
 
-            property = modelBuilder.Model.FindEntityType("Post").GetProperties()
-                .Single(p => p.Name == "Serial");
-            annotation = property.FindAnnotation(NpgsqlAnnotationNames.ValueGenerationStrategy);
-            Assert.True(generator.IsHandledByConvention(property, annotation));
-            result = generator.GenerateFluentApi(property, annotation);
+            property = entity.GetProperties().Single(p => p.Name == "Serial");
+            annotations = property.GetAnnotations().ToDictionary(a => a.Name, a => a);
+            generator.RemoveAnnotationsHandledByConventions(property, annotations);
+            Assert.Empty(annotations);
+            result = generator.GenerateFluentApiCalls(property, property.GetAnnotations().ToDictionary(a => a.Name, a => a))
+                .Single();
             Assert.Equal(nameof(NpgsqlPropertyBuilderExtensions.UseSerialColumn), result.Method);
             Assert.Equal(0, result.Arguments.Count);
         }
@@ -58,7 +72,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
         [Fact]
         public void GenerateFluentApi_identity_sequence_options()
         {
-            var generator = new NpgsqlAnnotationCodeGenerator(new AnnotationCodeGeneratorDependencies());
+            var generator = new NpgsqlAnnotationCodeGenerator(new AnnotationCodeGeneratorDependencies(
+                    new NpgsqlTypeMappingSource(
+                        new TypeMappingSourceDependencies(
+                            new ValueConverterSelector(new ValueConverterSelectorDependencies()),
+                            Array.Empty<ITypeMappingSourcePlugin>()
+                        ),
+                        new RelationalTypeMappingSourceDependencies(Array.Empty<IRelationalTypeMappingSourcePlugin>()),
+                        new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()))));
             var modelBuilder = new ModelBuilder(NpgsqlConventionSetBuilder.Build());
             modelBuilder.Entity(
                 "Post",
@@ -77,9 +98,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
 
             var property = modelBuilder.Model.FindEntityType("Post").GetProperties()
                 .Single(p => p.Name == "Id");
-            var annotation = property.FindAnnotation(NpgsqlAnnotationNames.IdentityOptions);
-            Assert.False(generator.IsHandledByConvention(property, annotation));
-            var result = generator.GenerateFluentApi(property, annotation);
+            var annotations = property.GetAnnotations().ToDictionary(a => a.Name, a => a);
+            generator.RemoveAnnotationsHandledByConventions(property, annotations);
+            Assert.Contains(annotations, kv => kv.Key == NpgsqlAnnotationNames.IdentityOptions);
+            var result = generator.GenerateFluentApiCalls(property, annotations).Single();
             Assert.Equal(nameof(NpgsqlPropertyBuilderExtensions.HasIdentityOptions), result.Method);
             Assert.Equal(5L, result.Arguments[0]);
             Assert.Equal(2L, result.Arguments[1]);

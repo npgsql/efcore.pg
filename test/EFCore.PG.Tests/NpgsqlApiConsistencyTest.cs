@@ -1,13 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+using NpgsqlDbContextOptionsBuilderExtensions = Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities.NpgsqlDbContextOptionsBuilderExtensions;
 
-namespace Microsoft.EntityFrameworkCore
+namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
     public class NpgsqlApiConsistencyTest : ApiConsistencyTestBase<NpgsqlApiConsistencyTest.NpgsqlApiConsistencyFixture>
     {
