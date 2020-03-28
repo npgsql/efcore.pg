@@ -16,12 +16,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             : base(fixture)
         {
             Fixture.TestSqlLoggerFactory.Clear();
-            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+            Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
-        [ConditionalTheory(Skip = "https://github.com/dotnet/efcore/pull/21038")]
-        public override Task Include_on_derived_entity_with_cast(bool async)
-            => base.Include_on_derived_entity_with_cast(async);
+        [ConditionalTheory(Skip = "https://github.com/dotnet/efcore/pull/21895")]
+        public override Task SelectMany_predicate_with_non_equality_comparison_with_Take_doesnt_convert_to_join(bool async)
+            => base.SelectMany_predicate_with_non_equality_comparison_with_Take_doesnt_convert_to_join(async);
 
         public override async Task Byte_array_contains_literal(bool async)
         {

@@ -12,6 +12,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         {
         }
 
-        public override bool IsBuffering => base.IsBuffering || IsSplitQuery;
+        public override bool IsBuffering
+            => base.IsBuffering ||
+               QuerySplittingBehavior == Microsoft.EntityFrameworkCore.QuerySplittingBehavior.SplitQuery;
     }
 }
