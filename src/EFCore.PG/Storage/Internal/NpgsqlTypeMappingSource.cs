@@ -275,7 +275,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         /// </summary>
         void SetupEnumMappings([NotNull] ISqlGenerationHelper sqlGenerationHelper)
         {
-            foreach (var adoMapping in NpgsqlConnection.GlobalTypeMapper.Mappings.Where(m => m.TypeHandlerFactory is IEnumTypeHandlerFactory))
+            foreach (var adoMapping in NpgsqlConnection.GlobalTypeMapper.Mappings.Where(m => m.TypeHandlerFactory is IEnumTypeHandlerFactory).ToArray())
             {
                 var storeType = adoMapping.PgTypeName;
                 var clrType = adoMapping.ClrTypes.SingleOrDefault();
