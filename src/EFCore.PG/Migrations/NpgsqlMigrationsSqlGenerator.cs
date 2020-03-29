@@ -77,7 +77,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             builder
                 .Append("TABLE ")
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name, operation.Schema))
+                .Append(DelimitIdentifier(operation.Name, operation.Schema))
                 .AppendLine(" (");
 
             using (builder.Indent())
@@ -100,9 +100,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 builder
                     .AppendLine()
                     .Append("INTERLEAVE IN PARENT ")
-                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(parentTableName, parentTableSchema))
+                    .Append(DelimitIdentifier(parentTableName, parentTableSchema))
                     .Append(" (")
-                    .Append(string.Join(", ", interleavePrefix.Select(c => Dependencies.SqlGenerationHelper.DelimitIdentifier(c))))
+                    .Append(string.Join(", ", interleavePrefix.Select(c => DelimitIdentifier(c))))
                     .Append(')');
             }
 
@@ -123,7 +123,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
                 builder
                     .Append("COMMENT ON TABLE ")
-                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name, operation.Schema))
+                    .Append(DelimitIdentifier(operation.Name, operation.Schema))
                     .Append(" IS ")
                     .Append(_stringTypeMapping.GenerateSqlLiteral(operation.Comment));
             }
@@ -136,9 +136,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
                 builder
                     .Append("COMMENT ON COLUMN ")
-                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name, operation.Schema))
+                    .Append(DelimitIdentifier(operation.Name, operation.Schema))
                     .Append('.')
-                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(columnOp.Name))
+                    .Append(DelimitIdentifier(columnOp.Name))
                     .Append(" IS ")
                     .Append(_stringTypeMapping.GenerateSqlLiteral(columnComment));
             }
@@ -167,7 +167,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             {
                 builder
                     .Append("ALTER TABLE ")
-                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name, operation.Schema));
+                    .Append(DelimitIdentifier(operation.Name, operation.Schema));
 
                 builder
                     .Append(" SET (")
@@ -187,7 +187,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             {
                 builder
                     .Append("ALTER TABLE ")
-                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name, operation.Schema));
+                    .Append(DelimitIdentifier(operation.Name, operation.Schema));
 
                 builder
                     .Append(" RESET (")
@@ -203,7 +203,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             {
                 builder
                     .Append("COMMENT ON TABLE ")
-                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name, operation.Schema))
+                    .Append(DelimitIdentifier(operation.Name, operation.Schema))
                     .Append(" IS ")
                     .Append(_stringTypeMapping.GenerateSqlLiteral(operation.Comment));
 
@@ -219,7 +219,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             {
                 builder
                     .Append("ALTER TABLE ")
-                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name, operation.Schema))
+                    .Append(DelimitIdentifier(operation.Name, operation.Schema))
                     .Append(" SET ")
                     .Append(newUnlogged ? "UNLOGGED" : "LOGGED")
                     .AppendLine(";");
@@ -279,9 +279,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
                 builder
                     .Append("COMMENT ON COLUMN ")
-                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Table, operation.Schema))
+                    .Append(DelimitIdentifier(operation.Table, operation.Schema))
                     .Append('.')
-                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name))
+                    .Append(DelimitIdentifier(operation.Name))
                     .Append(" IS ")
                     .Append(_stringTypeMapping.GenerateSqlLiteral(operation.Comment));
             }
@@ -348,8 +348,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             string newSequenceName = null;
             var defaultValueSql = operation.DefaultValueSql;
 
-            var alterBase = $"ALTER TABLE {Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Table, operation.Schema)} " +
-                            $"ALTER COLUMN {Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name)} ";
+            var alterBase = $"ALTER TABLE {DelimitIdentifier(operation.Table, operation.Schema)} " +
+                            $"ALTER COLUMN {DelimitIdentifier(operation.Name)} ";
 
             // TYPE
             builder.Append(alterBase)
@@ -375,7 +375,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 {
                     // TODO: It would be better to actually select for the owned sequence.
                     // This would require plpgsql.
-                    var sequence = Dependencies.SqlGenerationHelper.DelimitIdentifier($"{operation.Table}_{operation.Name}_seq", operation.Schema);
+                    var sequence = DelimitIdentifier($"{operation.Table}_{operation.Name}_seq", operation.Schema);
                     switch (newStrategy)
                     {
                     case null:
@@ -388,8 +388,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                         var identityTypeClause = newStrategy == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn
                             ? "ALWAYS"
                             : "BY DEFAULT";
-                        var oldSequence = Dependencies.SqlGenerationHelper.DelimitIdentifier($"{operation.Table}_{operation.Name}_old_seq", operation.Schema);
-                        var oldSequenceWithoutSchema = Dependencies.SqlGenerationHelper.DelimitIdentifier($"{operation.Table}_{operation.Name}_old_seq");
+                        var oldSequence = DelimitIdentifier($"{operation.Table}_{operation.Name}_old_seq", operation.Schema);
+                        var oldSequenceWithoutSchema = DelimitIdentifier($"{operation.Table}_{operation.Name}_old_seq");
                         builder
                             .AppendLine($"ALTER SEQUENCE {sequence} RENAME TO {oldSequenceWithoutSchema};")
                             .AppendLine($"{alterBase}DROP DEFAULT;")
@@ -450,7 +450,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                             }, model, builder);
 
                             builder.Append(alterBase).Append("SET");
-                            DefaultValue(null, $@"nextval('{Dependencies.SqlGenerationHelper.DelimitIdentifier(newSequenceName, operation.Schema)}')", type, builder);
+                            DefaultValue(null, $@"nextval('{DelimitIdentifier(newSequenceName, operation.Schema)}')", type, builder);
                             builder.AppendLine(';');
                             // Note: we also need to set the sequence ownership, this is done below after the ALTER COLUMN
                             break;
@@ -549,11 +549,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             {
                 builder
                     .Append("ALTER SEQUENCE ")
-                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(newSequenceName, operation.Schema))
+                    .Append(DelimitIdentifier(newSequenceName, operation.Schema))
                     .Append(" OWNED BY ")
-                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Table, operation.Schema))
+                    .Append(DelimitIdentifier(operation.Table, operation.Schema))
                     .Append('.')
-                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name))
+                    .Append(DelimitIdentifier(operation.Name))
                     .AppendLine(';');
             }
 
@@ -562,9 +562,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             {
                 builder
                     .Append("COMMENT ON COLUMN ")
-                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Table, operation.Schema))
+                    .Append(DelimitIdentifier(operation.Table, operation.Schema))
                     .Append('.')
-                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name))
+                    .Append(DelimitIdentifier(operation.Name))
                     .Append(" IS ")
                     .Append(_stringTypeMapping.GenerateSqlLiteral(operation.Comment))
                     .AppendLine(';');
@@ -655,9 +655,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 builder.Append("CONCURRENTLY ");
 
             builder
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name))
+                .Append(DelimitIdentifier(operation.Name))
                 .Append(" ON ")
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Table, operation.Schema));
+                .Append(DelimitIdentifier(operation.Table, operation.Schema));
 
             var method = operation[NpgsqlAnnotationNames.IndexMethod] as string;
             if (method?.Length > 0)
@@ -717,7 +717,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             builder
                 .Append("CREATE SCHEMA IF NOT EXISTS ")
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name))
+                .Append(DelimitIdentifier(operation.Name))
                 .AppendLine(';');
 
             EndStatement(builder);
@@ -730,20 +730,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             builder
                 .Append("CREATE DATABASE ")
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name));
+                .Append(DelimitIdentifier(operation.Name));
 
             if (operation.Template != null)
             {
                 builder
                     .Append(" TEMPLATE ")
-                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Template));
+                    .Append(DelimitIdentifier(operation.Template));
             }
 
             if (operation.Tablespace != null)
             {
                 builder
                     .Append(" TABLESPACE ")
-                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Tablespace));
+                    .Append(DelimitIdentifier(operation.Tablespace));
             }
 
             builder.AppendLine(';');
@@ -756,7 +756,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
-            var dbName = Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name);
+            var dbName = DelimitIdentifier(operation.Name);
 
             builder
                 // TODO: The following revokes connection only for the public role, what about other connecting roles?
@@ -794,20 +794,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         {
             builder
                 .Append("CREATE EXTENSION IF NOT EXISTS ")
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(extension.Name));
+                .Append(DelimitIdentifier(extension.Name));
 
             if (extension.Schema != null)
             {
                 builder
                     .Append(" SCHEMA ")
-                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(extension.Schema));
+                    .Append(DelimitIdentifier(extension.Schema));
             }
 
             if (extension.Version != null)
             {
                 builder
                     .Append(" VERSION ")
-                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(extension.Version));
+                    .Append(DelimitIdentifier(extension.Version));
             }
 
             builder.AppendLine(';');
@@ -882,7 +882,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             builder
                 .Append("CREATE TYPE ")
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(enumType.Name, schema))
+                .Append(DelimitIdentifier(enumType.Name, schema))
                 .Append(" AS ENUM (");
 
             var labels = enumType.Labels;
@@ -905,7 +905,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             builder
                 .Append("DROP TYPE ")
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(enumType.Name, schema))
+                .Append(DelimitIdentifier(enumType.Name, schema))
                 .AppendLine(";");
         }
 
@@ -920,7 +920,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             builder
                 .Append("ALTER TYPE ")
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(enumType.Name, schema))
+                .Append(DelimitIdentifier(enumType.Name, schema))
                 .Append(" ADD VALUE ")
                 .Append(_stringTypeMapping.GenerateSqlLiteral(addedLabel));
 
@@ -981,7 +981,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             builder
                 .Append("CREATE TYPE ")
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(rangeType.Name, schema))
+                .Append(DelimitIdentifier(rangeType.Name, schema))
                 .AppendLine($" AS RANGE (")
                 .IncrementIndent();
 
@@ -1014,7 +1014,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             builder
                 .Append("DROP TYPE ")
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(rangeType.Name, schema))
+                .Append(DelimitIdentifier(rangeType.Name, schema))
                 .AppendLine(";");
         }
 
@@ -1031,7 +1031,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             builder
                 .Append("DROP INDEX ")
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name, operation.Schema));
+                .Append(DelimitIdentifier(operation.Name, operation.Schema));
 
             if (terminate)
             {
@@ -1049,11 +1049,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             Check.NotNull(builder, nameof(builder));
 
             builder.Append("ALTER TABLE ")
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Table, operation.Schema))
+                .Append(DelimitIdentifier(operation.Table, operation.Schema))
                 .Append(" RENAME COLUMN ")
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name))
+                .Append(DelimitIdentifier(operation.Name))
                 .Append(" TO ")
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.NewName))
+                .Append(DelimitIdentifier(operation.NewName))
                 .AppendLine(';');
 
             EndStatement(builder);
@@ -1296,7 +1296,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 throw new NotSupportedException("Computed/generated columns aren't supported in PostgreSQL prior to version 12");
 
             builder
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(name))
+                .Append(DelimitIdentifier(name))
                 .Append(" ")
                 .Append(operation.ColumnType ?? GetColumnType(schema, table, name, operation, model))
                 .Append(" GENERATED ALWAYS AS (")
@@ -1338,9 +1338,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 .Append("ALTER ")
                 .Append(type)
                 .Append(' ')
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(name, schema))
+                .Append(DelimitIdentifier(name, schema))
                 .Append(" RENAME TO ")
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(newName))
+                .Append(DelimitIdentifier(newName))
                 .AppendLine(';');
         }
 
@@ -1368,9 +1368,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 .Append("ALTER ")
                 .Append(type)
                 .Append(" ")
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(name, schema))
+                .Append(DelimitIdentifier(name, schema))
                 .Append(" SET SCHEMA ")
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(newSchema))
+                .Append(DelimitIdentifier(newSchema))
                 .AppendLine(';');
         }
 
@@ -1415,6 +1415,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
         #region Helpers
 
+        string DelimitIdentifier(string identifier) =>
+            Dependencies.SqlGenerationHelper.DelimitIdentifier(identifier);
+
+        string DelimitIdentifier(string name, string schema) =>
+            Dependencies.SqlGenerationHelper.DelimitIdentifier(name, schema);
+
         string IndexColumnList(IndexColumn[] columns, string method)
         {
             var isFirst = true;
@@ -1427,20 +1433,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
                 var column = columns[i];
 
-                builder.Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(column.Name));
+                builder.Append(DelimitIdentifier(column.Name));
 
                 if (!string.IsNullOrEmpty(column.Operator))
                 {
                     var delimitedOperator = TryParseSchema(column.Operator, out var name, out var schema)
-                        ? Dependencies.SqlGenerationHelper.DelimitIdentifier(name, schema)
-                        : Dependencies.SqlGenerationHelper.DelimitIdentifier(column.Operator);
+                        ? DelimitIdentifier(name, schema)
+                        : DelimitIdentifier(column.Operator);
 
                     builder.Append(" ").Append(delimitedOperator);
                 }
 
                 if (!string.IsNullOrEmpty(column.Collation))
                 {
-                    builder.Append(" COLLATE ").Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(column.Collation));
+                    builder.Append(" COLLATE ").Append(DelimitIdentifier(column.Collation));
                 }
 
                 // Of the built-in access methods, only btree (the default) supports
@@ -1475,7 +1481,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         {
             string GetTsVectorColumnExpression(string columnName)
             {
-                var delimitedColumnName = Dependencies.SqlGenerationHelper.DelimitIdentifier(columnName);
+                var delimitedColumnName = DelimitIdentifier(columnName);
                 var column = model?.GetRelationalModel()
                     .FindTable(table, schema)?.Columns.FirstOrDefault(c => c.Name == columnName);
                 return column?.IsNullable != false
@@ -1483,11 +1489,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                     : delimitedColumnName;
             }
 
-            var stringTypeMapping = Dependencies.TypeMappingSource.GetMapping(typeof(string));
-
             return new StringBuilder()
                 .Append("to_tsvector(")
-                .Append(stringTypeMapping.GenerateSqlLiteral(tsVectorConfig))
+                .Append(_stringTypeMapping.GenerateSqlLiteral(tsVectorConfig))
                 .Append(", ")
                 .Append(string.Join(" || ' ' || ", columns.Select(GetTsVectorColumnExpression)))
                 .Append(")")
