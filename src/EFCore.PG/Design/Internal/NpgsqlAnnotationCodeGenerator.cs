@@ -120,7 +120,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             }
 
             if (annotation.Name == NpgsqlAnnotationNames.Collation)
-                return new MethodCallCodeFragment(nameof(NpgsqlModelBuilderExtensions.UseCollation));
+                return new MethodCallCodeFragment(nameof(NpgsqlModelBuilderExtensions.UseDatabaseCollation), annotation.Value);
 
             return null;
         }

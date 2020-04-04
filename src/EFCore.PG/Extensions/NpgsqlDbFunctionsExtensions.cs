@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Query;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore
@@ -60,10 +61,10 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="_">The DbFunctions instance.</param>
         /// <param name="operand">The operand on which to apply the collation.</param>
         /// <param name="collation">The name of the collection, which must already exist in the database.</param>
-        public static T ApplyCollation<T>(
+        public static T Collate<T>(
             [NotNull] this DbFunctions _,
             [NotNull] T operand,
-            [NotNull] string collation)
-            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(ApplyCollation)));
+            [NotNull, NotParameterized] string collation)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Collate)));
     }
 }

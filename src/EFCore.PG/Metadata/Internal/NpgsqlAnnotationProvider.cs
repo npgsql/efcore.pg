@@ -113,6 +113,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
                 a.Name.StartsWith(NpgsqlAnnotationNames.EnumPrefix, StringComparison.Ordinal) ||
                 a.Name.StartsWith(NpgsqlAnnotationNames.RangePrefix, StringComparison.Ordinal) ||
                 a.Name.StartsWith(NpgsqlAnnotationNames.CollationDefinitionPrefix, StringComparison.Ordinal) ||
-                a.Name == NpgsqlAnnotationNames.Collation);
+                a.Name == NpgsqlAnnotationNames.Collation ||
+                a.Name == NpgsqlAnnotationNames.DatabaseCollation);
     }
 }

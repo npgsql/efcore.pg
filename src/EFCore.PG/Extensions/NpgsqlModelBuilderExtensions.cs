@@ -499,55 +499,61 @@ namespace Microsoft.EntityFrameworkCore
 
         #endregion Collation management
 
-        #region Collation
+        #region Database collation
 
         /// <summary>
-        /// <p>Configures the database to use the given collation as the default when creating columns.</p>
-        /// <p>
-        /// The collation must already exist in the database (see
-        /// <see cref="NpgsqlModelBuilderExtensions.HasCollation(Microsoft.EntityFrameworkCore.ModelBuilder,string,string,string,System.Nullable{bool})" />).
-        /// </p>
-        /// <p>Once a database has been created, its collation cannot be altered.</p>
+        /// Configures the database with the given collation, affecting the <c>CREATE DATABASE</c> statement.
         /// </summary>
         /// <remarks>
-        /// https://www.postgresql.org/docs/current/collation.html
+        /// <p>
+        /// PostgreSQL currently supports only a restricted set of collation in <c>CREATE DATABASE</c> (libc only, no
+        /// ICU support), and does not allow the collation to be altered after database creation.
+        /// <see cref="UseDefaultColumnCollation(Microsoft.EntityFrameworkCore.ModelBuilder,string)"/> for another
+        /// approach to configuring database collation.
+        /// </p>
+        /// <p>
+        /// For more information, see https://www.postgresql.org/docs/current/collation.html.
+        /// </p>
         /// </remarks>
         /// <param name="modelBuilder">The model builder.</param>
         /// <param name="collation">The collation.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-        public static ModelBuilder UseCollation([NotNull] this ModelBuilder modelBuilder, [CanBeNull] string collation)
+        public static ModelBuilder UseDatabaseCollation([NotNull] this ModelBuilder modelBuilder, [CanBeNull] string collation)
         {
             Check.NotNull(modelBuilder, nameof(modelBuilder));
             Check.NullButNotEmpty(collation, nameof(collation));
 
-            modelBuilder.Model.SetCollation(collation);
+            modelBuilder.Model.SetDatabaseCollation(collation);
 
             return modelBuilder;
         }
 
         /// <summary>
-        /// <p>Configures the database to use the given collation as the default when creating columns.</p>
-        /// <p>
-        /// The collation must already exist in the database (see
-        /// <see cref="NpgsqlModelBuilderExtensions.HasCollation(Microsoft.EntityFrameworkCore.ModelBuilder,string,string,string,System.Nullable{bool})" />).
-        /// </p>
-        /// <p>Once a database has been created, its collation cannot be altered.</p>
+        /// Configures the database with the given collation, affecting the <c>CREATE DATABASE</c> statement.
         /// </summary>
         /// <remarks>
-        /// https://www.postgresql.org/docs/current/collation.html
+        /// <p>
+        /// PostgreSQL currently supports only a restricted set of collation in <c>CREATE DATABASE</c> (libc only, no
+        /// ICU support), and does not allow the collation to be altered after database creation.
+        /// <see cref="UseDefaultColumnCollation(Microsoft.EntityFrameworkCore.ModelBuilder,string)"/> for another
+        /// approach to configuring database collation.
+        /// </p>
+        /// <p>
+        /// For more information, see https://www.postgresql.org/docs/current/collation.html.
+        /// </p>
         /// </remarks>
         /// <param name="modelBuilder">The model builder.</param>
         /// <param name="collation">The collation.</param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns>A builder to further configure the property.</returns>
-        public static IConventionModelBuilder UseCollation(
+        public static IConventionModelBuilder UseDatabaseCollation(
             [NotNull] this IConventionModelBuilder modelBuilder,
             [CanBeNull] string collation,
             bool fromDataAnnotation = false)
         {
-            if (modelBuilder.CanSetUseCollation(collation, fromDataAnnotation))
+            if (modelBuilder.CanSetUseDatabaseCollation(collation, fromDataAnnotation))
             {
-                modelBuilder.Metadata.SetCollation(collation);
+                modelBuilder.Metadata.SetDatabaseCollation(collation);
                 return modelBuilder;
             }
 
@@ -555,16 +561,91 @@ namespace Microsoft.EntityFrameworkCore
         }
 
         /// <summary>
-        /// Returns a value indicating whether the given value can be set as the collation.
+        /// Returns a value indicating whether the given value can be set as the database collation.
         /// </summary>
-        /// <remarks>
-        /// https://www.postgresql.org/docs/current/collation.html
-        /// </remarks>
         /// <param name="modelBuilder">The model builder.</param>
         /// <param name="collation">The collation.</param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns><c>true</c> if the given value can be set as the collation.</returns>
-        public static bool CanSetUseCollation(
+        public static bool CanSetUseDatabaseCollation(
+            [NotNull] this IConventionModelBuilder modelBuilder,
+            [CanBeNull] string collation,
+            bool fromDataAnnotation = false)
+        {
+            Check.NotNull(modelBuilder, nameof(modelBuilder));
+
+            return modelBuilder.CanSetAnnotation(NpgsqlAnnotationNames.DatabaseCollation, collation, fromDataAnnotation);
+        }
+
+        #endregion Database collation
+
+        #region Default column collation
+
+        /// <summary>
+        /// Configures the default collation for all columns in the database. This causes EF Core to specify an explicit
+        /// collation when creating all column, unless one is overridden on a column.
+        /// </summary>
+        /// <remarks>
+        /// <p>
+        /// See <see cref="UseDatabaseCollation(Microsoft.EntityFrameworkCore.ModelBuilder,string)"/> for another
+        /// approach to defining a database-wide collation.
+        /// </p>
+        /// <p>
+        /// For more information, see https://www.postgresql.org/docs/current/collation.html.
+        /// </p>
+        /// </remarks>
+        /// <param name="modelBuilder">The model builder.</param>
+        /// <param name="collation">The collation.</param>
+        /// <returns>A builder to further configure the property.</returns>
+        public static ModelBuilder UseDefaultColumnCollation([NotNull] this ModelBuilder modelBuilder, [CanBeNull] string collation)
+        {
+            Check.NotNull(modelBuilder, nameof(modelBuilder));
+            Check.NullButNotEmpty(collation, nameof(collation));
+
+            modelBuilder.Model.SetDefaultColumnCollation(collation);
+
+            return modelBuilder;
+        }
+
+        /// <summary>
+        /// Configures the default collation for all columns in the database. This causes EF Core to specify an explicit
+        /// collation when creating all column, unless one is overridden on a column.
+        /// </summary>
+        /// <remarks>
+        /// <p>
+        /// See <see cref="UseDatabaseCollation(Microsoft.EntityFrameworkCore.ModelBuilder,string)"/> for another
+        /// approach to defining a database-wide collation.
+        /// </p>
+        /// <p>
+        /// For more information, see https://www.postgresql.org/docs/current/collation.html.
+        /// </p>
+        /// </remarks>
+        /// <param name="modelBuilder">The model builder.</param>
+        /// <param name="collation">The collation.</param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        /// <returns>A builder to further configure the property.</returns>
+        public static IConventionModelBuilder UseDefaultColumnCollation(
+            [NotNull] this IConventionModelBuilder modelBuilder,
+            [CanBeNull] string collation,
+            bool fromDataAnnotation = false)
+        {
+            if (modelBuilder.CanSetUseDefaultColumnCollation(collation, fromDataAnnotation))
+            {
+                modelBuilder.Metadata.SetDefaultColumnCollation(collation);
+                return modelBuilder;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Returns a value indicating whether the given value can be set as the default column collation.
+        /// </summary>
+        /// <param name="modelBuilder">The model builder.</param>
+        /// <param name="collation">The collation.</param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        /// <returns><c>true</c> if the given value can be set as the collation.</returns>
+        public static bool CanSetUseDefaultColumnCollation(
             [NotNull] this IConventionModelBuilder modelBuilder,
             [CanBeNull] string collation,
             bool fromDataAnnotation = false)
@@ -574,7 +655,7 @@ namespace Microsoft.EntityFrameworkCore
             return modelBuilder.CanSetAnnotation(NpgsqlAnnotationNames.Collation, collation, fromDataAnnotation);
         }
 
-        #endregion Collation
+        #endregion Default column collation
 
         #region Case-insensitive collation
 

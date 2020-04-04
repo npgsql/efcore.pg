@@ -8,6 +8,7 @@ using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
+    [MinimumPostgresVersion(12, 0)]
     public class CollationQueryTest : IClassFixture<CollationQueryTest.CollationQueryFixture>
     {
         CollationQueryFixture Fixture { get; }
@@ -19,7 +20,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
-        [Fact]
+        [ConditionalFact]
         public void Property_configured_as_insensitive()
         {
             using var ctx = CreateContext();
@@ -37,13 +38,13 @@ WHERE s.""CI"" = 'sometext'
 LIMIT 2");
         }
 
-        [Fact]
+        [ConditionalFact]
         public void Explicit_collation()
         {
             using var ctx = CreateContext();
 
             var id = ctx.SomeEntities
-                .Where(b => EF.Functions.ApplyCollation(b.CS, "ci_coll") == "sometext")
+                .Where(b => EF.Functions.Collate(b.CS, "ci_coll") == "sometext")
                 .Select(b => b.Id)
                 .Single();
             Assert.Equal(1, id);
@@ -55,7 +56,7 @@ WHERE s.""CS"" COLLATE ""ci_coll"" = 'sometext'
 LIMIT 2");
         }
 
-        [Fact]
+        [ConditionalFact]
         public void String_Equals_insensitive()
         {
             using var ctx = CreateContext();
@@ -74,7 +75,7 @@ WHERE s.""CSSupportsCI"" COLLATE ""ci_coll"" = 'sometext'
 LIMIT 2");
         }
 
-        [Fact]
+        [ConditionalFact]
         public void String_Equals_insensitive_throws_when_ci_collation_not_configured()
         {
             using var ctx = CreateContext();
@@ -84,7 +85,7 @@ LIMIT 2");
                     .Single(b => b.CS.Equals("sometext", StringComparison.OrdinalIgnoreCase)));
         }
 
-        [Fact]
+        [ConditionalFact]
         public void String_Equals_insensitive_deep()
         {
             using var ctx = CreateContext();
@@ -105,7 +106,7 @@ WHERE SUBSTRING(s.""CSSupportsCI"", 1, LENGTH(s.""CSSupportsCI"")::INT) COLLATE 
 LIMIT 2");
         }
 
-        [Fact]
+        [ConditionalFact]
         public void Case_sensitive_collation_is_inherited()
         {
             using var ctx = CreateContext();

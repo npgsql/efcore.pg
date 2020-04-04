@@ -122,7 +122,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 {
                     Name = _connection.DbConnection.Database,
                     Template = Dependencies.Model.GetDatabaseTemplate(),
-                    Collation = Dependencies.Model.GetCollation(),
+                    Collation = Dependencies.Model.GetDatabaseCollation(),
                     Tablespace = Dependencies.Model.GetTablespace()
                 }
             });

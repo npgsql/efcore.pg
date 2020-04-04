@@ -595,9 +595,6 @@ namespace Microsoft.EntityFrameworkCore
 
         #region Collation
 
-        // Note that the model-level collation is specified when creating the database, and applies to all columns
-        // by PostgreSQL. We therefore don't propagate it via metadata.
-
         /// <summary>
         /// Returns the collation to be used, or <c>null</c> if it hasn't been specified.
         /// </summary>
@@ -605,7 +602,8 @@ namespace Microsoft.EntityFrameworkCore
         /// https://www.postgresql.org/docs/current/collation.html
         /// </remarks>
         public static string GetCollation([NotNull] this IProperty property)
-            => (string)property[NpgsqlAnnotationNames.Collation];
+            => property[NpgsqlAnnotationNames.Collation] as string ??
+               (property.FindTypeMapping() is StringTypeMapping ? property.DeclaringEntityType.Model.GetDefaultColumnCollation() : null);
 
         /// <summary>
         /// Sets the collation to be used, or <c>null</c> to make it unspecified.
@@ -651,7 +649,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </remarks>
         public static string GetCaseInsensitiveCollation([NotNull] this IProperty property)
             => property[NpgsqlAnnotationNames.CaseInsensitiveCollation] as string ??
-               (property.GetTypeMapping() is StringTypeMapping ? property.DeclaringEntityType.Model.GetCaseInsensitiveCollation() : null);
+               (property.FindTypeMapping() is StringTypeMapping ? property.DeclaringEntityType.Model.GetCaseInsensitiveCollation() : null);
 
         /// <summary>
         /// Sets the case-insensitive collation to be used, or <c>null</c> to make it unspecified.
@@ -697,7 +695,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </remarks>
         public static string GetCaseSensitiveCollation([NotNull] this IProperty property)
             => property[NpgsqlAnnotationNames.CaseSensitiveCollation] as string ??
-               (property.GetTypeMapping() is StringTypeMapping ? property.DeclaringEntityType.Model.GetCaseSensitiveCollation() : null);
+               (property.FindTypeMapping() is StringTypeMapping ? property.DeclaringEntityType.Model.GetCaseSensitiveCollation() : null);
 
         /// <summary>
         /// Sets the case-sensitive collation to be used, or <c>null</c> to make it unspecified.

@@ -916,7 +916,10 @@ GROUP BY nspname, typname";
 
         void GetCollations(NpgsqlConnection connection, DatabaseModel databaseModel)
         {
-            const string commandText = @"SELECT nspname, collname, collprovider, collisdeterministic, collcollate, collctype
+            var commandText = @$"
+SELECT
+    nspname, collname, collprovider, collcollate, collctype,
+    {(connection.PostgreSqlVersion >= new Version(12, 0) ? "collisdeterministic" : "true AS collisdeterministic")}
 FROM pg_collation coll
     JOIN pg_namespace ns ON ns.oid=coll.collnamespace
     JOIN pg_authid auth ON auth.oid = coll.collowner WHERE rolname <> 'postgres';

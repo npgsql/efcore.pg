@@ -268,6 +268,36 @@ WITH (fillfactor=70, user_catalog_table=true);");
 );");
         }
 
+        [Fact]
+        public virtual async Task Create_table_with_collation()
+        {
+            await Test(
+                builder => { },
+                builder =>
+                {
+                    builder.UseDefaultColumnCollation("C");
+                    builder.Entity("People", e =>
+                    {
+                        e.Property<string>("WithDefaultCollation");
+                        e.Property<string>("WithOverriddenCollation").UseCollation("POSIX");
+                    });
+                },
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    var columnWithDefaultCollation = Assert.Single(table.Columns, c => c.Name == "WithDefaultCollation");
+                    Assert.Equal("C", columnWithDefaultCollation[NpgsqlAnnotationNames.Collation]);
+                    var columnWithOverriddenCollation = Assert.Single(table.Columns, c => c.Name == "WithOverriddenCollation");
+                    Assert.Equal("POSIX", columnWithOverriddenCollation[NpgsqlAnnotationNames.Collation]);
+                });
+
+            AssertSql(
+                @"CREATE TABLE ""People"" (
+    ""WithDefaultCollation"" text NULL COLLATE ""C"",
+    ""WithOverriddenCollation"" text NULL COLLATE ""POSIX""
+);");
+        }
+
         public override async Task Drop_table()
         {
             await base.Drop_table();
@@ -800,6 +830,29 @@ COMMENT ON COLUMN ""People"".""FullName"" IS 'My comment';");
                 builder => { },
                 builder => builder.Entity("People").Property<string>("Name")
                     .UseCollation("POSIX"),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    Assert.Equal(2, table.Columns.Count);
+                    var nameColumn = Assert.Single(table.Columns, c => c.Name == "Name");
+                    Assert.Equal("POSIX", nameColumn[NpgsqlAnnotationNames.Collation]);
+                });
+
+            AssertSql(
+                @"ALTER TABLE ""People"" ADD ""Name"" text NULL COLLATE ""POSIX"";");
+        }
+
+        [Fact]
+        public virtual async Task Add_column_collation_from_model_default()
+        {
+            await Test(
+                builder =>
+                {
+                    builder.UseDefaultColumnCollation("POSIX");
+                    builder.Entity("People").Property<int>("Id");
+                },
+                builder => { },
+                builder => builder.Entity("People").Property<string>("Name"),
                 model =>
                 {
                     var table = Assert.Single(model.Tables);
@@ -2221,6 +2274,31 @@ WHERE ""Id"" = 2;");
         {
             await Test(
                 builder => { },
+                builder => builder.HasCollation("dummy", locale: "POSIX", provider: "libc"),
+                model =>
+                {
+                    var collation = Assert.Single(PostgresCollation.GetCollations(model));
+
+                    Assert.Equal("dummy", collation.Name);
+                    Assert.Equal("libc", collation.Provider);
+                    Assert.Equal("POSIX", collation.LcCollate);
+                    Assert.Equal("POSIX", collation.LcCtype);
+                    Assert.True(collation.IsDeterministic);
+                });
+
+            AssertSql(
+                @"CREATE COLLATION dummy (LC_COLLATE = 'POSIX',
+    LC_CTYPE = 'POSIX',
+    PROVIDER = libc
+);");
+        }
+
+        [ConditionalFact]
+        [MinimumPostgresVersion(12, 0)]
+        public virtual async Task Create_collation_non_deterministic()
+        {
+            await Test(
+                builder => { },
                 builder => builder.HasCollation("some_collation", locale: "en-u-ks-primary", provider: "icu", deterministic: false),
                 model =>
                 {
@@ -2245,19 +2323,19 @@ WHERE ""Id"" = 2;");
         public virtual async Task Drop_collation()
         {
             await Test(
-                builder => builder.HasCollation("some_collation", locale: "en-u-ks-primary", provider: "icu", deterministic: false),
+                builder => builder.HasCollation("dummy", locale: "POSIX", provider: "libc"),
                 builder => { },
                 model => Assert.Empty(PostgresCollation.GetCollations(model)));
 
             AssertSql(
-                @"DROP COLLATION some_collation;");
+                @"DROP COLLATION dummy;");
         }
 
         [Fact]
         public virtual Task Alter_collation_throws()
             => TestThrows<NotSupportedException>(
-                builder => builder.HasCollation("some_collation", locale: "en-u-ks-primary", provider: "icu", deterministic: false),
-                builder => builder.HasCollation("some_collation", locale: "en-u-ks-primary", provider: "icu", deterministic: true));
+                builder => builder.HasCollation("dummy", locale: "POSIX", provider: "libc"),
+                builder => builder.HasCollation("dummy", locale: "C", provider: "libc"));
 
         #endregion PostgreSQL collations
 

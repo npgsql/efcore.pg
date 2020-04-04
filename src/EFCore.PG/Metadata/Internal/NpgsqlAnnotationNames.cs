@@ -28,6 +28,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
 
         public const string Collation = Prefix + "Collation";
         public const string CollationDefinitionPrefix = Prefix + "CollationDefinition:";
+        public const string DatabaseCollation = Prefix + "DatabaseCollation";
         public const string CaseInsensitiveCollation = Prefix + "CaseInsensitiveCollation";
         public const string CaseSensitiveCollation = Prefix + "CaseSensitiveCollation";
 

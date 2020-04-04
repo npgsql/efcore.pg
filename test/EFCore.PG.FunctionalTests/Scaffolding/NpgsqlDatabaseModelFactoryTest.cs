@@ -20,7 +20,6 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities.Xunit;
 using Xunit;
 
 // ReSharper disable InconsistentNaming
@@ -84,7 +83,8 @@ DROP SEQUENCE ""DefaultFacetsSequence"";
 DROP SEQUENCE db2.""CustomFacetsSequence""");
         }
 
-        [MinimumPostgresVersionFact(11, 0)]
+        [ConditionalFact]
+        [MinimumPostgresVersion(11, 0)]
         public void Sequence_min_max_start_values_are_null_if_default()
             => Test(@"
 CREATE SEQUENCE ""SmallIntSequence"" AS smallint;
@@ -828,7 +828,8 @@ CREATE TABLE ""DefaultValues"" (
                 },
                 @"DROP TABLE ""DefaultValues""");
 
-        [MinimumPostgresVersionFact(12, 0)]
+        [ConditionalFact]
+        [MinimumPostgresVersion(12, 0)]
         public void Computed_values_are_stored()
             => Test(@"
 CREATE TABLE ""ComputedValues"" (
@@ -910,7 +911,8 @@ CREATE TABLE ""ValueGeneratedProperties"" (
                 },
                 @"DROP TABLE ""ValueGeneratedProperties""");
 
-        [MinimumPostgresVersionFact(10, 0)]
+        [ConditionalFact]
+        [MinimumPostgresVersion(10, 0)]
         public void ValueGenerated_is_set_for_identity_column()
             => Test(@"
 CREATE TABLE ""ValueGeneratedProperties"" (
@@ -928,7 +930,8 @@ CREATE TABLE ""ValueGeneratedProperties"" (
                 },
                 @"DROP TABLE ""ValueGeneratedProperties""");
 
-        [MinimumPostgresVersionFact(12, 0)]
+        [ConditionalFact]
+        [MinimumPostgresVersion(12, 0)]
         public void ValueGenerated_is_set_for_computed_column()
             => Test(@"
 CREATE TABLE ""ValueGeneratedProperties"" (
@@ -1475,7 +1478,8 @@ CREATE TABLE ""NonSerialSequence"" (""Id"" integer PRIMARY KEY DEFAULT nextval('
 DROP TABLE ""NonSerialSequence"";
 DROP SEQUENCE ""SomeSequence""");
 
-        [MinimumPostgresVersionFact(10, 0)]
+        [ConditionalFact]
+        [MinimumPostgresVersion(10, 0)]
         public void Identity()
             => Test(@"
 CREATE TABLE identity (
@@ -1504,7 +1508,8 @@ CREATE TABLE identity (
                 },
                 "DROP TABLE identity");
 
-        [MinimumPostgresVersionFact(10, 0)]
+        [ConditionalFact]
+        [MinimumPostgresVersion(10, 0)]
         public void Identity_with_sequence_options_all()
             => Test(@"
 CREATE TABLE identity (
@@ -1551,9 +1556,25 @@ CREATE TABLE identity (
 
         [Fact]
         public void Database_collation_definition()
-            => Test(@"
-CREATE COLLATION some_collation (provider = icu, locale = 'en-u-ks-primary', deterministic = false);
-",
+            => Test(@"CREATE COLLATION dummy (locale = 'POSIX');",
+                Enumerable.Empty<string>(),
+                Enumerable.Empty<string>(),
+                dbModel =>
+                {
+                    var collation = Assert.Single(PostgresCollation.GetCollations(dbModel));
+
+                    Assert.Equal("dummy", collation.Name);
+                    Assert.Equal("libc", collation.Provider);
+                    Assert.Equal("POSIX", collation.LcCollate);
+                    Assert.Equal("POSIX", collation.LcCtype);
+                    Assert.True(collation.IsDeterministic);
+                },
+                @"DROP COLLATION ""dummy""");
+
+        [ConditionalFact]
+        [MinimumPostgresVersion(12, 0)]
+        public void Database_collation_definition_non_determinstic()
+            => Test(@"CREATE COLLATION some_collation (provider = icu, locale = 'und-u-ks-level2', deterministic = false);",
                 Enumerable.Empty<string>(),
                 Enumerable.Empty<string>(),
                 dbModel =>
@@ -1562,11 +1583,11 @@ CREATE COLLATION some_collation (provider = icu, locale = 'en-u-ks-primary', det
 
                     Assert.Equal("some_collation", collation.Name);
                     Assert.Equal("icu", collation.Provider);
-                    Assert.Equal("en-u-ks-primary", collation.LcCollate);
-                    Assert.Equal("en-u-ks-primary", collation.LcCtype);
+                    Assert.Equal("und-u-ks-level2", collation.LcCollate);
+                    Assert.Equal("und-u-ks-level2", collation.LcCtype);
                     Assert.False(collation.IsDeterministic);
                 },
-                @"DROP COLLATION ""en-u-ks-primary-x-icu""");
+                @"DROP COLLATION ""some_collation""");
 
         [Fact]
         public void Column_collation()
@@ -1705,7 +1726,8 @@ CREATE INDEX ix_without ON ""IndexNullSortOrder"" (a, b);",
                 },
                 @"DROP TABLE ""IndexNullSortOrder""");
 
-        [MinimumPostgresVersionFact(11, 0)]
+        [ConditionalFact]
+        [MinimumPostgresVersion(11, 0)]
         public void Index_covering()
             => Test(@"
 CREATE TABLE ""IndexCovering"" (a text, b text, c text);
@@ -1744,7 +1766,8 @@ COMMENT ON COLUMN comment.a IS 'column comment'",
                 },
                 "DROP TABLE comment");
 
-        [MinimumPostgresVersionFact(11, 0)]
+        [ConditionalFact]
+        [MinimumPostgresVersion(11, 0)]
         public void Sequence_types()
             => Test(@"
 CREATE SEQUENCE ""SmallIntSequence"" AS smallint;
