@@ -312,6 +312,18 @@ WHERE (ARRAY[4,5,6]::integer[] <@ s.""SomeList"")");
 
         #endregion
 
+        #region ArrayToString
+        [Fact]
+        public void String_Join_List()
+        {
+            using var ctx = CreateContext();
+
+            var found = ctx.SomeEntities.FirstOrDefault(x => string.Join(" ", x.SomeList) == "3 4");
+
+            Assert.NotNull(found);
+            Assert.Contains("array_to_string", Fixture.TestSqlLoggerFactory.Sql);
+        }
+        #endregion
         #region Support
 
         protected ArrayListQueryContext CreateContext() => Fixture.CreateContext();

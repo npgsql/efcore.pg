@@ -33,6 +33,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
                 .Single(mi => mi.Name == nameof(Enumerable.Any) && mi.GetParameters().Length == 1);
 
+        [NotNull] static readonly MethodInfo StringArrayJoin =
+            typeof(EnumerableExtensions).GetTypeInfo()
+                .GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly).Single(mi =>
+                    mi.Name == nameof(EnumerableExtensions.Join) &&
+                    mi.GetParameters()[1].ParameterType == typeof(string));
+
         [NotNull]
         readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
         [NotNull]
@@ -70,6 +76,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 !(typeMapping is NpgsqlArrayTypeMapping) && !(typeMapping is NpgsqlJsonTypeMapping))
             {
                 return null;
+            }
+
+            if (method == StringArrayJoin)
+            {
+                return _sqlExpressionFactory.Function("array_to_string", new[] { arguments[0], arguments[1] },
+                    nullable: true,
+                    FalseArrays[2],
+                    typeof(string));
             }
 
             if (method.IsClosedFormOf(SequenceEqual) && arguments[1].Type.IsArray)

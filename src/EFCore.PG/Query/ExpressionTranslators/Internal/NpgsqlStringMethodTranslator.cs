@@ -53,7 +53,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         [NotNull] static readonly MethodInfo PadRightWithChar = typeof(string).GetRuntimeMethod(nameof(string.PadRight), new[] { typeof(int), typeof(char) });
         [NotNull] static readonly MethodInfo ToLower = typeof(string).GetRuntimeMethod(nameof(string.ToLower), Array.Empty<Type>());
         [NotNull] static readonly MethodInfo ToUpper = typeof(string).GetRuntimeMethod(nameof(string.ToUpper), Array.Empty<Type>());
-
+        [NotNull] static readonly MethodInfo StringJoinString = typeof(string).GetRuntimeMethod(nameof(string.Join), new[] { typeof(string), typeof(string[]) });
+        [NotNull] static readonly MethodInfo StringJoinObject = typeof(string).GetRuntimeMethod(nameof(string.Join), new[] { typeof(string), typeof(object[]) });
+        [NotNull] static readonly MethodInfo StringJoinIEnumerable = typeof(string).GetRuntimeMethod(nameof(string.Join), new[] { typeof(string), typeof(IEnumerable<string>)});
+        [NotNull] static readonly MethodInfo StringJoinGeneric = typeof(string)
+            .GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
+            .Select(x => new { mi = x, pi = x.GetParameters() })
+            .Single(x => x.mi.Name == nameof(string.Join) && x.pi.Length == 2 && x.pi[0].ParameterType == typeof(string)
+                         && x.mi.IsGenericMethod).mi;
         #endregion
 
         public NpgsqlStringMethodTranslator(ISqlExpressionFactory sqlExpressionFactory, NpgsqlTypeMappingSource npgsqlTypeMappingSource)
@@ -242,6 +249,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 return TranslateStartsEndsWith(instance, arguments[0], true);
             if (method == EndsWith)
                 return TranslateStartsEndsWith(instance, arguments[0], false);
+
+
+            if (method == StringJoinString || method == StringJoinObject || method == StringJoinIEnumerable
+                || method.IsClosedFormOf(StringJoinGeneric))
+            {
+                return _sqlExpressionFactory.Function("array_to_string", new[] { arguments[1], arguments[0] },
+                    nullable: true,
+                    argumentsPropagateNullability: FalseArrays[2],
+                    typeof(string));
+            }
 
             return null;
         }

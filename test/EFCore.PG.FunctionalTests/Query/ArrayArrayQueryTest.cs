@@ -45,7 +45,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
             Assert.Single(actual);
             AssertSql(
-                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeByte"", s.""SomeByteArray"", s.""SomeBytea"", s.""SomeMatrix"", s.""SomeText""
+                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeByte"", s.""SomeByteArray"", s.""SomeBytea"", s.""SomeStringArray"", s.""SomeText""
 FROM ""SomeEntities"" AS s
 WHERE s.""SomeArray""[1] = 3");
         }
@@ -59,10 +59,8 @@ WHERE s.""SomeArray""[1] = 3");
             var actual = ctx.SomeEntities.Where(e => e.SomeArray[x] == 3).ToList();
 
             Assert.Single(actual);
-            AssertSql(
-                @"@__x_0='0'
-
-SELECT s.""Id"", s.""SomeArray"", s.""SomeByte"", s.""SomeByteArray"", s.""SomeBytea"", s.""SomeMatrix"", s.""SomeText""
+            AssertContainsInSql(
+                @"
 FROM ""SomeEntities"" AS s
 WHERE s.""SomeArray""[@__x_0 + 1] = 3");
         }
@@ -82,7 +80,7 @@ WHERE s.""SomeArray""[@__x_0 + 1] = 3");
             AssertSql(
                 @"@__arr_0='System.Int32[]' (DbType = Object)
 
-SELECT s.""Id"", s.""SomeArray"", s.""SomeByte"", s.""SomeByteArray"", s.""SomeBytea"", s.""SomeMatrix"", s.""SomeText""
+SELECT s.""Id"", s.""SomeArray"", s.""SomeByte"", s.""SomeByteArray"", s.""SomeBytea"", s.""SomeStringArray"", s.""SomeText""
 FROM ""SomeEntities"" AS s
 WHERE s.""SomeArray"" = @__arr_0
 LIMIT 2");
@@ -96,7 +94,7 @@ LIMIT 2");
 
             Assert.Equal(new[] { 3, 4 }, x.SomeArray);
             AssertSql(
-                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeByte"", s.""SomeByteArray"", s.""SomeBytea"", s.""SomeMatrix"", s.""SomeText""
+                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeByte"", s.""SomeByteArray"", s.""SomeBytea"", s.""SomeStringArray"", s.""SomeText""
 FROM ""SomeEntities"" AS s
 WHERE s.""SomeArray"" = ARRAY[3,4]::integer[]
 LIMIT 2");
@@ -114,7 +112,7 @@ LIMIT 2");
 
             Assert.Equal(new[] { 3, 4 }, x.SomeArray);
             AssertSql(
-                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeByte"", s.""SomeByteArray"", s.""SomeBytea"", s.""SomeMatrix"", s.""SomeText""
+                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeByte"", s.""SomeByteArray"", s.""SomeBytea"", s.""SomeStringArray"", s.""SomeText""
 FROM ""SomeEntities"" AS s
 WHERE 3 = ANY (s.""SomeArray"")
 LIMIT 2");
@@ -132,7 +130,7 @@ LIMIT 2");
             AssertSql(
                 @"@__p_0='3'
 
-SELECT s.""Id"", s.""SomeArray"", s.""SomeByte"", s.""SomeByteArray"", s.""SomeBytea"", s.""SomeMatrix"", s.""SomeText""
+SELECT s.""Id"", s.""SomeArray"", s.""SomeByte"", s.""SomeByteArray"", s.""SomeBytea"", s.""SomeStringArray"", s.""SomeText""
 FROM ""SomeEntities"" AS s
 WHERE @__p_0 = ANY (s.""SomeArray"")
 LIMIT 2");
@@ -146,7 +144,7 @@ LIMIT 2");
 
             Assert.Equal(new[] { 3, 4 }, x.SomeArray);
             AssertSql(
-                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeByte"", s.""SomeByteArray"", s.""SomeBytea"", s.""SomeMatrix"", s.""SomeText""
+                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeByte"", s.""SomeByteArray"", s.""SomeBytea"", s.""SomeStringArray"", s.""SomeText""
 FROM ""SomeEntities"" AS s
 WHERE s.""Id"" + 2 = ANY (s.""SomeArray"")
 LIMIT 2");
@@ -164,7 +162,7 @@ LIMIT 2");
             AssertSql(
                 @"@__values_0='0x14' (DbType = Object)
 
-SELECT s.""Id"", s.""SomeArray"", s.""SomeByte"", s.""SomeByteArray"", s.""SomeBytea"", s.""SomeMatrix"", s.""SomeText""
+SELECT s.""Id"", s.""SomeArray"", s.""SomeByte"", s.""SomeByteArray"", s.""SomeBytea"", s.""SomeStringArray"", s.""SomeText""
 FROM ""SomeEntities"" AS s
 WHERE s.""SomeByte"" = ANY (@__values_0)
 LIMIT 2");
@@ -182,7 +180,7 @@ LIMIT 2");
 
             Assert.Equal(new[] { 3, 4 }, x.SomeArray);
             AssertSql(
-                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeByte"", s.""SomeByteArray"", s.""SomeBytea"", s.""SomeMatrix"", s.""SomeText""
+                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeByte"", s.""SomeByteArray"", s.""SomeBytea"", s.""SomeStringArray"", s.""SomeText""
 FROM ""SomeEntities"" AS s
 WHERE cardinality(s.""SomeArray"") = 2
 LIMIT 2");
@@ -195,8 +193,8 @@ LIMIT 2");
             var x = ctx.SomeEntities.Single(e => EF.Property<int[]>(e, nameof(SomeArrayEntity.SomeArray)).Length == 2);
 
             Assert.Equal(new[] { 3, 4 }, x.SomeArray);
-            AssertSql(
-                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeByte"", s.""SomeByteArray"", s.""SomeBytea"", s.""SomeMatrix"", s.""SomeText""
+            AssertContainsInSql(
+                @"
 FROM ""SomeEntities"" AS s
 WHERE cardinality(s.""SomeArray"") = 2
 LIMIT 2");
@@ -237,7 +235,7 @@ WHERE cardinality(s.""SomeArray"") > 0");
                 .ToList();
 
             AssertSql(
-                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeByte"", s.""SomeByteArray"", s.""SomeBytea"", s.""SomeMatrix"", s.""SomeText""
+                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeByte"", s.""SomeByteArray"", s.""SomeBytea"", s.""SomeStringArray"", s.""SomeText""
 FROM ""SomeEntities"" AS s
 WHERE s.""SomeText"" LIKE ANY (ARRAY['a%','b%','c%']::text[])");
         }
@@ -251,7 +249,7 @@ WHERE s.""SomeText"" LIKE ANY (ARRAY['a%','b%','c%']::text[])");
                 .ToList();
 
             AssertSql(
-                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeByte"", s.""SomeByteArray"", s.""SomeBytea"", s.""SomeMatrix"", s.""SomeText""
+                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeByte"", s.""SomeByteArray"", s.""SomeBytea"", s.""SomeStringArray"", s.""SomeText""
 FROM ""SomeEntities"" AS s
 WHERE s.""SomeText"" ILIKE ANY (ARRAY['a%','b%','c%']::text[])");
         }
@@ -297,11 +295,11 @@ WHERE s.""SomeText"" LIKE ANY (@__patterns_0)");
             Assert.Empty(results);
 
             AssertSql(
-                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeByte"", s.""SomeByteArray"", s.""SomeBytea"", s.""SomeMatrix"", s.""SomeText""
+                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeByte"", s.""SomeByteArray"", s.""SomeBytea"", s.""SomeStringArray"", s.""SomeText""
 FROM ""SomeEntities"" AS s
-WHERE (ARRAY[2,3]::integer[] && s.""SomeArray"")",
-                //
-                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeByte"", s.""SomeByteArray"", s.""SomeBytea"", s.""SomeMatrix"", s.""SomeText""
+WHERE (ARRAY[2,3]::integer[] && s.""SomeArray"")"
+            );
+            AssertContainsInSql(@"
 FROM ""SomeEntities"" AS s
 WHERE (ARRAY[1,2]::integer[] && s.""SomeArray"")");
         }
@@ -322,11 +320,11 @@ WHERE (ARRAY[1,2]::integer[] && s.""SomeArray"")");
             Assert.Empty(results);
 
             AssertSql(
-                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeByte"", s.""SomeByteArray"", s.""SomeBytea"", s.""SomeMatrix"", s.""SomeText""
+                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeByte"", s.""SomeByteArray"", s.""SomeBytea"", s.""SomeStringArray"", s.""SomeText""
 FROM ""SomeEntities"" AS s
 WHERE (ARRAY[5,6]::integer[] <@ s.""SomeArray"")",
                 //
-                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeByte"", s.""SomeByteArray"", s.""SomeBytea"", s.""SomeMatrix"", s.""SomeText""
+                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeByte"", s.""SomeByteArray"", s.""SomeBytea"", s.""SomeStringArray"", s.""SomeText""
 FROM ""SomeEntities"" AS s
 WHERE (ARRAY[4,5,6]::integer[] <@ s.""SomeArray"")");
         }
@@ -343,7 +341,7 @@ WHERE (ARRAY[4,5,6]::integer[] <@ s.""SomeArray"")");
 
             Assert.Single(actual);
             AssertSql(
-                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeByte"", s.""SomeByteArray"", s.""SomeBytea"", s.""SomeMatrix"", s.""SomeText""
+                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeByte"", s.""SomeByteArray"", s.""SomeBytea"", s.""SomeStringArray"", s.""SomeText""
 FROM ""SomeEntities"" AS s
 WHERE get_byte(s.""SomeBytea"", 0) = 3");
         }
@@ -363,12 +361,73 @@ WHERE (get_byte(s.""SomeBytea"", 0) = 3) AND get_byte(s.""SomeBytea"", 0) IS NOT
 
         #endregion
 
+        #region ArrayToString
+
+        [Fact]
+        public void String_Join_Array()
+        {
+            using var ctx = CreateContext();
+
+            var found = ctx.SomeEntities.FirstOrDefault(x => string.Join(" ", x.SomeArray) == "3 4");
+            Assert.NotNull(found);
+            Assert.Contains("array_to_string", Fixture.TestSqlLoggerFactory.Sql);
+        }
+
+
+        [Fact]
+        public void Array_to_tsvector_concat()
+        {
+            using var ctx = CreateContext();
+
+            var found = ctx.SomeEntities.FirstOrDefault(x => EF.Functions.ToTsVector(string.Join(" ", x.SomeArray))
+                .Matches("3 & 4"));
+
+            var notFound = ctx.SomeEntities.FirstOrDefault(x => EF.Functions.ToTsVector(string.Join(" ", x.SomeArray))
+                .Matches("3 & 5"));
+
+            Assert.NotNull(found);
+            Assert.Null(notFound);
+            Assert.Contains("array_to_string", Fixture.TestSqlLoggerFactory.Sql);
+        }
+
+        #endregion
+
+        #region IEnumerable Join tests
+
+        [Fact]
+        public void StringArray_Join()
+        {
+            using var ctx = CreateContext();
+
+            var found = ctx.SomeEntities.FirstOrDefault(x => x.SomeStringArray.Join(" ") == "one two three");
+            var found2 = ctx.SomeEntities.FirstOrDefault(x => x.SomeStringArray.Join(", ") == "one, two, three");
+            Assert.NotNull(found);
+            Assert.NotNull(found2);
+            Assert.Contains("array_to_string", Fixture.TestSqlLoggerFactory.Sql);
+        }
+
+        [Fact]
+        public void String_Join_Array_with_nulls()
+        {
+            using var ctx = CreateContext();
+
+            var found = ctx.SomeEntities.FirstOrDefault(x => x.SomeStringArray.Join(" ") == "foo bar");
+            var found2 = ctx.SomeEntities.FirstOrDefault(x => x.SomeStringArray.Join("") == "foobar");
+            Assert.NotNull(found);
+            Assert.NotNull(found2);
+            Assert.Contains("array_to_string", Fixture.TestSqlLoggerFactory.Sql);
+        }
+        #endregion
+
         #region Support
 
         protected ArrayArrayQueryContext CreateContext() => Fixture.CreateContext();
 
         void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
+
+        void AssertContainsInSql(string expected)
+            => Assert.Contains(expected, Fixture.TestSqlLoggerFactory.Sql);
 
         void AssertDoesNotContainInSql(string expected)
             => Assert.DoesNotContain(expected, Fixture.TestSqlLoggerFactory.Sql);
@@ -386,6 +445,7 @@ WHERE (get_byte(s.""SomeBytea"", 0) = 3) AND get_byte(s.""SomeBytea"", 0) IS NOT
                     {
                         Id = 1,
                         SomeArray = new[] { 3, 4 },
+                        SomeStringArray = new[] { "foo", null, "bar" },
                         SomeBytea = new byte[] { 3, 4 },
                         SomeByteArray = new byte[] { 3, 4 },
                         SomeMatrix = new[,] { { 5, 6 }, { 7, 8 } },
@@ -396,6 +456,7 @@ WHERE (get_byte(s.""SomeBytea"", 0) = 3) AND get_byte(s.""SomeBytea"", 0) IS NOT
                     {
                         Id = 2,
                         SomeArray = new[] { 5, 6, 7 },
+                        SomeStringArray = new[] { "one", "two", "three" },
                         SomeBytea = new byte[] { 5, 6, 7 },
                         SomeByteArray = new byte[] { 5, 6, 7 },
                         SomeMatrix = new[,] { { 10, 11 }, { 12, 13 } },
@@ -410,6 +471,7 @@ WHERE (get_byte(s.""SomeBytea"", 0) = 3) AND get_byte(s.""SomeBytea"", 0) IS NOT
         {
             public int Id { get; set; }
             public int[] SomeArray { get; set; }
+            public string[] SomeStringArray { get; set; }
             public int[,] SomeMatrix { get; set; }
             public byte[] SomeBytea { get; set; }
             public byte[] SomeByteArray { get; set; }
