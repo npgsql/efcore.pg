@@ -388,13 +388,24 @@ WHERE (get_byte(s.""SomeBytea"", 0) = 3) AND get_byte(s.""SomeBytea"", 0) IS NOT
         {
             using var ctx = CreateContext();
 
-            var found = ctx.SomeEntities.FirstOrDefault(x => x.SomeStringArray.Join(" ") == "foo bar");
-            var found2 = ctx.SomeEntities.FirstOrDefault(x => x.SomeStringArray.Join("") == "foobar");
+            var found = ctx.SomeEntities.FirstOrDefault(x => string.Join(",", x.SomeStringArray) == "foo,,bar");
+            var found2 = ctx.SomeEntities.FirstOrDefault(x => string.Join("", x.SomeStringArray) == "foobar");
+
             Assert.NotNull(found);
             Assert.NotNull(found2);
             Assert.Contains("array_to_string", Fixture.TestSqlLoggerFactory.Sql);
         }
 
+        [Fact]
+        public void String_Join_null_array()
+        {
+            using var ctx = CreateContext();
+
+            var found = ctx.SomeEntities.FirstOrDefault(x => string.Join(",", x.SomeArray) == null);
+
+            Assert.NotNull(found);
+            Assert.Equal(3, found.Id);
+        }
         #endregion
 
         #region Support
@@ -440,6 +451,17 @@ WHERE (get_byte(s.""SomeBytea"", 0) = 3) AND get_byte(s.""SomeBytea"", 0) IS NOT
                         SomeMatrix = new[,] { { 10, 11 }, { 12, 13 } },
                         SomeText = "bar",
                         SomeByte = 20
+                    },
+                    new SomeArrayEntity
+                    {
+                        Id = 3,
+                        SomeArray = null,
+                        SomeStringArray = null,
+                        SomeBytea = new byte[] { 1, 2, 3 },
+                        SomeByteArray = new byte[] { 1, 2, 3 },
+                        SomeMatrix = new[,] { { 1, 2 }, { 3, 4 } },
+                        SomeText = "abc",
+                        SomeByte = 30
                     });
                 context.SaveChanges();
             }

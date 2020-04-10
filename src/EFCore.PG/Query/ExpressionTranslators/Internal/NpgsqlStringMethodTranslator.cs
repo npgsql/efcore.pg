@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using JetBrains.Annotations;
@@ -251,12 +252,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 return TranslateStartsEndsWith(instance, arguments[0], false);
 
 
-            if (method == StringJoinString || method == StringJoinObject || method == StringJoinIEnumerable
-                || method.IsClosedFormOf(StringJoinGeneric))
+            if (method == StringJoinString ||
+                method == StringJoinObject ||
+                method == StringJoinIEnumerable ||
+                method.IsClosedFormOf(StringJoinGeneric))
             {
-                return _sqlExpressionFactory.Function("array_to_string", new[] { arguments[1], arguments[0] },
+                return _sqlExpressionFactory.Function(
+                    "array_to_string",
+                    new[] { arguments[1], arguments[0], _sqlExpressionFactory.Constant("") },
                     nullable: true,
-                    argumentsPropagateNullability: FalseArrays[2],
+                    argumentsPropagateNullability: new[] { true, true, false },
                     typeof(string));
             }
 
