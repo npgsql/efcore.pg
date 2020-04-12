@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
@@ -369,7 +370,10 @@ WHERE (get_byte(s.""SomeBytea"", 0) = 3) AND get_byte(s.""SomeBytea"", 0) IS NOT
             using var ctx = CreateContext();
 
             var found = ctx.SomeEntities.FirstOrDefault(x => string.Join(" ", x.SomeArray) == "3 4");
+            var found2 = ctx.SomeEntities.FirstOrDefault(x => string.Join(' ', x.SomeArray) == "3 4");
+
             Assert.NotNull(found);
+            Assert.True(found == found2);
             Assert.Contains("array_to_string", Fixture.TestSqlLoggerFactory.Sql);
         }
 
@@ -379,7 +383,10 @@ WHERE (get_byte(s.""SomeBytea"", 0) = 3) AND get_byte(s.""SomeBytea"", 0) IS NOT
             using var ctx = CreateContext();
 
             var found = ctx.SomeEntities.FirstOrDefault(x => string.Join(" ", x.SomeStringArray) == "one two three");
+            var found2 = ctx.SomeEntities.FirstOrDefault(x => string.Join(' ', x.SomeStringArray) == "one two three");
+
             Assert.NotNull(found);
+            Assert.True(found == found2);
             Assert.Contains("array_to_string", Fixture.TestSqlLoggerFactory.Sql);
         }
 
@@ -405,6 +412,44 @@ WHERE (get_byte(s.""SomeBytea"", 0) = 3) AND get_byte(s.""SomeBytea"", 0) IS NOT
 
             Assert.NotNull(found);
             Assert.Equal(3, found.Id);
+        }
+
+        [Fact]
+        public void String_Join_with_constants()
+        {
+            using var ctx = CreateContext();
+
+            var found = ctx.SomeEntities.FirstOrDefault(x =>
+                string.Join(",", new int[] { 1, 2, 3 }) == "1,2,3" && x.Id == 1);
+
+            Assert.NotNull(found);
+            Assert.Equal(1, found.Id);
+            AssertSql(
+                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeByte"", s.""SomeByteArray"", s.""SomeBytea"", s.""SomeMatrix"", s.""SomeStringArray"", s.""SomeText""
+FROM ""SomeEntities"" AS s
+WHERE s.""Id"" = 1
+LIMIT 1");
+        }
+
+        [Fact]
+        public void String_Join_with_array_literal()
+        {
+            using var ctx = CreateContext();
+
+            var found = ctx.SomeEntities.FirstOrDefault(x =>
+                string.Join(x.SomeText, new string[] { "foo", "bar" }) == "foofoobar");
+
+            Assert.NotNull(found);
+            Assert.Equal(1, found.Id);
+        }
+
+        [Fact]
+        public void String_Join_String_throws_exception()
+        {
+            using var ctx = CreateContext();
+
+            Assert.Throws<InvalidOperationException>(() =>
+                ctx.SomeEntities.FirstOrDefault(x => string.Join(x.SomeText, (IEnumerable<char>)"foobar") == null));
         }
         #endregion
 
