@@ -1549,6 +1549,27 @@ CREATE TABLE identity (
                 },
                 "DROP TABLE identity");
 
+
+        [Fact]
+        public void Column_collation_is_set()
+            => Test(
+                @"
+CREATE TABLE columns_with_collation (
+    id int,
+    default_collation TEXT,
+    non_default_collation TEXT COLLATE ""POSIX""
+);",
+                Enumerable.Empty<string>(),
+                Enumerable.Empty<string>(),
+                dbModel =>
+                {
+                    var columns = dbModel.Tables.Single().Columns;
+
+                    Assert.Null(columns.Single(c => c.Name == "default_collation").Collation);
+                    Assert.Equal("POSIX", columns.Single(c => c.Name == "non_default_collation").Collation);
+                },
+                @"DROP TABLE columns_with_collation");
+
         [Fact]
         public void Index_method()
             => Test(@"
