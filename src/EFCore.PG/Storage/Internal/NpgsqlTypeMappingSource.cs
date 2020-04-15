@@ -557,6 +557,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 var openParen = storeTypeName.IndexOf("(", StringComparison.Ordinal);
                 if (openParen > 0)
                 {
+                    var preParens = storeTypeName.Substring(0, openParen).Trim();
                     var closeParen = storeTypeName.IndexOf(")", openParen + 1, StringComparison.Ordinal);
                     if (closeParen > openParen)
                     {
@@ -577,12 +578,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                         else if (int.TryParse(
                             storeTypeName.Substring(openParen + 1, closeParen - openParen - 1).Trim(), out var parsedSize))
                         {
+                            if (StoreTypeNameBaseUsesPrecision(preParens))
+                            {
+                                precision = parsedSize;
+                                scale = 0;
+                            }
+                            else
+                            {
+                                size = parsedSize;
+                            }
+
                             size = parsedSize;
                             precision = parsedSize;
                         }
 
-                        // There may be stuff after the closing parentheses (e.g. varchar(32)[])
-                        var preParens = storeTypeName.Substring(0, openParen).Trim();
+                        // There may be stuff after the closing parentheses (e.g. varchar(32)[], timestamp(3) with time zone)
                         var postParens = storeTypeName.Substring(closeParen + 1).TrimEnd();
                         return postParens.Length > 0
                             ? preParens + postParens
@@ -593,5 +603,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
             return storeTypeName;
         }
+
+        protected override bool StoreTypeNameBaseUsesPrecision(string storeTypeNameBase)
+            => storeTypeNameBase switch
+            {
+                "decimal" => true,
+                "dec" => true,
+                "numeric" => true,
+                "timestamp" => true,
+                "timestamptz" => true,
+                "time" => true,
+                "interval" => true,
+                _ => false
+            };
     }
 }
