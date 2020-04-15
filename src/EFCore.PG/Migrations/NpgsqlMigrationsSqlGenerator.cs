@@ -759,7 +759,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             {
                 builder
                     .AppendLine()
-                    .Append("COLLATE ")
+                    .Append("LC_COLLATE ")
                     .Append(DelimitIdentifier(operation.Collation));
             }
 
