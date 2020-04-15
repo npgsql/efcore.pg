@@ -218,5 +218,29 @@ namespace Microsoft.EntityFrameworkCore
 
         #endregion
 
+
+        #region Collation management
+
+        public static PostgresCollation GetOrAddCollation(
+            [NotNull] this IMutableModel model,
+            [CanBeNull] string schema,
+            [NotNull] string name,
+            [CanBeNull] string lcCollate = null,
+            [CanBeNull] string lcCtype = null,
+            [CanBeNull] string provider = null,
+            [CanBeNull] bool? deterministic = null)
+            => PostgresCollation.GetOrAddCollation(
+                model,
+                schema,
+                name,
+                lcCollate,
+                lcCtype,
+                provider,
+                deterministic);
+
+        public static IReadOnlyList<PostgresCollation> GetCollations([NotNull] this IModel model)
+            => PostgresCollation.GetCollations(model).ToArray();
+
+        #endregion Collation management
     }
 }

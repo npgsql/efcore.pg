@@ -135,6 +135,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
                 }
 
                 GetExtensions(connection, databaseModel);
+                GetCollations(connection, databaseModel);
 
                 for (var i = 0; i < databaseModel.Tables.Count; i++)
                 {
@@ -910,6 +911,51 @@ GROUP BY nspname, typname";
                     // TODO: how/should we query the schema?
                     databaseModel.GetOrAddPostgresExtension(null, name, installedVersion);
                 }
+            }
+        }
+
+
+        void GetCollations(NpgsqlConnection connection, DatabaseModel databaseModel)
+        {
+            var commandText = @$"
+SELECT
+    nspname, collname, collprovider, collcollate, collctype,
+    {(connection.PostgreSqlVersion >= new Version(12, 0) ? "collisdeterministic" : "true AS collisdeterministic")}
+FROM pg_collation coll
+    JOIN pg_namespace ns ON ns.oid=coll.collnamespace
+    JOIN pg_authid auth ON auth.oid = coll.collowner WHERE rolname <> 'postgres';
+";
+
+            using var command = new NpgsqlCommand(commandText, connection);
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
+            {
+                var name = reader.GetString(reader.GetOrdinal("collname"));
+                var providerCode = reader.GetChar(reader.GetOrdinal("collprovider"));
+                string? provider;
+                switch (providerCode)
+                {
+                case 'c':
+                    provider = "libc";
+                    break;
+                case 'i':
+                    provider = "icu";
+                    break;
+                case 'd':
+                    provider = null;
+                    break;
+                default:
+                    _logger.Logger.LogWarning($"Unknown collation provider code {providerCode} for collation {name}, skipping.");
+                    continue;
+                }
+
+                PostgresCollation.GetOrAddCollation(databaseModel,
+                    reader.GetString(reader.GetOrdinal("nspname")),
+                    name,
+                    reader.GetString(reader.GetOrdinal("collcollate")),
+                    reader.GetString(reader.GetOrdinal("collctype")),
+                    provider,
+                    reader.GetBoolean(reader.GetOrdinal("collisdeterministic")));
             }
         }
 
