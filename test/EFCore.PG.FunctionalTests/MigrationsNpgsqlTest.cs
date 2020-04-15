@@ -2175,6 +2175,78 @@ WHERE ""Id"" = 2;");
 
         #endregion
 
+        #region PostgreSQL collation management
+
+        [Fact]
+        public virtual async Task Create_collation()
+        {
+            await Test(
+                builder => { },
+                builder => builder.HasCollation("dummy", locale: "POSIX", provider: "libc"),
+                model =>
+                {
+                    var collation = Assert.Single(PostgresCollation.GetCollations(model));
+
+                    Assert.Equal("dummy", collation.Name);
+                    Assert.Equal("libc", collation.Provider);
+                    Assert.Equal("POSIX", collation.LcCollate);
+                    Assert.Equal("POSIX", collation.LcCtype);
+                    Assert.True(collation.IsDeterministic);
+                });
+
+            AssertSql(
+                @"CREATE COLLATION dummy (LC_COLLATE = 'POSIX',
+    LC_CTYPE = 'POSIX',
+    PROVIDER = libc
+);");
+        }
+
+        [ConditionalFact]
+        [MinimumPostgresVersion(12, 0)]
+        public virtual async Task Create_collation_non_deterministic()
+        {
+            await Test(
+                builder => { },
+                builder => builder.HasCollation("some_collation", locale: "en-u-ks-primary", provider: "icu", deterministic: false),
+                model =>
+                {
+                    var collation = Assert.Single(PostgresCollation.GetCollations(model));
+
+                    Assert.Equal("some_collation", collation.Name);
+                    Assert.Equal("icu", collation.Provider);
+                    Assert.Equal("en-u-ks-primary", collation.LcCollate);
+                    Assert.Equal("en-u-ks-primary", collation.LcCtype);
+                    Assert.False(collation.IsDeterministic);
+                });
+
+            AssertSql(
+                @"CREATE COLLATION some_collation (LC_COLLATE = 'en-u-ks-primary',
+    LC_CTYPE = 'en-u-ks-primary',
+    PROVIDER = icu,
+    DETERMINISTIC = False
+);");
+        }
+
+        [Fact]
+        public virtual async Task Drop_collation()
+        {
+            await Test(
+                builder => builder.HasCollation("dummy", locale: "POSIX", provider: "libc"),
+                builder => { },
+                model => Assert.Empty(PostgresCollation.GetCollations(model)));
+
+            AssertSql(
+                @"DROP COLLATION dummy;");
+        }
+
+        [Fact]
+        public virtual Task Alter_collation_throws()
+            => TestThrows<NotSupportedException>(
+                builder => builder.HasCollation("dummy", locale: "POSIX", provider: "libc"),
+                builder => builder.HasCollation("dummy", locale: "C", provider: "libc"));
+
+        #endregion PostgreSQL collation management
+
         protected override string NonDefaultCollation => "POSIX";
 
         public class MigrationsNpgsqlFixture : MigrationsFixtureBase

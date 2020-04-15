@@ -471,6 +471,121 @@ namespace Microsoft.EntityFrameworkCore
 
         #endregion
 
+        #region Collation management
+
+        /// <summary>
+        /// Creates a new collation in the database.
+        /// </summary>
+        /// <remarks>
+        /// See https://www.postgresql.org/docs/current/sql-createcollation.html.
+        /// </remarks>
+        /// <param name="modelBuilder">The model builder on which to create the collation.</param>
+        /// <param name="name">The name of the collation to create.</param>
+        /// <param name="locale">Sets LC_COLLATE and LC_CTYPE at once.</param>
+        /// <param name="provider">
+        /// Specifies the provider to use for locale services associated with this collation.
+        /// The available choices depend on the operating system and build options.</param>
+        /// <param name="deterministic">
+        /// Specifies whether the collation should use deterministic comparisons.
+        /// Defaults to <c>true</c>.
+        /// </param>
+        /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+        [NotNull]
+        public static ModelBuilder HasCollation(
+            [NotNull] this ModelBuilder modelBuilder,
+            [NotNull] string name,
+            [NotNull] string locale,
+            [CanBeNull] string provider = null,
+            [CanBeNull] bool? deterministic = null)
+        => modelBuilder.HasCollation(schema: null, name, locale, provider: provider, deterministic: deterministic);
+
+        /// <summary>
+        /// Creates a new collation in the database.
+        /// </summary>
+        /// <remarks>
+        /// See https://www.postgresql.org/docs/current/sql-createcollation.html.
+        /// </remarks>
+        /// <param name="modelBuilder">The model builder on which to create the collation.</param>
+        /// <param name="schema">The schema in which to create the collation, or <c>null</c> for the default schema.</param>
+        /// <param name="name">The name of the collation to create.</param>
+        /// <param name="locale">Sets LC_COLLATE and LC_CTYPE at once.</param>
+        /// <param name="provider">
+        /// Specifies the provider to use for locale services associated with this collation.
+        /// The available choices depend on the operating system and build options.</param>
+        /// <param name="deterministic">
+        /// Specifies whether the collation should use deterministic comparisons.
+        /// Defaults to <c>true</c>.
+        /// </param>
+        /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+        [NotNull]
+        public static ModelBuilder HasCollation(
+            [NotNull] this ModelBuilder modelBuilder,
+            [CanBeNull] string schema,
+            [NotNull] string name,
+            [NotNull] string locale,
+            [CanBeNull] string provider = null,
+            [CanBeNull] bool? deterministic = null)
+        {
+            Check.NotNull(modelBuilder, nameof(modelBuilder));
+            Check.NotEmpty(name, nameof(name));
+            Check.NotEmpty(locale, nameof(locale));
+
+            modelBuilder.Model.GetOrAddCollation(
+                schema,
+                name,
+                locale,
+                locale,
+                provider,
+                deterministic);
+            return modelBuilder;
+        }
+
+        /// <summary>
+        /// Creates a new collation in the database.
+        /// </summary>
+        /// <remarks>
+        /// See https://www.postgresql.org/docs/current/sql-createcollation.html.
+        /// </remarks>
+        /// <param name="modelBuilder">The model builder on which to create the collation.</param>
+        /// <param name="schema">The schema in which to create the collation, or <c>null</c> for the default schema.</param>
+        /// <param name="name">The name of the collation to create.</param>
+        /// <param name="lcCollate">Use the specified operating system locale for the LC_COLLATE locale category.</param>
+        /// <param name="lcCtype">Use the specified operating system locale for the LC_CTYPE locale category.</param>
+        /// <param name="provider">
+        /// Specifies the provider to use for locale services associated with this collation.
+        /// The available choices depend on the operating system and build options.</param>
+        /// <param name="deterministic">
+        /// Specifies whether the collation should use deterministic comparisons.
+        /// Defaults to <c>true</c>.
+        /// </param>
+        /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+        [NotNull]
+        public static ModelBuilder HasCollation(
+            [NotNull] this ModelBuilder modelBuilder,
+            [CanBeNull] string schema,
+            [NotNull] string name,
+            [NotNull] string lcCollate,
+            [NotNull] string lcCtype,
+            [CanBeNull] string provider = null,
+            [CanBeNull] bool? deterministic = null)
+        {
+            Check.NotNull(modelBuilder, nameof(modelBuilder));
+            Check.NotEmpty(name, nameof(name));
+            Check.NotEmpty(lcCollate, nameof(lcCollate));
+            Check.NotEmpty(lcCtype, nameof(lcCtype));
+
+            modelBuilder.Model.GetOrAddCollation(
+                schema,
+                name,
+                lcCollate,
+                lcCtype,
+                provider,
+                deterministic);
+            return modelBuilder;
+        }
+
+        #endregion Collation management
+
         #region Helpers
 
         // See: https://github.com/npgsql/npgsql/blob/dev/src/Npgsql/TypeMapping/TypeMapperBase.cs#L132-L138
