@@ -62,7 +62,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 if (selectExpression.Limit == null)
                     Sql.AppendLine();
                 else
-                    Sql.Append(' ');
+                    Sql.Append(" ");
 
                 Sql.Append("OFFSET ");
                 Visit(selectExpression.Offset);
@@ -159,9 +159,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         protected virtual Expression VisitArrayIndex([NotNull] SqlBinaryExpression expression)
         {
             Visit(expression.Left);
-            Sql.Append('[');
+            Sql.Append("[");
             Visit(expression.Right);
-            Sql.Append(']');
+            Sql.Append("]");
             return expression;
         }
 
@@ -196,7 +196,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 sqlUnaryExpression.Operand.TypeMapping.ClrType == typeof(IPAddress) ||
                 sqlUnaryExpression.Operand.TypeMapping.ClrType == typeof((IPAddress, int)) ||
                 sqlUnaryExpression.Operand.TypeMapping.ClrType == typeof(PhysicalAddress):
-                Sql.Append('~');
+                Sql.Append("~");
                 Visit(sqlUnaryExpression.Operand);
                 return sqlUnaryExpression;
 
@@ -248,13 +248,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         public virtual Expression VisitArrayAnyAll([NotNull] ArrayAnyAllExpression expression)
         {
             Visit(expression.Operand);
-            Sql.Append(' ');
+            Sql.Append(" ");
             Sql.Append(expression.Operator);
-            Sql.Append(' ');
+            Sql.Append(" ");
             Sql.Append(expression.ArrayComparisonType == ArrayComparisonType.All ? "ALL" : "ANY");
             Sql.Append(" (");
             Visit(expression.Array);
-            Sql.Append(')');
+            Sql.Append(")");
             return expression;
         }
 
@@ -265,9 +265,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         public virtual Expression VisitArrayIndex([NotNull] ArrayIndexExpression expression)
         {
             Visit(expression.Array);
-            Sql.Append('[');
+            Sql.Append("[");
             Visit(expression.Index);
-            Sql.Append(']');
+            Sql.Append("]");
             return expression;
         }
 
@@ -298,20 +298,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 
             Sql.Append("('(?");
             if (options.HasFlag(RegexOptions.IgnoreCase))
-                Sql.Append('i');
+                Sql.Append("i");
 
             if (options.HasFlag(RegexOptions.Multiline))
-                Sql.Append('n');
+                Sql.Append("n");
             else if (!options.HasFlag(RegexOptions.Singleline))
                 // In .NET's default mode, . doesn't match newlines but PostgreSQL it does.
-                Sql.Append('p');
+                Sql.Append("p");
 
             if (options.HasFlag(RegexOptions.IgnorePatternWhitespace))
-                Sql.Append('x');
+                Sql.Append("x");
 
             Sql.Append(")' || ");
             Visit(expression.Pattern);
-            Sql.Append(')');
+            Sql.Append(")");
 
             return expression;
         }
@@ -392,7 +392,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 {
                     Visit(expression.Path[i]);
                     if (i < expression.Path.Length - 1)
-                        Sql.Append(',');
+                        Sql.Append(",");
                 }
                 Sql.Append("]::TEXT[]");
             }
@@ -410,13 +410,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         [NotNull]
         public virtual Expression VisitCustomBinary([NotNull] SqlCustomBinaryExpression expression)
         {
-            Sql.Append('(');
+            Sql.Append("(");
             Visit(expression.Left);
-            Sql.Append(' ');
+            Sql.Append(" ");
             Sql.Append(expression.Operator);
-            Sql.Append(' ');
+            Sql.Append(" ");
             Visit(expression.Right);
-            Sql.Append(')');
+            Sql.Append(")");
 
             return expression;
         }

@@ -109,7 +109,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
             expressionPrinter.Visit(Operand);
             expressionPrinter.Append($" = {Operator} (");
             expressionPrinter.Visit(Array);
-            expressionPrinter.Append(')');
+            expressionPrinter.Append(")");
         }
 
         /// <inheritdoc />
