@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities.Xunit;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -63,7 +62,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             AssertContainsSql(@"word_similarity(t.""Text"", 'target')");
         }
 
-        [MinimumPostgresVersionFact(11, 0)]
+        [ConditionalFact]
+        [MinimumPostgresVersion(11, 0)]
         public void TrigramsStrictWordSimilarity()
         {
             using var context = CreateContext();
@@ -107,7 +107,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             AssertContainsSql(@"t.""Text"" %> 'target'");
         }
 
-        [MinimumPostgresVersionFact(11, 0)]
+        [ConditionalFact]
+        [MinimumPostgresVersion(11, 0)]
         public void TrigramsAreStrictWordSimilar()
         {
             using var context = CreateContext();
@@ -118,7 +119,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             AssertContainsSql(@"t.""Text"" <<% 'target'");
         }
 
-        [MinimumPostgresVersionFact(11, 0)]
+        [ConditionalFact]
+        [MinimumPostgresVersion(11, 0)]
         public void TrigramsAreNotStrictWordSimilar()
         {
             using var context = CreateContext();
@@ -162,7 +164,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             AssertContainsSql(@"t.""Text"" <->> 'target'");
         }
 
-        [MinimumPostgresVersionFact(11, 0)]
+        [ConditionalFact]
+        [MinimumPostgresVersion(11, 0)]
         public void TrigramsStrictWordSimilarityDistance()
         {
             using var context = CreateContext();
@@ -173,7 +176,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             AssertContainsSql(@"t.""Text"" <<<-> 'target'");
         }
 
-        [MinimumPostgresVersionFact(11, 0)]
+        [ConditionalFact]
+        [MinimumPostgresVersion(11, 0)]
         public void TrigramsStrictWordSimilarityDistanceInverted()
         {
             using var context = CreateContext();
