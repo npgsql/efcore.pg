@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations.Operations;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Operations
 {
-    public class NpgsqlCreateDatabaseOperation : MigrationOperation
+    public class NpgsqlCreateDatabaseOperation : DatabaseOperation
     {
         public virtual string Name { get;[param: NotNull] set; }
         [CanBeNull]

@@ -10,7 +10,6 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Microsoft.EntityFrameworkCore.Storage;
-using Npgsql.EntityFrameworkCore.PostgreSQL;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
@@ -353,11 +352,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             var alterBase = $"ALTER TABLE {DelimitIdentifier(operation.Table, operation.Schema)} " +
                             $"ALTER COLUMN {DelimitIdentifier(operation.Name)} ";
 
-            // TYPE
+            // TYPE + COLLATION
             builder.Append(alterBase)
                 .Append("TYPE ")
-                .Append(type)
-                .AppendLine(";");
+                .Append(type);
+
+            if (operation.Collation != operation.OldColumn.Collation)
+                builder.Append(" COLLATE ").Append(DelimitIdentifier(operation.Collation ?? "default"));
+
+            builder.AppendLine(";");
 
             // NOT NULL
             builder.Append(alterBase)
@@ -736,18 +739,28 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 .Append("CREATE DATABASE ")
                 .Append(DelimitIdentifier(operation.Name));
 
-            if (operation.Template != null)
+            if (!string.IsNullOrEmpty(operation.Template))
             {
                 builder
-                    .Append(" TEMPLATE ")
+                    .AppendLine()
+                    .Append("TEMPLATE ")
                     .Append(DelimitIdentifier(operation.Template));
             }
 
-            if (operation.Tablespace != null)
+            if (!string.IsNullOrEmpty(operation.Tablespace))
             {
                 builder
-                    .Append(" TABLESPACE ")
+                    .AppendLine()
+                    .Append("TABLESPACE ")
                     .Append(DelimitIdentifier(operation.Tablespace));
+            }
+
+            if (!string.IsNullOrEmpty(operation.Collation))
+            {
+                builder
+                    .AppendLine()
+                    .Append("COLLATE ")
+                    .Append(DelimitIdentifier(operation.Collation));
             }
 
             builder.AppendLine(";");
@@ -781,6 +794,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(model, nameof(model));
             Check.NotNull(builder, nameof(builder));
+
+            if (operation.Collation != operation.OldDatabase.Collation)
+                throw new NotSupportedException("PostgreSQL does not support altering the collation on an existing database.");
 
             GenerateEnumStatements(operation, model, builder);
             GenerateRangeStatements(operation, model, builder);
@@ -1174,13 +1190,29 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 operation.ComputedColumnSql = ColumnsToTsVector(tsVectorIncludedColumns, tsVectorConfig, model, schema, table);
             }
 
-            base.ColumnDefinition(
-                schema,
-                table,
-                name,
-                operation,
-                model,
-                builder);
+            if (operation.ComputedColumnSql != null)
+            {
+                ComputedColumnDefinition(schema, table, name, operation, model, builder);
+
+                return;
+            }
+
+            var columnType = operation.ColumnType ?? GetColumnType(schema, table, name, operation, model);
+            builder
+                .Append(DelimitIdentifier(name))
+                .Append(" ")
+                .Append(columnType);
+
+            if (operation.Collation != null)
+            {
+                builder
+                    .Append(" COLLATE ")
+                    .Append(DelimitIdentifier(operation.Collation));
+            }
+
+            builder.Append(operation.IsNullable ? " NULL" : " NOT NULL");
+
+            DefaultValue(operation.DefaultValue, operation.DefaultValueSql, columnType, builder);
 
             if (valueGenerationStrategy.IsIdentity())
                 IdentityDefinition(operation, builder);
@@ -1302,7 +1334,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             builder
                 .Append(DelimitIdentifier(name))
                 .Append(" ")
-                .Append(operation.ColumnType ?? GetColumnType(schema, table, name, operation, model))
+                .Append(operation.ColumnType ?? GetColumnType(schema, table, name, operation, model));
+
+            if (operation.Collation != null)
+            {
+                builder
+                    .Append(" COLLATE ")
+                    .Append(DelimitIdentifier(operation.Collation));
+            }
+
+            builder
                 .Append(" GENERATED ALWAYS AS (")
                 .Append(operation.ComputedColumnSql)
                 .Append(") STORED");

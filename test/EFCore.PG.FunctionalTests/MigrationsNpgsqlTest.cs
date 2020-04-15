@@ -53,7 +53,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 @"CREATE TABLE dbo2.""People"" (
     ""CustomId"" integer NOT NULL,
     ""EmployerId"" integer NOT NULL,
-    ""SSN"" character varying(11) NOT NULL,
+    ""SSN"" character varying(11) COLLATE ""POSIX"" NOT NULL,
     CONSTRAINT ""PK_People"" PRIMARY KEY (""CustomId""),
     CONSTRAINT ""AK_People_SSN"" UNIQUE (""SSN""),
     CONSTRAINT ""CK_EmployerId"" CHECK (""EmployerId"" > 0),
@@ -531,6 +531,30 @@ ALTER TABLE ""People"" RESET (user_catalog_table);");
             AssertSql(
                 @"ALTER TABLE ""People"" ADD ""FullName"" text NULL;
 COMMENT ON COLUMN ""People"".""FullName"" IS 'My comment';");
+        }
+
+        [ConditionalFact]
+        public override async Task Add_column_with_collation()
+        {
+            await base.Add_column_with_collation();
+
+            AssertSql(
+                @"ALTER TABLE ""People"" ADD ""Name"" text COLLATE ""POSIX"" NULL;");
+        }
+
+        [ConditionalFact]
+        public override async Task Add_column_computed_with_collation()
+        {
+            if (TestEnvironment.PostgresVersion.IsUnder(12))
+            {
+                await Assert.ThrowsAsync<NotSupportedException>(() => base.Add_column_computed_with_collation());
+                return;
+            }
+
+            await base.Add_column_computed_with_collation();
+
+            AssertSql(
+                @"ALTER TABLE ""People"" ADD ""Name"" text COLLATE ""POSIX"" GENERATED ALWAYS AS ('hello') STORED;");
         }
 
         public override async Task Add_column_shared()
@@ -1265,6 +1289,28 @@ ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET NOT NULL;");
                 @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" TYPE integer;
 ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET NOT NULL;
 ALTER TABLE ""People"" ALTER COLUMN ""Id"" RESTART WITH 20;");
+        }
+
+        [Fact]
+        public override async Task Alter_column_set_collation()
+        {
+            await base.Alter_column_set_collation();
+
+            AssertSql(
+                @"ALTER TABLE ""People"" ALTER COLUMN ""Name"" TYPE text COLLATE ""POSIX"";
+ALTER TABLE ""People"" ALTER COLUMN ""Name"" DROP NOT NULL;
+ALTER TABLE ""People"" ALTER COLUMN ""Name"" DROP DEFAULT;");
+        }
+
+        [Fact]
+        public override async Task Alter_column_reset_collation()
+        {
+            await base.Alter_column_reset_collation();
+
+            AssertSql(
+                @"ALTER TABLE ""People"" ALTER COLUMN ""Name"" TYPE text COLLATE ""default"";
+ALTER TABLE ""People"" ALTER COLUMN ""Name"" DROP NOT NULL;
+ALTER TABLE ""People"" ALTER COLUMN ""Name"" DROP DEFAULT;");
         }
 
         public override async Task Drop_column()
@@ -2128,6 +2174,8 @@ WHERE ""Id"" = 2;");
                 builder => builder.HasPostgresEnum("Mood", new[] { "Happy", "Angry" }));
 
         #endregion
+
+        protected override string NonDefaultCollation => "POSIX";
 
         public class MigrationsNpgsqlFixture : MigrationsFixtureBase
         {

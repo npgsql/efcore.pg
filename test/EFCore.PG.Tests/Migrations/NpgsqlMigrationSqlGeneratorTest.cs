@@ -23,6 +23,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 ");
         }
 
+        [ConditionalFact]
+        public virtual void CreateDatabaseOperation_with_collation()
+        {
+            Generate(
+                new NpgsqlCreateDatabaseOperation { Name = "Northwind", Collation = "POSIX" });
+
+            AssertSql(
+                @"CREATE DATABASE ""Northwind""
+COLLATE ""POSIX"";
+");
+        }
+
         [Fact]
         public virtual void CreateDatabaseOperation_with_template()
         {
@@ -33,7 +45,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             });
 
             AssertSql(
-                @"CREATE DATABASE ""Northwind"" TEMPLATE ""MyTemplate"";
+                @"CREATE DATABASE ""Northwind""
+TEMPLATE ""MyTemplate"";
 ");
         }
 
@@ -47,7 +60,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             });
 
             AssertSql(
-                @"CREATE DATABASE some_db TABLESPACE ""MyTablespace"";
+                @"CREATE DATABASE some_db
+TABLESPACE ""MyTablespace"";
 ");
         }
 
