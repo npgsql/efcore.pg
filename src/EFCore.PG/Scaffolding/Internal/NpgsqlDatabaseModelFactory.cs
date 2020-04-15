@@ -108,6 +108,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
                 databaseModel.DatabaseName = connection.Database;
                 databaseModel.DefaultSchema = "public";
 
+                PopulateGlobalDatabaseInfo(connection, databaseModel);
+
                 var schemaList = options.Schemas.ToList();
                 var schemaFilter = GenerateSchemaFilter(schemaList);
                 var tableList = options.Tables.ToList();
@@ -177,6 +179,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
         #endregion
 
         #region Type information queries
+
+        static void PopulateGlobalDatabaseInfo(NpgsqlConnection connection, DatabaseModel databaseModel)
+        {
+            var commandText = @"SELECT datcollate FROM pg_database WHERE datname=current_database()";
+            using var command = new NpgsqlCommand(commandText, connection);
+            using var reader = command.ExecuteReader();
+            reader.Read();
+            databaseModel.Collation = reader.GetString(0);
+        }
 
         /// <summary>
         /// Queries the database for defined tables and registers them with the model.
