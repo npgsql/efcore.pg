@@ -73,7 +73,7 @@ jobs:
         uses: actions/setup-dotnet@1.4.0
 
       - name: Test
-        run: dotnet test --configuration Debug
+        run: dotnet test --configuration Debug --logger GitHubActions
         shell: bash
 
   publish:
