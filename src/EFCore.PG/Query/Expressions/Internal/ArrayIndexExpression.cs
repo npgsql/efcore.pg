@@ -77,9 +77,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         public override void Print(ExpressionPrinter expressionPrinter)
         {
             expressionPrinter.Visit(Array);
-            expressionPrinter.Append('[');
+            expressionPrinter.Append("[");
             expressionPrinter.Visit(Index);
-            expressionPrinter.Append(']');
+            expressionPrinter.Append("]");
         }
 
         public override string ToString() => $"{Array}[{Index}]";
