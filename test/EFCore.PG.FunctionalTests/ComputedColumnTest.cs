@@ -3,14 +3,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities.Xunit;
 using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
+    [MinimumPostgresVersion(12, 0)]
     public class ComputedColumnTest : IDisposable
     {
-        [MinimumPostgresVersionFact(12, 0)]
+        [ConditionalFact]
         public void Can_use_computed_columns()
         {
             var serviceProvider = new ServiceCollection()
@@ -28,7 +28,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             Assert.Equal(100, entity.P5);
         }
 
-        [MinimumPostgresVersionFact(12, 0)]
+        [ConditionalFact]
         public void Can_use_computed_columns_with_null_values()
         {
             var serviceProvider = new ServiceCollection()
@@ -126,7 +126,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                     .HasComputedColumnSql(@"""FlagEnum"" | ""OptionalFlagEnum""");
         }
 
-        [MinimumPostgresVersionFact(12, 0)]
+        [ConditionalFact]
         public void Can_use_computed_columns_with_nullable_enum()
         {
             var serviceProvider = new ServiceCollection()

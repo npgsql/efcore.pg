@@ -3,7 +3,7 @@ using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestModels.Northwind;
 using Microsoft.EntityFrameworkCore.TestUtilities;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities.Xunit;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using NpgsqlTypes;
 using Xunit;
 using Xunit.Abstractions;
@@ -240,7 +240,8 @@ FROM ""Customers"" AS c
 LIMIT 1");
         }
 
-        [MinimumPostgresVersionFact(11, 0)]
+        [ConditionalFact]
+        [MinimumPostgresVersion(11, 0)]
         public void WebSearchToTsQuery()
         {
             using var context = CreateContext();
@@ -253,7 +254,8 @@ FROM ""Customers"" AS c
 LIMIT 1");
         }
 
-        [MinimumPostgresVersionFact(11, 0)]
+        [ConditionalFact]
+        [MinimumPostgresVersion(11, 0)]
         public void WebSearchToTsQuery_With_Config()
         {
             using var context = CreateContext();
@@ -266,7 +268,8 @@ FROM ""Customers"" AS c
 LIMIT 1");
         }
 
-        [MinimumPostgresVersionFact(11, 0)]
+        [ConditionalFact]
+        [MinimumPostgresVersion(11, 0)]
         public void WebSearchToTsQuery_With_Config_From_Variable()
         {
             using var context = CreateContext();

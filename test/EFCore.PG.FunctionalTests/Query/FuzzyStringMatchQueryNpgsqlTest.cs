@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities.Xunit;
 using Xunit;
 using Xunit.Abstractions;
 

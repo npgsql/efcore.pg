@@ -7,7 +7,6 @@ using System.Net.NetworkInformation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities.Xunit;
 using Xunit;
 using Xunit.Abstractions;
 // ReSharper disable ConvertToConstant.Local
@@ -148,7 +147,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             AssertContainsSql(@"""Macaddr"" < MACADDR '123456000007'");
         }
 
-        [MinimumPostgresVersionFact(10, 0)]
+        [ConditionalFact]
+        [MinimumPostgresVersion(10, 0)]
         public void PhysicalAddress_macaddr8_LessThan_macaddr8()
         {
             using var context = CreateContext();
@@ -190,7 +190,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             AssertContainsSql(@"""Macaddr"" <= MACADDR '123456000007'");
         }
 
-        [MinimumPostgresVersionFact(10, 0)]
+        [ConditionalFact]
+        [MinimumPostgresVersion(10, 0)]
         public void PhysicalAddress_macaddr8_LessThanOrEqual_macaddr8()
         {
             using var context = CreateContext();
@@ -232,7 +233,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             AssertContainsSql(@"""Macaddr"" >= MACADDR '123456000007'");
         }
 
-        [MinimumPostgresVersionFact(10, 0)]
+        [ConditionalFact]
+        [MinimumPostgresVersion(10, 0)]
         public void PhysicalAddress_macaddr8_GreaterThanOrEqual_macaddr8()
         {
             using var context = CreateContext();
@@ -274,7 +276,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             AssertContainsSql(@"""Macaddr"" > MACADDR '123456000007'");
         }
 
-        [MinimumPostgresVersionFact(10, 0)]
+        [ConditionalFact]
+        [MinimumPostgresVersion(10, 0)]
         public void PhysicalAddress_macaddr8_GreaterThan_macaddr8()
         {
             using var context = CreateContext();
@@ -517,7 +520,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             AssertContainsSql(@"~n.""Macaddr""");
         }
 
-        [MinimumPostgresVersionFact(10, 0)]
+        [ConditionalFact]
+        [MinimumPostgresVersion(10, 0)]
         public void PhysicalAddress_macaddr8_BitwiseNot()
         {
             using var context = CreateContext();
@@ -563,7 +567,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             AssertContainsSql(@"n.""Macaddr"" & @__macaddr_1");
         }
 
-        [MinimumPostgresVersionFact(10, 0)]
+        [ConditionalFact]
+        [MinimumPostgresVersion(10, 0)]
         public void PhysicalAddress_macaddr8_BitwiseAnd_macaddr8()
         {
             using var context = CreateContext();
@@ -610,7 +615,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             AssertContainsSql(@"n.""Macaddr"" | @__macaddr_1");
         }
 
-        [MinimumPostgresVersionFact(10, 0)]
+        [ConditionalFact]
+        [MinimumPostgresVersion(10, 0)]
         public void PhysicalAddress_macaddr8_BitwiseOr_macaddr8()
         {
             using var context = CreateContext();
@@ -974,7 +980,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             AssertContainsSql(@"trunc(n.""Macaddr"")");
         }
 
-        [MinimumPostgresVersionFact(10, 0)]
+        [ConditionalFact]
+        [MinimumPostgresVersion(10, 0)]
         public void PhysicalAddress_macaddr8_Truncate()
         {
             using var context = CreateContext();
@@ -985,7 +992,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             AssertContainsSql(@"trunc(n.""Macaddr8"")");
         }
 
-        [MinimumPostgresVersionFact(10, 0)]
+        [ConditionalFact]
+        [MinimumPostgresVersion(10, 0)]
         public void PhysicalAddress_macaddr8_Set7BitMac8()
         {
             using var context = CreateContext();
