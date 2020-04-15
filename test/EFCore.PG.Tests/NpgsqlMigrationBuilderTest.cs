@@ -1,3 +1,4 @@
+using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Xunit;
@@ -6,6 +7,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
     public class NpgsqlMigrationBuilderTest
     {
+        [Fact]
+        public void Foo() => throw new NotSupportedException("You are an idiot");
+
         [Fact]
         public void IsNpgsql_when_using_Npgsql()
         {
