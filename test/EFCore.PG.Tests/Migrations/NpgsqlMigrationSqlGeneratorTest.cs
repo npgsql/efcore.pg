@@ -31,7 +31,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             AssertSql(
                 @"CREATE DATABASE ""Northwind""
-COLLATE ""POSIX"";
+LC_COLLATE ""POSIX"";
 ");
         }
 
