@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Collections;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reflection;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
