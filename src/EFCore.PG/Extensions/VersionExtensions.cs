@@ -1,7 +1,5 @@
-using System;
-
 // ReSharper disable once CheckNamespace
-namespace Npgsql.EntityFrameworkCore.PostgreSQL
+namespace System
 {
     internal static class VersionExtensions
     {

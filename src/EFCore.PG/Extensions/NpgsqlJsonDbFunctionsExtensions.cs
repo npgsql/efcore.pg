@@ -5,7 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using NpgsqlTypes;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Extensions
+// ReSharper disable once CheckNamespace
+namespace Microsoft.EntityFrameworkCore
 {
     /// <summary>
     /// Provides methods for supporting translation to PostgreSQL JSON operators and functions.
