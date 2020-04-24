@@ -1,4 +1,4 @@
-## Spatial Mapping with NetTopologySuite
+# Spatial Mapping with NetTopologySuite
 
 > [!NOTE]
 > It's recommended that you start by reading the general [Entity Framework Core docs on spatial support](https://docs.microsoft.com/ef/core/modeling/spatial).
@@ -7,7 +7,7 @@ PostgreSQL supports spatial data and operations via [the PostGIS extension](http
 
 Note that the EF Core NetTopologySuite plugin depends on [the Npgsql ADO.NET NetTopology plugin](http://www.npgsql.org/doc/types/nts.html), which provides NetTopologySuite support at the lower level. The EF Core plugin automatically arranged for the ADO.NET plugin to be set up.
 
-# Setup
+## Setup
 
 To set up the NetTopologySuite plugin, add the [Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite nuget](https://www.nuget.org/packages/Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite) to your project. Then, make the following modification to your `UseNpgsql()` line:
 
