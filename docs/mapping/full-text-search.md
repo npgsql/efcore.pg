@@ -19,14 +19,15 @@ public class BlogPost
 
 Almost all PostgreSQL full text search functions can be called through LINQ queries. All supported EF Core LINQ methods are defined in extension classes in the `Microsoft.EntityFrameworkCore` namespace, so simply referencing the Npgsql provider will light up these methods. Here is a table showing translations for some operations; if an operation you need is missing, please open an issue to request for it.
 
-| This C# expression...                                    | ... gets translated to this SQL                                     |
-|----------------------------------------------------------|---------------------------------------------------------------------|
-| .Select(c => EF.Functions.ToTsVector("english", c.Name)) | [SELECT to_tsvector('english'::regconfig, c."Name")](https://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-DOCUMENTS)
-| .Select(c => NpgsqlTsVector.Parse("b"))                  | [SELECT CAST('b' AS tsvector)](https://www.postgresql.org/docs/current/static/sql-expressions.html#SQL-SYNTAX-TYPE-CASTS)
-| .Select(c => EF.Functions.ToTsQuery("english", "pgsql")) | [SELECT to_tsquery('english'::regconfig, 'pgsql')`](https://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES)
-| .Select(c => NpgsqlTsQuery.Parse("b"))                   | [SELECT CAST('b' AS tsquery)](https://www.postgresql.org/docs/current/static/sql-expressions.html#SQL-SYNTAX-TYPE-CASTS)
-| .Where(c => c.SearchVector.Matches("Npgsql"))            | [WHERE c."SearchVector" @@ 'Npgsql'](https://www.postgresql.org/docs/current/static/textsearch-intro.html#TEXTSEARCH-MATCHING)
-| .Select(c => EF.Functions.ToTsQuery(c.SearchQuery).ToNegative()) | [SELECT !! to_tsquery(c."SearchQuery")](https://www.postgresql.org/docs/current/static/textsearch-features.html#TEXTSEARCH-MANIPULATE-TSQUERY)
+| This C# expression...                                                            | ... gets translated to this SQL                                     |
+|----------------------------------------------------------------------------------|---------------------------------------------------------------------|
+| .Select(c => EF.Functions.ToTsVector("english", c.Name))                         | [SELECT to_tsvector('english'::regconfig, c."Name")](https://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-DOCUMENTS)
+| .Select(c => NpgsqlTsVector.Parse("b"))                                          | [SELECT CAST('b' AS tsvector)](https://www.postgresql.org/docs/current/static/sql-expressions.html#SQL-SYNTAX-TYPE-CASTS)
+| .Select(c => EF.Functions.ToTsQuery("english", "pgsql"))                         | [SELECT to_tsquery('english'::regconfig, 'pgsql')`](https://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES)
+| .Select(c => NpgsqlTsQuery.Parse("b"))                                           | [SELECT CAST('b' AS tsquery)](https://www.postgresql.org/docs/current/static/sql-expressions.html#SQL-SYNTAX-TYPE-CASTS)
+| .Where(c => c.SearchVector.Matches("Npgsql"))                                    | [WHERE c."SearchVector" @@ 'Npgsql'](https://www.postgresql.org/docs/current/static/textsearch-intro.html#TEXTSEARCH-MATCHING)
+| .Where(c => c.SearchVector.Matches(EF.Functions.ToTsQuery("Npgsql")))            | [WHERE c."TsVector" @@ to_tsquery('Npgsql')](https://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES)
+| .Select(c => EF.Functions.ToTsQuery(c.SearchQuery).ToNegative())                 | [SELECT !! to_tsquery(c."SearchQuery")](https://www.postgresql.org/docs/current/static/textsearch-features.html#TEXTSEARCH-MANIPULATE-TSQUERY)
 | .Select(c => EF.Functions.ToTsVector(c.Name).SetWeight(NpgsqlTsVector.Lexeme.Weight.A)) | [SELECT setweight(to_tsvector(c."Name"), 'A')](https://www.postgresql.org/docs/current/static/textsearch-features.html#TEXTSEARCH-MANIPULATE-TSVECTOR)
 
 ## Setting up and querying a full text search index on an entity
