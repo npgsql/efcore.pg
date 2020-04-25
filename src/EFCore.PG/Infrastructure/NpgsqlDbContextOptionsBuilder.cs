@@ -27,14 +27,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         /// Connect to this database for administrative operations (creating/dropping databases).
         /// </summary>
         /// <param name="dbName">The name of the database for administrative operations.</param>
-        public virtual void UseAdminDatabase([CanBeNull] string dbName)
+        public virtual NpgsqlDbContextOptionsBuilder UseAdminDatabase([CanBeNull] string dbName)
             => WithOption(e => e.WithAdminDatabase(dbName));
 
         /// <summary>
         /// Configures the backend version to target.
         /// </summary>
         /// <param name="postgresVersion">The backend version to target.</param>
-        public virtual void SetPostgresVersion([CanBeNull] Version postgresVersion)
+        public virtual NpgsqlDbContextOptionsBuilder SetPostgresVersion([CanBeNull] Version postgresVersion)
             => WithOption(e => e.WithPostgresVersion(postgresVersion));
 
         /// <summary>
@@ -42,7 +42,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         /// </summary>
         /// <param name="major">The PostgreSQL major version to target.</param>
         /// <param name="minor">The PostgreSQL minor version to target.</param>
-        public virtual void SetPostgresVersion(int major, int minor)
+        public virtual NpgsqlDbContextOptionsBuilder SetPostgresVersion(int major, int minor)
             => SetPostgresVersion(new Version(major, minor));
 
         /// <summary>
@@ -62,7 +62,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         /// To map a range of PostgreSQL real, use the following:
         /// <code>NpgsqlTypeMappingSource.MapRange{float}("floatrange");</code>
         /// </example>
-        public virtual void MapRange<TSubtype>([NotNull] string rangeName, string schemaName = null, string subtypeName = null)
+        public virtual NpgsqlDbContextOptionsBuilder MapRange<TSubtype>(
+            [NotNull] string rangeName,
+            [CanBeNull] string schemaName = null,
+            [CanBeNull] string subtypeName = null)
             => MapRange(rangeName, typeof(TSubtype), schemaName, subtypeName);
 
         /// <summary>
@@ -82,7 +85,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         /// To map a range of PostgreSQL real, use the following:
         /// <code>NpgsqlTypeMappingSource.MapRange("floatrange", typeof(float));</code>
         /// </example>
-        public virtual void MapRange([NotNull] string rangeName, [NotNull] Type subtypeClrType, string schemaName = null, string subtypeName = null)
+        public virtual NpgsqlDbContextOptionsBuilder MapRange(
+            [NotNull] string rangeName,
+            [NotNull] Type subtypeClrType,
+            [CanBeNull] string schemaName = null,
+            [CanBeNull] string subtypeName = null)
             => WithOption(e => e.WithUserRangeDefinition(rangeName, schemaName, subtypeClrType, subtypeName));
 
         /// <summary>
@@ -91,7 +98,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         /// accordingly, and since this isn't done this feature isn't publicly exposed.
         /// </summary>
         /// <param name="reverseNullOrdering">True to enable reverse null ordering; otherwise, false.</param>
-        internal virtual void ReverseNullOrdering(bool reverseNullOrdering = true)
+        internal virtual NpgsqlDbContextOptionsBuilder ReverseNullOrdering(bool reverseNullOrdering = true)
             => WithOption(e => e.WithReverseNullOrdering(reverseNullOrdering));
 
         #region Authentication
@@ -100,21 +107,24 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         /// Configures the <see cref="DbContext"/> to use the specified <see cref="ProvideClientCertificatesCallback"/>.
         /// </summary>
         /// <param name="callback">The callback to use.</param>
-        public virtual void ProvideClientCertificatesCallback([CanBeNull] ProvideClientCertificatesCallback callback)
+        public virtual NpgsqlDbContextOptionsBuilder ProvideClientCertificatesCallback(
+            [CanBeNull] ProvideClientCertificatesCallback callback)
             => WithOption(e => e.WithProvideClientCertificatesCallback(callback));
 
         /// <summary>
         /// Configures the <see cref="DbContext"/> to use the specified <see cref="RemoteCertificateValidationCallback"/>.
         /// </summary>
         /// <param name="callback">The callback to use.</param>
-        public virtual void RemoteCertificateValidationCallback([CanBeNull] RemoteCertificateValidationCallback callback)
+        public virtual NpgsqlDbContextOptionsBuilder RemoteCertificateValidationCallback(
+            [CanBeNull] RemoteCertificateValidationCallback callback)
             => WithOption(e => e.WithRemoteCertificateValidationCallback(callback));
 
         /// <summary>
         /// Configures the <see cref="DbContext"/> to use the specified <see cref="ProvidePasswordCallback"/>.
         /// </summary>
         /// <param name="callback">The callback to use.</param>
-        public virtual void ProvidePasswordCallback([CanBeNull] ProvidePasswordCallback callback)
+        public virtual NpgsqlDbContextOptionsBuilder ProvidePasswordCallback(
+            [CanBeNull] ProvidePasswordCallback callback)
             => WithOption(e => e.WithProvidePasswordCallback(callback));
 
         #endregion Authentication

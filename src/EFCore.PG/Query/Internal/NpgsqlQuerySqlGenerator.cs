@@ -34,9 +34,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 
         /// <inheritdoc />
         public NpgsqlQuerySqlGenerator(
-            QuerySqlGeneratorDependencies dependencies,
+            [NotNull] QuerySqlGeneratorDependencies dependencies,
             bool reverseNullOrderingEnabled,
-            Version postgresVersion)
+            [NotNull] Version postgresVersion)
             : base(dependencies)
         {
             _sqlGenerationHelper = dependencies.SqlGenerationHelper;

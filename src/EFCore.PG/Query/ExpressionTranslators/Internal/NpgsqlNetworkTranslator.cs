@@ -36,7 +36,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         readonly RelationalTypeMapping _cidrMapping;
         readonly RelationalTypeMapping _macaddr8Mapping;
 
-        public NpgsqlNetworkTranslator(ISqlExpressionFactory sqlExpressionFactory, IRelationalTypeMappingSource typeMappingSource)
+        public NpgsqlNetworkTranslator(
+            [NotNull] ISqlExpressionFactory sqlExpressionFactory,
+            [NotNull] IRelationalTypeMappingSource typeMappingSource)
         {
             _sqlExpressionFactory = sqlExpressionFactory;
             _boolMapping = typeMappingSource.FindMapping(typeof(bool));
@@ -47,7 +49,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
         /// <inheritdoc />
         [CanBeNull]
-        public SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
+        public virtual SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
         {
             if (method == IPAddressParse)
                 return _sqlExpressionFactory.Convert(arguments[0], typeof(IPAddress), _sqlExpressionFactory.FindMapping(typeof(IPAddress)));

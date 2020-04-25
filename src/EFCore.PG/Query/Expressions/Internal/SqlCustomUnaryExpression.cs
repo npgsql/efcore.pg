@@ -22,18 +22,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         /// The expression acted on by the operator.
         /// </summary>
         [NotNull]
-        public Expression Operand { get; }
+        public virtual Expression Operand { get; }
 
         /// <summary>
         /// The operator.
         /// </summary>
         [NotNull]
-        public string Operator { get; }
+        public virtual string Operator { get; }
 
         /// <summary>
         /// True if the operator follows the operand; otherwise, false.
         /// </summary>
-        public bool Postfix { get; }
+        public virtual bool Postfix { get; }
 
         /// <summary>
         /// Constructs a <see cref="SqlCustomUnaryExpression"/>.

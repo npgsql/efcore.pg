@@ -29,7 +29,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         /// <summary>
         /// The options for regular expression evaluation.
         /// </summary>
-        public RegexOptions Options { get; }
+        public virtual RegexOptions Options { get; }
 
         /// <summary>
         /// Constructs a <see cref="RegexMatchExpression"/>.
@@ -42,7 +42,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
             [NotNull] SqlExpression match,
             [NotNull] SqlExpression pattern,
             RegexOptions options,
-            RelationalTypeMapping typeMapping)
+            [CanBeNull] RelationalTypeMapping typeMapping)
             : base(typeof(bool), typeMapping)
         {
             Match = match;
@@ -60,12 +60,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         protected override Expression VisitChildren(ExpressionVisitor visitor)
             => Update((SqlExpression)visitor.Visit(Match), (SqlExpression)visitor.Visit(Pattern));
 
-        public RegexMatchExpression Update(SqlExpression match, SqlExpression pattern)
+        public virtual RegexMatchExpression Update([NotNull] SqlExpression match, [NotNull] SqlExpression pattern)
             => match != Match || pattern != Pattern
                 ? new RegexMatchExpression(match, pattern, Options, TypeMapping)
                 : this;
 
-        public bool Equals(RegexMatchExpression other)
+        public virtual bool Equals(RegexMatchExpression other)
             => ReferenceEquals(this, other) ||
                    other is object &&
                    base.Equals(other) &&

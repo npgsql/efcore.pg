@@ -234,6 +234,24 @@ namespace Microsoft.EntityFrameworkCore
             return null;
         }
 
+        /// <summary>
+        ///     Returns a value indicating whether the given value can be set as the default value generation strategy.
+        /// </summary>
+        /// <param name="modelBuilder"> The model builder. </param>
+        /// <param name="valueGenerationStrategy"> The value generation strategy. </param>
+        /// <param name="fromDataAnnotation"> Indicates whether the configuration was specified using a data annotation. </param>
+        /// <returns> <c>true</c> if the given value can be set as the default value generation strategy. </returns>
+        public static bool CanSetValueGenerationStrategy(
+            [NotNull] this IConventionModelBuilder modelBuilder,
+            NpgsqlValueGenerationStrategy? valueGenerationStrategy,
+            bool fromDataAnnotation = false)
+        {
+            Check.NotNull(modelBuilder, nameof(modelBuilder));
+
+            return modelBuilder.CanSetAnnotation(
+                NpgsqlAnnotationNames.ValueGenerationStrategy, valueGenerationStrategy, fromDataAnnotation);
+        }
+
         #endregion Identity
 
         #region Extensions
@@ -418,10 +436,10 @@ namespace Microsoft.EntityFrameworkCore
             [CanBeNull] string schema,
             [NotNull] string name,
             [NotNull] string subtype,
-            string canonicalFunction = null,
-            string subtypeOpClass = null,
-            string collation = null,
-            string subtypeDiff = null)
+            [CanBeNull] string canonicalFunction = null,
+            [CanBeNull] string subtypeOpClass = null,
+            [CanBeNull] string collation = null,
+            [CanBeNull] string subtypeDiff = null)
         {
             Check.NotNull(modelBuilder, nameof(modelBuilder));
             Check.NotEmpty(name, nameof(name));
@@ -496,7 +514,7 @@ namespace Microsoft.EntityFrameworkCore
             [NotNull] string name,
             [NotNull] string locale,
             [CanBeNull] string provider = null,
-            [CanBeNull] bool? deterministic = null)
+            bool? deterministic = null)
         => modelBuilder.HasCollation(schema: null, name, locale, provider: provider, deterministic: deterministic);
 
         /// <summary>
@@ -524,7 +542,7 @@ namespace Microsoft.EntityFrameworkCore
             [NotNull] string name,
             [NotNull] string locale,
             [CanBeNull] string provider = null,
-            [CanBeNull] bool? deterministic = null)
+            bool? deterministic = null)
         {
             Check.NotNull(modelBuilder, nameof(modelBuilder));
             Check.NotEmpty(name, nameof(name));
@@ -567,7 +585,7 @@ namespace Microsoft.EntityFrameworkCore
             [NotNull] string lcCollate,
             [NotNull] string lcCtype,
             [CanBeNull] string provider = null,
-            [CanBeNull] bool? deterministic = null)
+            bool? deterministic = null)
         {
             Check.NotNull(modelBuilder, nameof(modelBuilder));
             Check.NotEmpty(name, nameof(name));

@@ -59,7 +59,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
             [NotNull] SqlExpression array,
             ArrayComparisonType arrayComparisonType,
             [NotNull] string @operator,
-            RelationalTypeMapping typeMapping)
+            [CanBeNull] RelationalTypeMapping typeMapping)
             : base(typeof(bool), typeMapping)
         {
             if (!array.Type.IsArray && !array.Type.IsGenericType && array.Type.GetGenericTypeDefinition() != typeof(List<>))
@@ -77,7 +77,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
                 ? npgsqlGenerator.VisitArrayAnyAll(this)
                 : base.Accept(visitor);
 
-        public ArrayAnyAllExpression Update(SqlExpression operand, SqlExpression array)
+        public virtual ArrayAnyAllExpression Update([NotNull] SqlExpression operand, [NotNull] SqlExpression array)
             => operand != Operand || array != Array
                 ? new ArrayAnyAllExpression(operand, array, ArrayComparisonType, Operator, TypeMapping)
                 : this;
@@ -90,7 +90,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         public override bool Equals(object obj) => obj is ArrayAnyAllExpression e && Equals(e);
 
         /// <inheritdoc />
-        public bool Equals(ArrayAnyAllExpression other)
+        public virtual bool Equals(ArrayAnyAllExpression other)
             => ReferenceEquals(this, other) ||
                other is object &&
                base.Equals(other) &&

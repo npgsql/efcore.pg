@@ -32,7 +32,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         readonly RelationalTypeMapping _tsVectorMapping;
         readonly RelationalTypeMapping _regconfigMapping;
 
-        public NpgsqlFullTextSearchMethodTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory, IRelationalTypeMappingSource typeMappingSource)
+        public NpgsqlFullTextSearchMethodTranslator(
+            [NotNull] NpgsqlSqlExpressionFactory sqlExpressionFactory,
+            [NotNull] IRelationalTypeMappingSource typeMappingSource)
         {
             _sqlExpressionFactory = sqlExpressionFactory;
             _boolMapping = typeMappingSource.FindMapping(typeof(bool));
@@ -43,7 +45,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
         /// <inheritdoc />
         [CanBeNull]
-        public SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
+        public virtual SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
         {
             if (method == TsQueryParse || method == TsVectorParse)
                 return _sqlExpressionFactory.Convert(arguments[0], method.ReturnType);

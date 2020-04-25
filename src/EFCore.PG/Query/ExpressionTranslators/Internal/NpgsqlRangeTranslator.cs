@@ -27,7 +27,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         [NotNull]
         readonly RelationalTypeMapping _boolMapping;
 
-        public NpgsqlRangeTranslator(ISqlExpressionFactory sqlExpressionFactory)
+        public NpgsqlRangeTranslator([NotNull] ISqlExpressionFactory sqlExpressionFactory)
         {
             _sqlExpressionFactory = sqlExpressionFactory;
             _boolMapping = sqlExpressionFactory.FindMapping(typeof(bool));
@@ -35,7 +35,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
         /// <inheritdoc />
         [CanBeNull]
-        public SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
+        public virtual SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
         {
             if (method.DeclaringType != typeof(NpgsqlRangeDbFunctionsExtensions))
                 return null;
@@ -110,7 +110,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
         /// <inheritdoc />
         [CanBeNull]
-        public SqlExpression Translate(SqlExpression instance, MemberInfo member, Type returnType)
+        public virtual SqlExpression Translate(SqlExpression instance, MemberInfo member, Type returnType)
         {
             var type = member.DeclaringType;
             if (type == null || !type.IsGenericType || type.GetGenericTypeDefinition() != typeof(NpgsqlRange<>))

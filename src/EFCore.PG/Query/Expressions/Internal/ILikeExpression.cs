@@ -39,7 +39,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         /// <param name="pattern">The pattern to match.</param>
         /// <param name="escapeChar">The escape character to use in <paramref name="pattern"/>.</param>
         /// <exception cref="ArgumentNullException" />
-        public ILikeExpression([NotNull] SqlExpression match, [NotNull] SqlExpression pattern, [CanBeNull] SqlExpression escapeChar, RelationalTypeMapping typeMapping)
+        public ILikeExpression(
+            [NotNull] SqlExpression match,
+            [NotNull] SqlExpression pattern,
+            [CanBeNull] SqlExpression escapeChar,
+            [CanBeNull] RelationalTypeMapping typeMapping)
             : base(typeof(bool), typeMapping)
         {
             Match = match;
@@ -60,7 +64,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
                 (SqlExpression)visitor.Visit(Pattern),
                 (SqlExpression)visitor.Visit(EscapeChar));
 
-        public ILikeExpression Update(SqlExpression match, SqlExpression pattern, SqlExpression escapeChar)
+        public virtual ILikeExpression Update(
+            [NotNull] SqlExpression match,
+            [NotNull] SqlExpression pattern,
+            [NotNull] SqlExpression escapeChar)
             => match == Match && pattern == Pattern && escapeChar == EscapeChar
                 ? this
                 : new ILikeExpression(match, pattern, escapeChar, TypeMapping);
@@ -69,7 +76,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         public override bool Equals(object obj) => obj is ILikeExpression other && Equals(other);
 
         /// <inheritdoc />
-        public bool Equals(ILikeExpression other)
+        public virtual bool Equals(ILikeExpression other)
             => ReferenceEquals(this, other) ||
                other is object &&
                base.Equals(other) &&

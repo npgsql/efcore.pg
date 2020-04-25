@@ -42,12 +42,14 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="model"> The model. </param>
         /// <param name="name"> The value to set. </param>
         /// <param name="fromDataAnnotation"> Indicates whether the configuration was specified using a data annotation. </param>
-        public static void SetHiLoSequenceName(
+        public static string SetHiLoSequenceName(
             [NotNull] this IConventionModel model, [CanBeNull] string name, bool fromDataAnnotation = false)
         {
             Check.NullButNotEmpty(name, nameof(name));
 
             model.SetOrRemoveAnnotation(NpgsqlAnnotationNames.HiLoSequenceName, name, fromDataAnnotation);
+
+            return name;
         }
 
         /// <summary>
@@ -85,12 +87,14 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="model"> The model. </param>
         /// <param name="value"> The value to set. </param>
         /// <param name="fromDataAnnotation"> Indicates whether the configuration was specified using a data annotation. </param>
-        public static void SetHiLoSequenceSchema(
+        public static string SetHiLoSequenceSchema(
             [NotNull] this IConventionModel model, [CanBeNull] string value, bool fromDataAnnotation = false)
         {
             Check.NullButNotEmpty(value, nameof(value));
 
             model.SetOrRemoveAnnotation(NpgsqlAnnotationNames.HiLoSequenceSchema, value, fromDataAnnotation);
+
+            return value;
         }
 
         /// <summary>
@@ -130,9 +134,15 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="model"> The model. </param>
         /// <param name="value"> The value to set. </param>
         /// <param name="fromDataAnnotation"> Indicates whether the configuration was specified using a data annotation. </param>
-        public static void SetValueGenerationStrategy(
-            [NotNull] this IConventionModel model, NpgsqlValueGenerationStrategy? value, bool fromDataAnnotation = false)
-            => model.SetOrRemoveAnnotation(NpgsqlAnnotationNames.ValueGenerationStrategy, value, fromDataAnnotation);
+        public static NpgsqlValueGenerationStrategy? SetValueGenerationStrategy(
+            [NotNull] this IConventionModel model,
+            NpgsqlValueGenerationStrategy? value,
+            bool fromDataAnnotation = false)
+        {
+            model.SetOrRemoveAnnotation(NpgsqlAnnotationNames.ValueGenerationStrategy, value, fromDataAnnotation);
+
+            return value;
+        }
 
         /// <summary>
         ///     Returns the <see cref="ConfigurationSource" /> for the default <see cref="NpgsqlValueGenerationStrategy" />.
@@ -180,10 +190,10 @@ namespace Microsoft.EntityFrameworkCore
             [CanBeNull] string schema,
             [NotNull] string name,
             [NotNull] string subtype,
-            string canonicalFunction = null,
-            string subtypeOpClass = null,
-            string collation = null,
-            string subtypeDiff = null)
+            [CanBeNull] string canonicalFunction = null,
+            [CanBeNull] string subtypeOpClass = null,
+            [CanBeNull] string collation = null,
+            [CanBeNull] string subtypeDiff = null)
             => PostgresRange.GetOrAddPostgresRange(
                 model,
                 schema,
@@ -206,6 +216,22 @@ namespace Microsoft.EntityFrameworkCore
 
         public static void SetDatabaseTemplate([NotNull] this IMutableModel model, [CanBeNull] string template)
             => model.SetOrRemoveAnnotation(NpgsqlAnnotationNames.DatabaseTemplate, template);
+
+        public static string SetDatabaseTemplate(
+            [NotNull] this IConventionModel model,
+            [CanBeNull] string template,
+            bool fromDataAnnotation = false)
+        {
+            Check.NullButNotEmpty(template, nameof(template));
+
+            model.SetOrRemoveAnnotation(NpgsqlAnnotationNames.DatabaseTemplate, template, fromDataAnnotation);
+
+            return template;
+        }
+
+        public static ConfigurationSource? GetDatabaseTemplateConfigurationSource([NotNull] this IConventionModel model)
+            => model.FindAnnotation(NpgsqlAnnotationNames.DatabaseTemplate)?.GetConfigurationSource();
+
         #endregion
 
         #region Tablespace
@@ -216,8 +242,22 @@ namespace Microsoft.EntityFrameworkCore
         public static void SetTablespace([NotNull] this IMutableModel model, [CanBeNull] string tablespace)
             => model.SetOrRemoveAnnotation(NpgsqlAnnotationNames.Tablespace, tablespace);
 
-        #endregion
+        public static string SetTablespace(
+            [NotNull] this IConventionModel model,
+            [CanBeNull] string tablespace,
+            bool fromDataAnnotation = false)
+        {
+            Check.NullButNotEmpty(tablespace, nameof(tablespace));
 
+            model.SetOrRemoveAnnotation(NpgsqlAnnotationNames.Tablespace, tablespace, fromDataAnnotation);
+
+            return tablespace;
+        }
+
+        public static ConfigurationSource? GetTablespaceConfigurationSource([NotNull] this IConventionModel model)
+            => model.FindAnnotation(NpgsqlAnnotationNames.Tablespace)?.GetConfigurationSource();
+
+        #endregion
 
         #region Collation management
 
@@ -228,7 +268,7 @@ namespace Microsoft.EntityFrameworkCore
             [CanBeNull] string lcCollate = null,
             [CanBeNull] string lcCtype = null,
             [CanBeNull] string provider = null,
-            [CanBeNull] bool? deterministic = null)
+            bool? deterministic = null)
             => PostgresCollation.GetOrAddCollation(
                 model,
                 schema,

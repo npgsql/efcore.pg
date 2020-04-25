@@ -87,12 +87,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         /// Initializes a new instance of the <see cref="NpgsqlMathTranslator"/> class.
         /// </summary>
         /// <param name="sqlExpressionFactory">The SQL expression factory to use when generating expressions..</param>
-        public NpgsqlMathTranslator(ISqlExpressionFactory sqlExpressionFactory)
+        public NpgsqlMathTranslator([NotNull] ISqlExpressionFactory sqlExpressionFactory)
             => _sqlExpressionFactory = sqlExpressionFactory;
 
         /// <inheritdoc />
         [CanBeNull]
-        public SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
+        public virtual SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
         {
             if (SupportedMethodTranslations.TryGetValue(method, out var sqlFunctionName))
             {

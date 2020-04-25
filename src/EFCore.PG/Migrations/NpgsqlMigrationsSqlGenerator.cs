@@ -731,7 +731,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             EndStatement(builder);
         }
 
-        protected virtual void Generate(NpgsqlCreateDatabaseOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
+        protected virtual void Generate(
+            [NotNull] NpgsqlCreateDatabaseOperation operation,
+            [CanBeNull] IModel model,
+            [NotNull] MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
@@ -769,7 +772,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             EndStatement(builder, suppressTransaction: true);
         }
 
-        public virtual void Generate(NpgsqlDropDatabaseOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
+        public virtual void Generate(
+            [NotNull] NpgsqlDropDatabaseOperation operation,
+            [CanBeNull] IModel model,
+            [NotNull] MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
@@ -810,9 +816,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         }
 
         protected virtual void GenerateCreateExtension(
-            PostgresExtension extension,
-            IModel model,
-            MigrationCommandListBuilder builder)
+            [NotNull] PostgresExtension extension,
+            [NotNull] IModel model,
+            [NotNull] MigrationCommandListBuilder builder)
         {
             builder
                 .Append("CREATE EXTENSION IF NOT EXISTS ")
@@ -1311,7 +1317,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         }
 
         // Note: this definition is only used for creating new identity columns, not for alterations.
-        protected virtual void IdentityDefinition(ColumnOperation operation, MigrationCommandListBuilder builder)
+        protected virtual void IdentityDefinition(
+            [NotNull] ColumnOperation operation,
+            [NotNull] MigrationCommandListBuilder builder)
         {
             if (!(operation[NpgsqlAnnotationNames.ValueGenerationStrategy] is NpgsqlValueGenerationStrategy strategy) ||
                 !strategy.IsIdentity())

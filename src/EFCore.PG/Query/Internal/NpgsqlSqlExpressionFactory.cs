@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -18,7 +19,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         readonly RelationalTypeMapping _boolTypeMapping;
         readonly RelationalTypeMapping _intervalTypeMapping;
 
-        public NpgsqlSqlExpressionFactory(SqlExpressionFactoryDependencies dependencies)
+        public NpgsqlSqlExpressionFactory([NotNull] SqlExpressionFactoryDependencies dependencies)
             : base(dependencies)
         {
             _typeMappingSource = dependencies.TypeMappingSource;
@@ -28,20 +29,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 
         #region Expression factory methods
 
-        public RegexMatchExpression RegexMatch(SqlExpression match, SqlExpression pattern, RegexOptions options)
+        public virtual RegexMatchExpression RegexMatch(
+            [NotNull] SqlExpression match, [NotNull] SqlExpression pattern, RegexOptions options)
             => (RegexMatchExpression)ApplyDefaultTypeMapping(new RegexMatchExpression(match, pattern, options, null));
 
-        public ArrayAnyAllExpression ArrayAnyAll(
-            SqlExpression operand,
-            SqlExpression array,
+        public virtual ArrayAnyAllExpression ArrayAnyAll(
+            [NotNull] SqlExpression operand,
+            [NotNull] SqlExpression array,
             ArrayComparisonType arrayComparisonType,
-            string @operator)
+            [NotNull] string @operator)
             => (ArrayAnyAllExpression)ApplyDefaultTypeMapping(new ArrayAnyAllExpression(operand, array, arrayComparisonType, @operator, null));
 
-        public ArrayIndexExpression ArrayIndex(
-            SqlExpression array,
-            SqlExpression index,
-            RelationalTypeMapping typeMapping = null)
+        public virtual ArrayIndexExpression ArrayIndex(
+            [NotNull] SqlExpression array,
+            [NotNull] SqlExpression index,
+            [CanBeNull]  RelationalTypeMapping typeMapping = null)
         {
             Type elementType;
             if (array.Type.IsArray)
@@ -54,11 +56,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             return (ArrayIndexExpression)ApplyTypeMapping(new ArrayIndexExpression(array, index, elementType, null), typeMapping);
         }
 
-        public AtTimeZoneExpression AtTimeZone(
-            SqlExpression timestamp,
-            SqlExpression timeZone,
-            Type type,
-            RelationalTypeMapping typeMapping = null)
+        public virtual AtTimeZoneExpression AtTimeZone(
+            [NotNull] SqlExpression timestamp,
+            [NotNull] SqlExpression timeZone,
+            [NotNull] Type type,
+            [CanBeNull] RelationalTypeMapping typeMapping = null)
         {
             // PostgreSQL AT TIME ZONE flips the given type from timestamptz to timestamp and vice versa
             // See https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-ZONECONVERT
@@ -81,15 +83,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             }
         }
 
-        public ILikeExpression ILike(SqlExpression match, SqlExpression pattern, SqlExpression escapeChar = null)
+        public virtual ILikeExpression ILike(
+            [NotNull] SqlExpression match,
+            [NotNull] SqlExpression pattern,
+            [CanBeNull] SqlExpression escapeChar = null)
             => (ILikeExpression)ApplyDefaultTypeMapping(new ILikeExpression(match, pattern, escapeChar, null));
 
-        public JsonTraversalExpression JsonTraversal(
-            SqlExpression expression,
-            IEnumerable<SqlExpression> path,
+        public virtual JsonTraversalExpression JsonTraversal(
+            [NotNull] SqlExpression expression,
+            [NotNull] IEnumerable<SqlExpression> path,
             bool returnsText,
-            Type type,
-            RelationalTypeMapping typeMapping = null)
+            [NotNull] Type type,
+            [CanBeNull] RelationalTypeMapping typeMapping = null)
             => new JsonTraversalExpression(
                 ApplyDefaultTypeMapping(expression),
                 path.Select(ApplyDefaultTypeMapping).ToArray(),

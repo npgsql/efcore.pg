@@ -43,8 +43,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         /// Initializes a new instance of the <see cref="Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal.NpgsqlDateTimeMethodTranslator"/> class.
         /// </summary>
         public NpgsqlDateTimeMethodTranslator(
-            ISqlExpressionFactory sqlExpressionFactory,
-            IRelationalTypeMappingSource typeMappingSource)
+            [NotNull] ISqlExpressionFactory sqlExpressionFactory,
+            [NotNull] IRelationalTypeMappingSource typeMappingSource)
         {
             _sqlExpressionFactory = sqlExpressionFactory;
             _intervalMapping = typeMappingSource.FindMapping("interval");
@@ -52,7 +52,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         }
 
         /// <inheritdoc />
-        public SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
+        public virtual SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
         {
             if (!MethodInfoDatePartMapping.TryGetValue(method, out var datePart))
                 return null;

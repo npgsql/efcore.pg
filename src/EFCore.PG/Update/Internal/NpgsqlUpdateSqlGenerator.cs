@@ -21,9 +21,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
             int commandPosition)
             => AppendInsertOperation(commandStringBuilder, command, commandPosition, false);
 
-        public ResultSetMapping AppendInsertOperation(
-            StringBuilder commandStringBuilder,
-            ModificationCommand command,
+        public virtual ResultSetMapping AppendInsertOperation(
+            [NotNull] StringBuilder commandStringBuilder,
+            [NotNull] ModificationCommand command,
             int commandPosition,
             bool overridingSystemValue)
         {

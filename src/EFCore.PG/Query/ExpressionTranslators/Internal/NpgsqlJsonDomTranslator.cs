@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.Json;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -41,13 +42,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
         readonly RelationalTypeMapping _stringTypeMapping;
 
-        public NpgsqlJsonDomTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory, IRelationalTypeMappingSource typeMappingSource)
+        public NpgsqlJsonDomTranslator(
+            [NotNull] NpgsqlSqlExpressionFactory sqlExpressionFactory,
+            [NotNull] IRelationalTypeMappingSource typeMappingSource)
         {
             _sqlExpressionFactory = sqlExpressionFactory;
             _stringTypeMapping = typeMappingSource.FindMapping(typeof(string));
         }
 
-        public SqlExpression Translate(SqlExpression instance, MemberInfo member, Type returnType)
+        public virtual SqlExpression Translate(SqlExpression instance, MemberInfo member, Type returnType)
         {
             if (member.DeclaringType != typeof(JsonDocument))
                 return null;
@@ -63,7 +66,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             return null;
         }
 
-        public SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
+        public virtual SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
         {
             if (method.DeclaringType != typeof(JsonElement) ||
                 !(instance.TypeMapping is NpgsqlJsonTypeMapping mapping))

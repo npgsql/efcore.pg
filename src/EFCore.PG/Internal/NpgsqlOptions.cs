@@ -24,7 +24,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
             => UserRangeDefinitions = new UserRangeDefinition[0];
 
         /// <inheritdoc />
-        public void Initialize(IDbContextOptions options)
+        public virtual void Initialize(IDbContextOptions options)
         {
             var npgsqlOptions = options.FindExtension<NpgsqlOptionsExtension>() ?? new NpgsqlOptionsExtension();
 
@@ -34,7 +34,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         }
 
         /// <inheritdoc />
-        public void Validate(IDbContextOptions options)
+        public virtual void Validate(IDbContextOptions options)
         {
             var npgsqlOptions = options.FindExtension<NpgsqlOptionsExtension>() ?? new NpgsqlOptionsExtension();
 

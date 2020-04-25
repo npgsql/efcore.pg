@@ -111,7 +111,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
                 : visited;
         }
 
-        public override SqlFunctionExpression ApplyTypeMapping([CanBeNull] RelationalTypeMapping typeMapping)
+        public override SqlFunctionExpression ApplyTypeMapping(RelationalTypeMapping typeMapping)
             => new PgFunctionExpression(
                 Name,
                 Arguments,
@@ -123,8 +123,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
                 Type,
                 typeMapping ?? TypeMapping);
 
-        public override SqlFunctionExpression Update(
-            [CanBeNull] SqlExpression instance, [CanBeNull] IReadOnlyList<SqlExpression> arguments)
+        public override SqlFunctionExpression Update(SqlExpression instance, IReadOnlyList<SqlExpression> arguments)
         {
             Check.NotNull(arguments, nameof(arguments));
             if (instance != null)
@@ -139,7 +138,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
 
         public override bool Equals(object obj) => obj is PgFunctionExpression pgFunction && Equals(pgFunction);
 
-        public bool Equals(PgFunctionExpression other)
+        public virtual bool Equals(PgFunctionExpression other)
             => ReferenceEquals(this, other) ||
                other is object &&
                base.Equals(other) &&

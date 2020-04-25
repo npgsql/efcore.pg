@@ -29,7 +29,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         {
         }
 
-        public bool IsJsonb => StoreType == "jsonb";
+        public virtual bool IsJsonb => StoreType == "jsonb";
 
         protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
             => new NpgsqlJsonTypeMapping(parameters, NpgsqlDbType);

@@ -71,7 +71,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
                             incrementBy: 2,
                             minValue: 3,
                             maxValue: 2000,
-                            isCyclic: true,
+                            cyclic: true,
                             numbersToCache: 10);
                 });
 

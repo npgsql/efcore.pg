@@ -19,12 +19,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     {
         readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
 
-        public NpgsqlDateTimeMemberTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory)
+        public NpgsqlDateTimeMemberTranslator([NotNull] NpgsqlSqlExpressionFactory sqlExpressionFactory)
             => _sqlExpressionFactory = sqlExpressionFactory;
 
         /// <inheritdoc />
         [CanBeNull]
-        public SqlExpression Translate(SqlExpression instance, MemberInfo member, Type returnType)
+        public virtual SqlExpression Translate(SqlExpression instance, MemberInfo member, Type returnType)
         {
             var type = member.DeclaringType;
             if (type != typeof(DateTime) && type != typeof(NpgsqlDateTime) && type != typeof(NpgsqlDate))
