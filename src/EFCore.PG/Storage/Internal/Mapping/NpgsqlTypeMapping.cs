@@ -15,7 +15,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         /// <summary>
         /// The database type used by Npgsql.
         /// </summary>
-        public NpgsqlDbType NpgsqlDbType { get; }
+        public virtual NpgsqlDbType NpgsqlDbType { get; }
 
         // ReSharper disable once PublicConstructorInAbstractClass
         /// <summary>

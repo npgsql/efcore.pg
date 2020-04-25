@@ -1,33 +1,33 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using NpgsqlTypes;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore
 {
-    [SuppressMessage("ReSharper", "UnusedParameter.Global")]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("ReSharper", "UnusedParameter.Global")]
     public static class NpgsqlFullTextSearchLinqExtensions
     {
         /// <summary>
         /// AND tsquerys together. Generates the "&amp;&amp;" operator.
         /// http://www.postgresql.org/docs/current/static/textsearch-features.html#TEXTSEARCH-MANIPULATE-TSQUERY
         /// </summary>
-        public static NpgsqlTsQuery And(this NpgsqlTsQuery query1, NpgsqlTsQuery query2)
+        public static NpgsqlTsQuery And([NotNull] this NpgsqlTsQuery query1, [NotNull] NpgsqlTsQuery query2)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(NpgsqlTsQuery) + "." + nameof(And)));
 
         /// <summary>
         /// OR tsquerys together. Generates the "||" operator.
         /// http://www.postgresql.org/docs/current/static/textsearch-features.html#TEXTSEARCH-MANIPULATE-TSQUERY
         /// </summary>
-        public static NpgsqlTsQuery Or(this NpgsqlTsQuery query1, NpgsqlTsQuery query2)
+        public static NpgsqlTsQuery Or([NotNull] this NpgsqlTsQuery query1, [NotNull] NpgsqlTsQuery query2)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(NpgsqlTsQuery) + "." + nameof(Or)));
 
         /// <summary>
         /// Negate a tsquery. Generates the "!!" operator.
         /// http://www.postgresql.org/docs/current/static/textsearch-features.html#TEXTSEARCH-MANIPULATE-TSQUERY
         /// </summary>
-        public static NpgsqlTsQuery ToNegative(this NpgsqlTsQuery query)
+        public static NpgsqlTsQuery ToNegative([NotNull] this NpgsqlTsQuery query)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(NpgsqlTsQuery) + "." + nameof(ToNegative)));
 
         /// <summary>
@@ -35,7 +35,7 @@ namespace Microsoft.EntityFrameworkCore
         /// Generates the "@&gt;" operator.
         /// http://www.postgresql.org/docs/current/static/functions-textsearch.html
         /// </summary>
-        public static bool Contains(this NpgsqlTsQuery query1, NpgsqlTsQuery query2)
+        public static bool Contains([NotNull] this NpgsqlTsQuery query1, [NotNull] NpgsqlTsQuery query2)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(NpgsqlTsQuery) + "." + nameof(Contains)));
 
         /// <summary>
@@ -43,35 +43,38 @@ namespace Microsoft.EntityFrameworkCore
         /// Generates the "&lt;@" operator.
         /// http://www.postgresql.org/docs/current/static/functions-textsearch.html
         /// </summary>
-        public static bool IsContainedIn(this NpgsqlTsQuery query1, NpgsqlTsQuery query2)
+        public static bool IsContainedIn([NotNull] this NpgsqlTsQuery query1, [NotNull] NpgsqlTsQuery query2)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(NpgsqlTsQuery) + "." + nameof(IsContainedIn)));
 
         /// <summary>
         /// Returns the number of lexemes plus operators in <paramref name="query" />.
         /// http://www.postgresql.org/docs/current/static/textsearch-features.html#TEXTSEARCH-MANIPULATE-TSQUERY
         /// </summary>
-        public static int GetNodeCount(this NpgsqlTsQuery query)
+        public static int GetNodeCount([NotNull] this NpgsqlTsQuery query)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(NpgsqlTsQuery) + "." + nameof(GetNodeCount)));
 
         /// <summary>
         /// Get the indexable part of <paramref name="query" />.
         /// http://www.postgresql.org/docs/current/static/textsearch-features.html#TEXTSEARCH-MANIPULATE-TSQUERY
         /// </summary>
-        public static string GetQueryTree(this NpgsqlTsQuery query)
+        public static string GetQueryTree([NotNull] this NpgsqlTsQuery query)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(NpgsqlTsQuery) + "." + nameof(GetQueryTree)));
 
         /// <summary>
         /// Returns a string suitable for display containing a query match.
         /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-HEADLINE
         /// </summary>
-        public static string GetResultHeadline(this NpgsqlTsQuery query, string document)
+        public static string GetResultHeadline([NotNull] this NpgsqlTsQuery query, [NotNull] string document)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(NpgsqlTsQuery) + "." + nameof(GetResultHeadline)));
 
         /// <summary>
         /// Returns a string suitable for display containing a query match.
         /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-HEADLINE
         /// </summary>
-        public static string GetResultHeadline(this NpgsqlTsQuery query, string document, string options)
+        public static string GetResultHeadline(
+            [NotNull] this NpgsqlTsQuery query,
+            [NotNull] string document,
+            [NotNull] string options)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(NpgsqlTsQuery) + "." + nameof(GetResultHeadline)));
 
         /// <summary>
@@ -79,7 +82,11 @@ namespace Microsoft.EntityFrameworkCore
         /// search configuration specified by <paramref name="config" />.
         /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-HEADLINE
         /// </summary>
-        public static string GetResultHeadline(this NpgsqlTsQuery query, string config, string document, string options)
+        public static string GetResultHeadline(
+            [NotNull] this NpgsqlTsQuery query,
+            [NotNull] string config,
+            [NotNull] string document,
+            [NotNull] string options)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(NpgsqlTsQuery) + "." + nameof(GetResultHeadline)));
 
         /// <summary>
@@ -87,7 +94,10 @@ namespace Microsoft.EntityFrameworkCore
         /// each occurrence with a <paramref name="substitute" />. All parameters are of type tsquery.
         /// http://www.postgresql.org/docs/current/static/textsearch-features.html#TEXTSEARCH-MANIPULATE-TSQUERY
         /// </summary>
-        public static NpgsqlTsQuery Rewrite(this NpgsqlTsQuery query, NpgsqlTsQuery target, NpgsqlTsQuery substitute)
+        public static NpgsqlTsQuery Rewrite(
+            [NotNull] this NpgsqlTsQuery query,
+            [NotNull] NpgsqlTsQuery target,
+            [NotNull] NpgsqlTsQuery substitute)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(NpgsqlTsQuery) + "." + nameof(Rewrite)));
 
         /// <summary>
@@ -95,7 +105,9 @@ namespace Microsoft.EntityFrameworkCore
         /// to <paramref name="query2" />.
         /// http://www.postgresql.org/docs/current/static/textsearch-features.html#TEXTSEARCH-MANIPULATE-TSQUERY
         /// </summary>
-        public static NpgsqlTsQuery ToPhrase(this NpgsqlTsQuery query1, NpgsqlTsQuery query2)
+        public static NpgsqlTsQuery ToPhrase(
+            [NotNull] this NpgsqlTsQuery query1,
+            [NotNull] NpgsqlTsQuery query2)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(NpgsqlTsQuery) + "." + nameof(ToPhrase)));
 
         /// <summary>
@@ -104,7 +116,10 @@ namespace Microsoft.EntityFrameworkCore
         /// the &lt;N&gt; tsquery operator
         /// http://www.postgresql.org/docs/current/static/textsearch-features.html#TEXTSEARCH-MANIPULATE-TSQUERY
         /// </summary>
-        public static NpgsqlTsQuery ToPhrase(this NpgsqlTsQuery query1, NpgsqlTsQuery query2, int distance)
+        public static NpgsqlTsQuery ToPhrase(
+            [NotNull] this NpgsqlTsQuery query1,
+            [NotNull] NpgsqlTsQuery query2,
+            int distance)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(NpgsqlTsQuery) + "." + nameof(ToPhrase)));
 
         /// <summary>
@@ -112,14 +127,14 @@ namespace Microsoft.EntityFrameworkCore
         /// assumed to be a plain search query and will be converted to a tsquery using plainto_tsquery.
         /// http://www.postgresql.org/docs/current/static/textsearch-intro.html#TEXTSEARCH-MATCHING
         /// </summary>
-        public static bool Matches(this NpgsqlTsVector vector, string query)
+        public static bool Matches([NotNull] this NpgsqlTsVector vector, [NotNull] string query)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(NpgsqlTsVector) + "." + nameof(Matches)));
 
         /// <summary>
         /// This method generates the "@@" match operator.
         /// http://www.postgresql.org/docs/current/static/textsearch-intro.html#TEXTSEARCH-MATCHING
         /// </summary>
-        public static bool Matches(this NpgsqlTsVector vector, NpgsqlTsQuery query)
+        public static bool Matches([NotNull] this NpgsqlTsVector vector, [NotNull] NpgsqlTsQuery query)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(NpgsqlTsVector) + "." + nameof(Matches)));
 
         /// <summary>
@@ -128,7 +143,7 @@ namespace Microsoft.EntityFrameworkCore
         /// during the concatenation.
         /// https://www.postgresql.org/docs/10/static/textsearch-features.html#TEXTSEARCH-MANIPULATE-TSVECTOR
         /// </summary>
-        public static NpgsqlTsVector Concat(this NpgsqlTsVector vector1, NpgsqlTsVector vector2)
+        public static NpgsqlTsVector Concat([NotNull] this NpgsqlTsVector vector1, [NotNull] NpgsqlTsVector vector2)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(NpgsqlTsVector) + "." + nameof(Concat)));
 
         /// <summary>
@@ -136,7 +151,9 @@ namespace Microsoft.EntityFrameworkCore
         /// weighted tsvector.
         /// http://www.postgresql.org/docs/current/static/textsearch-features.html#TEXTSEARCH-MANIPULATE-TSVECTOR
         /// </summary>
-        public static NpgsqlTsVector SetWeight(this NpgsqlTsVector vector, NpgsqlTsVector.Lexeme.Weight weight)
+        public static NpgsqlTsVector SetWeight(
+            [NotNull] this NpgsqlTsVector vector,
+            NpgsqlTsVector.Lexeme.Weight weight)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(NpgsqlTsVector) + "." + nameof(SetWeight)));
 
         /// <summary>
@@ -144,7 +161,10 @@ namespace Microsoft.EntityFrameworkCore
         /// return a new weighted tsvector.
         /// http://www.postgresql.org/docs/current/static/textsearch-features.html#TEXTSEARCH-MANIPULATE-TSVECTOR
         /// </summary>
-        public static NpgsqlTsVector SetWeight(this NpgsqlTsVector vector, NpgsqlTsVector.Lexeme.Weight weight, string[] lexemes)
+        public static NpgsqlTsVector SetWeight(
+            [NotNull] this NpgsqlTsVector vector,
+            NpgsqlTsVector.Lexeme.Weight weight,
+            [NotNull] string[] lexemes)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(NpgsqlTsVector) + "." + nameof(SetWeight)));
 
         /// <summary>
@@ -152,7 +172,7 @@ namespace Microsoft.EntityFrameworkCore
         /// weighted tsvector.
         /// http://www.postgresql.org/docs/current/static/textsearch-features.html#TEXTSEARCH-MANIPULATE-TSVECTOR
         /// </summary>
-        public static NpgsqlTsVector SetWeight(this NpgsqlTsVector vector, char weight)
+        public static NpgsqlTsVector SetWeight([NotNull] this NpgsqlTsVector vector, char weight)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(NpgsqlTsVector) + "." + nameof(SetWeight)));
 
         /// <summary>
@@ -160,35 +180,38 @@ namespace Microsoft.EntityFrameworkCore
         /// return a new weighted tsvector.
         /// http://www.postgresql.org/docs/current/static/textsearch-features.html#TEXTSEARCH-MANIPULATE-TSVECTOR
         /// </summary>
-        public static NpgsqlTsVector SetWeight(this NpgsqlTsVector vector, char weight, string[] lexemes)
+        public static NpgsqlTsVector SetWeight(
+            [NotNull] this NpgsqlTsVector vector,
+            char weight,
+            [NotNull] string[] lexemes)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(NpgsqlTsVector) + "." + nameof(SetWeight)));
 
         /// <summary>
         /// Return a new vector with <paramref name="lexeme" /> removed from <paramref name="vector" />
         /// https://www.postgresql.org/docs/current/static/functions-textsearch.html
         /// </summary>
-        public static NpgsqlTsVector Delete(this NpgsqlTsVector vector, string lexeme)
+        public static NpgsqlTsVector Delete([NotNull] this NpgsqlTsVector vector, [NotNull]  string lexeme)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(NpgsqlTsVector) + "." + nameof(Delete)));
 
         /// <summary>
         /// Return a new vector with <paramref name="lexemes" /> removed from <paramref name="vector" />
         /// https://www.postgresql.org/docs/current/static/functions-textsearch.html
         /// </summary>
-        public static NpgsqlTsVector Delete(this NpgsqlTsVector vector, string[] lexemes)
+        public static NpgsqlTsVector Delete([NotNull] this NpgsqlTsVector vector, [NotNull] string[] lexemes)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(NpgsqlTsVector) + "." + nameof(Delete)));
 
         /// <summary>
         /// Returns a new vector with only lexemes having weights specified in <paramref name="weights" />.
         /// https://www.postgresql.org/docs/current/static/functions-textsearch.html
         /// </summary>
-        public static NpgsqlTsVector Filter(this NpgsqlTsVector vector, char[] weights)
+        public static NpgsqlTsVector Filter([NotNull] this NpgsqlTsVector vector, [NotNull] char[] weights)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(NpgsqlTsVector) + "." + nameof(Filter)));
 
         /// <summary>
         /// Returns the number of lexemes in <paramref name="vector" />.
         /// http://www.postgresql.org/docs/current/static/textsearch-features.html#TEXTSEARCH-MANIPULATE-TSVECTOR
         /// </summary>
-        public static int GetLength(this NpgsqlTsVector vector)
+        public static int GetLength([NotNull] this NpgsqlTsVector vector)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(NpgsqlTsVector) + "." + nameof(GetLength)));
 
         /// <summary>
@@ -196,14 +219,14 @@ namespace Microsoft.EntityFrameworkCore
         /// a new stripped tsvector.
         /// http://www.postgresql.org/docs/current/static/textsearch-features.html#TEXTSEARCH-MANIPULATE-TSVECTOR
         /// </summary>
-        public static NpgsqlTsVector ToStripped(this NpgsqlTsVector vector)
+        public static NpgsqlTsVector ToStripped([NotNull] this NpgsqlTsVector vector)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(NpgsqlTsVector) + "." + nameof(ToStripped)));
 
         /// <summary>
         /// Calculates the rank of <paramref name="vector" /> for <paramref name="query" />.
         /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-RANKING
         /// </summary>
-        public static float Rank(this NpgsqlTsVector vector, NpgsqlTsQuery query)
+        public static float Rank([NotNull] this NpgsqlTsVector vector, [NotNull] NpgsqlTsQuery query)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(NpgsqlTsVector) + "." + nameof(Rank)));
 
         /// <summary>
@@ -211,7 +234,10 @@ namespace Microsoft.EntityFrameworkCore
         /// the result according to the behaviors specified by <paramref name="normalization" />.
         /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-RANKING
         /// </summary>
-        public static float Rank(this NpgsqlTsVector vector, NpgsqlTsQuery query, NpgsqlTsRankingNormalization normalization)
+        public static float Rank(
+            [NotNull] this NpgsqlTsVector vector,
+            [NotNull] NpgsqlTsQuery query,
+            NpgsqlTsRankingNormalization normalization)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(NpgsqlTsVector) + "." + nameof(Rank)));
 
         /// <summary>
@@ -219,7 +245,10 @@ namespace Microsoft.EntityFrameworkCore
         /// weighting for word instances depending on their labels (D, C, B or A).
         /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-RANKING
         /// </summary>
-        public static float Rank(this NpgsqlTsVector vector, float[] weights, NpgsqlTsQuery query)
+        public static float Rank(
+            [NotNull] this NpgsqlTsVector vector,
+            [NotNull] float[] weights,
+            [NotNull] NpgsqlTsQuery query)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(NpgsqlTsVector) + "." + nameof(Rank)));
 
         /// <summary>
@@ -228,7 +257,11 @@ namespace Microsoft.EntityFrameworkCore
         /// and using custom weighting for word instances depending on their labels (D, C, B or A).
         /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-RANKING
         /// </summary>
-        public static float Rank(this NpgsqlTsVector vector, float[] weights, NpgsqlTsQuery query, NpgsqlTsRankingNormalization normalization)
+        public static float Rank(
+            [NotNull] this NpgsqlTsVector vector,
+            [NotNull] float[] weights,
+            [NotNull] NpgsqlTsQuery query,
+            NpgsqlTsRankingNormalization normalization)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(NpgsqlTsVector) + "." + nameof(Rank)));
 
         /// <summary>
@@ -236,7 +269,9 @@ namespace Microsoft.EntityFrameworkCore
         /// density method.
         /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-RANKING
         /// </summary>
-        public static float RankCoverDensity(this NpgsqlTsVector vector, NpgsqlTsQuery query)
+        public static float RankCoverDensity(
+            [NotNull] this NpgsqlTsVector vector,
+            [NotNull] NpgsqlTsQuery query)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(NpgsqlTsVector) + "." + nameof(RankCoverDensity)));
 
         /// <summary>
@@ -245,7 +280,10 @@ namespace Microsoft.EntityFrameworkCore
         /// <paramref name="normalization" />.
         /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-RANKING
         /// </summary>
-        public static float RankCoverDensity(this NpgsqlTsVector vector, NpgsqlTsQuery query, NpgsqlTsRankingNormalization normalization)
+        public static float RankCoverDensity(
+            [NotNull] this NpgsqlTsVector vector,
+            [NotNull] NpgsqlTsQuery query,
+            NpgsqlTsRankingNormalization normalization)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(NpgsqlTsVector) + "." + nameof(RankCoverDensity)));
 
         /// <summary>
@@ -253,7 +291,10 @@ namespace Microsoft.EntityFrameworkCore
         /// density method with custom weighting for word instances depending on their labels (D, C, B or A).
         /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-RANKING
         /// </summary>
-        public static float RankCoverDensity(this NpgsqlTsVector vector, float[] weights, NpgsqlTsQuery query)
+        public static float RankCoverDensity(
+            [NotNull] this NpgsqlTsVector vector,
+            [NotNull] float[] weights,
+            [NotNull] NpgsqlTsQuery query)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(NpgsqlTsVector) + "." + nameof(RankCoverDensity)));
 
         /// <summary>
@@ -262,7 +303,11 @@ namespace Microsoft.EntityFrameworkCore
         /// and using custom weighting for word instances depending on their labels (D, C, B or A).
         /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-RANKING
         /// </summary>
-        public static float RankCoverDensity(this NpgsqlTsVector vector, float[] weights, NpgsqlTsQuery query, NpgsqlTsRankingNormalization normalization)
+        public static float RankCoverDensity(
+            [NotNull] this NpgsqlTsVector vector,
+            [NotNull] float[] weights,
+            [NotNull] NpgsqlTsQuery query,
+            NpgsqlTsRankingNormalization normalization)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(NpgsqlTsVector) + "." + nameof(RankCoverDensity)));
     }
 }

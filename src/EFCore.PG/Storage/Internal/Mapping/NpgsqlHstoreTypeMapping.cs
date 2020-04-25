@@ -56,7 +56,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             return sb.ToString();
         }
 
-        class HstoreComparer : ValueComparer<Dictionary<string, string>>
+        sealed class HstoreComparer : ValueComparer<Dictionary<string, string>>
         {
             public HstoreComparer() : base(
                 (a, b) => Compare(a,b),

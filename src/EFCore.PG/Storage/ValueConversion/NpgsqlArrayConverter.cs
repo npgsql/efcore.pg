@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Linq.Expressions;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion
@@ -11,7 +12,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion
     /// </summary>
     public class NpgsqlArrayConverter<TModelArray, TProviderArray> : ValueConverter<TModelArray, TProviderArray>
     {
-        public NpgsqlArrayConverter(ValueConverter elementConverter)
+        public NpgsqlArrayConverter([NotNull] ValueConverter elementConverter)
             : base(ToProviderExpression(elementConverter), FromProviderExpression(elementConverter))
         {
             // TODO: List support
@@ -70,7 +71,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion
                 inputArray);
         }
 
-        public static Expression ForLoop(ParameterExpression loopVar, Expression initValue, Expression condition, Expression increment, Expression loopContent)
+        static Expression ForLoop(ParameterExpression loopVar, Expression initValue, Expression condition, Expression increment, Expression loopContent)
         {
             var initAssign = Expression.Assign(loopVar, initValue);
             var breakLabel = Expression.Label("LoopBreak");

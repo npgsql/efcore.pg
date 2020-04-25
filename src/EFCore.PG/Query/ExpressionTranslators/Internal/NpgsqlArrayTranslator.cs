@@ -38,14 +38,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         [NotNull]
         readonly NpgsqlJsonPocoTranslator _jsonPocoTranslator;
 
-        public NpgsqlArrayTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory, NpgsqlJsonPocoTranslator jsonPocoTranslator)
+        public NpgsqlArrayTranslator(
+            [NotNull] NpgsqlSqlExpressionFactory sqlExpressionFactory,
+            [NotNull] NpgsqlJsonPocoTranslator jsonPocoTranslator)
         {
             _sqlExpressionFactory = sqlExpressionFactory;
             _jsonPocoTranslator = jsonPocoTranslator;
         }
 
         [CanBeNull]
-        public SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
+        public virtual SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
         {
             if (instance != null && instance.Type.IsGenericList() && method.Name == "get_Item" && arguments.Count == 1)
             {
@@ -139,7 +141,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             return null;
         }
 
-        public SqlExpression Translate(SqlExpression instance, MemberInfo member, Type returnType)
+        public virtual SqlExpression Translate(SqlExpression instance, MemberInfo member, Type returnType)
         {
             if (instance?.Type.IsGenericList() == true &&
                 member.Name == nameof(List<object>.Count) &&

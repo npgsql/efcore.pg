@@ -160,33 +160,6 @@ namespace Microsoft.EntityFrameworkCore
             [NotNull] this PropertyBuilder<TProperty> propertyBuilder)
             => (PropertyBuilder<TProperty>)UseSerialColumn((PropertyBuilder)propertyBuilder);
 
-        /// <summary>
-        /// Configures the property to use the PostgreSQL SERIAL feature to generate values for new entities,
-        /// when targeting PostgreSQL. This method sets the property to be <see cref="ValueGenerated.OnAdd" />.
-        /// </summary>
-        /// <para>
-        /// This option should be considered deprecated starting with PostgreSQL 10, consider using <see cref="UseIdentityColumn"/> instead.
-        /// </para>
-        /// <param name="propertyBuilder"> The builder for the property being configured.</param>
-        /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-        public static IConventionPropertyBuilder UseSerialColumn(
-            [NotNull] this IConventionPropertyBuilder propertyBuilder)
-        {
-            if (propertyBuilder.CanSetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SerialColumn))
-            {
-                var property = propertyBuilder.Metadata;
-                property.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.SerialColumn);
-                property.SetHiLoSequenceName(null);
-                property.SetHiLoSequenceSchema(null);
-                property.RemoveHiLoOptions();
-                property.RemoveIdentityOptions();
-
-                return propertyBuilder;
-            }
-
-            return null;
-        }
-
         #endregion Serial
 
         #region Identity always
@@ -228,32 +201,6 @@ namespace Microsoft.EntityFrameworkCore
         public static PropertyBuilder<TProperty> UseIdentityAlwaysColumn<TProperty>(
             [NotNull] this PropertyBuilder<TProperty> propertyBuilder)
             => (PropertyBuilder<TProperty>)UseIdentityAlwaysColumn((PropertyBuilder)propertyBuilder);
-
-        /// <summary>
-        /// <para>
-        /// Configures the property to use the PostgreSQL IDENTITY feature to generate values for new entities,
-        /// when targeting PostgreSQL. This method sets the property to be <see cref="ValueGenerated.OnAdd" />.
-        /// Values for this property will always be generated as identity, and the application will not be able
-        /// to override this behavior by providing a value.
-        /// </para>
-        /// <para>Available only starting PostgreSQL 10.</para>
-        /// </summary>
-        /// <param name="propertyBuilder"> The builder for the property being configured.</param>
-        /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-        public static IConventionPropertyBuilder UseIdentityAlwaysColumn([NotNull] this IConventionPropertyBuilder propertyBuilder)
-        {
-            if (propertyBuilder.CanSetValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityAlwaysColumn))
-            {
-                var property = propertyBuilder.Metadata;
-                property.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityAlwaysColumn);
-                property.SetHiLoSequenceName(null);
-                property.SetHiLoSequenceSchema(null);
-
-                return propertyBuilder;
-            }
-
-            return null;
-        }
 
         #endregion Identity always
 
@@ -301,34 +248,6 @@ namespace Microsoft.EntityFrameworkCore
         public static PropertyBuilder<TProperty> UseIdentityByDefaultColumn<TProperty>(
             [NotNull] this PropertyBuilder<TProperty> propertyBuilder)
             => (PropertyBuilder<TProperty>)UseIdentityByDefaultColumn((PropertyBuilder)propertyBuilder);
-
-        /// <summary>
-        /// <para>
-        /// Configures the property to use the PostgreSQL IDENTITY feature to generate values for new entities,
-        /// when targeting PostgreSQL. This method sets the property to be <see cref="ValueGenerated.OnAdd" />.
-        /// Values for this property will be generated as identity by default, but the application will be able
-        /// to override this behavior by providing a value.
-        /// </para>
-        /// <para>
-        /// This is the default behavior when targeting PostgreSQL. Available only starting PostgreSQL 10.
-        /// </para>
-        /// </summary>
-        /// <param name="propertyBuilder"> The builder for the property being configured.</param>
-        /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-        public static IConventionPropertyBuilder UseIdentityByDefaultColumn([NotNull] this IConventionPropertyBuilder propertyBuilder)
-        {
-            if (propertyBuilder.CanSetValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityByDefaultColumn))
-            {
-                var property = propertyBuilder.Metadata;
-                property.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
-                property.SetHiLoSequenceName(null);
-                property.SetHiLoSequenceSchema(null);
-
-                return propertyBuilder;
-            }
-
-            return null;
-        }
 
         /// <summary>
         /// <para>
@@ -443,7 +362,7 @@ namespace Microsoft.EntityFrameworkCore
         /// The maximum value for the sequence.
         /// The default for an ascending sequence is the maximum value of the data type. The default for a descending sequence is -1.
         /// </param>
-        /// <param name="isCyclic">
+        /// <param name="cyclic">
         /// Sets whether or not the sequence will start again from the beginning once the maximum value is reached.
         /// Defaults to false.
         /// </param>
@@ -458,7 +377,7 @@ namespace Microsoft.EntityFrameworkCore
             long? incrementBy = null,
             long? minValue = null,
             long? maxValue = null,
-            bool? isCyclic = null,
+            bool? cyclic = null,
             long? numbersToCache = null)
         {
             var property = propertyBuilder.Metadata;
@@ -466,7 +385,7 @@ namespace Microsoft.EntityFrameworkCore
             property.SetIdentityIncrementBy(incrementBy);
             property.SetIdentityMinValue(minValue);
             property.SetIdentityMaxValue(maxValue);
-            property.SetIdentityIsCyclic(isCyclic);
+            property.SetIdentityIsCyclic(cyclic);
             property.SetIdentityNumbersToCache(numbersToCache);
             return propertyBuilder;
         }
@@ -490,7 +409,7 @@ namespace Microsoft.EntityFrameworkCore
         /// The maximum value for the sequence.
         /// The default for an ascending sequence is the maximum value of the data type. The default for a descending sequence is -1.
         /// </param>
-        /// <param name="isCyclic">
+        /// <param name="cyclic">
         /// Sets whether or not the sequence will start again from the beginning once the maximum value is reached.
         /// Defaults to false.
         /// </param>
@@ -505,10 +424,10 @@ namespace Microsoft.EntityFrameworkCore
             long? incrementBy = null,
             long? minValue = null,
             long? maxValue = null,
-            bool? isCyclic = null,
+            bool? cyclic = null,
             long? numbersToCache = null)
             => (PropertyBuilder<TProperty>)HasIdentityOptions(
-                (PropertyBuilder)propertyBuilder, startValue, incrementBy, minValue, maxValue, isCyclic, numbersToCache);
+                (PropertyBuilder)propertyBuilder, startValue, incrementBy, minValue, maxValue, cyclic, numbersToCache);
 
         /// <summary>
         /// Sets the sequence options on an identity column.
@@ -529,7 +448,7 @@ namespace Microsoft.EntityFrameworkCore
         /// The maximum value for the sequence.
         /// The default for an ascending sequence is the maximum value of the data type. The default for a descending sequence is -1.
         /// </param>
-        /// <param name="isCyclic">
+        /// <param name="cyclic">
         /// Sets whether or not the sequence will start again from the beginning once the maximum value is reached.
         /// Defaults to false.
         /// </param>
@@ -544,17 +463,17 @@ namespace Microsoft.EntityFrameworkCore
             long? incrementBy = null,
             long? minValue = null,
             long? maxValue = null,
-            bool? isCyclic = null,
+            bool? cyclic = null,
             long? numbersToCache = null)
         {
-            if (propertyBuilder.CanSetIdentityOptions(startValue, incrementBy, minValue, maxValue, isCyclic, numbersToCache))
+            if (propertyBuilder.CanSetIdentityOptions(startValue, incrementBy, minValue, maxValue, cyclic, numbersToCache))
             {
                 var property = propertyBuilder.Metadata;
                 property.SetIdentityStartValue(startValue);
                 property.SetIdentityIncrementBy(incrementBy);
                 property.SetIdentityMinValue(minValue);
                 property.SetIdentityMaxValue(maxValue);
-                property.SetIdentityIsCyclic(isCyclic);
+                property.SetIdentityIsCyclic(cyclic);
                 property.SetIdentityNumbersToCache(numbersToCache);
                 return propertyBuilder;
             }
@@ -579,7 +498,7 @@ namespace Microsoft.EntityFrameworkCore
         /// The maximum value for the sequence.
         /// The default for an ascending sequence is the maximum value of the data type. The default for a descending sequence is -1.
         /// </param>
-        /// <param name="isCyclic">
+        /// <param name="cyclic">
         /// Sets whether or not the sequence will start again from the beginning once the maximum value is reached.
         /// Defaults to false.
         /// </param>
@@ -594,7 +513,7 @@ namespace Microsoft.EntityFrameworkCore
             long? incrementBy = null,
             long? minValue = null,
             long? maxValue = null,
-            bool? isCyclic = null,
+            bool? cyclic = null,
             long? numbersToCache = null)
         {
             Check.NotNull(propertyBuilder, nameof(propertyBuilder));
@@ -605,7 +524,7 @@ namespace Microsoft.EntityFrameworkCore
                 IncrementBy = incrementBy ?? 1,
                 MinValue = minValue,
                 MaxValue = maxValue,
-                IsCyclic = isCyclic ?? false,
+                IsCyclic = cyclic ?? false,
                 NumbersToCache = numbersToCache ?? 1
             }.Serialize();
 
@@ -697,7 +616,7 @@ namespace Microsoft.EntityFrameworkCore
         {
             Check.NotNull(propertyBuilder, nameof(propertyBuilder));
 
-            if (propertyBuilder.CanSetIsGeneratedTsVector(config, includedPropertyNames, fromDataAnnotation))
+            if (propertyBuilder.CanSetIsGeneratedTsVectorColumn(config, includedPropertyNames, fromDataAnnotation))
             {
                 propertyBuilder.HasColumnType("tsvector");
                 propertyBuilder.Metadata.SetTsVectorConfig(config, fromDataAnnotation);
@@ -725,7 +644,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="includedPropertyNames">An array of property names to be included in the tsvector.</param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns><c>true</c> if the property can be configured as a full-text search tsvector column.</returns>
-        public static bool CanSetIsGeneratedTsVector(
+        public static bool CanSetIsGeneratedTsVectorColumn(
             [NotNull] this IConventionPropertyBuilder propertyBuilder,
             [CanBeNull] string config,
             [CanBeNull] IReadOnlyList<string> includedPropertyNames,

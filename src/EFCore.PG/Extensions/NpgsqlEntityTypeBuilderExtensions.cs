@@ -118,8 +118,10 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="parameterName"> The name of the storage parameter. </param>
         /// <param name="parameterValue"> The value of the storage parameter. </param>
         /// <returns> The same builder instance so that multiple calls can be chained. </returns>
-        public static EntityTypeBuilder SetStorageParameter(
-            [NotNull] this EntityTypeBuilder entityTypeBuilder, string parameterName, object parameterValue)
+        public static EntityTypeBuilder HasStorageParameter(
+            [NotNull] this EntityTypeBuilder entityTypeBuilder,
+            [NotNull] string parameterName,
+            [CanBeNull] object parameterValue)
         {
             Check.NotNull(entityTypeBuilder, nameof(entityTypeBuilder));
 
@@ -138,10 +140,12 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="parameterName"> The name of the storage parameter. </param>
         /// <param name="parameterValue"> The value of the storage parameter. </param>
         /// <returns> The same builder instance so that multiple calls can be chained. </returns>
-        public static EntityTypeBuilder<TEntity> SetStorageParameter<TEntity>(
-            [NotNull] this EntityTypeBuilder<TEntity> entityTypeBuilder, string parameterName, object parameterValue)
+        public static EntityTypeBuilder<TEntity> HasStorageParameter<TEntity>(
+            [NotNull] this EntityTypeBuilder<TEntity> entityTypeBuilder,
+            [NotNull] string parameterName,
+            [CanBeNull] object parameterValue)
             where TEntity : class
-            => (EntityTypeBuilder<TEntity>)SetStorageParameter((EntityTypeBuilder)entityTypeBuilder, parameterName, parameterValue);
+            => (EntityTypeBuilder<TEntity>)HasStorageParameter((EntityTypeBuilder)entityTypeBuilder, parameterName, parameterValue);
 
         /// <summary>
         /// Sets a PostgreSQL storage parameter on the table created for this entity.
@@ -154,8 +158,11 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="parameterValue"> The value of the storage parameter. </param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns> The same builder instance so that multiple calls can be chained. </returns>
-        public static IConventionEntityTypeBuilder SetStorageParameter(
-            [NotNull] this IConventionEntityTypeBuilder entityTypeBuilder, string parameterName, object parameterValue, bool fromDataAnnotation = false)
+        public static IConventionEntityTypeBuilder HasStorageParameter(
+            [NotNull] this IConventionEntityTypeBuilder entityTypeBuilder,
+            [NotNull] string parameterName,
+            [CanBeNull] object parameterValue,
+            bool fromDataAnnotation = false)
         {
             if (entityTypeBuilder.CanSetStorageParameter(parameterName, parameterValue, fromDataAnnotation))
             {
@@ -179,7 +186,9 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns><c>true</c> if the mapped table can be configured as with the storage parameter.</returns>
         public static bool CanSetStorageParameter(
-            [NotNull] this IConventionEntityTypeBuilder entityTypeBuilder, string parameterName, object parameterValue, bool fromDataAnnotation = false)
+            [NotNull] this IConventionEntityTypeBuilder entityTypeBuilder,
+            [NotNull] string parameterName,
+            [CanBeNull] object parameterValue, bool fromDataAnnotation = false)
         {
             Check.NotNull(entityTypeBuilder, nameof(entityTypeBuilder));
 
@@ -194,7 +203,7 @@ namespace Microsoft.EntityFrameworkCore
         /// Configures the entity to use an unlogged table when targeting Npgsql.
         /// </summary>
         /// <param name="entityTypeBuilder">The builder for the entity type being configured.</param>
-        /// <param name="isUnlogged">True to configure the entity to use an unlogged table; otherwise, false.</param>
+        /// <param name="unlogged">True to configure the entity to use an unlogged table; otherwise, false.</param>
         /// <returns>
         /// The same builder instance so that multiple calls can be chained.
         /// </returns>
@@ -203,11 +212,11 @@ namespace Microsoft.EntityFrameworkCore
         /// </remarks>
         public static EntityTypeBuilder IsUnlogged(
             [NotNull] this EntityTypeBuilder entityTypeBuilder,
-            bool isUnlogged = true)
+            bool unlogged = true)
         {
             Check.NotNull(entityTypeBuilder, nameof(entityTypeBuilder));
 
-            entityTypeBuilder.Metadata.SetIsUnlogged(isUnlogged);
+            entityTypeBuilder.Metadata.SetIsUnlogged(unlogged);
 
             return entityTypeBuilder;
         }
@@ -216,7 +225,7 @@ namespace Microsoft.EntityFrameworkCore
         /// Configures the mapped table to use an unlogged table when targeting Npgsql.
         /// </summary>
         /// <param name="entityTypeBuilder">The builder for the entity type being configured.</param>
-        /// <param name="isUnlogged">True to configure the entity to use an unlogged table; otherwise, false.</param>
+        /// <param name="unlogged">True to configure the entity to use an unlogged table; otherwise, false.</param>
         /// <returns>
         /// The same builder instance so that multiple calls can be chained.
         /// </returns>
@@ -225,15 +234,15 @@ namespace Microsoft.EntityFrameworkCore
         /// </remarks>
         public static EntityTypeBuilder<TEntity> IsUnlogged<TEntity>(
             [NotNull] this EntityTypeBuilder<TEntity> entityTypeBuilder,
-            bool isUnlogged = true)
+            bool unlogged = true)
             where TEntity : class
-            => (EntityTypeBuilder<TEntity>)IsUnlogged((EntityTypeBuilder)entityTypeBuilder, isUnlogged);
+            => (EntityTypeBuilder<TEntity>)IsUnlogged((EntityTypeBuilder)entityTypeBuilder, unlogged);
 
         /// <summary>
         /// Configures the mapped table to use an unlogged table when targeting Npgsql.
         /// </summary>
         /// <param name="entityTypeBuilder">The builder for the entity type being configured.</param>
-        /// <param name="isUnlogged">True to configure the entity to use an unlogged table; otherwise, false.</param>
+        /// <param name="unlogged">True to configure the entity to use an unlogged table; otherwise, false.</param>
         /// <param name="fromDataAnnotation"> Indicates whether the configuration was specified using a data annotation. </param>
         /// <returns>
         /// The same builder instance so that multiple calls can be chained.
@@ -243,12 +252,12 @@ namespace Microsoft.EntityFrameworkCore
         /// </remarks>
         public static IConventionEntityTypeBuilder IsUnlogged(
             [NotNull] this IConventionEntityTypeBuilder entityTypeBuilder,
-            bool isUnlogged = true,
+            bool unlogged = true,
             bool fromDataAnnotation = false)
         {
-            if (entityTypeBuilder.CanSetIsUnlogged(isUnlogged, fromDataAnnotation))
+            if (entityTypeBuilder.CanSetIsUnlogged(unlogged, fromDataAnnotation))
             {
-                entityTypeBuilder.Metadata.SetIsUnlogged(isUnlogged, fromDataAnnotation);
+                entityTypeBuilder.Metadata.SetIsUnlogged(unlogged, fromDataAnnotation);
 
                 return entityTypeBuilder;
             }
@@ -260,7 +269,7 @@ namespace Microsoft.EntityFrameworkCore
         /// Returns a value indicating whether the mapped table can be configured to use an unlogged table when targeting Npgsql.
         /// </summary>
         /// <param name="entityTypeBuilder">The builder for the entity type being configured.</param>
-        /// <param name="isUnlogged">True to configure the entity to use an unlogged table; otherwise, false.</param>
+        /// <param name="unlogged">True to configure the entity to use an unlogged table; otherwise, false.</param>
         /// <param name="fromDataAnnotation"> Indicates whether the configuration was specified using a data annotation. </param>
         /// <returns>
         /// The same builder instance so that multiple calls can be chained.
@@ -270,12 +279,12 @@ namespace Microsoft.EntityFrameworkCore
         /// </remarks>
         public static bool CanSetIsUnlogged(
             [NotNull] this IConventionEntityTypeBuilder entityTypeBuilder,
-            bool isUnlogged = true,
+            bool unlogged = true,
             bool fromDataAnnotation = false)
         {
             Check.NotNull(entityTypeBuilder, nameof(entityTypeBuilder));
 
-            return entityTypeBuilder.CanSetAnnotation(NpgsqlAnnotationNames.UnloggedTable, isUnlogged, fromDataAnnotation);
+            return entityTypeBuilder.CanSetAnnotation(NpgsqlAnnotationNames.UnloggedTable, unlogged, fromDataAnnotation);
         }
 
         #endregion
@@ -311,5 +320,82 @@ namespace Microsoft.EntityFrameworkCore
             => (EntityTypeBuilder<TEntity>)UseCockroachDbInterleaveInParent((EntityTypeBuilder)entityTypeBuilder, parentTableType, interleavePrefix);
 
         #endregion CockroachDB Interleave-in-parent
+
+        #region Obsolete
+
+        /// <summary>
+        /// Sets a PostgreSQL storage parameter on the table created for this entity.
+        /// </summary>
+        /// <remarks>
+        /// See https://www.postgresql.org/docs/current/static/sql-createtable.html#SQL-CREATETABLE-STORAGE-PARAMETERS
+        /// </remarks>
+        /// <param name="entityTypeBuilder"> The builder for the entity type being configured. </param>
+        /// <param name="parameterName"> The name of the storage parameter. </param>
+        /// <param name="parameterValue"> The value of the storage parameter. </param>
+        /// <returns> The same builder instance so that multiple calls can be chained. </returns>
+        [Obsolete("Use HasStorageParameter")]
+        public static EntityTypeBuilder SetStorageParameter(
+            [NotNull] this EntityTypeBuilder entityTypeBuilder,
+            [NotNull] string parameterName,
+            [CanBeNull] object parameterValue)
+            => HasStorageParameter(entityTypeBuilder, parameterName, parameterValue);
+
+        /// <summary>
+        /// Sets a PostgreSQL storage parameter on the table created for this entity.
+        /// </summary>
+        /// <remarks>
+        /// See https://www.postgresql.org/docs/current/static/sql-createtable.html#SQL-CREATETABLE-STORAGE-PARAMETERS
+        /// </remarks>
+        /// <param name="entityTypeBuilder"> The builder for the entity type being configured. </param>
+        /// <param name="parameterName"> The name of the storage parameter. </param>
+        /// <param name="parameterValue"> The value of the storage parameter. </param>
+        /// <returns> The same builder instance so that multiple calls can be chained. </returns>
+        [Obsolete("Use HasStorageParameter")]
+        public static EntityTypeBuilder<TEntity> SetStorageParameter<TEntity>(
+            [NotNull] this EntityTypeBuilder<TEntity> entityTypeBuilder,
+            [NotNull] string parameterName,
+            [CanBeNull] object parameterValue)
+            where TEntity : class
+            => HasStorageParameter(entityTypeBuilder, parameterName, parameterValue);
+
+        /// <summary>
+        /// Sets a PostgreSQL storage parameter on the table created for this entity.
+        /// </summary>
+        /// <remarks>
+        /// See https://www.postgresql.org/docs/current/static/sql-createtable.html#SQL-CREATETABLE-STORAGE-PARAMETERS
+        /// </remarks>
+        /// <param name="entityTypeBuilder"> The builder for the entity type being configured. </param>
+        /// <param name="parameterName"> The name of the storage parameter. </param>
+        /// <param name="parameterValue"> The value of the storage parameter. </param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        /// <returns> The same builder instance so that multiple calls can be chained. </returns>
+        [Obsolete("Use HasStorageParameter")]
+        public static IConventionEntityTypeBuilder SetStorageParameter(
+            [NotNull] this IConventionEntityTypeBuilder entityTypeBuilder,
+            [NotNull] string parameterName,
+            [CanBeNull] object parameterValue,
+            bool fromDataAnnotation = false)
+            => HasStorageParameter(entityTypeBuilder, parameterName, parameterValue, fromDataAnnotation);
+
+        /// <summary>
+        /// Returns a value indicating whether the PostgreSQL storage parameter on the table created for this entity.
+        /// </summary>
+        /// <remarks>
+        /// See https://www.postgresql.org/docs/current/static/sql-createtable.html#SQL-CREATETABLE-STORAGE-PARAMETERS
+        /// </remarks>
+        /// <param name="entityTypeBuilder"> The builder for the entity type being configured. </param>
+        /// <param name="parameterName"> The name of the storage parameter. </param>
+        /// <param name="parameterValue"> The value of the storage parameter. </param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        /// <returns><c>true</c> if the mapped table can be configured as with the storage parameter.</returns>
+        [Obsolete("Use CanSetStorageParameter")]
+        public static bool CanSetSetStorageParameter(
+            [NotNull] this IConventionEntityTypeBuilder entityTypeBuilder,
+            [NotNull] string parameterName,
+            [CanBeNull] object parameterValue,
+            bool fromDataAnnotation = false)
+            => CanSetStorageParameter(entityTypeBuilder, parameterName, parameterValue, fromDataAnnotation);
+
+        #endregion Obsolete
     }
 }

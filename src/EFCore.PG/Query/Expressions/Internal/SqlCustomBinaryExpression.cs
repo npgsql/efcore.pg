@@ -19,19 +19,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         /// The left-hand expression.
         /// </summary>
         [NotNull]
-        public SqlExpression Left { get; }
+        public virtual SqlExpression Left { get; }
 
         /// <summary>
         /// The right-hand expression.
         /// </summary>
         [NotNull]
-        public SqlExpression Right { get; }
+        public virtual SqlExpression Right { get; }
 
         /// <summary>
         /// The operator.
         /// </summary>
         [NotNull]
-        public string Operator { get; }
+        public virtual string Operator { get; }
 
         /// <summary>
         /// Constructs a <see cref="SqlCustomBinaryExpression"/>.
@@ -64,12 +64,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         protected override Expression VisitChildren(ExpressionVisitor visitor)
             => Update((SqlExpression)visitor.Visit(Left), (SqlExpression)visitor.Visit(Right));
 
-        public SqlCustomBinaryExpression Update(SqlExpression left, SqlExpression right)
+        public virtual SqlCustomBinaryExpression Update([NotNull] SqlExpression left, [NotNull] SqlExpression right)
             => left == Left && right == Right
                 ? this
                 : new SqlCustomBinaryExpression(left, right, Operator, Type, TypeMapping);
 
-        public bool Equals(SqlCustomBinaryExpression other)
+        public virtual bool Equals(SqlCustomBinaryExpression other)
             => ReferenceEquals(this, other) ||
                other is object &&
                Left.Equals(other.Left) &&

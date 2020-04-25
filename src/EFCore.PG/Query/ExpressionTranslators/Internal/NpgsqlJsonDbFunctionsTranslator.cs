@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
@@ -21,7 +22,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         readonly RelationalTypeMapping _stringTypeMapping;
         readonly RelationalTypeMapping _jsonbTypeMapping;
 
-        public NpgsqlJsonDbFunctionsTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory, IRelationalTypeMappingSource typeMappingSource)
+        public NpgsqlJsonDbFunctionsTranslator(
+            [NotNull] NpgsqlSqlExpressionFactory sqlExpressionFactory,
+            [NotNull] IRelationalTypeMappingSource typeMappingSource)
         {
             _sqlExpressionFactory = sqlExpressionFactory;
             _boolTypeMapping = typeMappingSource.FindMapping(typeof(bool));
@@ -29,7 +32,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             _jsonbTypeMapping = typeMappingSource.FindMapping("jsonb");
         }
 
-        public SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
+        public virtual SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
         {
             if (method.DeclaringType != typeof(NpgsqlJsonDbFunctionsExtensions))
                 return null;

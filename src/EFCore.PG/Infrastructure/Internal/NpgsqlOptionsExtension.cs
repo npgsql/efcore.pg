@@ -24,42 +24,42 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// The name of the database for administrative operations.
         /// </summary>
         [CanBeNull]
-        public string AdminDatabase { get; private set; }
+        public virtual string AdminDatabase { get; private set; }
 
         /// <summary>
         /// The backend version to target.
         /// </summary>
         [CanBeNull]
-        public Version PostgresVersion { get; private set; }
+        public virtual Version PostgresVersion { get; private set; }
 
         /// <summary>
         /// The list of range mappings specified by the user.
         /// </summary>
         [NotNull]
-        public IReadOnlyList<UserRangeDefinition> UserRangeDefinitions => _userRangeDefinitions;
+        public virtual IReadOnlyList<UserRangeDefinition> UserRangeDefinitions => _userRangeDefinitions;
 
         /// <summary>
         /// The specified <see cref="ProvideClientCertificatesCallback"/>.
         /// </summary>
         [CanBeNull]
-        public ProvideClientCertificatesCallback ProvideClientCertificatesCallback { get; private set; }
+        public virtual ProvideClientCertificatesCallback ProvideClientCertificatesCallback { get; private set; }
 
         /// <summary>
         /// The specified <see cref="RemoteCertificateValidationCallback"/>.
         /// </summary>
         [CanBeNull]
-        public RemoteCertificateValidationCallback RemoteCertificateValidationCallback { get; private set; }
+        public virtual RemoteCertificateValidationCallback RemoteCertificateValidationCallback { get; private set; }
 
         /// <summary>
         /// The specified <see cref="ProvidePasswordCallback"/>.
         /// </summary>
         [CanBeNull]
-        public ProvidePasswordCallback ProvidePasswordCallback { get; private set; }
+        public virtual ProvidePasswordCallback ProvidePasswordCallback { get; private set; }
 
         /// <summary>
         /// True if reverse null ordering is enabled; otherwise, false.
         /// </summary>
-        public bool ReverseNullOrdering { get; private set; }
+        public virtual bool ReverseNullOrdering { get; private set; }
 
         /// <summary>
         /// Initializes an instance of <see cref="NpgsqlOptionsExtension"/> with the default settings.
@@ -361,28 +361,28 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// The name of the PostgreSQL range type to be mapped.
         /// </summary>
         [NotNull]
-        public string RangeName { get; }
+        public virtual string RangeName { get; }
 
         /// <summary>
         /// The PostgreSQL schema in which the range is defined. If null, the default schema is used
         /// (which is public unless changed on the model).
         /// </summary>
         [CanBeNull]
-        public string SchemaName { get; }
+        public virtual string SchemaName { get; }
 
         /// <summary>
         /// The CLR type of the range's subtype (or element).
         /// The actual mapped type will be an <see cref="NpgsqlRange{T}"/> over this type.
         /// </summary>
         [NotNull]
-        public Type SubtypeClrType { get; }
+        public virtual Type SubtypeClrType { get; }
 
         /// <summary>
         /// Optionally, the name of the range's PostgreSQL subtype (or element).
         /// This is usually not needed - the subtype will be inferred based on <see cref="SubtypeClrType"/>.
         /// </summary>
         [CanBeNull]
-        public string SubtypeName { get; }
+        public virtual string SubtypeName { get; }
 
         public UserRangeDefinition(
             [NotNull] string rangeName,
@@ -401,7 +401,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
 
         public override bool Equals(object obj) => obj is UserRangeDefinition urd && Equals(urd);
 
-        public bool Equals(UserRangeDefinition other)
+        public virtual bool Equals(UserRangeDefinition other)
             => ReferenceEquals(this, other) ||
                !(other is null) &&
                RangeName == other.RangeName &&
@@ -409,7 +409,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
                SubtypeClrType == other.SubtypeClrType &&
                SubtypeName == other.SubtypeName;
 
-        public void Deconstruct(
+        public virtual void Deconstruct(
             [NotNull] out string rangeName,
             [CanBeNull] out string schemaName,
             [NotNull] out Type subtypeClrType,

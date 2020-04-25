@@ -24,8 +24,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
     {
         [NotNull] readonly ISqlGenerationHelper _sqlGenerationHelper;
 
-        public ConcurrentDictionary<string, RelationalTypeMapping[]> StoreTypeMappings { get; }
-        public ConcurrentDictionary<Type, RelationalTypeMapping> ClrTypeMappings { get; }
+        protected virtual ConcurrentDictionary<string, RelationalTypeMapping[]> StoreTypeMappings { get; }
+        protected virtual ConcurrentDictionary<Type, RelationalTypeMapping> ClrTypeMappings { get; }
 
         readonly IReadOnlyList<UserRangeDefinition> _userRangeDefinitions;
 
@@ -268,13 +268,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         /// To be used in case user-defined mappings are added late, after this TypeMappingSource has already been initialized.
         /// This is basically only for test usage.
         /// </summary>
-        public void LoadUserDefinedTypeMappings([NotNull] ISqlGenerationHelper sqlGenerationHelper)
+        public virtual void LoadUserDefinedTypeMappings([NotNull] ISqlGenerationHelper sqlGenerationHelper)
             => SetupEnumMappings(sqlGenerationHelper);
 
         /// <summary>
         /// Gets all global enum mappings from the ADO.NET layer and creates mappings for them
         /// </summary>
-        void SetupEnumMappings([NotNull] ISqlGenerationHelper sqlGenerationHelper)
+        protected virtual void SetupEnumMappings([NotNull] ISqlGenerationHelper sqlGenerationHelper)
         {
             foreach (var adoMapping in NpgsqlConnection.GlobalTypeMapper.Mappings.Where(m => m.TypeHandlerFactory is IEnumTypeHandlerFactory).ToArray())
             {

@@ -28,7 +28,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             [NotNull] string lcCollate,
             [NotNull] string lcCtype,
             [CanBeNull] string provider = null,
-            [CanBeNull] bool? deterministic = null)
+            bool? deterministic = null)
         {
             Check.NotNull(annotatable, nameof(annotatable));
             Check.NullButNotEmpty(schema, nameof(schema));
@@ -78,36 +78,33 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
                     .Select(a => new PostgresCollation(annotatable, a.Name));
 
         [NotNull]
-        public Annotatable Annotatable => (Annotatable)_annotatable;
+        public virtual Annotatable Annotatable => (Annotatable)_annotatable;
 
         [CanBeNull]
-        public string Schema => GetData().Schema;
+        public virtual string Schema => GetData().Schema;
 
         [NotNull]
-        public string Name => GetData().Name;
+        public virtual string Name => GetData().Name;
 
-        [NotNull]
-        public string LcCollate
+        public virtual string LcCollate
         {
             get => GetData().LcCollate;
-            set => SetData(lcCollate: value);
+            [param: NotNull] set => SetData(lcCollate: value);
         }
 
-        [NotNull]
-        public string LcCtype
+        public virtual string LcCtype
         {
             get => GetData().LcCtype;
-            set => SetData(lcCtype: value);
+            [param: NotNull] set => SetData(lcCtype: value);
         }
 
-        [CanBeNull]
-        public string Provider
+        public virtual string Provider
         {
             get => GetData().Provider;
-            set => SetData(provider: value);
+            [param: CanBeNull] set => SetData(provider: value);
         }
 
-        public bool? IsDeterministic
+        public virtual bool? IsDeterministic
         {
             get => GetData().IsDeterministic;
             set => SetData(deterministic: value);

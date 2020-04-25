@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
@@ -24,7 +25,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         /// </summary>
         /// <param name="storeType">The database type to map.</param>
         /// <param name="elementMapping">The element type mapping.</param>
-        public NpgsqlArrayListTypeMapping(string storeType, RelationalTypeMapping elementMapping)
+        public NpgsqlArrayListTypeMapping([NotNull] string storeType, [NotNull] RelationalTypeMapping elementMapping)
             : this(storeType, elementMapping, typeof(List<>).MakeGenericType(elementMapping.ClrType)) {}
 
         /// <summary>
@@ -32,7 +33,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         /// </summary>
         /// <param name="elementMapping">The element type mapping.</param>
         /// <param name="listType">The database type to map.</param>
-        public NpgsqlArrayListTypeMapping(RelationalTypeMapping elementMapping, Type listType)
+        public NpgsqlArrayListTypeMapping([NotNull] RelationalTypeMapping elementMapping, [NotNull] Type listType)
             : this(elementMapping.StoreType + "[]", elementMapping, listType) {}
 
         NpgsqlArrayListTypeMapping(string storeType, RelationalTypeMapping elementMapping, Type listType)
@@ -41,7 +42,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             ), elementMapping) {}
 
         protected NpgsqlArrayListTypeMapping(
-            RelationalTypeMappingParameters parameters, RelationalTypeMapping elementMapping)
+            RelationalTypeMappingParameters parameters, [NotNull] RelationalTypeMapping elementMapping)
             : base(parameters, elementMapping)
         {
             if (!parameters.CoreParameters.ClrType.IsGenericList())
@@ -76,7 +77,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             return (ValueComparer)Activator.CreateInstance(typeof(SingleDimComparerWithEquals<>).MakeGenericType(elementType));
         }
 
-        class SingleDimComparerWithComparer<TElem> : ValueComparer<List<TElem>>
+        sealed class SingleDimComparerWithComparer<TElem> : ValueComparer<List<TElem>>
         {
             public SingleDimComparerWithComparer(RelationalTypeMapping elementMapping)
                 : base(
@@ -116,7 +117,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             }
         }
 
-        class SingleDimComparerWithIEquatable<TElem> : ValueComparer<List<TElem>> where TElem : IEquatable<TElem>
+        sealed class SingleDimComparerWithIEquatable<TElem> : ValueComparer<List<TElem>> where TElem : IEquatable<TElem>
         {
             public SingleDimComparerWithIEquatable()
                 : base(
@@ -165,7 +166,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             }
         }
 
-        class SingleDimComparerWithEquals<TElem> : ValueComparer<List<TElem>>
+        sealed class SingleDimComparerWithEquals<TElem> : ValueComparer<List<TElem>>
         {
             public SingleDimComparerWithEquals()
                 : base(

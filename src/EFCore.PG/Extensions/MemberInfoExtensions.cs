@@ -80,7 +80,7 @@ namespace System.Reflection
             return index >= 0 ? name.Substring(index + 1) : name;
         }
 
-        class MemberInfoComparer : IEqualityComparer<MemberInfo>
+        sealed class MemberInfoComparer : IEqualityComparer<MemberInfo>
         {
             public static readonly MemberInfoComparer Instance = new MemberInfoComparer();
 

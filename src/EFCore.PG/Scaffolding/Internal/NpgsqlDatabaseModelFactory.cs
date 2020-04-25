@@ -1095,7 +1095,7 @@ FROM pg_collation coll
             };
         }
 
-        class SequenceInfo
+        sealed class SequenceInfo
         {
             public SequenceInfo(string storeType) => StoreType = storeType;
             public string StoreType { get; set; }

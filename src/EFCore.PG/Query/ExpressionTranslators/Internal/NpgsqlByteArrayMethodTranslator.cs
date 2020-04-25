@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
@@ -18,10 +19,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
                 .Single(m => m.Name == nameof(Enumerable.Contains) && m.GetParameters().Length == 2);
 
-        public NpgsqlByteArrayMethodTranslator(ISqlExpressionFactory sqlExpressionFactory)
+        public NpgsqlByteArrayMethodTranslator([NotNull] ISqlExpressionFactory sqlExpressionFactory)
             => _sqlExpressionFactory = sqlExpressionFactory;
 
-        public SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
+        public virtual SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
         {
             Check.NotNull(method, nameof(method));
             Check.NotNull(arguments, nameof(arguments));

@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using System.Reflection;
 using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -21,16 +20,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         [NotNull]
         readonly RelationalTypeMapping _stringTypeMapping;
 
-        public NpgsqlJsonPocoTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory)
+        public NpgsqlJsonPocoTranslator([NotNull] NpgsqlSqlExpressionFactory sqlExpressionFactory)
         {
             _sqlExpressionFactory = sqlExpressionFactory;
             _stringTypeMapping = sqlExpressionFactory.FindMapping(typeof(string));
         }
 
-        public SqlExpression Translate(SqlExpression instance, MemberInfo member, Type returnType)
+        public virtual SqlExpression Translate(SqlExpression instance, MemberInfo member, Type returnType)
             => TranslateMemberAccess(instance, _sqlExpressionFactory.Constant(member.Name), returnType);
 
-        public SqlExpression TranslateMemberAccess(SqlExpression instance, SqlExpression member, Type returnType)
+        public virtual SqlExpression TranslateMemberAccess(
+            [NotNull] SqlExpression instance, [NotNull] SqlExpression member, [NotNull] Type returnType)
         {
             // The first time we see a JSON traversal it's on a column - create a JsonTraversalExpression.
             // Traversals on top of that get appended into the same expression.
@@ -58,7 +58,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             return null;
         }
 
-        public SqlExpression TranslateArrayLength(SqlExpression expression)
+        public virtual SqlExpression TranslateArrayLength([NotNull] SqlExpression expression)
         {
             if (expression is ColumnExpression columnExpression &&
                 columnExpression.TypeMapping is NpgsqlJsonTypeMapping mapping)

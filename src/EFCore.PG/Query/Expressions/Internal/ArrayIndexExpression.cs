@@ -22,8 +22,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         public ArrayIndexExpression(
             [NotNull] SqlExpression array,
             [NotNull] SqlExpression index,
-            Type type,
-            RelationalTypeMapping typeMapping)
+            [NotNull] Type type,
+            [CanBeNull] RelationalTypeMapping typeMapping)
             : base(type, typeMapping)
         {
             Check.NotNull(array, nameof(array));
@@ -44,7 +44,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
                 ? npgsqlGenerator.VisitArrayIndex(this)
                 : base.Accept(visitor);
 
-        public ArrayIndexExpression Update(SqlExpression array, SqlExpression index)
+        public virtual ArrayIndexExpression Update([NotNull] SqlExpression array, [NotNull] SqlExpression index)
             => array == Array && index == Index ? this : new ArrayIndexExpression(array, index, Type, TypeMapping);
 
         /// <inheritdoc />
@@ -63,7 +63,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         [NotNull]
         public virtual SqlExpression Index { get; }
 
-        public bool Equals(ArrayIndexExpression other)
+        public virtual bool Equals(ArrayIndexExpression other)
             => ReferenceEquals(this, other) ||
                other is object &&
                base.Equals(other) &&

@@ -22,7 +22,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <value>true</value> if the range contains the specified value; otherwise, <value>false</value>.
         /// </returns>
         /// <exception cref="NotSupportedException">{method} is only intended for use via SQL translation as part of an EF Core LINQ query.</exception>
-        public static bool Contains<T>(this NpgsqlRange<T> range, T value)
+        public static bool Contains<T>(this NpgsqlRange<T> range, [NotNull] T value)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Contains)));
 
         /// <summary>

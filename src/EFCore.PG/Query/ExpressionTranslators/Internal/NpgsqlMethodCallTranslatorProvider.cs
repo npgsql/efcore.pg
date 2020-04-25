@@ -10,7 +10,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     {
         public NpgsqlMethodCallTranslatorProvider(
             [NotNull] RelationalMethodCallTranslatorProviderDependencies dependencies,
-            IRelationalTypeMappingSource typeMappingSource)
+            [NotNull] IRelationalTypeMappingSource typeMappingSource)
             : base(dependencies)
         {
             var npgsqlSqlExpressionFactory = (NpgsqlSqlExpressionFactory)dependencies.SqlExpressionFactory;

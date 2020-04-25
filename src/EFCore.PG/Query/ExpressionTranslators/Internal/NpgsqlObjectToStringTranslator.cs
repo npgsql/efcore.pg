@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
@@ -33,10 +34,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
         readonly ISqlExpressionFactory _sqlExpressionFactory;
 
-        public NpgsqlObjectToStringTranslator(ISqlExpressionFactory sqlExpressionFactory)
+        public NpgsqlObjectToStringTranslator([NotNull] ISqlExpressionFactory sqlExpressionFactory)
             => _sqlExpressionFactory = sqlExpressionFactory;
 
-        public SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
+        public virtual SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
             => method.Name == nameof(ToString)
                && arguments.Count == 0
                && instance != null

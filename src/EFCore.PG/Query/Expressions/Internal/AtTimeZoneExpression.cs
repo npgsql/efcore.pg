@@ -18,13 +18,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         /// The timestamp.
         /// </summary>
         [NotNull]
-        public SqlExpression Timestamp { get; }
+        public virtual SqlExpression Timestamp { get; }
 
         /// <summary>
         /// The time zone.
         /// </summary>
         [NotNull]
-        public SqlExpression TimeZone { get; }
+        public virtual SqlExpression TimeZone { get; }
 
         /// <summary>
         /// Constructs an <see cref="AtTimeZoneExpression"/>.
@@ -33,7 +33,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         /// <param name="timeZone">The time zone.</param>
         /// <param name="type">The type of the expression.</param>
         /// <exception cref="ArgumentNullException" />
-        public AtTimeZoneExpression([NotNull] SqlExpression timestamp, [NotNull] SqlExpression timeZone, [NotNull] Type type, RelationalTypeMapping typeMapping)
+        public AtTimeZoneExpression(
+            [NotNull] SqlExpression timestamp,
+            [NotNull] SqlExpression timeZone,
+            [NotNull] Type type,
+            [CanBeNull] RelationalTypeMapping typeMapping)
             : base(type, typeMapping)
         {
             Timestamp = Check.NotNull(timestamp, nameof(timestamp));
@@ -50,12 +54,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         protected override Expression VisitChildren(ExpressionVisitor visitor)
             => Update((SqlExpression)visitor.Visit(Timestamp), (SqlExpression)visitor.Visit(TimeZone));
 
-        public AtTimeZoneExpression Update(SqlExpression timestamp, SqlExpression timeZone)
+        public virtual AtTimeZoneExpression Update([NotNull] SqlExpression timestamp, [NotNull] SqlExpression timeZone)
             => timestamp == Timestamp && timeZone == TimeZone
                 ? this
                 : new AtTimeZoneExpression(timestamp, TimeZone, Type, TypeMapping);
 
-        public bool Equals(AtTimeZoneExpression other)
+        public virtual bool Equals(AtTimeZoneExpression other)
             => ReferenceEquals(this, other) ||
                other is object &&
                base.Equals(other) &&

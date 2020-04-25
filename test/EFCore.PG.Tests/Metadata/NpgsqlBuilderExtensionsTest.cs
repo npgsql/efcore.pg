@@ -43,7 +43,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
                     incrementBy: 2,
                     minValue: 3,
                     maxValue: 2000,
-                    isCyclic: true,
+                    cyclic: true,
                     numbersToCache: 10);
 
             var model = modelBuilder.Model;

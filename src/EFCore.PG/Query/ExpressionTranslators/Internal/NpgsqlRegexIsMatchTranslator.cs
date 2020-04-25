@@ -26,12 +26,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
         readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
 
-        public NpgsqlRegexIsMatchTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory)
+        public NpgsqlRegexIsMatchTranslator([NotNull] NpgsqlSqlExpressionFactory sqlExpressionFactory)
             => _sqlExpressionFactory = sqlExpressionFactory;
 
         /// <inheritdoc />
         [CanBeNull]
-        public SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
+        public virtual SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
         {
             if (method != IsMatch && method != IsMatchWithRegexOptions)
                 return null;

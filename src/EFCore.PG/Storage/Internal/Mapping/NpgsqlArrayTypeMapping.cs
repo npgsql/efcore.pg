@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.Reflection;
 using System.Text;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Storage;
 using NpgsqlTypes;
 
@@ -22,14 +23,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         /// <summary>
         /// The relational type mapping used to initialize the array mapping.
         /// </summary>
-        public RelationalTypeMapping ElementMapping { get; }
+        [NotNull]
+        public virtual RelationalTypeMapping ElementMapping { get; }
 
         /// <summary>
         /// The database type used by Npgsql.
         /// </summary>
-        public NpgsqlDbType? NpgsqlDbType { get; }
+        public virtual NpgsqlDbType? NpgsqlDbType { get; }
 
-        protected NpgsqlArrayTypeMapping(RelationalTypeMappingParameters parameters, RelationalTypeMapping elementMapping)
+        protected NpgsqlArrayTypeMapping(
+            RelationalTypeMappingParameters parameters, [NotNull] RelationalTypeMapping elementMapping)
             : base(parameters)
         {
             ElementMapping = elementMapping;

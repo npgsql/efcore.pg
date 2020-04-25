@@ -7,7 +7,6 @@ using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -180,7 +179,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         /// Identifies complex array-related constructs which cannot be translated in regular method translators, since
         /// they require accessing lambdas.
         /// </summary>
-        protected virtual Expression VisitArrayMethodCall(MethodInfo method, ReadOnlyCollection<Expression> arguments)
+        protected virtual Expression VisitArrayMethodCall(
+            [NotNull] MethodInfo method, [NotNull] ReadOnlyCollection<Expression> arguments)
         {
             {
                 // Pattern match for .Where(e => new[] { "a", "b", "c" }.Any(p => EF.Functions.Like(e.SomeText, p))),
