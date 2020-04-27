@@ -241,6 +241,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             base.GenerateSetOperationOperand(setOperation, operand);
         }
 
+        protected override Expression VisitCollate(CollateExpression collateExpresion)
+        {
+            Check.NotNull(collateExpresion, nameof(collateExpresion));
+
+            Visit(collateExpresion.Operand);
+
+            Sql
+                .Append(" COLLATE ")
+                .Append(_sqlGenerationHelper.DelimitIdentifier(collateExpresion.Collation));
+
+            return collateExpresion;
+        }
+
         /// <summary>
         /// Produces expressions like: 1 = ANY ('{0,1,2}') or 'cat' LIKE ANY ('{a%,b%,c%}').
         /// </summary>
