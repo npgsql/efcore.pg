@@ -478,7 +478,14 @@ ALTER TABLE ""People"" RESET (user_catalog_table);");
                 return;
             }
 
-            await base.Add_column_with_computedSql(computedColumnStored);
+            if (computedColumnStored != true)
+            {
+                // Non-stored generated columns aren't yet supported (PG12)
+                await Assert.ThrowsAsync<NotSupportedException>(() => base.Add_column_with_computedSql(computedColumnStored));
+                return;
+            }
+
+            await base.Add_column_with_computedSql(computedColumnStored: true);
 
             AssertSql(
                 @"ALTER TABLE ""People"" ADD ""Sum"" text GENERATED ALWAYS AS (""X"" + ""Y"") STORED;");
@@ -550,7 +557,21 @@ COMMENT ON COLUMN ""People"".""FullName"" IS 'My comment';");
                 return;
             }
 
-            await base.Add_column_computed_with_collation();
+            // Non-stored generated columns aren't yet supported (PG12), so we override to used stored
+            await Test(
+                builder => builder.Entity("People").Property<int>("Id"),
+                builder => { },
+                builder => builder.Entity("People").Property<string>("Name")
+                    .HasComputedColumnSql("'hello'", stored: true)
+                    .UseCollation(NonDefaultCollation),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    Assert.Equal(2, table.Columns.Count);
+                    var nameColumn = Assert.Single(table.Columns, c => c.Name == "Name");
+                    Assert.Contains("hello", nameColumn.ComputedColumnSql);
+                    Assert.Equal(NonDefaultCollation, nameColumn.Collation);
+                });
 
             AssertSql(
                 @"ALTER TABLE ""People"" ADD ""Name"" text COLLATE ""POSIX"" GENERATED ALWAYS AS ('hello') STORED;");
@@ -860,6 +881,13 @@ ALTER TABLE ""People"" ALTER COLUMN ""FirstName"" DROP DEFAULT;");
                 return;
             }
 
+            if (computedColumnStored != true)
+            {
+                // Non-stored generated columns aren't yet supported (PG12)
+                await Assert.ThrowsAsync<NotSupportedException>(() => base.Add_column_with_computedSql(computedColumnStored));
+                return;
+            }
+
             await base.Alter_column_make_computed(computedColumnStored);
 
             AssertSql(
@@ -876,13 +904,37 @@ ALTER TABLE ""People"" ALTER COLUMN ""FirstName"" DROP DEFAULT;");
                 return;
             }
 
-            await base.Alter_column_change_computed();
+            // Non-stored generated columns aren't yet supported (PG12), so we override to used stored
+            await Test(
+                builder => builder.Entity(
+                    "People", e =>
+                    {
+                        e.Property<int>("Id");
+                        e.Property<int>("X");
+                        e.Property<int>("Y");
+                        e.Property<int>("Sum");
+                    }),
+                builder => builder.Entity("People").Property<int>("Sum")
+                    .HasComputedColumnSql($"{DelimitIdentifier("X")} + {DelimitIdentifier("Y")}", stored: true),
+                builder => builder.Entity("People").Property<int>("Sum")
+                    .HasComputedColumnSql($"{DelimitIdentifier("X")} - {DelimitIdentifier("Y")}", stored: true),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    var sumColumn = Assert.Single(table.Columns, c => c.Name == "Sum");
+                    Assert.Contains("X", sumColumn.ComputedColumnSql);
+                    Assert.Contains("Y", sumColumn.ComputedColumnSql);
+                    Assert.Contains("-", sumColumn.ComputedColumnSql);
+                });
 
             AssertSql(
                 @"ALTER TABLE ""People"" DROP COLUMN ""Sum"";",
                 //
                 @"ALTER TABLE ""People"" ADD ""Sum"" integer GENERATED ALWAYS AS (""X"" - ""Y"") STORED;");
         }
+
+        public override Task Alter_column_change_computed_type()
+            => Assert.ThrowsAsync<NotSupportedException>(() => base.Alter_column_change_computed());
 
         public override async Task Alter_column_add_comment()
         {
