@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.TestUtilities;
+﻿using System;
+using Microsoft.EntityFrameworkCore.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
 {
@@ -13,6 +14,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
         }
 
         public override TestStore GetOrCreate(string storeName)
-            => NpgsqlTestStore.GetOrCreate(Name, "Northwind.sql");
+            => NpgsqlTestStore.GetOrCreate(Name, "Northwind.sql",
+                    TestEnvironment.PostgresVersion >= new Version(12, 0)
+                        ? @"CREATE COLLATION IF NOT EXISTS ""some-case-insensitive-collation"" (LOCALE = 'en-u-ks-primary', PROVIDER = icu, DETERMINISTIC = False);"
+                        : null);
     }
 }

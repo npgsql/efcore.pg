@@ -4,12 +4,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.TestModels.Northwind;
 using Microsoft.EntityFrameworkCore.TestUtilities;
+using Microsoft.EntityFrameworkCore.TestUtilities.Xunit;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public class NorthwindDbFunctionsQueryNpgsqlTest : NorthwindDbFunctionsQueryTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
+    public class NorthwindDbFunctionsQueryNpgsqlTest : RelationalNorthwindDbFunctionsQueryTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
     {
         public NorthwindDbFunctionsQueryNpgsqlTest(NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
@@ -97,6 +99,35 @@ WHERE c.""ContactName"" ILIKE '!%' ESCAPE '!'");
         }
 
         #endregion
+
+        #region Collation
+
+        [MinimumPostgresVersion(12, 0)]
+        [PlatformSkipCondition(TestPlatform.Windows, SkipReason = "ICU non-deterministic doesn't seem to work on Windows?")]
+        public override async Task Collate_case_insensitive(bool async)
+        {
+            await base.Collate_case_insensitive(async);
+
+            AssertSql(
+                @"SELECT COUNT(*)::INT
+FROM ""Customers"" AS c
+WHERE c.""ContactName"" COLLATE ""some-case-insensitive-collation"" = 'maria anders'");
+        }
+
+        public override async Task Collate_case_sensitive(bool async)
+        {
+            await base.Collate_case_sensitive(async);
+
+            AssertSql(
+                @"SELECT COUNT(*)::INT
+FROM ""Customers"" AS c
+WHERE c.""ContactName"" COLLATE ""POSIX"" = 'maria anders'");
+        }
+
+        protected override string CaseInsensitiveCollation => "some-case-insensitive-collation";
+        protected override string CaseSensitiveCollation => "POSIX";
+
+        #endregion Collation
 
         void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
