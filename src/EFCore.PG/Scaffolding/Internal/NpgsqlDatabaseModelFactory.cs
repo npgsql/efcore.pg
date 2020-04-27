@@ -353,7 +353,10 @@ ORDER BY attnum";
 
                         // Default values and PostgreSQL 12 generated columns
                         if (record.GetValueOrDefault<char>("attgenerated") == 's')
+                        {
                             column.ComputedColumnSql = record.GetValueOrDefault<string>("default");
+                            column.ComputedColumnIsStored = true;
+                        }
                         else
                         {
                             column.DefaultValueSql = record.GetValueOrDefault<string>("default");

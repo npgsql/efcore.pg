@@ -68,11 +68,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             {
                 modelBuilder.Entity<Entity>()
                     .Property(e => e.P4)
-                    .HasComputedColumnSql(@"""P1"" + ""P2""");
+                    .HasComputedColumnSql(@"""P1"" + ""P2""", stored: true);
 
                 modelBuilder.Entity<Entity>()
                     .Property(e => e.P5)
-                    .HasComputedColumnSql(@"""P1"" + ""P3""");
+                    .HasComputedColumnSql(@"""P1"" + ""P3""", stored: true);
             }
         }
 
@@ -123,7 +123,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             protected override void OnModelCreating(ModelBuilder modelBuilder)
                 => modelBuilder.Entity<EnumItem>()
                     .Property(entity => entity.CalculatedFlagEnum)
-                    .HasComputedColumnSql(@"""FlagEnum"" | ""OptionalFlagEnum""");
+                    .HasComputedColumnSql(@"""FlagEnum"" | ""OptionalFlagEnum""", stored: true);
         }
 
         [ConditionalFact]

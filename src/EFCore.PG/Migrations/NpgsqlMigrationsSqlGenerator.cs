@@ -338,6 +338,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                     DefaultValue = operation.DefaultValue,
                     DefaultValueSql = operation.DefaultValueSql,
                     ComputedColumnSql = operation.ComputedColumnSql,
+                    ComputedColumnIsStored = operation.ComputedColumnIsStored,
                     IsFixedLength = operation.IsFixedLength
                 };
                 addColumnOperation.AddAnnotations(operation.GetAnnotations());
@@ -1278,6 +1279,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                         $"{nameof(NpgsqlAnnotationNames.TsVectorProperties)} is absent or empty");
 
                 operation.ComputedColumnSql = ColumnsToTsVector(tsVectorIncludedColumns, tsVectorConfig, model, schema, table);
+                operation.ComputedColumnIsStored = true;
             }
 
             if (operation.ComputedColumnSql != null)
@@ -1420,6 +1422,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             if (_postgresVersion != null && _postgresVersion < new Version(12, 0))
                 throw new NotSupportedException("Computed/generated columns aren't supported in PostgreSQL prior to version 12");
+
+            if (operation.ComputedColumnIsStored != true)
+                throw new NotSupportedException(
+                    "Generated columns currently must be stored, specify " +
+                    $"{nameof(RelationalPropertyBuilderExtensions.IsStoredComputedColumn)} in your context's OnModelCreating.");
 
             builder
                 .Append(DelimitIdentifier(name))
