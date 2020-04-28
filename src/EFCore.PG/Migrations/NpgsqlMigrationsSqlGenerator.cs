@@ -1658,8 +1658,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
         static IndexColumn[] GetIndexColumns(CreateIndexOperation operation)
         {
+            var collations = operation[RelationalAnnotationNames.Collation] as string[];
+
             var operators = operation[NpgsqlAnnotationNames.IndexOperators] as string[];
-            var collations = operation[NpgsqlAnnotationNames.IndexCollation] as string[];
             var sortOrders = operation[NpgsqlAnnotationNames.IndexSortOrder] as SortOrder[];
             var nullSortOrders = operation[NpgsqlAnnotationNames.IndexNullSortOrder] as NullSortOrder[];
 

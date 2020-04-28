@@ -73,12 +73,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
             // Model validation ensures that these facets are the same on all mapped indexes
             var modelIndex = index.MappedIndexes.First();
 
+            if (modelIndex.GetCollation() is IReadOnlyList<string> collation)
+                yield return new Annotation(RelationalAnnotationNames.Collation, collation);
+
             if (modelIndex.GetMethod() is string method)
                 yield return new Annotation(NpgsqlAnnotationNames.IndexMethod, method);
             if (modelIndex.GetOperators() is IReadOnlyList<string> operators)
                 yield return new Annotation(NpgsqlAnnotationNames.IndexOperators, operators);
-            if (modelIndex.GetCollation() is IReadOnlyList<string> collation)
-                yield return new Annotation(NpgsqlAnnotationNames.IndexCollation, collation);
             if (modelIndex.GetSortOrder() is IReadOnlyList<SortOrder> sortOrder)
                 yield return new Annotation(NpgsqlAnnotationNames.IndexSortOrder, sortOrder);
             if (modelIndex.GetNullSortOrder() is IReadOnlyList<SortOrder> nullSortOrder)

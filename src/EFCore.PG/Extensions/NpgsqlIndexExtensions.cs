@@ -85,8 +85,11 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// https://www.postgresql.org/docs/current/static/indexes-collations.html
         /// </remarks>
+#pragma warning disable 618
         public static IReadOnlyList<string> GetCollation([NotNull] this IIndex index)
-            => (IReadOnlyList<string>)index[NpgsqlAnnotationNames.IndexCollation];
+            => (IReadOnlyList<string>)(
+                index[RelationalAnnotationNames.Collation] ?? index[NpgsqlAnnotationNames.IndexCollation]);
+#pragma warning restore 618
 
         /// <summary>
         /// Sets the column collations to be used, or <c>null</c> if they have not been specified.
@@ -95,7 +98,7 @@ namespace Microsoft.EntityFrameworkCore
         /// https://www.postgresql.org/docs/current/static/indexes-collations.html
         /// </remarks>
         public static void SetCollation([NotNull] this IMutableIndex index, [CanBeNull] IReadOnlyList<string> collations)
-            => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexCollation, collations);
+            => index.SetOrRemoveAnnotation(RelationalAnnotationNames.Collation, collations);
 
         /// <summary>
         /// Sets the column collations to be used, or <c>null</c> if they have not been specified.
@@ -104,7 +107,7 @@ namespace Microsoft.EntityFrameworkCore
         /// https://www.postgresql.org/docs/current/static/indexes-collations.html
         /// </remarks>
         public static void SetCollation([NotNull] this IConventionIndex index, [CanBeNull] IReadOnlyList<string> collations, bool fromDataAnnotation)
-            => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexCollation, collations, fromDataAnnotation);
+            => index.SetOrRemoveAnnotation(RelationalAnnotationNames.Collation, collations, fromDataAnnotation);
 
         #endregion Collation
 

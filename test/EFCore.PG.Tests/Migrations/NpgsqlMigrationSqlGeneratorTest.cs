@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
@@ -78,7 +79,7 @@ TABLESPACE ""MyTablespace"";
                 Table = "People",
                 Schema = "dbo",
                 Columns = new[] { "FirstName", "LastName" },
-                [NpgsqlAnnotationNames.IndexCollation] = new[] { null, "de_DE" }
+                [RelationalAnnotationNames.Collation] = new[] { null, "de_DE" }
             });
 
             AssertSql(

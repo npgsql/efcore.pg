@@ -167,12 +167,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
         public override MethodCallCodeFragment GenerateFluentApi(IIndex index, IAnnotation annotation)
             => annotation.Name switch
             {
+                RelationalAnnotationNames.Collation
+                    => new MethodCallCodeFragment(nameof(NpgsqlIndexBuilderExtensions.UseCollation), annotation.Value),
+
                 NpgsqlAnnotationNames.IndexMethod
                     => new MethodCallCodeFragment(nameof(NpgsqlIndexBuilderExtensions.HasMethod), annotation.Value),
                 NpgsqlAnnotationNames.IndexOperators
                     => new MethodCallCodeFragment(nameof(NpgsqlIndexBuilderExtensions.HasOperators), annotation.Value),
-                NpgsqlAnnotationNames.IndexCollation
-                    => new MethodCallCodeFragment(nameof(NpgsqlIndexBuilderExtensions.HasCollation), annotation.Value),
                 NpgsqlAnnotationNames.IndexSortOrder
                     => new MethodCallCodeFragment(nameof(NpgsqlIndexBuilderExtensions.HasSortOrder), annotation.Value),
                 NpgsqlAnnotationNames.IndexNullSortOrder
