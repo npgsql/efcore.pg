@@ -604,7 +604,7 @@ WHERE
                             .ToArray();
 
                         if (columnCollations.Any(coll => coll != null))
-                            index[NpgsqlAnnotationNames.IndexCollation] = columnCollations;
+                            index[RelationalAnnotationNames.Collation] = columnCollations;
 
                         if (record.GetValueOrDefault<bool>("amcanorder"))
                         {

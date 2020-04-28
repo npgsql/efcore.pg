@@ -1637,10 +1637,10 @@ CREATE INDEX ix_without ON ""IndexCollation"" (a, b);",
                     var table = dbModel.Tables.Single();
 
                     var indexWith = table.Indexes.Single(i => i.Name == "ix_with");
-                    Assert.Equal(new[] { null, "POSIX" }, indexWith.FindAnnotation(NpgsqlAnnotationNames.IndexCollation).Value);
+                    Assert.Equal(new[] { null, "POSIX" }, indexWith.FindAnnotation(RelationalAnnotationNames.Collation).Value);
 
                     var indexWithout = table.Indexes.Single(i => i.Name == "ix_without");
-                    Assert.Null(indexWithout.FindAnnotation(NpgsqlAnnotationNames.IndexCollation));
+                    Assert.Null(indexWithout.FindAnnotation(RelationalAnnotationNames.Collation));
                 },
                 @"DROP TABLE ""IndexCollation""");
 
