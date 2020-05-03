@@ -60,8 +60,10 @@ WHERE s.""SomeArray""[1] = 3");
             var actual = ctx.SomeEntities.Where(e => e.SomeArray[x] == 3).ToList();
 
             Assert.Single(actual);
-            AssertContainsInSql(
-                @"
+            AssertSql(
+                @"@__x_0='0'
+
+SELECT s.""Id"", s.""SomeArray"", s.""SomeByte"", s.""SomeByteArray"", s.""SomeBytea"", s.""SomeMatrix"", s.""SomeStringArray"", s.""SomeText""
 FROM ""SomeEntities"" AS s
 WHERE s.""SomeArray""[@__x_0 + 1] = 3");
         }
@@ -194,8 +196,8 @@ LIMIT 2");
             var x = ctx.SomeEntities.Single(e => EF.Property<int[]>(e, nameof(SomeArrayEntity.SomeArray)).Length == 2);
 
             Assert.Equal(new[] { 3, 4 }, x.SomeArray);
-            AssertContainsInSql(
-                @"
+            AssertSql(
+                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeByte"", s.""SomeByteArray"", s.""SomeBytea"", s.""SomeMatrix"", s.""SomeStringArray"", s.""SomeText""
 FROM ""SomeEntities"" AS s
 WHERE cardinality(s.""SomeArray"") = 2
 LIMIT 2");
@@ -298,9 +300,9 @@ WHERE s.""SomeText"" LIKE ANY (@__patterns_0)");
             AssertSql(
                 @"SELECT s.""Id"", s.""SomeArray"", s.""SomeByte"", s.""SomeByteArray"", s.""SomeBytea"", s.""SomeMatrix"", s.""SomeStringArray"", s.""SomeText""
 FROM ""SomeEntities"" AS s
-WHERE (ARRAY[2,3]::integer[] && s.""SomeArray"")"
-            );
-            AssertContainsInSql(@"
+WHERE (ARRAY[2,3]::integer[] && s.""SomeArray"")",
+                //
+                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeByte"", s.""SomeByteArray"", s.""SomeBytea"", s.""SomeMatrix"", s.""SomeStringArray"", s.""SomeText""
 FROM ""SomeEntities"" AS s
 WHERE (ARRAY[1,2]::integer[] && s.""SomeArray"")");
         }
@@ -432,12 +434,24 @@ LIMIT 1");
         }
 
         [Fact]
-        public void String_Join_with_array_literal()
+        public void String_Join_with_string_array_literal()
         {
             using var ctx = CreateContext();
 
             var found = ctx.SomeEntities.FirstOrDefault(x =>
                 string.Join(x.SomeText, new string[] { "foo", "bar" }) == "foofoobar");
+
+            Assert.NotNull(found);
+            Assert.Equal(1, found.Id);
+        }
+
+        [Fact]
+        public void String_Join_with_int_array_literal()
+        {
+            using var ctx = CreateContext();
+
+            var found = ctx.SomeEntities.FirstOrDefault(x =>
+                string.Join(x.SomeText, new int[] { 3, 4 }) == "3foo4");
 
             Assert.NotNull(found);
             Assert.Equal(1, found.Id);
@@ -451,6 +465,7 @@ LIMIT 1");
             Assert.Throws<InvalidOperationException>(() =>
                 ctx.SomeEntities.FirstOrDefault(x => string.Join(x.SomeText, (IEnumerable<char>)"foobar") == null));
         }
+
         #endregion
 
         #region Support
@@ -459,9 +474,6 @@ LIMIT 1");
 
         void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
-
-        void AssertContainsInSql(string expected)
-            => Assert.Contains(expected, Fixture.TestSqlLoggerFactory.Sql);
 
         void AssertDoesNotContainInSql(string expected)
             => Assert.DoesNotContain(expected, Fixture.TestSqlLoggerFactory.Sql);

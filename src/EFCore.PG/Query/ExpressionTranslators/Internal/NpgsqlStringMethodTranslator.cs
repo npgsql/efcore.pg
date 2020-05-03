@@ -262,21 +262,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 method.IsClosedFormOf(JoinGeneric) || method.IsClosedFormOf(JoinGenericCharSep))
             {
                 var array = arguments[1];
-                if (!array.Type.TryGetElementType(out var operandElementType))
-                    return null;
 
-                if (array.TypeMapping is RelationalTypeMapping typeMapping &&
-                    !(typeMapping is NpgsqlArrayTypeMapping) && !(typeMapping is NpgsqlJsonTypeMapping))
-                {
-                    return null;
-                }
-
-                return _sqlExpressionFactory.Function(
-                    "array_to_string",
-                    new[] { array, arguments[0], _sqlExpressionFactory.Constant("") },
-                    nullable: true,
-                    argumentsPropagateNullability: new[] { true, true, false },
-                    typeof(string));
+                if (array.TypeMapping is NpgsqlArrayTypeMapping || array.Type.IsArrayOrGenericList())
+                    return _sqlExpressionFactory.Function(
+                        "array_to_string",
+                        new[] { array, arguments[0], _sqlExpressionFactory.Constant("") },
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[3],
+                        typeof(string));
             }
 
             return null;
