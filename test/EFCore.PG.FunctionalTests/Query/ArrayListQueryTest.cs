@@ -463,7 +463,7 @@ LIMIT 1");
                     new SomeListEntity
                     {
                         Id = 3,
-                        SomeList = new List<int> { 1, 2, 3 },
+                        SomeList = new List<int> { 1, 2, 1 },
                         SomeText = "abc",
                         SomeStringList = null
                     });
