@@ -320,9 +320,20 @@ WHERE (ARRAY[4,5,6]::integer[] <@ s.""SomeList"")");
             using var ctx = CreateContext();
 
             var found = ctx.SomeEntities.FirstOrDefault(x => string.Join(" ", x.SomeList) == "3 4");
+            var foundWithCharSep = ctx.SomeEntities.FirstOrDefault(x => string.Join(' ', x.SomeList) == "3 4");
 
             Assert.NotNull(found);
-            Assert.Contains("array_to_string", Fixture.TestSqlLoggerFactory.Sql);
+            Assert.True(found == foundWithCharSep);
+            AssertSql(
+                @"SELECT s.""Id"", s.""SomeList"", s.""SomeStringList"", s.""SomeText""
+FROM ""SomeEntities"" AS s
+WHERE array_to_string(s.""SomeList"", ' ', '') = '3 4'
+LIMIT 1",
+                //
+                @"SELECT s.""Id"", s.""SomeList"", s.""SomeStringList"", s.""SomeText""
+FROM ""SomeEntities"" AS s
+WHERE array_to_string(s.""SomeList"", ' ', '') = '3 4'
+LIMIT 1");
         }
 
         [Fact]
@@ -335,7 +346,16 @@ WHERE (ARRAY[4,5,6]::integer[] <@ s.""SomeList"")");
 
             Assert.NotNull(found);
             Assert.NotNull(found2);
-            Assert.Contains("array_to_string", Fixture.TestSqlLoggerFactory.Sql);
+            AssertSql(
+                @"SELECT s.""Id"", s.""SomeList"", s.""SomeStringList"", s.""SomeText""
+FROM ""SomeEntities"" AS s
+WHERE array_to_string(s.""SomeStringList"", ',', '') = 'foo,,bar'
+LIMIT 1",
+                //
+                @"SELECT s.""Id"", s.""SomeList"", s.""SomeStringList"", s.""SomeText""
+FROM ""SomeEntities"" AS s
+WHERE array_to_string(s.""SomeStringList"", '', '') = 'foobar'
+LIMIT 1");
         }
 
         [Fact]
@@ -347,6 +367,11 @@ WHERE (ARRAY[4,5,6]::integer[] <@ s.""SomeList"")");
 
             Assert.NotNull(found);
             Assert.Equal(3, found.Id);
+            AssertSql(
+                @"SELECT s.""Id"", s.""SomeList"", s.""SomeStringList"", s.""SomeText""
+FROM ""SomeEntities"" AS s
+WHERE (s.""SomeStringList"" IS NULL)
+LIMIT 1");
         }
 
         [Fact]
@@ -359,6 +384,11 @@ WHERE (ARRAY[4,5,6]::integer[] <@ s.""SomeList"")");
 
             Assert.NotNull(found);
             Assert.Equal(1, found.Id);
+            AssertSql(
+                @"SELECT s.""Id"", s.""SomeList"", s.""SomeStringList"", s.""SomeText""
+FROM ""SomeEntities"" AS s
+WHERE array_to_string(ARRAY['foo','bar']::text[], s.""SomeText"", '') = 'foofoobar'
+LIMIT 1");
         }
 
         [Fact]
@@ -371,6 +401,11 @@ WHERE (ARRAY[4,5,6]::integer[] <@ s.""SomeList"")");
 
             Assert.NotNull(found);
             Assert.Equal(1, found.Id);
+            AssertSql(
+                @"SELECT s.""Id"", s.""SomeList"", s.""SomeStringList"", s.""SomeText""
+FROM ""SomeEntities"" AS s
+WHERE array_to_string(ARRAY[3,4]::integer[], s.""SomeText"", '') = '3foo4'
+LIMIT 1");
         }
 
         [Fact]

@@ -376,7 +376,16 @@ WHERE (get_byte(s.""SomeBytea"", 0) = 3) AND get_byte(s.""SomeBytea"", 0) IS NOT
 
             Assert.NotNull(found);
             Assert.True(found == found2);
-            Assert.Contains("array_to_string", Fixture.TestSqlLoggerFactory.Sql);
+            AssertSql(
+                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeByte"", s.""SomeByteArray"", s.""SomeBytea"", s.""SomeMatrix"", s.""SomeStringArray"", s.""SomeText""
+FROM ""SomeEntities"" AS s
+WHERE array_to_string(s.""SomeArray"", ' ', '') = '3 4'
+LIMIT 1",
+                //
+                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeByte"", s.""SomeByteArray"", s.""SomeBytea"", s.""SomeMatrix"", s.""SomeStringArray"", s.""SomeText""
+FROM ""SomeEntities"" AS s
+WHERE array_to_string(s.""SomeArray"", ' ', '') = '3 4'
+LIMIT 1");
         }
 
         [Fact]
@@ -389,7 +398,16 @@ WHERE (get_byte(s.""SomeBytea"", 0) = 3) AND get_byte(s.""SomeBytea"", 0) IS NOT
 
             Assert.NotNull(found);
             Assert.True(found == found2);
-            Assert.Contains("array_to_string", Fixture.TestSqlLoggerFactory.Sql);
+            AssertSql(
+                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeByte"", s.""SomeByteArray"", s.""SomeBytea"", s.""SomeMatrix"", s.""SomeStringArray"", s.""SomeText""
+FROM ""SomeEntities"" AS s
+WHERE array_to_string(s.""SomeStringArray"", ' ', '') = 'one two three'
+LIMIT 1",
+                //
+                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeByte"", s.""SomeByteArray"", s.""SomeBytea"", s.""SomeMatrix"", s.""SomeStringArray"", s.""SomeText""
+FROM ""SomeEntities"" AS s
+WHERE array_to_string(s.""SomeStringArray"", ' ', '') = 'one two three'
+LIMIT 1");
         }
 
         [Fact]
@@ -402,7 +420,16 @@ WHERE (get_byte(s.""SomeBytea"", 0) = 3) AND get_byte(s.""SomeBytea"", 0) IS NOT
 
             Assert.NotNull(found);
             Assert.NotNull(found2);
-            Assert.Contains("array_to_string", Fixture.TestSqlLoggerFactory.Sql);
+            AssertSql(
+                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeByte"", s.""SomeByteArray"", s.""SomeBytea"", s.""SomeMatrix"", s.""SomeStringArray"", s.""SomeText""
+FROM ""SomeEntities"" AS s
+WHERE array_to_string(s.""SomeStringArray"", ',', '') = 'foo,,bar'
+LIMIT 1",
+                //
+                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeByte"", s.""SomeByteArray"", s.""SomeBytea"", s.""SomeMatrix"", s.""SomeStringArray"", s.""SomeText""
+FROM ""SomeEntities"" AS s
+WHERE array_to_string(s.""SomeStringArray"", '', '') = 'foobar'
+LIMIT 1");
         }
 
         [Fact]
@@ -414,6 +441,11 @@ WHERE (get_byte(s.""SomeBytea"", 0) = 3) AND get_byte(s.""SomeBytea"", 0) IS NOT
 
             Assert.NotNull(found);
             Assert.Equal(3, found.Id);
+            AssertSql(
+                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeByte"", s.""SomeByteArray"", s.""SomeBytea"", s.""SomeMatrix"", s.""SomeStringArray"", s.""SomeText""
+FROM ""SomeEntities"" AS s
+WHERE (s.""SomeArray"" IS NULL)
+LIMIT 1");
         }
 
         [Fact]
@@ -443,6 +475,11 @@ LIMIT 1");
 
             Assert.NotNull(found);
             Assert.Equal(1, found.Id);
+            AssertSql(
+                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeByte"", s.""SomeByteArray"", s.""SomeBytea"", s.""SomeMatrix"", s.""SomeStringArray"", s.""SomeText""
+FROM ""SomeEntities"" AS s
+WHERE array_to_string(ARRAY['foo','bar']::text[], s.""SomeText"", '') = 'foofoobar'
+LIMIT 1");
         }
 
         [Fact]
@@ -455,6 +492,11 @@ LIMIT 1");
 
             Assert.NotNull(found);
             Assert.Equal(1, found.Id);
+            AssertSql(
+                @"SELECT s.""Id"", s.""SomeArray"", s.""SomeByte"", s.""SomeByteArray"", s.""SomeBytea"", s.""SomeMatrix"", s.""SomeStringArray"", s.""SomeText""
+FROM ""SomeEntities"" AS s
+WHERE array_to_string(ARRAY[3,4]::integer[], s.""SomeText"", '') = '3foo4'
+LIMIT 1");
         }
 
         [Fact]
