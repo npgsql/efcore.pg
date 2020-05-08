@@ -259,8 +259,8 @@ SELECT
   description,
   collname,
   attisdropped,
-  {(connection.PostgreSqlVersion >= new Version(10, 0) ? "attidentity" : "''::\"char\" as attidentity")},
-  {(connection.PostgreSqlVersion >= new Version(12, 0) ? "attgenerated" : "''::\"char\" as attgenerated")},
+  {(connection.PostgreSqlVersion >= new Version(10, 0) ? "attidentity::text" : "' '::text as attidentity")},
+  {(connection.PostgreSqlVersion >= new Version(12, 0) ? "attgenerated::text" : "' '::text as attgenerated")},
   format_type(typ.oid, atttypmod) AS formatted_typname,
   format_type(basetyp.oid, typ.typtypmod) AS formatted_basetypname,
   CASE
@@ -352,7 +352,7 @@ ORDER BY attnum";
                         }
 
                         // Default values and PostgreSQL 12 generated columns
-                        if (record.GetValueOrDefault<char>("attgenerated") == 's')
+                        if (record.GetFieldValue<string>("attgenerated") == "s")
                         {
                             column.ComputedColumnSql = record.GetValueOrDefault<string>("default");
                             column.ComputedColumnIsStored = true;
@@ -365,13 +365,13 @@ ORDER BY attnum";
 
                         // Identify IDENTITY columns, as well as SERIAL ones.
                         var isIdentity = false;
-                        switch (record.GetValueOrDefault<char>("attidentity"))
+                        switch (record.GetFieldValue<string>("attidentity"))
                         {
-                        case 'a':
+                        case "a":
                             column[NpgsqlAnnotationNames.ValueGenerationStrategy] = NpgsqlValueGenerationStrategy.IdentityAlwaysColumn;
                             isIdentity = true;
                             break;
-                        case 'd':
+                        case "d":
                             column[NpgsqlAnnotationNames.ValueGenerationStrategy] = NpgsqlValueGenerationStrategy.IdentityByDefaultColumn;
                             isIdentity = true;
                             break;
@@ -654,13 +654,13 @@ SELECT
   ns.nspname,
   cls.relname,
   conname,
-  contype,
+  contype::text,
   conkey,
   conindid,
   frnns.nspname AS fr_nspname,
   frncls.relname AS fr_relname,
   confkey,
-  confdeltype
+  confdeltype::text
 FROM pg_class AS cls
 JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
 JOIN pg_constraint as con ON con.conrelid = cls.oid
@@ -689,7 +689,7 @@ WHERE
                     var table = tables.Single(t => t.Schema == tableSchema && t.Name == tableName);
 
                     // Primary keys
-                    foreach (var primaryKeyRecord in tableGroup.Where(ddr => ddr.GetFieldValue<char>("contype") == 'p'))
+                    foreach (var primaryKeyRecord in tableGroup.Where(ddr => ddr.GetFieldValue<string>("contype") == "p"))
                     {
                         var pkName = primaryKeyRecord.GetValueOrDefault<string>("conname");
                         var primaryKey = new DatabasePrimaryKey(table, pkName);
@@ -710,12 +710,12 @@ WHERE
                     }
 
                     // Foreign keys
-                    foreach (var foreignKeyRecord in tableGroup.Where(ddr => ddr.GetFieldValue<char>("contype") == 'f'))
+                    foreach (var foreignKeyRecord in tableGroup.Where(ddr => ddr.GetFieldValue<string>("contype") == "f"))
                     {
                         var fkName = foreignKeyRecord.GetFieldValue<string>("conname");
                         var principalTableSchema = foreignKeyRecord.GetFieldValue<string>("fr_nspname");
                         var principalTableName = foreignKeyRecord.GetFieldValue<string>("fr_relname");
-                        var onDeleteAction = foreignKeyRecord.GetFieldValue<char>("confdeltype");
+                        var onDeleteAction = foreignKeyRecord.GetFieldValue<string>("confdeltype");
 
                         var principalTable =
                             tables.FirstOrDefault(t =>
@@ -766,7 +766,7 @@ WHERE
                     }
 
                     // Unique constraints
-                    foreach (var record in tableGroup.Where(ddr => ddr.GetValueOrDefault<char>("contype") == 'u'))
+                    foreach (var record in tableGroup.Where(ddr => ddr.GetValueOrDefault<string>("contype") == "u"))
                     {
                         var name = record.GetValueOrDefault<string>("conname");
 
@@ -1210,14 +1210,14 @@ FROM pg_collation coll
         /// <summary>
         /// Maps a character to a <see cref="ReferentialAction"/>.
         /// </summary>
-        static ReferentialAction ConvertToReferentialAction(char onDeleteAction)
+        static ReferentialAction ConvertToReferentialAction(string onDeleteAction)
             => onDeleteAction switch
             {
-                'a' => ReferentialAction.NoAction,
-                'r' => ReferentialAction.Restrict,
-                'c' => ReferentialAction.Cascade,
-                'n' => ReferentialAction.SetNull,
-                'd' => ReferentialAction.SetDefault,
+                "a" => ReferentialAction.NoAction,
+                "r" => ReferentialAction.Restrict,
+                "c" => ReferentialAction.Cascade,
+                "n" => ReferentialAction.SetNull,
+                "d" => ReferentialAction.SetDefault,
                 _ => throw new ArgumentOutOfRangeException(
                     $"Unknown value {onDeleteAction} for foreign key deletion action code.")
             };
