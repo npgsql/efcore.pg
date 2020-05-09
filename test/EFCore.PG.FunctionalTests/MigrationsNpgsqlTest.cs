@@ -577,6 +577,53 @@ COMMENT ON COLUMN ""People"".""FullName"" IS 'My comment';");
                 @"ALTER TABLE ""People"" ADD ""Name"" text COLLATE ""POSIX"" GENERATED ALWAYS AS ('hello') STORED;");
         }
 
+        [ConditionalFact]
+        public async Task Add_column_with_default_column_collation()
+        {
+            await Test(
+                builder =>
+                {
+                    builder.UseDefaultColumnCollation("POSIX");
+                    builder.Entity("People").Property<int>("Id");
+                },
+                builder => { },
+                builder => builder.Entity("People").Property<string>("Name"),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    Assert.Equal(2, table.Columns.Count);
+                    var nameColumn = Assert.Single(table.Columns, c => c.Name == "Name");
+                    Assert.Equal("POSIX", nameColumn.Collation);
+                });
+
+            AssertSql(
+                @"ALTER TABLE ""People"" ADD ""Name"" text COLLATE ""POSIX"" NULL;");
+        }
+
+        [ConditionalFact]
+        public async Task Add_column_with_collation_overriding_default()
+        {
+            await Test(
+                builder =>
+                {
+                    builder.UseDefaultColumnCollation("POSIX");
+                    builder.Entity("People").Property<int>("Id");
+                },
+                builder => { },
+                builder => builder.Entity("People").Property<string>("Name")
+                    .UseCollation("C"),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    Assert.Equal(2, table.Columns.Count);
+                    var nameColumn = Assert.Single(table.Columns, c => c.Name == "Name");
+                    Assert.Equal("C", nameColumn.Collation);
+                });
+
+            AssertSql(
+                @"ALTER TABLE ""People"" ADD ""Name"" text COLLATE ""C"" NULL;");
+        }
+
         public override async Task Add_column_shared()
         {
             await base.Add_column_shared();
@@ -1355,6 +1402,31 @@ ALTER TABLE ""People"" ALTER COLUMN ""Name"" DROP DEFAULT;");
 
             AssertSql(
                 @"ALTER TABLE ""People"" ALTER COLUMN ""Name"" TYPE text COLLATE ""default"";
+ALTER TABLE ""People"" ALTER COLUMN ""Name"" DROP NOT NULL;
+ALTER TABLE ""People"" ALTER COLUMN ""Name"" DROP DEFAULT;");
+        }
+
+        [Fact]
+        public async Task Alter_column_change_default_column_collation()
+        {
+            await Test(
+                builder => builder.Entity("People", b =>
+                {
+                    b.Property<int>("Id");
+                    b.Property<string>("Name");
+                }),
+                builder => builder.UseDefaultColumnCollation("POSIX"),
+                builder => builder.UseDefaultColumnCollation("C"),
+                model =>
+                {
+                    // var table = Assert.Single(model.Tables);
+                    // Assert.Equal(2, table.Columns.Count);
+                    // var nameColumn = Assert.Single(table.Columns, c => c.Name == "Name");
+                    // Assert.Equal("C", nameColumn.Collation);
+                });
+
+            AssertSql(
+                @"ALTER TABLE ""People"" ALTER COLUMN ""Name"" TYPE text COLLATE ""C"";
 ALTER TABLE ""People"" ALTER COLUMN ""Name"" DROP NOT NULL;
 ALTER TABLE ""People"" ALTER COLUMN ""Name"" DROP DEFAULT;");
         }
