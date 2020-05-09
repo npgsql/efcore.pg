@@ -358,8 +358,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 .Append("TYPE ")
                 .Append(type);
 
-            if (operation.Collation != operation.OldColumn.Collation)
-                builder.Append(" COLLATE ").Append(DelimitIdentifier(operation.Collation ?? "default"));
+            // If a collation was defined on the column specifically, via the standard EF mechanism, it will be
+            // available in operation.Collation (as usual). If not, there may be a model-wide default column collation,
+            // which gets transmitted via the Npgsql-specific annotation.
+            var oldCollation = (string)(operation.OldColumn.Collation ?? operation.OldColumn[NpgsqlAnnotationNames.DefaultColumnCollation]);
+            var newCollation = (string)(operation.Collation ?? operation[NpgsqlAnnotationNames.DefaultColumnCollation]);
+            if (newCollation != oldCollation)
+                builder.Append(" COLLATE ").Append(DelimitIdentifier(newCollation ?? "default"));
 
             builder.AppendLine(";");
 
@@ -1301,11 +1306,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 .Append(" ")
                 .Append(columnType);
 
-            if (operation.Collation != null)
+            // If a collation was defined on the column specifically, via the standard EF mechanism, it will be
+            // available in operation.Collation (as usual). If not, there may be a model-wide default column collation,
+            // which gets transmitted via the Npgsql-specific annotation.
+            if ((operation.Collation ?? operation[NpgsqlAnnotationNames.DefaultColumnCollation]) is string collation)
             {
                 builder
                     .Append(" COLLATE ")
-                    .Append(DelimitIdentifier(operation.Collation));
+                    .Append(DelimitIdentifier(collation));
             }
 
             builder.Append(operation.IsNullable ? " NULL" : " NOT NULL");

@@ -282,5 +282,71 @@ namespace Microsoft.EntityFrameworkCore
             => PostgresCollation.GetCollations(model).ToArray();
 
         #endregion Collation management
+
+        #region Default column collation
+
+        /// <summary>
+        /// Gets the default collation for all columns in the database, or <see langword="null" /> if none is defined.
+        /// This causes EF Core to specify an explicit collation when creating all column, unless one is overridden
+        /// on a column.
+        /// </summary>
+        /// <remarks>
+        /// <p>
+        /// See <see cref="RelationalModelExtensions.GetCollation" /> for another approach to defining a
+        /// database-wide collation.
+        /// </p>
+        /// <p>
+        /// For more information, see https://www.postgresql.org/docs/current/collation.html.
+        /// </p>
+        /// </remarks>
+        public static string GetDefaultColumnCollation([NotNull] this IModel model)
+            => (string)model[NpgsqlAnnotationNames.DefaultColumnCollation];
+
+        /// <summary>
+        /// Sets the default collation for all columns in the database, or <c>null</c> if none is defined.
+        /// This causes EF Core to specify an explicit collation when creating all column, unless one is overridden
+        /// on a column.
+        /// </summary>
+        /// <remarks>
+        /// <p>
+        /// See <see cref="RelationalModelExtensions.GetCollation" /> for another approach to defining a
+        /// database-wide collation.
+        /// </p>
+        /// <p>
+        /// For more information, see https://www.postgresql.org/docs/current/collation.html.
+        /// </p>
+        /// </remarks>
+        public static void SetDefaultColumnCollation([NotNull] this IMutableModel model, [CanBeNull] string collation)
+            => model.SetOrRemoveAnnotation(NpgsqlAnnotationNames.DefaultColumnCollation, collation);
+
+        /// <summary>
+        /// Sets the default collation for all columns in the database, or <c>null</c> if none is defined.
+        /// This causes EF Core to specify an explicit collation when creating all column, unless one is overridden
+        /// on a column.
+        /// </summary>
+        /// <remarks>
+        /// <p>
+        /// See <see cref="RelationalModelExtensions.SetCollation(Microsoft.EntityFrameworkCore.Metadata.IMutableModel,string)" />
+        /// for another approach to defining a database-wide collation.
+        /// </p>
+        /// <p>
+        /// For more information, see https://www.postgresql.org/docs/current/collation.html.
+        /// </p>
+        /// </remarks>
+        public static string SetDefaultColumnCollation([NotNull] this IConventionModel model, [CanBeNull] string collation, bool fromDataAnnotation = false)
+        {
+            model.SetOrRemoveAnnotation(NpgsqlAnnotationNames.DefaultColumnCollation, collation, fromDataAnnotation);
+            return collation;
+        }
+
+        /// <summary>
+        /// Returns the <see cref="ConfigurationSource" /> for the default column collation.
+        /// </summary>
+        /// <param name="model">The model.</param>
+        /// <returns>The <see cref="ConfigurationSource" /> for the default column collation.</returns>
+        public static ConfigurationSource? GetDefaultColumnCollationConfigurationSource([NotNull] this IConventionModel model)
+            => model.FindAnnotation(NpgsqlAnnotationNames.DefaultColumnCollation)?.GetConfigurationSource();
+
+        #endregion Default column collation
     }
 }

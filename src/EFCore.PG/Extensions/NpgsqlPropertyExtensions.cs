@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
@@ -667,5 +668,21 @@ namespace Microsoft.EntityFrameworkCore
             => property.FindAnnotation(NpgsqlAnnotationNames.TsVectorConfig)?.GetConfigurationSource();
 
         #endregion Generated tsvector column
+
+        #region Collation
+
+        /// <summary>
+        /// Returns the collation to be used for the column - including the PostgreSQL-specific default column
+        /// collation defined at the model level (see
+        /// <see cref="NpgsqlModelExtensions.SetDefaultColumnCollation(Microsoft.EntityFrameworkCore.Metadata.IMutableModel,string)"/>).
+        /// </summary>
+        /// <param name="property"> The property. </param>
+        /// <returns> The collation for the column this property is mapped to. </returns>
+        public static string GetDefaultCollation([NotNull] this IProperty property)
+            => property.FindTypeMapping() is StringTypeMapping
+                ? property.DeclaringEntityType.Model.GetDefaultColumnCollation()
+                : null;
+
+        #endregion Collation
     }
 }

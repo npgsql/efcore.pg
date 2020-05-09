@@ -26,6 +26,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
         public const string TsVectorConfig = Prefix + "TsVectorConfig";
         public const string TsVectorProperties = Prefix + "TsVectorProperties";
         public const string CollationDefinitionPrefix = Prefix + "CollationDefinition:";
+        public const string DefaultColumnCollation = Prefix + "DefaultColumnCollation";
 
         // Database model annotations
 

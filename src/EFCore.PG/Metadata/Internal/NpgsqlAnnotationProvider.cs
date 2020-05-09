@@ -5,6 +5,7 @@ using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using RelationalPropertyExtensions = Microsoft.EntityFrameworkCore.RelationalPropertyExtensions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
 {
@@ -48,6 +49,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
                         yield return new Annotation(NpgsqlAnnotationNames.IdentityOptions, identityOptions);
                     }
                 }
+            }
+
+            // If the property has a collation explicitly defined on it via the standard EF mechanism, it will get
+            // passed on the Collation property (we don't need to do anything).
+            // Otherwise, a model-wide default column collation exists, pass that through our custom annotation.
+            if (column.PropertyMappings.All(m => RelationalPropertyExtensions.GetCollation(m.Property) == null) &&
+                column.PropertyMappings.Select(m => m.Property.GetDefaultCollation())
+                    .FirstOrDefault(c => c != null) is string defaultColumnCollation)
+            {
+                yield return new Annotation(NpgsqlAnnotationNames.DefaultColumnCollation, defaultColumnCollation);
             }
 
             if (column.PropertyMappings.Select(m => m.Property.GetTsVectorConfig())
