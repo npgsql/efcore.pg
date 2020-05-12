@@ -116,7 +116,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
             = new ResourceManager("Npgsql.EntityFrameworkCore.PostgreSQL.Properties.NpgsqlStrings", typeof(NpgsqlResources).GetTypeInfo().Assembly);
 
         /// <summary>
-        ///     Found foreign key on table: {tableName}, name: {foreignKeyName}, principal table: {principalTableName}, delete action: {deleteAction}.
+        ///     Found column with table: {tableName}, column name: {columnName}, data type: {dataType}, nullable: {isNullable}, identity: {isIdentity}, default value: {defaultValue}, computed value: {computedValue}
         /// </summary>
         public static FallbackEventDefinition LogFoundColumn([NotNull] IDiagnosticsLogger logger)
         {
@@ -158,6 +158,27 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
             }
 
             return (EventDefinition<string, string, string, string>)definition;
+        }
+
+        /// <summary>
+        ///     Found collation with name: {collationName}, schema: {schema}, LC_COLLATE: {lcCollate}, LC_CTYPE: {lcCtype}, provider: {provider}, deterministic: {isDeterministic}
+        /// </summary>
+        public static FallbackEventDefinition LogFoundCollation([NotNull] IDiagnosticsLogger logger)
+        {
+            var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogFoundCollation;
+            if (definition == null)
+            {
+                definition = LazyInitializer.EnsureInitialized<EventDefinitionBase>(
+                    ref ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogFoundCollation,
+                    () => new FallbackEventDefinition(
+                        logger.Options,
+                        NpgsqlEventId.CollationFound,
+                        LogLevel.Debug,
+                        "NpgsqlEventId.CollationFound",
+                        _resourceManager.GetString("LogFoundCollation")));
+            }
+
+            return (FallbackEventDefinition)definition;
         }
 
         /// <summary>
