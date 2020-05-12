@@ -458,10 +458,20 @@ ORDER BY attnum";
             // Load the pg_opclass table (https://www.postgresql.org/docs/current/catalog-pg-opclass.html),
             // which is referenced by the indices we'll load below
             var opClasses = new Dictionary<uint, (string Name, bool IsDefault)>();
-            using (var command = new NpgsqlCommand("SELECT oid, opcname, opcdefault FROM pg_opclass", connection))
-            using (var reader = command.ExecuteReader())
-                foreach (var opClass in reader.Cast<DbDataRecord>())
-                    opClasses[opClass.GetFieldValue<uint>("oid")] = (opClass.GetFieldValue<string>("opcname"), opClass.GetFieldValue<bool>("opcdefault"));
+            try
+            {
+                using (var command = new NpgsqlCommand("SELECT oid, opcname, opcdefault FROM pg_opclass", connection))
+                using (var reader = command.ExecuteReader())
+                    foreach (var opClass in reader.Cast<DbDataRecord>())
+                        opClasses[opClass.GetFieldValue<uint>("oid")] = (
+                            opClass.GetFieldValue<string>("opcname"),
+                            opClass.GetFieldValue<bool>("opcdefault"));
+            }
+            catch (PostgresException e)
+            {
+                logger.Logger.LogWarning(e,
+                    "Could not load index operator classes from pg_opclass. Operator classes will not be scaffolded");
+            }
 
             var collations = new Dictionary<uint, string>();
             using (var command = new NpgsqlCommand("SELECT oid, collname FROM pg_collation", connection))
