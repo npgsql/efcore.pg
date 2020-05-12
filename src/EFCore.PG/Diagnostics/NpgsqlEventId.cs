@@ -30,7 +30,6 @@ namespace Microsoft.EntityFrameworkCore.Diagnostics
             //ForeignKeyColumnsNotMappedWarning,
             //ForeignKeyNotNamedWarning,
             ForeignKeyReferencesMissingPrincipalTableWarning,
-            CollationFound,
             //IndexColumnFound,
             //IndexColumnNotNamedWarning,
             //IndexColumnSkipped,
@@ -52,7 +51,8 @@ namespace Microsoft.EntityFrameworkCore.Diagnostics
             EnumColumnSkippedWarning,
             ExpressionIndexSkippedWarning,
             UnsupportedColumnIndexSkippedWarning,
-            UnsupportedConstraintIndexSkippedWarning
+            UnsupportedConstraintIndexSkippedWarning,
+            CollationFound
         }
 
         static readonly string ScaffoldingPrefix = DbLoggerCategory.Scaffolding.Name + ".";
