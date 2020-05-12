@@ -134,6 +134,10 @@
     <value>Found foreign key on table: {tableName}, name: {foreignKeyName}, principal table: {principalTableName}, delete action: {deleteAction}.</value>
     <comment>Debug NpgsqlEventId.ForeignKeyFound string string string string</comment>
   </data>
+  <data name="LogFoundCollation" xml:space="preserve">
+    <value>Found collation with name: {collationName}, schema: {schema}, LC_COLLATE: {lcCollate}, LC_CTYPE: {lcCtype}, provider: {provider}, deterministic: {isDeterministic}</value>
+    <comment>Debug NpgsqlEventId.CollationFound string string string string string bool</comment>
+  </data>
   <data name="LogPrincipalTableNotInSelectionSet" xml:space="preserve">
     <value>For foreign key {fkName} on table {tableName}, unable to model the end of the foreign key on principal table {principaltableName}. This is usually because the principal table was not included in the selection set.</value>
     <comment>Warning NpgsqlEventId.ForeignKeyReferencesMissingPrincipalTableWarning string string string</comment>

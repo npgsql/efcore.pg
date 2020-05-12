@@ -135,7 +135,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
                 }
 
                 GetExtensions(connection, databaseModel);
-                GetCollations(connection, databaseModel);
+                GetCollations(connection, databaseModel, _logger);
 
                 for (var i = 0; i < databaseModel.Tables.Count; i++)
                 {
@@ -918,7 +918,10 @@ GROUP BY nspname, typname";
         }
 
 
-        void GetCollations(NpgsqlConnection connection, DatabaseModel databaseModel)
+        static void GetCollations(
+            NpgsqlConnection connection,
+            DatabaseModel databaseModel,
+            IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
         {
             var commandText = @$"
 SELECT
@@ -933,8 +936,13 @@ FROM pg_collation coll
             using var reader = command.ExecuteReader();
             while (reader.Read())
             {
+                var schema = reader.GetString(reader.GetOrdinal("nspname"));
                 var name = reader.GetString(reader.GetOrdinal("collname"));
+                var lcCollate = reader.GetString(reader.GetOrdinal("collcollate"));
+                var lcCtype = reader.GetString(reader.GetOrdinal("collctype"));
                 var providerCode = reader.GetChar(reader.GetOrdinal("collprovider"));
+                var isDeterministic = reader.GetBoolean(reader.GetOrdinal("collisdeterministic"));
+
                 string? provider;
                 switch (providerCode)
                 {
@@ -948,17 +956,14 @@ FROM pg_collation coll
                     provider = null;
                     break;
                 default:
-                    _logger.Logger.LogWarning($"Unknown collation provider code {providerCode} for collation {name}, skipping.");
+                    logger.Logger.LogWarning($"Unknown collation provider code {providerCode} for collation {name}, skipping.");
                     continue;
                 }
 
-                PostgresCollation.GetOrAddCollation(databaseModel,
-                    reader.GetString(reader.GetOrdinal("nspname")),
-                    name,
-                    reader.GetString(reader.GetOrdinal("collcollate")),
-                    reader.GetString(reader.GetOrdinal("collctype")),
-                    provider,
-                    reader.GetBoolean(reader.GetOrdinal("collisdeterministic")));
+                logger.CollationFound(schema, name, lcCollate, lcCtype, provider, isDeterministic);
+
+                PostgresCollation.GetOrAddCollation(
+                    databaseModel, schema, name, lcCollate, lcCtype, provider, isDeterministic);
             }
         }
 
