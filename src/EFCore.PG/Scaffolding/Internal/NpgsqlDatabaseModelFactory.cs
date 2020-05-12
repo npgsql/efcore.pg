@@ -186,8 +186,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
             var commandText = @"SELECT datcollate FROM pg_database WHERE datname=current_database()";
             using var command = new NpgsqlCommand(commandText, connection);
             using var reader = command.ExecuteReader();
-            reader.Read();
-            databaseModel.Collation = reader.GetString(0);
+            if (reader.Read())
+                databaseModel.Collation = reader.GetString(0);
         }
 
         /// <summary>
