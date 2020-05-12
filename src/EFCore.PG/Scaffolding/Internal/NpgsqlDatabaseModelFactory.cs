@@ -942,38 +942,46 @@ FROM pg_collation coll
     JOIN pg_authid auth ON auth.oid = coll.collowner WHERE rolname <> 'postgres';
 ";
 
-            using var command = new NpgsqlCommand(commandText, connection);
-            using var reader = command.ExecuteReader();
-            while (reader.Read())
+            try
             {
-                var schema = reader.GetString(reader.GetOrdinal("nspname"));
-                var name = reader.GetString(reader.GetOrdinal("collname"));
-                var lcCollate = reader.GetString(reader.GetOrdinal("collcollate"));
-                var lcCtype = reader.GetString(reader.GetOrdinal("collctype"));
-                var providerCode = reader.GetChar(reader.GetOrdinal("collprovider"));
-                var isDeterministic = reader.GetBoolean(reader.GetOrdinal("collisdeterministic"));
-
-                string? provider;
-                switch (providerCode)
+                using var command = new NpgsqlCommand(commandText, connection);
+                using var reader = command.ExecuteReader();
+                while (reader.Read())
                 {
-                case 'c':
-                    provider = "libc";
-                    break;
-                case 'i':
-                    provider = "icu";
-                    break;
-                case 'd':
-                    provider = null;
-                    break;
-                default:
-                    logger.Logger.LogWarning($"Unknown collation provider code {providerCode} for collation {name}, skipping.");
-                    continue;
+                    var schema = reader.GetString(reader.GetOrdinal("nspname"));
+                    var name = reader.GetString(reader.GetOrdinal("collname"));
+                    var lcCollate = reader.GetString(reader.GetOrdinal("collcollate"));
+                    var lcCtype = reader.GetString(reader.GetOrdinal("collctype"));
+                    var providerCode = reader.GetChar(reader.GetOrdinal("collprovider"));
+                    var isDeterministic = reader.GetBoolean(reader.GetOrdinal("collisdeterministic"));
+
+                    string? provider;
+                    switch (providerCode)
+                    {
+                    case 'c':
+                        provider = "libc";
+                        break;
+                    case 'i':
+                        provider = "icu";
+                        break;
+                    case 'd':
+                        provider = null;
+                        break;
+                    default:
+                        logger.Logger.LogWarning(
+                            $"Unknown collation provider code {providerCode} for collation {name}, skipping.");
+                        continue;
+                    }
+
+                    logger.CollationFound(schema, name, lcCollate, lcCtype, provider, isDeterministic);
+
+                    PostgresCollation.GetOrAddCollation(
+                        databaseModel, schema, name, lcCollate, lcCtype, provider, isDeterministic);
                 }
-
-                logger.CollationFound(schema, name, lcCollate, lcCtype, provider, isDeterministic);
-
-                PostgresCollation.GetOrAddCollation(
-                    databaseModel, schema, name, lcCollate, lcCtype, provider, isDeterministic);
+            }
+            catch (PostgresException e)
+            {
+                logger.Logger.LogWarning(e, "Could not load database collations.");
             }
         }
 
