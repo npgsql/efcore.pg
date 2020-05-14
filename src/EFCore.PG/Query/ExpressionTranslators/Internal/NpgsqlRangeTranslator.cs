@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using NpgsqlTypes;
@@ -24,15 +25,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     public class NpgsqlRangeTranslator : IMethodCallTranslator, IMemberTranslator
     {
         readonly IRelationalTypeMappingSource _typeMappingSource;
-        readonly ISqlExpressionFactory _sqlExpressionFactory;
+        readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
         readonly RelationalTypeMapping _boolMapping;
 
         public NpgsqlRangeTranslator(
             [NotNull] IRelationalTypeMappingSource typeMappingSource,
-            [NotNull] ISqlExpressionFactory sqlExpressionFactory)
+            [NotNull] NpgsqlSqlExpressionFactory npgsqlSqlExpressionFactory)
         {
             _typeMappingSource = typeMappingSource;
-            _sqlExpressionFactory = sqlExpressionFactory;
+            _sqlExpressionFactory = npgsqlSqlExpressionFactory;
             _boolMapping = typeMappingSource.FindMapping(typeof(bool));
         }
 
@@ -60,55 +61,31 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
             return method.Name switch
             {
-                nameof(NpgsqlRangeDbFunctionsExtensions.Contains) when arguments[0].Type == arguments[1].Type => BoolReturningOnTwoRanges("@>"),
-
-                // Default to element contained in range
-                nameof(NpgsqlRangeDbFunctionsExtensions.Contains) =>
-                    new SqlCustomBinaryExpression(
-                        _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[0]), // TODO: Infer the range mapping from the subtype's...
-                        arguments[0].TypeMapping is NpgsqlRangeTypeMapping rangeMapping
-                            ? _sqlExpressionFactory.ApplyTypeMapping(arguments[1], rangeMapping.SubtypeMapping)
-                            : _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[1]),
-                        "@>",
-                        typeof(bool),
-                        _boolMapping),
-
-                nameof(NpgsqlRangeDbFunctionsExtensions.ContainedBy)          => BoolReturningOnTwoRanges("<@"),
-                nameof(NpgsqlRangeDbFunctionsExtensions.Overlaps)             => BoolReturningOnTwoRanges("&&"),
-                nameof(NpgsqlRangeDbFunctionsExtensions.IsStrictlyLeftOf)     => BoolReturningOnTwoRanges("<<"),
-                nameof(NpgsqlRangeDbFunctionsExtensions.IsStrictlyRightOf)    => BoolReturningOnTwoRanges(">>"),
-                nameof(NpgsqlRangeDbFunctionsExtensions.DoesNotExtendRightOf) => BoolReturningOnTwoRanges("&<"),
-                nameof(NpgsqlRangeDbFunctionsExtensions.DoesNotExtendLeftOf)  => BoolReturningOnTwoRanges("&>"),
-                nameof(NpgsqlRangeDbFunctionsExtensions.IsAdjacentTo)         => BoolReturningOnTwoRanges("-|-"),
-
-                nameof(NpgsqlRangeDbFunctionsExtensions.Union)                => RangeReturningOnTwoRanges("+"),
-                nameof(NpgsqlRangeDbFunctionsExtensions.Intersect)            => RangeReturningOnTwoRanges("*"),
-                nameof(NpgsqlRangeDbFunctionsExtensions.Except)               => RangeReturningOnTwoRanges("-"),
+                nameof(NpgsqlRangeDbFunctionsExtensions.Contains)
+                => _sqlExpressionFactory.Contains(arguments[0], arguments[1]),
+                nameof(NpgsqlRangeDbFunctionsExtensions.ContainedBy)
+                => _sqlExpressionFactory.ContainedBy(arguments[0], arguments[1]),
+                nameof(NpgsqlRangeDbFunctionsExtensions.Overlaps)
+                => _sqlExpressionFactory.Overlaps(arguments[0], arguments[1]),
+                nameof(NpgsqlRangeDbFunctionsExtensions.IsStrictlyLeftOf)
+                => _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.RangeIsStrictlyLeftOf, arguments[0], arguments[1]),
+                nameof(NpgsqlRangeDbFunctionsExtensions.IsStrictlyRightOf)
+                => _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.RangeIsStrictlyRightOf, arguments[0], arguments[1]),
+                nameof(NpgsqlRangeDbFunctionsExtensions.DoesNotExtendRightOf)
+                => _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.RangeDoesNotExtendRightOf, arguments[0], arguments[1]),
+                nameof(NpgsqlRangeDbFunctionsExtensions.DoesNotExtendLeftOf)
+                => _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.RangeDoesNotExtendLeftOf, arguments[0], arguments[1]),
+                nameof(NpgsqlRangeDbFunctionsExtensions.IsAdjacentTo)
+                => _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.RangeIsAdjacentTo, arguments[0], arguments[1]),
+                nameof(NpgsqlRangeDbFunctionsExtensions.Union)
+                => _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.RangeUnion, arguments[0], arguments[1]),
+                nameof(NpgsqlRangeDbFunctionsExtensions.Intersect)
+                => _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.RangeIntersect, arguments[0], arguments[1]),
+                nameof(NpgsqlRangeDbFunctionsExtensions.Except)
+                => _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.RangeExcept, arguments[0], arguments[1]),
 
                 _ => null
             };
-
-            SqlCustomBinaryExpression BoolReturningOnTwoRanges(string @operator)
-            {
-                var inferredMapping = ExpressionExtensions.InferTypeMapping(arguments[0], arguments[1]);
-                return new SqlCustomBinaryExpression(
-                    _sqlExpressionFactory.ApplyTypeMapping(arguments[0], inferredMapping),
-                    _sqlExpressionFactory.ApplyTypeMapping(arguments[1], inferredMapping),
-                    @operator,
-                    typeof(bool),
-                    _boolMapping);
-            }
-
-            SqlCustomBinaryExpression RangeReturningOnTwoRanges(string @operator)
-            {
-                var inferredMapping = ExpressionExtensions.InferTypeMapping(arguments[0], arguments[1]);
-                return new SqlCustomBinaryExpression(
-                    _sqlExpressionFactory.ApplyTypeMapping(arguments[0], inferredMapping),
-                    _sqlExpressionFactory.ApplyTypeMapping(arguments[1], inferredMapping),
-                    @operator,
-                    method.ReturnType,
-                    inferredMapping);
-            }
         }
 
         /// <inheritdoc />

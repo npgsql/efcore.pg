@@ -47,10 +47,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 // If a function is invoked over a JSON traversal expression, that expression may come with
                 // returnText: true (i.e. operator ->> and not ->). Since the functions below require a json object and
                 // not text, we transform it.
-                .Select(a => a is JsonTraversalExpression traversal ? WithReturnsText(traversal, false) : a)
+                .Select(a => a is PostgresJsonTraversalExpression traversal ? WithReturnsText(traversal, false) : a)
                 .ToArray();
 
-            if (!args.Any(a => a.TypeMapping is NpgsqlJsonTypeMapping || a is JsonTraversalExpression))
+            if (!args.Any(a => a.TypeMapping is NpgsqlJsonTypeMapping || a is PostgresJsonTraversalExpression))
                 throw new InvalidOperationException("The EF JSON methods require a JSON parameter and none was found.");
 
             if (method.Name == nameof(NpgsqlJsonDbFunctionsExtensions.JsonTypeof))
@@ -69,43 +69,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
             return method.Name switch
             {
-                nameof(NpgsqlJsonDbFunctionsExtensions.JsonContains) => new SqlCustomBinaryExpression(
-                    _sqlExpressionFactory.ApplyTypeMapping(args[0], _jsonbTypeMapping),
-                    _sqlExpressionFactory.ApplyTypeMapping(args[1], _jsonbTypeMapping),
-                    "@>",
-                    typeof(bool),
-                    _boolTypeMapping),
-
-                nameof(NpgsqlJsonDbFunctionsExtensions.JsonContained) => new SqlCustomBinaryExpression(
-                    _sqlExpressionFactory.ApplyTypeMapping(args[0], _jsonbTypeMapping),
-                    _sqlExpressionFactory.ApplyTypeMapping(args[1], _jsonbTypeMapping),
-                    "<@",
-                    typeof(bool),
-                    _boolTypeMapping),
-
-                nameof(NpgsqlJsonDbFunctionsExtensions.JsonExists) => new SqlCustomBinaryExpression(
-                    _sqlExpressionFactory.ApplyTypeMapping(args[0], _jsonbTypeMapping),
-                    _sqlExpressionFactory.ApplyDefaultTypeMapping(args[1]),
-                    "?",
-                    typeof(bool),
-                    _boolTypeMapping),
-
-                nameof(NpgsqlJsonDbFunctionsExtensions.JsonExistAny) => new SqlCustomBinaryExpression(
-                    _sqlExpressionFactory.ApplyTypeMapping(args[0], _jsonbTypeMapping),
-                    _sqlExpressionFactory.ApplyDefaultTypeMapping(args[1]),
-                    "?|",
-                    typeof(bool),
-                    _boolTypeMapping),
-
-                nameof(NpgsqlJsonDbFunctionsExtensions.JsonExistAll) => new SqlCustomBinaryExpression(
-                    _sqlExpressionFactory.ApplyTypeMapping(args[0], _jsonbTypeMapping),
-                    _sqlExpressionFactory.ApplyDefaultTypeMapping(args[1]),
-                    "?&",
-                    typeof(bool),
-                    _boolTypeMapping),
+                nameof(NpgsqlJsonDbFunctionsExtensions.JsonContains)
+                => _sqlExpressionFactory.Contains(Jsonb(args[0]), Jsonb(args[1])),
+                nameof(NpgsqlJsonDbFunctionsExtensions.JsonContained)
+                => _sqlExpressionFactory.ContainedBy(Jsonb(args[0]), Jsonb(args[1])),
+                nameof(NpgsqlJsonDbFunctionsExtensions.JsonExists)
+                => _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.JsonExists, Jsonb(args[0]), args[1]),
+                nameof(NpgsqlJsonDbFunctionsExtensions.JsonExistAny)
+                => _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.JsonExistsAny, Jsonb(args[0]), args[1]),
+                nameof(NpgsqlJsonDbFunctionsExtensions.JsonExistAll)
+                => _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.JsonExistsAll, Jsonb(args[0]), args[1]),
 
                 _ => null
             };
+
+            SqlExpression Jsonb(SqlExpression e) => _sqlExpressionFactory.ApplyTypeMapping(e, _jsonbTypeMapping);
 
             static SqlExpression RemoveConvert(SqlExpression e)
             {
@@ -118,12 +96,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 return e;
             }
 
-            JsonTraversalExpression WithReturnsText(JsonTraversalExpression traversal, bool returnsText)
+            PostgresJsonTraversalExpression WithReturnsText(PostgresJsonTraversalExpression traversal, bool returnsText)
                 => traversal.ReturnsText == returnsText
                     ? traversal
                     : returnsText
-                        ? new JsonTraversalExpression(traversal.Expression, traversal.Path, true, typeof(string), _stringTypeMapping)
-                        : new JsonTraversalExpression(traversal.Expression, traversal.Path, false, traversal.Type, traversal.Expression.TypeMapping);
+                        ? new PostgresJsonTraversalExpression(traversal.Expression, traversal.Path, true, typeof(string), _stringTypeMapping)
+                        : new PostgresJsonTraversalExpression(traversal.Expression, traversal.Path, false, traversal.Type, traversal.Expression.TypeMapping);
         }
     }
 }

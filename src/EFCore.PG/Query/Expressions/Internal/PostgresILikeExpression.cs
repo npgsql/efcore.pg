@@ -12,7 +12,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
     /// Represents a PostgreSQL ILIKE expression.
     /// </summary>
     // ReSharper disable once InconsistentNaming
-    public class ILikeExpression : SqlExpression, IEquatable<ILikeExpression>
+    public class PostgresILikeExpression : SqlExpression, IEquatable<PostgresILikeExpression>
     {
         /// <summary>
         /// The match expression.
@@ -33,13 +33,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         public virtual SqlExpression EscapeChar { get; }
 
         /// <summary>
-        /// Constructs a <see cref="ILikeExpression"/>.
+        /// Constructs a <see cref="PostgresILikeExpression"/>.
         /// </summary>
         /// <param name="match">The expression to match.</param>
         /// <param name="pattern">The pattern to match.</param>
         /// <param name="escapeChar">The escape character to use in <paramref name="pattern"/>.</param>
         /// <exception cref="ArgumentNullException" />
-        public ILikeExpression(
+        public PostgresILikeExpression(
             [NotNull] SqlExpression match,
             [NotNull] SqlExpression pattern,
             [CanBeNull] SqlExpression escapeChar,
@@ -52,31 +52,25 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         }
 
         /// <inheritdoc />
-        protected override Expression Accept(ExpressionVisitor visitor)
-            => visitor is NpgsqlQuerySqlGenerator npgsqlGenerator
-                ? npgsqlGenerator.VisitILike(this)
-                : base.Accept(visitor);
-
-        /// <inheritdoc />
         protected override Expression VisitChildren(ExpressionVisitor visitor)
             => Update(
                 (SqlExpression)visitor.Visit(Match),
                 (SqlExpression)visitor.Visit(Pattern),
                 (SqlExpression)visitor.Visit(EscapeChar));
 
-        public virtual ILikeExpression Update(
+        public virtual PostgresILikeExpression Update(
             [NotNull] SqlExpression match,
             [NotNull] SqlExpression pattern,
             [NotNull] SqlExpression escapeChar)
             => match == Match && pattern == Pattern && escapeChar == EscapeChar
                 ? this
-                : new ILikeExpression(match, pattern, escapeChar, TypeMapping);
+                : new PostgresILikeExpression(match, pattern, escapeChar, TypeMapping);
 
         /// <inheritdoc />
-        public override bool Equals(object obj) => obj is ILikeExpression other && Equals(other);
+        public override bool Equals(object obj) => obj is PostgresILikeExpression other && Equals(other);
 
         /// <inheritdoc />
-        public virtual bool Equals(ILikeExpression other)
+        public virtual bool Equals(PostgresILikeExpression other)
             => ReferenceEquals(this, other) ||
                other is object &&
                base.Equals(other) &&

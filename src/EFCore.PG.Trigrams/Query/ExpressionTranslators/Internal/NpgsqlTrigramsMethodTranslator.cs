@@ -73,7 +73,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     method.ReturnType);
 
             if (BoolReturningOperators.TryGetValue(method, out var boolOperator))
-                return new SqlCustomBinaryExpression(
+                return new PostgresUnknownBinaryExpression(
                     _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[1]),
                     _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[2]),
                     boolOperator,
@@ -81,7 +81,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     _boolMapping);
 
             if (FloatReturningOperators.TryGetValue(method, out var floatOperator))
-                return new SqlCustomBinaryExpression(
+                return new PostgresUnknownBinaryExpression(
                     _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[1]),
                     _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[2]),
                     floatOperator,

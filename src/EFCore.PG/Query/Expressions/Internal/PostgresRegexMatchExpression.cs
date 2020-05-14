@@ -9,7 +9,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
 {
-    public class RegexMatchExpression : SqlExpression, IEquatable<RegexMatchExpression>
+    public class PostgresRegexMatchExpression : SqlExpression, IEquatable<PostgresRegexMatchExpression>
     {
         /// <inheritdoc />
         public override Type Type => typeof(bool);
@@ -32,13 +32,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         public virtual RegexOptions Options { get; }
 
         /// <summary>
-        /// Constructs a <see cref="RegexMatchExpression"/>.
+        /// Constructs a <see cref="PostgresRegexMatchExpression"/>.
         /// </summary>
         /// <param name="match">The expression to match.</param>
         /// <param name="pattern">The pattern to match.</param>
         /// <param name="options">The options for regular expression evaluation.</param>
         /// <param name="typeMapping">The type mapping for the expression.</param>
-        public RegexMatchExpression(
+        public PostgresRegexMatchExpression(
             [NotNull] SqlExpression match,
             [NotNull] SqlExpression pattern,
             RegexOptions options,
@@ -51,21 +51,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         }
 
         /// <inheritdoc />
-        protected override Expression Accept(ExpressionVisitor visitor)
-            => visitor is NpgsqlQuerySqlGenerator npgsqlGenerator
-                ? npgsqlGenerator.VisitRegexMatch(this)
-                : base.Accept(visitor);
-
-        /// <inheritdoc />
         protected override Expression VisitChildren(ExpressionVisitor visitor)
             => Update((SqlExpression)visitor.Visit(Match), (SqlExpression)visitor.Visit(Pattern));
 
-        public virtual RegexMatchExpression Update([NotNull] SqlExpression match, [NotNull] SqlExpression pattern)
+        public virtual PostgresRegexMatchExpression Update([NotNull] SqlExpression match, [NotNull] SqlExpression pattern)
             => match != Match || pattern != Pattern
-                ? new RegexMatchExpression(match, pattern, Options, TypeMapping)
+                ? new PostgresRegexMatchExpression(match, pattern, Options, TypeMapping)
                 : this;
 
-        public virtual bool Equals(RegexMatchExpression other)
+        public virtual bool Equals(PostgresRegexMatchExpression other)
             => ReferenceEquals(this, other) ||
                    other is object &&
                    base.Equals(other) &&
@@ -74,7 +68,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
                    Options.Equals(other.Options);
 
         public override bool Equals(object other)
-            => other is RegexMatchExpression otherRegexMatch && Equals(otherRegexMatch);
+            => other is PostgresRegexMatchExpression otherRegexMatch && Equals(otherRegexMatch);
 
         public override int GetHashCode()
             => HashCode.Combine(base.GetHashCode(), Match, Pattern, Options);

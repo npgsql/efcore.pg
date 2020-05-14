@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 {
@@ -29,18 +30,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 
         #region Expression factory methods
 
-        public virtual RegexMatchExpression RegexMatch(
+        public virtual PostgresRegexMatchExpression RegexMatch(
             [NotNull] SqlExpression match, [NotNull] SqlExpression pattern, RegexOptions options)
-            => (RegexMatchExpression)ApplyDefaultTypeMapping(new RegexMatchExpression(match, pattern, options, null));
+            => (PostgresRegexMatchExpression)ApplyDefaultTypeMapping(new PostgresRegexMatchExpression(match, pattern, options, null));
 
-        public virtual ArrayAnyAllExpression ArrayAnyAll(
-            [NotNull] SqlExpression operand,
+        public virtual PostgresAnyExpression Any(
+            [NotNull] SqlExpression item,
             [NotNull] SqlExpression array,
-            ArrayComparisonType arrayComparisonType,
-            [NotNull] string @operator)
-            => (ArrayAnyAllExpression)ApplyDefaultTypeMapping(new ArrayAnyAllExpression(operand, array, arrayComparisonType, @operator, null));
+            PostgresAnyOperatorType operatorType)
+            => (PostgresAnyExpression)ApplyDefaultTypeMapping(new PostgresAnyExpression(item, array, operatorType, null));
 
-        public virtual ArrayIndexExpression ArrayIndex(
+        public virtual PostgresAllExpression All(
+            [NotNull] SqlExpression item,
+            [NotNull] SqlExpression array,
+            PostgresAllOperatorType operatorType)
+            => (PostgresAllExpression)ApplyDefaultTypeMapping(new PostgresAllExpression(item, array, operatorType, null));
+
+        public virtual PostgresArrayIndexExpression ArrayIndex(
             [NotNull] SqlExpression array,
             [NotNull] SqlExpression index,
             [CanBeNull]  RelationalTypeMapping typeMapping = null)
@@ -53,10 +59,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             else
                 throw new ArgumentException("Array expression must be of an array or List<> type", nameof(array));
 
-            return (ArrayIndexExpression)ApplyTypeMapping(new ArrayIndexExpression(array, index, elementType, null), typeMapping);
+            return (PostgresArrayIndexExpression)ApplyTypeMapping(new PostgresArrayIndexExpression(array, index, elementType, null), typeMapping);
         }
 
-        public virtual AtTimeZoneExpression AtTimeZone(
+        public virtual PostgresBinaryExpression AtTimeZone(
             [NotNull] SqlExpression timestamp,
             [NotNull] SqlExpression timeZone,
             [NotNull] Type type,
@@ -66,7 +72,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             // See https://www.postgresql.org/docs/current/functions-datetime.html#FUNCTIONS-DATETIME-ZONECONVERT
             typeMapping ??= FlipTimestampTypeMapping(timestamp.TypeMapping ?? _typeMappingSource.FindMapping(timestamp.Type));
 
-            return new AtTimeZoneExpression(
+            return new PostgresBinaryExpression(
+                PostgresExpressionType.AtTimeZone,
                 ApplyDefaultTypeMapping(timestamp),
                 ApplyDefaultTypeMapping(timeZone),
                 type,
@@ -83,24 +90,108 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             }
         }
 
-        public virtual ILikeExpression ILike(
+        public virtual PostgresILikeExpression ILike(
             [NotNull] SqlExpression match,
             [NotNull] SqlExpression pattern,
             [CanBeNull] SqlExpression escapeChar = null)
-            => (ILikeExpression)ApplyDefaultTypeMapping(new ILikeExpression(match, pattern, escapeChar, null));
+            => (PostgresILikeExpression)ApplyDefaultTypeMapping(new PostgresILikeExpression(match, pattern, escapeChar, null));
 
-        public virtual JsonTraversalExpression JsonTraversal(
+        public virtual PostgresJsonTraversalExpression JsonTraversal(
             [NotNull] SqlExpression expression,
             [NotNull] IEnumerable<SqlExpression> path,
             bool returnsText,
             [NotNull] Type type,
             [CanBeNull] RelationalTypeMapping typeMapping = null)
-            => new JsonTraversalExpression(
+            => new PostgresJsonTraversalExpression(
                 ApplyDefaultTypeMapping(expression),
                 path.Select(ApplyDefaultTypeMapping).ToArray(),
                 returnsText,
                 type,
                 typeMapping);
+
+        public virtual SqlExpression NewArrayOrConstant(
+            [NotNull] IReadOnlyList<SqlExpression> initializers,
+            [NotNull] Type type,
+            [CanBeNull] RelationalTypeMapping typeMapping = null)
+        {
+            if (initializers.All(i => i is SqlConstantExpression))
+            {
+                if (!type.TryGetElementType(out var elementType))
+                    throw new ArgumentException($"{type.Name} isn't an array type", nameof(type));
+
+                var array = Array.CreateInstance(elementType, initializers.Count);
+                for (var i = 0; i < initializers.Count; i++)
+                    array.SetValue(((SqlConstantExpression)initializers[i]).Value, i);
+                return Constant(array, typeMapping);
+            }
+
+            return NewArray(initializers, type, typeMapping);
+        }
+
+        public virtual PostgresNewArrayExpression NewArray(
+            [NotNull] IReadOnlyList<SqlExpression> initializers,
+            [NotNull] Type type,
+            [CanBeNull] RelationalTypeMapping typeMapping = null)
+            => (PostgresNewArrayExpression)ApplyTypeMapping(new PostgresNewArrayExpression(initializers, type, typeMapping), typeMapping);
+
+        public virtual PostgresBinaryExpression MakePostgresBinary(
+            PostgresExpressionType operatorType,
+            [NotNull] SqlExpression left,
+            [NotNull] SqlExpression right,
+            [CanBeNull] RelationalTypeMapping typeMapping = null)
+        {
+            Check.NotNull(left, nameof(left));
+            Check.NotNull(right, nameof(right));
+
+            var returnType = left.Type;
+            switch (operatorType)
+            {
+            case PostgresExpressionType.Contains:
+            case PostgresExpressionType.ContainedBy:
+            case PostgresExpressionType.Overlaps:
+            case PostgresExpressionType.NetworkContainedByOrEqual:
+            case PostgresExpressionType.NetworkContainsOrEqual:
+            case PostgresExpressionType.NetworkContainsOrContainedBy:
+            case PostgresExpressionType.RangeIsStrictlyLeftOf:
+            case PostgresExpressionType.RangeIsStrictlyRightOf:
+            case PostgresExpressionType.RangeDoesNotExtendRightOf:
+            case PostgresExpressionType.RangeDoesNotExtendLeftOf:
+            case PostgresExpressionType.RangeIsAdjacentTo:
+            case PostgresExpressionType.TextSearchMatch:
+            case PostgresExpressionType.JsonExists:
+            case PostgresExpressionType.JsonExistsAny:
+            case PostgresExpressionType.JsonExistsAll:
+                returnType = typeof(bool);
+                break;
+            }
+
+            return (PostgresBinaryExpression)ApplyTypeMapping(
+                new PostgresBinaryExpression(operatorType, left, right, returnType, null), typeMapping);
+        }
+
+        public virtual PostgresBinaryExpression Contains([NotNull] SqlExpression left, [NotNull] SqlExpression right)
+        {
+            Check.NotNull(left, nameof(left));
+            Check.NotNull(right, nameof(right));
+
+            return MakePostgresBinary(PostgresExpressionType.Contains, left, right);
+        }
+
+        public virtual PostgresBinaryExpression ContainedBy([NotNull] SqlExpression left, [NotNull] SqlExpression right)
+        {
+            Check.NotNull(left, nameof(left));
+            Check.NotNull(right, nameof(right));
+
+            return MakePostgresBinary(PostgresExpressionType.ContainedBy, left, right);
+        }
+
+        public virtual PostgresBinaryExpression Overlaps([NotNull] SqlExpression left, [NotNull] SqlExpression right)
+        {
+            Check.NotNull(left, nameof(left));
+            Check.NotNull(right, nameof(right));
+
+            return MakePostgresBinary(PostgresExpressionType.Overlaps, left, right);
+        }
 
         #endregion Expression factory methods
 
@@ -109,14 +200,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 ? sqlExpression
                 : sqlExpression switch
                 {
-                    SqlBinaryExpression e        => ApplyTypeMappingOnSqlBinary(e, typeMapping),
+                    SqlBinaryExpression e => ApplyTypeMappingOnSqlBinary(e, typeMapping),
 
                     // PostgreSQL-specific expression types
-                    RegexMatchExpression e       => ApplyTypeMappingOnRegexMatch(e),
-                    ArrayAnyAllExpression e      => ApplyTypeMappingOnArrayAnyAll(e),
-                    ArrayIndexExpression e       => ApplyTypeMappingOnArrayIndex(e, typeMapping),
-                    ILikeExpression e            => ApplyTypeMappingOnILike(e),
-                    PgFunctionExpression e       => e.ApplyTypeMapping(typeMapping),
+                    PostgresAnyExpression e        => ApplyTypeMappingOnAny(e),
+                    PostgresAllExpression e        => ApplyTypeMappingOnAll(e),
+                    PostgresArrayIndexExpression e => ApplyTypeMappingOnArrayIndex(e, typeMapping),
+                    PostgresBinaryExpression e     => ApplyTypeMappingOnPostgresBinary(e, typeMapping),
+                    PostgresFunctionExpression e   => e.ApplyTypeMapping(typeMapping),
+                    PostgresILikeExpression e      => ApplyTypeMappingOnILike(e),
+                    PostgresNewArrayExpression e   => ApplyTypeMappingOnPostgresNewArray(e, typeMapping),
+                    PostgresRegexMatchExpression e => ApplyTypeMappingOnRegexMatch(e),
 
                     _ => base.ApplyTypeMapping(sqlExpression, typeMapping)
                 };
@@ -171,67 +265,205 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             return base.ApplyTypeMapping(binary, typeMapping);
         }
 
-        SqlExpression ApplyTypeMappingOnRegexMatch(RegexMatchExpression regexMatchExpression)
+        SqlExpression ApplyTypeMappingOnRegexMatch(PostgresRegexMatchExpression postgresRegexMatchExpression)
         {
             var inferredTypeMapping = ExpressionExtensions.InferTypeMapping(
-                                          regexMatchExpression.Match, regexMatchExpression.Pattern)
-                                      ?? _typeMappingSource.FindMapping(regexMatchExpression.Match.Type);
+                                          postgresRegexMatchExpression.Match, postgresRegexMatchExpression.Pattern)
+                                      ?? _typeMappingSource.FindMapping(postgresRegexMatchExpression.Match.Type);
 
-            return new RegexMatchExpression(
-                ApplyTypeMapping(regexMatchExpression.Match, inferredTypeMapping),
-                ApplyTypeMapping(regexMatchExpression.Pattern, inferredTypeMapping),
-                regexMatchExpression.Options,
+            return new PostgresRegexMatchExpression(
+                ApplyTypeMapping(postgresRegexMatchExpression.Match, inferredTypeMapping),
+                ApplyTypeMapping(postgresRegexMatchExpression.Pattern, inferredTypeMapping),
+                postgresRegexMatchExpression.Options,
                 _boolTypeMapping);
         }
 
-        SqlExpression ApplyTypeMappingOnArrayAnyAll(ArrayAnyAllExpression arrayAnyAllExpression)
+        SqlExpression ApplyTypeMappingOnAny(PostgresAnyExpression postgresAnyExpression)
+        {
+            var (item, array) = ApplyTypeMappingsOnItemAndArray(
+                postgresAnyExpression.Item,
+                postgresAnyExpression.Array);
+            return new PostgresAnyExpression(item, array, postgresAnyExpression.OperatorType, _boolTypeMapping);
+        }
+
+        SqlExpression ApplyTypeMappingOnAll(PostgresAllExpression postgresAllExpression)
+        {
+            var (item, array) = ApplyTypeMappingsOnItemAndArray(
+                postgresAllExpression.Item,
+                postgresAllExpression.Array);
+            return new PostgresAllExpression(item, array, postgresAllExpression.OperatorType, _boolTypeMapping);
+        }
+
+        (SqlExpression, SqlExpression) ApplyTypeMappingsOnItemAndArray(
+            SqlExpression itemExpression, SqlExpression arrayExpression)
         {
             // Attempt type inference either from the operand to the array or the other way around
-            var arrayMapping = (NpgsqlArrayTypeMapping)arrayAnyAllExpression.Array.TypeMapping;
+            var arrayMapping = (NpgsqlArrayTypeMapping)arrayExpression.TypeMapping;
 
-            var operandMapping = arrayAnyAllExpression.Operand.TypeMapping ??
-                                 arrayMapping?.ElementMapping ??
-                                 _typeMappingSource.FindMapping(arrayAnyAllExpression.Operand.Type);
+            var itemMapping = itemExpression.TypeMapping ??
+                              arrayMapping?.ElementMapping ??
+                              _typeMappingSource.FindMapping(itemExpression.Type);
 
             // Note that we provide both the array CLR type *and* an array store type constructed from the element's
             // store type. If we use only the array CLR type, byte[] will yield bytea which we don't want.
             arrayMapping ??= (NpgsqlArrayTypeMapping)_typeMappingSource.FindMapping(
-                arrayAnyAllExpression.Array.Type, operandMapping.StoreType + "[]");
+                arrayExpression.Type, itemMapping.StoreType + "[]");
 
-            if (operandMapping == null || arrayMapping == null)
-                throw new InvalidOperationException("Couldn't find array or element type mapping in ArrayAnyAllExpression");
+            if (itemMapping == null || arrayMapping == null)
+                throw new InvalidOperationException(
+                    "Couldn't find array or element type mapping in ArrayAnyAllExpression");
 
-            return new ArrayAnyAllExpression(
-                ApplyTypeMapping(arrayAnyAllExpression.Operand, operandMapping),
-                ApplyTypeMapping(arrayAnyAllExpression.Array, arrayMapping),
-                arrayAnyAllExpression.ArrayComparisonType,
-                arrayAnyAllExpression.Operator,
-                _boolTypeMapping);
+            return (
+                ApplyTypeMapping(itemExpression, itemMapping),
+                ApplyTypeMapping(arrayExpression, arrayMapping));
         }
 
         SqlExpression ApplyTypeMappingOnArrayIndex(
-            ArrayIndexExpression arrayIndexExpression, RelationalTypeMapping typeMapping)
-            => new ArrayIndexExpression(
+            PostgresArrayIndexExpression postgresArrayIndexExpression, RelationalTypeMapping typeMapping)
+            => new PostgresArrayIndexExpression(
                 // TODO: Infer the array's mapping from the element
-                ApplyDefaultTypeMapping(arrayIndexExpression.Array),
-                ApplyDefaultTypeMapping(arrayIndexExpression.Index),
-                arrayIndexExpression.Type,
+                ApplyDefaultTypeMapping(postgresArrayIndexExpression.Array),
+                ApplyDefaultTypeMapping(postgresArrayIndexExpression.Index),
+                postgresArrayIndexExpression.Type,
                 // If the array has a type mapping (i.e. column), prefer that just like we prefer column mappings in general
-                arrayIndexExpression.Array.TypeMapping is NpgsqlArrayTypeMapping arrayMapping
+                postgresArrayIndexExpression.Array.TypeMapping is NpgsqlArrayTypeMapping arrayMapping
                     ? arrayMapping.ElementMapping
-                    : typeMapping ?? _typeMappingSource.FindMapping(arrayIndexExpression.Type));
+                    : typeMapping ?? _typeMappingSource.FindMapping(postgresArrayIndexExpression.Type));
 
-        SqlExpression ApplyTypeMappingOnILike(ILikeExpression ilikeExpression)
+        SqlExpression ApplyTypeMappingOnILike(PostgresILikeExpression ilikeExpression)
         {
             var inferredTypeMapping = ExpressionExtensions.InferTypeMapping(
                                           ilikeExpression.Match, ilikeExpression.Pattern, ilikeExpression.EscapeChar)
                                       ?? _typeMappingSource.FindMapping(ilikeExpression.Match.Type);
 
-            return new ILikeExpression(
+            return new PostgresILikeExpression(
                 ApplyTypeMapping(ilikeExpression.Match, inferredTypeMapping),
                 ApplyTypeMapping(ilikeExpression.Pattern, inferredTypeMapping),
                 ApplyTypeMapping(ilikeExpression.EscapeChar, inferredTypeMapping),
                 _boolTypeMapping);
+        }
+
+        SqlExpression ApplyTypeMappingOnPostgresBinary(
+            PostgresBinaryExpression postgresBinaryExpression, RelationalTypeMapping typeMapping)
+        {
+            var left = postgresBinaryExpression.Left;
+            var right = postgresBinaryExpression.Right;
+
+            Type resultType;
+            RelationalTypeMapping resultTypeMapping;
+            RelationalTypeMapping inferredTypeMapping;
+            var operatorType = postgresBinaryExpression.OperatorType;
+            switch (operatorType)
+            {
+            case PostgresExpressionType.Overlaps:
+            case PostgresExpressionType.RangeIsStrictlyLeftOf:
+            case PostgresExpressionType.RangeIsStrictlyRightOf:
+            case PostgresExpressionType.RangeDoesNotExtendRightOf:
+            case PostgresExpressionType.RangeDoesNotExtendLeftOf:
+            case PostgresExpressionType.RangeIsAdjacentTo:
+            {
+                inferredTypeMapping = ExpressionExtensions.InferTypeMapping(left, right);
+                resultType = typeof(bool);
+                resultTypeMapping = _boolTypeMapping;
+                break;
+            }
+
+            case PostgresExpressionType.NetworkContainedByOrEqual:
+            case PostgresExpressionType.NetworkContainsOrEqual:
+            case PostgresExpressionType.NetworkContainsOrContainedBy:
+            case PostgresExpressionType.TextSearchMatch:
+            case PostgresExpressionType.JsonExists:
+            case PostgresExpressionType.JsonExistsAny:
+            case PostgresExpressionType.JsonExistsAll:
+            {
+                // TODO: For networking, this probably needs to be cleaned up, i.e. we know where the CIDR and INET are
+                // based on operator type?
+                return new PostgresBinaryExpression(
+                    operatorType,
+                    ApplyDefaultTypeMapping(left),
+                    ApplyDefaultTypeMapping(right),
+                    typeof(bool),
+                    _boolTypeMapping);
+            }
+
+            case PostgresExpressionType.Contains:
+            case PostgresExpressionType.ContainedBy:
+            {
+                // Containment of array within an array, or range within range, or item within range.
+                // Note that containment of item within an array is expressed via ArrayAnyAllExpression
+                if (left.Type == right.Type)
+                    goto case PostgresExpressionType.Overlaps;
+
+                SqlExpression newLeft, newRight;
+                if (operatorType == PostgresExpressionType.Contains)
+                    (newLeft, newRight) = InferContainmentMappings(left, right);
+                else
+                    (newRight, newLeft) = InferContainmentMappings(right, left);
+                return new PostgresBinaryExpression(operatorType, newLeft, newRight, typeof(bool), _boolTypeMapping);
+            }
+
+            case PostgresExpressionType.RangeUnion:
+            case PostgresExpressionType.RangeIntersect:
+            case PostgresExpressionType.RangeExcept:
+            case PostgresExpressionType.TextSearchAnd:
+            case PostgresExpressionType.TextSearchOr:
+            {
+                inferredTypeMapping = typeMapping ?? ExpressionExtensions.InferTypeMapping(left, right);
+                resultType = inferredTypeMapping?.ClrType ?? left.Type;
+                resultTypeMapping = inferredTypeMapping;
+                break;
+            }
+
+            default:
+                throw new InvalidOperationException($"Incorrect {nameof(operatorType)} for {nameof(postgresBinaryExpression)}");
+            }
+
+            return new PostgresBinaryExpression(
+                operatorType,
+                ApplyTypeMapping(left, inferredTypeMapping),
+                ApplyTypeMapping(right, inferredTypeMapping),
+                resultType,
+                resultTypeMapping);
+
+            (SqlExpression, SqlExpression) InferContainmentMappings(SqlExpression container, SqlExpression containee)
+            {
+                // TODO: We may need container/containee inference for other type, not just range
+                // TODO: Do the other way to - infer the container mapping from the containee
+                var newContainer = ApplyDefaultTypeMapping(container);
+                var newContainee = newContainer.TypeMapping is NpgsqlRangeTypeMapping rangeMapping
+                    ? ApplyTypeMapping(containee, rangeMapping.SubtypeMapping)
+                    : ApplyDefaultTypeMapping(containee);
+                return (newContainer, newContainee);
+            }
+        }
+
+        SqlExpression ApplyTypeMappingOnPostgresNewArray(
+            PostgresNewArrayExpression postgresNewArrayExpression, RelationalTypeMapping typeMapping)
+        {
+            var arrayTypeMapping = typeMapping as NpgsqlArrayTypeMapping;
+            if (arrayTypeMapping is null && typeMapping != null)
+                throw new ArgumentException($"Type mapping {typeMapping.GetType().Name} isn't an {nameof(NpgsqlArrayTypeMapping)}");
+            var elementTypeMapping = arrayTypeMapping?.ElementMapping;
+
+            List<SqlExpression> newInitializers = null;
+            for (var i = 0; i < postgresNewArrayExpression.Initializers.Count; i++)
+            {
+                var initializer = postgresNewArrayExpression.Initializers[i];
+                var newInitializer = ApplyTypeMapping(initializer, elementTypeMapping);
+                if (newInitializer != initializer && newInitializers is null)
+                {
+                    newInitializers = new List<SqlExpression>();
+                    for (var j = 0; j < i; j++)
+                        newInitializers.Add(newInitializer);
+                }
+
+                if (newInitializers != null)
+                    newInitializers.Add(newInitializer);
+            }
+
+            return new PostgresNewArrayExpression(
+                newInitializers ?? postgresNewArrayExpression.Initializers,
+                postgresNewArrayExpression.Type, typeMapping);
         }
     }
 }

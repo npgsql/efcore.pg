@@ -295,7 +295,7 @@ LIMIT 1");
 
             Assert.NotNull(tsquery);
             AssertSql(
-                @"SELECT (to_tsquery('a & b') && to_tsquery('c & d'))
+                @"SELECT to_tsquery('a & b') && to_tsquery('c & d')
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -310,7 +310,7 @@ LIMIT 1");
 
             Assert.NotNull(tsquery);
             AssertSql(
-                @"SELECT (to_tsquery('a & b') || to_tsquery('c & d'))
+                @"SELECT to_tsquery('a & b') || to_tsquery('c & d')
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -340,7 +340,7 @@ LIMIT 1");
 
             Assert.True(result);
             AssertSql(
-                @"SELECT (to_tsquery('a & b') @> to_tsquery('b'))
+                @"SELECT to_tsquery('a & b') @> to_tsquery('b')
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -355,7 +355,7 @@ LIMIT 1");
 
             Assert.True(result);
             AssertSql(
-                @"SELECT (to_tsquery('b') <@ to_tsquery('a & b'))
+                @"SELECT to_tsquery('b') <@ to_tsquery('a & b')
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -522,7 +522,7 @@ LIMIT 1");
             AssertSql(
                 @"@__query_1='b'
 
-SELECT (to_tsvector('a') @@ plainto_tsquery(@__query_1))
+SELECT to_tsvector('a') @@ plainto_tsquery(@__query_1)
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -537,7 +537,7 @@ LIMIT 1");
 
             Assert.False(result);
             AssertSql(
-                @"SELECT (to_tsvector('a') @@ to_tsquery('b'))
+                @"SELECT to_tsvector('a') @@ to_tsquery('b')
 FROM ""Customers"" AS c
 LIMIT 1");
         }
