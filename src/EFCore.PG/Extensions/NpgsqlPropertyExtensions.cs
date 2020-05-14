@@ -242,7 +242,7 @@ namespace Microsoft.EntityFrameworkCore
 
         static bool IsIntegerForValueGeneration(this Type type)
         {
-            type = type.UnwrapNullableType();
+            type = type.UnwrapNullableType().UnwrapEnumType();
             return type == typeof(int) || type == typeof(long) || type == typeof(short);
         }
 
