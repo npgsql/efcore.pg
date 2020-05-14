@@ -5,7 +5,6 @@ using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
@@ -17,9 +16,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
     /// <see cref="SqlBinaryExpression"/> specifically disallows having an <see cref="SqlBinaryExpression.OperatorType"/>
     /// of value <see cref="ExpressionType.ArrayIndex"/> as arrays are a PostgreSQL-only feature.
     /// </remarks>
-    public class ArrayIndexExpression : SqlExpression, IEquatable<ArrayIndexExpression>
+    public class PostgresArrayIndexExpression : SqlExpression, IEquatable<PostgresArrayIndexExpression>
     {
-        public ArrayIndexExpression(
+        public PostgresArrayIndexExpression(
             [NotNull] SqlExpression array,
             [NotNull] SqlExpression index,
             [NotNull] Type type,
@@ -29,8 +28,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
             Check.NotNull(array, nameof(array));
             Check.NotNull(index, nameof(index));
 
-            if (!array.Type.IsArray && !array.Type.IsGenericList())
+            if (!array.Type.TryGetElementType(out var elementType))
                 throw new ArgumentException("Array expression must of an array type", nameof(array));
+            if (type != elementType)
+                throw new ArgumentException($"Mismatch between array type ({array.Type.Name}) and expression type ({type})");
             if (index.Type != typeof(int))
                 throw new ArgumentException("Index expression must of type int", nameof(index));
 
@@ -38,14 +39,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
             Index = index;
         }
 
-        /// <inheritdoc />
-        protected override Expression Accept(ExpressionVisitor visitor)
-            => visitor is NpgsqlQuerySqlGenerator npgsqlGenerator
-                ? npgsqlGenerator.VisitArrayIndex(this)
-                : base.Accept(visitor);
-
-        public virtual ArrayIndexExpression Update([NotNull] SqlExpression array, [NotNull] SqlExpression index)
-            => array == Array && index == Index ? this : new ArrayIndexExpression(array, index, Type, TypeMapping);
+        public virtual PostgresArrayIndexExpression Update([NotNull] SqlExpression array, [NotNull] SqlExpression index)
+            => array == Array && index == Index
+                ? this
+                : new PostgresArrayIndexExpression(array, index, Type, TypeMapping);
 
         /// <inheritdoc />
         protected override Expression VisitChildren(ExpressionVisitor visitor)
@@ -63,14 +60,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         [NotNull]
         public virtual SqlExpression Index { get; }
 
-        public virtual bool Equals(ArrayIndexExpression other)
+        public virtual bool Equals(PostgresArrayIndexExpression other)
             => ReferenceEquals(this, other) ||
                other is object &&
                base.Equals(other) &&
                Array.Equals(other.Array) &&
                Index.Equals(other.Index);
 
-        public override bool Equals(object obj) => obj is ArrayIndexExpression e && Equals(e);
+        public override bool Equals(object obj) => obj is PostgresArrayIndexExpression e && Equals(e);
 
         public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), Array, Index);
 

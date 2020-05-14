@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
@@ -30,7 +31,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             typeof(PhysicalAddress).GetRuntimeMethod(nameof(PhysicalAddress.Parse), new[] { typeof(string) });
 
         readonly IRelationalTypeMappingSource _typeMappingSource;
-        readonly ISqlExpressionFactory _sqlExpressionFactory;
+        readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
 
         readonly RelationalTypeMapping _boolMapping;
         readonly RelationalTypeMapping _inetMapping;
@@ -39,7 +40,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
         public NpgsqlNetworkTranslator(
             [NotNull] IRelationalTypeMappingSource typeMappingSource,
-            [NotNull] ISqlExpressionFactory sqlExpressionFactory)
+            [NotNull] NpgsqlSqlExpressionFactory sqlExpressionFactory)
         {
             _typeMappingSource = typeMappingSource;
             _sqlExpressionFactory = sqlExpressionFactory;
@@ -64,16 +65,25 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
             return method.Name switch
             {
-            nameof(NpgsqlNetworkDbFunctionsExtensions.LessThan)              => _sqlExpressionFactory.LessThan(arguments[1], arguments[2]),
-            nameof(NpgsqlNetworkDbFunctionsExtensions.LessThanOrEqual)       => _sqlExpressionFactory.LessThanOrEqual(arguments[1], arguments[2]),
-            nameof(NpgsqlNetworkDbFunctionsExtensions.GreaterThanOrEqual)    => _sqlExpressionFactory.GreaterThanOrEqual(arguments[1], arguments[2]),
-            nameof(NpgsqlNetworkDbFunctionsExtensions.GreaterThan)           => _sqlExpressionFactory.GreaterThan(arguments[1], arguments[2]),
+            nameof(NpgsqlNetworkDbFunctionsExtensions.LessThan)
+            => _sqlExpressionFactory.LessThan(arguments[1], arguments[2]),
+            nameof(NpgsqlNetworkDbFunctionsExtensions.LessThanOrEqual)
+            => _sqlExpressionFactory.LessThanOrEqual(arguments[1], arguments[2]),
+            nameof(NpgsqlNetworkDbFunctionsExtensions.GreaterThanOrEqual)
+            => _sqlExpressionFactory.GreaterThanOrEqual(arguments[1], arguments[2]),
+            nameof(NpgsqlNetworkDbFunctionsExtensions.GreaterThan)
+            => _sqlExpressionFactory.GreaterThan(arguments[1], arguments[2]),
 
-            nameof(NpgsqlNetworkDbFunctionsExtensions.ContainedBy)           => BoolReturningOnTwoNetworkTypes("<<"),
-            nameof(NpgsqlNetworkDbFunctionsExtensions.ContainedByOrEqual)    => BoolReturningOnTwoNetworkTypes("<<="),
-            nameof(NpgsqlNetworkDbFunctionsExtensions.Contains)              => BoolReturningOnTwoNetworkTypes(">>"),
-            nameof(NpgsqlNetworkDbFunctionsExtensions.ContainsOrEqual)       => BoolReturningOnTwoNetworkTypes(">>="),
-            nameof(NpgsqlNetworkDbFunctionsExtensions.ContainsOrContainedBy) => BoolReturningOnTwoNetworkTypes("&&"),
+            nameof(NpgsqlNetworkDbFunctionsExtensions.ContainedBy)
+            => _sqlExpressionFactory.ContainedBy(arguments[1], arguments[2]),
+            nameof(NpgsqlNetworkDbFunctionsExtensions.ContainedByOrEqual)
+            => _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.NetworkContainedByOrEqual, arguments[1], arguments[2]),
+            nameof(NpgsqlNetworkDbFunctionsExtensions.Contains)
+            => _sqlExpressionFactory.Contains(arguments[1], arguments[2]),
+            nameof(NpgsqlNetworkDbFunctionsExtensions.ContainsOrEqual)
+            => _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.NetworkContainsOrEqual, arguments[1], arguments[2]),
+            nameof(NpgsqlNetworkDbFunctionsExtensions.ContainsOrContainedBy)
+            => _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.NetworkContainsOrContainedBy, arguments[1], arguments[2]),
 
             nameof(NpgsqlNetworkDbFunctionsExtensions.BitwiseNot)            => new SqlUnaryExpression(ExpressionType.Not,
                 arguments[1],
@@ -140,14 +150,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     argumentsPropagateNullability: TrueArrays[arguments.Length],
                     returnType,
                     typeMapping);
-
-            SqlCustomBinaryExpression BoolReturningOnTwoNetworkTypes(string @operator)
-                => new SqlCustomBinaryExpression(
-                    _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[1]),
-                    _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[2]),
-                    @operator,
-                    typeof(bool),
-                    _boolMapping);
         }
     }
 }

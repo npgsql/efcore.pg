@@ -342,7 +342,7 @@ LIMIT 2");
 
 SELECT COUNT(*)::INT
 FROM ""JsonbEntities"" AS j
-WHERE (j.""Customer"" @> @__element_1)");
+WHERE j.""Customer"" @> @__element_1");
         }
 
         [Fact]
@@ -356,7 +356,7 @@ WHERE (j.""Customer"" @> @__element_1)");
             AssertSql(
                 @"SELECT COUNT(*)::INT
 FROM ""JsonbEntities"" AS j
-WHERE (j.""Customer"" @> '{""Name"": ""Joe"", ""Age"": 25}')");
+WHERE j.""Customer"" @> '{""Name"": ""Joe"", ""Age"": 25}'");
         }
 
         [Fact]
@@ -374,7 +374,7 @@ WHERE (j.""Customer"" @> '{""Name"": ""Joe"", ""Age"": 25}')");
 
 SELECT COUNT(*)::INT
 FROM ""JsonbEntities"" AS j
-WHERE (j.""Customer"" @> @__someJson_1)");
+WHERE j.""Customer"" @> @__someJson_1");
         }
 
         [Fact]
@@ -392,7 +392,7 @@ WHERE (j.""Customer"" @> @__someJson_1)");
 
 SELECT COUNT(*)::INT
 FROM ""JsonbEntities"" AS j
-WHERE (@__element_1 <@ j.""Customer"")");
+WHERE @__element_1 <@ j.""Customer""");
         }
 
         [Fact]
@@ -406,7 +406,7 @@ WHERE (@__element_1 <@ j.""Customer"")");
             AssertSql(
                 @"SELECT COUNT(*)::INT
 FROM ""JsonbEntities"" AS j
-WHERE ('{""Name"": ""Joe"", ""Age"": 25}' <@ j.""Customer"")");
+WHERE '{""Name"": ""Joe"", ""Age"": 25}' <@ j.""Customer""");
         }
 
         [Fact]
@@ -424,7 +424,7 @@ WHERE ('{""Name"": ""Joe"", ""Age"": 25}' <@ j.""Customer"")");
 
 SELECT COUNT(*)::INT
 FROM ""JsonbEntities"" AS j
-WHERE (@__someJson_1 <@ j.""Customer"")");
+WHERE @__someJson_1 <@ j.""Customer""");
         }
 
         [Fact]
@@ -438,7 +438,7 @@ WHERE (@__someJson_1 <@ j.""Customer"")");
             AssertSql(
                 @"SELECT COUNT(*)::INT
 FROM ""JsonbEntities"" AS j
-WHERE (j.""Customer""->'Statistics' ? 'Visits')");
+WHERE j.""Customer""->'Statistics' ? 'Visits'");
         }
 
         [Fact]
@@ -452,7 +452,7 @@ WHERE (j.""Customer""->'Statistics' ? 'Visits')");
             AssertSql(
                 @"SELECT COUNT(*)::INT
 FROM ""JsonbEntities"" AS j
-WHERE (j.""Customer""->'Statistics' ?| ARRAY['foo','Visits']::text[])");
+WHERE j.""Customer""->'Statistics' ?| ARRAY['foo','Visits']::text[]");
         }
 
         [Fact]
@@ -466,7 +466,7 @@ WHERE (j.""Customer""->'Statistics' ?| ARRAY['foo','Visits']::text[])");
             AssertSql(
                 @"SELECT COUNT(*)::INT
 FROM ""JsonbEntities"" AS j
-WHERE (j.""Customer""->'Statistics' ?& ARRAY['foo','Visits']::text[])");
+WHERE j.""Customer""->'Statistics' ?& ARRAY['foo','Visits']::text[]");
         }
 
         [Fact]

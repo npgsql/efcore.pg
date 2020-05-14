@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -63,27 +65,27 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             if (arguments.Count == 0)
                 return null;
 
-            var operand = arguments[0];
-            if (!operand.Type.TryGetElementType(out var operandElementType))
+            var array = arguments[0];
+            if (!array.Type.TryGetElementType(out var elementType))
                 return null; // Not an array/list
 
             // The array/list CLR type may be mapped to a non-array database type (e.g. byte[] to bytea, or just
             // value converters). Make sure we're dealing with an array
             // Regardless of CLR type, we may be dealing with a non-array database type (e.g. via value converters).
-            if (operand.TypeMapping is RelationalTypeMapping typeMapping &&
+            if (array.TypeMapping is RelationalTypeMapping typeMapping &&
                 !(typeMapping is NpgsqlArrayTypeMapping) && !(typeMapping is NpgsqlJsonTypeMapping))
             {
                 return null;
             }
 
             if (method.IsClosedFormOf(SequenceEqual) && arguments[1].Type.IsArray)
-                return _sqlExpressionFactory.Equal(operand, arguments[1]);
+                return _sqlExpressionFactory.Equal(array, arguments[1]);
 
             // Predicate-less Any - translate to a simple length check.
             if (method.IsClosedFormOf(EnumerableAnyWithoutPredicate))
             {
                 return _sqlExpressionFactory.GreaterThan(
-                    _jsonPocoTranslator.TranslateArrayLength(operand) ??
+                    _jsonPocoTranslator.TranslateArrayLength(array) ??
                     _sqlExpressionFactory.Function(
                         "cardinality",
                         arguments,
@@ -95,50 +97,62 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
             // Note that .Where(e => new[] { "a", "b", "c" }.Any(p => e.SomeText == p)))
             // is pattern-matched in AllAnyToContainsRewritingExpressionVisitor, which transforms it to
-            // new[] { "a", "b", "c" }.Contains(e.SomeText).
-            // Here we go further, and translate that to the PostgreSQL-specific construct e.SomeText = ANY (@p) -
-            // this is superior to the general solution which will expand parameters to constants,
-            // since non-PG SQL does not support arrays. If the list is a constant we leave it for regular IN
-            // (functionality the same but more familiar).
+            // new[] { "a", "b", "c" }.Contains(e.Some Text).
 
             if (method.IsClosedFormOf(Contains) &&
-                // Exclude constant array expressions from this PG-specific optimization since the general
-                // EF Core mechanism is fine for that case. After https://github.com/aspnet/EntityFrameworkCore/issues/16375
-                // is done we may not need the check any more.
-                !(operand is SqlConstantExpression) &&
                 (
                     // Handle either parameters (no mapping but supported CLR type), or array columns. We specifically
                     // don't want to translate if the type mapping is bytea (CLR type is array, but not an array in
                     // the database).
-                    operand.TypeMapping == null && _typeMappingSource.FindMapping(operand.Type) != null ||
-                    operand.TypeMapping is NpgsqlArrayTypeMapping
-                 ) &&
+                    array.TypeMapping == null && _typeMappingSource.FindMapping(array.Type) != null ||
+                    array.TypeMapping is NpgsqlArrayTypeMapping
+                ) &&
                 // Exclude arrays/lists over Nullable<T> since the ADO layer doesn't handle them (but will in 5.0)
-                Nullable.GetUnderlyingType(operandElementType) == null)
+                Nullable.GetUnderlyingType(elementType) == null)
             {
                 var item = arguments[1];
-                var anyAll = _sqlExpressionFactory.ArrayAnyAll(item, operand, ArrayComparisonType.Any, "=");
 
-                // TODO: no null semantics is implemented here (see https://github.com/npgsql/efcore.pg/issues/1142)
-                // We require a null semantics check in case the item is null and the array contains a null.
-                // Advanced parameter sniffing would help here: https://github.com/aspnet/EntityFrameworkCore/issues/17598
-                // We need to coalesce to false since 'x' = ANY ({'y', NULL}) returns null, not false
-                // (and so will be null when negated too)
-                return _sqlExpressionFactory.OrElse(
-                    anyAll,
-                    _sqlExpressionFactory.AndAlso(
-                        _sqlExpressionFactory.IsNull(item),
-                        _sqlExpressionFactory.IsNotNull(
+                switch (array)
+                {
+                // When the array is a column, we translate to array @> ARRAY[item]. GIN indexes
+                // on array are used, but null semantics is impossible without preventing index use.
+                case ColumnExpression _:
+                    if (item is SqlConstantExpression constant && constant.Value is null)
+                    {
+                        // We special-case null constant item and use array_position instead, since it does
+                        // nulls correctly (but doesn't use indexes)
+                        // TODO: once lambda-based caching is implemented, move this to NpgsqlSqlNullabilityProcessor
+                        // (https://github.com/dotnet/efcore/issues/17598) and do for parameters as well.
+                        return _sqlExpressionFactory.IsNotNull(
                             _sqlExpressionFactory.Function(
                                 "array_position",
-                                new[] { anyAll.Array, _sqlExpressionFactory.Fragment("NULL") },
+                                new[] { array, item },
                                 nullable: true,
                                 argumentsPropagateNullability: FalseArrays[2],
-                                typeof(int)))));
+                                typeof(int)));
+                    }
+
+                    return _sqlExpressionFactory.Contains(array,
+                            _sqlExpressionFactory.NewArrayOrConstant(new[] { item }, array.Type));
+
+                // Don't do anything PG-specific for constant arrays since the general EF Core mechanism is fine
+                // for that case: item IN (1, 2, 3).
+                // After https://github.com/aspnet/EntityFrameworkCore/issues/16375 is done we may not need the
+                // check any more.
+                case SqlConstantExpression _:
+                    return null;
+
+                // For ParameterExpression, and for all other cases - e.g. array returned from some function -
+                // translate to e.SomeText = ANY (@p). This is superior to the general solution which will expand
+                // parameters to constants, since non-PG SQL does not support arrays.
+                // Note that this will allow indexes on the item to be used.
+                default:
+                    return _sqlExpressionFactory.Any(item, array, PostgresAnyOperatorType.Equal);
+                }
             }
 
             // Note: we also translate .Where(e => new[] { "a", "b", "c" }.Any(p => EF.Functions.Like(e.SomeText, p)))
-            // to LIKE ANY (...). See NpgsqlSqlTranslatingExpressionVisitor.VisitMethodCall.
+            // to LIKE ANY (...). See NpgsqlSqlTranslatingExpressionVisitor.VisitArrayMethodCall.
 
             return null;
         }

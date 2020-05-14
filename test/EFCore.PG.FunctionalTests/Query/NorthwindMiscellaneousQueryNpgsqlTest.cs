@@ -219,6 +219,7 @@ WHERE c.""Address"" ILIKE ALL (@__collection_0)");
         }
 
         #endregion Any/All Like
+
         protected override void ClearLog()
             => Fixture.TestSqlLoggerFactory.Clear();
 

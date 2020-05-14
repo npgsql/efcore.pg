@@ -195,10 +195,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                         wherePredicateMethodCall.Method == ILike2MethodInfo))
                 {
                     var array = (SqlExpression)Visit(arguments[0]);
-                    var match = (SqlExpression)Visit(wherePredicateMethodCall.Arguments[1]);
+                    var item = (SqlExpression)Visit(wherePredicateMethodCall.Arguments[1]);
 
-                    return _sqlExpressionFactory.ArrayAnyAll(match, array, ArrayComparisonType.Any,
-                        wherePredicateMethodCall.Method == Like2MethodInfo ? "LIKE" : "ILIKE");
+                    return _sqlExpressionFactory.Any(item, array,
+                        wherePredicateMethodCall.Method == Like2MethodInfo
+                            ? PostgresAnyOperatorType.Like : PostgresAnyOperatorType.ILike);
                 }
 
                 // Note: we also handle the above with equality instead of Like, see NpgsqlArrayMethodTranslator
@@ -215,8 +216,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                     var array = (SqlExpression)Visit(arguments[0]);
                     var match = (SqlExpression)Visit(wherePredicateMethodCall.Arguments[1]);
 
-                    return _sqlExpressionFactory.ArrayAnyAll(match, array, ArrayComparisonType.All,
-                        wherePredicateMethodCall.Method == Like2MethodInfo ? "LIKE" : "ILIKE");
+                    return _sqlExpressionFactory.All(match, array,
+                        wherePredicateMethodCall.Method == Like2MethodInfo
+                            ? PostgresAllOperatorType.Like : PostgresAllOperatorType.ILike);
                 }
             }
 
@@ -231,16 +233,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                     wherePredicateMethodCall.Arguments[1] is ParameterExpression parameterExpression &&
                     parameterExpression == wherePredicate.Parameters[0])
                 {
-                    var array1 = (SqlExpression)Visit(arguments[0]);
-                    var array2 = (SqlExpression)Visit(wherePredicateMethodCall.Arguments[0]);
-                    var inferredMapping = ExpressionExtensions.InferTypeMapping(array1, array2);
-
-                    return new SqlCustomBinaryExpression(
-                        _sqlExpressionFactory.ApplyTypeMapping(array1, inferredMapping),
-                        _sqlExpressionFactory.ApplyTypeMapping(array2, inferredMapping),
-                        "&&",
-                        typeof(bool),
-                        _boolMapping);
+                    return _sqlExpressionFactory.Overlaps(
+                        (SqlExpression)Visit(arguments[0]),
+                        (SqlExpression)Visit(wherePredicateMethodCall.Arguments[0]));
                 }
             }
 
@@ -255,16 +250,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                     wherePredicateMethodCall.Arguments[1] is ParameterExpression parameterExpression &&
                     parameterExpression == wherePredicate.Parameters[0])
                 {
-                    var array1 = (SqlExpression)Visit(arguments[0]);
-                    var array2 = (SqlExpression)Visit(wherePredicateMethodCall.Arguments[0]);
-                    var inferredMapping = ExpressionExtensions.InferTypeMapping(array1, array2);
-
-                    return new SqlCustomBinaryExpression(
-                        _sqlExpressionFactory.ApplyTypeMapping(array1, inferredMapping),
-                        _sqlExpressionFactory.ApplyTypeMapping(array2, inferredMapping),
-                        "<@",
-                        typeof(bool),
-                        _boolMapping);
+                    return _sqlExpressionFactory.ContainedBy(
+                        (SqlExpression)Visit(arguments[0]),
+                        (SqlExpression)Visit(wherePredicateMethodCall.Arguments[0]));
                 }
             }
 

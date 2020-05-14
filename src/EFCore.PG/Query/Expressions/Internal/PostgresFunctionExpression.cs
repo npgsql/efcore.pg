@@ -18,7 +18,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
     /// (e.g. make_interval(weeks => 2) and non-comma parameter separators (e.g. position(substring in string)).
     /// </summary>
     [DebuggerDisplay("{" + nameof(ToString) + "()}")]
-    public class PgFunctionExpression : SqlFunctionExpression, IEquatable<PgFunctionExpression>
+    public class PostgresFunctionExpression : SqlFunctionExpression, IEquatable<PostgresFunctionExpression>
     {
         /// <summary>
         /// List of argument names, corresponding position-wise to arguments in <see cref="SqlFunctionExpression.Arguments"/>.
@@ -33,7 +33,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         /// </summary>
         public virtual IReadOnlyList<string?> ArgumentSeparators { get; }
 
-        public static PgFunctionExpression CreateWithNamedArguments(
+        public static PostgresFunctionExpression CreateWithNamedArguments(
             [NotNull] string name,
             [NotNull] IEnumerable<SqlExpression> arguments,
             [NotNull] IEnumerable<string?> argumentNames,
@@ -46,12 +46,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
             Check.NotNull(arguments, nameof(arguments));
             Check.NotNull(argumentNames, nameof(argumentNames));
 
-            return new PgFunctionExpression(
+            return new PostgresFunctionExpression(
                 name, arguments, argumentNames, argumentSeparators: null,
                 nullable, argumentsPropagateNullability, type, typeMapping);
         }
 
-        public static PgFunctionExpression CreateWithArgumentSeparators(
+        public static PostgresFunctionExpression CreateWithArgumentSeparators(
             [NotNull] string name,
             [NotNull] IEnumerable<SqlExpression> arguments,
             [NotNull] IEnumerable<string?> argumentSeparators,
@@ -64,12 +64,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
             Check.NotNull(arguments, nameof(arguments));
             Check.NotNull(argumentSeparators, nameof(argumentSeparators));
 
-            return new PgFunctionExpression(
+            return new PostgresFunctionExpression(
                 name, arguments, argumentNames: null, argumentSeparators,
                 nullable, argumentsPropagateNullability, type, typeMapping);
         }
 
-        PgFunctionExpression(
+        PostgresFunctionExpression(
             [NotNull] string name,
             [NotNull] IEnumerable<SqlExpression> arguments,
             [CanBeNull] IEnumerable<string?>? argumentNames,
@@ -90,25 +90,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
                 throw new ArgumentException($"{nameof(argumentNames)} must contain nulls followed by non-nulls", nameof(argumentNames));
         }
 
-        protected override Expression Accept(ExpressionVisitor visitor)
-            => visitor is NpgsqlQuerySqlGenerator npgsqlGenerator
-                ? npgsqlGenerator.VisitPgFunction(this)
-                : base.Accept(visitor);
-
         protected override Expression VisitChildren(ExpressionVisitor visitor)
         {
             Check.NotNull(visitor, nameof(visitor));
 
             var visited = base.VisitChildren(visitor);
             return visited != this && visited is SqlFunctionExpression e
-                ? new PgFunctionExpression(
+                ? new PostgresFunctionExpression(
                     e.Name, e.Arguments, ArgumentNames, ArgumentSeparators,
                     IsNullable, ArgumentsPropagateNullability, Type, TypeMapping)
                 : visited;
         }
 
         public override SqlFunctionExpression ApplyTypeMapping(RelationalTypeMapping typeMapping)
-            => new PgFunctionExpression(
+            => new PostgresFunctionExpression(
                 Name,
                 Arguments,
                 ArgumentNames,
@@ -125,15 +120,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
                 throw new ArgumentException($"Must be null", nameof(instance));
 
             return !arguments.SequenceEqual(Arguments)
-                ? new PgFunctionExpression(
+                ? new PostgresFunctionExpression(
                     Name, arguments, ArgumentNames, ArgumentSeparators,
                     IsNullable, ArgumentsPropagateNullability, Type, TypeMapping)
                 : this;
         }
 
-        public override bool Equals(object obj) => obj is PgFunctionExpression pgFunction && Equals(pgFunction);
+        public override bool Equals(object obj) => obj is PostgresFunctionExpression pgFunction && Equals(pgFunction);
 
-        public virtual bool Equals(PgFunctionExpression other)
+        public virtual bool Equals(PostgresFunctionExpression other)
             => ReferenceEquals(this, other) ||
                other is object &&
                base.Equals(other) &&

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 #nullable enable
 
@@ -14,7 +15,7 @@ namespace System.Reflection
         internal static bool IsArrayOrGenericList(this Type type)
             => type.IsArray || type.IsGenericList();
 
-        internal static bool TryGetElementType(this Type type, out Type? elementType)
+        internal static bool TryGetElementType(this Type type, [NotNullWhen(true)] out Type? elementType)
         {
             elementType = type.IsArray
                 ? type.GetElementType()

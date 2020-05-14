@@ -82,6 +82,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     .TryAdd<IEvaluatableExpressionFilter, NpgsqlEvaluatableExpressionFilter>()
                     .TryAdd<IQuerySqlGeneratorFactory, NpgsqlQuerySqlGeneratorFactory>()
                     .TryAdd<IRelationalSqlTranslatingExpressionVisitorFactory, NpgsqlSqlTranslatingExpressionVisitorFactory>()
+                    .TryAdd<IRelationalParameterBasedSqlProcessorFactory, NpgsqlParameterBasedSqlProcessorFactory>()
                     .TryAdd<ISqlExpressionFactory, NpgsqlSqlExpressionFactory>()
                     .TryAdd<ISingletonOptions, INpgsqlOptions>(p => p.GetService<INpgsqlOptions>())
                     .TryAdd<IValueConverterSelector, NpgsqlValueConverterSelector>()

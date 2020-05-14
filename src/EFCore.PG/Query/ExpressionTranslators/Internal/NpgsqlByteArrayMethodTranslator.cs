@@ -54,7 +54,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                         typeMapping);
 
                 return _sqlExpressionFactory.GreaterThan(
-                    PgFunctionExpression.CreateWithArgumentSeparators(
+                    PostgresFunctionExpression.CreateWithArgumentSeparators(
                         "POSITION",
                         new[] { value, source },
                         new[] { "IN" },   // POSITION(x IN y)

@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Linq;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Utilities
 {

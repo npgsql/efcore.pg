@@ -32,7 +32,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 .Where(x => x.Range.Contains(range))
                 .ToArray();
 
-            AssertContainsSql(@"r.""Range"" @> @__range_0)");
+            AssertContainsSql(@"r.""Range"" @> @__range_0");
         }
 
         [Theory]
@@ -44,7 +44,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 .Where(x => !x.Range.Contains(range))
                 .ToArray();
 
-            AssertContainsSql(@"WHERE NOT ((r.""Range"" @> @__range_0))");
+            AssertContainsSql(@"WHERE NOT (r.""Range"" @> @__range_0)");
         }
 
         [Theory]
@@ -56,7 +56,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 .Where(x => x.Range.Contains(value))
                 .ToArray();
 
-            AssertContainsSql(@"r.""Range"" @> @__value_0)");
+            AssertContainsSql(@"r.""Range"" @> @__value_0");
         }
 
         [Theory]
@@ -68,7 +68,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 .Where(x => !x.Range.Contains(value))
                 .ToArray();
 
-            AssertContainsSql(@"WHERE NOT ((r.""Range"" @> @__value_0))");
+            AssertContainsSql(@"WHERE NOT (r.""Range"" @> @__value_0)");
         }
 
         [Theory]
@@ -92,7 +92,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 .Where(x => !range.ContainedBy(x.Range))
                 .ToArray();
 
-            AssertContainsSql(@"WHERE NOT ((@__range_0 <@ r.""Range""))");
+            AssertContainsSql(@"WHERE NOT (@__range_0 <@ r.""Range"")");
         }
 
         [Theory]
@@ -164,7 +164,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 .Where(x => !x.Range.Overlaps(range))
                 .ToArray();
 
-            AssertContainsSql(@"WHERE NOT ((r.""Range"" && @__range_0))");
+            AssertContainsSql(@"WHERE NOT (r.""Range"" && @__range_0)");
         }
 
         [Theory]
@@ -188,7 +188,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 .Where(x => !x.Range.IsStrictlyLeftOf(range))
                 .ToArray();
 
-            AssertContainsSql(@"WHERE NOT ((r.""Range"" << @__range_0))");
+            AssertContainsSql(@"WHERE NOT (r.""Range"" << @__range_0)");
         }
 
         [Theory]
@@ -212,7 +212,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 .Where(x => !x.Range.IsStrictlyRightOf(range))
                 .ToArray();
 
-            AssertContainsSql(@"WHERE NOT ((r.""Range"" >> @__range_0))");
+            AssertContainsSql(@"WHERE NOT (r.""Range"" >> @__range_0)");
         }
 
         [Theory]
@@ -236,7 +236,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 .Where(x => !x.Range.DoesNotExtendLeftOf(range))
                 .ToArray();
 
-            AssertContainsSql(@"WHERE NOT ((r.""Range"" &> @__range_0))");
+            AssertContainsSql(@"WHERE NOT (r.""Range"" &> @__range_0)");
         }
 
         [Theory]
@@ -260,7 +260,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 .Where(x => !x.Range.DoesNotExtendRightOf(range))
                 .ToArray();
 
-            AssertContainsSql(@"WHERE NOT ((r.""Range"" &< @__range_0))");
+            AssertContainsSql(@"WHERE NOT (r.""Range"" &< @__range_0)");
         }
 
         [Theory]
@@ -284,7 +284,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 .Where(x => !x.Range.IsAdjacentTo(range))
                 .ToArray();
 
-            AssertContainsSql(@"WHERE NOT ((r.""Range"" -|- @__range_0))");
+            AssertContainsSql(@"WHERE NOT (r.""Range"" -|- @__range_0)");
         }
 
         [Theory]

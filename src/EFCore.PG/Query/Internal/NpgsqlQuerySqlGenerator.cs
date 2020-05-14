@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 using NpgsqlTypes;
 
@@ -44,7 +45,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             _postgresVersion = postgresVersion;
         }
 
-        #region Generators
+        protected override Expression VisitExtension(Expression extensionExpression)
+            => extensionExpression switch
+            {
+                PostgresAllExpression allExpression                     => VisitArrayAll(allExpression),
+                PostgresAnyExpression anyExpression                     => VisitArrayAny(anyExpression),
+                PostgresArrayIndexExpression arrayIndexExpression       => VisitArrayIndex(arrayIndexExpression),
+                PostgresBinaryExpression binaryExpression               => VisitPostgresBinary(binaryExpression),
+                PostgresFunctionExpression functionExpression           => VisitPgFunction(functionExpression),
+                PostgresILikeExpression iLikeExpression                 => VisitILike(iLikeExpression),
+                PostgresJsonTraversalExpression jsonTraversalExpression => VisitJsonPathTraversal(jsonTraversalExpression),
+                PostgresNewArrayExpression newArrayExpression           => VisitPostgresNewArray(newArrayExpression),
+                PostgresRegexMatchExpression regexMatchExpression       => VisitRegexMatch(regexMatchExpression),
+                PostgresUnknownBinaryExpression unknownBinaryExpression => VisitUnknownBinary(unknownBinaryExpression),
+                _                                                       => base.VisitExtension(extensionExpression)
+            };
 
         /// <inheritdoc />
         protected override void GenerateLimitOffset(SelectExpression selectExpression)
@@ -102,10 +117,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             // No TOP() in PostgreSQL, see GenerateLimitOffset
         }
 
-        #endregion
-
-        #region Visitors
-
         protected override Expression VisitCrossApply(CrossApplyExpression crossApplyExpression)
         {
             Sql.Append("JOIN LATERAL ");
@@ -155,7 +166,102 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             }
         }
 
-        [NotNull]
+        protected virtual Expression VisitPostgresNewArray([NotNull] PostgresNewArrayExpression postgresNewArrayExpression)
+        {
+            Sql.Append("ARRAY[");
+            var first = true;
+            foreach (var initializer in postgresNewArrayExpression.Initializers)
+            {
+                if (!first)
+                {
+                    Sql.Append(",");
+                }
+
+                first = false;
+                Visit(initializer);
+            }
+
+            // Not sure if the explicit store type is necessary, but just to be sure.
+            Sql
+                .Append("]::")
+                .Append(postgresNewArrayExpression.TypeMapping.StoreType);
+
+            return postgresNewArrayExpression;
+        }
+
+        protected virtual Expression VisitPostgresBinary([NotNull] PostgresBinaryExpression binaryExpression)
+        {
+            Check.NotNull(binaryExpression, nameof(binaryExpression));
+
+            var requiresBrackets = RequiresBrackets(binaryExpression.Left);
+
+            if (requiresBrackets)
+                Sql.Append("(");
+
+            Visit(binaryExpression.Left);
+
+            if (requiresBrackets)
+                Sql.Append(")");
+
+            Sql
+                .Append(" ")
+                .Append(binaryExpression.OperatorType switch
+                {
+                    PostgresExpressionType.Contains
+                    when binaryExpression.Left.TypeMapping is NpgsqlInetTypeMapping ||
+                         binaryExpression.Left.TypeMapping is NpgsqlCidrTypeMapping
+                    => ">>",
+
+                    PostgresExpressionType.ContainedBy
+                    when binaryExpression.Left.TypeMapping is NpgsqlInetTypeMapping ||
+                         binaryExpression.Left.TypeMapping is NpgsqlCidrTypeMapping
+                    => "<<",
+
+                    PostgresExpressionType.Contains    => "@>",
+                    PostgresExpressionType.ContainedBy => "<@",
+                    PostgresExpressionType.Overlaps    => "&&",
+
+                    PostgresExpressionType.AtTimeZone => "AT TIME ZONE",
+
+                    PostgresExpressionType.NetworkContainedByOrEqual    => "<<=",
+                    PostgresExpressionType.NetworkContainsOrEqual       => ">>=",
+                    PostgresExpressionType.NetworkContainsOrContainedBy => "&&",
+
+                    PostgresExpressionType.RangeIsStrictlyLeftOf     => "<<",
+                    PostgresExpressionType.RangeIsStrictlyRightOf    => ">>",
+                    PostgresExpressionType.RangeDoesNotExtendRightOf => "&<",
+                    PostgresExpressionType.RangeDoesNotExtendLeftOf  => "&>",
+                    PostgresExpressionType.RangeIsAdjacentTo         => "-|-",
+                    PostgresExpressionType.RangeUnion                => "+",
+                    PostgresExpressionType.RangeIntersect            => "*",
+                    PostgresExpressionType.RangeExcept               => "-",
+
+                    PostgresExpressionType.TextSearchMatch => "@@",
+                    PostgresExpressionType.TextSearchAnd   => "&&",
+                    PostgresExpressionType.TextSearchOr    => "||",
+
+                    PostgresExpressionType.JsonExists    => "?",
+                    PostgresExpressionType.JsonExistsAny => "?|",
+                    PostgresExpressionType.JsonExistsAll => "?&",
+
+                    _ => throw new ArgumentOutOfRangeException(
+                        $"Unhandled operator type: {binaryExpression.OperatorType}")
+                })
+                .Append(" ");
+
+            requiresBrackets = RequiresBrackets(binaryExpression.Right);
+
+            if (requiresBrackets)
+                Sql.Append("(");
+
+            Visit(binaryExpression.Right);
+
+            if (requiresBrackets)
+                Sql.Append(")");
+
+            return binaryExpression;
+        }
+
         protected virtual Expression VisitArrayIndex([NotNull] SqlBinaryExpression expression)
         {
             Visit(expression.Left);
@@ -254,20 +360,48 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             return collateExpresion;
         }
 
-        /// <summary>
-        /// Produces expressions like: 1 = ANY ('{0,1,2}') or 'cat' LIKE ANY ('{a%,b%,c%}').
-        /// </summary>
         [NotNull]
-        public virtual Expression VisitArrayAnyAll([NotNull] ArrayAnyAllExpression expression)
+        public virtual Expression VisitArrayAll([NotNull] PostgresAllExpression expression)
         {
-            Visit(expression.Operand);
-            Sql.Append(" ");
-            Sql.Append(expression.Operator);
-            Sql.Append(" ");
-            Sql.Append(expression.ArrayComparisonType == ArrayComparisonType.All ? "ALL" : "ANY");
-            Sql.Append(" (");
+            Visit(expression.Item);
+
+            Sql
+                .Append(" ")
+                .Append(expression.OperatorType switch
+                {
+                    PostgresAllOperatorType.Like => "LIKE",
+                    PostgresAllOperatorType.ILike => "ILIKE",
+                    _ => throw new ArgumentOutOfRangeException($"Unhandled operator type: {expression.OperatorType}")
+                })
+                .Append(" ALL (");
+
             Visit(expression.Array);
+
             Sql.Append(")");
+
+            return expression;
+        }
+
+        [NotNull]
+        public virtual Expression VisitArrayAny([NotNull] PostgresAnyExpression expression)
+        {
+            Visit(expression.Item);
+
+            Sql
+                .Append(" ")
+                .Append(expression.OperatorType switch
+                {
+                    PostgresAnyOperatorType.Equal => "=",
+                    PostgresAnyOperatorType.Like => "LIKE",
+                    PostgresAnyOperatorType.ILike => "ILIKE",
+                    _ => throw new ArgumentOutOfRangeException($"Unhandled operator type: {expression.OperatorType}")
+                })
+                .Append(" ANY (");
+
+            Visit(expression.Array);
+
+            Sql.Append(")");
+
             return expression;
         }
 
@@ -275,7 +409,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         /// Produces SQL array index expression (e.g. arr[1]).
         /// </summary>
         [NotNull]
-        public virtual Expression VisitArrayIndex([NotNull] ArrayIndexExpression expression)
+        public virtual Expression VisitArrayIndex([NotNull] PostgresArrayIndexExpression expression)
         {
             Visit(expression.Array);
             Sql.Append("[");
@@ -285,7 +419,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         }
 
         /// <summary>
-        /// Visits the children of a <see cref="RegexMatchExpression"/>.
+        /// Visits the children of a <see cref="PostgresRegexMatchExpression"/>.
         /// </summary>
         /// <param name="expression">The expression.</param>
         /// <returns>
@@ -295,7 +429,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         /// See: http://www.postgresql.org/docs/current/static/functions-matching.html
         /// </remarks>
         [NotNull]
-        public virtual Expression VisitRegexMatch([NotNull] RegexMatchExpression expression)
+        public virtual Expression VisitRegexMatch([NotNull] PostgresRegexMatchExpression expression)
         {
             var options = expression.Options;
 
@@ -330,14 +464,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         }
 
         /// <summary>
-        /// Visits the children of an <see cref="ILikeExpression"/>.
+        /// Visits the children of an <see cref="PostgresILikeExpression"/>.
         /// </summary>
         /// <param name="likeExpression">The expression.</param>
         /// <returns>
         /// An <see cref="Expression"/>.
         /// </returns>
         [NotNull]
-        public virtual Expression VisitILike([NotNull] ILikeExpression likeExpression)
+        public virtual Expression VisitILike([NotNull] PostgresILikeExpression likeExpression)
         {
             Visit(likeExpression.Match);
             Sql.Append(" ILIKE ");
@@ -353,34 +487,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         }
 
         /// <summary>
-        /// Visits the children of an <see cref="AtTimeZoneExpression"/>.
+        /// Visits the children of an <see cref="PostgresJsonTraversalExpression"/>.
         /// </summary>
         /// <param name="expression">The expression.</param>
         /// <returns>
         /// An <see cref="Expression"/>.
         /// </returns>
         [NotNull]
-        public virtual Expression VisitAtTimeZone([NotNull] AtTimeZoneExpression expression)
-        {
-            Visit(expression.Timestamp);
-            Sql.Append(" AT TIME ZONE ");
-            Visit(expression.TimeZone);
-            return expression;
-        }
-
-        /// <summary>
-        /// Visits the children of an <see cref="JsonTraversalExpression"/>.
-        /// </summary>
-        /// <param name="expression">The expression.</param>
-        /// <returns>
-        /// An <see cref="Expression"/>.
-        /// </returns>
-        [NotNull]
-        public virtual Expression VisitJsonPathTraversal([NotNull] JsonTraversalExpression expression)
+        public virtual Expression VisitJsonPathTraversal([NotNull] PostgresJsonTraversalExpression expression)
         {
             Visit(expression.Expression);
 
-            if (expression.Path.Length == 1)
+            if (expression.Path.Count == 1)
             {
                 Sql.Append(expression.ReturnsText ? "->>" : "->");
                 Visit(expression.Path[0]);
@@ -401,10 +519,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             else
             {
                 Sql.Append("ARRAY[");
-                for (var i = 0; i < expression.Path.Length; i++)
+                for (var i = 0; i < expression.Path.Count; i++)
                 {
                     Visit(expression.Path[i]);
-                    if (i < expression.Path.Length - 1)
+                    if (i < expression.Path.Count - 1)
                         Sql.Append(",");
                 }
                 Sql.Append("]::TEXT[]");
@@ -414,49 +532,44 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         }
 
         /// <summary>
-        /// Visits the children of a <see cref="SqlCustomBinaryExpression"/>.
+        /// Visits the children of a <see cref="PostgresUnknownBinaryExpression"/>.
         /// </summary>
-        /// <param name="expression">The expression.</param>
+        /// <param name="unknownBinaryExpression">The expression.</param>
         /// <returns>
         /// An <see cref="Expression"/>.
         /// </returns>
-        [NotNull]
-        public virtual Expression VisitCustomBinary([NotNull] SqlCustomBinaryExpression expression)
+        public virtual Expression VisitUnknownBinary([NotNull] PostgresUnknownBinaryExpression unknownBinaryExpression)
         {
-            Sql.Append("(");
-            Visit(expression.Left);
-            Sql.Append(" ");
-            Sql.Append(expression.Operator);
-            Sql.Append(" ");
-            Visit(expression.Right);
-            Sql.Append(")");
+            Check.NotNull(unknownBinaryExpression, nameof(unknownBinaryExpression));
 
-            return expression;
+            var requiresBrackets = RequiresBrackets(unknownBinaryExpression.Left);
+
+            if (requiresBrackets)
+                Sql.Append("(");
+
+            Visit(unknownBinaryExpression.Left);
+
+            if (requiresBrackets)
+                Sql.Append(")");
+
+            Sql
+                .Append(" ")
+                .Append(unknownBinaryExpression.Operator)
+                .Append(" ");
+
+            requiresBrackets = RequiresBrackets(unknownBinaryExpression.Right);
+
+            if (requiresBrackets)
+                Sql.Append("(");
+
+            Visit(unknownBinaryExpression.Right);
+
+            if (requiresBrackets)
+                Sql.Append(")");
+
+            return unknownBinaryExpression;
         }
 
-        /// <summary>
-        /// Visits the children of a <see cref="SqlCustomUnaryExpression"/>.
-        /// </summary>
-        /// <param name="expression">The expression.</param>
-        /// <returns>
-        /// An <see cref="Expression"/>.
-        /// </returns>
-        [NotNull]
-        public virtual Expression VisitCustomUnary([NotNull] SqlCustomUnaryExpression expression)
-        {
-            if (expression.Postfix)
-            {
-                Visit(expression.Operand);
-                Sql.Append(expression.Operator);
-            }
-            else
-            {
-                Sql.Append(expression.Operator);
-                Visit(expression.Operand);
-            }
-
-            return expression;
-        }
 
         /// <inheritdoc />
 //        protected override Expression VisitDefault(DefaultExpression e)
@@ -472,14 +585,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 //        }
 
         /// <summary>
-        /// Visits the children of a <see cref="PgFunctionExpression"/>.
+        /// Visits the children of a <see cref="PostgresFunctionExpression"/>.
         /// </summary>
         /// <param name="e">The expression.</param>
         /// <returns>
         /// An <see cref="Expression"/>.
         /// </returns>
         [NotNull]
-        public virtual Expression VisitPgFunction([NotNull] PgFunctionExpression e)
+        public virtual Expression VisitPgFunction([NotNull] PostgresFunctionExpression e)
         {
             Check.NotNull(e, nameof(e));
 
@@ -525,6 +638,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             return e;
         }
 
-        #endregion
+        static bool RequiresBrackets(SqlExpression expression)
+            => expression is SqlBinaryExpression || expression is LikeExpression;
     }
 }

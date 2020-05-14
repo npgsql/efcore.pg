@@ -91,7 +91,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
             if (declaringType == typeof(Period))
             {
                 return PeriodMethodMap.TryGetValue(method, out var datePart)
-                    ? PgFunctionExpression.CreateWithNamedArguments(
+                    ? PostgresFunctionExpression.CreateWithNamedArguments(
                         "MAKE_INTERVAL",
                         new[] { _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[0]) },
                         new[] { datePart },

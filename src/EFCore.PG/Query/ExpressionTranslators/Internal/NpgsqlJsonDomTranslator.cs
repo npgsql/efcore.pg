@@ -82,16 +82,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 // Traversals on top of that get appended into the same expression.
                 return instance is ColumnExpression columnExpression
                     ? _sqlExpressionFactory.JsonTraversal(columnExpression, arguments, false, typeof(string), mapping)
-                    : instance is JsonTraversalExpression prevPathTraversal
+                    : instance is PostgresJsonTraversalExpression prevPathTraversal
                         ? prevPathTraversal.Append(_sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[0]))
                         : null;
             }
 
             if (GetMethods.Contains(method.Name) &&
                 arguments.Count == 0 &&
-                instance is JsonTraversalExpression traversal)
+                instance is PostgresJsonTraversalExpression traversal)
             {
-                var traversalToText = new JsonTraversalExpression(
+                var traversalToText = new PostgresJsonTraversalExpression(
                     traversal.Expression,
                     traversal.Path,
                     returnsText: true,
