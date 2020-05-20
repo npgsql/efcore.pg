@@ -105,6 +105,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
 
             try
             {
+                var internalSchemas = "'pg_catalog', 'information_schema'";
+                using (var command = new NpgsqlCommand("SELECT version()", connection))
+                {
+                    var longVersion = (string)command.ExecuteScalar();
+                    if (longVersion.Contains("CockroachDB"))
+                        internalSchemas += ", 'crdb_internal'";
+                }
+
                 databaseModel.DatabaseName = connection.Database;
                 databaseModel.DefaultSchema = "public";
 
@@ -117,7 +125,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
 
                 var enums = GetEnums(connection, databaseModel);
 
-                foreach (var table in GetTables(connection, databaseModel, tableFilter, enums, _logger))
+                foreach (var table in GetTables(connection, databaseModel, tableFilter, internalSchemas, enums, _logger))
                 {
                     table.Database = databaseModel;
                     databaseModel.Tables.Add(table);
@@ -197,6 +205,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
             NpgsqlConnection connection,
             DatabaseModel databaseModel,
             Func<string, string, string>? tableFilter,
+            string internalSchemas,
             HashSet<string> enums,
             IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
         {
@@ -208,7 +217,7 @@ JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
 LEFT OUTER JOIN pg_description AS des ON des.objoid = cls.oid AND des.objsubid=0
 WHERE
   cls.relkind IN ('r', 'v', 'm') AND
-  ns.nspname NOT IN ('pg_catalog', 'information_schema') AND
+  ns.nspname NOT IN ({internalSchemas}) AND
   cls.relname <> '{HistoryRepository.DefaultTableName}'
   {filter}";
 
@@ -233,9 +242,9 @@ WHERE
                 }
             }
 
-            GetColumns(connection, tables, filter, enums, logger);
-            GetConstraints(connection, tables, filter, out var constraintIndexes, logger);
-            GetIndexes(connection, tables, filter, constraintIndexes, logger);
+            GetColumns(connection, tables, filter, internalSchemas, enums, logger);
+            GetConstraints(connection, tables, filter, internalSchemas, out var constraintIndexes, logger);
+            GetIndexes(connection, tables, filter, internalSchemas, constraintIndexes, logger);
             return tables;
         }
 
@@ -246,6 +255,7 @@ WHERE
             NpgsqlConnection connection,
             IReadOnlyList<DatabaseTable> tables,
             string? tableFilter,
+            string internalSchemas,
             HashSet<string> enums,
             IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
         {
@@ -296,7 +306,7 @@ LEFT JOIN pg_depend AS dep ON dep.refobjid = cls.oid AND dep.refobjsubid = attr.
 {(connection.PostgreSqlVersion >= new Version(10, 0) ? "LEFT JOIN pg_sequence AS seq ON seq.seqrelid = dep.objid" : "")}
 WHERE
   cls.relkind IN ('r', 'v', 'm') AND
-  nspname NOT IN ('pg_catalog', 'information_schema') AND
+  nspname NOT IN ({internalSchemas}) AND
   attnum > 0 AND
   cls.relname <> '{HistoryRepository.DefaultTableName}'
   {tableFilter}
@@ -452,6 +462,7 @@ ORDER BY attnum";
             NpgsqlConnection connection,
             IReadOnlyList<DatabaseTable> tables,
             string? tableFilter,
+            string internalSchemas,
             List<uint> constraintIndexes,
             IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
         {
@@ -508,7 +519,7 @@ JOIN pg_class AS idxcls ON idxcls.oid = indexrelid
 JOIN pg_am AS am ON am.oid = idxcls.relam
 WHERE
   cls.relkind = 'r' AND
-  nspname NOT IN ('pg_catalog', 'information_schema') AND
+  nspname NOT IN ({internalSchemas}) AND
   NOT indisprimary AND
   cls.relname <> '{HistoryRepository.DefaultTableName}'
   {tableFilter}";
@@ -656,6 +667,7 @@ WHERE
             NpgsqlConnection connection,
             IReadOnlyList<DatabaseTable> tables,
             string? tableFilter,
+            string internalSchemas,
             out List<uint> constraintIndexes,
             IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
         {
@@ -678,7 +690,7 @@ LEFT OUTER JOIN pg_class AS frncls ON frncls.oid = con.confrelid
 LEFT OUTER JOIN pg_namespace as frnns ON frnns.oid = frncls.relnamespace
 WHERE
   cls.relkind = 'r' AND
-  ns.nspname NOT IN ('pg_catalog', 'information_schema') AND
+  ns.nspname NOT IN ({internalSchemas}) AND
   con.contype IN ('p', 'f', 'u') AND
   cls.relname <> '{HistoryRepository.DefaultTableName}'
   {tableFilter}";
