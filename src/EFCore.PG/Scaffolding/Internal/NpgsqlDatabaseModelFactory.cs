@@ -143,7 +143,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
                 }
 
                 GetExtensions(connection, databaseModel);
-                GetCollations(connection, databaseModel, _logger);
+                GetCollations(connection, databaseModel, internalSchemas, _logger);
 
                 for (var i = 0; i < databaseModel.Tables.Count; i++)
                 {
@@ -943,6 +943,7 @@ GROUP BY nspname, typname";
         static void GetCollations(
             NpgsqlConnection connection,
             DatabaseModel databaseModel,
+            string internalSchemas,
             IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
         {
             var commandText = @$"
@@ -951,8 +952,8 @@ SELECT
     {(connection.PostgreSqlVersion >= new Version(12, 0) ? "collisdeterministic" : "true AS collisdeterministic")}
 FROM pg_collation coll
     JOIN pg_namespace ns ON ns.oid=coll.collnamespace
-    JOIN pg_authid auth ON auth.oid = coll.collowner WHERE rolname <> 'postgres';
-";
+WHERE
+    nspname NOT IN ({internalSchemas})";
 
             try
             {
