@@ -48,6 +48,13 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Conventions
                 return;
             }
 
+            if (name == NpgsqlAnnotationNames.TsVectorConfig &&
+                propertyBuilder.Metadata.GetTsVectorConfig() != null)
+            {
+                propertyBuilder.ValueGenerated(ValueGenerated.OnAddOrUpdate);
+                return;
+            }
+
             base.ProcessPropertyAnnotationChanged(propertyBuilder, name, annotation, oldAnnotation, context);
         }
 
