@@ -54,6 +54,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         [NotNull] static readonly MethodInfo ToLower = typeof(string).GetRuntimeMethod(nameof(string.ToLower), Array.Empty<Type>());
         [NotNull] static readonly MethodInfo ToUpper = typeof(string).GetRuntimeMethod(nameof(string.ToUpper), Array.Empty<Type>());
 
+        static readonly MethodInfo FirstOrDefaultMethodInfoWithoutArgs
+            = typeof(Enumerable).GetRuntimeMethods().Single(
+                m => m.Name == nameof(Enumerable.FirstOrDefault)
+                     && m.GetParameters().Length == 1).MakeGenericMethod(typeof(char));
+
+        static readonly MethodInfo LastOrDefaultMethodInfoWithoutArgs
+            = typeof(Enumerable).GetRuntimeMethods().Single(
+                m => m.Name == nameof(Enumerable.LastOrDefault)
+                     && m.GetParameters().Length == 1).MakeGenericMethod(typeof(char));
+
         #endregion
 
         public NpgsqlStringMethodTranslator(
@@ -238,6 +248,39 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     argumentsPropagateNullability: TrueArrays[args.Length],
                     instance.Type,
                     instance.TypeMapping);
+            }
+
+            if (method == FirstOrDefaultMethodInfoWithoutArgs)
+            {
+                var argument = arguments[0];
+                return _sqlExpressionFactory.Function(
+                    "substr",
+                    new[] { argument, _sqlExpressionFactory.Constant(1), _sqlExpressionFactory.Constant(1) },
+                    nullable: true,
+                    argumentsPropagateNullability: TrueArrays[3],
+                    method.ReturnType);
+            }
+
+
+            if (method == LastOrDefaultMethodInfoWithoutArgs)
+            {
+                var argument = arguments[0];
+                return _sqlExpressionFactory.Function(
+                    "substr",
+                    new[]
+                    {
+                        argument,
+                        _sqlExpressionFactory.Function(
+                            "length",
+                            new[] { argument },
+                            nullable: true,
+                            argumentsPropagateNullability: new[] { true },
+                            typeof(int)),
+                        _sqlExpressionFactory.Constant(1)
+                    },
+                    nullable: true,
+                    argumentsPropagateNullability: TrueArrays[3],
+                    method.ReturnType);
             }
 
             if (method == StartsWith)
