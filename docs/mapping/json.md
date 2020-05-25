@@ -208,7 +208,7 @@ The following expression types and functions are translated:
 | `.Where(e => EF.Functions.JsonExists(e.Customer, "Age")`                                  | [`WHERE "Customer" ? 'Age'`](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSONB-OP-TABLE)
 | `.Where(e => EF.Functions.JsonExistsAny(e.Customer, "Age", "Address")`                    | [`WHERE "Customer" ?\| ARRAY['Age','Address']`](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSONB-OP-TABLE)
 | `.Where(e => EF.Functions.JsonExistsAll(e.Customer, "Age", "Address")`                    | [`WHERE "Customer" ?& ARRAY['Age','Address']`](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSONB-OP-TABLE)
-| `.Where(e => EF.Functions.JsonTypeof(e.Customer.Age)`                                     | [`WHERE jsonb_typeof("Customer"->'Age')`](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSON-PROCESSING-TABLE)
+| `.Where(e => EF.Functions.JsonTypeof(e.Customer.Age) == "number")`                        | [`WHERE jsonb_typeof("Customer"->'Age') = 'number'`](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSON-PROCESSING-TABLE)
 
 # [JsonDocument Mapping](#tab/jsondocument)
 
@@ -222,7 +222,7 @@ The following expression types and functions are translated:
 | `.Where(e => EF.Functions.JsonExists(e.Customer, "Age")`                                  | [`WHERE "Customer" ? 'Age'`](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSONB-OP-TABLE)
 | `.Where(e => EF.Functions.JsonExistsAny(e.Customer, "Age", "Address")`                    | [`WHERE "Customer" ?\| ARRAY['Age','Address']`](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSONB-OP-TABLE)
 | `.Where(e => EF.Functions.JsonExistsAll(e.Customer, "Age", "Address")`                    | [`WHERE "Customer" ?& ARRAY['Age','Address']`](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSONB-OP-TABLE)
-| `.Where(e => EF.Functions.JsonTypeof(e.Customer.GetProperty("Age"))`                      | [`WHERE jsonb_typeof("Customer"->'Age')`](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSON-PROCESSING-TABLE)
+| `.Where(e => EF.Functions.JsonTypeof(e.Customer.GetProperty("Age") == "number")`          | [`WHERE jsonb_typeof("Customer"->'Age') = 'number'`](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSON-PROCESSING-TABLE)
 
 ***
 
