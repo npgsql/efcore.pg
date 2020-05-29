@@ -147,10 +147,19 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns>The strategy, or <see cref="NpgsqlValueGenerationStrategy.None"/> if none was set.</returns>
         public static NpgsqlValueGenerationStrategy GetValueGenerationStrategy([NotNull] this IProperty property)
         {
-            var annotation = property[NpgsqlAnnotationNames.ValueGenerationStrategy];
-            if (annotation != null)
-            {
+            if (property[NpgsqlAnnotationNames.ValueGenerationStrategy] is object annotation)
                 return (NpgsqlValueGenerationStrategy)annotation;
+
+            if (property.FindSharedTableRootPrimaryKeyProperty() is IProperty sharedTablePrincipalPrimaryKeyProperty)
+            {
+                var principalStrategy = sharedTablePrincipalPrimaryKeyProperty.GetValueGenerationStrategy();
+                return principalStrategy switch
+                {
+                    NpgsqlValueGenerationStrategy.IdentityByDefaultColumn => principalStrategy,
+                    NpgsqlValueGenerationStrategy.IdentityAlwaysColumn    => principalStrategy,
+                    NpgsqlValueGenerationStrategy.SerialColumn            => principalStrategy,
+                    _                                                     => NpgsqlValueGenerationStrategy.None
+                };
             }
 
             if (property.ValueGenerated != ValueGenerated.OnAdd

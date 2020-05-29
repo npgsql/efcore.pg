@@ -35,12 +35,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 
             // NodaTime
             // TODO: This is a hack until https://github.com/aspnet/EntityFrameworkCore/issues/13454 is done
-            if (expression is MethodCallExpression methodExpr && (
-                    methodExpr.Method.DeclaringType?.FullName == "NodaTime.SystemClock" ||
-                    methodExpr.Method.Name == "GetCurrentInstant") ||
-                expression is MemberExpression memberExpr && (
-                    memberExpr.Member.DeclaringType?.FullName == "NodaTime.SystemClock" ||
-                    memberExpr.Member.Name == "Instance"))
+            if (expression is MethodCallExpression methodExpr &&
+                methodExpr.Method.DeclaringType?.FullName == "NodaTime.SystemClock" &&
+                methodExpr.Method.Name == "GetCurrentInstant"
+                ||
+                expression is MemberExpression memberExpr &&
+                memberExpr.Member.DeclaringType?.FullName == "NodaTime.SystemClock" &&
+                memberExpr.Member.Name == "Instance")
             {
                 return false;
             }
