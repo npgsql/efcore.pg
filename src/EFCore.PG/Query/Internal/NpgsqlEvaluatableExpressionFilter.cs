@@ -33,13 +33,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 return false;
             }
 
-            // PGroonga
-            if (expression is MethodCallExpression exp &&
-                    exp.Method.DeclaringType?.FullName == "Microsoft.EntityFrameworkCore.PGroongaDbFunctionsExtensions")
-            {
-                return false;
-            }
-
             return base.IsEvaluatableExpression(expression, model);
         }
     }
