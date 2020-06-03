@@ -207,7 +207,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 instance = _sqlExpressionFactory.ApplyTypeMapping(instance, stringTypeMapping);
                 pattern = _sqlExpressionFactory.ApplyTypeMapping(pattern, stringTypeMapping);
 
-                var strposCheck = _sqlExpressionFactory.GreaterThan(
+                if (pattern is SqlConstantExpression constantPattern && ((string)constantPattern.Value).Length == 0)
+                    return _sqlExpressionFactory.Constant(true);
+
+                return _sqlExpressionFactory.GreaterThan(
                     _sqlExpressionFactory.Function(
                         "STRPOS",
                         new[]
@@ -219,19 +222,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                         argumentsPropagateNullability: TrueArrays[2],
                         typeof(int)),
                     _sqlExpressionFactory.Constant(0));
-
-                if (pattern is SqlConstantExpression constantPattern)
-                {
-                    return (string)constantPattern.Value == string.Empty
-                        ? (SqlExpression)_sqlExpressionFactory.Constant(true)
-                        : strposCheck;
-                }
-
-                return _sqlExpressionFactory.OrElse(
-                    _sqlExpressionFactory.Equal(
-                        pattern,
-                        _sqlExpressionFactory.Constant(string.Empty, stringTypeMapping)),
-                    strposCheck);
             }
 
             if (method == PadLeft || method == PadLeftWithChar || method == PadRight || method == PadRightWithChar)
@@ -336,7 +326,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             if (instance.TypeMapping != _textTypeMapping)
                 leftRight = _sqlExpressionFactory.Convert(leftRight, typeof(string), instance.TypeMapping);
 
-            // Also add an explicit cast on the pattern; this is only required because of
             // The following is only needed because of https://github.com/aspnet/EntityFrameworkCore/issues/19120
             var castPattern = pattern.TypeMapping == _textTypeMapping
                 ? pattern
