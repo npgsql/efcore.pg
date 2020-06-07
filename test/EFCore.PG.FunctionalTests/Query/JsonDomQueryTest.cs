@@ -118,7 +118,9 @@ LIMIT 1",
 ""ShippingAddress"": ""Some address 2""}]
 ""Statistics"": {""Nested"": {""IntArray"": [3
 4]
-""SomeProperty"": 10}
+""SomeProperty"": 10
+""SomeNullableInt"": 20
+""SomeNullableGuid"": ""d5f2685d-e5c4-47e5-97aa-d0266154eb2d""}
 ""Visits"": 4
 ""Purchases"": 3}}' (DbType = Object)
 
@@ -329,6 +331,22 @@ WHERE j.""CustomerElement""->>'Name' LIKE 'J%'
 LIMIT 2");
         }
 
+        [Fact] // #1363
+        public void Where_nullable_guid()
+        {
+            using var ctx = CreateContext();
+            var x = ctx.JsonbEntities.Single(e =>
+                e.CustomerElement.GetProperty("Statistics").GetProperty("Nested").GetProperty("SomeNullableGuid").GetGuid()
+                == Guid.Parse("d5f2685d-e5c4-47e5-97aa-d0266154eb2d"));
+
+            Assert.Equal("Joe", x.CustomerElement.GetProperty("Name").GetString());
+            AssertSql(
+                @"SELECT j.""Id"", j.""CustomerDocument"", j.""CustomerElement""
+FROM ""JsonbEntities"" AS j
+WHERE CAST(j.""CustomerElement""#>>'{Statistics,Nested,SomeNullableGuid}' AS uuid) = 'd5f2685d-e5c4-47e5-97aa-d0266154eb2d'
+LIMIT 2");
+        }
+
         #region Functions
 
         [Fact]
@@ -507,6 +525,8 @@ WHERE json_typeof(j.""CustomerElement""#>'{Statistics,Visits}') = 'number'");
                         ""Nested"":
                         {
                             ""SomeProperty"": 10,
+                            ""SomeNullableInt"": 20,
+                            ""SomeNullableGuid"": ""d5f2685d-e5c4-47e5-97aa-d0266154eb2d"",
                             ""IntArray"": [3, 4]
                         }
                     },
@@ -538,6 +558,8 @@ WHERE json_typeof(j.""CustomerElement""#>'{Statistics,Visits}') = 'number'");
                         ""Nested"":
                         {
                             ""SomeProperty"": 20,
+                            ""SomeNullableInt"": null,
+                            ""SomeNullableGuid"": null,
                             ""IntArray"": [5, 6]
                         }
                     },
