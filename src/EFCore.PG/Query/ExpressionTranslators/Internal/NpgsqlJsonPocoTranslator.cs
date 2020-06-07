@@ -98,7 +98,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         // The PostgreSQL traversal operator always returns text, so we need to convert to int, bool, etc.
         SqlExpression ConvertFromText(SqlExpression expression, Type returnType)
         {
-            switch (Type.GetTypeCode(returnType.UnwrapNullableType()))
+            var unwrappedReturnType = returnType.UnwrapNullableType();
+
+            switch (Type.GetTypeCode(unwrappedReturnType))
             {
             case TypeCode.Boolean:
             case TypeCode.Byte:
@@ -115,7 +117,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             case TypeCode.UInt64:
                 return _sqlExpressionFactory.Convert(expression, returnType, _typeMappingSource.FindMapping(returnType));
             default:
-                return (returnType == typeof(Guid))
+                return unwrappedReturnType == typeof(Guid)
                     ? _sqlExpressionFactory.Convert(expression, returnType, _typeMappingSource.FindMapping(returnType))
                     : expression;
             }

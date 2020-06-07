@@ -171,14 +171,14 @@ LIMIT 2");
         public void Nullable()
         {
             using var ctx = CreateContext();
-            var x = ctx.JsonbEntities.Single(e => e.Customer.Statistics.Nested.SomeNullableProperty == 20);
+            var x = ctx.JsonbEntities.Single(e => e.Customer.Statistics.Nested.SomeNullableInt == 20);
 
             Assert.Equal("Joe", x.Customer.Name);
 
             AssertSql(
                 @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
-WHERE CAST(j.""Customer""#>>'{Statistics,Nested,SomeNullableProperty}' AS integer) = 20
+WHERE CAST(j.""Customer""#>>'{Statistics,Nested,SomeNullableInt}' AS integer) = 20
 LIMIT 2");
         }
 
@@ -322,6 +322,21 @@ LIMIT 2");
                 @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
 WHERE j.""Customer""->>'Name' LIKE 'J%'
+LIMIT 2");
+        }
+
+        [Fact] // #1363
+        public void Where_nullable_guid()
+        {
+            using var ctx = CreateContext();
+            var x = ctx.JsonbEntities.Single(e =>
+                e.Customer.Statistics.Nested.SomeNullableGuid == Guid.Parse("d5f2685d-e5c4-47e5-97aa-d0266154eb2d"));
+
+            Assert.Equal("Joe", x.Customer.Name);
+            AssertSql(
+                @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
+FROM ""JsonbEntities"" AS j
+WHERE CAST(j.""Customer""#>>'{Statistics,Nested,SomeNullableGuid}' AS uuid) = 'd5f2685d-e5c4-47e5-97aa-d0266154eb2d'
 LIMIT 2");
         }
 
@@ -536,7 +551,8 @@ WHERE json_typeof(j.""Customer""#>'{Statistics,Visits}') = 'number'");
                         Nested = new NestedStatistics
                         {
                             SomeProperty = 10,
-                            SomeNullableProperty = 20,
+                            SomeNullableInt = 20,
+                            SomeNullableGuid = Guid.Parse("d5f2685d-e5c4-47e5-97aa-d0266154eb2d"),
                             IntArray = new[] { 3, 4 }
                         }
                     },
@@ -570,7 +586,8 @@ WHERE json_typeof(j.""Customer""#>'{Statistics,Visits}') = 'number'");
                         Nested = new NestedStatistics
                         {
                             SomeProperty = 20,
-                            SomeNullableProperty = null,
+                            SomeNullableInt = null,
+                            SomeNullableGuid = null,
                             IntArray = new[] { 5, 6 }
                         }
                     },
@@ -637,8 +654,9 @@ WHERE json_typeof(j.""Customer""#>'{Statistics,Visits}') = 'number'");
         public class NestedStatistics
         {
             public int SomeProperty { get; set; }
-            public int? SomeNullableProperty { get; set; }
+            public int? SomeNullableInt { get; set; }
             public int[] IntArray { get; set; }
+            public Guid? SomeNullableGuid { get; set; }
         }
 
         public class Order
