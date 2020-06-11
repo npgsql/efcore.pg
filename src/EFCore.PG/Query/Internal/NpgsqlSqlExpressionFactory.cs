@@ -98,6 +98,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 
         public virtual PostgresJsonTraversalExpression JsonTraversal(
             [NotNull] SqlExpression expression,
+            bool returnsText,
+            [NotNull] Type type,
+            [CanBeNull] RelationalTypeMapping typeMapping = null)
+            => JsonTraversal(expression, Array.Empty<SqlExpression>(), returnsText, type, typeMapping);
+
+        public virtual PostgresJsonTraversalExpression JsonTraversal(
+            [NotNull] SqlExpression expression,
             [NotNull] IEnumerable<SqlExpression> path,
             bool returnsText,
             [NotNull] Type type,
