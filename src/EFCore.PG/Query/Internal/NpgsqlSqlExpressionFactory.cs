@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text.RegularExpressions;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -80,9 +81,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         public ILikeExpression ILike(SqlExpression match, SqlExpression pattern, SqlExpression escapeChar = null)
             => (ILikeExpression)ApplyDefaultTypeMapping(new ILikeExpression(match, pattern, escapeChar, null));
 
-        public JsonTraversalExpression JsonTraversal(
-            SqlExpression expression,
-            IEnumerable<SqlExpression> path,
+        public virtual JsonTraversalExpression JsonTraversal(
+            [NotNull] SqlExpression expression,
+            bool returnsText,
+            [NotNull] Type type,
+            [CanBeNull] RelationalTypeMapping typeMapping = null)
+            => JsonTraversal(expression, Array.Empty<SqlExpression>(), returnsText, type, typeMapping);
+
+        public virtual JsonTraversalExpression JsonTraversal(
+            [NotNull] SqlExpression expression,
+            [NotNull] IEnumerable<SqlExpression> path,
             bool returnsText,
             Type type,
             RelationalTypeMapping typeMapping = null)
