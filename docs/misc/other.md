@@ -1,4 +1,4 @@
-# Miscellaneous
+# Other
 
 ## PostgreSQL extensions
 
@@ -23,16 +23,6 @@ protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 
 This strategy relies on the `IsTransient` property of `NpgsqlException`. Both this property and the retrying strategy are new and should be considered somewhat experimental - please report any issues.
 
-## Comments
-
-PostgreSQL allows you to [attach comments](https://www.postgresql.org/docs/current/static/sql-syntax-lexical.html#SQL-SYNTAX-COMMENTS) to database objects, which can help explain their purpose for someone examining the schema. The Npgsql EF Core provider supports this for tables or columns, simply set the comment in your model's `OnModelCreating` as follows:
-
-```c#
-protected override void OnModelCreating(ModelBuilder modelBuilder)
-    => modelBuilder.Entity<MyEntity>()
-                   .HasComment("Some comment");
-```
-
 ## Certificate authentication
 
 The Npgsql allows you to provide a callback for verifying the server-provided certificates, and to provide a callback for providing certificates to the server. The latter, if properly set up on the PostgreSQL side, allows you to do client certificate authentication - see [the Npgsql docs](http://www.npgsql.org/doc/security.html#encryption-ssltls) and also [the PostgreSQL docs](https://www.postgresql.org/docs/current/static/ssl-tcp.html#SSL-CLIENT-CERTIFICATES) on setting this up.
@@ -52,42 +42,15 @@ protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 
 You may also consider passing `Trust Server Certificate=true` in your connection string to make Npgsql accept whatever certificate your PostgreSQL provides (useful for self-signed certificates).
 
-## Database Creation
+## Comments
 
-### Specifying the administrative db
-
-When the Npgsql EF Core provider creates or deletes a database (`EnsureCreated()`, `EnsureDeleted()`), it must connect to an administrative database which already exists (with PostgreSQL you always have to be connected to some database, even when creating/deleting another database). Up to now the `postgres` database was used, which is supposed to always be present.
-
-However, there are some PostgreSQL-like databases where the `postgres` database is not available. For these cases you can specify the administrative database as follows:
-
-```c#
-protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    => optionsBuilder.UseNpgsql(
-        "<connection_string>",
-        options => options.UseAdminDatabase("my_admin_db"));
-```
-
-### Using a database template
-
-When creating a new database,
-[PostgreSQL allows specifying another "template database"](http://www.postgresql.org/docs/current/static/manage-ag-templatedbs.html)
-which will be copied as the basis for the new one. This can be useful for including database entities which are not managed by Entity Framework Core. You can trigger this by using `HasDatabaseTemplate` in your context's `OnModelCreating`:
+PostgreSQL allows you to [attach comments](https://www.postgresql.org/docs/current/static/sql-syntax-lexical.html#SQL-SYNTAX-COMMENTS) to database objects, which can help explain their purpose for someone examining the schema. The Npgsql EF Core provider supports this for tables or columns, simply set the comment in your model's `OnModelCreating` as follows:
 
 ```c#
 protected override void OnModelCreating(ModelBuilder modelBuilder)
-    => modelBuilder.HasDatabaseTemplate("my_template_db");
+    => modelBuilder.Entity<MyEntity>()
+                   .HasComment("Some comment");
 ```
-
-### Setting a tablespace
-
-PostgreSQL allows you to locate your database in different parts of your filesystem, [via tablespaces](https://www.postgresql.org/docs/current/static/manage-ag-tablespaces.html). The Npgsql EF Core provider allows you to specify your database's namespace:
-
-```c#
-protected override void OnModelCreating(ModelBuilder modelBuilder)
-    => modelBuilder.UseTablespace("my_tablespace");
-```
-
-You must have created your tablespace prior to this via the `CREATE TABLESPACE` command - the Npgsql EF Core provider does not do this for you. Note also that specifying a tablespace on specific tables is not supported.
 
 ## CockroachDB Interleave In Parent
 

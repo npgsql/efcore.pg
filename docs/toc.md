@@ -19,5 +19,8 @@
 ## [Arrays](mapping/array.md)
 ## [Enums](mapping/enum.md)
 ## [Ranges](mapping/range.md)
-# [Miscellaneous](miscellaneous.md)
+# Miscellaneous
+## [Collations and Case Sensitivity](misc/collations-and-case-sensitivity.md)
+## [Database Creation](misc/database-creation.md)
+## [Other](misc/other.md)
 # [API Reference](../../obj/api/EFCore.PG/)
