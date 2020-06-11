@@ -347,6 +347,19 @@ WHERE CAST(j.""CustomerElement""#>>'{Statistics,Nested,SomeNullableGuid}' AS uui
 LIMIT 2");
         }
 
+        [Fact] // #1415
+        public void Where_root_value()
+        {
+            using var ctx = CreateContext();
+            _ = ctx.JsonbEntities.Single(e => e.CustomerElement.GetString() == "foo");
+
+            AssertSql(
+                @"SELECT j.""Id"", j.""CustomerDocument"", j.""CustomerElement""
+FROM ""JsonbEntities"" AS j
+WHERE j.""CustomerElement""#>>'{}' = 'foo'
+LIMIT 2");
+        }
+
         #region Functions
 
         [Fact]
@@ -501,15 +514,16 @@ WHERE json_typeof(j.""CustomerElement""#>'{Statistics,Visits}') = 'number'");
 
             public static void Seed(JsonDomQueryContext context)
             {
-                var customer1 = CreateCustomer1();
-                var customer2 = CreateCustomer2();
+                var (customer1, customer2, customer3) = (CreateCustomer1(), CreateCustomer2(), CreateCustomer3());
 
                 context.JsonbEntities.AddRange(
-                    new JsonbEntity { Id = 1, CustomerDocument = customer1, CustomerElement = customer1.RootElement},
-                    new JsonbEntity { Id = 2, CustomerDocument = customer2, CustomerElement = customer2.RootElement});
+                    new JsonbEntity { Id = 1, CustomerDocument = customer1, CustomerElement = customer1.RootElement },
+                    new JsonbEntity { Id = 2, CustomerDocument = customer2, CustomerElement = customer2.RootElement },
+                    new JsonbEntity { Id = 3, CustomerDocument = customer3, CustomerElement = customer3.RootElement });
                 context.JsonEntities.AddRange(
-                    new JsonEntity { Id = 1, CustomerDocument = customer1, CustomerElement = customer1.RootElement},
-                    new JsonEntity { Id = 2, CustomerDocument = customer2, CustomerElement = customer2.RootElement});
+                    new JsonEntity { Id = 1, CustomerDocument = customer1, CustomerElement = customer1.RootElement },
+                    new JsonEntity { Id = 2, CustomerDocument = customer2, CustomerElement = customer2.RootElement },
+                    new JsonEntity { Id = 3, CustomerDocument = customer3, CustomerElement = customer3.RootElement });
                 context.SaveChanges();
 
                 static JsonDocument CreateCustomer1() => JsonDocument.Parse(@"
@@ -572,6 +586,8 @@ WHERE json_typeof(j.""CustomerElement""#>'{Statistics,Visits}') = 'number'");
                         }
                     ]
                 }");
+
+                static JsonDocument CreateCustomer3() => JsonDocument.Parse(@"""foo""");
             }
         }
 

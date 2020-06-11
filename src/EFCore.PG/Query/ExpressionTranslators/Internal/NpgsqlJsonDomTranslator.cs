@@ -76,15 +76,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 return null;
             }
 
+            // The root of the JSON expression is a ColumnExpression. We wrap that with an empty traversal
+            // expression (col #>> '{}'); subsequent traversals will gradually append the path into that.
+            // Note that it's possible to call methods such as GetString() directly on the root, and the
+            // empty traversal is necessary to properly convert it to a text.
+            instance = instance is ColumnExpression columnExpression
+                ? _sqlExpressionFactory.JsonTraversal(
+                    columnExpression, returnsText: false, typeof(string), mapping)
+                : instance;
+
             if (method == GetProperty || method == ArrayIndexer)
             {
-                // The first time we see a JSON traversal it's on a column - create a JsonTraversalExpression.
-                // Traversals on top of that get appended into the same expression.
-                return instance is ColumnExpression columnExpression
-                    ? _sqlExpressionFactory.JsonTraversal(columnExpression, arguments, false, typeof(string), mapping)
-                    : instance is PostgresJsonTraversalExpression prevPathTraversal
-                        ? prevPathTraversal.Append(_sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[0]))
-                        : null;
+                return instance is PostgresJsonTraversalExpression prevPathTraversal
+                    ? prevPathTraversal.Append(_sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[0]))
+                    : null;
             }
 
             if (GetMethods.Contains(method.Name) &&
