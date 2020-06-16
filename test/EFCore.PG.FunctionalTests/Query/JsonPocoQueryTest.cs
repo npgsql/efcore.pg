@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
@@ -70,7 +71,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             AssertSql(
                 @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
-WHERE j.""Customer"" = '{""Name"":""Test customer"",""Age"":80,""ID"":""00000000-0000-0000-0000-000000000000"",""IsVip"":false,""Statistics"":null,""Orders"":null}'");
+WHERE j.""Customer"" = '{""Name"":""Test customer"",""Age"":80,""ID"":""00000000-0000-0000-0000-000000000000"",""is_vip"":false,""Statistics"":null,""Orders"":null}'");
         }
 
         [Fact]
@@ -163,7 +164,7 @@ LIMIT 2");
             AssertSql(
                 @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
-WHERE CAST(j.""Customer""->>'IsVip' AS boolean)
+WHERE CAST(j.""Customer""->>'is_vip' AS boolean)
 LIMIT 2");
         }
 
@@ -639,6 +640,7 @@ WHERE json_typeof(j.""Customer""#>'{Statistics,Visits}') = 'number'");
             public string Name { get; set; }
             public int Age { get; set; }
             public Guid ID { get; set; }
+            [JsonPropertyName("is_vip")]
             public bool IsVip { get; set; }
             public Statistics Statistics { get; set; }
             public Order[] Orders { get; set; }
