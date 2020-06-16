@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using System.Text.Json.Serialization;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
@@ -28,7 +29,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         }
 
         public virtual SqlExpression Translate(SqlExpression instance, MemberInfo member, Type returnType)
-            => TranslateMemberAccess(instance, _sqlExpressionFactory.Constant(member.Name), returnType);
+            => instance?.TypeMapping is NpgsqlJsonTypeMapping || instance is PostgresJsonTraversalExpression
+                ? TranslateMemberAccess(
+                    instance,
+                    _sqlExpressionFactory.Constant(
+                        member.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name ?? member.Name),
+                    returnType)
+                : null;
 
         public virtual SqlExpression TranslateMemberAccess(
             [NotNull] SqlExpression instance, [NotNull] SqlExpression member, [NotNull] Type returnType)
