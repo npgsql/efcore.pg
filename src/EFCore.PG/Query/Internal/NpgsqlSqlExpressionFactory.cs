@@ -339,8 +339,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 
         SqlExpression ApplyTypeMappingOnILike(PostgresILikeExpression ilikeExpression)
         {
-            var inferredTypeMapping = ExpressionExtensions.InferTypeMapping(
-                                          ilikeExpression.Match, ilikeExpression.Pattern, ilikeExpression.EscapeChar)
+            var inferredTypeMapping = (ilikeExpression.EscapeChar == null
+                                          ? ExpressionExtensions.InferTypeMapping(
+                                              ilikeExpression.Match, ilikeExpression.Pattern)
+                                          : ExpressionExtensions.InferTypeMapping(
+                                              ilikeExpression.Match, ilikeExpression.Pattern,
+                                              ilikeExpression.EscapeChar))
                                       ?? _typeMappingSource.FindMapping(ilikeExpression.Match.Type);
 
             return new PostgresILikeExpression(
