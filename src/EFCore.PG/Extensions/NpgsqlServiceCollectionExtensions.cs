@@ -86,6 +86,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     .TryAdd<ISqlExpressionFactory, NpgsqlSqlExpressionFactory>()
                     .TryAdd<ISingletonOptions, INpgsqlOptions>(p => p.GetService<INpgsqlOptions>())
                     .TryAdd<IValueConverterSelector, NpgsqlValueConverterSelector>()
+                    .TryAdd<IQueryCompilationContextFactory, NpgsqlQueryCompilationContextFactory>()
                     .TryAddProviderSpecificServices(
                         b => b
                              .TryAddSingleton<INpgsqlValueGeneratorCache, NpgsqlValueGeneratorCache>()
