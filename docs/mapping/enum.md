@@ -23,9 +23,20 @@ protected override void OnModelCreating(ModelBuilder builder)
 ```
 
 ---
-<br/>
 
 This causes the EF Core provider to create your data enum type, `Mood`, with two labels: `happy` and `sad`. This will cause the appropriate migration to be created.
+
+If you are using `context.Database.Migrate()` to create your enums, you need to instruct Npgsql to reload all types after applying your migrations:
+
+```c#
+context.Database.Migrate();
+
+using (var conn = (NpgsqlConnection)context.Database.GetDbConnection())
+{
+    conn.Open();
+    conn.ReloadTypes();
+}
+```
 
 ## Mapping your enum
 
