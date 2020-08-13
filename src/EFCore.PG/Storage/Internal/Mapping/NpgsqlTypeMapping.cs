@@ -41,7 +41,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         {
             var npgsqlParameter = parameter as NpgsqlParameter;
             if (npgsqlParameter == null)
-                throw new ArgumentException($"Npgsql-specific type mapping {GetType()} being used with non-Npgsql parameter type {parameter.GetType().Name}");
+                throw new ArgumentException($"Npgsql-specific type mapping {GetType().Name} being used with non-Npgsql parameter type {parameter.GetType().Name}");
 
             base.ConfigureParameter(parameter);
 
