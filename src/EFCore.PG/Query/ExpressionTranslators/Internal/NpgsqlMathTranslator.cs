@@ -81,6 +81,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
         static readonly MethodInfo RoundDecimalTwoParams = typeof(Math).GetRuntimeMethod(nameof(Math.Round), new[] { typeof(decimal), typeof(int) });
 
+        static readonly MethodInfo DoubleIsNanMethodInfo
+            = typeof(double).GetRuntimeMethod(nameof(double.IsNaN), new[] { typeof(double) });
+        static readonly MethodInfo DoubleIsPositiveInfinityMethodInfo
+            = typeof(double).GetRuntimeMethod(nameof(double.IsPositiveInfinity), new[] { typeof(double) });
+        static readonly MethodInfo DoubleIsNegativeInfinityMethodInfo
+            = typeof(double).GetRuntimeMethod(nameof(double.IsNegativeInfinity), new[] { typeof(double) });
+
+        static readonly MethodInfo FloatIsNanMethodInfo
+            = typeof(float).GetRuntimeMethod(nameof(float.IsNaN), new[] { typeof(float) });
+        static readonly MethodInfo FloatIsPositiveInfinityMethodInfo
+            = typeof(float).GetRuntimeMethod(nameof(float.IsPositiveInfinity), new[] { typeof(float) });
+        static readonly MethodInfo FloatIsNegativeInfinityMethodInfo
+            = typeof(float).GetRuntimeMethod(nameof(float.IsNegativeInfinity), new[] { typeof(float) });
+
         readonly IRelationalTypeMappingSource _typeMappingSource;
         readonly ISqlExpressionFactory _sqlExpressionFactory;
 
@@ -151,6 +165,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     method.ReturnType,
                     _typeMappingSource.FindMapping(typeof(decimal)));
             }
+
+            // PostgreSQL treats NaN values as equal, against IEEE754
+            if (method == DoubleIsNanMethodInfo)
+                return _sqlExpressionFactory.Equal(arguments[0], _sqlExpressionFactory.Constant(double.NaN));
+            if (method == FloatIsNanMethodInfo)
+                return _sqlExpressionFactory.Equal(arguments[0], _sqlExpressionFactory.Constant(float.NaN));
+            if (method == DoubleIsPositiveInfinityMethodInfo)
+                return _sqlExpressionFactory.Equal(arguments[0], _sqlExpressionFactory.Constant(double.PositiveInfinity));
+            if (method == FloatIsPositiveInfinityMethodInfo)
+                return _sqlExpressionFactory.Equal(arguments[0], _sqlExpressionFactory.Constant(float.PositiveInfinity));
+            if (method == DoubleIsNegativeInfinityMethodInfo)
+                return _sqlExpressionFactory.Equal(arguments[0], _sqlExpressionFactory.Constant(double.NegativeInfinity));
+            if (method == FloatIsNegativeInfinityMethodInfo)
+                return _sqlExpressionFactory.Equal(arguments[0], _sqlExpressionFactory.Constant(float.NegativeInfinity));
 
             return null;
         }
