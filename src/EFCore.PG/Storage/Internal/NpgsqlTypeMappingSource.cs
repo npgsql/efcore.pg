@@ -32,8 +32,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         #region Mappings
 
         // Numeric types
-        readonly FloatTypeMapping              _float4             = new FloatTypeMapping("real", DbType.Single);
-        readonly DoubleTypeMapping             _float8             = new DoubleTypeMapping("double precision", DbType.Double);
+        readonly NpgsqlFloatTypeMapping        _float4             = new NpgsqlFloatTypeMapping();
+        readonly NpgsqlDoubleTypeMapping       _float8             = new NpgsqlDoubleTypeMapping();
         readonly DecimalTypeMapping            _numeric            = new DecimalTypeMapping("numeric", DbType.Decimal);
         readonly NpgsqlMoneyTypeMapping        _money              = new NpgsqlMoneyTypeMapping();
         readonly GuidTypeMapping               _uuid               = new GuidTypeMapping("uuid", DbType.Guid);
