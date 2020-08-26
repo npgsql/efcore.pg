@@ -105,6 +105,32 @@ More information can
 be found in the docs.';");
         }
 
+        public override async Task Create_table_with_computed_column(bool? stored)
+        {
+            if (TestEnvironment.PostgresVersion.IsUnder(12))
+            {
+                await Assert.ThrowsAsync<NotSupportedException>(() => base.Create_table_with_computed_column(stored));
+                return;
+            }
+
+            if (stored != true)
+            {
+                // Non-stored generated columns aren't yet supported (PG12)
+                await Assert.ThrowsAsync<NotSupportedException>(() => base.Create_table_with_computed_column(stored));
+                return;
+            }
+
+            await base.Create_table_with_computed_column(stored: true);
+
+            AssertSql(
+                @"CREATE TABLE ""People"" (
+    ""Id"" integer NOT NULL,
+    ""Sum"" text GENERATED ALWAYS AS (""X"" + ""Y"") STORED,
+    ""X"" integer NOT NULL,
+    ""Y"" integer NOT NULL
+);");
+        }
+
         [Fact]
         public virtual async Task Create_table_with_identity_by_default()
         {
@@ -384,7 +410,7 @@ ALTER TABLE ""People"" RESET (user_catalog_table);");
             await base.Rename_table();
 
             AssertSql(
-                @"ALTER TABLE ""People"" RENAME TO people;");
+                @"ALTER TABLE ""People"" RENAME TO ""Persons"";");
         }
 
         public override async Task Rename_table_with_primary_key()
@@ -394,9 +420,9 @@ ALTER TABLE ""People"" RESET (user_catalog_table);");
             AssertSql(
                 @"ALTER TABLE ""People"" DROP CONSTRAINT ""PK_People"";",
                 //
-                @"ALTER TABLE ""People"" RENAME TO people;",
+                @"ALTER TABLE ""People"" RENAME TO ""Persons"";",
                 //
-                @"ALTER TABLE people ADD CONSTRAINT ""PK_people"" PRIMARY KEY (""Id"");");
+                @"ALTER TABLE ""Persons"" ADD CONSTRAINT ""PK_Persons"" PRIMARY KEY (""Id"");");
         }
 
         public override async Task Move_table()
@@ -628,8 +654,7 @@ COMMENT ON COLUMN ""People"".""FullName"" IS 'My comment';");
         {
             await base.Add_column_shared();
 
-            AssertSql(
-                @"ALTER TABLE ""Base"" ADD ""Foo"" text NULL;");
+            AssertSql();
         }
 
         [Fact]
@@ -897,7 +922,7 @@ ALTER TABLE ""People"" ALTER COLUMN ""SomeColumn"" DROP DEFAULT;");
             AssertSql(
                 @"ALTER TABLE ""People"" ALTER COLUMN ""SomeColumn"" TYPE text;
 ALTER TABLE ""People"" ALTER COLUMN ""SomeColumn"" SET NOT NULL;
-ALTER TABLE ""People"" ALTER COLUMN ""SomeColumn"" DROP DEFAULT;");
+ALTER TABLE ""People"" ALTER COLUMN ""SomeColumn"" SET DEFAULT '';");
         }
 
         public override async Task Alter_column_make_required_with_index()
@@ -907,7 +932,7 @@ ALTER TABLE ""People"" ALTER COLUMN ""SomeColumn"" DROP DEFAULT;");
             AssertSql(
                 @"ALTER TABLE ""People"" ALTER COLUMN ""SomeColumn"" TYPE text;
 ALTER TABLE ""People"" ALTER COLUMN ""SomeColumn"" SET NOT NULL;
-ALTER TABLE ""People"" ALTER COLUMN ""SomeColumn"" DROP DEFAULT;");
+ALTER TABLE ""People"" ALTER COLUMN ""SomeColumn"" SET DEFAULT '';");
         }
 
         public override async Task Alter_column_make_required_with_composite_index()
@@ -917,7 +942,7 @@ ALTER TABLE ""People"" ALTER COLUMN ""SomeColumn"" DROP DEFAULT;");
             AssertSql(
                 @"ALTER TABLE ""People"" ALTER COLUMN ""FirstName"" TYPE text;
 ALTER TABLE ""People"" ALTER COLUMN ""FirstName"" SET NOT NULL;
-ALTER TABLE ""People"" ALTER COLUMN ""FirstName"" DROP DEFAULT;");
+ALTER TABLE ""People"" ALTER COLUMN ""FirstName"" SET DEFAULT '';");
         }
 
         public override async Task Alter_column_make_computed(bool? stored)
@@ -1483,7 +1508,7 @@ ALTER TABLE ""People"" ALTER COLUMN ""Name"" DROP DEFAULT;");
             await base.Rename_column();
 
             AssertSql(
-                @"ALTER TABLE ""People"" RENAME COLUMN ""SomeColumn"" TO somecolumn;");
+                @"ALTER TABLE ""People"" RENAME COLUMN ""SomeColumn"" TO ""SomeOtherColumn"";");
         }
 
         #endregion
@@ -1857,10 +1882,6 @@ ALTER TABLE ""People"" ALTER COLUMN ""Name"" DROP DEFAULT;");
             await base.Add_primary_key();
 
             AssertSql(
-                @"ALTER TABLE ""People"" ALTER COLUMN ""SomeField"" TYPE text;
-ALTER TABLE ""People"" ALTER COLUMN ""SomeField"" SET NOT NULL;
-ALTER TABLE ""People"" ALTER COLUMN ""SomeField"" DROP DEFAULT;",
-                //
                 @"ALTER TABLE ""People"" ADD CONSTRAINT ""PK_People"" PRIMARY KEY (""SomeField"");");
         }
 
@@ -1869,10 +1890,6 @@ ALTER TABLE ""People"" ALTER COLUMN ""SomeField"" DROP DEFAULT;",
             await base.Add_primary_key_with_name();
 
             AssertSql(
-                @"ALTER TABLE ""People"" ALTER COLUMN ""SomeField"" TYPE text;
-ALTER TABLE ""People"" ALTER COLUMN ""SomeField"" SET NOT NULL;
-ALTER TABLE ""People"" ALTER COLUMN ""SomeField"" DROP DEFAULT;",
-                //
                 @"ALTER TABLE ""People"" ADD CONSTRAINT ""PK_Foo"" PRIMARY KEY (""SomeField"");");
         }
 
@@ -1881,14 +1898,6 @@ ALTER TABLE ""People"" ALTER COLUMN ""SomeField"" DROP DEFAULT;",
             await base.Add_primary_key_composite_with_name();
 
             AssertSql(
-                @"ALTER TABLE ""People"" ALTER COLUMN ""SomeField2"" TYPE text;
-ALTER TABLE ""People"" ALTER COLUMN ""SomeField2"" SET NOT NULL;
-ALTER TABLE ""People"" ALTER COLUMN ""SomeField2"" DROP DEFAULT;",
-                //
-                @"ALTER TABLE ""People"" ALTER COLUMN ""SomeField1"" TYPE text;
-ALTER TABLE ""People"" ALTER COLUMN ""SomeField1"" SET NOT NULL;
-ALTER TABLE ""People"" ALTER COLUMN ""SomeField1"" DROP DEFAULT;",
-                //
                 @"ALTER TABLE ""People"" ADD CONSTRAINT ""PK_Foo"" PRIMARY KEY (""SomeField1"", ""SomeField2"");");
         }
 

@@ -14,8 +14,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             base.OnModelCreating(modelBuilder, context);
 
+#pragma warning disable CS0618 // Type or member is obsolete
             modelBuilder.Entity<AnimalQuery>().HasNoKey().ToQuery(
                 () => context.Set<AnimalQuery>().FromSqlRaw(@"SELECT * FROM ""Animals"""));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
     }
 }
