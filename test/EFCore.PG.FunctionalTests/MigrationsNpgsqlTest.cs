@@ -2111,7 +2111,7 @@ WHERE ""Id"" = 2;");
 
             AssertSql(
                 @"DELETE FROM ""Person""
-WHERE ""Id"" = 2 AND ""AnotherId"" = 12;");
+WHERE ""AnotherId"" = 12 AND ""Id"" = 2;");
         }
 
         public override async Task UpdateDataOperation_simple_key()
@@ -2129,7 +2129,7 @@ WHERE ""Id"" = 2;");
 
             AssertSql(
                 @"UPDATE ""Person"" SET ""Name"" = 'Another John Snow'
-WHERE ""Id"" = 2 AND ""AnotherId"" = 11;");
+WHERE ""AnotherId"" = 11 AND ""Id"" = 2;");
         }
 
         public override async Task UpdateDataOperation_multiple_columns()

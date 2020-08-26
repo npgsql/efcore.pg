@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -52,9 +53,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         }
 
         /// <inheritdoc />
-        [CanBeNull]
-        public virtual SqlExpression Translate(SqlExpression instance, MethodInfo method,
-            IReadOnlyList<SqlExpression> arguments)
+        public SqlExpression Translate(
+            SqlExpression instance,
+            MethodInfo method,
+            IReadOnlyList<SqlExpression> arguments,
+            IDiagnosticsLogger<DbLoggerCategory.Query> logger)
             => typeof(Geometry).IsAssignableFrom(method.DeclaringType)
                 ? TranslateGeometryMethod(instance, method, arguments)
                 : method.DeclaringType == typeof(NpgsqlNetTopologySuiteDbFunctionsExtensions)

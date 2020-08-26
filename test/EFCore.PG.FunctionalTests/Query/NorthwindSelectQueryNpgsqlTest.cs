@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Xunit;
@@ -22,6 +23,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         public override Task Member_binding_after_ctor_arguments_fails_with_client_eval(bool async)
             => AssertTranslationFailed(() => base.Member_binding_after_ctor_arguments_fails_with_client_eval(async));
+
+        public override Task Reverse_without_explicit_ordering_throws(bool async)
+            => AssertTranslationFailedWithDetails(
+                () => base.Reverse_without_explicit_ordering_throws(async), RelationalStrings.MissingOrderingInSqlExpression);
 
         void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);

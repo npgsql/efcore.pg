@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Reflection;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using NodaTime;
@@ -55,8 +57,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
         };
 
         /// <inheritdoc />
-        [CanBeNull]
-        public SqlExpression Translate(SqlExpression instance, MemberInfo member, Type returnType)
+        public SqlExpression Translate(
+            SqlExpression instance,
+            MemberInfo member,
+            Type returnType,
+            IDiagnosticsLogger<DbLoggerCategory.Query> logger)
         {
             // This is necessary to allow translation of methods on SystemClock.Instance
             if (member == Instance)

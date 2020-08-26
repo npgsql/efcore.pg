@@ -540,6 +540,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             return new NpgsqlRangeTypeMapping(rangeDefinition.RangeName, rangeDefinition.SchemaName, rangeClrType, subtypeMapping, _sqlGenerationHelper);
         }
 
+        static readonly List<string> _nameBasesUsingPrecision =
+            new List<string>
+            {
+                "decimal",
+                "dec",
+                "numeric",
+                "timestamp",
+                "timestamptz",
+                "time",
+                "interval",
+            };
+
         // We override to support parsing array store names (e.g. varchar(32)[]), timestamp(5) with time zone, etc.
         protected override string ParseStoreTypeName(
             string storeTypeName,
@@ -579,7 +591,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                         else if (int.TryParse(
                             storeTypeName.Substring(openParen + 1, closeParen - openParen - 1).Trim(), out var parsedSize))
                         {
-                            if (StoreTypeNameBaseUsesPrecision(preParens))
+                            if (_nameBasesUsingPrecision.Contains(preParens))
                             {
                                 precision = parsedSize;
                                 scale = 0;
@@ -604,18 +616,5 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
             return storeTypeName;
         }
-
-        protected override bool StoreTypeNameBaseUsesPrecision(string storeTypeNameBase)
-            => storeTypeNameBase switch
-            {
-                "decimal" => true,
-                "dec" => true,
-                "numeric" => true,
-                "timestamp" => true,
-                "timestamptz" => true,
-                "time" => true,
-                "interval" => true,
-                _ => false
-            };
     }
 }

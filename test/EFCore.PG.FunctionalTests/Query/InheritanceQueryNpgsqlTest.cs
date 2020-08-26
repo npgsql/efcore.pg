@@ -12,8 +12,5 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             : base(fixture)
         {
         }
-
-        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/pull/21895")]
-        public override void Can_insert_update_delete() {}
     }
 }

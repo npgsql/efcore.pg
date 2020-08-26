@@ -81,7 +81,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             await base.CommitAsync(cancellationToken);
         }
 
-        // TODO: This should be true, but see https://github.com/dotnet/efcore/issues/21340
-        public override bool AreSavepointsSupported => false;
+        public override bool SupportsSavepoints => true;
     }
 }

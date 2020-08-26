@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     public class NpgsqlSqlExpressionFactory : SqlExpressionFactory
     {

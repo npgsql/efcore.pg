@@ -19,10 +19,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         // TODO: #1232
         // protected override bool CanExecuteQueryString => true;
 
-        [ConditionalTheory(Skip = "https://github.com/dotnet/efcore/pull/21895")]
-        public override Task SelectMany_predicate_with_non_equality_comparison_with_Take_doesnt_convert_to_join(bool async)
-            => base.SelectMany_predicate_with_non_equality_comparison_with_Take_doesnt_convert_to_join(async);
-
         #region Ignore DateTimeOffset tests
 
         // PostgreSQL has no datatype that corresponds to DateTimeOffset.
