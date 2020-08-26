@@ -7,8 +7,6 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
-using NpgsqlDbContextOptionsBuilderExtensions = Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities.NpgsqlDbContextOptionsBuilderExtensions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
@@ -26,13 +24,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
         public class NpgsqlApiConsistencyFixture : ApiConsistencyFixtureBase
         {
-            public override bool TryGetProviderOptionsDelegate(out Action<DbContextOptionsBuilder> configureOptions)
-            {
-                configureOptions = b => NpgsqlTestHelpers.Instance.UseProviderOptions(b);
-
-                return true;
-            }
-
             public override HashSet<Type> FluentApiTypes { get; } = new()
             {
                 typeof(NpgsqlDbContextOptionsBuilder),
