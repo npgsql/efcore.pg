@@ -891,6 +891,12 @@ LIMIT 2");
                     $$ LANGUAGE SQL");
 
                 context.Database.ExecuteSqlRaw(@"
+                    CREATE FUNCTION ""StringLength""(""s"" TEXT)
+                    RETURNS INT
+                    AS $$ SELECT LENGTH($1) $$
+                    LANGUAGE SQL");
+
+                context.Database.ExecuteSqlRaw(@"
                     CREATE FUNCTION ""GetCustomerOrderCountByYearOnlyFrom2000""(""customerId"" INT, ""onlyFrom2000"" BOOL)
                     RETURNS TABLE (""CustomerId"" INT, ""Count"" INT, ""Year"" INT)
                     AS $$

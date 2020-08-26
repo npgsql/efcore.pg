@@ -844,7 +844,8 @@ CREATE TABLE ""ComputedValues"" (
                 {
                     var columns = dbModel.Tables.Single().Columns;
 
-                    // Note that on-the-fly computed columns aren't (yet) supported by PostgreSQL, only stored/persistedcolumns.
+                    // Note that on-the-fly computed columns aren't (yet) supported by PostgreSQL, only stored/persisted
+                    // columns.
                     var column = columns.Single(c => c.Name == "SumOfAAndB");
                     Assert.Null(column.DefaultValueSql);
                     Assert.Equal(@"(""A"" + ""B"")", column.ComputedColumnSql);

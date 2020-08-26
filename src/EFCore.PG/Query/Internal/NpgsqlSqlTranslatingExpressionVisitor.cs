@@ -6,14 +6,13 @@ using System.Linq.Expressions;
 using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 using ExpressionExtensions = Microsoft.EntityFrameworkCore.Query.ExpressionExtensions;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
@@ -51,9 +50,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         readonly IRelationalTypeMappingSource _typeMappingSource;
         readonly NpgsqlJsonPocoTranslator _jsonPocoTranslator;
 
-        [NotNull]
-        readonly RelationalTypeMapping _boolMapping;
-
         public NpgsqlSqlTranslatingExpressionVisitor(
             [NotNull] RelationalSqlTranslatingExpressionVisitorDependencies dependencies,
             [NotNull] QueryCompilationContext queryCompilationContext,
@@ -63,23 +59,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             _sqlExpressionFactory = (NpgsqlSqlExpressionFactory)dependencies.SqlExpressionFactory;
             _jsonPocoTranslator = ((NpgsqlMemberTranslatorProvider)Dependencies.MemberTranslatorProvider).JsonPocoTranslator;
             _typeMappingSource = dependencies.TypeMappingSource;
-            _boolMapping = _typeMappingSource.FindMapping(typeof(bool));
         }
 
         // PostgreSQL COUNT() always returns bigint, so we need to downcast to int
-        // TODO: Translate Count with predicate for GroupBy (see base implementation)
-        public override SqlExpression TranslateCount(Expression expression = null)
+        public override SqlExpression TranslateCount(SqlExpression sqlExpression)
         {
-            if (expression != null)
-            {
-                // TODO: Translate Count with predicate for GroupBy
-                return null;
-            }
+            Check.NotNull(sqlExpression, nameof(sqlExpression));
 
             return _sqlExpressionFactory.Convert(
                 _sqlExpressionFactory.ApplyDefaultTypeMapping(
-                    _sqlExpressionFactory.Function("COUNT",
-                        new[] { _sqlExpressionFactory.Fragment("*") },
+                    _sqlExpressionFactory.Function(
+                        "COUNT",
+                        new[] { sqlExpression },
                         nullable: false,
                         argumentsPropagateNullability: FalseArrays[1],
                         typeof(long))),
@@ -89,11 +80,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         // In PostgreSQL SUM() doesn't return the same type as its argument for smallint, int and bigint.
         // Cast to get the same type.
         // http://www.postgresql.org/docs/current/static/functions-aggregate.html
-        public override SqlExpression TranslateSum(Expression expression)
+        public override SqlExpression TranslateSum(SqlExpression sqlExpression)
         {
-            var sqlExpression = expression as SqlExpression ??
-                                Translate(expression) ??
-                                throw new InvalidOperationException(CoreStrings.TranslationFailed(expression.Print()));
+            Check.NotNull(sqlExpression, nameof(sqlExpression));
 
             var inputType = sqlExpression.Type.UnwrapNullableType();
 
@@ -156,7 +145,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                            new[] { sqlOperand },
                            nullable: true,
                            argumentsPropagateNullability: TrueArrays[1],
-                           typeof(int?));
+                           typeof(int));
             }
 
             return base.VisitUnary(unaryExpression);

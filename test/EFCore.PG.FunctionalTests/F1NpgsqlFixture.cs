@@ -9,9 +9,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
     public class F1NpgsqlFixture : F1RelationalFixture
     {
         protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
-
-        public override ModelBuilder CreateModelBuilder()
-            => new ModelBuilder(NpgsqlConventionSetBuilder.Build());
+        public override TestHelpers TestHelpers => NpgsqlTestHelpers.Instance;
 
         protected override void BuildModelExternal(ModelBuilder modelBuilder)
         {

@@ -5,7 +5,7 @@ using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public class ComplexNavigationsWeakQueryNpgsqlTest : ComplexNavigationsWeakQueryTestBase<ComplexNavigationsWeakQueryNpgsqlFixture>
+    public class ComplexNavigationsWeakQueryNpgsqlTest : ComplexNavigationsWeakQueryRelationalTestBase<ComplexNavigationsWeakQueryNpgsqlFixture>
     {
         // ReSharper disable once UnusedParameter.Local
         public ComplexNavigationsWeakQueryNpgsqlTest(ComplexNavigationsWeakQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
