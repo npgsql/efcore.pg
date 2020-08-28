@@ -879,7 +879,7 @@ WHERE m.""TimeSpanAsTime"" = @__timeSpan_0");
                 @"SELECT COALESCE(SUM(m.""LongAsBigint""), 0.0)::bigint
 FROM ""MappedDataTypes"" AS m",
                 //
-                @"SELECT COALESCE(SUM(m.""Int""), 0)::INT
+                @"SELECT COALESCE(SUM(m.""Int""), 0)::int
 FROM ""MappedDataTypes"" AS m",
                 //
                 @"SELECT COALESCE(SUM(CAST(m.""ShortAsSmallint"" AS integer)), 0)::INT
