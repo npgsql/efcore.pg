@@ -15,24 +15,32 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
     public class NpgsqlTypeMappingSourceTest
     {
         [Theory]
-        [InlineData("integer", typeof(int))]
-        [InlineData("integer[]", typeof(int[]))]
-        [InlineData("timestamp with time zone", typeof(DateTime))]
-        [InlineData("dummy", typeof(DummyType))]
-        [InlineData("int4range", typeof(NpgsqlRange<int>))]
-        [InlineData("floatrange", typeof(NpgsqlRange<float>))]
-        [InlineData("dummyrange", typeof(NpgsqlRange<DummyType>))]
-        [InlineData("geometry", typeof(Geometry))]
-        [InlineData("geometry(Polygon)", typeof(Polygon))]
-        [InlineData("geography(Point, 4326)", typeof(Point))]
-        [InlineData("geometry(pointz, 4326)", typeof(Point))]
-        [InlineData("geography(LineStringZM)", typeof(LineString))]
-        [InlineData("geometry(POLYGONM)", typeof(Polygon))]
-        public void By_StoreType(string storeType, Type expectedClrType)
+        [InlineData("integer", typeof(int), null, false)]
+        [InlineData("integer[]", typeof(int[]), null, false)]
+        [InlineData("int", typeof(int), null, false, "int")]
+        [InlineData("int[]", typeof(int[]), null, false, "int[]")]
+        [InlineData("text", typeof(string), null, false)]
+        [InlineData("TEXT", typeof(string), null, false, "TEXT")]
+        [InlineData("timestamp with time zone", typeof(DateTime), null, false)]
+        [InlineData("dummy", typeof(DummyType), null, false)]
+        [InlineData("int4range", typeof(NpgsqlRange<int>), null, false)]
+        [InlineData("floatrange", typeof(NpgsqlRange<float>), null, false)]
+        [InlineData("dummyrange", typeof(NpgsqlRange<DummyType>), null, false)]
+        [InlineData("geometry", typeof(Geometry), null, false)]
+        [InlineData("geometry(Polygon)", typeof(Polygon), null, false)]
+        [InlineData("geography(Point, 4326)", typeof(Point), null, false)]
+        [InlineData("geometry(pointz, 4326)", typeof(Point), null, false)]
+        [InlineData("geography(LineStringZM)", typeof(LineString), null, false)]
+        [InlineData("geometry(POLYGONM)", typeof(Polygon), null, false)]
+        public void By_StoreType(string typeName, Type type, int? size, bool fixedLength, string expectedType = null)
         {
-            var mapping = Source.FindMapping(storeType);
-            Assert.Same(expectedClrType, mapping.ClrType);
-            Assert.Null(mapping.Size);
+            var mapping = Source.FindMapping(typeName);
+
+            Assert.Same(type, mapping.ClrType);
+            Assert.Equal(size, mapping.Size);
+            Assert.False(mapping.IsUnicode);
+            Assert.Equal(fixedLength, mapping.IsFixedLength);
+            Assert.Equal(expectedType ?? typeName, mapping.StoreType);
         }
 
         [Fact]
@@ -47,7 +55,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         [Fact]
         public void Varchar32_Array()
         {
-            var arrayMapping = Assert.IsType<NpgsqlArrayArrayTypeMapping>(Source.FindMapping("varchar(32)[]"));
+            var mapping = Source.FindMapping("varchar(32)[]");
+
+            var arrayMapping = Assert.IsType<NpgsqlArrayArrayTypeMapping>(mapping);
             Assert.Same(typeof(string[]), arrayMapping.ClrType);
             Assert.Equal("varchar(32)[]", arrayMapping.StoreType);
             Assert.Null(arrayMapping.Size);
@@ -119,7 +129,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         // Happens when using domain/aliases: we don't know about the domain but continue with the mapping based on the ClrType
         [Fact]
         public void Unknown_StoreType_with_known_ClrType()
-            => Assert.Equal("integer", Source.FindMapping(typeof(int), "some_domain").StoreType);
+            => Assert.Equal("some_domain", Source.FindMapping(typeof(int), "some_domain").StoreType);
 
         #region Support
 
