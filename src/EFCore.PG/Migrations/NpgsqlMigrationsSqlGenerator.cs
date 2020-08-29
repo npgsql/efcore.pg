@@ -405,7 +405,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                             .AppendLine($"ALTER SEQUENCE {sequence} RENAME TO {oldSequenceWithoutSchema};")
                             .AppendLine($"{alterBase}DROP DEFAULT;")
                             .AppendLine($"{alterBase}ADD GENERATED {identityTypeClause} AS IDENTITY;")
-                            .AppendLine($"SELECT * FROM setval('{sequence}', nextval('{oldSequence}'), false);")
+                            // When generating idempotent scripts, migration DDL is enclosed in anonymous DO blocks,
+                            // where PERFORM must be used instead of SELECT
+                            .Append(Options.HasFlag(MigrationsSqlGenerationOptions.Idempotent) ? "PERFORM" : "SELECT")
+                            .AppendLine($" * FROM setval('{sequence}', nextval('{oldSequence}'), false);")
                             .AppendLine($"DROP SEQUENCE {oldSequence};");
                         break;
                     default:
