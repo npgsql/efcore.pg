@@ -20,28 +20,29 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 {
     public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExpressionVisitor
     {
-        [NotNull]
+        static readonly ConstructorInfo DateTimeCtor1 =
+            typeof(DateTime).GetConstructor(new[] { typeof(int), typeof(int), typeof(int) });
+
+        static readonly ConstructorInfo DateTimeCtor2 =
+            typeof(DateTime).GetConstructor(new[] { typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int) });
+
         static readonly MethodInfo Like2MethodInfo =
             typeof(DbFunctionsExtensions)
                 .GetRuntimeMethod(nameof(DbFunctionsExtensions.Like), new[] { typeof(DbFunctions), typeof(string), typeof(string) });
 
         // ReSharper disable once InconsistentNaming
-        [NotNull]
         static readonly MethodInfo ILike2MethodInfo =
             typeof(NpgsqlDbFunctionsExtensions)
                 .GetRuntimeMethod(nameof(NpgsqlDbFunctionsExtensions.ILike), new[] { typeof(DbFunctions), typeof(string), typeof(string) });
 
-        [NotNull]
         static readonly MethodInfo EnumerableAnyWithPredicate =
             typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
                 .Single(mi => mi.Name == nameof(Enumerable.Any) && mi.GetParameters().Length == 2);
 
-        [NotNull]
         static readonly MethodInfo EnumerableAll =
             typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
                 .Single(mi => mi.Name == nameof(Enumerable.All) && mi.GetParameters().Length == 2);
 
-        [NotNull]
         static readonly MethodInfo Contains =
             typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
                 .Single(m => m.Name == nameof(Enumerable.Contains) && m.GetParameters().Length == 2);
@@ -304,6 +305,53 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             }
 
             return base.VisitBinary(binaryExpression);
+        }
+
+
+        /// <inheritdoc />
+        protected override Expression VisitNew(NewExpression newExpression)
+        {
+            if (base.VisitNew(newExpression) is { } result)
+                return result;
+
+            if (newExpression.Constructor == DateTimeCtor1)
+            {
+                return TryTranslateArguments(newExpression.Arguments, out var sqlArguments)
+                    ? _sqlExpressionFactory.Function(
+                        "MAKE_DATE", sqlArguments, nullable: true, TrueArrays[3], typeof(DateTime))
+                    : null;
+            }
+
+            if (newExpression.Constructor == DateTimeCtor2)
+            {
+                if (!TryTranslateArguments(newExpression.Arguments, out var sqlArguments))
+                    return null;
+
+                // DateTime's second component is an int, but PostgreSQL's MAKE_TIMESTAMP accepts a double precision
+                sqlArguments[5] = _sqlExpressionFactory.Convert(sqlArguments[5], typeof(double));
+
+                return _sqlExpressionFactory.Function(
+                    "MAKE_TIMESTAMP", sqlArguments, nullable: true, TrueArrays[6], typeof(DateTime));
+            }
+
+            return null;
+
+            bool TryTranslateArguments(ReadOnlyCollection<Expression> arguments, out SqlExpression[] sqlArguments)
+            {
+                sqlArguments = new SqlExpression[newExpression.Arguments.Count];
+                for (var i = 0; i < sqlArguments.Length; i++)
+                {
+                    var argument = newExpression.Arguments[i];
+                    if (TranslationFailed(argument, Visit(argument), out var sqlArgument))
+                    {
+                        return false;
+                    }
+
+                    sqlArguments[i] = sqlArgument;
+                }
+
+                return true;
+            }
         }
 
         /// <summary>
