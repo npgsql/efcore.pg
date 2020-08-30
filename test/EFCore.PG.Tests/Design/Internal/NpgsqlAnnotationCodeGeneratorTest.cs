@@ -16,15 +16,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
         [Fact]
         public void GenerateFluentApi_value_generation()
         {
-            var generator = new NpgsqlAnnotationCodeGenerator(
-                new AnnotationCodeGeneratorDependencies(
-                    new NpgsqlTypeMappingSource(
-                        new TypeMappingSourceDependencies(
-                                new ValueConverterSelector(new ValueConverterSelectorDependencies()),
-                                Array.Empty<ITypeMappingSourcePlugin>()
-                            ),
-                        new RelationalTypeMappingSourceDependencies(Array.Empty<IRelationalTypeMappingSourcePlugin>()),
-                        new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()))));
+            var generator = CreateGenerator();
             var modelBuilder = new ModelBuilder(NpgsqlConventionSetBuilder.Build());
             modelBuilder.Entity(
                 "Post",
@@ -72,14 +64,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
         [Fact]
         public void GenerateFluentApi_identity_sequence_options()
         {
-            var generator = new NpgsqlAnnotationCodeGenerator(new AnnotationCodeGeneratorDependencies(
-                    new NpgsqlTypeMappingSource(
-                        new TypeMappingSourceDependencies(
-                            new ValueConverterSelector(new ValueConverterSelectorDependencies()),
-                            Array.Empty<ITypeMappingSourcePlugin>()
-                        ),
-                        new RelationalTypeMappingSourceDependencies(Array.Empty<IRelationalTypeMappingSourcePlugin>()),
-                        new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()))));
+            var generator = CreateGenerator();
             var modelBuilder = new ModelBuilder(NpgsqlConventionSetBuilder.Build());
             modelBuilder.Entity(
                 "Post",
@@ -110,5 +95,52 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             Assert.Equal(true, result.Arguments[4]);
             Assert.Equal(10L, result.Arguments[5]);
         }
+
+        [ConditionalFact]
+        public void GenerateFluentApi_IModel_works_with_HiLo()
+        {
+            var generator = CreateGenerator();
+            var modelBuilder = new ModelBuilder(NpgsqlConventionSetBuilder.Build());
+            modelBuilder.UseHiLo("HiLoIndexName", "HiLoIndexSchema");
+
+            var annotations = modelBuilder.Model.GetAnnotations().ToDictionary(a => a.Name, a => a);
+            var result = generator.GenerateFluentApiCalls(modelBuilder.Model, annotations).Single();
+
+            Assert.Equal("UseHiLo", result.Method);
+
+            Assert.Collection(
+                result.Arguments,
+                name => Assert.Equal("HiLoIndexName", name),
+                schema => Assert.Equal("HiLoIndexSchema", schema));
+        }
+
+        [ConditionalFact]
+        public void GenerateFluentApi_IProperty_works_with_HiLo()
+        {
+            var generator = CreateGenerator();
+            var modelBuilder = new ModelBuilder(NpgsqlConventionSetBuilder.Build());
+            modelBuilder.Entity("Post", x => x.Property<int>("Id").UseHiLo("HiLoIndexName", "HiLoIndexSchema"));
+            var property = modelBuilder.Model.FindEntityType("Post").FindProperty("Id");
+
+            var annotations = property.GetAnnotations().ToDictionary(a => a.Name, a => a);
+            var result = generator.GenerateFluentApiCalls(property, annotations).Single();
+
+            Assert.Equal("UseHiLo", result.Method);
+
+            Assert.Collection(
+                result.Arguments,
+                name => Assert.Equal("HiLoIndexName", name),
+                schema => Assert.Equal("HiLoIndexSchema", schema));
+        }
+
+        NpgsqlAnnotationCodeGenerator CreateGenerator()
+            => new NpgsqlAnnotationCodeGenerator(new AnnotationCodeGeneratorDependencies(
+                new NpgsqlTypeMappingSource(
+                    new TypeMappingSourceDependencies(
+                        new ValueConverterSelector(new ValueConverterSelectorDependencies()),
+                        Array.Empty<ITypeMappingSourcePlugin>()
+                    ),
+                    new RelationalTypeMappingSourceDependencies(Array.Empty<IRelationalTypeMappingSourcePlugin>()),
+                    new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()))));
     }
 }
