@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
@@ -70,6 +72,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             return false;
         }
 
+        public override IReadOnlyList<MethodCallCodeFragment> GenerateFluentApiCalls(
+            IModel model,
+            IDictionary<string, IAnnotation> annotations)
+            => base.GenerateFluentApiCalls(model, annotations)
+                .Concat(GenerateValueGenerationStrategy(annotations, onModel: true))
+                .ToList();
+
         protected override MethodCallCodeFragment GenerateFluentApi(IModel model, IAnnotation annotation)
         {
             Check.NotNull(model, nameof(model));
@@ -133,35 +142,95 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             return null;
         }
 
-        protected override MethodCallCodeFragment GenerateFluentApi(IProperty property, IAnnotation annotation)
+        public override IReadOnlyList<MethodCallCodeFragment> GenerateFluentApiCalls(
+            IProperty property,
+            IDictionary<string, IAnnotation> annotations)
+            => base.GenerateFluentApiCalls(property, annotations)
+                .Concat(GenerateValueGenerationStrategy(annotations, onModel: false))
+                .Concat(GenerateIdentityOptions(annotations))
+                .ToList();
+
+        IReadOnlyList<MethodCallCodeFragment> GenerateValueGenerationStrategy(
+            IDictionary<string, IAnnotation> annotations,
+            bool onModel)
         {
-            Check.NotNull(property, nameof(property));
-            Check.NotNull(annotation, nameof(annotation));
-
-            switch (annotation.Name)
+            if (!TryGetAndRemove(annotations, NpgsqlAnnotationNames.ValueGenerationStrategy,
+                out NpgsqlValueGenerationStrategy strategy))
             {
-            case NpgsqlAnnotationNames.ValueGenerationStrategy:
-                return new MethodCallCodeFragment(annotation.Value switch
-                {
-                    NpgsqlValueGenerationStrategy.SerialColumn => nameof(NpgsqlPropertyBuilderExtensions.UseSerialColumn),
-                    NpgsqlValueGenerationStrategy.IdentityAlwaysColumn => nameof(NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn),
-                    NpgsqlValueGenerationStrategy.IdentityByDefaultColumn => nameof(NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn),
-                    _ => throw new ArgumentOutOfRangeException()
-                });
-
-            case NpgsqlAnnotationNames.IdentityOptions:
-                var identityOptions = IdentitySequenceOptionsData.Deserialize((string)annotation.Value);
-                return new MethodCallCodeFragment(
-                    nameof(NpgsqlPropertyBuilderExtensions.HasIdentityOptions),
-                    identityOptions.StartValue,
-                    identityOptions.IncrementBy == 1 ? null : (long?)identityOptions.IncrementBy,
-                    identityOptions.MinValue,
-                    identityOptions.MaxValue,
-                    identityOptions.IsCyclic ? true : (bool?)null,
-                    identityOptions.NumbersToCache == 1 ? null : (long?)identityOptions.NumbersToCache);
+                return Array.Empty<MethodCallCodeFragment>();
             }
 
-            return null;
+            switch (strategy)
+            {
+            case NpgsqlValueGenerationStrategy.SerialColumn:
+                return new List<MethodCallCodeFragment>
+                {
+                    new MethodCallCodeFragment(onModel
+                        ? nameof(NpgsqlModelBuilderExtensions.UseSerialColumns)
+                        : nameof(NpgsqlPropertyBuilderExtensions.UseSerialColumn))
+                };
+
+            case NpgsqlValueGenerationStrategy.IdentityAlwaysColumn:
+                return new List<MethodCallCodeFragment>
+                {
+                    new MethodCallCodeFragment(onModel
+                        ? nameof(NpgsqlModelBuilderExtensions.UseIdentityAlwaysColumns)
+                        : nameof(NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn))
+                };
+
+            case NpgsqlValueGenerationStrategy.IdentityByDefaultColumn:
+                return new List<MethodCallCodeFragment>
+                {
+                    new MethodCallCodeFragment(onModel
+                        ? nameof(NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns)
+                        : nameof(NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn))
+                };
+
+            case NpgsqlValueGenerationStrategy.SequenceHiLo:
+                var name = GetAndRemove<string>(NpgsqlAnnotationNames.HiLoSequenceName);
+                var schema = GetAndRemove<string>(NpgsqlAnnotationNames.HiLoSequenceSchema);
+                return new List<MethodCallCodeFragment>
+                {
+                    new MethodCallCodeFragment(
+                        nameof(NpgsqlModelBuilderExtensions.UseHiLo),
+                        (name, schema) switch
+                        {
+                            (null, null) => Array.Empty<object>(),
+                            (_, null) => new object[] { name },
+                            _ => new object[] { name, schema }
+                        })
+                };
+
+            default:
+                throw new ArgumentOutOfRangeException();
+            }
+
+            T GetAndRemove<T>(string annotationName)
+                => TryGetAndRemove(annotations, annotationName, out T annotationValue)
+                    ? annotationValue
+                    : default;
+        }
+
+        IReadOnlyList<MethodCallCodeFragment> GenerateIdentityOptions(IDictionary<string, IAnnotation> annotations)
+        {
+            if (!TryGetAndRemove(annotations, NpgsqlAnnotationNames.IdentityOptions,
+                out string annotationValue))
+            {
+                return Array.Empty<MethodCallCodeFragment>();
+            }
+
+            var identityOptions = IdentitySequenceOptionsData.Deserialize(annotationValue);
+            return new List<MethodCallCodeFragment>
+            {
+                new MethodCallCodeFragment(
+                    nameof(NpgsqlPropertyBuilderExtensions.HasIdentityOptions),
+                    identityOptions.StartValue,
+                    identityOptions.IncrementBy == 1 ? null : (long?) identityOptions.IncrementBy,
+                    identityOptions.MinValue,
+                    identityOptions.MaxValue,
+                    identityOptions.IsCyclic ? true : (bool?) null,
+                    identityOptions.NumbersToCache == 1 ? null : (long?) identityOptions.NumbersToCache)
+            };
         }
 
         protected override MethodCallCodeFragment GenerateFluentApi(IIndex index, IAnnotation annotation)
@@ -182,5 +251,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
                     => new MethodCallCodeFragment(nameof(NpgsqlIndexBuilderExtensions.IncludeProperties), annotation.Value),
                 _ => null
             };
+
+        static bool TryGetAndRemove<T>(IDictionary<string, IAnnotation> annotations, string annotationName, out T annotationValue)
+        {
+            if (annotations.TryGetValue(annotationName, out var annotation)
+                && annotation.Value != null)
+            {
+                annotations.Remove(annotationName);
+                annotationValue = (T)annotation.Value;
+                return true;
+            }
+
+            annotationValue = default;
+            return false;
+        }
     }
 }
