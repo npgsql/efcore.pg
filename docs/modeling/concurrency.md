@@ -24,4 +24,5 @@ class Blog
 {
 	...
 	public uint xmin { get; set; }
-}```
+}
+```
