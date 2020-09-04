@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestUtilities;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Extensions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -133,7 +132,7 @@ LIMIT 2");
             AssertSql(
                 @"SELECT COUNT(*)::INT
 FROM ""JsonEntities"" AS j
-WHERE (j.""CustomerJsonb"" @> '{""Name"": ""Joe"", ""Age"": 25}')");
+WHERE j.""CustomerJsonb"" @> '{""Name"": ""Joe"", ""Age"": 25}'");
         }
 
         [Fact]
@@ -151,7 +150,7 @@ WHERE (j.""CustomerJsonb"" @> '{""Name"": ""Joe"", ""Age"": 25}')");
 
 SELECT COUNT(*)::INT
 FROM ""JsonEntities"" AS j
-WHERE (@__element_1 <@ j.""CustomerJsonb"")");
+WHERE @__element_1 <@ j.""CustomerJsonb""");
         }
 
         [Fact]
@@ -165,7 +164,7 @@ WHERE (@__element_1 <@ j.""CustomerJsonb"")");
             AssertSql(
                 @"SELECT COUNT(*)::INT
 FROM ""JsonEntities"" AS j
-WHERE ('{""Name"": ""Joe"", ""Age"": 25}' <@ j.""CustomerJsonb"")");
+WHERE '{""Name"": ""Joe"", ""Age"": 25}' <@ j.""CustomerJsonb""");
         }
 
         [Fact]
@@ -179,7 +178,7 @@ WHERE ('{""Name"": ""Joe"", ""Age"": 25}' <@ j.""CustomerJsonb"")");
             AssertSql(
                 @"SELECT COUNT(*)::INT
 FROM ""JsonEntities"" AS j
-WHERE (j.""CustomerJsonb"" ? 'Age')");
+WHERE j.""CustomerJsonb"" ? 'Age'");
         }
 
         [Fact]
@@ -193,7 +192,7 @@ WHERE (j.""CustomerJsonb"" ? 'Age')");
             AssertSql(
                 @"SELECT COUNT(*)::INT
 FROM ""JsonEntities"" AS j
-WHERE (j.""CustomerJsonb"" ?| ARRAY['foo','Age']::text[])");
+WHERE j.""CustomerJsonb"" ?| ARRAY['foo','Age']::text[]");
         }
 
         [Fact]
@@ -207,7 +206,7 @@ WHERE (j.""CustomerJsonb"" ?| ARRAY['foo','Age']::text[])");
             AssertSql(
                 @"SELECT COUNT(*)::INT
 FROM ""JsonEntities"" AS j
-WHERE (j.""CustomerJsonb"" ?& ARRAY['foo','Age']::text[])");
+WHERE j.""CustomerJsonb"" ?& ARRAY['foo','Age']::text[]");
         }
 
         #endregion Functions

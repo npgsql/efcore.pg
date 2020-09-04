@@ -71,7 +71,7 @@ namespace Microsoft.EntityFrameworkCore
             [CanBeNull] string method,
             bool fromDataAnnotation = false)
         {
-            if (indexBuilder.CanSetHasMethod(method, fromDataAnnotation))
+            if (indexBuilder.CanSetMethod(method, fromDataAnnotation))
             {
                 indexBuilder.Metadata.SetMethod(method, fromDataAnnotation);
 
@@ -91,7 +91,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="method">The name of the index.</param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns><c>true</c> if the index can be configured with the method</returns>
-        public static bool CanSetHasMethod(
+        public static bool CanSetMethod(
             [NotNull] this IConventionIndexBuilder indexBuilder,
             [CanBeNull] string method,
             bool fromDataAnnotation = false)
@@ -155,7 +155,7 @@ namespace Microsoft.EntityFrameworkCore
             [CanBeNull] IReadOnlyList<string> operators,
             bool fromDataAnnotation)
         {
-            if (indexBuilder.CanSetHasOperators(operators, fromDataAnnotation))
+            if (indexBuilder.CanSetOperators(operators, fromDataAnnotation))
             {
                 indexBuilder.Metadata.SetOperators(operators, fromDataAnnotation);
 
@@ -175,7 +175,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="operators">The operators to use for each column.</param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns><c>true</c> if the index can be configured with the method.</returns>
-        public static bool CanSetHasOperators(
+        public static bool CanSetOperators(
             [NotNull] this IConventionIndexBuilder indexBuilder,
             [CanBeNull] IReadOnlyList<string> operators,
             bool fromDataAnnotation)
@@ -256,7 +256,7 @@ namespace Microsoft.EntityFrameworkCore
         {
             Check.NotNull(indexBuilder, nameof(indexBuilder));
 
-            if (indexBuilder.CanSetToTsVector(config))
+            if (indexBuilder.CanSetIsTsVectorExpressionIndex(config))
             {
                 indexBuilder.Metadata.SetTsVectorConfig(config);
 
@@ -281,7 +281,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns><c>true</c> if the index can be configured as a full-text tsvector expression index.</returns>
-        public static bool CanSetToTsVector(
+        public static bool CanSetIsTsVectorExpressionIndex(
             [NotNull] this IConventionIndexBuilder indexBuilder,
             [CanBeNull] string config,
             bool fromDataAnnotation = false)
@@ -304,7 +304,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="indexBuilder">The builder for the index being configured.</param>
         /// <param name="values">The sort options to use for each column.</param>
         /// <returns>A builder to further configure the index.</returns>
-        public static IndexBuilder HasCollation(
+        public static IndexBuilder UseCollation(
             [NotNull] this IndexBuilder indexBuilder,
             [CanBeNull] params string[] values)
         {
@@ -325,10 +325,10 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="indexBuilder">The builder for the index being configured.</param>
         /// <param name="values">The sort options to use for each column.</param>
         /// <returns>A builder to further configure the index.</returns>
-        public static IndexBuilder<TEntity> HasCollation<TEntity>(
+        public static IndexBuilder<TEntity> UseCollation<TEntity>(
             [NotNull] this IndexBuilder<TEntity> indexBuilder,
             [CanBeNull] params string[] values)
-            => (IndexBuilder<TEntity>)HasCollation((IndexBuilder)indexBuilder, values);
+            => (IndexBuilder<TEntity>)UseCollation((IndexBuilder)indexBuilder, values);
 
         /// <summary>
         /// The PostgreSQL index collation to be used.
@@ -340,12 +340,12 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="values">The sort options to use for each column.</param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns>A builder to further configure the index.</returns>
-        public static IConventionIndexBuilder HasCollation(
+        public static IConventionIndexBuilder UseCollation(
             [NotNull] this IConventionIndexBuilder indexBuilder,
             [CanBeNull] IReadOnlyList<string> values,
             bool fromDataAnnotation)
         {
-            if (indexBuilder.CanSetHasCollation(values, fromDataAnnotation))
+            if (indexBuilder.CanSetCollation(values, fromDataAnnotation))
             {
                 indexBuilder.Metadata.SetCollation(values, fromDataAnnotation);
 
@@ -365,14 +365,14 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="values">The sort options to use for each column.</param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns>A builder to further configure the index.</returns>
-        public static bool CanSetHasCollation(
+        public static bool CanSetCollation(
             [NotNull] this IConventionIndexBuilder indexBuilder,
             [CanBeNull] IReadOnlyList<string> values,
             bool fromDataAnnotation)
         {
             Check.NotNull(indexBuilder, nameof(indexBuilder));
 
-            return indexBuilder.CanSetAnnotation(NpgsqlAnnotationNames.IndexCollation, values, fromDataAnnotation);
+            return indexBuilder.CanSetAnnotation(RelationalAnnotationNames.Collation, values, fromDataAnnotation);
         }
 
         #endregion Collation
@@ -430,7 +430,7 @@ namespace Microsoft.EntityFrameworkCore
             [CanBeNull] IReadOnlyList<SortOrder> values,
             bool fromDataAnnotation)
         {
-            if (indexBuilder.CanSetHasSortOrder(values, fromDataAnnotation))
+            if (indexBuilder.CanSetSortOrder(values, fromDataAnnotation))
             {
                 Check.NotNull(indexBuilder, nameof(indexBuilder));
                 Check.NullButNotEmpty(values, nameof(values));
@@ -454,7 +454,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="values">The sort order to use for each column.</param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns>A builder to further configure the index.</returns>
-        public static bool CanSetHasSortOrder(
+        public static bool CanSetSortOrder(
             [NotNull] this IConventionIndexBuilder indexBuilder,
             [CanBeNull] IReadOnlyList<SortOrder> values,
             bool fromDataAnnotation)
@@ -518,10 +518,10 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns>A builder to further configure the index.</returns>
         public static IConventionIndexBuilder HasNullSortOrder(
             [NotNull] this IConventionIndexBuilder indexBuilder,
-            IReadOnlyList<NullSortOrder> values,
+            [CanBeNull] IReadOnlyList<NullSortOrder> values,
             bool fromDataAnnotation)
         {
-            if (indexBuilder.CanSetHasNullSortOrder(values, fromDataAnnotation))
+            if (indexBuilder.CanSetNullSortOrder(values, fromDataAnnotation))
             {
                 var sortOrders = indexBuilder.Metadata.GetSortOrder();
 
@@ -544,9 +544,9 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="values">The sort order to use for each column.</param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns>A builder to further configure the index.</returns>
-        public static bool CanSetHasNullSortOrder(
+        public static bool CanSetNullSortOrder(
             [NotNull] this IConventionIndexBuilder indexBuilder,
-            IReadOnlyList<NullSortOrder> values,
+            [CanBeNull] IReadOnlyList<NullSortOrder> values,
             bool fromDataAnnotation)
         {
             Check.NotNull(indexBuilder, nameof(indexBuilder));
@@ -627,7 +627,7 @@ namespace Microsoft.EntityFrameworkCore
             [NotNull] IReadOnlyList<string> propertyNames,
             bool fromDataAnnotation = false)
         {
-            if (indexBuilder.CanSetInclude(propertyNames, fromDataAnnotation))
+            if (indexBuilder.CanSetIncludeProperties(propertyNames, fromDataAnnotation))
             {
                 indexBuilder.Metadata.SetIncludeProperties(propertyNames, fromDataAnnotation);
 
@@ -644,7 +644,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="propertyNames">An array of property names to be used in 'include' clause.</param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns> <c>true</c> if the given include properties can be set. </returns>
-        public static bool CanSetInclude(
+        public static bool CanSetIncludeProperties(
             [NotNull] this IConventionIndexBuilder indexBuilder,
             [CanBeNull] IReadOnlyList<string> propertyNames,
             bool fromDataAnnotation = false)
@@ -740,5 +740,175 @@ namespace Microsoft.EntityFrameworkCore
         }
 
         #endregion Created concurrently
+
+        #region Obsolete
+
+        /// <summary>
+        /// The PostgreSQL index collation to be used.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/static/indexes-collations.html
+        /// </remarks>
+        /// <param name="indexBuilder">The builder for the index being configured.</param>
+        /// <param name="values">The sort options to use for each column.</param>
+        /// <returns>A builder to further configure the index.</returns>
+        [Obsolete("Use UseCollation")]
+        public static IndexBuilder HasCollation(
+            [NotNull] this IndexBuilder indexBuilder,
+            [CanBeNull] params string[] values)
+            => UseCollation(indexBuilder, values);
+
+        /// <summary>
+        /// The PostgreSQL index collation to be used.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/static/indexes-collations.html
+        /// </remarks>
+        /// <param name="indexBuilder">The builder for the index being configured.</param>
+        /// <param name="values">The sort options to use for each column.</param>
+        /// <returns>A builder to further configure the index.</returns>
+        [Obsolete("Use UseCollation")]
+        public static IndexBuilder<TEntity> HasCollation<TEntity>(
+            [NotNull] this IndexBuilder<TEntity> indexBuilder,
+            [CanBeNull] params string[] values)
+            => UseCollation(indexBuilder, values);
+
+        /// <summary>
+        /// The PostgreSQL index collation to be used.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/static/indexes-collations.html
+        /// </remarks>
+        /// <param name="indexBuilder">The builder for the index being configured.</param>
+        /// <param name="values">The sort options to use for each column.</param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        /// <returns>A builder to further configure the index.</returns>
+        [Obsolete("Use UseCollation")]
+        public static IConventionIndexBuilder HasCollation(
+            [NotNull] this IConventionIndexBuilder indexBuilder,
+            [CanBeNull] IReadOnlyList<string> values,
+            bool fromDataAnnotation)
+            => UseCollation(indexBuilder, values, fromDataAnnotation);
+
+        /// <summary>
+        /// Returns a value indicating whether the PostgreSQL index collation can be set.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/static/indexes-collations.html
+        /// </remarks>
+        /// <param name="indexBuilder">The builder for the index being configured.</param>
+        /// <param name="values">The sort options to use for each column.</param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        /// <returns>A builder to further configure the index.</returns>
+        [Obsolete("Use CanSetHasCollation")]
+        public static bool CanSetHasCollation(
+            [NotNull] this IConventionIndexBuilder indexBuilder,
+            [CanBeNull] IReadOnlyList<string> values,
+            bool fromDataAnnotation)
+            => CanSetCollation(indexBuilder, values, fromDataAnnotation);
+
+        /// <summary>
+        /// The PostgreSQL index method to be used. Null selects the default (currently btree).
+        /// </summary>
+        /// <remarks>
+        /// http://www.postgresql.org/docs/current/static/sql-createindex.html
+        /// </remarks>
+        /// <param name="indexBuilder">The builder for the index being configured.</param>
+        /// <param name="method">The name of the index.</param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        /// <returns><c>true</c> if the index can be configured with the method</returns>
+        [Obsolete("Use CanSetMethod")]
+        public static bool CanSetHasMethod(
+            [NotNull] this IConventionIndexBuilder indexBuilder, [CanBeNull] string method,
+            bool fromDataAnnotation = false)
+            => CanSetMethod(indexBuilder, method, fromDataAnnotation);
+
+        /// <summary>
+        /// Returns a value indicating whether the PostgreSQL index operators can be set.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/static/indexes-opclass.html
+        /// </remarks>
+        /// <param name="indexBuilder">The builder for the index being configured.</param>
+        /// <param name="operators">The operators to use for each column.</param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        /// <returns><c>true</c> if the index can be configured with the method.</returns>
+        [Obsolete("Use CanSetOperators")]
+        public static bool CanSetHasOperators(
+            [NotNull] this IConventionIndexBuilder indexBuilder, [CanBeNull] IReadOnlyList<string> operators,
+            bool fromDataAnnotation)
+            => CanSetOperators(indexBuilder, operators, fromDataAnnotation);
+
+        /// <summary>
+        /// Returns a value indicating whether the index can be configured as a full-text tsvector expression index.
+        /// </summary>
+        /// <param name="indexBuilder">The builder for the index being configured.</param>
+        /// <param name="config">
+        /// <para>
+        /// The text search configuration for this generated tsvector property, or <c>null</c> if this is not a
+        /// generated tsvector property.
+        /// </para>
+        /// <para>
+        /// See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
+        /// </para>
+        /// </param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        /// <returns><c>true</c> if the index can be configured as a full-text tsvector expression index.</returns>
+        [Obsolete("Use CanSetIsTsVectorExpressionIndex")]
+        public static bool CanSetToTsVector(
+            [NotNull] this IConventionIndexBuilder indexBuilder,
+            [CanBeNull] string config,
+            bool fromDataAnnotation = false)
+            => CanSetIsTsVectorExpressionIndex(indexBuilder, config, fromDataAnnotation);
+
+        /// <summary>
+        /// Returns a value indicating whether the PostgreSQL index sort ordering can be set.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
+        /// </remarks>
+        /// <param name="indexBuilder">The builder for the index being configured.</param>
+        /// <param name="values">The sort order to use for each column.</param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        /// <returns>A builder to further configure the index.</returns>
+        [Obsolete("Use CanSetSortOrder")]
+        public static bool CanSetHasSortOrder(
+            [NotNull] this IConventionIndexBuilder indexBuilder,
+            [CanBeNull] IReadOnlyList<SortOrder> values,
+            bool fromDataAnnotation)
+            => CanSetSortOrder(indexBuilder, values, fromDataAnnotation);
+
+        /// <summary>
+        /// Returns a value indicating whether the PostgreSQL index null sort ordering can be set.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
+        /// </remarks>
+        /// <param name="indexBuilder">The builder for the index being configured.</param>
+        /// <param name="values">The sort order to use for each column.</param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        /// <returns>A builder to further configure the index.</returns>
+        [Obsolete("Use CanSetNullSortOrder")]
+        public static bool CanSetHasNullSortOrder(
+            [NotNull] this IConventionIndexBuilder indexBuilder,
+            [CanBeNull] IReadOnlyList<NullSortOrder> values,
+            bool fromDataAnnotation)
+            => CanSetNullSortOrder(indexBuilder, values, fromDataAnnotation);
+
+        /// <summary>
+        /// Returns a value indicating whether the given include properties can be set.
+        /// </summary>
+        /// <param name="indexBuilder">The builder for the index being configured.</param>
+        /// <param name="propertyNames">An array of property names to be used in 'include' clause.</param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        /// <returns> <c>true</c> if the given include properties can be set. </returns>
+        [Obsolete("Use CanSetIncludeProperties")]
+        public static bool CanSetInclude(
+            [NotNull] this IConventionIndexBuilder indexBuilder,
+            [CanBeNull] IReadOnlyList<string> propertyNames,
+            bool fromDataAnnotation = false)
+            => CanSetIncludeProperties(indexBuilder, propertyNames, fromDataAnnotation);
+
+        #endregion Obsolete
     }
 }

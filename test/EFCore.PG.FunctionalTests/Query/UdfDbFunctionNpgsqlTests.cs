@@ -10,17 +10,15 @@ using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public class UdfDbFunctionNpgsqlTests : UdfDbFunctionTestBase<UdfDbFunctionNpgsqlTests.Npgsql>
+    public class UdfDbFunctionNpgsqlTests : UdfDbFunctionTestBase<UdfDbFunctionNpgsqlTests.UdfNpgsqlFixture>
     {
         // ReSharper disable once UnusedParameter.Local
-        public UdfDbFunctionNpgsqlTests(Npgsql fixture, ITestOutputHelper testOutputHelper)
+        public UdfDbFunctionNpgsqlTests(UdfNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
         {
             Fixture.TestSqlLoggerFactory.Clear();
             //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
-
-        #region Scalar Tests
 
         #region Static
 
@@ -135,7 +133,7 @@ WHERE ""IsTopCustomer""(c.""Id"")");
             base.Scalar_Function_Where_Not_Correlated_Static();
 
             AssertSql(
-                @"@__startDate_0='2000-04-01T00:00:00' (Nullable = true) (DbType = DateTime)
+                @"@__startDate_0='2000-04-01T00:00:00.0000000' (Nullable = true) (DbType = DateTime)
 
 SELECT c.""Id""
 FROM ""Customers"" AS c
@@ -513,7 +511,7 @@ WHERE ""IsTopCustomer""(c.""Id"")");
             base.Scalar_Function_Where_Not_Correlated_Instance();
 
             AssertSql(
-                @"@__startDate_1='2000-04-01T00:00:00' (Nullable = true) (DbType = DateTime)
+                @"@__startDate_1='2000-04-01T00:00:00.0000000' (Nullable = true) (DbType = DateTime)
 
 SELECT c.""Id""
 FROM ""Customers"" AS c
@@ -757,47 +755,6 @@ LIMIT 2");
 
         #endregion
 
-        #endregion
-
-        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/pull/20138")]
-        public override void QF_CrossJoin_Not_Correlated() {}
-
-        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/pull/20138")]
-        public override void QF_CrossJoin_Parameter() {}
-
-        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/pull/20138")]
-        public override void QF_Join() {}
-
-        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/pull/20138")]
-        public override void QF_LeftJoin_Select_Anonymous() {}
-
-        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/pull/20138")]
-        public override void QF_LeftJoin_Select_Result() {}
-
-        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/pull/20138")]
-        public override void QF_Select_Correlated_Subquery_In_Anonymous_MultipleCollections() {}
-
-        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/pull/20138")]
-        public override void QF_Select_NonCorrelated_Subquery_In_Anonymous() {}
-
-        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/pull/20138")]
-        public override void QF_Select_NonCorrelated_Subquery_In_Anonymous_Parameter() {}
-
-        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/pull/20138")]
-        public override void QF_Stand_Alone() {}
-
-        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/pull/20138")]
-        public override void QF_Stand_Alone_Parameter() {}
-
-        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/pull/20138")]
-        public override void QF_Stand_Alone_With_Translation() {}
-
-        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/pull/20138")]
-        public override void QF_Select_Correlated_Subquery_In_Anonymous_Nested() {}
-
-        [ConditionalFact(Skip = "https://github.com/dotnet/efcore/pull/20138")]
-        public override void QF_Select_Direct_In_Anonymous() {}
-
         protected class NpgsqlUDFSqlContext : UDFSqlContext
         {
             public NpgsqlUDFSqlContext(DbContextOptions options)
@@ -813,7 +770,7 @@ LIMIT 2");
                 // don't get any quotes. We remap it as non-built-in by including a (null) schema.
                 var isDateMethodInfo = typeof(UDFSqlContext).GetMethod(nameof(IsDateStatic));
                 modelBuilder.HasDbFunction(isDateMethodInfo)
-                    .HasTranslation(args => SqlFunctionExpression.Create(
+                    .HasTranslation(args => new SqlFunctionExpression(
                         schema: null,
                         "IsDate",
                         args,
@@ -824,7 +781,7 @@ LIMIT 2");
 
                 var isDateMethodInfo2 = typeof(UDFSqlContext).GetMethod(nameof(IsDateInstance));
                 modelBuilder.HasDbFunction(isDateMethodInfo2)
-                    .HasTranslation(args => SqlFunctionExpression.Create(
+                    .HasTranslation(args => new SqlFunctionExpression(
                         schema: null,
                         "IsDate",
                         args,
@@ -836,7 +793,7 @@ LIMIT 2");
                 // Base class maps to len(), but in PostgreSQL it's called length()
                 var methodInfo = typeof(UDFSqlContext).GetMethod(nameof(MyCustomLengthStatic));
                 modelBuilder.HasDbFunction(methodInfo)
-                    .HasTranslation(args => SqlFunctionExpression.Create(
+                    .HasTranslation(args => new SqlFunctionExpression(
                         "length",
                         args,
                         nullable: true,
@@ -846,7 +803,7 @@ LIMIT 2");
 
                 var methodInfo2 = typeof(UDFSqlContext).GetMethod(nameof(MyCustomLengthInstance));
                 modelBuilder.HasDbFunction(methodInfo2)
-                    .HasTranslation(args => SqlFunctionExpression.Create(
+                    .HasTranslation(args => new SqlFunctionExpression(
                         "length",
                         args,
                         nullable: true,
@@ -856,7 +813,7 @@ LIMIT 2");
             }
         }
 
-        public class Npgsql : UdfFixtureBase
+        public class UdfNpgsqlFixture : UdfFixtureBase
         {
             protected override string StoreName { get; } = "UDFDbFunctionNpgsqlTests";
             protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
@@ -933,6 +890,23 @@ LIMIT 2");
                         ORDER BY EXTRACT(year FROM ""OrderDate"")
                     $$ LANGUAGE SQL");
 
+                context.Database.ExecuteSqlRaw(@"
+                    CREATE FUNCTION ""StringLength""(""s"" TEXT)
+                    RETURNS INT
+                    AS $$ SELECT LENGTH($1) $$
+                    LANGUAGE SQL");
+
+                context.Database.ExecuteSqlRaw(@"
+                    CREATE FUNCTION ""GetCustomerOrderCountByYearOnlyFrom2000""(""customerId"" INT, ""onlyFrom2000"" BOOL)
+                    RETURNS TABLE (""CustomerId"" INT, ""Count"" INT, ""Year"" INT)
+                    AS $$
+                    SELECT $1, COUNT(""Id"")::INT, EXTRACT(year FROM ""OrderDate"")::INT
+                        FROM ""Orders""
+                        WHERE ""CustomerId"" = 1 AND (NOT $2 OR $2 IS NULL OR ($2 AND EXTRACT(year FROM ""OrderDate"") = 2000))
+                        GROUP BY ""CustomerId"", EXTRACT(year FROM ""OrderDate"")
+                        ORDER BY EXTRACT(year FROM ""OrderDate"")
+                    $$ LANGUAGE SQL");
+
                  context.Database.ExecuteSqlRaw(@"
                     CREATE FUNCTION ""GetTopTwoSellingProducts""()
                     RETURNS TABLE (""ProductId"" INT, ""AmountSold"" INT)
@@ -954,25 +928,6 @@ LIMIT 2");
                         WHERE o.""CustomerId"" = $1
                         GROUP BY o.""Id"", ""OrderDate""
                         HAVING COUNT(""ProductId"") > 1
-                    $$ LANGUAGE SQL");
-
-                 context.Database.ExecuteSqlRaw(@"
-                    CREATE FUNCTION ""GetCreditCards"" (""customerId"" INT)
-                    RETURNS TABLE (""Id"" INT, ""CreditCard_CreditCardType"" INT, ""CreditCard_Number"" TEXT)
-                    AS $$
-                        SELECT ""Id"", ""CreditCard_CreditCardType"", ""CreditCard_Number""
-                        FROM ""Customers"" AS c
-                        WHERE c.""CreditCard_CreditCardType"" IS NOT NULL AND c.""CreditCard_Number"" IS NOT NULL
-                            AND c.""Id"" = $1
-                    $$ LANGUAGE SQL");
-
-                 context.Database.ExecuteSqlRaw(@"
-                    CREATE FUNCTION""GetPhoneInformation"" (""customerId"" INT, ""areaCode"" VARCHAR(3))
-                    RETURNS TABLE (""PhoneType"" INT, ""Number"" TEXT, ""CustomerId"" INT, ""Id"" INT)
-                    AS $$
-                        SELECT ""PhoneType"", ""Number"", ""CustomerId"", ""Id""
-                        FROM ""PhoneInformation"" AS pi
-                        WHERE pi.""CustomerId"" = $1 AND POSITION($2 IN pi.""Number"") = 1
                     $$ LANGUAGE SQL");
 
                  context.Database.ExecuteSqlRaw(@"

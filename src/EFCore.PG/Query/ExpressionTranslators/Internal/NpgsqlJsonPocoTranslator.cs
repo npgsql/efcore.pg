@@ -1,13 +1,14 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using System.Text.Json.Serialization;
 using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
@@ -15,22 +16,33 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 {
     public class NpgsqlJsonPocoTranslator : IMemberTranslator
     {
-        [NotNull]
+        readonly IRelationalTypeMappingSource _typeMappingSource;
         readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
-
-        [NotNull]
         readonly RelationalTypeMapping _stringTypeMapping;
 
-        public NpgsqlJsonPocoTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory)
+        public NpgsqlJsonPocoTranslator(
+            [NotNull] IRelationalTypeMappingSource typeMappingSource,
+            [NotNull] NpgsqlSqlExpressionFactory sqlExpressionFactory)
         {
+            _typeMappingSource = typeMappingSource;
             _sqlExpressionFactory = sqlExpressionFactory;
-            _stringTypeMapping = sqlExpressionFactory.FindMapping(typeof(string));
+            _stringTypeMapping = typeMappingSource.FindMapping(typeof(string));
         }
 
-        public SqlExpression Translate(SqlExpression instance, MemberInfo member, Type returnType)
-            => TranslateMemberAccess(instance, _sqlExpressionFactory.Constant(member.Name), returnType);
+        public virtual SqlExpression Translate(SqlExpression instance,
+            MemberInfo member,
+            Type returnType,
+            IDiagnosticsLogger<DbLoggerCategory.Query> logger)
+            => instance?.TypeMapping is NpgsqlJsonTypeMapping || instance is PostgresJsonTraversalExpression
+                ? TranslateMemberAccess(
+                    instance,
+                    _sqlExpressionFactory.Constant(
+                        member.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name ?? member.Name),
+                    returnType)
+                : null;
 
-        public SqlExpression TranslateMemberAccess(SqlExpression instance, SqlExpression member, Type returnType)
+        public virtual SqlExpression TranslateMemberAccess(
+            [NotNull] SqlExpression instance, [NotNull] SqlExpression member, [NotNull] Type returnType)
         {
             // The first time we see a JSON traversal it's on a column - create a JsonTraversalExpression.
             // Traversals on top of that get appended into the same expression.
@@ -48,7 +60,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     returnType);
             }
 
-            if (instance is JsonTraversalExpression prevPathTraversal)
+            if (instance is PostgresJsonTraversalExpression prevPathTraversal)
             {
                 return ConvertFromText(
                     prevPathTraversal.Append(_sqlExpressionFactory.ApplyDefaultTypeMapping(member)),
@@ -58,7 +70,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             return null;
         }
 
-        public SqlExpression TranslateArrayLength(SqlExpression expression)
+        public virtual SqlExpression TranslateArrayLength([NotNull] SqlExpression expression)
         {
             if (expression is ColumnExpression columnExpression &&
                 columnExpression.TypeMapping is NpgsqlJsonTypeMapping mapping)
@@ -71,16 +83,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     typeof(int));
             }
 
-            if (expression is JsonTraversalExpression traversal)
+            if (expression is PostgresJsonTraversalExpression traversal)
             {
                 // The traversal expression has ReturnsText=true (e.g. ->> not ->), so we recreate it to return
                 // the JSON object instead.
                 var lastPathComponent = traversal.Path.Last();
-                var newTraversal = new JsonTraversalExpression(
+                var newTraversal = new PostgresJsonTraversalExpression(
                     traversal.Expression, traversal.Path,
                     returnsText: false,
                     lastPathComponent.Type,
-                    _sqlExpressionFactory.FindMapping(lastPathComponent.Type));
+                    _typeMappingSource.FindMapping(lastPathComponent.Type));
 
                 var jsonMapping = (NpgsqlJsonTypeMapping)traversal.Expression.TypeMapping;
                 return _sqlExpressionFactory.Function(
@@ -97,7 +109,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         // The PostgreSQL traversal operator always returns text, so we need to convert to int, bool, etc.
         SqlExpression ConvertFromText(SqlExpression expression, Type returnType)
         {
-            switch (Type.GetTypeCode(returnType.UnwrapNullableType()))
+            var unwrappedReturnType = returnType.UnwrapNullableType();
+
+            switch (Type.GetTypeCode(unwrappedReturnType))
             {
             case TypeCode.Boolean:
             case TypeCode.Byte:
@@ -112,10 +126,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             case TypeCode.UInt16:
             case TypeCode.UInt32:
             case TypeCode.UInt64:
-                return _sqlExpressionFactory.Convert(expression, returnType, _sqlExpressionFactory.FindMapping(returnType));
+                return _sqlExpressionFactory.Convert(expression, returnType, _typeMappingSource.FindMapping(returnType));
             default:
-                return (returnType == typeof(Guid))
-                    ? _sqlExpressionFactory.Convert(expression, returnType, _sqlExpressionFactory.FindMapping(returnType))
+                return unwrappedReturnType == typeof(Guid)
+                    ? _sqlExpressionFactory.Convert(expression, returnType, _typeMappingSource.FindMapping(returnType))
                     : expression;
             }
         }

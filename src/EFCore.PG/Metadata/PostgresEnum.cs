@@ -137,28 +137,27 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         /// The <see cref="Annotatable"/> that stores the enum.
         /// </summary>
         [NotNull]
-        public Annotatable Annotatable => (Annotatable)_annotatable;
+        public virtual Annotatable Annotatable => (Annotatable)_annotatable;
 
         /// <summary>
         /// The enum schema or null to represent the default schema.
         /// </summary>
         [CanBeNull]
-        public string Schema => GetData().Schema;
+        public virtual string Schema => GetData().Schema;
 
         /// <summary>
         /// The enum name.
         /// </summary>
         [NotNull]
-        public string Name => GetData().Name;
+        public virtual string Name => GetData().Name;
 
         /// <summary>
         /// The enum labels.
         /// </summary>
-        [NotNull]
-        public IReadOnlyList<string> Labels
+        public virtual IReadOnlyList<string> Labels
         {
             get => GetData().Labels;
-            set => SetData(value);
+            [param: NotNull] set => SetData(value);
         }
 
         (string Schema, string Name, string[] Labels) GetData()

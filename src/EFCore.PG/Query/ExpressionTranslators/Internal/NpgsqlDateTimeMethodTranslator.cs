@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -43,8 +45,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         /// Initializes a new instance of the <see cref="Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal.NpgsqlDateTimeMethodTranslator"/> class.
         /// </summary>
         public NpgsqlDateTimeMethodTranslator(
-            ISqlExpressionFactory sqlExpressionFactory,
-            IRelationalTypeMappingSource typeMappingSource)
+            [NotNull] IRelationalTypeMappingSource typeMappingSource,
+            [NotNull] ISqlExpressionFactory sqlExpressionFactory)
         {
             _sqlExpressionFactory = sqlExpressionFactory;
             _intervalMapping = typeMappingSource.FindMapping("interval");
@@ -52,7 +54,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         }
 
         /// <inheritdoc />
-        public SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
+        public virtual SqlExpression Translate(
+            SqlExpression instance,
+            MethodInfo method,
+            IReadOnlyList<SqlExpression> arguments,
+            IDiagnosticsLogger<DbLoggerCategory.Query> logger)
         {
             if (!MethodInfoDatePartMapping.TryGetValue(method, out var datePart))
                 return null;

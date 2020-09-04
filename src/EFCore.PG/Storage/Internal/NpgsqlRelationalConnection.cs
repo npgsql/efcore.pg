@@ -44,7 +44,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             return conn;
         }
 
-        public INpgsqlRelationalConnection CreateMasterConnection()
+        public virtual INpgsqlRelationalConnection CreateMasterConnection()
         {
             var adminDb = Dependencies.ContextOptions.FindExtension<NpgsqlOptionsExtension>()?.AdminDatabase
                           ?? "postgres";

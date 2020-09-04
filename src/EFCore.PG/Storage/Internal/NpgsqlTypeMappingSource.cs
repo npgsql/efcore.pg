@@ -7,6 +7,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Reflection;
+using System.Text;
 using System.Text.Json;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
@@ -23,18 +25,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
     {
         [NotNull] readonly ISqlGenerationHelper _sqlGenerationHelper;
 
-        public ConcurrentDictionary<string, RelationalTypeMapping[]> StoreTypeMappings { get; }
-        public ConcurrentDictionary<Type, RelationalTypeMapping> ClrTypeMappings { get; }
+        protected virtual ConcurrentDictionary<string, RelationalTypeMapping[]> StoreTypeMappings { get; }
+        protected virtual ConcurrentDictionary<Type, RelationalTypeMapping> ClrTypeMappings { get; }
 
         readonly IReadOnlyList<UserRangeDefinition> _userRangeDefinitions;
 
         #region Mappings
 
         // Numeric types
-        readonly FloatTypeMapping              _float4             = new FloatTypeMapping("real", DbType.Single);
-        readonly DoubleTypeMapping             _float8             = new DoubleTypeMapping("double precision", DbType.Double);
+        readonly NpgsqlFloatTypeMapping        _float4             = new NpgsqlFloatTypeMapping();
+        readonly NpgsqlDoubleTypeMapping       _float8             = new NpgsqlDoubleTypeMapping();
         readonly DecimalTypeMapping            _numeric            = new DecimalTypeMapping("numeric", DbType.Decimal);
-        readonly DecimalTypeMapping            _money              = new DecimalTypeMapping("money");
+        readonly NpgsqlMoneyTypeMapping        _money              = new NpgsqlMoneyTypeMapping();
         readonly GuidTypeMapping               _uuid               = new GuidTypeMapping("uuid", DbType.Guid);
         readonly ShortTypeMapping              _int2               = new ShortTypeMapping("smallint", DbType.Int16);
         readonly ByteTypeMapping               _int2Byte           = new ByteTypeMapping("smallint", DbType.Byte);
@@ -267,15 +269,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         /// To be used in case user-defined mappings are added late, after this TypeMappingSource has already been initialized.
         /// This is basically only for test usage.
         /// </summary>
-        public void LoadUserDefinedTypeMappings([NotNull] ISqlGenerationHelper sqlGenerationHelper)
+        public virtual void LoadUserDefinedTypeMappings([NotNull] ISqlGenerationHelper sqlGenerationHelper)
             => SetupEnumMappings(sqlGenerationHelper);
 
         /// <summary>
         /// Gets all global enum mappings from the ADO.NET layer and creates mappings for them
         /// </summary>
-        void SetupEnumMappings([NotNull] ISqlGenerationHelper sqlGenerationHelper)
+        protected virtual void SetupEnumMappings([NotNull] ISqlGenerationHelper sqlGenerationHelper)
         {
-            foreach (var adoMapping in NpgsqlConnection.GlobalTypeMapper.Mappings.Where(m => m.TypeHandlerFactory is IEnumTypeHandlerFactory))
+            foreach (var adoMapping in NpgsqlConnection.GlobalTypeMapper.Mappings.Where(m => m.TypeHandlerFactory is IEnumTypeHandlerFactory).ToArray())
             {
                 var storeType = adoMapping.PgTypeName;
                 var clrType = adoMapping.ClrTypes.SingleOrDefault();
@@ -301,7 +303,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         protected override RelationalTypeMapping FindMapping(in RelationalTypeMappingInfo mappingInfo) =>
             // First, try any plugins, allowing them to override built-in mappings (e.g. NodaTime)
             base.FindMapping(mappingInfo) ??
-            FindBaseMapping(mappingInfo) ??
+            FindBaseMapping(mappingInfo)?.Clone(mappingInfo) ??
             FindArrayMapping(mappingInfo) ??
             FindUserRangeMapping(mappingInfo);
 
@@ -539,6 +541,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             return new NpgsqlRangeTypeMapping(rangeDefinition.RangeName, rangeDefinition.SchemaName, rangeClrType, subtypeMapping, _sqlGenerationHelper);
         }
 
+        static bool NameBasesUsesPrecision(ReadOnlySpan<char> span)
+            => span.ToString() switch
+            {
+                "decimal"     => true,
+                "dec"         => true,
+                "numeric"     => true,
+                "timestamp"   => true,
+                "timestamptz" => true,
+                "time"        => true,
+                "interval"    => true,
+                _             => false
+            };
+
         // We override to support parsing array store names (e.g. varchar(32)[]), timestamp(5) with time zone, etc.
         protected override string ParseStoreTypeName(
             string storeTypeName,
@@ -547,51 +562,56 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             out int? precision,
             out int? scale)
         {
-            unicode = null;
-            size = null;
-            precision = null;
-            scale = null;
+            (unicode, size, precision, scale) = (null, null, null, null);
 
-            if (storeTypeName != null)
+            if (storeTypeName is null)
+                return null;
+
+            var span = storeTypeName.AsSpan().Trim();
+
+            var openParen = span.IndexOf("(", StringComparison.Ordinal);
+            if (openParen == -1)
+                return storeTypeName;
+            var afterOpenParen = span.Slice(openParen + 1).TrimStart();
+            var closeParen = afterOpenParen.IndexOf(")", StringComparison.Ordinal);
+            if (closeParen == -1)
+                return storeTypeName;
+
+            var preParens = span[..openParen].Trim();
+            var inParens = afterOpenParen[..closeParen].Trim();
+            // There may be stuff after the closing parentheses (e.g. varchar(32)[], timestamp(3) with time zone)
+            var postParens = afterOpenParen.Slice(closeParen + 1);
+
+            var comma = inParens.IndexOf(",", StringComparison.Ordinal);
+            if (comma != -1)
             {
-                var openParen = storeTypeName.IndexOf("(", StringComparison.Ordinal);
-                if (openParen > 0)
+                if (int.TryParse(inParens[..comma].Trim(), out var parsedPrecision))
+                    precision = parsedPrecision;
+                if (int.TryParse(inParens.Slice(comma + 1), out var parsedScale))
+                    scale = parsedScale;
+            }
+            else if (int.TryParse(inParens, out var parsedSize))
+            {
+                if (NameBasesUsesPrecision(preParens))
                 {
-                    var closeParen = storeTypeName.IndexOf(")", openParen + 1, StringComparison.Ordinal);
-                    if (closeParen > openParen)
-                    {
-                        var comma = storeTypeName.IndexOf(",", openParen + 1, StringComparison.Ordinal);
-                        if (comma > openParen
-                            && comma < closeParen)
-                        {
-                            if (int.TryParse(storeTypeName.Substring(openParen + 1, comma - openParen - 1), out var parsedPrecision))
-                            {
-                                precision = parsedPrecision;
-                            }
-
-                            if (int.TryParse(storeTypeName.Substring(comma + 1, closeParen - comma - 1), out var parsedScale))
-                            {
-                                scale = parsedScale;
-                            }
-                        }
-                        else if (int.TryParse(
-                            storeTypeName.Substring(openParen + 1, closeParen - openParen - 1).Trim(), out var parsedSize))
-                        {
-                            size = parsedSize;
-                            precision = parsedSize;
-                        }
-
-                        // There may be stuff after the closing parentheses (e.g. varchar(32)[])
-                        var preParens = storeTypeName.Substring(0, openParen).Trim();
-                        var postParens = storeTypeName.Substring(closeParen + 1).TrimEnd();
-                        return postParens.Length > 0
-                            ? preParens + postParens
-                            : preParens;
-                    }
+                    precision = parsedSize;
+                    scale = 0;
                 }
+                else
+                    size = parsedSize;
+            }
+            else
+                return storeTypeName;
+
+            if (postParens.Length > 0)
+            {
+                return new StringBuilder()
+                    .Append(preParens)
+                    .Append(postParens)
+                    .ToString();
             }
 
-            return storeTypeName;
+            return preParens.ToString();
         }
     }
 }

@@ -53,7 +53,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 @"CREATE TABLE dbo2.""People"" (
     ""CustomId"" integer NOT NULL,
     ""EmployerId"" integer NOT NULL,
-    ""SSN"" character varying(11) NOT NULL,
+    ""SSN"" character varying(11) COLLATE ""POSIX"" NOT NULL,
     CONSTRAINT ""PK_People"" PRIMARY KEY (""CustomId""),
     CONSTRAINT ""AK_People_SSN"" UNIQUE (""SSN""),
     CONSTRAINT ""CK_EmployerId"" CHECK (""EmployerId"" > 0),
@@ -103,6 +103,32 @@ COMMENT ON COLUMN ""People"".""Name"" IS 'This is a multi-line
 column comment.
 More information can
 be found in the docs.';");
+        }
+
+        public override async Task Create_table_with_computed_column(bool? stored)
+        {
+            if (TestEnvironment.PostgresVersion.IsUnder(12))
+            {
+                await Assert.ThrowsAsync<NotSupportedException>(() => base.Create_table_with_computed_column(stored));
+                return;
+            }
+
+            if (stored != true)
+            {
+                // Non-stored generated columns aren't yet supported (PG12)
+                await Assert.ThrowsAsync<NotSupportedException>(() => base.Create_table_with_computed_column(stored));
+                return;
+            }
+
+            await base.Create_table_with_computed_column(stored: true);
+
+            AssertSql(
+                @"CREATE TABLE ""People"" (
+    ""Id"" integer NOT NULL,
+    ""Sum"" text GENERATED ALWAYS AS (""X"" + ""Y"") STORED,
+    ""X"" integer NOT NULL,
+    ""Y"" integer NOT NULL
+);");
         }
 
         [Fact]
@@ -234,8 +260,8 @@ be found in the docs.';");
                     {
                         e.Property<int>("Id");
                         e.HasKey("Id");
-                        e.SetStorageParameter("fillfactor", 70);
-                        e.SetStorageParameter("user_catalog_table", true);
+                        e.HasStorageParameter("fillfactor", 70);
+                        e.HasStorageParameter("user_catalog_table", true);
                     }),
                 asserter: null);  // We don't scaffold storage parameters
 
@@ -321,20 +347,20 @@ WITH (fillfactor=70, user_catalog_table=true);");
                 builder => builder.Entity(
                     "People", e =>
                     {
-                        e.SetStorageParameter("fillfactor", 70);
-                        e.SetStorageParameter("user_catalog_table", true);
-                        e.SetStorageParameter("parallel_workers", 8);
+                        e.HasStorageParameter("fillfactor", 70);
+                        e.HasStorageParameter("user_catalog_table", true);
+                        e.HasStorageParameter("parallel_workers", 8);
                     }),
                 builder => builder.Entity(
                     "People", e =>
                     {
                         // Add parameter
-                        e.SetStorageParameter("autovacuum_enabled", true);
+                        e.HasStorageParameter("autovacuum_enabled", true);
                         // Change parameter
-                        e.SetStorageParameter("fillfactor", 80);
+                        e.HasStorageParameter("fillfactor", 80);
                         // Drop parameter user_catalog
                         // Leave parameter unchanged
-                        e.SetStorageParameter("parallel_workers", 8);
+                        e.HasStorageParameter("parallel_workers", 8);
                     }),
                 asserter: null);  // We don't scaffold storage parameters
 
@@ -384,7 +410,7 @@ ALTER TABLE ""People"" RESET (user_catalog_table);");
             await base.Rename_table();
 
             AssertSql(
-                @"ALTER TABLE ""People"" RENAME TO people;");
+                @"ALTER TABLE ""People"" RENAME TO ""Persons"";");
         }
 
         public override async Task Rename_table_with_primary_key()
@@ -394,9 +420,9 @@ ALTER TABLE ""People"" RESET (user_catalog_table);");
             AssertSql(
                 @"ALTER TABLE ""People"" DROP CONSTRAINT ""PK_People"";",
                 //
-                @"ALTER TABLE ""People"" RENAME TO people;",
+                @"ALTER TABLE ""People"" RENAME TO ""Persons"";",
                 //
-                @"ALTER TABLE people ADD CONSTRAINT ""PK_people"" PRIMARY KEY (""Id"");");
+                @"ALTER TABLE ""Persons"" ADD CONSTRAINT ""PK_Persons"" PRIMARY KEY (""Id"");");
         }
 
         public override async Task Move_table()
@@ -470,16 +496,22 @@ ALTER TABLE ""People"" RESET (user_catalog_table);");
                 @"ALTER TABLE ""People"" ADD ""Sum"" integer NOT NULL DEFAULT (1 + 2);");
         }
 
-        [Fact]
-        public override async Task Add_column_with_computedSql()
+        public override async Task Add_column_with_computedSql(bool? stored)
         {
             if (TestEnvironment.PostgresVersion.IsUnder(12))
             {
-                await Assert.ThrowsAsync<NotSupportedException>(() => base.Add_column_with_computedSql());
+                await Assert.ThrowsAsync<NotSupportedException>(() => base.Add_column_with_computedSql(stored));
                 return;
             }
 
-            await base.Add_column_with_computedSql();
+            if (stored != true)
+            {
+                // Non-stored generated columns aren't yet supported (PG12)
+                await Assert.ThrowsAsync<NotSupportedException>(() => base.Add_column_with_computedSql(stored));
+                return;
+            }
+
+            await base.Add_column_with_computedSql(stored: true);
 
             AssertSql(
                 @"ALTER TABLE ""People"" ADD ""Sum"" text GENERATED ALWAYS AS (""X"" + ""Y"") STORED;");
@@ -533,12 +565,96 @@ ALTER TABLE ""People"" RESET (user_catalog_table);");
 COMMENT ON COLUMN ""People"".""FullName"" IS 'My comment';");
         }
 
+        [ConditionalFact]
+        public override async Task Add_column_with_collation()
+        {
+            await base.Add_column_with_collation();
+
+            AssertSql(
+                @"ALTER TABLE ""People"" ADD ""Name"" text COLLATE ""POSIX"" NULL;");
+        }
+
+        [ConditionalFact]
+        public override async Task Add_column_computed_with_collation()
+        {
+            if (TestEnvironment.PostgresVersion.IsUnder(12))
+            {
+                await Assert.ThrowsAsync<NotSupportedException>(() => base.Add_column_computed_with_collation());
+                return;
+            }
+
+            // Non-stored generated columns aren't yet supported (PG12), so we override to used stored
+            await Test(
+                builder => builder.Entity("People").Property<int>("Id"),
+                builder => { },
+                builder => builder.Entity("People").Property<string>("Name")
+                    .HasComputedColumnSql("'hello'", stored: true)
+                    .UseCollation(NonDefaultCollation),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    Assert.Equal(2, table.Columns.Count);
+                    var nameColumn = Assert.Single(table.Columns, c => c.Name == "Name");
+                    Assert.Contains("hello", nameColumn.ComputedColumnSql);
+                    Assert.Equal(NonDefaultCollation, nameColumn.Collation);
+                });
+
+            AssertSql(
+                @"ALTER TABLE ""People"" ADD ""Name"" text COLLATE ""POSIX"" GENERATED ALWAYS AS ('hello') STORED;");
+        }
+
+        [ConditionalFact]
+        public async Task Add_column_with_default_column_collation()
+        {
+            await Test(
+                builder =>
+                {
+                    builder.UseDefaultColumnCollation("POSIX");
+                    builder.Entity("People").Property<int>("Id");
+                },
+                builder => { },
+                builder => builder.Entity("People").Property<string>("Name"),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    Assert.Equal(2, table.Columns.Count);
+                    var nameColumn = Assert.Single(table.Columns, c => c.Name == "Name");
+                    Assert.Equal("POSIX", nameColumn.Collation);
+                });
+
+            AssertSql(
+                @"ALTER TABLE ""People"" ADD ""Name"" text COLLATE ""POSIX"" NULL;");
+        }
+
+        [ConditionalFact]
+        public async Task Add_column_with_collation_overriding_default()
+        {
+            await Test(
+                builder =>
+                {
+                    builder.UseDefaultColumnCollation("POSIX");
+                    builder.Entity("People").Property<int>("Id");
+                },
+                builder => { },
+                builder => builder.Entity("People").Property<string>("Name")
+                    .UseCollation("C"),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    Assert.Equal(2, table.Columns.Count);
+                    var nameColumn = Assert.Single(table.Columns, c => c.Name == "Name");
+                    Assert.Equal("C", nameColumn.Collation);
+                });
+
+            AssertSql(
+                @"ALTER TABLE ""People"" ADD ""Name"" text COLLATE ""C"" NULL;");
+        }
+
         public override async Task Add_column_shared()
         {
             await base.Add_column_shared();
 
-            AssertSql(
-                @"ALTER TABLE ""Base"" ADD ""Foo"" text NULL;");
+            AssertSql();
         }
 
         [Fact]
@@ -630,7 +746,7 @@ COMMENT ON COLUMN ""People"".""FullName"" IS 'My comment';");
                         incrementBy: 2,
                         minValue: 3,
                         maxValue: 2000,
-                        isCyclic: true,
+                        cyclic: true,
                         numbersToCache: 10),
                 model =>
                 {
@@ -765,10 +881,7 @@ COMMENT ON COLUMN ""People"".""FullName"" IS 'My comment';");
         public virtual async Task Add_column_generated_tsvector()
         {
             if (TestEnvironment.PostgresVersion.IsUnder(12))
-            {
-                await Assert.ThrowsAsync<NotSupportedException>(() => base.Add_column_with_computedSql());
                 return;
-            }
 
             await Test(
                 builder => builder.Entity(
@@ -797,9 +910,7 @@ COMMENT ON COLUMN ""People"".""FullName"" IS 'My comment';");
             await base.Alter_column_change_type();
 
             AssertSql(
-                @"ALTER TABLE ""People"" ALTER COLUMN ""SomeColumn"" TYPE bigint;
-ALTER TABLE ""People"" ALTER COLUMN ""SomeColumn"" SET NOT NULL;
-ALTER TABLE ""People"" ALTER COLUMN ""SomeColumn"" DROP DEFAULT;");
+                @"ALTER TABLE ""People"" ALTER COLUMN ""SomeColumn"" TYPE bigint;");
         }
 
         public override async Task Alter_column_make_required()
@@ -807,9 +918,8 @@ ALTER TABLE ""People"" ALTER COLUMN ""SomeColumn"" DROP DEFAULT;");
             await base.Alter_column_make_required();
 
             AssertSql(
-                @"ALTER TABLE ""People"" ALTER COLUMN ""SomeColumn"" TYPE text;
-ALTER TABLE ""People"" ALTER COLUMN ""SomeColumn"" SET NOT NULL;
-ALTER TABLE ""People"" ALTER COLUMN ""SomeColumn"" DROP DEFAULT;");
+                @"ALTER TABLE ""People"" ALTER COLUMN ""SomeColumn"" SET NOT NULL;
+ALTER TABLE ""People"" ALTER COLUMN ""SomeColumn"" SET DEFAULT '';");
         }
 
         public override async Task Alter_column_make_required_with_index()
@@ -817,9 +927,8 @@ ALTER TABLE ""People"" ALTER COLUMN ""SomeColumn"" DROP DEFAULT;");
             await base.Alter_column_make_required_with_index();
 
             AssertSql(
-                @"ALTER TABLE ""People"" ALTER COLUMN ""SomeColumn"" TYPE text;
-ALTER TABLE ""People"" ALTER COLUMN ""SomeColumn"" SET NOT NULL;
-ALTER TABLE ""People"" ALTER COLUMN ""SomeColumn"" DROP DEFAULT;");
+                @"ALTER TABLE ""People"" ALTER COLUMN ""SomeColumn"" SET NOT NULL;
+ALTER TABLE ""People"" ALTER COLUMN ""SomeColumn"" SET DEFAULT '';");
         }
 
         public override async Task Alter_column_make_required_with_composite_index()
@@ -827,21 +936,26 @@ ALTER TABLE ""People"" ALTER COLUMN ""SomeColumn"" DROP DEFAULT;");
             await base.Alter_column_make_required_with_composite_index();
 
             AssertSql(
-                @"ALTER TABLE ""People"" ALTER COLUMN ""FirstName"" TYPE text;
-ALTER TABLE ""People"" ALTER COLUMN ""FirstName"" SET NOT NULL;
-ALTER TABLE ""People"" ALTER COLUMN ""FirstName"" DROP DEFAULT;");
+                @"ALTER TABLE ""People"" ALTER COLUMN ""FirstName"" SET NOT NULL;
+ALTER TABLE ""People"" ALTER COLUMN ""FirstName"" SET DEFAULT '';");
         }
 
-        [Fact]
-        public override async Task Alter_column_make_computed()
+        public override async Task Alter_column_make_computed(bool? stored)
         {
             if (TestEnvironment.PostgresVersion.IsUnder(12))
             {
-                await Assert.ThrowsAsync<NotSupportedException>(() => base.Add_column_with_computedSql());
+                await Assert.ThrowsAsync<NotSupportedException>(() => base.Add_column_with_computedSql(stored));
                 return;
             }
 
-            await base.Alter_column_make_computed();
+            if (stored != true)
+            {
+                // Non-stored generated columns aren't yet supported (PG12)
+                await Assert.ThrowsAsync<NotSupportedException>(() => base.Add_column_with_computedSql(stored));
+                return;
+            }
+
+            await base.Alter_column_make_computed(stored);
 
             AssertSql(
                 @"ALTER TABLE ""People"" DROP COLUMN ""Sum"";",
@@ -849,16 +963,36 @@ ALTER TABLE ""People"" ALTER COLUMN ""FirstName"" DROP DEFAULT;");
                 @"ALTER TABLE ""People"" ADD ""Sum"" integer GENERATED ALWAYS AS (""X"" + ""Y"") STORED;");
         }
 
-        [Fact]
         public override async Task Alter_column_change_computed()
         {
             if (TestEnvironment.PostgresVersion.IsUnder(12))
             {
-                await Assert.ThrowsAsync<NotSupportedException>(() => base.Add_column_with_computedSql());
+                await Assert.ThrowsAsync<NotSupportedException>(() => base.Alter_column_change_computed());
                 return;
             }
 
-            await base.Alter_column_change_computed();
+            // Non-stored generated columns aren't yet supported (PG12), so we override to used stored
+            await Test(
+                builder => builder.Entity(
+                    "People", e =>
+                    {
+                        e.Property<int>("Id");
+                        e.Property<int>("X");
+                        e.Property<int>("Y");
+                        e.Property<int>("Sum");
+                    }),
+                builder => builder.Entity("People").Property<int>("Sum")
+                    .HasComputedColumnSql($"{DelimitIdentifier("X")} + {DelimitIdentifier("Y")}", stored: true),
+                builder => builder.Entity("People").Property<int>("Sum")
+                    .HasComputedColumnSql($"{DelimitIdentifier("X")} - {DelimitIdentifier("Y")}", stored: true),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    var sumColumn = Assert.Single(table.Columns, c => c.Name == "Sum");
+                    Assert.Contains("X", sumColumn.ComputedColumnSql);
+                    Assert.Contains("Y", sumColumn.ComputedColumnSql);
+                    Assert.Contains("-", sumColumn.ComputedColumnSql);
+                });
 
             AssertSql(
                 @"ALTER TABLE ""People"" DROP COLUMN ""Sum"";",
@@ -866,40 +1000,31 @@ ALTER TABLE ""People"" ALTER COLUMN ""FirstName"" DROP DEFAULT;");
                 @"ALTER TABLE ""People"" ADD ""Sum"" integer GENERATED ALWAYS AS (""X"" - ""Y"") STORED;");
         }
 
+        public override Task Alter_column_change_computed_type()
+            => Assert.ThrowsAsync<NotSupportedException>(() => base.Alter_column_change_computed());
+
         public override async Task Alter_column_add_comment()
         {
             await base.Alter_column_add_comment();
 
-            // TODO: #1222
             AssertSql(
-                @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" TYPE integer;
-ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET NOT NULL;
-ALTER TABLE ""People"" ALTER COLUMN ""Id"" DROP DEFAULT;
-COMMENT ON COLUMN ""People"".""Id"" IS 'Some comment';");
+                @"COMMENT ON COLUMN ""People"".""Id"" IS 'Some comment';");
         }
 
         public override async Task Alter_column_change_comment()
         {
             await base.Alter_column_change_comment();
 
-            // TODO: #1222
             AssertSql(
-                @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" TYPE integer;
-ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET NOT NULL;
-ALTER TABLE ""People"" ALTER COLUMN ""Id"" DROP DEFAULT;
-COMMENT ON COLUMN ""People"".""Id"" IS 'Some comment2';");
+                @"COMMENT ON COLUMN ""People"".""Id"" IS 'Some comment2';");
         }
 
         public override async Task Alter_column_remove_comment()
         {
             await base.Alter_column_remove_comment();
 
-            // TODO: #1222
             AssertSql(
-                @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" TYPE integer;
-ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET NOT NULL;
-ALTER TABLE ""People"" ALTER COLUMN ""Id"" DROP DEFAULT;
-COMMENT ON COLUMN ""People"".""Id"" IS NULL;");
+                @"COMMENT ON COLUMN ""People"".""Id"" IS NULL;");
         }
 
         [Fact]
@@ -924,8 +1049,7 @@ COMMENT ON COLUMN ""People"".""Id"" IS NULL;");
                 });
 
             AssertSql(
-                @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" TYPE integer;
-ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET NOT NULL;
+                @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" DROP DEFAULT;
 ALTER TABLE ""People"" ALTER COLUMN ""Id"" ADD GENERATED BY DEFAULT AS IDENTITY;");
         }
 
@@ -951,8 +1075,33 @@ ALTER TABLE ""People"" ALTER COLUMN ""Id"" ADD GENERATED BY DEFAULT AS IDENTITY;
                 });
 
             AssertSql(
-                @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" TYPE integer;
-ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET NOT NULL;
+                @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" DROP DEFAULT;
+ALTER TABLE ""People"" ALTER COLUMN ""Id"" ADD GENERATED ALWAYS AS IDENTITY;");
+        }
+
+        [Fact]
+        public virtual async Task Alter_column_make_default_into_identity()
+        {
+            await Test(
+                builder => builder.Entity(
+                    "People", e =>
+                    {
+                        e.Property<int>("Id").HasDefaultValue(8);
+                        e.HasKey("Id");
+                    }),
+                builder => { },
+                builder => builder.Entity("People").Property<int>("Id")
+                    .UseIdentityAlwaysColumn(),
+                model =>
+                {
+                    var table = Assert.Single(model.Tables);
+                    var column = Assert.Single(table.Columns);
+                    Assert.Equal(NpgsqlValueGenerationStrategy.IdentityAlwaysColumn, column[NpgsqlAnnotationNames.ValueGenerationStrategy]);
+                    Assert.Null(column[NpgsqlAnnotationNames.IdentityOptions]);
+                });
+
+            AssertSql(
+                @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" DROP DEFAULT;
 ALTER TABLE ""People"" ALTER COLUMN ""Id"" ADD GENERATED ALWAYS AS IDENTITY;");
         }
 
@@ -985,8 +1134,7 @@ ALTER TABLE ""People"" ALTER COLUMN ""Id"" ADD GENERATED ALWAYS AS IDENTITY;");
                 });
 
             AssertSql(
-                @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" TYPE integer;
-ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET NOT NULL;
+                @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" DROP DEFAULT;
 ALTER TABLE ""People"" ALTER COLUMN ""Id"" ADD GENERATED BY DEFAULT AS IDENTITY (START WITH 10 INCREMENT BY 2 MAXVALUE 2000);");
         }
 
@@ -1001,9 +1149,9 @@ ALTER TABLE ""People"" ALTER COLUMN ""Id"" ADD GENERATED BY DEFAULT AS IDENTITY 
                         e.HasKey("Id");
                     }),
                 builder => builder.Entity("People").Property<int>("Id")
-                    .HasIdentityOptions(incrementBy: 1, maxValue: 1000, isCyclic: false),
+                    .HasIdentityOptions(incrementBy: 1, maxValue: 1000, cyclic: false),
                 builder => builder.Entity("People").Property<int>("Id")
-                    .HasIdentityOptions(incrementBy: 2, maxValue: 1000, isCyclic: true),
+                    .HasIdentityOptions(incrementBy: 2, maxValue: 1000, cyclic: true),
                 model =>
                 {
                     var table = Assert.Single(model.Tables);
@@ -1016,9 +1164,7 @@ ALTER TABLE ""People"" ALTER COLUMN ""Id"" ADD GENERATED BY DEFAULT AS IDENTITY 
                 });
 
             AssertSql(
-                @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" TYPE integer;
-ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET NOT NULL;
-ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET INCREMENT BY 2;
+                @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET INCREMENT BY 2;
 ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET CYCLE;");
         }
 
@@ -1033,7 +1179,7 @@ ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET CYCLE;");
                         e.HasKey("Id");
                     }),
                 builder => builder.Entity("People").Property<int>("Id")
-                    .HasIdentityOptions(startValue: 5, incrementBy: 2, isCyclic: true, numbersToCache: 5),
+                    .HasIdentityOptions(startValue: 5, incrementBy: 2, cyclic: true, numbersToCache: 5),
                 builder => { },
                 model =>
                 {
@@ -1048,9 +1194,7 @@ ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET CYCLE;");
                 });
 
             AssertSql(
-                @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" TYPE integer;
-ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET NOT NULL;
-ALTER TABLE ""People"" ALTER COLUMN ""Id"" RESTART WITH 1;
+                @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" RESTART WITH 1;
 ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET INCREMENT BY 1;
 ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET NO CYCLE;
 ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET CACHE 1;");
@@ -1080,9 +1224,7 @@ ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET CACHE 1;");
                 });
 
             AssertSql(
-                @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" TYPE integer;
-ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET NOT NULL;
-CREATE SEQUENCE ""People_Id_seq"" AS integer START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE;",
+                @"CREATE SEQUENCE ""People_Id_seq"" AS integer START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE;",
                 //
                 @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET DEFAULT (nextval('""People_Id_seq""'));
 ALTER SEQUENCE ""People_Id_seq"" OWNED BY ""People"".""Id"";");
@@ -1113,9 +1255,7 @@ ALTER SEQUENCE ""People_Id_seq"" OWNED BY ""People"".""Id"";");
                 });
 
             AssertSql(
-                @"ALTER TABLE some_schema.""People"" ALTER COLUMN ""Id"" TYPE integer;
-ALTER TABLE some_schema.""People"" ALTER COLUMN ""Id"" SET NOT NULL;
-CREATE SEQUENCE some_schema.""People_Id_seq"" AS integer START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE;",
+                @"CREATE SEQUENCE some_schema.""People_Id_seq"" AS integer START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE;",
                 //
                 @"ALTER TABLE some_schema.""People"" ALTER COLUMN ""Id"" SET DEFAULT (nextval('some_schema.""People_Id_seq""'));
 ALTER SEQUENCE some_schema.""People_Id_seq"" OWNED BY some_schema.""People"".""Id"";");
@@ -1146,9 +1286,7 @@ ALTER SEQUENCE some_schema.""People_Id_seq"" OWNED BY some_schema.""People"".""I
                 });
 
             AssertSql(
-                @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" TYPE bigint;
-ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET NOT NULL;
-CREATE SEQUENCE ""People_Id_seq"" START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE;",
+                @"CREATE SEQUENCE ""People_Id_seq"" START WITH 1 INCREMENT BY 1 NO MINVALUE NO MAXVALUE NO CYCLE;",
                 //
                 @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET DEFAULT (nextval('""People_Id_seq""'));
 ALTER SEQUENCE ""People_Id_seq"" OWNED BY ""People"".""Id"";");
@@ -1175,9 +1313,7 @@ ALTER SEQUENCE ""People_Id_seq"" OWNED BY ""People"".""Id"";");
                 });
 
             AssertSql(
-                @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" TYPE integer;
-ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET NOT NULL;
-ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET GENERATED ALWAYS;");
+                @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET GENERATED ALWAYS;");
         }
 
         [Fact]
@@ -1201,9 +1337,7 @@ ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET GENERATED ALWAYS;");
                 });
 
             AssertSql(
-                @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" TYPE integer;
-ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET NOT NULL;
-ALTER SEQUENCE ""People_Id_seq"" RENAME TO ""People_Id_old_seq"";
+                @"ALTER SEQUENCE ""People_Id_seq"" RENAME TO ""People_Id_old_seq"";
 ALTER TABLE ""People"" ALTER COLUMN ""Id"" DROP DEFAULT;
 ALTER TABLE ""People"" ALTER COLUMN ""Id"" ADD GENERATED ALWAYS AS IDENTITY;
 SELECT * FROM setval('""People_Id_seq""', nextval('""People_Id_old_seq""'), false);
@@ -1236,8 +1370,7 @@ DROP SEQUENCE ""People_Id_old_seq"";");
                 });
 
             AssertSql(
-                @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" TYPE bigint;
-ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET NOT NULL;");
+                @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" TYPE bigint;");
         }
 
         [Fact]
@@ -1262,9 +1395,48 @@ ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET NOT NULL;");
                 });
 
             AssertSql(
-                @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" TYPE integer;
-ALTER TABLE ""People"" ALTER COLUMN ""Id"" SET NOT NULL;
-ALTER TABLE ""People"" ALTER COLUMN ""Id"" RESTART WITH 20;");
+                @"ALTER TABLE ""People"" ALTER COLUMN ""Id"" RESTART WITH 20;");
+        }
+
+        [Fact]
+        public override async Task Alter_column_set_collation()
+        {
+            await base.Alter_column_set_collation();
+
+            AssertSql(
+                @"ALTER TABLE ""People"" ALTER COLUMN ""Name"" TYPE text COLLATE ""POSIX"";");
+        }
+
+        [Fact]
+        public override async Task Alter_column_reset_collation()
+        {
+            await base.Alter_column_reset_collation();
+
+            AssertSql(
+                @"ALTER TABLE ""People"" ALTER COLUMN ""Name"" TYPE text COLLATE ""default"";");
+        }
+
+        [Fact]
+        public async Task Alter_column_change_default_column_collation()
+        {
+            await Test(
+                builder => builder.Entity("People", b =>
+                {
+                    b.Property<int>("Id");
+                    b.Property<string>("Name");
+                }),
+                builder => builder.UseDefaultColumnCollation("POSIX"),
+                builder => builder.UseDefaultColumnCollation("C"),
+                model =>
+                {
+                    // var table = Assert.Single(model.Tables);
+                    // Assert.Equal(2, table.Columns.Count);
+                    // var nameColumn = Assert.Single(table.Columns, c => c.Name == "Name");
+                    // Assert.Equal("C", nameColumn.Collation);
+                });
+
+            AssertSql(
+                @"ALTER TABLE ""People"" ALTER COLUMN ""Name"" TYPE text COLLATE ""C"";");
         }
 
         public override async Task Drop_column()
@@ -1319,7 +1491,7 @@ ALTER TABLE ""People"" ALTER COLUMN ""Id"" RESTART WITH 20;");
             await base.Rename_column();
 
             AssertSql(
-                @"ALTER TABLE ""People"" RENAME COLUMN ""SomeColumn"" TO somecolumn;");
+                @"ALTER TABLE ""People"" RENAME COLUMN ""SomeColumn"" TO ""SomeOtherColumn"";");
         }
 
         #endregion
@@ -1693,10 +1865,6 @@ ALTER TABLE ""People"" ALTER COLUMN ""Id"" RESTART WITH 20;");
             await base.Add_primary_key();
 
             AssertSql(
-                @"ALTER TABLE ""People"" ALTER COLUMN ""SomeField"" TYPE text;
-ALTER TABLE ""People"" ALTER COLUMN ""SomeField"" SET NOT NULL;
-ALTER TABLE ""People"" ALTER COLUMN ""SomeField"" DROP DEFAULT;",
-                //
                 @"ALTER TABLE ""People"" ADD CONSTRAINT ""PK_People"" PRIMARY KEY (""SomeField"");");
         }
 
@@ -1705,10 +1873,6 @@ ALTER TABLE ""People"" ALTER COLUMN ""SomeField"" DROP DEFAULT;",
             await base.Add_primary_key_with_name();
 
             AssertSql(
-                @"ALTER TABLE ""People"" ALTER COLUMN ""SomeField"" TYPE text;
-ALTER TABLE ""People"" ALTER COLUMN ""SomeField"" SET NOT NULL;
-ALTER TABLE ""People"" ALTER COLUMN ""SomeField"" DROP DEFAULT;",
-                //
                 @"ALTER TABLE ""People"" ADD CONSTRAINT ""PK_Foo"" PRIMARY KEY (""SomeField"");");
         }
 
@@ -1717,14 +1881,6 @@ ALTER TABLE ""People"" ALTER COLUMN ""SomeField"" DROP DEFAULT;",
             await base.Add_primary_key_composite_with_name();
 
             AssertSql(
-                @"ALTER TABLE ""People"" ALTER COLUMN ""SomeField2"" TYPE text;
-ALTER TABLE ""People"" ALTER COLUMN ""SomeField2"" SET NOT NULL;
-ALTER TABLE ""People"" ALTER COLUMN ""SomeField2"" DROP DEFAULT;",
-                //
-                @"ALTER TABLE ""People"" ALTER COLUMN ""SomeField1"" TYPE text;
-ALTER TABLE ""People"" ALTER COLUMN ""SomeField1"" SET NOT NULL;
-ALTER TABLE ""People"" ALTER COLUMN ""SomeField1"" DROP DEFAULT;",
-                //
                 @"ALTER TABLE ""People"" ADD CONSTRAINT ""PK_Foo"" PRIMARY KEY (""SomeField1"", ""SomeField2"");");
         }
 
@@ -1938,7 +2094,7 @@ WHERE ""Id"" = 2;");
 
             AssertSql(
                 @"DELETE FROM ""Person""
-WHERE ""Id"" = 2 AND ""AnotherId"" = 12;");
+WHERE ""AnotherId"" = 12 AND ""Id"" = 2;");
         }
 
         public override async Task UpdateDataOperation_simple_key()
@@ -1956,7 +2112,7 @@ WHERE ""Id"" = 2;");
 
             AssertSql(
                 @"UPDATE ""Person"" SET ""Name"" = 'Another John Snow'
-WHERE ""Id"" = 2 AND ""AnotherId"" = 11;");
+WHERE ""AnotherId"" = 11 AND ""Id"" = 2;");
         }
 
         public override async Task UpdateDataOperation_multiple_columns()
@@ -1967,6 +2123,66 @@ WHERE ""Id"" = 2 AND ""AnotherId"" = 11;");
                 @"UPDATE ""Person"" SET ""Age"" = 21, ""Name"" = 'Another John Snow'
 WHERE ""Id"" = 2;");
         }
+
+        [ConditionalFact]
+        public virtual async Task InsertDataOperation_restarts_identity()
+        {
+            await Test(
+                builder =>
+                {
+                    builder.Entity(
+                        "Person", e =>
+                        {
+                            e.Property<int>("Id").UseIdentityByDefaultColumn();
+                            e.Property<string>("Name");
+                            e.HasKey("Id");
+                        });
+                    builder.Entity(
+                        "Person !@#", e =>
+                        {
+                            e.Property<int>("Id").UseIdentityByDefaultColumn();
+                            e.Property<string>("Name");
+                            e.HasKey("Id");
+                        });
+                },
+                builder => { },
+                builder =>
+                {
+                    builder.Entity("Person").HasData(
+                        new { Id = 1, Name = "Daenerys Targaryen" },
+                        new { Id = 2, Name = "John Snow"});
+                    builder.Entity("Person !@#").HasData(
+                        new { Id = -10, Name = "Daenerys Targaryen" },
+                        new { Id = -20, Name = "John Snow"});
+                },
+                model => { });
+
+            AssertSql(
+                @"INSERT INTO ""Person"" (""Id"", ""Name"")
+VALUES (1, 'Daenerys Targaryen');
+INSERT INTO ""Person"" (""Id"", ""Name"")
+VALUES (2, 'John Snow');",
+                //
+                @"INSERT INTO ""Person !@#"" (""Id"", ""Name"")
+VALUES (-10, 'Daenerys Targaryen');
+INSERT INTO ""Person !@#"" (""Id"", ""Name"")
+VALUES (-20, 'John Snow');",
+                //
+                @"SELECT setval(
+    pg_get_serial_sequence('""Person""', 'Id'),
+    GREATEST(
+        (SELECT MAX(""Id"") FROM ""Person"") + 1,
+        nextval(pg_get_serial_sequence('""Person""', 'Id'))),
+    false);
+SELECT setval(
+    pg_get_serial_sequence('""Person !@#""', 'Id'),
+    GREATEST(
+        (SELECT MAX(""Id"") FROM ""Person !@#"") + 1,
+        nextval(pg_get_serial_sequence('""Person !@#""', 'Id'))),
+    false);");
+        }
+
+        // SELECT setval(pg_get_serial_sequence('""Person !@#""', 'Id'), (SELECT MAX(""Id"") FROM ""Person !@#""));
 
         #endregion
 
@@ -2128,6 +2344,80 @@ WHERE ""Id"" = 2;");
                 builder => builder.HasPostgresEnum("Mood", new[] { "Happy", "Angry" }));
 
         #endregion
+
+        #region PostgreSQL collation management
+
+        [Fact]
+        public virtual async Task Create_collation()
+        {
+            await Test(
+                builder => { },
+                builder => builder.HasCollation("dummy", locale: "POSIX", provider: "libc"),
+                model =>
+                {
+                    var collation = Assert.Single(PostgresCollation.GetCollations(model));
+
+                    Assert.Equal("dummy", collation.Name);
+                    Assert.Equal("libc", collation.Provider);
+                    Assert.Equal("POSIX", collation.LcCollate);
+                    Assert.Equal("POSIX", collation.LcCtype);
+                    Assert.True(collation.IsDeterministic);
+                });
+
+            AssertSql(
+                @"CREATE COLLATION dummy (LC_COLLATE = 'POSIX',
+    LC_CTYPE = 'POSIX',
+    PROVIDER = libc
+);");
+        }
+
+        [ConditionalFact]
+        [MinimumPostgresVersion(12, 0)]
+        public virtual async Task Create_collation_non_deterministic()
+        {
+            await Test(
+                builder => { },
+                builder => builder.HasCollation("some_collation", locale: "en-u-ks-primary", provider: "icu", deterministic: false),
+                model =>
+                {
+                    var collation = Assert.Single(PostgresCollation.GetCollations(model));
+
+                    Assert.Equal("some_collation", collation.Name);
+                    Assert.Equal("icu", collation.Provider);
+                    Assert.Equal("en-u-ks-primary", collation.LcCollate);
+                    Assert.Equal("en-u-ks-primary", collation.LcCtype);
+                    Assert.False(collation.IsDeterministic);
+                });
+
+            AssertSql(
+                @"CREATE COLLATION some_collation (LC_COLLATE = 'en-u-ks-primary',
+    LC_CTYPE = 'en-u-ks-primary',
+    PROVIDER = icu,
+    DETERMINISTIC = False
+);");
+        }
+
+        [Fact]
+        public virtual async Task Drop_collation()
+        {
+            await Test(
+                builder => builder.HasCollation("dummy", locale: "POSIX", provider: "libc"),
+                builder => { },
+                model => Assert.Empty(PostgresCollation.GetCollations(model)));
+
+            AssertSql(
+                @"DROP COLLATION dummy;");
+        }
+
+        [Fact]
+        public virtual Task Alter_collation_throws()
+            => TestThrows<NotSupportedException>(
+                builder => builder.HasCollation("dummy", locale: "POSIX", provider: "libc"),
+                builder => builder.HasCollation("dummy", locale: "C", provider: "libc"));
+
+        #endregion PostgreSQL collation management
+
+        protected override string NonDefaultCollation => "POSIX";
 
         public class MigrationsNpgsqlFixture : MigrationsFixtureBase
         {

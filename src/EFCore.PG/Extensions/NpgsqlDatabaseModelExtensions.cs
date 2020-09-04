@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 

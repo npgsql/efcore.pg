@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
@@ -62,7 +62,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
 #pragma warning disable EF1001
         /// <inheritdoc />
-        public SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
+        public SqlExpression Translate(
+            SqlExpression instance,
+            MethodInfo method,
+            IReadOnlyList<SqlExpression> arguments,
+            IDiagnosticsLogger<DbLoggerCategory.Query> logger)
         {
             if (Functions.TryGetValue(method, out var function))
                 return _sqlExpressionFactory.Function(
@@ -73,7 +77,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     method.ReturnType);
 
             if (BoolReturningOperators.TryGetValue(method, out var boolOperator))
-                return new SqlCustomBinaryExpression(
+                return new PostgresUnknownBinaryExpression(
                     _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[1]),
                     _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[2]),
                     boolOperator,
@@ -81,7 +85,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     _boolMapping);
 
             if (FloatReturningOperators.TryGetValue(method, out var floatOperator))
-                return new SqlCustomBinaryExpression(
+                return new PostgresUnknownBinaryExpression(
                     _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[1]),
                     _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[2]),
                     floatOperator,

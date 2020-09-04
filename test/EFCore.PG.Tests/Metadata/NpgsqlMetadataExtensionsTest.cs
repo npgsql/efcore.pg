@@ -106,7 +106,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             Assert.Equal(1, sequence.StartValue);
             Assert.Null(sequence.MinValue);
             Assert.Null(sequence.MaxValue);
-            Assert.Same(typeof(long), sequence.ClrType);
+            Assert.Same(typeof(long), sequence.Type);
 
             Assert.NotNull(model.FindSequence("Foo"));
 
@@ -116,7 +116,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             sequence.IncrementBy = 11;
             sequence.MinValue = 2001;
             sequence.MaxValue = 2010;
-            sequence.ClrType = typeof(int);
+            sequence.Type = typeof(int);
 
             Assert.Equal("Foo", sequence.Name);
             Assert.Null(sequence.Schema);
@@ -124,7 +124,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             Assert.Equal(1729, sequence.StartValue);
             Assert.Equal(2001, sequence.MinValue);
             Assert.Equal(2010, sequence.MaxValue);
-            Assert.Same(typeof(int), sequence.ClrType);
+            Assert.Same(typeof(int), sequence.Type);
 
             Assert.Equal(sequence2.Name, sequence.Name);
             Assert.Equal(sequence2.Schema, sequence.Schema);
@@ -132,7 +132,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             Assert.Equal(sequence2.StartValue, sequence.StartValue);
             Assert.Equal(sequence2.MinValue, sequence.MinValue);
             Assert.Equal(sequence2.MaxValue, sequence.MaxValue);
-            Assert.Same(sequence2.ClrType, sequence.ClrType);
+            Assert.Same(sequence2.Type, sequence.Type);
         }
 
         [ConditionalFact]
@@ -158,7 +158,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             Assert.Equal(1, sequence.StartValue);
             Assert.Null(sequence.MinValue);
             Assert.Null(sequence.MaxValue);
-            Assert.Same(typeof(long), sequence.ClrType);
+            Assert.Same(typeof(long), sequence.Type);
 
             Assert.NotNull(model.FindSequence("Foo", "Smoo"));
 
@@ -168,7 +168,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             sequence.IncrementBy = 11;
             sequence.MinValue = 2001;
             sequence.MaxValue = 2010;
-            sequence.ClrType = typeof(int);
+            sequence.Type = typeof(int);
 
             Assert.Equal("Foo", sequence.Name);
             Assert.Equal("Smoo", sequence.Schema);
@@ -176,7 +176,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             Assert.Equal(1729, sequence.StartValue);
             Assert.Equal(2001, sequence.MinValue);
             Assert.Equal(2010, sequence.MaxValue);
-            Assert.Same(typeof(int), sequence.ClrType);
+            Assert.Same(typeof(int), sequence.Type);
 
             Assert.Equal(sequence2.Name, sequence.Name);
             Assert.Equal(sequence2.Schema, sequence.Schema);
@@ -184,7 +184,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             Assert.Equal(sequence2.StartValue, sequence.StartValue);
             Assert.Equal(sequence2.MinValue, sequence.MinValue);
             Assert.Equal(sequence2.MaxValue, sequence.MaxValue);
-            Assert.Same(sequence2.ClrType, sequence.ClrType);
+            Assert.Same(sequence2.Type, sequence.Type);
         }
 
         [ConditionalFact]

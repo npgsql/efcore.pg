@@ -8,18 +8,18 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 namespace Microsoft.EntityFrameworkCore.Metadata.Conventions
 {
     /// <summary>
-    ///     A convention that configures store value generation as <see cref="ValueGenerated.OnAdd"/> on properties that are
-    ///     part of the primary key and not part of any foreign keys, were configured to have a database default value
-    ///     or were configured to use a <see cref="NpgsqlValueGenerationStrategy"/>.
-    ///     It also configures properties as <see cref="ValueGenerated.OnAddOrUpdate"/> if they were configured as computed columns.
+    /// A convention that configures store value generation as <see cref="ValueGenerated.OnAdd"/> on properties that are
+    /// part of the primary key and not part of any foreign keys, were configured to have a database default value
+    /// or were configured to use a <see cref="NpgsqlValueGenerationStrategy"/>.
+    /// It also configures properties as <see cref="ValueGenerated.OnAddOrUpdate"/> if they were configured as computed columns.
     /// </summary>
     public class NpgsqlValueGenerationConvention : RelationalValueGenerationConvention
     {
         /// <summary>
-        ///     Creates a new instance of <see cref="NpgsqlValueGenerationConvention" />.
+        /// Creates a new instance of <see cref="NpgsqlValueGenerationConvention" />.
         /// </summary>
-        /// <param name="dependencies"> Parameter object containing dependencies for this convention. </param>
-        /// <param name="relationalDependencies">  Parameter object containing relational dependencies for this convention. </param>
+        /// <param name="dependencies">Parameter object containing dependencies for this convention.</param>
+        /// <param name="relationalDependencies">Parameter object containing relational dependencies for this convention.</param>
         public NpgsqlValueGenerationConvention(
             [NotNull] ProviderConventionSetBuilderDependencies dependencies,
             [NotNull] RelationalConventionSetBuilderDependencies relationalDependencies)
@@ -48,26 +48,43 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Conventions
                 return;
             }
 
+            if (name == NpgsqlAnnotationNames.TsVectorConfig &&
+                propertyBuilder.Metadata.GetTsVectorConfig() != null)
+            {
+                propertyBuilder.ValueGenerated(ValueGenerated.OnAddOrUpdate);
+                return;
+            }
+
             base.ProcessPropertyAnnotationChanged(propertyBuilder, name, annotation, oldAnnotation, context);
         }
 
         /// <summary>
-        ///     Returns the store value generation strategy to set for the given property.
+        /// Returns the store value generation strategy to set for the given property.
         /// </summary>
-        /// <param name="property"> The property. </param>
-        /// <returns> The store value generation strategy to set for the given property. </returns>
+        /// <param name="property">The property.</param>
+        /// <returns>The store value generation strategy to set for the given property.</returns>
         protected override ValueGenerated? GetValueGenerated(IConventionProperty property)
-            => GetValueGenerated((IProperty)property);
+        {
+            var tableName = property.DeclaringEntityType.GetTableName();
+            if (tableName == null)
+            {
+                return null;
+            }
+
+            return GetValueGenerated(property, StoreObjectIdentifier.Table(tableName, property.DeclaringEntityType.GetSchema()));
+        }
 
         /// <summary>
-        ///     Returns the store value generation strategy to set for the given property.
+        /// Returns the store value generation strategy to set for the given property.
         /// </summary>
         /// <param name="property"> The property. </param>
-        /// <returns> The store value generation strategy to set for the given property. </returns>
-        public static new ValueGenerated? GetValueGenerated([NotNull] IProperty property)
-            => RelationalValueGenerationConvention.GetValueGenerated(property)
-                ?? (property.GetValueGenerationStrategy() != NpgsqlValueGenerationStrategy.None
-                    ? ValueGenerated.OnAdd
-                    : (ValueGenerated?)null);
+        /// <param name="storeObject"> The identifier of the store object. </param>
+        /// <returns>The store value generation strategy to set for the given property.</returns>
+        public static new ValueGenerated? GetValueGenerated(
+            [NotNull] IProperty property, in StoreObjectIdentifier storeObject)
+            => RelationalValueGenerationConvention.GetValueGenerated(property, storeObject)
+               ?? (property.GetValueGenerationStrategy(storeObject) != NpgsqlValueGenerationStrategy.None
+                   ? ValueGenerated.OnAdd
+                   : (ValueGenerated?)null);
     }
 }

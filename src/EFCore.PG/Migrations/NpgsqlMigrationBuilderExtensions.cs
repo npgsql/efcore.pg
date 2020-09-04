@@ -22,10 +22,10 @@ namespace Microsoft.EntityFrameworkCore
                 StringComparison.Ordinal);
 
         public static MigrationBuilder EnsurePostgresExtension(
-            this MigrationBuilder builder,
+            [NotNull] this MigrationBuilder builder,
             [NotNull] string name,
-            string schema = null,
-            string version = null
+            [CanBeNull] string schema = null,
+            [CanBeNull] string version = null
         )
         {
             Check.NotEmpty(name, nameof(name));
@@ -41,15 +41,15 @@ namespace Microsoft.EntityFrameworkCore
 
         [Obsolete("Use EnsurePostgresExtension instead")]
         public static MigrationBuilder CreatePostgresExtension(
-            this MigrationBuilder builder,
+            [NotNull] this MigrationBuilder builder,
             [NotNull] string name,
-            string schema = null,
-            string version = null)
+            [CanBeNull] string schema = null,
+            [CanBeNull] string version = null)
             => EnsurePostgresExtension(builder, name, schema, version);
 
         [Obsolete("This no longer does anything and should be removed.")]
         public static MigrationBuilder DropPostgresExtension(
-            this MigrationBuilder builder,
+            [NotNull] this MigrationBuilder builder,
             [NotNull] string name)
             => builder;
     }

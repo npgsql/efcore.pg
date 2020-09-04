@@ -3,14 +3,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities.Xunit;
 using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
+    [MinimumPostgresVersion(12, 0)]
     public class ComputedColumnTest : IDisposable
     {
-        [MinimumPostgresVersionFact(12, 0)]
+        [ConditionalFact]
         public void Can_use_computed_columns()
         {
             var serviceProvider = new ServiceCollection()
@@ -20,7 +20,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             using var context = new Context(serviceProvider, TestStore.Name);
             context.Database.EnsureCreatedResiliently();
 
-            var entity = context.Add(new Entity { P1 = 20, P2 = 30, P3 = 80 }).Entity;
+            var entity = context.Add(
+                new Entity
+                {
+                    P1 = 20,
+                    P2 = 30,
+                    P3 = 80
+                }).Entity;
 
             context.SaveChanges();
 
@@ -28,7 +34,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             Assert.Equal(100, entity.P5);
         }
 
-        [MinimumPostgresVersionFact(12, 0)]
+        [ConditionalFact]
         public void Can_use_computed_columns_with_null_values()
         {
             var serviceProvider = new ServiceCollection()
@@ -68,11 +74,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             {
                 modelBuilder.Entity<Entity>()
                     .Property(e => e.P4)
-                    .HasComputedColumnSql(@"""P1"" + ""P2""");
+                    .HasComputedColumnSql(@"""P1"" + ""P2""", stored: true);
 
                 modelBuilder.Entity<Entity>()
                     .Property(e => e.P5)
-                    .HasComputedColumnSql(@"""P1"" + ""P3""");
+                    .HasComputedColumnSql(@"""P1"" + ""P3""", stored: true);
             }
         }
 
@@ -123,10 +129,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             protected override void OnModelCreating(ModelBuilder modelBuilder)
                 => modelBuilder.Entity<EnumItem>()
                     .Property(entity => entity.CalculatedFlagEnum)
-                    .HasComputedColumnSql(@"""FlagEnum"" | ""OptionalFlagEnum""");
+                    .HasComputedColumnSql(@"""FlagEnum"" | ""OptionalFlagEnum""", stored: true);
         }
 
-        [MinimumPostgresVersionFact(12, 0)]
+        [ConditionalFact]
         public void Can_use_computed_columns_with_nullable_enum()
         {
             var serviceProvider = new ServiceCollection()

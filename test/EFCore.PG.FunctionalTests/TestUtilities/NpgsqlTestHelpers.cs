@@ -1,7 +1,9 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.DependencyInjection;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics.Internal;
 using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
@@ -38,8 +40,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
         public override IServiceCollection AddProviderServices(IServiceCollection services)
             => services.AddEntityFrameworkNpgsql();
 
-        protected override void UseProviderOptions(DbContextOptionsBuilder optionsBuilder)
+        public override void UseProviderOptions(DbContextOptionsBuilder optionsBuilder)
             => optionsBuilder.UseNpgsql(new NpgsqlConnection("Database=DummyDatabase"),
                    options => options.SetPostgresVersion(_postgresVersion));
+
+        public override LoggingDefinitions LoggingDefinitions { get; } = new NpgsqlLoggingDefinitions();
     }
 }

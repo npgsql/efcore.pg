@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 
+// ReSharper disable once CheckNamespace
 namespace System.Reflection
 {
     internal static class MemberInfoExtensions
@@ -79,7 +80,7 @@ namespace System.Reflection
             return index >= 0 ? name.Substring(index + 1) : name;
         }
 
-        class MemberInfoComparer : IEqualityComparer<MemberInfo>
+        sealed class MemberInfoComparer : IEqualityComparer<MemberInfo>
         {
             public static readonly MemberInfoComparer Instance = new MemberInfoComparer();
 

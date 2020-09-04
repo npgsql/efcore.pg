@@ -234,6 +234,24 @@ namespace Microsoft.EntityFrameworkCore
             return null;
         }
 
+        /// <summary>
+        ///     Returns a value indicating whether the given value can be set as the default value generation strategy.
+        /// </summary>
+        /// <param name="modelBuilder"> The model builder. </param>
+        /// <param name="valueGenerationStrategy"> The value generation strategy. </param>
+        /// <param name="fromDataAnnotation"> Indicates whether the configuration was specified using a data annotation. </param>
+        /// <returns> <c>true</c> if the given value can be set as the default value generation strategy. </returns>
+        public static bool CanSetValueGenerationStrategy(
+            [NotNull] this IConventionModelBuilder modelBuilder,
+            NpgsqlValueGenerationStrategy? valueGenerationStrategy,
+            bool fromDataAnnotation = false)
+        {
+            Check.NotNull(modelBuilder, nameof(modelBuilder));
+
+            return modelBuilder.CanSetAnnotation(
+                NpgsqlAnnotationNames.ValueGenerationStrategy, valueGenerationStrategy, fromDataAnnotation);
+        }
+
         #endregion Identity
 
         #region Extensions
@@ -418,10 +436,10 @@ namespace Microsoft.EntityFrameworkCore
             [CanBeNull] string schema,
             [NotNull] string name,
             [NotNull] string subtype,
-            string canonicalFunction = null,
-            string subtypeOpClass = null,
-            string collation = null,
-            string subtypeDiff = null)
+            [CanBeNull] string canonicalFunction = null,
+            [CanBeNull] string subtypeOpClass = null,
+            [CanBeNull] string collation = null,
+            [CanBeNull] string subtypeDiff = null)
         {
             Check.NotNull(modelBuilder, nameof(modelBuilder));
             Check.NotEmpty(name, nameof(name));
@@ -470,6 +488,204 @@ namespace Microsoft.EntityFrameworkCore
         }
 
         #endregion
+
+        #region Collation management
+
+        /// <summary>
+        /// Creates a new collation in the database.
+        /// </summary>
+        /// <remarks>
+        /// See https://www.postgresql.org/docs/current/sql-createcollation.html.
+        /// </remarks>
+        /// <param name="modelBuilder">The model builder on which to create the collation.</param>
+        /// <param name="name">The name of the collation to create.</param>
+        /// <param name="locale">Sets LC_COLLATE and LC_CTYPE at once.</param>
+        /// <param name="provider">
+        /// Specifies the provider to use for locale services associated with this collation.
+        /// The available choices depend on the operating system and build options.</param>
+        /// <param name="deterministic">
+        /// Specifies whether the collation should use deterministic comparisons.
+        /// Defaults to <c>true</c>.
+        /// </param>
+        /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+        [NotNull]
+        public static ModelBuilder HasCollation(
+            [NotNull] this ModelBuilder modelBuilder,
+            [NotNull] string name,
+            [NotNull] string locale,
+            [CanBeNull] string provider = null,
+            bool? deterministic = null)
+        => modelBuilder.HasCollation(schema: null, name, locale, provider: provider, deterministic: deterministic);
+
+        /// <summary>
+        /// Creates a new collation in the database.
+        /// </summary>
+        /// <remarks>
+        /// See https://www.postgresql.org/docs/current/sql-createcollation.html.
+        /// </remarks>
+        /// <param name="modelBuilder">The model builder on which to create the collation.</param>
+        /// <param name="schema">The schema in which to create the collation, or <c>null</c> for the default schema.</param>
+        /// <param name="name">The name of the collation to create.</param>
+        /// <param name="locale">Sets LC_COLLATE and LC_CTYPE at once.</param>
+        /// <param name="provider">
+        /// Specifies the provider to use for locale services associated with this collation.
+        /// The available choices depend on the operating system and build options.</param>
+        /// <param name="deterministic">
+        /// Specifies whether the collation should use deterministic comparisons.
+        /// Defaults to <c>true</c>.
+        /// </param>
+        /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+        [NotNull]
+        public static ModelBuilder HasCollation(
+            [NotNull] this ModelBuilder modelBuilder,
+            [CanBeNull] string schema,
+            [NotNull] string name,
+            [NotNull] string locale,
+            [CanBeNull] string provider = null,
+            bool? deterministic = null)
+        {
+            Check.NotNull(modelBuilder, nameof(modelBuilder));
+            Check.NotEmpty(name, nameof(name));
+            Check.NotEmpty(locale, nameof(locale));
+
+            modelBuilder.Model.GetOrAddCollation(
+                schema,
+                name,
+                locale,
+                locale,
+                provider,
+                deterministic);
+            return modelBuilder;
+        }
+
+        /// <summary>
+        /// Creates a new collation in the database.
+        /// </summary>
+        /// <remarks>
+        /// See https://www.postgresql.org/docs/current/sql-createcollation.html.
+        /// </remarks>
+        /// <param name="modelBuilder">The model builder on which to create the collation.</param>
+        /// <param name="schema">The schema in which to create the collation, or <c>null</c> for the default schema.</param>
+        /// <param name="name">The name of the collation to create.</param>
+        /// <param name="lcCollate">Use the specified operating system locale for the LC_COLLATE locale category.</param>
+        /// <param name="lcCtype">Use the specified operating system locale for the LC_CTYPE locale category.</param>
+        /// <param name="provider">
+        /// Specifies the provider to use for locale services associated with this collation.
+        /// The available choices depend on the operating system and build options.</param>
+        /// <param name="deterministic">
+        /// Specifies whether the collation should use deterministic comparisons.
+        /// Defaults to <c>true</c>.
+        /// </param>
+        /// <returns>The same builder instance so that multiple calls can be chained.</returns>
+        [NotNull]
+        public static ModelBuilder HasCollation(
+            [NotNull] this ModelBuilder modelBuilder,
+            [CanBeNull] string schema,
+            [NotNull] string name,
+            [NotNull] string lcCollate,
+            [NotNull] string lcCtype,
+            [CanBeNull] string provider = null,
+            bool? deterministic = null)
+        {
+            Check.NotNull(modelBuilder, nameof(modelBuilder));
+            Check.NotEmpty(name, nameof(name));
+            Check.NotEmpty(lcCollate, nameof(lcCollate));
+            Check.NotEmpty(lcCtype, nameof(lcCtype));
+
+            modelBuilder.Model.GetOrAddCollation(
+                schema,
+                name,
+                lcCollate,
+                lcCtype,
+                provider,
+                deterministic);
+            return modelBuilder;
+        }
+
+        #endregion Collation management
+
+        #region Default column collation
+
+        /// <summary>
+        /// Configures the default collation for all columns in the database. This causes EF Core to specify an explicit
+        /// collation when creating each column (unless overridden).
+        /// </summary>
+        /// <remarks>
+        /// <p>
+        /// An alternative is to specify a database collation via <see cref="RelationalModelBuilderExtensions.UseCollation(Microsoft.EntityFrameworkCore.ModelBuilder,string)"/>,
+        /// which will specify the query on <c>CREATE DATABASE</c> instead of for each and every column. However,
+        /// PostgreSQL support is limited for the collations that can be specific via this mechanism; ICU collations -
+        /// which include all case-insensitive collations - are currently unsupported.
+        /// </p>
+        /// <p>
+        /// For more information, see https://www.postgresql.org/docs/current/collation.html.
+        /// </p>
+        /// </remarks>
+        /// <param name="modelBuilder">The model builder.</param>
+        /// <param name="collation">The collation.</param>
+        /// <returns>A builder to further configure the property.</returns>
+        public static ModelBuilder UseDefaultColumnCollation([NotNull] this ModelBuilder modelBuilder, [CanBeNull] string collation)
+        {
+            Check.NotNull(modelBuilder, nameof(modelBuilder));
+            Check.NullButNotEmpty(collation, nameof(collation));
+
+            modelBuilder.Model.SetDefaultColumnCollation(collation);
+
+            return modelBuilder;
+        }
+
+        /// <summary>
+        /// Configures the default collation for all columns in the database. This causes EF Core to specify an explicit
+        /// collation when creating each column (unless overridden).
+        /// </summary>
+        /// <remarks>
+        /// <p>
+        /// An alternative is to specify a database collation via <see cref="RelationalModelBuilderExtensions.UseCollation(Microsoft.EntityFrameworkCore.ModelBuilder,string)"/>,
+        /// which will specify the query on <c>CREATE DATABASE</c> instead of for each and every column. However,
+        /// PostgreSQL support is limited for the collations that can be specific via this mechanism; ICU collations -
+        /// which include all case-insensitive collations - are currently unsupported.
+        /// </p>
+        /// <p>
+        /// For more information, see https://www.postgresql.org/docs/current/collation.html.
+        /// </p>
+        /// </remarks>
+        /// <param name="modelBuilder">The model builder.</param>
+        /// <param name="collation">The collation.</param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        /// <returns>A builder to further configure the property.</returns>
+        public static IConventionModelBuilder UseDefaultColumnCollation(
+            [NotNull] this IConventionModelBuilder modelBuilder,
+            [CanBeNull] string collation,
+            bool fromDataAnnotation = false)
+        {
+            if (modelBuilder.CanSetDefaultColumnCollation(collation, fromDataAnnotation))
+            {
+                modelBuilder.Metadata.SetDefaultColumnCollation(collation);
+                return modelBuilder;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Returns a value indicating whether the given value can be set as the default column collation.
+        /// </summary>
+        /// <param name="modelBuilder">The model builder.</param>
+        /// <param name="collation">The collation.</param>
+        /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
+        /// <returns><c>true</c> if the given value can be set as the collation.</returns>
+        public static bool CanSetDefaultColumnCollation(
+            [NotNull] this IConventionModelBuilder modelBuilder,
+            [CanBeNull] string collation,
+            bool fromDataAnnotation = false)
+        {
+            Check.NotNull(modelBuilder, nameof(modelBuilder));
+
+            return modelBuilder.CanSetAnnotation(
+                NpgsqlAnnotationNames.DefaultColumnCollation, collation, fromDataAnnotation);
+        }
+
+        #endregion Default column collation
 
         #region Helpers
 

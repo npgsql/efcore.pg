@@ -9,14 +9,14 @@ using Xunit.Abstractions;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     // ReSharper disable once UnusedMember.Global
-    public class GearsOfWarQueryNpgsqlTest : GearsOfWarQueryTestBase<GearsOfWarQueryNpgsqlFixture>
+    public class GearsOfWarQueryNpgsqlTest : GearsOfWarQueryRelationalTestBase<GearsOfWarQueryNpgsqlFixture>
     {
         // ReSharper disable once UnusedParameter.Local
         public GearsOfWarQueryNpgsqlTest(GearsOfWarQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
         {
             Fixture.TestSqlLoggerFactory.Clear();
-            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+            Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
         public override async Task Byte_array_contains_literal(bool async)

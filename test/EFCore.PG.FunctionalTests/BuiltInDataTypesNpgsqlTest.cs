@@ -454,12 +454,12 @@ WHERE m.""TimeSpanAsTime"" = @__timeSpan_0");
 @p3='0x56' (Nullable = false)
 @p4='g' (Nullable = false)
 @p5='h' (Nullable = false)
-@p6='2015-01-02T00:00:00' (DbType = Date)
-@p7='2015-01-02T10:11:12' (DbType = DateTime)
-@p8='2016-01-02T11:11:12' (DbType = DateTimeOffset)
+@p6='2015-01-02T00:00:00.0000000' (DbType = Date)
+@p7='2015-01-02T10:11:12.0000000' (DbType = DateTime)
+@p8='2016-01-02T11:11:12.0000000Z' (DbType = DateTimeOffset)
 @p9='0001-01-01T12:00:00.0000000+02:00' (DbType = Object)
 @p10='101.7'
-@p11='81.1'
+@p11='81.1' (DbType = Currency)
 @p12='103.9'
 @p13='System.Collections.Generic.Dictionary`2[System.String,System.String]' (Nullable = false) (DbType = Object)
 @p14='85.5'
@@ -869,21 +869,38 @@ WHERE m.""TimeSpanAsTime"" = @__timeSpan_0");
         {
             using var context = CreateContext();
 
-            // PostgreSQL SUM() returns numeric for bigint input, bigint for int/smallint inuts.
+            // PostgreSQL SUM() returns numeric for bigint input, bigint for int/smallint ints.
             // Make sure the proper conversion is done
-            var sum1 = context.Set<MappedDataTypes>().Sum(m => m.LongAsBigint);
-            var sum2 = context.Set<MappedDataTypes>().Sum(m => m.Int);
-            var sum3 = context.Set<MappedDataTypes>().Sum(m => m.ShortAsSmallint);
+            _ = context.Set<MappedDataTypes>().Sum(m => m.LongAsBigint);
+            _ = context.Set<MappedDataTypes>().Sum(m => m.Int);
+            _ = context.Set<MappedDataTypes>().Sum(m => m.ShortAsSmallint);
 
             AssertSql(
-                @"SELECT SUM(m.""LongAsBigint"")::bigint
+                @"SELECT COALESCE(SUM(m.""LongAsBigint""), 0.0)::bigint
 FROM ""MappedDataTypes"" AS m",
                 //
-                @"SELECT SUM(m.""Int"")::INT
+                @"SELECT COALESCE(SUM(m.""Int""), 0)::int
 FROM ""MappedDataTypes"" AS m",
                 //
-                @"SELECT SUM(CAST(m.""ShortAsSmallint"" AS integer))::INT
+                @"SELECT COALESCE(SUM(CAST(m.""ShortAsSmallint"" AS integer)), 0)::INT
 FROM ""MappedDataTypes"" AS m");
+        }
+
+        [ConditionalFact]
+        public void Money_compare_constant()
+        {
+            using var context = CreateContext();
+
+            _ = context.Set<MappedDataTypes>().Where(m => m.DecimalAsMoney > 3).ToList();
+        }
+
+        [ConditionalFact]
+        public void Money_compare_parameter()
+        {
+            using var context = CreateContext();
+
+            var money = 3m;
+            _ = context.Set<MappedDataTypes>().Where(m => m.DecimalAsMoney > money).ToList();
         }
 
         void AssertSql(params string[] expected)

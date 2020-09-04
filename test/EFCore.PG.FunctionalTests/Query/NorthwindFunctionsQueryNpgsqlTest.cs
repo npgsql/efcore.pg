@@ -10,7 +10,7 @@ using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public class NorthwindFunctionsQueryNpgsqlTest : NorthwindFunctionsQueryTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
+    public class NorthwindFunctionsQueryNpgsqlTest : NorthwindFunctionsQueryRelationalTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
     {
         public NorthwindFunctionsQueryNpgsqlTest(
             NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture, ITestOutputHelper testOutputHelper)
@@ -264,6 +264,19 @@ WHERE (c.""Region"" IS NULL) OR (BTRIM(c.""Region"", E' \t\n\r') = '')");
         }
 
         #endregion
+
+        #region Unsupported
+
+        // These tests convert (among other things) to and from boolean, which PostgreSQL
+        // does not support (https://github.com/dotnet/efcore/issues/19606)
+        public override Task Convert_ToBoolean(bool async) => Task.CompletedTask;
+        public override Task Convert_ToByte(bool async) => Task.CompletedTask;
+        public override Task Convert_ToDecimal(bool async) => Task.CompletedTask;
+        public override Task Convert_ToDouble(bool async) => Task.CompletedTask;
+        public override Task Convert_ToInt16(bool async) => Task.CompletedTask;
+        public override Task Convert_ToInt64(bool async) => Task.CompletedTask;
+
+        #endregion Unsupported
 
         void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);

@@ -105,8 +105,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
 
             try
             {
+                var internalSchemas = "'pg_catalog', 'information_schema'";
+                using (var command = new NpgsqlCommand("SELECT version()", connection))
+                {
+                    var longVersion = (string)command.ExecuteScalar();
+                    if (longVersion.Contains("CockroachDB"))
+                        internalSchemas += ", 'crdb_internal'";
+                }
+
                 databaseModel.DatabaseName = connection.Database;
                 databaseModel.DefaultSchema = "public";
+
+                PopulateGlobalDatabaseInfo(connection, databaseModel);
 
                 var schemaList = options.Schemas.ToList();
                 var schemaFilter = GenerateSchemaFilter(schemaList);
@@ -115,7 +125,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
 
                 var enums = GetEnums(connection, databaseModel);
 
-                foreach (var table in GetTables(connection, databaseModel, tableFilter, enums, _logger))
+                foreach (var table in GetTables(connection, databaseModel, tableFilter, internalSchemas, enums, _logger))
                 {
                     table.Database = databaseModel;
                     databaseModel.Tables.Add(table);
@@ -133,6 +143,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
                 }
 
                 GetExtensions(connection, databaseModel);
+                GetCollations(connection, databaseModel, internalSchemas, _logger);
 
                 for (var i = 0; i < databaseModel.Tables.Count; i++)
                 {
@@ -140,7 +151,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
 
                     // Remove some tables which shouldn't get scaffolded, unless they're explicitly mentioned
                     // in the table list
-                    if (SystemTablesAndViews.Contains(table.Name) && !tableList.Contains(table.Name))
+                    if (SystemTablesAndViews.Contains(table.Name) && !tableList.Contains(table.Name!))
                     {
                         databaseModel.Tables.RemoveAt(i--);
                         continue;
@@ -178,6 +189,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
 
         #region Type information queries
 
+        static void PopulateGlobalDatabaseInfo(NpgsqlConnection connection, DatabaseModel databaseModel)
+        {
+            var commandText = @"SELECT datcollate FROM pg_database WHERE datname=current_database()";
+            using var command = new NpgsqlCommand(commandText, connection);
+            using var reader = command.ExecuteReader();
+            if (reader.Read())
+                databaseModel.Collation = reader.GetString(0);
+        }
+
         /// <summary>
         /// Queries the database for defined tables and registers them with the model.
         /// </summary>
@@ -185,6 +205,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
             NpgsqlConnection connection,
             DatabaseModel databaseModel,
             Func<string, string, string>? tableFilter,
+            string internalSchemas,
             HashSet<string> enums,
             IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
         {
@@ -196,7 +217,7 @@ JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
 LEFT OUTER JOIN pg_description AS des ON des.objoid = cls.oid AND des.objsubid=0
 WHERE
   cls.relkind IN ('r', 'v', 'm') AND
-  ns.nspname NOT IN ('pg_catalog', 'information_schema') AND
+  ns.nspname NOT IN ({internalSchemas}) AND
   cls.relname <> '{HistoryRepository.DefaultTableName}'
   {filter}";
 
@@ -211,8 +232,10 @@ WHERE
                     var name = reader.GetString("relname");
                     var comment = reader.GetValueOrDefault<string>("description");
 
-                    var table = new DatabaseTable(databaseModel, name)
+                    var table = new DatabaseTable()
                     {
+                        Database = databaseModel,
+                        Name = name,
                         Schema = schema,
                         Comment = comment
                     };
@@ -221,9 +244,9 @@ WHERE
                 }
             }
 
-            GetColumns(connection, tables, filter, enums, logger);
-            GetConstraints(connection, tables, filter, out var constraintIndexes, logger);
-            GetIndexes(connection, tables, filter, constraintIndexes, logger);
+            GetColumns(connection, tables, filter, internalSchemas, enums, logger);
+            GetConstraints(connection, tables, filter, internalSchemas, out var constraintIndexes, logger);
+            GetIndexes(connection, tables, filter, internalSchemas, constraintIndexes, logger);
             return tables;
         }
 
@@ -234,6 +257,7 @@ WHERE
             NpgsqlConnection connection,
             IReadOnlyList<DatabaseTable> tables,
             string? tableFilter,
+            string internalSchemas,
             HashSet<string> enums,
             IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
         {
@@ -245,9 +269,10 @@ SELECT
   basetyp.typname AS basetypname,
   attname,
   description,
+  collname,
   attisdropped,
-  {(connection.PostgreSqlVersion >= new Version(10, 0) ? "attidentity" : "''::\"char\" as attidentity")},
-  {(connection.PostgreSqlVersion >= new Version(12, 0) ? "attgenerated" : "''::\"char\" as attgenerated")},
+  {(connection.PostgreSqlVersion >= new Version(10, 0) ? "attidentity::text" : "' '::text as attidentity")},
+  {(connection.PostgreSqlVersion >= new Version(12, 0) ? "attgenerated::text" : "' '::text as attgenerated")},
   format_type(typ.oid, atttypmod) AS formatted_typname,
   format_type(basetyp.oid, typ.typtypmod) AS formatted_basetypname,
   CASE
@@ -277,12 +302,13 @@ LEFT JOIN pg_proc ON pg_proc.oid = typ.typreceive
 LEFT JOIN pg_type AS elemtyp ON (elemtyp.oid = typ.typelem)
 LEFT JOIN pg_type AS basetyp ON (basetyp.oid = typ.typbasetype)
 LEFT JOIN pg_description AS des ON des.objoid = cls.oid AND des.objsubid = attnum
+LEFT JOIN pg_collation as coll ON coll.oid = attr.attcollation
 -- Bring in identity sequences the depend on this column
 LEFT JOIN pg_depend AS dep ON dep.refobjid = cls.oid AND dep.refobjsubid = attr.attnum AND dep.deptype = 'i'
 {(connection.PostgreSqlVersion >= new Version(10, 0) ? "LEFT JOIN pg_sequence AS seq ON seq.seqrelid = dep.objid" : "")}
 WHERE
   cls.relkind IN ('r', 'v', 'm') AND
-  nspname NOT IN ('pg_catalog', 'information_schema') AND
+  nspname NOT IN ({internalSchemas}) AND
   attnum > 0 AND
   cls.relname <> '{HistoryRepository.DefaultTableName}'
   {tableFilter}
@@ -320,8 +346,11 @@ ORDER BY attnum";
                             ? (formattedTypeName, record.GetFieldValue<string>("typname"))
                             : (formattedBaseTypeName, record.GetFieldValue<string>("basetypname")); // domain type
 
-                        var column = new DatabaseColumn(table, columnName, storeType)
+                        var column = new DatabaseColumn
                         {
+                            Table = table,
+                            Name = columnName,
+                            StoreType = storeType,
                             IsNullable = record.GetValueOrDefault<bool>("nullable"),
                         };
 
@@ -338,8 +367,11 @@ ORDER BY attnum";
                         }
 
                         // Default values and PostgreSQL 12 generated columns
-                        if (record.GetValueOrDefault<char>("attgenerated") == 's')
+                        if (record.GetFieldValue<string>("attgenerated") == "s")
+                        {
                             column.ComputedColumnSql = record.GetValueOrDefault<string>("default");
+                            column.IsStored = true;
+                        }
                         else
                         {
                             column.DefaultValueSql = record.GetValueOrDefault<string>("default");
@@ -348,13 +380,13 @@ ORDER BY attnum";
 
                         // Identify IDENTITY columns, as well as SERIAL ones.
                         var isIdentity = false;
-                        switch (record.GetValueOrDefault<char>("attidentity"))
+                        switch (record.GetFieldValue<string>("attidentity"))
                         {
-                        case 'a':
+                        case "a":
                             column[NpgsqlAnnotationNames.ValueGenerationStrategy] = NpgsqlValueGenerationStrategy.IdentityAlwaysColumn;
                             isIdentity = true;
                             break;
-                        case 'd':
+                        case "d":
                             column[NpgsqlAnnotationNames.ValueGenerationStrategy] = NpgsqlValueGenerationStrategy.IdentityByDefaultColumn;
                             isIdentity = true;
                             break;
@@ -410,6 +442,9 @@ ORDER BY attnum";
                         if (record.GetValueOrDefault<string>("description") is string comment)
                             column.Comment = comment;
 
+                        if (record.GetValueOrDefault<string>("collname") is string collation && collation != "default")
+                            column.Collation = collation;
+
                         logger.ColumnFound(
                             DisplayName(tableSchema, tableName),
                             column.Name,
@@ -432,16 +467,27 @@ ORDER BY attnum";
             NpgsqlConnection connection,
             IReadOnlyList<DatabaseTable> tables,
             string? tableFilter,
+            string internalSchemas,
             List<uint> constraintIndexes,
             IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
         {
             // Load the pg_opclass table (https://www.postgresql.org/docs/current/catalog-pg-opclass.html),
             // which is referenced by the indices we'll load below
             var opClasses = new Dictionary<uint, (string Name, bool IsDefault)>();
-            using (var command = new NpgsqlCommand("SELECT oid, opcname, opcdefault FROM pg_opclass", connection))
-            using (var reader = command.ExecuteReader())
-                foreach (var opClass in reader.Cast<DbDataRecord>())
-                    opClasses[opClass.GetFieldValue<uint>("oid")] = (opClass.GetFieldValue<string>("opcname"), opClass.GetFieldValue<bool>("opcdefault"));
+            try
+            {
+                using (var command = new NpgsqlCommand("SELECT oid, opcname, opcdefault FROM pg_opclass", connection))
+                using (var reader = command.ExecuteReader())
+                    foreach (var opClass in reader.Cast<DbDataRecord>())
+                        opClasses[opClass.GetFieldValue<uint>("oid")] = (
+                            opClass.GetFieldValue<string>("opcname"),
+                            opClass.GetFieldValue<bool>("opcdefault"));
+            }
+            catch (PostgresException e)
+            {
+                logger.Logger.LogWarning(e,
+                    "Could not load index operator classes from pg_opclass. Operator classes will not be scaffolded");
+            }
 
             var collations = new Dictionary<uint, string>();
             using (var command = new NpgsqlCommand("SELECT oid, collname FROM pg_collation", connection))
@@ -478,7 +524,7 @@ JOIN pg_class AS idxcls ON idxcls.oid = indexrelid
 JOIN pg_am AS am ON am.oid = idxcls.relam
 WHERE
   cls.relkind = 'r' AND
-  nspname NOT IN ('pg_catalog', 'information_schema') AND
+  nspname NOT IN ({internalSchemas}) AND
   NOT indisprimary AND
   cls.relname <> '{HistoryRepository.DefaultTableName}'
   {tableFilter}";
@@ -505,8 +551,10 @@ WHERE
                             continue;
 
                         var indexName = record.GetFieldValue<string>("idx_relname");
-                        var index = new DatabaseIndex(table, indexName)
+                        var index = new DatabaseIndex
                         {
+                            Table = table,
+                            Name = indexName,
                             IsUnique = record.GetFieldValue<bool>("indisunique")
                         };
 
@@ -547,7 +595,7 @@ WHERE
                             foreach (var i in columnIndices.Skip(numKeyColumns))
                             {
                                 if (tableColumns[i - 1] is DatabaseColumn indexKeyColumn)
-                                    nonKeyColumns.Add(indexKeyColumn.Name);
+                                    nonKeyColumns.Add(indexKeyColumn.Name!);
                                 else
                                 {
                                     logger.UnsupportedColumnIndexSkippedWarning(index.Name, DisplayName(tableSchema, tableName));
@@ -584,7 +632,7 @@ WHERE
                             .ToArray();
 
                         if (columnCollations.Any(coll => coll != null))
-                            index[NpgsqlAnnotationNames.IndexCollation] = columnCollations;
+                            index[RelationalAnnotationNames.Collation] = columnCollations;
 
                         if (record.GetValueOrDefault<bool>("amcanorder"))
                         {
@@ -626,6 +674,7 @@ WHERE
             NpgsqlConnection connection,
             IReadOnlyList<DatabaseTable> tables,
             string? tableFilter,
+            string internalSchemas,
             out List<uint> constraintIndexes,
             IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
         {
@@ -634,13 +683,13 @@ SELECT
   ns.nspname,
   cls.relname,
   conname,
-  contype,
+  contype::text,
   conkey,
   conindid,
   frnns.nspname AS fr_nspname,
   frncls.relname AS fr_relname,
   confkey,
-  confdeltype
+  confdeltype::text
 FROM pg_class AS cls
 JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
 JOIN pg_constraint as con ON con.conrelid = cls.oid
@@ -648,7 +697,7 @@ LEFT OUTER JOIN pg_class AS frncls ON frncls.oid = con.confrelid
 LEFT OUTER JOIN pg_namespace as frnns ON frnns.oid = frncls.relnamespace
 WHERE
   cls.relkind = 'r' AND
-  ns.nspname NOT IN ('pg_catalog', 'information_schema') AND
+  ns.nspname NOT IN ({internalSchemas}) AND
   con.contype IN ('p', 'f', 'u') AND
   cls.relname <> '{HistoryRepository.DefaultTableName}'
   {tableFilter}";
@@ -669,10 +718,14 @@ WHERE
                     var table = tables.Single(t => t.Schema == tableSchema && t.Name == tableName);
 
                     // Primary keys
-                    foreach (var primaryKeyRecord in tableGroup.Where(ddr => ddr.GetFieldValue<char>("contype") == 'p'))
+                    foreach (var primaryKeyRecord in tableGroup.Where(ddr => ddr.GetFieldValue<string>("contype") == "p"))
                     {
                         var pkName = primaryKeyRecord.GetValueOrDefault<string>("conname");
-                        var primaryKey = new DatabasePrimaryKey(table, pkName);
+                        var primaryKey = new DatabasePrimaryKey
+                        {
+                            Table = table,
+                            Name = pkName
+                        };
 
                         foreach (var pkColumnIndex in primaryKeyRecord.GetFieldValue<short[]>("conkey"))
                         {
@@ -690,12 +743,12 @@ WHERE
                     }
 
                     // Foreign keys
-                    foreach (var foreignKeyRecord in tableGroup.Where(ddr => ddr.GetFieldValue<char>("contype") == 'f'))
+                    foreach (var foreignKeyRecord in tableGroup.Where(ddr => ddr.GetFieldValue<string>("contype") == "f"))
                     {
                         var fkName = foreignKeyRecord.GetFieldValue<string>("conname");
                         var principalTableSchema = foreignKeyRecord.GetFieldValue<string>("fr_nspname");
                         var principalTableName = foreignKeyRecord.GetFieldValue<string>("fr_relname");
-                        var onDeleteAction = foreignKeyRecord.GetFieldValue<char>("confdeltype");
+                        var onDeleteAction = foreignKeyRecord.GetFieldValue<string>("confdeltype");
 
                         var principalTable =
                             tables.FirstOrDefault(t =>
@@ -708,14 +761,17 @@ WHERE
                         {
                             logger.ForeignKeyReferencesMissingPrincipalTableWarning(
                                 fkName,
-                                DisplayName(table.Schema, table.Name),
+                                DisplayName(table.Schema, table.Name!),
                                 DisplayName(principalTableSchema, principalTableName));
 
                             continue;
                         }
 
-                        var foreignKey = new DatabaseForeignKey(table, fkName, principalTable)
+                        var foreignKey = new DatabaseForeignKey
                         {
+                            Table = table,
+                            Name = fkName,
+                            PrincipalTable = principalTable,
                             OnDelete = ConvertToReferentialAction(onDeleteAction)
                         };
 
@@ -746,13 +802,17 @@ WHERE
                     }
 
                     // Unique constraints
-                    foreach (var record in tableGroup.Where(ddr => ddr.GetValueOrDefault<char>("contype") == 'u'))
+                    foreach (var record in tableGroup.Where(ddr => ddr.GetValueOrDefault<string>("contype") == "u"))
                     {
                         var name = record.GetValueOrDefault<string>("conname");
 
                         logger.UniqueConstraintFound(name, DisplayName(tableSchema, tableName));
 
-                        var uniqueConstraint = new DatabaseUniqueConstraint(table, name);
+                        var uniqueConstraint = new DatabaseUniqueConstraint
+                        {
+                            Table = table,
+                            Name = name
+                        };
 
                         foreach (var columnIndex in record.GetFieldValue<short[]>("conkey"))
                         {
@@ -817,8 +877,10 @@ WHERE
                     var sequenceSchema = reader.GetFieldValue<string>("sequence_schema");
 
                     var seqInfo = ReadSequenceInfo(record, connection.PostgreSqlVersion);
-                    var sequence = new DatabaseSequence(databaseModel, sequenceName)
+                    var sequence = new DatabaseSequence
                     {
+                        Database = databaseModel,
+                        Name = sequenceName,
                         Schema = sequenceSchema,
                         StoreType = seqInfo.StoreType,
                         StartValue = seqInfo.StartValue,
@@ -855,7 +917,7 @@ GROUP BY nspname, typname";
                 var enums = new HashSet<string>();
                 while (reader.Read())
                 {
-                    string? schema = reader.GetFieldValue<string>("nspname");
+                    var schema = reader.GetFieldValue<string?>("nspname");
                     var name = reader.GetFieldValue<string>("typname");
                     var labels = reader.GetFieldValue<string[]>("labels");
 
@@ -894,6 +956,65 @@ GROUP BY nspname, typname";
                     // TODO: how/should we query the schema?
                     databaseModel.GetOrAddPostgresExtension(null, name, installedVersion);
                 }
+            }
+        }
+
+
+        static void GetCollations(
+            NpgsqlConnection connection,
+            DatabaseModel databaseModel,
+            string internalSchemas,
+            IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
+        {
+            var commandText = @$"
+SELECT
+    nspname, collname, collprovider, collcollate, collctype,
+    {(connection.PostgreSqlVersion >= new Version(12, 0) ? "collisdeterministic" : "true AS collisdeterministic")}
+FROM pg_collation coll
+    JOIN pg_namespace ns ON ns.oid=coll.collnamespace
+WHERE
+    nspname NOT IN ({internalSchemas})";
+
+            try
+            {
+                using var command = new NpgsqlCommand(commandText, connection);
+                using var reader = command.ExecuteReader();
+                while (reader.Read())
+                {
+                    var schema = reader.GetString(reader.GetOrdinal("nspname"));
+                    var name = reader.GetString(reader.GetOrdinal("collname"));
+                    var lcCollate = reader.GetString(reader.GetOrdinal("collcollate"));
+                    var lcCtype = reader.GetString(reader.GetOrdinal("collctype"));
+                    var providerCode = reader.GetChar(reader.GetOrdinal("collprovider"));
+                    var isDeterministic = reader.GetBoolean(reader.GetOrdinal("collisdeterministic"));
+
+                    string? provider;
+                    switch (providerCode)
+                    {
+                    case 'c':
+                        provider = "libc";
+                        break;
+                    case 'i':
+                        provider = "icu";
+                        break;
+                    case 'd':
+                        provider = null;
+                        break;
+                    default:
+                        logger.Logger.LogWarning(
+                            $"Unknown collation provider code {providerCode} for collation {name}, skipping.");
+                        continue;
+                    }
+
+                    logger.CollationFound(schema, name, lcCollate, lcCtype, provider, isDeterministic);
+
+                    PostgresCollation.GetOrAddCollation(
+                        databaseModel, schema, name, lcCollate, lcCtype, provider, isDeterministic);
+                }
+            }
+            catch (PostgresException e)
+            {
+                logger.Logger.LogWarning(e, "Could not load database collations.");
             }
         }
 
@@ -1030,7 +1151,7 @@ GROUP BY nspname, typname";
             };
         }
 
-        class SequenceInfo
+        sealed class SequenceInfo
         {
             public SequenceInfo(string storeType) => StoreType = storeType;
             public string StoreType { get; set; }
@@ -1145,14 +1266,14 @@ GROUP BY nspname, typname";
         /// <summary>
         /// Maps a character to a <see cref="ReferentialAction"/>.
         /// </summary>
-        static ReferentialAction ConvertToReferentialAction(char onDeleteAction)
+        static ReferentialAction ConvertToReferentialAction(string onDeleteAction)
             => onDeleteAction switch
             {
-                'a' => ReferentialAction.NoAction,
-                'r' => ReferentialAction.Restrict,
-                'c' => ReferentialAction.Cascade,
-                'n' => ReferentialAction.SetNull,
-                'd' => ReferentialAction.SetDefault,
+                "a" => ReferentialAction.NoAction,
+                "r" => ReferentialAction.Restrict,
+                "c" => ReferentialAction.Cascade,
+                "n" => ReferentialAction.SetNull,
+                "d" => ReferentialAction.SetDefault,
                 _ => throw new ArgumentOutOfRangeException(
                     $"Unknown value {onDeleteAction} for foreign key deletion action code.")
             };

@@ -13,7 +13,7 @@ using Xunit.Abstractions;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     // ReSharper disable once UnusedMember.Global
-    public class SpatialQueryNpgsqlGeographyTest : SpatialQueryTestBase<SpatialQueryNpgsqlGeographyTest.SpatialQueryNpgsqlGeographyFixture>
+    public class SpatialQueryNpgsqlGeographyTest : SpatialQueryRelationalTestBase<SpatialQueryNpgsqlGeographyTest.SpatialQueryNpgsqlGeographyFixture>
     {
         // ReSharper disable once UnusedParameter.Local
         public SpatialQueryNpgsqlGeographyTest(SpatialQueryNpgsqlGeographyFixture fixture, ITestOutputHelper testOutputHelper)
@@ -181,7 +181,6 @@ FROM ""PointEntity"" AS p");
         public override Task Difference(bool async)                      => Task.CompletedTask;
         public override Task Dimension(bool async)                       => Task.CompletedTask;
         public override Task Disjoint_with_cast_to_nullable(bool async)    => Task.CompletedTask;
-        public override Task Disjoint_without_cast_to_nullable(bool async) => Task.CompletedTask;
         public override Task Disjoint_with_null_check(bool async)          => Task.CompletedTask;
         public override Task EndPoint(bool async)                        => Task.CompletedTask;
         public override Task Envelope(bool async)                        => Task.CompletedTask;

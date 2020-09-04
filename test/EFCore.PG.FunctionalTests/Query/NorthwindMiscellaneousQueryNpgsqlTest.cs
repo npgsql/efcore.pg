@@ -9,7 +9,7 @@ using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public class NorthwindMiscellaneousQueryNpgsqlTest : NorthwindMiscellaneousQueryTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
+    public class NorthwindMiscellaneousQueryNpgsqlTest : NorthwindMiscellaneousQueryRelationalTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
     {
         public NorthwindMiscellaneousQueryNpgsqlTest(NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
@@ -59,6 +59,7 @@ WHERE (o.""OrderDate"" IS NOT NULL)");
         }
 
         // TODO: Array tests can probably move to the dedicated ArrayQueryTest suite
+
         #region Array contains
 
         // Note that this also takes care of array.Any(x => x == y)
@@ -134,12 +135,17 @@ WHERE c.""Region"" = ANY (@__regions_0) OR ((c.""Region"" IS NULL) AND (array_po
         [MemberData(nameof(IsAsyncData))]
         public async Task Array_Any_Like(bool async)
         {
-            var collection = new[] { "A%", "B%", "C%" };
+            using var context = CreateContext();
 
-            await AssertQuery(
-                async,
-                ss => ss.Set<Customer>().Where(c => collection.Any(y => EF.Functions.Like(c.Address, y))),
-                entryCount: 22);
+            var collection = new[] { "A%", "B%", "C%" };
+            var query = context.Set<Customer>().Where(c => collection.Any(y => EF.Functions.Like(c.Address, y)));
+            var result = async ? await query.ToListAsync() : query.ToList();
+
+            Assert.Equal(new[]
+            {
+                "ANATR", "BERGS", "BOLID", "CACTU", "COMMI", "CONSH", "FISSA", "FRANK", "GODOS", "GOURL", "HILAA",
+                "HUNGC", "LILAS", "LINOD", "PERIC", "QUEEN", "RANCH", "RICAR", "SUPRD", "TORTU", "TRADH", "WANDK"
+            }, result.Select(e => e.CustomerID));
 
             AssertSql(
                 @"@__collection_0='System.String[]' (DbType = Object)
@@ -153,11 +159,13 @@ WHERE c.""Address"" LIKE ANY (@__collection_0)");
         [MemberData(nameof(IsAsyncData))]
         public async Task Array_All_Like(bool async)
         {
-            var collection = new[] { "A%", "B%", "C%" };
+            using var context = CreateContext();
 
-            await AssertQuery(
-                async,
-                ss => ss.Set<Customer>().Where(c => collection.All(y => EF.Functions.Like(c.Address, y))));
+            var collection = new[] { "A%", "B%", "C%" };
+            var query = context.Set<Customer>().Where(c => collection.All(y => EF.Functions.Like(c.Address, y)));
+            var result = async ? await query.ToListAsync() : query.ToList();
+
+            Assert.Empty(result);
 
             AssertSql(
                 @"@__collection_0='System.String[]' (DbType = Object)
@@ -171,12 +179,17 @@ WHERE c.""Address"" LIKE ALL (@__collection_0)");
         [MemberData(nameof(IsAsyncData))]
         public async Task Array_Any_ILike(bool async)
         {
-            var collection = new[] { "a%", "b%", "c%" };
+            using var context = CreateContext();
 
-            await AssertQuery(
-                async,
-                ss => ss.Set<Customer>().Where(c => collection.Any(y => EF.Functions.ILike(c.Address, y))),
-                entryCount: 22);
+            var collection = new[] { "a%", "b%", "c%" };
+            var query = context.Set<Customer>().Where(c => collection.Any(y => EF.Functions.ILike(c.Address, y)));
+            var result = async ? await query.ToListAsync() : query.ToList();
+
+            Assert.Equal(new[]
+            {
+                "ANATR", "BERGS", "BOLID", "CACTU", "COMMI", "CONSH", "FISSA", "FRANK", "GODOS", "GOURL", "HILAA",
+                "HUNGC", "LILAS", "LINOD", "PERIC", "QUEEN", "RANCH", "RICAR", "SUPRD", "TORTU", "TRADH", "WANDK"
+            }, result.Select(e => e.CustomerID));
 
             AssertSql(
                 @"@__collection_0='System.String[]' (DbType = Object)
@@ -190,11 +203,13 @@ WHERE c.""Address"" ILIKE ANY (@__collection_0)");
         [MemberData(nameof(IsAsyncData))]
         public async Task Array_All_ILike(bool async)
         {
-            var collection = new[] { "a%", "b%", "c%" };
+            using var context = CreateContext();
 
-            await AssertQuery(
-                async,
-                ss => ss.Set<Customer>().Where(c => collection.All(y => EF.Functions.ILike(c.Address, y))));
+            var collection = new[] { "a%", "b%", "c%" };
+            var query = context.Set<Customer>().Where(c => collection.All(y => EF.Functions.ILike(c.Address, y)));
+            var result = async ? await query.ToListAsync() : query.ToList();
+
+            Assert.Empty(result);
 
             AssertSql(
                 @"@__collection_0='System.String[]' (DbType = Object)
@@ -205,6 +220,7 @@ WHERE c.""Address"" ILIKE ALL (@__collection_0)");
         }
 
         #endregion Any/All Like
+
         protected override void ClearLog()
             => Fixture.TestSqlLoggerFactory.Clear();
 

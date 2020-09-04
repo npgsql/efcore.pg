@@ -4,11 +4,11 @@ using System.Linq.Expressions;
 using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 using NpgsqlTypes;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
@@ -25,15 +25,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         static readonly MethodInfo TsVectorParse =
             typeof(NpgsqlTsVector).GetMethod(nameof(NpgsqlTsVector.Parse), BindingFlags.Public | BindingFlags.Static);
 
-        [NotNull]
+        readonly IRelationalTypeMappingSource _typeMappingSource;
         readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
         readonly RelationalTypeMapping _boolMapping;
         readonly RelationalTypeMapping _tsQueryMapping;
         readonly RelationalTypeMapping _tsVectorMapping;
         readonly RelationalTypeMapping _regconfigMapping;
 
-        public NpgsqlFullTextSearchMethodTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory, IRelationalTypeMappingSource typeMappingSource)
+        public NpgsqlFullTextSearchMethodTranslator(
+            [NotNull] IRelationalTypeMappingSource typeMappingSource,
+            [NotNull] NpgsqlSqlExpressionFactory sqlExpressionFactory)
         {
+            _typeMappingSource = typeMappingSource;
             _sqlExpressionFactory = sqlExpressionFactory;
             _boolMapping = typeMappingSource.FindMapping(typeof(bool));
             _tsQueryMapping = typeMappingSource.FindMapping("tsquery");
@@ -42,8 +45,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         }
 
         /// <inheritdoc />
-        [CanBeNull]
-        public SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
+        public virtual SqlExpression Translate(
+            SqlExpression instance,
+            MethodInfo method,
+            IReadOnlyList<SqlExpression> arguments,
+            IDiagnosticsLogger<DbLoggerCategory.Query> logger)
         {
             if (method == TsQueryParse || method == TsVectorParse)
                 return _sqlExpressionFactory.Convert(arguments[0], method.ReturnType);
@@ -86,7 +92,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                             nullable: true,
                             argumentsPropagateNullability: TrueArrays[2],
                             typeof(float),
-                            _sqlExpressionFactory.FindMapping(typeof(float))),
+                            _typeMappingSource.FindMapping(typeof(float))),
 
                         3 => _sqlExpressionFactory.Function(
                             rankFunctionName,
@@ -99,7 +105,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                             nullable: true,
                             argumentsPropagateNullability: TrueArrays[3],
                             typeof(float),
-                            _sqlExpressionFactory.FindMapping(typeof(float))),
+                            _typeMappingSource.FindMapping(typeof(float))),
 
                         4 => _sqlExpressionFactory.Function(
                             rankFunctionName,
@@ -107,7 +113,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                             nullable: true,
                             argumentsPropagateNullability: TrueArrays[4],
                             method.ReturnType,
-                            _sqlExpressionFactory.FindMapping(typeof(float))),
+                            _typeMappingSource.FindMapping(typeof(float))),
 
                         _ => throw new ArgumentException($"Invalid method overload for {rankFunctionName}")
                     };
@@ -132,20 +138,27 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 {
                     // Operators
 
-                    nameof(NpgsqlFullTextSearchLinqExtensions.And) => QueryReturningOnTwoQueries("&&"),
-                    nameof(NpgsqlFullTextSearchLinqExtensions.Or)  => QueryReturningOnTwoQueries("||"),
+                    nameof(NpgsqlFullTextSearchLinqExtensions.And)
+                    => _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.TextSearchAnd, arguments[0], arguments[1]),
+                    nameof(NpgsqlFullTextSearchLinqExtensions.Or)
+                    => _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.TextSearchOr, arguments[0], arguments[1]),
 
                     nameof(NpgsqlFullTextSearchLinqExtensions.ToNegative)
-                        => new SqlUnaryExpression(ExpressionType.Not, arguments[0], arguments[0].Type, arguments[0].TypeMapping),
+                    => new SqlUnaryExpression(ExpressionType.Not, arguments[0], arguments[0].Type,
+                        arguments[0].TypeMapping),
 
-                    nameof(NpgsqlFullTextSearchLinqExtensions.Contains) => BoolReturningOnTwoQueries("@>"),
-                    nameof(NpgsqlFullTextSearchLinqExtensions.IsContainedIn) => BoolReturningOnTwoQueries("<@"),
+                    nameof(NpgsqlFullTextSearchLinqExtensions.Contains)
+                    => _sqlExpressionFactory.Contains(arguments[0], arguments[1]),
+                    nameof(NpgsqlFullTextSearchLinqExtensions.IsContainedIn)
+                    => _sqlExpressionFactory.ContainedBy(arguments[0], arguments[1]),
 
                     nameof(NpgsqlFullTextSearchLinqExtensions.Concat)
-                        => _sqlExpressionFactory.Add(arguments[0], arguments[1], _tsVectorMapping),
+                    => _sqlExpressionFactory.Add(arguments[0], arguments[1], _tsVectorMapping),
 
-                    nameof(NpgsqlFullTextSearchLinqExtensions.Matches) => new SqlCustomBinaryExpression(
-                        _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[0]),
+                    nameof(NpgsqlFullTextSearchLinqExtensions.Matches)
+                    => _sqlExpressionFactory.MakePostgresBinary(
+                        PostgresExpressionType.TextSearchMatch,
+                        arguments[0],
                         arguments[1].Type == typeof(string)
                             ? _sqlExpressionFactory.Function(
                                 "plainto_tsquery",
@@ -154,113 +167,112 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                                 argumentsPropagateNullability: TrueArrays[1],
                                 typeof(NpgsqlTsQuery),
                                 _tsQueryMapping)
-                            : _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[1]),
-                        "@@",
-                        typeof(bool),
-                        _boolMapping),
+                            : arguments[1]),
 
                     // Functions
 
                     nameof(NpgsqlFullTextSearchLinqExtensions.GetNodeCount)
-                        => _sqlExpressionFactory.Function(
-                            "numnode",
-                            arguments,
-                            nullable: true,
-                            argumentsPropagateNullability: TrueArrays[1],
-                            typeof(int),
-                            _sqlExpressionFactory.FindMapping(method.ReturnType)),
+                    => _sqlExpressionFactory.Function(
+                        "numnode",
+                        arguments,
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[1],
+                        typeof(int),
+                        _typeMappingSource.FindMapping(method.ReturnType)),
 
                     nameof(NpgsqlFullTextSearchLinqExtensions.GetQueryTree)
-                        => _sqlExpressionFactory.Function(
-                            "querytree",
-                            arguments,
-                            nullable: true,
-                            argumentsPropagateNullability: TrueArrays[1],
-                            typeof(string),
-                            _sqlExpressionFactory.FindMapping(method.ReturnType)),
+                    => _sqlExpressionFactory.Function(
+                        "querytree",
+                        arguments,
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[1],
+                        typeof(string),
+                        _typeMappingSource.FindMapping(method.ReturnType)),
 
                     nameof(NpgsqlFullTextSearchLinqExtensions.GetResultHeadline) when arguments.Count == 2
-                        => _sqlExpressionFactory.Function(
-                            "ts_headline",
-                            new[] { arguments[1], arguments[0] },
-                            nullable: true,
-                            argumentsPropagateNullability: TrueArrays[2],
-                            method.ReturnType),
+                    => _sqlExpressionFactory.Function(
+                        "ts_headline",
+                        new[] { arguments[1], arguments[0] },
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[2],
+                        method.ReturnType),
 
-                    nameof(NpgsqlFullTextSearchLinqExtensions.GetResultHeadline) when arguments.Count == 3 => _sqlExpressionFactory.Function(
+                    nameof(NpgsqlFullTextSearchLinqExtensions.GetResultHeadline) when arguments.Count == 3 =>
+                    _sqlExpressionFactory.Function(
                         "ts_headline",
                         new[] { arguments[1], arguments[0], arguments[2] },
                         nullable: true,
                         argumentsPropagateNullability: TrueArrays[3],
                         method.ReturnType),
 
-                    nameof(NpgsqlFullTextSearchLinqExtensions.GetResultHeadline) when arguments.Count == 4 => _sqlExpressionFactory.Function(
-                            "ts_headline",
-                            new[]
-                            {
-                                // For the regconfig parameter, if a constant string was provided, just pass it as a string - regconfig-accepting functions
-                                // will implicitly cast to regconfig. For (string!) parameters, we add an explicit cast, since regconfig actually is an OID
-                                // behind the scenes, and for parameter binary transfer no type coercion occurs.
-                                arguments[1] is SqlConstantExpression constant
-                                    ? _sqlExpressionFactory.ApplyDefaultTypeMapping(constant)
-                                    : _sqlExpressionFactory.Convert(arguments[1], typeof(string), _regconfigMapping),
-                                arguments[2],
-                                arguments[0],
-                                arguments[3]
-                            },
-                            nullable: true,
-                            argumentsPropagateNullability: TrueArrays[4],
-                            method.ReturnType),
+                    nameof(NpgsqlFullTextSearchLinqExtensions.GetResultHeadline) when arguments.Count == 4 =>
+                    _sqlExpressionFactory.Function(
+                        "ts_headline",
+                        new[]
+                        {
+                            // For the regconfig parameter, if a constant string was provided, just pass it as a string - regconfig-accepting functions
+                            // will implicitly cast to regconfig. For (string!) parameters, we add an explicit cast, since regconfig actually is an OID
+                            // behind the scenes, and for parameter binary transfer no type coercion occurs.
+                            arguments[1] is SqlConstantExpression constant
+                                ? _sqlExpressionFactory.ApplyDefaultTypeMapping(constant)
+                                : _sqlExpressionFactory.Convert(arguments[1], typeof(string), _regconfigMapping),
+                            arguments[2],
+                            arguments[0],
+                            arguments[3]
+                        },
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[4],
+                        method.ReturnType),
 
                     nameof(NpgsqlFullTextSearchLinqExtensions.Rewrite)
-                        => _sqlExpressionFactory.Function(
-                            "ts_rewrite",
-                            arguments,
-                            nullable: true,
-                            argumentsPropagateNullability: TrueArrays[3],
-                            typeof(NpgsqlTsQuery),
-                            _tsQueryMapping),
+                    => _sqlExpressionFactory.Function(
+                        "ts_rewrite",
+                        arguments,
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[3],
+                        typeof(NpgsqlTsQuery),
+                        _tsQueryMapping),
 
                     nameof(NpgsqlFullTextSearchLinqExtensions.ToPhrase)
-                        => _sqlExpressionFactory.Function(
-                            "tsquery_phrase",
-                            arguments,
-                            nullable: true,
-                            argumentsPropagateNullability: TrueArrays[arguments.Count],
-                            typeof(NpgsqlTsQuery),
-                            _tsQueryMapping),
+                    => _sqlExpressionFactory.Function(
+                        "tsquery_phrase",
+                        arguments,
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[arguments.Count],
+                        typeof(NpgsqlTsQuery),
+                        _tsQueryMapping),
 
                     nameof(NpgsqlFullTextSearchLinqExtensions.Delete)
-                        => _sqlExpressionFactory.Function(
-                            "ts_delete",
-                            arguments,
-                            nullable: true,
-                            argumentsPropagateNullability: TrueArrays[2],
-                            method.ReturnType,
-                            _tsVectorMapping),
+                    => _sqlExpressionFactory.Function(
+                        "ts_delete",
+                        arguments,
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[2],
+                        method.ReturnType,
+                        _tsVectorMapping),
 
                     // TODO: Here we need to cast the char[] array we got into a "char"[] internal array...
                     nameof(NpgsqlFullTextSearchLinqExtensions.Filter)
-                        => throw new NotImplementedException(),
-                        //=> _sqlExpressionFactory.Function("ts_filter", arguments, typeof(NpgsqlTsVector), _tsVectorMapping),
+                    => throw new NotImplementedException(),
+                    //=> _sqlExpressionFactory.Function("ts_filter", arguments, typeof(NpgsqlTsVector), _tsVectorMapping),
 
                     nameof(NpgsqlFullTextSearchLinqExtensions.GetLength)
-                        => _sqlExpressionFactory.Function(
-                            "length",
-                            arguments,
-                            nullable: true,
-                            argumentsPropagateNullability: TrueArrays[1],
-                            method.ReturnType,
-                            _sqlExpressionFactory.FindMapping(typeof(int))),
+                    => _sqlExpressionFactory.Function(
+                        "length",
+                        arguments,
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[1],
+                        method.ReturnType,
+                        _typeMappingSource.FindMapping(typeof(int))),
 
                     nameof(NpgsqlFullTextSearchLinqExtensions.ToStripped)
-                        => _sqlExpressionFactory.Function(
-                            "strip",
-                            arguments,
-                            nullable: true,
-                            argumentsPropagateNullability: TrueArrays[arguments.Count],
-                            method.ReturnType,
-                            _tsVectorMapping),
+                    => _sqlExpressionFactory.Function(
+                        "strip",
+                        arguments,
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[arguments.Count],
+                        method.ReturnType,
+                        _tsVectorMapping),
 
                     _ => (SqlExpression)null
                 };
@@ -282,7 +294,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[arguments.Count],
                     method.ReturnType,
-                    _sqlExpressionFactory.FindMapping(method.ReturnType));
+                    _typeMappingSource.FindMapping(method.ReturnType));
 
             SqlExpression NonConfigAccepting(string functionName)
                 => _sqlExpressionFactory.Function(
@@ -291,28 +303,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[arguments.Count],
                     method.ReturnType,
-                    _sqlExpressionFactory.FindMapping(method.ReturnType));
-
-            SqlCustomBinaryExpression QueryReturningOnTwoQueries(string @operator)
-            {
-                var inferredMapping = ExpressionExtensions.InferTypeMapping(arguments[0], arguments[1]);
-                return new SqlCustomBinaryExpression(
-                    _sqlExpressionFactory.ApplyTypeMapping(arguments[0], inferredMapping),
-                    _sqlExpressionFactory.ApplyTypeMapping(arguments[1], inferredMapping),
-                    @operator,
-                    method.ReturnType,
-                    inferredMapping);
-            }
-
-            SqlCustomBinaryExpression BoolReturningOnTwoQueries(string @operator)
-            {
-                return new SqlCustomBinaryExpression(
-                    _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[0]),
-                    _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[1]),
-                    @operator,
-                    typeof(bool),
-                    _boolMapping);
-            }
+                    _typeMappingSource.FindMapping(method.ReturnType));
         }
     }
 }

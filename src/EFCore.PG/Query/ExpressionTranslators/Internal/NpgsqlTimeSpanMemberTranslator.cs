@@ -1,6 +1,8 @@
 using System;
 using System.Reflection;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
@@ -17,7 +19,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
         static readonly bool[] FalseTrueArray = { false, true };
 
-        public virtual SqlExpression Translate(SqlExpression instance, MemberInfo member, Type returnType)
+        public virtual SqlExpression Translate(SqlExpression instance,
+            MemberInfo member,
+            Type returnType,
+            IDiagnosticsLogger<DbLoggerCategory.Query> logger)
         {
             Check.NotNull(member, nameof(member));
             Check.NotNull(returnType, nameof(returnType));

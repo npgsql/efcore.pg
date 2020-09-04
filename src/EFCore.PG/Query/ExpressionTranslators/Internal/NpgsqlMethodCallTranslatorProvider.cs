@@ -1,7 +1,6 @@
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Storage;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
@@ -10,30 +9,30 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     {
         public NpgsqlMethodCallTranslatorProvider(
             [NotNull] RelationalMethodCallTranslatorProviderDependencies dependencies,
-            IRelationalTypeMappingSource typeMappingSource)
+            [NotNull] IRelationalTypeMappingSource typeMappingSource)
             : base(dependencies)
         {
             var npgsqlSqlExpressionFactory = (NpgsqlSqlExpressionFactory)dependencies.SqlExpressionFactory;
             var npgsqlTypeMappingSource = (NpgsqlTypeMappingSource)typeMappingSource;
-            var jsonTranslator = new NpgsqlJsonPocoTranslator(npgsqlSqlExpressionFactory);
+            var jsonTranslator = new NpgsqlJsonPocoTranslator(typeMappingSource, npgsqlSqlExpressionFactory);
 
             AddTranslators(new IMethodCallTranslator[]
             {
-                new NpgsqlArrayTranslator(npgsqlSqlExpressionFactory, jsonTranslator),
+                new NpgsqlArrayTranslator(typeMappingSource, npgsqlSqlExpressionFactory, jsonTranslator),
                 new NpgsqlByteArrayMethodTranslator(npgsqlSqlExpressionFactory),
                 new NpgsqlConvertTranslator(npgsqlSqlExpressionFactory),
-                new NpgsqlDateTimeMethodTranslator(npgsqlSqlExpressionFactory, npgsqlTypeMappingSource),
+                new NpgsqlDateTimeMethodTranslator(typeMappingSource, npgsqlSqlExpressionFactory),
                 new NpgsqlNewGuidTranslator(npgsqlSqlExpressionFactory),
                 new NpgsqlLikeTranslator(npgsqlSqlExpressionFactory),
                 new NpgsqlObjectToStringTranslator(npgsqlSqlExpressionFactory),
-                new NpgsqlMathTranslator(npgsqlSqlExpressionFactory),
-                new NpgsqlStringMethodTranslator(npgsqlSqlExpressionFactory, npgsqlTypeMappingSource),
+                new NpgsqlMathTranslator(typeMappingSource, npgsqlSqlExpressionFactory),
+                new NpgsqlStringMethodTranslator(npgsqlTypeMappingSource, npgsqlSqlExpressionFactory),
                 new NpgsqlRegexIsMatchTranslator(npgsqlSqlExpressionFactory),
-                new NpgsqlFullTextSearchMethodTranslator(npgsqlSqlExpressionFactory, npgsqlTypeMappingSource),
-                new NpgsqlRangeTranslator(npgsqlSqlExpressionFactory),
-                new NpgsqlNetworkTranslator(npgsqlSqlExpressionFactory, typeMappingSource),
-                new NpgsqlJsonDomTranslator(npgsqlSqlExpressionFactory, typeMappingSource),
-                new NpgsqlJsonDbFunctionsTranslator(npgsqlSqlExpressionFactory, typeMappingSource)
+                new NpgsqlFullTextSearchMethodTranslator(typeMappingSource, npgsqlSqlExpressionFactory),
+                new NpgsqlRangeTranslator(typeMappingSource, npgsqlSqlExpressionFactory),
+                new NpgsqlNetworkTranslator(typeMappingSource, npgsqlSqlExpressionFactory),
+                new NpgsqlJsonDomTranslator(typeMappingSource, npgsqlSqlExpressionFactory),
+                new NpgsqlJsonDbFunctionsTranslator(typeMappingSource, npgsqlSqlExpressionFactory)
             });
         }
     }

@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -61,7 +63,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             };
         }
 
-        public SqlExpression Translate(SqlExpression instance, MemberInfo member, Type returnType)
+        public SqlExpression Translate(
+            SqlExpression instance,
+            MemberInfo member,
+            Type returnType,
+            IDiagnosticsLogger<DbLoggerCategory.Query> logger)
         {
             var declaringType = member.DeclaringType;
 
@@ -123,9 +129,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
             nameof(Geometry.OgcGeometryType)  => _sqlExpressionFactory.Case(
                 Function("ST_GeometryType", new[] { instance }, typeof(string)),
-                _ogcGeometryTypeWhenThenList),
+                _ogcGeometryTypeWhenThenList,
+                elseResult: null),
 
-            _ => (SqlExpression)null
+            _ => null
             };
 
             SqlFunctionExpression Function(string name, SqlExpression[] arguments, Type returnType, RelationalTypeMapping typeMapping = null)

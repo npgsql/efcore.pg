@@ -6,15 +6,13 @@ using System.Linq.Expressions;
 using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 using ExpressionExtensions = Microsoft.EntityFrameworkCore.Query.ExpressionExtensions;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
@@ -22,77 +20,70 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 {
     public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExpressionVisitor
     {
-        [NotNull]
+        static readonly ConstructorInfo DateTimeCtor1 =
+            typeof(DateTime).GetConstructor(new[] { typeof(int), typeof(int), typeof(int) });
+
+        static readonly ConstructorInfo DateTimeCtor2 =
+            typeof(DateTime).GetConstructor(new[] { typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int) });
+
         static readonly MethodInfo Like2MethodInfo =
             typeof(DbFunctionsExtensions)
                 .GetRuntimeMethod(nameof(DbFunctionsExtensions.Like), new[] { typeof(DbFunctions), typeof(string), typeof(string) });
 
         // ReSharper disable once InconsistentNaming
-        [NotNull]
         static readonly MethodInfo ILike2MethodInfo =
             typeof(NpgsqlDbFunctionsExtensions)
                 .GetRuntimeMethod(nameof(NpgsqlDbFunctionsExtensions.ILike), new[] { typeof(DbFunctions), typeof(string), typeof(string) });
 
-        [NotNull]
         static readonly MethodInfo EnumerableAnyWithPredicate =
             typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
                 .Single(mi => mi.Name == nameof(Enumerable.Any) && mi.GetParameters().Length == 2);
 
-        [NotNull]
         static readonly MethodInfo EnumerableAll =
             typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
                 .Single(mi => mi.Name == nameof(Enumerable.All) && mi.GetParameters().Length == 2);
 
-        [NotNull]
         static readonly MethodInfo Contains =
             typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
                 .Single(m => m.Name == nameof(Enumerable.Contains) && m.GetParameters().Length == 2);
 
         readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
+        readonly IRelationalTypeMappingSource _typeMappingSource;
         readonly NpgsqlJsonPocoTranslator _jsonPocoTranslator;
 
-        [NotNull]
-        readonly RelationalTypeMapping _boolMapping;
-
         public NpgsqlSqlTranslatingExpressionVisitor(
-            RelationalSqlTranslatingExpressionVisitorDependencies dependencies,
-            IModel model,
-            QueryableMethodTranslatingExpressionVisitor queryableMethodTranslatingExpressionVisitor)
-            : base(dependencies, model, queryableMethodTranslatingExpressionVisitor)
+            [NotNull] RelationalSqlTranslatingExpressionVisitorDependencies dependencies,
+            [NotNull] QueryCompilationContext queryCompilationContext,
+            [NotNull] QueryableMethodTranslatingExpressionVisitor queryableMethodTranslatingExpressionVisitor)
+            : base(dependencies, queryCompilationContext, queryableMethodTranslatingExpressionVisitor)
         {
             _sqlExpressionFactory = (NpgsqlSqlExpressionFactory)dependencies.SqlExpressionFactory;
             _jsonPocoTranslator = ((NpgsqlMemberTranslatorProvider)Dependencies.MemberTranslatorProvider).JsonPocoTranslator;
-            _boolMapping = _sqlExpressionFactory.FindMapping(typeof(bool));
+            _typeMappingSource = dependencies.TypeMappingSource;
         }
 
         // PostgreSQL COUNT() always returns bigint, so we need to downcast to int
-        // TODO: Translate Count with predicate for GroupBy (see base implementation)
-        public override SqlExpression TranslateCount(Expression expression = null)
+        public override SqlExpression TranslateCount(SqlExpression sqlExpression)
         {
-            if (expression != null)
-            {
-                // TODO: Translate Count with predicate for GroupBy
-                return null;
-            }
+            Check.NotNull(sqlExpression, nameof(sqlExpression));
 
             return _sqlExpressionFactory.Convert(
                 _sqlExpressionFactory.ApplyDefaultTypeMapping(
-                    _sqlExpressionFactory.Function("COUNT",
-                        new[] { _sqlExpressionFactory.Fragment("*") },
+                    _sqlExpressionFactory.Function(
+                        "COUNT",
+                        new[] { sqlExpression },
                         nullable: false,
                         argumentsPropagateNullability: FalseArrays[1],
                         typeof(long))),
-                typeof(int), _sqlExpressionFactory.FindMapping(typeof(int)));
+                typeof(int), _typeMappingSource.FindMapping(typeof(int)));
         }
 
         // In PostgreSQL SUM() doesn't return the same type as its argument for smallint, int and bigint.
         // Cast to get the same type.
         // http://www.postgresql.org/docs/current/static/functions-aggregate.html
-        public override SqlExpression TranslateSum(Expression expression)
+        public override SqlExpression TranslateSum(SqlExpression sqlExpression)
         {
-            var sqlExpression = expression as SqlExpression ??
-                                Translate(expression) ??
-                                throw new InvalidOperationException(CoreStrings.TranslationFailed(expression.Print()));
+            Check.NotNull(sqlExpression, nameof(sqlExpression));
 
             var inputType = sqlExpression.Type.UnwrapNullableType();
 
@@ -141,7 +132,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 if (sqlOperand.Type == typeof(byte[]) &&
                     (sqlOperand.TypeMapping == null || sqlOperand.TypeMapping is NpgsqlByteArrayTypeMapping))
                 {
-                    return SqlExpressionFactory.Function(
+                    return _sqlExpressionFactory.Function(
                         "LENGTH",
                         new[] { sqlOperand },
                         nullable: true,
@@ -155,7 +146,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                            new[] { sqlOperand },
                            nullable: true,
                            argumentsPropagateNullability: TrueArrays[1],
-                           typeof(int?));
+                           typeof(int));
             }
 
             return base.VisitUnary(unaryExpression);
@@ -180,7 +171,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         /// Identifies complex array-related constructs which cannot be translated in regular method translators, since
         /// they require accessing lambdas.
         /// </summary>
-        protected virtual Expression VisitArrayMethodCall(MethodInfo method, ReadOnlyCollection<Expression> arguments)
+        protected virtual Expression VisitArrayMethodCall(
+            [NotNull] MethodInfo method, [NotNull] ReadOnlyCollection<Expression> arguments)
         {
             {
                 // Pattern match for .Where(e => new[] { "a", "b", "c" }.Any(p => EF.Functions.Like(e.SomeText, p))),
@@ -193,10 +185,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                         wherePredicateMethodCall.Method == ILike2MethodInfo))
                 {
                     var array = (SqlExpression)Visit(arguments[0]);
-                    var match = (SqlExpression)Visit(wherePredicateMethodCall.Arguments[1]);
+                    var item = (SqlExpression)Visit(wherePredicateMethodCall.Arguments[1]);
 
-                    return _sqlExpressionFactory.ArrayAnyAll(match, array, ArrayComparisonType.Any,
-                        wherePredicateMethodCall.Method == Like2MethodInfo ? "LIKE" : "ILIKE");
+                    return _sqlExpressionFactory.Any(item, array,
+                        wherePredicateMethodCall.Method == Like2MethodInfo
+                            ? PostgresAnyOperatorType.Like : PostgresAnyOperatorType.ILike);
                 }
 
                 // Note: we also handle the above with equality instead of Like, see NpgsqlArrayMethodTranslator
@@ -213,8 +206,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                     var array = (SqlExpression)Visit(arguments[0]);
                     var match = (SqlExpression)Visit(wherePredicateMethodCall.Arguments[1]);
 
-                    return _sqlExpressionFactory.ArrayAnyAll(match, array, ArrayComparisonType.All,
-                        wherePredicateMethodCall.Method == Like2MethodInfo ? "LIKE" : "ILIKE");
+                    return _sqlExpressionFactory.All(match, array,
+                        wherePredicateMethodCall.Method == Like2MethodInfo
+                            ? PostgresAllOperatorType.Like : PostgresAllOperatorType.ILike);
                 }
             }
 
@@ -229,16 +223,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                     wherePredicateMethodCall.Arguments[1] is ParameterExpression parameterExpression &&
                     parameterExpression == wherePredicate.Parameters[0])
                 {
-                    var array1 = (SqlExpression)Visit(arguments[0]);
-                    var array2 = (SqlExpression)Visit(wherePredicateMethodCall.Arguments[0]);
-                    var inferredMapping = ExpressionExtensions.InferTypeMapping(array1, array2);
-
-                    return new SqlCustomBinaryExpression(
-                        _sqlExpressionFactory.ApplyTypeMapping(array1, inferredMapping),
-                        _sqlExpressionFactory.ApplyTypeMapping(array2, inferredMapping),
-                        "&&",
-                        typeof(bool),
-                        _boolMapping);
+                    return _sqlExpressionFactory.Overlaps(
+                        (SqlExpression)Visit(arguments[0]),
+                        (SqlExpression)Visit(wherePredicateMethodCall.Arguments[0]));
                 }
             }
 
@@ -253,16 +240,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                     wherePredicateMethodCall.Arguments[1] is ParameterExpression parameterExpression &&
                     parameterExpression == wherePredicate.Parameters[0])
                 {
-                    var array1 = (SqlExpression)Visit(arguments[0]);
-                    var array2 = (SqlExpression)Visit(wherePredicateMethodCall.Arguments[0]);
-                    var inferredMapping = ExpressionExtensions.InferTypeMapping(array1, array2);
-
-                    return new SqlCustomBinaryExpression(
-                        _sqlExpressionFactory.ApplyTypeMapping(array1, inferredMapping),
-                        _sqlExpressionFactory.ApplyTypeMapping(array2, inferredMapping),
-                        "<@",
-                        typeof(bool),
-                        _boolMapping);
+                    return _sqlExpressionFactory.ContainedBy(
+                        (SqlExpression)Visit(arguments[0]),
+                        (SqlExpression)Visit(wherePredicateMethodCall.Arguments[0]));
                 }
             }
 
@@ -313,7 +293,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                         nullable: true,
                         argumentsPropagateNullability: TrueArrays[2],
                         typeof(byte),
-                        _sqlExpressionFactory.FindMapping(typeof(byte))
+                        _typeMappingSource.FindMapping(typeof(byte))
                     );
                 }
 
@@ -325,6 +305,53 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             }
 
             return base.VisitBinary(binaryExpression);
+        }
+
+
+        /// <inheritdoc />
+        protected override Expression VisitNew(NewExpression newExpression)
+        {
+            if (base.VisitNew(newExpression) is { } result)
+                return result;
+
+            if (newExpression.Constructor == DateTimeCtor1)
+            {
+                return TryTranslateArguments(newExpression.Arguments, out var sqlArguments)
+                    ? _sqlExpressionFactory.Function(
+                        "MAKE_DATE", sqlArguments, nullable: true, TrueArrays[3], typeof(DateTime))
+                    : null;
+            }
+
+            if (newExpression.Constructor == DateTimeCtor2)
+            {
+                if (!TryTranslateArguments(newExpression.Arguments, out var sqlArguments))
+                    return null;
+
+                // DateTime's second component is an int, but PostgreSQL's MAKE_TIMESTAMP accepts a double precision
+                sqlArguments[5] = _sqlExpressionFactory.Convert(sqlArguments[5], typeof(double));
+
+                return _sqlExpressionFactory.Function(
+                    "MAKE_TIMESTAMP", sqlArguments, nullable: true, TrueArrays[6], typeof(DateTime));
+            }
+
+            return null;
+
+            bool TryTranslateArguments(ReadOnlyCollection<Expression> arguments, out SqlExpression[] sqlArguments)
+            {
+                sqlArguments = new SqlExpression[newExpression.Arguments.Count];
+                for (var i = 0; i < sqlArguments.Length; i++)
+                {
+                    var argument = newExpression.Arguments[i];
+                    if (TranslationFailed(argument, Visit(argument), out var sqlArgument))
+                    {
+                        return false;
+                    }
+
+                    sqlArguments[i] = sqlArgument;
+                }
+
+                return true;
+            }
         }
 
         /// <summary>

@@ -3,7 +3,7 @@ using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestModels.Northwind;
 using Microsoft.EntityFrameworkCore.TestUtilities;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities.Xunit;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using NpgsqlTypes;
 using Xunit;
 using Xunit.Abstractions;
@@ -53,7 +53,7 @@ LIMIT 1");
         {
             using var context = CreateContext();
 
-            Assert.Throws<NotSupportedException>(
+            Assert.Throws<InvalidOperationException>(
                 () => context.Customers
                     .Select(c => EF.Functions.ArrayToTsVector(new[] { c.CompanyName, c.Address }))
                     .First());
@@ -240,7 +240,8 @@ FROM ""Customers"" AS c
 LIMIT 1");
         }
 
-        [MinimumPostgresVersionFact(11, 0)]
+        [ConditionalFact]
+        [MinimumPostgresVersion(11, 0)]
         public void WebSearchToTsQuery()
         {
             using var context = CreateContext();
@@ -253,7 +254,8 @@ FROM ""Customers"" AS c
 LIMIT 1");
         }
 
-        [MinimumPostgresVersionFact(11, 0)]
+        [ConditionalFact]
+        [MinimumPostgresVersion(11, 0)]
         public void WebSearchToTsQuery_With_Config()
         {
             using var context = CreateContext();
@@ -266,7 +268,8 @@ FROM ""Customers"" AS c
 LIMIT 1");
         }
 
-        [MinimumPostgresVersionFact(11, 0)]
+        [ConditionalFact]
+        [MinimumPostgresVersion(11, 0)]
         public void WebSearchToTsQuery_With_Config_From_Variable()
         {
             using var context = CreateContext();
@@ -292,7 +295,7 @@ LIMIT 1");
 
             Assert.NotNull(tsquery);
             AssertSql(
-                @"SELECT (to_tsquery('a & b') && to_tsquery('c & d'))
+                @"SELECT to_tsquery('a & b') && to_tsquery('c & d')
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -307,7 +310,7 @@ LIMIT 1");
 
             Assert.NotNull(tsquery);
             AssertSql(
-                @"SELECT (to_tsquery('a & b') || to_tsquery('c & d'))
+                @"SELECT to_tsquery('a & b') || to_tsquery('c & d')
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -337,7 +340,7 @@ LIMIT 1");
 
             Assert.True(result);
             AssertSql(
-                @"SELECT (to_tsquery('a & b') @> to_tsquery('b'))
+                @"SELECT to_tsquery('a & b') @> to_tsquery('b')
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -352,7 +355,7 @@ LIMIT 1");
 
             Assert.True(result);
             AssertSql(
-                @"SELECT (to_tsquery('b') <@ to_tsquery('a & b'))
+                @"SELECT to_tsquery('b') <@ to_tsquery('a & b')
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -519,7 +522,7 @@ LIMIT 1");
             AssertSql(
                 @"@__query_1='b'
 
-SELECT (to_tsvector('a') @@ plainto_tsquery(@__query_1))
+SELECT to_tsvector('a') @@ plainto_tsquery(@__query_1)
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -534,7 +537,7 @@ LIMIT 1");
 
             Assert.False(result);
             AssertSql(
-                @"SELECT (to_tsvector('a') @@ to_tsquery('b'))
+                @"SELECT to_tsvector('a') @@ to_tsquery('b')
 FROM ""Customers"" AS c
 LIMIT 1");
         }

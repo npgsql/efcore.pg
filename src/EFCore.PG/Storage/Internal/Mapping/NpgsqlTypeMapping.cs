@@ -15,7 +15,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         /// <summary>
         /// The database type used by Npgsql.
         /// </summary>
-        public NpgsqlDbType NpgsqlDbType { get; }
+        public virtual NpgsqlDbType NpgsqlDbType { get; }
 
         // ReSharper disable once PublicConstructorInAbstractClass
         /// <summary>
@@ -41,7 +41,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         {
             var npgsqlParameter = parameter as NpgsqlParameter;
             if (npgsqlParameter == null)
-                throw new ArgumentException($"Npgsql-specific type mapping {GetType()} being used with non-Npgsql parameter type {parameter.GetType().Name}");
+                throw new ArgumentException($"Npgsql-specific type mapping {GetType().Name} being used with non-Npgsql parameter type {parameter.GetType().Name}");
 
             base.ConfigureParameter(parameter);
 

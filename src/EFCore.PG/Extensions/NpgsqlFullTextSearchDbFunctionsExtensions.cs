@@ -1,11 +1,12 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
+using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using NpgsqlTypes;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore
 {
-    [SuppressMessage("ReSharper", "UnusedParameter.Global")]
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("ReSharper", "UnusedParameter.Global")]
     public static class NpgsqlFullTextSearchDbFunctionsExtensions
     {
         /// <summary>
@@ -14,8 +15,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// https://www.postgresql.org/docs/current/static/functions-textsearch.html
         /// </remarks>
-        public static NpgsqlTsVector ArrayToTsVector(this DbFunctions _, string[] lexemes) =>
-            throw new NotSupportedException();
+        public static NpgsqlTsVector ArrayToTsVector([CanBeNull] this DbFunctions _, [NotNull] string[] lexemes)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(ArrayToTsVector)));
 
         /// <summary>
         /// Reduce <paramref name="document" /> to tsvector.
@@ -23,8 +24,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-DOCUMENTS
         /// </remarks>
-        public static NpgsqlTsVector ToTsVector(this DbFunctions _, string document) =>
-            throw new NotSupportedException();
+        public static NpgsqlTsVector ToTsVector([CanBeNull] this DbFunctions _, [NotNull] string document)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(ToTsVector)));
 
         /// <summary>
         /// Reduce <paramref name="document" /> to tsvector using the text search configuration specified
@@ -33,8 +34,11 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-DOCUMENTS
         /// </remarks>
-        public static NpgsqlTsVector ToTsVector(this DbFunctions _, string config, string document) =>
-            throw new NotSupportedException();
+        public static NpgsqlTsVector ToTsVector(
+            [CanBeNull] this DbFunctions _,
+            [NotNull] string config,
+            [NotNull] string document)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(ToTsVector)));
 
         /// <summary>
         /// Produce tsquery from <paramref name="query" /> ignoring punctuation.
@@ -42,8 +46,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES
         /// </remarks>
-        public static NpgsqlTsQuery PlainToTsQuery(this DbFunctions _, string query) =>
-            throw new NotSupportedException();
+        public static NpgsqlTsQuery PlainToTsQuery([CanBeNull] this DbFunctions _, [NotNull] string query)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(PlainToTsQuery)));
 
         /// <summary>
         /// Produce tsquery from <paramref name="query" /> ignoring punctuation and using the text search
@@ -52,8 +56,11 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES
         /// </remarks>
-        public static NpgsqlTsQuery PlainToTsQuery(this DbFunctions _, string config, string query) =>
-            throw new NotSupportedException();
+        public static NpgsqlTsQuery PlainToTsQuery(
+            [CanBeNull] this DbFunctions _,
+            [NotNull] string config,
+            [NotNull] string query)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(PlainToTsQuery)));
 
         /// <summary>
         /// Produce tsquery that searches for a phrase from <paramref name="query" /> ignoring punctuation.
@@ -61,8 +68,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES
         /// </remarks>
-        public static NpgsqlTsQuery PhraseToTsQuery(this DbFunctions _, string query) =>
-            throw new NotSupportedException();
+        public static NpgsqlTsQuery PhraseToTsQuery([CanBeNull] this DbFunctions _, [NotNull] string query)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(PhraseToTsQuery)));
 
         /// <summary>
         /// Produce tsquery that searches for a phrase from <paramref name="query" /> ignoring punctuation
@@ -71,8 +78,11 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES
         /// </remarks>
-        public static NpgsqlTsQuery PhraseToTsQuery(this DbFunctions _, string config, string query) =>
-            throw new NotSupportedException();
+        public static NpgsqlTsQuery PhraseToTsQuery(
+            [CanBeNull] this DbFunctions _,
+            [NotNull] string config,
+            [NotNull] string query)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(PhraseToTsQuery)));
 
         /// <summary>
         /// Normalize words in <paramref name="query" /> and convert to tsquery. If your input
@@ -82,7 +92,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES
         /// </remarks>
-        public static NpgsqlTsQuery ToTsQuery(this DbFunctions _, string query) => throw new NotSupportedException();
+        public static NpgsqlTsQuery ToTsQuery([CanBeNull] this DbFunctions _, [NotNull] string query)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(ToTsQuery)));
 
         /// <summary>
         /// Normalize words in <paramref name="query" /> and convert to tsquery using the text search
@@ -93,8 +104,11 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES
         /// </remarks>
-        public static NpgsqlTsQuery ToTsQuery(this DbFunctions _, string config, string query) =>
-            throw new NotSupportedException();
+        public static NpgsqlTsQuery ToTsQuery(
+            [CanBeNull] this DbFunctions _,
+            [NotNull] string config,
+            [NotNull] string query)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(ToTsQuery)));
 
         /// <summary>
         /// Convert <paramref name="query" /> tsquery using the simplified websearch syntax.
@@ -102,8 +116,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES
         /// </remarks>
-        public static NpgsqlTsQuery WebSearchToTsQuery(this DbFunctions _, string query) =>
-            throw new NotSupportedException();
+        public static NpgsqlTsQuery WebSearchToTsQuery([CanBeNull] this DbFunctions _, [NotNull] string query)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(WebSearchToTsQuery)));
 
         /// <summary>
         /// Convert <paramref name="query" /> tsquery using the simplified websearch syntax and the text
@@ -112,7 +126,10 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES
         /// </remarks>
-        public static NpgsqlTsQuery WebSearchToTsQuery(this DbFunctions _, string config, string query) =>
-            throw new NotSupportedException();
+        public static NpgsqlTsQuery WebSearchToTsQuery(
+            [CanBeNull] this DbFunctions _,
+            [NotNull] string config,
+            [NotNull] string query)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(WebSearchToTsQuery)));
     }
 }

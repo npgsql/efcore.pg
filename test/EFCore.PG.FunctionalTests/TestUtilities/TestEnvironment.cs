@@ -34,11 +34,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             {
                 if (_postgresVersion != null)
                     return _postgresVersion;
-                using (var conn = new NpgsqlConnection(NpgsqlTestStore.CreateConnectionString("postgres")))
-                {
-                    conn.Open();
-                    return _postgresVersion = conn.PostgreSqlVersion;
-                }
+                using var conn = new NpgsqlConnection(NpgsqlTestStore.CreateConnectionString("postgres"));
+                conn.Open();
+                return _postgresVersion = conn.PostgreSqlVersion;
             }
         }
     }

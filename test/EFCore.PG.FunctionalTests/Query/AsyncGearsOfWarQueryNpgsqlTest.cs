@@ -4,7 +4,7 @@ using Xunit.Abstractions;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     // ReSharper disable once UnusedMember.Global
-    public class AsyncGearsOfWarQuerySqlServerTest : AsyncGearsOfWarQueryTestBase<GearsOfWarQueryNpgsqlFixture>
+    public class AsyncGearsOfWarQuerySqlServerTest : AsyncGearsOfWarQueryRelationalTestBase<GearsOfWarQueryNpgsqlFixture>
     {
         // ReSharper disable once UnusedParameter.Local
         public AsyncGearsOfWarQuerySqlServerTest(GearsOfWarQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)

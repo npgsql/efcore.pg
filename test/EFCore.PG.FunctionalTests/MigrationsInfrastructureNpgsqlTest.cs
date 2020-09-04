@@ -29,66 +29,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             Assert.Equal("Npgsql.EntityFrameworkCore.PostgreSQL", ActiveProvider);
         }
 
-        static string GetDatabaseSchemaAsync(DbConnection connection)
-        {
-            var builder = new IndentedStringBuilder();
-            var command = connection.CreateCommand();
-            command.CommandText = @"
-SELECT table_name,
-	column_name,
-	udt_name,
-	is_nullable = 'YES',
-	column_default
-FROM information_schema.columns
-WHERE table_catalog = @db
-	AND table_schema = 'public'
-ORDER BY table_name, ordinal_position
-";
-
-            var dbName = connection.Database;
-            command.Parameters.Add(new NpgsqlParameter { ParameterName = "db", Value = dbName });
-
-            using var reader = command.ExecuteReader();
-            var first = true;
-            string lastTable = null;
-            while (reader.Read())
-            {
-                var currentTable = reader.GetString(0);
-                if (currentTable != lastTable)
-                {
-                    if (first)
-                        first = false;
-                    else
-                        builder.DecrementIndent();
-
-                    builder
-                        .AppendLine()
-                        .AppendLine(currentTable)
-                        .IncrementIndent();
-
-                    lastTable = currentTable;
-                }
-
-                builder
-                    .Append(reader[1]) // Name
-                    .Append(" ")
-                    .Append(reader[2]) // Type
-                    .Append(" ")
-                    .Append(reader.GetBoolean(3) ? "NULL" : "NOT NULL");
-
-                if (!reader.IsDBNull(4))
-                {
-                    builder
-                        .Append(" DEFAULT ")
-                        .Append(reader[4]);
-                }
-
-                builder.AppendLine();
-            }
-
-            return builder.ToString();
-        }
-
         [ConditionalFact]
         public async Task Empty_Migration_Creates_Database()
         {

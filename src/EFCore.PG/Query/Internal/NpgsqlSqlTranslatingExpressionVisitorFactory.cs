@@ -13,11 +13,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             => _dependencies = dependencies;
 
         public virtual RelationalSqlTranslatingExpressionVisitor Create(
-            IModel model,
+            QueryCompilationContext queryCompilationContext,
             QueryableMethodTranslatingExpressionVisitor queryableMethodTranslatingExpressionVisitor)
             => new NpgsqlSqlTranslatingExpressionVisitor(
                 _dependencies,
-                model,
+                queryCompilationContext,
                 queryableMethodTranslatingExpressionVisitor);
     }
 }

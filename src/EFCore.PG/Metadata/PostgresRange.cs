@@ -55,10 +55,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             [CanBeNull] string schema,
             [NotNull] string name,
             [NotNull] string subtype,
-            string canonicalFunction = null,
-            string subtypeOpClass = null,
-            string collation = null,
-            string subtypeDiff = null)
+            [CanBeNull] string canonicalFunction = null,
+            [CanBeNull] string subtypeOpClass = null,
+            [CanBeNull] string collation = null,
+            [CanBeNull] string subtypeDiff = null)
         {
             Check.NotNull(annotatable, nameof(annotatable));
             Check.NullButNotEmpty(schema, nameof(schema));
@@ -133,68 +133,63 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         /// The <see cref="Annotatable"/> that stores the range.
         /// </summary>
         [NotNull]
-        public Annotatable Annotatable => (Annotatable)_annotatable;
+        public virtual Annotatable Annotatable => (Annotatable)_annotatable;
 
         /// <summary>
         /// The range schema or null to represent the default schema.
         /// </summary>
         [CanBeNull]
-        public string Schema => GetData().Schema;
+        public virtual string Schema => GetData().Schema;
 
         /// <summary>
         /// The range name.
         /// </summary>
         [NotNull]
-        public string Name => GetData().Name;
+        public virtual string Name => GetData().Name;
 
         /// <summary>
         /// The subtype of the range.
         /// </summary>
-        [NotNull]
-        public string Subtype
+        public virtual string Subtype
         {
             get => GetData().Subtype;
-            set => SetData(subtype: value);
+            [param: NotNull] set => SetData(subtype: value);
         }
 
         /// <summary>
         /// The function defining a "step" in a discrete range.
         /// </summary>
-        [CanBeNull]
-        public string CanonicalFunction
+        public virtual string CanonicalFunction
         {
             get => GetData().CanonicalFunction;
-            set => SetData(canonicalFunction: value);
+            [param: CanBeNull] set => SetData(canonicalFunction: value);
         }
 
         /// <summary>
         /// The operator class to use.
         /// </summary>
-        [CanBeNull]
-        public string SubtypeOpClass
+        public virtual string SubtypeOpClass
         {
             get => GetData().SubtypeOpClass;
-            set => SetData(subtypeOpClass: value);
+            [param: CanBeNull] set => SetData(subtypeOpClass: value);
         }
 
         /// <summary>
         /// The collation to use.
         /// </summary>
-        [CanBeNull]
-        public string Collation
+        public virtual string Collation
         {
             get => GetData().Collation;
-            set => SetData(collation: value);
+            [param: CanBeNull] set => SetData(collation: value);
         }
 
         /// <summary>
         /// The function defining a difference in subtype values.
         /// </summary>
-        [CanBeNull]
-        public string SubtypeDiff
+        public virtual string SubtypeDiff
         {
             get => GetData().SubtypeDiff;
-            set => SetData(subtypeDiff: value);
+            [param: CanBeNull] set => SetData(subtypeDiff: value);
         }
 
         (string Schema, string Name, string Subtype, string CanonicalFunction, string SubtypeOpClass, string Collation, string SubtypeDiff) GetData()

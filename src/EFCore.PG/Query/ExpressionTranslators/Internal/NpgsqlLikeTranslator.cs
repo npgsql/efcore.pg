@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
@@ -42,12 +42,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         /// Initializes a new instance of the <see cref="NpgsqlMathTranslator"/> class.
         /// </summary>
         /// <param name="sqlExpressionFactory">The SQL expression factory to use when generating expressions..</param>
-        public NpgsqlLikeTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory)
+        public NpgsqlLikeTranslator([NotNull] NpgsqlSqlExpressionFactory sqlExpressionFactory)
             => _sqlExpressionFactory = sqlExpressionFactory;
 
         /// <inheritdoc />
-        [CanBeNull]
-        public SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
+        public virtual SqlExpression Translate(
+            SqlExpression instance,
+            MethodInfo method,
+            IReadOnlyList<SqlExpression> arguments,
+            IDiagnosticsLogger<DbLoggerCategory.Query> logger)
         {
             if (method == LikeWithEscape)
                 return _sqlExpressionFactory.Like(arguments[1], arguments[2], arguments[3]);

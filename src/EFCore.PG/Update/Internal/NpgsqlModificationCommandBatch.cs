@@ -42,7 +42,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
         /// <param name="maxBatchSize">The maximum count of commands to batch.</param>
         public NpgsqlModificationCommandBatch(
             [NotNull] ModificationCommandBatchFactoryDependencies dependencies,
-            [CanBeNull] int? maxBatchSize)
+            int? maxBatchSize)
             : base(dependencies)
         {
             if (maxBatchSize.HasValue && maxBatchSize.Value <= 0)

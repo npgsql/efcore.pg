@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Copyright>Copyright 2020 © The Npgsql Development Team</Copyright>
     <Company>Npgsql</Company>
-    <VersionPrefix>5.0.0-preview2</VersionPrefix>
+    <VersionPrefix>5.0.0-rc1</VersionPrefix>
     <TargetFrameworks>netstandard2.1</TargetFrameworks>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <PackageLicenseExpression>PostgreSQL</PackageLicenseExpression>
@@ -19,6 +19,7 @@
   <PropertyGroup>
     <LangVersion>8.0</LangVersion>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <AnalysisLevel>latest</AnalysisLevel>
     <NoWarn>NU5105</NoWarn>
     <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
   </PropertyGroup>

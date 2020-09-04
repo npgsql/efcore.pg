@@ -31,7 +31,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 entityType.GetForeignKeys().Single().GetConstraintName());
             Assert.Equal(
                 "IX_LoginEntityTypeWithAnExtremelyLongAndOverlyConvolutedNameTh~",
-                entityType.GetIndexes().Single().GetName());
+                entityType.GetIndexes().Single().GetDatabaseName());
 
             var entityType2 = context.Model.FindEntityType(
                 typeof(
@@ -52,7 +52,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 entityType2.GetProperties().ElementAt(2).GetColumnName());
             Assert.Equal(
                 "IX_LoginEntityTypeWithAnExtremelyLongAndOverlyConvolutedNameT~1",
-                entityType2.GetIndexes().Single().GetName());
+                entityType2.GetIndexes().Single().GetDatabaseName());
         }
     }
 }
