@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -40,6 +40,18 @@ WHERE (c.""Region"" IS NULL) OR (BTRIM(c.""Region"", E' \t\n\r') = '')");
         [Theory(Skip = "Convert on DateTime not yet supported")]
         public override Task Convert_ToString(bool async)
             => base.Convert_ToString(async);
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public virtual async Task Convert_ToDateTime(bool async)
+        {
+            await AssertQuery(
+                async,
+                ss => ss.Set<Order>().Where(o => o.OrderDate.HasValue && o.OrderDate == Convert.ToDateTime(o.OrderDate.ToString())),
+                entryCount: 830);
+
+            AssertContainsSqlFragment(@"WHERE (o.""OrderDate"" IS NOT NULL) AND (o.""OrderDate"" = CAST(CAST(o.""OrderDate"" AS text) AS timestamp without time zone))");
+        }
 
         #region Substring
 
