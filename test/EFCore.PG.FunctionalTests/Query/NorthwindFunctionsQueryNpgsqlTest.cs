@@ -47,10 +47,10 @@ WHERE (c.""Region"" IS NULL) OR (BTRIM(c.""Region"", E' \t\n\r') = '')");
         {
             await AssertQuery(
                 async,
-                ss => ss.Set<Order>().Where(o => o.OrderDate.HasValue && o.OrderDate == Convert.ToDateTime(o.OrderDate.ToString())),
+                ss => ss.Set<Order>().Where(o => o.OrderDate == Convert.ToDateTime(o.OrderDate.ToString())),
                 entryCount: 830);
 
-            AssertContainsSqlFragment(@"WHERE (o.""OrderDate"" IS NOT NULL) AND (o.""OrderDate"" = CAST(CAST(o.""OrderDate"" AS text) AS timestamp without time zone))");
+            AssertContainsSqlFragment(@"WHERE (o.""OrderDate"" = CAST(CAST(o.""OrderDate"" AS text) AS timestamp without time zone)) OR (o.""OrderDate"" IS NULL)");
         }
 
         #region Substring
