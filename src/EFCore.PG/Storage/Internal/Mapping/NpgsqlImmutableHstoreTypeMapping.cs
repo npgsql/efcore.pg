@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 {
     /// <summary>
-    /// The type mapping for the PostgreSQL hstore type to immutable .NET Dictionaries.
+    /// The type mapping for the PostgreSQL hstore type to <see cref="ImmutableDictionary"/>.
     /// </summary>
     /// <remarks>
     /// See: https://www.postgresql.org/docs/current/static/hstore.html
