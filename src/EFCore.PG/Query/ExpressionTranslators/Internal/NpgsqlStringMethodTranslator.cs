@@ -31,30 +31,31 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
         #region MethodInfo
 
-        [NotNull] static readonly MethodInfo Contains = typeof(string).GetRuntimeMethod(nameof(string.Contains), new[] { typeof(string) });
-        [NotNull] static readonly MethodInfo EndsWith = typeof(string).GetRuntimeMethod(nameof(string.EndsWith), new[] { typeof(string) });
-        [NotNull] static readonly MethodInfo StartsWith = typeof(string).GetRuntimeMethod(nameof(string.StartsWith), new[] { typeof(string) });
-        [NotNull] static readonly MethodInfo IndexOfString = typeof(string).GetRuntimeMethod(nameof(string.IndexOf), new[] { typeof(string) });
-        [NotNull] static readonly MethodInfo IndexOfChar = typeof(string).GetRuntimeMethod(nameof(string.IndexOf), new[] { typeof(char) });
-        [NotNull] static readonly MethodInfo IsNullOrWhiteSpace = typeof(string).GetRuntimeMethod(nameof(string.IsNullOrWhiteSpace), new[] { typeof(string) });
-        [NotNull] static readonly MethodInfo TrimStartWithNoParam = typeof(string).GetRuntimeMethod(nameof(string.TrimStart), new Type[0]);
-        [NotNull] static readonly MethodInfo TrimStartWithChars = typeof(string).GetRuntimeMethod(nameof(string.TrimStart), new[] { typeof(char[]) });
-        [NotNull] static readonly MethodInfo TrimStartWithSingleChar = typeof(string).GetRuntimeMethod(nameof(string.TrimStart), new[] { typeof(char) });
-        [NotNull] static readonly MethodInfo TrimEndWithNoParam = typeof(string).GetRuntimeMethod(nameof(string.TrimEnd), new Type[0]);
-        [NotNull] static readonly MethodInfo TrimEndWithChars = typeof(string).GetRuntimeMethod(nameof(string.TrimEnd), new[] { typeof(char[]) });
-        [NotNull] static readonly MethodInfo TrimEndWithSingleChar = typeof(string).GetRuntimeMethod(nameof(string.TrimEnd), new[] { typeof(char) });
-        [NotNull] static readonly MethodInfo TrimBothWithNoParam = typeof(string).GetRuntimeMethod(nameof(string.Trim), Type.EmptyTypes);
-        [NotNull] static readonly MethodInfo TrimBothWithChars = typeof(string).GetRuntimeMethod(nameof(string.Trim), new[] { typeof(char[]) });
-        [NotNull] static readonly MethodInfo TrimBothWithSingleChar = typeof(string).GetRuntimeMethod(nameof(string.Trim), new[] { typeof(char) });
-        [NotNull] static readonly MethodInfo Substring = typeof(string).GetTypeInfo().GetDeclaredMethods(nameof(string.Substring)).Single(m => m.GetParameters().Length == 1);
-        [NotNull] static readonly MethodInfo SubstringWithLength = typeof(string).GetTypeInfo().GetDeclaredMethods(nameof(string.Substring)).Single(m => m.GetParameters().Length == 2);
-        [NotNull] static readonly MethodInfo Replace = typeof(string).GetRuntimeMethod(nameof(string.Replace), new[] { typeof(string), typeof(string) });
-        [NotNull] static readonly MethodInfo PadLeft = typeof(string).GetRuntimeMethod(nameof(string.PadLeft), new[] { typeof(int) });
-        [NotNull] static readonly MethodInfo PadLeftWithChar = typeof(string).GetRuntimeMethod(nameof(string.PadLeft), new[] { typeof(int), typeof(char) });
-        [NotNull] static readonly MethodInfo PadRight = typeof(string).GetRuntimeMethod(nameof(string.PadRight), new[] { typeof(int) });
-        [NotNull] static readonly MethodInfo PadRightWithChar = typeof(string).GetRuntimeMethod(nameof(string.PadRight), new[] { typeof(int), typeof(char) });
-        [NotNull] static readonly MethodInfo ToLower = typeof(string).GetRuntimeMethod(nameof(string.ToLower), Array.Empty<Type>());
-        [NotNull] static readonly MethodInfo ToUpper = typeof(string).GetRuntimeMethod(nameof(string.ToUpper), Array.Empty<Type>());
+        static readonly MethodInfo Contains                = typeof(string).GetRuntimeMethod(nameof(string.Contains), new[] { typeof(string) });
+        static readonly MethodInfo DbFunctionsReverse      = typeof(NpgsqlDbFunctionsExtensions).GetRuntimeMethod(nameof(NpgsqlDbFunctionsExtensions.Reverse), new[] { typeof(DbFunctions), typeof(string) });
+        static readonly MethodInfo EndsWith                = typeof(string).GetRuntimeMethod(nameof(string.EndsWith), new[] { typeof(string) });
+        static readonly MethodInfo IndexOfChar             = typeof(string).GetRuntimeMethod(nameof(string.IndexOf), new[] { typeof(char) });
+        static readonly MethodInfo IndexOfString           = typeof(string).GetRuntimeMethod(nameof(string.IndexOf), new[] { typeof(string) });
+        static readonly MethodInfo IsNullOrWhiteSpace      = typeof(string).GetRuntimeMethod(nameof(string.IsNullOrWhiteSpace), new[] { typeof(string) });
+        static readonly MethodInfo PadLeft                 = typeof(string).GetRuntimeMethod(nameof(string.PadLeft), new[] { typeof(int) });
+        static readonly MethodInfo PadLeftWithChar         = typeof(string).GetRuntimeMethod(nameof(string.PadLeft), new[] { typeof(int), typeof(char) });
+        static readonly MethodInfo PadRight                = typeof(string).GetRuntimeMethod(nameof(string.PadRight), new[] { typeof(int) });
+        static readonly MethodInfo PadRightWithChar        = typeof(string).GetRuntimeMethod(nameof(string.PadRight), new[] { typeof(int), typeof(char) });
+        static readonly MethodInfo Replace                 = typeof(string).GetRuntimeMethod(nameof(string.Replace), new[] { typeof(string), typeof(string) });
+        static readonly MethodInfo StartsWith              = typeof(string).GetRuntimeMethod(nameof(string.StartsWith), new[] { typeof(string) });
+        static readonly MethodInfo Substring               = typeof(string).GetTypeInfo().GetDeclaredMethods(nameof(string.Substring)).Single(m => m.GetParameters().Length == 1);
+        static readonly MethodInfo SubstringWithLength     = typeof(string).GetTypeInfo().GetDeclaredMethods(nameof(string.Substring)).Single(m => m.GetParameters().Length == 2);
+        static readonly MethodInfo ToLower                 = typeof(string).GetRuntimeMethod(nameof(string.ToLower), Array.Empty<Type>());
+        static readonly MethodInfo ToUpper                 = typeof(string).GetRuntimeMethod(nameof(string.ToUpper), Array.Empty<Type>());
+        static readonly MethodInfo TrimBothWithNoParam     = typeof(string).GetRuntimeMethod(nameof(string.Trim), Type.EmptyTypes);
+        static readonly MethodInfo TrimBothWithChars       = typeof(string).GetRuntimeMethod(nameof(string.Trim), new[] { typeof(char[]) });
+        static readonly MethodInfo TrimBothWithSingleChar  = typeof(string).GetRuntimeMethod(nameof(string.Trim), new[] { typeof(char) });
+        static readonly MethodInfo TrimEndWithNoParam      = typeof(string).GetRuntimeMethod(nameof(string.TrimEnd), new Type[0]);
+        static readonly MethodInfo TrimEndWithChars        = typeof(string).GetRuntimeMethod(nameof(string.TrimEnd), new[] { typeof(char[]) });
+        static readonly MethodInfo TrimEndWithSingleChar   = typeof(string).GetRuntimeMethod(nameof(string.TrimEnd), new[] { typeof(char) });
+        static readonly MethodInfo TrimStartWithNoParam    = typeof(string).GetRuntimeMethod(nameof(string.TrimStart), new Type[0]);
+        static readonly MethodInfo TrimStartWithChars      = typeof(string).GetRuntimeMethod(nameof(string.TrimStart), new[] { typeof(char[]) });
+        static readonly MethodInfo TrimStartWithSingleChar = typeof(string).GetRuntimeMethod(nameof(string.TrimStart), new[] { typeof(char) });
 
         static readonly MethodInfo FirstOrDefaultMethodInfoWithoutArgs
             = typeof(Enumerable).GetRuntimeMethods().Single(
@@ -287,6 +288,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[3],
                     method.ReturnType);
+            }
+
+            if (method == DbFunctionsReverse)
+            {
+                return _sqlExpressionFactory.Function(
+                    "reverse",
+                    new[] { arguments[1] },
+                    nullable: true,
+                    argumentsPropagateNullability: TrueArrays[1],
+                    typeof(string),
+                    arguments[1].TypeMapping);
             }
 
             if (method == StartsWith)
