@@ -511,6 +511,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
                 @"System.Text.Json.JsonDocument.Parse(""{\""Name\"":\""Joe\"",\""Age\"":25}"", new System.Text.Json.JsonDocumentOptions()).RootElement",
                 CodeLiteral(JsonDocument.Parse(@"{""Name"":""Joe"",""Age"":25}").RootElement));
 
+        [Fact]
+        public void ValueComparer_JsonDocument()
+        {
+            var json = @"{""Name"":""Joe"",""Age"":25}";
+            var source = JsonDocument.Parse(json);
+
+            var comparer = GetMapping(typeof(JsonDocument)).Comparer;
+            var snapshot = (JsonDocument)comparer.Snapshot(source);
+            Assert.Same(source, snapshot);
+            Assert.True(comparer.Equals(source, snapshot));
+        }
+
         static readonly Customer SampleCustomer = new Customer
         {
             Name = "Joe",
