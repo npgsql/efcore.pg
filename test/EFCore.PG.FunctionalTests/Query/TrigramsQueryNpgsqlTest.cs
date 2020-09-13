@@ -239,7 +239,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         public class TrigramsContext : PoolableDbContext
         {
             /// <summary>
-            /// Represents a set of entities with <see cref="System.String"/> properties.
+            /// Represents a set of entities with <see cref="string"/> properties.
             /// </summary>
             public DbSet<TrigramsTestEntity> TrigramsTestEntities { get; set; }
 

@@ -10,6 +10,7 @@
     <ProjectReference Include="..\..\src\EFCore.PG.NTS\EFCore.PG.NTS.csproj" />
     <ProjectReference Include="..\..\src\EFCore.PG.Trigrams\EFCore.PG.Trigrams.csproj" />
     <ProjectReference Include="..\..\src\EFCore.PG.FuzzyStringMatch\EFCore.PG.FuzzyStringMatch.csproj" />
+    <ProjectReference Include="..\..\src\EFCore.PG.Unaccent\EFCore.PG.Unaccent.csproj" />
   </ItemGroup>
 
   <ItemGroup>
