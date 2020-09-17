@@ -64,7 +64,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                                 NpgsqlValueGenerationStrategy.SerialColumn => true,
                                 _ => false
                             })
-                            .Select(p => p.GetColumnName()))
+                            .Select(p => p.GetColumnName(StoreObjectIdentifier.Table(t.Table, t.Schema))))
                 })
                 .SelectMany(t => t.Columns.Select(p => new
                 {
