@@ -20,6 +20,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v1
 
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: ${{ env.dotnet_sdk_version }}
+
+      - name: Build
+        run: dotnet build --configuration Debug
+        shell: bash
+
       - name: Start PostgreSQL ${{ matrix.pg_major }} (Linux)
         if: startsWith(matrix.os, 'ubuntu')
         run: |
@@ -74,10 +83,6 @@ jobs:
           pgsql/bin/psql -U postgres -c "CREATE DATABASE npgsql_tests OWNER npgsql_tests"
         shell: bash
 
-      - name: Setup .NET Core SDK
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: '3.1.x'
       - name: Test
         run: dotnet test --configuration Debug --logger "GitHubActions;report-warnings=false"
         shell: bash
