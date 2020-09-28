@@ -1,7 +1,7 @@
 [![stable](https://img.shields.io/nuget/v/Npgsql.EntityFrameworkCore.PostgreSQL.svg?label=stable)](https://www.nuget.org/packages/Npgsql.EntityFrameworkCore.PostgreSQL/)
 [![unstable](https://img.shields.io/myget/npgsql-unstable/vpre/Npgsql.EntityFrameworkCore.PostgreSQL.svg?label=unstable)](https://www.myget.org/feed/npgsql-unstable/package/nuget/Npgsql.EntityFrameworkCore.PostgreSQL)
 [![next patch](https://img.shields.io/myget/npgsql/v/Npgsql.EntityFrameworkCore.PostgreSQL.svg?label=next%20patch)](https://www.myget.org/feed/npgsql/package/nuget/Npgsql.EntityFrameworkCore.PostgreSQL)
-[![build](https://img.shields.io/github/workflow/status/efcore.pg/npgsql/Build)](https://github.com/npgsql/efcore.pg/actions)
+[![build](https://img.shields.io/github/workflow/status/npgsql/efcore.pg/Build)](https://github.com/npgsql/efcore.pg/actions)
 [![gitter](https://img.shields.io/badge/gitter-join%20chat-brightgreen.svg)](https://gitter.im/npgsql/npgsql)
 
 # Getting Started
