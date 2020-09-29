@@ -23,7 +23,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2
 
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v1
@@ -101,7 +101,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2
 
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v1
@@ -117,7 +117,7 @@ jobs:
         run: dotnet pack --configuration Release --output nupkgs -p:ContinuousIntegrationBuild=true
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2
         with:
           name: EFCore.PG
           path: nupkgs
