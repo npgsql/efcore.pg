@@ -108,7 +108,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
                 var internalSchemas = "'pg_catalog', 'information_schema'";
                 using (var command = new NpgsqlCommand("SELECT version()", connection))
                 {
-                    var longVersion = (string)command.ExecuteScalar();
+                    var longVersion = (string)command.ExecuteScalar()!;
                     if (longVersion.Contains("CockroachDB"))
                         internalSchemas += ", 'crdb_internal'";
                 }
