@@ -84,7 +84,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 o => o == null ? null : new Dictionary<string, string>(o))
             {}
 
-            static bool Compare(IReadOnlyDictionary<string, string> a, IReadOnlyDictionary<string, string> b)
+            static bool Compare(Dictionary<string, string> a, Dictionary<string, string> b)
             {
                 if (a is null)
                     return b is null;
