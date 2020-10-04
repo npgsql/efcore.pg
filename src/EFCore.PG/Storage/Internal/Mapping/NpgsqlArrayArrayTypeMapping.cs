@@ -58,29 +58,26 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         {
             Debug.Assert(arrayType.IsArray);
             var elementType = arrayType.GetElementType();
+            var isNullableValueType = false;
+            if (Nullable.GetUnderlyingType(elementType) is { } underlyingType)
+            {
+                isNullableValueType = true;
+                elementType = underlyingType;
+            }
 
             // We currently don't support mapping multi-dimensional arrays.
             if (arrayType.GetArrayRank() != 1)
                 return null;
 
-            // We use different comparer implementations based on whether we have a non-null element comparer,
-            // and if not, whether the element is IEquatable<TElem>
-
-            if (elementMapping.Comparer != null)
-                return (ValueComparer)Activator.CreateInstance(
-                    typeof(SingleDimComparerWithComparer<>).MakeGenericType(elementType), elementMapping);
-
-            if (typeof(IEquatable<>).MakeGenericType(elementType).IsAssignableFrom(elementType))
-                return (ValueComparer)Activator.CreateInstance(typeof(SingleDimComparerWithIEquatable<>).MakeGenericType(elementType));
-
-            // There's no custom comparer, and the element type doesn't implement IEquatable<TElem>. We have
-            // no choice but to use the non-generic Equals method.
-            return (ValueComparer)Activator.CreateInstance(typeof(SingleDimComparerWithEquals<>).MakeGenericType(elementType));
+            return (ValueComparer)Activator.CreateInstance(
+                isNullableValueType
+                    ? typeof(NullableSingleDimensionalArrayComparer<>).MakeGenericType(elementType)
+                    : typeof(SingleDimensionalArrayComparer<>).MakeGenericType(elementType), elementMapping);
         }
 
-        sealed class SingleDimComparerWithComparer<TElem> : ValueComparer<TElem[]>
+        sealed class SingleDimensionalArrayComparer<TElem> : ValueComparer<TElem[]>
         {
-            public SingleDimComparerWithComparer(RelationalTypeMapping elementMapping) : base(
+            public SingleDimensionalArrayComparer(RelationalTypeMapping elementMapping) : base(
                 (a, b) => Compare(a, b, (ValueComparer<TElem>)elementMapping.Comparer),
                 o => o.GetHashCode(), // TODO: Need to get hash code of elements...
                 source => Snapshot(source, (ValueComparer<TElem>)elementMapping.Comparer)) {}
@@ -115,60 +112,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             }
         }
 
-        sealed class SingleDimComparerWithIEquatable<TElem> : ValueComparer<TElem[]>
-            where TElem : IEquatable<TElem>
+        sealed class NullableSingleDimensionalArrayComparer<TElem> : ValueComparer<TElem?[]>
+            where TElem : struct
         {
-            public SingleDimComparerWithIEquatable() : base(
-                (a, b) => Compare(a, b),
+            public NullableSingleDimensionalArrayComparer(RelationalTypeMapping elementMapping) : base(
+                (a, b) => Compare(a, b, (ValueComparer<TElem>)elementMapping.Comparer),
                 o => o.GetHashCode(), // TODO: Need to get hash code of elements...
-                source => DoSnapshot(source)) {}
+                source => Snapshot(source, (ValueComparer<TElem>)elementMapping.Comparer)) {}
 
-            public override Type Type => typeof(TElem[]);
+            public override Type Type => typeof(TElem?[]);
 
-            static bool Compare(TElem[] a, TElem[] b)
-            {
-                if (a.Length != b.Length)
-                    return false;
-
-                for (var i = 0; i < a.Length; i++)
-                {
-                    var elem1 = a[i];
-                    var elem2 = b[i];
-                    // Note: the following null checks are elided if TElem is a value type
-                    if (elem1 == null)
-                    {
-                        if (elem2 == null)
-                            continue;
-                        return false;
-                    }
-
-                    if (!elem1.Equals(elem2))
-                        return false;
-                }
-
-                return true;
-            }
-
-            static TElem[] DoSnapshot(TElem[] source)
-            {
-                if (source == null)
-                    return null;
-                var snapshot = new TElem[source.Length];
-                source.CopyTo(snapshot, 0);
-                return snapshot;
-            }
-        }
-
-        sealed class SingleDimComparerWithEquals<TElem> : ValueComparer<TElem[]>
-        {
-            public SingleDimComparerWithEquals() : base(
-                (a, b) => Compare(a, b),
-                o => o.GetHashCode(), // TODO: Need to get hash code of elements...
-                source => DoSnapshot(source)) {}
-
-            public override Type Type => typeof(TElem[]);
-
-            static bool Compare(TElem[] a, TElem[] b)
+            static bool Compare(TElem?[] a, TElem?[] b, ValueComparer<TElem> elementComparer)
             {
                 if (a.Length != b.Length)
                     return false;
@@ -177,32 +131,32 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 // generic (see https://github.com/aspnet/EntityFrameworkCore/issues/11072)
                 for (var i = 0; i < a.Length; i++)
                 {
-                    var elem1 = a[i];
-                    var elem2 = b[i];
-                    if (elem1 == null)
+                    var (el1, el2) = (a[i], b[i]);
+                    if (el1 is null)
                     {
-                        if (elem2 == null)
+                        if (el2 is null)
                             continue;
                         return false;
                     }
-
-                    if (!elem1.Equals(elem2))
+                    if (el2 is null)
+                        return false;
+                    if (!elementComparer.Equals(el1, el2))
                         return false;
                 }
 
                 return true;
             }
 
-            static TElem[] DoSnapshot(TElem[] source)
+            static TElem?[] Snapshot(TElem?[] source, ValueComparer<TElem> elementComparer)
             {
                 if (source == null)
                     return null;
 
-                var snapshot = new TElem[source.Length];
+                var snapshot = new TElem?[source.Length];
                 // Note: the following currently boxes every element access because ValueComparer isn't really
                 // generic (see https://github.com/aspnet/EntityFrameworkCore/issues/11072)
                 for (var i = 0; i < source.Length; i++)
-                    snapshot[i] = source[i];
+                    snapshot[i] = source[i] is { } value ? elementComparer.Snapshot(value) : (TElem?)null;
                 return snapshot;
             }
         }

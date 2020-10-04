@@ -469,6 +469,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 if (elementMapping is NpgsqlArrayTypeMapping)
                     return null;
 
+                // Not that the element mapping found above was stripped of nullability
+                // (so we get a mapping for int, not int?).
+                Debug.Assert(
+                    Nullable.GetUnderlyingType(elementType) is null ||
+                    Nullable.GetUnderlyingType(elementType) == elementMapping.ClrType);
+
                 return new NpgsqlArrayArrayTypeMapping(elementMapping, clrType);
             }
 
