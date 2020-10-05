@@ -63,25 +63,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             Debug.Assert(listType.IsGenericType && listType.GetGenericTypeDefinition() == typeof(List<>));
 
             var elementType = listType.GetGenericArguments()[0];
-            var isNullableValueType = false;
-            if (Nullable.GetUnderlyingType(elementType) is { } underlyingType)
-            {
-                isNullableValueType = true;
-                elementType = underlyingType;
-            }
+            var unwrappedType = elementType.UnwrapNullableType();
 
             return (ValueComparer)Activator.CreateInstance(
-                isNullableValueType
-                    ? typeof(NullableSingleDimComparerWithComparer<>).MakeGenericType(elementType)
-                    : typeof(SingleDimComparerWithComparer<>).MakeGenericType(elementType), elementMapping);
+                elementType == unwrappedType
+                    ? typeof(ListComparer<>).MakeGenericType(elementType)
+                    : typeof(NullableListComparer<>).MakeGenericType(unwrappedType),
+                elementMapping);
         }
 
-        sealed class SingleDimComparerWithComparer<TElem> : ValueComparer<List<TElem>>
+        sealed class ListComparer<TElem> : ValueComparer<List<TElem>>
         {
-            public SingleDimComparerWithComparer(RelationalTypeMapping elementMapping)
+            public ListComparer(RelationalTypeMapping elementMapping)
                 : base(
                     (a, b) => Compare(a, b, (ValueComparer<TElem>)elementMapping.Comparer),
-                    o => o.GetHashCode(), // TODO: Need to get hash code of elements...
+                    o => GetHashCode(o, (ValueComparer<TElem>)elementMapping.Comparer),
                     source => Snapshot(source, (ValueComparer<TElem>)elementMapping.Comparer)) {}
 
             public override Type Type => typeof(List<TElem>);
@@ -100,6 +96,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 return true;
             }
 
+            static int GetHashCode(List<TElem> source, ValueComparer<TElem> elementComparer)
+            {
+                var hash = new HashCode();
+                foreach (var el in source)
+                    hash.Add(elementComparer.GetHashCode(el));
+                return hash.ToHashCode();
+            }
+
             static List<TElem> Snapshot(List<TElem> source, ValueComparer<TElem> elementComparer)
             {
                 if (source == null)
@@ -116,13 +120,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             }
         }
 
-        sealed class NullableSingleDimComparerWithComparer<TElem> : ValueComparer<List<TElem?>>
+        sealed class NullableListComparer<TElem> : ValueComparer<List<TElem?>>
             where TElem : struct
         {
-            public NullableSingleDimComparerWithComparer(RelationalTypeMapping elementMapping)
+            public NullableListComparer(RelationalTypeMapping elementMapping)
                 : base(
                     (a, b) => Compare(a, b, (ValueComparer<TElem>)elementMapping.Comparer),
-                    o => o.GetHashCode(), // TODO: Need to get hash code of elements...
+                    o => GetHashCode(o, (ValueComparer<TElem>)elementMapping.Comparer),
                     source => Snapshot(source, (ValueComparer<TElem>)elementMapping.Comparer)) {}
 
             public override Type Type => typeof(List<TElem?>);
@@ -143,13 +147,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                             continue;
                         return false;
                     }
-                    if (el2 is null)
-                        return false;
-                    if (!elementComparer.Equals(a[i], b[i]))
+                    if (el2 is null || !elementComparer.Equals(a[i], b[i]))
                         return false;
                 }
 
                 return true;
+            }
+
+            static int GetHashCode(List<TElem?> source, ValueComparer<TElem> elementComparer)
+            {
+                var hash = new HashCode();
+                foreach (var el in source)
+                    hash.Add(elementComparer.GetHashCode(el));
+                return hash.ToHashCode();
             }
 
             static List<TElem?> Snapshot(List<TElem?> source, ValueComparer<TElem> elementComparer)

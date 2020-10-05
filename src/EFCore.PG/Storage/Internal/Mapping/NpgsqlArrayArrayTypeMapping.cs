@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.Diagnostics;
+using System.Linq;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
@@ -66,15 +67,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
             return (ValueComparer)Activator.CreateInstance(
                 elementType == unwrappedType
-                    ? typeof(SingleDimensionalArrayComparer<>).MakeGenericType(unwrappedType), elementMapping);
-                    : typeof(NullableSingleDimensionalArrayComparer<>).MakeGenericType(unwrappedType);
+                    ? typeof(SingleDimensionalArrayComparer<>).MakeGenericType(elementType)
+                    : typeof(NullableSingleDimensionalArrayComparer<>).MakeGenericType(unwrappedType),
+                elementMapping);
         }
 
         sealed class SingleDimensionalArrayComparer<TElem> : ValueComparer<TElem[]>
         {
             public SingleDimensionalArrayComparer(RelationalTypeMapping elementMapping) : base(
                 (a, b) => Compare(a, b, (ValueComparer<TElem>)elementMapping.Comparer),
-                o => o.GetHashCode(), // TODO: Need to get hash code of elements...
+                o => GetHashCode(o, (ValueComparer<TElem>)elementMapping.Comparer),
                 source => Snapshot(source, (ValueComparer<TElem>)elementMapping.Comparer)) {}
 
             public override Type Type => typeof(TElem[]);
@@ -91,6 +93,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                         return false;
 
                 return true;
+            }
+
+            static int GetHashCode(TElem[] source, ValueComparer<TElem> elementComparer)
+            {
+                var hash = new HashCode();
+                foreach (var el in source)
+                    hash.Add(elementComparer.GetHashCode(el));
+                return hash.ToHashCode();
             }
 
             static TElem[] Snapshot(TElem[] source, ValueComparer<TElem> elementComparer)
@@ -112,7 +122,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         {
             public NullableSingleDimensionalArrayComparer(RelationalTypeMapping elementMapping) : base(
                 (a, b) => Compare(a, b, (ValueComparer<TElem>)elementMapping.Comparer),
-                o => o.GetHashCode(), // TODO: Need to get hash code of elements...
+                o => GetHashCode(o, (ValueComparer<TElem>)elementMapping.Comparer),
                 source => Snapshot(source, (ValueComparer<TElem>)elementMapping.Comparer)) {}
 
             public override Type Type => typeof(TElem?[]);
@@ -138,6 +148,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 }
 
                 return true;
+            }
+
+            static int GetHashCode(TElem?[] source, ValueComparer<TElem> elementComparer)
+            {
+                var hash = new HashCode();
+                foreach (var el in source)
+                    hash.Add(elementComparer.GetHashCode(el));
+                return hash.ToHashCode();
             }
 
             static TElem?[] Snapshot(TElem?[] source, ValueComparer<TElem> elementComparer)
