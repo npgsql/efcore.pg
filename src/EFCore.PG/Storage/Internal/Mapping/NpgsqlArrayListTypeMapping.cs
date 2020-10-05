@@ -100,7 +100,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             {
                 var hash = new HashCode();
                 foreach (var el in source)
-                    hash.Add(elementComparer.GetHashCode(el));
+                    hash.Add(el, elementComparer);
                 return hash.ToHashCode();
             }
 
@@ -156,9 +156,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
             static int GetHashCode(List<TElem?> source, ValueComparer<TElem> elementComparer)
             {
+                var nullableEqualityComparer = new NullableEqualityComparer<TElem>(elementComparer);
                 var hash = new HashCode();
                 foreach (var el in source)
-                    hash.Add(elementComparer.GetHashCode(el));
+                    hash.Add(el, nullableEqualityComparer);
                 return hash.ToHashCode();
             }
 
