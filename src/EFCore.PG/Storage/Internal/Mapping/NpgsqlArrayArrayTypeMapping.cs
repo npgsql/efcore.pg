@@ -58,21 +58,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         {
             Debug.Assert(arrayType.IsArray);
             var elementType = arrayType.GetElementType();
-            var isNullableValueType = false;
-            if (Nullable.GetUnderlyingType(elementType) is { } underlyingType)
-            {
-                isNullableValueType = true;
-                elementType = underlyingType;
-            }
+            var unwrappedType = elementType.UnwrapNullableType();
 
             // We currently don't support mapping multi-dimensional arrays.
             if (arrayType.GetArrayRank() != 1)
                 return null;
 
             return (ValueComparer)Activator.CreateInstance(
-                isNullableValueType
-                    ? typeof(NullableSingleDimensionalArrayComparer<>).MakeGenericType(elementType)
-                    : typeof(SingleDimensionalArrayComparer<>).MakeGenericType(elementType), elementMapping);
+                elementType == unwrappedType
+                    ? typeof(SingleDimensionalArrayComparer<>).MakeGenericType(unwrappedType), elementMapping);
+                    : typeof(NullableSingleDimensionalArrayComparer<>).MakeGenericType(unwrappedType);
         }
 
         sealed class SingleDimensionalArrayComparer<TElem> : ValueComparer<TElem[]>
@@ -138,9 +133,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                             continue;
                         return false;
                     }
-                    if (el2 is null)
-                        return false;
-                    if (!elementComparer.Equals(el1, el2))
+                    if (el2 is null || !elementComparer.Equals(el1, el2))
                         return false;
                 }
 
