@@ -1,7 +1,7 @@
 # Value Generation
 
 > [!CAUTION]
-> In 3.0.0, the default value generation strategy has changed from the older SERIAL columns to the newer IDENTITY columns. Read the below carefully if you are migrating an existing database.
+> In 3.0.0, the default value generation strategy has changed from the older SERIAL columns to the newer IDENTITY columns. Read the information below carefully if you are migrating an existing database.
 
 > [!NOTE]
 > It's recommended that you start by reading the general [Entity Framework Core docs on generated properties](https://docs.microsoft.com/en-us/ef/core/modeling/generated-properties).
