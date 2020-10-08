@@ -37,7 +37,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 .Select(x => EF.Functions.TrigramsShow(x.Text))
                 .ToArray();
 
-            AssertContainsSql(@"show_trgm(t.""Text"")");
+            AssertContainsS
+                ql(@"show_trgm(t.""Text"")");
         }
 
         [Fact]
@@ -239,7 +240,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         public class TrigramsContext : PoolableDbContext
         {
             /// <summary>
-            /// Represents a set of entities with <see cref="string"/> properties.
+            /// Represents a set of entities with <see cref="System.String"/> properties.
             /// </summary>
             public DbSet<TrigramsTestEntity> TrigramsTestEntities { get; set; }
 
