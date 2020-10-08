@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
@@ -27,6 +28,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         public override Task Reverse_without_explicit_ordering_throws(bool async)
             => AssertTranslationFailedWithDetails(
                 () => base.Reverse_without_explicit_ordering_throws(async), RelationalStrings.MissingOrderingInSqlExpression);
+
+        public override async Task Projecting_after_navigation_and_distinct_throws(bool async)
+            => Assert.Equal(
+                RelationalStrings.InsufficientInformationToIdentifyOuterElementOfCollectionJoin,
+                (await Assert.ThrowsAsync<InvalidOperationException>(
+                    () => base.Projecting_after_navigation_and_distinct_throws(async))).Message);
 
         void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);

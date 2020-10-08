@@ -51,15 +51,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             [NotNull] SqlExpression index,
             [CanBeNull]  RelationalTypeMapping typeMapping = null)
         {
-            Type elementType;
-            if (array.Type.IsArray)
-                elementType = array.Type.GetElementType();
-            else if (array.Type.IsGenericList())
-                elementType = array.Type.GetGenericArguments()[0];
-            else
+            if (!array.Type.TryGetElementType(out var elementType))
                 throw new ArgumentException("Array expression must be of an array or List<> type", nameof(array));
 
-            return (PostgresArrayIndexExpression)ApplyTypeMapping(new PostgresArrayIndexExpression(array, index, elementType, null), typeMapping);
+            return (PostgresArrayIndexExpression)ApplyTypeMapping(
+                new PostgresArrayIndexExpression(array, index, elementType, typeMapping: null),
+                typeMapping);
         }
 
         public virtual PostgresBinaryExpression AtTimeZone(

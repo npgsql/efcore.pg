@@ -5,7 +5,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query.Internal;
-using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.ArrayTests;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
@@ -23,7 +22,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             Fixture = fixture;
             Fixture.TestSqlLoggerFactory.Clear();
-            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+            // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
         #region Roundtrip
@@ -36,6 +35,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
             Assert.Equal(new[] { 3, 4 }, x.IntArray);
             Assert.Equal(new List<int> { 3, 4 }, x.IntList);
+            Assert.Equal(new int?[] { 3, 4, null}, x.NullableIntArray);
+            Assert.Equal(new List<int?> { 3, 4, null}, x.NullableIntList);
         }
 
         #endregion
@@ -73,6 +74,40 @@ LIMIT 2");
                 @"SELECT s.""Id""
 FROM ""SomeEntities"" AS s
 WHERE s.""IntList""[1] = 3
+LIMIT 2");
+        }
+
+        [Fact]
+        public void Nullable_array_index_with_constant()
+        {
+            using var ctx = CreateContext();
+            var id = ctx.SomeEntities
+                .Where(e => e.NullableIntArray[0] == 3)
+                .Select(e => e.Id)
+                .Single();
+
+            Assert.Equal(1, id);
+            AssertSql(
+                @"SELECT s.""Id""
+FROM ""SomeEntities"" AS s
+WHERE s.""NullableIntArray""[1] = 3
+LIMIT 2");
+        }
+
+        [Fact]
+        public void Nullable_list_index_with_constant()
+        {
+            using var ctx = CreateContext();
+            var id = ctx.SomeEntities
+                .Where(e => e.NullableIntList[0] == 3)
+                .Select(e => e.Id)
+                .Single();
+
+            Assert.Equal(1, id);
+            AssertSql(
+                @"SELECT s.""Id""
+FROM ""SomeEntities"" AS s
+WHERE s.""NullableIntList""[1] = 3
 LIMIT 2");
         }
 
@@ -160,6 +195,28 @@ LIMIT 2");
                 @"SELECT s.""Id""
 FROM ""SomeEntities"" AS s
 WHERE s.""IntArray"" = ARRAY[3,4]::integer[]
+LIMIT 2");
+        }
+
+        [Theory]
+        [MemberData(nameof(IsListData))]
+        public void SequenceEqual_over_nullable_with_parameter(bool list)
+        {
+            using var ctx = CreateContext();
+            var arr = new int?[] { 3, 4, null };
+            var id = ctx.SomeEntities
+                .Where(e => e.NullableIntArray.SequenceEqual(arr))
+                .Select(e => e.Id)
+                .OverArrayOrList(list)
+                .Single();
+
+            Assert.Equal(1, id);
+            AssertSql(list,
+                @"@__arr_0='System.Nullable`1[System.Int32][]' (DbType = Object)
+
+SELECT s.""Id""
+FROM ""SomeEntities"" AS s
+WHERE s.""NullableIntArray"" = @__arr_0
 LIMIT 2");
         }
 
@@ -431,6 +488,23 @@ LIMIT 2");
                 @"SELECT s.""Id""
 FROM ""SomeEntities"" AS s
 WHERE cardinality(s.""IntArray"") = 2
+LIMIT 2");
+        }
+
+        [Fact]
+        public void NullableArrayLength()
+        {
+            using var ctx = CreateContext();
+            var id = ctx.SomeEntities
+                .Where(e => e.NullableIntArray.Length == 3)
+                .Select(e => e.Id)
+                .Single();
+
+            Assert.Equal(1, id);
+            AssertSql(
+                @"SELECT s.""Id""
+FROM ""SomeEntities"" AS s
+WHERE cardinality(s.""NullableIntArray"") = 3
 LIMIT 2");
         }
 
@@ -727,6 +801,8 @@ WHERE (get_byte(s.""SomeBytea"", 0) = 3) AND get_byte(s.""SomeBytea"", 0) IS NOT
                         Id = 1,
                         IntArray = new[] { 3, 4 },
                         IntList = new List<int> { 3, 4 },
+                        NullableIntArray = new int?[] { 3, 4, null },
+                        NullableIntList = new List<int?> { 3, 4, null },
                         Bytea = new byte[] { 3, 4 },
                         ByteArray = new byte[] { 3, 4 },
                         StringArray = new[] { "3", "4" },
@@ -741,6 +817,8 @@ WHERE (get_byte(s.""SomeBytea"", 0) = 3) AND get_byte(s.""SomeBytea"", 0) IS NOT
                         Id = 2,
                         IntArray = new[] { 5, 6, 7 },
                         IntList = new List<int> { 5, 6, 7 },
+                        NullableIntArray = new int?[] { 5, 6, 7, null },
+                        NullableIntList = new List<int?> { 5, 6, 7, null },
                         Bytea = new byte[] { 5, 6, 7 },
                         ByteArray = new byte[] { 5, 6, 7 },
                         StringArray = new[] { "5", "6", "7", null },
@@ -759,6 +837,8 @@ WHERE (get_byte(s.""SomeBytea"", 0) = 3) AND get_byte(s.""SomeBytea"", 0) IS NOT
             public int Id { get; set; }
             public int[] IntArray { get; set; }
             public List<int> IntList { get; set; }
+            public int?[] NullableIntArray { get; set; }
+            public List<int?> NullableIntList { get; set; }
             public int[,] IntMatrix { get; set; }
             public byte[] Bytea { get; set; }
             public byte[] ByteArray { get; set; }

@@ -71,10 +71,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
                 .FirstOrDefault(p => p.GetTsVectorProperties() != null);
             if (property != null)
             {
+                var tableIdentifier = StoreObjectIdentifier.Table(column.Table.Name, column.Table.Schema);
+
                 yield return new Annotation(
                     NpgsqlAnnotationNames.TsVectorProperties,
                     property.GetTsVectorProperties()
-                        .Select(p2 => property.DeclaringEntityType.FindProperty(p2).GetColumnName())
+                        .Select(p2 => property.DeclaringEntityType.FindProperty(p2).GetColumnName(tableIdentifier))
                         .ToArray());
             }
         }
@@ -99,10 +101,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
                 yield return new Annotation(NpgsqlAnnotationNames.TsVectorConfig, configName);
             if (modelIndex.GetIncludeProperties() is IReadOnlyList<string> includeProperties)
             {
+                var tableIdentifier = StoreObjectIdentifier.Table(index.Table.Name, index.Table.Schema);
+
                 yield return new Annotation(
                     NpgsqlAnnotationNames.IndexInclude,
                     includeProperties
-                        .Select(p => modelIndex.DeclaringEntityType.FindProperty(p).GetColumnName())
+                        .Select(p => modelIndex.DeclaringEntityType.FindProperty(p).GetColumnName(tableIdentifier))
                         .ToArray());
             }
 

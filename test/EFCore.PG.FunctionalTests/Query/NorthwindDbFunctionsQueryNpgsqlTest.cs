@@ -129,6 +129,23 @@ WHERE c.""ContactName"" COLLATE ""POSIX"" = 'maria anders'");
 
         #endregion Collation
 
+        #region Others
+
+        [Fact]
+        public void String_reverse()
+        {
+            using var context = CreateContext();
+            var count = context.Customers.Count(c => EF.Functions.Reverse(c.ContactName) == "srednA airaM");
+
+            Assert.Equal(1, count);
+            AssertSql(
+                @"SELECT COUNT(*)::INT
+FROM ""Customers"" AS c
+WHERE reverse(c.""ContactName"") = 'srednA airaM'");
+        }
+
+        #endregion
+
         void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
     }

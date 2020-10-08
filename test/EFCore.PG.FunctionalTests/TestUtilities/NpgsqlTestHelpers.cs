@@ -41,7 +41,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             => services.AddEntityFrameworkNpgsql();
 
         public override void UseProviderOptions(DbContextOptionsBuilder optionsBuilder)
-            => optionsBuilder.UseNpgsql(new NpgsqlConnection("Database=DummyDatabase"),
+            => optionsBuilder.UseNpgsql(new NpgsqlConnection("Host=localhost;Database=DummyDatabase"),
                    options => options.SetPostgresVersion(_postgresVersion));
 
         public override LoggingDefinitions LoggingDefinitions { get; } = new NpgsqlLoggingDefinitions();

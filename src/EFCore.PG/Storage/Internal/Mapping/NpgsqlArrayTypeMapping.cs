@@ -89,5 +89,22 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             if (NpgsqlDbType.HasValue)
                 npgsqlParameter.NpgsqlDbType = NpgsqlDbType.Value;
         }
+
+        protected class NullableEqualityComparer<T> : IEqualityComparer<T?>
+            where T : struct
+        {
+            readonly IEqualityComparer<T> _underlyingComparer;
+
+            public NullableEqualityComparer(IEqualityComparer<T> underlyingComparer)
+                => _underlyingComparer = underlyingComparer;
+
+            public bool Equals(T? x, T? y)
+                => x is null
+                    ? y is null
+                    : y.HasValue && _underlyingComparer.Equals(x.Value, y.Value);
+
+            public int GetHashCode(T? obj)
+                => obj is null ? 0 : _underlyingComparer.GetHashCode(obj.Value);
+        }
     }
 }

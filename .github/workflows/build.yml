@@ -13,12 +13,28 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-20.04, windows-2019 ]
+# Temporarily disable Windows because of PG installation issues
+#        os: [ ubuntu-20.04, windows-2019 ]
+        os: [ ubuntu-20.04 ]
         pg_major: [ 12, 11, 10 ]
+# PostgreSQL 13 is out, but there's no PostGIS binary for Windows yet (http://download.osgeo.org/postgis/windows/)
+        include:
+          - os: ubuntu-20.04
+            pg_major: 13
+            # pg_prerelease: prerelease
 
     steps:
       - name: Checkout
         uses: actions/checkout@v1
+
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: ${{ env.dotnet_sdk_version }}
+
+      - name: Build
+        run: dotnet build --configuration Debug
+        shell: bash
 
       - name: Start PostgreSQL ${{ matrix.pg_major }} (Linux)
         if: startsWith(matrix.os, 'ubuntu')
@@ -74,10 +90,6 @@ jobs:
           pgsql/bin/psql -U postgres -c "CREATE DATABASE npgsql_tests OWNER npgsql_tests"
         shell: bash
 
-      - name: Setup .NET Core SDK
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: '3.1.x'
       - name: Test
         run: dotnet test --configuration Debug --logger "GitHubActions;report-warnings=false"
         shell: bash
@@ -114,8 +126,10 @@ jobs:
 
       - name: Publish packages to MyGet (vnext)
         if: startsWith(github.ref, 'refs/heads/') && startsWith(github.ref, 'refs/heads/hotfix/') == false
-        run: dotnet nuget push nupkgs/*.nupkg --api-key ${{ secrets.MYGET_FEED_TOKEN }} --source https://www.myget.org/F/npgsql-unstable/api/v3/index.json
+        run: dotnet nuget push "*.nupkg" --api-key ${{ secrets.MYGET_FEED_TOKEN }} --source https://www.myget.org/F/npgsql-unstable/api/v3/index.json
+        working-directory: nupkgs
 
       - name: Publish packages to MyGet (patch)
         if: startsWith(github.ref, 'refs/heads/hotfix/')
-        run: dotnet nuget push nupkgs/*.nupkg --api-key ${{ secrets.MYGET_FEED_TOKEN }} --source https://www.myget.org/F/npgsql/api/v3/index.json
+        run: dotnet nuget push "*.nupkg" --api-key ${{ secrets.MYGET_FEED_TOKEN }} --source https://www.myget.org/F/npgsql/api/v3/index.json
+        working-directory: nupkgs

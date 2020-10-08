@@ -23,14 +23,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
             [NotNull] SqlExpression index,
             [NotNull] Type type,
             [CanBeNull] RelationalTypeMapping typeMapping)
-            : base(type, typeMapping)
+            : base(type.UnwrapNullableType(), typeMapping)
         {
             Check.NotNull(array, nameof(array));
             Check.NotNull(index, nameof(index));
 
             if (!array.Type.TryGetElementType(out var elementType))
                 throw new ArgumentException("Array expression must of an array type", nameof(array));
-            if (type != elementType)
+            if (type.UnwrapNullableType() != elementType.UnwrapNullableType())
                 throw new ArgumentException($"Mismatch between array type ({array.Type.Name}) and expression type ({type})");
             if (index.Type != typeof(int))
                 throw new ArgumentException("Index expression must of type int", nameof(index));
