@@ -165,7 +165,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         public virtual NpgsqlDbContextOptionsBuilder EnableRetryOnFailure(
             int maxRetryCount,
             TimeSpan maxRetryDelay,
-            [NotNull] ICollection<string> errorCodesToAdd)
+            [CanBeNull] ICollection<string> errorCodesToAdd)
             => ExecutionStrategy(c => new NpgsqlRetryingExecutionStrategy(c, maxRetryCount, maxRetryDelay, errorCodesToAdd));
 
         #endregion Retrying execution strategy
