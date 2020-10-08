@@ -2,8 +2,6 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestUtilities;
-using Microsoft.Extensions.DependencyInjection;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -11,10 +9,10 @@ using Xunit.Abstractions;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     /// <summary>
-    /// Provides unit tests for the pg_trgm module operator and function translations.
+    /// Provides unit tests for the unaccent module operator and function translations.
     /// </summary>
     /// <remarks>
-    /// See: https://www.postgresql.org/docs/current/pgtrgm.html
+    /// See: https://www.postgresql.org/docs/current/unaccent.html
     /// </remarks>
     public class UnaccentQueryNpgsqlTest : IClassFixture<UnaccentQueryNpgsqlTest.UnaccentQueryNpgsqlFixture>
     {
@@ -62,17 +60,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             protected override string StoreName => "UnaccentQueryTest";
 
-            protected override IServiceCollection AddServices(IServiceCollection serviceCollection)
-                => base.AddServices(serviceCollection).AddEntityFrameworkNpgsqlUnaccent();
-
-            public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
-            {
-                var optionsBuilder = base.AddOptions(builder);
-                new NpgsqlDbContextOptionsBuilder(optionsBuilder).UseUnaccent();
-
-                return optionsBuilder;
-            }
-
             protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
             public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
             protected override void Seed(UnaccentContext context) => UnaccentContext.Seed(context);
@@ -112,7 +99,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             /// <param name="options">
             /// The options to be used for configuration.
             /// </param>
-            public UnaccentContext(DbContextOptions options) : base(options) {}
+            public UnaccentContext(DbContextOptions options) : base(options) { }
 
             protected override void OnModelCreating(ModelBuilder modelBuilder)
             {
