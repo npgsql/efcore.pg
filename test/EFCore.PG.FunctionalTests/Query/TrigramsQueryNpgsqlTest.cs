@@ -37,8 +37,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 .Select(x => EF.Functions.TrigramsShow(x.Text))
                 .ToArray();
 
-            AssertContainsS
-                ql(@"show_trgm(t.""Text"")");
+            AssertContainsSql(@"show_trgm(t.""Text"")");
         }
 
         [Fact]
