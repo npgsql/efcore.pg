@@ -56,8 +56,8 @@ This will translate to an SQL operation using the PostgreSQL `@>` operator, eval
 
 The following table lists the range operations that currently get translated. If you run into a missing operation, please open an issue.
 
-C#                                                                          | .NET
-----------------------------------------------------------------------------|-----
+.NET                                  | SQL
+--------------------------------------|-----
 range.Contains(i)                     | [range @> 3](https://www.postgresql.org/docs/current/static/functions-range.html#RANGE-OPERATORS-TABLE)
 range1.Contains(range2)               | [range @> range2](https://www.postgresql.org/docs/current/static/functions-range.html#RANGE-OPERATORS-TABLE)
 range1.ContainedBy(range2)            | [range1 <@ range2](https://www.postgresql.org/docs/current/static/functions-range.html#RANGE-OPERATORS-TABLE)

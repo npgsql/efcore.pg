@@ -148,7 +148,7 @@ var npgsql = context.Products
 
 Almost all PostgreSQL full text search functions can be called through LINQ queries. All supported EF Core LINQ methods are defined in extension classes in the `Microsoft.EntityFrameworkCore` namespace, so simply referencing the Npgsql provider will light up these methods. Here is a table showing translations for some operations; if an operation you need is missing, please open an issue to request for it.
 
-C#                                                                          | .NET
+.NET                                                                        | SQL
 ----------------------------------------------------------------------------|-----
 EF.Functions.ToTsVector("english", string)                                  | [to_tsvector('english'::regconfig, string)](https://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-DOCUMENTS)
 NpgsqlTsVector.Parse(string))                                               | [CAST(string AS tsvector)](https://www.postgresql.org/docs/current/static/sql-expressions.html#SQL-SYNTAX-TYPE-CASTS)

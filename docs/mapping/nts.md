@@ -85,7 +85,7 @@ The following table lists NetTopologySuite operations which are translated to Po
 
 Note that the plugin is far from covering all spatial operations. If an operation you need is missing, please open an issue to request for it.
 
-C#                               | .NET
+.NET                             | SQL
 ---------------------------------|-----
 geom.Area()                      | [ST_Area(geom)](https://postgis.net/docs/manual-3.0/ST_Area.html)
 geom.AsText()                    | [ST_AsText(geom)](https://postgis.net/docs/manual-3.0/ST_AsText.html)

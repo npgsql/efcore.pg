@@ -198,7 +198,7 @@ The following expression types and functions are translated:
 
 ### [POCO Mapping](#tab/poco)
 
-C#                                                                          | .NET
+.NET                                                                        | SQL
 ----------------------------------------------------------------------------|-----
 customer.Name                                                               | [customer->>'Name'](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSON-OP-TABLE)
 customer.Orders[1].Price                                                    | [customer#>>'{Orders,0,Price}'[1]](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSON-OP-TABLE)
@@ -212,7 +212,7 @@ EF.Functions.JsonTypeof(e.Customer.Age)                                     | [j
 
 ### [JsonDocument Mapping](#tab/jsondocument)
 
-C#                                                                          | .NET
+.NET                                                                        | SQL
 ----------------------------------------------------------------------------|-----
 customer.GetProperty("Name").GetString()                                    | [customer->>'Name' = 'Joe'](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSON-OP-TABLE)
 customer.GetProperty("Orders")[1].GetProperty("Price").GetInt32()           | [customer#>>'{Orders,0,Price}'[1] = 8](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSON-OP-TABLE)
