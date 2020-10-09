@@ -52,50 +52,6 @@ public Point Location { get; set; }
 
 This will constrain your column to XY points only. The same can be done via the fluent API with `HasColumnType()`.
 
-## Operation translation
-
-The following table lists NetTopologySuite operations which are translated to PostGIS SQL operations. This allows you to use these NetTopologySuite methods and members efficiently - evaluation will happen on the server side. Since evaluation happens at the server, table data doesn't need to be transferred to the client (saving bandwidth), and in some cases indexes can be used to speed things up.
-
-Note that the plugin is far from covering all spatial operations. If an operation you need is missing, please open an issue to request for it.
-
-| This C# expression...                                    | ... gets translated to this SQL |
-|----------------------------------------------------------|---------------------------------|
-| .Where(c => c.Polygon.Area() > x)                        | [WHERE ST_Area(c."Polygon") > x](https://postgis.net/docs/manual-2.4/ST_Area.html)
-| .Where(c => c.Polygon.AsText() = x                       | [WHERE ST_AsText(c."Polygon") = x](https://postgis.net/docs/manual-2.4/ST_AsText.html)
-| .Where(c => c.Polygon.Boundary = x                       | [WHERE ST_Boundary(c."Polygon") = x](https://postgis.net/docs/manual-2.4/ST_Boundary.html)
-| .Where(c => c.Polygon.Contains(x))                       | [WHERE ST_Contains(c."Polygon", x)](https://postgis.net/docs/manual-2.4/ST_Contains.html)
-| .Where(c => c.Polygon.Covers(x))                         | [WHERE ST_Covers(c."Polygon", x)](https://postgis.net/docs/manual-2.4/ST_Covers.html)
-| .Where(c => c.Polygon.CoveredBy(x))                      | [WHERE ST_CoveredBy(c."Polygon", x)](https://postgis.net/docs/manual-2.4/ST_CoveredBy.html)
-| .Where(c => c.Polygon.Crosses(x))                        | [WHERE ST_Crosses(c."Polygon", x)](https://postgis.net/docs/manual-2.4/ST_Crosses.html)
-| .Where(c => c.Polygon.Difference(x) = y)                 | [WHERE ST_Difference(c."Polygon", x) = y](https://postgis.net/docs/manual-2.4/ST_Difference.html)
-| .Where(c => c.Polygon.Disjoint(x))                       | [WHERE ST_Disjoint(c."Polygon", x)](https://postgis.net/docs/manual-2.4/ST_Disjoint.html)
-| .Where(c => c.Point.Distance(x) > y)                     | [WHERE ST_Distance(c."Polygon", x) > y](https://postgis.net/docs/manual-2.4/ST_Distance.html)
-| .Where(c => c.Polygon.Equals(x))                         | [WHERE c."Polygon" = x](https://postgis.net/docs/manual-2.4/ST_Geometry_EQ.html)
-| .Where(c => c.Polygon.EqualsExact(x))                    | [WHERE c."Polygon" = x](https://postgis.net/docs/manual-2.4/ST_Geometry_EQ.html)
-| .Where(c => c.Polygon.EqualsTopologically(x))            | [WHERE ST_Equals(c."Polygon", x)](https://postgis.net/docs/manual-2.4/ST_Equals.html)
-| .Where(c => c.Geometry.GeometryType() = x)               | [WHERE GeometryType(c."GeomCollection") = x](https://postgis.net/docs/manual-2.4/GeometryType.html)
-| .Where(c => c.GeomCollection.GetGeometryN(2) = x)        | [WHERE ST_GeometryN(c."GeomCollection", 3) = x](https://postgis.net/docs/manual-2.4/ST_GeometryN.html)
-| .Where(c => c.Polygon.Intersection(x) = y)               | [WHERE ST_Intersection(c."Polygon", x) = y](https://postgis.net/docs/manual-2.4/ST_Intersection.html)
-| .Where(c => c.Polygon.Intersects(x))                     | [WHERE ST_Intersects(c."Polygon", x)](https://postgis.net/docs/manual-2.4/ST_Intersects.html)
-| .Where(c => c.LineString.IsClosed())                     | [WHERE ST_IsClosed(c."LineString")](https://postgis.net/docs/manual-2.4/ST_IsClosed.html)
-| .Where(c => c.GeomCollection.IsEmpty())                  | [WHERE ST_IsEmpty(c."GeomCollection")](https://postgis.net/docs/manual-2.4/ST_IsEmpty.html)
-| .Where(c => c.Polygon.IsSimple())                        | [WHERE ST_IsSimple(c."Polygon")](https://postgis.net/docs/manual-2.4/ST_IsSimple.html)
-| .Where(c => c.Polygon.IsValid())                         | [WHERE ST_IsValid(c."Polygon")](https://postgis.net/docs/manual-2.4/ST_IsValid.html)
-| .Where(c => c.LineString.Length > x)                     | [WHERE ST_Length(c."LineString") > x](https://postgis.net/docs/manual-2.4/ST_Length.html)
-| .Where(c => c.GeomCollection.NumGeometries > x)          | [WHERE ST_NumGeometries(c."GeomCollection") > x](https://postgis.net/docs/manual-2.4/ST_NumGeometries.html)
-| .Where(c => c.LineString.NumPoints > x)                  | [WHERE ST_NumPoints(c."LineString") > x](https://postgis.net/docs/manual-2.4/ST_NumPoints.html)
-| .Where(c => c.Polygon.Overlaps(x))                       | [WHERE ST_Overlaps(c."Polygon", x)](https://postgis.net/docs/manual-2.4/ST_Overlaps.html)
-| .Where(c => c.Polygon.Relate(x) == y)                    | [WHERE ST_Relate(c."Polygon", x) = y](https://postgis.net/docs/manual-2.4/ST_Relate.html)
-| .Where(c => c.LineString.Reverse() == x)                 | [WHERE ST_Reverse(c."Polygon") = x](https://postgis.net/docs/manual-2.4/ST_Reverse.html)
-| .Where(c => c.Polygon.SymmetricDifference(x) == y)       | [WHERE ST_SymDifference(c."Polygon", x) = y](https://postgis.net/docs/manual-2.4/ST_SymDifference.html)
-| .Where(c => c.Polygon.Touches(x))                        | [WHERE ST_Touches(c."Polygon", x)](https://postgis.net/docs/manual-2.4/ST_Touches.html)
-| .Where(c => c.Polygon.ToText() = x)                      | [WHERE ST_AsText(c."Polygon") = x](https://postgis.net/docs/manual-2.4/ST_AsText.html)
-| .Where(c => c.Polygon.Union(x) = y)                      | [WHERE ST_Union(c."Polygon", x) = y](https://postgis.net/docs/manual-2.4/ST_Union.html)
-| .Where(c => c.Polygon.Within(x))                         | [WHERE ST_Within(c."Polygon", x)](https://postgis.net/docs/manual-2.4/ST_Within.html)
-| .Where(c => c.Point.X == 3)                              | [WHERE ST_X(c."Point") = 3](https://postgis.net/docs/manual-2.4/ST_X.html)
-| .Where(c => c.Point.Y == 3)                              | [WHERE ST_Y(c."Point") = 3](https://postgis.net/docs/manual-2.4/ST_Y.html)
-| .Where(c => c.Point.Z == 3)                              | [WHERE ST_Z(c."Point") = 3](https://postgis.net/docs/manual-2.4/ST_Z.html)
-
 ## Geography (geodetic) support
 
 PostGIS has two types: `geometry` (for Cartesian coordinates) and `geography` (for geodetic or spherical coordinates). You can read about the geometry/geography distinction [in the PostGIS docs](https://postgis.net/docs/manual-2.4/using_postgis_dbmanagement.html#PostGIS_Geography) or in [this blog post](http://workshops.boundlessgeo.com/postgis-intro/geography.html). In a nutshell, `geography` is much more accurate when doing calculations over long distances, but is more expensive computationally and supports only a small subset of the spatial operations supported by `geometry`.
@@ -122,3 +78,47 @@ public class City
 ```
 
 Once you do this, your column will be created as `geography`, and spatial operations will behave as expected.
+
+## Operation translation
+
+The following table lists NetTopologySuite operations which are translated to PostGIS SQL operations. This allows you to use these NetTopologySuite methods and members efficiently - evaluation will happen on the server side. Since evaluation happens at the server, table data doesn't need to be transferred to the client (saving bandwidth), and in some cases indexes can be used to speed things up.
+
+Note that the plugin is far from covering all spatial operations. If an operation you need is missing, please open an issue to request for it.
+
+C#                               | .NET
+---------------------------------|-----
+geom.Area()                      | [ST_Area(geom)](https://postgis.net/docs/manual-3.0/ST_Area.html)
+geom.AsText()                    | [ST_AsText(geom)](https://postgis.net/docs/manual-3.0/ST_AsText.html)
+geom.Boundary                    | [ST_Boundary(geom)](https://postgis.net/docs/manual-3.0/ST_Boundary.html)
+geom1.Contains(geom2))           | [ST_Contains(geom1, geom2)](https://postgis.net/docs/manual-3.0/ST_Contains.html)
+geom1.Covers(geom2))             | [ST_Covers(geom1, geom2)](https://postgis.net/docs/manual-3.0/ST_Covers.html)
+geom1.CoveredBy(geom2))          | [ST_CoveredBy(geom1, geom2)](https://postgis.net/docs/manual-3.0/ST_CoveredBy.html)
+geom1.Crosses(geom2)             | [ST_Crosses(geom1, geom2)](https://postgis.net/docs/manual-3.0/ST_Crosses.html)
+geom1.Difference(geom2)          | [ST_Difference(geom1, geom2)](https://postgis.net/docs/manual-3.0/ST_Difference.html)
+geom1.Disjoint(geom2))           | [ST_Disjoint(geom1, geom2)](https://postgis.net/docs/manual-3.0/ST_Disjoint.html)
+geom1.Distance(geom2)            | [ST_Distance(geom1, geom2)](https://postgis.net/docs/manual-3.0/ST_Distance.html)
+geom1.Equals(geom2)              | [geom1 = geom2](https://postgis.net/docs/manual-3.0/ST_Geometry_EQ.html)
+geom1.Polygon.EqualsExact(geom2) | [geom1 = geom2](https://postgis.net/docs/manual-3.0/ST_Geometry_EQ.html)
+geom1.EqualsTopologically(geom2) | [ST_Equals(geom1, geom2)](https://postgis.net/docs/manual-3.0/ST_Equals.html)
+geom.GeometryType()              | [GeometryType(geom)](https://postgis.net/docs/manual-3.0/GeometryType.html)
+geomCollection.GetGeometryN(i)   | [ST_GeometryN(geomCollection, i)](https://postgis.net/docs/manual-3.0/ST_GeometryN.html)
+geom1.Intersection(geom2)        | [ST_Intersection(geom1, geom2)](https://postgis.net/docs/manual-3.0/ST_Intersection.html)
+geom2.Intersects(geom2)          | [ST_Intersects(geom1, geom2)](https://postgis.net/docs/manual-3.0/ST_Intersects.html)
+lineString.IsClosed()            | [ST_IsClosed(lineString)](https://postgis.net/docs/manual-3.0/ST_IsClosed.html)
+geomCollection.IsEmpty()         | [ST_IsEmpty(geomCollection)](https://postgis.net/docs/manual-3.0/ST_IsEmpty.html)
+geom.IsSimple()                  | [ST_IsSimple(geom)](https://postgis.net/docs/manual-3.0/ST_IsSimple.html)
+geom.IsValid()                   | [ST_IsValid(geom)](https://postgis.net/docs/manual-3.0/ST_IsValid.html)
+lineString.Length                | [ST_Length(lineString)](https://postgis.net/docs/manual-3.0/ST_Length.html)
+geomCollection.NumGeometries     | [ST_NumGeometries(geomCollection)](https://postgis.net/docs/manual-3.0/ST_NumGeometries.html)
+lineString.NumPoints             | [ST_NumPoints(lineString)](https://postgis.net/docs/manual-3.0/ST_NumPoints.html)
+geom1.Overlaps(geom2))           | [ST_Overlaps(geom1, geom2)](https://postgis.net/docs/manual-3.0/ST_Overlaps.html)
+geom1.Relate(geom2)              | [ST_Relate(geom1, geom2)](https://postgis.net/docs/manual-3.0/ST_Relate.html)
+geom.Reverse()                   | [ST_Reverse(geom)](https://postgis.net/docs/manual-3.0/ST_Reverse.html)
+geom1.SymmetricDifference(geom2) | [ST_SymDifference(geom1, geom2)](https://postgis.net/docs/manual-3.0/ST_SymDifference.html)
+geom1.Touches(geom2))            | [ST_Touches(geom1, geom2)](https://postgis.net/docs/manual-3.0/ST_Touches.html)
+geom.ToText()                    | [ST_AsText(geom)](https://postgis.net/docs/manual-3.0/ST_AsText.html)
+geom1.Union(geom2)               | [ST_Union(geom1, geom2)](https://postgis.net/docs/manual-3.0/ST_Union.html)
+geom1.Within(geom2)              | [ST_Within(geom1, geom2)](https://postgis.net/docs/manual-3.0/ST_Within.html)
+point.X                          | [ST_X(point)](https://postgis.net/docs/manual-3.0/ST_X.html)
+point.Y                          | [ST_Y(point)](https://postgis.net/docs/manual-3.0/ST_Y.html)
+point.Z                          | [ST_Z(point)](https://postgis.net/docs/manual-3.0/ST_Z.html)
