@@ -17,12 +17,12 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
                    .UseXminAsConcurrencyToken();
 ```
 
-Note that by default, this will set up a [shadow property](https://docs.microsoft.com/en-us/ef/core/modeling/shadow-properties) called `xmin` on your entity. This means that when you load an entity from the database, the value of `xmin` will be stored in the context, making it impossible to use that instance with another context (without reloading the entity). If you plan to pass instances between different contexts, consider adding an `xmin` property of type `uint` on your entity; this will automatically cause the concurrency token to be stored on the instance instead:
+Note that by default, this will set up a [shadow property](https://docs.microsoft.com/ef/core/modeling/shadow-properties) called `xmin` on your entity. This means that when you load an entity from the database, the value of `xmin` will be stored in the context, making it impossible to use that instance with another context (without reloading the entity). If you plan to pass instances between different contexts, consider adding an `xmin` property of type `uint` on your entity; this will automatically cause the concurrency token to be stored on the instance instead:
 
 ```c#
 class Blog
 {
-	...
-	public uint xmin { get; set; }
+    ...
+    public uint xmin { get; set; }
 }
 ```

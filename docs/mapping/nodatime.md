@@ -1,6 +1,6 @@
 # Date/Time Mapping with NodaTime
 
-# What is NodaTime?
+## What is NodaTime?
 
 By default, [the PostgreSQL date/time types](https://www.postgresql.org/docs/current/static/datatype-datetime.html) are mapped to the built-in .NET types (`DateTime`, `TimeSpan`). Unfortunately, these built-in types are flawed in many ways. The [NodaTime library](http://nodatime.org/) was created to solve many of these problems, and if your application handles dates and times in anything but the most basic way, you should consider using it. To learn more [read this blog post by Jon Skeet](http://blog.nodatime.org/2011/08/what-wrong-with-datetime-anyway.html).
 
@@ -10,7 +10,7 @@ Beyond NodaTime's general advantages, some specific advantages NodaTime for Post
 * `Period` is much more suitable for mapping PostgreSQL `interval` than `TimeSpan`.
 * NodaTime types can fully represent PostgreSQL's microsecond precision, and can represent dates outside the BCL's date limit (1AD-9999AD).
 
-# Setup
+## Setup
 
 To set up the NodaTime plugin, add the [Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime nuget](https://www.nuget.org/packages/Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime) to your project. Then, make the following modification to your `UseNpgsql()` line:
 

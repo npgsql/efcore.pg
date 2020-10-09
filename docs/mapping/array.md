@@ -5,7 +5,7 @@ PostgreSQL has the unique feature of supporting [*array data types*](https://www
 > [!NOTE]
 > Although PostgreSQL supports multidimensional arrays, these aren't yet supported by the EF Core provider.
 
-# Mapping arrays
+## Mapping arrays
 
 Simply define a regular .NET array or `List<>` property, and the provider
 
@@ -21,7 +21,7 @@ public class Post
 
 The provider will create `text[]` columns for the above two properties, and will properly detect changes in them - if you load an array and change one of its elements, calling `SaveChanges()` will automatically update the row in the database accordingly.
 
-# Operation translation
+## Operation translation
 
 The provider can also translate CLR array operations to the corresponding SQL operation; this allows you to efficiently work with arrays by evaluating operations in the database and avoids pulling all the data. The following table lists the range operations that currently get translated. If you run into a missing operation, please open an issue.
 

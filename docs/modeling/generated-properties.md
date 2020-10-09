@@ -82,7 +82,7 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 
 ## HiLo Autoincrement Generation
 
-One disadvantage of database-generated values is that these values must be read back from the database after a row is inserted. If you're saving multiple related entities, this means you must perform multiple roundtrips as the first entity's generated key must be read before writing the second one. One solution to this problem is HiLo value generation: rather than relying on the database to generate each and every value, the application "allocates" a range of values, which it can then populate directly on new entities without any additional roundtrips. When the range is exhausted, a new range is allocated. In practical terms, this uses a sequence that increments by some large value (100 by default), allowing the application to insert 100 rows autonomously.
+One disadvantage of database-generated values is that these values must be read back from the database after a row is inserted. If you're saving multiple related entities, this means you must perform multiple round-trips as the first entity's generated key must be read before writing the second one. One solution to this problem is HiLo value generation: rather than relying on the database to generate each and every value, the application "allocates" a range of values, which it can then populate directly on new entities without any additional round-trips. When the range is exhausted, a new range is allocated. In practical terms, this uses a sequence that increments by some large value (100 by default), allowing the application to insert 100 rows autonomously.
 
 To use HiLo, specify `UseHiLo` on a property in your model's `OnModelCreating`:
 

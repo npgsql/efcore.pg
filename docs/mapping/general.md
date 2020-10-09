@@ -19,7 +19,7 @@ Special types such as [arrays](array.md) and [enums](enum.md) have their own doc
 
 [PostgreSQL composite types](https://www.postgresql.org/docs/current/static/rowtypes.html), while supported at the ADO.NET level, aren't yet supported in the EF Core provider. This is tracked by [#22](https://github.com/npgsql/Npgsql.EntityFrameworkCore.PostgreSQL/issues/22).
 
-# Explicitly specifying data types
+## Explicitly specifying data types
 
 In some cases, your .NET property type can be mapped to several PostgreSQL data types; a good example is a `string`, which will be mapped to `text` by default, but can also be mapped to `jsonb`. You can use either Data Annotation attributes or the Fluent API to configure the PostgreSQL data type:
 

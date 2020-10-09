@@ -32,7 +32,6 @@ Almost all PostgreSQL full text search functions can be called through LINQ quer
 | .Select(c => EF.Functions.ToTsVector(c.Name).SetWeight(NpgsqlTsVector.Lexeme.Weight.A)) | [SELECT setweight(to_tsvector(c."Name"), 'A')](https://www.postgresql.org/docs/current/static/textsearch-features.html#TEXTSEARCH-MANIPULATE-TSVECTOR)
 | .Where(c => c.SearchVector.Matches(EF.Functions.ToTsQuery("Npgsql"))) <br> .OrderByDescending(c => c.SearchVector.Rank(EF.Functions.ToTsQuery("Npgsql"))) | WHERE (c."SearchVector" @@ to_tsquery('Npgsql')) <br> ORDER BY ts_rank(c."SearchVector", to_tsquery('Npgsql')) DESC
 
-
 ## Setting up and querying a full text search index on an entity
 
 [As the PostgreSQL documentation explains](https://www.postgresql.org/docs/current/static/textsearch-tables.html), full-text search requires an index to run efficiently. This section will show two ways to do this, each having its benefits and drawbacks. Please read the PostgreSQL docs for more information on the two different approaches.
@@ -53,7 +52,7 @@ public class Product
 
 Setting up the column to be auto-updated depends on your PostgreSQL version. On PostgreSQL 12 and above, the column can be a simple [generated column](../modeling/generated-properties##computed-columns-on-add-or-update), and version 5.0.0 contains sugar for setting that up. In previous versions, you must manually set up database triggers that update the column instead.
 
-# [PostgreSQL 12+](#tab/pg12)
+#### [PostgreSQL 12+](#tab/pg12)
 
 > [!NOTE]
 > The below only works on PostgreSQL 12 and version 5.0.0 of the EF Core provider.
@@ -72,7 +71,7 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
         .HasMethod("GIN"); // Index method on the search vector (GIN or GIST)
 ```
 
-# [Older Versions](#tab/pgold)
+#### [Older Versions](#tab/pgold)
 
 First, modify the `OnModelCreating()` of your context class to add an index as follows:
 
@@ -126,7 +125,7 @@ var npgsql = context.Products
 
 Version 5.0.0 of the provider includes sugar for defining the appropriate expression index; if you're using an older version, you'll have to define a raw SQL migration yourself.
 
-# [EF Core 5+](#tab/pg12)
+#### [EF Core 5+](#tab/pg12)
 
 ```c#
 modelBuilder.Entity<Blog>()
@@ -134,7 +133,7 @@ modelBuilder.Entity<Blog>()
     .IsTsVectorExpressionIndex("english");
 ```
 
-# [Older Versions](#tab/efold)
+#### [Older Versions](#tab/efold)
 
 Create a migration which will contain the index creation SQL (`dotnet ef migrations add ...`). At this point, open the generated migration with your editor and add the following:
 

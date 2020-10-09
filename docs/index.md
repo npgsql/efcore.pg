@@ -77,6 +77,7 @@ public void ConfigureServices(IServiceCollection services)
             options.UseNpgsql(Configuration.GetConnectionString("BloggingContext")));
 }
 ```
+
 ## Using an Existing Database (Database-First)
 
 The Npgsql EF Core provider also supports reverse-engineering a code model from an existing PostgreSQL database ("database-first"). To do so, use dotnet CLI to execute the following:

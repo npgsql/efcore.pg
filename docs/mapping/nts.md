@@ -62,7 +62,7 @@ Note that the plugin is far from covering all spatial operations. If an operatio
 |----------------------------------------------------------|---------------------------------|
 | .Where(c => c.Polygon.Area() > x)                        | [WHERE ST_Area(c."Polygon") > x](https://postgis.net/docs/manual-2.4/ST_Area.html)
 | .Where(c => c.Polygon.AsText() = x                       | [WHERE ST_AsText(c."Polygon") = x](https://postgis.net/docs/manual-2.4/ST_AsText.html)
-| .Where(c => c.Polygon.Boundary = x                       | [WHERE ST_AsCoundary(c."Polygon") = x](https://postgis.net/docs/manual-2.4/ST_Boundary.html)
+| .Where(c => c.Polygon.Boundary = x                       | [WHERE ST_Boundary(c."Polygon") = x](https://postgis.net/docs/manual-2.4/ST_Boundary.html)
 | .Where(c => c.Polygon.Contains(x))                       | [WHERE ST_Contains(c."Polygon", x)](https://postgis.net/docs/manual-2.4/ST_Contains.html)
 | .Where(c => c.Polygon.Covers(x))                         | [WHERE ST_Covers(c."Polygon", x)](https://postgis.net/docs/manual-2.4/ST_Covers.html)
 | .Where(c => c.Polygon.CoveredBy(x))                      | [WHERE ST_CoveredBy(c."Polygon", x)](https://postgis.net/docs/manual-2.4/ST_CoveredBy.html)

@@ -24,6 +24,7 @@ CREATE INDEX "IX_Blog_Id" ON blogs ("Id") INCLUDE ("Name");
 PostgreSQL supports a number of _index methods_, or _types_. These are specified at index creation time via the `USING _method_` clause, see the [PostgreSQL docs for `CREATE INDEX`](https://www.postgresql.org/docs/current/static/sql-createindex.html) and [this page](https://www.postgresql.org/docs/current/static/indexes-types.html) for information on the different types.
 
 The Npgsql EF Core provider allows you to specify the index method to be used by calling `HasMethod()` on your index in your context's `OnModelCreating` method:
+
 ```c#
 protected override void OnModelCreating(ModelBuilder modelBuilder)
     => modelBuilder.Entity<Blog>()

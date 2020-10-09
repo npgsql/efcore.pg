@@ -8,14 +8,14 @@ However, the Npgsql provider also allows you to map your CLR enums to [database 
 
 First, you must specify the PostgreSQL enum type on your model, just like you would with tables, sequences or other databases objects:
 
-# [Version 2.2+](#tab/tabid-1)
+### [Version 2.2+](#tab/tabid-1)
 
 ```c#
 protected override void OnModelCreating(ModelBuilder builder)
     => builder.HasPostgresEnum<Mood>();
 ```
 
-# [Version 2.1](#tab/tabid-2)
+### [Version 2.1](#tab/tabid-2)
 
 ```c#
 protected override void OnModelCreating(ModelBuilder builder)
