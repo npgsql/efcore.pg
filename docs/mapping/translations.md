@@ -152,5 +152,6 @@ Regex.IsMatch(stringValue, "^A+", regexOptions)               | [stringValue ~ '
 ---------------------------------------- | --------------------
 collection.Contains(item)                | item IN collection
 enumValue.HasFlag(flag)                  | enumValue & flag = flag
+Guid.NewGuid()                           | [uuid_generate_v4()](https://www.postgresql.org/docs/current/uuid-ossp.html), or [gen_random_uuid()](https://www.postgresql.org/docs/current/functions-uuid.html) on PostgreSQL 13 with EF Core 5 and above.
 nullable.GetValueOrDefault()             | coalesce(nullable, 0)
 nullable.GetValueOrDefault(defaultValue) | coalesce(nullable, defaultValue)
