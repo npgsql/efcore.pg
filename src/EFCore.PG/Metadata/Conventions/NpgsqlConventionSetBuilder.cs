@@ -12,7 +12,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
     [EntityFrameworkInternal]
     public class NpgsqlConventionSetBuilder : RelationalConventionSetBuilder
     {
-        [CanBeNull] readonly Version _postgresVersion;
+        readonly Version _postgresVersion;
 
         [EntityFrameworkInternal]
         public NpgsqlConventionSetBuilder(
