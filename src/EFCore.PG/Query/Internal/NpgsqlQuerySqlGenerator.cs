@@ -147,7 +147,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             {
             case ExpressionType.Add:
             {
-                if (_postgresVersion == null || _postgresVersion >= new Version(9, 5))
+                if (_postgresVersion >= new Version(9, 5))
                     return base.VisitSqlBinary(binary);
 
                 // PostgreSQL 9.4 and below has some weird operator precedence fixed in 9.5 and described here:

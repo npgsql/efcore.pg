@@ -1,6 +1,7 @@
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Storage;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
@@ -9,7 +10,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     {
         public NpgsqlMethodCallTranslatorProvider(
             [NotNull] RelationalMethodCallTranslatorProviderDependencies dependencies,
-            [NotNull] IRelationalTypeMappingSource typeMappingSource)
+            [NotNull] IRelationalTypeMappingSource typeMappingSource,
+            [NotNull] INpgsqlOptions npgsqlOptions)
             : base(dependencies)
         {
             var npgsqlSqlExpressionFactory = (NpgsqlSqlExpressionFactory)dependencies.SqlExpressionFactory;
@@ -22,7 +24,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 new NpgsqlByteArrayMethodTranslator(npgsqlSqlExpressionFactory),
                 new NpgsqlConvertTranslator(npgsqlSqlExpressionFactory),
                 new NpgsqlDateTimeMethodTranslator(typeMappingSource, npgsqlSqlExpressionFactory),
-                new NpgsqlNewGuidTranslator(npgsqlSqlExpressionFactory),
+                new NpgsqlNewGuidTranslator(npgsqlSqlExpressionFactory, npgsqlOptions.PostgresVersion),
                 new NpgsqlLikeTranslator(npgsqlSqlExpressionFactory),
                 new NpgsqlObjectToStringTranslator(npgsqlSqlExpressionFactory),
                 new NpgsqlMathTranslator(typeMappingSource, npgsqlSqlExpressionFactory),

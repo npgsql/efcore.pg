@@ -21,9 +21,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         static readonly MethodInfo MethodInfo = typeof(Guid).GetRuntimeMethod(nameof(Guid.NewGuid), Array.Empty<Type>());
 
         readonly ISqlExpressionFactory _sqlExpressionFactory;
+        readonly string _uuidGenerationFunction;
 
-        public NpgsqlNewGuidTranslator([NotNull] ISqlExpressionFactory sqlExpressionFactory)
-            => _sqlExpressionFactory = sqlExpressionFactory;
+        public NpgsqlNewGuidTranslator(
+            [NotNull] ISqlExpressionFactory sqlExpressionFactory,
+            [CanBeNull] Version postgresVersion)
+        {
+            _sqlExpressionFactory = sqlExpressionFactory;
+            _uuidGenerationFunction = postgresVersion.AtLeast(13) ? "gen_random_uuid" : "uuid_generate_v4";
+        }
 
         public virtual SqlExpression Translate(
             SqlExpression instance,
@@ -32,7 +38,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)
             => MethodInfo.Equals(method)
                 ? _sqlExpressionFactory.Function(
-                    "uuid_generate_v4",
+                    _uuidGenerationFunction,
                     Array.Empty<SqlExpression>(),
                     nullable: false,
                     argumentsPropagateNullability: FalseArrays[0],
