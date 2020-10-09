@@ -49,7 +49,7 @@ LIMIT 2");
 
 SELECT s.""Id"", s.""CaseInsensitiveText""
 FROM ""SomeEntities"" AS s
-WHERE (@__param_0 = '') OR ((s.""CaseInsensitiveText"" IS NOT NULL) AND ((s.""CaseInsensitiveText"" LIKE @__param_0 || '%') AND (LEFT(s.""CaseInsensitiveText"", LENGTH(@__param_0))::citext = @__param_0::citext)))
+WHERE (@__param_0 = '') OR ((s.""CaseInsensitiveText"" IS NOT NULL) AND ((s.""CaseInsensitiveText"" LIKE @__param_0 || '%') AND (left(s.""CaseInsensitiveText"", length(@__param_0))::citext = @__param_0::citext)))
 LIMIT 2");
         }
 
@@ -66,7 +66,7 @@ LIMIT 2");
 
 SELECT s.""Id"", s.""CaseInsensitiveText""
 FROM ""SomeEntities"" AS s
-WHERE (s.""CaseInsensitiveText"" = '') OR ((s.""CaseInsensitiveText"" IS NOT NULL) AND ((@__param_0 LIKE s.""CaseInsensitiveText"" || '%') AND (LEFT(@__param_0, LENGTH(s.""CaseInsensitiveText""))::citext = CAST(s.""CaseInsensitiveText"" AS citext))))
+WHERE (s.""CaseInsensitiveText"" = '') OR ((s.""CaseInsensitiveText"" IS NOT NULL) AND ((@__param_0 LIKE s.""CaseInsensitiveText"" || '%') AND (left(@__param_0, length(s.""CaseInsensitiveText""))::citext = CAST(s.""CaseInsensitiveText"" AS citext))))
 LIMIT 2");
         }
 
@@ -97,7 +97,7 @@ LIMIT 2");
 
 SELECT s.""Id"", s.""CaseInsensitiveText""
 FROM ""SomeEntities"" AS s
-WHERE (@__param_0 = '') OR ((s.""CaseInsensitiveText"" IS NOT NULL) AND (RIGHT(s.""CaseInsensitiveText"", LENGTH(@__param_0))::citext = @__param_0::citext))
+WHERE (@__param_0 = '') OR ((s.""CaseInsensitiveText"" IS NOT NULL) AND (right(s.""CaseInsensitiveText"", length(@__param_0))::citext = @__param_0::citext))
 LIMIT 2");
         }
 
@@ -114,7 +114,7 @@ LIMIT 2");
 
 SELECT s.""Id"", s.""CaseInsensitiveText""
 FROM ""SomeEntities"" AS s
-WHERE (s.""CaseInsensitiveText"" = '') OR ((s.""CaseInsensitiveText"" IS NOT NULL) AND (RIGHT(@__param_0, LENGTH(s.""CaseInsensitiveText""))::citext = CAST(s.""CaseInsensitiveText"" AS citext)))
+WHERE (s.""CaseInsensitiveText"" = '') OR ((s.""CaseInsensitiveText"" IS NOT NULL) AND (right(@__param_0, length(s.""CaseInsensitiveText""))::citext = CAST(s.""CaseInsensitiveText"" AS citext)))
 LIMIT 2");
         }
 
@@ -128,7 +128,7 @@ LIMIT 2");
             AssertSql(
                 @"SELECT s.""Id"", s.""CaseInsensitiveText""
 FROM ""SomeEntities"" AS s
-WHERE STRPOS(s.""CaseInsensitiveText"", 'ometex') > 0
+WHERE strpos(s.""CaseInsensitiveText"", 'ometex') > 0
 LIMIT 2");
         }
 
@@ -145,7 +145,7 @@ LIMIT 2");
 
 SELECT s.""Id"", s.""CaseInsensitiveText""
 FROM ""SomeEntities"" AS s
-WHERE (@__param_0 = '') OR (STRPOS(s.""CaseInsensitiveText"", @__param_0) > 0)
+WHERE (@__param_0 = '') OR (strpos(s.""CaseInsensitiveText"", @__param_0) > 0)
 LIMIT 2");
         }
 
@@ -162,7 +162,7 @@ LIMIT 2");
 
 SELECT s.""Id"", s.""CaseInsensitiveText""
 FROM ""SomeEntities"" AS s
-WHERE (s.""CaseInsensitiveText"" = '') OR (STRPOS(@__param_0, s.""CaseInsensitiveText"") > 0)
+WHERE (s.""CaseInsensitiveText"" = '') OR (strpos(@__param_0, s.""CaseInsensitiveText"") > 0)
 LIMIT 2");
         }
 
@@ -176,7 +176,7 @@ LIMIT 2");
             AssertSql(
                 @"SELECT s.""Id"", s.""CaseInsensitiveText""
 FROM ""SomeEntities"" AS s
-WHERE (STRPOS(s.""CaseInsensitiveText"", 'ometex') - 1) = 1
+WHERE (strpos(s.""CaseInsensitiveText"", 'ometex') - 1) = 1
 LIMIT 2");
         }
 
@@ -193,7 +193,7 @@ LIMIT 2");
 
 SELECT s.""Id"", s.""CaseInsensitiveText""
 FROM ""SomeEntities"" AS s
-WHERE (STRPOS(s.""CaseInsensitiveText"", @__param_0) - 1) = 1
+WHERE (strpos(s.""CaseInsensitiveText"", @__param_0) - 1) = 1
 LIMIT 2");
         }
 
@@ -210,7 +210,7 @@ LIMIT 2");
 
 SELECT s.""Id"", s.""CaseInsensitiveText""
 FROM ""SomeEntities"" AS s
-WHERE (STRPOS(@__param_0, s.""CaseInsensitiveText"") - 1) = 5
+WHERE (strpos(@__param_0, s.""CaseInsensitiveText"") - 1) = 5
 LIMIT 2");
         }
 
@@ -224,7 +224,7 @@ LIMIT 2");
             AssertSql(
                 @"SELECT s.""Id"", s.""CaseInsensitiveText""
 FROM ""SomeEntities"" AS s
-WHERE REPLACE(s.""CaseInsensitiveText"", 'Te', 'Ne') = 'SomeNext'
+WHERE replace(s.""CaseInsensitiveText"", 'Te', 'Ne') = 'SomeNext'
 LIMIT 2");
         }
 
@@ -241,7 +241,7 @@ LIMIT 2");
 
 SELECT s.""Id"", s.""CaseInsensitiveText""
 FROM ""SomeEntities"" AS s
-WHERE REPLACE(s.""CaseInsensitiveText"", @__param_0, 'Ne') = 'SomeNext'
+WHERE replace(s.""CaseInsensitiveText"", @__param_0, 'Ne') = 'SomeNext'
 LIMIT 2");
         }
 
@@ -258,7 +258,7 @@ LIMIT 2");
 
 SELECT s.""Id"", s.""CaseInsensitiveText""
 FROM ""SomeEntities"" AS s
-WHERE REPLACE(@__param_0, s.""CaseInsensitiveText"", 'NewStuff') = 'ExtraNewStuffExtra'
+WHERE replace(@__param_0, s.""CaseInsensitiveText"", 'NewStuff') = 'ExtraNewStuffExtra'
 LIMIT 2");
         }
 

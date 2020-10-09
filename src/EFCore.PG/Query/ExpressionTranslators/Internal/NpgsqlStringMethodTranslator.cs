@@ -93,7 +93,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
                 return _sqlExpressionFactory.Subtract(
                     _sqlExpressionFactory.Function(
-                        "STRPOS",
+                        "strpos",
                         new[]
                         {
                             _sqlExpressionFactory.ApplyTypeMapping(instance, stringTypeMapping),
@@ -112,7 +112,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 var stringTypeMapping = ExpressionExtensions.InferTypeMapping(instance, oldValue, newValue);
 
                 return _sqlExpressionFactory.Function(
-                    "REPLACE",
+                    "replace",
                     new[]
                     {
                         _sqlExpressionFactory.ApplyTypeMapping(instance, stringTypeMapping),
@@ -128,7 +128,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             if (method == ToLower || method == ToUpper)
             {
                 return _sqlExpressionFactory.Function(
-                    method == ToLower ? "LOWER" : "UPPER",
+                    method == ToLower ? "lower" : "upper",
                     new[] { instance },
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[1],
@@ -143,7 +143,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                         ? new[] { instance, GenerateOneBasedIndexExpression(arguments[0]) }
                         : new[] { instance, GenerateOneBasedIndexExpression(arguments[0]), arguments[1] };
                 return _sqlExpressionFactory.Function(
-                    "SUBSTRING",
+                    "substring",
                     args,
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[args.Length],
@@ -159,7 +159,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     _sqlExpressionFactory.IsNull(argument),
                     _sqlExpressionFactory.Equal(
                         _sqlExpressionFactory.Function(
-                            "BTRIM",
+                            "btrim",
                             new[]
                             {
                                 argument,
@@ -193,7 +193,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 }
 
                 return _sqlExpressionFactory.Function(
-                    isTrimStart ? "LTRIM" : isTrimEnd ? "RTRIM" : "BTRIM",
+                    isTrimStart ? "ltrim" : isTrimEnd ? "rtrim" : "btrim",
                     new[]
                     {
                         instance,
@@ -216,7 +216,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
                 var strposCheck = _sqlExpressionFactory.GreaterThan(
                     _sqlExpressionFactory.Function(
-                        "STRPOS",
+                        "strpos",
                         new[]
                         {
                             _sqlExpressionFactory.ApplyTypeMapping(instance, stringTypeMapping),
@@ -334,12 +334,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             // For StartsWith we also first run a LIKE to quickly filter out most non-matching results (sargable, but imprecise
             // because of wildchars).
             SqlExpression leftRight = _sqlExpressionFactory.Function(
-                startsWith ? "LEFT" : "RIGHT",
+                startsWith ? "left" : "right",
                 new[]
                 {
                     instance,
                     _sqlExpressionFactory.Function(
-                        "LENGTH",
+                        "length",
                         new[] { pattern },
                         nullable: true,
                         argumentsPropagateNullability: TrueArrays[1],

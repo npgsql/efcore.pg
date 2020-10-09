@@ -10,7 +10,7 @@ using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
     /// <summary>
-    /// Translates <see cref="M:string.Length"/> to 'LENGTH(text)'.
+    /// Translates <see cref="M:string.Length"/> to 'length(text)'.
     /// </summary>
     public class NpgsqlStringMemberTranslator : IMemberTranslator
     {
@@ -26,7 +26,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             => member.Name == nameof(string.Length) && instance?.Type == typeof(string)
                 ? _sqlExpressionFactory.Convert(
                     _sqlExpressionFactory.Function(
-                        "LENGTH",
+                        "length",
                         new[] { instance },
                         nullable: true,
                         argumentsPropagateNullability: TrueArrays[1],
