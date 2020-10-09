@@ -12,6 +12,7 @@
 ## [Indexes](modeling/indexes.md)
 # Mapping and Translation
 ## [General](mapping/general.md)
+## [Translations](mapping/translations.md)
 ## [JSON](mapping/json.md)
 ## [Spatial Data](mapping/nts.md)
 ## [Full Text Search](mapping/full-text-search.md)
