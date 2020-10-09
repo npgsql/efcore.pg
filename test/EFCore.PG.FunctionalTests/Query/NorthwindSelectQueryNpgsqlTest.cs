@@ -14,7 +14,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             : base(fixture)
         {
             ClearLog();
-            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+            // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        }
+
+        public override async Task Select_datetime_DayOfWeek_component(bool async)
+        {
+            await base.Select_datetime_DayOfWeek_component(async);
+
+            AssertSql(
+                @"SELECT floor(date_part('dow', o.""OrderDate""))::INT
+FROM ""Orders"" AS o");
         }
 
         [ConditionalTheory(Skip = "To be fixed in PG 12.0, https://www.postgresql.org/message-id/CADT4RqAz7oN4vkPir86Kg1_mQBmBxCp-L_%3D9vRpgSNPJf0KRkw%40mail.gmail.com")]

@@ -47,7 +47,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     ? (SqlExpression)_sqlExpressionFactory.Constant(new[] { (byte)constantValue.Value }, typeMapping)
                     // Create bytea from non-constant byte: SELECT set_byte('\x00', 0, 8::smallint);
                     : _sqlExpressionFactory.Function(
-                        "SET_BYTE",
+                        "set_byte",
                         new[]
                         {
                             _sqlExpressionFactory.Constant(new[] { (byte)0 }, typeMapping),
@@ -61,7 +61,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
                 return _sqlExpressionFactory.GreaterThan(
                     PostgresFunctionExpression.CreateWithArgumentSeparators(
-                        "POSITION",
+                        "position",
                         new[] { value, source },
                         new[] { "IN" },   // POSITION(x IN y)
                         nullable: true,

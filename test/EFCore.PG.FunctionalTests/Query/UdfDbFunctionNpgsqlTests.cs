@@ -122,7 +122,7 @@ LIMIT 2");
             base.Scalar_Function_Where_Correlated_Static();
 
             AssertSql(
-                @"SELECT LOWER(CAST(c.""Id"" AS text))
+                @"SELECT lower(CAST(c.""Id"" AS text))
 FROM ""Customers"" AS c
 WHERE ""IsTopCustomer""(c.""Id"")");
         }
@@ -349,7 +349,7 @@ FROM ""Customers"" AS c");
             AssertSql(
                 @"SELECT c.""Id""
 FROM ""Customers"" AS c
-WHERE 3 = ABS(""CustomerOrderCount""(c.""Id""))
+WHERE 3 = abs(""CustomerOrderCount""(c.""Id""))
 LIMIT 2");
         }
 
@@ -371,7 +371,7 @@ FROM ""Customers"" AS c");
             AssertSql(
                 @"SELECT c.""Id""
 FROM ""Customers"" AS c
-WHERE 3 = ""CustomerOrderCount""(ABS(c.""Id""))
+WHERE 3 = ""CustomerOrderCount""(abs(c.""Id""))
 LIMIT 2");
         }
 
@@ -500,7 +500,7 @@ LIMIT 2");
             base.Scalar_Function_Where_Correlated_Instance();
 
             AssertSql(
-                @"SELECT LOWER(CAST(c.""Id"" AS text))
+                @"SELECT lower(CAST(c.""Id"" AS text))
 FROM ""Customers"" AS c
 WHERE ""IsTopCustomer""(c.""Id"")");
         }
@@ -727,7 +727,7 @@ FROM ""Customers"" AS c");
             AssertSql(
                 @"SELECT c.""Id""
 FROM ""Customers"" AS c
-WHERE 3 = ABS(""CustomerOrderCount""(c.""Id""))
+WHERE 3 = abs(""CustomerOrderCount""(c.""Id""))
 LIMIT 2");
         }
 
@@ -749,7 +749,7 @@ FROM ""Customers"" AS c");
             AssertSql(
                 @"SELECT c.""Id""
 FROM ""Customers"" AS c
-WHERE 3 = ""CustomerOrderCount""(ABS(c.""Id""))
+WHERE 3 = ""CustomerOrderCount""(abs(c.""Id""))
 LIMIT 2");
         }
 

@@ -133,7 +133,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                     (sqlOperand.TypeMapping == null || sqlOperand.TypeMapping is NpgsqlByteArrayTypeMapping))
                 {
                     return _sqlExpressionFactory.Function(
-                        "LENGTH",
+                        "length",
                         new[] { sqlOperand },
                         nullable: true,
                         argumentsPropagateNullability: TrueArrays[1],
@@ -318,7 +318,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             {
                 return TryTranslateArguments(newExpression.Arguments, out var sqlArguments)
                     ? _sqlExpressionFactory.Function(
-                        "MAKE_DATE", sqlArguments, nullable: true, TrueArrays[3], typeof(DateTime))
+                        "make_date", sqlArguments, nullable: true, TrueArrays[3], typeof(DateTime))
                     : null;
             }
 
@@ -331,7 +331,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 sqlArguments[5] = _sqlExpressionFactory.Convert(sqlArguments[5], typeof(double));
 
                 return _sqlExpressionFactory.Function(
-                    "MAKE_TIMESTAMP", sqlArguments, nullable: true, TrueArrays[6], typeof(DateTime));
+                    "make_timestamp", sqlArguments, nullable: true, TrueArrays[6], typeof(DateTime));
             }
 
             return null;
