@@ -15,7 +15,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
     /// </summary>
     public class NpgsqlValueGenerationStrategyConvention : IModelInitializedConvention, IModelFinalizingConvention
     {
-        [CanBeNull] readonly Version _postgresVersion;
+        readonly Version _postgresVersion;
 
         /// <summary>
         /// Creates a new instance of <see cref="NpgsqlValueGenerationStrategyConvention" />.
@@ -40,7 +40,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
         /// <inheritdoc />
         public virtual void ProcessModelInitialized(IConventionModelBuilder modelBuilder, IConventionContext<IConventionModelBuilder> context)
             => modelBuilder.HasValueGenerationStrategy(
-                _postgresVersion != null && _postgresVersion < new Version(10, 0)
+                _postgresVersion < new Version(10, 0)
                     ? NpgsqlValueGenerationStrategy.SerialColumn
                     : NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 

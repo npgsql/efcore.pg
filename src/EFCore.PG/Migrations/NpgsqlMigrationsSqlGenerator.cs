@@ -26,7 +26,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         /// <summary>
         /// The backend version to target.
         /// </summary>
-        [CanBeNull] readonly Version _postgresVersion;
+        readonly Version _postgresVersion;
 
         public NpgsqlMigrationsSqlGenerator(
             [NotNull] MigrationsSqlGeneratorDependencies dependencies,
@@ -1528,7 +1528,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
-            if (_postgresVersion != null && _postgresVersion < new Version(12, 0))
+            if (_postgresVersion < new Version(12, 0))
                 throw new NotSupportedException("Computed/generated columns aren't supported in PostgreSQL prior to version 12");
 
             if (operation.IsStored != true)

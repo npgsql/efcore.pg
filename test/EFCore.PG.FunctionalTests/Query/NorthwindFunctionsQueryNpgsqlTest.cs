@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.TestModels.Northwind;
 using Microsoft.EntityFrameworkCore.TestUtilities;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -26,7 +27,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             AssertSql(
                 @"SELECT c.""CustomerID"", c.""Address"", c.""City"", c.""CompanyName"", c.""ContactName"", c.""ContactTitle"", c.""Country"", c.""Fax"", c.""Phone"", c.""PostalCode"", c.""Region""
 FROM ""Customers"" AS c
-WHERE (c.""Region"" IS NULL) OR (BTRIM(c.""Region"", E' \t\n\r') = '')");
+WHERE (c.""Region"" IS NULL) OR (btrim(c.""Region"", E' \t\n\r') = '')");
         }
 
         [ConditionalTheory(Skip = "Fixed for PostgreSQL 12.1, https://www.postgresql.org/message-id/CADT4RqAz7oN4vkPir86Kg1_mQBmBxCp-L_%3D9vRpgSNPJf0KRkw%40mail.gmail.com")]
@@ -160,11 +161,18 @@ WHERE (c.""Region"" IS NULL) OR (BTRIM(c.""Region"", E' \t\n\r') = '')");
 
         #region Guid
 
+        static string UuidGenerationFunction { get; } = TestEnvironment.PostgresVersion.AtLeast(13)
+            ? "gen_random_uuid"
+            : "uuid_generate_v4";
+
         public override async Task Where_guid_newguid(bool async)
         {
             await base.Where_guid_newguid(async);
 
-            AssertContainsSqlFragment(@"uuid_generate_v4() <> '00000000-0000-0000-0000-000000000000'");
+            AssertSql(
+                @$"SELECT o.""OrderID"", o.""ProductID"", o.""Discount"", o.""Quantity"", o.""UnitPrice""
+FROM ""Order Details"" AS o
+WHERE {UuidGenerationFunction}() <> '00000000-0000-0000-0000-000000000000'");
         }
 
         [ConditionalTheory]
@@ -176,7 +184,10 @@ WHERE (c.""Region"" IS NULL) OR (BTRIM(c.""Region"", E' \t\n\r') = '')");
                 ods => ods.Set<OrderDetail>().OrderBy(od => Guid.NewGuid()).Select(x => x),
                 entryCount: 2155);
 
-            AssertContainsSqlFragment(@"ORDER BY uuid_generate_v4()");
+            AssertSql(
+                @$"SELECT o.""OrderID"", o.""ProductID"", o.""Discount"", o.""Quantity"", o.""UnitPrice""
+FROM ""Order Details"" AS o
+ORDER BY {UuidGenerationFunction}() NULLS FIRST");
         }
 
         #endregion

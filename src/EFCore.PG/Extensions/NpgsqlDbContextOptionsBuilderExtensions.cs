@@ -119,7 +119,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="optionsBuilder">The builder being used to configure the context.</param>
         /// <param name="npgsqlOptionsAction">An optional action to allow additional Npgsql-specific configuration.</param>
         /// <returns>The options builder so that further configuration can be chained.</returns>
-        public static DbContextOptionsBuilder<TContext> UseSqlServer<TContext>(
+        public static DbContextOptionsBuilder<TContext> UseNpgsql<TContext>(
             [NotNull] this DbContextOptionsBuilder<TContext> optionsBuilder,
             [CanBeNull] Action<NpgsqlDbContextOptionsBuilder> npgsqlOptionsAction = null)
             where TContext : DbContext

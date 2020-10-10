@@ -21,7 +21,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         public override async Task Query_expression_with_to_string_and_contains(bool async)
         {
             await base.Query_expression_with_to_string_and_contains(async);
-            AssertContainsSqlFragment(@"STRPOS(CAST(o.""EmployeeID"" AS text), '10') > 0");
+            AssertContainsSqlFragment(@"strpos(CAST(o.""EmployeeID"" AS text), '10') > 0");
         }
 
         public override async Task Select_expression_date_add_year(bool async)

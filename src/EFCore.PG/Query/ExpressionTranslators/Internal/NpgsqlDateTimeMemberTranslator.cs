@@ -40,7 +40,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     _sqlExpressionFactory.AtTimeZone(Now(), _sqlExpressionFactory.Constant("UTC"), returnType),
 
                 nameof(DateTime.Today)     => _sqlExpressionFactory.Function(
-                    "DATE_TRUNC",
+                    "date_trunc",
                     new SqlExpression[] { _sqlExpressionFactory.Constant("day"), Now() },
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[2],
@@ -60,7 +60,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 nameof(DateTime.DayOfWeek) => GetDatePartExpression(instance, "dow", floor: true),
 
                 nameof(DateTime.Date) => _sqlExpressionFactory.Function(
-                    "DATE_TRUNC",
+                    "date_trunc",
                     new[] { _sqlExpressionFactory.Constant("day"), instance },
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[2],
@@ -80,7 +80,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
             SqlFunctionExpression Now()
                 => _sqlExpressionFactory.Function(
-                    "NOW",
+                    "now",
                     Array.Empty<SqlExpression>(),
                     nullable: false,
                     argumentsPropagateNullability: TrueArrays[0],
@@ -107,7 +107,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             bool floor = false)
         {
             var result = _sqlExpressionFactory.Function(
-                "DATE_PART",
+                "date_part",
                 new[]
                 {
                     _sqlExpressionFactory.Constant(partName),
@@ -119,7 +119,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
             if (floor)
                 result = _sqlExpressionFactory.Function(
-                    "FLOOR",
+                    "floor",
                     new[] { result },
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[1],

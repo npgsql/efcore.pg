@@ -24,50 +24,50 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     {
         static readonly Dictionary<MethodInfo, string> SupportedMethodTranslations = new Dictionary<MethodInfo, string>
         {
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Abs), new[] { typeof(decimal) }), "ABS" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Abs), new[] { typeof(double) }), "ABS" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Abs), new[] { typeof(float) }), "ABS" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Abs), new[] { typeof(int) }), "ABS" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Abs), new[] { typeof(long) }), "ABS" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Abs), new[] { typeof(short) }), "ABS" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Ceiling), new[] { typeof(decimal) }), "CEILING" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Ceiling), new[] { typeof(double) }), "CEILING" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Floor), new[] { typeof(decimal) }), "FLOOR" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Floor), new[] { typeof(double) }), "FLOOR" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Pow), new[] { typeof(double), typeof(double) }), "POWER" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Exp), new[] { typeof(double) }), "EXP" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Log10), new[] { typeof(double) }), "LOG" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Log), new[] { typeof(double) }), "LN" },
+            { typeof(Math).GetRuntimeMethod(nameof(Math.Abs), new[] { typeof(decimal) }), "abs" },
+            { typeof(Math).GetRuntimeMethod(nameof(Math.Abs), new[] { typeof(double) }), "abs" },
+            { typeof(Math).GetRuntimeMethod(nameof(Math.Abs), new[] { typeof(float) }), "abs" },
+            { typeof(Math).GetRuntimeMethod(nameof(Math.Abs), new[] { typeof(int) }), "abs" },
+            { typeof(Math).GetRuntimeMethod(nameof(Math.Abs), new[] { typeof(long) }), "abs" },
+            { typeof(Math).GetRuntimeMethod(nameof(Math.Abs), new[] { typeof(short) }), "abs" },
+            { typeof(Math).GetRuntimeMethod(nameof(Math.Ceiling), new[] { typeof(decimal) }), "ceiling" },
+            { typeof(Math).GetRuntimeMethod(nameof(Math.Ceiling), new[] { typeof(double) }), "ceiling" },
+            { typeof(Math).GetRuntimeMethod(nameof(Math.Floor), new[] { typeof(decimal) }), "floor" },
+            { typeof(Math).GetRuntimeMethod(nameof(Math.Floor), new[] { typeof(double) }), "floor" },
+            { typeof(Math).GetRuntimeMethod(nameof(Math.Pow), new[] { typeof(double), typeof(double) }), "power" },
+            { typeof(Math).GetRuntimeMethod(nameof(Math.Exp), new[] { typeof(double) }), "exp" },
+            { typeof(Math).GetRuntimeMethod(nameof(Math.Log10), new[] { typeof(double) }), "log" },
+            { typeof(Math).GetRuntimeMethod(nameof(Math.Log), new[] { typeof(double) }), "ln" },
             // Note: PostgreSQL has log(x,y) but only for decimal, whereas .NET has it only for double
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Sqrt), new[] { typeof(double) }), "SQRT" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Acos), new[] { typeof(double) }), "ACOS" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Asin), new[] { typeof(double) }), "ASIN" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Atan), new[] { typeof(double) }), "ATAN" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Atan2), new[] { typeof(double), typeof(double) }), "ATAN2" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Cos), new[] { typeof(double) }), "COS" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Sin), new[] { typeof(double) }), "SIN" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Tan), new[] { typeof(double) }), "TAN" },
+            { typeof(Math).GetRuntimeMethod(nameof(Math.Sqrt), new[] { typeof(double) }), "sqrt" },
+            { typeof(Math).GetRuntimeMethod(nameof(Math.Acos), new[] { typeof(double) }), "acos" },
+            { typeof(Math).GetRuntimeMethod(nameof(Math.Asin), new[] { typeof(double) }), "asin" },
+            { typeof(Math).GetRuntimeMethod(nameof(Math.Atan), new[] { typeof(double) }), "atan" },
+            { typeof(Math).GetRuntimeMethod(nameof(Math.Atan2), new[] { typeof(double), typeof(double) }), "atan2" },
+            { typeof(Math).GetRuntimeMethod(nameof(Math.Cos), new[] { typeof(double) }), "cos" },
+            { typeof(Math).GetRuntimeMethod(nameof(Math.Sin), new[] { typeof(double) }), "sin" },
+            { typeof(Math).GetRuntimeMethod(nameof(Math.Tan), new[] { typeof(double) }), "tan" },
 
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Round), new[] { typeof(double) }), "ROUND" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Round), new[] { typeof(decimal) }), "ROUND" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Truncate), new[] { typeof(double) }), "TRUNC" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Truncate), new[] { typeof(decimal) }), "TRUNC" },
-
-            // https://www.postgresql.org/docs/current/functions-conditional.html#FUNCTIONS-GREATEST-LEAST
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Max), new[] { typeof(decimal), typeof(decimal) }), "GREATEST" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Max), new[] { typeof(double), typeof(double) }), "GREATEST" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Max), new[] { typeof(float), typeof(float) }), "GREATEST" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Max), new[] { typeof(int), typeof(int) }), "GREATEST" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Max), new[] { typeof(long), typeof(long) }), "GREATEST" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Max), new[] { typeof(short), typeof(short) }), "GREATEST" },
+            { typeof(Math).GetRuntimeMethod(nameof(Math.Round), new[] { typeof(double) }), "round" },
+            { typeof(Math).GetRuntimeMethod(nameof(Math.Round), new[] { typeof(decimal) }), "round" },
+            { typeof(Math).GetRuntimeMethod(nameof(Math.Truncate), new[] { typeof(double) }), "trunc" },
+            { typeof(Math).GetRuntimeMethod(nameof(Math.Truncate), new[] { typeof(decimal) }), "trunc" },
 
             // https://www.postgresql.org/docs/current/functions-conditional.html#FUNCTIONS-GREATEST-LEAST
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Min), new[] { typeof(decimal), typeof(decimal) }), "LEAST" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Min), new[] { typeof(double), typeof(double) }), "LEAST" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Min), new[] { typeof(float), typeof(float) }), "LEAST" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Min), new[] { typeof(int), typeof(int) }), "LEAST" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Min), new[] { typeof(long), typeof(long) }), "LEAST" },
-            { typeof(Math).GetRuntimeMethod(nameof(Math.Min), new[] { typeof(short), typeof(short) }), "LEAST" },
+            { typeof(Math).GetRuntimeMethod(nameof(Math.Max), new[] { typeof(decimal), typeof(decimal) }), "greatest" },
+            { typeof(Math).GetRuntimeMethod(nameof(Math.Max), new[] { typeof(double), typeof(double) }), "greatest" },
+            { typeof(Math).GetRuntimeMethod(nameof(Math.Max), new[] { typeof(float), typeof(float) }), "greatest" },
+            { typeof(Math).GetRuntimeMethod(nameof(Math.Max), new[] { typeof(int), typeof(int) }), "greatest" },
+            { typeof(Math).GetRuntimeMethod(nameof(Math.Max), new[] { typeof(long), typeof(long) }), "greatest" },
+            { typeof(Math).GetRuntimeMethod(nameof(Math.Max), new[] { typeof(short), typeof(short) }), "greatest" },
+
+            // https://www.postgresql.org/docs/current/functions-conditional.html#FUNCTIONS-GREATEST-LEAST
+            { typeof(Math).GetRuntimeMethod(nameof(Math.Min), new[] { typeof(decimal), typeof(decimal) }), "least" },
+            { typeof(Math).GetRuntimeMethod(nameof(Math.Min), new[] { typeof(double), typeof(double) }), "least" },
+            { typeof(Math).GetRuntimeMethod(nameof(Math.Min), new[] { typeof(float), typeof(float) }), "least" },
+            { typeof(Math).GetRuntimeMethod(nameof(Math.Min), new[] { typeof(int), typeof(int) }), "least" },
+            { typeof(Math).GetRuntimeMethod(nameof(Math.Min), new[] { typeof(long), typeof(long) }), "least" },
+            { typeof(Math).GetRuntimeMethod(nameof(Math.Min), new[] { typeof(short), typeof(short) }), "least" },
         };
 
         static readonly IEnumerable<MethodInfo> SignMethodInfos = new[]
@@ -149,7 +149,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 return
                     _sqlExpressionFactory.Convert(
                         _sqlExpressionFactory.Function(
-                            "SIGN",
+                            "sign",
                             arguments,
                             nullable: true,
                             argumentsPropagateNullability: TrueArrays[1],
@@ -160,7 +160,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
             if (method == RoundDecimalTwoParams)
             {
-                return _sqlExpressionFactory.Function("ROUND", new[]
+                return _sqlExpressionFactory.Function("round", new[]
                     {
                         _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[0]),
                         _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[1])

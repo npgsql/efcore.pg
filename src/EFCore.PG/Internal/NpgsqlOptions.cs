@@ -11,6 +11,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
     /// <inheritdoc />
     public class NpgsqlOptions : INpgsqlOptions
     {
+        public static readonly Version DefaultPostgresVersion = new Version(12, 0);
+
         /// <inheritdoc />
         public virtual Version PostgresVersion { get; private set; }
 
@@ -28,7 +30,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         {
             var npgsqlOptions = options.FindExtension<NpgsqlOptionsExtension>() ?? new NpgsqlOptionsExtension();
 
-            PostgresVersion = npgsqlOptions.PostgresVersion;
+            PostgresVersion = npgsqlOptions.PostgresVersion ?? DefaultPostgresVersion;
             ReverseNullOrderingEnabled = npgsqlOptions.ReverseNullOrdering;
             UserRangeDefinitions = npgsqlOptions.UserRangeDefinitions;
         }
