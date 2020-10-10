@@ -31,6 +31,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         readonly RelationalTypeMapping _tsQueryMapping;
         readonly RelationalTypeMapping _tsVectorMapping;
         readonly RelationalTypeMapping _regconfigMapping;
+        readonly RelationalTypeMapping _regdictionaryMapping;
 
         public NpgsqlFullTextSearchMethodTranslator(
             [NotNull] IRelationalTypeMappingSource typeMappingSource,
@@ -42,6 +43,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             _tsQueryMapping = typeMappingSource.FindMapping("tsquery");
             _tsVectorMapping = typeMappingSource.FindMapping("tsvector");
             _regconfigMapping = typeMappingSource.FindMapping("regconfig");
+            _regdictionaryMapping = typeMappingSource.FindMapping("regdictionary");
         }
 
         /// <inheritdoc />
@@ -64,6 +66,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     nameof(NpgsqlFullTextSearchDbFunctionsExtensions.PhraseToTsQuery)    when arguments.Count == 3 => ConfigAccepting("phraseto_tsquery"),
                     nameof(NpgsqlFullTextSearchDbFunctionsExtensions.ToTsQuery)          when arguments.Count == 3 => ConfigAccepting("to_tsquery"),
                     nameof(NpgsqlFullTextSearchDbFunctionsExtensions.WebSearchToTsQuery) when arguments.Count == 3 => ConfigAccepting("websearch_to_tsquery"),
+                    nameof(NpgsqlFullTextSearchDbFunctionsExtensions.Unaccent)           when arguments.Count == 3 => DictionaryAccepting("unaccent"),
 
                     // Methods not accepting a configuration
                     nameof(NpgsqlFullTextSearchDbFunctionsExtensions.ArrayToTsVector)    => NonConfigAccepting("array_to_tsvector"),
@@ -72,6 +75,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     nameof(NpgsqlFullTextSearchDbFunctionsExtensions.PhraseToTsQuery)    => NonConfigAccepting("phraseto_tsquery"),
                     nameof(NpgsqlFullTextSearchDbFunctionsExtensions.ToTsQuery)          => NonConfigAccepting("to_tsquery"),
                     nameof(NpgsqlFullTextSearchDbFunctionsExtensions.WebSearchToTsQuery) => NonConfigAccepting("websearch_to_tsquery"),
+                    nameof(NpgsqlFullTextSearchDbFunctionsExtensions.Unaccent)           => NonConfigAccepting("unaccent"),
 
                     _ => null
                 };
@@ -289,6 +293,22 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                         arguments[1] is SqlConstantExpression constant
                             ? _sqlExpressionFactory.ApplyDefaultTypeMapping(constant)
                             : _sqlExpressionFactory.Convert(arguments[1], typeof(string), _regconfigMapping),
+                        arguments[2]
+                    },
+                    nullable: true,
+                    argumentsPropagateNullability: TrueArrays[arguments.Count],
+                    method.ReturnType,
+                    _typeMappingSource.FindMapping(method.ReturnType));
+
+            SqlExpression DictionaryAccepting(string functionName)
+                => _sqlExpressionFactory.Function(functionName, new[]
+                    {
+                        // For the regdictionary parameter, if a constant string was provided, just pass it as a string - regdictionary-accepting functions
+                        // will implicitly cast to regdictionary. For (string!) parameters, we add an explicit cast, since regdictionary actually is an OID
+                        // behind the scenes, and for parameter binary transfer no type coercion occurs.
+                        arguments[1] is SqlConstantExpression constant
+                            ? _sqlExpressionFactory.ApplyDefaultTypeMapping(constant)
+                            : _sqlExpressionFactory.Convert(arguments[1], typeof(string), _regdictionaryMapping),
                         arguments[2]
                     },
                     nullable: true,

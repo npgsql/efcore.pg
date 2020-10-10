@@ -32,8 +32,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 new NpgsqlRangeTranslator(typeMappingSource, npgsqlSqlExpressionFactory),
                 new NpgsqlNetworkTranslator(typeMappingSource, npgsqlSqlExpressionFactory),
                 new NpgsqlJsonDomTranslator(typeMappingSource, npgsqlSqlExpressionFactory),
-                new NpgsqlJsonDbFunctionsTranslator(typeMappingSource, npgsqlSqlExpressionFactory),
-                new NpgsqlUnaccentTranslator(npgsqlSqlExpressionFactory)
+                new NpgsqlJsonDbFunctionsTranslator(typeMappingSource, npgsqlSqlExpressionFactory)
             });
         }
     }

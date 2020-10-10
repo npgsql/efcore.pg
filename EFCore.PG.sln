@@ -1,14 +1,13 @@
-﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30413.136
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2026
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4A5A60DD-41B6-40BF-B677-227A921ECCC8}"
 	ProjectSection(SolutionItems) = preProject
-		.github\workflows\build.yml = .github\workflows\build.yml
+		Npgsql.snk = Npgsql.snk
 		Directory.Build.props = Directory.Build.props
 		Directory.Build.targets = Directory.Build.targets
-		Npgsql.snk = Npgsql.snk
+		.github\workflows\build.yml = .github\workflows\build.yml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{8537E50E-CF7F-49CB-B4EF-3E2A1B11F050}"
@@ -25,11 +24,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.PG.NodaTime.Function
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.PG.NodaTime", "src\EFCore.PG.NodaTime\EFCore.PG.NodaTime.csproj", "{77F0608F-6D0C-481C-9108-D5176E2EAD69}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.PG.NTS", "src\EFCore.PG.NTS\EFCore.PG.NTS.csproj", "{D7106D61-C7CA-4005-B31F-43281BB397AD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EFCore.PG.NTS", "src\EFCore.PG.NTS\EFCore.PG.NTS.csproj", "{D7106D61-C7CA-4005-B31F-43281BB397AD}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.PG.Trigrams", "src\EFCore.PG.Trigrams\EFCore.PG.Trigrams.csproj", "{4DEDE46C-FABB-4AD3-A7DF-BF4A3AF00B06}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EFCore.PG.Trigrams", "src\EFCore.PG.Trigrams\EFCore.PG.Trigrams.csproj", "{4DEDE46C-FABB-4AD3-A7DF-BF4A3AF00B06}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore.PG.FuzzyStringMatch", "src\EFCore.PG.FuzzyStringMatch\EFCore.PG.FuzzyStringMatch.csproj", "{86525F23-3EB0-4B0D-9BBB-55FF247D4DD6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EFCore.PG.FuzzyStringMatch", "src\EFCore.PG.FuzzyStringMatch\EFCore.PG.FuzzyStringMatch.csproj", "{86525F23-3EB0-4B0D-9BBB-55FF247D4DD6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
