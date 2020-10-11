@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestModels.Northwind;
@@ -857,6 +857,49 @@ LIMIT 1");
                 .First();
 
             Assert.Equal("<b>Accounting</b> <b>Manager</b>", headline);
+        }
+
+        [Fact]
+        public void Unaccent()
+        {
+            using var context = CreateContext();
+            var _ = context.Customers
+                .Select(x => EF.Functions.Unaccent(x.ContactName))
+                .FirstOrDefault();
+
+            AssertSql(@"SELECT unaccent(c.""ContactName"")
+FROM ""Customers"" AS c
+LIMIT 1");
+        }
+
+        [Fact]
+        public void Unaccent_with_constant_regdictionary()
+        {
+            using var context = CreateContext();
+            var _ = context.Customers
+                .Select(x => EF.Functions.Unaccent("unaccent", x.ContactName))
+                .FirstOrDefault();
+
+            AssertSql(@"SELECT unaccent('unaccent', c.""ContactName"")
+FROM ""Customers"" AS c
+LIMIT 1");
+        }
+
+        [Fact]
+        public void Unaccent_with_parameter_regdictionary()
+        {
+            using var context = CreateContext();
+            var regDictionary = "unaccent";
+            var _ = context.Customers
+                .Select(x => EF.Functions.Unaccent(regDictionary, x.ContactName))
+                .FirstOrDefault();
+
+            AssertSql(
+                @"@__regDictionary_1='unaccent'
+
+SELECT unaccent(@__regDictionary_1::regdictionary, c.""ContactName"")
+FROM ""Customers"" AS c
+LIMIT 1");
         }
 
         void AssertSql(params string[] expected)

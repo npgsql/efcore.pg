@@ -6,6 +6,7 @@ SET client_min_messages = warning;
 GO
 
 CREATE EXTENSION "uuid-ossp";
+CREATE EXTENSION "unaccent";
 
 CREATE TABLE "Employees" (
 	"EmployeeID" SERIAL,

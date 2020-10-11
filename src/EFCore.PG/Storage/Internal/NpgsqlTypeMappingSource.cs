@@ -98,6 +98,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         readonly NpgsqlRegconfigTypeMapping _regconfig             = new NpgsqlRegconfigTypeMapping();
         readonly NpgsqlTsRankingNormalizationTypeMapping _rankingNormalization = new NpgsqlTsRankingNormalizationTypeMapping();
 
+        // Unaccent mapping
+        readonly NpgsqlRegdictionaryTypeMapping _regdictionary = new NpgsqlRegdictionaryTypeMapping();
+
         // Built-in ranges
         readonly NpgsqlRangeTypeMapping        _int4range;
         readonly NpgsqlRangeTypeMapping        _int8range;
@@ -212,7 +215,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
                 { "tsquery",                     new[] { _tsquery                      } },
                 { "tsvector",                    new[] { _tsvector                     } },
-                { "regconfig",                   new[] { _regconfig                    } }
+                { "regconfig",                   new[] { _regconfig                    } },
+
+                { "regdictionary",               new[] { _regdictionary                } }
             };
 
             var clrTypeMappings = new Dictionary<Type, RelationalTypeMapping>

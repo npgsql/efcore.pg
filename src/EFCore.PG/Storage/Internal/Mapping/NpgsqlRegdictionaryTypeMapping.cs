@@ -5,15 +5,15 @@ using NpgsqlTypes;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 {
-    public class NpgsqlRegconfigTypeMapping : NpgsqlTypeMapping
+    public class NpgsqlRegdictionaryTypeMapping : NpgsqlTypeMapping
     {
-        public NpgsqlRegconfigTypeMapping() : base("regconfig", typeof(uint), NpgsqlDbType.Regconfig) { }
+        public NpgsqlRegdictionaryTypeMapping() : base("regdictionary", typeof(uint), NpgsqlDbType.Oid) { }
 
-        protected NpgsqlRegconfigTypeMapping(RelationalTypeMappingParameters parameters)
-            : base(parameters, NpgsqlDbType.Regconfig) {}
+        protected NpgsqlRegdictionaryTypeMapping(RelationalTypeMappingParameters parameters)
+            : base(parameters, NpgsqlDbType.Oid) { }
 
         protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
-            => new NpgsqlRegconfigTypeMapping(parameters);
+            => new NpgsqlRegdictionaryTypeMapping(parameters);
 
         protected override string GenerateNonNullSqlLiteral(object value)
             => $"'{EscapeSqlLiteral((string)value)}'";
