@@ -159,3 +159,5 @@ tsVector.Matches(tsQuery)                                                   | [t
 tsQuery.ToNegative()                                                        | [!! tsQuery](https://www.postgresql.org/docs/current/static/textsearch-features.html#TEXTSEARCH-MANIPULATE-TSQUERY)
 tsVector.SetWeight(NpgsqlTsVector.Lexeme.Weight.A))                         | [setweight(tsVector, 'A')](https://www.postgresql.org/docs/current/static/textsearch-features.html#TEXTSEARCH-MANIPULATE-TSVECTOR)
 tsVector.Rank(tsQuery)                                                      | [ts_rank(tsVector, tsQuery)](https://www.postgresql.org/docs/current/textsearch-controls.html#TEXTSEARCH-RANKING)
+EF.Functions.Unaccent(string)                                               | [unaccent(string)](https://www.postgresql.org/docs/current/unaccent.html)
+EF.Functions.Unaccent(regdictionary, string)                                | [unaccent(regdictionary, string)](https://www.postgresql.org/docs/current/unaccent.html)
