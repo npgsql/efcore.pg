@@ -119,6 +119,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 sqlExpression.TypeMapping);
         }
 
+        public virtual SqlExpression TranslateStringAggregate(SqlExpression sqlExpression, SqlExpression delimiterExpression)
+        {
+            Check.NotNull(sqlExpression, nameof(sqlExpression));
+
+            return sqlExpression is null
+                ? null
+                : _sqlExpressionFactory.Function(
+                    "string_agg",
+                    new[] { sqlExpression, delimiterExpression },
+                    nullable: true,
+                    argumentsPropagateNullability: TrueArrays[1],
+                    sqlExpression.Type,
+                    sqlExpression.TypeMapping);
+        }
+
         /// <inheritdoc />
         protected override Expression VisitUnary(UnaryExpression unaryExpression)
         {

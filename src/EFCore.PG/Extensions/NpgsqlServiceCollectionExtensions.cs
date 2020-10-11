@@ -81,6 +81,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     .TryAdd<IMemberTranslatorProvider, NpgsqlMemberTranslatorProvider>()
                     .TryAdd<IEvaluatableExpressionFilter, NpgsqlEvaluatableExpressionFilter>()
                     .TryAdd<IQuerySqlGeneratorFactory, NpgsqlQuerySqlGeneratorFactory>()
+                    .TryAdd<IQueryableMethodTranslatingExpressionVisitorFactory, NpgsqlQueryableMethodTranslatingExpressionVisitorFactory>()
                     .TryAdd<IRelationalSqlTranslatingExpressionVisitorFactory, NpgsqlSqlTranslatingExpressionVisitorFactory>()
                     .TryAdd<IRelationalParameterBasedSqlProcessorFactory, NpgsqlParameterBasedSqlProcessorFactory>()
                     .TryAdd<ISqlExpressionFactory, NpgsqlSqlExpressionFactory>()

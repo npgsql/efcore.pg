@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
@@ -50,6 +52,12 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="value">The string that is to be reversed.</param>
         /// <returns>The reversed string.</returns>
         public static string Reverse([CanBeNull] this DbFunctions _, [CanBeNull] string value)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Reverse)));
+
+        public static string StringAggregate<TSource, TResult>(
+            [CanBeNull] this DbFunctions _,
+            [NotNull] IEnumerable<TSource> source,
+            [NotNull] Expression<Func<TSource, TResult>> selector)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Reverse)));
     }
 }

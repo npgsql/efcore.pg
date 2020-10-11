@@ -1,13 +1,16 @@
 ﻿using System;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.TestModels.Northwind;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
 using Xunit.Abstractions;
+// ReSharper disable MethodHasAsyncOverload
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
@@ -272,6 +275,129 @@ ORDER BY {UuidGenerationFunction}() NULLS FIRST");
                 async,
                 ss => ss.Set<Customer>().Where(x => x.Address.PadRight(length, 'a').StartsWith("Walserweg 21")),
                 entryCount: 1);
+        }
+
+        #endregion
+
+        #region StringAggregate
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public async Task StringAggregate_without_delimiter_without_selector(bool async)
+        {
+            await using var ctx = CreateContext();
+
+            var queryBase = ctx.Customers.OrderBy(c => c.ContactName).Take(2).Select(c => c.ContactName);
+            var result = async
+                ? await queryBase.StringAggregateAsync()
+                : queryBase.StringAggregate();
+
+            Assert.Equal("Alejandra CaminoAlexander Feuer", result);
+
+            AssertSql(
+                @"@__p_1=''
+@__p_0='2'
+
+SELECT string_agg(t.""ContactName"", @__p_1)
+FROM (
+    SELECT c.""ContactName""
+    FROM ""Customers"" AS c
+    ORDER BY c.""ContactName"" NULLS FIRST
+    LIMIT @__p_0
+) AS t");
+        }
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public async Task StringAggregate_without_delimiter_with_selector(bool async)
+        {
+            await using var ctx = CreateContext();
+
+            var queryBase = ctx.Customers.OrderBy(c => c.ContactName).Take(2);
+            var result = async
+                ? await queryBase.StringAggregateAsync(c => c.ContactName)
+                : queryBase.StringAggregate(c => c.ContactName);
+
+            Assert.Equal("Alejandra CaminoAlexander Feuer", result);
+
+            AssertSql(
+                @"@__p_1=''
+@__p_0='2'
+
+SELECT string_agg(t.""ContactName"", @__p_1)
+FROM (
+    SELECT c.""ContactName""
+    FROM ""Customers"" AS c
+    ORDER BY c.""ContactName"" NULLS FIRST
+    LIMIT @__p_0
+) AS t");
+        }
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public async Task StringAggregate_with_delimiter_without_selector(bool async)
+        {
+            await using var ctx = CreateContext();
+
+            var queryBase = ctx.Customers.OrderBy(c => c.ContactName).Take(2).Select(c => c.ContactName);
+            var result = async
+                ? await queryBase.StringAggregateAsync("|")
+                : queryBase.StringAggregate("|");
+
+            Assert.Equal("Alejandra Camino|Alexander Feuer", result);
+
+            AssertSql(
+                @"@__p_1='|'
+@__p_0='2'
+
+SELECT string_agg(t.""ContactName"", @__p_1)
+FROM (
+    SELECT c.""ContactName""
+    FROM ""Customers"" AS c
+    ORDER BY c.""ContactName"" NULLS FIRST
+    LIMIT @__p_0
+) AS t");
+        }
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public async Task StringAggregate_with_delimiter_with_selector(bool async)
+        {
+            await using var ctx = CreateContext();
+
+            var queryBase = ctx.Customers.OrderBy(c => c.ContactName).Take(2);
+            var result = async
+                ? await queryBase.StringAggregateAsync("|", b => b.ContactName)
+                : queryBase.StringAggregate("|", b => b.ContactName);
+
+            Assert.Equal("Alejandra Camino|Alexander Feuer", result);
+
+            AssertSql(
+                @"@__p_1='|'
+@__p_0='2'
+
+SELECT string_agg(t.""ContactName"", @__p_1)
+FROM (
+    SELECT c.""ContactName""
+    FROM ""Customers"" AS c
+    ORDER BY c.""ContactName"" NULLS FIRST
+    LIMIT @__p_0
+) AS t");
+        }
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncData))]
+        public async Task StringAggregate_in_GroupBy(bool async)
+        {
+            await using var ctx = CreateContext();
+
+            var queryBase = ctx.Customers
+                .GroupBy(c => c.CustomerID)
+                .Select(g => new { g.Key, Concat = EF.Functions.StringAggregate(g, c => c.CompanyName) });
+
+            _ = async
+                ? await queryBase.ToListAsync()
+                : queryBase.ToList();
         }
 
         #endregion
