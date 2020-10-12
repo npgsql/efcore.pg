@@ -6,7 +6,8 @@ using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
-    public class BuiltInDataTypesWithNodaTimePluginEnabledTest : BuiltInDataTypesNpgsqlTest, IClassFixture<BuiltInDataTypesWithNodaTimePluginEnabledTest.BuiltInDataTypesWithNodaTimePluginEnabledFixture>
+    public class BuiltInDataTypesWithNodaTimePluginEnabledTest : BuiltInDataTypesNpgsqlTest,
+        IClassFixture<BuiltInDataTypesWithNodaTimePluginEnabledTest.BuiltInDataTypesWithNodaTimePluginEnabledFixture>
     {
         public BuiltInDataTypesWithNodaTimePluginEnabledTest(BuiltInDataTypesWithNodaTimePluginEnabledFixture fixture, ITestOutputHelper testOutputHelper)
             : base(fixture, testOutputHelper)
