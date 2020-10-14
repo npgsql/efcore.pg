@@ -1,8 +1,8 @@
 ﻿<Project>
   <PropertyGroup>
-    <EFCoreVersion>5.0.0-rc.1.20451.13</EFCoreVersion>
-    <MicrosoftExtensionsVersion>5.0.0-rc.1.20451.14</MicrosoftExtensionsVersion>
-    <NpgsqlVersion>5.0.0-ci.20201003T171056</NpgsqlVersion>
+    <EFCoreVersion>5.0.0-rc.2.20475.6</EFCoreVersion>
+    <MicrosoftExtensionsVersion>5.0.0-rc.2.20475.5</MicrosoftExtensionsVersion>
+    <NpgsqlVersion>5.0.0-preview1</NpgsqlVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,8 +17,8 @@
     <PackageReference Update="Microsoft.Extensions.Logging" Version="$(MicrosoftExtensionsVersion)" />
 
     <PackageReference Update="Npgsql" Version="$(NpgsqlVersion)" />
-    <PackageReference Update="Npgsql.NodaTime" Version="$(NpgsqlVersion)" />
-    <PackageReference Update="Npgsql.NetTopologySuite" Version="$(NpgsqlVersion)" />
+    <PackageReference Update="Npgsql.NodaTime" Version="5.0.0-preview1.1" />
+    <PackageReference Update="Npgsql.NetTopologySuite" Version="5.0.0-preview1.1" />
 
     <PackageReference Update="Microsoft.SourceLink.GitHub" Version="1.0.0" />
     <PackageReference Update="Microsoft.NET.Test.Sdk" Version="16.7.1" />

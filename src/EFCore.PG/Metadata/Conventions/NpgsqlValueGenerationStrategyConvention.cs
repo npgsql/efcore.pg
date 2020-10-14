@@ -52,13 +52,56 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
             {
                 foreach (var property in entityType.GetDeclaredProperties())
                 {
+                    NpgsqlValueGenerationStrategy? strategy = null;
+                    var table = entityType.GetTableName();
+                    if (table != null)
+                    {
+                        var storeObject = StoreObjectIdentifier.Table(table, entityType.GetSchema());
+                        strategy = property.GetValueGenerationStrategy(storeObject);
+                        if (strategy == NpgsqlValueGenerationStrategy.None
+                            && !IsStrategyNoneNeeded(property, storeObject))
+                        {
+                            strategy = null;
+                        }
+                    }
+                    else
+                    {
+                        var view = entityType.GetViewName();
+                        if (view != null)
+                        {
+                            var storeObject = StoreObjectIdentifier.View(view, entityType.GetViewSchema());
+                            strategy = property.GetValueGenerationStrategy(storeObject);
+                            if (strategy == NpgsqlValueGenerationStrategy.None
+                                && !IsStrategyNoneNeeded(property, storeObject))
+                            {
+                                strategy = null;
+                            }
+                        }
+                    }
+
                     // Needed for the annotation to show up in the model snapshot
-                    var strategy = property.GetValueGenerationStrategy();
-                    if (strategy != NpgsqlValueGenerationStrategy.None)
+                    if (strategy != null)
                     {
                         property.Builder.HasValueGenerationStrategy(strategy);
                     }
                 }
+            }
+
+            static bool IsStrategyNoneNeeded(IProperty property, StoreObjectIdentifier storeObject)
+            {
+                if (property.ValueGenerated == ValueGenerated.OnAdd
+                    && property.GetDefaultValue(storeObject) == null
+                    && property.GetDefaultValueSql(storeObject) == null
+                    && property.GetComputedColumnSql(storeObject) == null
+                    && property.DeclaringEntityType.Model.GetValueGenerationStrategy() != NpgsqlValueGenerationStrategy.None)
+                {
+                    var providerClrType = (property.GetValueConverter() ?? property.FindRelationalTypeMapping(storeObject)?.Converter)
+                        ?.ProviderClrType.UnwrapNullableType();
+
+                    return providerClrType != null && (providerClrType.IsInteger());
+                }
+
+                return false;
             }
         }
     }

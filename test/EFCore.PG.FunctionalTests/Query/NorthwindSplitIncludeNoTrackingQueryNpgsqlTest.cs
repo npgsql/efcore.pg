@@ -22,6 +22,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                     async,
                     ss => ss.Set<Customer>().Include(c => c.Orders),
                     entryCount: 8
-                ), RelationalStrings.MissingOrderingInSqlExpression);
+                ), RelationalStrings.MissingOrderingInSelectExpression);
     }
 }

@@ -46,10 +46,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 entityType2.GetKeys().Single().GetName());
             Assert.Equal(
                 "ExtraPropertyWithAnExtremelyLongAndOverlyConvolutedNameThatIsU~",
-                entityType2.GetProperties().ElementAt(1).GetColumnName());
+                entityType2.GetProperties().ElementAt(1).GetColumnBaseName());
             Assert.Equal(
                 "ExtraPropertyWithAnExtremelyLongAndOverlyConvolutedNameThatIs~1",
-                entityType2.GetProperties().ElementAt(2).GetColumnName());
+                entityType2.GetProperties().ElementAt(2).GetColumnBaseName());
             Assert.Equal(
                 "IX_LoginEntityTypeWithAnExtremelyLongAndOverlyConvolutedNameT~1",
                 entityType2.GetIndexes().Single().GetDatabaseName());

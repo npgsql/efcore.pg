@@ -1,11 +1,12 @@
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions.Infrastructure;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 
-// ReSharper disable once CheckNamespace
-namespace Microsoft.EntityFrameworkCore.Metadata.Conventions
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
 {
     /// <summary>
     /// A convention that configures store value generation as <see cref="ValueGenerated.OnAdd"/> on properties that are
@@ -28,13 +29,13 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Conventions
         }
 
         /// <summary>
-        ///     Called after an annotation is changed on a property.
+        /// Called after an annotation is changed on a property.
         /// </summary>
-        /// <param name="propertyBuilder"> The builder for the property. </param>
-        /// <param name="name"> The annotation name. </param>
-        /// <param name="annotation"> The new annotation. </param>
-        /// <param name="oldAnnotation"> The old annotation.  </param>
-        /// <param name="context"> Additional information associated with convention execution. </param>
+        /// <param name="propertyBuilder">The builder for the property.</param>
+        /// <param name="name">The annotation name.</param>
+        /// <param name="annotation">The new annotation.</param>
+        /// <param name="oldAnnotation">The old annotation.</param>
+        /// <param name="context">Additional information associated with convention execution.</param>
         public override void ProcessPropertyAnnotationChanged(
             IConventionPropertyBuilder propertyBuilder,
             string name,

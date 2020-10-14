@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -198,7 +199,7 @@ namespace Microsoft.EntityFrameworkCore
             }
 
             if (property.ValueGenerated != ValueGenerated.OnAdd
-                || property.IsForeignKey()
+                || property.GetContainingForeignKeys().Any(fk => !fk.IsBaseLinking())
                 || property.GetDefaultValue() != null
                 || property.GetDefaultValueSql() != null
                 || property.GetComputedColumnSql() != null)

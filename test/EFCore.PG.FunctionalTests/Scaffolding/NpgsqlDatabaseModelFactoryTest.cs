@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics.Internal;
 using Microsoft.EntityFrameworkCore.Internal;
@@ -1957,10 +1958,11 @@ CREATE TABLE column_types (
             protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
             public new NpgsqlTestStore TestStore => (NpgsqlTestStore)base.TestStore;
 
-            public NpgsqlDatabaseModelFixture()
+            public override async Task InitializeAsync()
             {
-                TestStore.ExecuteNonQuery("CREATE SCHEMA IF NOT EXISTS db2");
-                TestStore.ExecuteNonQuery(@"CREATE SCHEMA IF NOT EXISTS ""db.2""");
+                await base.InitializeAsync();
+                await TestStore.ExecuteNonQueryAsync("CREATE SCHEMA IF NOT EXISTS db2");
+                await TestStore.ExecuteNonQueryAsync(@"CREATE SCHEMA IF NOT EXISTS ""db.2""");
             }
 
             protected override bool ShouldLogCategory(string logCategory)
