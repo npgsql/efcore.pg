@@ -63,5 +63,3 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
                         typeof(ParentEntityType),
                         new List<string> { "prefix_column_1", "prefix_column_2" });
 ```
-
-

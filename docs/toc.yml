@@ -1,0 +1,54 @@
+﻿- name: Getting started
+  href: index.md
+- name: Release notes
+  items:
+  - name: "3.x"
+    href: release-notes/3.x.md
+  - name: "2.2"
+    href: release-notes/2.2.md
+  - name: "2.1"
+    href: release-notes/2.1.md
+  - name: "2.0"
+    href: release-notes/2.0.md
+  - name: "1.1"
+    href: release-notes/1.1.md
+- name: Creating a model
+  items:
+    - name: Table and column naming
+      href: modeling/table-column-naming.md
+    - name: Generated properties
+      href: modeling/generated-properties.md
+    - name: Concurrency tokens
+      href: modeling/concurrency.md
+    - name: Indexes
+      href: modeling/indexes.md
+- name: Mapping and translation
+  items:
+    - name: General
+      href: mapping/general.md
+    - name: Translations
+      href: mapping/translations.md
+    - name: JSON
+      href: mapping/json.md
+    - name: Spatial data
+      href: mapping/nts.md
+    - name: Full text search
+      href: mapping/full-text-search.md
+    - name: NodaTime
+      href: mapping/nodatime.md
+    - name: Arrays
+      href: mapping/array.md
+    - name: Enums
+      href: mapping/enum.md
+    - name: Ranges
+      href: mapping/range.md
+- name: Miscellaneous
+  items:
+    - name: Collations and case sensitivity
+      href: misc/collations-and-case-sensitivity.md
+    - name: Database creation
+      href: misc/database-creation.md
+    - name: Other
+      href: misc/other.md
+- name: API reference
+  href: "../../obj/api/EFCore.PG/"
