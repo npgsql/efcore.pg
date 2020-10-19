@@ -8,10 +8,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
     public class BuiltInDataTypesWithNodaTimePluginEnabledTest : BuiltInDataTypesNpgsqlTestBase<BuiltInDataTypesWithNodaTimePluginEnabledTest.BuiltInDataTypesWithNodaTimePluginEnabledFixture>
     {
         public BuiltInDataTypesWithNodaTimePluginEnabledTest(BuiltInDataTypesWithNodaTimePluginEnabledFixture fixture)
-            : base(fixture)
-        {
-            Fixture.TestSqlLoggerFactory.Clear();
-        }
+            : base(fixture) => Fixture.TestSqlLoggerFactory.Clear();
 
         public class BuiltInDataTypesWithNodaTimePluginEnabledFixture : BuiltInDataTypesNpgsqlTestBaseFixture
         {
