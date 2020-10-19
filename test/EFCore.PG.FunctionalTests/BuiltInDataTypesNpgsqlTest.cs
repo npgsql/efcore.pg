@@ -1,31 +1,28 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Net.NetworkInformation;
-using Xunit;
-using Xunit.Abstractions;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.TestUtilities;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using NpgsqlTypes;
+using Xunit;
+using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
-    public class BuiltInDataTypesNpgsqlTest : BuiltInDataTypesTestBase<BuiltInDataTypesNpgsqlTest.BuiltInDataTypesNpgsqlFixture>
+    public abstract class BuiltInDataTypesNpgsqlTestBase<TFixture> : BuiltInDataTypesTestBase<TFixture>
+        where TFixture : BuiltInDataTypesNpgsqlTestBase<TFixture>.BuiltInDataTypesNpgsqlTestBaseFixture, new()
     {
-        // ReSharper disable once UnusedParameter.Local
-        public BuiltInDataTypesNpgsqlTest(BuiltInDataTypesNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
-            : base(fixture)
+        protected BuiltInDataTypesNpgsqlTestBase(TFixture fixture) : base(fixture)
         {
-            Fixture.TestSqlLoggerFactory.Clear();
-            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
         [Fact]
@@ -119,8 +116,8 @@ WHERE m.""TimeSpanAsTime"" = @__timeSpan_0");
                         ImmutableDictionaryAsHstore = ImmutableDictionary<string, string>.Empty.Add("c", "d"),
                         NpgsqlRangeAsRange = new NpgsqlRange<int>(4, true, 8, false),
 
-                        IntArrayAsIntArray= new[] { 2, 3 },
-                        PhysicalAddressArrayAsMacaddrArray= new[] { PhysicalAddress.Parse("08-00-2B-01-02-03"), PhysicalAddress.Parse("08-00-2B-01-02-04") },
+                        IntArrayAsIntArray = new[] { 2, 3 },
+                        PhysicalAddressArrayAsMacaddrArray = new[] { PhysicalAddress.Parse("08-00-2B-01-02-03"), PhysicalAddress.Parse("08-00-2B-01-02-04") },
 
                         UintAsXid = (uint)int.MaxValue + 1,
 
@@ -423,7 +420,7 @@ WHERE m.""TimeSpanAsTime"" = @__timeSpan_0");
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.IntArrayAsIntArray == param33));
 
                 PhysicalAddress[] param34 = null;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.PhysicalAddressArrayAsMacaddrArray== param34));
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.PhysicalAddressArrayAsMacaddrArray == param34));
 
                 uint? param35 = null;
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.UintAsXid == param35));
@@ -705,11 +702,11 @@ WHERE m.""TimeSpanAsTime"" = @__timeSpan_0");
             Assert.Null(entity.Mood);
         }
 
-        [Fact(Skip="https://github.com/aspnet/EntityFrameworkCore/issues/14159")]
-        public override void Can_query_using_any_data_type_nullable_shadow() {}
+        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/issues/14159")]
+        public override void Can_query_using_any_data_type_nullable_shadow() { }
 
-        [Fact(Skip="https://github.com/aspnet/EntityFrameworkCore/issues/14159")]
-        public override void Can_query_using_any_data_type_shadow() {}
+        [Fact(Skip = "https://github.com/aspnet/EntityFrameworkCore/issues/14159")]
+        public override void Can_query_using_any_data_type_shadow() { }
 
         public override void Can_query_with_null_parameters_using_any_nullable_data_type()
         {
@@ -915,7 +912,7 @@ FROM ""MappedDataTypes"" AS m");
         void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
-        public class BuiltInDataTypesNpgsqlFixture : BuiltInDataTypesFixtureBase
+        public class BuiltInDataTypesNpgsqlTestBaseFixture : BuiltInDataTypesFixtureBase
         {
             public override bool StrictEquality => false;
 
@@ -1359,6 +1356,21 @@ FROM ""MappedDataTypes"" AS m");
             [Column(TypeName = "mood")]
             public Mood? Mood { get; set; }
         }
+    }
+
+
+    public class BuiltInDataTypesNpgsqlTest : BuiltInDataTypesNpgsqlTestBase<BuiltInDataTypesNpgsqlTest.BuiltInDataTypesNpgsqlFixture>
+    {
+        // ReSharper disable once UnusedParameter.Local
+        public BuiltInDataTypesNpgsqlTest(BuiltInDataTypesNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
+            : base(fixture)
+        {
+            Fixture.TestSqlLoggerFactory.Clear();
+            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        }
+
+        public class BuiltInDataTypesNpgsqlFixture : BuiltInDataTypesNpgsqlTestBaseFixture
+        { }
     }
 
     // ReSharper disable once UnusedMember.Global
