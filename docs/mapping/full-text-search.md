@@ -34,7 +34,7 @@ public class Product
 }
 ```
 
-Setting up the column to be auto-updated depends on your PostgreSQL version. On PostgreSQL 12 and above, the column can be a simple [generated column](../modeling/generated-properties#computed-columns-on-add-or-update), and version 5.0.0 contains sugar for setting that up. In previous versions, you must manually set up database triggers that update the column instead.
+Setting up the column to be auto-updated depends on your PostgreSQL version. On PostgreSQL 12 and above, the column can be a simple [generated column](../modeling/generated-properties.md#computed-columns-on-add-or-update), and version 5.0.0 contains sugar for setting that up. In previous versions, you must manually set up database triggers that update the column instead.
 
 #### [PostgreSQL 12+](#tab/pg12)
 
@@ -55,7 +55,7 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
         .HasMethod("GIN"); // Index method on the search vector (GIN or GIST)
 ```
 
-#### [Older Versions](#tab/pgold)
+#### [Older Versions](#tab/older)
 
 First, modify the `OnModelCreating()` of your context class to add an index as follows:
 
@@ -67,6 +67,8 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
         .HasMethod("GIN"); // Index method on the search vector (GIN or GIST)
 }
 ```
+
+***
 
 Now generate a migration (`dotnet ef migrations add ....`), and open it with your favorite editor, adding the following:
 
@@ -109,7 +111,7 @@ var npgsql = context.Products
 
 Version 5.0.0 of the provider includes sugar for defining the appropriate expression index; if you're using an older version, you'll have to define a raw SQL migration yourself.
 
-#### [EF Core 5+](#tab/pg12)
+#### [PostgreSQL 12+](#tab/pg12)
 
 ```c#
 modelBuilder.Entity<Blog>()
@@ -117,7 +119,7 @@ modelBuilder.Entity<Blog>()
     .IsTsVectorExpressionIndex("english");
 ```
 
-#### [Older Versions](#tab/efold)
+#### [Older Versions](#tab/older)
 
 Create a migration which will contain the index creation SQL (`dotnet ef migrations add ...`). At this point, open the generated migration with your editor and add the following:
 
