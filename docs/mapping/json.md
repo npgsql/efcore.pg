@@ -112,6 +112,7 @@ public class Customer    // Mapped to a JSON column in the table
 
 public class Order       // Part of the JSON column
 {
+    [JsonPropertyName("OrderPrice")] // Controls the JSON property name
     public decimal Price { get; set; }
     public string ShippingAddress { get; set; }
 }
@@ -126,8 +127,8 @@ You can now assign a regular `Customer` instance to the property, and once you c
     "Age": 25,
     "Name": "Joe",
     "Orders": [
-        {"Price": 9, "ShippingAddress": "Some address 1"},
-        {"Price": 23, "ShippingAddress": "Some address 2"}
+        { "OrderPrice": 9, "ShippingAddress": "Some address 1" },
+        { "OrderPrice": 23, "ShippingAddress": "Some address 2" }
     ]
 }
 ```
