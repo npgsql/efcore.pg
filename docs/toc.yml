@@ -4,16 +4,18 @@
   items:
   - name: "5.0 (RC)"
     href: release-notes/5.0.md
-  - name: "3.x"
-    href: release-notes/3.x.md
-  - name: "2.2"
-    href: release-notes/2.2.md
+  - name: "3.1"
+    href: release-notes/3.1.md
   - name: "2.1"
     href: release-notes/2.1.md
-  - name: "2.0"
-    href: release-notes/2.0.md
-  - name: "1.1"
-    href: release-notes/1.1.md
+  - name: Out of support
+    items:
+    - name: "2.2"
+      href: release-notes/2.2.md
+    - name: "2.0"
+      href: release-notes/2.0.md
+    - name: "1.1"
+      href: release-notes/1.1.md
 - name: Creating a model
   items:
     - name: Table and column naming
