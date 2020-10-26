@@ -116,12 +116,25 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 
 See [the PostgreSQL docs on UUID for more details](https://www.postgresql.org/docs/current/static/datatype-uuid.html).
 
-## Computed Columns (On Add or Update)
+## Computed Columns
 
 > [!NOTE]
 > This feature works only on PostgreSQL 12 or above, and was introduced in version 3.0.0 of the provider.
 
-PostgreSQL 12 added support for [stored generated columns](https://www.postgresql.org/docs/12/ddl-generated-columns.html), and Npgsql feature supports that feature as well. The following configuration:
+PostgreSQL 12 added support for [stored generated columns](https://www.postgresql.org/docs/current/ddl-generated-columns.html), and Npgsql feature supports that feature as well. The following configuration:
+
+### [Version 5.0](#tab/efcore5.0)
+
+```c#
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    modelBuilder.Entity<Person>()
+      .Property(p => p.DisplayName)
+      .HasComputedColumnSql(@"""FirstName"" || ' ' || ""LastName""", stored: true);
+}
+```
+
+### [Version 3.x](#tab/efcore3.x)
 
 ```c#
 protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -131,6 +144,8 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
       .HasComputedColumnSql(@"""FirstName"" || ' ' || ""LastName""");
 }
 ```
+
+***
 
 Will cause the following migration SQL to be generated
 

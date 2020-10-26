@@ -48,3 +48,22 @@ Note that each operator class is used for the corresponding index column, by ord
 ```sql
 CREATE INDEX "IX_blogs_Id_Name" ON blogs ("Id", "Name" text_pattern_ops);
 ```
+
+## Creating indexes concurrently
+
+Creating an index can interfere with regular operation of a database. Normally PostgreSQL locks the table to be indexed against writes and performs the entire index build with a single scan of the table. Other transactions can still read the table, but if they try to insert, update, or delete rows in the table they will block until the index build is finished. This could have a severe effect if the system is a live production database. Very large tables can take many hours to be indexed, and even for smaller tables, an index build can lock out writers for periods that are unacceptably long for a production system.
+
+The EF provider allows you to specify that an index should be created *concurrently*, partially mitigating the above issues:
+
+```c#
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+    => modelBuilder.Entity<Blog>()
+                   .HasIndex(b => b.Url)
+                   .IsCreatedConcurrently();
+```
+
+> [!CAUTION]
+> Do not enable this feature before reading the [PostgreSQL documentation](https://www.postgresql.org/docs/current/sql-createindex.html#SQL-CREATEINDEX-CONCURRENTLY) and understanding the full implications of concurrent index creation.
+
+> [!NOTE]
+> Prior to version 5.0, `IsCreatedConcurrently` erroneously defaulted to `false` - explicitly pass `true` to configure the index for concurrent creation
