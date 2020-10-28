@@ -160,7 +160,7 @@ Once a document is loaded from the database, you can traverse it:
 
 ```c#
 var someEntity = context.Entities.First();
-Console.WriteLine(someEntity.Customer.GetProperty("Orders")[0].GetProperty("Price").GetInt32());
+Console.WriteLine(someEntity.Customer.RootElement.GetProperty("Orders")[0].GetProperty("Price").GetInt32());
 ```
 
 ## Querying JSON columns
@@ -179,7 +179,7 @@ var joes = context.CustomerEntries
 
 ```c#
 var joes = context.CustomerEntries
-    .Where(e => e.Customer.GetProperty("Name").GetString() == "Joe")
+    .Where(e => e.Customer.RootElement.GetProperty("Name").GetString() == "Joe")
     .ToList();
 ```
 
@@ -213,17 +213,17 @@ EF.Functions.JsonTypeof(e.Customer.Age)                                     | [j
 
 ### [JsonDocument Mapping](#tab/jsondocument)
 
-.NET                                                                        | SQL
-----------------------------------------------------------------------------|-----
-customer.GetProperty("Name").GetString()                                    | [customer->>'Name' = 'Joe'](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSON-OP-TABLE)
-customer.GetProperty("Orders")[1].GetProperty("Price").GetInt32()           | [customer#>>'{Orders,0,Price}'[1] = 8](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSON-OP-TABLE)
-customer.GetProperty("Orders").GetArrayLength()                             | [jsonb_array_length(customer->'Orders'](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSON-PROCESSING-TABLE)
-EF.Functions.JsonContains(customer, @"{""Name"": ""Joe"", ""Age"": 25}")    | [customer @> '{"Name": "Joe", "Age": 25}'](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSONB-OP-TABLE)
-EF.Functions.JsonContained(@"{""Name"": ""Joe"", ""Age"": 25}", customer)   | ['{"Name": "Joe", "Age": 25}' <@ customer](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSONB-OP-TABLE)
-EF.Functions.JsonExists(customer, "Age")                                    | [customer ? 'Age'](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSONB-OP-TABLE)
-EF.Functions.JsonExistsAny(customer, "Age", "Address")                      | [customer ?\| ARRAY['Age','Address']](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSONB-OP-TABLE)
-EF.Functions.JsonExistsAll(customer, "Age", "Address")                      | [customer ?& ARRAY['Age','Address']](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSONB-OP-TABLE)
-EF.Functions.JsonTypeof(customer.GetProperty("Age") == "number")            | [jsonb_typeof(customer->'Age') = 'number'](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSON-PROCESSING-TABLE)
+.NET                                                                          | SQL
+------------------------------------------------------------------------------|-----
+customer.RootElement.GetProperty("Name").GetString()                          | [customer->>'Name' = 'Joe'](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSON-OP-TABLE)
+customer.RootElement.GetProperty("Orders")[1].GetProperty("Price").GetInt32() | [customer#>>'{Orders,0,Price}'[1] = 8](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSON-OP-TABLE)
+customer.RootElement.GetProperty("Orders").GetArrayLength()                   | [jsonb_array_length(customer->'Orders'](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSON-PROCESSING-TABLE)
+EF.Functions.JsonContains(customer, @"{""Name"": ""Joe"", ""Age"": 25}")      | [customer @> '{"Name": "Joe", "Age": 25}'](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSONB-OP-TABLE)
+EF.Functions.JsonContained(@"{""Name"": ""Joe"", ""Age"": 25}", customer)     | ['{"Name": "Joe", "Age": 25}' <@ customer](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSONB-OP-TABLE)
+EF.Functions.JsonExists(customer, "Age")                                      | [customer ? 'Age'](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSONB-OP-TABLE)
+EF.Functions.JsonExistsAny(customer, "Age", "Address")                        | [customer ?\| ARRAY['Age','Address']](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSONB-OP-TABLE)
+EF.Functions.JsonExistsAll(customer, "Age", "Address")                        | [customer ?& ARRAY['Age','Address']](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSONB-OP-TABLE)
+EF.Functions.JsonTypeof(customer.GetProperty("Age") == "number")              | [jsonb_typeof(customer->'Age') = 'number'](https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSON-PROCESSING-TABLE)
 
 ***
 
