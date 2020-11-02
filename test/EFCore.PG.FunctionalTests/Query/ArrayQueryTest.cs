@@ -1,9 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.ArrayTests;
@@ -225,6 +228,46 @@ LIMIT 2");
         #region Containment
 
         // See also tests in NorthwindMiscellaneousQueryNpgsqlTest
+
+        [Theory]
+        [MemberData(nameof(IsListData))]
+        public void Array_column_Any_equality_operator(bool list)
+        {
+            using var ctx = CreateContext();
+            var id = ctx.SomeEntities
+                .Where(e => e.StringArray.Any(p => p == "3"))
+                .OverArrayOrList(list)
+                .Select(e => e.Id)
+                .Single();
+
+            Assert.Equal(1, id);
+
+            AssertSql(list,
+                @"SELECT s.""Id""
+FROM ""SomeEntities"" AS s
+WHERE s.""StringArray"" @> ARRAY['3']::text[]
+LIMIT 2");
+        }
+
+        [Theory]
+        [MemberData(nameof(IsListData))]
+        public void Array_column_Any_Equals(bool list)
+        {
+            using var ctx = CreateContext();
+            var id = ctx.SomeEntities
+                .Where(e => e.StringArray.Any(p => "3".Equals(p)))
+                .OverArrayOrList(list)
+                .Select(e => e.Id)
+                .Single();
+
+            Assert.Equal(1, id);
+
+            AssertSql(list,
+                @"SELECT s.""Id""
+FROM ""SomeEntities"" AS s
+WHERE s.""StringArray"" @> ARRAY['3']::text[]
+LIMIT 2");
+        }
 
         [Theory]
         [MemberData(nameof(IsListData))]
@@ -736,6 +779,18 @@ FROM ""SomeEntities"" AS s
 WHERE ARRAY[4,5,6]::integer[] <@ s.""IntArray""");
         }
 
+        [Theory]
+        [MemberData(nameof(IsListData))]
+        public Task Any_like_column(bool list)
+        {
+            using var ctx = CreateContext();
+
+            return AssertTranslationFailed(() => ctx.SomeEntities
+                .Where(e => e.StringArray.Any(p => EF.Functions.Like(p, "3")))
+                .OverArrayOrList(list)
+                .ToListAsync());
+        }
+
         #endregion
 
         #region bytea
@@ -857,6 +912,12 @@ WHERE (get_byte(s.""SomeBytea"", 0) = 3) AND get_byte(s.""SomeBytea"", 0) IS NOT
             public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
             protected override void Seed(ArrayArrayQueryContext context) => ArrayArrayQueryContext.Seed(context);
         }
+
+        protected static async Task AssertTranslationFailed(Func<Task> query)
+            => Assert.Contains(
+                CoreStrings.TranslationFailed("").Substring(48),
+                (await Assert.ThrowsAsync<InvalidOperationException>(query))
+                .Message);
 
         #endregion
     }
