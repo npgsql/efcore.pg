@@ -353,6 +353,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
     public class IntervalMapping : NpgsqlTypeMapping
     {
+        static readonly MethodInfo FromYears = typeof(Period).GetRuntimeMethod(nameof(Period.FromYears), new[] { typeof(int) });
+        static readonly MethodInfo FromMonths = typeof(Period).GetRuntimeMethod(nameof(Period.FromMonths), new[] { typeof(int) });
+        static readonly MethodInfo FromWeeks = typeof(Period).GetRuntimeMethod(nameof(Period.FromWeeks), new[] { typeof(int) });
+        static readonly MethodInfo FromDays = typeof(Period).GetRuntimeMethod(nameof(Period.FromDays), new[] { typeof(int) });
+        static readonly MethodInfo FromHours = typeof(Period).GetRuntimeMethod(nameof(Period.FromHours), new[] { typeof(long) });
+        static readonly MethodInfo FromMinutes = typeof(Period).GetRuntimeMethod(nameof(Period.FromMinutes), new[] { typeof(long) });
+        static readonly MethodInfo FromSeconds = typeof(Period).GetRuntimeMethod(nameof(Period.FromSeconds), new[] { typeof(long) });
+        static readonly MethodInfo FromMilliseconds = typeof(Period).GetRuntimeMethod(nameof(Period.FromMilliseconds), new[] { typeof(long) });
+        static readonly MethodInfo FromNanoseconds = typeof(Period).GetRuntimeMethod(nameof(Period.FromNanoseconds), new[] { typeof(long) });
+
         public IntervalMapping() : base("interval", typeof(Period), NpgsqlDbType.Interval) {}
 
         protected IntervalMapping(RelationalTypeMappingParameters parameters)
@@ -370,9 +380,34 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         protected override string GenerateNonNullSqlLiteral(object value)
             => $"INTERVAL '{PeriodPattern.NormalizingIso.Format((Period)value)}'";
 
-        // GenerateCodeLiteral isn't implemented because round-tripping Period would require either using the plus operator
-        // to compose the components (years + months...), or setting properties on PeriodBuilder, neither of which is
-        // currently supported by EF Core's code generator
+        public override Expression GenerateCodeLiteral(object value)
+        {
+            var period = (Period)value;
+            Expression e = null;
+
+            if (period.Years != 0)
+                Compose(Expression.Call(FromYears, Expression.Constant(period.Years)));
+            if (period.Months != 0)
+                Compose(Expression.Call(FromMonths, Expression.Constant(period.Months)));
+            if (period.Weeks != 0)
+                Compose(Expression.Call(FromWeeks, Expression.Constant(period.Weeks)));
+            if (period.Days != 0)
+                Compose(Expression.Call(FromDays, Expression.Constant(period.Days)));
+            if (period.Hours != 0)
+                Compose(Expression.Call(FromHours, Expression.Constant(period.Hours)));
+            if (period.Minutes != 0)
+                Compose(Expression.Call(FromMinutes, Expression.Constant(period.Minutes)));
+            if (period.Seconds != 0)
+                Compose(Expression.Call(FromSeconds, Expression.Constant(period.Seconds)));
+            if (period.Milliseconds != 0)
+                Compose(Expression.Call(FromMilliseconds, Expression.Constant(period.Milliseconds)));
+            if (period.Nanoseconds != 0)
+                Compose(Expression.Call(FromNanoseconds, Expression.Constant(period.Nanoseconds)));
+
+            return e;
+
+            void Compose(Expression toAdd) => e = e is null ? toAdd : Expression.Add(e, toAdd);
+        }
     }
 
     #endregion interval
