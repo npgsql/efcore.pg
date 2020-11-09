@@ -174,6 +174,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             Assert.Equal("INTERVAL 'P2018Y4M20DT4H3M2S'", mapping.GenerateSqlLiteral(withYearMonthDay));
         }
 
+        [Fact]
+        public void GenerateCodeLiteral_returns_period_literal()
+        {
+            Assert.Equal("NodaTime.Period.FromHours(5L)", CodeLiteral(Period.FromHours(5)));
+
+            Assert.Equal("NodaTime.Period.FromYears(1) + NodaTime.Period.FromMonths(2) + NodaTime.Period.FromWeeks(3) + " +
+                         "NodaTime.Period.FromDays(4) + NodaTime.Period.FromHours(5L) + NodaTime.Period.FromMinutes(6L) + " +
+                         "NodaTime.Period.FromSeconds(7L) + NodaTime.Period.FromMilliseconds(8L) + NodaTime.Period.FromNanoseconds(9L)",
+                CodeLiteral(Period.FromYears(1) + Period.FromMonths(2) + Period.FromWeeks(3) + Period.FromDays(4) + Period.FromHours(5) +
+                            Period.FromMinutes(6) + Period.FromSeconds(7) + Period.FromMilliseconds(8) + Period.FromNanoseconds(9)));
+        }
+
         #region Support
 
         static readonly NpgsqlTypeMappingSource Mapper = new NpgsqlTypeMappingSource(
