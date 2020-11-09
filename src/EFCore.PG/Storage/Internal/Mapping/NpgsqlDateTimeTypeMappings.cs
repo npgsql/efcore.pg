@@ -110,9 +110,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             => new NpgsqlIntervalTypeMapping(parameters);
 
         protected override string GenerateNonNullSqlLiteral(object value)
-        {
-            var ts = (TimeSpan)value;
-            return FormattableString.Invariant($"INTERVAL '{ts.ToString($@"{(ts < TimeSpan.Zero ? "\\-" : "")}{(ts.Days == 0 ? "" : "d\\ ")}hh\:mm\:ss{(ts.Ticks % 10000000 == 0 ? "" : "\\.FFFFFF")}")}'");
-        }
+            => FormatTimeSpanAsInterval((TimeSpan)value);
+
+        public static string FormatTimeSpanAsInterval(TimeSpan ts)
+            => FormattableString.Invariant($"INTERVAL '{ts.ToString($@"{(ts < TimeSpan.Zero ? "\\-" : "")}{(ts.Days == 0 ? "" : "d\\ ")}hh\:mm\:ss{(ts.Ticks % 10000000 == 0 ? "" : "\\.FFFFFF")}")}'");
     }
 }
