@@ -1,3 +1,4 @@
+using System;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NodaTime;
@@ -351,7 +352,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
     #region interval
 
-    public class IntervalMapping : NpgsqlTypeMapping
+    public class PeriodIntervalMapping : NpgsqlTypeMapping
     {
         static readonly MethodInfo FromYears = typeof(Period).GetRuntimeMethod(nameof(Period.FromYears), new[] { typeof(int) });
         static readonly MethodInfo FromMonths = typeof(Period).GetRuntimeMethod(nameof(Period.FromMonths), new[] { typeof(int) });
@@ -363,19 +364,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         static readonly MethodInfo FromMilliseconds = typeof(Period).GetRuntimeMethod(nameof(Period.FromMilliseconds), new[] { typeof(long) });
         static readonly MethodInfo FromNanoseconds = typeof(Period).GetRuntimeMethod(nameof(Period.FromNanoseconds), new[] { typeof(long) });
 
-        public IntervalMapping() : base("interval", typeof(Period), NpgsqlDbType.Interval) {}
+        public PeriodIntervalMapping() : base("interval", typeof(Period), NpgsqlDbType.Interval) {}
 
-        protected IntervalMapping(RelationalTypeMappingParameters parameters)
+        protected PeriodIntervalMapping(RelationalTypeMappingParameters parameters)
             : base(parameters, NpgsqlDbType.Interval) {}
 
         protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
-            => new IntervalMapping(parameters);
+            => new PeriodIntervalMapping(parameters);
 
         public override RelationalTypeMapping Clone(string storeType, int? size)
-            => new IntervalMapping(Parameters.WithStoreTypeAndSize(storeType, size));
+            => new PeriodIntervalMapping(Parameters.WithStoreTypeAndSize(storeType, size));
 
         public override CoreTypeMapping Clone(ValueConverter converter)
-            => new IntervalMapping(Parameters.WithComposedConverter(converter));
+            => new PeriodIntervalMapping(Parameters.WithComposedConverter(converter));
 
         protected override string GenerateNonNullSqlLiteral(object value)
             => $"INTERVAL '{PeriodPattern.NormalizingIso.Format((Period)value)}'";
@@ -403,6 +404,53 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 Compose(Expression.Call(FromMilliseconds, Expression.Constant(period.Milliseconds)));
             if (period.Nanoseconds != 0)
                 Compose(Expression.Call(FromNanoseconds, Expression.Constant(period.Nanoseconds)));
+
+            return e;
+
+            void Compose(Expression toAdd) => e = e is null ? toAdd : Expression.Add(e, toAdd);
+        }
+    }
+
+    public class DurationIntervalMapping : NpgsqlTypeMapping
+    {
+        static readonly MethodInfo FromDays = typeof(Duration).GetRuntimeMethod(nameof(Duration.FromDays), new[] { typeof(int) });
+        static readonly MethodInfo FromHours = typeof(Duration).GetRuntimeMethod(nameof(Duration.FromHours), new[] { typeof(int) });
+        static readonly MethodInfo FromMinutes = typeof(Duration).GetRuntimeMethod(nameof(Duration.FromMinutes), new[] { typeof(long) });
+        static readonly MethodInfo FromSeconds = typeof(Duration).GetRuntimeMethod(nameof(Duration.FromSeconds), new[] { typeof(long) });
+        static readonly MethodInfo FromMilliseconds = typeof(Duration).GetRuntimeMethod(nameof(Duration.FromMilliseconds), new[] { typeof(long) });
+
+        public DurationIntervalMapping() : base("interval", typeof(Duration), NpgsqlDbType.Interval) {}
+
+        protected DurationIntervalMapping(RelationalTypeMappingParameters parameters)
+            : base(parameters, NpgsqlDbType.Interval) {}
+
+        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
+            => new DurationIntervalMapping(parameters);
+
+        public override RelationalTypeMapping Clone(string storeType, int? size)
+            => new DurationIntervalMapping(Parameters.WithStoreTypeAndSize(storeType, size));
+
+        public override CoreTypeMapping Clone(ValueConverter converter)
+            => new DurationIntervalMapping(Parameters.WithComposedConverter(converter));
+
+        protected override string GenerateNonNullSqlLiteral(object value)
+            => NpgsqlIntervalTypeMapping.FormatTimeSpanAsInterval(((Duration)value).ToTimeSpan());
+
+        public override Expression GenerateCodeLiteral(object value)
+        {
+            var duration = (Duration)value;
+            Expression e = null;
+
+            if (duration.Days != 0)
+                Compose(Expression.Call(FromDays, Expression.Constant(duration.Days)));
+            if (duration.Hours != 0)
+                Compose(Expression.Call(FromHours, Expression.Constant(duration.Hours)));
+            if (duration.Minutes != 0)
+                Compose(Expression.Call(FromMinutes, Expression.Constant((long)duration.Minutes)));
+            if (duration.Seconds != 0)
+                Compose(Expression.Call(FromSeconds, Expression.Constant((long)duration.Seconds)));
+            if (duration.Milliseconds != 0)
+                Compose(Expression.Call(FromMilliseconds, Expression.Constant((long)duration.Milliseconds)));
 
             return e;
 

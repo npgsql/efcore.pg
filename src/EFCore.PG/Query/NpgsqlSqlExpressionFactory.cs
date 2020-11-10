@@ -18,14 +18,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
     {
         readonly IRelationalTypeMappingSource _typeMappingSource;
         readonly RelationalTypeMapping _boolTypeMapping;
-        readonly RelationalTypeMapping _intervalTypeMapping;
+        readonly RelationalTypeMapping _intTypeMapping;
+
+        static Type _nodaTimeDurationType;
+        static Type _nodaTimePeriodType;
 
         public NpgsqlSqlExpressionFactory([NotNull] SqlExpressionFactoryDependencies dependencies)
             : base(dependencies)
         {
             _typeMappingSource = dependencies.TypeMappingSource;
             _boolTypeMapping = _typeMappingSource.FindMapping(typeof(bool));
-            _intervalTypeMapping = _typeMappingSource.FindMapping("interval");
+            _intTypeMapping = _typeMappingSource.FindMapping(typeof(int));
         }
 
         #region Expression factory methods
@@ -138,6 +141,50 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             [CanBeNull] RelationalTypeMapping typeMapping = null)
             => (PostgresNewArrayExpression)ApplyTypeMapping(new PostgresNewArrayExpression(initializers, type, typeMapping), typeMapping);
 
+        public override SqlBinaryExpression MakeBinary(
+            ExpressionType operatorType,
+            SqlExpression left,
+            SqlExpression right,
+            RelationalTypeMapping typeMapping)
+        {
+            Check.NotNull(left, nameof(left));
+            Check.NotNull(right, nameof(right));
+
+            if (operatorType == ExpressionType.Subtract)
+            {
+                if (left.Type == typeof(DateTime) && right.Type == typeof(DateTime) ||
+                    left.Type == typeof(DateTimeOffset) && right.Type == typeof(DateTimeOffset))
+                {
+                    return (SqlBinaryExpression)ApplyTypeMapping(
+                        new SqlBinaryExpression(operatorType, left, right, typeof(TimeSpan), null), typeMapping);
+                }
+
+                if (left.Type.FullName == "NodaTime.Instant" && right.Type.FullName == "NodaTime.Instant" ||
+                    left.Type.FullName == "NodaTime.ZonedDateTime" && right.Type.FullName == "NodaTime.ZonedDateTime")
+                {
+                    _nodaTimeDurationType ??= left.Type.Assembly.GetType("NodaTime.Duration");
+                    return (SqlBinaryExpression)ApplyTypeMapping(
+                        new SqlBinaryExpression(operatorType, left, right, _nodaTimeDurationType, null), typeMapping);
+                }
+
+                if (left.Type.FullName == "NodaTime.LocalDateTime" && right.Type.FullName == "NodaTime.LocalDateTime" ||
+                    left.Type.FullName == "NodaTime.LocalTime" && right.Type.FullName == "NodaTime.LocalTime")
+                {
+                    _nodaTimePeriodType ??= left.Type.Assembly.GetType("NodaTime.Period");
+                    return (SqlBinaryExpression)ApplyTypeMapping(
+                        new SqlBinaryExpression(operatorType, left, right, _nodaTimePeriodType, null), typeMapping);
+                }
+
+                if (left.Type.FullName == "NodaTime.LocalDate" && right.Type.FullName == "NodaTime.LocalDate")
+                {
+                    return (SqlBinaryExpression)ApplyTypeMapping(
+                        new SqlBinaryExpression(operatorType, left, right, typeof(int), null), typeMapping);
+                }
+            }
+
+            return base.MakeBinary(operatorType, left, right, typeMapping);
+        }
+
         public virtual PostgresBinaryExpression MakePostgresBinary(
             PostgresExpressionType operatorType,
             [NotNull] SqlExpression left,
@@ -232,37 +279,53 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 var leftType = left.Type.UnwrapNullableType();
                 var rightType = right.Type.UnwrapNullableType();
 
-                // DateTime + TimeSpan
-                // DateTimeOffset + TimeSpan
-                // (NodaTime type matching uses string names since NodaTime is a plugin)
-                if (rightType == typeof(TimeSpan) && (
-                        leftType == typeof(DateTime) ||
-                        leftType == typeof(DateTimeOffset)) ||
-                    rightType.FullName == "NodaTime.Period" && (
-                        leftType.FullName == "NodaTime.LocalDateTime" ||
-                        leftType.FullName == "NodaTime.LocalDate" ||
-                        leftType.FullName == "NodaTime.LocalTime"
-                    ))
+                if (binary.OperatorType == ExpressionType.Add)
                 {
-                    var newLeft = ApplyDefaultTypeMapping(left);
-                    var newRight = ApplyDefaultTypeMapping(right);
-                    return new SqlBinaryExpression(binary.OperatorType, newLeft, newRight, binary.Type,
-                        newLeft.TypeMapping);
+                    // Note that we apply the given type mapping from above to the left operand (which has the same CLR type as
+                    // the binary expression's)
+
+                    // DateTime + TimeSpan => DateTime
+                    // DateTimeOffset + TimeSpan => DateTimeOffset
+                    if (rightType == typeof(TimeSpan) && (
+                            leftType == typeof(DateTime) ||
+                            leftType == typeof(DateTimeOffset)) ||
+                        rightType.FullName == "NodaTime.Period" && (
+                            leftType.FullName == "NodaTime.LocalDateTime" ||
+                            leftType.FullName == "NodaTime.LocalDate" ||
+                            leftType.FullName == "NodaTime.LocalTime") ||
+                        rightType.FullName == "NodaTime.Duration" && (
+                            leftType.FullName == "NodaTime.Instant" ||
+                            leftType.FullName == "NodaTime.ZonedDateTime"))
+                    {
+                        var newLeft = ApplyTypeMapping(left, typeMapping);
+                        var newRight = ApplyDefaultTypeMapping(right);
+                        return new SqlBinaryExpression(binary.OperatorType, newLeft, newRight, binary.Type, newLeft.TypeMapping);
+                    }
                 }
 
-                // * DateTime - DateTime
-                // * DateTimeOffset - DateTimeOffset
-                if (binary.OperatorType == ExpressionType.Subtract && (
-                        leftType == typeof(DateTime) && rightType == typeof(DateTime) ||
-                        leftType == typeof(DateTimeOffset) && rightType == typeof(DateTimeOffset)))
+                if (binary.OperatorType == ExpressionType.Subtract)
                 {
                     var inferredTypeMapping = typeMapping ?? ExpressionExtensions.InferTypeMapping(left, right);
-                    return new SqlBinaryExpression(
-                        ExpressionType.Subtract,
-                        ApplyTypeMapping(left, inferredTypeMapping),
-                        ApplyTypeMapping(right, inferredTypeMapping),
-                        binary.Type,
-                        _intervalTypeMapping);
+
+                    // DateTime - DateTime => TimeSpan
+                    // DateTimeOffset - DateTimeOffset => TimeSpan
+                    // Instant - Instant => Duration
+                    // LocalDateTime - LocalDateTime => Period
+                    if (leftType == typeof(DateTime) && rightType == typeof(DateTime) ||
+                        leftType == typeof(DateTimeOffset) && rightType == typeof(DateTimeOffset) ||
+                        leftType.FullName == "NodaTime.Instant" && rightType.FullName == "NodaTime.Instant" ||
+                        leftType.FullName == "NodaTime.LocalDateTime" && rightType.FullName == "NodaTime.LocalDateTime" ||
+                        leftType.FullName == "NodaTime.ZonedDateTime" && rightType.FullName == "NodaTime.ZonedDateTime" ||
+                        leftType.FullName == "NodaTime.LocalDate" && rightType.FullName == "NodaTime.LocalDate" ||
+                        leftType.FullName == "NodaTime.LocalTime" && rightType.FullName == "NodaTime.LocalTime")
+                    {
+                        return new SqlBinaryExpression(
+                            ExpressionType.Subtract,
+                            ApplyTypeMapping(left, inferredTypeMapping),
+                            ApplyTypeMapping(right, inferredTypeMapping),
+                            binary.Type,
+                            typeMapping ?? _typeMappingSource.FindMapping(binary.Type));
+                    }
                 }
             }
 

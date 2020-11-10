@@ -13,7 +13,6 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
-using ExpressionExtensions = Microsoft.EntityFrameworkCore.Query.ExpressionExtensions;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
@@ -53,6 +52,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
         readonly IRelationalTypeMappingSource _typeMappingSource;
         readonly NpgsqlJsonPocoTranslator _jsonPocoTranslator;
+
+        static Type _nodaTimePeriodType;
 
         public NpgsqlSqlTranslatingExpressionVisitor(
             [NotNull] RelationalSqlTranslatingExpressionVisitorDependencies dependencies,
@@ -305,24 +306,32 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         /// <inheritdoc />
         protected override Expression VisitBinary(BinaryExpression binaryExpression)
         {
-            // Support DateTime subtraction, which returns a TimeSpan.
-            if (binaryExpression.NodeType == ExpressionType.Subtract
-                && binaryExpression.Left.Type.UnwrapNullableType() == typeof(DateTime)
-                && binaryExpression.Left.Type.UnwrapNullableType() == typeof(DateTime))
+            if (binaryExpression.NodeType == ExpressionType.Subtract)
             {
-                if (TranslationFailed(binaryExpression.Left, Visit(TryRemoveImplicitConvert(binaryExpression.Left)), out var sqlLeft)
-                    || TranslationFailed(binaryExpression.Right, Visit(TryRemoveImplicitConvert(binaryExpression.Right)), out var sqlRight))
+                if (binaryExpression.Left.Type.UnwrapNullableType().FullName == "NodaTime.LocalDate" &&
+                    binaryExpression.Right.Type.UnwrapNullableType().FullName == "NodaTime.LocalDate")
                 {
-                    return null;
+                    if (TranslationFailed(binaryExpression.Left, Visit(TryRemoveImplicitConvert(binaryExpression.Left)), out var sqlLeft)
+                        || TranslationFailed(binaryExpression.Right, Visit(TryRemoveImplicitConvert(binaryExpression.Right)), out var sqlRight))
+                    {
+                        return null;
+                    }
+
+                    var subtraction = _sqlExpressionFactory.MakeBinary(
+                        ExpressionType.Subtract, sqlLeft, sqlRight, _typeMappingSource.FindMapping(typeof(int)));
+
+                    return PostgresFunctionExpression.CreateWithNamedArguments(
+                        "MAKE_INTERVAL",
+                        new[] {  subtraction },
+                        new[] { "days" },
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[1],
+                        builtIn: true,
+                        _nodaTimePeriodType ??= binaryExpression.Left.Type.Assembly.GetType("NodaTime.Period"),
+                        typeMapping: null);
                 }
 
-                var inferredDateTimeTypeMapping = ExpressionExtensions.InferTypeMapping(sqlLeft, sqlRight);
-                return new SqlBinaryExpression(
-                    ExpressionType.Subtract,
-                    _sqlExpressionFactory.ApplyTypeMapping(sqlLeft, inferredDateTimeTypeMapping),
-                    _sqlExpressionFactory.ApplyTypeMapping(sqlRight, inferredDateTimeTypeMapping),
-                    typeof(TimeSpan),
-                    null);
+                // Note: many other date/time arithmetic operators are fully supported as-is by PostgreSQL - see NpgsqlSqlExpressionFactory
             }
 
             if (binaryExpression.NodeType == ExpressionType.ArrayIndex)

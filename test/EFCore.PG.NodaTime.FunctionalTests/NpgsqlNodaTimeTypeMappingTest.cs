@@ -186,6 +186,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                             Period.FromMinutes(6) + Period.FromSeconds(7) + Period.FromMilliseconds(8) + Period.FromNanoseconds(9)));
         }
 
+        [Fact]
+        public void GenerateCodeLiteral_returns_duration_literal()
+        {
+            Assert.Equal("NodaTime.Duration.FromHours(5)", CodeLiteral(Duration.FromHours(5)));
+
+            Assert.Equal("NodaTime.Duration.FromDays(4) + NodaTime.Duration.FromHours(5) + NodaTime.Duration.FromMinutes(6L) + " +
+                         "NodaTime.Duration.FromSeconds(7L) + NodaTime.Duration.FromMilliseconds(8L)",
+                CodeLiteral(Duration.FromDays(4) + Duration.FromHours(5) + Duration.FromMinutes(6) + Duration.FromSeconds(7) +
+                            Duration.FromMilliseconds(8)));
+        }
+
         #region Support
 
         static readonly NpgsqlTypeMappingSource Mapper = new NpgsqlTypeMappingSource(
