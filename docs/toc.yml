@@ -2,7 +2,7 @@
   href: index.md
 - name: Release notes
   items:
-  - name: "5.0 (RC)"
+  - name: "5.0"
     href: release-notes/5.0.md
   - name: "3.1"
     href: release-notes/3.1.md
