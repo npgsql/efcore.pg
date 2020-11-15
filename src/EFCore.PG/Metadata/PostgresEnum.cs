@@ -12,7 +12,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
     /// <summary>
     /// Represents the metadata for a PostgreSQL enum.
     /// </summary>
-    [PublicAPI]
     public class PostgresEnum
     {
         [NotNull] readonly IAnnotatable _annotatable;

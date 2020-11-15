@@ -17,7 +17,6 @@ namespace Microsoft.EntityFrameworkCore
     /// <summary>
     /// Npgsql specific extension methods for <see cref="ModelBuilder"/>.
     /// </summary>
-    [PublicAPI]
     public static class NpgsqlModelBuilderExtensions
     {
         #region HiLo

@@ -12,7 +12,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
     /// <summary>
     /// Represents the metadata for a PostgreSQL extension.
     /// </summary>
-    [PublicAPI]
     public class PostgresExtension
     {
         [NotNull] readonly IAnnotatable _annotatable;

@@ -12,7 +12,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
     /// <summary>
     /// Represents the metadata for a PostgreSQL range.
     /// </summary>
-    [PublicAPI]
     public class PostgresRange
     {
         [NotNull] readonly IAnnotatable _annotatable;
