@@ -31,11 +31,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             }
         }
 
-        public VersionScope WithPostgresVersion(Version version) => new VersionScope(this, version);
+        public VersionScope WithPostgresVersion(Version version) => new(this, version);
 
         protected NpgsqlTestHelpers() {}
 
-        public static NpgsqlTestHelpers Instance { get; } = new NpgsqlTestHelpers();
+        public static NpgsqlTestHelpers Instance { get; } = new();
 
         public override IServiceCollection AddProviderServices(IServiceCollection services)
             => services.AddEntityFrameworkNpgsql();

@@ -5,7 +5,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
 {
     public class NpgsqlTestStoreFactory : RelationalTestStoreFactory
     {
-        public static NpgsqlTestStoreFactory Instance { get; } = new NpgsqlTestStoreFactory();
+        public static NpgsqlTestStoreFactory Instance { get; } = new();
 
         protected NpgsqlTestStoreFactory()
         {

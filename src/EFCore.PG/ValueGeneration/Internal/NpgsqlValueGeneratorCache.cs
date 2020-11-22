@@ -15,7 +15,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
     public class NpgsqlValueGeneratorCache : ValueGeneratorCache, INpgsqlValueGeneratorCache
     {
         readonly ConcurrentDictionary<string, NpgsqlSequenceValueGeneratorState> _sequenceGeneratorCache
-            = new ConcurrentDictionary<string, NpgsqlSequenceValueGeneratorState>();
+            = new();
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="ValueGeneratorCache" /> class.

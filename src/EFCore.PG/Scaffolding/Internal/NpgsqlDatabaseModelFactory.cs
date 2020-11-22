@@ -40,7 +40,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
         /// The <see cref="Regex"/> to extract the schema and/or table names.
         /// </summary>
         static readonly Regex SchemaTableNameExtractor =
-            new Regex(
+            new(
                 string.Format(
                     CultureInfo.InvariantCulture,
                     @"^{0}(?:\.{1})?$",

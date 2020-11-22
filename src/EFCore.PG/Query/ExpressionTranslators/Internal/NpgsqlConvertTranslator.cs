@@ -15,7 +15,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     /// </summary>
     public class NpgsqlConvertTranslator : IMethodCallTranslator
     {
-        static readonly Dictionary<string, string> TypeMapping = new Dictionary<string, string>
+        static readonly Dictionary<string, string> TypeMapping = new()
         {
             [nameof(Convert.ToBoolean)] = "bool",
             [nameof(Convert.ToByte)]    = "smallint",
@@ -27,7 +27,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             [nameof(Convert.ToString)]  = "text"
         };
 
-        static readonly List<Type> SupportedTypes = new List<Type>
+        static readonly List<Type> SupportedTypes = new()
         {
             typeof(bool),
             typeof(byte),

@@ -143,7 +143,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     typeof(bool));
         }
 
-        static readonly ConcurrentDictionary<Type, object> _defaults = new ConcurrentDictionary<Type, object>();
+        static readonly ConcurrentDictionary<Type, object> _defaults = new();
 
         static object GetDefaultValue(Type type)
             => type.IsValueType ? _defaults.GetOrAdd(type, Activator.CreateInstance) : null;

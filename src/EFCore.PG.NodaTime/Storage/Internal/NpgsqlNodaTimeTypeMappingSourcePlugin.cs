@@ -18,18 +18,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
         #region TypeMapping
 
-        readonly TimestampInstantMapping _timestampInstant = new TimestampInstantMapping();
-        readonly TimestampLocalDateTimeMapping _timestampLocalDateTime = new TimestampLocalDateTimeMapping();
+        readonly TimestampInstantMapping _timestampInstant = new();
+        readonly TimestampLocalDateTimeMapping _timestampLocalDateTime = new();
 
-        readonly TimestampTzInstantMapping _timestamptzInstant = new TimestampTzInstantMapping();
-        readonly TimestampTzZonedDateTimeMapping _timestamptzZonedDateTime = new TimestampTzZonedDateTimeMapping();
-        readonly TimestampTzOffsetDateTimeMapping _timestamptzOffsetDateTime = new TimestampTzOffsetDateTimeMapping();
+        readonly TimestampTzInstantMapping _timestamptzInstant = new();
+        readonly TimestampTzZonedDateTimeMapping _timestamptzZonedDateTime = new();
+        readonly TimestampTzOffsetDateTimeMapping _timestamptzOffsetDateTime = new();
 
-        readonly DateMapping _date = new DateMapping();
-        readonly TimeMapping _time = new TimeMapping();
-        readonly TimeTzMapping _timetz = new TimeTzMapping();
-        readonly PeriodIntervalMapping _periodInterval = new PeriodIntervalMapping();
-        readonly DurationIntervalMapping _durationInterval = new DurationIntervalMapping();
+        readonly DateMapping _date = new();
+        readonly TimeMapping _time = new();
+        readonly TimeTzMapping _timetz = new();
+        readonly PeriodIntervalMapping _periodInterval = new();
+        readonly DurationIntervalMapping _durationInterval = new();
 
         readonly NpgsqlRangeTypeMapping _timestampLocalDateTimeRange;
         readonly NpgsqlRangeTypeMapping _timestampInstantRange;

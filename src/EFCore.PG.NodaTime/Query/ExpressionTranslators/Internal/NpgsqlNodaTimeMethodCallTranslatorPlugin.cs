@@ -48,7 +48,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
         /// <summary>
         /// The mapping of supported method translations.
         /// </summary>
-        [NotNull] static readonly Dictionary<MethodInfo, string> PeriodMethodMap = new Dictionary<MethodInfo, string>
+        [NotNull] static readonly Dictionary<MethodInfo, string> PeriodMethodMap = new()
         {
             { typeof(Period).GetRuntimeMethod(nameof(Period.FromYears),        new[] { typeof(int) }),  "years" },
             { typeof(Period).GetRuntimeMethod(nameof(Period.FromMonths),       new[] { typeof(int) }),  "months" },

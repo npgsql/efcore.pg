@@ -18,7 +18,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     /// </remarks>
     public class NpgsqlHstoreTypeMapping : NpgsqlTypeMapping
     {
-        static readonly HstoreMutableComparer MutableComparerInstance = new HstoreMutableComparer();
+        static readonly HstoreMutableComparer MutableComparerInstance = new();
 
         public NpgsqlHstoreTypeMapping([NotNull] Type clrType)
             : base(

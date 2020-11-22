@@ -611,7 +611,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
             Assert.False(comparer.Equals(source, JsonDocument.Parse(json).RootElement));
         }
 
-        static readonly Customer SampleCustomer = new Customer
+        static readonly Customer SampleCustomer = new()
         {
             Name = "Joe",
             Age = 25,
@@ -652,7 +652,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
 
         #region Support
 
-        static readonly NpgsqlTypeMappingSource Mapper = new NpgsqlTypeMappingSource(
+        static readonly NpgsqlTypeMappingSource Mapper = new(
             new TypeMappingSourceDependencies(
                 new ValueConverterSelector(new ValueConverterSelectorDependencies()),
                 Array.Empty<ITypeMappingSourcePlugin>()
@@ -666,7 +666,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
 
         static RelationalTypeMapping GetMapping(Type clrType) => (RelationalTypeMapping)Mapper.FindMapping(clrType);
 
-        static readonly CSharpHelper CsHelper = new CSharpHelper(Mapper);
+        static readonly CSharpHelper CsHelper = new(Mapper);
 
         static string CodeLiteral(object value) => CsHelper.UnknownLiteral(value);
 

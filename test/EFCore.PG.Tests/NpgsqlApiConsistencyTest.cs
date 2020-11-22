@@ -32,7 +32,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 return true;
             }
 
-            public override HashSet<Type> FluentApiTypes { get; } = new HashSet<Type>()
+            public override HashSet<Type> FluentApiTypes { get; } = new()
             {
                 typeof(NpgsqlDbContextOptionsBuilder),
                 typeof(NpgsqlDbContextOptionsBuilderExtensions),
@@ -45,7 +45,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             };
 
             public override List<(Type Type, Type ReadonlyExtensions, Type MutableExtensions, Type ConventionExtensions, Type ConventionBuilderExtensions)> MetadataExtensionTypes { get; }
-                = new List<(Type, Type, Type, Type, Type)>
+                = new()
                 {
                     { (typeof(IModel), typeof(NpgsqlModelExtensions), typeof(NpgsqlModelExtensions), typeof(NpgsqlModelExtensions), typeof(NpgsqlModelBuilderExtensions)) },
                     { (typeof(IEntityType), typeof(NpgsqlEntityTypeExtensions), typeof(NpgsqlEntityTypeExtensions), typeof(NpgsqlEntityTypeExtensions), typeof(NpgsqlEntityTypeBuilderExtensions)) },
@@ -53,7 +53,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                     { (typeof(IIndex), typeof(NpgsqlIndexExtensions), typeof(NpgsqlIndexExtensions), typeof(NpgsqlIndexExtensions), typeof(NpgsqlIndexBuilderExtensions)) }
                 };
 
-            public override HashSet<MethodInfo> MetadataMethodExceptions { get; } = new HashSet<MethodInfo>
+            public override HashSet<MethodInfo> MetadataMethodExceptions { get; } = new()
             {
                 typeof(NpgsqlEntityTypeExtensions).GetRuntimeMethod(
                     nameof(NpgsqlEntityTypeExtensions.SetStorageParameter),

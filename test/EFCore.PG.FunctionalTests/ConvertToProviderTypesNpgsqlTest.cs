@@ -74,7 +74,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
             public override bool SupportsDecimalComparisons => true;
 
-            public override DateTime DefaultDateTime => new DateTime();
+            public override DateTime DefaultDateTime => new();
         }
     }
 }

@@ -91,7 +91,7 @@ namespace Microsoft.EntityFrameworkCore
         #region CockroachDb interleave in parent
 
         public static CockroachDbInterleaveInParent GetCockroachDbInterleaveInParent([NotNull] this IEntityType entityType)
-            => new CockroachDbInterleaveInParent(entityType);
+            => new(entityType);
 
         #endregion CockroachDb interleave in parent
     }
