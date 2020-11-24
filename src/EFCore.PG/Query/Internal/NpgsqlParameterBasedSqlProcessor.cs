@@ -8,13 +8,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 {
     public class NpgsqlParameterBasedSqlProcessor : RelationalParameterBasedSqlProcessor
     {
-        readonly SqlNullabilityProcessor _sqlNullabilityProcessor;
-
         public NpgsqlParameterBasedSqlProcessor(
             [NotNull] RelationalParameterBasedSqlProcessorDependencies dependencies,
             bool useRelationalNulls)
             : base(dependencies, useRelationalNulls)
-            => _sqlNullabilityProcessor = new NpgsqlSqlNullabilityProcessor(dependencies, useRelationalNulls);
+        {
+        }
 
         /// <inheritdoc />
         protected override SelectExpression ProcessSqlNullability(
@@ -23,7 +22,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             Check.NotNull(selectExpression, nameof(selectExpression));
             Check.NotNull(parametersValues, nameof(parametersValues));
 
-            return _sqlNullabilityProcessor.Process(selectExpression, parametersValues, out canCache);
+            return new NpgsqlSqlNullabilityProcessor(Dependencies, UseRelationalNulls).Process(selectExpression, parametersValues, out canCache);
         }
     }
 }
