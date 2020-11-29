@@ -53,10 +53,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
             [CanBeNull] RelationalTypeMapping typeMapping)
             : base(typeof(bool), typeMapping)
         {
-            if (!array.Type.IsArrayOrGenericList())
-                throw new ArgumentException("Array expression must be of type array or List<>", nameof(array));
-            if (array is SqlConstantExpression && operatorType == PostgresAnyOperatorType.Equal)
-                throw new ArgumentException($"Use {nameof(InExpression)} for equality against constant arrays", nameof(array));
+            if (!(array is SqlConstantExpression { Value: null }))
+            {
+                if (!array.Type.IsArrayOrGenericList())
+                    throw new ArgumentException("Array expression must be of type array or List<>", nameof(array));
+                if (array is SqlConstantExpression && operatorType == PostgresAnyOperatorType.Equal)
+                    throw new ArgumentException($"Use {nameof(InExpression)} for equality against constant arrays", nameof(array));
+            }
 
             Item = item;
             Array = array;
