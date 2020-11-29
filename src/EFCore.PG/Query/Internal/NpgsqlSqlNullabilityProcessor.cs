@@ -87,13 +87,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 return updated;
             }
 
-            if (array is SqlConstantExpression)
-            {
-                throw new ArgumentException(
-                    $"{nameof(PostgresAnyExpression)} is not supported with operator {anyExpression.OperatorType}, " +
-                    $"use {nameof(InExpression)} instead.");
-            }
-
             // For PostgresAnyOperatorType.Equal, we perform null compensation.
             // When the array is a parameter, we don't look at the values (in contrast to relational's
             // VisitIn which expands parameter arrays into constants).
