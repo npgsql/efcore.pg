@@ -30,17 +30,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
                 .GetOrCreate(NpgsqlNorthwindTestStoreFactory.Name).Initialize(null, (Func<DbContext>)null, null);
 
         public static NpgsqlTestStore GetOrCreate(string name)
-             => new NpgsqlTestStore(name);
+             => new(name);
 
         // ReSharper disable once UnusedMember.Global
         public static NpgsqlTestStore GetOrCreateInitialized(string name)
             => new NpgsqlTestStore(name).InitializeNpgsql(null, (Func<DbContext>)null, null);
 
         public static NpgsqlTestStore GetOrCreate(string name, string scriptPath, string additionalSql = null)
-            => new NpgsqlTestStore(name, scriptPath, additionalSql);
+            => new(name, scriptPath, additionalSql);
 
         public static NpgsqlTestStore Create(string name)
-            => new NpgsqlTestStore(name, shared: false);
+            => new(name, shared: false);
 
         public static NpgsqlTestStore CreateInitialized(string name)
             => new NpgsqlTestStore(name, shared: false)

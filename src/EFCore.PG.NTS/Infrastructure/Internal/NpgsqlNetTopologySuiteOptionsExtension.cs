@@ -24,7 +24,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         protected NpgsqlNetTopologySuiteOptionsExtension([NotNull] NpgsqlNetTopologySuiteOptionsExtension copyFrom)
             => IsGeographyDefault = copyFrom.IsGeographyDefault;
 
-        protected virtual NpgsqlNetTopologySuiteOptionsExtension Clone() => new NpgsqlNetTopologySuiteOptionsExtension(this);
+        protected virtual NpgsqlNetTopologySuiteOptionsExtension Clone() => new(this);
 
         public virtual void ApplyServices(IServiceCollection services)
             => services.AddEntityFrameworkNpgsqlNetTopologySuite();

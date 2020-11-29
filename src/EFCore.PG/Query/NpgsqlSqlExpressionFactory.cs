@@ -109,7 +109,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             bool returnsText,
             [NotNull] Type type,
             [CanBeNull] RelationalTypeMapping typeMapping = null)
-            => new PostgresJsonTraversalExpression(
+            => new(
                 ApplyDefaultTypeMapping(expression),
                 path.Select(ApplyDefaultTypeMapping).ToArray(),
                 returnsText,

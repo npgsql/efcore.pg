@@ -539,7 +539,7 @@ WHERE json_typeof(j.""Customer""#>'{Statistics,Visits}') = 'number'");
                     new JsonEntity { Id = 2, Customer = CreateCustomer2() });
                 context.SaveChanges();
 
-                static Customer CreateCustomer1() => new Customer
+                static Customer CreateCustomer1() => new()
                 {
                     Name = "Joe",
                     Age = 25,
@@ -574,7 +574,7 @@ WHERE json_typeof(j.""Customer""#>'{Statistics,Visits}') = 'number'");
                     }
                 };
 
-                static Customer CreateCustomer2() => new Customer
+                static Customer CreateCustomer2() => new()
                 {
                     Name = "Moe",
                     Age = 35,

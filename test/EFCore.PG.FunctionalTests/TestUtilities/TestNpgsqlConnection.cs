@@ -15,10 +15,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
         }
 
         public string ErrorCode { get; set; } = "XX000";
-        public Queue<bool?> OpenFailures { get; } = new Queue<bool?>();
+        public Queue<bool?> OpenFailures { get; } = new();
         public int OpenCount { get; set; }
-        public Queue<bool?> CommitFailures { get; } = new Queue<bool?>();
-        public Queue<bool?> ExecutionFailures { get; } = new Queue<bool?>();
+        public Queue<bool?> CommitFailures { get; } = new();
+        public Queue<bool?> ExecutionFailures { get; } = new();
         public int ExecutionCount { get; set; }
 
         public override bool Open(bool errorsExpected = false)

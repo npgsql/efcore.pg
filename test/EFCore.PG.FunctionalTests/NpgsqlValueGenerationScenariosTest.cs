@@ -275,8 +275,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 context.Database.EnsureCreated();
                 var blogs = new List<Blog>
                 {
-                    new Blog { Name = "One Unicorn" },
-                    new Blog { Name = "Two Unicorns", CreatedOn = new DateTime(1969, 8, 3, 0, 10, 0) }
+                    new() { Name = "One Unicorn" },
+                    new() { Name = "Two Unicorns", CreatedOn = new DateTime(1969, 8, 3, 0, 10, 0) }
                 };
                 context.AddRange(blogs);
                 context.SaveChanges();

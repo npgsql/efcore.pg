@@ -802,7 +802,7 @@ namespace Microsoft.EntityFrameworkCore
                 "\r\n-- Redundant NotNull annotations --\r\n" + string.Join(Environment.NewLine, parametersWithRedundantAttribute));
         }
 
-        private static readonly HashSet<MethodInfo> _nonCancellableAsyncMethods = new HashSet<MethodInfo>();
+        private static readonly HashSet<MethodInfo> _nonCancellableAsyncMethods = new();
         protected virtual HashSet<MethodInfo> NonCancellableAsyncMethods => _nonCancellableAsyncMethods;
 
         [ConditionalFact]
@@ -902,15 +902,15 @@ namespace Microsoft.EntityFrameworkCore
 
             public abstract bool TryGetProviderOptionsDelegate (out Action<DbContextOptionsBuilder> configureOptions);
 
-            public virtual HashSet<Type> FluentApiTypes { get; } = new HashSet<Type>();
-            public virtual HashSet<MethodInfo> NonVirtualMethods { get; } = new HashSet<MethodInfo>();
-            public virtual HashSet<MethodInfo> NotAnnotatedMethods { get; } = new HashSet<MethodInfo>();
-            public virtual HashSet<MethodInfo> AsyncMethodExceptions { get; } = new HashSet<MethodInfo>();
-            public virtual HashSet<MethodInfo> UnmatchedMetadataMethods { get; } = new HashSet<MethodInfo>();
-            public virtual HashSet<MethodInfo> MetadataMethodExceptions { get; } = new HashSet<MethodInfo>();
+            public virtual HashSet<Type> FluentApiTypes { get; } = new();
+            public virtual HashSet<MethodInfo> NonVirtualMethods { get; } = new();
+            public virtual HashSet<MethodInfo> NotAnnotatedMethods { get; } = new();
+            public virtual HashSet<MethodInfo> AsyncMethodExceptions { get; } = new();
+            public virtual HashSet<MethodInfo> UnmatchedMetadataMethods { get; } = new();
+            public virtual HashSet<MethodInfo> MetadataMethodExceptions { get; } = new();
 
             public virtual HashSet<PropertyInfo> ComputedDependencyProperties { get; }
-                = new HashSet<PropertyInfo>
+                = new()
                 {
                     typeof(ProviderConventionSetBuilderDependencies).GetProperty(nameof(ProviderConventionSetBuilderDependencies.ContextType)),
                     typeof(QueryCompilationContextDependencies).GetProperty(nameof(QueryCompilationContextDependencies.ContextType)),
@@ -924,7 +924,7 @@ namespace Microsoft.EntityFrameworkCore
 
 
             public Dictionary<Type, (Type Mutable, Type Convention, Type ConventionBuilder)> MetadataTypes { get; }
-                = new Dictionary<Type, (Type, Type, Type)>
+                = new()
                 {
                     { typeof(IModel), (typeof(IMutableModel), typeof(IConventionModel), typeof(IConventionModelBuilder)) },
                     { typeof(IAnnotatable), (typeof(IMutableAnnotatable), typeof(IConventionAnnotatable), typeof(IConventionAnnotatableBuilder)) },
@@ -942,15 +942,15 @@ namespace Microsoft.EntityFrameworkCore
                     { typeof(IPropertyBase), (typeof(IMutablePropertyBase), typeof(IConventionPropertyBase), null) }
                 };
 
-            public Dictionary<Type, Type> MutableMetadataTypes { get; } = new Dictionary<Type, Type>();
-            public Dictionary<Type, Type> ConventionMetadataTypes { get; } = new Dictionary<Type, Type>();
+            public Dictionary<Type, Type> MutableMetadataTypes { get; } = new();
+            public Dictionary<Type, Type> ConventionMetadataTypes { get; } = new();
 
             public virtual List<(Type Type, Type ReadonlyExtensions, Type MutableExtensions, Type ConventionExtensions, Type ConventionBuilderExtensions)> MetadataExtensionTypes { get; }
-                = new List<(Type, Type, Type, Type, Type)>();
+                = new();
 
             public List<(IReadOnlyList<MethodInfo> ReadOnly, IReadOnlyList<MethodInfo> Mutable, IReadOnlyList<MethodInfo> Convention, IReadOnlyList<MethodInfo> ConventionBuilder)>
                 MetadataMethods { get; }
-                = new List<(IReadOnlyList<MethodInfo>, IReadOnlyList<MethodInfo>, IReadOnlyList<MethodInfo>, IReadOnlyList<MethodInfo>)>();
+                = new();
 
             protected virtual void Initialize()
             {

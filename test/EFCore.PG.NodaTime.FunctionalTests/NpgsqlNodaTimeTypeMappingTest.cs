@@ -199,7 +199,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
         #region Support
 
-        static readonly NpgsqlTypeMappingSource Mapper = new NpgsqlTypeMappingSource(
+        static readonly NpgsqlTypeMappingSource Mapper = new(
             new TypeMappingSourceDependencies(
                 new ValueConverterSelector(new ValueConverterSelectorDependencies()),
                 Array.Empty<ITypeMappingSourcePlugin>()),
@@ -218,7 +218,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         static RelationalTypeMapping GetMapping(Type clrType, string storeType)
             => Mapper.FindMapping(clrType, storeType);
 
-        static readonly CSharpHelper CsHelper = new CSharpHelper(Mapper);
+        static readonly CSharpHelper CsHelper = new(Mapper);
 
         static string CodeLiteral(object value) => CsHelper.UnknownLiteral(value);
 

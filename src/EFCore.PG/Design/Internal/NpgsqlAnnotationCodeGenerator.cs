@@ -165,7 +165,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             case NpgsqlValueGenerationStrategy.SerialColumn:
                 return new List<MethodCallCodeFragment>
                 {
-                    new MethodCallCodeFragment(onModel
+                    new(onModel
                         ? nameof(NpgsqlModelBuilderExtensions.UseSerialColumns)
                         : nameof(NpgsqlPropertyBuilderExtensions.UseSerialColumn))
                 };
@@ -173,7 +173,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             case NpgsqlValueGenerationStrategy.IdentityAlwaysColumn:
                 return new List<MethodCallCodeFragment>
                 {
-                    new MethodCallCodeFragment(onModel
+                    new(onModel
                         ? nameof(NpgsqlModelBuilderExtensions.UseIdentityAlwaysColumns)
                         : nameof(NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn))
                 };
@@ -181,7 +181,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             case NpgsqlValueGenerationStrategy.IdentityByDefaultColumn:
                 return new List<MethodCallCodeFragment>
                 {
-                    new MethodCallCodeFragment(onModel
+                    new(onModel
                         ? nameof(NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns)
                         : nameof(NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn))
                 };
@@ -191,7 +191,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
                 var schema = GetAndRemove<string>(NpgsqlAnnotationNames.HiLoSequenceSchema);
                 return new List<MethodCallCodeFragment>
                 {
-                    new MethodCallCodeFragment(
+                    new(
                         nameof(NpgsqlModelBuilderExtensions.UseHiLo),
                         (name, schema) switch
                         {
@@ -222,7 +222,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             var identityOptions = IdentitySequenceOptionsData.Deserialize(annotationValue);
             return new List<MethodCallCodeFragment>
             {
-                new MethodCallCodeFragment(
+                new(
                     nameof(NpgsqlPropertyBuilderExtensions.HasIdentityOptions),
                     identityOptions.StartValue,
                     identityOptions.IncrementBy == 1 ? null : (long?) identityOptions.IncrementBy,

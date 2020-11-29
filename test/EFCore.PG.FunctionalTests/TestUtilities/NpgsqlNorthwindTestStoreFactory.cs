@@ -7,7 +7,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
     {
         public const string Name = "Northwind";
         public static readonly string NorthwindConnectionString = NpgsqlTestStore.CreateConnectionString(Name);
-        public new static NpgsqlNorthwindTestStoreFactory Instance { get; } = new NpgsqlNorthwindTestStoreFactory();
+        public new static NpgsqlNorthwindTestStoreFactory Instance { get; } = new();
 
         protected NpgsqlNorthwindTestStoreFactory()
         {

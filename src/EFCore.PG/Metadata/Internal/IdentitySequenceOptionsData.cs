@@ -9,7 +9,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
 {
     public class IdentitySequenceOptionsData : IEquatable<IdentitySequenceOptionsData>
     {
-        public static readonly IdentitySequenceOptionsData Empty = new IdentitySequenceOptionsData();
+        public static readonly IdentitySequenceOptionsData Empty = new();
 
         public virtual long? StartValue { get; set; }
         public virtual long IncrementBy { get; set; } = 1;

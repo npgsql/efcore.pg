@@ -48,7 +48,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
             public override bool SupportsDecimalComparisons => true;
 
-            public override DateTime DefaultDateTime => new DateTime();
+            public override DateTime DefaultDateTime => new();
 
             // TODO: Remove the following after https://github.com/aspnet/EntityFrameworkCore/pull/11587 is merged
             protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)

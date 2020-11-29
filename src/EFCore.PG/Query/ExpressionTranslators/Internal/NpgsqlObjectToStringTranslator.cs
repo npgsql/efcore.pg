@@ -12,7 +12,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 {
     public class NpgsqlObjectToStringTranslator : IMethodCallTranslator
     {
-        static readonly List<Type> SupportedTypes = new List<Type>
+        static readonly List<Type> SupportedTypes = new()
         {
             typeof(int),
             typeof(long),

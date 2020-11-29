@@ -20,7 +20,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
         public override MethodCallCodeFragment GenerateUseProvider(
             string connectionString,
             MethodCallCodeFragment providerOptions)
-            => new MethodCallCodeFragment(
+            => new(
                 nameof(NpgsqlDbContextOptionsBuilderExtensions.UseNpgsql),
                 providerOptions == null
                     ? new object[] { connectionString }

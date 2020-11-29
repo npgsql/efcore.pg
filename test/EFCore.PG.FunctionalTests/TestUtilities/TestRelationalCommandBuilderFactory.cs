@@ -116,8 +116,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             }
 
             public Task<int> ExecuteNonQueryAsync(
-                RelationalCommandParameterObject parameterObject,
-                CancellationToken cancellationToken = new CancellationToken())
+                RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken = default)
             {
                 var connection = parameterObject.Connection;
                 var errorNumber = PreExecution(connection);
@@ -148,8 +147,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             }
 
             public async Task<object> ExecuteScalarAsync(
-                RelationalCommandParameterObject parameterObject,
-                CancellationToken cancellationToken = new CancellationToken())
+                RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken = default)
             {
                 var connection = parameterObject.Connection;
                 var errorNumber = PreExecution(connection);
@@ -181,8 +179,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             }
 
             public async Task<RelationalDataReader> ExecuteReaderAsync(
-                RelationalCommandParameterObject parameterObject,
-                CancellationToken cancellationToken = new CancellationToken())
+                RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken = default)
             {
                 var connection = parameterObject.Connection;
                 var errorNumber = PreExecution(connection);

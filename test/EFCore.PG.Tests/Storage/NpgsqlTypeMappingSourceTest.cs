@@ -167,7 +167,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
                        ? _dummyMapping
                        : null;
 
-            DummyMapping _dummyMapping = new DummyMapping();
+            DummyMapping _dummyMapping = new();
 
             class DummyMapping : RelationalTypeMapping
             {

@@ -31,7 +31,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         /// </p>
         /// </remarks>
         [NotNull] static readonly ValueComparer<string> CharacterValueComparer =
-            new ValueComparer<string>(
+            new(
                 (x, y) => EqualsWithoutTrailingWhitespace(x, y),
                 x => GetHashCodeWithoutTrailingWhitespace(x));
 

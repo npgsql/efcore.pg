@@ -56,7 +56,7 @@ namespace Microsoft.EntityFrameworkCore.Diagnostics
         }
 
         static readonly string ScaffoldingPrefix = DbLoggerCategory.Scaffolding.Name + ".";
-        static EventId MakeScaffoldingId(Id id) => new EventId((int)id, ScaffoldingPrefix + id);
+        static EventId MakeScaffoldingId(Id id) => new((int)id, ScaffoldingPrefix + id);
 
         /// <summary>
         ///   <para>

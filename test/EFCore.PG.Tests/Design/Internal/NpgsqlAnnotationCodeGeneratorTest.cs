@@ -134,7 +134,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
         }
 
         NpgsqlAnnotationCodeGenerator CreateGenerator()
-            => new NpgsqlAnnotationCodeGenerator(new AnnotationCodeGeneratorDependencies(
+            => new(new AnnotationCodeGeneratorDependencies(
                 new NpgsqlTypeMappingSource(
                     new TypeMappingSourceDependencies(
                         new ValueConverterSelector(new ValueConverterSelectorDependencies()),

@@ -82,7 +82,7 @@ namespace System.Reflection
 
         sealed class MemberInfoComparer : IEqualityComparer<MemberInfo>
         {
-            public static readonly MemberInfoComparer Instance = new MemberInfoComparer();
+            public static readonly MemberInfoComparer Instance = new();
 
             public bool Equals(MemberInfo x, MemberInfo y)
                 => x.IsSameAs(y);

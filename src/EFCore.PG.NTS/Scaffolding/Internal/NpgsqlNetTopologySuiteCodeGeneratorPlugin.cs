@@ -7,6 +7,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NetTopologySuite.Scaffolding.Int
     public class NpgsqlNetTopologySuiteCodeGeneratorPlugin : ProviderCodeGeneratorPlugin
     {
         public override MethodCallCodeFragment GenerateProviderOptions()
-            => new MethodCallCodeFragment(nameof(NpgsqlNetTopologySuiteDbContextOptionsBuilderExtensions.UseNetTopologySuite));
+            => new(nameof(NpgsqlNetTopologySuiteDbContextOptionsBuilderExtensions.UseNetTopologySuite));
     }
 }

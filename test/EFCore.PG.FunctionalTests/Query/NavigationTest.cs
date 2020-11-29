@@ -108,6 +108,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 .Options;
         }
 
-        public virtual GoTContext CreateContext() => new GoTContext(_options);
+        public virtual GoTContext CreateContext() => new(_options);
     }
 }

@@ -567,7 +567,7 @@ WHERE m.""TimeSpanAsTime"" = @__timeSpan_0");
         }
 
         static MappedDataTypes CreateMappedDataTypes(int id)
-            => new MappedDataTypes
+            => new()
             {
                 Int = id,
                 LongAsBigint = 78L,
@@ -1015,7 +1015,7 @@ FROM ""MappedDataTypes"" AS m");
 
             public override bool SupportsBinaryKeys => true;
 
-            public override DateTime DefaultDateTime => new DateTime();
+            public override DateTime DefaultDateTime => new();
         }
 
         protected enum StringEnum16 : short
