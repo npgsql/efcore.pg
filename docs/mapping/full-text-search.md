@@ -48,11 +48,12 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 {
     modelBuilder.Entity<Product>()
         .HasGeneratedTsVectorColumn(
-            p => b.TsVector,
+            p => p.TsVector,
             "english",  // Text search config
             p => new { p.Name, p.Description })  // Included properties
-        .HasIndex(b => b.TsVector)
+        .HasIndex(p => p.TsVector)
         .HasMethod("GIN"); // Index method on the search vector (GIN or GIST)
+}
 ```
 
 #### [Older Versions](#tab/older)
