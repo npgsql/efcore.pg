@@ -2,8 +2,10 @@
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
@@ -25,6 +27,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
                     x.Property<int>("IdentityByDefault").UseIdentityByDefaultColumn();
                     x.Property<int>("IdentityAlways").UseIdentityAlwaysColumn();
                     x.Property<int>("Serial").UseSerialColumn();
+                    x.Property<int>("None").Metadata.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.None);
                 });
 
             // Note: both serial and identity-by-default columns are considered by-convention - we don't want
@@ -59,6 +62,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
                 .Single();
             Assert.Equal(nameof(NpgsqlPropertyBuilderExtensions.UseSerialColumn), result.Method);
             Assert.Equal(0, result.Arguments.Count);
+
+            property = entity.GetProperties().Single(p => p.Name == "None");
+            annotations = property.GetAnnotations().ToDictionary(a => a.Name, a => a);
+            generator.RemoveAnnotationsHandledByConventions(property, annotations);
+            Assert.Contains(annotations, kv => kv.Key == NpgsqlAnnotationNames.ValueGenerationStrategy);
+            result = generator.GenerateFluentApiCalls(property, property.GetAnnotations().ToDictionary(a => a.Name, a => a))
+                .Single();
+            Assert.Equal(nameof(PropertyBuilder.HasAnnotation), result.Method);
+            Assert.Collection(result.Arguments,
+                a => Assert.Equal(NpgsqlAnnotationNames.ValueGenerationStrategy, a),
+                a => Assert.Equal(NpgsqlValueGenerationStrategy.None, a));
         }
 
         [Fact]
