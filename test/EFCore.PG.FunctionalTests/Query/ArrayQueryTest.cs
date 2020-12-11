@@ -370,6 +370,25 @@ FROM ""SomeEntities"" AS s
 WHERE s.""StringArray"" @> ARRAY[NULL]::text[]");
         }
 
+        [Theory]
+        [MemberData(nameof(IsListData))]
+        public void Nullable_array_column_Contains_literal_item(bool list)
+        {
+            using var ctx = CreateContext();
+            var id = ctx.SomeEntities
+                .Where(e => e.NullableIntArray.Contains(3))
+                .Select(e => e.Id)
+                .OverArrayOrList(list)
+                .Single();
+
+            Assert.Equal(1, id);
+            AssertSql(list,
+                @"SELECT s.""Id""
+FROM ""SomeEntities"" AS s
+WHERE s.""NullableIntArray"" @> ARRAY[3]::integer[]
+LIMIT 2");
+        }
+
         [Fact]
         public void Array_constant_Contains()
         {
@@ -490,6 +509,26 @@ WHERE s.""NullableText"" = ANY (@__array_0) OR ((s.""NullableText"" IS NULL) AND
 SELECT COUNT(*)::INT
 FROM ""SomeEntities"" AS s
 WHERE NOT (s.""NullableText"" = ANY (@__array_0) AND (s.""NullableText"" = ANY (@__array_0) IS NOT NULL)) AND ((s.""NullableText"" IS NOT NULL) OR (array_position(@__array_0, NULL) IS NULL))");
+        }
+
+        [Fact]
+        public void List_param_Contains_non_nullable_column()
+        {
+            using var ctx = CreateContext();
+            var list = new List<int> { 1 };
+            var id = ctx.SomeEntities
+                .Where(e => list.Contains(e.Id))
+                .Select(e => e.Id)
+                .Single();
+
+            Assert.Equal(1, id);
+            AssertSql(
+                @"@__list_0='System.Collections.Generic.List`1[System.Int32]' (DbType = Object)
+
+SELECT s.""Id""
+FROM ""SomeEntities"" AS s
+WHERE s.""Id"" = ANY (@__list_0)
+LIMIT 2");
         }
 
         [Fact]
@@ -834,6 +873,7 @@ WHERE (get_byte(s.""SomeBytea"", 0) = 3) AND get_byte(s.""SomeBytea"", 0) IS NOT
             => AssertSql(list
                 ? expected.Select(e => e
                     .Replace(@"""IntArray""", @"""IntList""")
+                    .Replace(@"""NullableIntArray""", @"""NullableIntList""")
                     .Replace(@"""StringArray""", @"""StringList""")).ToArray()
                 : expected);
 
@@ -943,7 +983,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ArrayTests
     class ArrayToListReplacingExpressionVisitor : ExpressionVisitor
     {
         static readonly PropertyInfo IntArray = typeof(SomeArrayEntity).GetProperty(nameof(SomeArrayEntity.IntArray));
+        static readonly PropertyInfo NullableIntArray = typeof(SomeArrayEntity).GetProperty(nameof(SomeArrayEntity.NullableIntArray));
         static readonly PropertyInfo IntList = typeof(SomeArrayEntity).GetProperty(nameof(SomeArrayEntity.IntList));
+        static readonly PropertyInfo NullableIntList = typeof(SomeArrayEntity).GetProperty(nameof(SomeArrayEntity.NullableIntList));
         static readonly PropertyInfo StringArray = typeof(SomeArrayEntity).GetProperty(nameof(SomeArrayEntity.StringArray));
         static readonly PropertyInfo StringList = typeof(SomeArrayEntity).GetProperty(nameof(SomeArrayEntity.StringList));
 
@@ -951,6 +993,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ArrayTests
         {
             if (node.Member == IntArray)
                 return Expression.MakeMemberAccess(node.Expression, IntList);
+            if (node.Member == NullableIntArray)
+                return Expression.MakeMemberAccess(node.Expression, NullableIntList);
             if (node.Member == StringArray)
                 return Expression.MakeMemberAccess(node.Expression, StringList);
             return node;

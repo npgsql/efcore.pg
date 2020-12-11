@@ -133,7 +133,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             {
                 // When checking whether a database exists, pooling must be off, otherwise we may
                 // attempt to reuse a pooled connection, which may be broken (this happened in the tests).
-                var unpooledCsb = new NpgsqlConnectionStringBuilder(_connection.ConnectionString) { Pooling = false };
+                // If Pooling is off, but Multiplexing is on - NpgsqlConnectionStringBuilder.Validate will throw,
+                // so we turn off Multiplexing as well.
+                var unpooledCsb = new NpgsqlConnectionStringBuilder(_connection.ConnectionString)
+                {
+                    Pooling = false,
+                    Multiplexing = false
+                };
                 using var unpooledConn = ((NpgsqlConnection)_connection.DbConnection).CloneWith(unpooledCsb.ToString());
                 using var _ = new TransactionScope(TransactionScopeOption.Suppress);
                 unpooledConn.Open();
@@ -165,7 +171,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             {
                 // When checking whether a database exists, pooling must be off, otherwise we may
                 // attempt to reuse a pooled connection, which may be broken (this happened in the tests).
-                var unpooledCsb = new NpgsqlConnectionStringBuilder(_connection.ConnectionString) { Pooling = false };
+                // If Pooling is off, but Multiplexing is on - NpgsqlConnectionStringBuilder.Validate will throw,
+                // so we turn off Multiplexing as well.
+                var unpooledCsb = new NpgsqlConnectionStringBuilder(_connection.ConnectionString)
+                {
+                    Pooling = false,
+                    Multiplexing = false
+                };
                 using var unpooledConn = ((NpgsqlConnection)_connection.DbConnection).CloneWith(unpooledCsb.ToString());
                 using var _ = new TransactionScope(TransactionScopeOption.Suppress, TransactionScopeAsyncFlowOption.Enabled);
                 await unpooledConn.OpenAsync(cancellationToken);

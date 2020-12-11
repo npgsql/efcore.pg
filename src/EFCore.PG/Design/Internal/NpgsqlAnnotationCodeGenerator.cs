@@ -55,8 +55,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             // and IdentityByDefault otherwise.
             if (annotation.Name == NpgsqlAnnotationNames.ValueGenerationStrategy)
             {
-                Debug.Assert(property.ValueGenerated == ValueGenerated.OnAdd);
-
                 // Note: both serial and identity-by-default columns are considered by-convention - we don't want
                 // to assume that the PostgreSQL version of the scaffolded database necessarily determines the
                 // version of the database that the scaffolded model will target. This makes life difficult for
@@ -201,8 +199,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
                         })
                 };
 
+            case NpgsqlValueGenerationStrategy.None:
+                return new List<MethodCallCodeFragment>
+                {
+                    new(
+                        nameof(ModelBuilder.HasAnnotation),
+                        NpgsqlAnnotationNames.ValueGenerationStrategy,
+                        NpgsqlValueGenerationStrategy.None)
+                };
+
             default:
-                throw new ArgumentOutOfRangeException();
+                throw new ArgumentOutOfRangeException(strategy.ToString());
             }
 
             T GetAndRemove<T>(string annotationName)
