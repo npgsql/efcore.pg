@@ -219,6 +219,7 @@ FROM ""PointEntity"" AS p");
         public override Task Union_void(bool async)                      => Task.CompletedTask;
         public override Task Within(bool async)                          => Task.CompletedTask;
         public override Task X(bool async)                               => Task.CompletedTask;
+        public override Task XY_with_collection_join(bool async)         => Task.CompletedTask;
         public override Task Y(bool async)                               => Task.CompletedTask;
         public override Task Z(bool async)                               => Task.CompletedTask;
 
