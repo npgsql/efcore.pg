@@ -1,6 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 
 #nullable enable
 
@@ -23,6 +23,16 @@ namespace System.Reflection
                     ? type.GetGenericArguments()[0]
                     : null;
             return elementType != null;
+        }
+
+        public static PropertyInfo? FindIndexerProperty([NotNull] this Type type)
+        {
+            var defaultPropertyAttribute = type.GetCustomAttributes<DefaultMemberAttribute>().FirstOrDefault();
+
+            return defaultPropertyAttribute is null
+                ? null
+                : type.GetRuntimeProperties()
+                    .FirstOrDefault(pi => pi.Name == defaultPropertyAttribute.MemberName && pi.GetIndexParameters().Length == 1);
         }
     }
 }

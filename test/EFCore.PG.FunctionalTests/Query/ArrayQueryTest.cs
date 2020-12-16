@@ -532,6 +532,46 @@ LIMIT 2");
         }
 
         [Fact]
+        public void Array_param_Contains_value_converted_column()
+        {
+            using var ctx = CreateContext();
+            var list = new[] { Guid.Empty, Guid.NewGuid() };
+            var id = ctx.SomeEntities
+                .Where(e => list.Contains(e.ValueConvertedGuid))
+                .Select(e => e.Id)
+                .Single();
+
+            Assert.Equal(2, id);
+            AssertSql(
+                @"@__list_0='System.String[]' (DbType = Object)
+
+SELECT s.""Id""
+FROM ""SomeEntities"" AS s
+WHERE s.""ValueConvertedGuid"" = ANY (@__list_0)
+LIMIT 2");
+        }
+
+        [Fact]
+        public void List_param_Contains_value_converted_column()
+        {
+            using var ctx = CreateContext();
+            var list = new List<Guid> { Guid.Empty, Guid.NewGuid() };
+            var id = ctx.SomeEntities
+                .Where(e => list.Contains(e.ValueConvertedGuid))
+                .Select(e => e.Id)
+                .Single();
+
+            Assert.Equal(2, id);
+            AssertSql(
+                @"@__list_0='System.String[]' (DbType = Object)
+
+SELECT s.""Id""
+FROM ""SomeEntities"" AS s
+WHERE s.""ValueConvertedGuid"" = ANY (@__list_0)
+LIMIT 2");
+        }
+
+        [Fact]
         public void Byte_array_parameter_contains_column()
         {
             using var ctx = CreateContext();
@@ -888,6 +928,11 @@ WHERE (get_byte(s.""SomeBytea"", 0) = 3) AND get_byte(s.""SomeBytea"", 0) IS NOT
 
             public ArrayArrayQueryContext(DbContextOptions options) : base(options) {}
 
+            protected override void OnModelCreating(ModelBuilder modelBuilder)
+                => modelBuilder.Entity<SomeArrayEntity>()
+                    .Property(e => e.ValueConvertedGuid)
+                    .HasColumnType("text");
+
             public static void Seed(ArrayArrayQueryContext context)
             {
                 context.SomeEntities.AddRange(
@@ -905,6 +950,7 @@ WHERE (get_byte(s.""SomeBytea"", 0) = 3) AND get_byte(s.""SomeBytea"", 0) IS NOT
                         IntMatrix = new[,] { { 5, 6 }, { 7, 8 } },
                         NullableText = "foo",
                         NonNullableText = "foo",
+                        ValueConvertedGuid = Guid.Parse("54b46885-a17c-49f0-a12e-08ae7d7da5ca"),
                         Byte = 10
                     },
                     new SomeArrayEntity
@@ -921,6 +967,7 @@ WHERE (get_byte(s.""SomeBytea"", 0) = 3) AND get_byte(s.""SomeBytea"", 0) IS NOT
                         IntMatrix = new[,] { { 10, 11 }, { 12, 13 } },
                         NullableText = "bar",
                         NonNullableText = "bar",
+                        ValueConvertedGuid = Guid.Empty,
                         Byte = 20
                     });
                 context.SaveChanges();
@@ -942,6 +989,7 @@ WHERE (get_byte(s.""SomeBytea"", 0) = 3) AND get_byte(s.""SomeBytea"", 0) IS NOT
             public string NullableText { get; set; }
             [Required]
             public string NonNullableText { get; set; }
+            public Guid ValueConvertedGuid { get; set; }
             public byte Byte { get; set; }
         }
 
