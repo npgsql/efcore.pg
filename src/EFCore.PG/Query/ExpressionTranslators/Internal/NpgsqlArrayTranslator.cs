@@ -127,7 +127,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     {
                     // When the array is a column, we translate to array @> ARRAY[item]. GIN indexes
                     // on array are used, but null semantics is impossible without preventing index use.
-                    case ColumnExpression _:
+                    case ColumnExpression:
                         if (item is SqlConstantExpression constant && constant.Value is null)
                         {
                             // We special-case null constant item and use array_position instead, since it does
@@ -150,7 +150,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     // for that case: item IN (1, 2, 3).
                     // After https://github.com/aspnet/EntityFrameworkCore/issues/16375 is done we may not need the
                     // check any more.
-                    case SqlConstantExpression _:
+                    case SqlConstantExpression:
                         return null;
 
                     // For ParameterExpression, and for all other cases - e.g. array returned from some function -
