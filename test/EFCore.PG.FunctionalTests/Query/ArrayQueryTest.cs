@@ -800,7 +800,7 @@ LIMIT 2");
 
         [Theory]
         [MemberData(nameof(IsListData))]
-        public void Any_Contains(bool list)
+        public void Any_Contains_on_constant_array(bool list)
         {
             using var ctx = CreateContext();
 
@@ -826,6 +826,78 @@ LIMIT 2",
                 @"SELECT COUNT(*)::INT
 FROM ""SomeEntities"" AS s
 WHERE ARRAY[1,2]::integer[] && s.""IntArray""");
+        }
+
+        [Theory]
+        [MemberData(nameof(IsListData))]
+        public void Any_Contains_between_column_and_List(bool list)
+        {
+            using var ctx = CreateContext();
+
+            var ints = new List<int> { 2, 3 };
+            var id = ctx.SomeEntities
+                .Where(e => e.IntArray.Any(i => ints.Contains(i)))
+                .Select(e => e.Id)
+                .OverArrayOrList(list)
+                .Single();
+            Assert.Equal(1, id);
+
+            ints = new List<int> { 1, 2 };
+            var count = ctx.SomeEntities
+                .Where(e => e.IntArray.Any(i => ints.Contains(i)))
+                .OverArrayOrList(list)
+                .Count();
+            Assert.Equal(0, count);
+
+            AssertSql(list,
+                @"@__ints_0='System.Collections.Generic.List`1[System.Int32]' (DbType = Object)
+
+SELECT s.""Id""
+FROM ""SomeEntities"" AS s
+WHERE s.""IntArray"" && @__ints_0
+LIMIT 2",
+                //
+                @"@__ints_0='System.Collections.Generic.List`1[System.Int32]' (DbType = Object)
+
+SELECT COUNT(*)::INT
+FROM ""SomeEntities"" AS s
+WHERE s.""IntArray"" && @__ints_0");
+        }
+
+        [Theory]
+        [MemberData(nameof(IsListData))]
+        public void Any_Contains_between_column_and_array(bool list)
+        {
+            using var ctx = CreateContext();
+
+            var ints = new[] { 2, 3 };
+            var id = ctx.SomeEntities
+                .Where(e => e.IntArray.Any(i => ints.Contains(i)))
+                .Select(e => e.Id)
+                .OverArrayOrList(list)
+                .Single();
+            Assert.Equal(1, id);
+
+            ints = new[] { 1, 2 };
+            var count = ctx.SomeEntities
+                .Where(e => e.IntArray.Any(i => ints.Contains(i)))
+                .OverArrayOrList(list)
+                .Count();
+            Assert.Equal(0, count);
+
+            AssertSql(list,
+                @"@__ints_0='System.Int32[]' (DbType = Object)
+
+SELECT s.""Id""
+FROM ""SomeEntities"" AS s
+WHERE s.""IntArray"" && @__ints_0
+LIMIT 2",
+                //
+                @"@__ints_0='System.Int32[]' (DbType = Object)
+
+SELECT COUNT(*)::INT
+FROM ""SomeEntities"" AS s
+WHERE s.""IntArray"" && @__ints_0");
         }
 
         [Theory]

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
@@ -42,7 +43,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             = typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
                 .Single(mi => mi.Name == nameof(Enumerable.All) && mi.GetParameters().Length == 2);
 
-        static readonly MethodInfo Contains
+        static readonly MethodInfo EnumerableContains
             = typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
                 .Single(m => m.Name == nameof(Enumerable.Contains) && m.GetParameters().Length == 2);
 
@@ -221,19 +222,36 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             }
 
             {
-                // Pattern match for: new[] { 4, 5 }.Any(p => e.SomeArray.Contains(p)),
-                // using array overlap (&&)
                 if (method.IsClosedFormOf(EnumerableAnyWithPredicate) &&
                     arguments[1] is LambdaExpression wherePredicate &&
-                    wherePredicate.Body is MethodCallExpression wherePredicateMethodCall &&
-                    wherePredicateMethodCall.Method.IsClosedFormOf(Contains) &&
-                    wherePredicateMethodCall.Arguments[0].Type.IsArrayOrGenericList() &&
-                    wherePredicateMethodCall.Arguments[1] is ParameterExpression parameterExpression &&
-                    parameterExpression == wherePredicate.Parameters[0])
+                    wherePredicate.Body is MethodCallExpression wherePredicateMethodCall)
                 {
-                    return _sqlExpressionFactory.Overlaps(
-                        (SqlExpression)Visit(arguments[0]),
-                        (SqlExpression)Visit(wherePredicateMethodCall.Arguments[0]));
+                    var predicateMethod = wherePredicateMethodCall.Method;
+
+                    // Pattern match for: new[] { 4, 5 }.Any(p => e.SomeArray.Contains(p)),
+                    // using array overlap (&&).
+                    if (predicateMethod.IsClosedFormOf(EnumerableContains) &&
+                        wherePredicateMethodCall.Arguments[0].Type.IsArrayOrGenericList() &&
+                        wherePredicateMethodCall.Arguments[1] is ParameterExpression parameterExpression1 &&
+                        parameterExpression1 == wherePredicate.Parameters[0])
+                    {
+                        return _sqlExpressionFactory.Overlaps(
+                            (SqlExpression)Visit(arguments[0]),
+                            (SqlExpression)Visit(wherePredicateMethodCall.Arguments[0]));
+                    }
+
+                    // As above, but for Contains on List<T>
+                    if (predicateMethod.DeclaringType?.IsGenericType == true &&
+                        predicateMethod.DeclaringType.GetGenericTypeDefinition() == typeof(List<>) &&
+                        predicateMethod.Name == nameof(List<int>.Contains) &&
+                        predicateMethod.GetParameters().Length == 1 &&
+                        wherePredicateMethodCall.Arguments[0] is ParameterExpression parameterExpression2 &&
+                        parameterExpression2 == wherePredicate.Parameters[0])
+                    {
+                        return _sqlExpressionFactory.Overlaps(
+                            (SqlExpression)Visit(arguments[0]),
+                            (SqlExpression)Visit(wherePredicateMethodCall.Object));
+                    }
                 }
             }
 
@@ -243,7 +261,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 if (method.IsClosedFormOf(EnumerableAll) &&
                     arguments[1] is LambdaExpression wherePredicate &&
                     wherePredicate.Body is MethodCallExpression wherePredicateMethodCall &&
-                    wherePredicateMethodCall.Method.IsClosedFormOf(Contains) &&
+                    wherePredicateMethodCall.Method.IsClosedFormOf(EnumerableContains) &&
                     wherePredicateMethodCall.Arguments[0].Type.IsArrayOrGenericList() &&
                     wherePredicateMethodCall.Arguments[1] is ParameterExpression parameterExpression &&
                     parameterExpression == wherePredicate.Parameters[0])
@@ -270,7 +288,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 
                     return item is null
                         ? null
-                        : Visit(Expression.Call(Contains.MakeGenericMethod(method.GetGenericArguments()[0]), array, item));
+                        : Visit(Expression.Call(EnumerableContains.MakeGenericMethod(method.GetGenericArguments()[0]), array, item));
                 }
 
                 static bool TryMatchEquality(Expression expression, out Expression left, out Expression right)
