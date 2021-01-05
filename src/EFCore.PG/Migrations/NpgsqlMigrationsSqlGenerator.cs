@@ -89,7 +89,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
                     // When generating idempotent scripts, migration DDL is enclosed in anonymous DO blocks,
                     // where PERFORM must be used instead of SELECT
-                    var selectOrPerform = Options.HasFlag(MigrationsSqlGenerationOptions.Idempotent)
+                    var selectOrPerform = options.HasFlag(MigrationsSqlGenerationOptions.Idempotent)
                         ? "PERFORM"
                         : "SELECT";
 
