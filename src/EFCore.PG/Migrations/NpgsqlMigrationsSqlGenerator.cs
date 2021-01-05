@@ -1532,9 +1532,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 throw new NotSupportedException("Computed/generated columns aren't supported in PostgreSQL prior to version 12");
 
             if (operation.IsStored != true)
+            {
                 throw new NotSupportedException(
-                    "Generated columns currently must be stored, specify " +
-                    $"{nameof(RelationalPropertyBuilderExtensions.IsStoredComputedColumn)} in your context's OnModelCreating.");
+                    "Generated columns currently must be stored, specify 'stored: true' in " +
+                    $"'{nameof(RelationalPropertyBuilderExtensions.HasComputedColumnSql)}' in your context's OnModelCreating.");
+            }
 
             builder
                 .Append(DelimitIdentifier(name))
