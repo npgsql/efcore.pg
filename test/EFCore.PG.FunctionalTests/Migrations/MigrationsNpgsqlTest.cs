@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Scaffolding;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,7 +18,7 @@ using Xunit.Abstractions;
 
 #nullable enable
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 {
     public class MigrationsNpgsqlTest : MigrationsTestBase<MigrationsNpgsqlTest.MigrationsNpgsqlFixture>
     {
@@ -1543,7 +1544,7 @@ DROP SEQUENCE ""People_Id_old_seq"";");
                     var index = Assert.Single(table.Indexes);
                     Assert.Equal(1, index.Columns.Count);
                     Assert.Contains(table.Columns.Single(c => c.Name == "Name"), index.Columns);
-                    var includedColumns = (string[])index[NpgsqlAnnotationNames.IndexInclude];
+                    var includedColumns = (string[])index[NpgsqlAnnotationNames.IndexInclude]!;
                     if (TestEnvironment.PostgresVersion.AtLeast(11))
                     {
                         Assert.Contains("FirstName", includedColumns);
@@ -1581,7 +1582,7 @@ DROP SEQUENCE ""People_Id_old_seq"";");
                     Assert.Equal(@"(""Name"" IS NOT NULL)", index.Filter);
                     Assert.Equal(1, index.Columns.Count);
                     Assert.Contains(table.Columns.Single(c => c.Name == "Name"), index.Columns);
-                    var includedColumns = (string[])index[NpgsqlAnnotationNames.IndexInclude];
+                    var includedColumns = (string[])index[NpgsqlAnnotationNames.IndexInclude]!;
                     if (TestEnvironment.PostgresVersion.AtLeast(11))
                     {
                         Assert.Contains("FirstName", includedColumns);
@@ -1619,7 +1620,7 @@ DROP SEQUENCE ""People_Id_old_seq"";");
                     Assert.True(index.IsUnique);
                     Assert.Equal(1, index.Columns.Count);
                     Assert.Contains(table.Columns.Single(c => c.Name == "Name"), index.Columns);
-                    var includedColumns = (string[])index[NpgsqlAnnotationNames.IndexInclude];
+                    var includedColumns = (string[])index[NpgsqlAnnotationNames.IndexInclude]!;
                     if (TestEnvironment.PostgresVersion.AtLeast(11))
                     {
                         Assert.Contains("FirstName", includedColumns);
@@ -1659,7 +1660,7 @@ DROP SEQUENCE ""People_Id_old_seq"";");
                     Assert.Equal(@"(""Name"" IS NOT NULL)", index.Filter);
                     Assert.Equal(1, index.Columns.Count);
                     Assert.Contains(table.Columns.Single(c => c.Name == "Name"), index.Columns);
-                    var includedColumns = (string[])index[NpgsqlAnnotationNames.IndexInclude];
+                    var includedColumns = (string[])index[NpgsqlAnnotationNames.IndexInclude]!;
                     if (TestEnvironment.PostgresVersion.AtLeast(11))
                     {
                         Assert.Contains("FirstName", includedColumns);
@@ -2138,7 +2139,7 @@ WHERE ""Id"" = 2;");
                             e.HasKey("Id");
                         });
                     builder.Entity(
-                        "Person !@#", e =>
+                        "Person2", e =>
                         {
                             e.Property<int>("Id").UseIdentityByDefaultColumn();
                             e.Property<string>("Name");
@@ -2151,7 +2152,7 @@ WHERE ""Id"" = 2;");
                     builder.Entity("Person").HasData(
                         new { Id = 1, Name = "Daenerys Targaryen" },
                         new { Id = 2, Name = "John Snow"});
-                    builder.Entity("Person !@#").HasData(
+                    builder.Entity("Person2").HasData(
                         new { Id = -10, Name = "Daenerys Targaryen" },
                         new { Id = -20, Name = "John Snow"});
                 },
@@ -2163,9 +2164,9 @@ VALUES (1, 'Daenerys Targaryen');
 INSERT INTO ""Person"" (""Id"", ""Name"")
 VALUES (2, 'John Snow');",
                 //
-                @"INSERT INTO ""Person !@#"" (""Id"", ""Name"")
+                @"INSERT INTO ""Person2"" (""Id"", ""Name"")
 VALUES (-10, 'Daenerys Targaryen');
-INSERT INTO ""Person !@#"" (""Id"", ""Name"")
+INSERT INTO ""Person2"" (""Id"", ""Name"")
 VALUES (-20, 'John Snow');",
                 //
                 @"SELECT setval(
@@ -2175,10 +2176,10 @@ VALUES (-20, 'John Snow');",
         nextval(pg_get_serial_sequence('""Person""', 'Id'))),
     false);
 SELECT setval(
-    pg_get_serial_sequence('""Person !@#""', 'Id'),
+    pg_get_serial_sequence('""Person2""', 'Id'),
     GREATEST(
-        (SELECT MAX(""Id"") FROM ""Person !@#"") + 1,
-        nextval(pg_get_serial_sequence('""Person !@#""', 'Id'))),
+        (SELECT MAX(""Id"") FROM ""Person2"") + 1,
+        nextval(pg_get_serial_sequence('""Person2""', 'Id'))),
     false);");
         }
 

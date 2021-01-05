@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestModels.ManyToManyModel;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
+using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
@@ -15,6 +16,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             : base(fixture)
         {
         }
+
+        [ConditionalTheory(Skip = "https://github.com/dotnet/efcore/pull/23823")]
+        public override Task Load_collection_using_Query_with_filtered_Include_and_projection(bool async)
+            => base.Load_collection_using_Query_with_filtered_Include_and_projection(async);
 
         public class ManyToManyLoadNpgsqlFixture : ManyToManyLoadFixtureBase
         {

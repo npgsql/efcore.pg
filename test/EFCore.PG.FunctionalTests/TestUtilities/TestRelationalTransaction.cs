@@ -10,13 +10,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
 {
     public class TestRelationalTransactionFactory : IRelationalTransactionFactory
     {
+        public TestRelationalTransactionFactory(RelationalTransactionFactoryDependencies dependencies)
+        {
+            Dependencies = dependencies;
+        }
+
+        protected virtual RelationalTransactionFactoryDependencies Dependencies { get; }
+
         public RelationalTransaction Create(
             IRelationalConnection connection,
             DbTransaction transaction,
             Guid transactionId,
             IDiagnosticsLogger<DbLoggerCategory.Database.Transaction> logger,
             bool transactionOwned)
-            => new TestRelationalTransaction(connection, transaction, logger, transactionOwned);
+            => new TestRelationalTransaction(connection, transaction, logger, transactionOwned, Dependencies.SqlGenerationHelper);
     }
 
     public class TestRelationalTransaction : RelationalTransaction
@@ -27,8 +34,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             IRelationalConnection connection,
             DbTransaction transaction,
             IDiagnosticsLogger<DbLoggerCategory.Database.Transaction> logger,
-            bool transactionOwned)
-            : base(connection, transaction, new Guid(), logger, transactionOwned)
+            bool transactionOwned,
+            ISqlGenerationHelper sqlGenerationHelper)
+            : base(connection, transaction, new Guid(), logger, transactionOwned, sqlGenerationHelper)
         {
             _testConnection = (TestNpgsqlConnection)connection;
         }

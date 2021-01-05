@@ -63,7 +63,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             var optionsBuilder = new DbContextOptionsBuilder();
             ((IDbContextOptionsBuilderInfrastructure)optionsBuilder).AddOrUpdateExtension(relationalOptions);
 
-            return new NpgsqlRelationalConnection(Dependencies.With(optionsBuilder.Options));
+            return new NpgsqlRelationalConnection(Dependencies with { ContextOptions = optionsBuilder.Options });
         }
     }
 }

@@ -581,6 +581,28 @@ namespace Microsoft.EntityFrameworkCore
         }
 
         /// <summary>
+        /// Adds an INCLUDE clause to the index definition with the specified property names.
+        /// This clause specifies a list of columns which will be included as a non-key part in the index.
+        /// </summary>
+        /// <remarks>
+        /// https://www.postgresql.org/docs/current/sql-createindex.html
+        /// </remarks>
+        /// <param name="indexBuilder">The builder for the index being configured.</param>
+        /// <param name="propertyNames">An array of property names to be used in INCLUDE clause.</param>
+        /// <returns>A builder to further configure the index.</returns>
+        public static IndexBuilder<TEntity> IncludeProperties<TEntity>(
+            [NotNull] this IndexBuilder<TEntity> indexBuilder,
+            [NotNull] params string[] propertyNames)
+        {
+            Check.NotNull(indexBuilder, nameof(indexBuilder));
+            Check.NullButNotEmpty(propertyNames, nameof(propertyNames));
+
+            indexBuilder.Metadata.SetIncludeProperties(propertyNames);
+
+            return indexBuilder;
+        }
+
+        /// <summary>
         /// Adds an INCLUDE clause to the index definition with property names from the specified expression.
         /// This clause specifies a list of columns which will be included as a non-key part in the index.
         /// </summary>

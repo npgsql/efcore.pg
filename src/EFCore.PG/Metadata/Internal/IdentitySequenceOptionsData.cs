@@ -63,7 +63,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
             }
             catch (Exception ex)
             {
-                throw new ArgumentException(RelationalStrings.BadSequenceString, ex);
+                throw new ArgumentException($"Couldn't deserialize {nameof(IdentitySequenceOptionsData)} from annotation", ex);
             }
         }
 
