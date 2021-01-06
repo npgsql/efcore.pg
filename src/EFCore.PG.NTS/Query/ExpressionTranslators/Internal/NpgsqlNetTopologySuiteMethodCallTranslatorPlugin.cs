@@ -43,7 +43,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             Array.Empty<bool>(),
             new[] { true },
             new[] { true, true },
-            new[] { true, true, true }
+            new[] { true, true, true },
+            new[] { true, true, true, true }
         };
 
         public NpgsqlGeometryMethodTranslator(ISqlExpressionFactory sqlExpressionFactory, IRelationalTypeMappingSource typeMappingSource)
@@ -60,9 +61,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)
             => typeof(Geometry).IsAssignableFrom(method.DeclaringType)
                 ? TranslateGeometryMethod(instance, method, arguments)
-                : method.DeclaringType == typeof(NpgsqlNetTopologySuiteDbFunctionsExtensions)
-                    ? TranslateDbFunction(instance, method, arguments)
-                    : null;
+                : method.DeclaringType == typeof(NpgsqlNetTopologySuiteGeometryExtensions)
+                    ? TranslateGeometryMethod(arguments[0], method, arguments.Skip(1).ToList()) // adapt parameters as method is extension method
+                    : method.DeclaringType == typeof(NpgsqlNetTopologySuiteDbFunctionsExtensions)
+                        ? TranslateDbFunction(instance, method, arguments)
+                        : null;
 
         protected virtual SqlExpression TranslateDbFunction(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
             => method.Name switch
@@ -126,7 +129,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             nameof(Geometry.Crosses)             => Function("ST_Crosses",        new[] { instance, arguments[0] }, typeof(bool)),
             nameof(Geometry.Disjoint)            => Function("ST_Disjoint",       new[] { instance, arguments[0] }, typeof(bool)),
             nameof(Geometry.Difference)          => Function("ST_Difference",     new[] { instance, arguments[0] }, typeof(Geometry), resultGeometryTypeMapping),
-            nameof(Geometry.Distance)            => Function("ST_Distance",       new[] { instance, arguments[0] }, typeof(double)),
+            nameof(Geometry.Distance)            => Function("ST_Distance",       new[] { instance }.Concat(arguments).ToArray(), typeof(double)),
             nameof(Geometry.EqualsExact)         => Function("ST_OrderingEquals", new[] { instance, arguments[0] }, typeof(bool)),
             nameof(Geometry.EqualsTopologically) => Function("ST_Equals",         new[] { instance, arguments[0] }, typeof(bool)),
             nameof(Geometry.GetGeometryN)        => Function("ST_GeometryN",      new[] { instance, OneBased(arguments[0]) }, typeof(Geometry), resultGeometryTypeMapping),
@@ -134,7 +137,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             nameof(LineString.GetPointN)         => Function("ST_PointN",         new[] { instance, OneBased(arguments[0]) }, typeof(Geometry), resultGeometryTypeMapping),
             nameof(Geometry.Intersection)        => Function("ST_Intersection",   new[] { instance, arguments[0] }, typeof(Geometry), resultGeometryTypeMapping),
             nameof(Geometry.Intersects)          => Function("ST_Intersects",     new[] { instance, arguments[0] }, typeof(bool)),
-            nameof(Geometry.IsWithinDistance)    => Function("ST_DWithin",        new[] { instance, arguments[0], arguments[1] }, typeof(bool)),
+            nameof(Geometry.IsWithinDistance)    => Function("ST_DWithin",        new[] { instance }.Concat(arguments).ToArray(), typeof(bool)),
             nameof(Geometry.Normalized)          => Function("ST_Normalize",      new[] { instance }, typeof(Geometry), resultGeometryTypeMapping),
             nameof(Geometry.Overlaps)            => Function("ST_Overlaps",       new[] { instance, arguments[0] }, typeof(bool)),
             nameof(Geometry.Relate)              => Function("ST_Relate",         new[] { instance, arguments[0], arguments[1] }, typeof(bool)),
