@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,6 +23,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         protected override bool AssertDistances
             => false;
+
+        public static IEnumerable<object[]> IsAsyncDataAndUseSpheroid = new[]
+        {
+            new object[] { false, false },
+            new object[] { false, true },
+            new object[] { true, false },
+            new object[] { true, true }
+        };
 
         public override async Task Area(bool async)
         {
@@ -79,6 +88,32 @@ FROM ""PolygonEntity"" AS p");
 
         // TODO: Distance_*
 
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncDataAndUseSpheroid))]
+        public async Task DistanceDbFunction(bool async, bool useSpheroid)
+        {
+            var point = Fixture.GeometryFactory.CreatePoint(new Coordinate(0, 1));
+
+            await AssertQuery(
+                async,
+                ss => ss.Set<PointEntity>().Select(e => new { e.Id, Distance = (double?)EF.Functions.Distance(e.Point, point, useSpheroid) }),
+                ss => ss.Set<PointEntity>()
+                    .Select(e => new { e.Id, Distance = (e.Point == null ? (double?)null : e.Point.Distance(point)) }),
+                elementSorter: e => e.Id,
+                elementAsserter: (e, a) =>
+                {
+                    Assert.Equal(e.Id, a.Id);
+                    Assert.Equal(e.Distance == null, a.Distance == null);
+                });
+
+            AssertSql(
+                @$"@__point_1='POINT (0 1)' (DbType = Object)
+@__useSpheroid_2='{useSpheroid}'
+
+SELECT p.""Id"", ST_Distance(p.""Point"", @__point_1, @__useSpheroid_2) AS ""Distance""
+FROM ""PointEntity"" AS p");
+        }
+
         public override async Task GeometryType(bool async)
         {
             // PostGIS returns "POINT", NTS returns "Point"
@@ -128,6 +163,41 @@ FROM ""PolygonEntity"" AS p");
 //
 //SELECT p.""Id"", ST_DWithin(p.""Point"", @__point_0, 1.0) AS ""IsWithinDistance""
 //FROM ""PointEntity"" AS p");
+        }
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncDataAndUseSpheroid))]
+        public async Task IsWithinDistanceDbFunction(bool async, bool useSpheroid)
+        {
+            var point = Fixture.GeometryFactory.CreatePoint(new Coordinate(0, 1));
+
+            await AssertQuery(
+                async,
+                ss => ss.Set<PointEntity>().Select(e => new { e.Id, IsWithinDistance = (bool?)EF.Functions.IsWithinDistance(e.Point, point, 1, useSpheroid) }),
+                ss => ss.Set<PointEntity>().Select(
+                    e => new { e.Id, IsWithinDistance = e.Point == null ? (bool?)null : e.Point.IsWithinDistance(point, 1) }),
+                elementSorter: e => e.Id,
+                elementAsserter: (e, a) =>
+                {
+                    Assert.Equal(e.Id, a.Id);
+
+                    if (e.IsWithinDistance == null)
+                    {
+                        Assert.False(a.IsWithinDistance ?? false);
+                    }
+                    else
+                    {
+                        Assert.NotNull(a.IsWithinDistance);
+                    }
+                });
+
+            AssertSql(
+                @$"@__point_1='POINT (0 1)' (DbType = Object)
+@__useSpheroid_2='{useSpheroid}'
+
+SELECT p.""Id"", ST_DWithin(p.""Point"", @__point_1, 1.0, @__useSpheroid_2) AS ""IsWithinDistance""
+FROM ""PointEntity"" AS p"
+            );
         }
 
         public override async Task Length(bool async)

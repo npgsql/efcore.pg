@@ -61,8 +61,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)
             => typeof(Geometry).IsAssignableFrom(method.DeclaringType)
                 ? TranslateGeometryMethod(instance, method, arguments)
-                : method.DeclaringType == typeof(NpgsqlNetTopologySuiteGeometryExtensions)
-                    ? TranslateGeometryMethod(arguments[0], method, arguments.Skip(1).ToList()) // adapt parameters as method is extension method
                     : method.DeclaringType == typeof(NpgsqlNetTopologySuiteDbFunctionsExtensions)
                         ? TranslateDbFunction(instance, method, arguments)
                         : null;
@@ -77,6 +75,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     argumentsPropagateNullability: TrueArrays[2],
                     method.ReturnType,
                     arguments[1].TypeMapping),
+
+                nameof(NpgsqlNetTopologySuiteDbFunctionsExtensions.Distance) =>
+                    TranslateGeometryMethod(arguments[1], method, new[] { arguments[2], arguments[3] }),
+                nameof(NpgsqlNetTopologySuiteDbFunctionsExtensions.IsWithinDistance) => 
+                    TranslateGeometryMethod(arguments[1], method, new[] { arguments[2], arguments[3], arguments[4] }),
 
                 _ => null
             };
