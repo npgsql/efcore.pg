@@ -43,7 +43,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             Array.Empty<bool>(),
             new[] { true },
             new[] { true, true },
-            new[] { true, true, true }
+            new[] { true, true, true },
+            new[] { true, true, true, true }
         };
 
         public NpgsqlGeometryMethodTranslator(ISqlExpressionFactory sqlExpressionFactory, IRelationalTypeMappingSource typeMappingSource)
@@ -74,6 +75,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     argumentsPropagateNullability: TrueArrays[2],
                     method.ReturnType,
                     arguments[1].TypeMapping),
+
+                nameof(NpgsqlNetTopologySuiteDbFunctionsExtensions.Distance) =>
+                    TranslateGeometryMethod(arguments[1], method, new[] { arguments[2], arguments[3] }),
+                nameof(NpgsqlNetTopologySuiteDbFunctionsExtensions.IsWithinDistance) => 
+                    TranslateGeometryMethod(arguments[1], method, new[] { arguments[2], arguments[3], arguments[4] }),
 
                 _ => null
             };
@@ -126,7 +132,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             nameof(Geometry.Crosses)             => Function("ST_Crosses",        new[] { instance, arguments[0] }, typeof(bool)),
             nameof(Geometry.Disjoint)            => Function("ST_Disjoint",       new[] { instance, arguments[0] }, typeof(bool)),
             nameof(Geometry.Difference)          => Function("ST_Difference",     new[] { instance, arguments[0] }, typeof(Geometry), resultGeometryTypeMapping),
-            nameof(Geometry.Distance)            => Function("ST_Distance",       new[] { instance, arguments[0] }, typeof(double)),
+            nameof(Geometry.Distance)            => Function("ST_Distance",       new[] { instance }.Concat(arguments).ToArray(), typeof(double)),
             nameof(Geometry.EqualsExact)         => Function("ST_OrderingEquals", new[] { instance, arguments[0] }, typeof(bool)),
             nameof(Geometry.EqualsTopologically) => Function("ST_Equals",         new[] { instance, arguments[0] }, typeof(bool)),
             nameof(Geometry.GetGeometryN)        => Function("ST_GeometryN",      new[] { instance, OneBased(arguments[0]) }, typeof(Geometry), resultGeometryTypeMapping),
@@ -134,7 +140,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             nameof(LineString.GetPointN)         => Function("ST_PointN",         new[] { instance, OneBased(arguments[0]) }, typeof(Geometry), resultGeometryTypeMapping),
             nameof(Geometry.Intersection)        => Function("ST_Intersection",   new[] { instance, arguments[0] }, typeof(Geometry), resultGeometryTypeMapping),
             nameof(Geometry.Intersects)          => Function("ST_Intersects",     new[] { instance, arguments[0] }, typeof(bool)),
-            nameof(Geometry.IsWithinDistance)    => Function("ST_DWithin",        new[] { instance, arguments[0], arguments[1] }, typeof(bool)),
+            nameof(Geometry.IsWithinDistance)    => Function("ST_DWithin",        new[] { instance }.Concat(arguments).ToArray(), typeof(bool)),
             nameof(Geometry.Normalized)          => Function("ST_Normalize",      new[] { instance }, typeof(Geometry), resultGeometryTypeMapping),
             nameof(Geometry.Overlaps)            => Function("ST_Overlaps",       new[] { instance, arguments[0] }, typeof(bool)),
             nameof(Geometry.Relate)              => Function("ST_Relate",         new[] { instance, arguments[0], arguments[1] }, typeof(bool)),
