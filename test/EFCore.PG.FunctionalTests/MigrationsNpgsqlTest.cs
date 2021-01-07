@@ -2182,8 +2182,6 @@ SELECT setval(
     false);");
         }
 
-        // SELECT setval(pg_get_serial_sequence('""Person !@#""', 'Id'), (SELECT MAX(""Id"") FROM ""Person !@#""));
-
         #endregion
 
         #region PostgreSQL extensions
