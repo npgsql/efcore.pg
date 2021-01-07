@@ -61,9 +61,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)
             => typeof(Geometry).IsAssignableFrom(method.DeclaringType)
                 ? TranslateGeometryMethod(instance, method, arguments)
-                    : method.DeclaringType == typeof(NpgsqlNetTopologySuiteDbFunctionsExtensions)
-                        ? TranslateDbFunction(instance, method, arguments)
-                        : null;
+                : method.DeclaringType == typeof(NpgsqlNetTopologySuiteDbFunctionsExtensions)
+                    ? TranslateDbFunction(instance, method, arguments)
+                    : null;
 
         protected virtual SqlExpression TranslateDbFunction(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
             => method.Name switch
