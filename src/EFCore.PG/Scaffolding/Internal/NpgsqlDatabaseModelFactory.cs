@@ -279,14 +279,10 @@ SELECT
     WHEN pg_proc.proname = 'array_recv' THEN 'a'
     ELSE typ.typtype
   END AS typtype,
-  CASE
-    WHEN pg_proc.proname='array_recv' THEN elemtyp.typname
-    ELSE NULL
-  END AS elemtypname,
-  (NOT attnotnull) AS nullable,
+  CASE WHEN pg_proc.proname='array_recv' THEN elemtyp.typname END AS elemtypname,
+  NOT (attnotnull OR typ.typnotnull) AS nullable,
   CASE
     WHEN atthasdef THEN (SELECT pg_get_expr(adbin, cls.oid) FROM pg_attrdef WHERE adrelid = cls.oid AND adnum = attr.attnum)
-    ELSE NULL
   END AS default,
 
   -- Sequence options for identity columns
