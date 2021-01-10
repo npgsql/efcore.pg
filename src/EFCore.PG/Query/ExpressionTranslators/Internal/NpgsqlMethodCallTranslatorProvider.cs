@@ -24,17 +24,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 new NpgsqlByteArrayMethodTranslator(npgsqlSqlExpressionFactory),
                 new NpgsqlConvertTranslator(npgsqlSqlExpressionFactory),
                 new NpgsqlDateTimeMethodTranslator(typeMappingSource, npgsqlSqlExpressionFactory),
-                new NpgsqlNewGuidTranslator(npgsqlSqlExpressionFactory, npgsqlOptions.PostgresVersion),
-                new NpgsqlLikeTranslator(npgsqlSqlExpressionFactory),
-                new NpgsqlObjectToStringTranslator(npgsqlSqlExpressionFactory),
-                new NpgsqlMathTranslator(typeMappingSource, npgsqlSqlExpressionFactory),
-                new NpgsqlStringMethodTranslator(npgsqlTypeMappingSource, npgsqlSqlExpressionFactory),
-                new NpgsqlRegexIsMatchTranslator(npgsqlSqlExpressionFactory),
                 new NpgsqlFullTextSearchMethodTranslator(typeMappingSource, npgsqlSqlExpressionFactory),
-                new NpgsqlRangeTranslator(typeMappingSource, npgsqlSqlExpressionFactory),
-                new NpgsqlNetworkTranslator(typeMappingSource, npgsqlSqlExpressionFactory),
                 new NpgsqlJsonDomTranslator(typeMappingSource, npgsqlSqlExpressionFactory),
-                new NpgsqlJsonDbFunctionsTranslator(typeMappingSource, npgsqlSqlExpressionFactory)
+                new NpgsqlJsonDbFunctionsTranslator(typeMappingSource, npgsqlSqlExpressionFactory),
+                new NpgsqlLikeTranslator(npgsqlSqlExpressionFactory),
+                new NpgsqlMathTranslator(typeMappingSource, npgsqlSqlExpressionFactory),
+                new NpgsqlNetworkTranslator(typeMappingSource, npgsqlSqlExpressionFactory),
+                new NpgsqlNewGuidTranslator(npgsqlSqlExpressionFactory, npgsqlOptions.PostgresVersion),
+                new NpgsqlObjectToStringTranslator(npgsqlSqlExpressionFactory),
+                new NpgsqlRandomTranslator(npgsqlSqlExpressionFactory),
+                new NpgsqlRangeTranslator(typeMappingSource, npgsqlSqlExpressionFactory),
+                new NpgsqlRegexIsMatchTranslator(npgsqlSqlExpressionFactory),
+                new NpgsqlStringMethodTranslator(npgsqlTypeMappingSource, npgsqlSqlExpressionFactory),
             });
         }
     }

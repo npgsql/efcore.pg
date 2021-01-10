@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using JetBrains.Annotations;
@@ -10,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
@@ -34,18 +34,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         static readonly MethodInfo ILike2MethodInfo
             = typeof(NpgsqlDbFunctionsExtensions)
                 .GetRuntimeMethod(nameof(NpgsqlDbFunctionsExtensions.ILike), new[] { typeof(DbFunctions), typeof(string), typeof(string) });
-
-        static readonly MethodInfo EnumerableAnyWithPredicate
-            = typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
-                .Single(mi => mi.Name == nameof(Enumerable.Any) && mi.GetParameters().Length == 2);
-
-        static readonly MethodInfo EnumerableAll
-            = typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
-                .Single(mi => mi.Name == nameof(Enumerable.All) && mi.GetParameters().Length == 2);
-
-        static readonly MethodInfo EnumerableContains
-            = typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
-                .Single(m => m.Name == nameof(Enumerable.Contains) && m.GetParameters().Length == 2);
 
         static readonly MethodInfo ObjectEquals
             = typeof(object).GetRuntimeMethod(nameof(object.Equals), new[] { typeof(object), typeof(object) });
@@ -130,7 +118,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             if (unaryExpression.NodeType == ExpressionType.ArrayLength)
             {
                 if (TranslationFailed(unaryExpression.Operand, Visit(unaryExpression.Operand), out var sqlOperand))
-                    return null;
+                    return QueryCompilationContext.NotTranslatedExpression;
 
                 // Translate Length on byte[], but only if the type mapping is for bytea. There's also array of bytes
                 // (mapped to smallint[]), which is handled below with CARDINALITY.
@@ -159,24 +147,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 
         protected override Expression VisitMethodCall(MethodCallExpression methodCall)
         {
-            var visited = base.VisitMethodCall(methodCall);
-            if (visited != null)
-                return visited;
-
-            if (methodCall.Arguments.Count > 0 && (
-                    methodCall.Arguments[0].Type.IsArray || methodCall.Arguments[0].Type.IsGenericList()))
+            if (methodCall.Arguments.Count > 0 &&
+                methodCall.Arguments[0].Type.IsArrayOrGenericList() &&
+                VisitArrayMethodCall(methodCall.Method, methodCall.Arguments) is { } visited)
             {
-                return VisitArrayMethodCall(methodCall.Method, methodCall.Arguments);
+                return visited;
             }
 
-            return null;
+            return base.VisitMethodCall(methodCall);
         }
 
         /// <summary>
         /// Identifies complex array-related constructs which cannot be translated in regular method translators, since
         /// they require accessing lambdas.
         /// </summary>
-        protected virtual Expression VisitArrayMethodCall(
+        private Expression VisitArrayMethodCall(
             [NotNull] MethodInfo method, [NotNull] ReadOnlyCollection<Expression> arguments)
         {
             var array = arguments[0];
@@ -185,7 +170,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 // Pattern match for: new[] { "a", "b", "c" }.Any(p => EF.Functions.Like(e.SomeText, p)),
                 // which we translate to WHERE s.""SomeText"" LIKE ANY (ARRAY['a','b','c']) (see test Any_like)
                 // Note: NavigationExpander normalized Any(x) to Where(x).Any()
-                if (method.IsClosedFormOf(EnumerableAnyWithPredicate) &&
+                if (method.IsClosedFormOf(EnumerableMethods.AnyWithPredicate) &&
                     arguments[1] is LambdaExpression wherePredicate &&
                     wherePredicate.Body is MethodCallExpression wherePredicateMethodCall && (
                         wherePredicateMethodCall.Method == Like2MethodInfo ||
@@ -205,7 +190,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 
             {
                 // Same for All (but without the normalization)
-                if (method.IsClosedFormOf(EnumerableAll) &&
+                if (method.IsClosedFormOf(EnumerableMethods.All) &&
                     arguments[1] is LambdaExpression wherePredicate &&
                     wherePredicate.Body is MethodCallExpression wherePredicateMethodCall && (
                         wherePredicateMethodCall.Method == Like2MethodInfo ||
@@ -222,7 +207,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             }
 
             {
-                if (method.IsClosedFormOf(EnumerableAnyWithPredicate) &&
+                if (method.IsClosedFormOf(EnumerableMethods.AnyWithPredicate) &&
                     arguments[1] is LambdaExpression wherePredicate &&
                     wherePredicate.Body is MethodCallExpression wherePredicateMethodCall)
                 {
@@ -230,7 +215,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 
                     // Pattern match for: new[] { 4, 5 }.Any(p => e.SomeArray.Contains(p)),
                     // using array overlap (&&).
-                    if (predicateMethod.IsClosedFormOf(EnumerableContains) &&
+                    if (predicateMethod.IsClosedFormOf(EnumerableMethods.Contains) &&
                         wherePredicateMethodCall.Arguments[0].Type.IsArrayOrGenericList() &&
                         wherePredicateMethodCall.Arguments[1] is ParameterExpression parameterExpression1 &&
                         parameterExpression1 == wherePredicate.Parameters[0])
@@ -258,10 +243,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             {
                 // Pattern match for: new[] { 4, 5 }.All(p => e.SomeArray.Contains(p)),
                 // using array containment (<@)
-                if (method.IsClosedFormOf(EnumerableAll) &&
+                if (method.IsClosedFormOf(EnumerableMethods.All) &&
                     arguments[1] is LambdaExpression wherePredicate &&
                     wherePredicate.Body is MethodCallExpression wherePredicateMethodCall &&
-                    wherePredicateMethodCall.Method.IsClosedFormOf(EnumerableContains) &&
+                    wherePredicateMethodCall.Method.IsClosedFormOf(EnumerableMethods.Contains) &&
                     wherePredicateMethodCall.Arguments[0].Type.IsArrayOrGenericList() &&
                     wherePredicateMethodCall.Arguments[1] is ParameterExpression parameterExpression &&
                     parameterExpression == wherePredicate.Parameters[0])
@@ -275,7 +260,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             {
                 // Pattern match for: array.Any(e => e == x) (and other equality patterns)
                 // Transform this to Contains.
-                if (method.IsClosedFormOf(EnumerableAnyWithPredicate) &&
+                if (method.IsClosedFormOf(EnumerableMethods.AnyWithPredicate) &&
                     arguments[1] is LambdaExpression wherePredicate &&
                     TryMatchEquality(wherePredicate.Body, out var left, out var right) &&
                     (left == wherePredicate.Parameters[0] || right == wherePredicate.Parameters[0]))
@@ -288,7 +273,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 
                     return item is null
                         ? null
-                        : Visit(Expression.Call(EnumerableContains.MakeGenericMethod(method.GetGenericArguments()[0]), array, item));
+                        : Visit(Expression.Call(EnumerableMethods.Contains.MakeGenericMethod(method.GetGenericArguments()[0]), array, item));
                 }
 
                 static bool TryMatchEquality(Expression expression, out Expression left, out Expression right)
@@ -332,7 +317,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                     if (TranslationFailed(binaryExpression.Left, Visit(TryRemoveImplicitConvert(binaryExpression.Left)), out var sqlLeft)
                         || TranslationFailed(binaryExpression.Right, Visit(TryRemoveImplicitConvert(binaryExpression.Right)), out var sqlRight))
                     {
-                        return null;
+                        return QueryCompilationContext.NotTranslatedExpression;
                     }
 
                     var subtraction = _sqlExpressionFactory.MakeBinary(
@@ -357,7 +342,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 if (TranslationFailed(binaryExpression.Left, Visit(TryRemoveImplicitConvert(binaryExpression.Left)), out var sqlLeft)
                     || TranslationFailed(binaryExpression.Right, Visit(TryRemoveImplicitConvert(binaryExpression.Right)), out var sqlRight))
                 {
-                    return null;
+                    return QueryCompilationContext.NotTranslatedExpression;
                 }
 
                 // ArrayIndex over bytea is special, we have to use function rather than subscript
@@ -365,16 +350,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 {
                     return _sqlExpressionFactory.Function(
                         "get_byte",
-                        new[]
-                        {
-                            _sqlExpressionFactory.ApplyDefaultTypeMapping(sqlLeft),
-                            _sqlExpressionFactory.ApplyDefaultTypeMapping(sqlRight)
-                        },
+                        new[] { sqlLeft, sqlRight },
                         nullable: true,
                         argumentsPropagateNullability: TrueArrays[2],
-                        typeof(byte),
-                        _typeMappingSource.FindMapping(typeof(byte))
-                    );
+                        typeof(byte));
                 }
 
                 return
@@ -391,21 +370,24 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         /// <inheritdoc />
         protected override Expression VisitNew(NewExpression newExpression)
         {
-            if (base.VisitNew(newExpression) is { } result)
-                return result;
+            var visitedNewExpression = base.VisitNew(newExpression);
+            if (visitedNewExpression != QueryCompilationContext.NotTranslatedExpression)
+            {
+                return visitedNewExpression;
+            }
 
             if (newExpression.Constructor == DateTimeCtor1)
             {
-                return TryTranslateArguments(newExpression.Arguments, out var sqlArguments)
+                return TryTranslateArguments(out var sqlArguments)
                     ? _sqlExpressionFactory.Function(
                         "make_date", sqlArguments, nullable: true, TrueArrays[3], typeof(DateTime))
-                    : null;
+                    : QueryCompilationContext.NotTranslatedExpression;
             }
 
             if (newExpression.Constructor == DateTimeCtor2)
             {
-                if (!TryTranslateArguments(newExpression.Arguments, out var sqlArguments))
-                    return null;
+                if (!TryTranslateArguments(out var sqlArguments))
+                    return QueryCompilationContext.NotTranslatedExpression;
 
                 // DateTime's second component is an int, but PostgreSQL's MAKE_TIMESTAMP accepts a double precision
                 sqlArguments[5] = _sqlExpressionFactory.Convert(sqlArguments[5], typeof(double));
@@ -414,9 +396,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                     "make_timestamp", sqlArguments, nullable: true, TrueArrays[6], typeof(DateTime));
             }
 
-            return null;
+            return QueryCompilationContext.NotTranslatedExpression;
 
-            bool TryTranslateArguments(ReadOnlyCollection<Expression> arguments, out SqlExpression[] sqlArguments)
+            bool TryTranslateArguments(out SqlExpression[] sqlArguments)
             {
                 sqlArguments = new SqlExpression[newExpression.Arguments.Count];
                 for (var i = 0; i < sqlArguments.Length; i++)

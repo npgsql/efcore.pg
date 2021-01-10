@@ -615,7 +615,7 @@ WHERE
 
                         // Handle index operator classes, which we pre-loaded
                         var opClassNames = record
-                            .GetValueOrDefault<uint[]>("indclass")
+                            .GetFieldValue<uint[]>("indclass")
                             .Select(oid => opClasses.TryGetValue(oid, out var opc) && !opc.IsDefault ? opc.Name : null)
                             .ToArray();
 
@@ -623,7 +623,7 @@ WHERE
                             index[NpgsqlAnnotationNames.IndexOperators] = opClassNames;
 
                         var columnCollations = record
-                            .GetValueOrDefault<uint[]>("indcollation")
+                            .GetFieldValue<uint[]>("indcollation")
                             .Select(oid => collations.TryGetValue(oid, out var collation) && !string.Equals(collation, "default") ? collation : null)
                             .ToArray();
 
@@ -632,7 +632,7 @@ WHERE
 
                         if (record.GetValueOrDefault<bool>("amcanorder"))
                         {
-                            var options = record.GetValueOrDefault<ushort[]>("indoption");
+                            var options = record.GetFieldValue<ushort[]>("indoption");
 
                             // The first bit specifies whether values are sorted in descending order.
                             const ushort indoptionDescFlag = 0x0001;

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
@@ -42,6 +43,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 typeof(NpgsqlPropertyBuilderExtensions),
                 typeof(NpgsqlEntityTypeBuilderExtensions),
                 typeof(NpgsqlServiceCollectionExtensions)
+            };
+
+            public override HashSet<MethodInfo> UnmatchedMetadataMethods { get; } = new()
+            {
+                typeof(NpgsqlPropertyBuilderExtensions).GetMethod(
+                    nameof(NpgsqlPropertyBuilderExtensions.IsGeneratedTsVectorColumn),
+                    new[] { typeof(PropertyBuilder), typeof(string), typeof(string[]) })
             };
 
             public override List<(Type Type, Type ReadonlyExtensions, Type MutableExtensions, Type ConventionExtensions, Type ConventionBuilderExtensions)> MetadataExtensionTypes { get; }

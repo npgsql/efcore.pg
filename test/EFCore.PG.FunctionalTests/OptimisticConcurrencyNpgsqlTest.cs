@@ -7,9 +7,9 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
-    public class OptimisticConcurrencyNpgsqlTest : OptimisticConcurrencyTestBase<F1NpgsqlFixture>
+    public class OptimisticConcurrencyNpgsqlTest : OptimisticConcurrencyRelationalTestBase<F1UIntNpgsqlFixture, uint?>
     {
-        public OptimisticConcurrencyNpgsqlTest(F1NpgsqlFixture fixture) : base(fixture) {}
+        public OptimisticConcurrencyNpgsqlTest(F1UIntNpgsqlFixture fixture) : base(fixture) {}
 
         [Fact]
         public async Task Modifying_concurrency_token_only_is_noop()

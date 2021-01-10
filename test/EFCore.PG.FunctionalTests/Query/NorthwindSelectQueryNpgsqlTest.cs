@@ -34,10 +34,6 @@ FROM ""Orders"" AS o");
         public override Task Member_binding_after_ctor_arguments_fails_with_client_eval(bool async)
             => AssertTranslationFailed(() => base.Member_binding_after_ctor_arguments_fails_with_client_eval(async));
 
-        public override Task Reverse_without_explicit_ordering_throws(bool async)
-            => AssertTranslationFailedWithDetails(
-                () => base.Reverse_without_explicit_ordering_throws(async), RelationalStrings.MissingOrderingInSelectExpression);
-
         public override async Task Projecting_after_navigation_and_distinct_throws(bool async)
             => Assert.Equal(
                 RelationalStrings.InsufficientInformationToIdentifyOuterElementOfCollectionJoin,

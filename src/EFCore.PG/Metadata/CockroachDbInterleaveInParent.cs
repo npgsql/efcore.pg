@@ -97,7 +97,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             }
             catch (Exception ex)
             {
-                throw new ArgumentException(RelationalStrings.BadSequenceString, ex);
+                throw new ArgumentException($"Couldn't deserialize {nameof(CockroachDbInterleaveInParent)} from annotation", ex);
             }
         }
 

@@ -46,7 +46,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
             : base(dependencies)
         {
             if (maxBatchSize.HasValue && maxBatchSize.Value <= 0)
-                throw new ArgumentOutOfRangeException(nameof(maxBatchSize), RelationalStrings.InvalidMaxBatchSize);
+                throw new ArgumentOutOfRangeException(nameof(maxBatchSize), RelationalStrings.InvalidMaxBatchSize(maxBatchSize));
 
             _maxBatchSize = maxBatchSize ?? DefaultBatchSize;
         }

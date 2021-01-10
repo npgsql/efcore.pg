@@ -99,7 +99,7 @@ namespace Microsoft.EntityFrameworkCore
 
             entityTypeBuilder.Property(tsVectorPropertyExpression).IsGeneratedTsVectorColumn(
                 config,
-                includeExpression.GetPropertyAccessList().Select(MemberInfoExtensions.GetSimpleMemberName).ToArray());
+                includeExpression.GetPropertyAccessList().Select(EntityFrameworkMemberInfoExtensions.GetSimpleMemberName).ToArray());
 
             return entityTypeBuilder;
         }

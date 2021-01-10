@@ -5,7 +5,7 @@ using System.Linq;
 // ReSharper disable once CheckNamespace
 namespace System.Reflection
 {
-    internal static class MemberInfoExtensions
+    internal static class EntityFrameworkMemberInfoExtensions
     {
         public static Type GetMemberType(this MemberInfo memberInfo)
             => (memberInfo as PropertyInfo)?.PropertyType ?? ((FieldInfo)memberInfo)?.FieldType;

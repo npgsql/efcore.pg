@@ -170,8 +170,8 @@ WHERE (c.""Region"" IS NULL) OR (btrim(c.""Region"", E' \t\n\r') = '')");
             await base.Where_guid_newguid(async);
 
             AssertSql(
-                @$"SELECT o.""OrderID"", o.""ProductID"", o.""Discount"", o.""Quantity"", o.""UnitPrice""
-FROM ""Order Details"" AS o
+                @$"SELECT c.""CustomerID"", c.""Address"", c.""City"", c.""CompanyName"", c.""ContactName"", c.""ContactTitle"", c.""Country"", c.""Fax"", c.""Phone"", c.""PostalCode"", c.""Region""
+FROM ""Customers"" AS c
 WHERE {UuidGenerationFunction}() <> '00000000-0000-0000-0000-000000000000'");
         }
 

@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -194,6 +196,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
 
                 return result;
             }
+
+            public DbCommand CreateDbCommand(RelationalCommandParameterObject parameterObject, Guid commandId, DbCommandMethod commandMethod)
+                => throw new NotImplementedException();
 
             string PreExecution(IRelationalConnection connection)
             {
