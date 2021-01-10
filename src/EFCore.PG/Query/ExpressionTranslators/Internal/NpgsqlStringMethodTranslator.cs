@@ -279,7 +279,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                         instance,
                         _sqlExpressionFactory.Add(
                             pattern,
-                            _sqlExpressionFactory.Constant("%"))),
+                            _sqlExpressionFactory.Constant("%")),
+                        _sqlExpressionFactory.Constant(string.Empty)),
                     _sqlExpressionFactory.Equal(leftRight, castPattern))
                 : _sqlExpressionFactory.Equal(leftRight, castPattern);
         }
