@@ -20,6 +20,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
     {
         TrigramsQueryNpgsqlFixture Fixture { get; }
 
+        // ReSharper disable once UnusedParameter.Local
         public TrigramsQueryNpgsqlTest(TrigramsQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
         {
             Fixture = fixture;

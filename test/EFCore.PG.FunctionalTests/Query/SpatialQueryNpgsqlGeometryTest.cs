@@ -9,7 +9,8 @@ using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public class SpatialQueryNpgsqlGeometryTest : SpatialQueryRelationalTestBase<SpatialQueryNpgsqlGeometryTest.SpatialQueryNpgsqlGeometryFixture>
+    public class SpatialQueryNpgsqlGeometryTest
+        : SpatialQueryRelationalTestBase<SpatialQueryNpgsqlGeometryTest.SpatialQueryNpgsqlGeometryFixture>
     {
         // ReSharper disable once UnusedParameter.Local
         public SpatialQueryNpgsqlGeometryTest(SpatialQueryNpgsqlGeometryFixture fixture, ITestOutputHelper testOutputHelper)

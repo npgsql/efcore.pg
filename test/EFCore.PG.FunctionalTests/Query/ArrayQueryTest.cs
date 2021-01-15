@@ -21,6 +21,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
     {
         ArrayArrayQueryFixture Fixture { get; }
 
+        // ReSharper disable once UnusedParameter.Local
         public ArrayQueryTest(ArrayArrayQueryFixture fixture, ITestOutputHelper testOutputHelper)
         {
             Fixture = fixture;

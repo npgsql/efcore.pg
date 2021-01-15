@@ -5,7 +5,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     public class TPTFiltersInheritanceQuerySqlServerTest : TPTFiltersInheritanceQueryTestBase<TPTFiltersInheritanceQuerySqlServerFixture>
     {
-        public TPTFiltersInheritanceQuerySqlServerTest(TPTFiltersInheritanceQuerySqlServerFixture fixture, ITestOutputHelper testOutputHelper)
+        // ReSharper disable once UnusedParameter.Local
+        public TPTFiltersInheritanceQuerySqlServerTest(
+            TPTFiltersInheritanceQuerySqlServerFixture fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
         {
             Fixture.TestSqlLoggerFactory.Clear();

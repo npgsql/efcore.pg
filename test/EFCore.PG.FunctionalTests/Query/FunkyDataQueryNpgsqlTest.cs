@@ -13,6 +13,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     public class FunkyDataQueryNpgsqlTest : FunkyDataQueryTestBase<FunkyDataQueryNpgsqlTest.FunkyDataQueryNpgsqlFixture>
     {
+        // ReSharper disable once UnusedParameter.Local
         public FunkyDataQueryNpgsqlTest(FunkyDataQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
         {

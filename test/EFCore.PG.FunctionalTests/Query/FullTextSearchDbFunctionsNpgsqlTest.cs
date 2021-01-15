@@ -14,6 +14,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
     {
         protected NorthwindQueryNpgsqlFixture<NoopModelCustomizer> Fixture { get; }
 
+        // ReSharper disable once UnusedParameter.Local
         public FullTextSearchDbFunctionsNpgsqlTest(NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture, ITestOutputHelper testOutputHelper)
         {
             Fixture = fixture;

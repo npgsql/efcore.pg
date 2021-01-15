@@ -8,6 +8,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
     public class ManyToManyNoTrackingQueryNpgsqlTest
         : ManyToManyNoTrackingQueryRelationalTestBase<ManyToManyQueryNpgsqlFixture>
     {
+        // ReSharper disable once UnusedParameter.Local
         public ManyToManyNoTrackingQueryNpgsqlTest(ManyToManyQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
         {

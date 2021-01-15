@@ -14,6 +14,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
     {
         RangeQueryNpgsqlFixture Fixture { get; }
 
+        // ReSharper disable once UnusedParameter.Local
         public RangeQueryNpgsqlTest(RangeQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
         {
             Fixture = fixture;

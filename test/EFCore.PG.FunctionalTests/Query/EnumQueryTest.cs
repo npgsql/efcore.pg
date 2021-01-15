@@ -12,6 +12,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
     {
         EnumFixture Fixture { get; }
 
+        // ReSharper disable once UnusedParameter.Local
         public EnumQueryTest(EnumFixture fixture, ITestOutputHelper testOutputHelper)
         {
             Fixture = fixture;

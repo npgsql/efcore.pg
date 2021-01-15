@@ -14,6 +14,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
     {
         JsonStringQueryFixture Fixture { get; }
 
+        // ReSharper disable once UnusedParameter.Local
         public JsonStringQueryTest(JsonStringQueryFixture fixture, ITestOutputHelper testOutputHelper)
         {
             Fixture = fixture;

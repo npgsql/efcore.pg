@@ -20,6 +20,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
     {
         MathQueryNpgsqlFixture Fixture { get; }
 
+        // ReSharper disable once UnusedParameter.Local
         public MathQueryTest(MathQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
         {
             Fixture = fixture;

@@ -1,12 +1,11 @@
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.Query;
-using Xunit;
 using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     public class TPTManyToManyQueryNpgsqlTest : TPTManyToManyQueryRelationalTestBase<TPTManyToManyQueryNpgsqlFixture>
     {
+        // ReSharper disable once UnusedParameter.Local
         public TPTManyToManyQueryNpgsqlTest(TPTManyToManyQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
         {

@@ -7,6 +7,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     public class NorthwindAggregateOperatorsQueryNpgsqlTest : NorthwindAggregateOperatorsQueryRelationalTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
     {
+        // ReSharper disable once UnusedParameter.Local
         public NorthwindAggregateOperatorsQueryNpgsqlTest(NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
         {

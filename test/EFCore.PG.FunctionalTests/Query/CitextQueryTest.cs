@@ -15,6 +15,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
     {
         CitextQueryFixture Fixture { get; }
 
+        // ReSharper disable once UnusedParameter.Local
         public CitextQueryTest(CitextQueryFixture fixture, ITestOutputHelper testOutputHelper)
         {
             Fixture = fixture;

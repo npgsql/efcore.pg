@@ -23,6 +23,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
     {
         NetworkAddressQueryNpgsqlFixture Fixture { get; }
 
+        // ReSharper disable once UnusedParameter.Local
         public NetworkQueryNpgsqlTest(NetworkAddressQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
         {
             Fixture = fixture;

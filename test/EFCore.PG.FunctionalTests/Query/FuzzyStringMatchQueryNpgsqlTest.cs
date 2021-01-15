@@ -20,6 +20,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
     {
         FuzzyStringMatchQueryNpgsqlFixture Fixture { get; }
 
+        // ReSharper disable once UnusedParameter.Local
         public FuzzyStringMatchQueryNpgsqlTest(FuzzyStringMatchQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
         {
             Fixture = fixture;

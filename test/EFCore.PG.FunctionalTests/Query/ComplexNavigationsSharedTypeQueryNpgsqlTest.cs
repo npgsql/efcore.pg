@@ -14,6 +14,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
     public class ComplexNavigationsSharedTypeQueryNpgsqlTest : ComplexNavigationsSharedQueryTypeRelationalTestBase<
         ComplexNavigationsSharedTypeQueryNpgsqlTest.ComplexNavigationsSharedTypeQueryNpgsqlFixture>
     {
+        // ReSharper disable once UnusedParameter.Local
         public ComplexNavigationsSharedTypeQueryNpgsqlTest(
             ComplexNavigationsSharedTypeQueryNpgsqlFixture fixture,
             ITestOutputHelper testOutputHelper)

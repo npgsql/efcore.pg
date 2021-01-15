@@ -11,15 +11,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     public class CompatibilityQueryNpgsqlTest : IClassFixture<CompatibilityQueryNpgsqlTest.CompatibilityQueryNpgsqlFixture>
     {
-        /// <summary>
-        /// Provides resources for unit tests.
-        /// </summary>
         CompatibilityQueryNpgsqlFixture Fixture { get; }
 
-        /// <summary>
-        /// Initializes resources for unit tests.
-        /// </summary>
-        /// <param name="fixture">The fixture of resources for testing.</param>
+        // ReSharper disable once UnusedParameter.Local
         public CompatibilityQueryNpgsqlTest(CompatibilityQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
         {
             Fixture = fixture;

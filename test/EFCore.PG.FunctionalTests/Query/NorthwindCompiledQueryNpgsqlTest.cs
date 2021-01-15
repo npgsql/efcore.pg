@@ -7,7 +7,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     public class NorthwindCompiledQueryNpgsqlTest : NorthwindCompiledQueryTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
     {
-        public NorthwindCompiledQueryNpgsqlTest(NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture, ITestOutputHelper testOutputHelper)
+        // ReSharper disable once UnusedParameter.Local
+        public NorthwindCompiledQueryNpgsqlTest(
+            NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
         {
             Fixture.TestSqlLoggerFactory.Clear();

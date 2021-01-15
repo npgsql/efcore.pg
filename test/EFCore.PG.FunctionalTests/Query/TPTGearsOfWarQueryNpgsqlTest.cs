@@ -7,9 +7,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     public class TPTGearsOfWarQueryNpgsqlTest : TPTGearsOfWarQueryRelationalTestBase<TPTGearsOfWarQueryNpgsqlFixture>
     {
-#pragma warning disable IDE0060 // Remove unused parameter
+        // ReSharper disable once UnusedParameter.Local
         public TPTGearsOfWarQueryNpgsqlTest(TPTGearsOfWarQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
-#pragma warning restore IDE0060 // Remove unused parameter
             : base(fixture)
         {
             Fixture.TestSqlLoggerFactory.Clear();
