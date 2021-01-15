@@ -19,7 +19,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             Fixture = fixture;
             Fixture.TestSqlLoggerFactory.Clear();
-            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+            // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
         [Fact]
@@ -864,7 +864,7 @@ LIMIT 1");
         public void Unaccent()
         {
             using var context = CreateContext();
-            var _ = context.Customers
+            _ = context.Customers
                 .Select(x => EF.Functions.Unaccent(x.ContactName))
                 .FirstOrDefault();
 
@@ -877,7 +877,7 @@ LIMIT 1");
         public void Unaccent_with_constant_regdictionary()
         {
             using var context = CreateContext();
-            var _ = context.Customers
+            _ = context.Customers
                 .Select(x => EF.Functions.Unaccent("unaccent", x.ContactName))
                 .FirstOrDefault();
 
@@ -891,7 +891,7 @@ LIMIT 1");
         {
             using var context = CreateContext();
             var regDictionary = "unaccent";
-            var _ = context.Customers
+            _ = context.Customers
                 .Select(x => EF.Functions.Unaccent(regDictionary, x.ContactName))
                 .FirstOrDefault();
 
@@ -901,6 +901,20 @@ LIMIT 1");
 SELECT unaccent(@__regDictionary_1::regdictionary, c.""ContactName"")
 FROM ""Customers"" AS c
 LIMIT 1");
+        }
+
+        [Fact] // #1652
+        public void Match_and_boolean_operator_precedence()
+        {
+            using var context = CreateContext();
+            _ = context.Customers
+                .Count(c => EF.Functions.ToTsVector(c.ContactTitle)
+                    .Matches(EF.Functions.ToTsQuery("owner").Or(EF.Functions.ToTsQuery("foo"))));
+
+            AssertSql(
+                @"SELECT COUNT(*)::INT
+FROM ""Customers"" AS c
+WHERE to_tsvector(c.""ContactTitle"") @@ (to_tsquery('owner') || to_tsquery('foo'))");
         }
 
         void AssertSql(params string[] expected)
