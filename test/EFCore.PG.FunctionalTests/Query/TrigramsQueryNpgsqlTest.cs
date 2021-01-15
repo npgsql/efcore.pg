@@ -25,7 +25,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             Fixture = fixture;
             Fixture.TestSqlLoggerFactory.Clear();
-            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+            // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
         #region FunctionTests
@@ -182,6 +182,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 .ToArray();
 
             AssertContainsSql(@"t.""Text"" <->>> 'target'");
+        }
+
+        [Fact] // #1659
+        public void Operator_precedence()
+        {
+            using var context = CreateContext();
+            var _ = context.TrigramsTestEntities
+                .Where(e => EF.Functions.TrigramsAreSimilar(e.Text + " " + e.Text, "query"))
+                .ToArray();
+
+            AssertSql(
+                @"SELECT t.""Id"", t.""Text""
+FROM ""TrigramsTestEntities"" AS t
+WHERE (((t.""Text"" || ' ') || t.""Text"") % ('query'))");
         }
 
         #endregion

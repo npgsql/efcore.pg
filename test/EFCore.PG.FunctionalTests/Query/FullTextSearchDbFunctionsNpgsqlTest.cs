@@ -18,7 +18,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             Fixture = fixture;
             Fixture.TestSqlLoggerFactory.Clear();
-            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+            // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
         [Fact]
@@ -854,6 +854,21 @@ LIMIT 1");
                 .First();
 
             Assert.Equal("<b>Accounting</b> <b>Manager</b>", headline);
+        }
+
+
+        [Fact] // #1652
+        public void Match_and_boolean_operator_precedence()
+        {
+            using var context = CreateContext();
+            _ = context.Customers
+                .Count(c => EF.Functions.ToTsVector(c.ContactTitle)
+                    .Matches(EF.Functions.ToTsQuery("owner").Or(EF.Functions.ToTsQuery("foo"))));
+
+            AssertSql(
+                @"SELECT COUNT(*)::INT
+FROM ""Customers"" AS c
+WHERE (to_tsvector(c.""ContactTitle"") @@ (to_tsquery('owner') || to_tsquery('foo')))");
         }
 
         void AssertSql(params string[] expected)

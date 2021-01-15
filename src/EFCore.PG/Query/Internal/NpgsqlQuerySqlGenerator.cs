@@ -414,11 +414,25 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         public virtual Expression VisitCustomBinary([NotNull] SqlCustomBinaryExpression expression)
         {
             Sql.Append('(');
+
+            var requiresBrackets = RequiresBrackets(expression.Left);
+            if (requiresBrackets)
+                Sql.Append("(");
             Visit(expression.Left);
+            if (requiresBrackets)
+                Sql.Append(")");
+
             Sql.Append(' ');
             Sql.Append(expression.Operator);
             Sql.Append(' ');
+
+            requiresBrackets = RequiresBrackets(expression.Left);
+            if (requiresBrackets)
+                Sql.Append("(");
             Visit(expression.Right);
+            if (requiresBrackets)
+                Sql.Append(")");
+
             Sql.Append(')');
 
             return expression;
@@ -523,5 +537,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         }
 
         #endregion
+
+        static bool RequiresBrackets(SqlExpression expression)
+            => expression is SqlBinaryExpression || expression is LikeExpression || expression is SqlCustomBinaryExpression;
     }
 }
