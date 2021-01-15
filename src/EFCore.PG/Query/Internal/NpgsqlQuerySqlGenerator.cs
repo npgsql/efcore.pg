@@ -675,6 +675,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         }
 
         static bool RequiresBrackets(SqlExpression expression)
-            => expression is SqlBinaryExpression || expression is LikeExpression;
+            => expression is SqlBinaryExpression || expression is LikeExpression || expression is PostgresBinaryExpression;
     }
 }
