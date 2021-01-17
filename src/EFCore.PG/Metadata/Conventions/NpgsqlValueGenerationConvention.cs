@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
@@ -72,7 +73,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
                 return null;
             }
 
-            return GetValueGenerated(property, StoreObjectIdentifier.Table(tableName, property.DeclaringEntityType.GetSchema()));
+            return GetValueGenerated(
+                property,
+                StoreObjectIdentifier.Table(tableName, property.DeclaringEntityType.GetSchema()),
+                Dependencies.TypeMappingSource);
         }
 
         /// <summary>
@@ -81,10 +85,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
         /// <param name="property"> The property. </param>
         /// <param name="storeObject"> The identifier of the store object. </param>
         /// <returns>The store value generation strategy to set for the given property.</returns>
-        public static new ValueGenerated? GetValueGenerated(
-            [NotNull] IProperty property, in StoreObjectIdentifier storeObject)
+        public new static ValueGenerated? GetValueGenerated([NotNull] IProperty property, in StoreObjectIdentifier storeObject)
             => RelationalValueGenerationConvention.GetValueGenerated(property, storeObject)
                ?? (property.GetValueGenerationStrategy(storeObject) != NpgsqlValueGenerationStrategy.None
+                   ? ValueGenerated.OnAdd
+                   : (ValueGenerated?)null);
+
+        private ValueGenerated? GetValueGenerated(
+            [NotNull] IProperty property,
+            in StoreObjectIdentifier storeObject,
+            ITypeMappingSource typeMappingSource)
+            => RelationalValueGenerationConvention.GetValueGenerated(property, storeObject)
+               ?? (property.GetValueGenerationStrategy(storeObject, typeMappingSource) != NpgsqlValueGenerationStrategy.None
                    ? ValueGenerated.OnAdd
                    : (ValueGenerated?)null);
     }

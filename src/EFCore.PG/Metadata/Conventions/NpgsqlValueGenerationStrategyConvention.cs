@@ -57,7 +57,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
                     if (table != null)
                     {
                         var storeObject = StoreObjectIdentifier.Table(table, entityType.GetSchema());
-                        strategy = property.GetValueGenerationStrategy(storeObject);
+                        strategy = property.GetValueGenerationStrategy(storeObject, Dependencies.TypeMappingSource);
                         if (strategy == NpgsqlValueGenerationStrategy.None
                             && !IsStrategyNoneNeeded(property, storeObject))
                         {
@@ -70,7 +70,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
                         if (view != null)
                         {
                             var storeObject = StoreObjectIdentifier.View(view, entityType.GetViewSchema());
-                            strategy = property.GetValueGenerationStrategy(storeObject);
+                            strategy = property.GetValueGenerationStrategy(storeObject, Dependencies.TypeMappingSource);
                             if (strategy == NpgsqlValueGenerationStrategy.None
                                 && !IsStrategyNoneNeeded(property, storeObject))
                             {
