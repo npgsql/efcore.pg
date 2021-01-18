@@ -146,6 +146,30 @@ EF.Functions.Reverse(value)                                   | reverse(value)
 Regex.IsMatch(stringValue, "^A+")                             | [stringValue ~ '^A+'](http://www.postgresql.org/docs/current/static/functions-matching.html#FUNCTIONS-POSIX-REGEXP) (with options)
 Regex.IsMatch(stringValue, "^A+", regexOptions)               | [stringValue ~ '^A+'](http://www.postgresql.org/docs/current/static/functions-matching.html#FUNCTIONS-POSIX-REGEXP) (with options)
 
+## Trigram functions
+
+The below translations provide functionality for determining the similarity of alphanumeric text based on trigram matching, using the [`pg_trgm`](https://www.postgresql.org/docs/current/pgtrgm.html) extension which is bundled with standard PostgreSQL distributions. All the below parameters are strings.
+
+> [!NOTE]
+> To use these translations, your project must depend on the [Npgsql.EntityFrameworkCore.PostgreSQL.Trigrams](https://www.nuget.org/packages/Npgsql.EntityFrameworkCore.PostgreSQL.Trigrams/) package, and call <xref:Microsoft.EntityFrameworkCore.NpgsqlTrigramsDbContextOptionsBuilderExtensions.UseTrigrams%2A> in your `OnModelConfiguring`.
+
+.NET                                                              | SQL
+----------------------------------------------------------------- | --------------------
+EF.Functions.TrigramsShow(s)                                      | show_trgm(s)
+EF.Functions.TrigramsSimilarity(s1, s2)                           | similarity(s1, s2)
+EF.Functions.TrigramsWordSimilarity(s1, s2)                       | word_similarity(s1, s2)
+EF.Functions.TrigramsStrictWordSimilarity(s1, s2)                 | strict_word_similarity(s1, s2)
+EF.Functions.TrigramsAreSimilar(s1, s2)                           | s1 % s2
+EF.Functions.TrigramsAreWordSimilar(s1, s2)                       | s1 &lt;% s2
+EF.Functions.TrigramsAreNotWordSimilar(s1, s2)                    | s1 %&gt; s2
+EF.Functions.TrigramsAreStrictWordSimilar(s1, s2)                 | s1 &lt;&lt;% s2
+EF.Functions.TrigramsAreNotStrictWordSimilar(s1, s2)              | s1 %&gt;&gt; s2
+EF.Functions.TrigramsSimilarityDistance(s1, s2)                   | s1 &lt;-&gt; s2
+EF.Functions.TrigramsWordSimilarityDistance(s1, s2)               | s1 &lt;&lt;-&gt; s2
+EF.Functions.TrigramsWordSimilarityDistanceInverted(s1, s2)       | s1 &lt;-&gt;&gt; s2
+EF.Functions.TrigramsStrictWordSimilarityDistance(s1, s2)         | s1 &lt;&lt;&lt;-&gt; s2
+EF.Functions.TrigramsStrictWordSimilarityDistanceInverted(s1, s2) | s1 &lt;-&gt;&gt;&gt; s2
+
 ## Miscellaneous functions
 
 .NET                                     | SQL
