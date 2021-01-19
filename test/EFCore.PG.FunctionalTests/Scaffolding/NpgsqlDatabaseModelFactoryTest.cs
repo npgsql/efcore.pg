@@ -960,7 +960,7 @@ CREATE TABLE ""ValueGeneratedProperties"" (
 CREATE TABLE ""NullableColumns"" (
     ""Id"" int,
     ""NullableInt"" int NULL,
-    ""NonNullString"" text NOT NULL
+    ""NonNullableInt"" int NOT NULL
 )",
                 Enumerable.Empty<string>(),
                 Enumerable.Empty<string>(),
@@ -969,9 +969,32 @@ CREATE TABLE ""NullableColumns"" (
                     var columns = dbModel.Tables.Single().Columns;
 
                     Assert.True(columns.Single(c => c.Name == "NullableInt").IsNullable);
-                    Assert.False(columns.Single(c => c.Name == "NonNullString").IsNullable);
+                    Assert.False(columns.Single(c => c.Name == "NonNullableInt").IsNullable);
                 },
                 @"DROP TABLE ""NullableColumns""");
+
+        [Fact]
+        public void Column_nullability_is_set_with_domain()
+            => Test(@"
+CREATE DOMAIN non_nullable_int AS int NOT NULL;
+
+CREATE TABLE ""NullableColumnsDomain"" (
+    ""Id"" int,
+    ""NullableInt"" non_nullable_int NULL,
+    ""NonNullString"" non_nullable_int NOT NULL
+)",
+                Enumerable.Empty<string>(),
+                Enumerable.Empty<string>(),
+                dbModel =>
+                {
+                    var columns = dbModel.Tables.Single().Columns;
+
+                    Assert.False(columns.Single(c => c.Name == "NullableInt").IsNullable);
+                    Assert.False(columns.Single(c => c.Name == "NonNullString").IsNullable);
+                },
+                @"
+DROP TABLE ""NullableColumnsDomain"";
+DROP DOMAIN non_nullable_int;");
 
         [Fact]
         public void System_columns_are_not_created()

@@ -29,7 +29,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             Assert.Equal("Npgsql.EntityFrameworkCore.PostgreSQL", ActiveProvider);
         }
 
-        [ConditionalFact]
+        [ConditionalFact(Skip="Test concurrency issue")]
         public async Task Empty_Migration_Creates_Database()
         {
             using var context = new BloggingContext(

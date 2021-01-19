@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq.Expressions;
+using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
@@ -15,13 +17,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion
         public NpgsqlArrayConverter([NotNull] ValueConverter elementConverter)
             : base(ToProviderExpression(elementConverter), FromProviderExpression(elementConverter))
         {
-            // TODO: List support
-            if (!typeof(TModelArray).IsArray || !typeof(TProviderArray).IsArray)
+            if (!typeof(TModelArray).TryGetElementType(out var modelElementType) ||
+                !typeof(TProviderArray).TryGetElementType(out var providerElementType))
+            {
                 throw new ArgumentException("Can only convert between arrays");
-            if (typeof(TModelArray).GetElementType() != elementConverter.ModelClrType)
-                throw new ArgumentException($"The element's value converter model type ({elementConverter.ModelClrType}), doesn't match the array's ({typeof(TModelArray).GetElementType()})");
-            if (typeof(TProviderArray).GetElementType() != elementConverter.ProviderClrType)
-                throw new ArgumentException($"The element's value converter provider type ({elementConverter.ProviderClrType}), doesn't match the array's ({typeof(TProviderArray).GetElementType()})");
+            }
+
+            if (modelElementType != elementConverter.ModelClrType)
+                throw new ArgumentException($"The element's value converter model type ({elementConverter.ModelClrType}), doesn't match the array's ({modelElementType})");
+            if (providerElementType != elementConverter.ProviderClrType)
+                throw new ArgumentException($"The element's value converter provider type ({elementConverter.ProviderClrType}), doesn't match the array's ({providerElementType})");
         }
 
         static Expression<Func<TModelArray, TProviderArray>> ToProviderExpression(ValueConverter elementConverter)
@@ -36,8 +41,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion
         /// </summary>
         static Expression<Func<TInput, TOutput>> ArrayConversionExpression<TInput, TOutput>(LambdaExpression elementConversionExpression)
         {
-            var outputElementType = typeof(TOutput).GetElementType();
-            Debug.Assert(outputElementType != null);
+            Debug.Assert(typeof(TInput).IsArrayOrGenericList());
+            Debug.Assert(typeof(TOutput).IsArrayOrGenericList());
+
+            var result = typeof(TOutput).TryGetElementType(out var outputElementType);
+            Debug.Assert(result);
 
             var inputArray = Expression.Parameter(typeof(TInput), "value");
             var outputArray = Expression.Parameter(typeof(TOutput), "result");
@@ -53,22 +61,37 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion
                         typeof(TOutput),
                         new[] { outputArray, arrayLengthVariable, loopVariable },
 
-                        // Get the length of the input array, allocate an output array and loop over the elements, converting them
-                        Expression.Assign(arrayLengthVariable, Expression.ArrayLength(inputArray)),
-                        Expression.Assign(outputArray, Expression.NewArrayBounds(outputElementType, arrayLengthVariable)),
+                        // Get the length of the input array or list
+                        Expression.Assign(arrayLengthVariable, typeof(TInput).IsArray
+                            ? Expression.ArrayLength(inputArray)
+                            : Expression.Property(inputArray,
+                                typeof(TInput).GetProperty(nameof(List<TModelArray>.Count))!)),
+
+                        // Allocate an output array or list
+                        Expression.Assign(outputArray, typeof(TOutput).IsArray
+                            ? Expression.NewArrayBounds(outputElementType, arrayLengthVariable)
+                            : Expression.New(typeof(TOutput))),
+
+                        // Loop over the elements, applying the element converter on them one by one
                         ForLoop(
                             loopVar: loopVariable,
                             initValue: Expression.Constant(0),
-                            condition: Expression.LessThan(loopVariable, arrayLengthVariable), Expression.AddAssign(loopVariable, Expression.Constant(1)),
+                            condition: Expression.LessThan(loopVariable, arrayLengthVariable),
+                            increment: Expression.AddAssign(loopVariable, Expression.Constant(1)),
                             loopContent:
                             Expression.Assign(
-                                Expression.ArrayAccess(outputArray, loopVariable),
+                                AccessArrayOrList(outputArray, loopVariable),
                                 Expression.Invoke(
                                     elementConversionExpression,
-                                    Expression.ArrayAccess(inputArray, loopVariable)))),
+                                    AccessArrayOrList(inputArray, loopVariable)))),
                         outputArray
                     )),
                 inputArray);
+
+            static Expression AccessArrayOrList(Expression arrayOrList, Expression index)
+                => arrayOrList.Type.IsArray
+                    ? Expression.ArrayAccess(arrayOrList, index)
+                    : Expression.Property(arrayOrList, arrayOrList.Type.FindIndexerProperty()!, index);
         }
 
         static Expression ForLoop(ParameterExpression loopVar, Expression initValue, Expression condition, Expression increment, Expression loopContent)

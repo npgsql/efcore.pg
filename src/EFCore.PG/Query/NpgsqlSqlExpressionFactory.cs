@@ -347,22 +347,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         SqlExpression ApplyTypeMappingOnAny(PostgresAnyExpression postgresAnyExpression)
         {
-            var (item, array) = ApplyTypeMappingsOnItemAndArray(
-                postgresAnyExpression.Item,
-                postgresAnyExpression.Array);
+            var (item, array) = ApplyTypeMappingsOnItemAndArray(postgresAnyExpression.Item, postgresAnyExpression.Array);
             return new PostgresAnyExpression(item, array, postgresAnyExpression.OperatorType, _boolTypeMapping);
         }
 
         SqlExpression ApplyTypeMappingOnAll(PostgresAllExpression postgresAllExpression)
         {
-            var (item, array) = ApplyTypeMappingsOnItemAndArray(
-                postgresAllExpression.Item,
-                postgresAllExpression.Array);
+            var (item, array) = ApplyTypeMappingsOnItemAndArray(postgresAllExpression.Item, postgresAllExpression.Array);
             return new PostgresAllExpression(item, array, postgresAllExpression.OperatorType, _boolTypeMapping);
         }
 
-        (SqlExpression, SqlExpression) ApplyTypeMappingsOnItemAndArray(
-            SqlExpression itemExpression, SqlExpression arrayExpression)
+        (SqlExpression, SqlExpression) ApplyTypeMappingsOnItemAndArray(SqlExpression itemExpression, SqlExpression arrayExpression)
         {
             // Attempt type inference either from the operand to the array or the other way around
             var arrayMapping = (NpgsqlArrayTypeMapping)arrayExpression.TypeMapping;
@@ -373,12 +368,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
             // Note that we provide both the array CLR type *and* an array store type constructed from the element's
             // store type. If we use only the array CLR type, byte[] will yield bytea which we don't want.
-            arrayMapping ??= (NpgsqlArrayTypeMapping)_typeMappingSource.FindMapping(
-                arrayExpression.Type, itemMapping.StoreType + "[]");
+            arrayMapping ??= (NpgsqlArrayTypeMapping)_typeMappingSource.FindMapping(arrayExpression.Type, itemMapping.StoreType + "[]");
 
             if (itemMapping == null || arrayMapping == null)
-                throw new InvalidOperationException(
-                    "Couldn't find array or element type mapping in ArrayAnyAllExpression");
+                throw new InvalidOperationException("Couldn't find array or element type mapping in ArrayAnyAllExpression");
 
             return (
                 ApplyTypeMapping(itemExpression, itemMapping),
