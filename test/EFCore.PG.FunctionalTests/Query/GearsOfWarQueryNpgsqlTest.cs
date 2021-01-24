@@ -85,11 +85,6 @@ FROM ""Squads"" AS s
 WHERE length(s.""Banner"") = length(@__byteArrayParam)");
         }
 
-        [Theory(Skip = "https://github.com/npgsql/Npgsql.EntityFrameworkCore.PostgreSQL/issues/874")]
-        [MemberData(nameof(IsAsyncData))]
-        public override Task String_concat_with_null_conditional_argument2(bool async)
-            => base.String_concat_with_null_conditional_argument2(async);
-
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]
         public virtual Task Where_datetime_subtraction(bool async)
@@ -126,15 +121,8 @@ WHERE length(s.""Banner"") = length(@__byteArrayParam)");
         public override Task Where_datetimeoffset_now(bool async) => Task.CompletedTask;
         public override Task Where_datetimeoffset_utcnow(bool async) => Task.CompletedTask;
 
-        [ConditionalTheory(Skip = "DateTimeOffset.Date isn't currently translated")]
-        [MemberData(nameof(IsAsyncData))]
-        public override Task DateTimeOffset_Contains_Less_than_Greater_than(bool async)
-            => base.DateTimeOffset_Contains_Less_than_Greater_than(async);
-
-        [ConditionalTheory(Skip = "DateTimeOffset.Date isn't currently translated")]
-        [MemberData(nameof(IsAsyncData))]
-        public override Task DateTimeOffset_Date_returns_datetime(bool async)
-            => base.DateTimeOffset_Date_returns_datetime(async);
+        public override Task DateTimeOffset_Contains_Less_than_Greater_than(bool async) => Task.CompletedTask;
+        public override Task DateTimeOffset_Date_returns_datetime(bool async) => Task.CompletedTask;
 
         #endregion Ignore DateTimeOffset tests
 

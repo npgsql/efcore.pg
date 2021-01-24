@@ -14,14 +14,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             : base(fixture)
             => Fixture.TestSqlLoggerFactory.Clear();
 
-        [ConditionalTheory(Skip = "Null semantics for array ANY not yet implemented, #1142")]
-        public override Task Contains_with_local_array_closure_false_with_null(bool async)
-            => base.Contains_with_local_array_closure_false_with_null(async);
-
-        [ConditionalTheory(Skip = "Null semantics for array ANY not yet implemented, #1142")]
-        public override Task Contains_with_local_nullable_array_closure_negated(bool async)
-            => base.Contains_with_local_nullable_array_closure_negated(async);
-
         protected override void ClearLog()
             => Fixture.TestSqlLoggerFactory.Clear();
 

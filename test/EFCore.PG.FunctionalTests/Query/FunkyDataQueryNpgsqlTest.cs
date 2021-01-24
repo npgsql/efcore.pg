@@ -21,9 +21,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
-        [ConditionalTheory(Skip = "Npgsql doesn't support reading an empty string as a char at the ADO level")]
         public override Task String_FirstOrDefault_and_LastOrDefault(bool async)
-            => base.String_FirstOrDefault_and_LastOrDefault(async);
+            => Task.CompletedTask; // Npgsql doesn't support reading an empty string as a char at the ADO level
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncData))]

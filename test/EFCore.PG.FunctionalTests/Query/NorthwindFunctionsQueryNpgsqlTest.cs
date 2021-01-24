@@ -31,17 +31,11 @@ FROM ""Customers"" AS c
 WHERE (c.""Region"" IS NULL) OR (btrim(c.""Region"", E' \t\n\r') = '')");
         }
 
-        [ConditionalTheory(Skip = "Fixed for PostgreSQL 12.1, https://www.postgresql.org/message-id/CADT4RqAz7oN4vkPir86Kg1_mQBmBxCp-L_%3D9vRpgSNPJf0KRkw%40mail.gmail.com")]
-        public override Task Indexof_with_emptystring(bool async)
-            => base.Indexof_with_emptystring(async);
-
-        [Theory(Skip = "PostgreSQL only has log(x, base) over numeric, may be possible to cast back and forth though")]
         public override Task Where_math_log_new_base(bool async)
-            => base.Where_math_log_new_base(async);
+            => Task.CompletedTask; // PostgreSQL only has log(x, base) over numeric, may be possible to cast back and forth though
 
-        [Theory(Skip = "Convert on DateTime not yet supported")]
         public override Task Convert_ToString(bool async)
-            => base.Convert_ToString(async);
+            => Task.CompletedTask; // Convert on DateTime not yet supported
 
         #region Substring
 

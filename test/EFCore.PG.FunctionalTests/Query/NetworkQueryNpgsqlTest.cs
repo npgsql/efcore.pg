@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore.TestUtilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
 using Xunit.Abstractions;
+
 // ReSharper disable ConvertToConstant.Local
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
@@ -28,12 +29,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             Fixture = fixture;
             Fixture.TestSqlLoggerFactory.Clear();
-            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+            // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
         #region BugTests
 
-        [Fact(Skip = nameof(NetworkQueryNpgsqlTest))]
+        [Fact]
         public void Demonstrate_ValueTypeParametersAreDuplicated()
         {
             using var context = CreateContext();
@@ -44,8 +45,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 .Select(x => x.Cidr.Equals(cidr))
                 .ToArray();
 
-            AssertContainsSql("SELECT x.\"Cidr\" = @__cidr_1 = TRUE");
-            AssertContainsSql("WHERE x.\"Cidr\" >>= @__cidr_1 = TRUE");
+            AssertSql(
+                @"@__cidr_1='(0.0.0.0
+0)' (DbType = Object)
+
+SELECT n.""Cidr"" = @__cidr_1
+FROM ""NetTestEntities"" AS n
+WHERE n.""Cidr"" >>= @__cidr_1");
         }
 
         #endregion

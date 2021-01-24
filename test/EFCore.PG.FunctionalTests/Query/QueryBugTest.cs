@@ -22,47 +22,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         protected NpgsqlFixture Fixture { get; }
 
-        #region Bug278
-
-        [Fact(Skip = "Skipped for preview7, edge case")]
-        public void Bug278()
-        {
-            using var _ = CreateDatabase278();
-            using var context = new Bug278Context(_options);
-            var actual = context.Entities.Select(x => new
-            {
-                Codes = x.ChannelCodes.Select(c => (ChannelCode)c)
-            }).ToList()[0];
-
-            Assert.Equal(new[] { ChannelCode.Code, ChannelCode.Code }, actual.Codes);
-        }
-
-        NpgsqlTestStore CreateDatabase278()
-            => CreateTestStore(
-                () => new Bug278Context(_options),
-                context =>
-                {
-                    context.Entities.Add(new Bug278Entity { ChannelCodes = new[] { 1, 1 } });
-                    context.SaveChanges();
-                    ClearLog();
-                });
-
-        public enum ChannelCode { Code = 1 }
-
-        public class Bug278Entity
-        {
-            public int Id { get; set; }
-            public int[] ChannelCodes { get; set; }
-        }
-
-        class Bug278Context : DbContext
-        {
-            public Bug278Context(DbContextOptions options) : base(options) {}
-            public DbSet<Bug278Entity> Entities { get; set; }
-        }
-
-        #endregion Bug278
-
         #region Bug920
 
         [Fact]

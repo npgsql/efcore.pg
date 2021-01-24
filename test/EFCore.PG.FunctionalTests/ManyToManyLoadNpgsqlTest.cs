@@ -17,10 +17,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         {
         }
 
-        [ConditionalTheory(Skip = "https://github.com/dotnet/efcore/pull/23823")]
-        public override Task Load_collection_using_Query_with_filtered_Include_and_projection(bool async)
-            => base.Load_collection_using_Query_with_filtered_Include_and_projection(async);
-
         public class ManyToManyLoadNpgsqlFixture : ManyToManyLoadFixtureBase
         {
             public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;

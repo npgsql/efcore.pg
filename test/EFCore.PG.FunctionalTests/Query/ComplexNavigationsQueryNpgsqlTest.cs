@@ -17,10 +17,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             Fixture.TestSqlLoggerFactory.Clear();
         }
 
-        [ConditionalTheory(Skip = "#1142")]
-        public override Task Accessing_optional_property_inside_result_operator_subquery(bool async)
-            => base.Accessing_optional_property_inside_result_operator_subquery(async);
-
         public class ComplexNavigationsQueryNpgsqlFixture
             : ComplexNavigationsQueryRelationalFixtureBase
         {

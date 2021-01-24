@@ -1893,14 +1893,8 @@ DROP SEQUENCE ""People_Id_old_seq"";");
                 @"ALTER TABLE ""People"" DROP CONSTRAINT ""PK_People"";");
         }
 
-        [Fact(Skip = "#1217")]
-        public override async Task Add_foreign_key()
-        {
-            await base.Add_foreign_key();
-
-            AssertSql(
-                @"");
-        }
+        public override Task Add_foreign_key()
+            => Task.CompletedTask; // https://github.com/npgsql/efcore.pg/issues/1217
 
         public override async Task Add_foreign_key_with_name()
         {
@@ -2204,21 +2198,23 @@ SELECT setval(
                 @"CREATE EXTENSION IF NOT EXISTS citext;");
         }
 
-        [Fact(Skip = "#1220")]
-        public virtual async Task Ensure_postgres_extension_with_extension()
+        public virtual Task Ensure_postgres_extension_with_extension()
         {
-            await Test(
-                builder => { },
-                builder => builder.HasPostgresExtension("some_schema", "citext"),
-                model =>
-                {
-                    var citext = Assert.Single(model.GetPostgresExtensions());
-                    Assert.Equal("citext", citext.Name);
-                    Assert.Equal("some_schema", citext.Schema);
-                });
+            // See https://github.com/npgsql/efcore.pg/issues/1220
+            return Task.CompletedTask;
 
-            AssertSql(
-                @"CREATE EXTENSION IF NOT EXISTS citext;");
+            // await Test(
+            //     builder => { },
+            //     builder => builder.HasPostgresExtension("some_schema", "citext"),
+            //     model =>
+            //     {
+            //         var citext = Assert.Single(model.GetPostgresExtensions());
+            //         Assert.Equal("citext", citext.Name);
+            //         Assert.Equal("some_schema", citext.Schema);
+            //     });
+            //
+            // AssertSql(
+            //     @"CREATE EXTENSION IF NOT EXISTS citext;");
         }
 
         #endregion

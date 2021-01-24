@@ -13,9 +13,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         {
         }
 
-        [ConditionalFact(Skip = "Some issue loading System.Runtime.CompilerServices.Unsafe, should go away by 5.0")]
-        public override Task AddressAndPayment_RedirectToCompleteWhenSuccessful() => Task.CompletedTask;
-
         public class MusicStoreNpgsqlFixture : MusicStoreFixtureBase
         {
             protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;

@@ -221,26 +221,6 @@ WHERE c.""Id"" = @__customerId_1
 LIMIT 2");
         }
 
-        [Fact(Skip = "Issue #14935. Cannot eval 'where (2 == AddOneStatic([c].Id))'")]
-        public override void Scalar_Nested_Function_Unwind_Client_Eval_Where_Static()
-        {
-            base.Scalar_Nested_Function_Unwind_Client_Eval_Where_Static();
-
-            AssertSql(
-                @"SELECT c.""Id""
-FROM ""Customers"" AS c");
-        }
-
-        [Fact(Skip = "Issue #14935. Cannot eval 'orderby AddOneStatic([c].Id) asc'")]
-        public override void Scalar_Nested_Function_Unwind_Client_Eval_OrderBy_Static()
-        {
-            base.Scalar_Nested_Function_Unwind_Client_Eval_OrderBy_Static();
-
-            AssertSql(
-                @"SELECT c.""Id""
-FROM ""Customers"" AS c");
-        }
-
         [Fact]
         public override void Scalar_Nested_Function_Unwind_Client_Eval_Select_Static()
         {
@@ -250,96 +230,6 @@ FROM ""Customers"" AS c");
                 @"SELECT c.""Id""
 FROM ""Customers"" AS c
 ORDER BY c.""Id""");
-        }
-
-        [Fact(Skip = "Issue #14935. Cannot eval 'where (2 == AddOneStatic(Abs(CustomerOrderCountWithClientStatic([c].Id))))'")]
-        public override void Scalar_Nested_Function_Client_BCL_UDF_Static()
-        {
-            base.Scalar_Nested_Function_Client_BCL_UDF_Static();
-
-            AssertSql(
-                @"SELECT c.""Id""
-FROM ""Customers"" AS c");
-        }
-
-        [Fact(Skip = "Issue #14935. Cannot eval 'where (2 == AddOneStatic(CustomerOrderCountWithClientStatic(Abs([c].Id))))'")]
-        public override void Scalar_Nested_Function_Client_UDF_BCL_Static()
-        {
-            base.Scalar_Nested_Function_Client_UDF_BCL_Static();
-
-            AssertSql(
-                @"SELECT c.""Id""
-FROM ""Customers"" AS c");
-        }
-
-        [Fact(Skip = "Issue #14935. Cannot eval 'where (2 == Abs(AddOneStatic(CustomerOrderCountWithClientStatic([c].Id))))'")]
-        public override void Scalar_Nested_Function_BCL_Client_UDF_Static()
-        {
-            base.Scalar_Nested_Function_BCL_Client_UDF_Static();
-
-            AssertSql(
-                @"SELECT c.""Id""
-FROM ""Customers"" AS c");
-        }
-
-        [Fact(Skip = "Issue #14935. Cannot eval 'where (1 == Abs(CustomerOrderCountWithClientStatic(AddOneStatic([c].Id))))'")]
-        public override void Scalar_Nested_Function_BCL_UDF_Client_Static()
-        {
-            base.Scalar_Nested_Function_BCL_UDF_Client_Static();
-
-            AssertSql(
-                @"SELECT c.""Id""
-FROM ""Customers"" AS c");
-        }
-
-        [Fact(Skip = "Issue #14935. Cannot eval 'where (1 == CustomerOrderCountWithClientStatic(Abs(AddOneStatic([c].Id))))'")]
-        public override void Scalar_Nested_Function_UDF_BCL_Client_Static()
-        {
-            base.Scalar_Nested_Function_UDF_BCL_Client_Static();
-
-            AssertSql(
-                @"SELECT c.""Id""
-FROM ""Customers"" AS c");
-        }
-
-        [Fact(Skip = "Issue #14935. Cannot eval 'where (1 == CustomerOrderCountWithClientStatic(AddOneStatic(Abs([c].Id))))'")]
-        public override void Scalar_Nested_Function_UDF_Client_BCL_Static()
-        {
-            base.Scalar_Nested_Function_UDF_Client_BCL_Static();
-
-            AssertSql(
-                @"SELECT c.""Id""
-FROM ""Customers"" AS c");
-        }
-
-        [Fact(Skip = "Issue #14935. Cannot eval 'where (3 == AddOneStatic(Abs([c].Id)))'")]
-        public override void Scalar_Nested_Function_Client_BCL_Static()
-        {
-            base.Scalar_Nested_Function_Client_BCL_Static();
-
-            AssertSql(
-                @"SELECT c.""Id""
-FROM ""Customers"" AS c");
-        }
-
-        [Fact(Skip = "Issue #14935. Cannot eval 'where (2 == AddOneStatic(CustomerOrderCountWithClientStatic([c].Id)))'")]
-        public override void Scalar_Nested_Function_Client_UDF_Static()
-        {
-            base.Scalar_Nested_Function_Client_UDF_Static();
-
-            AssertSql(
-                @"SELECT c.""Id""
-FROM ""Customers"" AS c");
-        }
-
-        [Fact(Skip = "Issue #14935. Cannot eval 'where (3 == Abs(AddOneStatic([c].Id)))'")]
-        public override void Scalar_Nested_Function_BCL_Client_Static()
-        {
-            base.Scalar_Nested_Function_BCL_Client_Static();
-
-            AssertSql(
-                @"SELECT c.""Id""
-FROM ""Customers"" AS c");
         }
 
         [Fact]
@@ -352,16 +242,6 @@ FROM ""Customers"" AS c");
 FROM ""Customers"" AS c
 WHERE 3 = abs(""CustomerOrderCount""(c.""Id""))
 LIMIT 2");
-        }
-
-        [Fact(Skip = "Issue #14935. Cannot eval 'where (2 == CustomerOrderCountWithClientStatic(AddOneStatic([c].Id)))'")]
-        public override void Scalar_Nested_Function_UDF_Client_Static()
-        {
-            base.Scalar_Nested_Function_UDF_Client_Static();
-
-            AssertSql(
-                @"SELECT c.""Id""
-FROM ""Customers"" AS c");
         }
 
         [Fact]
@@ -599,26 +479,6 @@ WHERE c.""Id"" = @__customerId_2
 LIMIT 2");
         }
 
-        [Fact(Skip = "Issue #14935. Cannot eval 'where (2 == __context_0.AddOneInstance([c].Id))'")]
-        public override void Scalar_Nested_Function_Unwind_Client_Eval_Where_Instance()
-        {
-            base.Scalar_Nested_Function_Unwind_Client_Eval_Where_Instance();
-
-            AssertSql(
-                @"SELECT c.""Id""
-FROM ""Customers"" AS c");
-        }
-
-        [Fact(Skip = "Issue #14935. Cannot eval 'orderby __context_0.AddOneInstance([c].Id) asc'")]
-        public override void Scalar_Nested_Function_Unwind_Client_Eval_OrderBy_Instance()
-        {
-            base.Scalar_Nested_Function_Unwind_Client_Eval_OrderBy_Instance();
-
-            AssertSql(
-                @"SELECT c.""Id""
-FROM ""Customers"" AS c");
-        }
-
         [Fact]
         public override void Scalar_Nested_Function_Unwind_Client_Eval_Select_Instance()
         {
@@ -628,96 +488,6 @@ FROM ""Customers"" AS c");
                 @"SELECT c.""Id""
 FROM ""Customers"" AS c
 ORDER BY c.""Id""");
-        }
-
-        [Fact(Skip = "Issue #14935. Cannot eval 'where (2 == __context_0.AddOneInstance(Abs(__context_0.CustomerOrderCountWithClientInstance([c].Id))))'")]
-        public override void Scalar_Nested_Function_Client_BCL_UDF_Instance()
-        {
-            base.Scalar_Nested_Function_Client_BCL_UDF_Instance();
-
-            AssertSql(
-                @"SELECT c.""Id""
-FROM ""Customers"" AS c");
-        }
-
-        [Fact(Skip = "Issue #14935. Cannot eval 'where (2 == __context_0.AddOneInstance(__context_0.CustomerOrderCountWithClientInstance(Abs([c].Id))))'")]
-        public override void Scalar_Nested_Function_Client_UDF_BCL_Instance()
-        {
-            base.Scalar_Nested_Function_Client_UDF_BCL_Instance();
-
-            AssertSql(
-                @"SELECT c.""Id""
-FROM ""Customers"" AS c");
-        }
-
-        [Fact(Skip = "Issue #14935. Cannot eval 'where (2 == Abs(__context_0.AddOneInstance(__context_0.CustomerOrderCountWithClientInstance([c].Id))))'")]
-        public override void Scalar_Nested_Function_BCL_Client_UDF_Instance()
-        {
-            base.Scalar_Nested_Function_BCL_Client_UDF_Instance();
-
-            AssertSql(
-                @"SELECT c.""Id""
-FROM ""Customers"" AS c");
-        }
-
-        [Fact(Skip = "Issue #14935. Cannot eval 'where (1 == Abs(__context_0.CustomerOrderCountWithClientInstance(__context_0.AddOneInstance([c].Id))))'")]
-        public override void Scalar_Nested_Function_BCL_UDF_Client_Instance()
-        {
-            base.Scalar_Nested_Function_BCL_UDF_Client_Instance();
-
-            AssertSql(
-                @"SELECT c.""Id""
-FROM ""Customers"" AS c");
-        }
-
-        [Fact(Skip = "Issue #14935. Cannot eval 'where (1 == __context_0.CustomerOrderCountWithClientInstance(Abs(__context_0.AddOneInstance([c].Id))))'")]
-        public override void Scalar_Nested_Function_UDF_BCL_Client_Instance()
-        {
-            base.Scalar_Nested_Function_UDF_BCL_Client_Instance();
-
-            AssertSql(
-                @"SELECT c.""Id""
-FROM ""Customers"" AS c");
-        }
-
-        [Fact(Skip = "Issue #14935. Cannot eval 'where (1 == __context_0.CustomerOrderCountWithClientInstance(__context_0.AddOneInstance(Abs([c].Id))))'")]
-        public override void Scalar_Nested_Function_UDF_Client_BCL_Instance()
-        {
-            base.Scalar_Nested_Function_UDF_Client_BCL_Instance();
-
-            AssertSql(
-                @"SELECT c.""Id""
-FROM ""Customers"" AS c");
-        }
-
-        [Fact(Skip = "Issue #14935. Cannot eval 'where (3 == __context_0.AddOneInstance(Abs([c].Id)))'")]
-        public override void Scalar_Nested_Function_Client_BCL_Instance()
-        {
-            base.Scalar_Nested_Function_Client_BCL_Instance();
-
-            AssertSql(
-                @"SELECT c.""Id""
-FROM ""Customers"" AS c");
-        }
-
-        [Fact(Skip = "Issue #14935. Cannot eval 'where (2 == __context_0.AddOneInstance(__context_0.CustomerOrderCountWithClientInstance([c].Id)))'")]
-        public override void Scalar_Nested_Function_Client_UDF_Instance()
-        {
-            base.Scalar_Nested_Function_Client_UDF_Instance();
-
-            AssertSql(
-                @"SELECT c.""Id""
-FROM ""Customers"" AS c");
-        }
-
-        [Fact(Skip = "Issue #14935. Cannot eval 'where (3 == Abs(__context_0.AddOneInstance([c].Id)))'")]
-        public override void Scalar_Nested_Function_BCL_Client_Instance()
-        {
-            base.Scalar_Nested_Function_BCL_Client_Instance();
-
-            AssertSql(
-                @"SELECT c.""Id""
-FROM ""Customers"" AS c");
         }
 
         [Fact]
@@ -730,16 +500,6 @@ FROM ""Customers"" AS c");
 FROM ""Customers"" AS c
 WHERE 3 = abs(""CustomerOrderCount""(c.""Id""))
 LIMIT 2");
-        }
-
-        [Fact(Skip = "Issue #14935. Cannot eval 'where (2 == __context_0.CustomerOrderCountWithClientInstance(__context_0.AddOneInstance([c].Id)))'")]
-        public override void Scalar_Nested_Function_UDF_Client_Instance()
-        {
-            base.Scalar_Nested_Function_UDF_Client_Instance();
-
-            AssertSql(
-                @"SELECT c.""Id""
-FROM ""Customers"" AS c");
         }
 
         [Fact]

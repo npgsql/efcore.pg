@@ -137,14 +137,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             }
         }
 
-        [ConditionalFact(Skip = "Implement")]
-        public override void Can_diff_against_3_0_ASP_NET_Identity_model() {}
+        public override void Can_diff_against_3_0_ASP_NET_Identity_model()
+        {
+            // TODO: Implement
+        }
 
-        [ConditionalFact(Skip = "Implement")]
-        public override void Can_diff_against_2_2_ASP_NET_Identity_model() {}
+        public override void Can_diff_against_2_2_ASP_NET_Identity_model()
+        {
+            // TODO: Implement
+        }
 
-        [ConditionalFact(Skip = "Implement")]
-        public override void Can_diff_against_2_1_ASP_NET_Identity_model() {}
+        public override void Can_diff_against_2_1_ASP_NET_Identity_model()
+        {
+            // TODO: Implement
+        }
 
         public class MigrationsInfrastructureNpgsqlFixture : MigrationsInfrastructureFixtureBase
         {

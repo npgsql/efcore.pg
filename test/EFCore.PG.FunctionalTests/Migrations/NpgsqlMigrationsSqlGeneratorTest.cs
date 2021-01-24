@@ -402,9 +402,10 @@ WHERE ""First Name"" = 'Daenerys';
 ");
         }
 
-        [ConditionalTheory(Skip = "https://github.com/npgsql/efcore.pg/issues/1478")]
         public override void DefaultValue_with_line_breaks(bool isUnicode)
-            => base.DefaultValue_with_line_breaks(isUnicode);
+        {
+            // https://github.com/npgsql/efcore.pg/issues/1478
+        }
 
         // Which index collations are available on a given PostgreSQL varies (e.g. Linux vs. Windows)
         // so we test support for this on the generated SQL only, and not against the database in MigrationsNpsqlTest.

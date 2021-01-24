@@ -705,12 +705,6 @@ WHERE m.""TimeSpanAsTime"" = @__timeSpan_0");
             Assert.Null(entity.Mood);
         }
 
-        [Fact(Skip="https://github.com/aspnet/EntityFrameworkCore/issues/14159")]
-        public override void Can_query_using_any_data_type_nullable_shadow() {}
-
-        [Fact(Skip="https://github.com/aspnet/EntityFrameworkCore/issues/14159")]
-        public override void Can_query_using_any_data_type_shadow() {}
-
         public override void Can_query_with_null_parameters_using_any_nullable_data_type()
         {
             using (var context = CreateContext())

@@ -147,17 +147,14 @@ FROM ""Orders"" AS o
 WHERE date_part('second', o.""OrderDate"")::INT = 44");
         }
 
-        [Theory(Skip = "SQL translation not implemented, too annoying")]
         public override Task Where_datetime_millisecond_component(bool async)
-            => base.Where_datetime_millisecond_component(async);
+            => Task.CompletedTask; // SQL translation not implemented, too annoying
 
-        [Theory(Skip = "Translation not implemented yet, #873")]
         public override Task Where_datetimeoffset_now_component(bool async)
-            => base.Where_datetimeoffset_now_component(async);
+            => Task.CompletedTask; // https://github.com/npgsql/efcore.pg/issues/873
 
-        [Theory(Skip = "Translation not implemented yet, #873")]
         public override Task Where_datetimeoffset_utcnow_component(bool async)
-            => base.Where_datetimeoffset_utcnow_component(async);
+            => Task.CompletedTask; // https://github.com/npgsql/efcore.pg/issues/873
 
         #endregion Date and time
 
