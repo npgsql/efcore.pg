@@ -20,7 +20,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             => _isGeography = isGeography;
 
         protected NpgsqlGeometryTypeMapping(RelationalTypeMappingParameters parameters)
-            : base(parameters, new NullValueConverter()) {}
+            : base(parameters, converter: null) {}
 
         protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
             => new NpgsqlGeometryTypeMapping<TGeometry>(parameters);
