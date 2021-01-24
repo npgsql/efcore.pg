@@ -122,6 +122,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 {
                     Name = _connection.DbConnection.Database,
                     Template = Dependencies.Model.GetDatabaseTemplate(),
+                    Collation = Dependencies.Model.GetCollation(),
                     Tablespace = Dependencies.Model.GetTablespace()
                 }
             });
@@ -132,7 +133,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             {
                 // When checking whether a database exists, pooling must be off, otherwise we may
                 // attempt to reuse a pooled connection, which may be broken (this happened in the tests).
-                var unpooledCsb = new NpgsqlConnectionStringBuilder(_connection.ConnectionString) { Pooling = false };
+                // If Pooling is off, but Multiplexing is on - NpgsqlConnectionStringBuilder.Validate will throw,
+                // so we turn off Multiplexing as well.
+                var unpooledCsb = new NpgsqlConnectionStringBuilder(_connection.ConnectionString)
+                {
+                    Pooling = false,
+                    Multiplexing = false
+                };
                 using var unpooledConn = ((NpgsqlConnection)_connection.DbConnection).CloneWith(unpooledCsb.ToString());
                 using var _ = new TransactionScope(TransactionScopeOption.Suppress);
                 unpooledConn.Open();
@@ -164,7 +171,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             {
                 // When checking whether a database exists, pooling must be off, otherwise we may
                 // attempt to reuse a pooled connection, which may be broken (this happened in the tests).
-                var unpooledCsb = new NpgsqlConnectionStringBuilder(_connection.ConnectionString) { Pooling = false };
+                // If Pooling is off, but Multiplexing is on - NpgsqlConnectionStringBuilder.Validate will throw,
+                // so we turn off Multiplexing as well.
+                var unpooledCsb = new NpgsqlConnectionStringBuilder(_connection.ConnectionString)
+                {
+                    Pooling = false,
+                    Multiplexing = false
+                };
                 using var unpooledConn = ((NpgsqlConnection)_connection.DbConnection).CloneWith(unpooledCsb.ToString());
                 using var _ = new TransactionScope(TransactionScopeOption.Suppress, TransactionScopeAsyncFlowOption.Enabled);
                 await unpooledConn.OpenAsync(cancellationToken);
@@ -217,7 +230,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
         public override void CreateTables()
         {
-            var operations = Dependencies.ModelDiffer.GetDifferences(null, Dependencies.Model);
+            var operations = Dependencies.ModelDiffer.GetDifferences(null, Dependencies.Model.GetRelationalModel());
             var commands = Dependencies.MigrationsSqlGenerator.Generate(operations, Dependencies.Model);
 
             // If a PostgreSQL extension, enum or range was added, we want Npgsql to reload all types at the ADO.NET level.
@@ -256,7 +269,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
         public override async Task CreateTablesAsync(CancellationToken cancellationToken = default)
         {
-            var operations = Dependencies.ModelDiffer.GetDifferences(null, Dependencies.Model);
+            var operations = Dependencies.ModelDiffer.GetDifferences(null, Dependencies.Model.GetRelationalModel());
             var commands = Dependencies.MigrationsSqlGenerator.Generate(operations, Dependencies.Model);
 
             // If a PostgreSQL extension, enum or range was added, we want Npgsql to reload all types at the ADO.NET level.

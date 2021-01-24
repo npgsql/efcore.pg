@@ -7,6 +7,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics.Internal
         public EventDefinitionBase LogFoundDefaultSchema;
         public EventDefinitionBase LogFoundColumn;
         public EventDefinitionBase LogFoundForeignKey;
+        public EventDefinitionBase LogFoundCollation;
         public EventDefinitionBase LogPrincipalTableNotInSelectionSet;
         public EventDefinitionBase LogMissingSchema;
         public EventDefinitionBase LogMissingTable;

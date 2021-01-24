@@ -30,7 +30,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         }
 
         protected override BadUniverseContext CreateBadUniverse(DbContextOptionsBuilder optionsBuilder)
-            => new BadUniverseContext(optionsBuilder.UseNpgsql(new FakeDbConnection()).Options);
+            => new(optionsBuilder.UseNpgsql(new FakeDbConnection()).Options);
 
         public class FakeDbConnection : DbConnection
         {

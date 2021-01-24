@@ -9,14 +9,14 @@ using Xunit.Abstractions;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     // ReSharper disable once UnusedMember.Global
-    public class GearsOfWarQueryNpgsqlTest : GearsOfWarQueryTestBase<GearsOfWarQueryNpgsqlFixture>
+    public class GearsOfWarQueryNpgsqlTest : GearsOfWarQueryRelationalTestBase<GearsOfWarQueryNpgsqlFixture>
     {
         // ReSharper disable once UnusedParameter.Local
         public GearsOfWarQueryNpgsqlTest(GearsOfWarQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
         {
             Fixture.TestSqlLoggerFactory.Clear();
-            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+            Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
         public override async Task Byte_array_contains_literal(bool async)
@@ -26,7 +26,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             AssertSql(
                 @"SELECT s.""Id"", s.""Banner"", s.""Banner5"", s.""InternalNumber"", s.""Name""
 FROM ""Squads"" AS s
-WHERE POSITION(BYTEA E'\\x01' IN s.""Banner"") > 0");
+WHERE position(BYTEA E'\\x01' IN s.""Banner"") > 0");
         }
 
         public override async Task Byte_array_contains_parameter(bool async)
@@ -38,7 +38,7 @@ WHERE POSITION(BYTEA E'\\x01' IN s.""Banner"") > 0");
 
 SELECT s.""Id"", s.""Banner"", s.""Banner5"", s.""InternalNumber"", s.""Name""
 FROM ""Squads"" AS s
-WHERE POSITION(SET_BYTE(BYTEA E'\\x00', 0, @__someByte_0) IN s.""Banner"") > 0");
+WHERE position(set_byte(BYTEA E'\\x00', 0, @__someByte_0) IN s.""Banner"") > 0");
         }
 
         public override async Task Byte_array_filter_by_length_literal(bool async)
@@ -48,7 +48,7 @@ WHERE POSITION(SET_BYTE(BYTEA E'\\x00', 0, @__someByte_0) IN s.""Banner"") > 0")
             AssertSql(
                 @"SELECT s.""Id"", s.""Banner"", s.""Banner5"", s.""InternalNumber"", s.""Name""
 FROM ""Squads"" AS s
-WHERE LENGTH(s.""Banner"") = 1");
+WHERE length(s.""Banner"") = 1");
         }
 
         public override async Task Byte_array_filter_by_length_literal_does_not_cast_on_varbinary_n(bool async)
@@ -58,7 +58,7 @@ WHERE LENGTH(s.""Banner"") = 1");
             AssertSql(
                 @"SELECT s.""Id"", s.""Banner"", s.""Banner5"", s.""InternalNumber"", s.""Name""
 FROM ""Squads"" AS s
-WHERE LENGTH(s.""Banner5"") = 5");
+WHERE length(s.""Banner5"") = 5");
         }
 
         public override async Task Byte_array_filter_by_length_parameter(bool async)
@@ -70,7 +70,7 @@ WHERE LENGTH(s.""Banner5"") = 5");
 
 SELECT s.""Id"", s.""Banner"", s.""Banner5"", s.""InternalNumber"", s.""Name""
 FROM ""Squads"" AS s
-WHERE LENGTH(s.""Banner"") = @__p_0");
+WHERE length(s.""Banner"") = @__p_0");
         }
 
         public override void Byte_array_filter_by_length_parameter_compiled()
@@ -82,7 +82,7 @@ WHERE LENGTH(s.""Banner"") = @__p_0");
 
 SELECT COUNT(*)::INT
 FROM ""Squads"" AS s
-WHERE LENGTH(s.""Banner"") = LENGTH(@__byteArrayParam)");
+WHERE length(s.""Banner"") = length(@__byteArrayParam)");
         }
 
         [Theory(Skip = "https://github.com/npgsql/Npgsql.EntityFrameworkCore.PostgreSQL/issues/874")]

@@ -14,6 +14,16 @@ namespace Microsoft.EntityFrameworkCore
     {
         [NotNull]
         [ItemNotNull]
+        public static IReadOnlyList<PostgresCollation> GetPostgresCollations([NotNull] this AlterDatabaseOperation operation)
+            => PostgresCollation.GetCollations(operation).ToArray();
+
+        [NotNull]
+        [ItemNotNull]
+        public static IReadOnlyList<PostgresCollation> GetOldPostgresCollations([NotNull] this AlterDatabaseOperation operation)
+            => PostgresCollation.GetCollations(operation.OldDatabase).ToArray();
+
+        [NotNull]
+        [ItemNotNull]
         public static IReadOnlyList<PostgresExtension> GetPostgresExtensions([NotNull] this AlterDatabaseOperation operation)
             => PostgresExtension.GetPostgresExtensions(operation).ToArray();
 

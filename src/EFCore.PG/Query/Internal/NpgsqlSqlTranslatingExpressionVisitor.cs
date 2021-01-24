@@ -1,98 +1,82 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
-using ExpressionExtensions = Microsoft.EntityFrameworkCore.Query.ExpressionExtensions;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 {
     public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExpressionVisitor
     {
-        [NotNull]
+        static readonly ConstructorInfo DateTimeCtor1 =
+            typeof(DateTime).GetConstructor(new[] { typeof(int), typeof(int), typeof(int) });
+
+        static readonly ConstructorInfo DateTimeCtor2 =
+            typeof(DateTime).GetConstructor(new[] { typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int) });
+
         static readonly MethodInfo Like2MethodInfo =
             typeof(DbFunctionsExtensions)
                 .GetRuntimeMethod(nameof(DbFunctionsExtensions.Like), new[] { typeof(DbFunctions), typeof(string), typeof(string) });
 
         // ReSharper disable once InconsistentNaming
-        [NotNull]
-        static readonly MethodInfo ILike2MethodInfo =
-            typeof(NpgsqlDbFunctionsExtensions)
+        static readonly MethodInfo ILike2MethodInfo
+            = typeof(NpgsqlDbFunctionsExtensions)
                 .GetRuntimeMethod(nameof(NpgsqlDbFunctionsExtensions.ILike), new[] { typeof(DbFunctions), typeof(string), typeof(string) });
 
-        [NotNull]
-        static readonly MethodInfo EnumerableAnyWithPredicate =
-            typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
-                .Single(mi => mi.Name == nameof(Enumerable.Any) && mi.GetParameters().Length == 2);
-
-        [NotNull]
-        static readonly MethodInfo EnumerableAll =
-            typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
-                .Single(mi => mi.Name == nameof(Enumerable.All) && mi.GetParameters().Length == 2);
-
-        [NotNull]
-        static readonly MethodInfo Contains =
-            typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
-                .Single(m => m.Name == nameof(Enumerable.Contains) && m.GetParameters().Length == 2);
+        static readonly MethodInfo ObjectEquals
+            = typeof(object).GetRuntimeMethod(nameof(object.Equals), new[] { typeof(object), typeof(object) });
 
         readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
+        readonly IRelationalTypeMappingSource _typeMappingSource;
         readonly NpgsqlJsonPocoTranslator _jsonPocoTranslator;
 
-        [NotNull]
-        readonly RelationalTypeMapping _boolMapping;
+        static Type _nodaTimePeriodType;
 
         public NpgsqlSqlTranslatingExpressionVisitor(
-            RelationalSqlTranslatingExpressionVisitorDependencies dependencies,
-            IModel model,
-            QueryableMethodTranslatingExpressionVisitor queryableMethodTranslatingExpressionVisitor)
-            : base(dependencies, model, queryableMethodTranslatingExpressionVisitor)
+            [NotNull] RelationalSqlTranslatingExpressionVisitorDependencies dependencies,
+            [NotNull] QueryCompilationContext queryCompilationContext,
+            [NotNull] QueryableMethodTranslatingExpressionVisitor queryableMethodTranslatingExpressionVisitor)
+            : base(dependencies, queryCompilationContext, queryableMethodTranslatingExpressionVisitor)
         {
             _sqlExpressionFactory = (NpgsqlSqlExpressionFactory)dependencies.SqlExpressionFactory;
             _jsonPocoTranslator = ((NpgsqlMemberTranslatorProvider)Dependencies.MemberTranslatorProvider).JsonPocoTranslator;
-            _boolMapping = _sqlExpressionFactory.FindMapping(typeof(bool));
+            _typeMappingSource = dependencies.TypeMappingSource;
         }
 
         // PostgreSQL COUNT() always returns bigint, so we need to downcast to int
-        // TODO: Translate Count with predicate for GroupBy (see base implementation)
-        public override SqlExpression TranslateCount(Expression expression = null)
+        public override SqlExpression TranslateCount(SqlExpression sqlExpression)
         {
-            if (expression != null)
-            {
-                // TODO: Translate Count with predicate for GroupBy
-                return null;
-            }
+            Check.NotNull(sqlExpression, nameof(sqlExpression));
 
             return _sqlExpressionFactory.Convert(
                 _sqlExpressionFactory.ApplyDefaultTypeMapping(
-                    _sqlExpressionFactory.Function("COUNT",
-                        new[] { _sqlExpressionFactory.Fragment("*") },
+                    _sqlExpressionFactory.Function(
+                        "COUNT",
+                        new[] { sqlExpression },
                         nullable: false,
                         argumentsPropagateNullability: FalseArrays[1],
                         typeof(long))),
-                typeof(int), _sqlExpressionFactory.FindMapping(typeof(int)));
+                typeof(int), _typeMappingSource.FindMapping(typeof(int)));
         }
 
         // In PostgreSQL SUM() doesn't return the same type as its argument for smallint, int and bigint.
         // Cast to get the same type.
         // http://www.postgresql.org/docs/current/static/functions-aggregate.html
-        public override SqlExpression TranslateSum(Expression expression)
+        public override SqlExpression TranslateSum(SqlExpression sqlExpression)
         {
-            var sqlExpression = expression as SqlExpression ??
-                                Translate(expression) ??
-                                throw new InvalidOperationException(CoreStrings.TranslationFailed(expression.Print()));
+            Check.NotNull(sqlExpression, nameof(sqlExpression));
 
             var inputType = sqlExpression.Type.UnwrapNullableType();
 
@@ -134,15 +118,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             if (unaryExpression.NodeType == ExpressionType.ArrayLength)
             {
                 if (TranslationFailed(unaryExpression.Operand, Visit(unaryExpression.Operand), out var sqlOperand))
-                    return null;
+                    return QueryCompilationContext.NotTranslatedExpression;
 
                 // Translate Length on byte[], but only if the type mapping is for bytea. There's also array of bytes
                 // (mapped to smallint[]), which is handled below with CARDINALITY.
                 if (sqlOperand.Type == typeof(byte[]) &&
                     (sqlOperand.TypeMapping == null || sqlOperand.TypeMapping is NpgsqlByteArrayTypeMapping))
                 {
-                    return SqlExpressionFactory.Function(
-                        "LENGTH",
+                    return _sqlExpressionFactory.Function(
+                        "length",
                         new[] { sqlOperand },
                         nullable: true,
                         argumentsPropagateNullability: TrueArrays[1],
@@ -155,7 +139,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                            new[] { sqlOperand },
                            nullable: true,
                            argumentsPropagateNullability: TrueArrays[1],
-                           typeof(int?));
+                           typeof(int));
             }
 
             return base.VisitUnary(unaryExpression);
@@ -163,40 +147,42 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 
         protected override Expression VisitMethodCall(MethodCallExpression methodCall)
         {
-            var visited = base.VisitMethodCall(methodCall);
-            if (visited != null)
-                return visited;
-
-            if (methodCall.Arguments.Count > 0 && (
-                    methodCall.Arguments[0].Type.IsArray || methodCall.Arguments[0].Type.IsGenericList()))
+            if (methodCall.Arguments.Count > 0 &&
+                methodCall.Arguments[0].Type.IsArrayOrGenericList() &&
+                VisitArrayMethodCall(methodCall.Method, methodCall.Arguments) is { } visited)
             {
-                return VisitArrayMethodCall(methodCall.Method, methodCall.Arguments);
+                return visited;
             }
 
-            return null;
+            return base.VisitMethodCall(methodCall);
         }
 
         /// <summary>
         /// Identifies complex array-related constructs which cannot be translated in regular method translators, since
         /// they require accessing lambdas.
         /// </summary>
-        protected virtual Expression VisitArrayMethodCall(MethodInfo method, ReadOnlyCollection<Expression> arguments)
+        private Expression VisitArrayMethodCall(
+            [NotNull] MethodInfo method, [NotNull] ReadOnlyCollection<Expression> arguments)
         {
+            var array = arguments[0];
+
             {
-                // Pattern match for .Where(e => new[] { "a", "b", "c" }.Any(p => EF.Functions.Like(e.SomeText, p))),
+                // Pattern match for: new[] { "a", "b", "c" }.Any(p => EF.Functions.Like(e.SomeText, p)),
                 // which we translate to WHERE s.""SomeText"" LIKE ANY (ARRAY['a','b','c']) (see test Any_like)
                 // Note: NavigationExpander normalized Any(x) to Where(x).Any()
-                if (method.IsClosedFormOf(EnumerableAnyWithPredicate) &&
+                if (method.IsClosedFormOf(EnumerableMethods.AnyWithPredicate) &&
                     arguments[1] is LambdaExpression wherePredicate &&
                     wherePredicate.Body is MethodCallExpression wherePredicateMethodCall && (
                         wherePredicateMethodCall.Method == Like2MethodInfo ||
-                        wherePredicateMethodCall.Method == ILike2MethodInfo))
+                        wherePredicateMethodCall.Method == ILike2MethodInfo) &&
+                    wherePredicateMethodCall.Arguments is var whereArguments &&
+                    whereArguments[2] == wherePredicate.Parameters[0])
                 {
-                    var array = (SqlExpression)Visit(arguments[0]);
-                    var match = (SqlExpression)Visit(wherePredicateMethodCall.Arguments[1]);
-
-                    return _sqlExpressionFactory.ArrayAnyAll(match, array, ArrayComparisonType.Any,
-                        wherePredicateMethodCall.Method == Like2MethodInfo ? "LIKE" : "ILIKE");
+                    return _sqlExpressionFactory.Any(
+                        (SqlExpression)Visit(whereArguments[1]),
+                        (SqlExpression)Visit(array),
+                        wherePredicateMethodCall.Method == Like2MethodInfo
+                            ? PostgresAnyOperatorType.Like : PostgresAnyOperatorType.ILike);
                 }
 
                 // Note: we also handle the above with equality instead of Like, see NpgsqlArrayMethodTranslator
@@ -204,65 +190,116 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 
             {
                 // Same for All (but without the normalization)
-                if (method.IsClosedFormOf(EnumerableAll) &&
+                if (method.IsClosedFormOf(EnumerableMethods.All) &&
                     arguments[1] is LambdaExpression wherePredicate &&
                     wherePredicate.Body is MethodCallExpression wherePredicateMethodCall && (
                         wherePredicateMethodCall.Method == Like2MethodInfo ||
-                        wherePredicateMethodCall.Method == ILike2MethodInfo))
+                        wherePredicateMethodCall.Method == ILike2MethodInfo) &&
+                    wherePredicateMethodCall.Arguments is var whereArguments &&
+                    whereArguments[2] == wherePredicate.Parameters[0])
                 {
-                    var array = (SqlExpression)Visit(arguments[0]);
-                    var match = (SqlExpression)Visit(wherePredicateMethodCall.Arguments[1]);
-
-                    return _sqlExpressionFactory.ArrayAnyAll(match, array, ArrayComparisonType.All,
-                        wherePredicateMethodCall.Method == Like2MethodInfo ? "LIKE" : "ILIKE");
+                    return _sqlExpressionFactory.All(
+                        (SqlExpression)Visit(wherePredicateMethodCall.Arguments[1]),
+                        (SqlExpression)Visit(arguments[0]),
+                        wherePredicateMethodCall.Method == Like2MethodInfo
+                            ? PostgresAllOperatorType.Like : PostgresAllOperatorType.ILike);
                 }
             }
 
             {
-                // Translate e => new[] { 4, 5 }.Any(p => e.SomeArray.Contains(p)),
-                // using array overlap (&&)
-                if (method.IsClosedFormOf(EnumerableAnyWithPredicate) &&
+                if (method.IsClosedFormOf(EnumerableMethods.AnyWithPredicate) &&
                     arguments[1] is LambdaExpression wherePredicate &&
-                    wherePredicate.Body is MethodCallExpression wherePredicateMethodCall &&
-                    wherePredicateMethodCall.Method.IsClosedFormOf(Contains) &&
-                    wherePredicateMethodCall.Arguments[0].Type.IsArrayOrGenericList() &&
-                    wherePredicateMethodCall.Arguments[1] is ParameterExpression parameterExpression &&
-                    parameterExpression == wherePredicate.Parameters[0])
+                    wherePredicate.Body is MethodCallExpression wherePredicateMethodCall)
                 {
-                    var array1 = (SqlExpression)Visit(arguments[0]);
-                    var array2 = (SqlExpression)Visit(wherePredicateMethodCall.Arguments[0]);
-                    var inferredMapping = ExpressionExtensions.InferTypeMapping(array1, array2);
+                    var predicateMethod = wherePredicateMethodCall.Method;
 
-                    return new SqlCustomBinaryExpression(
-                        _sqlExpressionFactory.ApplyTypeMapping(array1, inferredMapping),
-                        _sqlExpressionFactory.ApplyTypeMapping(array2, inferredMapping),
-                        "&&",
-                        typeof(bool),
-                        _boolMapping);
+                    // Pattern match for: new[] { 4, 5 }.Any(p => e.SomeArray.Contains(p)),
+                    // using array overlap (&&).
+                    if (predicateMethod.IsClosedFormOf(EnumerableMethods.Contains) &&
+                        wherePredicateMethodCall.Arguments[0].Type.IsArrayOrGenericList() &&
+                        wherePredicateMethodCall.Arguments[1] is ParameterExpression parameterExpression1 &&
+                        parameterExpression1 == wherePredicate.Parameters[0])
+                    {
+                        return _sqlExpressionFactory.Overlaps(
+                            (SqlExpression)Visit(arguments[0]),
+                            (SqlExpression)Visit(wherePredicateMethodCall.Arguments[0]));
+                    }
+
+                    // As above, but for Contains on List<T>
+                    if (predicateMethod.DeclaringType?.IsGenericType == true &&
+                        predicateMethod.DeclaringType.GetGenericTypeDefinition() == typeof(List<>) &&
+                        predicateMethod.Name == nameof(List<int>.Contains) &&
+                        predicateMethod.GetParameters().Length == 1 &&
+                        wherePredicateMethodCall.Arguments[0] is ParameterExpression parameterExpression2 &&
+                        parameterExpression2 == wherePredicate.Parameters[0])
+                    {
+                        return _sqlExpressionFactory.Overlaps(
+                            (SqlExpression)Visit(arguments[0]),
+                            (SqlExpression)Visit(wherePredicateMethodCall.Object));
+                    }
                 }
             }
 
             {
-                // Translate e => new[] { 4, 5 }.All(p => e.SomeArray.Contains(p)),
+                // Pattern match for: new[] { 4, 5 }.All(p => e.SomeArray.Contains(p)),
                 // using array containment (<@)
-                if (method.IsClosedFormOf(EnumerableAll) &&
+                if (method.IsClosedFormOf(EnumerableMethods.All) &&
                     arguments[1] is LambdaExpression wherePredicate &&
                     wherePredicate.Body is MethodCallExpression wherePredicateMethodCall &&
-                    wherePredicateMethodCall.Method.IsClosedFormOf(Contains) &&
+                    wherePredicateMethodCall.Method.IsClosedFormOf(EnumerableMethods.Contains) &&
                     wherePredicateMethodCall.Arguments[0].Type.IsArrayOrGenericList() &&
                     wherePredicateMethodCall.Arguments[1] is ParameterExpression parameterExpression &&
                     parameterExpression == wherePredicate.Parameters[0])
                 {
-                    var array1 = (SqlExpression)Visit(arguments[0]);
-                    var array2 = (SqlExpression)Visit(wherePredicateMethodCall.Arguments[0]);
-                    var inferredMapping = ExpressionExtensions.InferTypeMapping(array1, array2);
+                    return _sqlExpressionFactory.ContainedBy(
+                        (SqlExpression)Visit(arguments[0]),
+                        (SqlExpression)Visit(wherePredicateMethodCall.Arguments[0]));
+                }
+            }
 
-                    return new SqlCustomBinaryExpression(
-                        _sqlExpressionFactory.ApplyTypeMapping(array1, inferredMapping),
-                        _sqlExpressionFactory.ApplyTypeMapping(array2, inferredMapping),
-                        "<@",
-                        typeof(bool),
-                        _boolMapping);
+            {
+                // Pattern match for: array.Any(e => e == x) (and other equality patterns)
+                // Transform this to Contains.
+                if (method.IsClosedFormOf(EnumerableMethods.AnyWithPredicate) &&
+                    arguments[1] is LambdaExpression wherePredicate &&
+                    TryMatchEquality(wherePredicate.Body, out var left, out var right) &&
+                    (left == wherePredicate.Parameters[0] || right == wherePredicate.Parameters[0]))
+                {
+                    var item = left == wherePredicate.Parameters[0]
+                        ? right
+                        : right == wherePredicate.Parameters[0]
+                            ? left
+                            : null;
+
+                    return item is null
+                        ? null
+                        : Visit(Expression.Call(EnumerableMethods.Contains.MakeGenericMethod(method.GetGenericArguments()[0]), array, item));
+                }
+
+                static bool TryMatchEquality(Expression expression, out Expression left, out Expression right)
+                {
+                    if (expression is BinaryExpression binary)
+                    {
+                        (left, right) = (binary.Left, binary.Right);
+                        return true;
+                    }
+                    if (expression is MethodCallExpression methodCall)
+                    {
+                        if (methodCall.Method == ObjectEquals)
+                        {
+                            (left, right) = (methodCall.Arguments[0], methodCall.Arguments[1]);
+                            return true;
+                        }
+
+                        if (methodCall.Method.Name == nameof(object.Equals) && methodCall.Arguments.Count == 1)
+                        {
+                            (left, right) = (methodCall.Object, methodCall.Arguments[0]);
+                            return true;
+                        }
+                    }
+
+                    (left, right) = (null, null);
+                    return false;
                 }
             }
 
@@ -272,24 +309,32 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         /// <inheritdoc />
         protected override Expression VisitBinary(BinaryExpression binaryExpression)
         {
-            // Support DateTime subtraction, which returns a TimeSpan.
-            if (binaryExpression.NodeType == ExpressionType.Subtract
-                && binaryExpression.Left.Type.UnwrapNullableType() == typeof(DateTime)
-                && binaryExpression.Left.Type.UnwrapNullableType() == typeof(DateTime))
+            if (binaryExpression.NodeType == ExpressionType.Subtract)
             {
-                if (TranslationFailed(binaryExpression.Left, Visit(TryRemoveImplicitConvert(binaryExpression.Left)), out var sqlLeft)
-                    || TranslationFailed(binaryExpression.Right, Visit(TryRemoveImplicitConvert(binaryExpression.Right)), out var sqlRight))
+                if (binaryExpression.Left.Type.UnwrapNullableType().FullName == "NodaTime.LocalDate" &&
+                    binaryExpression.Right.Type.UnwrapNullableType().FullName == "NodaTime.LocalDate")
                 {
-                    return null;
+                    if (TranslationFailed(binaryExpression.Left, Visit(TryRemoveImplicitConvert(binaryExpression.Left)), out var sqlLeft)
+                        || TranslationFailed(binaryExpression.Right, Visit(TryRemoveImplicitConvert(binaryExpression.Right)), out var sqlRight))
+                    {
+                        return QueryCompilationContext.NotTranslatedExpression;
+                    }
+
+                    var subtraction = _sqlExpressionFactory.MakeBinary(
+                        ExpressionType.Subtract, sqlLeft, sqlRight, _typeMappingSource.FindMapping(typeof(int)));
+
+                    return PostgresFunctionExpression.CreateWithNamedArguments(
+                        "MAKE_INTERVAL",
+                        new[] {  subtraction },
+                        new[] { "days" },
+                        nullable: true,
+                        argumentsPropagateNullability: TrueArrays[1],
+                        builtIn: true,
+                        _nodaTimePeriodType ??= binaryExpression.Left.Type.Assembly.GetType("NodaTime.Period"),
+                        typeMapping: null);
                 }
 
-                var inferredDateTimeTypeMapping = ExpressionExtensions.InferTypeMapping(sqlLeft, sqlRight);
-                return new SqlBinaryExpression(
-                    ExpressionType.Subtract,
-                    _sqlExpressionFactory.ApplyTypeMapping(sqlLeft, inferredDateTimeTypeMapping),
-                    _sqlExpressionFactory.ApplyTypeMapping(sqlRight, inferredDateTimeTypeMapping),
-                    typeof(TimeSpan),
-                    null);
+                // Note: many other date/time arithmetic operators are fully supported as-is by PostgreSQL - see NpgsqlSqlExpressionFactory
             }
 
             if (binaryExpression.NodeType == ExpressionType.ArrayIndex)
@@ -297,7 +342,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 if (TranslationFailed(binaryExpression.Left, Visit(TryRemoveImplicitConvert(binaryExpression.Left)), out var sqlLeft)
                     || TranslationFailed(binaryExpression.Right, Visit(TryRemoveImplicitConvert(binaryExpression.Right)), out var sqlRight))
                 {
-                    return null;
+                    return QueryCompilationContext.NotTranslatedExpression;
                 }
 
                 // ArrayIndex over bytea is special, we have to use function rather than subscript
@@ -305,16 +350,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 {
                     return _sqlExpressionFactory.Function(
                         "get_byte",
-                        new[]
-                        {
-                            _sqlExpressionFactory.ApplyDefaultTypeMapping(sqlLeft),
-                            _sqlExpressionFactory.ApplyDefaultTypeMapping(sqlRight)
-                        },
+                        new[] { sqlLeft, sqlRight },
                         nullable: true,
                         argumentsPropagateNullability: TrueArrays[2],
-                        typeof(byte),
-                        _sqlExpressionFactory.FindMapping(typeof(byte))
-                    );
+                        typeof(byte));
                 }
 
                 return
@@ -325,6 +364,56 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             }
 
             return base.VisitBinary(binaryExpression);
+        }
+
+
+        /// <inheritdoc />
+        protected override Expression VisitNew(NewExpression newExpression)
+        {
+            var visitedNewExpression = base.VisitNew(newExpression);
+            if (visitedNewExpression != QueryCompilationContext.NotTranslatedExpression)
+            {
+                return visitedNewExpression;
+            }
+
+            if (newExpression.Constructor == DateTimeCtor1)
+            {
+                return TryTranslateArguments(out var sqlArguments)
+                    ? _sqlExpressionFactory.Function(
+                        "make_date", sqlArguments, nullable: true, TrueArrays[3], typeof(DateTime))
+                    : QueryCompilationContext.NotTranslatedExpression;
+            }
+
+            if (newExpression.Constructor == DateTimeCtor2)
+            {
+                if (!TryTranslateArguments(out var sqlArguments))
+                    return QueryCompilationContext.NotTranslatedExpression;
+
+                // DateTime's second component is an int, but PostgreSQL's MAKE_TIMESTAMP accepts a double precision
+                sqlArguments[5] = _sqlExpressionFactory.Convert(sqlArguments[5], typeof(double));
+
+                return _sqlExpressionFactory.Function(
+                    "make_timestamp", sqlArguments, nullable: true, TrueArrays[6], typeof(DateTime));
+            }
+
+            return QueryCompilationContext.NotTranslatedExpression;
+
+            bool TryTranslateArguments(out SqlExpression[] sqlArguments)
+            {
+                sqlArguments = new SqlExpression[newExpression.Arguments.Count];
+                for (var i = 0; i < sqlArguments.Length; i++)
+                {
+                    var argument = newExpression.Arguments[i];
+                    if (TranslationFailed(argument, Visit(argument), out var sqlArgument))
+                    {
+                        return false;
+                    }
+
+                    sqlArguments[i] = sqlArgument;
+                }
+
+                return true;
+            }
         }
 
         /// <summary>

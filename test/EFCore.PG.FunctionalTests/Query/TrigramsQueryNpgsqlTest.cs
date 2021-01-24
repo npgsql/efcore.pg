@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities.Xunit;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -21,11 +20,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
     {
         TrigramsQueryNpgsqlFixture Fixture { get; }
 
+        // ReSharper disable once UnusedParameter.Local
         public TrigramsQueryNpgsqlTest(TrigramsQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
         {
             Fixture = fixture;
             Fixture.TestSqlLoggerFactory.Clear();
-            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+            // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
         #region FunctionTests
@@ -63,7 +63,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             AssertContainsSql(@"word_similarity(t.""Text"", 'target')");
         }
 
-        [MinimumPostgresVersionFact(11, 0)]
+        [ConditionalFact]
+        [MinimumPostgresVersion(11, 0)]
         public void TrigramsStrictWordSimilarity()
         {
             using var context = CreateContext();
@@ -107,7 +108,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             AssertContainsSql(@"t.""Text"" %> 'target'");
         }
 
-        [MinimumPostgresVersionFact(11, 0)]
+        [ConditionalFact]
+        [MinimumPostgresVersion(11, 0)]
         public void TrigramsAreStrictWordSimilar()
         {
             using var context = CreateContext();
@@ -118,7 +120,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             AssertContainsSql(@"t.""Text"" <<% 'target'");
         }
 
-        [MinimumPostgresVersionFact(11, 0)]
+        [ConditionalFact]
+        [MinimumPostgresVersion(11, 0)]
         public void TrigramsAreNotStrictWordSimilar()
         {
             using var context = CreateContext();
@@ -162,7 +165,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             AssertContainsSql(@"t.""Text"" <->> 'target'");
         }
 
-        [MinimumPostgresVersionFact(11, 0)]
+        [ConditionalFact]
+        [MinimumPostgresVersion(11, 0)]
         public void TrigramsStrictWordSimilarityDistance()
         {
             using var context = CreateContext();
@@ -173,7 +177,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             AssertContainsSql(@"t.""Text"" <<<-> 'target'");
         }
 
-        [MinimumPostgresVersionFact(11, 0)]
+        [ConditionalFact]
+        [MinimumPostgresVersion(11, 0)]
         public void TrigramsStrictWordSimilarityDistanceInverted()
         {
             using var context = CreateContext();
@@ -182,6 +187,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 .ToArray();
 
             AssertContainsSql(@"t.""Text"" <->>> 'target'");
+        }
+
+        [Fact] // #1659
+        public void Operator_precedence()
+        {
+            using var context = CreateContext();
+            var _ = context.TrigramsTestEntities
+                .Where(e => EF.Functions.TrigramsAreSimilar(e.Text + " " + e.Text, "query"))
+                .ToArray();
+
+            AssertSql(
+                @"SELECT t.""Id"", t.""Text""
+FROM ""TrigramsTestEntities"" AS t
+WHERE ((COALESCE(t.""Text"", '') || ' ') || COALESCE(t.""Text"", '')) % 'query'");
         }
 
         #endregion

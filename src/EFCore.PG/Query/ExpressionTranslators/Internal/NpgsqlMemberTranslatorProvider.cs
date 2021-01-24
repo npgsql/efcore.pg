@@ -1,8 +1,6 @@
 ﻿using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Storage;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
@@ -11,25 +9,25 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     /// </summary>
     public class NpgsqlMemberTranslatorProvider : RelationalMemberTranslatorProvider
     {
-        public NpgsqlJsonPocoTranslator JsonPocoTranslator { get; }
+        public virtual NpgsqlJsonPocoTranslator JsonPocoTranslator { get; }
 
         public NpgsqlMemberTranslatorProvider(
             [NotNull] RelationalMemberTranslatorProviderDependencies dependencies,
-            IRelationalTypeMappingSource typeMappingSource)
+            [NotNull] IRelationalTypeMappingSource typeMappingSource)
             : base(dependencies)
         {
-            var npgsqlSqlExpressionFactory = (NpgsqlSqlExpressionFactory)dependencies.SqlExpressionFactory;
-            JsonPocoTranslator = new NpgsqlJsonPocoTranslator(npgsqlSqlExpressionFactory);
+            var sqlExpressionFactory = (NpgsqlSqlExpressionFactory)dependencies.SqlExpressionFactory;
+            JsonPocoTranslator = new NpgsqlJsonPocoTranslator(typeMappingSource, sqlExpressionFactory);
 
             AddTranslators(
                 new IMemberTranslator[] {
-                    new NpgsqlArrayTranslator(npgsqlSqlExpressionFactory, JsonPocoTranslator),
-                    new NpgsqlStringMemberTranslator(npgsqlSqlExpressionFactory),
-                    new NpgsqlDateTimeMemberTranslator(npgsqlSqlExpressionFactory),
-                    new NpgsqlRangeTranslator(npgsqlSqlExpressionFactory),
-                    new NpgsqlJsonDomTranslator(npgsqlSqlExpressionFactory, typeMappingSource),
+                    new NpgsqlArrayTranslator(typeMappingSource, sqlExpressionFactory, JsonPocoTranslator),
+                    new NpgsqlStringMemberTranslator(sqlExpressionFactory),
+                    new NpgsqlDateTimeMemberTranslator(sqlExpressionFactory),
+                    new NpgsqlRangeTranslator(typeMappingSource, sqlExpressionFactory),
+                    new NpgsqlJsonDomTranslator(typeMappingSource, sqlExpressionFactory),
                     JsonPocoTranslator,
-                    new NpgsqlTimeSpanMemberTranslator(npgsqlSqlExpressionFactory)
+                    new NpgsqlTimeSpanMemberTranslator(sqlExpressionFactory)
                 });
         }
     }

@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestModels.Northwind;
 using Microsoft.EntityFrameworkCore.TestUtilities;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities.Xunit;
+using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using NpgsqlTypes;
 using Xunit;
 using Xunit.Abstractions;
@@ -14,11 +14,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
     {
         protected NorthwindQueryNpgsqlFixture<NoopModelCustomizer> Fixture { get; }
 
+        // ReSharper disable once UnusedParameter.Local
         public FullTextSearchDbFunctionsNpgsqlTest(NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture, ITestOutputHelper testOutputHelper)
         {
             Fixture = fixture;
             Fixture.TestSqlLoggerFactory.Clear();
-            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+            // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
         [Fact]
@@ -53,7 +54,7 @@ LIMIT 1");
         {
             using var context = CreateContext();
 
-            Assert.Throws<NotSupportedException>(
+            Assert.Throws<InvalidOperationException>(
                 () => context.Customers
                     .Select(c => EF.Functions.ArrayToTsVector(new[] { c.CompanyName, c.Address }))
                     .First());
@@ -240,7 +241,8 @@ FROM ""Customers"" AS c
 LIMIT 1");
         }
 
-        [MinimumPostgresVersionFact(11, 0)]
+        [ConditionalFact]
+        [MinimumPostgresVersion(11, 0)]
         public void WebSearchToTsQuery()
         {
             using var context = CreateContext();
@@ -253,7 +255,8 @@ FROM ""Customers"" AS c
 LIMIT 1");
         }
 
-        [MinimumPostgresVersionFact(11, 0)]
+        [ConditionalFact]
+        [MinimumPostgresVersion(11, 0)]
         public void WebSearchToTsQuery_With_Config()
         {
             using var context = CreateContext();
@@ -266,7 +269,8 @@ FROM ""Customers"" AS c
 LIMIT 1");
         }
 
-        [MinimumPostgresVersionFact(11, 0)]
+        [ConditionalFact]
+        [MinimumPostgresVersion(11, 0)]
         public void WebSearchToTsQuery_With_Config_From_Variable()
         {
             using var context = CreateContext();
@@ -292,7 +296,7 @@ LIMIT 1");
 
             Assert.NotNull(tsquery);
             AssertSql(
-                @"SELECT (to_tsquery('a & b') && to_tsquery('c & d'))
+                @"SELECT to_tsquery('a & b') && to_tsquery('c & d')
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -307,7 +311,7 @@ LIMIT 1");
 
             Assert.NotNull(tsquery);
             AssertSql(
-                @"SELECT (to_tsquery('a & b') || to_tsquery('c & d'))
+                @"SELECT to_tsquery('a & b') || to_tsquery('c & d')
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -337,7 +341,7 @@ LIMIT 1");
 
             Assert.True(result);
             AssertSql(
-                @"SELECT (to_tsquery('a & b') @> to_tsquery('b'))
+                @"SELECT to_tsquery('a & b') @> to_tsquery('b')
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -352,7 +356,7 @@ LIMIT 1");
 
             Assert.True(result);
             AssertSql(
-                @"SELECT (to_tsquery('b') <@ to_tsquery('a & b'))
+                @"SELECT to_tsquery('b') <@ to_tsquery('a & b')
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -519,7 +523,7 @@ LIMIT 1");
             AssertSql(
                 @"@__query_1='b'
 
-SELECT (to_tsvector('a') @@ plainto_tsquery(@__query_1))
+SELECT to_tsvector('a') @@ plainto_tsquery(@__query_1)
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -534,7 +538,7 @@ LIMIT 1");
 
             Assert.False(result);
             AssertSql(
-                @"SELECT (to_tsvector('a') @@ to_tsquery('b'))
+                @"SELECT to_tsvector('a') @@ to_tsquery('b')
 FROM ""Customers"" AS c
 LIMIT 1");
         }
@@ -854,6 +858,63 @@ LIMIT 1");
                 .First();
 
             Assert.Equal("<b>Accounting</b> <b>Manager</b>", headline);
+        }
+
+        [Fact]
+        public void Unaccent()
+        {
+            using var context = CreateContext();
+            _ = context.Customers
+                .Select(x => EF.Functions.Unaccent(x.ContactName))
+                .FirstOrDefault();
+
+            AssertSql(@"SELECT unaccent(c.""ContactName"")
+FROM ""Customers"" AS c
+LIMIT 1");
+        }
+
+        [Fact]
+        public void Unaccent_with_constant_regdictionary()
+        {
+            using var context = CreateContext();
+            _ = context.Customers
+                .Select(x => EF.Functions.Unaccent("unaccent", x.ContactName))
+                .FirstOrDefault();
+
+            AssertSql(@"SELECT unaccent('unaccent', c.""ContactName"")
+FROM ""Customers"" AS c
+LIMIT 1");
+        }
+
+        [Fact]
+        public void Unaccent_with_parameter_regdictionary()
+        {
+            using var context = CreateContext();
+            var regDictionary = "unaccent";
+            _ = context.Customers
+                .Select(x => EF.Functions.Unaccent(regDictionary, x.ContactName))
+                .FirstOrDefault();
+
+            AssertSql(
+                @"@__regDictionary_1='unaccent'
+
+SELECT unaccent(@__regDictionary_1::regdictionary, c.""ContactName"")
+FROM ""Customers"" AS c
+LIMIT 1");
+        }
+
+        [Fact] // #1652
+        public void Match_and_boolean_operator_precedence()
+        {
+            using var context = CreateContext();
+            _ = context.Customers
+                .Count(c => EF.Functions.ToTsVector(c.ContactTitle)
+                    .Matches(EF.Functions.ToTsQuery("owner").Or(EF.Functions.ToTsQuery("foo"))));
+
+            AssertSql(
+                @"SELECT COUNT(*)::INT
+FROM ""Customers"" AS c
+WHERE to_tsvector(c.""ContactTitle"") @@ (to_tsquery('owner') || to_tsquery('foo'))");
         }
 
         void AssertSql(params string[] expected)

@@ -1,4 +1,5 @@
 ﻿using System;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Storage;
 using NpgsqlTypes;
 
@@ -20,7 +21,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
     public class NpgsqlTimestampTzTypeMapping : NpgsqlTypeMapping
     {
-        public NpgsqlTimestampTzTypeMapping(Type clrType) : base("timestamp with time zone", clrType, NpgsqlDbType.TimestampTz) {}
+        public NpgsqlTimestampTzTypeMapping([NotNull] Type clrType)
+            : base("timestamp with time zone", clrType, NpgsqlDbType.TimestampTz) {}
 
         protected NpgsqlTimestampTzTypeMapping(RelationalTypeMappingParameters parameters)
             : base(parameters, NpgsqlDbType.TimestampTz) {}
@@ -108,9 +110,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             => new NpgsqlIntervalTypeMapping(parameters);
 
         protected override string GenerateNonNullSqlLiteral(object value)
-        {
-            var ts = (TimeSpan)value;
-            return FormattableString.Invariant($"INTERVAL '{ts.ToString($@"{(ts < TimeSpan.Zero ? "\\-" : "")}{(ts.Days == 0 ? "" : "d\\ ")}hh\:mm\:ss{(ts.Ticks % 10000000 == 0 ? "" : "\\.FFFFFF")}")}'");
-        }
+            => FormatTimeSpanAsInterval((TimeSpan)value);
+
+        public static string FormatTimeSpanAsInterval(TimeSpan ts)
+            => FormattableString.Invariant($"INTERVAL '{ts.ToString($@"{(ts < TimeSpan.Zero ? "\\-" : "")}{(ts.Days == 0 ? "" : "d\\ ")}hh\:mm\:ss{(ts.Ticks % 10000000 == 0 ? "" : "\\.FFFFFF")}")}'");
     }
 }

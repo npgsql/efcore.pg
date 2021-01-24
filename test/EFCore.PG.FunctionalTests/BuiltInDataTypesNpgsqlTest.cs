@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Net.NetworkInformation;
@@ -115,6 +116,7 @@ WHERE m.""TimeSpanAsTime"" = @__timeSpan_0");
                         StringAsJsonb = @"{""a"": ""b""}",
                         StringAsJson = @"{""a"": ""b""}",
                         DictionaryAsHstore = new Dictionary<string, string> { { "a", "b" } },
+                        ImmutableDictionaryAsHstore = ImmutableDictionary<string, string>.Empty.Add("c", "d"),
                         NpgsqlRangeAsRange = new NpgsqlRange<int>(4, true, 8, false),
 
                         IntArrayAsIntArray= new[] { 2, 3 },
@@ -248,36 +250,39 @@ WHERE m.""TimeSpanAsTime"" = @__timeSpan_0");
                 var param30 = new Dictionary<string, string> { { "a", "b" } };
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.DictionaryAsHstore == param30));
 
-                var param31 = new NpgsqlRange<int>(4, true, 8, false);
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.NpgsqlRangeAsRange == param31));
+                var param31 = ImmutableDictionary<string, string>.Empty.Add("c", "d");
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.ImmutableDictionaryAsHstore == param31));
 
-                var param32 = new[] { 2, 3 };
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.IntArrayAsIntArray == param32));
+                var param32 = new NpgsqlRange<int>(4, true, 8, false);
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.NpgsqlRangeAsRange == param32));
 
-                var param33 = new[] { PhysicalAddress.Parse("08-00-2B-01-02-03"), PhysicalAddress.Parse("08-00-2B-01-02-04") };
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.PhysicalAddressArrayAsMacaddrArray == param33));
+                var param33 = new[] { 2, 3 };
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.IntArrayAsIntArray == param33));
 
-                // ReSharper disable once ConvertToConstant.Local
-                var param34 = (uint)int.MaxValue + 1;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.UintAsXid == param34));
-
-                var param35 = NpgsqlTsQuery.Parse("a & b");
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.SearchQuery == param35));
-
-                var param36 = NpgsqlTsVector.Parse("a b");
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.SearchVector == param36));
+                var param34 = new[] { PhysicalAddress.Parse("08-00-2B-01-02-03"), PhysicalAddress.Parse("08-00-2B-01-02-04") };
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.PhysicalAddressArrayAsMacaddrArray == param34));
 
                 // ReSharper disable once ConvertToConstant.Local
-                var param37 = NpgsqlTsRankingNormalization.DivideByLength;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.RankingNormalization == param37));
+                var param35 = (uint)int.MaxValue + 1;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.UintAsXid == param35));
+
+                var param36 = NpgsqlTsQuery.Parse("a & b");
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.SearchQuery == param36));
+
+                var param37 = NpgsqlTsVector.Parse("a b");
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.SearchVector == param37));
 
                 // ReSharper disable once ConvertToConstant.Local
-                var param38 = 12724u;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Regconfig == param38));
+                var param38 = NpgsqlTsRankingNormalization.DivideByLength;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.RankingNormalization == param38));
 
                 // ReSharper disable once ConvertToConstant.Local
-                var param39 = Mood.Sad;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Mood == param39));
+                var param39 = 12724u;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Regconfig == param39));
+
+                // ReSharper disable once ConvertToConstant.Local
+                var param40 = Mood.Sad;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 999 && e.Mood == param40));
             }
         }
 
@@ -408,32 +413,35 @@ WHERE m.""TimeSpanAsTime"" = @__timeSpan_0");
                 Dictionary<string, string> param30 = null;
                 Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.DictionaryAsHstore == param30));
 
-                NpgsqlRange<int>? param31 = null;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.NpgsqlRangeAsRange == param31));
+                ImmutableDictionary<string, string> param31 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.ImmutableDictionaryAsHstore == param31));
 
-                int[] param32 = null;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.IntArrayAsIntArray == param32));
+                NpgsqlRange<int>? param32 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.NpgsqlRangeAsRange == param32));
 
-                PhysicalAddress[] param33 = null;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.PhysicalAddressArrayAsMacaddrArray== param33));
+                int[] param33 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.IntArrayAsIntArray == param33));
 
-                uint? param34 = null;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.UintAsXid == param34));
+                PhysicalAddress[] param34 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.PhysicalAddressArrayAsMacaddrArray== param34));
 
-                NpgsqlTsQuery param35 = null;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.SearchQuery == param35));
+                uint? param35 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.UintAsXid == param35));
 
-                NpgsqlTsVector param36 = null;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.SearchVector == param36));
+                NpgsqlTsQuery param36 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.SearchQuery == param36));
 
-                NpgsqlTsRankingNormalization? param37 = null;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.RankingNormalization == param37));
+                NpgsqlTsVector param37 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.SearchVector == param37));
 
-                uint? param38 = null;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.Regconfig == param38));
+                NpgsqlTsRankingNormalization? param38 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.RankingNormalization == param38));
 
-                Mood? param39 = null;
-                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.Mood == param39));
+                uint? param39 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.Regconfig == param39));
+
+                Mood? param40 = null;
+                Assert.Same(entity, context.Set<MappedNullableDataTypes>().Single(e => e.Int == 911 && e.Mood == param40));
             }
         }
 
@@ -454,12 +462,12 @@ WHERE m.""TimeSpanAsTime"" = @__timeSpan_0");
 @p3='0x56' (Nullable = false)
 @p4='g' (Nullable = false)
 @p5='h' (Nullable = false)
-@p6='2015-01-02T00:00:00' (DbType = Date)
-@p7='2015-01-02T10:11:12' (DbType = DateTime)
-@p8='2016-01-02T11:11:12' (DbType = DateTimeOffset)
+@p6='2015-01-02T00:00:00.0000000' (DbType = Date)
+@p7='2015-01-02T10:11:12.0000000' (DbType = DateTime)
+@p8='2016-01-02T11:11:12.0000000Z' (DbType = DateTimeOffset)
 @p9='0001-01-01T12:00:00.0000000+02:00' (DbType = Object)
 @p10='101.7'
-@p11='81.1'
+@p11='81.1' (DbType = Currency)
 @p12='103.9'
 @p13='System.Collections.Generic.Dictionary`2[System.String,System.String]' (Nullable = false) (DbType = Object)
 @p14='85.5'
@@ -559,7 +567,7 @@ WHERE m.""TimeSpanAsTime"" = @__timeSpan_0");
         }
 
         static MappedDataTypes CreateMappedDataTypes(int id)
-            => new MappedDataTypes
+            => new()
             {
                 Int = id,
                 LongAsBigint = 78L,
@@ -682,6 +690,7 @@ WHERE m.""TimeSpanAsTime"" = @__timeSpan_0");
             Assert.Null(entity.StringAsJsonb);
             Assert.Null(entity.StringAsJson);
             Assert.Null(entity.DictionaryAsHstore);
+            Assert.Null(entity.ImmutableDictionaryAsHstore);
             Assert.Null(entity.NpgsqlRangeAsRange);
 
             Assert.Null(entity.IntArrayAsIntArray);
@@ -869,21 +878,38 @@ WHERE m.""TimeSpanAsTime"" = @__timeSpan_0");
         {
             using var context = CreateContext();
 
-            // PostgreSQL SUM() returns numeric for bigint input, bigint for int/smallint inuts.
+            // PostgreSQL SUM() returns numeric for bigint input, bigint for int/smallint ints.
             // Make sure the proper conversion is done
-            var sum1 = context.Set<MappedDataTypes>().Sum(m => m.LongAsBigint);
-            var sum2 = context.Set<MappedDataTypes>().Sum(m => m.Int);
-            var sum3 = context.Set<MappedDataTypes>().Sum(m => m.ShortAsSmallint);
+            _ = context.Set<MappedDataTypes>().Sum(m => m.LongAsBigint);
+            _ = context.Set<MappedDataTypes>().Sum(m => m.Int);
+            _ = context.Set<MappedDataTypes>().Sum(m => m.ShortAsSmallint);
 
             AssertSql(
-                @"SELECT SUM(m.""LongAsBigint"")::bigint
+                @"SELECT COALESCE(SUM(m.""LongAsBigint""), 0.0)::bigint
 FROM ""MappedDataTypes"" AS m",
                 //
-                @"SELECT SUM(m.""Int"")::INT
+                @"SELECT COALESCE(SUM(m.""Int""), 0)::int
 FROM ""MappedDataTypes"" AS m",
                 //
-                @"SELECT SUM(CAST(m.""ShortAsSmallint"" AS integer))::INT
+                @"SELECT COALESCE(SUM(CAST(m.""ShortAsSmallint"" AS integer)), 0)::INT
 FROM ""MappedDataTypes"" AS m");
+        }
+
+        [ConditionalFact]
+        public void Money_compare_constant()
+        {
+            using var context = CreateContext();
+
+            _ = context.Set<MappedDataTypes>().Where(m => m.DecimalAsMoney > 3).ToList();
+        }
+
+        [ConditionalFact]
+        public void Money_compare_parameter()
+        {
+            using var context = CreateContext();
+
+            var money = 3m;
+            _ = context.Set<MappedDataTypes>().Where(m => m.DecimalAsMoney > money).ToList();
         }
 
         void AssertSql(params string[] expected)
@@ -989,7 +1015,7 @@ FROM ""MappedDataTypes"" AS m");
 
             public override bool SupportsBinaryKeys => true;
 
-            public override DateTime DefaultDateTime => new DateTime();
+            public override DateTime DefaultDateTime => new();
         }
 
         protected enum StringEnum16 : short
@@ -1309,6 +1335,9 @@ FROM ""MappedDataTypes"" AS m");
 
             [Column(TypeName = "hstore")]
             public Dictionary<string, string> DictionaryAsHstore { get; set; }
+
+            [Column(TypeName = "hstore")]
+            public ImmutableDictionary<string, string> ImmutableDictionaryAsHstore { get; set; }
 
             [Column(TypeName = "int4range")]
             public NpgsqlRange<int>? NpgsqlRangeAsRange { get; set; }

@@ -5,8 +5,9 @@ using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public class NorthwindAggregateOperatorsQueryNpgsqlTest : NorthwindAggregateOperatorsQueryTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
+    public class NorthwindAggregateOperatorsQueryNpgsqlTest : NorthwindAggregateOperatorsQueryRelationalTestBase<NorthwindQueryNpgsqlFixture<NoopModelCustomizer>>
     {
+        // ReSharper disable once UnusedParameter.Local
         public NorthwindAggregateOperatorsQueryNpgsqlTest(NorthwindQueryNpgsqlFixture<NoopModelCustomizer> fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
         {
@@ -20,13 +21,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
             // Note: PostgreSQL doesn't support uint, but value converters make this into bigint
             AssertSql(
-                @"@__ids_0='System.Int64[]' (DbType = Object)
+                @"@__ids_0='System.Int32[]' (DbType = Object)
 
 SELECT e.""EmployeeID"", e.""City"", e.""Country"", e.""FirstName"", e.""ReportsTo"", e.""Title""
 FROM ""Employees"" AS e
 WHERE e.""EmployeeID"" = ANY (@__ids_0)",
                 //
-                @"@__ids_0='System.Int64[]' (DbType = Object)
+                @"@__ids_0='System.Int32[]' (DbType = Object)
 
 SELECT e.""EmployeeID"", e.""City"", e.""Country"", e.""FirstName"", e.""ReportsTo"", e.""Title""
 FROM ""Employees"" AS e
@@ -46,7 +47,7 @@ WHERE e.""EmployeeID"" IN (0, 1)",
                 //
                 @"SELECT e.""EmployeeID"", e.""City"", e.""Country"", e.""FirstName"", e.""ReportsTo"", e.""Title""
 FROM ""Employees"" AS e
-WHERE e.""EmployeeID"" IN (0)");
+WHERE e.""EmployeeID"" = 0");
         }
 
         void AssertSql(params string[] expected)

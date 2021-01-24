@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using JetBrains.Annotations;
@@ -20,24 +21,98 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 {
     public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
     {
-        readonly IMigrationsAnnotationProvider _migrationsAnnotations;
         readonly RelationalTypeMapping _stringTypeMapping;
 
         /// <summary>
         /// The backend version to target.
         /// </summary>
-        [CanBeNull] readonly Version _postgresVersion;
+        readonly Version _postgresVersion;
 
         public NpgsqlMigrationsSqlGenerator(
             [NotNull] MigrationsSqlGeneratorDependencies dependencies,
-            [NotNull] IMigrationsAnnotationProvider migrationsAnnotations,
             [NotNull] INpgsqlOptions npgsqlOptions)
             : base(dependencies)
         {
             _postgresVersion = npgsqlOptions.PostgresVersion;
-            _migrationsAnnotations = migrationsAnnotations;
             _stringTypeMapping = dependencies.TypeMappingSource.GetMapping(typeof(string))
                 ?? throw new InvalidOperationException("No string type mapping found");
+        }
+
+        public override IReadOnlyList<MigrationCommand> Generate(
+            IReadOnlyList<MigrationOperation> operations,
+            IModel model = null,
+            MigrationsSqlGenerationOptions options = MigrationsSqlGenerationOptions.Default)
+        {
+            var results = base.Generate(operations, model, options);
+
+            // For all tables where we had data seeding insertions, get any identity/serial columns for those tables.
+            var seededGeneratedColumns = operations
+                .OfType<InsertDataOperation>()
+                .Select(o => new { o.Schema, o.Table })
+                .Distinct()
+                .Select(t => new
+                {
+                    t.Schema,
+                    t.Table,
+                    Columns = (model?.GetRelationalModel().FindTable(t.Table, t.Schema)
+                            ?.EntityTypeMappings.Select(m => m.EntityType) ?? Enumerable.Empty<IEntityType>())
+                        .SelectMany(e => e.GetDeclaredProperties()
+                            .Where(p => p.GetValueGenerationStrategy() switch
+                            {
+                                NpgsqlValueGenerationStrategy.IdentityByDefaultColumn => true,
+                                NpgsqlValueGenerationStrategy.IdentityAlwaysColumn => true,
+                                NpgsqlValueGenerationStrategy.SerialColumn => true,
+                                _ => false
+                            })
+                            .Select(p => p.GetColumnName(StoreObjectIdentifier.Table(t.Table, t.Schema))))
+                })
+                .SelectMany(t => t.Columns.Select(p => new
+                {
+                    t.Schema,
+                    t.Table,
+                    Column = p,
+                }))
+                .ToArray();
+
+            if (seededGeneratedColumns.Any())
+            {
+                var builder = new MigrationCommandListBuilder(Dependencies);
+
+                foreach (var c in seededGeneratedColumns)
+                {
+                    // Weirdly, pg_get_serial_sequence accepts a standard quoted "schema"."table" inside its first
+                    // parameter string literal, but the second one is a column name that shouldn't be double-quoted...
+
+                    var table = Dependencies.SqlGenerationHelper.DelimitIdentifier(c.Table, c.Schema);
+                    var column = Dependencies.SqlGenerationHelper.DelimitIdentifier(c.Column);
+                    var unquotedColumn = c.Column.Replace("'", "''");
+
+                    // When generating idempotent scripts, migration DDL is enclosed in anonymous DO blocks,
+                    // where PERFORM must be used instead of SELECT
+                    var selectOrPerform = options.HasFlag(MigrationsSqlGenerationOptions.Idempotent)
+                        ? "PERFORM"
+                        : "SELECT";
+
+                    // Set the sequence's value to the greater of:
+                    // 1. Maximum value currently present in the column (i.e. just seeded)
+                    // 2. Current value of the sequence (the max value above could be out of range of the sequence,
+                    //    e.g. negative values seeded)
+                    builder
+                        .AppendLine(
+@$"{selectOrPerform} setval(
+    pg_get_serial_sequence('{table}', '{unquotedColumn}'),
+    GREATEST(
+        (SELECT MAX({column}) FROM {table}) + 1,
+        nextval(pg_get_serial_sequence('{table}', '{unquotedColumn}'))),
+    false);");
+                }
+
+                builder.EndCommand();
+
+                return results.Concat(builder.GetCommandList()).ToArray();
+            }
+
+            return results;
         }
 
         protected override void Generate(MigrationOperation operation, IModel model, MigrationCommandListBuilder builder)
@@ -80,7 +155,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             builder
                 .Append("TABLE ")
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name, operation.Schema))
+                .Append(DelimitIdentifier(operation.Name, operation.Schema))
                 .AppendLine(" (");
 
             using (builder.Indent())
@@ -103,10 +178,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 builder
                     .AppendLine()
                     .Append("INTERLEAVE IN PARENT ")
-                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(parentTableName, parentTableSchema))
+                    .Append(DelimitIdentifier(parentTableName, parentTableSchema))
                     .Append(" (")
-                    .Append(string.Join(", ", interleavePrefix.Select(c => Dependencies.SqlGenerationHelper.DelimitIdentifier(c))))
-                    .Append(')');
+                    .Append(string.Join(", ", interleavePrefix.Select(c => DelimitIdentifier(c))))
+                    .Append(")");
             }
 
             var storageParameters = GetStorageParameters(operation);
@@ -116,17 +191,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                     .AppendLine()
                     .Append("WITH (")
                     .Append(string.Join(", ", storageParameters.Select(p => $"{p.Key}={p.Value}")))
-                    .Append(')');
+                    .Append(")");
             }
 
             // Comment on the table
             if (operation.Comment != null)
             {
-                builder.AppendLine(';');
+                builder.AppendLine(";");
 
                 builder
                     .Append("COMMENT ON TABLE ")
-                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name, operation.Schema))
+                    .Append(DelimitIdentifier(operation.Name, operation.Schema))
                     .Append(" IS ")
                     .Append(_stringTypeMapping.GenerateSqlLiteral(operation.Comment));
             }
@@ -135,20 +210,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             foreach (var columnOp in operation.Columns.Where(c => c.Comment != null))
             {
                 var columnComment = columnOp.Comment;
-                builder.AppendLine(';');
+                builder.AppendLine(";");
 
                 builder
                     .Append("COMMENT ON COLUMN ")
-                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name, operation.Schema))
-                    .Append('.')
-                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(columnOp.Name))
+                    .Append(DelimitIdentifier(operation.Name, operation.Schema))
+                    .Append(".")
+                    .Append(DelimitIdentifier(columnOp.Name))
                     .Append(" IS ")
                     .Append(_stringTypeMapping.GenerateSqlLiteral(columnComment));
             }
 
             if (terminate)
             {
-                builder.AppendLine(';');
+                builder.AppendLine(";");
                 EndStatement(builder);
             }
         }
@@ -170,14 +245,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             {
                 builder
                     .Append("ALTER TABLE ")
-                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name, operation.Schema));
+                    .Append(DelimitIdentifier(operation.Name, operation.Schema));
 
                 builder
                     .Append(" SET (")
                     .Append(string.Join(", ", newOrChanged.Select(p => $"{p.Key}={p.Value}")))
                     .Append(")");
 
-                builder.AppendLine(';');
+                builder.AppendLine(";");
                 madeChanges = true;
             }
 
@@ -190,14 +265,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             {
                 builder
                     .Append("ALTER TABLE ")
-                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name, operation.Schema));
+                    .Append(DelimitIdentifier(operation.Name, operation.Schema));
 
                 builder
                     .Append(" RESET (")
                     .Append(string.Join(", ", removed))
                     .Append(")");
 
-                builder.AppendLine(';');
+                builder.AppendLine(";");
                 madeChanges = true;
             }
 
@@ -206,11 +281,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             {
                 builder
                     .Append("COMMENT ON TABLE ")
-                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name, operation.Schema))
+                    .Append(DelimitIdentifier(operation.Name, operation.Schema))
                     .Append(" IS ")
                     .Append(_stringTypeMapping.GenerateSqlLiteral(operation.Comment));
 
-                builder.AppendLine(';');
+                builder.AppendLine(";");
                 madeChanges = true;
             }
 
@@ -222,7 +297,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             {
                 builder
                     .Append("ALTER TABLE ")
-                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name, operation.Schema))
+                    .Append(DelimitIdentifier(operation.Name, operation.Schema))
                     .Append(" SET ")
                     .Append(newUnlogged ? "UNLOGGED" : "LOGGED")
                     .AppendLine(";");
@@ -278,20 +353,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             if (operation.Comment != null)
             {
-                builder.AppendLine(';');
+                builder.AppendLine(";");
 
                 builder
                     .Append("COMMENT ON COLUMN ")
-                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Table, operation.Schema))
-                    .Append('.')
-                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name))
+                    .Append(DelimitIdentifier(operation.Table, operation.Schema))
+                    .Append(".")
+                    .Append(DelimitIdentifier(operation.Name))
                     .Append(" IS ")
                     .Append(_stringTypeMapping.GenerateSqlLiteral(operation.Comment));
             }
 
             if (terminate)
             {
-                builder.AppendLine(';');
+                builder.AppendLine(";");
                 EndStatement(builder);
             }
         }
@@ -305,12 +380,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             if (IsSystemColumn(operation.Name))
                 return;
 
-            var type = operation.ColumnType ?? GetColumnType(operation.Schema, operation.Table, operation.Name, operation, model);
+            var column = model?.GetRelationalModel().FindTable(operation.Table, operation.Schema)
+                ?.Columns.FirstOrDefault(c => c.Name == operation.Name);
 
             if (operation.ComputedColumnSql != null)
             {
-                var property = FindProperty(model, operation.Schema, operation.Table, operation.Name);
-
                 // TODO: The following will fail if the column being altered is part of an index.
                 // SqlServer recreates indexes, but wait to see if PostgreSQL will introduce a proper ALTER TABLE ALTER COLUMN
                 // that allows us to do this cleanly.
@@ -321,8 +395,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                     Name = operation.Name
                 };
 
-                if (property != null)
-                    dropColumnOperation.AddAnnotations(_migrationsAnnotations.ForRemove(property));
+                if (column != null)
+                    dropColumnOperation.AddAnnotations(column.GetAnnotations());
 
                 Generate(dropColumnOperation, model, builder);
 
@@ -340,7 +414,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                     DefaultValue = operation.DefaultValue,
                     DefaultValueSql = operation.DefaultValueSql,
                     ComputedColumnSql = operation.ComputedColumnSql,
-                    IsFixedLength = operation.IsFixedLength
+                    IsFixedLength = operation.IsFixedLength,
+                    IsStored = operation.IsStored
                 };
                 addColumnOperation.AddAnnotations(operation.GetAnnotations());
                 Generate(addColumnOperation, model, builder);
@@ -349,22 +424,42 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             }
 
             string newSequenceName = null;
-            var defaultValueSql = operation.DefaultValueSql;
 
-            var table = Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Table, operation.Schema);
-            var column = Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name);
-            var alterBase = $"ALTER TABLE {table} ALTER COLUMN {column} ";
+            var alterBase = $"ALTER TABLE {DelimitIdentifier(operation.Table, operation.Schema)} " +
+                            $"ALTER COLUMN {DelimitIdentifier(operation.Name)} ";
 
-            // TYPE
-            builder.Append(alterBase)
-                .Append("TYPE ")
-                .Append(type)
-                .AppendLine(';');
+            // TYPE + COLLATION
+            var type = operation.ColumnType ??
+                       GetColumnType(operation.Schema, operation.Table, operation.Name, operation, model);
+            var oldType = IsOldColumnSupported(model)
+                ? operation.OldColumn.ColumnType ??
+                  GetColumnType(operation.Schema, operation.Table, operation.Name, operation.OldColumn, model)
+                : null;
 
-            // NOT NULL
-            builder.Append(alterBase)
-                .Append(operation.IsNullable ? "DROP NOT NULL" : "SET NOT NULL")
-                .AppendLine(';');
+            // If a collation was defined on the column specifically, via the standard EF mechanism, it will be
+            // available in operation.Collation (as usual). If not, there may be a model-wide default column collation,
+            // which gets transmitted via the Npgsql-specific annotation.
+            var oldCollation = (string)(operation.OldColumn.Collation ?? operation.OldColumn[NpgsqlAnnotationNames.DefaultColumnCollation]);
+            var newCollation = (string)(operation.Collation ?? operation[NpgsqlAnnotationNames.DefaultColumnCollation]);
+
+            if (type != oldType || newCollation != oldCollation)
+            {
+                builder.Append(alterBase)
+                    .Append("TYPE ")
+                    .Append(type);
+
+                if (newCollation != oldCollation)
+                    builder.Append(" COLLATE ").Append(DelimitIdentifier(newCollation ?? "default"));
+
+                builder.AppendLine(";");
+            }
+
+            if (operation.IsNullable != operation.OldColumn.IsNullable)
+            {
+                builder.Append(alterBase)
+                    .Append(operation.IsNullable ? "DROP NOT NULL" : "SET NOT NULL")
+                    .AppendLine(";");
+            }
 
             CheckForOldValueGenerationAnnotation(operation);
 
@@ -379,7 +474,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 {
                     // TODO: It would be better to actually select for the owned sequence.
                     // This would require plpgsql.
-                    var sequence = Dependencies.SqlGenerationHelper.DelimitIdentifier($"{operation.Table}_{operation.Name}_seq", operation.Schema);
+                    var sequence = DelimitIdentifier($"{operation.Table}_{operation.Name}_seq", operation.Schema);
                     switch (newStrategy)
                     {
                     case null:
@@ -392,13 +487,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                         var identityTypeClause = newStrategy == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn
                             ? "ALWAYS"
                             : "BY DEFAULT";
-                        var oldSequence = Dependencies.SqlGenerationHelper.DelimitIdentifier($"{operation.Table}_{operation.Name}_old_seq", operation.Schema);
-                        var oldSequenceWithoutSchema = Dependencies.SqlGenerationHelper.DelimitIdentifier($"{operation.Table}_{operation.Name}_old_seq");
+                        var oldSequence = DelimitIdentifier($"{operation.Table}_{operation.Name}_old_seq", operation.Schema);
+                        var oldSequenceWithoutSchema = DelimitIdentifier($"{operation.Table}_{operation.Name}_old_seq");
                         builder
                             .AppendLine($"ALTER SEQUENCE {sequence} RENAME TO {oldSequenceWithoutSchema};")
-                            .AppendLine($"ALTER TABLE {table} ALTER COLUMN {column} DROP DEFAULT;")
-                            .AppendLine($"ALTER TABLE {table} ALTER COLUMN {column} ADD GENERATED {identityTypeClause} AS IDENTITY;")
-                            .AppendLine($"SELECT * FROM setval('{sequence}', nextval('{oldSequence}'), false);")
+                            .AppendLine($"{alterBase}DROP DEFAULT;")
+                            .AppendLine($"{alterBase}ADD GENERATED {identityTypeClause} AS IDENTITY;")
+                            // When generating idempotent scripts, migration DDL is enclosed in anonymous DO blocks,
+                            // where PERFORM must be used instead of SELECT
+                            .Append(Options.HasFlag(MigrationsSqlGenerationOptions.Idempotent) ? "PERFORM" : "SELECT")
+                            .AppendLine($" * FROM setval('{sequence}', nextval('{oldSequence}'), false);")
                             .AppendLine($"DROP SEQUENCE {oldSequence};");
                         break;
                     default:
@@ -431,9 +529,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                     {
                     case NpgsqlValueGenerationStrategy.IdentityAlwaysColumn:
                     case NpgsqlValueGenerationStrategy.IdentityByDefaultColumn:
+                        builder.Append(alterBase).AppendLine("DROP DEFAULT;");
                         builder.Append(alterBase).Append("ADD");
                         IdentityDefinition(operation, builder);
-                        builder.AppendLine(';');
+                        builder.AppendLine(";");
                         break;
                     case NpgsqlValueGenerationStrategy.SerialColumn:
                         switch (type)
@@ -454,8 +553,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                             }, model, builder);
 
                             builder.Append(alterBase).Append("SET");
-                            DefaultValue(null, $@"nextval('{Dependencies.SqlGenerationHelper.DelimitIdentifier(newSequenceName, operation.Schema)}')", type, builder);
-                            builder.AppendLine(';');
+                            DefaultValue(null, $@"nextval('{DelimitIdentifier(newSequenceName, operation.Schema)}')", type, builder);
+                            builder.AppendLine(";");
                             // Note: we also need to set the sequence ownership, this is done below after the ALTER COLUMN
                             break;
                         }
@@ -474,11 +573,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
                 if (newSequenceOptions.StartValue != oldSequenceOptions.StartValue)
                 {
+                    var startValue = newSequenceOptions.StartValue ?? 1;
+
                     builder
                         .Append(alterBase)
                         .Append("RESTART WITH ")
-                        .Append(newSequenceOptions.StartValue ?? 1)
-                        .AppendLine(';');
+                        .Append(startValue.ToString(CultureInfo.InvariantCulture))
+                        .AppendLine(";");
                 }
 
                 if (newSequenceOptions.IncrementBy != oldSequenceOptions.IncrementBy)
@@ -486,8 +587,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                     builder
                         .Append(alterBase)
                         .Append("SET INCREMENT BY ")
-                        .Append(newSequenceOptions.IncrementBy)
-                        .AppendLine(';');
+                        .Append(newSequenceOptions.IncrementBy.ToString(CultureInfo.InvariantCulture))
+                        .AppendLine(";");
                 }
 
                 if (newSequenceOptions.MinValue != oldSequenceOptions.MinValue)
@@ -497,7 +598,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                         .Append(newSequenceOptions.MinValue == null
                             ? "SET NO MINVALUE"
                             : "SET MINVALUE " + newSequenceOptions.MinValue)
-                        .AppendLine(';');
+                        .AppendLine(";");
                 }
 
                 if (newSequenceOptions.MaxValue != oldSequenceOptions.MaxValue)
@@ -507,7 +608,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                         .Append(newSequenceOptions.MaxValue == null
                             ? "SET NO MAXVALUE"
                             : "SET MAXVALUE " + newSequenceOptions.MaxValue)
-                        .AppendLine(';');
+                        .AppendLine(";");
                 }
 
                 if (newSequenceOptions.IsCyclic != oldSequenceOptions.IsCyclic)
@@ -517,7 +618,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                         .Append(newSequenceOptions.IsCyclic
                             ? "SET CYCLE"
                             : "SET NO CYCLE")
-                        .AppendLine(';');
+                        .AppendLine(";");
                 }
 
                 if (newSequenceOptions.NumbersToCache != oldSequenceOptions.NumbersToCache)
@@ -525,27 +626,28 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                     builder
                         .Append(alterBase)
                         .Append("SET CACHE ")
-                        .Append(newSequenceOptions.NumbersToCache)
-                        .AppendLine(';');
+                        .Append(newSequenceOptions.NumbersToCache.ToString(CultureInfo.InvariantCulture))
+                        .AppendLine(";");
                 }
             }
 
             // DEFAULT.
             // Note that defaults values for value-generated columns (identity, serial) are managed above. This is
             // only for regular columns with user-specified default settings.
-            if (newStrategy == null)
+            if (newStrategy == null &&
+                (operation.DefaultValueSql != operation.OldColumn.DefaultValueSql ||
+                 !Equals(operation.DefaultValue, operation.OldColumn.DefaultValue)))
             {
                 builder.Append(alterBase);
-                if (operation.DefaultValue != null || defaultValueSql != null)
+                if (operation.DefaultValue != null || operation.DefaultValueSql != null)
                 {
                     builder.Append("SET");
-                    DefaultValue(operation.DefaultValue, defaultValueSql, type, builder);
+                    DefaultValue(operation.DefaultValue, operation.DefaultValueSql, type, builder);
                 }
                 else
                     builder.Append("DROP DEFAULT");
-                builder.AppendLine(';');
+                builder.AppendLine(";");
             }
-
 
             // A sequence has been created because this column was altered to be a serial.
             // Change the sequence's ownership.
@@ -553,12 +655,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             {
                 builder
                     .Append("ALTER SEQUENCE ")
-                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(newSequenceName, operation.Schema))
+                    .Append(DelimitIdentifier(newSequenceName, operation.Schema))
                     .Append(" OWNED BY ")
-                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Table, operation.Schema))
-                    .Append('.')
-                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name))
-                    .AppendLine(';');
+                    .Append(DelimitIdentifier(operation.Table, operation.Schema))
+                    .Append(".")
+                    .Append(DelimitIdentifier(operation.Name))
+                    .AppendLine(";");
             }
 
             // Comment
@@ -566,12 +668,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             {
                 builder
                     .Append("COMMENT ON COLUMN ")
-                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Table, operation.Schema))
-                    .Append('.')
-                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name))
+                    .Append(DelimitIdentifier(operation.Table, operation.Schema))
+                    .Append(".")
+                    .Append(DelimitIdentifier(operation.Name))
                     .Append(" IS ")
                     .Append(_stringTypeMapping.GenerateSqlLiteral(operation.Comment))
-                    .AppendLine(';');
+                    .AppendLine(";");
             }
 
             EndStatement(builder);
@@ -659,9 +761,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 builder.Append("CONCURRENTLY ");
 
             builder
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name))
+                .Append(DelimitIdentifier(operation.Name))
                 .Append(" ON ")
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Table, operation.Schema));
+                .Append(DelimitIdentifier(operation.Table, operation.Schema));
 
             var method = operation[NpgsqlAnnotationNames.IndexMethod] as string;
             if (method?.Length > 0)
@@ -682,7 +784,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             if (terminate)
             {
-                builder.AppendLine(';');
+                builder.AppendLine(";");
                 // Concurrent indexes cannot be created within a transaction
                 EndStatement(builder, suppressTransaction: concurrently);
             }
@@ -721,54 +823,76 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             builder
                 .Append("CREATE SCHEMA IF NOT EXISTS ")
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name))
-                .AppendLine(';');
+                .Append(DelimitIdentifier(operation.Name))
+                .AppendLine(";");
 
             EndStatement(builder);
         }
 
-        protected virtual void Generate(NpgsqlCreateDatabaseOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
+        protected virtual void Generate(
+            [NotNull] NpgsqlCreateDatabaseOperation operation,
+            [CanBeNull] IModel model,
+            [NotNull] MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
             builder
                 .Append("CREATE DATABASE ")
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name));
+                .Append(DelimitIdentifier(operation.Name));
 
-            if (operation.Template != null)
+            if (!string.IsNullOrEmpty(operation.Template))
             {
                 builder
-                    .Append(" TEMPLATE ")
-                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Template));
+                    .AppendLine()
+                    .Append("TEMPLATE ")
+                    .Append(DelimitIdentifier(operation.Template));
             }
 
-            if (operation.Tablespace != null)
+            if (!string.IsNullOrEmpty(operation.Tablespace))
             {
                 builder
-                    .Append(" TABLESPACE ")
-                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Tablespace));
+                    .AppendLine()
+                    .Append("TABLESPACE ")
+                    .Append(DelimitIdentifier(operation.Tablespace));
             }
 
-            builder.AppendLine(';');
+            if (!string.IsNullOrEmpty(operation.Collation))
+            {
+                builder
+                    .AppendLine()
+                    .Append("LC_COLLATE ")
+                    .Append(DelimitIdentifier(operation.Collation));
+            }
+
+            builder.AppendLine(";");
 
             EndStatement(builder, suppressTransaction: true);
         }
 
-        public virtual void Generate(NpgsqlDropDatabaseOperation operation, [CanBeNull] IModel model, MigrationCommandListBuilder builder)
+        public virtual void Generate(
+            [NotNull] NpgsqlDropDatabaseOperation operation,
+            [CanBeNull] IModel model,
+            [NotNull] MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
-            var dbName = Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name);
+            var dbName = DelimitIdentifier(operation.Name);
 
-            builder
-                // TODO: The following revokes connection only for the public role, what about other connecting roles?
-                .AppendLine($"REVOKE CONNECT ON DATABASE {dbName} FROM PUBLIC;")
-                // TODO: For PG <= 9.1, the column name is prodpic, not pid (see http://stackoverflow.com/questions/5408156/how-to-drop-a-postgresql-database-if-there-are-active-connections-to-it)
-                .AppendLine($"SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE datname = '{operation.Name}';")
-                .EndCommand(suppressTransaction: true)
-                .AppendLine($"DROP DATABASE {dbName};");
+            if (_postgresVersion.AtLeast(13))
+            {
+                builder.AppendLine($"DROP DATABASE {dbName} WITH (FORCE);");
+            }
+            else
+            {
+                builder
+                    .AppendLine($"REVOKE CONNECT ON DATABASE {dbName} FROM PUBLIC;")
+                    .AppendLine($"SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE datname = '{operation.Name}';")
+                    .EndCommand(suppressTransaction: true)
+                    .AppendLine($"DROP DATABASE {dbName};");
+            }
+
 
             EndStatement(builder, suppressTransaction: true);
         }
@@ -782,6 +906,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             Check.NotNull(model, nameof(model));
             Check.NotNull(builder, nameof(builder));
 
+            if (operation.Collation != operation.OldDatabase.Collation)
+                throw new NotSupportedException("PostgreSQL does not support altering the collation on an existing database.");
+
+            GenerateCollationStatements(operation, model, builder);
             GenerateEnumStatements(operation, model, builder);
             GenerateRangeStatements(operation, model, builder);
 
@@ -792,30 +920,119 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         }
 
         protected virtual void GenerateCreateExtension(
-            PostgresExtension extension,
-            IModel model,
-            MigrationCommandListBuilder builder)
+            [NotNull] PostgresExtension extension,
+            [NotNull] IModel model,
+            [NotNull] MigrationCommandListBuilder builder)
         {
             builder
                 .Append("CREATE EXTENSION IF NOT EXISTS ")
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(extension.Name));
+                .Append(DelimitIdentifier(extension.Name));
 
             if (extension.Schema != null)
             {
                 builder
                     .Append(" SCHEMA ")
-                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(extension.Schema));
+                    .Append(DelimitIdentifier(extension.Schema));
             }
 
             if (extension.Version != null)
             {
                 builder
                     .Append(" VERSION ")
-                    .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(extension.Version));
+                    .Append(DelimitIdentifier(extension.Version));
             }
 
-            builder.AppendLine(';');
+            builder.AppendLine(";");
         }
+
+
+        #region Collation management
+
+        protected virtual void GenerateCollationStatements(
+            [NotNull] AlterDatabaseOperation operation,
+            [NotNull] IModel model,
+            [NotNull] MigrationCommandListBuilder builder)
+        {
+            foreach (var collationToCreate in operation.GetPostgresCollations()
+                .Where(ne => operation.GetOldPostgresCollations().All(oe => oe.Name != ne.Name || oe.Schema != ne.Schema)))
+            {
+                GenerateCreateCollation(collationToCreate, model, builder);
+            }
+
+            foreach (var collationToDrop in operation.GetOldPostgresCollations()
+                .Where(oe => operation.GetPostgresCollations().All(ne => ne.Name != oe.Name || oe.Schema != ne.Schema)))
+            {
+                GenerateDropCollation(collationToDrop, model, builder);
+            }
+
+            foreach (var (newCollation, oldCollation) in operation.GetPostgresCollations()
+                .Join(operation.GetOldPostgresCollations(),
+                    e => new { e.Name, e.Schema },
+                    e => new { e.Name, e.Schema },
+                    (ne, oe) => (New: ne, Old: oe)))
+            {
+                if (newCollation.LcCollate != oldCollation.LcCollate ||
+                    newCollation.LcCtype != oldCollation.LcCtype ||
+                    newCollation.Provider != oldCollation.Provider ||
+                    newCollation.IsDeterministic != oldCollation.IsDeterministic)
+                {
+                    throw new NotSupportedException("Altering an existing collation is not supported.");
+                }
+            }
+        }
+
+        protected virtual void GenerateCreateCollation(
+            [NotNull] PostgresCollation collation,
+            [NotNull] IModel model,
+            [NotNull] MigrationCommandListBuilder builder)
+        {
+            var schema = collation.Schema ?? model.GetDefaultSchema();
+
+            // Schemas are normally created (or rather ensured) by the model differ, which scans all tables, sequences
+            // and other database objects. However, it isn't aware of collation, so we always ensure schema on collation creation.
+            if (schema != null)
+                Generate(new EnsureSchemaOperation { Name = schema }, model, builder);
+
+            builder
+                .Append("CREATE COLLATION ")
+                .Append(DelimitIdentifier(collation.Name, schema))
+                .Append(" (")
+                .IncrementIndent();
+
+            var def = new List<string>
+            {
+                @$"LC_COLLATE = {_stringTypeMapping.GenerateSqlLiteral(collation.LcCollate)}",
+                $"LC_CTYPE = {_stringTypeMapping.GenerateSqlLiteral(collation.LcCtype)}"
+            };
+            if (collation.Provider != null)
+                def.Add($"PROVIDER = {collation.Provider}");
+            if (collation.IsDeterministic != null)
+                def.Add($"DETERMINISTIC = {collation.IsDeterministic}");
+
+            for (var i = 0; i < def.Count; i++)
+                builder
+                    .Append(def[i] + (i == def.Count - 1 ? null : ","))
+                    .AppendLine();
+
+            builder
+                .DecrementIndent()
+                .AppendLine(");");
+        }
+
+        protected virtual void GenerateDropCollation(
+            [NotNull] PostgresCollation collation,
+            [NotNull] IModel model,
+            [NotNull] MigrationCommandListBuilder builder)
+        {
+            var schema = collation.Schema ?? model.GetDefaultSchema();
+
+            builder
+                .Append("DROP COLLATION ")
+                .Append(DelimitIdentifier(collation.Name, schema))
+                .AppendLine(";");
+        }
+
+        #endregion Collation management
 
         #region Enum management
 
@@ -886,7 +1103,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             builder
                 .Append("CREATE TYPE ")
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(enumType.Name, schema))
+                .Append(DelimitIdentifier(enumType.Name, schema))
                 .Append(" AS ENUM (");
 
             var labels = enumType.Labels;
@@ -909,7 +1126,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             builder
                 .Append("DROP TYPE ")
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(enumType.Name, schema))
+                .Append(DelimitIdentifier(enumType.Name, schema))
                 .AppendLine(";");
         }
 
@@ -924,7 +1141,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             builder
                 .Append("ALTER TYPE ")
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(enumType.Name, schema))
+                .Append(DelimitIdentifier(enumType.Name, schema))
                 .Append(" ADD VALUE ")
                 .Append(_stringTypeMapping.GenerateSqlLiteral(addedLabel));
 
@@ -985,7 +1202,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             builder
                 .Append("CREATE TYPE ")
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(rangeType.Name, schema))
+                .Append(DelimitIdentifier(rangeType.Name, schema))
                 .AppendLine($" AS RANGE (")
                 .IncrementIndent();
 
@@ -1018,7 +1235,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             builder
                 .Append("DROP TYPE ")
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(rangeType.Name, schema))
+                .Append(DelimitIdentifier(rangeType.Name, schema))
                 .AppendLine(";");
         }
 
@@ -1035,11 +1252,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             builder
                 .Append("DROP INDEX ")
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name, operation.Schema));
+                .Append(DelimitIdentifier(operation.Name, operation.Schema));
 
             if (terminate)
             {
-                builder.AppendLine(';');
+                builder.AppendLine(";");
                 EndStatement(builder);
             }
         }
@@ -1053,12 +1270,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             Check.NotNull(builder, nameof(builder));
 
             builder.Append("ALTER TABLE ")
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Table, operation.Schema))
+                .Append(DelimitIdentifier(operation.Table, operation.Schema))
                 .Append(" RENAME COLUMN ")
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.Name))
+                .Append(DelimitIdentifier(operation.Name))
                 .Append(" TO ")
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(operation.NewName))
-                .AppendLine(';');
+                .Append(DelimitIdentifier(operation.NewName))
+                .AppendLine(";");
 
             EndStatement(builder);
         }
@@ -1081,7 +1298,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             Check.NotNull(builder, nameof(builder));
 
             var sqlBuilder = new StringBuilder();
-            foreach (var modificationCommand in operation.GenerateModificationCommands(model))
+            foreach (var modificationCommand in GenerateModificationCommands(operation, model))
             {
                 var overridingSystemValue = modificationCommand.ColumnModifications.Any(m =>
                     m.Property?.GetValueGenerationStrategy() == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn);
@@ -1091,7 +1308,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                     0,
                     overridingSystemValue);
             }
-
 
             builder.Append(sqlBuilder.ToString());
 
@@ -1172,22 +1388,44 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                         $"{nameof(NpgsqlAnnotationNames.TsVectorProperties)} is absent or empty");
 
                 operation.ComputedColumnSql = ColumnsToTsVector(tsVectorIncludedColumns, tsVectorConfig, model, schema, table);
+                operation.IsStored = true;
             }
 
-            base.ColumnDefinition(
-                schema,
-                table,
-                name,
-                operation,
-                model,
-                builder);
+            if (operation.ComputedColumnSql != null)
+            {
+                ComputedColumnDefinition(schema, table, name, operation, model, builder);
+
+                return;
+            }
+
+            var columnType = operation.ColumnType ?? GetColumnType(schema, table, name, operation, model);
+            builder
+                .Append(DelimitIdentifier(name))
+                .Append(" ")
+                .Append(columnType);
+
+            // If a collation was defined on the column specifically, via the standard EF mechanism, it will be
+            // available in operation.Collation (as usual). If not, there may be a model-wide default column collation,
+            // which gets transmitted via the Npgsql-specific annotation.
+            if ((operation.Collation ?? operation[NpgsqlAnnotationNames.DefaultColumnCollation]) is string collation)
+            {
+                builder
+                    .Append(" COLLATE ")
+                    .Append(DelimitIdentifier(collation));
+            }
+
+            builder.Append(operation.IsNullable ? " NULL" : " NOT NULL");
+
+            DefaultValue(operation.DefaultValue, operation.DefaultValueSql, columnType, builder);
 
             if (valueGenerationStrategy.IsIdentity())
                 IdentityDefinition(operation, builder);
         }
 
         // Note: this definition is only used for creating new identity columns, not for alterations.
-        protected virtual void IdentityDefinition(ColumnOperation operation, MigrationCommandListBuilder builder)
+        protected virtual void IdentityDefinition(
+            [NotNull] ColumnOperation operation,
+            [NotNull] MigrationCommandListBuilder builder)
         {
             if (!(operation[NpgsqlAnnotationNames.ValueGenerationStrategy] is NpgsqlValueGenerationStrategy strategy) ||
                 !strategy.IsIdentity())
@@ -1236,13 +1474,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 if (sequenceData.NumbersToCache != 1)
                     AppendWithSpace("CACHE " + sequenceData.NumbersToCache);
 
-                builder.Append(')');
+                builder.Append(")");
 
                 void AppendWithSpace(string s)
                 {
                     if (spaceNeeded)
                     {
-                        builder.Append(' ');
+                        builder.Append(" ");
                     }
 
                     builder.Append(s);
@@ -1296,13 +1534,29 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
 
-            if (_postgresVersion != null && _postgresVersion < new Version(12, 0))
+            if (_postgresVersion < new Version(12, 0))
                 throw new NotSupportedException("Computed/generated columns aren't supported in PostgreSQL prior to version 12");
 
+            if (operation.IsStored != true)
+            {
+                throw new NotSupportedException(
+                    "Generated columns currently must be stored, specify 'stored: true' in " +
+                    $"'{nameof(RelationalPropertyBuilderExtensions.HasComputedColumnSql)}' in your context's OnModelCreating.");
+            }
+
             builder
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(name))
+                .Append(DelimitIdentifier(name))
                 .Append(" ")
-                .Append(operation.ColumnType ?? GetColumnType(schema, table, name, operation, model))
+                .Append(operation.ColumnType ?? GetColumnType(schema, table, name, operation, model));
+
+            if (operation.Collation != null)
+            {
+                builder
+                    .Append(" COLLATE ")
+                    .Append(DelimitIdentifier(operation.Collation));
+            }
+
+            builder
                 .Append(" GENERATED ALWAYS AS (")
                 .Append(operation.ComputedColumnSql)
                 .Append(") STORED");
@@ -1341,11 +1595,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             builder
                 .Append("ALTER ")
                 .Append(type)
-                .Append(' ')
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(name, schema))
+                .Append(" ")
+                .Append(DelimitIdentifier(name, schema))
                 .Append(" RENAME TO ")
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(newName))
-                .AppendLine(';');
+                .Append(DelimitIdentifier(newName))
+                .AppendLine(";");
         }
 
         /// <summary>
@@ -1372,10 +1626,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 .Append("ALTER ")
                 .Append(type)
                 .Append(" ")
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(name, schema))
+                .Append(DelimitIdentifier(name, schema))
                 .Append(" SET SCHEMA ")
-                .Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(newSchema))
-                .AppendLine(';');
+                .Append(DelimitIdentifier(newSchema))
+                .AppendLine(";");
         }
 
         #endregion Utilities
@@ -1419,6 +1673,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
         #region Helpers
 
+        string DelimitIdentifier(string identifier) =>
+            Dependencies.SqlGenerationHelper.DelimitIdentifier(identifier);
+
+        string DelimitIdentifier(string name, string schema) =>
+            Dependencies.SqlGenerationHelper.DelimitIdentifier(name, schema);
+
         string IndexColumnList(IndexColumn[] columns, string method)
         {
             var isFirst = true;
@@ -1431,20 +1691,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
                 var column = columns[i];
 
-                builder.Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(column.Name));
+                builder.Append(DelimitIdentifier(column.Name));
 
                 if (!string.IsNullOrEmpty(column.Operator))
                 {
                     var delimitedOperator = TryParseSchema(column.Operator, out var name, out var schema)
-                        ? Dependencies.SqlGenerationHelper.DelimitIdentifier(name, schema)
-                        : Dependencies.SqlGenerationHelper.DelimitIdentifier(column.Operator);
+                        ? DelimitIdentifier(name, schema)
+                        : DelimitIdentifier(column.Operator);
 
                     builder.Append(" ").Append(delimitedOperator);
                 }
 
                 if (!string.IsNullOrEmpty(column.Collation))
                 {
-                    builder.Append(" COLLATE ").Append(Dependencies.SqlGenerationHelper.DelimitIdentifier(column.Collation));
+                    builder.Append(" COLLATE ").Append(DelimitIdentifier(column.Collation));
                 }
 
                 // Of the built-in access methods, only btree (the default) supports
@@ -1477,20 +1737,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
         string ColumnsToTsVector(IEnumerable<string> columns, string tsVectorConfig, IModel model, string schema, string table)
         {
-            string GetTsVectorColumnExpression(string column)
+            string GetTsVectorColumnExpression(string columnName)
             {
-                var delimitedColumnName = Dependencies.SqlGenerationHelper.DelimitIdentifier(column);
-                var property = FindProperty(model, schema, table, column);
-                return property?.IsColumnNullable() == true
+                var delimitedColumnName = DelimitIdentifier(columnName);
+                var column = model?.GetRelationalModel()
+                    .FindTable(table, schema)?.Columns.FirstOrDefault(c => c.Name == columnName);
+                return column?.IsNullable != false
                     ? $"coalesce({delimitedColumnName}, '')"
                     : delimitedColumnName;
             }
 
-            var stringTypeMapping = Dependencies.TypeMappingSource.GetMapping(typeof(string));
-
             return new StringBuilder()
                 .Append("to_tsvector(")
-                .Append(stringTypeMapping.GenerateSqlLiteral(tsVectorConfig))
+                .Append(_stringTypeMapping.GenerateSqlLiteral(tsVectorConfig))
                 .Append(", ")
                 .Append(string.Join(" || ' ' || ", columns.Select(GetTsVectorColumnExpression)))
                 .Append(")")
@@ -1515,8 +1774,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
         static IndexColumn[] GetIndexColumns(CreateIndexOperation operation)
         {
+            var collations = operation[RelationalAnnotationNames.Collation] as string[];
+
             var operators = operation[NpgsqlAnnotationNames.IndexOperators] as string[];
-            var collations = operation[NpgsqlAnnotationNames.IndexCollation] as string[];
             var sortOrders = operation[NpgsqlAnnotationNames.IndexSortOrder] as SortOrder[];
             var nullSortOrders = operation[NpgsqlAnnotationNames.IndexNullSortOrder] as NullSortOrder[];
 

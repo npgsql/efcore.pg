@@ -2,11 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using NodaTime;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 
 // ReSharper disable once CheckNamespace
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
@@ -46,7 +48,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
         /// <summary>
         /// The mapping of supported method translations.
         /// </summary>
-        [NotNull] static readonly Dictionary<MethodInfo, string> PeriodMethodMap = new Dictionary<MethodInfo, string>
+        [NotNull] static readonly Dictionary<MethodInfo, string> PeriodMethodMap = new()
         {
             { typeof(Period).GetRuntimeMethod(nameof(Period.FromYears),        new[] { typeof(int) }),  "years" },
             { typeof(Period).GetRuntimeMethod(nameof(Period.FromMonths),       new[] { typeof(int) }),  "months" },
@@ -71,8 +73,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
 
 #pragma warning disable EF1001
         /// <inheritdoc />
-        [CanBeNull]
-        public SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
+        public SqlExpression Translate(
+            SqlExpression instance,
+            MethodInfo method,
+            IReadOnlyList<SqlExpression> arguments,
+            IDiagnosticsLogger<DbLoggerCategory.Query> logger)
         {
             if (method == GetCurrentInstant)
             {
@@ -91,7 +96,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
             if (declaringType == typeof(Period))
             {
                 return PeriodMethodMap.TryGetValue(method, out var datePart)
-                    ? PgFunctionExpression.CreateWithNamedArguments(
+                    ? PostgresFunctionExpression.CreateWithNamedArguments(
                         "MAKE_INTERVAL",
                         new[] { _sqlExpressionFactory.ApplyDefaultTypeMapping(arguments[0]) },
                         new[] { datePart },

@@ -1,17 +1,24 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestModels.ConcurrencyModel;
 using Microsoft.EntityFrameworkCore.TestUtilities;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
-    public class F1NpgsqlFixture : F1RelationalFixture
+    public class F1UIntNpgsqlFixture : F1NpgsqlFixtureBase<uint?>
+    {
+    }
+
+    public class F1NpgsqlFixture : F1NpgsqlFixtureBase<byte[]>
+    {
+    }
+
+    // Note that the type parameter determines the type of the Version shadow property in the model,
+    // but in Npgsql we just use UseXminAsConcurrencyToken.
+    public abstract class F1NpgsqlFixtureBase<TRowVersion> : F1RelationalFixture<TRowVersion>
     {
         protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
-
-        public override ModelBuilder CreateModelBuilder()
-            => new ModelBuilder(NpgsqlConventionSetBuilder.Build());
+        public override TestHelpers TestHelpers => NpgsqlTestHelpers.Instance;
 
         protected override void BuildModelExternal(ModelBuilder modelBuilder)
         {

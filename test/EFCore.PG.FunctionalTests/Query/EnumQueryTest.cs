@@ -12,6 +12,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
     {
         EnumFixture Fixture { get; }
 
+        // ReSharper disable once UnusedParameter.Local
         public EnumQueryTest(EnumFixture fixture, ITestOutputHelper testOutputHelper)
         {
             Fixture = fixture;
@@ -132,7 +133,7 @@ LIMIT 2");
             AssertSql(
                 @"SELECT s.""Id"", s.""ByteEnum"", s.""EnumValue"", s.""InferredEnum"", s.""MappedEnum"", s.""SchemaQualifiedEnum"", s.""UnmappedByteEnum"", s.""UnmappedEnum""
 FROM test.""SomeEntities"" AS s
-WHERE STRPOS(CAST(s.""MappedEnum"" AS text), 'sa') > 0
+WHERE strpos(CAST(s.""MappedEnum"" AS text), 'sa') > 0
 LIMIT 2");
         }
 

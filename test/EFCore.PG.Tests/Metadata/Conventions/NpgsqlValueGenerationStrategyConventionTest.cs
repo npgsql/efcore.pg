@@ -35,15 +35,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
             var annotations = model.GetAnnotations().OrderBy(a => a.Name).ToList();
             Assert.Equal(4, annotations.Count);
 
-            Assert.Contains(annotations, a => a.Name == RelationalAnnotationNames.MaxIdentifierLength);
-            Assert.Contains(annotations, a => a.Name == RelationalAnnotationNames.SequencePrefix + "." + NpgsqlModelExtensions.DefaultHiLoSequenceName);
-            Assert.Contains(annotations, a =>
-                a.Name == NpgsqlAnnotationNames.HiLoSequenceName &&
-                a.Value.Equals(NpgsqlModelExtensions.DefaultHiLoSequenceName));
+            Assert.Equal(NpgsqlAnnotationNames.HiLoSequenceName, annotations[0].Name);
+            Assert.Equal(NpgsqlModelExtensions.DefaultHiLoSequenceName, annotations[0].Value);
 
-            Assert.Contains(annotations, a =>
-                a.Name == NpgsqlAnnotationNames.ValueGenerationStrategy &&
-                a.Value.Equals(NpgsqlValueGenerationStrategy.SequenceHiLo));
+            Assert.Equal(NpgsqlAnnotationNames.ValueGenerationStrategy, annotations[1].Name);
+            Assert.Equal(NpgsqlValueGenerationStrategy.SequenceHiLo, annotations[1].Value);
+
+            Assert.Equal(RelationalAnnotationNames.MaxIdentifierLength, annotations[2].Name);
+
+            Assert.Equal(
+                RelationalAnnotationNames.Sequences,
+                annotations[3].Name);
+            Assert.NotNull(annotations[3].Value);
         }
     }
 }

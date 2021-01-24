@@ -2,11 +2,14 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Reflection;
+using System.Text;
 using System.Text.Json;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
@@ -23,77 +26,80 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
     {
         [NotNull] readonly ISqlGenerationHelper _sqlGenerationHelper;
 
-        public ConcurrentDictionary<string, RelationalTypeMapping[]> StoreTypeMappings { get; }
-        public ConcurrentDictionary<Type, RelationalTypeMapping> ClrTypeMappings { get; }
+        protected virtual ConcurrentDictionary<string, RelationalTypeMapping[]> StoreTypeMappings { get; }
+        protected virtual ConcurrentDictionary<Type, RelationalTypeMapping> ClrTypeMappings { get; }
 
         readonly IReadOnlyList<UserRangeDefinition> _userRangeDefinitions;
 
         #region Mappings
 
         // Numeric types
-        readonly FloatTypeMapping              _float4             = new FloatTypeMapping("real", DbType.Single);
-        readonly DoubleTypeMapping             _float8             = new DoubleTypeMapping("double precision", DbType.Double);
-        readonly DecimalTypeMapping            _numeric            = new DecimalTypeMapping("numeric", DbType.Decimal);
-        readonly DecimalTypeMapping            _money              = new DecimalTypeMapping("money");
-        readonly GuidTypeMapping               _uuid               = new GuidTypeMapping("uuid", DbType.Guid);
-        readonly ShortTypeMapping              _int2               = new ShortTypeMapping("smallint", DbType.Int16);
-        readonly ByteTypeMapping               _int2Byte           = new ByteTypeMapping("smallint", DbType.Byte);
-        readonly IntTypeMapping                _int4               = new IntTypeMapping("integer", DbType.Int32);
-        readonly LongTypeMapping               _int8               = new LongTypeMapping("bigint", DbType.Int64);
+        readonly NpgsqlFloatTypeMapping        _float4             = new();
+        readonly NpgsqlDoubleTypeMapping       _float8             = new();
+        readonly DecimalTypeMapping            _numeric            = new("numeric", DbType.Decimal);
+        readonly NpgsqlMoneyTypeMapping        _money              = new();
+        readonly GuidTypeMapping               _uuid               = new("uuid", DbType.Guid);
+        readonly ShortTypeMapping              _int2               = new("smallint", DbType.Int16);
+        readonly ByteTypeMapping               _int2Byte           = new("smallint", DbType.Byte);
+        readonly IntTypeMapping                _int4               = new("integer", DbType.Int32);
+        readonly LongTypeMapping               _int8               = new("bigint", DbType.Int64);
 
         // Character types
-        readonly StringTypeMapping             _text               = new StringTypeMapping("text", DbType.String);
-        readonly StringTypeMapping             _varchar            = new StringTypeMapping("character varying", DbType.String);
-        readonly NpgsqlCharacterTypeMapping    _char               = new NpgsqlCharacterTypeMapping("character");
-        readonly CharTypeMapping               _singleChar         = new CharTypeMapping("character(1)", DbType.String);
-        readonly NpgsqlCharacterTypeMapping    _stringAsSingleChar = new NpgsqlCharacterTypeMapping("character(1)");
-        readonly NpgsqlStringTypeMapping       _xml                = new NpgsqlStringTypeMapping("xml", NpgsqlDbType.Xml);
-        readonly NpgsqlStringTypeMapping       _citext             = new NpgsqlStringTypeMapping("citext", NpgsqlDbType.Citext);
+        readonly StringTypeMapping             _text               = new("text", DbType.String);
+        readonly StringTypeMapping             _varchar            = new("character varying", DbType.String);
+        readonly NpgsqlCharacterTypeMapping    _char               = new("character");
+        readonly CharTypeMapping               _singleChar         = new("character(1)", DbType.String);
+        readonly NpgsqlCharacterTypeMapping    _stringAsSingleChar = new("character(1)");
+        readonly NpgsqlStringTypeMapping       _xml                = new("xml", NpgsqlDbType.Xml);
+        readonly NpgsqlStringTypeMapping       _citext             = new("citext", NpgsqlDbType.Citext);
 
         // JSON mappings
-        readonly NpgsqlJsonTypeMapping         _jsonbString        = new NpgsqlJsonTypeMapping("jsonb", typeof(string));
-        readonly NpgsqlJsonTypeMapping         _jsonString         = new NpgsqlJsonTypeMapping("json", typeof(string));
-        readonly NpgsqlJsonTypeMapping         _jsonbDocument      = new NpgsqlJsonTypeMapping("jsonb", typeof(JsonDocument));
-        readonly NpgsqlJsonTypeMapping         _jsonDocument       = new NpgsqlJsonTypeMapping("json", typeof(JsonDocument));
-        readonly NpgsqlJsonTypeMapping         _jsonbElement       = new NpgsqlJsonTypeMapping("jsonb", typeof(JsonElement));
-        readonly NpgsqlJsonTypeMapping         _jsonElement        = new NpgsqlJsonTypeMapping("json", typeof(JsonElement));
+        readonly NpgsqlJsonTypeMapping         _jsonbString        = new("jsonb", typeof(string));
+        readonly NpgsqlJsonTypeMapping         _jsonString         = new("json", typeof(string));
+        readonly NpgsqlJsonTypeMapping         _jsonbDocument      = new("jsonb", typeof(JsonDocument));
+        readonly NpgsqlJsonTypeMapping         _jsonDocument       = new("json", typeof(JsonDocument));
+        readonly NpgsqlJsonTypeMapping         _jsonbElement       = new("jsonb", typeof(JsonElement));
+        readonly NpgsqlJsonTypeMapping         _jsonElement        = new("json", typeof(JsonElement));
 
         // Date/Time types
-        readonly NpgsqlDateTypeMapping         _date               = new NpgsqlDateTypeMapping();
-        readonly NpgsqlTimestampTypeMapping    _timestamp          = new NpgsqlTimestampTypeMapping();
-        readonly NpgsqlTimestampTzTypeMapping  _timestamptz        = new NpgsqlTimestampTzTypeMapping(typeof(DateTime));
-        readonly NpgsqlTimestampTzTypeMapping  _timestamptzDto     = new NpgsqlTimestampTzTypeMapping(typeof(DateTimeOffset));
-        readonly NpgsqlIntervalTypeMapping     _interval           = new NpgsqlIntervalTypeMapping();
-        readonly NpgsqlTimeTypeMapping         _time               = new NpgsqlTimeTypeMapping();
-        readonly NpgsqlTimeTzTypeMapping       _timetz             = new NpgsqlTimeTzTypeMapping();
+        readonly NpgsqlDateTypeMapping         _date               = new();
+        readonly NpgsqlTimestampTypeMapping    _timestamp          = new();
+        readonly NpgsqlTimestampTzTypeMapping  _timestamptz        = new(typeof(DateTime));
+        readonly NpgsqlTimestampTzTypeMapping  _timestamptzDto     = new(typeof(DateTimeOffset));
+        readonly NpgsqlIntervalTypeMapping     _interval           = new();
+        readonly NpgsqlTimeTypeMapping         _time               = new();
+        readonly NpgsqlTimeTzTypeMapping       _timetz             = new();
 
         // Network address types
-        readonly NpgsqlMacaddrTypeMapping      _macaddr            = new NpgsqlMacaddrTypeMapping();
-        readonly NpgsqlMacaddr8TypeMapping     _macaddr8           = new NpgsqlMacaddr8TypeMapping();
-        readonly NpgsqlInetTypeMapping         _inet               = new NpgsqlInetTypeMapping();
-        readonly NpgsqlCidrTypeMapping         _cidr               = new NpgsqlCidrTypeMapping();
+        readonly NpgsqlMacaddrTypeMapping      _macaddr            = new();
+        readonly NpgsqlMacaddr8TypeMapping     _macaddr8           = new();
+        readonly NpgsqlInetTypeMapping         _inet               = new();
+        readonly NpgsqlCidrTypeMapping         _cidr               = new();
 
         // Built-in geometric types
-        readonly NpgsqlPointTypeMapping        _point              = new NpgsqlPointTypeMapping();
-        readonly NpgsqlBoxTypeMapping          _box                = new NpgsqlBoxTypeMapping();
-        readonly NpgsqlLineTypeMapping         _line               = new NpgsqlLineTypeMapping();
-        readonly NpgsqlLineSegmentTypeMapping  _lseg               = new NpgsqlLineSegmentTypeMapping();
-        readonly NpgsqlPathTypeMapping         _path               = new NpgsqlPathTypeMapping();
-        readonly NpgsqlPolygonTypeMapping      _polygon            = new NpgsqlPolygonTypeMapping();
-        readonly NpgsqlCircleTypeMapping       _circle             = new NpgsqlCircleTypeMapping();
+        readonly NpgsqlPointTypeMapping        _point              = new();
+        readonly NpgsqlBoxTypeMapping          _box                = new();
+        readonly NpgsqlLineTypeMapping         _line               = new();
+        readonly NpgsqlLineSegmentTypeMapping  _lseg               = new();
+        readonly NpgsqlPathTypeMapping         _path               = new();
+        readonly NpgsqlPolygonTypeMapping      _polygon            = new();
+        readonly NpgsqlCircleTypeMapping       _circle             = new();
 
         // uint mappings
-        readonly NpgsqlUintTypeMapping         _xid                = new NpgsqlUintTypeMapping("xid", NpgsqlDbType.Xid);
-        readonly NpgsqlUintTypeMapping         _oid                = new NpgsqlUintTypeMapping("oid", NpgsqlDbType.Oid);
-        readonly NpgsqlUintTypeMapping         _cid                = new NpgsqlUintTypeMapping("cid", NpgsqlDbType.Cid);
-        readonly NpgsqlUintTypeMapping         _regtype            = new NpgsqlUintTypeMapping("regtype", NpgsqlDbType.Regtype);
-        readonly NpgsqlUintTypeMapping         _lo                 = new NpgsqlUintTypeMapping("lo", NpgsqlDbType.Oid);
+        readonly NpgsqlUintTypeMapping         _xid                = new("xid", NpgsqlDbType.Xid);
+        readonly NpgsqlUintTypeMapping         _oid                = new("oid", NpgsqlDbType.Oid);
+        readonly NpgsqlUintTypeMapping         _cid                = new("cid", NpgsqlDbType.Cid);
+        readonly NpgsqlUintTypeMapping         _regtype            = new("regtype", NpgsqlDbType.Regtype);
+        readonly NpgsqlUintTypeMapping         _lo                 = new("lo", NpgsqlDbType.Oid);
 
         // Full text search mappings
-        readonly NpgsqlTsQueryTypeMapping   _tsquery               = new NpgsqlTsQueryTypeMapping();
-        readonly NpgsqlTsVectorTypeMapping  _tsvector              = new NpgsqlTsVectorTypeMapping();
-        readonly NpgsqlRegconfigTypeMapping _regconfig             = new NpgsqlRegconfigTypeMapping();
-        readonly NpgsqlTsRankingNormalizationTypeMapping _rankingNormalization = new NpgsqlTsRankingNormalizationTypeMapping();
+        readonly NpgsqlTsQueryTypeMapping   _tsquery               = new();
+        readonly NpgsqlTsVectorTypeMapping  _tsvector              = new();
+        readonly NpgsqlRegconfigTypeMapping _regconfig             = new();
+        readonly NpgsqlTsRankingNormalizationTypeMapping _rankingNormalization = new();
+
+        // Unaccent mapping
+        readonly NpgsqlRegdictionaryTypeMapping _regdictionary = new();
 
         // Built-in ranges
         readonly NpgsqlRangeTypeMapping        _int4range;
@@ -104,12 +110,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         readonly NpgsqlRangeTypeMapping        _daterange;
 
         // Other types
-        readonly NpgsqlBoolTypeMapping         _bool               = new NpgsqlBoolTypeMapping();
-        readonly NpgsqlBitTypeMapping          _bit                = new NpgsqlBitTypeMapping();
-        readonly NpgsqlVarbitTypeMapping       _varbit             = new NpgsqlVarbitTypeMapping();
-        readonly NpgsqlByteArrayTypeMapping    _bytea              = new NpgsqlByteArrayTypeMapping();
-        readonly NpgsqlHstoreTypeMapping       _hstore             = new NpgsqlHstoreTypeMapping();
-        readonly NpgsqlTidTypeMapping          _tid                = new NpgsqlTidTypeMapping();
+        readonly NpgsqlBoolTypeMapping            _bool            = new();
+        readonly NpgsqlBitTypeMapping             _bit             = new();
+        readonly NpgsqlVarbitTypeMapping          _varbit          = new();
+        readonly NpgsqlByteArrayTypeMapping       _bytea           = new();
+        readonly NpgsqlHstoreTypeMapping          _hstore          = new(typeof(Dictionary<string, string>));
+        readonly NpgsqlHstoreTypeMapping          _immutableHstore = new(typeof(ImmutableDictionary<string, string>));
+        readonly NpgsqlTidTypeMapping             _tid             = new();
 
         // Special stuff
         // ReSharper disable once InconsistentNaming
@@ -184,7 +191,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 { "bit",                         new[] { _bit                          } },
                 { "bit varying",                 new[] { _varbit                       } },
                 { "varbit",                      new[] { _varbit                       } },
-                { "hstore",                      new[] { _hstore                       } },
+                { "hstore",                      new RelationalTypeMapping[] { _hstore, _immutableHstore } },
                 { "point",                       new[] { _point                        } },
                 { "box",                         new[] { _box                          } },
                 { "line",                        new[] { _line                         } },
@@ -208,51 +215,54 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
                 { "tsquery",                     new[] { _tsquery                      } },
                 { "tsvector",                    new[] { _tsvector                     } },
-                { "regconfig",                   new[] { _regconfig                    } }
+                { "regconfig",                   new[] { _regconfig                    } },
+
+                { "regdictionary",               new[] { _regdictionary                } }
             };
 
             var clrTypeMappings = new Dictionary<Type, RelationalTypeMapping>
             {
-                { typeof(bool),                         _bool                 },
-                { typeof(byte[]),                       _bytea                },
-                { typeof(float),                        _float4               },
-                { typeof(double),                       _float8               },
-                { typeof(decimal),                      _numeric              },
-                { typeof(Guid),                         _uuid                 },
-                { typeof(byte),                         _int2Byte             },
-                { typeof(short),                        _int2                 },
-                { typeof(int),                          _int4                 },
-                { typeof(long),                         _int8                 },
-                { typeof(string),                       _text                 },
-                { typeof(JsonDocument),                 _jsonbDocument        },
-                { typeof(JsonElement),                  _jsonbElement         },
-                { typeof(char),                         _singleChar           },
-                { typeof(DateTime),                     _timestamp            },
-                { typeof(TimeSpan),                     _interval             },
-                { typeof(DateTimeOffset),               _timestamptzDto       },
-                { typeof(PhysicalAddress),              _macaddr              },
-                { typeof(IPAddress),                    _inet                 },
-                { typeof((IPAddress, int)),             _cidr                 },
-                { typeof(BitArray),                     _varbit               },
-                { typeof(Dictionary<string, string>),   _hstore               },
-                { typeof(NpgsqlTid),                    _tid                  },
+                { typeof(bool),                                _bool                 },
+                { typeof(byte[]),                              _bytea                },
+                { typeof(float),                               _float4               },
+                { typeof(double),                              _float8               },
+                { typeof(decimal),                             _numeric              },
+                { typeof(Guid),                                _uuid                 },
+                { typeof(byte),                                _int2Byte             },
+                { typeof(short),                               _int2                 },
+                { typeof(int),                                 _int4                 },
+                { typeof(long),                                _int8                 },
+                { typeof(string),                              _text                 },
+                { typeof(JsonDocument),                        _jsonbDocument        },
+                { typeof(JsonElement),                         _jsonbElement         },
+                { typeof(char),                                _singleChar           },
+                { typeof(DateTime),                            _timestamp            },
+                { typeof(TimeSpan),                            _interval             },
+                { typeof(DateTimeOffset),                      _timestamptzDto       },
+                { typeof(PhysicalAddress),                     _macaddr              },
+                { typeof(IPAddress),                           _inet                 },
+                { typeof((IPAddress, int)),                    _cidr                 },
+                { typeof(BitArray),                            _varbit               },
+                { typeof(ImmutableDictionary<string, string>), _immutableHstore      },
+                { typeof(Dictionary<string, string>),          _hstore               },
+                { typeof(NpgsqlTid),                           _tid                  },
 
-                { typeof(NpgsqlPoint),                  _point                },
-                { typeof(NpgsqlBox),                    _box                  },
-                { typeof(NpgsqlLine),                   _line                 },
-                { typeof(NpgsqlLSeg),                   _lseg                 },
-                { typeof(NpgsqlPath),                   _path                 },
-                { typeof(NpgsqlPolygon),                _polygon              },
-                { typeof(NpgsqlCircle),                 _circle               },
+                { typeof(NpgsqlPoint),                         _point                },
+                { typeof(NpgsqlBox),                           _box                  },
+                { typeof(NpgsqlLine),                          _line                 },
+                { typeof(NpgsqlLSeg),                          _lseg                 },
+                { typeof(NpgsqlPath),                          _path                 },
+                { typeof(NpgsqlPolygon),                       _polygon              },
+                { typeof(NpgsqlCircle),                        _circle               },
 
-                { typeof(NpgsqlRange<int>),             _int4range            },
-                { typeof(NpgsqlRange<long>),            _int8range            },
-                { typeof(NpgsqlRange<decimal>),         _numrange             },
-                { typeof(NpgsqlRange<DateTime>),        _tsrange              },
+                { typeof(NpgsqlRange<int>),                    _int4range            },
+                { typeof(NpgsqlRange<long>),                   _int8range            },
+                { typeof(NpgsqlRange<decimal>),                _numrange             },
+                { typeof(NpgsqlRange<DateTime>),               _tsrange              },
 
-                { typeof(NpgsqlTsQuery),                _tsquery              },
-                { typeof(NpgsqlTsVector),               _tsvector             },
-                { typeof(NpgsqlTsRankingNormalization), _rankingNormalization }
+                { typeof(NpgsqlTsQuery),                       _tsquery              },
+                { typeof(NpgsqlTsVector),                      _tsvector             },
+                { typeof(NpgsqlTsRankingNormalization),        _rankingNormalization }
             };
 
             StoreTypeMappings = new ConcurrentDictionary<string, RelationalTypeMapping[]>(storeTypeMappings, StringComparer.OrdinalIgnoreCase);
@@ -267,15 +277,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         /// To be used in case user-defined mappings are added late, after this TypeMappingSource has already been initialized.
         /// This is basically only for test usage.
         /// </summary>
-        public void LoadUserDefinedTypeMappings([NotNull] ISqlGenerationHelper sqlGenerationHelper)
+        public virtual void LoadUserDefinedTypeMappings([NotNull] ISqlGenerationHelper sqlGenerationHelper)
             => SetupEnumMappings(sqlGenerationHelper);
 
         /// <summary>
         /// Gets all global enum mappings from the ADO.NET layer and creates mappings for them
         /// </summary>
-        void SetupEnumMappings([NotNull] ISqlGenerationHelper sqlGenerationHelper)
+        protected virtual void SetupEnumMappings([NotNull] ISqlGenerationHelper sqlGenerationHelper)
         {
-            foreach (var adoMapping in NpgsqlConnection.GlobalTypeMapper.Mappings.Where(m => m.TypeHandlerFactory is IEnumTypeHandlerFactory))
+            foreach (var adoMapping in NpgsqlConnection.GlobalTypeMapper.Mappings.Where(m => m.TypeHandlerFactory is IEnumTypeHandlerFactory).ToArray())
             {
                 var storeType = adoMapping.PgTypeName;
                 var clrType = adoMapping.ClrTypes.SingleOrDefault();
@@ -301,7 +311,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         protected override RelationalTypeMapping FindMapping(in RelationalTypeMappingInfo mappingInfo) =>
             // First, try any plugins, allowing them to override built-in mappings (e.g. NodaTime)
             base.FindMapping(mappingInfo) ??
-            FindBaseMapping(mappingInfo) ??
+            FindBaseMapping(mappingInfo)?.Clone(mappingInfo) ??
             FindArrayMapping(mappingInfo) ??
             FindUserRangeMapping(mappingInfo);
 
@@ -464,6 +474,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 if (elementMapping is NpgsqlArrayTypeMapping)
                     return null;
 
+                // Not that the element mapping found above was stripped of nullability
+                // (so we get a mapping for int, not int?).
+                Debug.Assert(
+                    Nullable.GetUnderlyingType(elementType) is null ||
+                    Nullable.GetUnderlyingType(elementType) == elementMapping.ClrType);
+
                 return new NpgsqlArrayArrayTypeMapping(elementMapping, clrType);
             }
 
@@ -539,6 +555,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             return new NpgsqlRangeTypeMapping(rangeDefinition.RangeName, rangeDefinition.SchemaName, rangeClrType, subtypeMapping, _sqlGenerationHelper);
         }
 
+        static bool NameBasesUsesPrecision(ReadOnlySpan<char> span)
+            => span.ToString() switch
+            {
+                "decimal"     => true,
+                "dec"         => true,
+                "numeric"     => true,
+                "timestamp"   => true,
+                "timestamptz" => true,
+                "time"        => true,
+                "interval"    => true,
+                _             => false
+            };
+
         // We override to support parsing array store names (e.g. varchar(32)[]), timestamp(5) with time zone, etc.
         protected override string ParseStoreTypeName(
             string storeTypeName,
@@ -547,51 +576,56 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             out int? precision,
             out int? scale)
         {
-            unicode = null;
-            size = null;
-            precision = null;
-            scale = null;
+            (unicode, size, precision, scale) = (null, null, null, null);
 
-            if (storeTypeName != null)
+            if (storeTypeName is null)
+                return null;
+
+            var span = storeTypeName.AsSpan().Trim();
+
+            var openParen = span.IndexOf("(", StringComparison.Ordinal);
+            if (openParen == -1)
+                return storeTypeName;
+            var afterOpenParen = span.Slice(openParen + 1).TrimStart();
+            var closeParen = afterOpenParen.IndexOf(")", StringComparison.Ordinal);
+            if (closeParen == -1)
+                return storeTypeName;
+
+            var preParens = span[..openParen].Trim();
+            var inParens = afterOpenParen[..closeParen].Trim();
+            // There may be stuff after the closing parentheses (e.g. varchar(32)[], timestamp(3) with time zone)
+            var postParens = afterOpenParen.Slice(closeParen + 1);
+
+            var comma = inParens.IndexOf(",", StringComparison.Ordinal);
+            if (comma != -1)
             {
-                var openParen = storeTypeName.IndexOf("(", StringComparison.Ordinal);
-                if (openParen > 0)
+                if (int.TryParse(inParens[..comma].Trim(), out var parsedPrecision))
+                    precision = parsedPrecision;
+                if (int.TryParse(inParens.Slice(comma + 1), out var parsedScale))
+                    scale = parsedScale;
+            }
+            else if (int.TryParse(inParens, out var parsedSize))
+            {
+                if (NameBasesUsesPrecision(preParens))
                 {
-                    var closeParen = storeTypeName.IndexOf(")", openParen + 1, StringComparison.Ordinal);
-                    if (closeParen > openParen)
-                    {
-                        var comma = storeTypeName.IndexOf(",", openParen + 1, StringComparison.Ordinal);
-                        if (comma > openParen
-                            && comma < closeParen)
-                        {
-                            if (int.TryParse(storeTypeName.Substring(openParen + 1, comma - openParen - 1), out var parsedPrecision))
-                            {
-                                precision = parsedPrecision;
-                            }
-
-                            if (int.TryParse(storeTypeName.Substring(comma + 1, closeParen - comma - 1), out var parsedScale))
-                            {
-                                scale = parsedScale;
-                            }
-                        }
-                        else if (int.TryParse(
-                            storeTypeName.Substring(openParen + 1, closeParen - openParen - 1).Trim(), out var parsedSize))
-                        {
-                            size = parsedSize;
-                            precision = parsedSize;
-                        }
-
-                        // There may be stuff after the closing parentheses (e.g. varchar(32)[])
-                        var preParens = storeTypeName.Substring(0, openParen).Trim();
-                        var postParens = storeTypeName.Substring(closeParen + 1).TrimEnd();
-                        return postParens.Length > 0
-                            ? preParens + postParens
-                            : preParens;
-                    }
+                    precision = parsedSize;
+                    scale = 0;
                 }
+                else
+                    size = parsedSize;
+            }
+            else
+                return storeTypeName;
+
+            if (postParens.Length > 0)
+            {
+                return new StringBuilder()
+                    .Append(preParens)
+                    .Append(postParens)
+                    .ToString();
             }
 
-            return storeTypeName;
+            return preParens.ToString();
         }
     }
 }

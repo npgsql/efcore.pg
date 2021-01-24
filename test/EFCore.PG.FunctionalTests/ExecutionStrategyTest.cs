@@ -101,7 +101,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 context.ChangeTracker.AcceptAllChanges();
 
                 var retryMessage =
-                    "A transient exception has been encountered during execution and the operation will be retried after 0ms."
+                    "A transient exception occurred during execution. The operation will be retried after 0ms."
                     + Environment.NewLine
                     + "Npgsql.PostgresException (0x80004005): XX000";
                 if (realFailure)
@@ -214,7 +214,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 context.ChangeTracker.AcceptAllChanges();
 
                 var retryMessage =
-                    "A transient exception has been encountered during execution and the operation will be retried after 0ms."
+                    "A transient exception occurred during execution. The operation will be retried after 0ms."
                     + Environment.NewLine
                     + "Npgsql.PostgresException (0x80004005): XX000";
                 if (realFailure)

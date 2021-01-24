@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
@@ -11,42 +11,43 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion
     public class NpgsqlValueConverterSelector : ValueConverterSelector
     {
         readonly ConcurrentDictionary<(Type ModelElementClrType, Type ProviderElementClrType), ValueConverterInfo> _arrayConverters
-            = new ConcurrentDictionary<(Type, Type), ValueConverterInfo>();
+            = new();
 
         public NpgsqlValueConverterSelector([NotNull] ValueConverterSelectorDependencies dependencies)
             : base(dependencies) {}
 
         /// <inheritdoc />
-        public override IEnumerable<ValueConverterInfo> Select(Type modelArrayClrType, Type providerArrayClrType = null)
+        public override IEnumerable<ValueConverterInfo> Select(Type modelClrType, Type providerClrType = null)
         {
-            var converters = default(IEnumerable<ValueConverterInfo>);
-            if (modelArrayClrType.IsArray && (providerArrayClrType == null || providerArrayClrType.IsArray))
+            var providerElementType = default(Type);
+
+            if (modelClrType.TryGetElementType(out var modelElementType) &&
+                (providerClrType == null || providerClrType.TryGetElementType(out providerElementType)))
             {
-                var modelElementType = modelArrayClrType.GetElementType();
-                Debug.Assert(modelElementType != null);
-
-                var providerElementType = default(Type);
-                if (providerArrayClrType != null)
-                {
-                    providerElementType = providerArrayClrType.GetElementType();
-                    Debug.Assert(providerElementType != null);
-                }
-
-                // For each ValueConverterInfo selected by the superclass for the element type, return a ValueConverterInfo for its array type
-                converters = base
+                // For each ValueConverterInfo selected by the superclass for the element type,
+                // return a ValueConverterInfo for its array type
+                return base
                     .Select(modelElementType, providerElementType)
-                    .Select(elementConverterInfo => _arrayConverters.GetOrAdd(
-                        (elementConverterInfo.ModelClrType, elementConverterInfo.ProviderClrType),
+                    .Select(elementConverterInfo => new
+                    {
+                        ModelArrayType = modelClrType,
+                        ProviderArrayType = providerClrType ?? elementConverterInfo.ProviderClrType.MakeArrayType(),
+                        ElementConverterInfo = elementConverterInfo
+                    })
+                    .Select(x => _arrayConverters.GetOrAdd(
+                        (x.ModelArrayType, x.ProviderArrayType),
                         new ValueConverterInfo(
-                            modelArrayClrType,
-                            elementConverterInfo.ProviderClrType.MakeArrayType(),
-                            ci => (ValueConverter)Activator.CreateInstance(
-                                typeof(NpgsqlArrayConverter<,>).MakeGenericType(modelArrayClrType, elementConverterInfo.ProviderClrType.MakeArrayType()),
-                                    elementConverterInfo.Create()))));
+                            x.ModelArrayType,
+                            x.ProviderArrayType,
+                            _ => (ValueConverter)Activator.CreateInstance(
+                                typeof(NpgsqlArrayConverter<,>).MakeGenericType(
+                                    modelClrType,
+                                    x.ProviderArrayType),
+                                x.ElementConverterInfo.Create()))))
+                    .Concat(base.Select(modelClrType, providerClrType));
             }
 
-            var baseConverters = base.Select(modelArrayClrType, providerArrayClrType);
-            return converters == null ? baseConverters : converters.Concat(baseConverters);
+            return base.Select(modelClrType, providerClrType);
         }
     }
 }

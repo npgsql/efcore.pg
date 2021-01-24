@@ -22,7 +22,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         /// <summary>
         /// The relational type mapping used to initialize the bound mapping.
         /// </summary>
-        public RelationalTypeMapping SubtypeMapping { get; }
+        public virtual RelationalTypeMapping SubtypeMapping { get; }
 
         /// <summary>
         /// Constructs an instance of the <see cref="NpgsqlRangeTypeMapping"/> class.

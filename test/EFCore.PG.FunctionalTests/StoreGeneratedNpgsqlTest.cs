@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.TestUtilities;
@@ -21,6 +22,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         {
             protected override string StoreName { get; } = "StoreGeneratedTest";
             protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
+
+            public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
+                => builder
+                    .EnableSensitiveDataLogging()
+                    .ConfigureWarnings(
+                        b => b.Default(WarningBehavior.Throw)
+                            .Ignore(CoreEventId.SensitiveDataLoggingEnabledWarning)
+                            .Ignore(RelationalEventId.BoolWithDefaultWarning));
 
             protected override void OnModelCreating(ModelBuilder modelBuilder, DbContext context)
             {
@@ -86,6 +95,26 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                     b.Property(e => e.NullableAsNonNullable).HasDefaultValueSql("1");
                     b.Property(e => e.NonNullableAsNullable).HasDefaultValueSql("1");
                 });
+
+                modelBuilder.Entity<WithNullableBackingFields>(
+                    b =>
+                    {
+                        b.Property(e => e.NullableBackedBoolTrueDefault).HasDefaultValue(true);
+                        b.Property(e => e.NullableBackedIntNonZeroDefault).HasDefaultValue(-1);
+                        b.Property(e => e.NullableBackedBoolFalseDefault).HasDefaultValue(false);
+                        b.Property(e => e.NullableBackedIntZeroDefault).HasDefaultValue(0);
+                    });
+
+                modelBuilder.Entity<WithObjectBackingFields>(
+                    b =>
+                    {
+                        b.Property(e => e.NullableBackedBoolTrueDefault).HasDefaultValue(true);
+                        b.Property(e => e.NullableBackedIntNonZeroDefault).HasDefaultValue(-1);
+                        b.Property(e => e.NullableBackedBoolFalseDefault).HasDefaultValue(false);
+                        b.Property(e => e.NullableBackedIntZeroDefault).HasDefaultValue(0);
+                    });
+
+                modelBuilder.Entity<NonStoreGenDependent>().Property(e => e.HasTemp).HasDefaultValue(777);
 
                 base.OnModelCreating(modelBuilder, context);
             }

@@ -1,8 +1,11 @@
+using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
 
@@ -52,7 +55,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
                     Instance.ToString(),
                     Parameters);
 
-            public IRelationalCommandBuilder Append(object value)
+            public IRelationalCommandBuilder Append(string value)
             {
                 Instance.Append(value);
 
@@ -115,8 +118,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             }
 
             public Task<int> ExecuteNonQueryAsync(
-                RelationalCommandParameterObject parameterObject,
-                CancellationToken cancellationToken = new CancellationToken())
+                RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken = default)
             {
                 var connection = parameterObject.Connection;
                 var errorNumber = PreExecution(connection);
@@ -147,8 +149,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             }
 
             public async Task<object> ExecuteScalarAsync(
-                RelationalCommandParameterObject parameterObject,
-                CancellationToken cancellationToken = new CancellationToken())
+                RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken = default)
             {
                 var connection = parameterObject.Connection;
                 var errorNumber = PreExecution(connection);
@@ -180,8 +181,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             }
 
             public async Task<RelationalDataReader> ExecuteReaderAsync(
-                RelationalCommandParameterObject parameterObject,
-                CancellationToken cancellationToken = new CancellationToken())
+                RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken = default)
             {
                 var connection = parameterObject.Connection;
                 var errorNumber = PreExecution(connection);
@@ -196,6 +196,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
 
                 return result;
             }
+
+            public DbCommand CreateDbCommand(RelationalCommandParameterObject parameterObject, Guid commandId, DbCommandMethod commandMethod)
+                => throw new NotImplementedException();
 
             string PreExecution(IRelationalConnection connection)
             {

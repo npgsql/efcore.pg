@@ -20,8 +20,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 : optionsBuilder.UseNpgsql();
 
         protected override TwoDatabasesWithDataContext CreateBackingContext(string databaseName)
-            => new TwoDatabasesWithDataContext(Fixture.CreateOptions(NpgsqlTestStore.Create(databaseName)));
+            => new(Fixture.CreateOptions(NpgsqlTestStore.Create(databaseName)));
 
-        protected override string DummyConnectionString { get; } = "Database=DoesNotExist";
+        protected override string DummyConnectionString { get; } = "Host=localhost;Database=DoesNotExist";
     }
 }

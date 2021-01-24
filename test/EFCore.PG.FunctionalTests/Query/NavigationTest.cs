@@ -26,11 +26,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             var entityType = model.GetEntityTypes().First();
 
             Assert.Equal(
-                "ForeignKey: GoTPerson {'LoverId'} -> GoTPerson {'Id'} Unique ToDependent: LoverReverse ToPrincipal: Lover",
+                "ForeignKey: GoTPerson {'LoverId'} -> GoTPerson {'Id'} Unique ToDependent: LoverReverse ToPrincipal: Lover ClientSetNull",
                 entityType.GetForeignKeys().First().ToString());
 
             Assert.Equal(
-                "ForeignKey: GoTPerson {'SiblingReverseId'} -> GoTPerson {'Id'} ToDependent: Siblings ToPrincipal: SiblingReverse",
+                "ForeignKey: GoTPerson {'SiblingReverseId'} -> GoTPerson {'Id'} ToDependent: Siblings ToPrincipal: SiblingReverse ClientSetNull",
                 entityType.GetForeignKeys().Skip(1).First().ToString());
         }
 
@@ -50,11 +50,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             var entityType = model.GetEntityTypes().First();
 
             Assert.Equal(
-                "ForeignKey: GoTPerson {'LoverId'} -> GoTPerson {'Id'} Unique ToDependent: LoverReverse ToPrincipal: Lover",
+                "ForeignKey: GoTPerson {'LoverId'} -> GoTPerson {'Id'} Unique ToDependent: LoverReverse ToPrincipal: Lover ClientSetNull",
                 entityType.GetForeignKeys().First().ToString());
 
             Assert.Equal(
-                "ForeignKey: GoTPerson {'SiblingReverseId'} -> GoTPerson {'Id'} ToDependent: Siblings ToPrincipal: SiblingReverse",
+                "ForeignKey: GoTPerson {'SiblingReverseId'} -> GoTPerson {'Id'} ToDependent: Siblings ToPrincipal: SiblingReverse ClientSetNull",
                 entityType.GetForeignKeys().Skip(1).First().ToString());
         }
 
@@ -108,6 +108,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 .Options;
         }
 
-        public virtual GoTContext CreateContext() => new GoTContext(_options);
+        public virtual GoTContext CreateContext() => new(_options);
     }
 }

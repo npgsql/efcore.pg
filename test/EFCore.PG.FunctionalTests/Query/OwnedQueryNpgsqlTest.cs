@@ -4,7 +4,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public class OwnedQueryNpgsqlTest : RelationalOwnedQueryTestBase<OwnedQueryNpgsqlTest.OwnedQueryNpgsqlFixture>
+    public class OwnedQueryNpgsqlTest : OwnedQueryRelationalTestBase<OwnedQueryNpgsqlTest.OwnedQueryNpgsqlFixture>
     {
         public OwnedQueryNpgsqlTest(OwnedQueryNpgsqlFixture fixture)
             : base(fixture)

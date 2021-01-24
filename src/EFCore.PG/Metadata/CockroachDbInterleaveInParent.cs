@@ -4,7 +4,6 @@ using System.Text;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
@@ -16,37 +15,35 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 
         readonly IAnnotatable _annotatable;
 
-        public Annotatable Annotatable => (Annotatable)_annotatable;
+        public virtual Annotatable Annotatable => (Annotatable)_annotatable;
 
-        public CockroachDbInterleaveInParent(IAnnotatable annotatable)
-        {
-            _annotatable = annotatable;
-        }
+        public CockroachDbInterleaveInParent([NotNull] IAnnotatable annotatable)
+            => _annotatable = annotatable;
 
-        public string ParentTableSchema
+        public virtual string ParentTableSchema
         {
             get => GetData().ParentTableSchema;
-            set
+            [param: CanBeNull] set
             {
                 (var _, var parentTableName, var interleavePrefix) = GetData();
                 SetData(value, parentTableName, interleavePrefix);
             }
         }
 
-        public string ParentTableName
+        public virtual string ParentTableName
         {
             get => GetData().ParentTableName;
-            set
+            [param: NotNull] set
             {
                 (var parentTableSchema, var _, var interleavePrefix) = GetData();
                 SetData(parentTableSchema, value, interleavePrefix);
             }
         }
 
-        public List<string> InterleavePrefix
+        public virtual List<string> InterleavePrefix
         {
             get => GetData().InterleavePrefix;
-            set
+            [param: NotNull] set
             {
                 (var parentTableSchema, var parentTableName, var _) = GetData();
                 SetData(parentTableSchema, parentTableName, value);
@@ -100,7 +97,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             }
             catch (Exception ex)
             {
-                throw new ArgumentException(RelationalStrings.BadSequenceString, ex);
+                throw new ArgumentException($"Couldn't deserialize {nameof(CockroachDbInterleaveInParent)} from annotation", ex);
             }
         }
 

@@ -13,7 +13,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// <summary>
         /// The backend version to target.
         /// </summary>
-        [CanBeNull]
+        [NotNull]
         Version PostgresVersion { get; }
 
         /// <summary>

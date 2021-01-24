@@ -33,8 +33,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             Assert.Contains(@"n.""LocalDate"" < DATE '2018-04-21'", Sql);
         }
 
+        #region Addition and subtraction
+
         [Fact]
-        public void Operator_add_period()
+        public void Add_LocalDate_Period()
         {
             // Note: requires some special type inference logic because we're adding things of different types
             using var ctx = CreateContext();
@@ -43,6 +45,93 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             Assert.Equal(new LocalDate(2018, 4, 20), d.LocalDate);
             Assert.Contains(@"(n.""LocalDate"" + INTERVAL 'P1M') > n.""LocalDate""", Sql);
         }
+
+        [Fact]
+        public void Subtract_Instant()
+        {
+            using var ctx = CreateContext();
+            var id = ctx.NodaTimeTypes
+                .Where(t => t.Instant + Duration.FromDays(1) - t.Instant == Duration.FromDays(1))
+                .Select(t => t.Id)
+                .Single();
+
+            Assert.Equal(1, id);
+            AssertSql(
+                @"SELECT n.""Id""
+FROM ""NodaTimeTypes"" AS n
+WHERE ((n.""Instant"" + INTERVAL '1 00:00:00') - n.""Instant"") = INTERVAL '1 00:00:00'
+LIMIT 2");
+        }
+
+        [Fact]
+        public void Subtract_LocalDateTime()
+        {
+            using var ctx = CreateContext();
+            var id = ctx.NodaTimeTypes
+                .Where(t => t.LocalDateTime + Period.FromDays(1) - t.LocalDateTime == Period.FromDays(1))
+                .Select(t => t.Id)
+                .Single();
+
+            Assert.Equal(1, id);
+            AssertSql(
+                @"SELECT n.""Id""
+FROM ""NodaTimeTypes"" AS n
+WHERE ((n.""LocalDateTime"" + INTERVAL 'P1D') - n.""LocalDateTime"") = INTERVAL 'P1D'
+LIMIT 2");
+        }
+
+        [Fact]
+        public void Subtract_ZonedDateTime()
+        {
+            using var ctx = CreateContext();
+            var id = ctx.NodaTimeTypes
+                .Where(t => t.ZonedDateTime + Duration.FromDays(1) - t.ZonedDateTime == Duration.FromDays(1))
+                .Select(t => t.Id)
+                .Single();
+
+            Assert.Equal(1, id);
+            AssertSql(
+                @"SELECT n.""Id""
+FROM ""NodaTimeTypes"" AS n
+WHERE ((n.""ZonedDateTime"" + INTERVAL '1 00:00:00') - n.""ZonedDateTime"") = INTERVAL '1 00:00:00'
+LIMIT 2");
+        }
+
+        [Fact]
+        public void Subtract_LocalDate()
+        {
+            using var ctx = CreateContext();
+            var id = ctx.NodaTimeTypes
+                .Where(t => t.LocalDate2 - t.LocalDate == Period.FromDays(1))
+                .Select(t => t.Id)
+                .Single();
+
+            Assert.Equal(1, id);
+            AssertSql(
+                @"SELECT n.""Id""
+FROM ""NodaTimeTypes"" AS n
+WHERE MAKE_INTERVAL(days => n.""LocalDate2"" - n.""LocalDate"") = INTERVAL 'P1D'
+LIMIT 2");
+        }
+
+        [Fact]
+        public void Subtract_LocalTime()
+        {
+            using var ctx = CreateContext();
+            var id = ctx.NodaTimeTypes
+                .Where(t => t.LocalTime + Period.FromHours(1) - t.LocalTime == Period.FromHours(1))
+                .Select(t => t.Id)
+                .Single();
+
+            Assert.Equal(1, id);
+            AssertSql(
+                @"SELECT n.""Id""
+FROM ""NodaTimeTypes"" AS n
+WHERE ((n.""LocalTime"" + INTERVAL 'PT1H') - n.""LocalTime"") = INTERVAL 'PT1H'
+LIMIT 2");
+        }
+
+        #endregion
 
         #region LocalDateTime members
 
@@ -130,16 +219,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         public void Select_LocalDateTime_day_of_week_component()
         {
             using var ctx = CreateContext();
-            var d = ctx.NodaTimeTypes.Single(t => t.LocalDateTime.DayOfWeek == IsoDayOfWeek.Friday);
+            var d = ctx.NodaTimeTypes
+                .Where(t => t.LocalDateTime.DayOfWeek == IsoDayOfWeek.Friday)
+                .Select(t => t.LocalDateTime)
+                .Single();
 
-            Assert.Equal(new LocalDateTime(2018, 4, 20, 10, 31, 33, 666), d.LocalDateTime);
-            Assert.Equal(@"SELECT n.""Id"", n.""DateRange"", n.""Instant"", n.""LocalDate"", n.""LocalDateTime"", n.""LocalTime"", n.""OffsetTime"", n.""Period"", n.""ZonedDateTime""
+            Assert.Equal(new LocalDateTime(2018, 4, 20, 10, 31, 33, 666), d);
+            AssertSql(@"SELECT n.""LocalDateTime""
 FROM ""NodaTimeTypes"" AS n
 WHERE CASE
     WHEN FLOOR(DATE_PART('dow', n.""LocalDateTime""))::INT = 0 THEN 7
     ELSE FLOOR(DATE_PART('dow', n.""LocalDateTime""))::INT
 END = 5
-LIMIT 2", Sql, ignoreLineEndingDifferences: true);
+LIMIT 2");
         }
 
         #endregion LocalDateTime members
@@ -419,6 +511,7 @@ LIMIT 2", Sql, ignoreLineEndingDifferences: true);
                     ZonedDateTime = zonedDateTime,
                     Instant = instant,
                     LocalDate = localDateTime.Date,
+                    LocalDate2 = localDateTime.Date + Period.FromDays(1),
                     LocalTime = localDateTime.TimeOfDay,
                     OffsetTime = new OffsetTime(new LocalTime(10, 31, 33, 666), Offset.Zero),
                     Period = _defaultPeriod,
@@ -436,12 +529,16 @@ LIMIT 2", Sql, ignoreLineEndingDifferences: true);
             public LocalDateTime LocalDateTime { get; set; }
             public ZonedDateTime ZonedDateTime { get; set; }
             public LocalDate LocalDate { get; set; }
+            public LocalDate LocalDate2 { get; set; }
             public LocalTime LocalTime { get; set; }
             public OffsetTime OffsetTime { get; set; }
             public Period Period { get; set; }
             public NpgsqlRange<LocalDate> DateRange { get; set; }
             // ReSharper restore UnusedAutoPropertyAccessor.Global
         }
+
+        void AssertSql(params string[] expected)
+            => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
         #endregion Support
     }

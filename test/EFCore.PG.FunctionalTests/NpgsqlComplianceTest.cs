@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.Update;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
@@ -10,8 +11,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
     {
         protected override ICollection<Type> IgnoredTestBases { get; } = new HashSet<Type>
         {
-            // TODO
-            typeof(FromSqlSprocQueryTestBase<>)
+            typeof(FromSqlSprocQueryTestBase<>),
+            typeof(UdfDbFunctionTestBase<>),
+            typeof(UpdateSqlGeneratorTestBase)
         };
 
         protected override Assembly TargetAssembly { get; } = typeof(NpgsqlComplianceTest).Assembly;

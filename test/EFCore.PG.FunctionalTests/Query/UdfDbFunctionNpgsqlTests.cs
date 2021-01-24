@@ -8,19 +8,18 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
 using Xunit.Abstractions;
 
+
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public class UdfDbFunctionNpgsqlTests : UdfDbFunctionTestBase<UdfDbFunctionNpgsqlTests.Npgsql>
+    public class UdfDbFunctionNpgsqlTests : UdfDbFunctionTestBase<UdfDbFunctionNpgsqlTests.UdfNpgsqlFixture>
     {
         // ReSharper disable once UnusedParameter.Local
-        public UdfDbFunctionNpgsqlTests(Npgsql fixture, ITestOutputHelper testOutputHelper)
+        public UdfDbFunctionNpgsqlTests(UdfNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
         {
             Fixture.TestSqlLoggerFactory.Clear();
             //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
-
-        #region Scalar Tests
 
         #region Static
 
@@ -124,7 +123,7 @@ LIMIT 2");
             base.Scalar_Function_Where_Correlated_Static();
 
             AssertSql(
-                @"SELECT LOWER(CAST(c.""Id"" AS text))
+                @"SELECT lower(CAST(c.""Id"" AS text))
 FROM ""Customers"" AS c
 WHERE ""IsTopCustomer""(c.""Id"")");
         }
@@ -135,7 +134,7 @@ WHERE ""IsTopCustomer""(c.""Id"")");
             base.Scalar_Function_Where_Not_Correlated_Static();
 
             AssertSql(
-                @"@__startDate_0='2000-04-01T00:00:00' (Nullable = true) (DbType = DateTime)
+                @"@__startDate_0='2000-04-01T00:00:00.0000000' (Nullable = true) (DbType = DateTime)
 
 SELECT c.""Id""
 FROM ""Customers"" AS c
@@ -351,7 +350,7 @@ FROM ""Customers"" AS c");
             AssertSql(
                 @"SELECT c.""Id""
 FROM ""Customers"" AS c
-WHERE 3 = ABS(""CustomerOrderCount""(c.""Id""))
+WHERE 3 = abs(""CustomerOrderCount""(c.""Id""))
 LIMIT 2");
         }
 
@@ -373,7 +372,7 @@ FROM ""Customers"" AS c");
             AssertSql(
                 @"SELECT c.""Id""
 FROM ""Customers"" AS c
-WHERE 3 = ""CustomerOrderCount""(ABS(c.""Id""))
+WHERE 3 = ""CustomerOrderCount""(abs(c.""Id""))
 LIMIT 2");
         }
 
@@ -385,7 +384,7 @@ LIMIT 2");
             AssertSql(
                 @"SELECT dbo.""IdentityString""(c.""FirstName"")
 FROM ""Orders"" AS o
-LEFT JOIN ""Customers"" AS c ON o.""CustomerId"" = c.""Id""
+INNER JOIN ""Customers"" AS c ON o.""CustomerId"" = c.""Id""
 ORDER BY o.""Id""
 LIMIT 1");
         }
@@ -502,7 +501,7 @@ LIMIT 2");
             base.Scalar_Function_Where_Correlated_Instance();
 
             AssertSql(
-                @"SELECT LOWER(CAST(c.""Id"" AS text))
+                @"SELECT lower(CAST(c.""Id"" AS text))
 FROM ""Customers"" AS c
 WHERE ""IsTopCustomer""(c.""Id"")");
         }
@@ -513,7 +512,7 @@ WHERE ""IsTopCustomer""(c.""Id"")");
             base.Scalar_Function_Where_Not_Correlated_Instance();
 
             AssertSql(
-                @"@__startDate_1='2000-04-01T00:00:00' (Nullable = true) (DbType = DateTime)
+                @"@__startDate_1='2000-04-01T00:00:00.0000000' (Nullable = true) (DbType = DateTime)
 
 SELECT c.""Id""
 FROM ""Customers"" AS c
@@ -729,7 +728,7 @@ FROM ""Customers"" AS c");
             AssertSql(
                 @"SELECT c.""Id""
 FROM ""Customers"" AS c
-WHERE 3 = ABS(""CustomerOrderCount""(c.""Id""))
+WHERE 3 = abs(""CustomerOrderCount""(c.""Id""))
 LIMIT 2");
         }
 
@@ -751,11 +750,9 @@ FROM ""Customers"" AS c");
             AssertSql(
                 @"SELECT c.""Id""
 FROM ""Customers"" AS c
-WHERE 3 = ""CustomerOrderCount""(ABS(c.""Id""))
+WHERE 3 = ""CustomerOrderCount""(abs(c.""Id""))
 LIMIT 2");
         }
-
-        #endregion
 
         #endregion
 
@@ -774,7 +771,7 @@ LIMIT 2");
                 // don't get any quotes. We remap it as non-built-in by including a (null) schema.
                 var isDateMethodInfo = typeof(UDFSqlContext).GetMethod(nameof(IsDateStatic));
                 modelBuilder.HasDbFunction(isDateMethodInfo)
-                    .HasTranslation(args => SqlFunctionExpression.Create(
+                    .HasTranslation(args => new SqlFunctionExpression(
                         schema: null,
                         "IsDate",
                         args,
@@ -785,7 +782,7 @@ LIMIT 2");
 
                 var isDateMethodInfo2 = typeof(UDFSqlContext).GetMethod(nameof(IsDateInstance));
                 modelBuilder.HasDbFunction(isDateMethodInfo2)
-                    .HasTranslation(args => SqlFunctionExpression.Create(
+                    .HasTranslation(args => new SqlFunctionExpression(
                         schema: null,
                         "IsDate",
                         args,
@@ -797,7 +794,7 @@ LIMIT 2");
                 // Base class maps to len(), but in PostgreSQL it's called length()
                 var methodInfo = typeof(UDFSqlContext).GetMethod(nameof(MyCustomLengthStatic));
                 modelBuilder.HasDbFunction(methodInfo)
-                    .HasTranslation(args => SqlFunctionExpression.Create(
+                    .HasTranslation(args => new SqlFunctionExpression(
                         "length",
                         args,
                         nullable: true,
@@ -807,7 +804,7 @@ LIMIT 2");
 
                 var methodInfo2 = typeof(UDFSqlContext).GetMethod(nameof(MyCustomLengthInstance));
                 modelBuilder.HasDbFunction(methodInfo2)
-                    .HasTranslation(args => SqlFunctionExpression.Create(
+                    .HasTranslation(args => new SqlFunctionExpression(
                         "length",
                         args,
                         nullable: true,
@@ -817,7 +814,7 @@ LIMIT 2");
             }
         }
 
-        public class Npgsql : UdfFixtureBase
+        public class UdfNpgsqlFixture : UdfFixtureBase
         {
             protected override string StoreName { get; } = "UDFDbFunctionNpgsqlTests";
             protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
@@ -883,6 +880,61 @@ LIMIT 2");
                                                     AS $$ SELECT $1 $$
                                                     LANGUAGE SQL");
 
+                context.Database.ExecuteSqlRaw(@"
+                    CREATE FUNCTION ""GetCustomerOrderCountByYear""(""customerId"" INT)
+                    RETURNS TABLE (""CustomerId"" INT, ""Count"" INT, ""Year"" INT)
+                    AS $$
+                    SELECT ""CustomerId"", COUNT(""Id"")::INT, EXTRACT(year FROM ""OrderDate"")::INT
+                        FROM ""Orders""
+                        WHERE ""CustomerId"" = $1
+                        GROUP BY ""CustomerId"", EXTRACT(year FROM ""OrderDate"")
+                        ORDER BY EXTRACT(year FROM ""OrderDate"")
+                    $$ LANGUAGE SQL");
+
+                context.Database.ExecuteSqlRaw(@"
+                    CREATE FUNCTION ""StringLength""(""s"" TEXT)
+                    RETURNS INT
+                    AS $$ SELECT LENGTH($1) $$
+                    LANGUAGE SQL");
+
+                context.Database.ExecuteSqlRaw(@"
+                    CREATE FUNCTION ""GetCustomerOrderCountByYearOnlyFrom2000""(""customerId"" INT, ""onlyFrom2000"" BOOL)
+                    RETURNS TABLE (""CustomerId"" INT, ""Count"" INT, ""Year"" INT)
+                    AS $$
+                    SELECT $1, COUNT(""Id"")::INT, EXTRACT(year FROM ""OrderDate"")::INT
+                        FROM ""Orders""
+                        WHERE ""CustomerId"" = 1 AND (NOT $2 OR $2 IS NULL OR ($2 AND EXTRACT(year FROM ""OrderDate"") = 2000))
+                        GROUP BY ""CustomerId"", EXTRACT(year FROM ""OrderDate"")
+                        ORDER BY EXTRACT(year FROM ""OrderDate"")
+                    $$ LANGUAGE SQL");
+
+                 context.Database.ExecuteSqlRaw(@"
+                    CREATE FUNCTION ""GetTopTwoSellingProducts""()
+                    RETURNS TABLE (""ProductId"" INT, ""AmountSold"" INT)
+                    AS $$
+                        SELECT ""ProductId"", SUM(""Quantity"")::INT AS ""totalSold""
+                        FROM ""LineItem""
+                        GROUP BY ""ProductId""
+                        ORDER BY ""totalSold"" DESC
+                        LIMIT 2
+                    $$ LANGUAGE SQL");
+
+                 context.Database.ExecuteSqlRaw(@"
+                    CREATE FUNCTION ""GetOrdersWithMultipleProducts""(""customerId"" INT)
+                    RETURNS TABLE (""OrderId"" INT, ""CustomerId"" INT, ""OrderDate"" TIMESTAMP)
+                    AS $$
+                        SELECT o.""Id"", $1, ""OrderDate""
+                        FROM ""Orders"" AS o
+                        JOIN ""LineItem"" li ON o.""Id"" = li.""OrderId""
+                        WHERE o.""CustomerId"" = $1
+                        GROUP BY o.""Id"", ""OrderDate""
+                        HAVING COUNT(""ProductId"") > 1
+                    $$ LANGUAGE SQL");
+
+                 context.Database.ExecuteSqlRaw(@"
+                    CREATE FUNCTION ""AddValues"" (a INT, b INT) RETURNS INT
+                    AS $$ SELECT $1 + $2 $$ LANGUAGE SQL");
+
                 context.Database.ExecuteSqlRaw(
                     @"CREATE FUNCTION ""IsDate""(s TEXT)
                                                     RETURNS BOOLEAN AS $$
@@ -893,6 +945,7 @@ LIMIT 2");
                                                         RETURN FALSE;
                                                     END;
                                                     $$ LANGUAGE PLPGSQL;");
+
                 context.SaveChanges();
             }
         }

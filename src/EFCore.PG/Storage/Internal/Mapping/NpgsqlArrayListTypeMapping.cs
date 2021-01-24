@@ -1,8 +1,9 @@
 ﻿using System;
-using System.Collections;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reflection;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
@@ -24,7 +25,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         /// </summary>
         /// <param name="storeType">The database type to map.</param>
         /// <param name="elementMapping">The element type mapping.</param>
-        public NpgsqlArrayListTypeMapping(string storeType, RelationalTypeMapping elementMapping)
+        public NpgsqlArrayListTypeMapping([NotNull] string storeType, [NotNull] RelationalTypeMapping elementMapping)
             : this(storeType, elementMapping, typeof(List<>).MakeGenericType(elementMapping.ClrType)) {}
 
         /// <summary>
@@ -32,7 +33,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         /// </summary>
         /// <param name="elementMapping">The element type mapping.</param>
         /// <param name="listType">The database type to map.</param>
-        public NpgsqlArrayListTypeMapping(RelationalTypeMapping elementMapping, Type listType)
+        public NpgsqlArrayListTypeMapping([NotNull] RelationalTypeMapping elementMapping, [NotNull] Type listType)
             : this(elementMapping.StoreType + "[]", elementMapping, listType) {}
 
         NpgsqlArrayListTypeMapping(string storeType, RelationalTypeMapping elementMapping, Type listType)
@@ -41,7 +42,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             ), elementMapping) {}
 
         protected NpgsqlArrayListTypeMapping(
-            RelationalTypeMappingParameters parameters, RelationalTypeMapping elementMapping)
+            RelationalTypeMappingParameters parameters, [NotNull] RelationalTypeMapping elementMapping)
             : base(parameters, elementMapping)
         {
             if (!parameters.CoreParameters.ClrType.IsGenericList())
@@ -62,26 +63,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             Debug.Assert(listType.IsGenericType && listType.GetGenericTypeDefinition() == typeof(List<>));
 
             var elementType = listType.GetGenericArguments()[0];
+            var unwrappedType = elementType.UnwrapNullableType();
 
-            // We use different comparer implementations based on whether we have a non-null element comparer,
-            // and if not, whether the element is IEquatable<TElem>
-            if (elementMapping.Comparer != null)
-                return (ValueComparer)Activator.CreateInstance(typeof(SingleDimComparerWithComparer<>).MakeGenericType(elementType), elementMapping);
-
-            if (typeof(IEquatable<>).MakeGenericType(elementType).IsAssignableFrom(elementType))
-                return (ValueComparer)Activator.CreateInstance(typeof(SingleDimComparerWithIEquatable<>).MakeGenericType(elementType));
-
-            // There's no custom comparer, and the element type doesn't implement IEquatable<TElem>. We have
-            // no choice but to use the non-generic Equals method.
-            return (ValueComparer)Activator.CreateInstance(typeof(SingleDimComparerWithEquals<>).MakeGenericType(elementType));
+            return (ValueComparer)Activator.CreateInstance(
+                elementType == unwrappedType
+                    ? typeof(ListComparer<>).MakeGenericType(elementType)
+                    : typeof(NullableListComparer<>).MakeGenericType(unwrappedType),
+                elementMapping);
         }
 
-        class SingleDimComparerWithComparer<TElem> : ValueComparer<List<TElem>>
+        sealed class ListComparer<TElem> : ValueComparer<List<TElem>>
         {
-            public SingleDimComparerWithComparer(RelationalTypeMapping elementMapping)
+            public ListComparer(RelationalTypeMapping elementMapping)
                 : base(
                     (a, b) => Compare(a, b, (ValueComparer<TElem>)elementMapping.Comparer),
-                    o => o.GetHashCode(), // TODO: Need to get hash code of elements...
+                    o => GetHashCode(o, (ValueComparer<TElem>)elementMapping.Comparer),
                     source => Snapshot(source, (ValueComparer<TElem>)elementMapping.Comparer)) {}
 
             public override Type Type => typeof(List<TElem>);
@@ -100,6 +96,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 return true;
             }
 
+            static int GetHashCode(List<TElem> source, ValueComparer<TElem> elementComparer)
+            {
+                var hash = new HashCode();
+                foreach (var el in source)
+                    hash.Add(el, elementComparer);
+                return hash.ToHashCode();
+            }
+
             static List<TElem> Snapshot(List<TElem> source, ValueComparer<TElem> elementComparer)
             {
                 if (source == null)
@@ -116,66 +120,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             }
         }
 
-        class SingleDimComparerWithIEquatable<TElem> : ValueComparer<List<TElem>> where TElem : IEquatable<TElem>
+        sealed class NullableListComparer<TElem> : ValueComparer<List<TElem?>>
+            where TElem : struct
         {
-            public SingleDimComparerWithIEquatable()
+            public NullableListComparer(RelationalTypeMapping elementMapping)
                 : base(
-                    (a, b) => Compare(a, b),
-                    o => o.GetHashCode(), // TODO: Need to get hash code of elements...
-                    source => DoSnapshot(source)) {}
+                    (a, b) => Compare(a, b, (ValueComparer<TElem>)elementMapping.Comparer),
+                    o => GetHashCode(o, (ValueComparer<TElem>)elementMapping.Comparer),
+                    source => Snapshot(source, (ValueComparer<TElem>)elementMapping.Comparer)) {}
 
-            public override Type Type => typeof(List<TElem>);
+            public override Type Type => typeof(List<TElem?>);
 
-            static bool Compare(List<TElem> a, List<TElem> b)
-            {
-                if (a.Count != b.Count)
-                    return false;
-
-                for (var i = 0; i < a.Count; i++)
-                {
-                    var elem1 = a[i];
-                    var elem2 = b[i];
-                    // Note: the following null checks are elided if TElem is a value type
-                    if (elem1 == null)
-                    {
-                        if (elem2 == null)
-                            continue;
-
-                        return false;
-                    }
-
-                    if (!elem1.Equals(elem2))
-                        return false;
-                }
-
-                return true;
-            }
-
-            static List<TElem> DoSnapshot(List<TElem> source)
-            {
-                if (source == null)
-                    return null;
-
-                var snapshot = new List<TElem>(source.Count);
-
-                foreach (var e in source)
-                    snapshot.Add(e);
-
-                return snapshot;
-            }
-        }
-
-        class SingleDimComparerWithEquals<TElem> : ValueComparer<List<TElem>>
-        {
-            public SingleDimComparerWithEquals()
-                : base(
-                    (a, b) => Compare(a, b),
-                    o => o.GetHashCode(), // TODO: Need to get hash code of elements...
-                    source => DoSnapshot(source)) {}
-
-            public override Type Type => typeof(List<TElem>);
-
-            static bool Compare(List<TElem> a, List<TElem> b)
+            static bool Compare(List<TElem?> a, List<TElem?> b, ValueComparer<TElem> elementComparer)
             {
                 if (a.Count != b.Count)
                     return false;
@@ -184,33 +140,40 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 // generic (see https://github.com/aspnet/EntityFrameworkCore/issues/11072)
                 for (var i = 0; i < a.Count; i++)
                 {
-                    var elem1 = a[i];
-                    var elem2 = b[i];
-                    if (elem1 == null)
+                    var (el1, el2) = (a[i], b[i]);
+                    if (el1 is null)
                     {
-                        if (elem2 == null)
+                        if (el2 is null)
                             continue;
                         return false;
                     }
-
-                    if (!elem1.Equals(elem2))
+                    if (el2 is null || !elementComparer.Equals(a[i], b[i]))
                         return false;
                 }
 
                 return true;
             }
 
-            static List<TElem> DoSnapshot(List<TElem> source)
+            static int GetHashCode(List<TElem?> source, ValueComparer<TElem> elementComparer)
+            {
+                var nullableEqualityComparer = new NullableEqualityComparer<TElem>(elementComparer);
+                var hash = new HashCode();
+                foreach (var el in source)
+                    hash.Add(el, nullableEqualityComparer);
+                return hash.ToHashCode();
+            }
+
+            static List<TElem?> Snapshot(List<TElem?> source, ValueComparer<TElem> elementComparer)
             {
                 if (source == null)
                     return null;
 
-                var snapshot = new List<TElem>(source.Count);
+                var snapshot = new List<TElem?>(source.Count);
 
                 // Note: the following currently boxes every element access because ValueComparer isn't really
                 // generic (see https://github.com/aspnet/EntityFrameworkCore/issues/11072)
                 foreach (var e in source)
-                    snapshot.Add(e);
+                    snapshot.Add(e is { } value ? elementComparer.Snapshot(value) : (TElem?)null);
 
                 return snapshot;
             }

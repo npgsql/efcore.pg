@@ -17,6 +17,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
     public class NpgsqlTestStore : RelationalTestStore
     {
         readonly string _scriptPath;
+        readonly string _additionalSql;
 
         const string Northwind = "Northwind";
 
@@ -29,17 +30,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
                 .GetOrCreate(NpgsqlNorthwindTestStoreFactory.Name).Initialize(null, (Func<DbContext>)null, null);
 
         public static NpgsqlTestStore GetOrCreate(string name)
-             => new NpgsqlTestStore(name);
+             => new(name);
 
         // ReSharper disable once UnusedMember.Global
         public static NpgsqlTestStore GetOrCreateInitialized(string name)
             => new NpgsqlTestStore(name).InitializeNpgsql(null, (Func<DbContext>)null, null);
 
-        public static NpgsqlTestStore GetOrCreate(string name, string scriptPath)
-            => new NpgsqlTestStore(name, scriptPath: scriptPath);
+        public static NpgsqlTestStore GetOrCreate(string name, string scriptPath, string additionalSql = null)
+            => new(name, scriptPath, additionalSql);
 
         public static NpgsqlTestStore Create(string name)
-            => new NpgsqlTestStore(name, shared: false);
+            => new(name, shared: false);
 
         public static NpgsqlTestStore CreateInitialized(string name)
             => new NpgsqlTestStore(name, shared: false)
@@ -48,6 +49,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
         NpgsqlTestStore(
             string name,
             string scriptPath = null,
+            string additionalSql = null,
             bool shared = true)
             : base(name, shared)
         {
@@ -57,6 +59,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
                 // ReSharper disable once AssignNullToNotNullAttribute
                 _scriptPath = Path.Combine(Path.GetDirectoryName(typeof(NpgsqlTestStore).GetTypeInfo().Assembly.Location), scriptPath);
             }
+
+            _additionalSql = additionalSql;
 
             // ReSharper disable VirtualMemberCallInConstructor
             ConnectionString = CreateConnectionString(Name);
@@ -90,6 +94,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
                         seed?.Invoke(context);
                     }
                 }
+
+                if (_additionalSql != null)
+                    Execute(Connection, command => command.ExecuteNonQuery(), _additionalSql);
             }
         }
 
@@ -215,7 +222,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
                 return ExecuteScalar<long>(master, $@"SELECT COUNT(*) FROM pg_database WHERE datname = '{name}'") > 0;
         }
 
-        void DeleteDatabase()
+        public void DeleteDatabase()
         {
             if (!DatabaseExists(Name))
                 return;

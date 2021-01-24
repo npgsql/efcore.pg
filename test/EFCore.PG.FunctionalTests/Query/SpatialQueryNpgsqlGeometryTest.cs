@@ -9,7 +9,8 @@ using Xunit.Abstractions;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
-    public class SpatialQueryNpgsqlGeometryTest : SpatialQueryTestBase<SpatialQueryNpgsqlGeometryTest.SpatialQueryNpgsqlGeometryFixture>
+    public class SpatialQueryNpgsqlGeometryTest
+        : SpatialQueryRelationalTestBase<SpatialQueryNpgsqlGeometryTest.SpatialQueryNpgsqlGeometryFixture>
     {
         // ReSharper disable once UnusedParameter.Local
         public SpatialQueryNpgsqlGeometryTest(SpatialQueryNpgsqlGeometryFixture fixture, ITestOutputHelper testOutputHelper)
@@ -592,21 +593,6 @@ FROM ""PointEntity"" AS p");
 
         [ConditionalTheory(Skip = "https://github.com/dotnet/efcore/issues/20030")]
         public override Task Intersects_not_equal_to_null(bool async) => base.Intersects_not_equal_to_null(async);
-
-        [ConditionalTheory]
-        [MemberData(nameof(IsAsyncData))]
-        public virtual async Task Normalized(bool async)
-        {
-            await AssertQuery(
-                async,
-                ss => ss.Set<PolygonEntity>().Select(e => new { e.Id, Normalized = e.Polygon.Normalized() }),
-                ss => ss.Set<PolygonEntity>().Select(e => new { e.Id, Normalized = e.Polygon == null ? null : e.Polygon.Normalized() }),
-                elementSorter: x => x.Id);
-
-            AssertSql(
-                @"SELECT p.""Id"", ST_Normalize(p.""Polygon"") AS ""Normalized""
-FROM ""PolygonEntity"" AS p");
-        }
 
         void AssertSql(params string[] expected) => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 

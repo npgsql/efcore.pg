@@ -11,6 +11,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
     {
         CharacterQueryNpgsqlFixture Fixture { get; }
 
+        // ReSharper disable once UnusedParameter.Local
         public CharacterQueryNpgsqlTest(CharacterQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
         {
             Fixture = fixture;

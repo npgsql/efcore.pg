@@ -24,32 +24,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 
         public override bool IsEvaluatableExpression(Expression expression, IModel model)
         {
-            // Full text search
-            if (expression is MethodCallExpression e && (
-                e.Method == TsQueryParse || e.Method == TsVectorParse ||
-                e.Method.DeclaringType == typeof(NpgsqlFullTextSearchDbFunctionsExtensions) ||
-                e.Method.DeclaringType == typeof(NpgsqlFullTextSearchLinqExtensions)))
+            if (expression is MethodCallExpression e)
             {
-                return false;
-            }
+                var declaringType = e.Method.DeclaringType;
 
-            // NodaTime
-            // TODO: This is a hack until https://github.com/aspnet/EntityFrameworkCore/issues/13454 is done
-            if (expression is MethodCallExpression methodExpr && (
-                    methodExpr.Method.DeclaringType?.FullName == "NodaTime.SystemClock" ||
-                    methodExpr.Method.Name == "GetCurrentInstant") ||
-                expression is MemberExpression memberExpr && (
-                    memberExpr.Member.DeclaringType?.FullName == "NodaTime.SystemClock" ||
-                    memberExpr.Member.Name == "Instance"))
-            {
-                return false;
-            }
-
-            // PGroonga
-            if (expression is MethodCallExpression exp &&
-                    exp.Method.DeclaringType?.FullName == "Microsoft.EntityFrameworkCore.PGroongaDbFunctionsExtensions")
-            {
-                return false;
+                if (e.Method == TsQueryParse || e.Method == TsVectorParse ||
+                    declaringType == typeof(NpgsqlDbFunctionsExtensions) ||
+                    declaringType == typeof(NpgsqlFullTextSearchDbFunctionsExtensions) ||
+                    declaringType == typeof(NpgsqlFullTextSearchLinqExtensions) ||
+                    declaringType == typeof(NpgsqlNetworkDbFunctionsExtensions) ||
+                    declaringType == typeof(NpgsqlJsonDbFunctionsExtensions) ||
+                    declaringType == typeof(NpgsqlRangeDbFunctionsExtensions))
+                {
+                    return false;
+                }
             }
 
             return base.IsEvaluatableExpression(expression, model);

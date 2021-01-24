@@ -12,7 +12,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
     /// <summary>
     /// Represents the metadata for a PostgreSQL extension.
     /// </summary>
-    [PublicAPI]
     public class PostgresExtension
     {
         [NotNull] readonly IAnnotatable _annotatable;
@@ -134,28 +133,27 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         /// The <see cref="Annotatable"/> that stores the extension.
         /// </summary>
         [NotNull]
-        public Annotatable Annotatable => (Annotatable)_annotatable;
+        public virtual Annotatable Annotatable => (Annotatable)_annotatable;
 
         /// <summary>
         /// The extension schema or null to represent the default schema.
         /// </summary>
         [CanBeNull]
-        public string Schema => GetData().Schema;
+        public virtual string Schema => GetData().Schema;
 
         /// <summary>
         /// The extension name.
         /// </summary>
         [NotNull]
-        public string Name => GetData().Name;
+        public virtual string Name => GetData().Name;
 
         /// <summary>
         /// The extension version.
         /// </summary>
-        [CanBeNull]
-        public string Version
+        public virtual string Version
         {
             get => GetData().Version;
-            set => SetData(value);
+            [param: CanBeNull] set => SetData(value);
         }
 
         (string Schema, string Name, string Version) GetData()

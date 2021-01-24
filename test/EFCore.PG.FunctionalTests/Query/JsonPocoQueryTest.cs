@@ -2,9 +2,9 @@ using System;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestUtilities;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Extensions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -15,6 +15,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
     {
         JsonPocoQueryFixture Fixture { get; }
 
+        // ReSharper disable once UnusedParameter.Local
         public JsonPocoQueryTest(JsonPocoQueryFixture fixture, ITestOutputHelper testOutputHelper)
         {
             Fixture = fixture;
@@ -71,7 +72,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             AssertSql(
                 @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
-WHERE j.""Customer"" = '{""Name"":""Test customer"",""Age"":80,""ID"":""00000000-0000-0000-0000-000000000000"",""IsVip"":false,""Statistics"":null,""Orders"":null}'");
+WHERE j.""Customer"" = '{""Name"":""Test customer"",""Age"":80,""ID"":""00000000-0000-0000-0000-000000000000"",""is_vip"":false,""Statistics"":null,""Orders"":null}'");
         }
 
         [Fact]
@@ -164,7 +165,7 @@ LIMIT 2");
             AssertSql(
                 @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
-WHERE CAST(j.""Customer""->>'IsVip' AS boolean)
+WHERE CAST(j.""Customer""->>'is_vip' AS boolean)
 LIMIT 2");
         }
 
@@ -172,14 +173,14 @@ LIMIT 2");
         public void Nullable()
         {
             using var ctx = CreateContext();
-            var x = ctx.JsonbEntities.Single(e => e.Customer.Statistics.Nested.SomeNullableProperty == 20);
+            var x = ctx.JsonbEntities.Single(e => e.Customer.Statistics.Nested.SomeNullableInt == 20);
 
             Assert.Equal("Joe", x.Customer.Name);
 
             AssertSql(
                 @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
 FROM ""JsonbEntities"" AS j
-WHERE CAST(j.""Customer""#>>'{Statistics,Nested,SomeNullableProperty}' AS integer) = 20
+WHERE CAST(j.""Customer""#>>'{Statistics,Nested,SomeNullableInt}' AS integer) = 20
 LIMIT 2");
         }
 
@@ -326,6 +327,21 @@ WHERE j.""Customer""->>'Name' LIKE 'J%'
 LIMIT 2");
         }
 
+        [Fact] // #1363
+        public void Where_nullable_guid()
+        {
+            using var ctx = CreateContext();
+            var x = ctx.JsonbEntities.Single(e =>
+                e.Customer.Statistics.Nested.SomeNullableGuid == Guid.Parse("d5f2685d-e5c4-47e5-97aa-d0266154eb2d"));
+
+            Assert.Equal("Joe", x.Customer.Name);
+            AssertSql(
+                @"SELECT j.""Id"", j.""Customer"", j.""ToplevelArray""
+FROM ""JsonbEntities"" AS j
+WHERE CAST(j.""Customer""#>>'{Statistics,Nested,SomeNullableGuid}' AS uuid) = 'd5f2685d-e5c4-47e5-97aa-d0266154eb2d'
+LIMIT 2");
+        }
+
         #region Functions
 
         [Fact]
@@ -343,7 +359,7 @@ LIMIT 2");
 
 SELECT COUNT(*)::INT
 FROM ""JsonbEntities"" AS j
-WHERE (j.""Customer"" @> @__element_1)");
+WHERE j.""Customer"" @> @__element_1");
         }
 
         [Fact]
@@ -357,7 +373,7 @@ WHERE (j.""Customer"" @> @__element_1)");
             AssertSql(
                 @"SELECT COUNT(*)::INT
 FROM ""JsonbEntities"" AS j
-WHERE (j.""Customer"" @> '{""Name"": ""Joe"", ""Age"": 25}')");
+WHERE j.""Customer"" @> '{""Name"": ""Joe"", ""Age"": 25}'");
         }
 
         [Fact]
@@ -375,7 +391,7 @@ WHERE (j.""Customer"" @> '{""Name"": ""Joe"", ""Age"": 25}')");
 
 SELECT COUNT(*)::INT
 FROM ""JsonbEntities"" AS j
-WHERE (j.""Customer"" @> @__someJson_1)");
+WHERE j.""Customer"" @> @__someJson_1");
         }
 
         [Fact]
@@ -393,7 +409,7 @@ WHERE (j.""Customer"" @> @__someJson_1)");
 
 SELECT COUNT(*)::INT
 FROM ""JsonbEntities"" AS j
-WHERE (@__element_1 <@ j.""Customer"")");
+WHERE @__element_1 <@ j.""Customer""");
         }
 
         [Fact]
@@ -407,7 +423,7 @@ WHERE (@__element_1 <@ j.""Customer"")");
             AssertSql(
                 @"SELECT COUNT(*)::INT
 FROM ""JsonbEntities"" AS j
-WHERE ('{""Name"": ""Joe"", ""Age"": 25}' <@ j.""Customer"")");
+WHERE '{""Name"": ""Joe"", ""Age"": 25}' <@ j.""Customer""");
         }
 
         [Fact]
@@ -425,7 +441,7 @@ WHERE ('{""Name"": ""Joe"", ""Age"": 25}' <@ j.""Customer"")");
 
 SELECT COUNT(*)::INT
 FROM ""JsonbEntities"" AS j
-WHERE (@__someJson_1 <@ j.""Customer"")");
+WHERE @__someJson_1 <@ j.""Customer""");
         }
 
         [Fact]
@@ -439,7 +455,7 @@ WHERE (@__someJson_1 <@ j.""Customer"")");
             AssertSql(
                 @"SELECT COUNT(*)::INT
 FROM ""JsonbEntities"" AS j
-WHERE (j.""Customer""->'Statistics' ? 'Visits')");
+WHERE j.""Customer""->'Statistics' ? 'Visits'");
         }
 
         [Fact]
@@ -453,7 +469,7 @@ WHERE (j.""Customer""->'Statistics' ? 'Visits')");
             AssertSql(
                 @"SELECT COUNT(*)::INT
 FROM ""JsonbEntities"" AS j
-WHERE (j.""Customer""->'Statistics' ?| ARRAY['foo','Visits']::text[])");
+WHERE j.""Customer""->'Statistics' ?| ARRAY['foo','Visits']::text[]");
         }
 
         [Fact]
@@ -467,7 +483,7 @@ WHERE (j.""Customer""->'Statistics' ?| ARRAY['foo','Visits']::text[])");
             AssertSql(
                 @"SELECT COUNT(*)::INT
 FROM ""JsonbEntities"" AS j
-WHERE (j.""Customer""->'Statistics' ?& ARRAY['foo','Visits']::text[])");
+WHERE j.""Customer""->'Statistics' ?& ARRAY['foo','Visits']::text[]");
         }
 
         [Fact]
@@ -524,7 +540,7 @@ WHERE json_typeof(j.""Customer""#>'{Statistics,Visits}') = 'number'");
                     new JsonEntity { Id = 2, Customer = CreateCustomer2() });
                 context.SaveChanges();
 
-                static Customer CreateCustomer1() => new Customer
+                static Customer CreateCustomer1() => new()
                 {
                     Name = "Joe",
                     Age = 25,
@@ -537,7 +553,8 @@ WHERE json_typeof(j.""Customer""#>'{Statistics,Visits}') = 'number'");
                         Nested = new NestedStatistics
                         {
                             SomeProperty = 10,
-                            SomeNullableProperty = 20,
+                            SomeNullableInt = 20,
+                            SomeNullableGuid = Guid.Parse("d5f2685d-e5c4-47e5-97aa-d0266154eb2d"),
                             IntArray = new[] { 3, 4 }
                         }
                     },
@@ -558,7 +575,7 @@ WHERE json_typeof(j.""Customer""#>'{Statistics,Visits}') = 'number'");
                     }
                 };
 
-                static Customer CreateCustomer2() => new Customer
+                static Customer CreateCustomer2() => new()
                 {
                     Name = "Moe",
                     Age = 35,
@@ -571,7 +588,8 @@ WHERE json_typeof(j.""Customer""#>'{Statistics,Visits}') = 'number'");
                         Nested = new NestedStatistics
                         {
                             SomeProperty = 20,
-                            SomeNullableProperty = null,
+                            SomeNullableInt = null,
+                            SomeNullableGuid = null,
                             IntArray = new[] { 5, 6 }
                         }
                     },
@@ -623,6 +641,7 @@ WHERE json_typeof(j.""Customer""#>'{Statistics,Visits}') = 'number'");
             public string Name { get; set; }
             public int Age { get; set; }
             public Guid ID { get; set; }
+            [JsonPropertyName("is_vip")]
             public bool IsVip { get; set; }
             public Statistics Statistics { get; set; }
             public Order[] Orders { get; set; }
@@ -638,8 +657,9 @@ WHERE json_typeof(j.""Customer""#>'{Statistics,Visits}') = 'number'");
         public class NestedStatistics
         {
             public int SomeProperty { get; set; }
-            public int? SomeNullableProperty { get; set; }
+            public int? SomeNullableInt { get; set; }
             public int[] IntArray { get; set; }
+            public Guid? SomeNullableGuid { get; set; }
         }
 
         public class Order

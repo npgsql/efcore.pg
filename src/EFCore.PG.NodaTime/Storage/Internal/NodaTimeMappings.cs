@@ -1,3 +1,4 @@
+using System;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NodaTime;
@@ -6,6 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using NpgsqlTypes;
 using System.Linq.Expressions;
 using System.Reflection;
+using NodaTime.TimeZones;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Utilties.Util;
 
 // ReSharper disable once CheckNamespace
@@ -32,9 +34,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         protected override string GenerateNonNullSqlLiteral(object value)
             => $"TIMESTAMP '{InstantPattern.ExtendedIso.Format((Instant)value)}'";
 
-        // GenerateCodeLiteral isn't implemented because round-tripping Instant would require rendering an expression such as
-        // NodaConstants.UnixEpoch + Duration.FromNanoseconds(nanoseconds), which isn't currently supported by EF Core's code
-        // generator
+        public override Expression GenerateCodeLiteral(object value)
+            => GenerateCodeLiteral((Instant)value);
+
+        internal static Expression GenerateCodeLiteral(Instant instant)
+            => Expression.Call(FromUnixTimeTicks, Expression.Constant(instant.ToUnixTimeTicks()));
+
+        static readonly MethodInfo FromUnixTimeTicks
+            = typeof(Instant).GetRuntimeMethod(nameof(Instant.FromUnixTimeTicks), new[] { typeof(long) });
     }
 
     public class TimestampLocalDateTimeMapping : NpgsqlTypeMapping
@@ -103,9 +110,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         protected override string GenerateNonNullSqlLiteral(object value)
             => $"TIMESTAMPTZ '{InstantPattern.ExtendedIso.Format((Instant)value)}'";
 
-        // GenerateCodeLiteral isn't implemented because round-tripping Instant would require rendering an expression such as
-        // NodaConstants.UnixEpoch + Duration.FromNanoseconds(nanoseconds), which isn't currently supported by EF Core's code
-        // generator
+        public override Expression GenerateCodeLiteral(object value)
+            => TimestampInstantMapping.GenerateCodeLiteral((Instant)value);
     }
 
     public class TimestampTzOffsetDateTimeMapping : NpgsqlTypeMapping
@@ -172,8 +178,31 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         protected override string GenerateNonNullSqlLiteral(object value)
             => $"TIMESTAMPTZ '{Pattern.Format((ZonedDateTime)value)}'";
 
-        // GenerateCodeLiteral isn't implemented because round-tripping DateTimeZone would require a property access into
-        // DateTimeZoneProviders, which isn't currently supported by EF Core's code generator
+        public override Expression GenerateCodeLiteral(object value)
+        {
+            var zonedDateTime = (ZonedDateTime)value;
+
+            return Expression.New(
+                Constructor,
+                TimestampInstantMapping.GenerateCodeLiteral(zonedDateTime.ToInstant()),
+                Expression.Call(
+                    Expression.MakeMemberAccess(
+                        null,
+                        TzdbDateTimeZoneSourceDefaultMember),
+                    ForIdMethod,
+                    Expression.Constant(zonedDateTime.Zone.Id)));
+        }
+
+        static readonly ConstructorInfo Constructor =
+            typeof(ZonedDateTime).GetConstructor(new[] { typeof(Instant), typeof(DateTimeZone) });
+
+        static readonly MemberInfo TzdbDateTimeZoneSourceDefaultMember =
+            typeof(TzdbDateTimeZoneSource).GetMember(nameof(TzdbDateTimeZoneSource.Default))[0];
+
+        static readonly MethodInfo ForIdMethod =
+            typeof(TzdbDateTimeZoneSource).GetRuntimeMethod(
+                nameof(TzdbDateTimeZoneSource.ForId),
+                new[] { typeof(string) });
     }
 
     #endregion timestamptz
@@ -323,28 +352,110 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
     #region interval
 
-    public class IntervalMapping : NpgsqlTypeMapping
+    public class PeriodIntervalMapping : NpgsqlTypeMapping
     {
-        public IntervalMapping() : base("interval", typeof(Period), NpgsqlDbType.Interval) {}
+        static readonly MethodInfo FromYears = typeof(Period).GetRuntimeMethod(nameof(Period.FromYears), new[] { typeof(int) });
+        static readonly MethodInfo FromMonths = typeof(Period).GetRuntimeMethod(nameof(Period.FromMonths), new[] { typeof(int) });
+        static readonly MethodInfo FromWeeks = typeof(Period).GetRuntimeMethod(nameof(Period.FromWeeks), new[] { typeof(int) });
+        static readonly MethodInfo FromDays = typeof(Period).GetRuntimeMethod(nameof(Period.FromDays), new[] { typeof(int) });
+        static readonly MethodInfo FromHours = typeof(Period).GetRuntimeMethod(nameof(Period.FromHours), new[] { typeof(long) });
+        static readonly MethodInfo FromMinutes = typeof(Period).GetRuntimeMethod(nameof(Period.FromMinutes), new[] { typeof(long) });
+        static readonly MethodInfo FromSeconds = typeof(Period).GetRuntimeMethod(nameof(Period.FromSeconds), new[] { typeof(long) });
+        static readonly MethodInfo FromMilliseconds = typeof(Period).GetRuntimeMethod(nameof(Period.FromMilliseconds), new[] { typeof(long) });
+        static readonly MethodInfo FromNanoseconds = typeof(Period).GetRuntimeMethod(nameof(Period.FromNanoseconds), new[] { typeof(long) });
 
-        protected IntervalMapping(RelationalTypeMappingParameters parameters)
+        public PeriodIntervalMapping() : base("interval", typeof(Period), NpgsqlDbType.Interval) {}
+
+        protected PeriodIntervalMapping(RelationalTypeMappingParameters parameters)
             : base(parameters, NpgsqlDbType.Interval) {}
 
         protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
-            => new IntervalMapping(parameters);
+            => new PeriodIntervalMapping(parameters);
 
         public override RelationalTypeMapping Clone(string storeType, int? size)
-            => new IntervalMapping(Parameters.WithStoreTypeAndSize(storeType, size));
+            => new PeriodIntervalMapping(Parameters.WithStoreTypeAndSize(storeType, size));
 
         public override CoreTypeMapping Clone(ValueConverter converter)
-            => new IntervalMapping(Parameters.WithComposedConverter(converter));
+            => new PeriodIntervalMapping(Parameters.WithComposedConverter(converter));
 
         protected override string GenerateNonNullSqlLiteral(object value)
             => $"INTERVAL '{PeriodPattern.NormalizingIso.Format((Period)value)}'";
 
-        // GenerateCodeLiteral isn't implemented because round-tripping Period would require either using the plus operator
-        // to compose the components (years + months...), or setting properties on PeriodBuilder, neither of which is
-        // currently supported by EF Core's code generator
+        public override Expression GenerateCodeLiteral(object value)
+        {
+            var period = (Period)value;
+            Expression e = null;
+
+            if (period.Years != 0)
+                Compose(Expression.Call(FromYears, Expression.Constant(period.Years)));
+            if (period.Months != 0)
+                Compose(Expression.Call(FromMonths, Expression.Constant(period.Months)));
+            if (period.Weeks != 0)
+                Compose(Expression.Call(FromWeeks, Expression.Constant(period.Weeks)));
+            if (period.Days != 0)
+                Compose(Expression.Call(FromDays, Expression.Constant(period.Days)));
+            if (period.Hours != 0)
+                Compose(Expression.Call(FromHours, Expression.Constant(period.Hours)));
+            if (period.Minutes != 0)
+                Compose(Expression.Call(FromMinutes, Expression.Constant(period.Minutes)));
+            if (period.Seconds != 0)
+                Compose(Expression.Call(FromSeconds, Expression.Constant(period.Seconds)));
+            if (period.Milliseconds != 0)
+                Compose(Expression.Call(FromMilliseconds, Expression.Constant(period.Milliseconds)));
+            if (period.Nanoseconds != 0)
+                Compose(Expression.Call(FromNanoseconds, Expression.Constant(period.Nanoseconds)));
+
+            return e;
+
+            void Compose(Expression toAdd) => e = e is null ? toAdd : Expression.Add(e, toAdd);
+        }
+    }
+
+    public class DurationIntervalMapping : NpgsqlTypeMapping
+    {
+        static readonly MethodInfo FromDays = typeof(Duration).GetRuntimeMethod(nameof(Duration.FromDays), new[] { typeof(int) });
+        static readonly MethodInfo FromHours = typeof(Duration).GetRuntimeMethod(nameof(Duration.FromHours), new[] { typeof(int) });
+        static readonly MethodInfo FromMinutes = typeof(Duration).GetRuntimeMethod(nameof(Duration.FromMinutes), new[] { typeof(long) });
+        static readonly MethodInfo FromSeconds = typeof(Duration).GetRuntimeMethod(nameof(Duration.FromSeconds), new[] { typeof(long) });
+        static readonly MethodInfo FromMilliseconds = typeof(Duration).GetRuntimeMethod(nameof(Duration.FromMilliseconds), new[] { typeof(long) });
+
+        public DurationIntervalMapping() : base("interval", typeof(Duration), NpgsqlDbType.Interval) {}
+
+        protected DurationIntervalMapping(RelationalTypeMappingParameters parameters)
+            : base(parameters, NpgsqlDbType.Interval) {}
+
+        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
+            => new DurationIntervalMapping(parameters);
+
+        public override RelationalTypeMapping Clone(string storeType, int? size)
+            => new DurationIntervalMapping(Parameters.WithStoreTypeAndSize(storeType, size));
+
+        public override CoreTypeMapping Clone(ValueConverter converter)
+            => new DurationIntervalMapping(Parameters.WithComposedConverter(converter));
+
+        protected override string GenerateNonNullSqlLiteral(object value)
+            => NpgsqlIntervalTypeMapping.FormatTimeSpanAsInterval(((Duration)value).ToTimeSpan());
+
+        public override Expression GenerateCodeLiteral(object value)
+        {
+            var duration = (Duration)value;
+            Expression e = null;
+
+            if (duration.Days != 0)
+                Compose(Expression.Call(FromDays, Expression.Constant(duration.Days)));
+            if (duration.Hours != 0)
+                Compose(Expression.Call(FromHours, Expression.Constant(duration.Hours)));
+            if (duration.Minutes != 0)
+                Compose(Expression.Call(FromMinutes, Expression.Constant((long)duration.Minutes)));
+            if (duration.Seconds != 0)
+                Compose(Expression.Call(FromSeconds, Expression.Constant((long)duration.Seconds)));
+            if (duration.Milliseconds != 0)
+                Compose(Expression.Call(FromMilliseconds, Expression.Constant((long)duration.Milliseconds)));
+
+            return e;
+
+            void Compose(Expression toAdd) => e = e is null ? toAdd : Expression.Add(e, toAdd);
+        }
     }
 
     #endregion interval

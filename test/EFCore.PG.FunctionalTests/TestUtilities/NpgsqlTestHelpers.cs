@@ -1,7 +1,9 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.DependencyInjection;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics.Internal;
 using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
@@ -29,17 +31,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             }
         }
 
-        public VersionScope WithPostgresVersion(Version version) => new VersionScope(this, version);
+        public VersionScope WithPostgresVersion(Version version) => new(this, version);
 
         protected NpgsqlTestHelpers() {}
 
-        public static NpgsqlTestHelpers Instance { get; } = new NpgsqlTestHelpers();
+        public static NpgsqlTestHelpers Instance { get; } = new();
 
         public override IServiceCollection AddProviderServices(IServiceCollection services)
             => services.AddEntityFrameworkNpgsql();
 
-        protected override void UseProviderOptions(DbContextOptionsBuilder optionsBuilder)
-            => optionsBuilder.UseNpgsql(new NpgsqlConnection("Database=DummyDatabase"),
+        public override void UseProviderOptions(DbContextOptionsBuilder optionsBuilder)
+            => optionsBuilder.UseNpgsql(new NpgsqlConnection("Host=localhost;Database=DummyDatabase"),
                    options => options.SetPostgresVersion(_postgresVersion));
+
+        public override LoggingDefinitions LoggingDefinitions { get; } = new NpgsqlLoggingDefinitions();
     }
 }

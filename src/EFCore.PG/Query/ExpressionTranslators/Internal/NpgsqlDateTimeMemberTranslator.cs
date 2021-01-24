@@ -1,9 +1,10 @@
 using System;
 using System.Reflection;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 using NpgsqlTypes;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
@@ -19,12 +20,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     {
         readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
 
-        public NpgsqlDateTimeMemberTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory)
+        public NpgsqlDateTimeMemberTranslator([NotNull] NpgsqlSqlExpressionFactory sqlExpressionFactory)
             => _sqlExpressionFactory = sqlExpressionFactory;
 
         /// <inheritdoc />
-        [CanBeNull]
-        public SqlExpression Translate(SqlExpression instance, MemberInfo member, Type returnType)
+        public virtual SqlExpression Translate(SqlExpression instance,
+            MemberInfo member,
+            Type returnType,
+            IDiagnosticsLogger<DbLoggerCategory.Query> logger)
         {
             var type = member.DeclaringType;
             if (type != typeof(DateTime) && type != typeof(DateTimeOffset) && type != typeof(NpgsqlDateTime) && type != typeof(NpgsqlDate))
@@ -48,7 +51,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     : null,
 
                 nameof(DateTime.Today)     => _sqlExpressionFactory.Function(
-                    "DATE_TRUNC",
+                    "date_trunc",
                     new SqlExpression[] { _sqlExpressionFactory.Constant("day"), Now() },
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[2],
@@ -68,7 +71,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 nameof(DateTime.DayOfWeek) => GetDatePartExpression(instance, "dow", floor: true),
 
                 nameof(DateTime.Date) => _sqlExpressionFactory.Function(
-                    "DATE_TRUNC",
+                    "date_trunc",
                     new[] { _sqlExpressionFactory.Constant("day"), instance },
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[2],
@@ -90,7 +93,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
             SqlFunctionExpression Now()
                 => _sqlExpressionFactory.Function(
-                    "NOW",
+                    "now",
                     Array.Empty<SqlExpression>(),
                     nullable: false,
                     argumentsPropagateNullability: TrueArrays[0],
@@ -117,7 +120,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             bool floor = false)
         {
             var result = _sqlExpressionFactory.Function(
-                "DATE_PART",
+                "date_part",
                 new[]
                 {
                     _sqlExpressionFactory.Constant(partName),
@@ -129,7 +132,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
             if (floor)
                 result = _sqlExpressionFactory.Function(
-                    "FLOOR",
+                    "floor",
                     new[] { result },
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[1],

@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
-    public class DataAnnotationNpgsqlTest : DataAnnotationTestBase<DataAnnotationNpgsqlTest.DataAnnotationNpgsqlFixture>
+    public class DataAnnotationNpgsqlTest : DataAnnotationRelationalTestBase<DataAnnotationNpgsqlTest.DataAnnotationNpgsqlFixture>
     {
         public DataAnnotationNpgsqlTest(DataAnnotationNpgsqlFixture fixture)
             : base(fixture)
@@ -84,7 +84,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             // Npgsql does not support length
         }
 
-        public class DataAnnotationNpgsqlFixture : DataAnnotationFixtureBase
+        public class DataAnnotationNpgsqlFixture : DataAnnotationRelationalFixtureBase
         {
             protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
             public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ServiceProvider.GetRequiredService<ILoggerFactory>();

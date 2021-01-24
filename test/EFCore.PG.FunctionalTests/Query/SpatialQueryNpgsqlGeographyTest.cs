@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,7 +14,8 @@ using Xunit.Abstractions;
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     // ReSharper disable once UnusedMember.Global
-    public class SpatialQueryNpgsqlGeographyTest : SpatialQueryTestBase<SpatialQueryNpgsqlGeographyTest.SpatialQueryNpgsqlGeographyFixture>
+    public class SpatialQueryNpgsqlGeographyTest
+        : SpatialQueryRelationalTestBase<SpatialQueryNpgsqlGeographyTest.SpatialQueryNpgsqlGeographyFixture>
     {
         // ReSharper disable once UnusedParameter.Local
         public SpatialQueryNpgsqlGeographyTest(SpatialQueryNpgsqlGeographyFixture fixture, ITestOutputHelper testOutputHelper)
@@ -22,6 +24,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         protected override bool AssertDistances
             => false;
+
+        public static IEnumerable<object[]> IsAsyncDataAndUseSpheroid = new[]
+        {
+            new object[] { false, false },
+            new object[] { false, true },
+            new object[] { true, false },
+            new object[] { true, true }
+        };
 
         public override async Task Area(bool async)
         {
@@ -79,6 +89,32 @@ FROM ""PolygonEntity"" AS p");
 
         // TODO: Distance_*
 
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncDataAndUseSpheroid))]
+        public async Task DistanceDbFunction(bool async, bool useSpheroid)
+        {
+            var point = Fixture.GeometryFactory.CreatePoint(new Coordinate(0, 1));
+
+            await AssertQuery(
+                async,
+                ss => ss.Set<PointEntity>().Select(e => new { e.Id, Distance = (double?)EF.Functions.Distance(e.Point, point, useSpheroid) }),
+                ss => ss.Set<PointEntity>()
+                    .Select(e => new { e.Id, Distance = (e.Point == null ? (double?)null : e.Point.Distance(point)) }),
+                elementSorter: e => e.Id,
+                elementAsserter: (e, a) =>
+                {
+                    Assert.Equal(e.Id, a.Id);
+                    Assert.Equal(e.Distance == null, a.Distance == null);
+                });
+
+            AssertSql(
+                @$"@__point_1='POINT (0 1)' (DbType = Object)
+@__useSpheroid_2='{useSpheroid}'
+
+SELECT p.""Id"", ST_Distance(p.""Point"", @__point_1, @__useSpheroid_2) AS ""Distance""
+FROM ""PointEntity"" AS p");
+        }
+
         public override async Task GeometryType(bool async)
         {
             // PostGIS returns "POINT", NTS returns "Point"
@@ -128,6 +164,41 @@ FROM ""PolygonEntity"" AS p");
 //
 //SELECT p.""Id"", ST_DWithin(p.""Point"", @__point_0, 1.0) AS ""IsWithinDistance""
 //FROM ""PointEntity"" AS p");
+        }
+
+        [ConditionalTheory]
+        [MemberData(nameof(IsAsyncDataAndUseSpheroid))]
+        public async Task IsWithinDistanceDbFunction(bool async, bool useSpheroid)
+        {
+            var point = Fixture.GeometryFactory.CreatePoint(new Coordinate(0, 1));
+
+            await AssertQuery(
+                async,
+                ss => ss.Set<PointEntity>().Select(e => new { e.Id, IsWithinDistance = (bool?)EF.Functions.IsWithinDistance(e.Point, point, 1, useSpheroid) }),
+                ss => ss.Set<PointEntity>().Select(
+                    e => new { e.Id, IsWithinDistance = e.Point == null ? (bool?)null : e.Point.IsWithinDistance(point, 1) }),
+                elementSorter: e => e.Id,
+                elementAsserter: (e, a) =>
+                {
+                    Assert.Equal(e.Id, a.Id);
+
+                    if (e.IsWithinDistance == null)
+                    {
+                        Assert.False(a.IsWithinDistance ?? false);
+                    }
+                    else
+                    {
+                        Assert.NotNull(a.IsWithinDistance);
+                    }
+                });
+
+            AssertSql(
+                @$"@__point_1='POINT (0 1)' (DbType = Object)
+@__useSpheroid_2='{useSpheroid}'
+
+SELECT p.""Id"", ST_DWithin(p.""Point"", @__point_1, 1.0, @__useSpheroid_2) AS ""IsWithinDistance""
+FROM ""PointEntity"" AS p"
+            );
         }
 
         public override async Task Length(bool async)
@@ -181,7 +252,6 @@ FROM ""PointEntity"" AS p");
         public override Task Difference(bool async)                      => Task.CompletedTask;
         public override Task Dimension(bool async)                       => Task.CompletedTask;
         public override Task Disjoint_with_cast_to_nullable(bool async)    => Task.CompletedTask;
-        public override Task Disjoint_without_cast_to_nullable(bool async) => Task.CompletedTask;
         public override Task Disjoint_with_null_check(bool async)          => Task.CompletedTask;
         public override Task EndPoint(bool async)                        => Task.CompletedTask;
         public override Task Envelope(bool async)                        => Task.CompletedTask;
@@ -204,6 +274,7 @@ FROM ""PointEntity"" AS p");
         public override Task InteriorPoint(bool async)                   => Task.CompletedTask;
         public override Task LineString_Count(bool async)                => Task.CompletedTask;
         public override Task M(bool async)                               => Task.CompletedTask;
+        public override Task Normalized(bool async)                      => Task.CompletedTask;
         public override Task NumGeometries(bool async)                   => Task.CompletedTask;
         public override Task NumInteriorRings(bool async)                => Task.CompletedTask;
         public override Task NumPoints(bool async)                       => Task.CompletedTask;
@@ -220,6 +291,7 @@ FROM ""PointEntity"" AS p");
         public override Task Within(bool async)                          => Task.CompletedTask;
         public override Task X(bool async)                               => Task.CompletedTask;
         public override Task Y(bool async)                               => Task.CompletedTask;
+        public override Task XY_with_collection_join(bool async)         => Task.CompletedTask;
         public override Task Z(bool async)                               => Task.CompletedTask;
 
         #endregion

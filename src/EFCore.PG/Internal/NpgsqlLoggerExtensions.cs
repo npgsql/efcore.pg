@@ -77,6 +77,36 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
             // No DiagnosticsSource events because these are purely design-time messages
         }
 
+        public static void CollationFound(
+            [NotNull] this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
+            [NotNull] string schema,
+            [NotNull] string collationName,
+            [NotNull] string lcCollate,
+            [NotNull] string lcCtype,
+            [NotNull] string provider,
+            bool deterministic)
+        {
+            var definition = NpgsqlResources.LogFoundCollation(diagnostics);
+
+            if (diagnostics.ShouldLog(definition))
+            {
+                definition.Log(
+                    diagnostics,
+                    l => l.LogDebug(
+                        definition.EventId,
+                        null,
+                        definition.MessageFormat,
+                        collationName,
+                        schema,
+                        lcCollate,
+                        lcCtype,
+                        provider,
+                        deterministic));
+            }
+
+            // No DiagnosticsSource events because these are purely design-time messages
+        }
+
         public static void UniqueConstraintFound(
             [NotNull] this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
             [NotNull] string uniqueConstraintName,

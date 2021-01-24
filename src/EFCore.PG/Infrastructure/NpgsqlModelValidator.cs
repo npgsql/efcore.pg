@@ -20,7 +20,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         /// <summary>
         /// The backend version to target.
         /// </summary>
-        [CanBeNull] readonly Version _postgresVersion;
+        readonly Version _postgresVersion;
 
         /// <inheritdoc />
         public NpgsqlModelValidator(
@@ -44,7 +44,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         /// <param name="model">The model to validate.</param>
         protected virtual void ValidateIdentityVersionCompatibility([NotNull] IModel model)
         {
-            if (_postgresVersion.AtLeast(10, 0))
+            if (_postgresVersion.AtLeast(10))
                 return;
 
             var strategy = model.GetValueGenerationStrategy();

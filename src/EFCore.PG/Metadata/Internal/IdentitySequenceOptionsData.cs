@@ -9,16 +9,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
 {
     public class IdentitySequenceOptionsData : IEquatable<IdentitySequenceOptionsData>
     {
-        public static readonly IdentitySequenceOptionsData Empty = new IdentitySequenceOptionsData();
+        public static readonly IdentitySequenceOptionsData Empty = new();
 
-        public long? StartValue { get; set; }
-        public long IncrementBy { get; set; } = 1;
-        public long? MinValue { get; set; }
-        public long? MaxValue { get; set; }
-        public bool IsCyclic { get; set; }
-        public long NumbersToCache { get; set; } = 1;
+        public virtual long? StartValue { get; set; }
+        public virtual long IncrementBy { get; set; } = 1;
+        public virtual long? MinValue { get; set; }
+        public virtual long? MaxValue { get; set; }
+        public virtual bool IsCyclic { get; set; }
+        public virtual long NumbersToCache { get; set; } = 1;
 
-        public string Serialize()
+        public virtual string Serialize()
         {
             var builder = new StringBuilder();
 
@@ -63,7 +63,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
             }
             catch (Exception ex)
             {
-                throw new ArgumentException(RelationalStrings.BadSequenceString, ex);
+                throw new ArgumentException($"Couldn't deserialize {nameof(IdentitySequenceOptionsData)} from annotation", ex);
             }
         }
 
@@ -103,7 +103,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
             builder.Append("'");
         }
 
-        public bool Equals(IdentitySequenceOptionsData other)
+        public virtual bool Equals(IdentitySequenceOptionsData other)
             => !(other is null) && (
                    ReferenceEquals(this, other) ||
                    StartValue == other.StartValue &&

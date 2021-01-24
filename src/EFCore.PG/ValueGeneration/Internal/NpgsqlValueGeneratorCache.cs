@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.ValueGeneration;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
 {
@@ -16,7 +15,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
     public class NpgsqlValueGeneratorCache : ValueGeneratorCache, INpgsqlValueGeneratorCache
     {
         readonly ConcurrentDictionary<string, NpgsqlSequenceValueGeneratorState> _sequenceGeneratorCache
-            = new ConcurrentDictionary<string, NpgsqlSequenceValueGeneratorState>();
+            = new();
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="ValueGeneratorCache" /> class.
@@ -35,17 +34,24 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
             IProperty property,
             IRelationalConnection connection)
         {
-            //var sequence = property.GetNpgsql().FindHiLoSequence();
             var sequence = property.FindHiLoSequence();
 
             Debug.Assert(sequence != null);
 
             return _sequenceGeneratorCache.GetOrAdd(
-                GetSequenceName(sequence),
+                GetSequenceName(sequence, connection),
                 sequenceName => new NpgsqlSequenceValueGeneratorState(sequence));
         }
 
-        static string GetSequenceName(ISequence sequence)
-            => (sequence.Schema == null ? "" : sequence.Schema + ".") + sequence.Name;
+        static string GetSequenceName(ISequence sequence, IRelationalConnection connection)
+        {
+            var dbConnection = connection.DbConnection;
+
+            return dbConnection.Database.ToUpperInvariant()
+                   + "::"
+                   + dbConnection.DataSource?.ToUpperInvariant()
+                   + "::"
+                   + (sequence.Schema == null ? "" : sequence.Schema + ".") + sequence.Name;
+        }
     }
 }

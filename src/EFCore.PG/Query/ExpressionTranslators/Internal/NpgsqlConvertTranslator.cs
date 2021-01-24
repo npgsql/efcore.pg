@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 
@@ -12,7 +15,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     /// </summary>
     public class NpgsqlConvertTranslator : IMethodCallTranslator
     {
-        static readonly Dictionary<string, string> TypeMapping = new Dictionary<string, string>
+        static readonly Dictionary<string, string> TypeMapping = new()
         {
             [nameof(Convert.ToBoolean)] = "bool",
             [nameof(Convert.ToByte)]    = "smallint",
@@ -24,7 +27,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             [nameof(Convert.ToString)]  = "text"
         };
 
-        static readonly List<Type> SupportedTypes = new List<Type>
+        static readonly List<Type> SupportedTypes = new()
         {
             typeof(bool),
             typeof(byte),
@@ -48,10 +51,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
         readonly ISqlExpressionFactory _sqlExpressionFactory;
 
-        public NpgsqlConvertTranslator(ISqlExpressionFactory sqlExpressionFactory)
+        public NpgsqlConvertTranslator([NotNull] ISqlExpressionFactory sqlExpressionFactory)
             => _sqlExpressionFactory = sqlExpressionFactory;
 
-        public SqlExpression Translate(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
+        public virtual SqlExpression Translate(
+            SqlExpression instance,
+            MethodInfo method,
+            IReadOnlyList<SqlExpression> arguments,
+            IDiagnosticsLogger<DbLoggerCategory.Query> logger)
             => SupportedMethods.Contains(method)
                 ? _sqlExpressionFactory.Convert(arguments[0], method.ReturnType)
                 : null;

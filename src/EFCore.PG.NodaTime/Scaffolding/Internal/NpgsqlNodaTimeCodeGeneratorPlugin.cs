@@ -7,6 +7,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Scaffolding.Internal
     public class NpgsqlNodaTimeCodeGeneratorPlugin : ProviderCodeGeneratorPlugin
     {
         public override MethodCallCodeFragment GenerateProviderOptions()
-            => new MethodCallCodeFragment(nameof(NpgsqlNodaTimeDbContextOptionsBuilderExtensions.UseNodaTime));
+            => new(nameof(NpgsqlNodaTimeDbContextOptionsBuilderExtensions.UseNodaTime));
     }
 }

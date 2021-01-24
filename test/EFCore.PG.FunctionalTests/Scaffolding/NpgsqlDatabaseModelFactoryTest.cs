@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics.Internal;
 using Microsoft.EntityFrameworkCore.Internal;
@@ -20,7 +21,6 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
-using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities.Xunit;
 using Xunit;
 
 // ReSharper disable InconsistentNaming
@@ -84,7 +84,8 @@ DROP SEQUENCE ""DefaultFacetsSequence"";
 DROP SEQUENCE db2.""CustomFacetsSequence""");
         }
 
-        [MinimumPostgresVersionFact(11, 0)]
+        [ConditionalFact]
+        [MinimumPostgresVersion(11, 0)]
         public void Sequence_min_max_start_values_are_null_if_default()
             => Test(@"
 CREATE SEQUENCE ""SmallIntSequence"" AS smallint;
@@ -828,7 +829,8 @@ CREATE TABLE ""DefaultValues"" (
                 },
                 @"DROP TABLE ""DefaultValues""");
 
-        [MinimumPostgresVersionFact(12, 0)]
+        [ConditionalFact]
+        [MinimumPostgresVersion(12, 0)]
         public void Computed_values_are_stored()
             => Test(@"
 CREATE TABLE ""ComputedValues"" (
@@ -843,9 +845,12 @@ CREATE TABLE ""ComputedValues"" (
                 {
                     var columns = dbModel.Tables.Single().Columns;
 
-                    // Note that on-the-fly computed columns aren't (yet) supported by PostgreSQL, only stored/persistedcolumns.
-                    Assert.Null(columns.Single(c => c.Name == "SumOfAAndB").DefaultValueSql);
-                    Assert.Equal(@"(""A"" + ""B"")", columns.Single(c => c.Name == "SumOfAAndB").ComputedColumnSql);
+                    // Note that on-the-fly computed columns aren't (yet) supported by PostgreSQL, only stored/persisted
+                    // columns.
+                    var column = columns.Single(c => c.Name == "SumOfAAndB");
+                    Assert.Null(column.DefaultValueSql);
+                    Assert.Equal(@"(""A"" + ""B"")", column.ComputedColumnSql);
+                    Assert.True(column.IsStored);
                 },
                 @"DROP TABLE ""ComputedValues""");
 
@@ -910,7 +915,8 @@ CREATE TABLE ""ValueGeneratedProperties"" (
                 },
                 @"DROP TABLE ""ValueGeneratedProperties""");
 
-        [MinimumPostgresVersionFact(10, 0)]
+        [ConditionalFact]
+        [MinimumPostgresVersion(10, 0)]
         public void ValueGenerated_is_set_for_identity_column()
             => Test(@"
 CREATE TABLE ""ValueGeneratedProperties"" (
@@ -928,7 +934,8 @@ CREATE TABLE ""ValueGeneratedProperties"" (
                 },
                 @"DROP TABLE ""ValueGeneratedProperties""");
 
-        [MinimumPostgresVersionFact(12, 0)]
+        [ConditionalFact]
+        [MinimumPostgresVersion(12, 0)]
         public void ValueGenerated_is_set_for_computed_column()
             => Test(@"
 CREATE TABLE ""ValueGeneratedProperties"" (
@@ -953,7 +960,7 @@ CREATE TABLE ""ValueGeneratedProperties"" (
 CREATE TABLE ""NullableColumns"" (
     ""Id"" int,
     ""NullableInt"" int NULL,
-    ""NonNullString"" text NOT NULL
+    ""NonNullableInt"" int NOT NULL
 )",
                 Enumerable.Empty<string>(),
                 Enumerable.Empty<string>(),
@@ -962,9 +969,32 @@ CREATE TABLE ""NullableColumns"" (
                     var columns = dbModel.Tables.Single().Columns;
 
                     Assert.True(columns.Single(c => c.Name == "NullableInt").IsNullable);
-                    Assert.False(columns.Single(c => c.Name == "NonNullString").IsNullable);
+                    Assert.False(columns.Single(c => c.Name == "NonNullableInt").IsNullable);
                 },
                 @"DROP TABLE ""NullableColumns""");
+
+        [Fact]
+        public void Column_nullability_is_set_with_domain()
+            => Test(@"
+CREATE DOMAIN non_nullable_int AS int NOT NULL;
+
+CREATE TABLE ""NullableColumnsDomain"" (
+    ""Id"" int,
+    ""NullableInt"" non_nullable_int NULL,
+    ""NonNullString"" non_nullable_int NOT NULL
+)",
+                Enumerable.Empty<string>(),
+                Enumerable.Empty<string>(),
+                dbModel =>
+                {
+                    var columns = dbModel.Tables.Single().Columns;
+
+                    Assert.False(columns.Single(c => c.Name == "NullableInt").IsNullable);
+                    Assert.False(columns.Single(c => c.Name == "NonNullString").IsNullable);
+                },
+                @"
+DROP TABLE ""NullableColumnsDomain"";
+DROP DOMAIN non_nullable_int;");
 
         [Fact]
         public void System_columns_are_not_created()
@@ -1475,7 +1505,8 @@ CREATE TABLE ""NonSerialSequence"" (""Id"" integer PRIMARY KEY DEFAULT nextval('
 DROP TABLE ""NonSerialSequence"";
 DROP SEQUENCE ""SomeSequence""");
 
-        [MinimumPostgresVersionFact(10, 0)]
+        [ConditionalFact]
+        [MinimumPostgresVersion(10, 0)]
         public void Identity()
             => Test(@"
 CREATE TABLE identity (
@@ -1504,7 +1535,8 @@ CREATE TABLE identity (
                 },
                 "DROP TABLE identity");
 
-        [MinimumPostgresVersionFact(10, 0)]
+        [ConditionalFact]
+        [MinimumPostgresVersion(10, 0)]
         public void Identity_with_sequence_options_all()
             => Test(@"
 CREATE TABLE identity (
@@ -1548,6 +1580,27 @@ CREATE TABLE identity (
                     Assert.Null(smallintWithoutOptions[NpgsqlAnnotationNames.IdentityOptions]);
                 },
                 "DROP TABLE identity");
+
+
+        [Fact]
+        public void Column_collation_is_set()
+            => Test(
+                @"
+CREATE TABLE columns_with_collation (
+    id int,
+    default_collation TEXT,
+    non_default_collation TEXT COLLATE ""POSIX""
+);",
+                Enumerable.Empty<string>(),
+                Enumerable.Empty<string>(),
+                dbModel =>
+                {
+                    var columns = dbModel.Tables.Single().Columns;
+
+                    Assert.Null(columns.Single(c => c.Name == "default_collation").Collation);
+                    Assert.Equal("POSIX", columns.Single(c => c.Name == "non_default_collation").Collation);
+                },
+                @"DROP TABLE columns_with_collation");
 
         [Fact]
         public void Index_method()
@@ -1609,10 +1662,10 @@ CREATE INDEX ix_without ON ""IndexCollation"" (a, b);",
                     var table = dbModel.Tables.Single();
 
                     var indexWith = table.Indexes.Single(i => i.Name == "ix_with");
-                    Assert.Equal(new[] { null, "POSIX" }, indexWith.FindAnnotation(NpgsqlAnnotationNames.IndexCollation).Value);
+                    Assert.Equal(new[] { null, "POSIX" }, indexWith.FindAnnotation(RelationalAnnotationNames.Collation).Value);
 
                     var indexWithout = table.Indexes.Single(i => i.Name == "ix_without");
-                    Assert.Null(indexWithout.FindAnnotation(NpgsqlAnnotationNames.IndexCollation));
+                    Assert.Null(indexWithout.FindAnnotation(RelationalAnnotationNames.Collation));
                 },
                 @"DROP TABLE ""IndexCollation""");
 
@@ -1665,7 +1718,8 @@ CREATE INDEX ix_without ON ""IndexNullSortOrder"" (a, b);",
                 },
                 @"DROP TABLE ""IndexNullSortOrder""");
 
-        [MinimumPostgresVersionFact(11, 0)]
+        [ConditionalFact]
+        [MinimumPostgresVersion(11, 0)]
         public void Index_covering()
             => Test(@"
 CREATE TABLE ""IndexCovering"" (a text, b text, c text);
@@ -1704,7 +1758,8 @@ COMMENT ON COLUMN comment.a IS 'column comment'",
                 },
                 "DROP TABLE comment");
 
-        [MinimumPostgresVersionFact(11, 0)]
+        [ConditionalFact]
+        [MinimumPostgresVersion(11, 0)]
         public void Sequence_types()
             => Test(@"
 CREATE SEQUENCE ""SmallIntSequence"" AS smallint;
@@ -1926,10 +1981,11 @@ CREATE TABLE column_types (
             protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
             public new NpgsqlTestStore TestStore => (NpgsqlTestStore)base.TestStore;
 
-            public NpgsqlDatabaseModelFixture()
+            public override async Task InitializeAsync()
             {
-                TestStore.ExecuteNonQuery("CREATE SCHEMA IF NOT EXISTS db2");
-                TestStore.ExecuteNonQuery(@"CREATE SCHEMA IF NOT EXISTS ""db.2""");
+                await base.InitializeAsync();
+                await TestStore.ExecuteNonQueryAsync("CREATE SCHEMA IF NOT EXISTS db2");
+                await TestStore.ExecuteNonQueryAsync(@"CREATE SCHEMA IF NOT EXISTS ""db.2""");
             }
 
             protected override bool ShouldLogCategory(string logCategory)

@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Reflection;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using NodaTime;
@@ -47,9 +49,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
         public NpgsqlNodaTimeMemberTranslator(ISqlExpressionFactory sqlExpressionFactory)
             => _sqlExpressionFactory = sqlExpressionFactory;
 
+        static readonly bool[][] TrueArrays =
+        {
+            Array.Empty<bool>(),
+            new[] { true },
+            new[] { true, true }
+        };
+
         /// <inheritdoc />
-        [CanBeNull]
-        public SqlExpression Translate(SqlExpression instance, MemberInfo member, Type returnType)
+        public SqlExpression Translate(
+            SqlExpression instance,
+            MemberInfo member,
+            Type returnType,
+            IDiagnosticsLogger<DbLoggerCategory.Query> logger)
         {
             // This is necessary to allow translation of methods on SystemClock.Instance
             if (member == Instance)
@@ -128,7 +140,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
                     );
 
             case "Date":
-                return _sqlExpressionFactory.Function("DATE_TRUNC", new[] { _sqlExpressionFactory.Constant("day"), instance }, returnType);
+                return _sqlExpressionFactory.Function(
+                    "DATE_TRUNC",
+                    new[] { _sqlExpressionFactory.Constant("day"), instance },
+                    nullable: true,
+                    argumentsPropagateNullability: TrueArrays[2],
+                    returnType);
 
             case "TimeOfDay":
                 // TODO: Technically possible simply via casting to PG time,
@@ -161,10 +178,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
             [NotNull] string partName,
             bool floor = false)
         {
-            var result = _sqlExpressionFactory.Function("DATE_PART", new[] { _sqlExpressionFactory.Constant(partName), instance }, typeof(double));
+            var result = _sqlExpressionFactory.Function(
+                "DATE_PART",
+                new[] { _sqlExpressionFactory.Constant(partName), instance },
+                nullable: true,
+                argumentsPropagateNullability: TrueArrays[2],
+                typeof(double));
 
             if (floor)
-                result = _sqlExpressionFactory.Function("FLOOR", new[] { result }, typeof(double));
+                result = _sqlExpressionFactory.Function(
+                    "FLOOR",
+                    new[] { result },
+                    nullable: true,
+                    argumentsPropagateNullability: TrueArrays[1],
+                    typeof(double));
 
             return _sqlExpressionFactory.Convert(result, typeof(int));
         }

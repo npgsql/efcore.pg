@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Text.Json;
@@ -252,30 +253,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
             => Assert.Equal("new System.Collections.BitArray(new bool[] { true, false })", CodeLiteral(new BitArray(new[] { true, false })));
 
         [Fact]
-        public void GenerateSqlLiteral_returns_array_literal()
-            => Assert.Equal("ARRAY[3,4]::integer[]", GetMapping(typeof(int[])).GenerateSqlLiteral(new[] { 3, 4 }));
-
-        [Fact]
-        public void GenerateSqlLiteral_returns_array_empty_literal()
-            => Assert.Equal("ARRAY[]::smallint[]", GetMapping(typeof(short[])).GenerateSqlLiteral(new short[0]));
-
-        [Fact]
-        public void ValueComparer_int_array()
-        {
-            // This exercises array's comparer when the element doesn't have a comparer, but it implements
-            // IEquatable<T>
-            var source = new[] { 2, 3, 4 };
-
-            var comparer = GetMapping(typeof(int[])).Comparer;
-            var snapshot = (int[])comparer.Snapshot(source);
-            Assert.Equal(source, snapshot);
-            Assert.NotSame(source, snapshot);
-            Assert.True(comparer.Equals(source, snapshot));
-            snapshot[1] = 8;
-            Assert.False(comparer.Equals(source, snapshot));
-        }
-
-        [Fact]
         public void ValueComparer_hstore_array()
         {
             // This exercises array's comparer when the element has its own non-null comparer
@@ -308,7 +285,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
                 }));
 
         [Fact]
-        public void ValueComparer_hstore()
+        public void ValueComparer_hstore_as_Dictionary()
         {
             var source = new Dictionary<string, string>
             {
@@ -322,6 +299,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
             Assert.NotSame(source, snapshot);
             Assert.True(comparer.Equals(source, snapshot));
             snapshot.Remove("k1");
+            Assert.False(comparer.Equals(source, snapshot));
+        }
+
+        [Fact]
+        public void ValueComparer_hstore_as_ImmutableDictionary()
+        {
+            var source = ImmutableDictionary<string, string>.Empty
+                .Add("k1", "v1")
+                .Add("k2", "v2");
+
+            var comparer = Mapper.FindMapping(typeof(ImmutableDictionary<string, string>), "hstore").Comparer;
+            var snapshot = comparer.Snapshot(source);
+            Assert.Equal(source, snapshot);
+            Assert.True(comparer.Equals(source, snapshot));
+            source = source.Remove("k1");
             Assert.False(comparer.Equals(source, snapshot));
         }
 
@@ -363,6 +355,90 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
             => Assert.Equal(@"TID '(0,1)'", GetMapping("tid").GenerateSqlLiteral(new NpgsqlTid(0, 1)));
 
         #endregion Misc
+
+        #region Array
+
+        [Fact]
+        public void GenerateSqlLiteral_returns_array_literal()
+            => Assert.Equal("ARRAY[3,4]::integer[]", GetMapping(typeof(int[])).GenerateSqlLiteral(new[] { 3, 4 }));
+
+        [Fact]
+        public void GenerateSqlLiteral_returns_array_empty_literal()
+            => Assert.Equal("ARRAY[]::smallint[]", GetMapping(typeof(short[])).GenerateSqlLiteral(new short[0]));
+
+        [Fact]
+        public void ValueComparer_int_array()
+        {
+            // This exercises array's comparer when the element doesn't have a comparer, but it implements
+            // IEquatable<T>
+            var source = new[] { 2, 3, 4 };
+
+            var comparer = GetMapping(typeof(int[])).Comparer;
+            var snapshot = (int[])comparer.Snapshot(source);
+            Assert.Equal(source, snapshot);
+            Assert.NotSame(source, snapshot);
+            Assert.True(comparer.Equals(source, snapshot));
+            snapshot[1] = 8;
+            Assert.False(comparer.Equals(source, snapshot));
+        }
+
+        [Fact]
+        public void ValueComparer_int_list()
+        {
+            var source = new List<int> { 2, 3, 4 };
+
+            var comparer = GetMapping(typeof(List<int>)).Comparer;
+            var snapshot = (List<int>)comparer.Snapshot(source);
+            Assert.Equal(source, snapshot);
+            Assert.NotSame(source, snapshot);
+            Assert.True(comparer.Equals(source, snapshot));
+            snapshot[1] = 8;
+            Assert.False(comparer.Equals(source, snapshot));
+        }
+
+        [Fact]
+        public void ValueComparer_nullable_int_array()
+        {
+            var source = new int?[] { 2, 3, 4, null };
+
+            var comparer = GetMapping(typeof(int?[])).Comparer;
+            var snapshot = (int?[])comparer.Snapshot(source);
+            Assert.Equal(source, snapshot);
+            Assert.NotSame(source, snapshot);
+            Assert.True(comparer.Equals(source, snapshot));
+            snapshot[1] = 8;
+            Assert.False(comparer.Equals(source, snapshot));
+        }
+
+        [Fact]
+        public void ValueComparer_nullable_int_list()
+        {
+            var source = new List<int?> { 2, 3, 4, null };
+
+            var comparer = GetMapping(typeof(List<int?>)).Comparer;
+            var snapshot = (List<int?>)comparer.Snapshot(source);
+            Assert.Equal(source, snapshot);
+            Assert.NotSame(source, snapshot);
+            Assert.True(comparer.Equals(source, snapshot));
+            snapshot[1] = 8;
+            Assert.False(comparer.Equals(source, snapshot));
+        }
+
+        [Fact]
+        public void ValueComparer_nullable_array_with_iequatable_element()
+        {
+            var source = new NpgsqlPoint?[] { new NpgsqlPoint(1, 1), null };
+
+            var comparer = GetMapping(typeof(NpgsqlPoint?[])).Comparer;
+            var snapshot = (NpgsqlPoint?[])comparer.Snapshot(source);
+            Assert.Equal(source, snapshot);
+            Assert.NotSame(source, snapshot);
+            Assert.True(comparer.Equals(source, snapshot));
+            snapshot[1] = new NpgsqlPoint(2, 2);
+            Assert.False(comparer.Equals(source, snapshot));
+        }
+
+        #endregion Array
 
         #region Ranges
 
@@ -511,7 +587,31 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
                 @"System.Text.Json.JsonDocument.Parse(""{\""Name\"":\""Joe\"",\""Age\"":25}"", new System.Text.Json.JsonDocumentOptions()).RootElement",
                 CodeLiteral(JsonDocument.Parse(@"{""Name"":""Joe"",""Age"":25}").RootElement));
 
-        static readonly Customer SampleCustomer = new Customer
+        [Fact]
+        public void ValueComparer_JsonDocument()
+        {
+            var json = @"{""Name"":""Joe"",""Age"":25}";
+            var source = JsonDocument.Parse(json);
+
+            var comparer = GetMapping(typeof(JsonDocument)).Comparer;
+            var snapshot = (JsonDocument)comparer.Snapshot(source);
+            Assert.Same(source, snapshot);
+            Assert.True(comparer.Equals(source, snapshot));
+        }
+
+        [Fact]
+        public void ValueComparer_JsonElement()
+        {
+            var json = @"{""Name"":""Joe"",""Age"":25}";
+            var source = JsonDocument.Parse(json).RootElement;
+
+            var comparer = GetMapping(typeof(JsonElement)).Comparer;
+            var snapshot = (JsonElement)comparer.Snapshot(source);
+            Assert.True(comparer.Equals(source, snapshot));
+            Assert.False(comparer.Equals(source, JsonDocument.Parse(json).RootElement));
+        }
+
+        static readonly Customer SampleCustomer = new()
         {
             Name = "Joe",
             Age = 25,
@@ -552,7 +652,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
 
         #region Support
 
-        static readonly NpgsqlTypeMappingSource Mapper = new NpgsqlTypeMappingSource(
+        static readonly NpgsqlTypeMappingSource Mapper = new(
             new TypeMappingSourceDependencies(
                 new ValueConverterSelector(new ValueConverterSelectorDependencies()),
                 Array.Empty<ITypeMappingSourcePlugin>()
@@ -566,7 +666,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
 
         static RelationalTypeMapping GetMapping(Type clrType) => (RelationalTypeMapping)Mapper.FindMapping(clrType);
 
-        static readonly CSharpHelper CsHelper = new CSharpHelper(Mapper);
+        static readonly CSharpHelper CsHelper = new(Mapper);
 
         static string CodeLiteral(object value) => CsHelper.UnknownLiteral(value);
 
