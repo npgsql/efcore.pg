@@ -17,7 +17,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             : base(fixture)
         {
             Fixture.TestSqlLoggerFactory.Clear();
-            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+            // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
         public override async Task Area(bool async)
@@ -33,18 +33,18 @@ FROM ""PolygonEntity"" AS p");
         {
             await base.AsBinary(async);
 
-//            AssertSql(
-//                @"SELECT p.""Id"", ST_AsBinary(p.""Point"") AS ""Binary""
-//FROM ""PointEntity"" AS p");
+            AssertSql(
+                @"SELECT p.""Id"", ST_AsBinary(p.""Point"") AS ""Binary""
+FROM ""PointEntity"" AS p");
         }
 
         public override async Task AsText(bool async)
         {
             await base.AsText(async);
 
-//            AssertSql(
-//                @"SELECT p.""Id"", ST_AsText(p.""Point"") AS ""Text""
-//FROM ""PointEntity"" AS p");
+            AssertSql(
+                @"SELECT p.""Id"", ST_AsText(p.""Point"") AS ""Text""
+FROM ""PointEntity"" AS p");
         }
 
         public override async Task Boundary(bool async)
@@ -60,18 +60,18 @@ FROM ""PolygonEntity"" AS p");
         {
             await base.Buffer(async);
 
-//            AssertSql(
-//                @"SELECT p.""Id"", ST_Buffer(p.""Polygon"", 1.0) AS ""Buffer""
-//FROM ""PolygonEntity"" AS p");
+            AssertSql(
+                @"SELECT p.""Id"", ST_Buffer(p.""Polygon"", 1.0) AS ""Buffer""
+FROM ""PolygonEntity"" AS p");
         }
 
         public override async Task Buffer_quadrantSegments(bool async)
         {
             await base.Buffer_quadrantSegments(async);
 
-//            AssertSql(
-//                @"SELECT p.""Id"", ST_Buffer(p.""Polygon"", 1.0, 8) AS ""Buffer""
-//FROM ""PolygonEntity"" AS p");
+            AssertSql(
+                @"SELECT p.""Id"", ST_Buffer(p.""Polygon"", 1.0, 8) AS ""Buffer""
+FROM ""PolygonEntity"" AS p");
         }
 
         public override async Task Centroid(bool async)
@@ -87,20 +87,20 @@ FROM ""PolygonEntity"" AS p");
         {
             await base.Contains(async);
 
-//            AssertSql(
-//                @"@__point_0='POINT (0.25 0.25)' (DbType = Object)
-//
-//SELECT p.""Id"", ST_Contains(p.""Polygon"", @__point_0) AS ""Contains""
-//FROM ""PolygonEntity"" AS p");
+            AssertSql(
+                @"@__point_0='POINT (0.25 0.25)' (DbType = Object)
+
+SELECT p.""Id"", ST_Contains(p.""Polygon"", @__point_0) AS ""Contains""
+FROM ""PolygonEntity"" AS p");
         }
 
         public override async Task ConvexHull(bool async)
         {
             await base.ConvexHull(async);
 
-//            AssertSql(
-//                @"SELECT p.""Id"", ST_ConvexHull(p.""Polygon"") AS ""ConvexHull""
-//FROM ""PolygonEntity"" AS p");
+            AssertSql(
+                @"SELECT p.""Id"", ST_ConvexHull(p.""Polygon"") AS ""ConvexHull""
+FROM ""PolygonEntity"" AS p");
         }
 
         public override async Task IGeometryCollection_Count(bool async)
@@ -125,26 +125,26 @@ FROM ""LineStringEntity"" AS l");
         {
             await base.Crosses(async);
 
-//            AssertSql(
-//                @"@__lineString_0='LINESTRING (0.5 -0.5
-//0.5 0.5)' (DbType = Object)
-//
-//SELECT l.""Id"", ST_Crosses(p.""LineString"", @__lineString_0) AS ""Crosses""
-//FROM ""LineStringEntity"" AS p");
+            AssertSql(
+                @"@__lineString_0='LINESTRING (0.5 -0.5
+0.5 0.5)' (DbType = Object)
+
+SELECT l.""Id"", ST_Crosses(l.""LineString"", @__lineString_0) AS ""Crosses""
+FROM ""LineStringEntity"" AS l");
         }
 
         public override async Task Difference(bool async)
         {
             await base.Difference(async);
 
-//            AssertSql(
-//                @"@__polygon_0='POLYGON ((0 0
-//1 0
-//1 1
-//0 0))' (DbType = Object)
-//
-//SELECT p.""Id"", ST_Difference(p.""Polygon"", @__polygon_0) AS ""Difference""
-//FROM ""PolygonEntity"" AS p");
+            AssertSql(
+                @"@__polygon_0='POLYGON ((0 0
+1 0
+1 1
+0 0))' (DbType = Object)
+
+SELECT p.""Id"", ST_Difference(p.""Polygon"", @__polygon_0) AS ""Difference""
+FROM ""PolygonEntity"" AS p");
         }
 
         public override async Task Dimension(bool async)
@@ -155,9 +155,6 @@ FROM ""LineStringEntity"" AS l");
                 @"SELECT p.""Id"", ST_Dimension(p.""Point"") AS ""Dimension""
 FROM ""PointEntity"" AS p");
         }
-
-        // TODO: Disjoint_*
-        // TODO: Distance_*
 
         // PostGIS refuses to operate on points of mixed SRIDs
         public override Task Distance_constant_srid_4326(bool async) => Task.CompletedTask;
@@ -184,11 +181,11 @@ FROM ""PolygonEntity"" AS p");
         {
             await base.EqualsTopologically(async);
 
-//            AssertSql(
-//                @"@__point_0='POINT (0 0)' (DbType = Object)
-//
-//SELECT p.""Id"", ST_Equals(p.""Point"", @__point_0) AS ""EqualsTopologically""
-//FROM ""PointEntity"" AS p");
+            AssertSql(
+                @"@__point_0='POINT (0 0)' (DbType = Object)
+
+SELECT p.""Id"", ST_Equals(p.""Point"", @__point_0) AS ""EqualsTopologically""
+FROM ""PointEntity"" AS p");
         }
 
         public override async Task ExteriorRing(bool async)
@@ -209,39 +206,42 @@ FROM ""PolygonEntity"" AS p");
                     e => new { e.Id, GeometryType = e.Point == null ? null : e.Point.GeometryType.ToLower() }),
                 x => x.Id);
 
-//            AssertSql(
-//                @"SELECT p.""Id"", LOWER(GeometryType(p.""Point"")) AS ""GeometryType""
-//FROM ""PointEntity"" AS p");
+            AssertSql(
+                @"SELECT p.""Id"", CASE
+    WHEN (p.""Point"" IS NULL) THEN NULL
+    ELSE lower(GeometryType(p.""Point""))
+END AS ""GeometryType""
+FROM ""PointEntity"" AS p");
         }
 
         public override async Task GetGeometryN(bool async)
         {
             await base.GetGeometryN(async);
 
-//            AssertSql(
-//                @"SELECT m.""Id"", ST_GeometryN(m.""MultiLineString"", 1) AS ""Geometry0""
-//FROM ""MultiLineStringEntity"" AS m");
+            AssertSql(
+                @"SELECT m.""Id"", ST_GeometryN(m.""MultiLineString"", 1) AS ""Geometry0""
+FROM ""MultiLineStringEntity"" AS m");
         }
 
         public override async Task GetInteriorRingN(bool async)
         {
             await base.GetInteriorRingN(async);
 
-//            AssertSql(
-//                @"SELECT p.""Id"", CASE
-//    WHEN p.""Polygon"" IS NULL OR (ST_NumInteriorRings(p.""Polygon"") = 0)
-//    THEN NULL ELSE ST_InteriorRingN(p.""Polygon"", 1)
-//END AS ""InteriorRing0""
-//FROM ""PolygonEntity"" AS p");
+            AssertSql(
+                @"SELECT p.""Id"", CASE
+    WHEN ST_NumInteriorRings(p.""Polygon"") = 0 THEN NULL
+    ELSE ST_InteriorRingN(p.""Polygon"", 1)
+END AS ""InteriorRing0""
+FROM ""PolygonEntity"" AS p");
         }
 
         public override async Task GetPointN(bool async)
         {
             await base.GetPointN(async);
 
-//            AssertSql(
-//                @"SELECT l.""Id"", ST_PointN(l.""LineString"", 1) AS ""Point0""
-//FROM ""LineStringEntity"" AS l");
+            AssertSql(
+                @"SELECT l.""Id"", ST_PointN(l.""LineString"", 1) AS ""Point0""
+FROM ""LineStringEntity"" AS l");
         }
 
         public override async Task InteriorPoint(bool async)
@@ -257,26 +257,26 @@ FROM ""PolygonEntity"" AS p");
         {
             await base.Intersection(async);
 
-//            AssertSql(
-//                @"@__polygon_0='POLYGON ((0 0
-//1 0
-//1 1
-//0 0))' (DbType = Object)
-//
-//SELECT p.""Id"", ST_Intersection(p.""Polygon"", @__polygon_0) AS ""Intersection""
-//FROM ""PolygonEntity"" AS p");
+            AssertSql(
+                @"@__polygon_0='POLYGON ((0 0
+1 0
+1 1
+0 0))' (DbType = Object)
+
+SELECT p.""Id"", ST_Intersection(p.""Polygon"", @__polygon_0) AS ""Intersection""
+FROM ""PolygonEntity"" AS p");
         }
 
         public override async Task Intersects(bool async)
         {
             await base.Intersects(async);
 
-//            AssertSql(
-//                @"@__lineString_0='LINESTRING (0.5 -0.5
-//0.5 0.5)' (DbType = Object)
-//
-//SELECT l.""Id"", ST_Intersects(l.""LineString"", @__lineString_0) AS ""Intersects""
-//FROM ""LineStringEntity"" AS l");
+            AssertSql(
+                @"@__lineString_0='LINESTRING (0.5 -0.5
+0.5 0.5)' (DbType = Object)
+
+SELECT l.""Id"", ST_Intersects(l.""LineString"", @__lineString_0) AS ""Intersects""
+FROM ""LineStringEntity"" AS l");
         }
 
         public override async Task ICurve_IsClosed(bool async)
@@ -337,20 +337,20 @@ FROM ""PointEntity"" AS p");
         {
             await base.IsWithinDistance(async);
 
-//            AssertSql(
-//                @"@__point_0='POINT (0 1)' (DbType = Object)
-//
-//SELECT p.""Id"", ST_DWithin(p.""Point"", @__point_0, 1.0) AS ""IsWithinDistance""
-//FROM ""PointEntity"" AS p");
+            AssertSql(
+                @"@__point_0='POINT (0 1)' (DbType = Object)
+
+SELECT p.""Id"", ST_DWithin(p.""Point"", @__point_0, 1.0) AS ""IsWithinDistance""
+FROM ""PointEntity"" AS p");
         }
 
         public override async Task Item(bool async)
         {
             await base.Item(async);
 
-//            AssertSql(
-//                @"SELECT m.""Id"", ST_GeometryN(m.""MultiLineString"", 1) AS ""Item0""
-//FROM ""MultiLineStringEntity"" AS m");
+            AssertSql(
+                @"SELECT m.""Id"", ST_GeometryN(m.""MultiLineString"", 1) AS ""Item0""
+FROM ""MultiLineStringEntity"" AS m");
         }
 
         public override async Task Length(bool async)
@@ -426,14 +426,14 @@ FROM ""PointEntity"" AS p");
         {
             await base.Overlaps(async);
 
-//            AssertSql(
-//                @"@__polygon_0='POLYGON ((0 0
-//1 0
-//1 1
-//0 0))' (DbType = Object)
-//
-//SELECT p.""Id"", ST_Overlaps(p.""Polygon"", @__polygon_0) AS ""Overlaps""
-//FROM ""PolygonEntity"" AS p");
+            AssertSql(
+                @"@__polygon_0='POLYGON ((0 0
+1 0
+1 1
+0 0))' (DbType = Object)
+
+SELECT p.""Id"", ST_Overlaps(p.""Polygon"", @__polygon_0) AS ""Overlaps""
+FROM ""PolygonEntity"" AS p");
         }
 
         public override async Task PointOnSurface(bool async)
@@ -449,14 +449,14 @@ FROM ""PolygonEntity"" AS p");
         {
             await base.Relate(async);
 
-//            AssertSql(
-//                @"@__polygon_0='POLYGON ((0 0
-//1 0
-//1 1
-//0 0))' (DbType = Object)
-//
-//SELECT p.""Id"", ST_Relate(p.""Polygon"", @__polygon_0, '212111212') AS ""Relate""
-//FROM ""PolygonEntity"" AS p");
+            AssertSql(
+                @"@__polygon_0='POLYGON ((0 0
+1 0
+1 1
+0 0))' (DbType = Object)
+
+SELECT p.""Id"", ST_Relate(p.""Polygon"", @__polygon_0, '212111212') AS ""Relate""
+FROM ""PolygonEntity"" AS p");
         }
 
         public override async Task SRID(bool async)
@@ -481,84 +481,84 @@ FROM ""LineStringEntity"" AS l");
         {
             await base.SymmetricDifference(async);
 
-//            AssertSql(
-//                @"@__polygon_0='POLYGON ((0 0
-//1 0
-//1 1
-//0 0))' (DbType = Object)
-//
-//SELECT l.""Id"", ST_SymDifference(p.""Polygon"", @__polygon_0) AS ""SymmetricDifference""
-//FROM ""PolygonEntity"" AS p");
+            AssertSql(
+                @"@__polygon_0='POLYGON ((0 0
+1 0
+1 1
+0 0))' (DbType = Object)
+
+SELECT p.""Id"", ST_SymDifference(p.""Polygon"", @__polygon_0) AS ""SymmetricDifference""
+FROM ""PolygonEntity"" AS p");
         }
 
         public override async Task ToBinary(bool async)
         {
             await base.ToBinary(async);
 
-//            AssertSql(
-//                @"SELECT p.""Id"", ST_AsBinary(p.""Point"") AS ""Binary""
-//FROM ""PointEntity"" AS p");
+            AssertSql(
+                @"SELECT p.""Id"", ST_AsBinary(p.""Point"") AS ""Binary""
+FROM ""PointEntity"" AS p");
         }
 
         public override async Task ToText(bool async)
         {
             await base.ToText(async);
 
-//            AssertSql(
-//                @"SELECT p.""Id"", ST_AsText(p.""Point"") AS ""Text""
-//FROM ""PointEntity"" AS p");
+            AssertSql(
+                @"SELECT p.""Id"", ST_AsText(p.""Point"") AS ""Text""
+FROM ""PointEntity"" AS p");
         }
 
         public override async Task Touches(bool async)
         {
             await base.Touches(async);
 
-//            AssertSql(
-//                @"@__polygon_0='POLYGON ((0 1
-//1 0
-//1 1
-//0 1))' (DbType = Object)
-//
-//SELECT p.""Id"", ST_Touches(p.""Polygon"", @__polygon_0) AS ""Touches""
-//FROM ""PolygonEntity"" AS p");
+            AssertSql(
+                @"@__polygon_0='POLYGON ((0 1
+1 0
+1 1
+0 1))' (DbType = Object)
+
+SELECT p.""Id"", ST_Touches(p.""Polygon"", @__polygon_0) AS ""Touches""
+FROM ""PolygonEntity"" AS p");
         }
 
         public override async Task Union(bool async)
         {
             await base.Union(async);
 
-//            AssertSql(
-//                @"@__polygon_0='POLYGON ((0 0
-//1 0
-//1 1
-//0 0))' (DbType = Object)
-//
-//SELECT p.""Id"", ST_Union(p.""Polygon"", @__polygon_0) AS ""Union""
-//FROM ""PolygonEntity"" AS p");
+            AssertSql(
+                @"@__polygon_0='POLYGON ((0 0
+1 0
+1 1
+0 0))' (DbType = Object)
+
+SELECT p.""Id"", ST_Union(p.""Polygon"", @__polygon_0) AS ""Union""
+FROM ""PolygonEntity"" AS p");
         }
 
         public override async Task Union_void(bool async)
         {
             await base.Union_void(async);
 
-//            AssertSql(
-//                @"SELECT m.""Id"", ST_UnaryUnion(m.""MultiLineString"") AS ""Union""
-//FROM ""MultiLineStringEntity"" AS m");
+            AssertSql(
+                @"SELECT m.""Id"", ST_UnaryUnion(m.""MultiLineString"") AS ""Union""
+FROM ""MultiLineStringEntity"" AS m");
         }
 
         public override async Task Within(bool async)
         {
             await base.Within(async);
 
-//            AssertSql(
-//                @"@__polygon_0='POLYGON ((-1 -1
-//2 -1
-//2 2
-//-1 2
-//-1 -1))' (DbType = Object)
-//
-//SELECT p.""Id"", ST_Within(p.""Point"", @__polygon_0) AS ""Within""
-//FROM ""PointEntity"" AS p");
+            AssertSql(
+                @"@__polygon_0='POLYGON ((-1 -1
+2 -1
+2 2
+-1 2
+-1 -1))' (DbType = Object)
+
+SELECT p.""Id"", ST_Within(p.""Point"", @__polygon_0) AS ""Within""
+FROM ""PointEntity"" AS p");
         }
 
         public override async Task X(bool async)

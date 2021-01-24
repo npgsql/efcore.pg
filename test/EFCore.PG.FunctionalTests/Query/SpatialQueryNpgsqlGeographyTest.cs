@@ -20,7 +20,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         // ReSharper disable once UnusedParameter.Local
         public SpatialQueryNpgsqlGeographyTest(SpatialQueryNpgsqlGeographyFixture fixture, ITestOutputHelper testOutputHelper)
             : base(fixture)
-            => Fixture.TestSqlLoggerFactory.Clear();
+        {
+            Fixture.TestSqlLoggerFactory.Clear();
+            Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+        }
 
         protected override bool AssertDistances
             => false;
@@ -46,36 +49,36 @@ FROM ""PolygonEntity"" AS p");
         {
             await base.AsBinary(async);
 
-//            AssertSql(
-//                @"SELECT p.""Id"", ST_AsBinary(p.""Point"") AS ""Binary""
-//FROM ""PointEntity"" AS p");
+            AssertSql(
+                @"SELECT p.""Id"", ST_AsBinary(p.""Point"") AS ""Binary""
+FROM ""PointEntity"" AS p");
         }
 
         public override async Task AsText(bool async)
         {
             await base.AsText(async);
 
-//            AssertSql(
-//                @"SELECT p.""Id"", ST_AsText(p.""Point"") AS ""Text""
-//FROM ""PointEntity"" AS p");
+            AssertSql(
+                @"SELECT p.""Id"", ST_AsText(p.""Point"") AS ""Text""
+FROM ""PointEntity"" AS p");
         }
 
         public override async Task Buffer(bool async)
         {
             await base.Buffer(async);
 
-//            AssertSql(
-//                @"SELECT p.""Id"", ST_Buffer(p.""Polygon"", 1.0) AS ""Buffer""
-//FROM ""PolygonEntity"" AS p");
+            AssertSql(
+                @"SELECT p.""Id"", ST_Buffer(p.""Polygon"", 1.0) AS ""Buffer""
+FROM ""PolygonEntity"" AS p");
         }
 
         public override async Task Buffer_quadrantSegments(bool async)
         {
             await base.Buffer_quadrantSegments(async);
 
-//            AssertSql(
-//                @"SELECT p.""Id"", ST_Buffer(p.""Polygon"", 1.0, 8) AS ""Buffer""
-//FROM ""PolygonEntity"" AS p");
+            AssertSql(
+                @"SELECT p.""Id"", ST_Buffer(p.""Polygon"", 1.0, 8) AS ""Buffer""
+FROM ""PolygonEntity"" AS p");
         }
 
         public override async Task Centroid(bool async)
@@ -86,8 +89,6 @@ FROM ""PolygonEntity"" AS p");
                 @"SELECT p.""Id"", ST_Centroid(p.""Polygon"") AS ""Centroid""
 FROM ""PolygonEntity"" AS p");
         }
-
-        // TODO: Distance_*
 
         [ConditionalTheory]
         [MemberData(nameof(IsAsyncDataAndUseSpheroid))]
@@ -124,46 +125,49 @@ FROM ""PointEntity"" AS p");
                     e => new { e.Id, GeometryType = e.Point == null ? null : e.Point.GeometryType.ToLower() }),
                 x => x.Id);
 
-//            AssertSql(
-//                @"SELECT p.""Id"", LOWER(GeometryType(p.""Point"")) AS ""GeometryType""
-//FROM ""PointEntity"" AS p");
+            AssertSql(
+                @"SELECT p.""Id"", CASE
+    WHEN (p.""Point"" IS NULL) THEN NULL
+    ELSE lower(GeometryType(p.""Point""))
+END AS ""GeometryType""
+FROM ""PointEntity"" AS p");
         }
 
         public override async Task Intersection(bool async)
         {
             await base.Intersection(async);
 
-//            AssertSql(
-//                @"@__polygon_0='POLYGON ((0 0
-//1 0
-//1 1
-//0 0))' (DbType = Object)
-//
-//SELECT p.""Id"", ST_Intersection(p.""Polygon"", @__polygon_0) AS ""Intersection""
-//FROM ""PolygonEntity"" AS p");
+            AssertSql(
+                @"@__polygon_0='POLYGON ((0 0
+1 0
+1 1
+0 0))' (DbType = Object)
+
+SELECT p.""Id"", ST_Intersection(p.""Polygon"", @__polygon_0) AS ""Intersection""
+FROM ""PolygonEntity"" AS p");
         }
 
         public override async Task Intersects(bool async)
         {
             await base.Intersects(async);
 
-//            AssertSql(
-//                @"@__lineString_0='LINESTRING (0.5 -0.5
-//0.5 0.5)' (DbType = Object)
-//
-//SELECT l.""Id"", ST_Intersects(l.""LineString"", @__lineString_0) AS ""Intersects""
-//FROM ""LineStringEntity"" AS l");
+            AssertSql(
+                @"@__lineString_0='LINESTRING (0.5 -0.5
+0.5 0.5)' (DbType = Object)
+
+SELECT l.""Id"", ST_Intersects(l.""LineString"", @__lineString_0) AS ""Intersects""
+FROM ""LineStringEntity"" AS l");
         }
 
         public override async Task IsWithinDistance(bool async)
         {
             await base.IsWithinDistance(async);
 
-//            AssertSql(
-//                @"@__point_0='POINT (0 1)' (DbType = Object)
-//
-//SELECT p.""Id"", ST_DWithin(p.""Point"", @__point_0, 1.0) AS ""IsWithinDistance""
-//FROM ""PointEntity"" AS p");
+            AssertSql(
+                @"@__point_0='POINT (0 1)' (DbType = Object)
+
+SELECT p.""Id"", ST_DWithin(p.""Point"", @__point_0, 1.0) AS ""IsWithinDistance""
+FROM ""PointEntity"" AS p");
         }
 
         [ConditionalTheory]
@@ -223,18 +227,18 @@ FROM ""PointEntity"" AS p");
         {
             await base.ToBinary(async);
 
-//            AssertSql(
-//                @"SELECT p.""Id"", ST_AsBinary(p.""Point"") AS ""Binary""
-//FROM ""PointEntity"" AS p");
+            AssertSql(
+                @"SELECT p.""Id"", ST_AsBinary(p.""Point"") AS ""Binary""
+FROM ""PointEntity"" AS p");
         }
 
         public override async Task ToText(bool async)
         {
             await base.ToText(async);
 
-//            AssertSql(
-//                @"SELECT p.""Id"", ST_AsText(p.""Point"") AS ""Text""
-//FROM ""PointEntity"" AS p");
+            AssertSql(
+                @"SELECT p.""Id"", ST_AsText(p.""Point"") AS ""Text""
+FROM ""PointEntity"" AS p");
         }
 
         #region Not supported on geography
@@ -245,8 +249,8 @@ FROM ""PointEntity"" AS p");
         public override Task Crosses(bool async)                         => Task.CompletedTask;
         public override Task Difference(bool async)                      => Task.CompletedTask;
         public override Task Dimension(bool async)                       => Task.CompletedTask;
-        public override Task Disjoint_with_cast_to_nullable(bool async)    => Task.CompletedTask;
-        public override Task Disjoint_with_null_check(bool async)          => Task.CompletedTask;
+        public override Task Disjoint_with_cast_to_nullable(bool async)  => Task.CompletedTask;
+        public override Task Disjoint_with_null_check(bool async)        => Task.CompletedTask;
         public override Task EndPoint(bool async)                        => Task.CompletedTask;
         public override Task Envelope(bool async)                        => Task.CompletedTask;
         public override Task EqualsTopologically(bool async)             => Task.CompletedTask;
