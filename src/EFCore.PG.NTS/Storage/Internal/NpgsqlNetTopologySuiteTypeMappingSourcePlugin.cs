@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Storage;
 using NetTopologySuite.Geometries;
@@ -67,7 +66,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         /// attempts to parse it and return its components.
         /// </summary>
         public static bool TryParseStoreTypeName(
-            string storeTypeName,
+            [NotNull] string storeTypeName,
             out string subtypeName,
             out bool isGeography,
             out Type clrType,

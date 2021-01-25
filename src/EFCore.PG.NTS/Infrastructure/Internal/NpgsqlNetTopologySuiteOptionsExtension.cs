@@ -17,7 +17,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
     {
         DbContextOptionsExtensionInfo _info;
 
-        public bool IsGeographyDefault { get; private set; }
+        public virtual bool IsGeographyDefault { get; private set; }
 
         public NpgsqlNetTopologySuiteOptionsExtension() {}
 

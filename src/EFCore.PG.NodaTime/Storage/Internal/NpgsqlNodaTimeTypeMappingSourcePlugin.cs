@@ -13,8 +13,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 {
     public class NpgsqlNodaTimeTypeMappingSourcePlugin : IRelationalTypeMappingSourcePlugin
     {
-        public ConcurrentDictionary<string, RelationalTypeMapping[]> StoreTypeMappings { get; }
-        public ConcurrentDictionary<Type, RelationalTypeMapping> ClrTypeMappings { get; }
+        public virtual ConcurrentDictionary<string, RelationalTypeMapping[]> StoreTypeMappings { get; }
+        public virtual ConcurrentDictionary<Type, RelationalTypeMapping> ClrTypeMappings { get; }
 
         #region TypeMapping
 
@@ -93,7 +93,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             ClrTypeMappings = new ConcurrentDictionary<Type, RelationalTypeMapping>(clrTypeMappings);
         }
 
-        public RelationalTypeMapping FindMapping(in RelationalTypeMappingInfo mappingInfo)
+        public virtual RelationalTypeMapping FindMapping(in RelationalTypeMappingInfo mappingInfo)
             => FindExistingMapping(mappingInfo) ?? FindArrayMapping(mappingInfo);
 
         protected virtual RelationalTypeMapping FindExistingMapping(in RelationalTypeMappingInfo mappingInfo)

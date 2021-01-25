@@ -21,7 +21,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
     /// </remarks>
     public class NpgsqlNodaTimeMethodCallTranslatorPlugin : IMethodCallTranslatorPlugin
     {
-        public NpgsqlNodaTimeMethodCallTranslatorPlugin(ISqlExpressionFactory sqlExpressionFactory)
+        public NpgsqlNodaTimeMethodCallTranslatorPlugin([NotNull] ISqlExpressionFactory sqlExpressionFactory)
         {
             Translators = new IMethodCallTranslator[]
             {
@@ -68,12 +68,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
             new[] { true, true },
         };
 
-        public NpgsqlNodaTimeMethodCallTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory)
+        public NpgsqlNodaTimeMethodCallTranslator([NotNull] NpgsqlSqlExpressionFactory sqlExpressionFactory)
             => _sqlExpressionFactory = sqlExpressionFactory;
 
 #pragma warning disable EF1001
         /// <inheritdoc />
-        public SqlExpression Translate(
+        public virtual SqlExpression Translate(
             SqlExpression instance,
             MethodInfo method,
             IReadOnlyList<SqlExpression> arguments,

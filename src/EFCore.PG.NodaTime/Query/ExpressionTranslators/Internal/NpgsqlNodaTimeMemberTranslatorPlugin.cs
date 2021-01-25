@@ -19,7 +19,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
     /// </remarks>
     public class NpgsqlNodaTimeMemberTranslatorPlugin : IMemberTranslatorPlugin
     {
-        public NpgsqlNodaTimeMemberTranslatorPlugin(ISqlExpressionFactory sqlExpressionFactory)
+        public NpgsqlNodaTimeMemberTranslatorPlugin([NotNull] ISqlExpressionFactory sqlExpressionFactory)
         {
             Translators = new IMemberTranslator[]
             {
@@ -46,7 +46,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
         [NotNull] static readonly MemberInfo Instance =
             typeof(SystemClock).GetRuntimeProperty(nameof(SystemClock.Instance));
 
-        public NpgsqlNodaTimeMemberTranslator(ISqlExpressionFactory sqlExpressionFactory)
+        public NpgsqlNodaTimeMemberTranslator([NotNull] ISqlExpressionFactory sqlExpressionFactory)
             => _sqlExpressionFactory = sqlExpressionFactory;
 
         static readonly bool[][] TrueArrays =
@@ -57,7 +57,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
         };
 
         /// <inheritdoc />
-        public SqlExpression Translate(
+        public virtual SqlExpression Translate(
             SqlExpression instance,
             MemberInfo member,
             Type returnType,

@@ -22,8 +22,8 @@ namespace Microsoft.EntityFrameworkCore
         /// </returns>
         public static NpgsqlDbContextOptionsBuilder UseNetTopologySuite(
             [NotNull] this NpgsqlDbContextOptionsBuilder optionsBuilder,
-            CoordinateSequenceFactory coordinateSequenceFactory = null,
-            PrecisionModel precisionModel = null,
+            [CanBeNull] CoordinateSequenceFactory coordinateSequenceFactory = null,
+            [CanBeNull] PrecisionModel precisionModel = null,
             Ordinates handleOrdinates = Ordinates.None,
             bool geographyAsDefault = false)
         {
