@@ -1799,15 +1799,23 @@ ALTER TABLE foo ADD COLUMN id2 int primary key;",
         public void Postgres_extensions()
             => Test(@"
 CREATE EXTENSION hstore;
-CREATE EXTENSION pgcrypto;",
+CREATE EXTENSION pgcrypto SCHEMA db2;",
                 Enumerable.Empty<string>(),
                 Enumerable.Empty<string>(),
                 dbModel =>
                 {
                     var extensions = dbModel.GetPostgresExtensions();
-                    Assert.Equal(2, extensions.Count);
-                    Assert.Single(extensions, e => e.Name == "hstore");
-                    Assert.Single(extensions, e => e.Name == "pgcrypto");
+                    Assert.Collection(extensions.OrderBy(e => e.Name),
+                        e =>
+                        {
+                            Assert.Equal("hstore", e.Name);
+                            Assert.Equal("public", e.Schema);
+                        },
+                        e =>
+                        {
+                            Assert.Equal("pgcrypto", e.Name);
+                            Assert.Equal("db2", e.Schema);
+                        });
                 },
                 "DROP EXTENSION hstore; DROP EXTENSION pgcrypto");
 

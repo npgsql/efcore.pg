@@ -930,24 +930,22 @@ GROUP BY nspname, typname";
         /// </summary>
         static void GetExtensions(NpgsqlConnection connection, DatabaseModel databaseModel)
         {
-            const string commandText = "SELECT name, default_version, installed_version FROM pg_available_extensions";
+            const string commandText = @"
+SELECT ns.nspname, extname, extversion FROM pg_extension
+JOIN pg_namespace ns ON ns.oid=extnamespace";
             using var command = new NpgsqlCommand(commandText, connection);
             using var reader = command.ExecuteReader();
 
             while (reader.Read())
             {
-                var name = reader.GetString(reader.GetOrdinal("name"));
-                var _ = reader.GetValueOrDefault<string>("default_version");
-                var installedVersion = reader.GetValueOrDefault<string>("installed_version");
-
-                if (installedVersion == null)
-                    continue;
+                var schema = reader.GetFieldValue<string?>("nspname");
+                var name = reader.GetString(reader.GetOrdinal("extname"));
+                var version = reader.GetValueOrDefault<string>("extversion");
 
                 if (name == "plpgsql") // Implicitly installed in all PG databases
                     continue;
 
-                // TODO: how/should we query the schema?
-                databaseModel.GetOrAddPostgresExtension(null, name, installedVersion);
+                databaseModel.GetOrAddPostgresExtension(schema, name, version);
             }
         }
 

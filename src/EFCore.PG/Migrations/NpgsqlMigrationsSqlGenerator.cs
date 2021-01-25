@@ -924,18 +924,25 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             [NotNull] IModel model,
             [NotNull] MigrationCommandListBuilder builder)
         {
+            var schema = extension.Schema ?? model.GetDefaultSchema();
+
+            // Schemas are normally created (or rather ensured) by the model differ, which scans all tables, sequences
+            // and other database objects. However, it isn't aware of extensions, so we always ensure schema on enum creation.
+            if (schema is not null)
+                Generate(new EnsureSchemaOperation { Name = schema }, model, builder);
+
             builder
                 .Append("CREATE EXTENSION IF NOT EXISTS ")
                 .Append(DelimitIdentifier(extension.Name));
 
-            if (extension.Schema != null)
+            if (extension.Schema is not null)
             {
                 builder
                     .Append(" SCHEMA ")
                     .Append(DelimitIdentifier(extension.Schema));
             }
 
-            if (extension.Version != null)
+            if (extension.Version is not null)
             {
                 builder
                     .Append(" VERSION ")
@@ -1098,7 +1105,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             // Schemas are normally created (or rather ensured) by the model differ, which scans all tables, sequences
             // and other database objects. However, it isn't aware of enums, so we always ensure schema on enum creation.
-            if (schema != null)
+            if (schema is not null)
                 Generate(new EnsureSchemaOperation { Name = schema }, model, builder);
 
             builder
@@ -1145,7 +1152,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 .Append(" ADD VALUE ")
                 .Append(_stringTypeMapping.GenerateSqlLiteral(addedLabel));
 
-            if (beforeLabel != null)
+            if (beforeLabel is not null)
             {
                 builder
                     .Append(" BEFORE ")
@@ -1197,7 +1204,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             // Schemas are normally created (or rather ensured) by the model differ, which scans all tables, sequences
             // and other database objects. However, it isn't aware of ranges, so we always ensure schema on range creation.
-            if (schema != null)
+            if (schema is not null)
                 Generate(new EnsureSchemaOperation { Name = schema }, model, builder);
 
             builder

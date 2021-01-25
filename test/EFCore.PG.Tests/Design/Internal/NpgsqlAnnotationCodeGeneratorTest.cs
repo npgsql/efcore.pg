@@ -147,6 +147,53 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
                 schema => Assert.Equal("HiLoIndexSchema", schema));
         }
 
+        [ConditionalFact]
+        public void Extension()
+        {
+            var generator = CreateGenerator();
+            var modelBuilder = new ModelBuilder(NpgsqlConventionSetBuilder.Build());
+            modelBuilder.HasPostgresExtension("postgis");
+
+            var model = modelBuilder.Model;
+            var annotations = model.GetAnnotations().ToDictionary(a => a.Name, a => a);
+            var result = generator.GenerateFluentApiCalls(model, annotations)
+                .Single(c => c.Method == nameof(NpgsqlModelBuilderExtensions.HasPostgresExtension));
+
+            Assert.Collection(result.Arguments, name => Assert.Equal("postgis", name));
+        }
+
+        [ConditionalFact]
+        public void Extension_with_schema()
+        {
+            var generator = CreateGenerator();
+            var modelBuilder = new ModelBuilder(NpgsqlConventionSetBuilder.Build());
+            modelBuilder.HasPostgresExtension("some_schema", "postgis");
+
+            var model = modelBuilder.Model;
+            var annotations = model.GetAnnotations().ToDictionary(a => a.Name, a => a);
+            var result = generator.GenerateFluentApiCalls(model, annotations)
+                .Single(c => c.Method == nameof(NpgsqlModelBuilderExtensions.HasPostgresExtension));
+
+            Assert.Collection(result.Arguments,
+                schema => Assert.Equal("some_schema", schema),
+                name => Assert.Equal("postgis", name));
+        }
+
+        [ConditionalFact]
+        public void Extension_with_null_schema()
+        {
+            var generator = CreateGenerator();
+            var modelBuilder = new ModelBuilder(NpgsqlConventionSetBuilder.Build());
+            modelBuilder.HasPostgresExtension(null, "postgis");
+
+            var model = modelBuilder.Model;
+            var annotations = model.GetAnnotations().ToDictionary(a => a.Name, a => a);
+            var result = generator.GenerateFluentApiCalls(model, annotations)
+                .Single(c => c.Method == nameof(NpgsqlModelBuilderExtensions.HasPostgresExtension));
+
+            Assert.Collection(result.Arguments, name => Assert.Equal("postgis", name));
+        }
+
         NpgsqlAnnotationCodeGenerator CreateGenerator()
             => new(new AnnotationCodeGeneratorDependencies(
                 new NpgsqlTypeMappingSource(
