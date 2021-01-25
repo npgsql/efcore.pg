@@ -455,7 +455,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             {
                 // Containment of array within an array, or range within range, or item within range.
                 // Note that containment of item within an array is expressed via ArrayAnyAllExpression
-                if (left.Type == right.Type)
+                if (left.Type == right.Type && left.Type.IsArrayOrGenericList())
                     goto case PostgresExpressionType.Overlaps;
 
                 SqlExpression newLeft, newRight;
@@ -507,27 +507,66 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             var arrayTypeMapping = typeMapping as NpgsqlArrayTypeMapping;
             if (arrayTypeMapping is null && typeMapping != null)
                 throw new ArgumentException($"Type mapping {typeMapping.GetType().Name} isn't an {nameof(NpgsqlArrayTypeMapping)}");
-            var elementTypeMapping = arrayTypeMapping?.ElementMapping;
 
-            List<SqlExpression> newInitializers = null;
-            for (var i = 0; i < postgresNewArrayExpression.Initializers.Count; i++)
+            RelationalTypeMapping elementTypeMapping = null;
+
+            // First, loop over the expressions to infer the array's type mapping (if not provided), and to make
+            // sure we don't have heterogeneous mappings.
+            foreach (var expression in postgresNewArrayExpression.Expressions)
             {
-                var initializer = postgresNewArrayExpression.Initializers[i];
-                var newInitializer = ApplyTypeMapping(initializer, elementTypeMapping);
-                if (newInitializer != initializer && newInitializers is null)
+                if (expression.TypeMapping is not null)
                 {
-                    newInitializers = new List<SqlExpression>();
-                    for (var j = 0; j < i; j++)
-                        newInitializers.Add(postgresNewArrayExpression.Initializers[j]);
+                    if (elementTypeMapping is null)
+                    {
+                        elementTypeMapping = expression.TypeMapping;
+                    }
+                    else if (elementTypeMapping != expression.TypeMapping)
+                    {
+                        throw new InvalidOperationException(
+                            $"Heterogeneous type mappings detected when making new array ({elementTypeMapping}, {expression.TypeMapping})");
+                    }
+                }
+            }
+
+            // None of the array's expressions had a type mapping (i.e. no columns, only parameters/constants)
+            // Use the type mapping given externally
+            if (elementTypeMapping is null)
+            {
+                // No type mapping could be inferred from the expressions, nor was one given from the outside -
+                // we have no type mapping...
+                if (arrayTypeMapping is null)
+                {
+                    return postgresNewArrayExpression;
                 }
 
-                if (newInitializers != null)
-                    newInitializers.Add(newInitializer);
+                elementTypeMapping = arrayTypeMapping.ElementMapping;
+            }
+            else
+            {
+                // An element type mapping was successfully inferred from one of the expressions (there was a column).
+                // Infer the array's type mapping from it.
+                arrayTypeMapping = (NpgsqlArrayTypeMapping)_typeMappingSource.FindMapping(elementTypeMapping.StoreType + "[]");
+            }
+
+            // Now go over all expressions and apply the inferred element type mapping
+            List<SqlExpression> newExpressions = null;
+            for (var i = 0; i < postgresNewArrayExpression.Expressions.Count; i++)
+            {
+                var expression = postgresNewArrayExpression.Expressions[i];
+                var newExpression = ApplyTypeMapping(expression, elementTypeMapping);
+                if (newExpression != expression && newExpressions is null)
+                {
+                    newExpressions = new List<SqlExpression>();
+                    for (var j = 0; j < i; j++)
+                        newExpressions.Add(postgresNewArrayExpression.Expressions[j]);
+                }
+
+                newExpressions?.Add(newExpression);
             }
 
             return new PostgresNewArrayExpression(
-                newInitializers ?? postgresNewArrayExpression.Initializers,
-                postgresNewArrayExpression.Type, typeMapping);
+                newExpressions ?? postgresNewArrayExpression.Expressions,
+                postgresNewArrayExpression.Type, arrayTypeMapping);
         }
     }
 }

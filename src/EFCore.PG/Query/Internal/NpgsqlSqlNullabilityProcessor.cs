@@ -197,7 +197,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             var left = Visit(binaryExpression.Left, allowOptimizedExpansion, out var leftNullable);
             var right = Visit(binaryExpression.Right, allowOptimizedExpansion, out var rightNullable);
 
-            nullable = leftNullable || rightNullable;
+            nullable = binaryExpression.OperatorType switch
+            {
+                PostgresExpressionType.LTreeFirstAncestor   => true,
+                PostgresExpressionType.LTreeFirstDescendent => true,
+                PostgresExpressionType.LTreeFirstMatches    => true,
+                _                                           => leftNullable || rightNullable
+            };
 
             return binaryExpression.Update(left, right);
         }
@@ -244,9 +250,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             Check.NotNull(newArrayExpression, nameof(newArrayExpression));
 
             List<SqlExpression> newInitializers = null;
-            for (var i = 0; i < newArrayExpression.Initializers.Count; i++)
+            for (var i = 0; i < newArrayExpression.Expressions.Count; i++)
             {
-                var initializer = newArrayExpression.Initializers[i];
+                var initializer = newArrayExpression.Expressions[i];
                 var newInitializer = Visit(initializer, allowOptimizedExpansion, out _);
                 if (newInitializer != initializer && newInitializers is null)
                 {

@@ -5,17 +5,22 @@ using Microsoft.EntityFrameworkCore.Storage;
 using JetBrains.Annotations;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using NpgsqlTypes;
 
 // ReSharper disable once CheckNamespace
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 {
     [UsedImplicitly]
-    public class NpgsqlGeometryTypeMapping<TGeometry> : RelationalGeometryTypeMapping<TGeometry, TGeometry>
+    public class NpgsqlGeometryTypeMapping<TGeometry> : RelationalGeometryTypeMapping<TGeometry, TGeometry>, INpgsqlTypeMapping
     {
         readonly bool _isGeography;
 
-        public NpgsqlGeometryTypeMapping([NotNull] string storeType, bool isGeography) : base(converter: null, storeType)
+        /// <inheritdoc />
+        public NpgsqlDbType NpgsqlDbType
+            => _isGeography ? NpgsqlDbType.Geography : NpgsqlDbType.Geometry;
+
+        public NpgsqlGeometryTypeMapping(string storeType, bool isGeography) : base(converter: null, storeType)
             => _isGeography = isGeography;
 
         protected NpgsqlGeometryTypeMapping(RelationalTypeMappingParameters parameters)
@@ -28,7 +33,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         {
             base.ConfigureParameter(parameter);
 
-            ((NpgsqlParameter)parameter).NpgsqlDbType = _isGeography ? NpgsqlDbType.Geography : NpgsqlDbType.Geometry;
+            ((NpgsqlParameter)parameter).NpgsqlDbType = NpgsqlDbType;
         }
 
         protected override string GenerateNonNullSqlLiteral(object value)

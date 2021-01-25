@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
@@ -130,6 +131,43 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         [Fact]
         public void Unknown_StoreType_with_known_ClrType()
             => Assert.Equal("some_domain", Source.FindMapping(typeof(int), "some_domain").StoreType);
+
+        [Fact]
+        public void Array_over_type_mapping_with_value_converter_by_clr_type_array()
+            => Array_over_type_mapping_with_value_converter(Source.FindMapping(typeof(LTree[])), typeof(LTree[]));
+
+        [Fact]
+        public void Array_over_type_mapping_with_value_converter_by_clr_type_list()
+            => Array_over_type_mapping_with_value_converter(Source.FindMapping(typeof(List<LTree>)), typeof(List<LTree>));
+
+        [Fact]
+        public void Array_over_type_mapping_with_value_converter_by_store_type()
+            => Array_over_type_mapping_with_value_converter(Source.FindMapping("ltree[]"), typeof(LTree[]));
+
+        private void Array_over_type_mapping_with_value_converter(CoreTypeMapping mapping, Type expectedType)
+        {
+            var arrayMapping = (NpgsqlArrayTypeMapping)mapping;
+            Assert.Equal("ltree[]", arrayMapping.StoreType);
+            Assert.Same(expectedType, arrayMapping.ClrType);
+
+            var elementMapping = arrayMapping.ElementMapping;
+            Assert.NotNull(elementMapping);
+            Assert.Equal("ltree", elementMapping.StoreType);
+            Assert.Same(typeof(LTree), elementMapping.ClrType);
+
+            var arrayConverter = arrayMapping.Converter;
+            Assert.NotNull(arrayConverter);
+            Assert.Same(expectedType, arrayConverter.ModelClrType);
+            Assert.Same(typeof(string[]), arrayConverter.ProviderClrType);
+
+            Assert.Collection((string[])arrayConverter.ConvertToProvider(
+                    expectedType.IsArray
+                    ? new LTree[] { new("foo"), new("bar") }
+                    : new List<LTree> { new("foo"), new("bar") }),
+                s => Assert.Equal("foo", s),
+                s => Assert.Equal("bar", s));
+        }
+
 
         #region Support
 

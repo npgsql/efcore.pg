@@ -5,6 +5,8 @@ using System.Diagnostics;
 using System.Linq;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 {
@@ -39,7 +41,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
         NpgsqlArrayArrayTypeMapping(string storeType, RelationalTypeMapping elementMapping, Type arrayType)
             : this(new RelationalTypeMappingParameters(
-                new CoreTypeMappingParameters(arrayType, null, CreateComparer(elementMapping, arrayType)), storeType
+                new CoreTypeMappingParameters(
+                    arrayType,
+                    elementMapping.Converter is ValueConverter elementConverter
+                        ? (ValueConverter)Activator.CreateInstance(
+                            typeof(NpgsqlArrayConverter<,>).MakeGenericType(
+                                elementConverter.ModelClrType.MakeArrayType(),
+                                elementConverter.ProviderClrType.MakeArrayType()),
+                            elementConverter)
+                        : null,
+                    CreateComparer(elementMapping, arrayType)),
+                storeType
             ), elementMapping) {}
 
         protected NpgsqlArrayArrayTypeMapping(
@@ -53,7 +65,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
             => new NpgsqlArrayArrayTypeMapping(parameters, ElementMapping);
 
-        #region Value Comparison
+        #region Value comparer
 
         static ValueComparer CreateComparer(RelationalTypeMapping elementMapping, Type arrayType)
         {
@@ -173,6 +185,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             }
         }
 
-        #endregion Value Comparison
+        #endregion Value comparer
     }
 }
