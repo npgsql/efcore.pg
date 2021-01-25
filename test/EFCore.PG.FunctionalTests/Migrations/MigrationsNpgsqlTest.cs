@@ -2191,30 +2191,30 @@ SELECT setval(
                 {
                     var citext = Assert.Single(model.GetPostgresExtensions());
                     Assert.Equal("citext", citext.Name);
-                    Assert.Null(citext.Schema);
+                    Assert.Equal("public", citext.Schema);
                 });
 
             AssertSql(
                 @"CREATE EXTENSION IF NOT EXISTS citext;");
         }
 
-        public virtual Task Ensure_postgres_extension_with_extension()
+        [Fact]
+        public virtual async Task Ensure_postgres_extension_with_schema()
         {
-            // See https://github.com/npgsql/efcore.pg/issues/1220
-            return Task.CompletedTask;
+            await Test(
+                _ => { },
+                builder => builder.HasPostgresExtension("some_schema", "citext"),
+                model =>
+                {
+                    var citext = Assert.Single(model.GetPostgresExtensions());
+                    Assert.Equal("citext", citext.Name);
+                    Assert.Equal("some_schema", citext.Schema);
+                });
 
-            // await Test(
-            //     builder => { },
-            //     builder => builder.HasPostgresExtension("some_schema", "citext"),
-            //     model =>
-            //     {
-            //         var citext = Assert.Single(model.GetPostgresExtensions());
-            //         Assert.Equal("citext", citext.Name);
-            //         Assert.Equal("some_schema", citext.Schema);
-            //     });
-            //
-            // AssertSql(
-            //     @"CREATE EXTENSION IF NOT EXISTS citext;");
+            AssertSql(
+                @"CREATE SCHEMA IF NOT EXISTS some_schema;",
+                //
+                @"CREATE EXTENSION IF NOT EXISTS citext SCHEMA some_schema;");
         }
 
         #endregion

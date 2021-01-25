@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
@@ -86,8 +85,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             {
                 var extension = new PostgresExtension(model, annotation.Name);
 
-                return new MethodCallCodeFragment(nameof(NpgsqlModelBuilderExtensions.HasPostgresExtension),
-                    extension.Name);
+                return extension.Schema == "public" || extension.Schema is null
+                    ? new MethodCallCodeFragment(nameof(NpgsqlModelBuilderExtensions.HasPostgresExtension),
+                        extension.Name)
+                    : new MethodCallCodeFragment(nameof(NpgsqlModelBuilderExtensions.HasPostgresExtension),
+                        extension.Schema, extension.Name);
             }
 
             if (annotation.Name.StartsWith(NpgsqlAnnotationNames.EnumPrefix, StringComparison.Ordinal))
