@@ -53,7 +53,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             new[] { true, true }
         };
 
-        public NpgsqlTrigramsMethodTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory, IRelationalTypeMappingSource typeMappingSource)
+        public NpgsqlTrigramsMethodTranslator(
+            IRelationalTypeMappingSource typeMappingSource,
+            NpgsqlSqlExpressionFactory sqlExpressionFactory)
         {
             _sqlExpressionFactory = sqlExpressionFactory;
             _boolMapping = typeMappingSource.FindMapping(typeof(bool));
