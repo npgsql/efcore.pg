@@ -2,7 +2,6 @@ using System;
 using System.Data.Common;
 using System.Text;
 using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using JetBrains.Annotations;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
@@ -16,7 +15,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
     {
         readonly bool _isGeography;
 
-        public NpgsqlGeometryTypeMapping(string storeType, bool isGeography) : base(new NullValueConverter(), storeType)
+        public NpgsqlGeometryTypeMapping([NotNull] string storeType, bool isGeography) : base(converter: null, storeType)
             => _isGeography = isGeography;
 
         protected NpgsqlGeometryTypeMapping(RelationalTypeMappingParameters parameters)
@@ -54,11 +53,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 .Append('\'');
 
             return builder.ToString();
-        }
-
-        class NullValueConverter : ValueConverter<TGeometry, TGeometry>
-        {
-            public NullValueConverter() : base(t => t, t => t) {}
         }
 
         protected override string AsText(object value) => ((Geometry)value).AsText();

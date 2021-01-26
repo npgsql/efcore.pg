@@ -1,7 +1,9 @@
 using NetTopologySuite.Geometries;
 using System;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
+// ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore
 {
     public static class NpgsqlNetTopologySuiteDbFunctionsExtensions
@@ -14,7 +16,7 @@ namespace Microsoft.EntityFrameworkCore
         ///
         /// See https://postgis.net/docs/ST_Transform.html.
         /// </remarks>
-        public static TGeometry Transform<TGeometry>(this DbFunctions _, TGeometry geometry, int srid)
+        public static TGeometry Transform<TGeometry>([CanBeNull] this DbFunctions _, [NotNull] TGeometry geometry, int srid)
             where TGeometry : Geometry
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Transform)));
 
@@ -26,7 +28,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="distance">The distance value to compare.</param>
         /// <param name="useSpheroid">Whether to use sphere or spheroid distance measurement.</param>
         /// <returns>True if the geometries are less than distance apart.</returns>
-        public static bool IsWithinDistance(this DbFunctions _, Geometry geometry, Geometry anotherGeometry, double distance, bool useSpheroid)
+        public static bool IsWithinDistance([CanBeNull] this DbFunctions _, [NotNull] Geometry geometry, [NotNull] Geometry anotherGeometry, double distance, bool useSpheroid)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(IsWithinDistance)));
 
         /// <summary>
@@ -37,7 +39,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="useSpheroid">Whether to use sphere or spheroid distance measurement.</param>
         /// <returns>The distance between the geometries.</returns>
         /// <exception cref="ArgumentException">If g is null</exception>
-        public static double Distance(this DbFunctions _, Geometry geometry, Geometry anotherGeometry, bool useSpheroid)
+        public static double Distance([CanBeNull] this DbFunctions _, [NotNull] Geometry geometry, [NotNull] Geometry anotherGeometry, bool useSpheroid)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Distance)));
     }
 }

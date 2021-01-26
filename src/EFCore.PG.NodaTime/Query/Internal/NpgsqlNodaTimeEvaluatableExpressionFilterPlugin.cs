@@ -15,7 +15,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Query.Internal
         static readonly MemberInfo SystemClockInstanceMember =
             typeof(SystemClock).GetMember(nameof(SystemClock.Instance)).FirstOrDefault();
 
-        public bool IsEvaluatableExpression(Expression expression)
+        public virtual bool IsEvaluatableExpression(Expression expression)
             => !(
                 expression is MethodCallExpression methodExpression
                 && methodExpression.Method == GetCurrentInstantMethod

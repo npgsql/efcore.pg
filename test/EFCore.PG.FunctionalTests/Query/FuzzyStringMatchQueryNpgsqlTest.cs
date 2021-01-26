@@ -2,8 +2,6 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestUtilities;
-using Microsoft.Extensions.DependencyInjection;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -25,7 +23,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             Fixture = fixture;
             Fixture.TestSqlLoggerFactory.Clear();
-            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+            // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
         #region FunctionTests
@@ -139,18 +137,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         public class FuzzyStringMatchQueryNpgsqlFixture : SharedStoreFixtureBase<FuzzyStringMatchContext>
         {
             protected override string StoreName => "FuzzyStringMatchQueryTest";
-
-            protected override IServiceCollection AddServices(IServiceCollection serviceCollection)
-                => base.AddServices(serviceCollection).AddEntityFrameworkNpgsqlFuzzyStringMatch();
-
-            public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
-            {
-                var optionsBuilder = base.AddOptions(builder);
-                new NpgsqlDbContextOptionsBuilder(optionsBuilder).UseFuzzyStringMatch();
-
-                return optionsBuilder;
-            }
-
             protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
             public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
             protected override void Seed(FuzzyStringMatchContext context) => FuzzyStringMatchContext.Seed(context);

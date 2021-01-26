@@ -8,10 +8,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
     public class NpgsqlNetTopologySuiteOptions : INpgsqlNetTopologySuiteOptions
     {
         /// <inheritdoc />
-        public bool IsGeographyDefault { get; set; }
+        public virtual bool IsGeographyDefault { get; set; }
 
         /// <inheritdoc />
-        public void Initialize(IDbContextOptions options)
+        public virtual void Initialize(IDbContextOptions options)
         {
             var npgsqlNtsOptions = options.FindExtension<NpgsqlNetTopologySuiteOptionsExtension>() ?? new NpgsqlNetTopologySuiteOptionsExtension();
 
@@ -19,6 +19,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         }
 
         /// <inheritdoc />
-        public void Validate(IDbContextOptions options) {}
+        public virtual void Validate(IDbContextOptions options) {}
     }
 }

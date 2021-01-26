@@ -1,6 +1,8 @@
 ﻿using System;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
+// ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore
 {
     public static class NpgsqlTrigramsDbFunctionsExtensions
@@ -14,7 +16,7 @@ namespace Microsoft.EntityFrameworkCore
         ///
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
-        public static string[] TrigramsShow(this DbFunctions _, string text)
+        public static string[] TrigramsShow([CanBeNull] this DbFunctions _, [NotNull] string text)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(TrigramsShow)));
 
         /// <summary>
@@ -27,7 +29,7 @@ namespace Microsoft.EntityFrameworkCore
         ///
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
-        public static double TrigramsSimilarity(this DbFunctions _, string source, string target)
+        public static double TrigramsSimilarity([CanBeNull] this DbFunctions _, [NotNull] string source, [NotNull] string target)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(TrigramsSimilarity)));
 
         /// <summary>
@@ -40,7 +42,7 @@ namespace Microsoft.EntityFrameworkCore
         ///
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
-        public static double TrigramsWordSimilarity(this DbFunctions _, string source, string target)
+        public static double TrigramsWordSimilarity([CanBeNull] this DbFunctions _, [NotNull] string source, [NotNull] string target)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(TrigramsWordSimilarity)));
 
         /// <summary>
@@ -53,7 +55,7 @@ namespace Microsoft.EntityFrameworkCore
         ///
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
-        public static double TrigramsStrictWordSimilarity(this DbFunctions _, string source, string target)
+        public static double TrigramsStrictWordSimilarity([CanBeNull] this DbFunctions _, [NotNull] string source, [NotNull] string target)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(TrigramsStrictWordSimilarity)));
 
         /// <summary>
@@ -65,7 +67,7 @@ namespace Microsoft.EntityFrameworkCore
         ///
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
-        public static bool TrigramsAreSimilar(this DbFunctions _, string source, string target)
+        public static bool TrigramsAreSimilar([CanBeNull] this DbFunctions _, [NotNull] string source, [NotNull] string target)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(TrigramsAreSimilar)));
 
         /// <summary>
@@ -78,7 +80,7 @@ namespace Microsoft.EntityFrameworkCore
         ///
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
-        public static bool TrigramsAreWordSimilar(this DbFunctions _, string source, string target)
+        public static bool TrigramsAreWordSimilar([CanBeNull] this DbFunctions _, [NotNull] string source, [NotNull] string target)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(TrigramsAreWordSimilar)));
 
         /// <summary>
@@ -89,7 +91,7 @@ namespace Microsoft.EntityFrameworkCore
         ///
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
-        public static bool TrigramsAreNotWordSimilar(this DbFunctions _, string source, string target)
+        public static bool TrigramsAreNotWordSimilar([CanBeNull] this DbFunctions _, [NotNull] string source, [NotNull] string target)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(TrigramsAreNotWordSimilar)));
 
         /// <summary>
@@ -103,7 +105,7 @@ namespace Microsoft.EntityFrameworkCore
         ///
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
-        public static bool TrigramsAreStrictWordSimilar(this DbFunctions _, string source, string target)
+        public static bool TrigramsAreStrictWordSimilar([CanBeNull] this DbFunctions _, [NotNull] string source, [NotNull] string target)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(TrigramsAreStrictWordSimilar)));
 
         /// <summary>
@@ -114,7 +116,7 @@ namespace Microsoft.EntityFrameworkCore
         ///
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
-        public static bool TrigramsAreNotStrictWordSimilar(this DbFunctions _, string source, string target)
+        public static bool TrigramsAreNotStrictWordSimilar([CanBeNull] this DbFunctions _, [NotNull] string source, [NotNull] string target)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(TrigramsAreNotStrictWordSimilar)));
 
         /// <summary>
@@ -125,7 +127,7 @@ namespace Microsoft.EntityFrameworkCore
         ///
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
-        public static double TrigramsSimilarityDistance(this DbFunctions _, string source, string target)
+        public static double TrigramsSimilarityDistance([CanBeNull] this DbFunctions _, [NotNull] string source, [NotNull] string target)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(TrigramsSimilarityDistance)));
 
         /// <summary>
@@ -136,7 +138,7 @@ namespace Microsoft.EntityFrameworkCore
         ///
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
-        public static double TrigramsWordSimilarityDistance(this DbFunctions _, string source, string target)
+        public static double TrigramsWordSimilarityDistance([CanBeNull] this DbFunctions _, [NotNull] string source, [NotNull] string target)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(TrigramsWordSimilarityDistance)));
 
         /// <summary>
@@ -147,7 +149,7 @@ namespace Microsoft.EntityFrameworkCore
         ///
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
-        public static double TrigramsWordSimilarityDistanceInverted(this DbFunctions _, string source, string target)
+        public static double TrigramsWordSimilarityDistanceInverted([CanBeNull] this DbFunctions _, [NotNull] string source, [NotNull] string target)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(TrigramsWordSimilarityDistanceInverted)));
 
         /// <summary>
@@ -158,7 +160,7 @@ namespace Microsoft.EntityFrameworkCore
         ///
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
-        public static double TrigramsStrictWordSimilarityDistance(this DbFunctions _, string source, string target)
+        public static double TrigramsStrictWordSimilarityDistance([CanBeNull] this DbFunctions _, [NotNull] string source, [NotNull] string target)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(TrigramsStrictWordSimilarityDistance)));
 
         /// <summary>
@@ -169,7 +171,7 @@ namespace Microsoft.EntityFrameworkCore
         ///
         /// See https://www.postgresql.org/docs/current/pgtrgm.html.
         /// </remarks>
-        public static double TrigramsStrictWordSimilarityDistanceInverted(this DbFunctions _, string source, string target)
+        public static double TrigramsStrictWordSimilarityDistanceInverted([CanBeNull] this DbFunctions _, [NotNull] string source, [NotNull] string target)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(TrigramsStrictWordSimilarityDistanceInverted)));
     }
 }

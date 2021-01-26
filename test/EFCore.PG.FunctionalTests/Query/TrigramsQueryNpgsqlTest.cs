@@ -2,8 +2,6 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestUtilities;
-using Microsoft.Extensions.DependencyInjection;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -213,18 +211,6 @@ WHERE ((COALESCE(t.""Text"", '') || ' ') || COALESCE(t.""Text"", '')) % 'query'"
         public class TrigramsQueryNpgsqlFixture : SharedStoreFixtureBase<TrigramsContext>
         {
             protected override string StoreName => "TrigramsQueryTest";
-
-            protected override IServiceCollection AddServices(IServiceCollection serviceCollection)
-                => base.AddServices(serviceCollection).AddEntityFrameworkNpgsqlTrigrams();
-
-            public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
-            {
-                var optionsBuilder = base.AddOptions(builder);
-                new NpgsqlDbContextOptionsBuilder(optionsBuilder).UseTrigrams();
-
-                return optionsBuilder;
-            }
-
             protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
             public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
             protected override void Seed(TrigramsContext context) => TrigramsContext.Seed(context);

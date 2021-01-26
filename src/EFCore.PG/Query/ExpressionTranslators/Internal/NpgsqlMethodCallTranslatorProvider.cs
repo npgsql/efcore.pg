@@ -25,6 +25,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 new NpgsqlConvertTranslator(npgsqlSqlExpressionFactory),
                 new NpgsqlDateTimeMethodTranslator(typeMappingSource, npgsqlSqlExpressionFactory),
                 new NpgsqlFullTextSearchMethodTranslator(typeMappingSource, npgsqlSqlExpressionFactory),
+                new NpgsqlFuzzyStringMatchMethodTranslator(npgsqlSqlExpressionFactory),
                 new NpgsqlJsonDomTranslator(typeMappingSource, npgsqlSqlExpressionFactory),
                 new NpgsqlJsonDbFunctionsTranslator(typeMappingSource, npgsqlSqlExpressionFactory),
                 new NpgsqlLikeTranslator(npgsqlSqlExpressionFactory),
@@ -36,6 +37,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 new NpgsqlRangeTranslator(typeMappingSource, npgsqlSqlExpressionFactory),
                 new NpgsqlRegexIsMatchTranslator(npgsqlSqlExpressionFactory),
                 new NpgsqlStringMethodTranslator(npgsqlTypeMappingSource, npgsqlSqlExpressionFactory),
+                new NpgsqlTrigramsMethodTranslator(npgsqlTypeMappingSource, npgsqlSqlExpressionFactory),
             });
         }
     }

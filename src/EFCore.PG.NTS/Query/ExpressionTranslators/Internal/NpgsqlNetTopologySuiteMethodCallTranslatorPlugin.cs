@@ -17,8 +17,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     public class NpgsqlNetTopologySuiteMethodCallTranslatorPlugin : IMethodCallTranslatorPlugin
     {
         public NpgsqlNetTopologySuiteMethodCallTranslatorPlugin(
-            IRelationalTypeMappingSource typeMappingSource,
-            ISqlExpressionFactory sqlExpressionFactory)
+            [NotNull] IRelationalTypeMappingSource typeMappingSource,
+            [NotNull] ISqlExpressionFactory sqlExpressionFactory)
             => Translators = new IMethodCallTranslator[]
             {
                 new NpgsqlGeometryMethodTranslator(sqlExpressionFactory, typeMappingSource),
@@ -47,14 +47,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             new[] { true, true, true, true }
         };
 
-        public NpgsqlGeometryMethodTranslator(ISqlExpressionFactory sqlExpressionFactory, IRelationalTypeMappingSource typeMappingSource)
+        public NpgsqlGeometryMethodTranslator(
+            [NotNull] ISqlExpressionFactory sqlExpressionFactory,
+            [NotNull] IRelationalTypeMappingSource typeMappingSource)
         {
             _sqlExpressionFactory = sqlExpressionFactory;
             _typeMappingSource = typeMappingSource;
         }
 
         /// <inheritdoc />
-        public SqlExpression Translate(
+        public virtual SqlExpression Translate(
             SqlExpression instance,
             MethodInfo method,
             IReadOnlyList<SqlExpression> arguments,
@@ -65,7 +67,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     ? TranslateDbFunction(instance, method, arguments)
                     : null;
 
-        protected virtual SqlExpression TranslateDbFunction(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
+        protected virtual SqlExpression TranslateDbFunction(
+            [CanBeNull] SqlExpression instance,
+            [NotNull] MethodInfo method,
+            [NotNull] IReadOnlyList<SqlExpression> arguments)
             => method.Name switch
             {
                 nameof(NpgsqlNetTopologySuiteDbFunctionsExtensions.Transform) => _sqlExpressionFactory.Function(
@@ -78,13 +83,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
                 nameof(NpgsqlNetTopologySuiteDbFunctionsExtensions.Distance) =>
                     TranslateGeometryMethod(arguments[1], method, new[] { arguments[2], arguments[3] }),
-                nameof(NpgsqlNetTopologySuiteDbFunctionsExtensions.IsWithinDistance) => 
+                nameof(NpgsqlNetTopologySuiteDbFunctionsExtensions.IsWithinDistance) =>
                     TranslateGeometryMethod(arguments[1], method, new[] { arguments[2], arguments[3], arguments[4] }),
 
                 _ => null
             };
 
-        protected virtual SqlExpression TranslateGeometryMethod(SqlExpression instance, MethodInfo method, IReadOnlyList<SqlExpression> arguments)
+        protected virtual SqlExpression TranslateGeometryMethod(
+            [CanBeNull] SqlExpression instance,
+            [NotNull] MethodInfo method,
+            [NotNull] IReadOnlyList<SqlExpression> arguments)
         {
             var typeMapping = ExpressionExtensions.InferTypeMapping(
                 arguments.Prepend(instance).Where(e => typeof(Geometry).IsAssignableFrom(e.Type)).ToArray());
