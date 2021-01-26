@@ -1,4 +1,5 @@
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
+// ReSharper disable once CheckNamespace
+namespace Microsoft.EntityFrameworkCore.Metadata
 {
     /// <summary>
     /// Options for modifying sort ordering of <c>NULL</c>-values in indexes.
