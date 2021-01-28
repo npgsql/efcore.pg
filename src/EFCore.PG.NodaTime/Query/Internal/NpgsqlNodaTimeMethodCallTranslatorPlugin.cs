@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
 using NodaTime;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
@@ -53,6 +54,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Query.Internal
         private static readonly MethodInfo Period_FromHours   = typeof(Period).GetRuntimeMethod(nameof(Period.FromHours),        new[] { typeof(long) })!;
         private static readonly MethodInfo Period_FromMinutes = typeof(Period).GetRuntimeMethod(nameof(Period.FromMinutes),      new[] { typeof(long) })!;
         private static readonly MethodInfo Period_FromSeconds = typeof(Period).GetRuntimeMethod(nameof(Period.FromSeconds),      new[] { typeof(long) })!;
+
+        private static readonly MethodInfo DateInterval_Contains_LocalDate
+            = typeof(DateInterval).GetRuntimeMethod(nameof(DateInterval.Contains), new[] { typeof(LocalDate) })!;
+        private static readonly MethodInfo DateInterval_Contains_DateInterval
+            = typeof(DateInterval).GetRuntimeMethod(nameof(DateInterval.Contains), new[] { typeof(DateInterval) })!;
+        private static readonly MethodInfo DateInterval_Intersection
+            = typeof(DateInterval).GetRuntimeMethod(nameof(DateInterval.Intersection), new[] { typeof(DateInterval) })!;
+        private static readonly MethodInfo DateInterval_Union
+            = typeof(DateInterval).GetRuntimeMethod(nameof(DateInterval.Union), new[] { typeof(DateInterval) })!;
 
         /// <summary>
         /// The mapping of supported method translations.
@@ -118,65 +128,121 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Query.Internal
             }
 
             var declaringType = method.DeclaringType;
+
             if (declaringType == typeof(Period))
             {
-                if (method == Period_FromYears)
-                {
-                    return IntervalPart("years", arguments[0]);
-                }
-                if (method == Period_FromMonths)
-                {
-                    return IntervalPart("months", arguments[0]);
-                }
-                if (method == Period_FromWeeks)
-                {
-                    return IntervalPart("weeks", arguments[0]);
-                }
-                if (method == Period_FromDays)
-                {
-                    return IntervalPart("days", arguments[0]);
-                }
-                if (method == Period_FromHours)
-                {
-                    return IntervalPartOverBigInt("hours", arguments[0]);
-                }
-                if (method == Period_FromMinutes)
-                {
-                    return IntervalPartOverBigInt("mins", arguments[0]);
-                }
-                if (method == Period_FromSeconds)
-                {
-                    return IntervalPart("secs", _sqlExpressionFactory.Convert(arguments[0], typeof(double), _typeMappingSource.FindMapping(typeof(double))));
-                }
-
-                static PostgresFunctionExpression IntervalPart(string datePart, SqlExpression parameter)
-                    => PostgresFunctionExpression.CreateWithNamedArguments(
-                        "MAKE_INTERVAL",
-                        new[] { parameter },
-                        new[] { datePart },
-                        nullable: true,
-                        argumentsPropagateNullability: TrueArrays[1],
-                        builtIn: true,
-                        typeof(Period),
-                        typeMapping: null);
-
-                PostgresFunctionExpression IntervalPartOverBigInt(string datePart, SqlExpression parameter)
-                {
-                    parameter = _sqlExpressionFactory.ApplyDefaultTypeMapping(parameter);
-
-                    // NodaTime Period.FromHours/Minutes/Seconds accept a long parameter, but PG interval_part accepts an int.
-                    // If the parameter happens to be an int cast up to a long, just unwrap it, otherwise downcast from bigint to int
-                    // (this will throw on the PG side if the bigint is out of int range)
-                    if (parameter is SqlUnaryExpression { OperatorType: ExpressionType.Convert } convertExpression
-                        && convertExpression.TypeMapping!.StoreType == "bigint"
-                        && convertExpression.Operand.TypeMapping!.StoreType == "integer")
-                    {
-                        return IntervalPart(datePart, convertExpression.Operand);
-                    }
-
-                    return IntervalPart(datePart, _sqlExpressionFactory.Convert(parameter, typeof(int), _typeMappingSource.FindMapping(typeof(int))));
-                }
+                return TranslatePeriod(instance, method, arguments, logger);
             }
+
+            if (declaringType == typeof(DateInterval))
+            {
+                return TranslateDateInterval(instance, method, arguments, logger);
+            }
+
+            return null;
+        }
+
+        public virtual SqlExpression? TranslatePeriod(
+            SqlExpression? instance,
+            MethodInfo method,
+            IReadOnlyList<SqlExpression> arguments,
+            IDiagnosticsLogger<DbLoggerCategory.Query> logger)
+        {
+            if (method == Period_FromYears)
+            {
+                return IntervalPart("years", arguments[0]);
+            }
+
+            if (method == Period_FromMonths)
+            {
+                return IntervalPart("months", arguments[0]);
+            }
+
+            if (method == Period_FromWeeks)
+            {
+                return IntervalPart("weeks", arguments[0]);
+            }
+
+            if (method == Period_FromDays)
+            {
+                return IntervalPart("days", arguments[0]);
+            }
+
+            if (method == Period_FromHours)
+            {
+                return IntervalPartOverBigInt("hours", arguments[0]);
+            }
+
+            if (method == Period_FromMinutes)
+            {
+                return IntervalPartOverBigInt("mins", arguments[0]);
+            }
+
+            if (method == Period_FromSeconds)
+            {
+                return IntervalPart(
+                    "secs", _sqlExpressionFactory.Convert(arguments[0], typeof(double), _typeMappingSource.FindMapping(typeof(double))));
+            }
+
+            return null;
+
+            static PostgresFunctionExpression IntervalPart(string datePart, SqlExpression parameter)
+                => PostgresFunctionExpression.CreateWithNamedArguments(
+                    "MAKE_INTERVAL",
+                    new[] { parameter },
+                    new[] { datePart },
+                    nullable: true,
+                    argumentsPropagateNullability: TrueArrays[1],
+                    builtIn: true,
+                    typeof(Period),
+                    typeMapping: null);
+
+            PostgresFunctionExpression IntervalPartOverBigInt(string datePart, SqlExpression parameter)
+            {
+                parameter = _sqlExpressionFactory.ApplyDefaultTypeMapping(parameter);
+
+                // NodaTime Period.FromHours/Minutes/Seconds accept a long parameter, but PG interval_part accepts an int.
+                // If the parameter happens to be an int cast up to a long, just unwrap it, otherwise downcast from bigint to int
+                // (this will throw on the PG side if the bigint is out of int range)
+                if (parameter is SqlUnaryExpression { OperatorType: ExpressionType.Convert } convertExpression
+                    && convertExpression.TypeMapping!.StoreType == "bigint"
+                    && convertExpression.Operand.TypeMapping!.StoreType == "integer")
+                {
+                    return IntervalPart(datePart, convertExpression.Operand);
+                }
+
+                return IntervalPart(
+                    datePart, _sqlExpressionFactory.Convert(parameter, typeof(int), _typeMappingSource.FindMapping(typeof(int))));
+            }
+        }
+
+        public virtual SqlExpression? TranslateDateInterval(
+            SqlExpression? instance,
+            MethodInfo method,
+            IReadOnlyList<SqlExpression> arguments,
+            IDiagnosticsLogger<DbLoggerCategory.Query> logger)
+        {
+            if (instance is null)
+            {
+                return null;
+            }
+
+            if (method == DateInterval_Contains_LocalDate
+                || method == DateInterval_Contains_DateInterval)
+            {
+                return _sqlExpressionFactory.Contains(instance, arguments[0]);
+            }
+
+            if (method == DateInterval_Intersection)
+            {
+                return _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.RangeIntersect, instance, arguments[0]);
+            }
+
+            if (method == DateInterval_Union)
+            {
+                return _sqlExpressionFactory.MakePostgresBinary(PostgresExpressionType.RangeUnion, instance, arguments[0]);
+            }
+
             return null;
         }
 #pragma warning restore EF1001

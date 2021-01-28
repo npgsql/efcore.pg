@@ -7,6 +7,7 @@ using NodaTime.Calendars;
 using NodaTime.TimeZones;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
+using NpgsqlTypes;
 using Xunit;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL
@@ -30,7 +31,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             => Assert.Null(GetMapping(typeof(LocalDateTime), "timestamp with time zone"));
 
         [Fact]
-        public void GenerateSqlLiteral_returns_local_date_time_literal()
+        public void GenerateSqlLiteral_returns_LocalDateTime_literal()
         {
             var mapping = GetMapping(typeof(LocalDateTime));
             Assert.Equal("timestamp", mapping.StoreType);
@@ -40,7 +41,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         }
 
         [Fact]
-        public void GenerateCodeLiteral_returns_local_date_time_literal()
+        public void GenerateCodeLiteral_returns_LocalDateTime_literal()
         {
             Assert.Equal("new NodaTime.LocalDateTime(2018, 4, 20, 10, 31)", CodeLiteral(new LocalDateTime(2018, 4, 20, 10, 31)));
             Assert.Equal("new NodaTime.LocalDateTime(2018, 4, 20, 10, 31, 33)", CodeLiteral(new LocalDateTime(2018, 4, 20, 10, 31, 33)));
@@ -50,7 +51,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         }
 
         [Fact]
-        public void GenerateSqlLiteral_returns_timestamptz_instant_literal()
+        public void GenerateSqlLiteral_returns_timestamptz_Instant_literal()
         {
             var mapping = GetMapping(typeof(Instant));
             Assert.Equal(typeof(Instant), mapping.ClrType);
@@ -61,7 +62,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         }
 
         [Fact]
-        public void GenerateSqlLiteral_returns_zoned_date_time_literal()
+        public void GenerateSqlLiteral_returns_ZonedDateTime_literal()
         {
             var mapping = GetMapping(typeof(ZonedDateTime));
             Assert.Equal("timestamp with time zone", mapping.StoreType);
@@ -72,7 +73,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         }
 
         [Fact]
-        public void GenerateCodeLiteral_returns_zoned_date_time_literal()
+        public void GenerateCodeLiteral_returns_ZonedDateTime_literal()
         {
             var zonedDateTime = (new LocalDateTime(2018, 4, 20, 10, 31, 33, 666) + Period.FromTicks(6660))
                 .InZone(DateTimeZone.ForOffset(Offset.FromHours(2)), Resolvers.LenientResolver);
@@ -81,7 +82,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         }
 
         [Fact]
-        public void GenerateSqlLiteral_returns_offset_date_time_literal()
+        public void GenerateSqlLiteral_returns_OffsetDate_time_literal()
         {
             var mapping = GetMapping(typeof(OffsetDateTime));
             Assert.Equal("timestamp with time zone", mapping.StoreType);
@@ -93,12 +94,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         }
 
         [Fact]
-        public void GenerateCodeLiteral_returns_instant_literal()
+        public void GenerateCodeLiteral_returns_Instant_literal()
             => Assert.Equal("NodaTime.Instant.FromUnixTimeTicks(15832607590000000L)",
                 CodeLiteral(Instant.FromUtc(2020, 3, 3, 18, 39, 19)));
 
         [Fact]
-        public void GenerateCodeLiteral_returns_offset_date_time_literal()
+        public void GenerateCodeLiteral_returns_OffsetDate_time_literal()
         {
             Assert.Equal("new NodaTime.OffsetDateTime(new NodaTime.LocalDateTime(2018, 4, 20, 10, 31), NodaTime.Offset.FromHours(-2))",
                 CodeLiteral(new OffsetDateTime(new LocalDateTime(2018, 4, 20, 10, 31), Offset.FromHours(-2))));
@@ -111,7 +112,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         }
 
         [Fact]
-        public void GenerateSqlLiteral_returns_local_date_literal()
+        public void GenerateSqlLiteral_returns_LocalDate_literal()
         {
             var mapping = GetMapping(typeof(LocalDate));
 
@@ -119,14 +120,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         }
 
         [Fact]
-        public void GenerateCodeLiteral_returns_local_date_literal()
+        public void GenerateCodeLiteral_returns_LocalDate_literal()
         {
             Assert.Equal("new NodaTime.LocalDate(2018, 4, 20)", CodeLiteral(new LocalDate(2018, 4, 20)));
             Assert.Equal("new NodaTime.LocalDate(-2017, 4, 20)", CodeLiteral(new LocalDate(Era.BeforeCommon, 2018, 4, 20)));
         }
 
         [Fact]
-        public void GenerateSqlLiteral_returns_local_time_literal()
+        public void GenerateSqlLiteral_returns_LocalTime_literal()
         {
             var mapping = GetMapping(typeof(LocalTime));
 
@@ -136,7 +137,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         }
 
         [Fact]
-        public void GenerateCodeLiteral_returns_local_time_literal()
+        public void GenerateCodeLiteral_returns_LocalTime_literal()
         {
             Assert.Equal("new NodaTime.LocalTime(9, 30)", CodeLiteral(new LocalTime(9, 30)));
             Assert.Equal("new NodaTime.LocalTime(9, 30, 15)", CodeLiteral(new LocalTime(9, 30, 15)));
@@ -145,7 +146,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         }
 
         [Fact]
-        public void GenerateSqlLiteral_returns_offset_time_literal()
+        public void GenerateSqlLiteral_returns_OffsetTime_literal()
         {
             var mapping = GetMapping(typeof(OffsetTime));
 
@@ -158,12 +159,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         }
 
         [Fact]
-        public void GenerateCodeLiteral_returns_offset_time_literal()
+        public void GenerateCodeLiteral_returns_OffsetTime_literal()
             => Assert.Equal("new NodaTime.OffsetTime(new NodaTime.LocalTime(10, 31, 33), NodaTime.Offset.FromHours(2))",
                 CodeLiteral(new OffsetTime(new LocalTime(10, 31, 33), Offset.FromHours(2))));
 
         [Fact]
-        public void GenerateSqlLiteral_returns_period_literal()
+        public void GenerateSqlLiteral_returns_Period_literal()
         {
             var mapping = GetMapping(typeof(Period));
 
@@ -181,7 +182,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         }
 
         [Fact]
-        public void GenerateCodeLiteral_returns_period_literal()
+        public void GenerateCodeLiteral_returns_Period_literal()
         {
             Assert.Equal("NodaTime.Period.FromHours(5L)", CodeLiteral(Period.FromHours(5)));
 
@@ -195,7 +196,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         }
 
         [Fact]
-        public void GenerateCodeLiteral_returns_duration_literal()
+        public void GenerateCodeLiteral_returns_Duration_literal()
         {
             Assert.Equal("NodaTime.Duration.FromHours(5)", CodeLiteral(Duration.FromHours(5)));
 
@@ -205,6 +206,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                             Duration.FromMilliseconds(8)));
 
             Assert.Equal("NodaTime.Duration.Zero", CodeLiteral(Duration.Zero));
+        }
+
+        [Fact]
+        public void GenerateCodeLiteral_returns_DateInterval_literal()
+        {
+            Assert.Equal(
+                "new NodaTime.DateInterval(new NodaTime.LocalDate(2020, 1, 1), new NodaTime.LocalDate(2020, 12, 25))",
+                CodeLiteral(new DateInterval(new(2020, 01, 01), new(2020, 12, 25))));
+        }
+
+        [Fact]
+        public void GenerateSqlLiteral_returns_DateInterval_literal()
+        {
+            var mapping = GetMapping(typeof(DateInterval));
+
+            var interval = new DateInterval(new(2020, 01, 01), new(2020, 12, 25));
+            Assert.Equal("'[2020-01-01, 2020-12-25]'::daterange", mapping.GenerateSqlLiteral(interval));
         }
 
         #region Support

@@ -45,6 +45,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         private readonly NpgsqlRangeTypeMapping _timestamptzZonedDateTimeRange;
         private readonly NpgsqlRangeTypeMapping _timestamptzOffsetDateTimeRange;
         private readonly NpgsqlRangeTypeMapping _dateRange;
+        private readonly DateIntervalMapping _dateInterval = new();
 
         #endregion
 
@@ -80,7 +81,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
                 { "tsrange", new RelationalTypeMapping[] { _timestampInstantRange, _timestampLocalDateTimeRange } },
                 { "tstzrange", new RelationalTypeMapping[] { _timestamptzInstantRange, _timestamptzZonedDateTimeRange, _timestamptzOffsetDateTimeRange } },
-                { "daterange", new RelationalTypeMapping[] { _dateRange} }
+                { "daterange", new RelationalTypeMapping[] { _dateInterval, _dateRange } }
             };
 
             // Set up aliases
@@ -105,8 +106,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 { typeof(NpgsqlRange<Instant>), _timestampInstantRange },
                 { typeof(NpgsqlRange<LocalDateTime>), _timestampLocalDateTimeRange },
                 { typeof(NpgsqlRange<ZonedDateTime>), _timestamptzZonedDateTimeRange },
+                { typeof(NpgsqlRange<OffsetDateTime>), _timestamptzOffsetDateTimeRange },
                 { typeof(NpgsqlRange<LocalDate>), _dateRange },
-                { typeof(NpgsqlRange<OffsetDateTime>), _timestamptzOffsetDateTimeRange }
+                { typeof(DateInterval), _dateInterval }
             };
 
             StoreTypeMappings = new ConcurrentDictionary<string, RelationalTypeMapping[]>(storeTypeMappings, StringComparer.OrdinalIgnoreCase);
