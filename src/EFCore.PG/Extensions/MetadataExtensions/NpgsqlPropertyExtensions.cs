@@ -5,6 +5,7 @@ using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
@@ -293,6 +294,9 @@ namespace Microsoft.EntityFrameworkCore
             [NotNull] this IConventionProperty property)
             => property.FindAnnotation(NpgsqlAnnotationNames.ValueGenerationStrategy)?.GetConfigurationSource();
 
+        private static ValueConverter GetConverter(IProperty property)
+            => property.FindTypeMapping()?.Converter ?? property.GetValueConverter();
+
         /// <summary>
         /// Returns a value indicating whether the property is compatible with any <see cref="NpgsqlValueGenerationStrategy"/>.
         /// </summary>
@@ -300,10 +304,10 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns><c>true</c> if compatible.</returns>
         public static bool IsCompatibleWithValueGeneration([NotNull] IProperty property)
         {
-            var type = property.ClrType;
+            var valueConverter = GetConverter(property);
+            var type = (valueConverter?.ProviderClrType ?? property.ClrType).UnwrapNullableType();
 
-            return type.IsInteger() &&
-                   (property.GetValueConverter() ?? property.FindTypeMapping()?.Converter) == null;
+            return type.IsInteger();
         }
 
         #endregion Value generation
