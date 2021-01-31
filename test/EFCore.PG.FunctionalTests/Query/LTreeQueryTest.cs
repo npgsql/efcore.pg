@@ -21,7 +21,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
-        [Fact]
+        [ConditionalFact]
         public void Load()
         {
             using var ctx = CreateContext();
@@ -29,7 +29,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             Assert.Equal("Top.Science.Astronomy.Cosmology", entity.Path);
         }
 
-        [Fact]
+        [ConditionalFact]
         public void Compare_to_string_literal()
         {
             using var ctx = CreateContext();
@@ -42,7 +42,7 @@ FROM ""LTreeEntities"" AS l
 WHERE l.""Path"" = 'Top.Science'");
         }
 
-        [Fact]
+        [ConditionalFact]
         public void Compare_to_string_parameter()
         {
             using var ctx = CreateContext();
@@ -58,7 +58,7 @@ FROM ""LTreeEntities"" AS l
 WHERE l.""Path"" = @__p_0");
         }
 
-        [Fact]
+        [ConditionalFact]
         public void LTree_cast_to_string()
         {
             using var ctx = CreateContext();
@@ -71,7 +71,7 @@ FROM ""LTreeEntities"" AS l
 WHERE CAST(l.""Path"" AS text) LIKE 'Top.Science%'");
         }
 
-        [Fact]
+        [ConditionalFact]
         public void IsAncestorOf()
         {
             using var ctx = CreateContext();
@@ -84,7 +84,7 @@ FROM ""LTreeEntities"" AS l
 WHERE 'Top.Science' @> l.""Path""");
         }
 
-        [Fact]
+        [ConditionalFact]
         public void IsDescendentOf()
         {
             using var ctx = CreateContext();
@@ -97,7 +97,7 @@ FROM ""LTreeEntities"" AS l
 WHERE l.""Path"" <@ 'Top.Science'");
         }
 
-        [Fact]
+        [ConditionalFact]
         public void LTree_matches_LQuery()
         {
             using var ctx = CreateContext();
@@ -111,7 +111,7 @@ WHERE l.""Path"" ~ '*.Astrophysics'
 LIMIT 2");
         }
 
-        [Fact]
+        [ConditionalFact]
         public void LTree_matches_any_LQuery()
         {
             using var ctx = CreateContext();
@@ -128,7 +128,7 @@ WHERE l.""Path"" ? @__lqueries_0
 LIMIT 2");
         }
 
-        [Fact]
+        [ConditionalFact]
         public void LTree_matches_LTxtQuery()
         {
             using var ctx = CreateContext();
@@ -141,7 +141,7 @@ FROM ""LTreeEntities"" AS l
 WHERE l.""Path"" @ 'Astro*'");
         }
 
-        [Fact]
+        [ConditionalFact]
         public void LTree_concat()
         {
             using var ctx = CreateContext();
@@ -155,7 +155,7 @@ WHERE (CAST(l.""Path"" AS text) || '.Astronomy') = 'Top.Science.Astronomy'
 LIMIT 2");
         }
 
-        [Fact]
+        [ConditionalFact]
         public void LTree_contains_any_LTree()
         {
             using var ctx = CreateContext();
@@ -171,7 +171,7 @@ FROM ""LTreeEntities"" AS l
 WHERE @__ltrees_0 @> l.""Path""");
         }
 
-        [Fact]
+        [ConditionalFact]
         public void LTree_contained_by_any_LTree()
         {
             using var ctx = CreateContext();
@@ -187,7 +187,7 @@ FROM ""LTreeEntities"" AS l
 WHERE @__ltrees_0 <@ l.""Path""");
         }
 
-        [Fact]
+        [ConditionalFact]
         public void Any_LTree_matches_LQuery()
         {
             using var ctx = CreateContext();
@@ -203,7 +203,7 @@ FROM ""LTreeEntities"" AS l
 WHERE @__ltrees_0 ~ '*.Astrophysics'");
         }
 
-        [Fact]
+        [ConditionalFact]
         public void Any_LTree_matches_any_LQuery()
         {
             using var ctx = CreateContext();
@@ -222,7 +222,7 @@ FROM ""LTreeEntities"" AS l
 WHERE @__ltrees_0 ? @__lqueries_1");
         }
 
-        [Fact]
+        [ConditionalFact]
         public void Any_LTree_matches_LTxtQuery()
         {
             using var ctx = CreateContext();
@@ -238,7 +238,7 @@ FROM ""LTreeEntities"" AS l
 WHERE @__ltrees_0 @ 'Astro*'");
         }
 
-        [Fact]
+        [ConditionalFact]
         public void First_LTree_ancestor()
         {
             using var ctx = CreateContext();
@@ -255,7 +255,7 @@ FROM ""LTreeEntities"" AS l
 WHERE @__ltrees_0 ?@> l.""Path"" = 'Top.Science'");
         }
 
-        [Fact]
+        [ConditionalFact]
         public void First_LTree_descendant()
         {
             using var ctx = CreateContext();
@@ -272,7 +272,7 @@ FROM ""LTreeEntities"" AS l
 WHERE @__ltrees_0 ?<@ l.""Path"" = 'Top.Science.Astronomy'");
         }
 
-        [Fact]
+        [ConditionalFact]
         public void First_LTree_matches_LQuery()
         {
             using var ctx = CreateContext();
@@ -288,7 +288,7 @@ FROM ""LTreeEntities"" AS l
 WHERE @__ltrees_0 ?~ '*.Astrophysics' = 'Top.Science.Astronomy.Astrophysics'");
         }
 
-        [Fact]
+        [ConditionalFact]
         public void First_LTree_matches_LTxtQuery()
         {
             using var ctx = CreateContext();
@@ -304,7 +304,7 @@ FROM ""LTreeEntities"" AS l
 WHERE @__ltrees_0 ?@ 'Astro*' = 'Top.Science.Astronomy.Astrophysics'");
         }
 
-        [Fact]
+        [ConditionalFact]
         public void Subtree()
         {
             using var ctx = CreateContext();
@@ -318,7 +318,7 @@ FROM ""LTreeEntities"" AS l
 WHERE subltree(l.""Path"", 0, 1) = 'Top'");
         }
 
-        [Fact]
+        [ConditionalFact]
         public void Subpath1()
         {
             using var ctx = CreateContext();
@@ -332,7 +332,7 @@ FROM ""LTreeEntities"" AS l
 WHERE subpath(l.""Path"", 0, 2) = 'Top.Science'");
         }
 
-        [Fact]
+        [ConditionalFact]
         public void Subpath2()
         {
             using var ctx = CreateContext();
@@ -348,7 +348,7 @@ WHERE (nlevel(l.""Path"") > 2) AND (subpath(l.""Path"", 2) = 'Astronomy.Astrophy
 LIMIT 2");
         }
 
-        [Fact]
+        [ConditionalFact]
         public void NLevel()
         {
             using var ctx = CreateContext();
@@ -362,7 +362,7 @@ FROM ""LTreeEntities"" AS l
 WHERE nlevel(l.""Path"") = 2");
         }
 
-        [Fact]
+        [ConditionalFact]
         public void Index1()
         {
             using var ctx = CreateContext();
@@ -376,7 +376,7 @@ FROM ""LTreeEntities"" AS l
 WHERE index(l.""Path"", 'Astronomy') <> -1");
         }
 
-        [Fact]
+        [ConditionalFact]
         public void Index2()
         {
             using var ctx = CreateContext();
@@ -390,7 +390,7 @@ FROM ""LTreeEntities"" AS l
 WHERE index(l.""Path"", 'Top', 1) <> -1");
         }
 
-        [Fact]
+        [ConditionalFact]
         public void LongestCommonAncestor()
         {
             using var ctx = CreateContext();
