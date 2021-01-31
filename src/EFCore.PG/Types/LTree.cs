@@ -66,8 +66,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <p>The method call is translated to <c>subltree(ltree, start, end)</c>.</p>
         /// <p>See https://www.postgresql.org/docs/current/ltree.html</p>
         /// </remarks>
-        public LTree SubLTree(int start, int end)
-            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(SubLTree)));
+        public LTree Subtree(int start, int end)
+            => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Subtree)));
 
         /// <summary>
         /// Returns subpath of this ltree starting at position <paramref name="offset"/>, with length <paramref name="len"/>.

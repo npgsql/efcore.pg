@@ -308,7 +308,7 @@ WHERE @__ltrees_0 ?@ 'Astro*' = 'Top.Science.Astronomy.Astrophysics'");
         {
             using var ctx = CreateContext();
 
-            var count = ctx.LTreeEntities.Count(l => l.Path.SubLTree(0, 1) == "Top");
+            var count = ctx.LTreeEntities.Count(l => l.Path.Subtree(0, 1) == "Top");
 
             Assert.Equal(7, count);
             AssertSql(

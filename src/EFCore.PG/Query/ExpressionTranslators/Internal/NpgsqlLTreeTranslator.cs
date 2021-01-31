@@ -97,7 +97,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                             typeof(bool),
                             _boolTypeMapping),
 
-                     nameof(LTree.SubLTree)
+                     nameof(LTree.Subtree)
                          => _sqlExpressionFactory.Function(
                              "subltree",
                              new[] { instance, arguments[0], arguments[1] },
