@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
@@ -100,11 +101,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         [InlineData(typeof(Geometry), "geometry")]
         [InlineData(typeof(Point), "geometry")]
         public void By_ClrType(Type clrType, string expectedStoreType)
-            => Assert.Equal(expectedStoreType, ((RelationalTypeMapping)Source.FindMapping(clrType)).StoreType);
+        {
+            var mapping = (RelationalTypeMapping)Source.FindMapping(clrType);
+            Assert.Equal(expectedStoreType, mapping.StoreType);
+            Assert.Same(clrType, mapping.ClrType);
+        }
 
         [Theory]
         [InlineData("integer", typeof(int))]
         [InlineData("integer[]", typeof(int[]))]
+        [InlineData("integer[]", typeof(List<int>))]
         [InlineData("smallint[]", typeof(byte[]))]
         [InlineData("dummy", typeof(DummyType))]
         [InlineData("int4range", typeof(NpgsqlRange<int>))]
@@ -113,7 +119,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         [InlineData("geometry", typeof(Geometry))]
         [InlineData("geometry(Point, 4326)", typeof(Geometry))]
         public void By_StoreType_with_ClrType(string storeType, Type clrType)
-            => Assert.Equal(storeType, Source.FindMapping(clrType, storeType).StoreType);
+        {
+            var mapping = Source.FindMapping(clrType, storeType);
+            Assert.Equal(storeType, mapping.StoreType);
+            Assert.Same(clrType, mapping.ClrType);
+        }
 
         [Theory]
         [InlineData("integer", typeof(UnknownType))]

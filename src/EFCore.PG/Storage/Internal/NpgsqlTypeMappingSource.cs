@@ -453,7 +453,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 if (elementMapping == null || elementMapping is NpgsqlArrayTypeMapping)
                     return null;
 
-                return new NpgsqlArrayArrayTypeMapping(storeType, elementMapping);
+                return clrType is null || clrType.IsArray
+                    ? new NpgsqlArrayArrayTypeMapping(storeType, elementMapping)
+                    : new NpgsqlArrayListTypeMapping(storeType, elementMapping);
             }
 
             if (clrType == null)
