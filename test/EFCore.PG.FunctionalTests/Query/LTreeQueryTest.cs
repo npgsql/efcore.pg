@@ -416,6 +416,9 @@ WHERE lca(ARRAY[l.""Path"",'Top.Hobbies']::ltree[]) = 'Top'");
 
             public LTreeQueryContext(DbContextOptions options) : base(options) {}
 
+            protected override void OnModelCreating(ModelBuilder modelBuilder)
+                => modelBuilder.HasPostgresExtension("ltree");
+
             public static void Seed(LTreeQueryContext context)
             {
                 context.LTreeEntities.AddRange(
