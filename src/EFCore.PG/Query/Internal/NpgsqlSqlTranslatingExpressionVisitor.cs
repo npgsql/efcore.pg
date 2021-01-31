@@ -302,20 +302,30 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         /// <inheritdoc />
         protected override Expression VisitNewArray(NewArrayExpression newArrayExpression)
         {
-            var visitedExpressions = new SqlExpression[newArrayExpression.Expressions.Count];
-            for (var i = 0; i < newArrayExpression.Expressions.Count; i++)
+            if (base.VisitNewArray(newArrayExpression) is SqlExpression visitedNewArrayExpression)
             {
-                if (Visit(newArrayExpression.Expressions[i]) is SqlExpression visited)
-                {
-                    visitedExpressions[i] = visited;
-                }
-                else
-                {
-                    return QueryCompilationContext.NotTranslatedExpression;
-                }
+                return visitedNewArrayExpression;
             }
 
-            return _sqlExpressionFactory.NewArray(visitedExpressions, newArrayExpression.Type);
+            if (newArrayExpression.NodeType == ExpressionType.NewArrayInit)
+            {
+                var visitedExpressions = new SqlExpression[newArrayExpression.Expressions.Count];
+                for (var i = 0; i < newArrayExpression.Expressions.Count; i++)
+                {
+                    if (Visit(newArrayExpression.Expressions[i]) is SqlExpression visited)
+                    {
+                        visitedExpressions[i] = visited;
+                    }
+                    else
+                    {
+                        return QueryCompilationContext.NotTranslatedExpression;
+                    }
+                }
+
+                return _sqlExpressionFactory.NewArray(visitedExpressions, newArrayExpression.Type);
+            }
+
+            return QueryCompilationContext.NotTranslatedExpression;
         }
 
         /// <inheritdoc />

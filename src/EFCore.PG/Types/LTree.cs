@@ -1,4 +1,5 @@
 using System;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
 // ReSharper disable once CheckNamespace
@@ -16,7 +17,7 @@ namespace Microsoft.EntityFrameworkCore
         /// Constructs a new instance of <see cref="LTree"/>.
         /// </summary>
         /// <param name="value">The string value for the ltree.</param>
-        public LTree(string value) => _value = value;
+        public LTree([NotNull] string value) => _value = value;
 
         /// <summary>
         /// Returns whether this ltree is an ancestor of <paramref name="other"/> (or equal).
@@ -45,7 +46,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <p>The method call is translated to <c>left &lt;@ right</c>.</p>
         /// <p>See https://www.postgresql.org/docs/current/ltree.html</p>
         /// </remarks>
-        public bool MatchesLQuery(string lquery)
+        public bool MatchesLQuery([NotNull] string lquery)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(MatchesLQuery)));
 
         /// <summary>
@@ -55,7 +56,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <p>The method call is translated to <c>left @ right</c>.</p>
         /// <p>See https://www.postgresql.org/docs/current/ltree.html</p>
         /// </remarks>
-        public bool MatchesLTxtQuery(string ltxtquery)
+        public bool MatchesLTxtQuery([NotNull] string ltxtquery)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(MatchesLTxtQuery)));
 
         /// <summary>
@@ -109,7 +110,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <p>The method call is translated to <c>index(ltree1, ltree2)</c>.</p>
         /// <p>See https://www.postgresql.org/docs/current/ltree.html</p>
         /// </remarks>
-        public int Index(string other)
+        public int Index(LTree other)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Index)));
 
         /// <summary>
@@ -120,7 +121,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <p>The method call is translated to <c>index(ltree1, ltree2, offset)</c>.</p>
         /// <p>See https://www.postgresql.org/docs/current/ltree.html</p>
         /// </remarks>
-        public int Index(string other, int offset)
+        public int Index(LTree other, int offset)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Index)));
 
         /// <summary>
@@ -130,10 +131,10 @@ namespace Microsoft.EntityFrameworkCore
         /// <p>The method call is translated to <c>lca(others)</c>.</p>
         /// <p>See https://www.postgresql.org/docs/current/ltree.html</p>
         /// </remarks>
-        public static LTree LongestCommonAncestor(params LTree[] others)
+        public static LTree LongestCommonAncestor([NotNull] params LTree[] others)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(LongestCommonAncestor)));
 
-        public static implicit operator LTree(string value) => new(value);
+        public static implicit operator LTree([NotNull] string value) => new(value);
         public static implicit operator string(LTree ltree) => ltree._value;
 
         public static bool operator ==(LTree x, LTree y) => x._value == y._value;

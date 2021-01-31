@@ -143,7 +143,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             return null;
         }
 
-        public SqlExpression Translate(
+        public virtual SqlExpression Translate(
             SqlExpression instance,
             MemberInfo member,
             Type returnType,
@@ -161,7 +161,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         /// Called directly from <see cref="NpgsqlSqlTranslatingExpressionVisitor"/> to translate LTree array-related constructs which
         /// cannot be translated in regular method translators, since they require accessing lambdas.
         /// </summary>
-        public Expression VisitArrayMethodCall(
+        public virtual Expression VisitArrayMethodCall(
             [NotNull] NpgsqlSqlTranslatingExpressionVisitor sqlTranslatingExpressionVisitor,
             [NotNull] MethodInfo method,
             [NotNull] ReadOnlyCollection<Expression> arguments)

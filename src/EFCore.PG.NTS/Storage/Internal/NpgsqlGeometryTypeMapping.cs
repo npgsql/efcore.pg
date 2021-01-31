@@ -17,10 +17,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         readonly bool _isGeography;
 
         /// <inheritdoc />
-        public NpgsqlDbType NpgsqlDbType
+        public virtual NpgsqlDbType NpgsqlDbType
             => _isGeography ? NpgsqlDbType.Geography : NpgsqlDbType.Geometry;
 
-        public NpgsqlGeometryTypeMapping(string storeType, bool isGeography) : base(converter: null, storeType)
+        public NpgsqlGeometryTypeMapping([NotNull] string storeType, bool isGeography) : base(converter: null, storeType)
             => _isGeography = isGeography;
 
         protected NpgsqlGeometryTypeMapping(RelationalTypeMappingParameters parameters)

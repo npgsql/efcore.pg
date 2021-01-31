@@ -455,7 +455,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             {
                 // Containment of array within an array, or range within range, or item within range.
                 // Note that containment of item within an array is expressed via ArrayAnyAllExpression
-                if (left.Type == right.Type && left.Type.IsArrayOrGenericList())
+                // if (left.Type == right.Type && left.Type.IsArrayOrGenericList())
+                if (left.Type == right.Type)
                     goto case PostgresExpressionType.Overlaps;
 
                 SqlExpression newLeft, newRight;
@@ -545,7 +546,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             {
                 // An element type mapping was successfully inferred from one of the expressions (there was a column).
                 // Infer the array's type mapping from it.
-                arrayTypeMapping = (NpgsqlArrayTypeMapping)_typeMappingSource.FindMapping(elementTypeMapping.StoreType + "[]");
+                arrayTypeMapping = (NpgsqlArrayTypeMapping)_typeMappingSource.FindMapping(
+                    postgresNewArrayExpression.Type,
+                    elementTypeMapping.StoreType + "[]");
             }
 
             // Now go over all expressions and apply the inferred element type mapping

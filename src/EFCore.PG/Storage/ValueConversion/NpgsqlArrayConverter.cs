@@ -23,9 +23,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion
                 throw new ArgumentException("Can only convert between arrays");
             }
 
-            if (modelElementType != elementConverter.ModelClrType)
+            if (modelElementType.UnwrapNullableType() != elementConverter.ModelClrType)
                 throw new ArgumentException($"The element's value converter model type ({elementConverter.ModelClrType}), doesn't match the array's ({modelElementType})");
-            if (providerElementType != elementConverter.ProviderClrType)
+            if (providerElementType.UnwrapNullableType() != elementConverter.ProviderClrType)
                 throw new ArgumentException($"The element's value converter provider type ({elementConverter.ProviderClrType}), doesn't match the array's ({providerElementType})");
         }
 
@@ -41,11 +41,26 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion
         /// </summary>
         static Expression<Func<TInput, TOutput>> ArrayConversionExpression<TInput, TOutput>(LambdaExpression elementConversionExpression)
         {
-            Debug.Assert(typeof(TInput).IsArrayOrGenericList());
-            Debug.Assert(typeof(TOutput).IsArrayOrGenericList());
+            Debug.Assert(typeof(TInput).TryGetElementType(out var inputElementType));
+            Debug.Assert(typeof(TOutput).TryGetElementType(out var outputElementType));
 
-            var result = typeof(TOutput).TryGetElementType(out var outputElementType);
-            Debug.Assert(result);
+            // elementConversionExpression is always over non-nullable value types. If the array is over nullable types,
+            // we need to sanitize via an external null check.
+            if (inputElementType.IsGenericType && inputElementType.GetGenericTypeDefinition() == typeof(Nullable<>))
+            {
+                // p => p == null ? null : elementConversionExpression(p)
+                var p = Expression.Parameter(inputElementType, "foo");
+                elementConversionExpression = Expression.Lambda(
+                    Expression.Condition(
+                        Expression.Equal(p, Expression.Constant(null, inputElementType)),
+                        Expression.Constant(null, outputElementType),
+                        Expression.Convert(
+                            Expression.Invoke(
+                                elementConversionExpression,
+                                Expression.Convert(p, inputElementType.UnwrapNullableType())),
+                            outputElementType)),
+                    p);
+            }
 
             var inputArray = Expression.Parameter(typeof(TInput), "value");
             var outputArray = Expression.Parameter(typeof(TOutput), "result");
