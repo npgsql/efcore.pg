@@ -151,7 +151,7 @@ Regex.IsMatch(stringValue, "^A+", regexOptions)               | [stringValue ~ '
 The below translations provide functionality for determining the similarity of alphanumeric text based on trigram matching, using the [`pg_trgm`](https://www.postgresql.org/docs/current/pgtrgm.html) extension which is bundled with standard PostgreSQL distributions. All the below parameters are strings.
 
 > [!NOTE]
-> To use these translations, your project must depend on the [Npgsql.EntityFrameworkCore.PostgreSQL.Trigrams](https://www.nuget.org/packages/Npgsql.EntityFrameworkCore.PostgreSQL.Trigrams/) package, and call <xref:Microsoft.EntityFrameworkCore.NpgsqlTrigramsDbContextOptionsBuilderExtensions.UseTrigrams%2A> in your `OnModelConfiguring`.
+> Prior to version 6.0, to use these translations, your project must depend on the [Npgsql.EntityFrameworkCore.PostgreSQL.Trigrams](https://www.nuget.org/packages/Npgsql.EntityFrameworkCore.PostgreSQL.Trigrams/) package, and call <xref:Microsoft.EntityFrameworkCore.NpgsqlTrigramsDbContextOptionsBuilderExtensions.UseTrigrams%2A> in your `OnModelConfiguring`.
 
 .NET                                                              | SQL
 ----------------------------------------------------------------- | --------------------
@@ -169,6 +169,37 @@ EF.Functions.TrigramsWordSimilarityDistance(s1, s2)               | s1 &lt;&lt;-
 EF.Functions.TrigramsWordSimilarityDistanceInverted(s1, s2)       | s1 &lt;-&gt;&gt; s2
 EF.Functions.TrigramsStrictWordSimilarityDistance(s1, s2)         | s1 &lt;&lt;&lt;-&gt; s2
 EF.Functions.TrigramsStrictWordSimilarityDistanceInverted(s1, s2) | s1 &lt;-&gt;&gt;&gt; s2
+
+## LTree functions
+
+The below translations are for working with label trees from the PostgreSQL [`ltree`](https://www.postgresql.org/docs/current/ltree.html) extension. Use the <xref:Microsoft.EntityFrameworkCore.LTree> type to represent ltree and invoke methods on it in EF Core LINQ queries.
+
+> [!NOTE]
+> LTree support was introduced in version 6.0 of the provider.
+
+.NET                                                              | SQL
+----------------------------------------------------------------- | --------------------
+ltree1.IsAncestorOf(ltree2)                                       | ltree1 @&gt; ltree2
+ltree1.IsDescendant(ltree2)                                       | ltree1 &lt;@ ltree2
+ltree.MatchesLQuery(lquery)                                       | ltree ~ lquery
+ltree.MatchesLTxtQuery(ltxtquery)                                 | ltree @ ltxtquery
+lqueries.Any(q => ltree.MatchesLQuery(q))                         | ltree ? lqueries
+ltrees.Any(t => t.IsAncestorOf(ltree))                            | ltrees @&gt; ltree
+ltrees.Any(t => t.IsDescendant(ltree))                            | ltrees &lt;@ ltree
+ltrees.Any(t => t.MatchesLQuery(lquery))                          | ltrees ~ ltree
+ltrees.Any(t => t.MatchesLTxtQuery(ltxtquery))                    | ltrees @ ltxtquery
+ltrees.Any(t => lqueries.Any(q => t.MatchesLQuery(q)))            | ltrees ? lqueries
+ltrees.FirstOrDefault(l => l.IsAncestorOf(ltree))                 | ltrees ?@&gt; ltree
+ltrees.FirstOrDefault(l => l.IsDescendant(ltree))                 | ltrees ?&lt;@ ltree
+ltrees.FirstOrDefault(l => l.MatchesLQuery(lquery))               | ltrees ?~ ltree
+ltrees.FirstOrDefault(l => l.MatchesLTxtQuery(ltxtquery))         | ltrees ?@ ltree
+ltree.Subtree(0, 1)                                               | subltree(ltree, 0, 1)
+ltree.Subpath(0, 1)                                               | sublpath(ltree, 0, 1)
+ltree.Subpath(2)                                                  | sublpath(ltree, 2)
+ltree.NLevel                                                      | nlevel(ltree)
+ltree.Index(subpath)                                              | index(ltree, subpath)
+ltree.Index(subpath, 2)                                           | index(ltree, subpath, 2)
+LTree.LongestCommonAncestor(ltree1, ltree2)                       | lca(index(ltree1, ltree2)
 
 ## Miscellaneous functions
 
