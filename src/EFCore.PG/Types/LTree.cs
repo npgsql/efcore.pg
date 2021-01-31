@@ -96,10 +96,10 @@ namespace Microsoft.EntityFrameworkCore
         /// Returns number of labels in path.
         /// </summary>
         /// <remarks>
-        /// <p>The method call is translated to <c>nlevel(ltree)</c>.</p>
+        /// <p>The property is translated to <c>nlevel(ltree)</c>.</p>
         /// <p>See https://www.postgresql.org/docs/current/ltree.html</p>
         /// </remarks>
-        public int NLevel()
+        public int NLevel
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(NLevel)));
 
         /// <summary>

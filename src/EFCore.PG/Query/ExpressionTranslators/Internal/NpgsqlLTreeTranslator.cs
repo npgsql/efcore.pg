@@ -17,7 +17,7 @@ using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
-    public class NpgsqlLTreeTranslator : IMethodCallTranslator
+    public class NpgsqlLTreeTranslator : IMethodCallTranslator, IMemberTranslator
     {
         readonly IRelationalTypeMappingSource _typeMappingSource;
         readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
@@ -117,14 +117,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                              typeof(LTree),
                              _ltreeTypeMapping),
 
-                     nameof(LTree.NLevel)
-                         => _sqlExpressionFactory.Function(
-                             "nlevel",
-                             new[] { instance },
-                             nullable: true,
-                             TrueArrays[1],
-                             typeof(int)),
-
                      nameof(LTree.Index)
                          => _sqlExpressionFactory.Function(
                              "index",
@@ -150,6 +142,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
             return null;
         }
+
+        public SqlExpression Translate(
+            SqlExpression instance,
+            MemberInfo member,
+            Type returnType,
+            IDiagnosticsLogger<DbLoggerCategory.Query> logger)
+            => member.DeclaringType == typeof(LTree) && member.Name == nameof(LTree.NLevel)
+                ? _sqlExpressionFactory.Function(
+                    "nlevel",
+                    new[] { instance },
+                    nullable: true,
+                    TrueArrays[1],
+                    typeof(int))
+                : null;
 
         /// <summary>
         /// Called directly from <see cref="NpgsqlSqlTranslatingExpressionVisitor"/> to translate LTree array-related constructs which

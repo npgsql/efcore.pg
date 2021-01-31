@@ -337,7 +337,7 @@ WHERE subpath(l.""Path"", 0, 2) = 'Top.Science'");
             using var ctx = CreateContext();
 
             var result = ctx.LTreeEntities.Single(
-                l => l.Path.NLevel() > 2 && l.Path.Subpath(2) == "Astronomy.Astrophysics");
+                l => l.Path.NLevel > 2 && l.Path.Subpath(2) == "Astronomy.Astrophysics");
 
             Assert.Equal(4, result.Id);
             AssertSql(
@@ -352,7 +352,7 @@ LIMIT 2");
         {
             using var ctx = CreateContext();
 
-            var count = ctx.LTreeEntities.Count(l => l.Path.NLevel() == 2);
+            var count = ctx.LTreeEntities.Count(l => l.Path.NLevel == 2);
 
             Assert.Equal(2, count);
             AssertSql(
