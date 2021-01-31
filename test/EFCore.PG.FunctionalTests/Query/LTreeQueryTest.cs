@@ -390,7 +390,7 @@ WHERE index(l.""Path"", 'Top', 1) <> -1");
         }
 
         [Fact]
-        public void LongestCommonDenominator()
+        public void LongestCommonAncestor()
         {
             using var ctx = CreateContext();
 
