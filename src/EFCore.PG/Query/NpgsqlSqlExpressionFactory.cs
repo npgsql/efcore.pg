@@ -518,7 +518,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 {
                     newInitializers = new List<SqlExpression>();
                     for (var j = 0; j < i; j++)
-                        newInitializers.Add(newInitializer);
+                        newInitializers.Add(postgresNewArrayExpression.Initializers[j]);
                 }
 
                 if (newInitializers != null)
