@@ -18,10 +18,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
-        [ConditionalTheory(Skip="Convert-to-Object doesn't bubble up type mapping, #1642")]
-        public override Task Project_to_object_array(bool async)
-            => base.Project_to_object_array(async);
-
         public override async Task Select_datetime_DayOfWeek_component(bool async)
         {
             await base.Select_datetime_DayOfWeek_component(async);

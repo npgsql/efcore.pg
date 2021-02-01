@@ -534,7 +534,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             if (elementTypeMapping is null)
             {
                 // No type mapping could be inferred from the expressions, nor was one given from the outside -
-                // we have no type mapping...
+                // we have no type mapping... Just return the original expression, which has no type mapping and will fail translation.
                 if (arrayTypeMapping is null)
                 {
                     return postgresNewArrayExpression;
@@ -549,6 +549,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 arrayTypeMapping = (NpgsqlArrayTypeMapping)_typeMappingSource.FindMapping(
                     postgresNewArrayExpression.Type,
                     elementTypeMapping.StoreType + "[]");
+
+                // If the array's CLR type doesn't match the type mapping inferred from the element (e.g. CLR object[] with up-casted
+                // elements). Just return the original expression, which has no type mapping and will fail translation.
+                if (arrayTypeMapping is null)
+                {
+                    return postgresNewArrayExpression;
+                }
             }
 
             // Now go over all expressions and apply the inferred element type mapping
