@@ -22,6 +22,30 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
             = new ResourceManager("Npgsql.EntityFrameworkCore.PostgreSQL.Properties.NpgsqlStrings", typeof(NpgsqlStrings).GetTypeInfo().Assembly);
 
         /// <summary>
+        ///     The indexes {index1} on '{entityType1}' and {index2} on '{entityType2}' are both mapped to '{table}.{indexName}', but have different included columns: {includedColumns1} and {includedColumns2}.
+        /// </summary>
+        public static string DuplicateIndexIncludedMismatch([CanBeNull] object index1, [CanBeNull] object entityType1, [CanBeNull] object index2, [CanBeNull] object entityType2, [CanBeNull] object table, [CanBeNull] object indexName, [CanBeNull] object includedColumns1, [CanBeNull] object includedColumns2)
+            => string.Format(
+                GetString("DuplicateIndexIncludedMismatch", nameof(index1), nameof(entityType1), nameof(index2), nameof(entityType2), nameof(table), nameof(indexName), nameof(includedColumns1), nameof(includedColumns2)),
+                index1, entityType1, index2, entityType2, table, indexName, includedColumns1, includedColumns2);
+
+        /// <summary>
+        ///     The indexes {index1} on '{entityType1}' and {index2} on '{entityType2}' are both mapped to '{table}.{indexName}', but have different concurrent creation configurations.
+        /// </summary>
+        public static string DuplicateIndexConcurrentCreationMismatch([CanBeNull] object index1, [CanBeNull] object entityType1, [CanBeNull] object index2, [CanBeNull] object entityType2, [CanBeNull] object table, [CanBeNull] object indexName)
+            => string.Format(
+                GetString("DuplicateIndexConcurrentCreationMismatch", nameof(index1), nameof(entityType1), nameof(index2), nameof(entityType2), nameof(table), nameof(indexName)),
+                index1, entityType1, index2, entityType2, table, indexName);
+
+        /// <summary>
+        ///     The indexes {index1} on '{entityType1}' and {index2} on '{entityType2}' are both mapped to '{table}.{indexName}', but have different collation configurations.
+        /// </summary>
+        public static string DuplicateIndexCollationMismatch([CanBeNull] object index1, [CanBeNull] object entityType1, [CanBeNull] object index2, [CanBeNull] object entityType2, [CanBeNull] object table, [CanBeNull] object indexName)
+            => string.Format(
+                GetString("DuplicateIndexCollationMismatch", nameof(index1), nameof(entityType1), nameof(index2), nameof(entityType2), nameof(table), nameof(indexName)),
+                index1, entityType1, index2, entityType2, table, indexName);
+
+        /// <summary>
         ///     PostgreSQL sequences cannot be used to generate values for the property '{property}' on entity type '{entityType}' because the property type is '{propertyType}'. Sequences can only be used with integer properties.
         /// </summary>
         public static string SequenceBadType([CanBeNull] object property, [CanBeNull] object entityType, [CanBeNull] object propertyType)

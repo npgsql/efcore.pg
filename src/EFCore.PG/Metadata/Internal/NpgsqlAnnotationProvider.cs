@@ -34,17 +34,29 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
 
         public override IEnumerable<IAnnotation> For(IColumn column)
         {
-            var property = column.PropertyMappings.Select(m => m.Property)
-                .FirstOrDefault(p => p.GetValueGenerationStrategy() != NpgsqlValueGenerationStrategy.None);
-            if (property != null)
+            var table = StoreObjectIdentifier.Table(column.Table.Name, column.Table.Schema);
+            var valueGeneratedProperty = column.PropertyMappings.Where(
+                    m =>
+                        m.TableMapping.IsSharedTablePrincipal && m.TableMapping.EntityType == m.Property.DeclaringEntityType)
+                .Select(m => m.Property)
+                .FirstOrDefault(
+                    p => p.GetValueGenerationStrategy(table) switch
+                    {
+                        NpgsqlValueGenerationStrategy.IdentityByDefaultColumn => true,
+                        NpgsqlValueGenerationStrategy.IdentityAlwaysColumn    => true,
+                        NpgsqlValueGenerationStrategy.SerialColumn            => true,
+                        _                                                     => false
+                    });
+
+            if (valueGeneratedProperty != null)
             {
-                var valueGenerationStrategy = property.GetValueGenerationStrategy();
+                var valueGenerationStrategy = valueGeneratedProperty.GetValueGenerationStrategy();
                 yield return new Annotation(NpgsqlAnnotationNames.ValueGenerationStrategy, valueGenerationStrategy);
 
                 if (valueGenerationStrategy == NpgsqlValueGenerationStrategy.IdentityByDefaultColumn ||
                     valueGenerationStrategy == NpgsqlValueGenerationStrategy.IdentityAlwaysColumn)
                 {
-                    if (property[NpgsqlAnnotationNames.IdentityOptions] is string identityOptions)
+                    if (valueGeneratedProperty[NpgsqlAnnotationNames.IdentityOptions] is string identityOptions)
                     {
                         yield return new Annotation(NpgsqlAnnotationNames.IdentityOptions, identityOptions);
                     }
@@ -67,16 +79,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
                 yield return new Annotation(NpgsqlAnnotationNames.TsVectorConfig, tsVectorConfig);
             }
 
-            property = column.PropertyMappings.Select(m => m.Property)
+            valueGeneratedProperty = column.PropertyMappings.Select(m => m.Property)
                 .FirstOrDefault(p => p.GetTsVectorProperties() != null);
-            if (property != null)
+            if (valueGeneratedProperty != null)
             {
                 var tableIdentifier = StoreObjectIdentifier.Table(column.Table.Name, column.Table.Schema);
 
                 yield return new Annotation(
                     NpgsqlAnnotationNames.TsVectorProperties,
-                    property.GetTsVectorProperties()
-                        .Select(p2 => property.DeclaringEntityType.FindProperty(p2).GetColumnName(tableIdentifier))
+                    valueGeneratedProperty.GetTsVectorProperties()
+                        .Select(p2 => valueGeneratedProperty.DeclaringEntityType.FindProperty(p2).GetColumnName(tableIdentifier))
                         .ToArray());
             }
         }

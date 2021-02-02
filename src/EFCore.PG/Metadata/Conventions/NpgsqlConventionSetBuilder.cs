@@ -31,8 +31,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
             conventionSet.ModelInitializedConventions.Add(valueGenerationStrategyConvention);
             conventionSet.ModelInitializedConventions.Add(new RelationalMaxIdentifierLengthConvention(63, Dependencies, RelationalDependencies));
 
-            var valueGenerationConvention = new NpgsqlValueGenerationConvention(Dependencies, RelationalDependencies);
+            ValueGenerationConvention valueGenerationConvention = new NpgsqlValueGenerationConvention(Dependencies, RelationalDependencies);
             ReplaceConvention(conventionSet.EntityTypeBaseTypeChangedConventions, valueGenerationConvention);
+
+            ReplaceConvention(
+                conventionSet.EntityTypeAnnotationChangedConventions, (RelationalValueGenerationConvention)valueGenerationConvention);
 
             ReplaceConvention(conventionSet.EntityTypePrimaryKeyChangedConventions, valueGenerationConvention);
 
@@ -48,6 +51,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
 
             conventionSet.ModelFinalizingConventions.Add(valueGenerationStrategyConvention);
             ReplaceConvention(conventionSet.ModelFinalizingConventions, storeGenerationConvention);
+            ReplaceConvention(
+                conventionSet.ModelFinalizingConventions,
+                (SharedTableConvention)new NpgsqlSharedTableConvention(Dependencies, RelationalDependencies));
 
             return conventionSet;
         }

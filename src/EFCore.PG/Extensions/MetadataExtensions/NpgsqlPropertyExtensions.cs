@@ -181,21 +181,30 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns> The strategy, or <see cref="NpgsqlValueGenerationStrategy.None" /> if none was set. </returns>
         public static NpgsqlValueGenerationStrategy GetValueGenerationStrategy(
             [NotNull] this IProperty property,
-            StoreObjectIdentifier storeObject)
+            in StoreObjectIdentifier storeObject)
+            => GetValueGenerationStrategy(property, storeObject, null);
+
+        internal static NpgsqlValueGenerationStrategy GetValueGenerationStrategy(
+            [NotNull] this IProperty property,
+            in StoreObjectIdentifier storeObject,
+            ITypeMappingSource typeMappingSource)
         {
             if (property[NpgsqlAnnotationNames.ValueGenerationStrategy] is object annotation)
                 return (NpgsqlValueGenerationStrategy)annotation;
 
             if (property.FindSharedStoreObjectRootProperty(storeObject) is IProperty sharedTableRootProperty)
             {
-                var principalStrategy = sharedTableRootProperty.GetValueGenerationStrategy(storeObject);
-                return principalStrategy switch
-                {
-                    NpgsqlValueGenerationStrategy.IdentityByDefaultColumn => principalStrategy,
-                    NpgsqlValueGenerationStrategy.IdentityAlwaysColumn    => principalStrategy,
-                    NpgsqlValueGenerationStrategy.SerialColumn            => principalStrategy,
-                    _                                                     => NpgsqlValueGenerationStrategy.None
-                };
+                return sharedTableRootProperty.GetValueGenerationStrategy(storeObject) is var valueGenerationStrategy &&
+                       valueGenerationStrategy switch
+                       {
+                           NpgsqlValueGenerationStrategy.IdentityByDefaultColumn => true,
+                           NpgsqlValueGenerationStrategy.IdentityAlwaysColumn    => true,
+                           NpgsqlValueGenerationStrategy.SerialColumn            => true,
+                           _                                                     => false
+                       }
+                       && !property.GetContainingForeignKeys().Any(fk => !fk.IsBaseLinking())
+                    ? valueGenerationStrategy
+                    : NpgsqlValueGenerationStrategy.None;
             }
 
             if (property.ValueGenerated != ValueGenerated.OnAdd
@@ -207,7 +216,7 @@ namespace Microsoft.EntityFrameworkCore
                 return NpgsqlValueGenerationStrategy.None;
             }
 
-            return GetDefaultValueGenerationStrategy(property);
+            return GetDefaultValueGenerationStrategy(property, storeObject, typeMappingSource);
         }
 
         static NpgsqlValueGenerationStrategy GetDefaultValueGenerationStrategy(IProperty property)
@@ -221,6 +230,30 @@ namespace Microsoft.EntityFrameworkCore
             case NpgsqlValueGenerationStrategy.IdentityAlwaysColumn:
             case NpgsqlValueGenerationStrategy.IdentityByDefaultColumn:
                 return IsCompatibleWithValueGeneration(property)
+                    ? modelStrategy.Value
+                    : NpgsqlValueGenerationStrategy.None;
+            case NpgsqlValueGenerationStrategy.None:
+            case null:
+                return NpgsqlValueGenerationStrategy.None;
+            default:
+                throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        private static NpgsqlValueGenerationStrategy GetDefaultValueGenerationStrategy(
+            IProperty property,
+            in StoreObjectIdentifier storeObject,
+            ITypeMappingSource typeMappingSource)
+        {
+            var modelStrategy = property.DeclaringEntityType.Model.GetValueGenerationStrategy();
+
+            switch (modelStrategy)
+            {
+            case NpgsqlValueGenerationStrategy.SequenceHiLo:
+            case NpgsqlValueGenerationStrategy.SerialColumn:
+            case NpgsqlValueGenerationStrategy.IdentityAlwaysColumn:
+            case NpgsqlValueGenerationStrategy.IdentityByDefaultColumn:
+                return IsCompatibleWithValueGeneration(property, storeObject, typeMappingSource)
                     ? modelStrategy.Value
                     : NpgsqlValueGenerationStrategy.None;
             case NpgsqlValueGenerationStrategy.None:
@@ -294,16 +327,32 @@ namespace Microsoft.EntityFrameworkCore
             => property.FindAnnotation(NpgsqlAnnotationNames.ValueGenerationStrategy)?.GetConfigurationSource();
 
         /// <summary>
-        /// Returns a value indicating whether the property is compatible with any <see cref="NpgsqlValueGenerationStrategy"/>.
+        ///     Returns a value indicating whether the property is compatible with any <see cref="NpgsqlValueGenerationStrategy" />.
         /// </summary>
-        /// <param name="property">The property.</param>
-        /// <returns><c>true</c> if compatible.</returns>
+        /// <param name="property"> The property. </param>
+        /// <returns> <see langword="true" /> if compatible. </returns>
         public static bool IsCompatibleWithValueGeneration([NotNull] IProperty property)
         {
             var type = property.ClrType;
 
-            return type.IsInteger() &&
-                   (property.GetValueConverter() ?? property.FindTypeMapping()?.Converter) == null;
+            return type.IsInteger()
+                && (property.GetValueConverter()
+                    ?? property.FindTypeMapping()?.Converter)
+                == null;
+        }
+
+        private static bool IsCompatibleWithValueGeneration(
+            [NotNull] IProperty property,
+            in StoreObjectIdentifier storeObject,
+            ITypeMappingSource typeMappingSource)
+        {
+            var type = property.ClrType;
+
+            return type.IsInteger()
+                && (property.GetValueConverter()
+                    ?? (property.FindRelationalTypeMapping(storeObject)
+                        ?? typeMappingSource?.FindMapping(property))?.Converter)
+                == null;
         }
 
         #endregion Value generation
