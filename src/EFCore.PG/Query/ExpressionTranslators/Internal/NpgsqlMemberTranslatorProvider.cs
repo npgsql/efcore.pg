@@ -22,11 +22,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             AddTranslators(
                 new IMemberTranslator[] {
                     new NpgsqlArrayTranslator(typeMappingSource, sqlExpressionFactory, JsonPocoTranslator),
-                    new NpgsqlStringMemberTranslator(sqlExpressionFactory),
                     new NpgsqlDateTimeMemberTranslator(sqlExpressionFactory),
-                    new NpgsqlRangeTranslator(typeMappingSource, sqlExpressionFactory),
                     new NpgsqlJsonDomTranslator(typeMappingSource, sqlExpressionFactory),
+                    new NpgsqlLTreeTranslator(typeMappingSource, sqlExpressionFactory),
                     JsonPocoTranslator,
+                    new NpgsqlRangeTranslator(typeMappingSource, sqlExpressionFactory),
+                    new NpgsqlStringMemberTranslator(sqlExpressionFactory),
                     new NpgsqlTimeSpanMemberTranslator(sqlExpressionFactory)
                 });
         }

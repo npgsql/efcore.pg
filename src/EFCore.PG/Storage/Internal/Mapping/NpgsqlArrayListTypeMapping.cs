@@ -5,6 +5,8 @@ using System.Diagnostics;
 using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 {
@@ -38,7 +40,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
         NpgsqlArrayListTypeMapping(string storeType, RelationalTypeMapping elementMapping, Type listType)
             : this(new RelationalTypeMappingParameters(
-                new CoreTypeMappingParameters(listType, null, CreateComparer(elementMapping, listType)), storeType
+                new CoreTypeMappingParameters(
+                    listType,
+                    elementMapping.Converter is ValueConverter elementConverter
+                        ? (ValueConverter)Activator.CreateInstance(
+                            typeof(NpgsqlArrayConverter<,>).MakeGenericType(
+                                typeof(List<>).MakeGenericType(elementConverter.ModelClrType),
+                                elementConverter.ProviderClrType.MakeArrayType()),
+                            elementConverter)
+                        : null,
+                    CreateComparer(elementMapping, listType)),
+                storeType
             ), elementMapping) {}
 
         protected NpgsqlArrayListTypeMapping(

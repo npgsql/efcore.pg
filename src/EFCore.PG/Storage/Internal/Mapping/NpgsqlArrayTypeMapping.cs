@@ -41,7 +41,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             // Otherwise let the ADO.NET layer infer the PostgreSQL type. We can't always let it infer, otherwise
             // when given a byte[] it will infer byte (but we want smallint[])
             NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Array |
-                           (elementMapping is NpgsqlTypeMapping elementNpgsqlTypeMapping
+                           (elementMapping is INpgsqlTypeMapping elementNpgsqlTypeMapping
                                ? elementNpgsqlTypeMapping.NpgsqlDbType
                                : elementMapping.DbType.HasValue
                                    ? new NpgsqlParameter { DbType = elementMapping.DbType.Value }.NpgsqlDbType

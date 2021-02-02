@@ -118,6 +118,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         readonly NpgsqlHstoreTypeMapping          _immutableHstore = new(typeof(ImmutableDictionary<string, string>));
         readonly NpgsqlTidTypeMapping             _tid             = new();
 
+        readonly LTreeTypeMapping                 _ltree           = new();
+        readonly NpgsqlStringTypeMapping          _lquery          = new("lquery", NpgsqlDbType.LQuery);
+        readonly NpgsqlStringTypeMapping          _ltxtquery       = new("ltxtquery", NpgsqlDbType.LTxtQuery);
+
         // Special stuff
         // ReSharper disable once InconsistentNaming
         public readonly StringTypeMapping      EStringTypeMapping  = new NpgsqlEStringTypeMapping();
@@ -140,6 +144,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             _tstzrange = new NpgsqlRangeTypeMapping("tstzrange", typeof(NpgsqlRange<DateTime>), _timestamptz, sqlGenerationHelper);
             _daterange = new NpgsqlRangeTypeMapping("daterange", typeof(NpgsqlRange<DateTime>), _timestamptz, sqlGenerationHelper);
 
+// ReSharper disable CoVariantArrayConversion
             // Note that PostgreSQL has aliases to some built-in type name aliases (e.g. int4 for integer),
             // these are mapped as well.
             // https://www.postgresql.org/docs/current/static/datatype.html#DATATYPE-TABLE
@@ -217,8 +222,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 { "tsvector",                    new[] { _tsvector                     } },
                 { "regconfig",                   new[] { _regconfig                    } },
 
+                { "ltree",                       new[] { _ltree                        } },
+                { "lquery",                      new[] { _lquery                       } },
+                { "ltxtquery",                   new[] { _ltxtquery                    } },
+
                 { "regdictionary",               new[] { _regdictionary                } }
             };
+// ReSharper restore CoVariantArrayConversion
 
             var clrTypeMappings = new Dictionary<Type, RelationalTypeMapping>
             {
@@ -262,7 +272,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
                 { typeof(NpgsqlTsQuery),                       _tsquery              },
                 { typeof(NpgsqlTsVector),                      _tsvector             },
-                { typeof(NpgsqlTsRankingNormalization),        _rankingNormalization }
+                { typeof(NpgsqlTsRankingNormalization),        _rankingNormalization },
+
+                { typeof(LTree),                               _ltree                }
             };
 
             StoreTypeMappings = new ConcurrentDictionary<string, RelationalTypeMapping[]>(storeTypeMappings, StringComparer.OrdinalIgnoreCase);
@@ -429,24 +441,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
                 RelationalTypeMapping elementMapping;
 
-                if (elementClrType == null)
-                {
-                    elementMapping = FindMapping(new RelationalTypeMappingInfo(
+                elementMapping = elementClrType == null
+                    ? FindMapping(new RelationalTypeMappingInfo(
                         elementStoreType, elementStoreTypeNameBase,
-                        mappingInfo.IsUnicode, mappingInfo.Size, mappingInfo.Precision, mappingInfo.Scale));
-                }
-                else
-                {
-                    elementMapping = FindMapping(new RelationalTypeMappingInfo(
+                        mappingInfo.IsUnicode, mappingInfo.Size, mappingInfo.Precision, mappingInfo.Scale))
+                    : FindMapping(new RelationalTypeMappingInfo(
                         elementClrType, elementStoreType, elementStoreTypeNameBase,
                         mappingInfo.IsKeyOrIndex, mappingInfo.IsUnicode, mappingInfo.Size, mappingInfo.IsRowVersion,
                         mappingInfo.IsFixedLength, mappingInfo.Precision, mappingInfo.Scale));
-
-                    // If an element mapping was found only with the help of a value converter, return null and EF will
-                    // construct the corresponding array mapping with a value converter.
-                    if (elementMapping?.Converter != null)
-                        return null;
-                }
 
                 // If no mapping was found for the element, there's no mapping for the array.
                 // Also, arrays of arrays aren't supported (as opposed to multidimensional arrays) by PostgreSQL
@@ -466,14 +468,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 var elementType = clrType.GetElementType();
                 Debug.Assert(elementType != null, "Detected array type but element type is null");
 
-                // If an element isn't supported, neither is its array. If the element is only supported via value
-                // conversion we also don't support it.
                 var elementMapping = (RelationalTypeMapping)FindMapping(elementType);
-                if (elementMapping == null || elementMapping.Converter != null)
-                    return null;
 
-                // Arrays of arrays aren't supported (as opposed to multidimensional arrays) by PostgreSQL
-                if (elementMapping is NpgsqlArrayTypeMapping)
+                // If no mapping was found for the element, there's no mapping for the array.
+                // Also, arrays of arrays aren't supported (as opposed to multidimensional arrays) by PostgreSQL
+                if (elementMapping == null || elementMapping is NpgsqlArrayTypeMapping)
                     return null;
 
                 // Not that the element mapping found above was stripped of nullability

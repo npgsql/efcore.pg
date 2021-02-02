@@ -19,67 +19,66 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         /// <summary>
         /// Creates a new instance of the <see cref="PostgresNewArrayExpression" /> class.
         /// </summary>
-        /// <param name="initializers">The initializers for the array.</param>
+        /// <param name="expressions">The values to initialize the elements of the new array.</param>
         /// <param name="type">The <see cref="Type"/> of the expression.</param>
         /// <param name="typeMapping">The <see cref="RelationalTypeMapping"/> associated with the expression.</param>
         public PostgresNewArrayExpression(
-            [NotNull] IReadOnlyList<SqlExpression> initializers,
+            [NotNull] IReadOnlyList<SqlExpression> expressions,
             [NotNull] Type type,
             [CanBeNull] RelationalTypeMapping typeMapping)
             : base(type, typeMapping)
         {
-            Check.NotNull(initializers, nameof(initializers));
+            Check.NotNull(expressions, nameof(expressions));
 
             if (!type.IsArrayOrGenericList())
                 throw new ArgumentException($"{nameof(PostgresNewArrayExpression)} must have an array type");
 
-            Initializers = initializers;
+            Expressions = expressions;
         }
 
         /// <summary>
         ///     The operator of this PostgreSQL binary operation.
         /// </summary>
-        public virtual IReadOnlyList<SqlExpression> Initializers { get; }
+        public virtual IReadOnlyList<SqlExpression> Expressions { get; }
 
         /// <inheritdoc />
         protected override Expression VisitChildren(ExpressionVisitor visitor)
         {
             Check.NotNull(visitor, nameof(visitor));
 
-            List<SqlExpression> newInitializers = null;
-            for (var i = 0; i < Initializers.Count; i++)
+            List<SqlExpression> newExpressions = null;
+            for (var i = 0; i < Expressions.Count; i++)
             {
-                var initializer = Initializers[i];
-                var newInitializer = (SqlExpression)visitor.Visit(initializer);
-                if (newInitializer != initializer && newInitializers is null)
+                var expression = Expressions[i];
+                var visitedExpression = (SqlExpression)visitor.Visit(expression);
+                if (visitedExpression != expression && newExpressions is null)
                 {
-                    newInitializers = new List<SqlExpression>();
+                    newExpressions = new List<SqlExpression>();
                     for (var j = 0; j < i; j++)
-                        newInitializers.Add(newInitializer);
+                        newExpressions.Add(visitedExpression);
                 }
 
-                if (newInitializers != null)
-                    newInitializers.Add(newInitializer);
+                newExpressions?.Add(visitedExpression);
             }
 
-            return newInitializers is null
+            return newExpressions is null
                 ? this
-                : new PostgresNewArrayExpression(newInitializers, Type, TypeMapping);
+                : new PostgresNewArrayExpression(newExpressions, Type, TypeMapping);
         }
 
         /// <summary>
         /// Creates a new expression that is like this one, but using the supplied children. If all of the children are the same, it will
         /// return this expression.
         /// </summary>
-        /// <param name="initializers">The initializers for the array.</param>
+        /// <param name="expressions">The values to initialize the elements of the new array.</param>
         /// <returns>This expression if no children changed, or an expression with the updated children.</returns>
-        public virtual PostgresNewArrayExpression Update([NotNull] IReadOnlyList<SqlExpression> initializers)
+        public virtual PostgresNewArrayExpression Update([NotNull] IReadOnlyList<SqlExpression> expressions)
         {
-            Check.NotNull(initializers, nameof(initializers));
+            Check.NotNull(expressions, nameof(expressions));
 
-            return initializers == Initializers
+            return expressions == Expressions
                 ? this
-                : new PostgresNewArrayExpression(initializers, Type, TypeMapping);
+                : new PostgresNewArrayExpression(expressions, Type, TypeMapping);
         }
 
         /// <inheritdoc />
@@ -90,7 +89,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
             expressionPrinter.Append("ARRAY[");
 
             var first = true;
-            foreach (var initializer in Initializers)
+            foreach (var expression in Expressions)
             {
                 if (!first)
                 {
@@ -99,7 +98,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
 
                 first = false;
 
-                expressionPrinter.Visit(initializer);
+                expressionPrinter.Visit(expression);
             }
 
             expressionPrinter.Append("]");
@@ -114,7 +113,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
 
         bool Equals(PostgresNewArrayExpression postgresNewArrayExpression)
             => base.Equals(postgresNewArrayExpression)
-               && Initializers.SequenceEqual(postgresNewArrayExpression.Initializers);
+               && Expressions.SequenceEqual(postgresNewArrayExpression.Expressions);
 
         /// <inheritdoc />
         public override int GetHashCode()
@@ -122,8 +121,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
             var hash = new HashCode();
 
             hash.Add(base.GetHashCode());
-            for (var i = 0; i < Initializers.Count; i++)
-                hash.Add(Initializers[i]);
+            for (var i = 0; i < Expressions.Count; i++)
+                hash.Add(Expressions[i]);
 
             return hash.ToHashCode();
         }

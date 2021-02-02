@@ -8,6 +8,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 {
     public class NpgsqlMethodCallTranslatorProvider : RelationalMethodCallTranslatorProvider
     {
+        public virtual NpgsqlLTreeTranslator LTreeTranslator { get; }
+
         public NpgsqlMethodCallTranslatorProvider(
             [NotNull] RelationalMethodCallTranslatorProviderDependencies dependencies,
             [NotNull] IRelationalTypeMappingSource typeMappingSource,
@@ -17,6 +19,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             var npgsqlSqlExpressionFactory = (NpgsqlSqlExpressionFactory)dependencies.SqlExpressionFactory;
             var npgsqlTypeMappingSource = (NpgsqlTypeMappingSource)typeMappingSource;
             var jsonTranslator = new NpgsqlJsonPocoTranslator(typeMappingSource, npgsqlSqlExpressionFactory);
+            LTreeTranslator = new NpgsqlLTreeTranslator(typeMappingSource, npgsqlSqlExpressionFactory);
 
             AddTranslators(new IMethodCallTranslator[]
             {
@@ -29,6 +32,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 new NpgsqlJsonDomTranslator(typeMappingSource, npgsqlSqlExpressionFactory),
                 new NpgsqlJsonDbFunctionsTranslator(typeMappingSource, npgsqlSqlExpressionFactory),
                 new NpgsqlLikeTranslator(npgsqlSqlExpressionFactory),
+                LTreeTranslator,
                 new NpgsqlMathTranslator(typeMappingSource, npgsqlSqlExpressionFactory),
                 new NpgsqlNetworkTranslator(typeMappingSource, npgsqlSqlExpressionFactory),
                 new NpgsqlNewGuidTranslator(npgsqlSqlExpressionFactory, npgsqlOptions.PostgresVersion),

@@ -10,11 +10,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     /// The base class for mapping Npgsql-specific types. It configures parameters with the
     /// <see cref="NpgsqlDbType"/> provider-specific type enum.
     /// </summary>
-    public abstract class NpgsqlTypeMapping : RelationalTypeMapping
+    public abstract class NpgsqlTypeMapping : RelationalTypeMapping, INpgsqlTypeMapping
     {
-        /// <summary>
-        /// The database type used by Npgsql.
-        /// </summary>
+        /// <inheritdoc />
         public virtual NpgsqlDbType NpgsqlDbType { get; }
 
         // ReSharper disable once PublicConstructorInAbstractClass

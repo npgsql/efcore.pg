@@ -30,6 +30,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
 
         JsonExists,
         JsonExistsAny,
-        JsonExistsAll
+        JsonExistsAll,
+
+        LTreeMatches,
+        LTreeMatchesAny,
+        LTreeFirstAncestor,
+        LTreeFirstDescendent,
+        LTreeFirstMatches
     }
 }

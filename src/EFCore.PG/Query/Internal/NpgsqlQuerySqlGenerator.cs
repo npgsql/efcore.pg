@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
@@ -205,7 +206,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         {
             Sql.Append("ARRAY[");
             var first = true;
-            foreach (var initializer in postgresNewArrayExpression.Initializers)
+            foreach (var initializer in postgresNewArrayExpression.Expressions)
             {
                 if (!first)
                 {
@@ -237,6 +238,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 
             if (requiresBrackets)
                 Sql.Append(")");
+
+            Debug.Assert(binaryExpression.Left?.TypeMapping is not null);
+            Debug.Assert(binaryExpression.Right?.TypeMapping is not null);
 
             Sql
                 .Append(" ")
@@ -278,6 +282,22 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                     PostgresExpressionType.JsonExists    => "?",
                     PostgresExpressionType.JsonExistsAny => "?|",
                     PostgresExpressionType.JsonExistsAll => "?&",
+
+                    PostgresExpressionType.LTreeMatches
+                        when binaryExpression.Right.TypeMapping.StoreType == "lquery" ||
+                             binaryExpression.Right.TypeMapping is NpgsqlArrayTypeMapping arrayMapping &&
+                             arrayMapping.ElementMapping.StoreType == "lquery"
+                        => "~",
+                    PostgresExpressionType.LTreeMatches
+                        when binaryExpression.Right.TypeMapping.StoreType == "ltxtquery"
+                        => "@",
+                    PostgresExpressionType.LTreeMatchesAny      => "?",
+                    PostgresExpressionType.LTreeFirstAncestor   => "?@>",
+                    PostgresExpressionType.LTreeFirstDescendent => "?<@",
+                    PostgresExpressionType.LTreeFirstMatches
+                        when binaryExpression.Right.TypeMapping.StoreType == "lquery" => "?~",
+                    PostgresExpressionType.LTreeFirstMatches
+                        when binaryExpression.Right.TypeMapping.StoreType == "ltxtquery" => "?@",
 
                     _ => throw new ArgumentOutOfRangeException(
                         $"Unhandled operator type: {binaryExpression.OperatorType}")

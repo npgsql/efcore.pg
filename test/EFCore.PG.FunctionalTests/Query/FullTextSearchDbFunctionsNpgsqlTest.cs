@@ -36,7 +36,7 @@ LIMIT 1");
         }
 
         [Fact]
-        public void ArrayToTsVector()
+        public void ArrayToTsVector_constants()
         {
             using var context = CreateContext();
             var tsvector = context.Customers.Select(c => EF.Functions.ArrayToTsVector(new[] { "b", "c", "d" }))
@@ -50,14 +50,20 @@ LIMIT 1");
         }
 
         [Fact]
-        public void ArrayToTsVector_From_Columns_Throws_NotSupportedException()
+        public void ArrayToTsVector_columns()
         {
             using var context = CreateContext();
+            var tsvector = context.Customers
+                .OrderBy(c => c.CustomerID)
+                .Select(c => EF.Functions.ArrayToTsVector(new[] { c.CompanyName, c.Address }))
+                .First();
 
-            Assert.Throws<InvalidOperationException>(
-                () => context.Customers
-                    .Select(c => EF.Functions.ArrayToTsVector(new[] { c.CompanyName, c.Address }))
-                    .First());
+            Assert.Equal(NpgsqlTsVector.Parse("'Alfreds Futterkiste' 'Obere Str. 57'").ToString(), tsvector.ToString());
+            AssertSql(
+                @"SELECT array_to_tsvector(ARRAY[c.""CompanyName"",c.""Address""]::text[])
+FROM ""Customers"" AS c
+ORDER BY c.""CustomerID"" NULLS FIRST
+LIMIT 1");
         }
 
         [Fact]
