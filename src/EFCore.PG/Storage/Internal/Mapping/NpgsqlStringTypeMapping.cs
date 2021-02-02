@@ -2,6 +2,7 @@
 using System.Data.Common;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NpgsqlTypes;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
@@ -10,11 +11,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     /// The base class for mapping Npgsql-specific string types. It configures parameters with the
     /// <see cref="NpgsqlDbType"/> provider-specific type enum.
     /// </summary>
-    public class NpgsqlStringTypeMapping : StringTypeMapping
+    public class NpgsqlStringTypeMapping : StringTypeMapping, INpgsqlTypeMapping
     {
-        /// <summary>
-        /// The database type used by Npgsql.
-        /// </summary>
+        /// <inheritdoc />
         public virtual NpgsqlDbType NpgsqlDbType { get; }
 
         // ReSharper disable once PublicConstructorInAbstractClass

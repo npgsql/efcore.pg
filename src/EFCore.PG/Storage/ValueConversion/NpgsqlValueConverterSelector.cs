@@ -26,12 +26,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion
             {
                 // For each ValueConverterInfo selected by the superclass for the element type,
                 // return a ValueConverterInfo for its array type
-                return base
-                    .Select(modelElementType, providerElementType)
+
+                // Note that the value converter system operates with the assumption that nullable CLR types have already been
+                // unwrapped. This means that when looking for element type converters, we need to unwrap.
+                var arrayConverters = base
+                    .Select(modelElementType.UnwrapNullableType(), providerElementType)
                     .Select(elementConverterInfo => new
                     {
                         ModelArrayType = modelClrType,
-                        ProviderArrayType = providerClrType ?? elementConverterInfo.ProviderClrType.MakeArrayType(),
+                        ProviderArrayType = providerClrType ?? (modelElementType.IsNullableType()
+                                            ? elementConverterInfo.ProviderClrType.MakeNullable().MakeArrayType()
+                                            : elementConverterInfo.ProviderClrType.MakeArrayType()),
                         ElementConverterInfo = elementConverterInfo
                     })
                     .Select(x => _arrayConverters.GetOrAdd(
@@ -43,8 +48,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion
                                 typeof(NpgsqlArrayConverter<,>).MakeGenericType(
                                     modelClrType,
                                     x.ProviderArrayType),
-                                x.ElementConverterInfo.Create()))))
-                    .Concat(base.Select(modelClrType, providerClrType));
+                                x.ElementConverterInfo.Create()))));
+
+                return arrayConverters.Concat(base.Select(modelClrType, providerClrType));
             }
 
             return base.Select(modelClrType, providerClrType);

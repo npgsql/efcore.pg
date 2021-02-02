@@ -69,7 +69,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             _sqlGenerationHelper = sqlGenerationHelper;
         }
 
-        [NotNull]
         protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
             => new NpgsqlRangeTypeMapping(parameters, NpgsqlDbType, SubtypeMapping, _sqlGenerationHelper);
 
@@ -85,14 +84,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
         static NpgsqlDbType GenerateNpgsqlDbType([NotNull] RelationalTypeMapping subtypeMapping)
         {
-            if (subtypeMapping is NpgsqlTypeMapping npgsqlTypeMapping)
+            if (subtypeMapping is INpgsqlTypeMapping npgsqlTypeMapping)
                 return NpgsqlDbType.Range | npgsqlTypeMapping.NpgsqlDbType;
 
             // We're using a built-in, non-Npgsql mapping such as IntTypeMapping.
             // Infer the NpgsqlDbType from the DbType (somewhat hacky but why not).
             Debug.Assert(subtypeMapping.DbType.HasValue);
-            var p = new NpgsqlParameter();
-            p.DbType = subtypeMapping.DbType.Value;
+            var p = new NpgsqlParameter { DbType = subtypeMapping.DbType.Value };
             return NpgsqlDbType.Range | p.NpgsqlDbType;
         }
 

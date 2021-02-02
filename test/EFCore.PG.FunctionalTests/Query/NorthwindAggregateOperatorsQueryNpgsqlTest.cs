@@ -12,7 +12,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             : base(fixture)
         {
             ClearLog();
-            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+            // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
         public override async Task Contains_with_local_uint_array_closure(bool async)
@@ -41,13 +41,17 @@ WHERE e.""EmployeeID"" = ANY (@__ids_0)");
             // Note: PostgreSQL doesn't support uint, but value converters make this into bigint
 
             AssertSql(
-                @"SELECT e.""EmployeeID"", e.""City"", e.""Country"", e.""FirstName"", e.""ReportsTo"", e.""Title""
+                @"@__ids_0='System.Nullable`1[System.Int32][]' (DbType = Object)
+
+SELECT e.""EmployeeID"", e.""City"", e.""Country"", e.""FirstName"", e.""ReportsTo"", e.""Title""
 FROM ""Employees"" AS e
-WHERE e.""EmployeeID"" IN (0, 1)",
+WHERE e.""EmployeeID"" = ANY (@__ids_0)",
                 //
-                @"SELECT e.""EmployeeID"", e.""City"", e.""Country"", e.""FirstName"", e.""ReportsTo"", e.""Title""
+                @"@__ids_0='System.Nullable`1[System.Int32][]' (DbType = Object)
+
+SELECT e.""EmployeeID"", e.""City"", e.""Country"", e.""FirstName"", e.""ReportsTo"", e.""Title""
 FROM ""Employees"" AS e
-WHERE e.""EmployeeID"" = 0");
+WHERE e.""EmployeeID"" = ANY (@__ids_0)");
         }
 
         void AssertSql(params string[] expected)
