@@ -43,13 +43,47 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                     new[] { typeof(PropertyBuilder), typeof(string), typeof(string[]) })
             };
 
-            public override List<(Type Type, Type ReadonlyExtensions, Type MutableExtensions, Type ConventionExtensions, Type ConventionBuilderExtensions)> MetadataExtensionTypes { get; }
+            public override
+                List<(Type Type,
+                    Type ReadonlyExtensions,
+                    Type MutableExtensions,
+                    Type ConventionExtensions,
+                    Type ConventionBuilderExtensions,
+                    Type RuntimeExtensions)> MetadataExtensionTypes { get; }
                 = new()
                 {
-                    { (typeof(IModel), typeof(NpgsqlModelExtensions), typeof(NpgsqlModelExtensions), typeof(NpgsqlModelExtensions), typeof(NpgsqlModelBuilderExtensions)) },
-                    { (typeof(IEntityType), typeof(NpgsqlEntityTypeExtensions), typeof(NpgsqlEntityTypeExtensions), typeof(NpgsqlEntityTypeExtensions), typeof(NpgsqlEntityTypeBuilderExtensions)) },
-                    { (typeof(IProperty), typeof(NpgsqlPropertyExtensions), typeof(NpgsqlPropertyExtensions), typeof(NpgsqlPropertyExtensions), typeof(NpgsqlPropertyBuilderExtensions)) },
-                    { (typeof(IIndex), typeof(NpgsqlIndexExtensions), typeof(NpgsqlIndexExtensions), typeof(NpgsqlIndexExtensions), typeof(NpgsqlIndexBuilderExtensions)) }
+                    (
+                        typeof(IReadOnlyModel),
+                        typeof(NpgsqlModelExtensions),
+                        typeof(NpgsqlModelExtensions),
+                        typeof(NpgsqlModelExtensions),
+                        typeof(NpgsqlModelBuilderExtensions),
+                        null
+                    ),
+                    (
+                        typeof(IReadOnlyEntityType),
+                        typeof(NpgsqlEntityTypeExtensions),
+                        typeof(NpgsqlEntityTypeExtensions),
+                        typeof(NpgsqlEntityTypeExtensions),
+                        typeof(NpgsqlEntityTypeBuilderExtensions),
+                        null
+                    ),
+                    (
+                        typeof(IReadOnlyProperty),
+                        typeof(NpgsqlPropertyExtensions),
+                        typeof(NpgsqlPropertyExtensions),
+                        typeof(NpgsqlPropertyExtensions),
+                        typeof(NpgsqlPropertyBuilderExtensions),
+                        null
+                    ),
+                    (
+                        typeof(IReadOnlyIndex),
+                        typeof(NpgsqlIndexExtensions),
+                        typeof(NpgsqlIndexExtensions),
+                        typeof(NpgsqlIndexExtensions),
+                        typeof(NpgsqlIndexBuilderExtensions),
+                        null
+                    )
                 };
 
             public override HashSet<MethodInfo> MetadataMethodExceptions { get; } = new()

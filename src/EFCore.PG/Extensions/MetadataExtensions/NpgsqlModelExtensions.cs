@@ -20,7 +20,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="model"> The model. </param>
         /// <returns> The name to use for the default hi-lo sequence. </returns>
-        public static string GetHiLoSequenceName([NotNull] this IModel model)
+        public static string GetHiLoSequenceName([NotNull] this IReadOnlyModel model)
             => (string)model[NpgsqlAnnotationNames.HiLoSequenceName]
                ?? DefaultHiLoSequenceName;
 
@@ -66,7 +66,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="model"> The model. </param>
         /// <returns> The schema to use for the default hi-lo sequence. </returns>
-        public static string GetHiLoSequenceSchema([NotNull] this IModel model)
+        public static string GetHiLoSequenceSchema([NotNull] this IReadOnlyModel model)
             => (string)model[NpgsqlAnnotationNames.HiLoSequenceSchema];
 
         /// <summary>
@@ -115,7 +115,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="model"> The model. </param>
         /// <returns> The default <see cref="NpgsqlValueGenerationStrategy" />. </returns>
-        public static NpgsqlValueGenerationStrategy? GetValueGenerationStrategy([NotNull] this IModel model)
+        public static NpgsqlValueGenerationStrategy? GetValueGenerationStrategy([NotNull] this IReadOnlyModel model)
             => (NpgsqlValueGenerationStrategy?)model[NpgsqlAnnotationNames.ValueGenerationStrategy];
 
         /// <summary>
@@ -164,7 +164,7 @@ namespace Microsoft.EntityFrameworkCore
             [CanBeNull] string version)
             => PostgresExtension.GetOrAddPostgresExtension(model, schema, name, version);
 
-        public static IReadOnlyList<PostgresExtension> GetPostgresExtensions([NotNull] this IModel model)
+        public static IReadOnlyList<PostgresExtension> GetPostgresExtensions([NotNull] this IReadOnlyModel model)
             => PostgresExtension.GetPostgresExtensions(model).ToArray();
 
         #endregion
@@ -178,7 +178,7 @@ namespace Microsoft.EntityFrameworkCore
             [NotNull] string[] labels)
             => PostgresEnum.GetOrAddPostgresEnum(model, schema, name, labels);
 
-        public static IReadOnlyList<PostgresEnum> GetPostgresEnums([NotNull] this IModel model)
+        public static IReadOnlyList<PostgresEnum> GetPostgresEnums([NotNull] this IReadOnlyModel model)
             => PostgresEnum.GetPostgresEnums(model).ToArray();
 
         #endregion Enum types
@@ -204,14 +204,14 @@ namespace Microsoft.EntityFrameworkCore
                 collation,
                 subtypeDiff);
 
-        public static IReadOnlyList<PostgresRange> PostgresRanges([NotNull] this IModel model)
+        public static IReadOnlyList<PostgresRange> PostgresRanges([NotNull] this IReadOnlyModel model)
             => PostgresRange.GetPostgresRanges(model).ToArray();
 
         #endregion Range types
 
         #region Database Template
 
-        public static string GetDatabaseTemplate([NotNull] this IModel model)
+        public static string GetDatabaseTemplate([NotNull] this IReadOnlyModel model)
             => (string)model[NpgsqlAnnotationNames.DatabaseTemplate];
 
         public static void SetDatabaseTemplate([NotNull] this IMutableModel model, [CanBeNull] string template)
@@ -236,7 +236,7 @@ namespace Microsoft.EntityFrameworkCore
 
         #region Tablespace
 
-        public static string GetTablespace([NotNull] this IModel model)
+        public static string GetTablespace([NotNull] this IReadOnlyModel model)
             => (string)model[NpgsqlAnnotationNames.Tablespace];
 
         public static void SetTablespace([NotNull] this IMutableModel model, [CanBeNull] string tablespace)
@@ -278,7 +278,7 @@ namespace Microsoft.EntityFrameworkCore
                 provider,
                 deterministic);
 
-        public static IReadOnlyList<PostgresCollation> GetCollations([NotNull] this IModel model)
+        public static IReadOnlyList<PostgresCollation> GetCollations([NotNull] this IReadOnlyModel model)
             => PostgresCollation.GetCollations(model).ToArray();
 
         #endregion Collation management
@@ -299,7 +299,7 @@ namespace Microsoft.EntityFrameworkCore
         /// For more information, see https://www.postgresql.org/docs/current/collation.html.
         /// </p>
         /// </remarks>
-        public static string GetDefaultColumnCollation([NotNull] this IModel model)
+        public static string GetDefaultColumnCollation([NotNull] this IReadOnlyModel model)
             => (string)model[NpgsqlAnnotationNames.DefaultColumnCollation];
 
         /// <summary>

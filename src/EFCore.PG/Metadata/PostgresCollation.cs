@@ -11,10 +11,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 {
     public class PostgresCollation
     {
-        [NotNull] readonly IAnnotatable _annotatable;
+        [NotNull] readonly IReadOnlyAnnotatable _annotatable;
         [NotNull] readonly string _annotationName;
 
-        internal PostgresCollation([NotNull] IAnnotatable annotatable, [NotNull] string annotationName)
+        internal PostgresCollation([NotNull] IReadOnlyAnnotatable annotatable, [NotNull] string annotationName)
         {
             _annotatable = Check.NotNull(annotatable, nameof(annotatable));
             _annotationName = Check.NotNull(annotationName, nameof(annotationName));
@@ -50,7 +50,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 
         [CanBeNull]
         public static PostgresCollation FindCollation(
-            [NotNull] IAnnotatable annotatable,
+            [NotNull] IReadOnlyAnnotatable annotatable,
             [CanBeNull] string schema,
             [NotNull] string name)
         {
@@ -71,7 +71,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 
         [NotNull]
         [ItemNotNull]
-        public static IEnumerable<PostgresCollation> GetCollations([NotNull] IAnnotatable annotatable)
+        public static IEnumerable<PostgresCollation> GetCollations([NotNull] IReadOnlyAnnotatable annotatable)
             => Check.NotNull(annotatable, nameof(annotatable))
                     .GetAnnotations()
                     .Where(a => a.Name.StartsWith(NpgsqlAnnotationNames.CollationDefinitionPrefix, StringComparison.Ordinal))

@@ -22,7 +22,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// http://www.postgresql.org/docs/current/static/sql-createindex.html
         /// </remarks>
-        public static string GetMethod([NotNull] this IIndex index)
+        public static string GetMethod([NotNull] this IReadOnlyIndex index)
             => (string)index[NpgsqlAnnotationNames.IndexMethod];
 
         /// <summary>
@@ -72,7 +72,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// https://www.postgresql.org/docs/current/static/indexes-opclass.html
         /// </remarks>
-        public static IReadOnlyList<string> GetOperators([NotNull] this IIndex index)
+        public static IReadOnlyList<string> GetOperators([NotNull] this IReadOnlyIndex index)
             => (IReadOnlyList<string>)index[NpgsqlAnnotationNames.IndexOperators];
 
         /// <summary>
@@ -121,7 +121,7 @@ namespace Microsoft.EntityFrameworkCore
         /// https://www.postgresql.org/docs/current/static/indexes-collations.html
         /// </remarks>
 #pragma warning disable 618
-        public static IReadOnlyList<string> GetCollation([NotNull] this IIndex index)
+        public static IReadOnlyList<string> GetCollation([NotNull] this IReadOnlyIndex index)
             => (IReadOnlyList<string>)(
                 index[RelationalAnnotationNames.Collation] ?? index[NpgsqlAnnotationNames.IndexCollation]);
 #pragma warning restore 618
@@ -171,7 +171,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
         /// </remarks>
-        public static IReadOnlyList<SortOrder> GetSortOrder([NotNull] this IIndex index)
+        public static IReadOnlyList<SortOrder> GetSortOrder([NotNull] this IReadOnlyIndex index)
             => (IReadOnlyList<SortOrder>)index[NpgsqlAnnotationNames.IndexSortOrder];
 
         /// <summary>
@@ -219,7 +219,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
         /// </remarks>
-        public static IReadOnlyList<NullSortOrder> GetNullSortOrder([NotNull] this IIndex index)
+        public static IReadOnlyList<NullSortOrder> GetNullSortOrder([NotNull] this IReadOnlyIndex index)
             => (IReadOnlyList<NullSortOrder>)index[NpgsqlAnnotationNames.IndexNullSortOrder];
 
         /// <summary>
@@ -266,7 +266,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="index">The index.</param>
         /// <returns>The included property names, or <c>null</c> if they have not been specified.</returns>
-        public static IReadOnlyList<string> GetIncludeProperties([NotNull] this IIndex index)
+        public static IReadOnlyList<string> GetIncludeProperties([NotNull] this IReadOnlyIndex index)
             => (IReadOnlyList<string>)index[NpgsqlAnnotationNames.IndexInclude];
 
         /// <summary>
@@ -317,7 +317,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="index">The index.</param>
         /// <returns><c>true</c> if the index is created concurrently.</returns>
-        public static bool? IsCreatedConcurrently([NotNull] this IIndex index)
+        public static bool? IsCreatedConcurrently([NotNull] this IReadOnlyIndex index)
             => (bool?)index[NpgsqlAnnotationNames.CreatedConcurrently];
 
         /// <summary>
@@ -362,7 +362,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// https://www.postgresql.org/docs/current/textsearch-tables.html#TEXTSEARCH-TABLES-INDEX
         /// </remarks>
-        public static string GetTsVectorConfig([NotNull] this IIndex index)
+        public static string GetTsVectorConfig([NotNull] this IReadOnlyIndex index)
             => (string)index[NpgsqlAnnotationNames.TsVectorConfig];
 
         /// <summary>

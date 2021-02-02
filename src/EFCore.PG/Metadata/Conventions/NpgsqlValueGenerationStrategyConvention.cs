@@ -87,7 +87,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
                 }
             }
 
-            static bool IsStrategyNoneNeeded(IProperty property, StoreObjectIdentifier storeObject)
+            static bool IsStrategyNoneNeeded(IReadOnlyProperty property, StoreObjectIdentifier storeObject)
             {
                 if (property.ValueGenerated == ValueGenerated.OnAdd
                     && property.GetDefaultValue(storeObject) == null

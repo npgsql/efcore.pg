@@ -16,7 +16,7 @@ namespace Microsoft.EntityFrameworkCore
     {
         #region Storage parameters
 
-        public static Dictionary<string, object> GetStorageParameters([NotNull] this IEntityType entityType)
+        public static Dictionary<string, object> GetStorageParameters([NotNull] this IReadOnlyEntityType entityType)
             => entityType.GetAnnotations()
                 .Where(a => a.Name.StartsWith(NpgsqlAnnotationNames.StorageParameterPrefix))
                 .ToDictionary(
@@ -67,7 +67,7 @@ namespace Microsoft.EntityFrameworkCore
 
         #region Unlogged
 
-        public static bool GetIsUnlogged([NotNull] this IEntityType entityType)
+        public static bool GetIsUnlogged([NotNull] this IReadOnlyEntityType entityType)
             => entityType[NpgsqlAnnotationNames.UnloggedTable] as bool? ?? false;
 
         public static void SetIsUnlogged([NotNull] this IMutableEntityType entityType, bool unlogged)
@@ -90,7 +90,7 @@ namespace Microsoft.EntityFrameworkCore
 
         #region CockroachDb interleave in parent
 
-        public static CockroachDbInterleaveInParent GetCockroachDbInterleaveInParent([NotNull] this IEntityType entityType)
+        public static CockroachDbInterleaveInParent GetCockroachDbInterleaveInParent([NotNull] this IReadOnlyEntityType entityType)
             => new(entityType);
 
         #endregion CockroachDb interleave in parent
