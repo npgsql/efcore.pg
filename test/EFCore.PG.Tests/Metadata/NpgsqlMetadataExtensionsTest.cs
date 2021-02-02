@@ -367,35 +367,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         }
 
         [ConditionalFact]
-        public void TryGetSequence_returns_null_if_property_is_not_configured_for_sequence_value_generation()
-        {
-            var modelBuilder = GetModelBuilder();
-
-            var property = modelBuilder
-                .Entity<Customer>()
-                .Property(e => e.Id)
-                .Metadata;
-
-            modelBuilder.Model.AddSequence("DaneelOlivaw");
-
-            Assert.Null(property.FindHiLoSequence());
-
-            property.SetHiLoSequenceName("DaneelOlivaw");
-
-            Assert.Null(property.FindHiLoSequence());
-
-            // TODO for PG9.6 testing: make this conditional
-            modelBuilder.Model.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
-
-            Assert.Null(property.FindHiLoSequence());
-
-            modelBuilder.Model.SetValueGenerationStrategy(null);
-            property.SetValueGenerationStrategy(NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
-
-            Assert.Null(property.FindHiLoSequence());
-        }
-
-        [ConditionalFact]
         public void TryGetSequence_returns_sequence_property_is_marked_for_sequence_generation()
         {
             var modelBuilder = GetModelBuilder();

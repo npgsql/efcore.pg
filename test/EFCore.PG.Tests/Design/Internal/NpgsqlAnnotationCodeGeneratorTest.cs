@@ -2,6 +2,7 @@
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
@@ -35,7 +36,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             // version of the database that the scaffolded model will target. This makes life difficult for
             // models with mixed strategies but that's an edge case.
 
-            var entity = modelBuilder.Model.FindEntityType("Post");
+            var entity = (IEntityType)modelBuilder.Model.FindEntityType("Post");
 
             var property = entity.GetProperties().Single(p => p.Name == "IdentityByDefault");
             var annotations = property.GetAnnotations().ToDictionary(a => a.Name, a => a);
@@ -95,7 +96,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
                             numbersToCache: 10);
                 });
 
-            var property = modelBuilder.Model.FindEntityType("Post").GetProperties()
+            var property = (IProperty)modelBuilder.Model.FindEntityType("Post").GetProperties()
                 .Single(p => p.Name == "Id");
             var annotations = property.GetAnnotations().ToDictionary(a => a.Name, a => a);
             generator.RemoveAnnotationsHandledByConventions(property, annotations);
@@ -118,7 +119,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             modelBuilder.UseHiLo("HiLoIndexName", "HiLoIndexSchema");
 
             var annotations = modelBuilder.Model.GetAnnotations().ToDictionary(a => a.Name, a => a);
-            var result = generator.GenerateFluentApiCalls(modelBuilder.Model, annotations).Single();
+            var result = generator.GenerateFluentApiCalls((IModel)modelBuilder.Model, annotations).Single();
 
             Assert.Equal("UseHiLo", result.Method);
 
@@ -134,7 +135,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             var generator = CreateGenerator();
             var modelBuilder = new ModelBuilder(NpgsqlConventionSetBuilder.Build());
             modelBuilder.Entity("Post", x => x.Property<int>("Id").UseHiLo("HiLoIndexName", "HiLoIndexSchema"));
-            var property = modelBuilder.Model.FindEntityType("Post").FindProperty("Id");
+            var property = (IProperty)modelBuilder.Model.FindEntityType("Post").FindProperty("Id");
 
             var annotations = property.GetAnnotations().ToDictionary(a => a.Name, a => a);
             var result = generator.GenerateFluentApiCalls(property, annotations).Single();
@@ -154,7 +155,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             var modelBuilder = new ModelBuilder(NpgsqlConventionSetBuilder.Build());
             modelBuilder.HasPostgresExtension("postgis");
 
-            var model = modelBuilder.Model;
+            var model = (IModel)modelBuilder.Model;
             var annotations = model.GetAnnotations().ToDictionary(a => a.Name, a => a);
             var result = generator.GenerateFluentApiCalls(model, annotations)
                 .Single(c => c.Method == nameof(NpgsqlModelBuilderExtensions.HasPostgresExtension));
@@ -169,7 +170,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             var modelBuilder = new ModelBuilder(NpgsqlConventionSetBuilder.Build());
             modelBuilder.HasPostgresExtension("some_schema", "postgis");
 
-            var model = modelBuilder.Model;
+            var model = (IModel)modelBuilder.Model;
             var annotations = model.GetAnnotations().ToDictionary(a => a.Name, a => a);
             var result = generator.GenerateFluentApiCalls(model, annotations)
                 .Single(c => c.Method == nameof(NpgsqlModelBuilderExtensions.HasPostgresExtension));
@@ -186,7 +187,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             var modelBuilder = new ModelBuilder(NpgsqlConventionSetBuilder.Build());
             modelBuilder.HasPostgresExtension(null, "postgis");
 
-            var model = modelBuilder.Model;
+            var model = (IModel)modelBuilder.Model;
             var annotations = model.GetAnnotations().ToDictionary(a => a.Name, a => a);
             var result = generator.GenerateFluentApiCalls(model, annotations)
                 .Single(c => c.Method == nameof(NpgsqlModelBuilderExtensions.HasPostgresExtension));

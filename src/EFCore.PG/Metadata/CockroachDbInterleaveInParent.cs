@@ -13,11 +13,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
     {
         const string AnnotationName = CockroachDbAnnotationNames.InterleaveInParent;
 
-        readonly IAnnotatable _annotatable;
+        readonly IReadOnlyAnnotatable _annotatable;
 
         public virtual Annotatable Annotatable => (Annotatable)_annotatable;
 
-        public CockroachDbInterleaveInParent([NotNull] IAnnotatable annotatable)
+        public CockroachDbInterleaveInParent([NotNull] IReadOnlyAnnotatable annotatable)
             => _annotatable = annotatable;
 
         public virtual string ParentTableSchema

@@ -24,7 +24,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
         }
 
         /// <inheritdoc />
-        protected override bool AreCompatible(IIndex index, IIndex duplicateIndex, in StoreObjectIdentifier storeObject)
+        protected override bool AreCompatible(IReadOnlyIndex index, IReadOnlyIndex duplicateIndex, in StoreObjectIdentifier storeObject)
             => base.AreCompatible(index, duplicateIndex, storeObject)
                && index.AreCompatibleForNpgsql(duplicateIndex, storeObject, shouldThrow: false);
     }

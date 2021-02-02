@@ -14,7 +14,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
     /// </summary>
     public class PostgresEnum
     {
-        [NotNull] readonly IAnnotatable _annotatable;
+        [NotNull] readonly IReadOnlyAnnotatable _annotatable;
         [NotNull] readonly string _annotationName;
 
         /// <summary>
@@ -24,7 +24,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         /// <param name="annotationName">The annotation name to search for in the annotatable.</param>
         /// <exception cref="ArgumentNullException"><paramref name="annotatable"/></exception>
         /// <exception cref="ArgumentNullException"><paramref name="annotationName"/></exception>
-        internal PostgresEnum([NotNull] IAnnotatable annotatable, [NotNull] string annotationName)
+        internal PostgresEnum([NotNull] IReadOnlyAnnotatable annotatable, [NotNull] string annotationName)
         {
             _annotatable = Check.NotNull(annotatable, nameof(annotatable));
             _annotationName = Check.NotNull(annotationName, nameof(annotationName));
@@ -97,7 +97,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         /// <exception cref="ArgumentNullException"><paramref name="name"/></exception>
         [CanBeNull]
         public static PostgresEnum FindPostgresEnum(
-            [NotNull] IAnnotatable annotatable,
+            [NotNull] IReadOnlyAnnotatable annotatable,
             [CanBeNull] string schema,
             [NotNull] string name)
         {
@@ -126,7 +126,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         /// <exception cref="ArgumentNullException"><paramref name="annotatable"/></exception>
         [NotNull]
         [ItemNotNull]
-        public static IEnumerable<PostgresEnum> GetPostgresEnums([NotNull] IAnnotatable annotatable)
+        public static IEnumerable<PostgresEnum> GetPostgresEnums([NotNull] IReadOnlyAnnotatable annotatable)
             => Check.NotNull(annotatable, nameof(annotatable))
                     .GetAnnotations()
                     .Where(a => a.Name.StartsWith(NpgsqlAnnotationNames.EnumPrefix, StringComparison.Ordinal))

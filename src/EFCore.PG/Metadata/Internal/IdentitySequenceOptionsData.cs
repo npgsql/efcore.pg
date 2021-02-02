@@ -37,7 +37,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
             return builder.ToString();
         }
 
-        public static IdentitySequenceOptionsData Get([NotNull] IAnnotatable annotatable)
+        public static IdentitySequenceOptionsData Get([NotNull] IReadOnlyAnnotatable annotatable)
             => Deserialize((string)annotatable[NpgsqlAnnotationNames.IdentityOptions]);
 
         public static IdentitySequenceOptionsData Deserialize([CanBeNull] string value)
