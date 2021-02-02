@@ -32,7 +32,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.GraphUpdates
 
                     foreach (var foreignKey in modelBuilder.Model
                         .GetEntityTypes()
-                        .SelectMany(e => MutableEntityTypeExtensions.GetDeclaredForeignKeys(e))
+                        .SelectMany(e => e.GetDeclaredForeignKeys())
                         .Where(e => e.DeleteBehavior == DeleteBehavior.Cascade))
                     {
                         foreignKey.DeleteBehavior = DeleteBehavior.ClientCascade;
