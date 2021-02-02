@@ -55,12 +55,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             ), elementMapping) {}
 
         protected NpgsqlArrayArrayTypeMapping(
-            RelationalTypeMappingParameters parameters, [NotNull] RelationalTypeMapping elementMapping)
-            : base(parameters, elementMapping)
+            RelationalTypeMappingParameters parameters, [NotNull] RelationalTypeMapping elementMapping, bool? isElementNullable = null)
+            : base(
+                parameters,
+                elementMapping,
+                CalculateElementNullability(
+                    // Note that the ClrType on elementMapping has been unwrapped for nullability, so we consult the array's CLR type instead
+                    parameters.CoreParameters.ClrType.GetElementType() ?? throw new ArgumentException("CLR type isn't an array"),
+                    isElementNullable))
         {
             if (!parameters.CoreParameters.ClrType.IsArray)
                 throw new ArgumentException("ClrType must be an array", nameof(parameters));
         }
+
+        public override NpgsqlArrayTypeMapping MakeNonNullable()
+            => new NpgsqlArrayArrayTypeMapping(Parameters, ElementMapping, isElementNullable: false);
 
         protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
             => new NpgsqlArrayArrayTypeMapping(parameters, ElementMapping);

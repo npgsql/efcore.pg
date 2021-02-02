@@ -13,6 +13,7 @@ using System.Text;
 using System.Text.Json;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
@@ -24,7 +25,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 {
     public class NpgsqlTypeMappingSource : RelationalTypeMappingSource
     {
-        [NotNull] readonly ISqlGenerationHelper _sqlGenerationHelper;
+        private readonly ISqlGenerationHelper _sqlGenerationHelper;
+        private readonly ReferenceNullabilityDecoder _referenceNullabilityDecoder = new();
 
         protected virtual ConcurrentDictionary<string, RelationalTypeMapping[]> StoreTypeMappings { get; }
         protected virtual ConcurrentDictionary<Type, RelationalTypeMapping> ClrTypeMappings { get; }
@@ -627,6 +629,26 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             }
 
             return preParens.ToString();
+        }
+
+        public override CoreTypeMapping FindMapping(IProperty property)
+        {
+            var mapping = base.FindMapping(property);
+
+            // For arrays over reference types, the CLR type doesn't convey nullability (unlike with arrays over value types).
+            // We decode NRT annotations here to return the correct type mapping.
+            if (mapping is NpgsqlArrayTypeMapping arrayMapping
+                && !arrayMapping.ElementMapping.ClrType.IsValueType
+                && !property.IsShadowProperty())
+            {
+                var memberInfo = property.GetMemberInfo(forMaterialization: false, forSet: false);
+                if (_referenceNullabilityDecoder.IsArrayOrListElementNonNullable(memberInfo))
+                {
+                    return arrayMapping.MakeNonNullable();
+                }
+            }
+
+            return mapping;
         }
     }
 }

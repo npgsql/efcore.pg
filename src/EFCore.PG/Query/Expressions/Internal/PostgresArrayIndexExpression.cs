@@ -18,6 +18,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
     /// </remarks>
     public class PostgresArrayIndexExpression : SqlExpression, IEquatable<PostgresArrayIndexExpression>
     {
+        /// <summary>
+        /// The array being indexed.
+        /// </summary>
+        [NotNull]
+        public virtual SqlExpression Array { get; }
+
+        /// <summary>
+        /// The index in the array.
+        /// </summary>
+        [NotNull]
+        public virtual SqlExpression Index { get; }
+
         public PostgresArrayIndexExpression(
             [NotNull] SqlExpression array,
             [NotNull] SqlExpression index,
@@ -47,18 +59,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         /// <inheritdoc />
         protected override Expression VisitChildren(ExpressionVisitor visitor)
             => Update((SqlExpression)visitor.Visit(Array), (SqlExpression)visitor.Visit(Index));
-
-        /// <summary>
-        /// The array being indexes.
-        /// </summary>
-        [NotNull]
-        public virtual SqlExpression Array { get; }
-
-        /// <summary>
-        /// The index in the array.
-        /// </summary>
-        [NotNull]
-        public virtual SqlExpression Index { get; }
 
         public virtual bool Equals(PostgresArrayIndexExpression other)
             => ReferenceEquals(this, other) ||

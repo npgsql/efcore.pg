@@ -54,12 +54,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             ), elementMapping) {}
 
         protected NpgsqlArrayListTypeMapping(
-            RelationalTypeMappingParameters parameters, [NotNull] RelationalTypeMapping elementMapping)
-            : base(parameters, elementMapping)
+            RelationalTypeMappingParameters parameters, [NotNull] RelationalTypeMapping elementMapping, bool? isElementNullable = null)
+            : base(
+                parameters,
+                elementMapping,
+                CalculateElementNullability(
+                    // Note that the ClrType on elementMapping has been unwrapped for nullability, so we consult the List's CLR type instead
+                    parameters.CoreParameters.ClrType.GetGenericArguments()[0],
+                    isElementNullable))
         {
             if (!parameters.CoreParameters.ClrType.IsGenericList())
-                throw new ArgumentException("ClrType must be a List<>", nameof(parameters));
+                throw new ArgumentException("ClrType must be a generic List", nameof(parameters));
         }
+
+        public override NpgsqlArrayTypeMapping MakeNonNullable()
+            => new NpgsqlArrayListTypeMapping(Parameters, ElementMapping, isElementNullable: false);
 
         protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
             => new NpgsqlArrayListTypeMapping(parameters, ElementMapping);
