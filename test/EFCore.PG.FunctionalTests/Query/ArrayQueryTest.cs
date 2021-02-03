@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -337,16 +336,16 @@ LIMIT 2");
         {
             using var ctx = CreateContext();
             var id = ctx.SomeEntities
-                .Where(e => e.StringArray.Contains(null))
+                .Where(e => e.NullableStringArray.Contains(null))
                 .Select(e => e.Id)
                 .OverArrayOrList(list)
                 .Single();
 
-            Assert.Equal(2, id);
+            Assert.Equal(1, id);
             AssertSql(list,
                 @"SELECT s.""Id""
 FROM ""SomeEntities"" AS s
-WHERE (array_position(s.""StringArray"", NULL) IS NOT NULL)
+WHERE (array_position(s.""NullableStringArray"", NULL) IS NOT NULL)
 LIMIT 2");
         }
 
@@ -978,6 +977,150 @@ WHERE (get_byte(s.""SomeBytea"", 0) = 3) AND get_byte(s.""SomeBytea"", 0) IS NOT
 
         #endregion
 
+        #region Nullability
+
+        [ConditionalFact]
+        public void Nullable_value_array_index_compare_to_null()
+        {
+            using var ctx = CreateContext();
+            var id = ctx.SomeEntities
+                .Where(e => e.NullableIntArray[3] == null)
+                .Select(e => e.Id)
+                .Count();
+
+            Assert.Equal(1, id);
+            AssertSql(
+                @"SELECT COUNT(*)::INT
+FROM ""SomeEntities"" AS s
+WHERE (s.""NullableIntArray""[4] IS NULL)");
+        }
+
+        [ConditionalFact]
+        public void Non_nullable_value_array_index_compare_to_null()
+        {
+            using var ctx = CreateContext();
+            var count = ctx.SomeEntities
+#pragma warning disable CS0472
+                // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+                .Where(e => e.IntArray[1] == null)
+#pragma warning restore CS0472
+                .Select(e => e.Id)
+                .Count();
+
+            Assert.Equal(0, count);
+            AssertSql(
+                @"SELECT COUNT(*)::INT
+FROM ""SomeEntities"" AS s
+WHERE FALSE");
+        }
+
+        [ConditionalFact]
+        public void Nullable_reference_array_index_compare_to_null()
+        {
+            using var ctx = CreateContext();
+            var id = ctx.SomeEntities
+                .Where(e => e.NullableStringArray[3] == null)
+                .Select(e => e.Id)
+                .Count();
+
+            Assert.Equal(1, id);
+            AssertSql(
+                @"SELECT COUNT(*)::INT
+FROM ""SomeEntities"" AS s
+WHERE (s.""NullableStringArray""[4] IS NULL)");
+        }
+
+        [ConditionalFact]
+        public void Non_nullable_reference_array_index_compare_to_null()
+        {
+            using var ctx = CreateContext();
+            var count = ctx.SomeEntities
+#pragma warning disable CS0472
+                // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+                .Where(e => e.StringArray[1] == null)
+#pragma warning restore CS0472
+                .Select(e => e.Id)
+                .Count();
+
+            Assert.Equal(0, count);
+            AssertSql(
+                @"SELECT COUNT(*)::INT
+FROM ""SomeEntities"" AS s
+WHERE FALSE");
+        }
+
+        [ConditionalFact]
+        public void Nullable_value_list_index_compare_to_null()
+        {
+            using var ctx = CreateContext();
+            var id = ctx.SomeEntities
+                .Where(e => e.NullableIntList[3] == null)
+                .Select(e => e.Id)
+                .Count();
+
+            Assert.Equal(1, id);
+            AssertSql(
+                @"SELECT COUNT(*)::INT
+FROM ""SomeEntities"" AS s
+WHERE (s.""NullableIntList""[4] IS NULL)");
+        }
+
+        [ConditionalFact]
+        public void Non_nullable_value_list_index_compare_to_null()
+        {
+            using var ctx = CreateContext();
+            var count = ctx.SomeEntities
+#pragma warning disable CS0472
+                // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+                .Where(e => e.IntList[1] == null)
+#pragma warning restore CS0472
+                .Select(e => e.Id)
+                .Count();
+
+            Assert.Equal(0, count);
+            AssertSql(
+                @"SELECT COUNT(*)::INT
+FROM ""SomeEntities"" AS s
+WHERE FALSE");
+        }
+
+        [ConditionalFact]
+        public void Nullable_reference_list_index_compare_to_null()
+        {
+            using var ctx = CreateContext();
+            var id = ctx.SomeEntities
+                .Where(e => e.NullableStringList[3] == null)
+                .Select(e => e.Id)
+                .Count();
+
+            Assert.Equal(1, id);
+            AssertSql(
+                @"SELECT COUNT(*)::INT
+FROM ""SomeEntities"" AS s
+WHERE (s.""NullableStringList""[4] IS NULL)");
+        }
+
+        [ConditionalFact]
+        public void Non_nullable_reference_list_index_compare_to_null()
+        {
+            using var ctx = CreateContext();
+            var count = ctx.SomeEntities
+#pragma warning disable CS0472
+                // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+                .Where(e => e.StringList[1] == null)
+#pragma warning restore CS0472
+                .Select(e => e.Id)
+                .Count();
+
+            Assert.Equal(0, count);
+            AssertSql(
+                @"SELECT COUNT(*)::INT
+FROM ""SomeEntities"" AS s
+WHERE FALSE");
+        }
+
+        #endregion Nullability
+
         #region Support
 
         protected ArrayArrayQueryContext CreateContext() => Fixture.CreateContext();
@@ -985,9 +1128,11 @@ WHERE (get_byte(s.""SomeBytea"", 0) = 3) AND get_byte(s.""SomeBytea"", 0) IS NOT
         void AssertSql(bool list, params string[] expected)
             => AssertSql(list
                 ? expected.Select(e => e
-                    .Replace(@"""IntArray""", @"""IntList""")
-                    .Replace(@"""NullableIntArray""", @"""NullableIntList""")
-                    .Replace(@"""StringArray""", @"""StringList""")).ToArray()
+                        .Replace(@"""IntArray""", @"""IntList""")
+                        .Replace(@"""NullableIntArray""", @"""NullableIntList""")
+                        .Replace(@"""StringArray""", @"""StringList""")
+                        .Replace(@"""NullableStringArray""", @"""NullableStringList"""))
+                    .ToArray()
                 : expected);
 
         void AssertSql(params string[] expected)
@@ -1019,7 +1164,9 @@ WHERE (get_byte(s.""SomeBytea"", 0) = 3) AND get_byte(s.""SomeBytea"", 0) IS NOT
                         Bytea = new byte[] { 3, 4 },
                         ByteArray = new byte[] { 3, 4 },
                         StringArray = new[] { "3", "4" },
+                        NullableStringArray = new[] { "3", "4", null },
                         StringList = new List<string> { "3", "4" },
+                        NullableStringList = new List<string> { "3", "4", null},
                         IntMatrix = new[,] { { 5, 6 }, { 7, 8 } },
                         NullableText = "foo",
                         NonNullableText = "foo",
@@ -1029,14 +1176,16 @@ WHERE (get_byte(s.""SomeBytea"", 0) = 3) AND get_byte(s.""SomeBytea"", 0) IS NOT
                     new SomeArrayEntity
                     {
                         Id = 2,
-                        IntArray = new[] { 5, 6, 7 },
-                        IntList = new List<int> { 5, 6, 7 },
-                        NullableIntArray = new int?[] { 5, 6, 7, null },
-                        NullableIntList = new List<int?> { 5, 6, 7, null },
-                        Bytea = new byte[] { 5, 6, 7 },
-                        ByteArray = new byte[] { 5, 6, 7 },
-                        StringArray = new[] { "5", "6", "7", null },
-                        StringList = new List<string> { "5", "6", "7", null },
+                        IntArray = new[] { 5, 6, 7, 8 },
+                        IntList = new List<int> { 5, 6, 7, 8 },
+                        NullableIntArray = new int?[] { 5, 6, 7, 8 },
+                        NullableIntList = new List<int?> { 5, 6, 7, 8 },
+                        Bytea = new byte[] { 5, 6, 7, 8 },
+                        ByteArray = new byte[] { 5, 6, 7, 8 },
+                        StringArray = new[] { "5", "6", "7", "8" },
+                        NullableStringArray = new[] { "5", "6", "7", "8" },
+                        StringList = new List<string> { "5", "6", "7", "8" },
+                        NullableStringList = new List<string> { "5", "6", "7", "8" },
                         IntMatrix = new[,] { { 10, 11 }, { 12, 13 } },
                         NullableText = "bar",
                         NonNullableText = "bar",
@@ -1047,24 +1196,29 @@ WHERE (get_byte(s.""SomeBytea"", 0) = 3) AND get_byte(s.""SomeBytea"", 0) IS NOT
             }
         }
 
+        #nullable enable
+
         public class SomeArrayEntity
         {
             public int Id { get; set; }
-            public int[] IntArray { get; set; }
-            public List<int> IntList { get; set; }
-            public int?[] NullableIntArray { get; set; }
-            public List<int?> NullableIntList { get; set; }
-            public int[,] IntMatrix { get; set; }
-            public byte[] Bytea { get; set; }
-            public byte[] ByteArray { get; set; }
-            public string[] StringArray { get; set; }
-            public List<string> StringList { get; set; }
-            public string NullableText { get; set; }
-            [Required]
-            public string NonNullableText { get; set; }
+            public int[] IntArray { get; set; } = null!;
+            public List<int> IntList { get; set; } = null!;
+            public int?[] NullableIntArray { get; set; } = null!;
+            public List<int?> NullableIntList { get; set; } = null!;
+            public int[,] IntMatrix { get; set; } = null!;
+            public byte[] Bytea { get; set; } = null!;
+            public byte[] ByteArray { get; set; } = null!;
+            public string[] StringArray { get; set; } = null!;
+            public List<string> StringList { get; set; } = null!;
+            public string?[] NullableStringArray { get; set; } = null!;
+            public List<string?> NullableStringList { get; set; } = null!;
+            public string? NullableText { get; set; }
+            public string NonNullableText { get; set; } = null!;
             public Guid ValueConvertedGuid { get; set; }
             public byte Byte { get; set; }
         }
+
+        #nullable restore
 
         public class ArrayArrayQueryFixture : SharedStoreFixtureBase<ArrayArrayQueryContext>
         {
@@ -1108,7 +1262,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ArrayTests
         static readonly PropertyInfo IntList = typeof(SomeArrayEntity).GetProperty(nameof(SomeArrayEntity.IntList));
         static readonly PropertyInfo NullableIntList = typeof(SomeArrayEntity).GetProperty(nameof(SomeArrayEntity.NullableIntList));
         static readonly PropertyInfo StringArray = typeof(SomeArrayEntity).GetProperty(nameof(SomeArrayEntity.StringArray));
+        static readonly PropertyInfo NullableStringArray = typeof(SomeArrayEntity).GetProperty(nameof(SomeArrayEntity.NullableStringArray));
         static readonly PropertyInfo StringList = typeof(SomeArrayEntity).GetProperty(nameof(SomeArrayEntity.StringList));
+        static readonly PropertyInfo NullableStringList = typeof(SomeArrayEntity).GetProperty(nameof(SomeArrayEntity.NullableStringList));
 
         protected override Expression VisitMember(MemberExpression node)
         {
@@ -1118,6 +1274,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ArrayTests
                 return Expression.MakeMemberAccess(node.Expression, NullableIntList);
             if (node.Member == StringArray)
                 return Expression.MakeMemberAccess(node.Expression, StringList);
+            if (node.Member == NullableStringArray)
+                return Expression.MakeMemberAccess(node.Expression, NullableStringList);
             return node;
         }
     }

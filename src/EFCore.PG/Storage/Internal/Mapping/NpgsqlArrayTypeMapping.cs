@@ -31,11 +31,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         /// </summary>
         public virtual NpgsqlDbType? NpgsqlDbType { get; }
 
+        /// <summary>
+        /// Whether the array's element is nullable. This is required since <see cref="Type"/> and <see cref="ElementMapping"/> do not
+        /// contain nullable reference type information.
+        /// </summary>
+        public virtual bool IsElementNullable { get; }
+
         protected NpgsqlArrayTypeMapping(
-            RelationalTypeMappingParameters parameters, [NotNull] RelationalTypeMapping elementMapping)
+            RelationalTypeMappingParameters parameters, [NotNull] RelationalTypeMapping elementMapping, bool isElementNullable)
             : base(parameters)
         {
             ElementMapping = elementMapping;
+            IsElementNullable = isElementNullable;
 
             // If the element mapping has an NpgsqlDbType or DbType, set our own NpgsqlDbType as an array of that.
             // Otherwise let the ADO.NET layer infer the PostgreSQL type. We can't always let it infer, otherwise
@@ -47,6 +54,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                                    ? new NpgsqlParameter { DbType = elementMapping.DbType.Value }.NpgsqlDbType
                                    : default(NpgsqlDbType?));
         }
+
+        /// <summary>
+        /// Returns a copy of this type mapping with <see cref="IsElementNullable"/> set to <see langword="false"/>.
+        /// </summary>
+        public abstract NpgsqlArrayTypeMapping MakeNonNullable();
 
         // The array-to-array mapping needs to know how to generate an SQL literal for a List<>, and
         // the list-to-array mapping needs to know how to generate an SQL literal for an array.
@@ -88,6 +100,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
             if (NpgsqlDbType.HasValue)
                 npgsqlParameter.NpgsqlDbType = NpgsqlDbType.Value;
+        }
+
+        private protected static bool CalculateElementNullability(Type elementType, bool? isElementNullable)
+        {
+            if (elementType.IsValueType)
+            {
+                // If elementType is a value type, we can infer its nullability from the type - make sure isElementNullable wasn't given
+                // externally.
+                if (isElementNullable is not null)
+                {
+                    throw new ArgumentException($"{nameof(isElementNullable)} must be null for arrays over value types");
+                }
+
+                return elementType.IsNullableType();
+            }
+
+            return isElementNullable ?? true;
         }
 
         protected class NullableEqualityComparer<T> : IEqualityComparer<T?>
