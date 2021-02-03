@@ -117,25 +117,25 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 typeMapping);
 
         /// <summary>
-        /// Constructs either a <see cref="PostgresNewArrayExpression"/>, or, if all provided initializers are constants,
+        /// Constructs either a <see cref="PostgresNewArrayExpression"/>, or, if all provided expressions are constants,
         /// a single <see cref="SqlConstantExpression"/> for the entire array.
         /// </summary>
         public virtual SqlExpression NewArrayOrConstant(
-            [NotNull] IReadOnlyList<SqlExpression> expression,
+            [NotNull] IReadOnlyList<SqlExpression> expressions,
             [NotNull] Type type,
             [CanBeNull] RelationalTypeMapping typeMapping = null)
         {
             if (!type.TryGetElementType(out var elementType))
-                throw new ArgumentException($"{type.Name} isn't an array type", nameof(type));
+                throw new ArgumentException($"{type.Name} isn't an array or generic List", nameof(type));
 
-            if (expression.Any(i => i is not SqlConstantExpression))
+            if (expressions.Any(i => i is not SqlConstantExpression))
             {
-                return NewArray(expression, type, typeMapping);
+                return NewArray(expressions, type, typeMapping);
             }
 
-            var array = Array.CreateInstance(elementType, expression.Count);
-            for (var i = 0; i < expression.Count; i++)
-                array.SetValue(((SqlConstantExpression)expression[i]).Value, i);
+            var array = Array.CreateInstance(elementType, expressions.Count);
+            for (var i = 0; i < expressions.Count; i++)
+                array.SetValue(((SqlConstantExpression)expressions[i]).Value, i);
             return Constant(array, typeMapping);
         }
 
