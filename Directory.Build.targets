@@ -2,7 +2,7 @@
   <PropertyGroup>
     <EFCoreVersion>6.0.0-preview.1.21101.3</EFCoreVersion>
     <MicrosoftExtensionsVersion>6.0.0-preview.1.21101.4</MicrosoftExtensionsVersion>
-    <NpgsqlVersion>5.0.0</NpgsqlVersion>
+    <NpgsqlVersion>5.0.3</NpgsqlVersion>
   </PropertyGroup>
 
   <ItemGroup>
