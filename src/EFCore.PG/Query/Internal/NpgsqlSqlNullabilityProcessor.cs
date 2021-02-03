@@ -6,6 +6,7 @@ using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
@@ -171,7 +172,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             var array = Visit(arrayIndexExpression.Array, allowOptimizedExpansion, out var arrayNullable);
             var index = Visit(arrayIndexExpression.Index, allowOptimizedExpansion, out var indexNullable);
 
-            nullable = arrayNullable || indexNullable;
+            nullable = arrayNullable || indexNullable || ((NpgsqlArrayTypeMapping)arrayIndexExpression.Array.TypeMapping).IsElementNullable;
 
             return arrayIndexExpression.Update(array, index);
         }
