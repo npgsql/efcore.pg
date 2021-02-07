@@ -373,7 +373,7 @@ namespace Microsoft.EntityFrameworkCore
 
         public static EntityTypeBuilder<TEntity> UsePostgresXlDistributedBy<TEntity>(
             [NotNull] this EntityTypeBuilder<TEntity> entityTypeBuilder,
-            string columnName,
+            [NotNull] string columnName,
             PostgresXlDistributeByColumnFunction distributeByColumnFunction = PostgresXlDistributeByColumnFunction.None)
             where TEntity : class
             => (EntityTypeBuilder<TEntity>)UsePostgresXlDistributedBy(
