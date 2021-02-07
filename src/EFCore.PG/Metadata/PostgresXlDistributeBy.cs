@@ -26,8 +26,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             get => GetData().DistributionStrategy;
             [param: NotNull] set
             {
-                (_, var distributeByColumnFunction, var columnName) = GetData();
-                SetData(value, distributeByColumnFunction, columnName);
+                (_, var distributeByColumnFunction, var distributionStyle, var columnName) = GetData();
+                SetData(value, distributeByColumnFunction, distributionStyle, columnName);
             }
         }
 
@@ -36,8 +36,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             get => GetData().DistributeByColumnFunction;
             [param: NotNull] set
             {
-                var (distributionStrategy, _, columnName) = GetData();
-                SetData(distributionStrategy, value, columnName);
+                (var distributionStrategy, _, var distributionStyle, var columnName) = GetData();
+                SetData(distributionStrategy, value, distributionStyle, columnName);
+            }
+        }
+
+        public virtual PostgresXlDistributionStyle DistributionStyle
+        {
+            get => GetData().DistributionStyle;
+            [param: NotNull] set
+            {
+                (var distributionStrategy, var distributeByColumnFunction, _, var columnName) = GetData();
+                SetData(distributionStrategy, distributeByColumnFunction, value, columnName);
             }
         }
 
@@ -46,27 +56,29 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             get => GetData().ColumnName;
             [param: NotNull] set
             {
-                var (distributionStrategy, distributeByColumnFunction, _) = GetData();
-                SetData(distributionStrategy, distributeByColumnFunction, value);
+                (var distributionStrategy, var distributeByColumnFunction, var distributionStyle, _) = GetData();
+                SetData(distributionStrategy, distributeByColumnFunction, distributionStyle, value);
             }
         }
 
-        private (PostgresXlDistributeByStrategy DistributionStrategy,
-            PostgresXlDistributeByColumnFunction DistributeByColumnFunction,
-            string ColumnName) GetData()
+        private (PostgresXlDistributeByStrategy DistributionStrategy, PostgresXlDistributeByColumnFunction DistributeByColumnFunction, PostgresXlDistributionStyle DistributionStyle, string ColumnName) GetData()
         {
             var str = Annotatable[AnnotationName] as string;
             return str == null
-                ? (0, 0, null)
+                ? (0, 0, 0, null)
                 : Deserialize(str);
         }
 
-        private (PostgresXlDistributeByStrategy DistributionStrategy, PostgresXlDistributeByColumnFunction DistributeByColumnFunction, string ColumnName) Deserialize(string str)
+        private (PostgresXlDistributeByStrategy DistributionStrategy, PostgresXlDistributeByColumnFunction DistributeByColumnFunction, PostgresXlDistributionStyle DistributionStyle, string ColumnName) Deserialize(string str)
         {
             throw new System.NotImplementedException();
         }
 
-        private void SetData(PostgresXlDistributeByStrategy distributionStrategy, PostgresXlDistributeByColumnFunction distributeByColumnFunction, string distributeByColumnName)
+        private void SetData(
+            PostgresXlDistributeByStrategy distributionStrategy,
+            PostgresXlDistributeByColumnFunction distributeByColumnFunction,
+            PostgresXlDistributionStyle postgresXlDistributionStyle,
+            string distributeByColumnName)
         {
             Annotatable[AnnotationName] = Serialize(distributionStrategy, distributeByColumnFunction, distributeByColumnName);
         }

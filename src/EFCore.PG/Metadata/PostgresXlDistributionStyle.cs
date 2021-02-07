@@ -3,12 +3,11 @@
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 {
-    public enum PostgresXlDistributeByStrategy
+    public enum PostgresXlDistributionStyle
     {
         None = 0,
-        Replication = 1,
-        Roundrobin = 2,
-        Column = 3,
-        Randomly = 4,
+        Even = 1,
+        Key = 2,
+        All = 3,
     }
 }
