@@ -194,6 +194,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                     .Append(")");
             }
 
+            // PostgreSQL-XL - Distribute by
+            if (operation[PostgresXlDistributeByAnnotationNames.DistributeBy] is string)
+            {
+                var distributeBy = new PostgresXlDistributeBy(operation);
+                var distributeByColumn = distributeBy.DistributeByColumnName;
+                builder.AppendLine()
+                    .Append("DISTRIBUTE BY (")
+                    .Append(distributeByColumn)
+                    .Append(") ");
+                ;
+            }
+
             // Comment on the table
             if (operation.Comment != null)
             {
