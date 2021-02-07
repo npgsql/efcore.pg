@@ -94,5 +94,12 @@ namespace Microsoft.EntityFrameworkCore
             => new(entityType);
 
         #endregion CockroachDb interleave in parent
+
+        #region Postgres-xl Distribute By
+
+        public static PostgresXlDistributeBy GetPostgresXlDistributeBy([NotNull] this IReadOnlyEntityType entityType)
+            => new(entityType);
+
+        #endregion Postgres-xl Distribute By
     }
 }

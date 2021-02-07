@@ -21,8 +21,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             => (Annotatable)_annotatable;
 
 
-        public PostgresXlDistributeBy(IAnnotatable annotatable)
-            => _annotatable = annotatable;
+        public PostgresXlDistributeBy(IReadOnlyAnnotatable annotatable)
+            => _annotatable = (IAnnotatable)annotatable;
 
         public virtual PostgresXlDistributeByStrategy DistributionStrategy
         {
