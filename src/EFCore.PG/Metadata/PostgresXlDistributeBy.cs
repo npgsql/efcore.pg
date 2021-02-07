@@ -1,9 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
+using System.Text;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.Extensions.Primitives;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
@@ -69,23 +72,77 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
                 : Deserialize(str);
         }
 
-        private (PostgresXlDistributeByStrategy DistributionStrategy, PostgresXlDistributeByColumnFunction DistributeByColumnFunction, PostgresXlDistributionStyle DistributionStyle, string ColumnName) Deserialize(string str)
-        {
-            throw new System.NotImplementedException();
-        }
-
         private void SetData(
             PostgresXlDistributeByStrategy distributionStrategy,
             PostgresXlDistributeByColumnFunction distributeByColumnFunction,
             PostgresXlDistributionStyle postgresXlDistributionStyle,
             string distributeByColumnName)
         {
-            Annotatable[AnnotationName] = Serialize(distributionStrategy, distributeByColumnFunction, distributeByColumnName);
+            Annotatable[AnnotationName] = Serialize(distributionStrategy, distributeByColumnFunction, postgresXlDistributionStyle, distributeByColumnName);
         }
 
-        private string Serialize(PostgresXlDistributeByStrategy distributionStrategy, PostgresXlDistributeByColumnFunction distributeByColumnFunction, string distributeByColumnName)
+        private string Serialize(
+            PostgresXlDistributeByStrategy distributionStrategy,
+            PostgresXlDistributeByColumnFunction distributeByColumnFunction,
+            PostgresXlDistributionStyle postgresXlDistributionStyle,
+            string distributeByColumnName)
         {
-            throw new System.NotImplementedException();
+            var stringBuilder = new StringBuilder();
+
+            EscapeAndQuote(stringBuilder, distributionStrategy);
+            stringBuilder.Append(",");
+            EscapeAndQuote(stringBuilder, distributeByColumnFunction);
+            stringBuilder.Append(",");
+            EscapeAndQuote(stringBuilder, postgresXlDistributionStyle);
+            stringBuilder.Append(",");
+            EscapeAndQuote(stringBuilder, distributeByColumnName);
+
+            return stringBuilder.ToString();
+        }
+
+        private (PostgresXlDistributeByStrategy DistributionStrategy,
+            PostgresXlDistributeByColumnFunction DistributeByColumnFunction,
+            PostgresXlDistributionStyle DistributionStyle,
+            string ColumnName)
+            Deserialize(string str)
+        {
+            var position = 0;
+            var distributionStrategy = Enum.Parse<PostgresXlDistributeByStrategy>(ExtractValue(str, ref position));
+            var distributeByColumnFunction = Enum.Parse<PostgresXlDistributeByColumnFunction>(ExtractValue(str, ref position));
+            var distributionStyle = Enum.Parse<PostgresXlDistributionStyle>(ExtractValue(str, ref position));
+            var columnName = ExtractValue(str, ref position);
+
+            return (distributionStrategy, distributeByColumnFunction, distributionStyle, columnName);
+        }
+
+        private static void EscapeAndQuote(StringBuilder builder, object value)
+        {
+            builder.Append("'");
+
+            if (value != null)
+            {
+                builder.Append(value.ToString().Replace("'", "''"));
+            }
+
+            builder.Append("'");
+        }
+
+        private static string ExtractValue(string value, ref int position)
+        {
+            position = value.IndexOf('\'', position) + 1;
+
+            var end = value.IndexOf('\'', position);
+
+            while (end + 1 < value.Length
+                && value[end + 1] == '\'')
+            {
+                end = value.IndexOf('\'', end + 2);
+            }
+
+            var extracted = value.Substring(position, end - position).Replace("''", "'");
+            position = end + 1;
+
+            return extracted.Length == 0 ? null : extracted;
         }
     }
 }

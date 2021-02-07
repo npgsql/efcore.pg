@@ -667,6 +667,7 @@ DISTRIBUTE BY HASH (Id);
 
             var distribution = new PostgresXlDistributeBy(op);
             distribution.DistributionStrategy = PostgresXlDistributeByStrategy.Column;
+            distribution.DistributeByColumnFunction = PostgresXlDistributeByColumnFunction.Modulo;
             distribution.DistributeByColumnName = "Id";
 
             Generate(op);
@@ -785,7 +786,8 @@ DISTRIBUTED RANDOMLY;
                 };
 
             var distribution = new PostgresXlDistributeBy(op);
-            distribution.DistributionStyle
+            distribution.DistributionStyle = PostgresXlDistributionStyle.Even;
+            distribution.DistributeByColumnName = "Id";
 
             Generate(op);
 
@@ -823,6 +825,8 @@ DISTSTYLE EVEN DISTKEY (Id);
                 };
 
             var distribution = new PostgresXlDistributeBy(op);
+            distribution.DistributionStyle = PostgresXlDistributionStyle.Key;
+            distribution.DistributeByColumnName = "Id";
 
             Generate(op);
 
@@ -860,6 +864,8 @@ DISTSTYLE KEY DISTKEY (Id);
                 };
 
             var distribution = new PostgresXlDistributeBy(op);
+            distribution.DistributionStyle = PostgresXlDistributionStyle.All;
+            distribution.DistributeByColumnName = "Id";
 
             Generate(op);
 
