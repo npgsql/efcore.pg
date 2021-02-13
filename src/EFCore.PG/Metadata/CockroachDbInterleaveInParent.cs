@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
