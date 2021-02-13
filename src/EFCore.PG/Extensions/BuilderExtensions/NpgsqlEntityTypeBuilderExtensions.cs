@@ -339,9 +339,6 @@ namespace Microsoft.EntityFrameworkCore
                     var distribute = entityTypeBuilder.Metadata.GetPostgresXlDistributeBy();
                     distribute.DistributionStrategy = distributeByStrategy;
                     break;
-                case PostgresXlDistributeByStrategy.Column:
-                    throw new ArgumentException(
-                        $"PostgresXl distribution strategy {nameof(PostgresXlDistributeByStrategy.Column)} provided without a column name.");
             }
 
             return entityTypeBuilder;
@@ -364,7 +361,7 @@ namespace Microsoft.EntityFrameworkCore
 
             var distribute = entityTypeBuilder.Metadata.GetPostgresXlDistributeBy();
 
-            distribute.DistributionStrategy = PostgresXlDistributeByStrategy.Column;
+            distribute.DistributionStrategy = PostgresXlDistributeByStrategy.None;
             distribute.DistributeByColumnFunction = PostgresXlDistributeByColumnFunction.None;
             distribute.DistributeByColumnName = columnName;
 

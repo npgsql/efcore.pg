@@ -625,7 +625,7 @@ DISTRIBUTE BY ROUNDROBIN;
                 };
 
             var distribution = new PostgresXlDistributeBy(op);
-            distribution.DistributionStrategy = PostgresXlDistributeByStrategy.Column;
+            distribution.DistributionStrategy = PostgresXlDistributeByStrategy.None;
             distribution.DistributeByColumnFunction = PostgresXlDistributeByColumnFunction.Hash;
             distribution.DistributeByColumnName = "Id";
 
@@ -666,7 +666,7 @@ DISTRIBUTE BY HASH (Id);
                 };
 
             var distribution = new PostgresXlDistributeBy(op);
-            distribution.DistributionStrategy = PostgresXlDistributeByStrategy.Column;
+            distribution.DistributionStrategy = PostgresXlDistributeByStrategy.None;
             distribution.DistributeByColumnFunction = PostgresXlDistributeByColumnFunction.Modulo;
             distribution.DistributeByColumnName = "Id";
 
@@ -707,7 +707,7 @@ DISTRIBUTE BY MODULO (Id);
                 };
 
             var distribution = new PostgresXlDistributeBy(op);
-            distribution.DistributionStrategy = PostgresXlDistributeByStrategy.Column;
+            distribution.DistributionStrategy = PostgresXlDistributeByStrategy.None;
             distribution.DistributeByColumnName = "Id";
 
             Generate(op);

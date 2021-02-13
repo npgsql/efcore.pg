@@ -8,7 +8,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         None = 0,
         Replication = 1,
         Roundrobin = 2,
-        Column = 3,
-        Randomly = 4,
+        Randomly = 3,
     }
 }

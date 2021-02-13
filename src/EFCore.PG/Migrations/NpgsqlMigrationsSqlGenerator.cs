@@ -194,7 +194,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                     .Append(")");
             }
 
-            // PostgreSQL-XL - Distribute by
+            // PostgreSQL-XL - Distribute by (https://www.postgres-xl.org/documentation/sql-createtable.html)
             if (operation[PostgresXlDistributeByAnnotationNames.DistributeBy] is string)
             {
                 var distributeBy = new PostgresXlDistributeBy(operation);
@@ -204,45 +204,53 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 var distributeByFunction = distributeBy.DistributeByColumnFunction;
                 var distributionStyle = distributeBy.DistributionStyle;
 
-                if (strategy == PostgresXlDistributeByStrategy.Replication || strategy == PostgresXlDistributeByStrategy.Roundrobin || (distributeByFunction != PostgresXlDistributeByColumnFunction.None && strategy == PostgresXlDistributeByStrategy.Column))
+                if (distributionStyle == PostgresXlDistributionStyle.None)
                 {
-                    if (strategy == PostgresXlDistributeByStrategy.Replication || strategy == PostgresXlDistributeByStrategy.Roundrobin)
+                    if (strategy == PostgresXlDistributeByStrategy.Replication
+                        || strategy == PostgresXlDistributeByStrategy.Roundrobin
+                        || (distributeByFunction != PostgresXlDistributeByColumnFunction.None
+                            && !string.IsNullOrWhiteSpace(distributeByColumn)))
+                    {
+                        if (strategy == PostgresXlDistributeByStrategy.Replication || strategy == PostgresXlDistributeByStrategy.Roundrobin)
+                        {
+                            builder.AppendLine()
+                                .Append("DISTRIBUTE BY ")
+                                .Append(strategy.ToString().ToUpperInvariant());
+                        }
+                        else if (distributeByFunction != PostgresXlDistributeByColumnFunction.None)
+                        {
+                            builder.AppendLine()
+                                .Append("DISTRIBUTE BY ")
+                                .Append(distributeByFunction.ToString().ToUpperInvariant())
+                                .Append(" (")
+                                .Append(distributeByColumn)
+                                .Append(")");
+                        }
+                    }
+
+
+                    if ((strategy == PostgresXlDistributeByStrategy.Randomly
+                            || (distributeByFunction == PostgresXlDistributeByColumnFunction.None
+                                && !string.IsNullOrWhiteSpace(distributeByColumn)))
+                    )
                     {
                         builder.AppendLine()
-                            .Append("DISTRIBUTE BY ")
-                            .Append(strategy.ToString().ToUpperInvariant());
-                    }
-                    else if (distributeByFunction != PostgresXlDistributeByColumnFunction.None)
-                    {
-                        builder.AppendLine()
-                            .Append("DISTRIBUTE BY ")
-                            .Append(distributeByFunction.ToString().ToUpperInvariant())
-                            .Append(" (")
-                            .Append(distributeByColumn)
-                            .Append(")");
+                            .Append("DISTRIBUTED ");
+
+                        if (strategy == PostgresXlDistributeByStrategy.Randomly)
+                        {
+                            builder.Append(PostgresXlDistributeByStrategy.Randomly.ToString().ToUpperInvariant());
+                        }
+                        else if (!string.IsNullOrWhiteSpace(distributeByColumn)
+                            && distributeByFunction == PostgresXlDistributeByColumnFunction.None)
+                        {
+                            builder.Append("BY (")
+                                .Append(distributeByColumn)
+                                .Append(")");
+                        }
                     }
                 }
-
-                if (strategy == PostgresXlDistributeByStrategy.Randomly
-                    || (strategy == PostgresXlDistributeByStrategy.Column && distributeByFunction == PostgresXlDistributeByColumnFunction.None && !string.IsNullOrWhiteSpace(distributeByColumn)))
-                {
-                    builder.AppendLine()
-                        .Append("DISTRIBUTED ");
-
-                    if (strategy == PostgresXlDistributeByStrategy.Randomly)
-                    {
-                        builder.Append(PostgresXlDistributeByStrategy.Randomly.ToString().ToUpperInvariant());
-                    }
-                    else if (strategy == PostgresXlDistributeByStrategy.Column
-                        && distributeByFunction == PostgresXlDistributeByColumnFunction.None)
-                    {
-                        builder.Append("BY (")
-                            .Append(distributeByColumn)
-                            .Append(")");
-                    }
-                }
-
-                if (distributionStyle != PostgresXlDistributionStyle.None)
+                else
                 {
                     builder.AppendLine()
                         .Append("DISTSTYLE ")
