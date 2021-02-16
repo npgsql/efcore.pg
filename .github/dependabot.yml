@@ -8,12 +8,8 @@ updates:
       # We update the EF Core dependency manually
       - dependency-name: "Microsoft.EntityFrameworkCore.*"
       - dependency-name: "Microsoft.Extensions.*"
-    labels:
-      - dependabot
 
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "daily"
-    labels:
-      - dependabot
