@@ -120,7 +120,7 @@ jobs:
         run: dotnet pack --configuration Release --output nupkgs -p:ContinuousIntegrationBuild=true
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2.2.2
         with:
           name: EFCore.PG
           path: nupkgs
