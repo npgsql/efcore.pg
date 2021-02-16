@@ -4,6 +4,10 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+    ignore:
+      # We update the EF Core dependency manually
+      - dependency-name: "Microsoft.EntityFrameworkCore.*"
+      - dependency-name: "Microsoft.Extensions.*"
     labels:
       - dependabot
 
