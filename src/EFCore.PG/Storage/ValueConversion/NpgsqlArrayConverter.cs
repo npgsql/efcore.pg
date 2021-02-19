@@ -13,7 +13,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion
     /// </summary>
     public class NpgsqlArrayConverter<TModelArray, TProviderArray> : ValueConverter<TModelArray, TProviderArray>, INpgsqlArrayConverter
     {
-        public ValueConverter ElementConverter { get; }
+        public virtual ValueConverter ElementConverter { get; }
 
         public NpgsqlArrayConverter([NotNull] ValueConverter elementConverter)
             : base(
@@ -34,11 +34,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion
             ElementConverter = elementConverter;
         }
 
-        protected static Expression<Func<TModelArray, TProviderArray>> ToArrayProviderExpression(
+        static Expression<Func<TModelArray, TProviderArray>> ToArrayProviderExpression(
             LambdaExpression elementToProviderExpression)
             => ArrayConversionExpression<TModelArray, TProviderArray>(elementToProviderExpression);
 
-        protected static Expression<Func<TProviderArray, TModelArray>> FromArrayProviderExpression(
+        static Expression<Func<TProviderArray, TModelArray>> FromArrayProviderExpression(
             LambdaExpression elementFromProviderExpression)
             => ArrayConversionExpression<TProviderArray, TModelArray>(elementFromProviderExpression);
 
