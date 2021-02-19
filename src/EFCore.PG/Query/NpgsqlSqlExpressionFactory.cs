@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -366,20 +367,52 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             // Attempt type inference either from the operand to the array or the other way around
             var arrayMapping = (NpgsqlArrayTypeMapping)arrayExpression.TypeMapping;
 
-            var itemMapping = itemExpression.TypeMapping ??
-                              arrayMapping?.ElementMapping ??
-                              _typeMappingSource.FindMapping(itemExpression.Type);
+            var itemMapping =
+                itemExpression.TypeMapping ??
+                // Unwrap convert-to-object nodes - these get added for object[].Contains(x)
+                (itemExpression is SqlUnaryExpression { OperatorType: ExpressionType.Convert } unary ? unary.Operand.TypeMapping : null) ??
+                // If we couldn't find a type mapping on the item, try inferring it from the array
+                arrayMapping?.ElementMapping ??
+                _typeMappingSource.FindMapping(itemExpression.Type);
 
-            // Note that we provide both the array CLR type *and* an array store type constructed from the element's
-            // store type. If we use only the array CLR type, byte[] will yield bytea which we don't want.
-            arrayMapping ??= (NpgsqlArrayTypeMapping)_typeMappingSource.FindMapping(arrayExpression.Type, itemMapping.StoreType + "[]");
+            if (itemMapping is null)
+            {
+                throw new InvalidOperationException("Couldn't find element type mapping when applying item/array mappings");
+            }
 
-            if (itemMapping == null || arrayMapping == null)
-                throw new InvalidOperationException("Couldn't find array or element type mapping in ArrayAnyAllExpression");
+            // If the array's type mapping isn't provided (parameter/constant), attempt to infer it from the item.
+            if (arrayMapping is null)
+            {
+                // First, special-case arrays of objects, not taking the array CLR type into account in the lookup (it would never succeed)
+                if (arrayExpression.Type == typeof(object[]) || arrayExpression.Type == typeof(List<object>))
+                {
+                    arrayMapping = (NpgsqlArrayTypeMapping)_typeMappingSource.FindMapping(itemMapping.StoreType + "[]");
+                }
+                else
+                {
+                    // Try to look up an array mapping based on the item type.
+                    // Note that we provide both the array CLR type *and* an array store type constructed from the element's store type.
+                    // If we use only the array CLR type, byte[] will yield bytea which we don't want.
+                    arrayMapping =
+                        (NpgsqlArrayTypeMapping)_typeMappingSource.FindMapping(arrayExpression.Type, itemMapping.StoreType + "[]");
 
-            return (
-                ApplyTypeMapping(itemExpression, itemMapping),
-                ApplyTypeMapping(arrayExpression, arrayMapping));
+                    // If we failed, and the item mapping has a value converter, construct an array mapping directly over it - this will
+                    // build the corresponding array type converter
+                    if (arrayMapping is null && itemMapping.Converter is not null)
+                    {
+                        arrayMapping = arrayExpression.Type.IsArray
+                            ? new NpgsqlArrayArrayTypeMapping(itemMapping, arrayExpression.Type)
+                            : new NpgsqlArrayListTypeMapping(itemMapping, arrayExpression.Type);
+                    }
+                }
+            }
+
+            if (arrayMapping == null)
+            {
+                throw new InvalidOperationException("Couldn't find array type mapping when applying item/array mappings");
+            }
+
+            return (ApplyTypeMapping(itemExpression, itemMapping), ApplyTypeMapping(arrayExpression, arrayMapping));
         }
 
         SqlExpression ApplyTypeMappingOnArrayIndex(

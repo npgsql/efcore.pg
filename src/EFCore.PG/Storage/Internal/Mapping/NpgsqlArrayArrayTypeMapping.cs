@@ -39,29 +39,38 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         public NpgsqlArrayArrayTypeMapping([NotNull] RelationalTypeMapping elementMapping, [NotNull] Type arrayType)
             : this(elementMapping.StoreType + "[]", elementMapping, arrayType) {}
 
-        NpgsqlArrayArrayTypeMapping(string storeType, RelationalTypeMapping elementMapping, Type arrayType)
-            : this(new RelationalTypeMappingParameters(
-                new CoreTypeMappingParameters(
-                    arrayType,
-                    elementMapping.Converter is ValueConverter elementConverter
-                        ? (ValueConverter)Activator.CreateInstance(
-                            typeof(NpgsqlArrayConverter<,>).MakeGenericType(
-                                elementConverter.ModelClrType.MakeArrayType(),
-                                elementConverter.ProviderClrType.MakeArrayType()),
-                            elementConverter)
-                        : null,
-                    CreateComparer(elementMapping, arrayType)),
-                storeType
-            ), elementMapping) {}
+        private NpgsqlArrayArrayTypeMapping(string storeType, RelationalTypeMapping elementMapping, Type arrayType)
+            : this(
+                new RelationalTypeMappingParameters(
+                    new CoreTypeMappingParameters(
+                        arrayType,
+                        elementMapping.Converter is ValueConverter elementConverter
+                            ? (ValueConverter)Activator.CreateInstance(
+                                typeof(NpgsqlArrayConverter<,>).MakeGenericType(
+                                    elementConverter.ModelClrType.MakeArrayType(),
+                                    elementConverter.ProviderClrType.MakeArrayType()),
+                                elementConverter)
+                            : null,
+                        CreateComparer(elementMapping, arrayType)),
+                    storeType
+                ), elementMapping)
+        {
+        }
 
         protected NpgsqlArrayArrayTypeMapping(
-            RelationalTypeMappingParameters parameters, [NotNull] RelationalTypeMapping elementMapping, bool? isElementNullable = null)
+            RelationalTypeMappingParameters parameters,
+            [NotNull] RelationalTypeMapping elementMapping,
+            bool? isElementNullable = null)
             : base(
                 parameters,
                 elementMapping,
                 CalculateElementNullability(
                     // Note that the ClrType on elementMapping has been unwrapped for nullability, so we consult the array's CLR type instead
-                    parameters.CoreParameters.ClrType.GetElementType() ?? throw new ArgumentException("CLR type isn't an array"),
+                    parameters.CoreParameters.Converter is null
+                        ? (parameters.CoreParameters.ClrType.GetElementType()
+                            ?? throw new ArgumentException("CLR type isn't an array"))
+                        : (parameters.CoreParameters.Converter.ModelClrType.GetElementType()
+                            ?? throw new ArgumentException("CLR type isn't an array")),
                     isElementNullable))
         {
             if (!parameters.CoreParameters.ClrType.IsArray)
@@ -71,8 +80,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         public override NpgsqlArrayTypeMapping MakeNonNullable()
             => new NpgsqlArrayArrayTypeMapping(Parameters, ElementMapping, isElementNullable: false);
 
-        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
-            => new NpgsqlArrayArrayTypeMapping(parameters, ElementMapping);
+        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters, RelationalTypeMapping elementMapping)
+            => new NpgsqlArrayArrayTypeMapping(parameters, elementMapping);
 
         #region Value comparer
 
