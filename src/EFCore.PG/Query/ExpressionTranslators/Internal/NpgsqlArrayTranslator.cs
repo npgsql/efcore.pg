@@ -114,11 +114,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                      method.GetParameters().Length == 1)
                     &&
                     (
-                        // Handle either parameters (no mapping but supported CLR type), or array columns. We specifically
+                        // Handle either array columns (with an array mapping) or parameters/constants (no mapping). We specifically
                         // don't want to translate if the type mapping is bytea (CLR type is array, but not an array in
                         // the database).
-                        arrayOrList.TypeMapping == null && _typeMappingSource.FindMapping(arrayOrList.Type) != null ||
-                        arrayOrList.TypeMapping is NpgsqlArrayTypeMapping
+                        // arrayOrList.TypeMapping == null && _typeMappingSource.FindMapping(arrayOrList.Type) != null ||
+                        arrayOrList.TypeMapping is NpgsqlArrayTypeMapping or null
                     ))
                 {
                     var item = arguments[0];

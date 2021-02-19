@@ -1,10 +1,14 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 using NpgsqlTypes;
 
@@ -532,6 +536,39 @@ namespace Microsoft.EntityFrameworkCore
         }
 
         #endregion Identity options
+
+        #region Array value conversion
+
+        public static PropertyBuilder<TElementProperty[]> HasPostgresArrayConversion<TElementProperty, TElementProvider>(
+            [NotNull] this PropertyBuilder<TElementProperty[]> propertyBuilder,
+            [NotNull] Expression<Func<TElementProperty, TElementProvider>> convertToProviderExpression,
+            [NotNull] Expression<Func<TElementProvider, TElementProperty>> convertFromProviderExpression)
+            => propertyBuilder.HasPostgresArrayConversion<TElementProperty, TElementProvider>(
+                new ValueConverter<TElementProperty, TElementProvider>(
+                    convertToProviderExpression, convertFromProviderExpression));
+
+        public static PropertyBuilder<List<TElementProperty>> HasPostgresArrayConversion<TElementProperty, TElementProvider>(
+            [NotNull] this PropertyBuilder<List<TElementProperty>> propertyBuilder,
+            [NotNull] Expression<Func<TElementProperty, TElementProvider>> convertToProviderExpression,
+            [NotNull] Expression<Func<TElementProvider, TElementProperty>> convertFromProviderExpression)
+            => propertyBuilder.HasConversion(
+                new NpgsqlArrayConverter<List<TElementProperty>, List<TElementProvider>>(
+                    new ValueConverter<TElementProperty, TElementProvider>(
+                        convertToProviderExpression, convertFromProviderExpression)));
+
+        public static PropertyBuilder<TElementProperty[]> HasPostgresArrayConversion<TElementProperty, TElementProvider>(
+            [NotNull] this PropertyBuilder<TElementProperty[]> propertyBuilder,
+            [NotNull] ValueConverter elementValueConverter)
+            => propertyBuilder.HasConversion(
+                new NpgsqlArrayConverter<TElementProperty[], TElementProvider[]>(elementValueConverter));
+
+        public static PropertyBuilder<List<TElementProperty>> HasPostgresArrayConversion<TElementProperty, TElementProvider>(
+            [NotNull] this PropertyBuilder<List<TElementProperty>> propertyBuilder,
+            [NotNull] ValueConverter elementValueConverter)
+            => propertyBuilder.HasConversion(
+                new NpgsqlArrayConverter<List<TElementProperty>, List<TElementProvider>>(elementValueConverter));
+
+        #endregion Array value conversion
 
         #region Generated tsvector column
 

@@ -532,46 +532,6 @@ LIMIT 2");
         }
 
         [Fact]
-        public void Array_param_Contains_value_converted_column()
-        {
-            using var ctx = CreateContext();
-            var list = new[] { Guid.Empty, Guid.NewGuid() };
-            var id = ctx.SomeEntities
-                .Where(e => list.Contains(e.ValueConvertedGuid))
-                .Select(e => e.Id)
-                .Single();
-
-            Assert.Equal(2, id);
-            AssertSql(
-                @"@__list_0='System.String[]' (DbType = Object)
-
-SELECT s.""Id""
-FROM ""SomeEntities"" AS s
-WHERE s.""ValueConvertedGuid"" = ANY (@__list_0)
-LIMIT 2");
-        }
-
-        [Fact]
-        public void List_param_Contains_value_converted_column()
-        {
-            using var ctx = CreateContext();
-            var list = new List<Guid> { Guid.Empty, Guid.NewGuid() };
-            var id = ctx.SomeEntities
-                .Where(e => list.Contains(e.ValueConvertedGuid))
-                .Select(e => e.Id)
-                .Single();
-
-            Assert.Equal(2, id);
-            AssertSql(
-                @"@__list_0='System.String[]' (DbType = Object)
-
-SELECT s.""Id""
-FROM ""SomeEntities"" AS s
-WHERE s.""ValueConvertedGuid"" = ANY (@__list_0)
-LIMIT 2");
-        }
-
-        [Fact]
         public void Byte_array_parameter_contains_column()
         {
             using var ctx = CreateContext();
@@ -589,6 +549,126 @@ LIMIT 2");
 SELECT s.""Id""
 FROM ""SomeEntities"" AS s
 WHERE s.""Byte"" = ANY (@__values_0)
+LIMIT 2");
+        }
+
+        [Fact]
+        public void Array_param_Contains_value_converted_column()
+        {
+            using var ctx = CreateContext();
+            var array = new IntWrapper[] { new(2), new(3) };
+            var id = ctx.SomeEntities
+                .Where(e => array.Contains(e.ValueConvertedScalar))
+                .Select(e => e.Id)
+                .Single();
+
+            Assert.Equal(2, id);
+            AssertSql(
+                @"@__array_0='System.Int32[]' (DbType = Object)
+
+SELECT s.""Id""
+FROM ""SomeEntities"" AS s
+WHERE s.""ValueConvertedScalar"" = ANY (@__array_0)
+LIMIT 2");
+        }
+
+        [Fact]
+        public void List_param_Contains_value_converted_column()
+        {
+            using var ctx = CreateContext();
+            var list = new List<IntWrapper> { new(2), new(3) };
+            var id = ctx.SomeEntities
+                .Where(e => list.Contains(e.ValueConvertedScalar))
+                .Select(e => e.Id)
+                .Single();
+
+            Assert.Equal(2, id);
+            AssertSql(
+                @"@__list_0='System.Int32[]' (DbType = Object)
+
+SELECT s.""Id""
+FROM ""SomeEntities"" AS s
+WHERE s.""ValueConvertedScalar"" = ANY (@__list_0)
+LIMIT 2");
+        }
+
+        [Fact]
+        public void Array_column_Contains_value_converted_param()
+        {
+            using var ctx = CreateContext();
+            var item = new IntWrapper(8);
+            var id = ctx.SomeEntities
+                .Where(e => e.ValueConvertedArray.Contains(item))
+                .Select(e => e.Id)
+                .Single();
+
+            Assert.Equal(1, id);
+            AssertSql(
+                @"@__item_0='8' (Nullable = true)
+
+SELECT s.""Id""
+FROM ""SomeEntities"" AS s
+WHERE s.""ValueConvertedArray"" @> ARRAY[@__item_0]::integer[]
+LIMIT 2");
+        }
+
+        [Fact]
+        public void List_column_Contains_value_converted_param()
+        {
+            using var ctx = CreateContext();
+            var item = new IntWrapper(8);
+            var id = ctx.SomeEntities
+                .Where(e => e.ValueConvertedList.Contains(item))
+                .Select(e => e.Id)
+                .Single();
+
+            Assert.Equal(1, id);
+            AssertSql(
+                @"@__item_0='8' (Nullable = true)
+
+SELECT s.""Id""
+FROM ""SomeEntities"" AS s
+WHERE s.""ValueConvertedList"" @> ARRAY[@__item_0]::integer[]
+LIMIT 2");
+        }
+
+        [Fact]
+        public void Array_param_Contains_value_converted_array_column()
+        {
+            using var ctx = CreateContext();
+            var p = new IntWrapper[] { new(8), new(9) };
+            var id = ctx.SomeEntities
+                .Where(e => e.ValueConvertedArray.All(x => p.Contains(x)))
+                .Select(e => e.Id)
+                .Single();
+
+            Assert.Equal(1, id);
+            AssertSql(
+                @"@__p_0='System.Int32[]' (DbType = Object)
+
+SELECT s.""Id""
+FROM ""SomeEntities"" AS s
+WHERE s.""ValueConvertedArray"" <@ @__p_0
+LIMIT 2");
+        }
+
+        [Fact]
+        public void List_param_Contains_value_converted_list_column()
+        {
+            using var ctx = CreateContext();
+            var p = new List<IntWrapper> { new(8), new(9) };
+            var id = ctx.SomeEntities
+                .Where(e => e.ValueConvertedList.All(x => p.Contains(x)))
+                .Select(e => e.Id)
+                .Single();
+
+            Assert.Equal(1, id);
+            AssertSql(
+                @"@__p_0='System.Collections.Generic.List`1[System.Int32]' (DbType = Object)
+
+SELECT s.""Id""
+FROM ""SomeEntities"" AS s
+WHERE s.""ValueConvertedList"" <@ @__p_0
 LIMIT 2");
         }
 
@@ -1147,9 +1227,18 @@ WHERE FALSE");
             public ArrayArrayQueryContext(DbContextOptions options) : base(options) {}
 
             protected override void OnModelCreating(ModelBuilder modelBuilder)
-                => modelBuilder.Entity<SomeArrayEntity>()
-                    .Property(e => e.ValueConvertedGuid)
-                    .HasColumnType("text");
+                => modelBuilder.Entity<SomeArrayEntity>(
+                    e =>
+                    {
+                        e.Property(ae => ae.ValueConvertedScalar)
+                            .HasConversion(w => w.Value, v => new IntWrapper(v));
+
+                        e.Property(ae => ae.ValueConvertedArray)
+                            .HasPostgresArrayConversion(w => w.Value, v => new IntWrapper(v));
+
+                        e.Property(ae => ae.ValueConvertedList)
+                            .HasPostgresArrayConversion(w => w.Value, v => new IntWrapper(v));
+                    });
 
             public static void Seed(ArrayArrayQueryContext context)
             {
@@ -1170,7 +1259,9 @@ WHERE FALSE");
                         IntMatrix = new[,] { { 5, 6 }, { 7, 8 } },
                         NullableText = "foo",
                         NonNullableText = "foo",
-                        ValueConvertedGuid = Guid.Parse("54b46885-a17c-49f0-a12e-08ae7d7da5ca"),
+                        ValueConvertedScalar = new IntWrapper(1),
+                        ValueConvertedArray = new IntWrapper[] { new(8), new(9)},
+                        ValueConvertedList = new List<IntWrapper> { new(8), new(9)},
                         Byte = 10
                     },
                     new SomeArrayEntity
@@ -1189,7 +1280,9 @@ WHERE FALSE");
                         IntMatrix = new[,] { { 10, 11 }, { 12, 13 } },
                         NullableText = "bar",
                         NonNullableText = "bar",
-                        ValueConvertedGuid = Guid.Empty,
+                        ValueConvertedScalar = new IntWrapper(2),
+                        ValueConvertedArray = new IntWrapper[] { new(9), new(10)},
+                        ValueConvertedList = new List<IntWrapper> { new(9), new(10)},
                         Byte = 20
                     });
                 context.SaveChanges();
@@ -1214,8 +1307,16 @@ WHERE FALSE");
             public List<string?> NullableStringList { get; set; } = null!;
             public string? NullableText { get; set; }
             public string NonNullableText { get; set; } = null!;
-            public Guid ValueConvertedGuid { get; set; }
+            public IntWrapper ValueConvertedScalar { get; set; } = null!;
+            public IntWrapper[] ValueConvertedArray { get; set; } = null!;
+            public List<IntWrapper> ValueConvertedList { get; set; } = null!;
             public byte Byte { get; set; }
+        }
+
+        public class IntWrapper
+        {
+            public IntWrapper(int value) => Value = value;
+            public int Value { get; set; }
         }
 
         #nullable restore
@@ -1225,6 +1326,10 @@ WHERE FALSE");
             protected override string StoreName => "ArrayArrayQueryTest";
             protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
             public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
+
+            public override DbContextOptionsBuilder AddOptions(DbContextOptionsBuilder builder)
+                => base.AddOptions(builder).ConfigureWarnings(wcb => wcb.Ignore(CoreEventId.CollectionWithoutComparer));
+
             protected override void Seed(ArrayArrayQueryContext context) => ArrayArrayQueryContext.Seed(context);
         }
 

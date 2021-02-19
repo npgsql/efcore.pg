@@ -307,7 +307,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                             (SqlExpression)Visit(arguments[0]),
                             (SqlExpression)Visit(wherePredicateMethodCall.Object));
                     }
-
                 }
             }
 
