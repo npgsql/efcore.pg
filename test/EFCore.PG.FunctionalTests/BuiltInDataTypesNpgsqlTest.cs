@@ -58,7 +58,7 @@ WHERE m.""TimeSpanAsTime"" = TIME '00:01:02'");
             Assert.Empty(results);
 
             AssertSql(
-                @"@__timeSpan_0='02:01:00' (Nullable = true) (DbType = Object)
+                @"@__timeSpan_0='02:01:00' (Nullable = true)
 
 SELECT m.""Int""
 FROM ""MappedNullableDataTypes"" AS m
@@ -492,7 +492,7 @@ WHERE m.""TimeSpanAsTime"" = @__timeSpan_0");
 @p33='Gumball Rules!' (Nullable = false)
 @p34='Gumball Rules OK' (Nullable = false)
 @p35='11:15:12' (DbType = Object)
-@p36='11:15:12' (DbType = Object)
+@p36='11:15:12'
 @p37='65535'
 @p38='-1'
 @p39='4294967295'

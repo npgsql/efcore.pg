@@ -22,7 +22,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             var builder = new StringBuilder();
             builder.Append("TSQUERY  ");
             var indexOfFirstQuote = builder.Length - 1;
-            query.Write(builder, true);
+            query.Write(builder);
             builder.Replace("'", "''");
             builder[indexOfFirstQuote] = '\'';
             builder.Append("'");
