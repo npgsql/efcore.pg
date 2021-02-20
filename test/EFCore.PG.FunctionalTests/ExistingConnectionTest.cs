@@ -31,7 +31,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
                 var openCount = 0;
                 var closeCount = 0;
-                var disposeCount = 0;
 
                 using (var connection = new NpgsqlConnection(store.ConnectionString))
                 {
@@ -51,7 +50,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                             closeCount++;
                         }
                     };
-                    connection.Disposed += (_, __) => disposeCount++;
 
                     using (var context = new NorthwindContext(serviceProvider, connection))
                     {
@@ -70,8 +68,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                         Assert.Equal(1, openCount);
                         Assert.Equal(1, closeCount);
                     }
-
-                    Assert.Equal(0, disposeCount);
                 }
             }
         }

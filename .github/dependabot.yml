@@ -5,9 +5,10 @@ updates:
     schedule:
       interval: daily
     ignore:
-      # See below for the weekly EF Core dependency updates
+      # See below for additional weekly dependency updates
       - dependency-name: "Microsoft.EntityFrameworkCore.*"
       - dependency-name: "Microsoft.Extensions.*"
+      - dependency-name: "Npgsql.*"
 
   - package-ecosystem: nuget
     directory: "/"
@@ -16,6 +17,7 @@ updates:
       day: monday
     allow:
       - dependency-name: "Microsoft.EntityFrameworkCore.*"
+      - dependency-name: "Npgsql.*"
 
   - package-ecosystem: "github-actions"
     directory: "/"

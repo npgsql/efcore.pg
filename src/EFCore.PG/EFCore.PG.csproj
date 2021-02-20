@@ -22,6 +22,7 @@
   </ItemGroup>
   
   <ItemGroup>
+    <Compile Include="..\Shared\*.cs" />
 
     <None Update="Properties\NpgsqlStrings.Designer.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
@@ -41,7 +42,6 @@
     <EmbeddedResource Update="Properties\NpgsqlStrings.resx">
       <CustomToolNamespace>Npgsql.EntityFrameworkCore.PostgreSQL.Internal</CustomToolNamespace>
     </EmbeddedResource>
-
   </ItemGroup>
   
 </Project>
