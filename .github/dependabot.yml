@@ -1,15 +1,23 @@
 version: 2
 updates:
-  - package-ecosystem: "nuget"
+  - package-ecosystem: nuget
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: daily
     ignore:
-      # We update the EF Core dependency manually
+      # See below for the weekly EF Core dependency updates
       - dependency-name: "Microsoft.EntityFrameworkCore.*"
       - dependency-name: "Microsoft.Extensions.*"
+
+  - package-ecosystem: nuget
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    allow:
+      - dependency-name: "Microsoft.EntityFrameworkCore.*"
 
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: daily
