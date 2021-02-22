@@ -110,7 +110,7 @@ var npgsql = context.Products
 
 Version 5.0.0 of the provider includes sugar for defining the appropriate expression index; if you're using an older version, you'll have to define a raw SQL migration yourself.
 
-#### [PostgreSQL 12+](#tab/pg12)
+#### [Version 5.0.0](#tab/v5)
 
 ```c#
 modelBuilder.Entity<Blog>()
