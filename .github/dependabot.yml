@@ -3,21 +3,8 @@ updates:
   - package-ecosystem: nuget
     directory: "/"
     schedule:
-      interval: daily
-    ignore:
-      # See below for additional weekly dependency updates
-      - dependency-name: "Microsoft.EntityFrameworkCore.*"
-      - dependency-name: "Microsoft.Extensions.*"
-      - dependency-name: "Npgsql.*"
-
-  - package-ecosystem: nuget
-    directory: "/"
-    schedule:
       interval: weekly
       day: monday
-    allow:
-      - dependency-name: "Microsoft.EntityFrameworkCore.*"
-      - dependency-name: "Npgsql.*"
 
   - package-ecosystem: "github-actions"
     directory: "/"
