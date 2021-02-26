@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - 'hotfix/**'
+      - 'release/**'
   pull_request:
 
 env:
