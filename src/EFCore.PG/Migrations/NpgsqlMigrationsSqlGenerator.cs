@@ -250,7 +250,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                         }
                     }
                 }
-                else
+                else if (distributionStyle == PostgresXlDistributionStyle.Key)
                 {
                     builder.AppendLine()
                         .Append("DISTSTYLE ")
@@ -258,6 +258,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                         .Append(" DISTKEY (")
                         .Append(distributeByColumn)
                         .Append(")");
+                }
+                else if (distributionStyle == PostgresXlDistributionStyle.All || distributionStyle == PostgresXlDistributionStyle.Even)
+                {
+                    builder.AppendLine()
+                        .Append("DISTSTYLE ")
+                        .Append(distributionStyle.ToString().ToUpperInvariant());
                 }
             }
 

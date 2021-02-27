@@ -600,7 +600,7 @@ DISTRIBUTE BY ROUNDROBIN;
         }
 
         [Fact]
-        public void CreateTableOperation_with_postgresxl_distributed_by_hash_column()
+        public void CreateTableOperation_with_postgresxl_distribute_by_hash_column()
         {
             var op =
                 new CreateTableOperation
@@ -641,7 +641,7 @@ DISTRIBUTE BY HASH (Id);
         }
 
         [Fact]
-        public void CreateTableOperation_with_postgresxl_distributed_by_modulo_column()
+        public void CreateTableOperation_with_postgresxl_distribute_by_modulo_column()
         {
             var op =
                 new CreateTableOperation
@@ -787,7 +787,6 @@ DISTRIBUTED RANDOMLY;
 
             var distribution = new PostgresXlDistributeBy(op);
             distribution.DistributionStyle = PostgresXlDistributionStyle.Even;
-            distribution.DistributeByColumnName = "Id";
 
             Generate(op);
 
@@ -796,7 +795,7 @@ DISTRIBUTED RANDOMLY;
     ""Id"" integer NOT NULL,
     PRIMARY KEY (""Id"")
 )
-DISTSTYLE EVEN DISTKEY (Id);
+DISTSTYLE EVEN;
 ");
         }
         [Fact]
@@ -865,7 +864,6 @@ DISTSTYLE KEY DISTKEY (Id);
 
             var distribution = new PostgresXlDistributeBy(op);
             distribution.DistributionStyle = PostgresXlDistributionStyle.All;
-            distribution.DistributeByColumnName = "Id";
 
             Generate(op);
 
@@ -874,7 +872,7 @@ DISTSTYLE KEY DISTKEY (Id);
     ""Id"" integer NOT NULL,
     PRIMARY KEY (""Id"")
 )
-DISTSTYLE ALL DISTKEY (Id);
+DISTSTYLE ALL;
 ");
         }
 

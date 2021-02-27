@@ -324,7 +324,7 @@ namespace Microsoft.EntityFrameworkCore
 
         #region Postgres-xl Distribute By
 
-        public static EntityTypeBuilder UsePostgresXlDistributedBy(
+        public static EntityTypeBuilder UsePostgresXlDistributeBy(
             [NotNull] this EntityTypeBuilder entityTypeBuilder,
             PostgresXlDistributeByStrategy distributeByStrategy)
         {
@@ -341,13 +341,13 @@ namespace Microsoft.EntityFrameworkCore
             return entityTypeBuilder;
         }
 
-        public static EntityTypeBuilder<TEntity> UsePostgresXlDistributedBy<TEntity>(
+        public static EntityTypeBuilder<TEntity> UsePostgresXlDistributeBy<TEntity>(
             [NotNull] this EntityTypeBuilder<TEntity> entityTypeBuilder,
             PostgresXlDistributeByStrategy distributeByStrategy)
             where TEntity : class
-            => (EntityTypeBuilder<TEntity>)UsePostgresXlDistributedBy((EntityTypeBuilder)entityTypeBuilder, distributeByStrategy);
+            => (EntityTypeBuilder<TEntity>)UsePostgresXlDistributeBy((EntityTypeBuilder)entityTypeBuilder, distributeByStrategy);
 
-        public static EntityTypeBuilder UsePostgresXlDistributedBy(
+        public static EntityTypeBuilder UsePostgresXlDistributeBy(
             [NotNull] this EntityTypeBuilder entityTypeBuilder,
             [NotNull] string columnName,
             PostgresXlDistributeByColumnFunction distributeByColumnFunction = PostgresXlDistributeByColumnFunction.None)
@@ -365,12 +365,12 @@ namespace Microsoft.EntityFrameworkCore
             return entityTypeBuilder;
         }
 
-        public static EntityTypeBuilder<TEntity> UsePostgresXlDistributedBy<TEntity>(
+        public static EntityTypeBuilder<TEntity> UsePostgresXlDistributeBy<TEntity>(
             [NotNull] this EntityTypeBuilder<TEntity> entityTypeBuilder,
             [NotNull] string columnName,
             PostgresXlDistributeByColumnFunction distributeByColumnFunction = PostgresXlDistributeByColumnFunction.None)
             where TEntity : class
-            => (EntityTypeBuilder<TEntity>)UsePostgresXlDistributedBy(
+            => (EntityTypeBuilder<TEntity>)UsePostgresXlDistributeBy(
                 (EntityTypeBuilder)entityTypeBuilder, columnName, distributeByColumnFunction);
 
         public static EntityTypeBuilder UsePostgresXlDistributedRandomly(
