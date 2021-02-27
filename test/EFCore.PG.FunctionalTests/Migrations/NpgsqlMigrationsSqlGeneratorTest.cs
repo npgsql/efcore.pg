@@ -516,10 +516,7 @@ INTERLEAVE IN PARENT my_schema.my_parent (col_a, col_b);
 
         #endregion CockroachDB interleave-in-parent
 
-
         #region Postgres-xl Distribute by
-
-        // Distribute by
 
         [Fact]
         public void CreateTableOperation_with_postgresxl_distribute_by_replication()
@@ -586,7 +583,7 @@ DISTRIBUTE BY REPLICATION;
                 };
 
             var distribution = new PostgresXlDistributeBy(op);
-            distribution.DistributionStrategy = PostgresXlDistributeByStrategy.Roundrobin;
+            distribution.DistributionStrategy = PostgresXlDistributeByStrategy.RoundRobin;
 
             Generate(op);
 

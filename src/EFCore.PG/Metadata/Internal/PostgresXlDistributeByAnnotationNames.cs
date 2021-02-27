@@ -5,10 +5,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
 {
     internal static class PostgresXlDistributeByAnnotationNames
     {
-        
         public const string Prefix = NpgsqlAnnotationNames.Prefix + "PostgresXL:";
 
         public const string DistributeBy = Prefix + "DistributeBy";
-
     }
 }

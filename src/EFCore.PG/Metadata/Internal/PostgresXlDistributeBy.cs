@@ -1,22 +1,22 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Text;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
+namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
 {
     public class PostgresXlDistributeBy
     {
         private const string AnnotationName = PostgresXlDistributeByAnnotationNames.DistributeBy;
 
-        readonly IReadOnlyAnnotatable _annotatable;
+        private readonly IReadOnlyAnnotatable _annotatable;
 
         public virtual Annotatable Annotatable
             => (Annotatable)_annotatable;
-
 
         public PostgresXlDistributeBy([NotNull] IReadOnlyAnnotatable annotatable)
             => _annotatable = annotatable;
@@ -26,7 +26,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             get => GetData().DistributionStrategy;
             set
             {
-                (_, var distributeByColumnFunction, var distributionStyle, var columnName) = GetData();
+                var (_, distributeByColumnFunction, distributionStyle, columnName) = GetData();
                 SetData(value, distributeByColumnFunction, distributionStyle, columnName);
             }
         }
@@ -36,7 +36,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             get => GetData().DistributeByColumnFunction;
             set
             {
-                (var distributionStrategy, _, var distributionStyle, var columnName) = GetData();
+                var (distributionStrategy, _, distributionStyle, columnName) = GetData();
                 SetData(distributionStrategy, value, distributionStyle, columnName);
             }
         }
@@ -46,7 +46,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             get => GetData().DistributionStyle;
             set
             {
-                (var distributionStrategy, var distributeByColumnFunction, _, var columnName) = GetData();
+                var (distributionStrategy, distributeByColumnFunction, _, columnName) = GetData();
                 SetData(distributionStrategy, distributeByColumnFunction, value, columnName);
             }
         }
@@ -56,10 +56,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             get => GetData().ColumnName;
             [param:NotNull] set
             {
-                (var distributionStrategy, var distributeByColumnFunction, var distributionStyle, _) = GetData();
+                var (distributionStrategy, distributeByColumnFunction, distributionStyle, _) = GetData();
                 SetData(distributionStrategy, distributeByColumnFunction, distributionStyle, value);
             }
         }
+
+        public virtual (PostgresXlDistributeByStrategy distributionStrategy,
+            PostgresXlDistributeByColumnFunction distributeByColumnFunction,
+            PostgresXlDistributionStyle distributionStyle,
+            string distributeByColumnName) Deconstruct()
+            => (
+                DistributionStrategy,
+                DistributeByColumnFunction,
+                DistributionStyle,
+                DistributeByColumnName);
 
         private (PostgresXlDistributeByStrategy DistributionStrategy, PostgresXlDistributeByColumnFunction DistributeByColumnFunction, PostgresXlDistributionStyle DistributionStyle, string ColumnName) GetData()
         {

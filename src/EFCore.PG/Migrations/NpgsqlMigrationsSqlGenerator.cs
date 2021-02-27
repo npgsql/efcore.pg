@@ -194,47 +194,35 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                     .Append(")");
             }
 
-            // PostgreSQL-XL - Distribute by (https://www.postgres-xl.org/documentation/sql-createtable.html)
+            // Postgres-XL - Distribute by (https://www.postgres-xl.org/documentation/sql-createtable.html)
             if (operation[PostgresXlDistributeByAnnotationNames.DistributeBy] is string)
             {
                 var distributeBy = new PostgresXlDistributeBy(operation);
-
-                var distributionStrategy = distributeBy.DistributionStrategy;
-                var distributeByColumnFunction = distributeBy.DistributeByColumnFunction;
-                var distributionStyle = distributeBy.DistributionStyle;
-                var distributeByColumnName = distributeBy.DistributeByColumnName;
+                var (distributionStrategy, distributeByColumnFunction, distributionStyle, distributeByColumnName) = distributeBy.Deconstruct();
 
                 ValidateTableDistributionProperties(distributionStrategy, distributeByColumnFunction, distributionStyle, distributeByColumnName);
 
                 if (distributionStyle == PostgresXlDistributionStyle.None)
                 {
-                    if (distributionStrategy == PostgresXlDistributeByStrategy.Replication
-                        || distributionStrategy == PostgresXlDistributeByStrategy.Roundrobin
-                        || (distributeByColumnFunction != PostgresXlDistributeByColumnFunction.None
-                            && !string.IsNullOrWhiteSpace(distributeByColumnName)))
+                    if (distributionStrategy == PostgresXlDistributeByStrategy.Replication || distributionStrategy == PostgresXlDistributeByStrategy.RoundRobin)
                     {
-                        if (distributionStrategy == PostgresXlDistributeByStrategy.Replication || distributionStrategy == PostgresXlDistributeByStrategy.Roundrobin)
-                        {
-                            builder.AppendLine()
-                                .Append("DISTRIBUTE BY ")
-                                .Append(distributionStrategy.ToString().ToUpperInvariant());
-                        }
-                        else if (distributeByColumnFunction != PostgresXlDistributeByColumnFunction.None)
-                        {
-                            builder.AppendLine()
-                                .Append("DISTRIBUTE BY ")
-                                .Append(distributeByColumnFunction.ToString().ToUpperInvariant())
-                                .Append(" (")
-                                .Append(distributeByColumnName)
-                                .Append(")");
-                        }
+                        builder.AppendLine()
+                            .Append("DISTRIBUTE BY ")
+                            .Append(distributionStrategy.ToString().ToUpperInvariant());
                     }
-
+                    else if (distributeByColumnFunction != PostgresXlDistributeByColumnFunction.None)
+                    {
+                        builder.AppendLine()
+                            .Append("DISTRIBUTE BY ")
+                            .Append(distributeByColumnFunction.ToString().ToUpperInvariant())
+                            .Append(" (")
+                            .Append(distributeByColumnName)
+                            .Append(")");
+                    }
 
                     if ((distributionStrategy == PostgresXlDistributeByStrategy.Randomly
                             || (distributeByColumnFunction == PostgresXlDistributeByColumnFunction.None
-                                && !string.IsNullOrWhiteSpace(distributeByColumnName)))
-                    )
+                                && !string.IsNullOrWhiteSpace(distributeByColumnName))))
                     {
                         builder.AppendLine()
                             .Append("DISTRIBUTED ");
@@ -1905,7 +1893,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             switch (distributionStrategy)
             {
                 case PostgresXlDistributeByStrategy.Replication:
-                case PostgresXlDistributeByStrategy.Roundrobin:
+                case PostgresXlDistributeByStrategy.RoundRobin:
                 case PostgresXlDistributeByStrategy.Randomly:
                     // If column is defined, throw
                     if (!string.IsNullOrWhiteSpace(distributeByColumnName))
