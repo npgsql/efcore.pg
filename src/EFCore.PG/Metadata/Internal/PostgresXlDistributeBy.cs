@@ -51,7 +51,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
             }
         }
 
-        public virtual string DistributeByColumnName
+        public virtual string DistributeByPropertyName
         {
             get => GetData().ColumnName;
             [param:NotNull] set
@@ -69,7 +69,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
                 DistributionStrategy,
                 DistributeByColumnFunction,
                 DistributionStyle,
-                DistributeByColumnName);
+                DistributeByPropertyName);
 
         private (PostgresXlDistributeByStrategy DistributionStrategy, PostgresXlDistributeByColumnFunction DistributeByColumnFunction, PostgresXlDistributionStyle DistributionStyle, string ColumnName) GetData()
         {

@@ -216,7 +216,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                             .Append("DISTRIBUTE BY ")
                             .Append(distributeByColumnFunction.ToString().ToUpperInvariant())
                             .Append(" (")
-                            .Append(distributeByColumnName)
+                            .Append(DelimitIdentifier(distributeByColumnName))
                             .Append(")");
                     }
 
@@ -235,7 +235,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                             && distributeByColumnFunction == PostgresXlDistributeByColumnFunction.None)
                         {
                             builder.Append("BY (")
-                                .Append(distributeByColumnName)
+                                .Append(DelimitIdentifier(distributeByColumnName))
                                 .Append(")");
                         }
                     }
@@ -246,7 +246,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                         .Append("DISTSTYLE ")
                         .Append(distributionStyle.ToString().ToUpperInvariant())
                         .Append(" DISTKEY (")
-                        .Append(distributeByColumnName)
+                        .Append(DelimitIdentifier(distributeByColumnName))
                         .Append(")");
                 }
                 else if (distributionStyle == PostgresXlDistributionStyle.All || distributionStyle == PostgresXlDistributionStyle.Even)

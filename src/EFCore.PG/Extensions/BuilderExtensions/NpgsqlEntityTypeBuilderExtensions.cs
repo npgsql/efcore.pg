@@ -348,29 +348,29 @@ namespace Microsoft.EntityFrameworkCore
 
         public static EntityTypeBuilder PostgresXlDistributeBy(
             [NotNull] this EntityTypeBuilder entityTypeBuilder,
-            [NotNull] string columnName,
+            [NotNull] string propertyName,
             PostgresXlDistributeByColumnFunction distributeByColumnFunction = PostgresXlDistributeByColumnFunction.None)
 
         {
             Check.NotNull(entityTypeBuilder, nameof(entityTypeBuilder));
-            Check.NotEmpty(columnName, nameof(columnName));
+            Check.NotEmpty(propertyName, nameof(propertyName));
 
             var distribute = entityTypeBuilder.Metadata.GetPostgresXlDistributeBy();
 
             distribute.DistributionStrategy = PostgresXlDistributeByStrategy.None;
             distribute.DistributeByColumnFunction = PostgresXlDistributeByColumnFunction.None;
-            distribute.DistributeByColumnName = columnName;
+            distribute.DistributeByPropertyName = propertyName;
 
             return entityTypeBuilder;
         }
 
         public static EntityTypeBuilder<TEntity> PostgresXlDistributeBy<TEntity>(
             [NotNull] this EntityTypeBuilder<TEntity> entityTypeBuilder,
-            [NotNull] string columnName,
+            [NotNull] string propertyName,
             PostgresXlDistributeByColumnFunction distributeByColumnFunction = PostgresXlDistributeByColumnFunction.None)
             where TEntity : class
             => (EntityTypeBuilder<TEntity>)PostgresXlDistributeBy(
-                (EntityTypeBuilder)entityTypeBuilder, columnName, distributeByColumnFunction);
+                (EntityTypeBuilder)entityTypeBuilder, propertyName, distributeByColumnFunction);
 
         public static EntityTypeBuilder PostgresXlDistributionStyle(
             [NotNull] this EntityTypeBuilder entityTypeBuilder,
@@ -412,7 +412,7 @@ namespace Microsoft.EntityFrameworkCore
             var distribute = entityTypeBuilder.Metadata.GetPostgresXlDistributeBy();
 
             distribute.DistributionStyle = EntityFrameworkCore.PostgresXlDistributionStyle.Key;
-            distribute.DistributeByColumnName = distributionKey;
+            distribute.DistributeByPropertyName = distributionKey;
             return entityTypeBuilder;
         }
 

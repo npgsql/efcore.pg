@@ -624,7 +624,7 @@ DISTRIBUTE BY ROUNDROBIN;
             var distribution = new PostgresXlDistributeBy(op);
             distribution.DistributionStrategy = PostgresXlDistributeByStrategy.None;
             distribution.DistributeByColumnFunction = PostgresXlDistributeByColumnFunction.Hash;
-            distribution.DistributeByColumnName = "Id";
+            distribution.DistributeByPropertyName = "Id";
 
             Generate(op);
 
@@ -633,7 +633,7 @@ DISTRIBUTE BY ROUNDROBIN;
     ""Id"" integer NOT NULL,
     PRIMARY KEY (""Id"")
 )
-DISTRIBUTE BY HASH (Id);
+DISTRIBUTE BY HASH (""Id"");
 ");
         }
 
@@ -665,7 +665,7 @@ DISTRIBUTE BY HASH (Id);
             var distribution = new PostgresXlDistributeBy(op);
             distribution.DistributionStrategy = PostgresXlDistributeByStrategy.None;
             distribution.DistributeByColumnFunction = PostgresXlDistributeByColumnFunction.Modulo;
-            distribution.DistributeByColumnName = "Id";
+            distribution.DistributeByPropertyName = "Id";
 
             Generate(op);
 
@@ -674,7 +674,7 @@ DISTRIBUTE BY HASH (Id);
     ""Id"" integer NOT NULL,
     PRIMARY KEY (""Id"")
 )
-DISTRIBUTE BY MODULO (Id);
+DISTRIBUTE BY MODULO (""Id"");
 ");
         }
 
@@ -705,7 +705,7 @@ DISTRIBUTE BY MODULO (Id);
 
             var distribution = new PostgresXlDistributeBy(op);
             distribution.DistributionStrategy = PostgresXlDistributeByStrategy.None;
-            distribution.DistributeByColumnName = "Id";
+            distribution.DistributeByPropertyName = "Id";
 
             Generate(op);
 
@@ -714,7 +714,7 @@ DISTRIBUTE BY MODULO (Id);
     ""Id"" integer NOT NULL,
     PRIMARY KEY (""Id"")
 )
-DISTRIBUTED BY (Id);
+DISTRIBUTED BY (""Id"");
 ");
         }
 
@@ -822,7 +822,7 @@ DISTSTYLE EVEN;
 
             var distribution = new PostgresXlDistributeBy(op);
             distribution.DistributionStyle = PostgresXlDistributionStyle.Key;
-            distribution.DistributeByColumnName = "Id";
+            distribution.DistributeByPropertyName = "Id";
 
             Generate(op);
 
@@ -831,7 +831,7 @@ DISTSTYLE EVEN;
     ""Id"" integer NOT NULL,
     PRIMARY KEY (""Id"")
 )
-DISTSTYLE KEY DISTKEY (Id);
+DISTSTYLE KEY DISTKEY (""Id"");
 ");
         }
         [Fact]
