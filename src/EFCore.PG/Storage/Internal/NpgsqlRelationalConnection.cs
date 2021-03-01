@@ -1,6 +1,7 @@
 using System.Data.Common;
 using System.Linq;
 using System.Net.Security;
+using System.Transactions;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -65,5 +66,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
             return new NpgsqlRelationalConnection(Dependencies with { ContextOptions = optionsBuilder.Options });
         }
+
+        // [CA.AllowNull]
+        public new virtual NpgsqlConnection DbConnection
+        {
+            get => (NpgsqlConnection)base.DbConnection;
+            [param: CanBeNull] set => base.DbConnection = value;
+        }
+
+        // Accessing Transaction.Current is expensive, so don't do it if Enlist is false in the connection string
+        public override Transaction CurrentAmbientTransaction
+            => DbConnection.Settings.Enlist ? Transaction.Current : null;
     }
 }
