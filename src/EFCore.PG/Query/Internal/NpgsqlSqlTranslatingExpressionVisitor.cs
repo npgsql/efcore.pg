@@ -463,7 +463,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         }
 
         // Dirty Wrapper for private class Microsoft.EntityFrameworkCore.Query.RelationalSqlTranslatingExpressionVisitor+GroupingElementExpression
-        class GroupingElementExpression : Expression
+        sealed class GroupingElementExpression : Expression
         {
             public Expression Source { get; }
             private GroupingElementExpression(Expression group)
