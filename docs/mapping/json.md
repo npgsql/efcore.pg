@@ -147,14 +147,16 @@ This provides a seamless mapping approach, and supports embedding nested types a
 If your column JSON schema isn't stable, a strongly-typed POCO mapping may not be appropriate. The Npgsql provider also allows you to map the DOM document type provided by [System.Text.Json APIs](https://devblogs.microsoft.com/dotnet/try-the-new-system-text-json-apis/).
 
 ```c#
-public class SomeEntity
+public class SomeEntity : IDisposable
 {
     public int Id { get; set; }
     public JsonDocument Customer { get; set; }
+
+    public void Dispose() => Customer?.Dispose();
 }
 ```
 
-Note that neither a data annotation nor the fluent API are required, as `JsonDocument` is automatically recognized and mapped to `jsonb`.
+Note that neither a data annotation nor the fluent API are required, as [JsonDocument](https://docs.microsoft.com/dotnet/api/system.text.json.jsondocument) is automatically recognized and mapped to `jsonb`. Note also that `JsonDocument` is disposable, so the entity type is made disposable as well; not dispose the `JsonDocument` will result in the memory not being returned to the pool, which will increase GC impact across various parts of the framework.
 
 Once a document is loaded from the database, you can traverse it:
 
