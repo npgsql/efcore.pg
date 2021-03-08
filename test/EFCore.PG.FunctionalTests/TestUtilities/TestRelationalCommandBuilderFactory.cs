@@ -221,6 +221,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
                 }
                 return errorNumber;
             }
+
+            public void PopulateFromTemplate(IRelationalCommand templateCommand)
+                => _realRelationalCommand.PopulateFromTemplate(templateCommand);
         }
     }
 }

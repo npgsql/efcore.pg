@@ -4,8 +4,10 @@ using Microsoft.EntityFrameworkCore.Diagnostics.Internal;
 using Microsoft.EntityFrameworkCore.Infrastructure.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.Internal;
+using Microsoft.EntityFrameworkCore.TestUtilities;
 using Microsoft.Extensions.Logging;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics.Internal;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Xunit;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 
@@ -70,7 +72,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                     new RelationalTransactionFactoryDependencies(
                         new RelationalSqlGenerationHelper(
                             new RelationalSqlGenerationHelperDependencies()))),
-                new CurrentDbContext(new FakeDbContext()));
+                new CurrentDbContext(new FakeDbContext()),
+                new RelationalCommandBuilderFactory(
+                    new RelationalCommandBuilderDependencies(
+                        new NpgsqlTypeMappingSource(
+                            TestServiceFactory.Instance.Create<TypeMappingSourceDependencies>(),
+                            TestServiceFactory.Instance.Create<RelationalTypeMappingSourceDependencies>(),
+                            new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies()),
+                            new NpgsqlOptions()))));
         }
 
         class FakeDbContext : DbContext
