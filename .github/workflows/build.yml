@@ -22,15 +22,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-# Temporarily disable Windows because of PG installation issues
-#        os: [ ubuntu-20.04, windows-2019 ]
-        os: [ ubuntu-20.04 ]
-        pg_major: [ 12, 11, 10 ]
-# PostgreSQL 13 is out, but there's no PostGIS binary for Windows yet (http://download.osgeo.org/postgis/windows/)
-        include:
-          - os: ubuntu-20.04
-            pg_major: 13
-            # pg_prerelease: prerelease
+        os: [ ubuntu-20.04, windows-2019 ]
+        pg_major: [ 13, 12, 11, 10 ]
 
     steps:
       - name: Checkout
@@ -63,11 +56,13 @@ jobs:
         if: startsWith(matrix.os, 'windows')
         run: |
           # Find EnterpriseDB version number
-          EDB_VERSION=$(\
-            curl -Ls 'http://sbp.enterprisedb.com/applications.xml' |
-            sed -n '\#<id>postgresql_${{ matrix.pg_major }}</id>#{n;p;n;p;}' |
-            sed -n '\#<platform>windows-x64</platform>#{n;p;}' |
-            sed -E 's#.*<version>([^<]+)</version>#\1#')
+          EDB_VERSION=$(pwsh -c "
+              \$global:progressPreference='silentlyContinue';
+              Invoke-WebRequest -URI https://www.postgresql.org/applications-v2.xml |
+                  Select-Object -ExpandProperty Content |
+                  Select-Xml -XPath '/applications/application[id=\"postgresql_${{ matrix.pg_major }}\" and platform=\"windows-x64\"]/version/text()' |
+                  Select-Object -First 1 -ExpandProperty Node |
+                  Select-Object -ExpandProperty Value")
 
           # Install PostgreSQL
           echo "Installing PostgreSQL (version: ${EDB_VERSION})"
@@ -81,7 +76,8 @@ jobs:
           # Find OSGEO version number
           OSGEO_VERSION=$(\
             curl -Ls https://download.osgeo.org/postgis/windows/pg${{ matrix.pg_major }} |
-            sed -n 's/.*>postgis-bundle-pg${{ matrix.pg_major }}-\(${{ env.postgis_version }}.[0-9]*.[0-9]*\)x64.zip<.*/\1/p')
+            sed -n 's/.*>postgis-bundle-pg${{ matrix.pg_major }}-\(${{ env.postgis_version }}.[0-9]*.[0-9]*\)x64.zip<.*/\1/p' |
+            tail -n 1)
 
           # Install PostGIS
           echo "Installing PostGIS (version: ${OSGEO_VERSION})"
