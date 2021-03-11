@@ -6,6 +6,8 @@ on:
       - main
       - 'hotfix/**'
       - 'release/**'
+    tags:
+      - v*
   pull_request:
 
 env:
