@@ -252,19 +252,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                             (SqlExpression)Visit(arguments[0]),
                             (SqlExpression)Visit(wherePredicateMethodCall.Object));
                     }
-
-                    // As above, but for Contains on List<T>
-                    if (predicateMethod.DeclaringType?.IsGenericType == true &&
-                        predicateMethod.DeclaringType.GetGenericTypeDefinition() == typeof(List<>) &&
-                        predicateMethod.Name == nameof(List<int>.Contains) &&
-                        predicateMethod.GetParameters().Length == 1 &&
-                        predicateArguments[0] is ParameterExpression parameterExpression2 &&
-                        parameterExpression2 == wherePredicate.Parameters[0])
-                    {
-                        return _sqlExpressionFactory.ContainedBy(
-                            (SqlExpression)Visit(arguments[0]),
-                            (SqlExpression)Visit(wherePredicateMethodCall.Object));
-                    }
                 }
             }
 
