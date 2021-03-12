@@ -12,10 +12,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 {
     public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationalConnection
     {
-        ProvideClientCertificatesCallback ProvideClientCertificatesCallback { get; }
-        RemoteCertificateValidationCallback RemoteCertificateValidationCallback { get; }
-        ProvidePasswordCallback ProvidePasswordCallback { get; }
-
+        private ProvideClientCertificatesCallback ProvideClientCertificatesCallback { get; }
+        private RemoteCertificateValidationCallback RemoteCertificateValidationCallback { get; }
+        private ProvidePasswordCallback ProvidePasswordCallback { get; }
 
         /// <summary>
         ///     Indicates whether the store connection supports ambient transactions
@@ -77,5 +76,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         // Accessing Transaction.Current is expensive, so don't do it if Enlist is false in the connection string
         public override Transaction CurrentAmbientTransaction
             => DbConnection.Settings.Enlist ? Transaction.Current : null;
+
+        public virtual NpgsqlRelationalConnection CloneWith(string connectionString)
+        {
+            var clonedDbConnection = DbConnection.CloneWith(connectionString);
+
+            var relationalOptions = RelationalOptionsExtension.Extract(Dependencies.ContextOptions)
+                .WithConnection(clonedDbConnection);
+
+            var optionsBuilder = new DbContextOptionsBuilder();
+            ((IDbContextOptionsBuilderInfrastructure)optionsBuilder).AddOrUpdateExtension(relationalOptions);
+
+            return new NpgsqlRelationalConnection(Dependencies with { ContextOptions = optionsBuilder.Options });
+        }
     }
 }
