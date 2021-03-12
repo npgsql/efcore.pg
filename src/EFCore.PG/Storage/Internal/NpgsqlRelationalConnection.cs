@@ -11,10 +11,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 {
     public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationalConnection
     {
-        ProvideClientCertificatesCallback ProvideClientCertificatesCallback { get; }
-        RemoteCertificateValidationCallback RemoteCertificateValidationCallback { get; }
-        ProvidePasswordCallback ProvidePasswordCallback { get; }
-
+        private ProvideClientCertificatesCallback ProvideClientCertificatesCallback { get; }
+        private RemoteCertificateValidationCallback RemoteCertificateValidationCallback { get; }
+        private ProvidePasswordCallback ProvidePasswordCallback { get; }
 
         /// <summary>
         ///     Indicates whether the store connection supports ambient transactions
@@ -59,6 +58,26 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             relationalOptions = relationalOptions.Connection != null
                 ? relationalOptions.WithConnection(((NpgsqlConnection)DbConnection).CloneWith(connectionString))
                 : relationalOptions.WithConnectionString(connectionString);
+
+            var optionsBuilder = new DbContextOptionsBuilder();
+            ((IDbContextOptionsBuilderInfrastructure)optionsBuilder).AddOrUpdateExtension(relationalOptions);
+
+            return new NpgsqlRelationalConnection(Dependencies.With(optionsBuilder.Options));
+        }
+
+        // [CA.AllowNull]
+        public new virtual NpgsqlConnection DbConnection
+        {
+            get => (NpgsqlConnection)base.DbConnection;
+            [param: CanBeNull] set => base.DbConnection = value;
+        }
+
+        public virtual NpgsqlRelationalConnection CloneWith(string connectionString)
+        {
+            var clonedDbConnection = DbConnection.CloneWith(connectionString);
+
+            var relationalOptions = RelationalOptionsExtension.Extract(Dependencies.ContextOptions)
+                .WithConnection(clonedDbConnection);
 
             var optionsBuilder = new DbContextOptionsBuilder();
             ((IDbContextOptionsBuilderInfrastructure)optionsBuilder).AddOrUpdateExtension(relationalOptions);

@@ -128,21 +128,36 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             });
 
         public override bool Exists()
+            => Exists(async: false).GetAwaiter().GetResult();
+
+        public override Task<bool> ExistsAsync(CancellationToken cancellationToken = default)
+            => Exists(async: true, cancellationToken);
+
+        private async Task<bool> Exists(bool async, CancellationToken cancellationToken = default)
         {
+            // When checking whether a database exists, pooling must be off, otherwise we may
+            // attempt to reuse a pooled connection, which may be broken (this happened in the tests).
+            // If Pooling is off, but Multiplexing is on - NpgsqlConnectionStringBuilder.Validate will throw,
+            // so we turn off Multiplexing as well.
+            var unpooledCsb = new NpgsqlConnectionStringBuilder(_connection.ConnectionString)
+            {
+                Pooling = false,
+                Multiplexing = false
+            };
+
+            using var _ = new TransactionScope(TransactionScopeOption.Suppress, TransactionScopeAsyncFlowOption.Enabled);
+            var unpooledRelationalConnection = _connection.CloneWith(unpooledCsb.ToString());
             try
             {
-                // When checking whether a database exists, pooling must be off, otherwise we may
-                // attempt to reuse a pooled connection, which may be broken (this happened in the tests).
-                // If Pooling is off, but Multiplexing is on - NpgsqlConnectionStringBuilder.Validate will throw,
-                // so we turn off Multiplexing as well.
-                var unpooledCsb = new NpgsqlConnectionStringBuilder(_connection.ConnectionString)
+                if (async)
                 {
-                    Pooling = false,
-                    Multiplexing = false
-                };
-                using var unpooledConn = ((NpgsqlConnection)_connection.DbConnection).CloneWith(unpooledCsb.ToString());
-                using var _ = new TransactionScope(TransactionScopeOption.Suppress);
-                unpooledConn.Open();
+                    await unpooledRelationalConnection.OpenAsync(cancellationToken);
+                }
+                else
+                {
+                    unpooledRelationalConnection.Open();
+                }
+
                 return true;
             }
             catch (PostgresException e)
@@ -156,55 +171,28 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             }
             catch (NpgsqlException e) when (
                 e.InnerException is IOException &&
-                e.InnerException.InnerException is SocketException &&
-                ((SocketException)e.InnerException.InnerException).SocketErrorCode == SocketError.ConnectionReset
+                e.InnerException.InnerException is SocketException socketException &&
+                socketException.SocketErrorCode == SocketError.ConnectionReset
             )
             {
                 // Pretty awful hack around #104
                 return false;
             }
-        }
-
-        public override async Task<bool> ExistsAsync(CancellationToken cancellationToken = default)
-        {
-            try
+            finally
             {
-                // When checking whether a database exists, pooling must be off, otherwise we may
-                // attempt to reuse a pooled connection, which may be broken (this happened in the tests).
-                // If Pooling is off, but Multiplexing is on - NpgsqlConnectionStringBuilder.Validate will throw,
-                // so we turn off Multiplexing as well.
-                var unpooledCsb = new NpgsqlConnectionStringBuilder(_connection.ConnectionString)
+                if (async)
                 {
-                    Pooling = false,
-                    Multiplexing = false
-                };
-                using var unpooledConn = ((NpgsqlConnection)_connection.DbConnection).CloneWith(unpooledCsb.ToString());
-                using var _ = new TransactionScope(TransactionScopeOption.Suppress, TransactionScopeAsyncFlowOption.Enabled);
-                await unpooledConn.OpenAsync(cancellationToken);
-                return true;
-            }
-            catch (PostgresException e)
-            {
-                if (IsDoesNotExist(e))
-                {
-                    return false;
+                    await unpooledRelationalConnection.DisposeAsync();
                 }
-
-                throw;
-            }
-            catch (NpgsqlException e) when (
-                e.InnerException is IOException &&
-                e.InnerException.InnerException is SocketException &&
-                ((SocketException)e.InnerException.InnerException).SocketErrorCode == SocketError.ConnectionReset
-            )
-            {
-                // Pretty awful hack around #104
-                return false;
+                else
+                {
+                    unpooledRelationalConnection.Dispose();
+                }
             }
         }
 
         // Login failed is thrown when database does not exist (See Issue #776)
-        static bool IsDoesNotExist(PostgresException exception) => exception.SqlState == "3D000";
+        private static bool IsDoesNotExist(PostgresException exception) => exception.SqlState == "3D000";
 
         public override void Delete()
         {
