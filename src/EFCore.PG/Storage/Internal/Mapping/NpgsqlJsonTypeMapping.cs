@@ -6,7 +6,7 @@ using System.Text;
 using System.Text.Json;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Storage;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
+using Microsoft.EntityFrameworkCore.Utilities;
 using NpgsqlTypes;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
@@ -74,6 +74,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         static readonly Expression DefaultJsonDocumentOptions = Expression.New(typeof(JsonDocumentOptions));
 
         static readonly MethodInfo ParseMethod =
-            typeof(JsonDocument).GetMethod(nameof(JsonDocument.Parse), new[] { typeof(string), typeof(JsonDocumentOptions) });
+            typeof(JsonDocument).GetMethod(nameof(JsonDocument.Parse), new[] { typeof(string), typeof(JsonDocumentOptions) })!;
     }
 }

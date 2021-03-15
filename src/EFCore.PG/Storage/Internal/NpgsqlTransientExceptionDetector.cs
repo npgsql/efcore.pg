@@ -8,7 +8,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
     /// </summary>
     public class NpgsqlTransientExceptionDetector
     {
-        public static bool ShouldRetryOn([NotNull] Exception ex)
+        public static bool ShouldRetryOn([CanBeNull] Exception? ex)
             => (ex as NpgsqlException)?.IsTransient == true || ex is TimeoutException;
     }
 }

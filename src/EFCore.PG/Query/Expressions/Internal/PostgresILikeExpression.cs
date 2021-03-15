@@ -30,7 +30,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         /// The escape character to use in <see cref="Pattern"/>.
         /// </summary>
         [CanBeNull]
-        public virtual SqlExpression EscapeChar { get; }
+        public virtual SqlExpression? EscapeChar { get; }
 
         /// <summary>
         /// Constructs a <see cref="PostgresILikeExpression"/>.
@@ -42,8 +42,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         public PostgresILikeExpression(
             [NotNull] SqlExpression match,
             [NotNull] SqlExpression pattern,
-            [CanBeNull] SqlExpression escapeChar,
-            [CanBeNull] RelationalTypeMapping typeMapping)
+            [CanBeNull] SqlExpression? escapeChar,
+            [CanBeNull] RelationalTypeMapping? typeMapping)
             : base(typeof(bool), typeMapping)
         {
             Match = match;
@@ -56,21 +56,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
             => Update(
                 (SqlExpression)visitor.Visit(Match),
                 (SqlExpression)visitor.Visit(Pattern),
-                (SqlExpression)visitor.Visit(EscapeChar));
+                EscapeChar is null ? null : (SqlExpression)visitor.Visit(EscapeChar));
 
         public virtual PostgresILikeExpression Update(
             [NotNull] SqlExpression match,
             [NotNull] SqlExpression pattern,
-            [NotNull] SqlExpression escapeChar)
+            [CanBeNull] SqlExpression? escapeChar)
             => match == Match && pattern == Pattern && escapeChar == EscapeChar
                 ? this
                 : new PostgresILikeExpression(match, pattern, escapeChar, TypeMapping);
 
         /// <inheritdoc />
-        public override bool Equals(object obj) => obj is PostgresILikeExpression other && Equals(other);
+        public override bool Equals(object? obj) => obj is PostgresILikeExpression other && Equals(other);
 
         /// <inheritdoc />
-        public virtual bool Equals(PostgresILikeExpression other)
+        public virtual bool Equals(PostgresILikeExpression? other)
             => ReferenceEquals(this, other) ||
                other is object &&
                base.Equals(other) &&

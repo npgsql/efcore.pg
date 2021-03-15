@@ -9,7 +9,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
     {
         public static void MissingSchemaWarning(
             [NotNull] this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
-            [CanBeNull] string schemaName)
+            [CanBeNull] string? schemaName)
         {
             var definition = NpgsqlResources.LogMissingSchema(diagnostics);
 
@@ -21,7 +21,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
 
         public static void MissingTableWarning(
             [NotNull] this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
-            [CanBeNull] string tableName)
+            [CanBeNull] string? tableName)
         {
             var definition = NpgsqlResources.LogMissingTable(diagnostics);
 
@@ -33,9 +33,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
 
         public static void ForeignKeyReferencesMissingPrincipalTableWarning(
             [NotNull] this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
-            [CanBeNull] string foreignKeyName,
-            [CanBeNull] string tableName,
-            [CanBeNull] string principalTableName)
+            [CanBeNull] string? foreignKeyName,
+            [CanBeNull] string? tableName,
+            [CanBeNull] string? principalTableName)
         {
             var definition = NpgsqlResources.LogPrincipalTableNotInSelectionSet(diagnostics);
 
@@ -52,8 +52,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
             [NotNull] string dataTypeName,
             bool nullable,
             bool identity,
-            [CanBeNull] string defaultValue,
-            [CanBeNull] string computedValue)
+            [CanBeNull] string? defaultValue,
+            [CanBeNull] string? computedValue)
         {
             var definition = NpgsqlResources.LogFoundColumn(diagnostics);
 
@@ -83,33 +83,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
             [NotNull] string collationName,
             [NotNull] string lcCollate,
             [NotNull] string lcCtype,
-            [NotNull] string provider,
+            [CanBeNull] string? provider,
             bool deterministic)
         {
             var definition = NpgsqlResources.LogFoundCollation(diagnostics);
 
             if (diagnostics.ShouldLog(definition))
-            {
-                definition.Log(
-                    diagnostics,
-                    l => l.LogDebug(
-                        definition.EventId,
-                        null,
-                        definition.MessageFormat,
-                        collationName,
-                        schema,
-                        lcCollate,
-                        lcCtype,
-                        provider,
-                        deterministic));
-            }
+                definition.Log(diagnostics, collationName, schema, lcCollate, lcCtype, provider, deterministic);
 
             // No DiagnosticsSource events because these are purely design-time messages
         }
 
         public static void UniqueConstraintFound(
             [NotNull] this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
-            [NotNull] string uniqueConstraintName,
+            [CanBeNull] string? uniqueConstraintName,
             [NotNull] string tableName)
         {
             var definition = NpgsqlResources.LogFoundUniqueConstraint(diagnostics);
@@ -160,7 +147,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
 
         public static void UnsupportedColumnConstraintSkippedWarning(
             [NotNull] this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
-            [NotNull] string indexName,
+            [CanBeNull] string? indexName,
             [NotNull] string tableName)
         {
             var definition = NpgsqlResources.LogUnsupportedColumnConstraintSkipped(diagnostics);

@@ -1,9 +1,10 @@
 using System;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Utilities;
 using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
+using CA = System.Diagnostics.CodeAnalysis;
 
 // ReSharper disable once CheckNamespace
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
@@ -14,7 +15,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         // rather late by SingletonOptionsInitializer
         readonly INpgsqlNetTopologySuiteOptions _options;
 
-        static bool TryGetClrType(string subtypeName, out Type clrType)
+        static bool TryGetClrType(string subtypeName, [CA.NotNullWhen(true)] out Type? clrType)
         {
             clrType = subtypeName switch
             {
@@ -35,7 +36,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         public NpgsqlNetTopologySuiteTypeMappingSourcePlugin([NotNull] INpgsqlNetTopologySuiteOptions options)
             => _options = Check.NotNull(options, nameof(options));
 
-        public virtual RelationalTypeMapping FindMapping(in RelationalTypeMappingInfo mappingInfo)
+        public virtual RelationalTypeMapping? FindMapping(in RelationalTypeMappingInfo mappingInfo)
         {
             // TODO: Array
             var clrType = mappingInfo.ClrType;
@@ -57,7 +58,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 ? (RelationalTypeMapping)Activator.CreateInstance(
                     typeof(NpgsqlGeometryTypeMapping<>).MakeGenericType(clrType ?? typeof(Geometry)),
                     storeTypeName ?? (isGeography ? "geography" : "geometry"),
-                    isGeography)
+                    isGeography)!
                 : null;
         }
 
@@ -69,7 +70,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             [NotNull] string storeTypeName,
             out string subtypeName,
             out bool isGeography,
-            out Type clrType,
+            out Type? clrType,
             out int srid,
             out Ordinates ordinates)
         {

@@ -1,4 +1,3 @@
-using System;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NodaTime;
@@ -28,7 +27,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         public override RelationalTypeMapping Clone(string storeType, int? size)
             => new TimestampInstantMapping(Parameters.WithStoreTypeAndSize(storeType, size));
 
-        public override CoreTypeMapping Clone(ValueConverter converter)
+        public override CoreTypeMapping Clone(ValueConverter? converter)
             => new TimestampInstantMapping(Parameters.WithComposedConverter(converter));
 
         protected override string GenerateNonNullSqlLiteral(object value)
@@ -41,19 +40,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             => Expression.Call(FromUnixTimeTicks, Expression.Constant(instant.ToUnixTimeTicks()));
 
         static readonly MethodInfo FromUnixTimeTicks
-            = typeof(Instant).GetRuntimeMethod(nameof(Instant.FromUnixTimeTicks), new[] { typeof(long) });
+            = typeof(Instant).GetRuntimeMethod(nameof(Instant.FromUnixTimeTicks), new[] { typeof(long) })!;
     }
 
     public class TimestampLocalDateTimeMapping : NpgsqlTypeMapping
     {
         static readonly ConstructorInfo ConstructorWithMinutes =
-            typeof(LocalDateTime).GetConstructor(new[] { typeof(int), typeof(int), typeof(int), typeof(int), typeof(int) });
+            typeof(LocalDateTime).GetConstructor(new[] { typeof(int), typeof(int), typeof(int), typeof(int), typeof(int) })!;
 
         static readonly ConstructorInfo ConstructorWithSeconds =
-            typeof(LocalDateTime).GetConstructor(new[] { typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int) });
+            typeof(LocalDateTime).GetConstructor(new[] { typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int) })!;
 
         static readonly MethodInfo PlusNanosecondsMethod =
-            typeof(LocalDateTime).GetMethod(nameof(LocalDateTime.PlusNanoseconds), new[] { typeof(long) });
+            typeof(LocalDateTime).GetMethod(nameof(LocalDateTime.PlusNanoseconds), new[] { typeof(long) })!;
 
         public TimestampLocalDateTimeMapping() : base("timestamp", typeof(LocalDateTime), NpgsqlDbType.Timestamp) {}
 
@@ -66,7 +65,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         public override RelationalTypeMapping Clone(string storeType, int? size)
             => new TimestampLocalDateTimeMapping(Parameters.WithStoreTypeAndSize(storeType, size));
 
-        public override CoreTypeMapping Clone(ValueConverter converter)
+        public override CoreTypeMapping Clone(ValueConverter? converter)
             => new TimestampLocalDateTimeMapping(Parameters.WithComposedConverter(converter));
 
         protected override string GenerateNonNullSqlLiteral(object value)
@@ -104,7 +103,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         public override RelationalTypeMapping Clone(string storeType, int? size)
             => new TimestampTzInstantMapping(Parameters.WithStoreTypeAndSize(storeType, size));
 
-        public override CoreTypeMapping Clone(ValueConverter converter)
+        public override CoreTypeMapping Clone(ValueConverter? converter)
             => new TimestampTzInstantMapping(Parameters.WithComposedConverter(converter));
 
         protected override string GenerateNonNullSqlLiteral(object value)
@@ -117,13 +116,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
     public class TimestampTzOffsetDateTimeMapping : NpgsqlTypeMapping
     {
         static readonly ConstructorInfo Constructor =
-            typeof(OffsetDateTime).GetConstructor(new[] { typeof(LocalDateTime), typeof(Offset) });
+            typeof(OffsetDateTime).GetConstructor(new[] { typeof(LocalDateTime), typeof(Offset) })!;
 
         static readonly MethodInfo OffsetFromHoursMethod =
-            typeof(Offset).GetMethod(nameof(Offset.FromHours), new[] { typeof(int) });
+            typeof(Offset).GetMethod(nameof(Offset.FromHours), new[] { typeof(int) })!;
 
         static readonly MethodInfo OffsetFromSecondsMethod =
-            typeof(Offset).GetMethod(nameof(Offset.FromSeconds), new[] { typeof(int) });
+            typeof(Offset).GetMethod(nameof(Offset.FromSeconds), new[] { typeof(int) })!;
 
         public TimestampTzOffsetDateTimeMapping() : base("timestamp with time zone", typeof(OffsetDateTime), NpgsqlDbType.TimestampTz) {}
 
@@ -136,7 +135,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         public override RelationalTypeMapping Clone(string storeType, int? size)
             => new TimestampTzOffsetDateTimeMapping(Parameters.WithStoreTypeAndSize(storeType, size));
 
-        public override CoreTypeMapping Clone(ValueConverter converter)
+        public override CoreTypeMapping Clone(ValueConverter? converter)
             => new TimestampTzOffsetDateTimeMapping(Parameters.WithComposedConverter(converter));
 
         protected override string GenerateNonNullSqlLiteral(object value)
@@ -172,7 +171,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         public override RelationalTypeMapping Clone(string storeType, int? size)
             => new TimestampTzZonedDateTimeMapping(Parameters.WithStoreTypeAndSize(storeType, size));
 
-        public override CoreTypeMapping Clone(ValueConverter converter)
+        public override CoreTypeMapping Clone(ValueConverter? converter)
             => new TimestampTzZonedDateTimeMapping(Parameters.WithComposedConverter(converter));
 
         protected override string GenerateNonNullSqlLiteral(object value)
@@ -194,7 +193,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         }
 
         static readonly ConstructorInfo Constructor =
-            typeof(ZonedDateTime).GetConstructor(new[] { typeof(Instant), typeof(DateTimeZone) });
+            typeof(ZonedDateTime).GetConstructor(new[] { typeof(Instant), typeof(DateTimeZone) })!;
 
         static readonly MemberInfo TzdbDateTimeZoneSourceDefaultMember =
             typeof(TzdbDateTimeZoneSource).GetMember(nameof(TzdbDateTimeZoneSource.Default))[0];
@@ -202,7 +201,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         static readonly MethodInfo ForIdMethod =
             typeof(TzdbDateTimeZoneSource).GetRuntimeMethod(
                 nameof(TzdbDateTimeZoneSource.ForId),
-                new[] { typeof(string) });
+                new[] { typeof(string) })!;
     }
 
     #endregion timestamptz
@@ -212,7 +211,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
     public class DateMapping : NpgsqlTypeMapping
     {
         static readonly ConstructorInfo Constructor =
-            typeof(LocalDate).GetConstructor(new[] { typeof(int), typeof(int), typeof(int) });
+            typeof(LocalDate).GetConstructor(new[] { typeof(int), typeof(int), typeof(int) })!;
 
         public DateMapping() : base("date", typeof(LocalDate), NpgsqlDbType.Date) {}
 
@@ -225,7 +224,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         public override RelationalTypeMapping Clone(string storeType, int? size)
             => new DateMapping(Parameters.WithStoreTypeAndSize(storeType, size));
 
-        public override CoreTypeMapping Clone(ValueConverter converter)
+        public override CoreTypeMapping Clone(ValueConverter? converter)
             => new DateMapping(Parameters.WithComposedConverter(converter));
 
         protected override string GenerateNonNullSqlLiteral(object value)
@@ -245,14 +244,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
     public class TimeMapping : NpgsqlTypeMapping
     {
         static readonly ConstructorInfo ConstructorWithMinutes =
-            typeof(LocalTime).GetConstructor(new[] { typeof(int), typeof(int) });
+            typeof(LocalTime).GetConstructor(new[] { typeof(int), typeof(int) })!;
 
         static readonly ConstructorInfo ConstructorWithSeconds =
-            typeof(LocalTime).GetConstructor(new[] { typeof(int), typeof(int), typeof(int) });
+            typeof(LocalTime).GetConstructor(new[] { typeof(int), typeof(int), typeof(int) })!;
 
         static readonly MethodInfo FromHourMinuteSecondNanosecondMethod =
             typeof(LocalTime).GetMethod(nameof(LocalTime.FromHourMinuteSecondNanosecond),
-                new[] { typeof(int), typeof(int), typeof(int), typeof(long) });
+                new[] { typeof(int), typeof(int), typeof(int), typeof(long) })!;
 
         public TimeMapping() : base("time", typeof(LocalTime), NpgsqlDbType.Time) {}
 
@@ -265,7 +264,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         public override RelationalTypeMapping Clone(string storeType, int? size)
             => new TimeMapping(Parameters.WithStoreTypeAndSize(storeType, size));
 
-        public override CoreTypeMapping Clone(ValueConverter converter)
+        public override CoreTypeMapping Clone(ValueConverter? converter)
             => new TimeMapping(Parameters.WithComposedConverter(converter));
 
         protected override string GenerateNonNullSqlLiteral(object value)
@@ -289,23 +288,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
     public class TimeTzMapping : NpgsqlTypeMapping
     {
         static readonly ConstructorInfo OffsetTimeConstructor =
-            typeof(OffsetTime).GetConstructor(new[] { typeof(LocalTime), typeof(Offset) });
+            typeof(OffsetTime).GetConstructor(new[] { typeof(LocalTime), typeof(Offset) })!;
 
         static readonly ConstructorInfo LocalTimeConstructorWithMinutes =
-            typeof(LocalTime).GetConstructor(new[] { typeof(int), typeof(int) });
+            typeof(LocalTime).GetConstructor(new[] { typeof(int), typeof(int) })!;
 
         static readonly ConstructorInfo LocalTimeConstructorWithSeconds =
-            typeof(LocalTime).GetConstructor(new[] { typeof(int), typeof(int), typeof(int) });
+            typeof(LocalTime).GetConstructor(new[] { typeof(int), typeof(int), typeof(int) })!;
 
         static readonly MethodInfo LocalTimeFromHourMinuteSecondNanosecondMethod =
             typeof(LocalTime).GetMethod(nameof(LocalTime.FromHourMinuteSecondNanosecond),
-                new[] { typeof(int), typeof(int), typeof(int), typeof(long) });
+                new[] { typeof(int), typeof(int), typeof(int), typeof(long) })!;
 
         static readonly MethodInfo OffsetFromHoursMethod =
-            typeof(Offset).GetMethod(nameof(Offset.FromHours), new[] { typeof(int) });
+            typeof(Offset).GetMethod(nameof(Offset.FromHours), new[] { typeof(int) })!;
 
         static readonly MethodInfo OffsetFromSeconds =
-            typeof(Offset).GetMethod(nameof(Offset.FromSeconds), new[] { typeof(int) });
+            typeof(Offset).GetMethod(nameof(Offset.FromSeconds), new[] { typeof(int) })!;
 
         static readonly OffsetTimePattern Pattern =
             OffsetTimePattern.CreateWithInvariantCulture("HH':'mm':'ss;FFFFFFo<G>");
@@ -321,7 +320,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         public override RelationalTypeMapping Clone(string storeType, int? size)
             => new TimeTzMapping(Parameters.WithStoreTypeAndSize(storeType, size));
 
-        public override CoreTypeMapping Clone(ValueConverter converter)
+        public override CoreTypeMapping Clone(ValueConverter? converter)
             => new TimeTzMapping(Parameters.WithComposedConverter(converter));
 
         protected override string GenerateNonNullSqlLiteral(object value)
@@ -354,15 +353,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
     public class PeriodIntervalMapping : NpgsqlTypeMapping
     {
-        static readonly MethodInfo FromYears = typeof(Period).GetRuntimeMethod(nameof(Period.FromYears), new[] { typeof(int) });
-        static readonly MethodInfo FromMonths = typeof(Period).GetRuntimeMethod(nameof(Period.FromMonths), new[] { typeof(int) });
-        static readonly MethodInfo FromWeeks = typeof(Period).GetRuntimeMethod(nameof(Period.FromWeeks), new[] { typeof(int) });
-        static readonly MethodInfo FromDays = typeof(Period).GetRuntimeMethod(nameof(Period.FromDays), new[] { typeof(int) });
-        static readonly MethodInfo FromHours = typeof(Period).GetRuntimeMethod(nameof(Period.FromHours), new[] { typeof(long) });
-        static readonly MethodInfo FromMinutes = typeof(Period).GetRuntimeMethod(nameof(Period.FromMinutes), new[] { typeof(long) });
-        static readonly MethodInfo FromSeconds = typeof(Period).GetRuntimeMethod(nameof(Period.FromSeconds), new[] { typeof(long) });
-        static readonly MethodInfo FromMilliseconds = typeof(Period).GetRuntimeMethod(nameof(Period.FromMilliseconds), new[] { typeof(long) });
-        static readonly MethodInfo FromNanoseconds = typeof(Period).GetRuntimeMethod(nameof(Period.FromNanoseconds), new[] { typeof(long) });
+        static readonly MethodInfo FromYears = typeof(Period).GetRuntimeMethod(nameof(Period.FromYears), new[] { typeof(int) })!;
+        static readonly MethodInfo FromMonths = typeof(Period).GetRuntimeMethod(nameof(Period.FromMonths), new[] { typeof(int) })!;
+        static readonly MethodInfo FromWeeks = typeof(Period).GetRuntimeMethod(nameof(Period.FromWeeks), new[] { typeof(int) })!;
+        static readonly MethodInfo FromDays = typeof(Period).GetRuntimeMethod(nameof(Period.FromDays), new[] { typeof(int) })!;
+        static readonly MethodInfo FromHours = typeof(Period).GetRuntimeMethod(nameof(Period.FromHours), new[] { typeof(long) })!;
+        static readonly MethodInfo FromMinutes = typeof(Period).GetRuntimeMethod(nameof(Period.FromMinutes), new[] { typeof(long) })!;
+        static readonly MethodInfo FromSeconds = typeof(Period).GetRuntimeMethod(nameof(Period.FromSeconds), new[] { typeof(long) })!;
+        static readonly MethodInfo FromMilliseconds = typeof(Period).GetRuntimeMethod(nameof(Period.FromMilliseconds), new[] { typeof(long) })!;
+        static readonly MethodInfo FromNanoseconds = typeof(Period).GetRuntimeMethod(nameof(Period.FromNanoseconds), new[] { typeof(long) })!;
+
+        private static readonly PropertyInfo Zero = typeof(Period).GetProperty(nameof(Period.Zero))!;
 
         public PeriodIntervalMapping() : base("interval", typeof(Period), NpgsqlDbType.Interval) {}
 
@@ -375,7 +376,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         public override RelationalTypeMapping Clone(string storeType, int? size)
             => new PeriodIntervalMapping(Parameters.WithStoreTypeAndSize(storeType, size));
 
-        public override CoreTypeMapping Clone(ValueConverter converter)
+        public override CoreTypeMapping Clone(ValueConverter? converter)
             => new PeriodIntervalMapping(Parameters.WithComposedConverter(converter));
 
         protected override string GenerateNonNullSqlLiteral(object value)
@@ -384,7 +385,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         public override Expression GenerateCodeLiteral(object value)
         {
             var period = (Period)value;
-            Expression e = null;
+            Expression? e = null;
 
             if (period.Years != 0)
                 Compose(Expression.Call(FromYears, Expression.Constant(period.Years)));
@@ -405,7 +406,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             if (period.Nanoseconds != 0)
                 Compose(Expression.Call(FromNanoseconds, Expression.Constant(period.Nanoseconds)));
 
-            return e;
+            return e ?? Expression.MakeMemberAccess(null, Zero);
 
             void Compose(Expression toAdd) => e = e is null ? toAdd : Expression.Add(e, toAdd);
         }
@@ -413,11 +414,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
     public class DurationIntervalMapping : NpgsqlTypeMapping
     {
-        static readonly MethodInfo FromDays = typeof(Duration).GetRuntimeMethod(nameof(Duration.FromDays), new[] { typeof(int) });
-        static readonly MethodInfo FromHours = typeof(Duration).GetRuntimeMethod(nameof(Duration.FromHours), new[] { typeof(int) });
-        static readonly MethodInfo FromMinutes = typeof(Duration).GetRuntimeMethod(nameof(Duration.FromMinutes), new[] { typeof(long) });
-        static readonly MethodInfo FromSeconds = typeof(Duration).GetRuntimeMethod(nameof(Duration.FromSeconds), new[] { typeof(long) });
-        static readonly MethodInfo FromMilliseconds = typeof(Duration).GetRuntimeMethod(nameof(Duration.FromMilliseconds), new[] { typeof(long) });
+        static readonly MethodInfo FromDays = typeof(Duration).GetRuntimeMethod(nameof(Duration.FromDays), new[] { typeof(int) })!;
+        static readonly MethodInfo FromHours = typeof(Duration).GetRuntimeMethod(nameof(Duration.FromHours), new[] { typeof(int) })!;
+        static readonly MethodInfo FromMinutes = typeof(Duration).GetRuntimeMethod(nameof(Duration.FromMinutes), new[] { typeof(long) })!;
+        static readonly MethodInfo FromSeconds = typeof(Duration).GetRuntimeMethod(nameof(Duration.FromSeconds), new[] { typeof(long) })!;
+        static readonly MethodInfo FromMilliseconds = typeof(Duration).GetRuntimeMethod(nameof(Duration.FromMilliseconds), new[] { typeof(long) })!;
+
+        private static readonly PropertyInfo Zero = typeof(Duration).GetProperty(nameof(Duration.Zero))!;
 
         public DurationIntervalMapping() : base("interval", typeof(Duration), NpgsqlDbType.Interval) {}
 
@@ -430,7 +433,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         public override RelationalTypeMapping Clone(string storeType, int? size)
             => new DurationIntervalMapping(Parameters.WithStoreTypeAndSize(storeType, size));
 
-        public override CoreTypeMapping Clone(ValueConverter converter)
+        public override CoreTypeMapping Clone(ValueConverter? converter)
             => new DurationIntervalMapping(Parameters.WithComposedConverter(converter));
 
         protected override string GenerateNonNullSqlLiteral(object value)
@@ -439,7 +442,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         public override Expression GenerateCodeLiteral(object value)
         {
             var duration = (Duration)value;
-            Expression e = null;
+            Expression? e = null;
 
             if (duration.Days != 0)
                 Compose(Expression.Call(FromDays, Expression.Constant(duration.Days)));
@@ -452,7 +455,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             if (duration.Milliseconds != 0)
                 Compose(Expression.Call(FromMilliseconds, Expression.Constant((long)duration.Milliseconds)));
 
-            return e;
+            return e ?? Expression.MakeMemberAccess(null, Zero);
 
             void Compose(Expression toAdd) => e = e is null ? toAdd : Expression.Add(e, toAdd);
         }

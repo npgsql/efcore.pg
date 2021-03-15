@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Update;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
+using Microsoft.EntityFrameworkCore.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
 {
@@ -87,7 +87,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
                 .AppendJoin(operations.Select(c => SqlGenerationHelper.DelimitIdentifier(c.ColumnName)));
         }
 
-        public override void AppendNextSequenceValueOperation(StringBuilder commandStringBuilder, string name, string schema)
+        public override void AppendNextSequenceValueOperation(StringBuilder commandStringBuilder, string name, string? schema)
         {
             commandStringBuilder.Append("SELECT nextval('");
             SqlGenerationHelper.DelimitIdentifier(commandStringBuilder, Check.NotNull(name, nameof(name)), schema);

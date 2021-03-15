@@ -19,19 +19,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     /// </summary>
     public class NpgsqlFullTextSearchMethodTranslator : IMethodCallTranslator
     {
-        static readonly MethodInfo TsQueryParse =
-            typeof(NpgsqlTsQuery).GetMethod(nameof(NpgsqlTsQuery.Parse), BindingFlags.Public | BindingFlags.Static);
+        private static readonly MethodInfo TsQueryParse =
+            typeof(NpgsqlTsQuery).GetMethod(nameof(NpgsqlTsQuery.Parse), BindingFlags.Public | BindingFlags.Static)!;
 
-        static readonly MethodInfo TsVectorParse =
-            typeof(NpgsqlTsVector).GetMethod(nameof(NpgsqlTsVector.Parse), BindingFlags.Public | BindingFlags.Static);
+        private static readonly MethodInfo TsVectorParse =
+            typeof(NpgsqlTsVector).GetMethod(nameof(NpgsqlTsVector.Parse), BindingFlags.Public | BindingFlags.Static)!;
 
-        readonly IRelationalTypeMappingSource _typeMappingSource;
-        readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
-        readonly RelationalTypeMapping _boolMapping;
-        readonly RelationalTypeMapping _tsQueryMapping;
-        readonly RelationalTypeMapping _tsVectorMapping;
-        readonly RelationalTypeMapping _regconfigMapping;
-        readonly RelationalTypeMapping _regdictionaryMapping;
+        private readonly IRelationalTypeMappingSource _typeMappingSource;
+        private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
+        private readonly RelationalTypeMapping _boolMapping;
+        private readonly RelationalTypeMapping _tsQueryMapping;
+        private readonly RelationalTypeMapping _tsVectorMapping;
+        private readonly RelationalTypeMapping _regconfigMapping;
+        private readonly RelationalTypeMapping _regdictionaryMapping;
 
         public NpgsqlFullTextSearchMethodTranslator(
             [NotNull] IRelationalTypeMappingSource typeMappingSource,
@@ -39,16 +39,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         {
             _typeMappingSource = typeMappingSource;
             _sqlExpressionFactory = sqlExpressionFactory;
-            _boolMapping = typeMappingSource.FindMapping(typeof(bool));
-            _tsQueryMapping = typeMappingSource.FindMapping("tsquery");
-            _tsVectorMapping = typeMappingSource.FindMapping("tsvector");
-            _regconfigMapping = typeMappingSource.FindMapping("regconfig");
-            _regdictionaryMapping = typeMappingSource.FindMapping("regdictionary");
+            _boolMapping = typeMappingSource.FindMapping(typeof(bool))!;
+            _tsQueryMapping = typeMappingSource.FindMapping("tsquery")!;
+            _tsVectorMapping = typeMappingSource.FindMapping("tsvector")!;
+            _regconfigMapping = typeMappingSource.FindMapping("regconfig")!;
+            _regdictionaryMapping = typeMappingSource.FindMapping("regdictionary")!;
         }
 
         /// <inheritdoc />
-        public virtual SqlExpression Translate(
-            SqlExpression instance,
+        public virtual SqlExpression? Translate(
+            SqlExpression? instance,
             MethodInfo method,
             IReadOnlyList<SqlExpression> arguments,
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)
@@ -128,7 +128,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     var newArgs = new List<SqlExpression>(arguments);
                     if (newArgs[1].Type == typeof(NpgsqlTsVector.Lexeme.Weight))
                         newArgs[1] = newArgs[1] is SqlConstantExpression weightExpression
-                            ? _sqlExpressionFactory.Constant(weightExpression.Value.ToString()[0])
+                            ? _sqlExpressionFactory.Constant(weightExpression.Value!.ToString()![0])
                             : throw new ArgumentException("Enum 'weight' argument for 'SetWeight' must be a constant expression.");
                     return _sqlExpressionFactory.Function(
                         "setweight",
@@ -278,7 +278,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                         method.ReturnType,
                         _tsVectorMapping),
 
-                    _ => (SqlExpression)null
+                    _ => null
                 };
             }
 

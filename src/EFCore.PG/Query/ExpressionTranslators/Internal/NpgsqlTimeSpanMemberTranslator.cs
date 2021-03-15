@@ -5,21 +5,21 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
+using Microsoft.EntityFrameworkCore.Utilities;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
     public class NpgsqlTimeSpanMemberTranslator : IMemberTranslator
     {
-        readonly ISqlExpressionFactory _sqlExpressionFactory;
+        private readonly ISqlExpressionFactory _sqlExpressionFactory;
 
         public NpgsqlTimeSpanMemberTranslator([NotNull] ISqlExpressionFactory sqlExpressionFactory)
             => _sqlExpressionFactory = sqlExpressionFactory;
 
-        static readonly bool[] FalseTrueArray = { false, true };
+        private static readonly bool[] FalseTrueArray = { false, true };
 
-        public virtual SqlExpression Translate(SqlExpression instance,
+        public virtual SqlExpression? Translate(SqlExpression? instance,
             MemberInfo member,
             Type returnType,
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)
@@ -27,7 +27,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             Check.NotNull(member, nameof(member));
             Check.NotNull(returnType, nameof(returnType));
 
-            if (member.DeclaringType == typeof(TimeSpan))
+            if (member.DeclaringType == typeof(TimeSpan) && instance is not null)
             {
                 return member.Name switch
                 {
@@ -36,7 +36,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     nameof(TimeSpan.Minutes)      => Floor(DatePart("minute", instance)),
                     nameof(TimeSpan.Seconds)      => Floor(DatePart("second", instance)),
                     nameof(TimeSpan.Milliseconds) => _sqlExpressionFactory.Modulo(
-                        Floor(DatePart("millisecond", instance)),
+                        Floor(DatePart("millisecond", instance!)),
                         _sqlExpressionFactory.Constant(1000)),
                     _ => null
                 };

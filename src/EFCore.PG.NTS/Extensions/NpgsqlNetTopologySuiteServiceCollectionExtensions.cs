@@ -2,11 +2,11 @@ using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Utilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.Extensions.DependencyInjection
@@ -27,7 +27,7 @@ namespace Microsoft.Extensions.DependencyInjection
             Check.NotNull(serviceCollection, nameof(serviceCollection));
 
             new EntityFrameworkRelationalServicesBuilder(serviceCollection)
-                .TryAdd<ISingletonOptions, INpgsqlNetTopologySuiteOptions>(p => p.GetService<INpgsqlNetTopologySuiteOptions>())
+                .TryAdd<ISingletonOptions, INpgsqlNetTopologySuiteOptions>(p => p.GetRequiredService<INpgsqlNetTopologySuiteOptions>())
                 .TryAddProviderSpecificServices(
                     x => x
                         .TryAddSingletonEnumerable<IRelationalTypeMappingSourcePlugin, NpgsqlNetTopologySuiteTypeMappingSourcePlugin>()

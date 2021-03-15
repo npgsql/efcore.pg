@@ -1,10 +1,11 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Utilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore
@@ -16,25 +17,25 @@ namespace Microsoft.EntityFrameworkCore
     {
         #region Storage parameters
 
-        public static Dictionary<string, object> GetStorageParameters([NotNull] this IReadOnlyEntityType entityType)
+        public static Dictionary<string, object?> GetStorageParameters([NotNull] this IReadOnlyEntityType entityType)
             => entityType.GetAnnotations()
-                .Where(a => a.Name.StartsWith(NpgsqlAnnotationNames.StorageParameterPrefix))
+                .Where(a => a.Name.StartsWith(NpgsqlAnnotationNames.StorageParameterPrefix, StringComparison.Ordinal))
                 .ToDictionary(
                     a => a.Name.Substring(NpgsqlAnnotationNames.StorageParameterPrefix.Length),
                     a => a.Value
                 );
 
-        public static string GetStorageParameter([NotNull] this IEntityType entityType, [NotNull] string parameterName)
+        public static string? GetStorageParameter([NotNull] this IEntityType entityType, [NotNull] string parameterName)
         {
             Check.NotEmpty(parameterName, nameof(parameterName));
 
-            return (string)entityType[NpgsqlAnnotationNames.StorageParameterPrefix + parameterName];
+            return (string?)entityType[NpgsqlAnnotationNames.StorageParameterPrefix + parameterName];
         }
 
         public static void SetStorageParameter(
             [NotNull] this IMutableEntityType entityType,
             [NotNull] string parameterName,
-            [CanBeNull] object parameterValue)
+            [CanBeNull] object? parameterValue)
         {
             Check.NotEmpty(parameterName, nameof(parameterName));
 
@@ -44,7 +45,7 @@ namespace Microsoft.EntityFrameworkCore
         public static object SetStorageParameter(
             [NotNull] this IConventionEntityType entityType,
             [NotNull] string parameterName,
-            [CanBeNull] object parameterValue,
+            [CanBeNull] object? parameterValue,
             bool fromDataAnnotation = false)
         {
             Check.NotEmpty(parameterName, nameof(parameterName));

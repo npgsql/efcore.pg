@@ -1,9 +1,8 @@
 using System.Collections.Generic;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using Microsoft.EntityFrameworkCore.Utilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore
@@ -22,8 +21,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// http://www.postgresql.org/docs/current/static/sql-createindex.html
         /// </remarks>
-        public static string GetMethod([NotNull] this IReadOnlyIndex index)
-            => (string)index[NpgsqlAnnotationNames.IndexMethod];
+        public static string? GetMethod([NotNull] this IReadOnlyIndex index)
+            => (string?)index[NpgsqlAnnotationNames.IndexMethod];
 
         /// <summary>
         /// Sets the index method to be used, or <c>null</c> if it hasn't been specified.
@@ -32,7 +31,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// http://www.postgresql.org/docs/current/static/sql-createindex.html
         /// </remarks>
-        public static void SetMethod([NotNull] this IMutableIndex index, [CanBeNull] string method)
+        public static void SetMethod([NotNull] this IMutableIndex index, [CanBeNull] string? method)
             => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexMethod, method);
 
         /// <summary>
@@ -42,9 +41,9 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// http://www.postgresql.org/docs/current/static/sql-createindex.html
         /// </remarks>
-        public static string SetMethod(
+        public static string? SetMethod(
             [NotNull] this IConventionIndex index,
-            [CanBeNull] string method,
+            [CanBeNull] string? method,
             bool fromDataAnnotation = false)
         {
             Check.NullButNotEmpty(method, nameof(method));
@@ -72,8 +71,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// https://www.postgresql.org/docs/current/static/indexes-opclass.html
         /// </remarks>
-        public static IReadOnlyList<string> GetOperators([NotNull] this IReadOnlyIndex index)
-            => (IReadOnlyList<string>)index[NpgsqlAnnotationNames.IndexOperators];
+        public static IReadOnlyList<string>? GetOperators([NotNull] this IReadOnlyIndex index)
+            => (IReadOnlyList<string>?)index[NpgsqlAnnotationNames.IndexOperators];
 
         /// <summary>
         /// Sets the column operators to be used, or <c>null</c> if they have not been specified.
@@ -81,7 +80,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// https://www.postgresql.org/docs/current/static/indexes-opclass.html
         /// </remarks>
-        public static void SetOperators([NotNull] this IMutableIndex index, [CanBeNull] IReadOnlyList<string> operators)
+        public static void SetOperators([NotNull] this IMutableIndex index, [CanBeNull] IReadOnlyList<string>? operators)
             => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexOperators, operators);
 
         /// <summary>
@@ -90,9 +89,9 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// https://www.postgresql.org/docs/current/static/indexes-opclass.html
         /// </remarks>
-        public static IReadOnlyList<string> SetOperators(
+        public static IReadOnlyList<string>? SetOperators(
             [NotNull] this IConventionIndex index,
-            [CanBeNull] IReadOnlyList<string> operators,
+            [CanBeNull] IReadOnlyList<string>? operators,
             bool fromDataAnnotation = false)
         {
             Check.NullButNotEmpty(operators, nameof(operators));
@@ -121,8 +120,8 @@ namespace Microsoft.EntityFrameworkCore
         /// https://www.postgresql.org/docs/current/static/indexes-collations.html
         /// </remarks>
 #pragma warning disable 618
-        public static IReadOnlyList<string> GetCollation([NotNull] this IReadOnlyIndex index)
-            => (IReadOnlyList<string>)(
+        public static IReadOnlyList<string>? GetCollation([NotNull] this IReadOnlyIndex index)
+            => (IReadOnlyList<string>?)(
                 index[RelationalAnnotationNames.Collation] ?? index[NpgsqlAnnotationNames.IndexCollation]);
 #pragma warning restore 618
 
@@ -132,7 +131,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// https://www.postgresql.org/docs/current/static/indexes-collations.html
         /// </remarks>
-        public static void SetCollation([NotNull] this IMutableIndex index, [CanBeNull] IReadOnlyList<string> collations)
+        public static void SetCollation([NotNull] this IMutableIndex index, [CanBeNull] IReadOnlyList<string>? collations)
             => index.SetOrRemoveAnnotation(RelationalAnnotationNames.Collation, collations);
 
         /// <summary>
@@ -141,9 +140,9 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// https://www.postgresql.org/docs/current/static/indexes-collations.html
         /// </remarks>
-        public static IReadOnlyList<string> SetCollation(
+        public static IReadOnlyList<string>? SetCollation(
             [NotNull] this IConventionIndex index,
-            [CanBeNull] IReadOnlyList<string> collations,
+            [CanBeNull] IReadOnlyList<string>? collations,
             bool fromDataAnnotation = false)
         {
             Check.NullButNotEmpty(collations, nameof(collations));
@@ -171,8 +170,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
         /// </remarks>
-        public static IReadOnlyList<SortOrder> GetSortOrder([NotNull] this IReadOnlyIndex index)
-            => (IReadOnlyList<SortOrder>)index[NpgsqlAnnotationNames.IndexSortOrder];
+        public static IReadOnlyList<SortOrder>? GetSortOrder([NotNull] this IReadOnlyIndex index)
+            => (IReadOnlyList<SortOrder>?)index[NpgsqlAnnotationNames.IndexSortOrder];
 
         /// <summary>
         /// Sets the column sort orders to be used, or <c>null</c> if they have not been specified.
@@ -180,7 +179,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
         /// </remarks>
-        public static void SetSortOrder([NotNull] this IMutableIndex index, [CanBeNull] IReadOnlyList<SortOrder> sortOrder)
+        public static void SetSortOrder([NotNull] this IMutableIndex index, [CanBeNull] IReadOnlyList<SortOrder>? sortOrder)
             => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexSortOrder, sortOrder);
 
         /// <summary>
@@ -189,9 +188,9 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
         /// </remarks>
-        public static IReadOnlyList<SortOrder> SetSortOrder(
+        public static IReadOnlyList<SortOrder>? SetSortOrder(
             [NotNull] this IConventionIndex index,
-            [CanBeNull] IReadOnlyList<SortOrder> sortOrder,
+            [CanBeNull] IReadOnlyList<SortOrder>? sortOrder,
             bool fromDataAnnotation = false)
         {
             Check.NullButNotEmpty(sortOrder, nameof(sortOrder));
@@ -219,8 +218,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
         /// </remarks>
-        public static IReadOnlyList<NullSortOrder> GetNullSortOrder([NotNull] this IReadOnlyIndex index)
-            => (IReadOnlyList<NullSortOrder>)index[NpgsqlAnnotationNames.IndexNullSortOrder];
+        public static IReadOnlyList<NullSortOrder>? GetNullSortOrder([NotNull] this IReadOnlyIndex index)
+            => (IReadOnlyList<NullSortOrder>?)index[NpgsqlAnnotationNames.IndexNullSortOrder];
 
         /// <summary>
         /// Sets the column NULL sort orders to be used, or <c>null</c> if they have not been specified.
@@ -228,7 +227,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
         /// </remarks>
-        public static void SetNullSortOrder([NotNull] this IMutableIndex index, [CanBeNull] IReadOnlyList<NullSortOrder> nullSortOrder)
+        public static void SetNullSortOrder([NotNull] this IMutableIndex index, [CanBeNull] IReadOnlyList<NullSortOrder>? nullSortOrder)
             => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.IndexNullSortOrder, nullSortOrder);
 
         /// <summary>
@@ -237,9 +236,9 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// https://www.postgresql.org/docs/current/static/indexes-ordering.html
         /// </remarks>
-        public static IReadOnlyList<NullSortOrder> SetNullSortOrder(
+        public static IReadOnlyList<NullSortOrder>? SetNullSortOrder(
             [NotNull] this IConventionIndex index,
-            [CanBeNull] IReadOnlyList<NullSortOrder> nullSortOrder,
+            [CanBeNull] IReadOnlyList<NullSortOrder>? nullSortOrder,
             bool fromDataAnnotation = false)
         {
             Check.NullButNotEmpty(nullSortOrder, nameof(nullSortOrder));
@@ -266,15 +265,15 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="index">The index.</param>
         /// <returns>The included property names, or <c>null</c> if they have not been specified.</returns>
-        public static IReadOnlyList<string> GetIncludeProperties([NotNull] this IReadOnlyIndex index)
-            => (IReadOnlyList<string>)index[NpgsqlAnnotationNames.IndexInclude];
+        public static IReadOnlyList<string>? GetIncludeProperties([NotNull] this IReadOnlyIndex index)
+            => (IReadOnlyList<string>?)index[NpgsqlAnnotationNames.IndexInclude];
 
         /// <summary>
         /// Sets included property names.
         /// </summary>
         /// <param name="index">The index.</param>
         /// <param name="properties">The value to set.</param>
-        public static void SetIncludeProperties([NotNull] this IMutableIndex index, [NotNull] IReadOnlyList<string> properties)
+        public static void SetIncludeProperties([NotNull] this IMutableIndex index, [CanBeNull] IReadOnlyList<string>? properties)
             => index.SetOrRemoveAnnotation(
                 NpgsqlAnnotationNames.IndexInclude,
                 properties);
@@ -285,9 +284,9 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="index">The index.</param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <param name="properties">The value to set.</param>
-        public static IReadOnlyList<string> SetIncludeProperties(
+        public static IReadOnlyList<string>? SetIncludeProperties(
             [NotNull] this IConventionIndex index,
-            [NotNull] IReadOnlyList<string> properties,
+            [CanBeNull] IReadOnlyList<string>? properties,
             bool fromDataAnnotation = false)
         {
             Check.NullButNotEmpty(properties, nameof(properties));
@@ -362,8 +361,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// https://www.postgresql.org/docs/current/textsearch-tables.html#TEXTSEARCH-TABLES-INDEX
         /// </remarks>
-        public static string GetTsVectorConfig([NotNull] this IReadOnlyIndex index)
-            => (string)index[NpgsqlAnnotationNames.TsVectorConfig];
+        public static string? GetTsVectorConfig([NotNull] this IReadOnlyIndex index)
+            => (string?)index[NpgsqlAnnotationNames.TsVectorConfig];
 
         /// <summary>
         /// Sets the text search configuration for this tsvector expression index, or <c>null</c> if this is not a
@@ -382,7 +381,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// https://www.postgresql.org/docs/current/textsearch-tables.html#TEXTSEARCH-TABLES-INDEX
         /// </remarks>
-        public static void SetTsVectorConfig([NotNull] this IMutableIndex index, [CanBeNull] string config)
+        public static void SetTsVectorConfig([NotNull] this IMutableIndex index, [CanBeNull] string? config)
             => index.SetOrRemoveAnnotation(NpgsqlAnnotationNames.TsVectorConfig, config);
 
         /// <summary>
@@ -402,9 +401,9 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// https://www.postgresql.org/docs/current/textsearch-tables.html#TEXTSEARCH-TABLES-INDEX
         /// </remarks>
-        public static string SetTsVectorConfig(
+        public static string? SetTsVectorConfig(
             [NotNull] this IConventionIndex index,
-            [CanBeNull] string config,
+            [CanBeNull] string? config,
             bool fromDataAnnotation = false)
         {
             Check.NullButNotEmpty(config, nameof(config));

@@ -32,8 +32,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             return Expression.New(Constructor, Expression.Constant(point.X), Expression.Constant(point.Y));
         }
 
-        static readonly ConstructorInfo Constructor =
-            typeof(NpgsqlPoint).GetConstructor(new[] { typeof(double), typeof(double) });
+        private static readonly ConstructorInfo Constructor =
+            typeof(NpgsqlPoint).GetConstructor(new[] { typeof(double), typeof(double) })!;
     }
 
     public class NpgsqlLineTypeMapping : NpgsqlTypeMapping
@@ -63,8 +63,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 Expression.Constant(line.A), Expression.Constant(line.B), Expression.Constant(line.C));
         }
 
-        static readonly ConstructorInfo Constructor =
-            typeof(NpgsqlLine).GetConstructor(new[] { typeof(double), typeof(double), typeof(double) });
+        private static readonly ConstructorInfo Constructor =
+            typeof(NpgsqlLine).GetConstructor(new[] { typeof(double), typeof(double), typeof(double) })!;
     }
 
     public class NpgsqlLineSegmentTypeMapping : NpgsqlTypeMapping
@@ -92,8 +92,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 Expression.Constant(lseg.End.X), Expression.Constant(lseg.End.Y));
         }
 
-        static readonly ConstructorInfo Constructor =
-            typeof(NpgsqlLSeg).GetConstructor(new[] { typeof(double), typeof(double), typeof(double), typeof(double) });
+        private static readonly ConstructorInfo Constructor =
+            typeof(NpgsqlLSeg).GetConstructor(new[] { typeof(double), typeof(double), typeof(double), typeof(double) })!;
     }
 
     public class NpgsqlBoxTypeMapping : NpgsqlTypeMapping
@@ -121,8 +121,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 Expression.Constant(box.Bottom), Expression.Constant(box.Left));
         }
 
-        static readonly ConstructorInfo Constructor =
-            typeof(NpgsqlBox).GetConstructor(new[] { typeof(double), typeof(double), typeof(double), typeof(double) });
+        private static readonly ConstructorInfo Constructor =
+            typeof(NpgsqlBox).GetConstructor(new[] { typeof(double), typeof(double), typeof(double), typeof(double) })!;
     }
 
     public class NpgsqlPathTypeMapping : NpgsqlTypeMapping
@@ -168,11 +168,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 Expression.Constant(path.Open));
         }
 
-        static readonly ConstructorInfo Constructor =
-            typeof(NpgsqlPath).GetConstructor(new[] { typeof(IEnumerable<NpgsqlPoint>), typeof(bool) });
+        private static readonly ConstructorInfo Constructor =
+            typeof(NpgsqlPath).GetConstructor(new[] { typeof(IEnumerable<NpgsqlPoint>), typeof(bool) })!;
 
-        static readonly ConstructorInfo PointConstructor =
-            typeof(NpgsqlPoint).GetConstructor(new[] { typeof(double), typeof(double) });
+        private static readonly ConstructorInfo PointConstructor =
+            typeof(NpgsqlPoint).GetConstructor(new[] { typeof(double), typeof(double) })!;
     }
 
     public class NpgsqlPolygonTypeMapping : NpgsqlTypeMapping
@@ -215,11 +215,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                         Expression.Constant(p.X), Expression.Constant(p.Y)))));
         }
 
-        static readonly ConstructorInfo Constructor =
-            typeof(NpgsqlPolygon).GetConstructor(new[] { typeof(NpgsqlPoint[]) });
+        private static readonly ConstructorInfo Constructor =
+            typeof(NpgsqlPolygon).GetConstructor(new[] { typeof(NpgsqlPoint[]) })!;
 
-        static readonly ConstructorInfo PointConstructor =
-            typeof(NpgsqlPoint).GetConstructor(new[] { typeof(double), typeof(double) });
+        private static readonly ConstructorInfo PointConstructor =
+            typeof(NpgsqlPoint).GetConstructor(new[] { typeof(double), typeof(double) })!;
     }
 
     public class NpgsqlCircleTypeMapping : NpgsqlTypeMapping
@@ -246,7 +246,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 Expression.Constant(circle.X), Expression.Constant(circle.Y), Expression.Constant(circle.Radius));
         }
 
-        static readonly ConstructorInfo Constructor =
-            typeof(NpgsqlCircle).GetConstructor(new[] { typeof(double), typeof(double), typeof(double) });
+        private static readonly ConstructorInfo Constructor =
+            typeof(NpgsqlCircle).GetConstructor(new[] { typeof(double), typeof(double), typeof(double) })!;
     }
 }

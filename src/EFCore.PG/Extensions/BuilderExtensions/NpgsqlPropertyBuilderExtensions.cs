@@ -6,10 +6,9 @@ using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using Microsoft.EntityFrameworkCore.Utilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 using NpgsqlTypes;
 
 // ReSharper disable once CheckNamespace
@@ -32,8 +31,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
         public static PropertyBuilder UseHiLo(
             [NotNull] this PropertyBuilder propertyBuilder,
-            [CanBeNull] string name = null,
-            [CanBeNull] string schema = null)
+            [CanBeNull] string? name = null,
+            [CanBeNull] string? schema = null)
         {
             Check.NotNull(propertyBuilder, nameof(propertyBuilder));
             Check.NullButNotEmpty(name, nameof(name));
@@ -68,8 +67,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
         public static PropertyBuilder<TProperty> UseHiLo<TProperty>(
             [NotNull] this PropertyBuilder<TProperty> propertyBuilder,
-            [CanBeNull] string name = null,
-            [CanBeNull] string schema = null)
+            [CanBeNull] string? name = null,
+            [CanBeNull] string? schema = null)
             => (PropertyBuilder<TProperty>)UseHiLo((PropertyBuilder)propertyBuilder, name, schema);
 
         /// <summary>
@@ -81,10 +80,10 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="schema">The schema of the sequence.</param>
         /// <param name="fromDataAnnotation"> Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns>A builder to further configure the sequence.</returns>
-        public static IConventionSequenceBuilder HasHiLoSequence(
+        public static IConventionSequenceBuilder? HasHiLoSequence(
             [NotNull] this IConventionPropertyBuilder propertyBuilder,
-            [CanBeNull] string name,
-            [CanBeNull] string schema,
+            [CanBeNull] string? name,
+            [CanBeNull] string? schema,
             bool fromDataAnnotation = false)
         {
             if (!propertyBuilder.CanSetHiLoSequence(name, schema))
@@ -110,8 +109,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns><c>true</c> if the given name and schema can be set for the hi-lo sequence.</returns>
         public static bool CanSetHiLoSequence(
             [NotNull] this IConventionPropertyBuilder propertyBuilder,
-            [CanBeNull] string name,
-            [CanBeNull] string schema,
+            [CanBeNull] string? name,
+            [CanBeNull] string? schema,
             bool fromDataAnnotation = false)
         {
             Check.NotNull(propertyBuilder, nameof(propertyBuilder));
@@ -303,7 +302,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns>
         /// The same builder instance if the configuration was applied, <c>null</c> otherwise.
         /// </returns>
-        public static IConventionPropertyBuilder HasValueGenerationStrategy(
+        public static IConventionPropertyBuilder? HasValueGenerationStrategy(
             [NotNull] this IConventionPropertyBuilder propertyBuilder,
             NpgsqlValueGenerationStrategy? valueGenerationStrategy,
             bool fromDataAnnotation = false)
@@ -461,7 +460,7 @@ namespace Microsoft.EntityFrameworkCore
         /// The minimum value is 1 (only one value can be generated at a time, i.e., no cache), and this is also the default.
         /// </param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-        public static IConventionPropertyBuilder HasIdentityOptions(
+        public static IConventionPropertyBuilder? HasIdentityOptions(
             [NotNull] this IConventionPropertyBuilder propertyBuilder,
             long? startValue = null,
             long? incrementBy = null,
@@ -632,8 +631,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="propertyBuilder">The builder for the property being configured.</param>
         /// <param name="config">
         /// <para>
-        /// The text search configuration for this generated tsvector property, or <c>null</c> if this is not a
-        /// generated tsvector property.
+        /// The text search configuration for this generated tsvector property.
         /// </para>
         /// <para>
         /// See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
@@ -645,10 +643,10 @@ namespace Microsoft.EntityFrameworkCore
         /// The same builder instance if the configuration was applied,
         /// <c>null</c> otherwise.
         /// </returns>
-        public static IConventionPropertyBuilder IsGeneratedTsVectorColumn(
+        public static IConventionPropertyBuilder? IsGeneratedTsVectorColumn(
             [NotNull] this IConventionPropertyBuilder propertyBuilder,
-            [CanBeNull] string config,
-            [CanBeNull] IReadOnlyList<string> includedPropertyNames,
+            [NotNull] string config,
+            [NotNull] IReadOnlyList<string> includedPropertyNames,
             bool fromDataAnnotation = false)
         {
             Check.NotNull(propertyBuilder, nameof(propertyBuilder));
@@ -683,8 +681,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns><c>true</c> if the property can be configured as a full-text search tsvector column.</returns>
         public static bool CanSetIsGeneratedTsVectorColumn(
             [NotNull] this IConventionPropertyBuilder propertyBuilder,
-            [CanBeNull] string config,
-            [CanBeNull] IReadOnlyList<string> includedPropertyNames,
+            [CanBeNull] string? config,
+            [CanBeNull] IReadOnlyList<string>? includedPropertyNames,
             bool fromDataAnnotation = false)
         {
             Check.NotNull(propertyBuilder, nameof(propertyBuilder));

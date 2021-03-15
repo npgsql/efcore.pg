@@ -47,6 +47,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         }
 
         static readonly ConstructorInfo Constructor =
-            typeof(BitArray).GetConstructor(new[] { typeof(bool[]) });
+            typeof(BitArray).GetConstructor(new[] { typeof(bool[]) })!;
     }
 }

@@ -11,7 +11,7 @@ using CA = System.Diagnostics.CodeAnalysis;
 
 #nullable enable
 
-namespace Npgsql.EntityFrameworkCore.PostgreSQL.Utilities
+namespace Microsoft.EntityFrameworkCore.Utilities
 {
     [DebuggerStepThrough]
     internal static class Check

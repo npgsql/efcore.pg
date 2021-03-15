@@ -12,7 +12,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
 {
     public class NpgsqlNodaTimeOptionsExtension : IDbContextOptionsExtension
     {
-        DbContextOptionsExtensionInfo _info;
+        DbContextOptionsExtensionInfo? _info;
 
         public virtual void ApplyServices(IServiceCollection services)
             => services.AddEntityFrameworkNpgsqlNodaTime();

@@ -3,9 +3,9 @@ using System.Data.Common;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Utilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore
@@ -32,7 +32,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns>The options builder so that further configuration can be chained.</returns>
         public static DbContextOptionsBuilder UseNpgsql(
             [NotNull] this DbContextOptionsBuilder optionsBuilder,
-            [CanBeNull] Action<NpgsqlDbContextOptionsBuilder> npgsqlOptionsAction = null)
+            [CanBeNull] Action<NpgsqlDbContextOptionsBuilder>? npgsqlOptionsAction = null)
         {
             Check.NotNull(optionsBuilder, nameof(optionsBuilder));
 
@@ -58,7 +58,7 @@ namespace Microsoft.EntityFrameworkCore
         public static DbContextOptionsBuilder UseNpgsql(
             [NotNull] this DbContextOptionsBuilder optionsBuilder,
             [NotNull] string connectionString,
-            [CanBeNull] Action<NpgsqlDbContextOptionsBuilder> npgsqlOptionsAction = null)
+            [CanBeNull] Action<NpgsqlDbContextOptionsBuilder>? npgsqlOptionsAction = null)
         {
             Check.NotNull(optionsBuilder, nameof(optionsBuilder));
             Check.NotEmpty(connectionString, nameof(connectionString));
@@ -90,7 +90,7 @@ namespace Microsoft.EntityFrameworkCore
         public static DbContextOptionsBuilder UseNpgsql(
             [NotNull] this DbContextOptionsBuilder optionsBuilder,
             [NotNull] DbConnection connection,
-            [CanBeNull] Action<NpgsqlDbContextOptionsBuilder> npgsqlOptionsAction = null)
+            [CanBeNull] Action<NpgsqlDbContextOptionsBuilder>? npgsqlOptionsAction = null)
         {
             Check.NotNull(optionsBuilder, nameof(optionsBuilder));
             Check.NotNull(connection, nameof(connection));
@@ -121,7 +121,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns>The options builder so that further configuration can be chained.</returns>
         public static DbContextOptionsBuilder<TContext> UseNpgsql<TContext>(
             [NotNull] this DbContextOptionsBuilder<TContext> optionsBuilder,
-            [CanBeNull] Action<NpgsqlDbContextOptionsBuilder> npgsqlOptionsAction = null)
+            [CanBeNull] Action<NpgsqlDbContextOptionsBuilder>? npgsqlOptionsAction = null)
             where TContext : DbContext
             => (DbContextOptionsBuilder<TContext>)UseNpgsql(
                 (DbContextOptionsBuilder)optionsBuilder, npgsqlOptionsAction);
@@ -139,7 +139,7 @@ namespace Microsoft.EntityFrameworkCore
         public static DbContextOptionsBuilder<TContext> UseNpgsql<TContext>(
             [NotNull] this DbContextOptionsBuilder<TContext> optionsBuilder,
             [NotNull] string connectionString,
-            [CanBeNull] Action<NpgsqlDbContextOptionsBuilder> npgsqlOptionsAction = null)
+            [CanBeNull] Action<NpgsqlDbContextOptionsBuilder>? npgsqlOptionsAction = null)
             where TContext : DbContext
             => (DbContextOptionsBuilder<TContext>)UseNpgsql(
                 (DbContextOptionsBuilder)optionsBuilder, connectionString, npgsqlOptionsAction);
@@ -161,7 +161,7 @@ namespace Microsoft.EntityFrameworkCore
         public static DbContextOptionsBuilder<TContext> UseNpgsql<TContext>(
             [NotNull] this DbContextOptionsBuilder<TContext> optionsBuilder,
             [NotNull] DbConnection connection,
-            [CanBeNull] Action<NpgsqlDbContextOptionsBuilder> npgsqlOptionsAction = null)
+            [CanBeNull] Action<NpgsqlDbContextOptionsBuilder>? npgsqlOptionsAction = null)
             where TContext : DbContext
             => (DbContextOptionsBuilder<TContext>)UseNpgsql(
                 (DbContextOptionsBuilder)optionsBuilder, connection, npgsqlOptionsAction);

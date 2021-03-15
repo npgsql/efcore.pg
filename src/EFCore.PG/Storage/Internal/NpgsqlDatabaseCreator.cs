@@ -92,12 +92,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                                               null,
                                               null,
                                               Dependencies.CurrentContext.Context,
-                                              Dependencies.CommandLogger)));
+                                              Dependencies.CommandLogger))!);
 
         public override Task<bool> HasTablesAsync(CancellationToken cancellationToken = default)
             => Dependencies.ExecutionStrategyFactory.Create().ExecuteAsync(
                 _connection,
-                async (connection, ct) => (bool)await CreateHasTablesCommand()
+                async (connection, ct) => (bool)(await CreateHasTablesCommand()
                                               .ExecuteScalarAsync(
                                                   new RelationalCommandParameterObject(
                                                       connection,
@@ -105,7 +105,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                                                       null,
                                                       Dependencies.CurrentContext.Context,
                                                       Dependencies.CommandLogger),
-                                                  cancellationToken: ct), cancellationToken);
+                                                  cancellationToken: ct))!, cancellationToken);
 
         IRelationalCommand CreateHasTablesCommand()
             => _rawSqlCommandBuilder

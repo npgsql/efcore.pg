@@ -7,6 +7,7 @@ using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion;
+using CA = System.Diagnostics.CodeAnalysis;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 {
@@ -49,7 +50,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                                 typeof(NpgsqlArrayConverter<,>).MakeGenericType(
                                     elementConverter.ModelClrType.MakeArrayType(),
                                     elementConverter.ProviderClrType.MakeArrayType()),
-                                elementConverter)
+                                elementConverter)!
                             : null,
                         CreateComparer(elementMapping, arrayType)),
                     storeType
@@ -85,10 +86,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
         #region Value comparer
 
-        static ValueComparer CreateComparer(RelationalTypeMapping elementMapping, Type arrayType)
+        private static ValueComparer? CreateComparer(RelationalTypeMapping elementMapping, Type arrayType)
         {
             Debug.Assert(arrayType.IsArray);
-            var elementType = arrayType.GetElementType();
+            var elementType = arrayType.GetElementType()!;
             var unwrappedType = elementType.UnwrapNullableType();
 
             // We currently don't support mapping multi-dimensional arrays.
@@ -99,10 +100,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 elementType == unwrappedType
                     ? typeof(SingleDimensionalArrayComparer<>).MakeGenericType(elementType)
                     : typeof(NullableSingleDimensionalArrayComparer<>).MakeGenericType(unwrappedType),
-                elementMapping);
+                elementMapping)!;
         }
 
-        sealed class SingleDimensionalArrayComparer<TElem> : ValueComparer<TElem[]>
+        private sealed class SingleDimensionalArrayComparer<TElem> : ValueComparer<TElem[]>
         {
             public SingleDimensionalArrayComparer(RelationalTypeMapping elementMapping) : base(
                 (a, b) => Compare(a, b, (ValueComparer<TElem>)elementMapping.Comparer),
@@ -111,10 +112,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
             public override Type Type => typeof(TElem[]);
 
-            static bool Compare(TElem[] a, TElem[] b, ValueComparer<TElem> elementComparer)
+            private static bool Compare(TElem[]? a, TElem[]? b, ValueComparer<TElem> elementComparer)
             {
-                if (a.Length != b.Length)
+                if (a is null)
+                {
+                    return b is null;
+                }
+
+                if (b is null || a.Length != b.Length)
+                {
                     return false;
+                }
 
                 // Note: the following currently boxes every element access because ValueComparer isn't really
                 // generic (see https://github.com/aspnet/EntityFrameworkCore/issues/11072)
@@ -125,7 +133,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 return true;
             }
 
-            static int GetHashCode(TElem[] source, ValueComparer<TElem> elementComparer)
+            private static int GetHashCode(TElem[] source, ValueComparer<TElem> elementComparer)
             {
                 var hash = new HashCode();
                 foreach (var el in source)
@@ -133,7 +141,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 return hash.ToHashCode();
             }
 
-            static TElem[] Snapshot(TElem[] source, ValueComparer<TElem> elementComparer)
+            [return: CA.NotNullIfNotNull("source")]
+            private static TElem[]? Snapshot(TElem[]? source, ValueComparer<TElem> elementComparer)
             {
                 if (source == null)
                     return null;
@@ -142,12 +151,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 // Note: the following currently boxes every element access because ValueComparer isn't really
                 // generic (see https://github.com/aspnet/EntityFrameworkCore/issues/11072)
                 for (var i = 0; i < source.Length; i++)
-                    snapshot[i] = elementComparer.Snapshot(source[i]);
+                    snapshot[i] = elementComparer.Snapshot(source[i])!; // TODO: https://github.com/dotnet/efcore/pull/24410
                 return snapshot;
             }
         }
 
-        sealed class NullableSingleDimensionalArrayComparer<TElem> : ValueComparer<TElem?[]>
+        private sealed class NullableSingleDimensionalArrayComparer<TElem> : ValueComparer<TElem?[]>
             where TElem : struct
         {
             public NullableSingleDimensionalArrayComparer(RelationalTypeMapping elementMapping) : base(
@@ -157,10 +166,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
             public override Type Type => typeof(TElem?[]);
 
-            static bool Compare(TElem?[] a, TElem?[] b, ValueComparer<TElem> elementComparer)
+            private static bool Compare(TElem?[]? a, TElem?[]? b, ValueComparer<TElem> elementComparer)
             {
-                if (a.Length != b.Length)
+                if (a is null)
+                {
+                    return b is null;
+                }
+
+                if (b is null || a.Length != b.Length)
+                {
                     return false;
+                }
 
                 // Note: the following currently boxes every element access because ValueComparer isn't really
                 // generic (see https://github.com/aspnet/EntityFrameworkCore/issues/11072)
@@ -180,7 +196,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 return true;
             }
 
-            static int GetHashCode(TElem?[] source, ValueComparer<TElem> elementComparer)
+            private static int GetHashCode(TElem?[] source, ValueComparer<TElem> elementComparer)
             {
                 var nullableEqualityComparer = new NullableEqualityComparer<TElem>(elementComparer);
                 var hash = new HashCode();
@@ -189,7 +205,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 return hash.ToHashCode();
             }
 
-            static TElem?[] Snapshot(TElem?[] source, ValueComparer<TElem> elementComparer)
+            [return: CA.NotNullIfNotNull("source")]
+            private static TElem?[]? Snapshot(TElem?[]? source, ValueComparer<TElem> elementComparer)
             {
                 if (source == null)
                     return null;

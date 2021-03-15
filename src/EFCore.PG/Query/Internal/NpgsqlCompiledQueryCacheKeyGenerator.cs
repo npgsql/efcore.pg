@@ -32,7 +32,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 _reverseNullOrdering = reverseNullOrdering;
             }
 
-            public override bool Equals(object obj)
+            public override bool Equals(object? obj)
                 => !(obj is null)
                    && obj is NpgsqlCompiledQueryCacheKey key
                    && Equals(key);

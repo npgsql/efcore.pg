@@ -17,7 +17,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion
             : base(dependencies) {}
 
         /// <inheritdoc />
-        public override IEnumerable<ValueConverterInfo> Select(Type modelClrType, Type providerClrType = null)
+        public override IEnumerable<ValueConverterInfo> Select(Type modelClrType, Type? providerClrType = null)
         {
             var providerElementType = default(Type);
 
@@ -48,7 +48,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion
                                 typeof(NpgsqlArrayConverter<,>).MakeGenericType(
                                     modelClrType,
                                     x.ProviderArrayType),
-                                x.ElementConverterInfo.Create()))));
+                                x.ElementConverterInfo.Create())!)));
 
                 return arrayConverters.Concat(base.Select(modelClrType, providerClrType));
             }

@@ -12,7 +12,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 {
     public class NpgsqlFuzzyStringMatchMethodTranslator : IMethodCallTranslator
     {
-        static readonly Dictionary<MethodInfo, string> Functions = new()
+        private static readonly Dictionary<MethodInfo, string> Functions = new()
         {
             [GetRuntimeMethod(nameof(NpgsqlFuzzyStringMatchDbFunctionsExtensions.FuzzyStringMatchSoundex), new[] { typeof(DbFunctions), typeof(string) })] = "soundex",
             [GetRuntimeMethod(nameof(NpgsqlFuzzyStringMatchDbFunctionsExtensions.FuzzyStringMatchDifference), new[] { typeof(DbFunctions), typeof(string), typeof(string) })] = "difference",
@@ -25,12 +25,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             [GetRuntimeMethod(nameof(NpgsqlFuzzyStringMatchDbFunctionsExtensions.FuzzyStringMatchDoubleMetaphoneAlt), new[] { typeof(DbFunctions), typeof(string) })] = "dmetaphone_alt"
         };
 
-        static MethodInfo GetRuntimeMethod(string name, params Type[] parameters)
-            => typeof(NpgsqlFuzzyStringMatchDbFunctionsExtensions).GetRuntimeMethod(name, parameters);
+        private static MethodInfo GetRuntimeMethod(string name, params Type[] parameters)
+            => typeof(NpgsqlFuzzyStringMatchDbFunctionsExtensions).GetRuntimeMethod(name, parameters)!;
 
-        readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
+        private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
 
-        static readonly bool[][] TrueArrays =
+        private static readonly bool[][] TrueArrays =
         {
             Array.Empty<bool>(),
             new[] { true },
@@ -45,8 +45,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             => _sqlExpressionFactory = sqlExpressionFactory;
 
         /// <inheritdoc />
-        public virtual SqlExpression Translate(
-            SqlExpression instance,
+        public virtual SqlExpression? Translate(
+            SqlExpression? instance,
             MethodInfo method,
             IReadOnlyList<SqlExpression> arguments,
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)

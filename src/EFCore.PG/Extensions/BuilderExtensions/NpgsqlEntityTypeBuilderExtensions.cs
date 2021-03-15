@@ -5,9 +5,10 @@ using System.Linq.Expressions;
 using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Utilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 using NpgsqlTypes;
 
 // ReSharper disable once CheckNamespace
@@ -121,7 +122,7 @@ namespace Microsoft.EntityFrameworkCore
         public static EntityTypeBuilder HasStorageParameter(
             [NotNull] this EntityTypeBuilder entityTypeBuilder,
             [NotNull] string parameterName,
-            [CanBeNull] object parameterValue)
+            [CanBeNull] object? parameterValue)
         {
             Check.NotNull(entityTypeBuilder, nameof(entityTypeBuilder));
 
@@ -143,7 +144,7 @@ namespace Microsoft.EntityFrameworkCore
         public static EntityTypeBuilder<TEntity> HasStorageParameter<TEntity>(
             [NotNull] this EntityTypeBuilder<TEntity> entityTypeBuilder,
             [NotNull] string parameterName,
-            [CanBeNull] object parameterValue)
+            [CanBeNull] object? parameterValue)
             where TEntity : class
             => (EntityTypeBuilder<TEntity>)HasStorageParameter((EntityTypeBuilder)entityTypeBuilder, parameterName, parameterValue);
 
@@ -158,10 +159,10 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="parameterValue"> The value of the storage parameter. </param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns> The same builder instance so that multiple calls can be chained. </returns>
-        public static IConventionEntityTypeBuilder HasStorageParameter(
+        public static IConventionEntityTypeBuilder? HasStorageParameter(
             [NotNull] this IConventionEntityTypeBuilder entityTypeBuilder,
             [NotNull] string parameterName,
-            [CanBeNull] object parameterValue,
+            [CanBeNull] object? parameterValue,
             bool fromDataAnnotation = false)
         {
             if (entityTypeBuilder.CanSetStorageParameter(parameterName, parameterValue, fromDataAnnotation))
@@ -188,7 +189,7 @@ namespace Microsoft.EntityFrameworkCore
         public static bool CanSetStorageParameter(
             [NotNull] this IConventionEntityTypeBuilder entityTypeBuilder,
             [NotNull] string parameterName,
-            [CanBeNull] object parameterValue, bool fromDataAnnotation = false)
+            [CanBeNull] object? parameterValue, bool fromDataAnnotation = false)
         {
             Check.NotNull(entityTypeBuilder, nameof(entityTypeBuilder));
 
@@ -250,7 +251,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// See: https://www.postgresql.org/docs/current/sql-createtable.html#SQL-CREATETABLE-UNLOGGED
         /// </remarks>
-        public static IConventionEntityTypeBuilder IsUnlogged(
+        public static IConventionEntityTypeBuilder? IsUnlogged(
             [NotNull] this IConventionEntityTypeBuilder entityTypeBuilder,
             bool unlogged = true,
             bool fromDataAnnotation = false)
@@ -302,11 +303,18 @@ namespace Microsoft.EntityFrameworkCore
 
             var parentEntity = entityTypeBuilder.Metadata.Model.FindEntityType(parentTableType);
             if (parentEntity == null)
-                throw new ArgumentException("Entity not found in model for type: " + parentTableType, nameof(parentTableType));
+            {
+                throw new ArgumentException($"Entity not found in model for type: {parentEntity}", nameof(parentTableType));
+            }
+
+            if (StoreObjectIdentifier.Create(parentEntity, StoreObjectType.Table) is not StoreObjectIdentifier tableIdentifier)
+            {
+                throw new ArgumentException($"Entity {parentEntity.DisplayName()} is not mapped to a database table");
+            }
 
             var interleaveInParent = entityTypeBuilder.Metadata.GetCockroachDbInterleaveInParent();
-            interleaveInParent.ParentTableSchema = parentEntity.GetSchema();
-            interleaveInParent.ParentTableName = parentEntity.GetTableName();
+            interleaveInParent.ParentTableSchema = tableIdentifier.Schema;
+            interleaveInParent.ParentTableName = tableIdentifier.Name;
             interleaveInParent.InterleavePrefix = interleavePrefix;
 
             return entityTypeBuilder;
@@ -337,7 +345,7 @@ namespace Microsoft.EntityFrameworkCore
         public static EntityTypeBuilder SetStorageParameter(
             [NotNull] this EntityTypeBuilder entityTypeBuilder,
             [NotNull] string parameterName,
-            [CanBeNull] object parameterValue)
+            [CanBeNull] object? parameterValue)
             => HasStorageParameter(entityTypeBuilder, parameterName, parameterValue);
 
         /// <summary>
@@ -354,7 +362,7 @@ namespace Microsoft.EntityFrameworkCore
         public static EntityTypeBuilder<TEntity> SetStorageParameter<TEntity>(
             [NotNull] this EntityTypeBuilder<TEntity> entityTypeBuilder,
             [NotNull] string parameterName,
-            [CanBeNull] object parameterValue)
+            [CanBeNull] object? parameterValue)
             where TEntity : class
             => HasStorageParameter(entityTypeBuilder, parameterName, parameterValue);
 
@@ -370,10 +378,10 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns> The same builder instance so that multiple calls can be chained. </returns>
         [Obsolete("Use HasStorageParameter")]
-        public static IConventionEntityTypeBuilder SetStorageParameter(
+        public static IConventionEntityTypeBuilder? SetStorageParameter(
             [NotNull] this IConventionEntityTypeBuilder entityTypeBuilder,
             [NotNull] string parameterName,
-            [CanBeNull] object parameterValue,
+            [CanBeNull] object? parameterValue,
             bool fromDataAnnotation = false)
             => HasStorageParameter(entityTypeBuilder, parameterName, parameterValue, fromDataAnnotation);
 
@@ -392,7 +400,7 @@ namespace Microsoft.EntityFrameworkCore
         public static bool CanSetSetStorageParameter(
             [NotNull] this IConventionEntityTypeBuilder entityTypeBuilder,
             [NotNull] string parameterName,
-            [CanBeNull] object parameterValue,
+            [CanBeNull] object? parameterValue,
             bool fromDataAnnotation = false)
             => CanSetStorageParameter(entityTypeBuilder, parameterName, parameterValue, fromDataAnnotation);
 

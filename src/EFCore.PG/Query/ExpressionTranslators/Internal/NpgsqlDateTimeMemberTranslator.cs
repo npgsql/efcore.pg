@@ -18,13 +18,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     /// </remarks>
     public class NpgsqlDateTimeMemberTranslator : IMemberTranslator
     {
-        readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
+        private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
 
         public NpgsqlDateTimeMemberTranslator([NotNull] NpgsqlSqlExpressionFactory sqlExpressionFactory)
             => _sqlExpressionFactory = sqlExpressionFactory;
 
         /// <inheritdoc />
-        public virtual SqlExpression Translate(SqlExpression instance,
+        public virtual SqlExpression? Translate(
+            SqlExpression? instance,
             MemberInfo member,
             Type returnType,
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)
@@ -46,22 +47,22 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     argumentsPropagateNullability: TrueArrays[2],
                     returnType),
 
-                nameof(DateTime.Year)      => GetDatePartExpression(instance, "year"),
-                nameof(DateTime.Month)     => GetDatePartExpression(instance, "month"),
-                nameof(DateTime.DayOfYear) => GetDatePartExpression(instance, "doy"),
-                nameof(DateTime.Day)       => GetDatePartExpression(instance, "day"),
-                nameof(DateTime.Hour)      => GetDatePartExpression(instance, "hour"),
-                nameof(DateTime.Minute)    => GetDatePartExpression(instance, "minute"),
-                nameof(DateTime.Second)    => GetDatePartExpression(instance, "second"),
+                nameof(DateTime.Year)      => GetDatePartExpression(instance!, "year"),
+                nameof(DateTime.Month)     => GetDatePartExpression(instance!, "month"),
+                nameof(DateTime.DayOfYear) => GetDatePartExpression(instance!, "doy"),
+                nameof(DateTime.Day)       => GetDatePartExpression(instance!, "day"),
+                nameof(DateTime.Hour)      => GetDatePartExpression(instance!, "hour"),
+                nameof(DateTime.Minute)    => GetDatePartExpression(instance!, "minute"),
+                nameof(DateTime.Second)    => GetDatePartExpression(instance!, "second"),
 
                 nameof(DateTime.Millisecond) => null, // Too annoying
 
                 // .NET's DayOfWeek is an enum, but its int values happen to correspond to PostgreSQL
-                nameof(DateTime.DayOfWeek) => GetDatePartExpression(instance, "dow", floor: true),
+                nameof(DateTime.DayOfWeek) => GetDatePartExpression(instance!, "dow", floor: true),
 
                 nameof(DateTime.Date) => _sqlExpressionFactory.Function(
                     "date_trunc",
-                    new[] { _sqlExpressionFactory.Constant("day"), instance },
+                    new[] { _sqlExpressionFactory.Constant("day"), instance! },
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[2],
                     returnType),
@@ -90,7 +91,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         /// <summary>
         /// Constructs the DATE_PART expression.
         /// </summary>
-        /// <param name="e">The member expression.</param>
+        /// <param name="instance">The member expression.</param>
         /// <param name="partName">The name of the DATE_PART to construct.</param>
         /// <param name="floor">True if the result should be wrapped with FLOOR(...); otherwise, false.</param>
         /// <returns>
@@ -101,7 +102,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         /// This also gets rid of sub-second components when retrieving seconds.
         /// </remarks>
         [NotNull]
-        SqlExpression GetDatePartExpression(
+        private SqlExpression GetDatePartExpression(
             [NotNull] SqlExpression instance,
             [NotNull] string partName,
             bool floor = false)

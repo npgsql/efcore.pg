@@ -23,9 +23,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     /// </remarks>
     public class NpgsqlRangeTranslator : IMethodCallTranslator, IMemberTranslator
     {
-        readonly IRelationalTypeMappingSource _typeMappingSource;
-        readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
-        readonly RelationalTypeMapping _boolMapping;
+        private readonly IRelationalTypeMappingSource _typeMappingSource;
+        private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
+        private readonly RelationalTypeMapping _boolMapping;
 
         public NpgsqlRangeTranslator(
             [NotNull] IRelationalTypeMappingSource typeMappingSource,
@@ -33,12 +33,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         {
             _typeMappingSource = typeMappingSource;
             _sqlExpressionFactory = npgsqlSqlExpressionFactory;
-            _boolMapping = typeMappingSource.FindMapping(typeof(bool));
+            _boolMapping = typeMappingSource.FindMapping(typeof(bool))!;
         }
 
         /// <inheritdoc />
-        public virtual SqlExpression Translate(
-            SqlExpression instance,
+        public virtual SqlExpression? Translate(
+            SqlExpression? instance,
             MethodInfo method,
             IReadOnlyList<SqlExpression> arguments,
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)
@@ -91,7 +91,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         }
 
         /// <inheritdoc />
-        public virtual SqlExpression Translate(SqlExpression instance,
+        public virtual SqlExpression? Translate(SqlExpression? instance,
             MemberInfo member,
             Type returnType,
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)
@@ -102,7 +102,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
             if (member.Name == nameof(NpgsqlRange<int>.LowerBound) || member.Name == nameof(NpgsqlRange<int>.UpperBound))
             {
-                var typeMapping = instance.TypeMapping is NpgsqlRangeTypeMapping rangeMapping
+                var typeMapping = instance!.TypeMapping is NpgsqlRangeTypeMapping rangeMapping
                     ? rangeMapping.SubtypeMapping
                     : _typeMappingSource.FindMapping(returnType);
 
@@ -125,11 +125,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
             return member.Name switch
             {
-            nameof(NpgsqlRange<int>.IsEmpty)               => SingleArgBoolFunction("isempty", instance),
-            nameof(NpgsqlRange<int>.LowerBoundIsInclusive) => SingleArgBoolFunction("lower_inc", instance),
-            nameof(NpgsqlRange<int>.UpperBoundIsInclusive) => SingleArgBoolFunction("upper_inc", instance),
-            nameof(NpgsqlRange<int>.LowerBoundInfinite)    => SingleArgBoolFunction("lower_inf", instance),
-            nameof(NpgsqlRange<int>.UpperBoundInfinite)    => SingleArgBoolFunction("upper_inf", instance),
+            nameof(NpgsqlRange<int>.IsEmpty)               => SingleArgBoolFunction("isempty", instance!),
+            nameof(NpgsqlRange<int>.LowerBoundIsInclusive) => SingleArgBoolFunction("lower_inc", instance!),
+            nameof(NpgsqlRange<int>.UpperBoundIsInclusive) => SingleArgBoolFunction("upper_inc", instance!),
+            nameof(NpgsqlRange<int>.LowerBoundInfinite)    => SingleArgBoolFunction("lower_inf", instance!),
+            nameof(NpgsqlRange<int>.UpperBoundInfinite)    => SingleArgBoolFunction("upper_inf", instance!),
 
             _ => null
             };
@@ -145,7 +145,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
         static readonly ConcurrentDictionary<Type, object> _defaults = new();
 
-        static object GetDefaultValue(Type type)
-            => type.IsValueType ? _defaults.GetOrAdd(type, Activator.CreateInstance) : null;
+        static object? GetDefaultValue(Type type)
+            => type.IsValueType ? _defaults.GetOrAdd(type, Activator.CreateInstance!) : null;
     }
 }

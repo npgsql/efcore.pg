@@ -42,7 +42,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
             [NotNull] SqlExpression match,
             [NotNull] SqlExpression pattern,
             RegexOptions options,
-            [CanBeNull] RelationalTypeMapping typeMapping)
+            [CanBeNull] RelationalTypeMapping? typeMapping)
             : base(typeof(bool), typeMapping)
         {
             Match = match;
@@ -59,7 +59,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
                 ? new PostgresRegexMatchExpression(match, pattern, Options, TypeMapping)
                 : this;
 
-        public virtual bool Equals(PostgresRegexMatchExpression other)
+        public virtual bool Equals(PostgresRegexMatchExpression? other)
             => ReferenceEquals(this, other) ||
                    other is object &&
                    base.Equals(other) &&
@@ -67,7 +67,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
                    Pattern.Equals(other.Pattern) &&
                    Options.Equals(other.Options);
 
-        public override bool Equals(object other)
+        public override bool Equals(object? other)
             => other is PostgresRegexMatchExpression otherRegexMatch && Equals(otherRegexMatch);
 
         public override int GetHashCode()

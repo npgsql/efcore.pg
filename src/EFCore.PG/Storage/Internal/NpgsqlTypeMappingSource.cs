@@ -15,6 +15,7 @@ using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Utilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
@@ -133,7 +134,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         public NpgsqlTypeMappingSource([NotNull] TypeMappingSourceDependencies dependencies,
             [NotNull] RelationalTypeMappingSourceDependencies relationalDependencies,
             [NotNull] ISqlGenerationHelper sqlGenerationHelper,
-            [CanBeNull] INpgsqlOptions npgsqlOptions=null)
+            [CanBeNull] INpgsqlOptions? npgsqlOptions = null)
             : base(dependencies, relationalDependencies)
         {
             _sqlGenerationHelper = Check.NotNull(sqlGenerationHelper, nameof(sqlGenerationHelper));
@@ -322,14 +323,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             }
         }
 
-        protected override RelationalTypeMapping FindMapping(in RelationalTypeMappingInfo mappingInfo) =>
+        protected override RelationalTypeMapping? FindMapping(in RelationalTypeMappingInfo mappingInfo) =>
             // First, try any plugins, allowing them to override built-in mappings (e.g. NodaTime)
             base.FindMapping(mappingInfo) ??
             FindBaseMapping(mappingInfo)?.Clone(mappingInfo) ??
             FindArrayMapping(mappingInfo) ??
             FindUserRangeMapping(mappingInfo);
 
-        protected virtual RelationalTypeMapping FindBaseMapping(in RelationalTypeMappingInfo mappingInfo)
+        protected virtual RelationalTypeMapping? FindBaseMapping(in RelationalTypeMappingInfo mappingInfo)
         {
             var clrType = mappingInfo.ClrType;
             var storeTypeName = mappingInfo.StoreTypeName;
@@ -357,7 +358,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                     return null;
                 }
 
-                if (StoreTypeMappings.TryGetValue(storeTypeNameBase, out mappings))
+                if (StoreTypeMappings.TryGetValue(storeTypeNameBase!, out mappings))
                 {
                     if (clrType == null)
                         return mappings[0].Clone(in mappingInfo);
@@ -422,10 +423,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             return mapping;
         }
 
-        protected virtual RelationalTypeMapping FindArrayMapping(in RelationalTypeMappingInfo mappingInfo)
+        protected virtual RelationalTypeMapping? FindArrayMapping(in RelationalTypeMappingInfo mappingInfo)
         {
             var clrType = mappingInfo.ClrType;
-            Type elementClrType = null;
+            Type? elementClrType = null;
 
             if (clrType != null && !clrType.TryGetElementType(out elementClrType))
                 return null; // Not an array/list
@@ -439,9 +440,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                     return null;
 
                 var elementStoreType = storeType.Substring(0, storeType.Length - 2);
-                var elementStoreTypeNameBase = storeTypeNameBase.Substring(0, storeTypeNameBase.Length - 2);
+                var elementStoreTypeNameBase = storeTypeNameBase!.Substring(0, storeTypeNameBase.Length - 2);
 
-                RelationalTypeMapping elementMapping;
+                RelationalTypeMapping? elementMapping;
 
                 elementMapping = elementClrType == null
                     ? FindMapping(new RelationalTypeMappingInfo(
@@ -470,7 +471,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 var elementType = clrType.GetElementType();
                 Debug.Assert(elementType != null, "Detected array type but element type is null");
 
-                var elementMapping = (RelationalTypeMapping)FindMapping(elementType);
+                var elementMapping = (RelationalTypeMapping?)FindMapping(elementType);
 
                 // If no mapping was found for the element, there's no mapping for the array.
                 // Also, arrays of arrays aren't supported (as opposed to multidimensional arrays) by PostgreSQL
@@ -491,7 +492,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 var elementType = clrType.GetGenericArguments()[0];
 
                 // If an element isn't supported, neither is its array
-                var elementMapping = (RelationalTypeMapping)FindMapping(elementType);
+                var elementMapping = (RelationalTypeMapping?)FindMapping(elementType);
                 if (elementMapping == null)
                     return null;
 
@@ -505,9 +506,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             return null;
         }
 
-        protected virtual RelationalTypeMapping FindUserRangeMapping(in RelationalTypeMappingInfo mappingInfo)
+        protected virtual RelationalTypeMapping? FindUserRangeMapping(in RelationalTypeMappingInfo mappingInfo)
         {
-            UserRangeDefinition rangeDefinition = null;
+            UserRangeDefinition? rangeDefinition = null;
             var rangeStoreType = mappingInfo.StoreTypeName;
             var rangeClrType = mappingInfo.ClrType;
 
@@ -543,12 +544,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             else if (rangeClrType != null)
                 rangeDefinition = _userRangeDefinitions.SingleOrDefault(m => m.SubtypeClrType == rangeClrType.GetGenericArguments()[0]);
 
-            if (rangeDefinition == null)
+            if (rangeClrType is null || rangeDefinition is null)
                 return null;
 
             // We now have a user-defined range definition from the context options. Use it to get the subtype's
             // mapping
-            var subtypeMapping = (RelationalTypeMapping)(rangeDefinition.SubtypeName == null
+            var subtypeMapping = (RelationalTypeMapping?)(rangeDefinition.SubtypeName == null
                 ? FindMapping(rangeDefinition.SubtypeClrType)
                 : FindMapping(rangeDefinition.SubtypeName));
 
@@ -572,8 +573,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             };
 
         // We override to support parsing array store names (e.g. varchar(32)[]), timestamp(5) with time zone, etc.
-        protected override string ParseStoreTypeName(
-            string storeTypeName,
+        protected override string? ParseStoreTypeName(
+            string? storeTypeName,
             out bool? unicode,
             out int? size,
             out int? precision,
@@ -631,7 +632,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             return preParens.ToString();
         }
 
-        public override CoreTypeMapping FindMapping(IProperty property)
+        public override CoreTypeMapping? FindMapping(IProperty property)
         {
             var mapping = base.FindMapping(property);
 

@@ -60,7 +60,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
                             context: null,
                             _commandLogger)),
                 typeof(long),
-                CultureInfo.InvariantCulture);
+                CultureInfo.InvariantCulture)!;
 
         /// <summary>
         ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
@@ -79,7 +79,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
                             _commandLogger),
                         cancellationToken),
                 typeof(long),
-                CultureInfo.InvariantCulture);
+                CultureInfo.InvariantCulture)!;
 
         /// <summary>
         ///     This API supports the Entity Framework Core infrastructure and is not intended to be used

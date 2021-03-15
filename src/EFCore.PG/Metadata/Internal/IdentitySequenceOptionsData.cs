@@ -38,9 +38,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
         }
 
         public static IdentitySequenceOptionsData Get([NotNull] IReadOnlyAnnotatable annotatable)
-            => Deserialize((string)annotatable[NpgsqlAnnotationNames.IdentityOptions]);
+            => Deserialize((string?)annotatable[NpgsqlAnnotationNames.IdentityOptions]);
 
-        public static IdentitySequenceOptionsData Deserialize([CanBeNull] string value)
+        public static IdentitySequenceOptionsData Deserialize([CanBeNull] string? value)
         {
             var data = new IdentitySequenceOptionsData();
 
@@ -52,11 +52,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
                 // ReSharper disable PossibleInvalidOperationException
                 var position = 0;
                 data.StartValue = AsLong(ExtractValue(value, ref position));
-                data.IncrementBy = (int)AsLong(ExtractValue(value, ref position));
+                data.IncrementBy = (int)AsLong(ExtractValue(value, ref position))!;
                 data.MinValue = AsLong(ExtractValue(value, ref position));
                 data.MaxValue = AsLong(ExtractValue(value, ref position));
                 data.IsCyclic = AsBool(ExtractValue(value, ref position));
-                data.NumbersToCache = (int)AsLong(ExtractValue(value, ref position));
+                data.NumbersToCache = (int)AsLong(ExtractValue(value, ref position))!;
                 // ReSharper restore PossibleInvalidOperationException
 
                 return data;
@@ -67,7 +67,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
             }
         }
 
-        static string ExtractValue(string value, ref int position)
+        static string? ExtractValue(string value, ref int position)
         {
             position = value.IndexOf('\'', position) + 1;
 
@@ -85,25 +85,25 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
             return extracted.Length == 0 ? null : extracted;
         }
 
-        static long? AsLong(string value)
+        static long? AsLong(string? value)
             => value == null ? null : (long?)long.Parse(value, CultureInfo.InvariantCulture);
 
-        static bool AsBool(string value)
+        static bool AsBool(string? value)
             => value != null && bool.Parse(value);
 
-        static void EscapeAndQuote(StringBuilder builder, object value)
+        static void EscapeAndQuote(StringBuilder builder, object? value)
         {
             builder.Append("'");
 
             if (value != null)
             {
-                builder.Append(value.ToString().Replace("'", "''"));
+                builder.Append(value.ToString()!.Replace("'", "''"));
             }
 
             builder.Append("'");
         }
 
-        public virtual bool Equals(IdentitySequenceOptionsData other)
+        public virtual bool Equals(IdentitySequenceOptionsData? other)
             => !(other is null) && (
                    ReferenceEquals(this, other) ||
                    StartValue == other.StartValue &&
@@ -114,7 +114,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
                    NumbersToCache == other.NumbersToCache
                );
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
             => obj is IdentitySequenceOptionsData other && Equals(other);
 
         public override int GetHashCode()

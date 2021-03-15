@@ -4,8 +4,13 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Text;
+using JetBrains.Annotations;
+
+#nullable enable
 
 // ReSharper disable once CheckNamespace
 namespace System
@@ -13,7 +18,28 @@ namespace System
     [DebuggerStepThrough]
     internal static class SharedTypeExtensions
     {
-        public static Type UnwrapNullableType(this Type type) => Nullable.GetUnderlyingType(type) ?? type;
+        private static readonly Dictionary<Type, string> _builtInTypeNames = new()
+        {
+            { typeof(bool), "bool" },
+            { typeof(byte), "byte" },
+            { typeof(char), "char" },
+            { typeof(decimal), "decimal" },
+            { typeof(double), "double" },
+            { typeof(float), "float" },
+            { typeof(int), "int" },
+            { typeof(long), "long" },
+            { typeof(object), "object" },
+            { typeof(sbyte), "sbyte" },
+            { typeof(short), "short" },
+            { typeof(string), "string" },
+            { typeof(uint), "uint" },
+            { typeof(ulong), "ulong" },
+            { typeof(ushort), "ushort" },
+            { typeof(void), "void" }
+        };
+
+        public static Type UnwrapNullableType(this Type type)
+            => Nullable.GetUnderlyingType(type) ?? type;
 
         public static bool IsNullableValueType(this Type type)
             => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
@@ -23,6 +49,19 @@ namespace System
 
         public static bool IsValidEntityType(this Type type)
             => type.IsClass;
+
+        public static bool IsPropertyBagType(this Type type)
+        {
+            if (type.IsGenericTypeDefinition)
+            {
+                return false;
+            }
+
+            var types = GetGenericTypeImplementations(type, typeof(IDictionary<,>));
+            return types.Any(
+                t => t.GetGenericArguments()[0] == typeof(string)
+                    && t.GetGenericArguments()[1] == typeof(object));
+        }
 
         public static Type MakeNullable(this Type type, bool nullable = true)
             => type.IsNullableType() == nullable
@@ -94,7 +133,7 @@ namespace System
             return false;
         }
 
-        public static PropertyInfo GetAnyProperty(this Type type, string name)
+        public static PropertyInfo? GetAnyProperty(this Type type, string name)
         {
             var props = type.GetRuntimeProperties().Where(p => p.Name == name).ToList();
             if (props.Count > 1)
@@ -103,6 +142,90 @@ namespace System
             }
 
             return props.SingleOrDefault();
+        }
+
+        public static MethodInfo GetRequiredMethod(this Type type, string name, params Type[] parameters)
+        {
+            var method = type.GetTypeInfo().GetMethod(name, parameters);
+
+            if (method == null
+                && parameters.Length == 0)
+            {
+                method = type.GetMethod(name);
+            }
+
+            if (method == null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            return method;
+        }
+
+        public static PropertyInfo GetRequiredProperty(this Type type, string name)
+        {
+            var property = type.GetTypeInfo().GetProperty(name);
+            if (property == null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            return property;
+        }
+
+        public static FieldInfo GetRequiredDeclaredField(this Type type, string name)
+        {
+            var field = type.GetTypeInfo().GetDeclaredField(name);
+            if (field == null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            return field;
+        }
+
+        public static MethodInfo GetRequiredDeclaredMethod(this Type type, string name)
+        {
+            var method = type.GetTypeInfo().GetDeclaredMethod(name);
+            if (method == null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            return method;
+        }
+
+        public static PropertyInfo GetRequiredDeclaredProperty(this Type type, string name)
+        {
+            var property = type.GetTypeInfo().GetDeclaredProperty(name);
+            if (property == null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            return property;
+        }
+
+        public static MethodInfo GetRequiredRuntimeMethod(this Type type, string name, params Type[] parameters)
+        {
+            var method = type.GetTypeInfo().GetRuntimeMethod(name, parameters);
+            if (method == null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            return method;
+        }
+
+        public static PropertyInfo GetRequiredRuntimeProperty(this Type type, string name)
+        {
+            var property = type.GetTypeInfo().GetRuntimeProperty(name);
+            if (property == null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            return property;
         }
 
         public static bool IsInstantiable(this Type type)
@@ -135,11 +258,11 @@ namespace System
             return sequenceType;
         }
 
-        public static Type TryGetSequenceType(this Type type)
+        public static Type? TryGetSequenceType(this Type type)
             => type.TryGetElementType(typeof(IEnumerable<>))
                 ?? type.TryGetElementType(typeof(IAsyncEnumerable<>));
 
-        public static Type TryGetElementType(this Type type, Type interfaceOrBaseType)
+        public static Type? TryGetElementType(this Type type, Type interfaceOrBaseType)
         {
             if (type.IsGenericTypeDefinition)
             {
@@ -148,7 +271,7 @@ namespace System
 
             var types = GetGenericTypeImplementations(type, interfaceOrBaseType);
 
-            Type singleImplementation = null;
+            Type? singleImplementation = null;
             foreach (var implementation in types)
             {
                 if (singleImplementation == null)
@@ -164,6 +287,8 @@ namespace System
 
             return singleImplementation?.GenericTypeArguments.FirstOrDefault();
         }
+
+#nullable disable
 
         public static bool IsCompatibleWith(this Type propertyType, Type fieldType)
         {
@@ -344,5 +469,135 @@ namespace System
 
             return type.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IQueryable<>));
         }
+
+        /// <summary>
+        ///     This is an internal API that supports the Entity Framework Core infrastructure and not subject to
+        ///     the same compatibility standards as public APIs. It may be changed or removed without notice in
+        ///     any release. You should only use it directly in your code with extreme caution and knowing that
+        ///     doing so can result in application failures when updating to a new Entity Framework Core release.
+        /// </summary>
+        public static string DisplayName([NotNull] this Type type, bool fullName = true)
+        {
+            var stringBuilder = new StringBuilder();
+            ProcessType(stringBuilder, type, fullName);
+            return stringBuilder.ToString();
+        }
+
+        private static void ProcessType(StringBuilder builder, Type type, bool fullName)
+        {
+            if (type.IsGenericType)
+            {
+                var genericArguments = type.GetGenericArguments();
+                ProcessGenericType(builder, type, genericArguments, genericArguments.Length, fullName);
+            }
+            else if (type.IsArray)
+            {
+                ProcessArrayType(builder, type, fullName);
+            }
+            else if (_builtInTypeNames.TryGetValue(type, out var builtInName))
+            {
+                builder.Append(builtInName);
+            }
+            else if (!type.IsGenericParameter)
+            {
+                builder.Append(fullName ? type.FullName : type.Name);
+            }
+        }
+
+        private static void ProcessArrayType(StringBuilder builder, Type type, bool fullName)
+        {
+            var innerType = type;
+            while (innerType.IsArray)
+            {
+                innerType = innerType.GetElementType();
+            }
+
+            ProcessType(builder, innerType, fullName);
+
+            while (type.IsArray)
+            {
+                builder.Append('[');
+                builder.Append(',', type.GetArrayRank() - 1);
+                builder.Append(']');
+                type = type.GetElementType();
+            }
+        }
+
+        private static void ProcessGenericType(StringBuilder builder, Type type, Type[] genericArguments, int length, bool fullName)
+        {
+            var offset = type.IsNested ? type.DeclaringType.GetGenericArguments().Length : 0;
+
+            if (fullName)
+            {
+                if (type.IsNested)
+                {
+                    ProcessGenericType(builder, type.DeclaringType, genericArguments, offset, fullName);
+                    builder.Append('+');
+                }
+                else
+                {
+                    builder.Append(type.Namespace);
+                    builder.Append('.');
+                }
+            }
+
+            var genericPartIndex = type.Name.IndexOf('`');
+            if (genericPartIndex <= 0)
+            {
+                builder.Append(type.Name);
+                return;
+            }
+
+            builder.Append(type.Name, 0, genericPartIndex);
+            builder.Append('<');
+
+            for (var i = offset; i < length; i++)
+            {
+                ProcessType(builder, genericArguments[i], fullName);
+                if (i + 1 == length)
+                {
+                    continue;
+                }
+
+                builder.Append(',');
+                if (!genericArguments[i + 1].IsGenericParameter)
+                {
+                    builder.Append(' ');
+                }
+            }
+
+            builder.Append('>');
+        }
+
+        public static IEnumerable<string> GetNamespaces([NotNull] this Type type)
+        {
+            if (_builtInTypeNames.ContainsKey(type))
+            {
+                yield break;
+            }
+
+            yield return type.Namespace;
+
+            if (type.IsGenericType)
+            {
+                foreach (var typeArgument in type.GenericTypeArguments)
+                {
+                    foreach (var ns in typeArgument.GetNamespaces())
+                    {
+                        yield return ns;
+                    }
+                }
+            }
+        }
+
+        public static ConstantExpression GetDefaultValueConstant(this Type type)
+            => (ConstantExpression)_generateDefaultValueConstantMethod
+                .MakeGenericMethod(type).Invoke(null, Array.Empty<object>());
+
+        private static readonly MethodInfo _generateDefaultValueConstantMethod =
+            typeof(SharedTypeExtensions).GetTypeInfo().GetDeclaredMethod(nameof(GenerateDefaultValueConstant));
+
+        private static ConstantExpression GenerateDefaultValueConstant<TDefault>()
+            => Expression.Constant(default(TDefault), typeof(TDefault));
     }
 }

@@ -39,7 +39,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
             [NotNull] IReadOnlyList<SqlExpression> path,
             bool returnsText,
             [NotNull] Type type,
-            [CanBeNull] RelationalTypeMapping typeMapping)
+            [CanBeNull] RelationalTypeMapping? typeMapping)
             : base(type, typeMapping)
         {
             if (returnsText && type != typeof(string))
@@ -75,10 +75,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         }
 
         /// <inheritdoc />
-        public override bool Equals(object obj) => Equals(obj as PostgresJsonTraversalExpression);
+        public override bool Equals(object? obj) => Equals(obj as PostgresJsonTraversalExpression);
 
         /// <inheritdoc />
-        public virtual bool Equals(PostgresJsonTraversalExpression other)
+        public virtual bool Equals(PostgresJsonTraversalExpression? other)
             => ReferenceEquals(this, other) ||
                other is object &&
                base.Equals(other) &&

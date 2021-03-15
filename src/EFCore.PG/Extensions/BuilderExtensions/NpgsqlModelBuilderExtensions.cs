@@ -4,10 +4,9 @@ using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Utilities;
 using Npgsql;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 using Npgsql.NameTranslation;
 using NpgsqlTypes;
 
@@ -31,8 +30,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
         public static ModelBuilder UseHiLo(
             [NotNull] this ModelBuilder modelBuilder,
-            [CanBeNull] string name = null,
-            [CanBeNull] string schema = null)
+            [CanBeNull] string? name = null,
+            [CanBeNull] string? schema = null)
         {
             Check.NotNull(modelBuilder, nameof(modelBuilder));
             Check.NullButNotEmpty(name, nameof(name));
@@ -63,10 +62,10 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="schema">The schema of the sequence. </param>
         /// <param name="fromDataAnnotation"> Indicates whether the configuration was specified using a data annotation. </param>
         /// <returns> A builder to further configure the sequence. </returns>
-        public static IConventionSequenceBuilder HasHiLoSequence(
+        public static IConventionSequenceBuilder? HasHiLoSequence(
             [NotNull] this IConventionModelBuilder modelBuilder,
-            [CanBeNull] string name,
-            [CanBeNull] string schema,
+            [CanBeNull] string? name,
+            [CanBeNull] string? schema,
             bool fromDataAnnotation = false)
         {
             if (!modelBuilder.CanSetHiLoSequence(name, schema))
@@ -90,8 +89,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns> <c>true</c> if the given name and schema can be set for the hi-lo sequence. </returns>
         public static bool CanSetHiLoSequence(
             [NotNull] this IConventionModelBuilder modelBuilder,
-            [CanBeNull] string name,
-            [CanBeNull] string schema,
+            [CanBeNull] string? name,
+            [CanBeNull] string? schema,
             bool fromDataAnnotation = false)
         {
             Check.NotNull(modelBuilder, nameof(modelBuilder));
@@ -213,7 +212,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns>
         /// The same builder instance if the configuration was applied, <c>null</c> otherwise.
         /// </returns>
-        public static IConventionModelBuilder HasValueGenerationStrategy(
+        public static IConventionModelBuilder? HasValueGenerationStrategy(
             [NotNull] this IConventionModelBuilder modelBuilder,
             NpgsqlValueGenerationStrategy? valueGenerationStrategy,
             bool fromDataAnnotation = false)
@@ -272,9 +271,9 @@ namespace Microsoft.EntityFrameworkCore
         [NotNull]
         public static ModelBuilder HasPostgresExtension(
             [NotNull] this ModelBuilder modelBuilder,
-            [CanBeNull] string schema,
+            [CanBeNull] string? schema,
             [NotNull] string name,
-            [CanBeNull] string version = null)
+            [CanBeNull] string? version = null)
         {
             Check.NotNull(modelBuilder, nameof(modelBuilder));
             Check.NullButNotEmpty(schema, nameof(schema));
@@ -324,7 +323,7 @@ namespace Microsoft.EntityFrameworkCore
         [NotNull]
         public static ModelBuilder HasPostgresEnum(
             [NotNull] this ModelBuilder modelBuilder,
-            [CanBeNull] string schema,
+            [CanBeNull] string? schema,
             [NotNull] string name,
             [NotNull] string[] labels)
         {
@@ -376,9 +375,9 @@ namespace Microsoft.EntityFrameworkCore
         [NotNull]
         public static ModelBuilder HasPostgresEnum<TEnum>(
             [NotNull] this ModelBuilder modelBuilder,
-            [CanBeNull] string schema = null,
-            [CanBeNull] string name = null,
-            [CanBeNull] INpgsqlNameTranslator nameTranslator = null)
+            [CanBeNull] string? schema = null,
+            [CanBeNull] string? name = null,
+            [CanBeNull] INpgsqlNameTranslator? nameTranslator = null)
             where TEnum : struct, Enum
         {
             if (nameTranslator == null)
@@ -432,13 +431,13 @@ namespace Microsoft.EntityFrameworkCore
         [NotNull]
         public static ModelBuilder HasPostgresRange(
             [NotNull] this ModelBuilder modelBuilder,
-            [CanBeNull] string schema,
+            [CanBeNull] string? schema,
             [NotNull] string name,
             [NotNull] string subtype,
-            [CanBeNull] string canonicalFunction = null,
-            [CanBeNull] string subtypeOpClass = null,
-            [CanBeNull] string collation = null,
-            [CanBeNull] string subtypeDiff = null)
+            [CanBeNull] string? canonicalFunction = null,
+            [CanBeNull] string? subtypeOpClass = null,
+            [CanBeNull] string? collation = null,
+            [CanBeNull] string? subtypeDiff = null)
         {
             Check.NotNull(modelBuilder, nameof(modelBuilder));
             Check.NotEmpty(name, nameof(name));
@@ -512,7 +511,7 @@ namespace Microsoft.EntityFrameworkCore
             [NotNull] this ModelBuilder modelBuilder,
             [NotNull] string name,
             [NotNull] string locale,
-            [CanBeNull] string provider = null,
+            [CanBeNull] string? provider = null,
             bool? deterministic = null)
         => modelBuilder.HasCollation(schema: null, name, locale, provider: provider, deterministic: deterministic);
 
@@ -537,10 +536,10 @@ namespace Microsoft.EntityFrameworkCore
         [NotNull]
         public static ModelBuilder HasCollation(
             [NotNull] this ModelBuilder modelBuilder,
-            [CanBeNull] string schema,
+            [CanBeNull] string? schema,
             [NotNull] string name,
             [NotNull] string locale,
-            [CanBeNull] string provider = null,
+            [CanBeNull] string? provider = null,
             bool? deterministic = null)
         {
             Check.NotNull(modelBuilder, nameof(modelBuilder));
@@ -579,11 +578,11 @@ namespace Microsoft.EntityFrameworkCore
         [NotNull]
         public static ModelBuilder HasCollation(
             [NotNull] this ModelBuilder modelBuilder,
-            [CanBeNull] string schema,
+            [CanBeNull] string? schema,
             [NotNull] string name,
             [NotNull] string lcCollate,
             [NotNull] string lcCtype,
-            [CanBeNull] string provider = null,
+            [CanBeNull] string? provider = null,
             bool? deterministic = null)
         {
             Check.NotNull(modelBuilder, nameof(modelBuilder));
@@ -623,7 +622,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="modelBuilder">The model builder.</param>
         /// <param name="collation">The collation.</param>
         /// <returns>A builder to further configure the property.</returns>
-        public static ModelBuilder UseDefaultColumnCollation([NotNull] this ModelBuilder modelBuilder, [CanBeNull] string collation)
+        public static ModelBuilder UseDefaultColumnCollation([NotNull] this ModelBuilder modelBuilder, [CanBeNull] string? collation)
         {
             Check.NotNull(modelBuilder, nameof(modelBuilder));
             Check.NullButNotEmpty(collation, nameof(collation));
@@ -652,9 +651,9 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="collation">The collation.</param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns>A builder to further configure the property.</returns>
-        public static IConventionModelBuilder UseDefaultColumnCollation(
+        public static IConventionModelBuilder? UseDefaultColumnCollation(
             [NotNull] this IConventionModelBuilder modelBuilder,
-            [CanBeNull] string collation,
+            [CanBeNull] string? collation,
             bool fromDataAnnotation = false)
         {
             if (modelBuilder.CanSetDefaultColumnCollation(collation, fromDataAnnotation))
@@ -675,7 +674,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns><c>true</c> if the given value can be set as the collation.</returns>
         public static bool CanSetDefaultColumnCollation(
             [NotNull] this IConventionModelBuilder modelBuilder,
-            [CanBeNull] string collation,
+            [CanBeNull] string? collation,
             bool fromDataAnnotation = false)
         {
             Check.NotNull(modelBuilder, nameof(modelBuilder));

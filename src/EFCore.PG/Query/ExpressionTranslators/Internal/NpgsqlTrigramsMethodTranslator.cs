@@ -14,40 +14,40 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 {
     public class NpgsqlTrigramsMethodTranslator : IMethodCallTranslator
     {
-        static readonly Dictionary<MethodInfo, string> Functions = new()
+        private static readonly Dictionary<MethodInfo, string> Functions = new()
         {
-            [GetRuntimeMethod(nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsShow), new[] { typeof(DbFunctions), typeof(string) })] = "show_trgm",
-            [GetRuntimeMethod(nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsSimilarity), new[] { typeof(DbFunctions), typeof(string), typeof(string) })] = "similarity",
-            [GetRuntimeMethod(nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsWordSimilarity), new[] { typeof(DbFunctions), typeof(string), typeof(string) })] = "word_similarity",
-            [GetRuntimeMethod(nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsStrictWordSimilarity), new[] { typeof(DbFunctions), typeof(string), typeof(string) })] = "strict_word_similarity"
+            [GetRuntimeMethod(nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsShow), typeof(DbFunctions), typeof(string))] = "show_trgm",
+            [GetRuntimeMethod(nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsSimilarity), typeof(DbFunctions), typeof(string), typeof(string))] = "similarity",
+            [GetRuntimeMethod(nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsWordSimilarity), typeof(DbFunctions), typeof(string), typeof(string))] = "word_similarity",
+            [GetRuntimeMethod(nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsStrictWordSimilarity), typeof(DbFunctions), typeof(string), typeof(string))] = "strict_word_similarity"
         };
 
-        static readonly Dictionary<MethodInfo, string> BoolReturningOperators = new()
+        private static readonly Dictionary<MethodInfo, string> BoolReturningOperators = new()
         {
-            [GetRuntimeMethod(nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsAreSimilar), new[] { typeof(DbFunctions), typeof(string), typeof(string) })] = "%",
-            [GetRuntimeMethod(nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsAreWordSimilar), new[] { typeof(DbFunctions), typeof(string), typeof(string) })] = "<%",
-            [GetRuntimeMethod(nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsAreNotWordSimilar), new[] { typeof(DbFunctions), typeof(string), typeof(string) })] = "%>",
-            [GetRuntimeMethod(nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsAreStrictWordSimilar), new[] { typeof(DbFunctions), typeof(string), typeof(string) })] = "<<%",
-            [GetRuntimeMethod(nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsAreNotStrictWordSimilar), new[] { typeof(DbFunctions), typeof(string), typeof(string) })] = "%>>"
+            [GetRuntimeMethod(nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsAreSimilar), typeof(DbFunctions), typeof(string), typeof(string))] = "%",
+            [GetRuntimeMethod(nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsAreWordSimilar), typeof(DbFunctions), typeof(string), typeof(string))] = "<%",
+            [GetRuntimeMethod(nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsAreNotWordSimilar), typeof(DbFunctions), typeof(string), typeof(string))] = "%>",
+            [GetRuntimeMethod(nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsAreStrictWordSimilar), typeof(DbFunctions), typeof(string), typeof(string))] = "<<%",
+            [GetRuntimeMethod(nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsAreNotStrictWordSimilar), typeof(DbFunctions), typeof(string), typeof(string))] = "%>>"
         };
 
-        static readonly Dictionary<MethodInfo, string> FloatReturningOperators = new()
+        private static readonly Dictionary<MethodInfo, string> FloatReturningOperators = new()
         {
-            [GetRuntimeMethod(nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsSimilarityDistance), new[] { typeof(DbFunctions), typeof(string), typeof(string) })] = "<->",
-            [GetRuntimeMethod(nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsWordSimilarityDistance), new[] { typeof(DbFunctions), typeof(string), typeof(string) })] = "<<->",
-            [GetRuntimeMethod(nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsWordSimilarityDistanceInverted), new[] { typeof(DbFunctions), typeof(string), typeof(string) })] = "<->>",
-            [GetRuntimeMethod(nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsStrictWordSimilarityDistance), new[] { typeof(DbFunctions), typeof(string), typeof(string) })] = "<<<->",
-            [GetRuntimeMethod(nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsStrictWordSimilarityDistanceInverted), new[] { typeof(DbFunctions), typeof(string), typeof(string) })] = "<->>>"
+            [GetRuntimeMethod(nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsSimilarityDistance), typeof(DbFunctions), typeof(string), typeof(string))] = "<->",
+            [GetRuntimeMethod(nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsWordSimilarityDistance), typeof(DbFunctions), typeof(string), typeof(string))] = "<<->",
+            [GetRuntimeMethod(nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsWordSimilarityDistanceInverted), typeof(DbFunctions), typeof(string), typeof(string))] = "<->>",
+            [GetRuntimeMethod(nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsStrictWordSimilarityDistance), typeof(DbFunctions), typeof(string), typeof(string))] = "<<<->",
+            [GetRuntimeMethod(nameof(NpgsqlTrigramsDbFunctionsExtensions.TrigramsStrictWordSimilarityDistanceInverted), typeof(DbFunctions), typeof(string), typeof(string))] = "<->>>"
         };
 
-        static MethodInfo GetRuntimeMethod(string name, params Type[] parameters)
-            => typeof(NpgsqlTrigramsDbFunctionsExtensions).GetRuntimeMethod(name, parameters);
+        private static MethodInfo GetRuntimeMethod(string name, params Type[] parameters)
+            => typeof(NpgsqlTrigramsDbFunctionsExtensions).GetRuntimeMethod(name, parameters)!;
 
-        readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
-        readonly RelationalTypeMapping _boolMapping;
-        readonly RelationalTypeMapping _floatMapping;
+        private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
+        private readonly RelationalTypeMapping _boolMapping;
+        private readonly RelationalTypeMapping _floatMapping;
 
-        static readonly bool[][] TrueArrays =
+        private static readonly bool[][] TrueArrays =
         {
             Array.Empty<bool>(),
             new[] { true },
@@ -59,14 +59,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             [NotNull] NpgsqlSqlExpressionFactory sqlExpressionFactory)
         {
             _sqlExpressionFactory = sqlExpressionFactory;
-            _boolMapping = typeMappingSource.FindMapping(typeof(bool));
-            _floatMapping = typeMappingSource.FindMapping(typeof(float));
+            _boolMapping = typeMappingSource.FindMapping(typeof(bool))!;
+            _floatMapping = typeMappingSource.FindMapping(typeof(float))!;
         }
 
 #pragma warning disable EF1001
         /// <inheritdoc />
-        public virtual SqlExpression Translate(
-            SqlExpression instance,
+        public virtual SqlExpression? Translate(
+            SqlExpression? instance,
             MethodInfo method,
             IReadOnlyList<SqlExpression> arguments,
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)

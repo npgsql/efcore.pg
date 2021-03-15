@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
+using Microsoft.EntityFrameworkCore.Utilities;
 
 #pragma warning disable 8632
 
@@ -19,6 +19,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
     [DebuggerDisplay("{" + nameof(ToString) + "()}")]
     public class PostgresFunctionExpression : SqlFunctionExpression, IEquatable<PostgresFunctionExpression>
     {
+        public new virtual IReadOnlyList<SqlExpression> Arguments
+            => base.Arguments!;
+
+        public new virtual IReadOnlyList<bool> ArgumentsPropagateNullability
+            => base.ArgumentsPropagateNullability!;
+
         /// <summary>
         /// List of argument names, corresponding position-wise to arguments in <see cref="SqlFunctionExpression.Arguments"/>.
         /// Unnamed (positional) arguments must come first, so this list must contain possible nulls, followed by
@@ -37,10 +43,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
             [NotNull] IEnumerable<SqlExpression> arguments,
             [NotNull] IEnumerable<string?> argumentNames,
             bool nullable,
-            [CanBeNull] IEnumerable<bool> argumentsPropagateNullability,
+            [NotNull] IEnumerable<bool> argumentsPropagateNullability,
             bool builtIn,
             [NotNull] Type type,
-            [CanBeNull] RelationalTypeMapping typeMapping)
+            [CanBeNull] RelationalTypeMapping? typeMapping)
         {
             Check.NotNull(arguments, nameof(arguments));
             Check.NotNull(argumentNames, nameof(argumentNames));
@@ -55,10 +61,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
             [NotNull] IEnumerable<SqlExpression> arguments,
             [NotNull] IEnumerable<string?> argumentSeparators,
             bool nullable,
-            [CanBeNull] IEnumerable<bool> argumentsPropagateNullability,
+            [NotNull] IEnumerable<bool> argumentsPropagateNullability,
             bool builtIn,
             [NotNull] Type type,
-            [CanBeNull] RelationalTypeMapping typeMapping)
+            [CanBeNull] RelationalTypeMapping? typeMapping)
         {
             Check.NotNull(arguments, nameof(arguments));
             Check.NotNull(argumentSeparators, nameof(argumentSeparators));
@@ -74,9 +80,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
             [CanBeNull] IEnumerable<string?>? argumentNames,
             [CanBeNull] IEnumerable<string?>? argumentSeparators,
             bool nullable,
-            [CanBeNull] IEnumerable<bool> argumentsPropagateNullability,
+            [NotNull] IEnumerable<bool> argumentsPropagateNullability,
             [NotNull] Type type,
-            [CanBeNull] RelationalTypeMapping typeMapping)
+            [CanBeNull] RelationalTypeMapping? typeMapping)
         : base(name, arguments, nullable, argumentsPropagateNullability, type, typeMapping)
         {
             Check.NotEmpty(name, nameof(name));
@@ -94,14 +100,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
             Check.NotNull(visitor, nameof(visitor));
 
             var visited = base.VisitChildren(visitor);
-            return visited != this && visited is SqlFunctionExpression e
+            return visited != this && visited is PostgresFunctionExpression e
                 ? new PostgresFunctionExpression(
                     e.Name, e.Arguments, ArgumentNames, ArgumentSeparators,
-                    IsNullable, ArgumentsPropagateNullability, Type, TypeMapping)
+                    IsNullable, ArgumentsPropagateNullability!, Type, TypeMapping)
                 : visited;
         }
 
-        public override SqlFunctionExpression ApplyTypeMapping(RelationalTypeMapping typeMapping)
+        public override SqlFunctionExpression ApplyTypeMapping(RelationalTypeMapping? typeMapping)
             => new PostgresFunctionExpression(
                 Name,
                 Arguments,
@@ -112,11 +118,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
                 Type,
                 typeMapping ?? TypeMapping);
 
-        public override SqlFunctionExpression Update(SqlExpression instance, IReadOnlyList<SqlExpression> arguments)
+        public override SqlFunctionExpression Update(SqlExpression? instance, IReadOnlyList<SqlExpression>? arguments)
         {
             Check.NotNull(arguments, nameof(arguments));
             if (instance != null)
-                throw new ArgumentException($"Must be null", nameof(instance));
+                throw new ArgumentException("Must be null", nameof(instance));
 
             return !arguments.SequenceEqual(Arguments)
                 ? new PostgresFunctionExpression(
@@ -125,9 +131,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
                 : this;
         }
 
-        public override bool Equals(object obj) => obj is PostgresFunctionExpression pgFunction && Equals(pgFunction);
+        public override bool Equals(object? obj) => obj is PostgresFunctionExpression pgFunction && Equals(pgFunction);
 
-        public virtual bool Equals(PostgresFunctionExpression other)
+        public virtual bool Equals(PostgresFunctionExpression? other)
             => ReferenceEquals(this, other) ||
                other is object &&
                base.Equals(other) &&

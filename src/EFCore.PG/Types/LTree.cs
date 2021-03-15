@@ -144,7 +144,7 @@ namespace Microsoft.EntityFrameworkCore
         public bool Equals(LTree other) => _value == other._value;
 
         /// <inheritdocs />
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
             => obj is LTree other && Equals(other);
 
         /// <inheritdocs />

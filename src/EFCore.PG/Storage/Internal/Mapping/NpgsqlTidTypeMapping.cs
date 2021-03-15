@@ -35,6 +35,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         }
 
         static readonly ConstructorInfo Constructor =
-            typeof(NpgsqlTid).GetConstructor(new[] { typeof(uint), typeof(ushort) });
+            typeof(NpgsqlTid).GetConstructor(new[] { typeof(uint), typeof(ushort) })!;
     }
 }

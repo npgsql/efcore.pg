@@ -6,16 +6,16 @@ using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 // ReSharper disable once CheckNamespace
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
 {
     public class NpgsqlNetTopologySuiteOptionsExtension : IDbContextOptionsExtension
     {
-        DbContextOptionsExtensionInfo _info;
+        DbContextOptionsExtensionInfo? _info;
 
         public virtual bool IsGeographyDefault { get; private set; }
 
@@ -61,7 +61,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
 
         sealed class ExtensionInfo : DbContextOptionsExtensionInfo
         {
-            string _logFragment;
+            string? _logFragment;
 
             public ExtensionInfo(IDbContextOptionsExtension extension)
                 : base(extension)

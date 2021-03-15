@@ -59,7 +59,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             return sb.ToString();
         }
 
-        static ValueComparer GetComparer(Type clrType)
+        private static ValueComparer? GetComparer(Type clrType)
         {
             if (clrType == typeof(Dictionary<string, string>))
                 return MutableComparerInstance;
@@ -84,14 +84,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 o => o == null ? null : new Dictionary<string, string>(o))
             {}
 
-            static bool Compare(Dictionary<string, string> a, Dictionary<string, string> b)
+            static bool Compare(Dictionary<string, string>? a, Dictionary<string, string>? b)
             {
                 if (a is null)
+                {
                     return b is null;
-                if (b is null)
+                }
+
+                if (b is null || a.Count != b.Count)
+                {
                     return false;
-                if (a.Count != b.Count)
-                    return false;
+                }
+
                 foreach (var kv in a)
                     if (!b.TryGetValue(kv.Key, out var bValue) || kv.Value != bValue)
                         return false;

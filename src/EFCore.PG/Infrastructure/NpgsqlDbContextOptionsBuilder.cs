@@ -27,14 +27,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         /// Connect to this database for administrative operations (creating/dropping databases).
         /// </summary>
         /// <param name="dbName">The name of the database for administrative operations.</param>
-        public virtual NpgsqlDbContextOptionsBuilder UseAdminDatabase([CanBeNull] string dbName)
+        public virtual NpgsqlDbContextOptionsBuilder UseAdminDatabase([CanBeNull] string? dbName)
             => WithOption(e => e.WithAdminDatabase(dbName));
 
         /// <summary>
         /// Configures the backend version to target.
         /// </summary>
         /// <param name="postgresVersion">The backend version to target.</param>
-        public virtual NpgsqlDbContextOptionsBuilder SetPostgresVersion([CanBeNull] Version postgresVersion)
+        public virtual NpgsqlDbContextOptionsBuilder SetPostgresVersion([CanBeNull] Version? postgresVersion)
             => WithOption(e => e.WithPostgresVersion(postgresVersion));
 
         /// <summary>
@@ -64,8 +64,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         /// </example>
         public virtual NpgsqlDbContextOptionsBuilder MapRange<TSubtype>(
             [NotNull] string rangeName,
-            [CanBeNull] string schemaName = null,
-            [CanBeNull] string subtypeName = null)
+            [CanBeNull] string? schemaName = null,
+            [CanBeNull] string? subtypeName = null)
             => MapRange(rangeName, typeof(TSubtype), schemaName, subtypeName);
 
         /// <summary>
@@ -88,8 +88,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         public virtual NpgsqlDbContextOptionsBuilder MapRange(
             [NotNull] string rangeName,
             [NotNull] Type subtypeClrType,
-            [CanBeNull] string schemaName = null,
-            [CanBeNull] string subtypeName = null)
+            [CanBeNull] string? schemaName = null,
+            [CanBeNull] string? subtypeName = null)
             => WithOption(e => e.WithUserRangeDefinition(rangeName, schemaName, subtypeClrType, subtypeName));
 
         /// <summary>
@@ -108,7 +108,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         /// </summary>
         /// <param name="callback">The callback to use.</param>
         public virtual NpgsqlDbContextOptionsBuilder ProvideClientCertificatesCallback(
-            [CanBeNull] ProvideClientCertificatesCallback callback)
+            [CanBeNull] ProvideClientCertificatesCallback? callback)
             => WithOption(e => e.WithProvideClientCertificatesCallback(callback));
 
         /// <summary>
@@ -116,7 +116,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         /// </summary>
         /// <param name="callback">The callback to use.</param>
         public virtual NpgsqlDbContextOptionsBuilder RemoteCertificateValidationCallback(
-            [CanBeNull] RemoteCertificateValidationCallback callback)
+            [CanBeNull] RemoteCertificateValidationCallback? callback)
             => WithOption(e => e.WithRemoteCertificateValidationCallback(callback));
 
         /// <summary>
@@ -124,7 +124,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         /// </summary>
         /// <param name="callback">The callback to use.</param>
         public virtual NpgsqlDbContextOptionsBuilder ProvidePasswordCallback(
-            [CanBeNull] ProvidePasswordCallback callback)
+            [CanBeNull] ProvidePasswordCallback? callback)
             => WithOption(e => e.WithProvidePasswordCallback(callback));
 
         #endregion Authentication
@@ -165,7 +165,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         public virtual NpgsqlDbContextOptionsBuilder EnableRetryOnFailure(
             int maxRetryCount,
             TimeSpan maxRetryDelay,
-            [CanBeNull] ICollection<string> errorCodesToAdd)
+            [CanBeNull] ICollection<string>? errorCodesToAdd)
             => ExecutionStrategy(c => new NpgsqlRetryingExecutionStrategy(c, maxRetryCount, maxRetryDelay, errorCodesToAdd));
 
         #endregion Retrying execution strategy

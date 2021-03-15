@@ -93,10 +93,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             ClrTypeMappings = new ConcurrentDictionary<Type, RelationalTypeMapping>(clrTypeMappings);
         }
 
-        public virtual RelationalTypeMapping FindMapping(in RelationalTypeMappingInfo mappingInfo)
+        public virtual RelationalTypeMapping? FindMapping(in RelationalTypeMappingInfo mappingInfo)
             => FindExistingMapping(mappingInfo) ?? FindArrayMapping(mappingInfo);
 
-        protected virtual RelationalTypeMapping FindExistingMapping(in RelationalTypeMappingInfo mappingInfo)
+        protected virtual RelationalTypeMapping? FindExistingMapping(in RelationalTypeMappingInfo mappingInfo)
         {
             var clrType = mappingInfo.ClrType;
             var storeTypeName = mappingInfo.StoreTypeName;
@@ -116,7 +116,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                     return null;
                 }
 
-                if (StoreTypeMappings.TryGetValue(storeTypeNameBase, out mappings))
+                if (StoreTypeMappings.TryGetValue(storeTypeNameBase!, out mappings))
                 {
                     if (clrType == null)
                         return mappings[0].Clone(in mappingInfo);
@@ -140,10 +140,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         }
 
         // TODO: This is duplicated from NpgsqlTypeMappingSource
-        protected virtual RelationalTypeMapping FindArrayMapping(in RelationalTypeMappingInfo mappingInfo)
+        protected virtual RelationalTypeMapping? FindArrayMapping(in RelationalTypeMappingInfo mappingInfo)
         {
             var clrType = mappingInfo.ClrType;
-            Type elementClrType = null;
+            Type? elementClrType = null;
 
             if (clrType != null && !clrType.TryGetElementType(out elementClrType))
                 return null; // Not an array/list
@@ -157,9 +157,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                     return null;
 
                 var elementStoreType = storeType.Substring(0, storeType.Length - 2);
-                var elementStoreTypeNameBase = storeTypeNameBase.Substring(0, storeTypeNameBase.Length - 2);
+                var elementStoreTypeNameBase = storeTypeNameBase!.Substring(0, storeTypeNameBase.Length - 2);
 
-                RelationalTypeMapping elementMapping;
+                RelationalTypeMapping? elementMapping;
 
                 if (elementClrType == null)
                 {

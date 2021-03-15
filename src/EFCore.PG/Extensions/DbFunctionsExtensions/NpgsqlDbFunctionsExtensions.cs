@@ -19,9 +19,9 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="pattern">The pattern which may involve wildcards %,_,[,],^.</param>
         /// <returns><see langword="true" /> if there is a match.</returns>
         public static bool ILike(
-            [CanBeNull] this DbFunctions _,
-            [CanBeNull] string matchExpression,
-            [CanBeNull] string pattern)
+            [NotNull] this DbFunctions _,
+            [NotNull] string matchExpression,
+            [NotNull] string pattern)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(ILike)));
 
         // ReSharper disable once InconsistentNaming
@@ -37,10 +37,10 @@ namespace Microsoft.EntityFrameworkCore
         /// </param>
         /// <returns><see langword="true" /> if there is a match.</returns>
         public static bool ILike(
-            [CanBeNull] this DbFunctions _,
-            [CanBeNull] string matchExpression,
-            [CanBeNull] string pattern,
-            [CanBeNull] string escapeCharacter)
+            [NotNull] this DbFunctions _,
+            [NotNull] string matchExpression,
+            [NotNull] string pattern,
+            [NotNull] string escapeCharacter)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(ILike)));
 
         /// <summary>
@@ -49,7 +49,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="_">The <see cref="DbFunctions"/> instance.</param>
         /// <param name="value">The string that is to be reversed.</param>
         /// <returns>The reversed string.</returns>
-        public static string Reverse([CanBeNull] this DbFunctions _, [CanBeNull] string value)
+        public static string Reverse([NotNull] this DbFunctions _, [NotNull] string value)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Reverse)));
     }
 }

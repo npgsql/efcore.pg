@@ -27,13 +27,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             [NotNull] NpgsqlSqlExpressionFactory sqlExpressionFactory)
         {
             _sqlExpressionFactory = sqlExpressionFactory;
-            _boolTypeMapping = typeMappingSource.FindMapping(typeof(bool));
-            _stringTypeMapping = typeMappingSource.FindMapping(typeof(string));
-            _jsonbTypeMapping = typeMappingSource.FindMapping("jsonb");
+            _boolTypeMapping = typeMappingSource.FindMapping(typeof(bool))!;
+            _stringTypeMapping = typeMappingSource.FindMapping(typeof(string))!;
+            _jsonbTypeMapping = typeMappingSource.FindMapping("jsonb")!;
         }
 
-        public virtual SqlExpression Translate(
-            SqlExpression instance,
+        public virtual SqlExpression? Translate(
+            SqlExpression? instance,
             MethodInfo method,
             IReadOnlyList<SqlExpression> arguments,
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)
@@ -60,7 +60,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             if (method.Name == nameof(NpgsqlJsonDbFunctionsExtensions.JsonTypeof))
             {
                 return _sqlExpressionFactory.Function(
-                    ((NpgsqlJsonTypeMapping)args[0].TypeMapping).IsJsonb ? "jsonb_typeof" : "json_typeof",
+                    ((NpgsqlJsonTypeMapping)args[0].TypeMapping!).IsJsonb ? "jsonb_typeof" : "json_typeof",
                     new[] { args[0] },
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[1],
