@@ -27,7 +27,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             using var connection = new NpgsqlRelationalConnection(CreateDependencies());
             using var master = connection.CreateMasterConnection();
 
-            Assert.Equal(@"Host=localhost;Database=postgres;Username=some_user;Password=some_password;Pooling=False", master.ConnectionString);
+            Assert.Equal(@"Host=localhost;Database=postgres;Username=some_user;Password=some_password;Pooling=False;Multiplexing=False", master.ConnectionString);
         }
 
         [Fact]
@@ -42,7 +42,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             using var connection = new NpgsqlRelationalConnection(CreateDependencies(options));
             using var master = connection.CreateMasterConnection();
 
-            Assert.Equal(@"Host=localhost;Database=template0;Username=some_user;Password=some_password;Pooling=False", master.ConnectionString);
+            Assert.Equal(@"Host=localhost;Database=template0;Username=some_user;Password=some_password;Pooling=False;Multiplexing=False", master.ConnectionString);
         }
 
         public static RelationalConnectionDependencies CreateDependencies(DbContextOptions options = null)
