@@ -30,12 +30,6 @@ FROM ""Orders"" AS o");
         public override Task Member_binding_after_ctor_arguments_fails_with_client_eval(bool async)
             => AssertTranslationFailed(() => base.Member_binding_after_ctor_arguments_fails_with_client_eval(async));
 
-        public override async Task Projecting_after_navigation_and_distinct_throws(bool async)
-            => Assert.Equal(
-                RelationalStrings.InsufficientInformationToIdentifyOuterElementOfCollectionJoin,
-                (await Assert.ThrowsAsync<InvalidOperationException>(
-                    () => base.Projecting_after_navigation_and_distinct_throws(async))).Message);
-
         void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
