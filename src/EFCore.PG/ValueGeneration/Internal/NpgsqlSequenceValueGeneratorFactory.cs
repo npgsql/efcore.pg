@@ -2,14 +2,12 @@
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Update;
+using Microsoft.EntityFrameworkCore.Utilities;
 using Microsoft.EntityFrameworkCore.ValueGeneration;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
 {

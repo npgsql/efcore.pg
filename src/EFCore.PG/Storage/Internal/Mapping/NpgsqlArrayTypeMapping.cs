@@ -12,8 +12,6 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion;
 using NpgsqlTypes;
 
-#nullable enable
-
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 {
     /// <summary>

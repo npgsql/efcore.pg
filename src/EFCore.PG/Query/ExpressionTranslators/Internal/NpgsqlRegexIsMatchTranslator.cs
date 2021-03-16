@@ -17,11 +17,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     /// </remarks>
     public class NpgsqlRegexIsMatchTranslator : IMethodCallTranslator
     {
-        static readonly MethodInfo IsMatch =
-            typeof(Regex).GetRuntimeMethod(nameof(Regex.IsMatch), new[] { typeof(string), typeof(string) });
+        private static readonly MethodInfo IsMatch =
+            typeof(Regex).GetRuntimeMethod(nameof(Regex.IsMatch), new[] { typeof(string), typeof(string) })!;
 
-        static readonly MethodInfo IsMatchWithRegexOptions =
-            typeof(Regex).GetRuntimeMethod(nameof(Regex.IsMatch), new[] { typeof(string), typeof(string), typeof(RegexOptions) });
+        private static readonly MethodInfo IsMatchWithRegexOptions =
+            typeof(Regex).GetRuntimeMethod(nameof(Regex.IsMatch), new[] { typeof(string), typeof(string), typeof(RegexOptions) })!;
 
         const RegexOptions UnsupportedRegexOptions = RegexOptions.RightToLeft | RegexOptions.ECMAScript;
 
@@ -31,8 +31,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             => _sqlExpressionFactory = sqlExpressionFactory;
 
         /// <inheritdoc />
-        public virtual SqlExpression Translate(
-            SqlExpression instance,
+        public virtual SqlExpression? Translate(
+            SqlExpression? instance,
             MethodInfo method,
             IReadOnlyList<SqlExpression> arguments,
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)
@@ -47,8 +47,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
             if (method == IsMatch)
                 options = RegexOptions.None;
-            else if (arguments[2] is SqlConstantExpression constantOptionsExpr)
-                options = (RegexOptions)constantOptionsExpr.Value;
+            else if (arguments[2] is SqlConstantExpression { Value: RegexOptions regexOptions })
+                options = regexOptions;
             else
                 return null;  // We don't support non-constant regex options
 

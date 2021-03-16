@@ -55,9 +55,9 @@ namespace Microsoft.EntityFrameworkCore
         [NotNull]
         public static PostgresExtension GetOrAddPostgresExtension(
             [NotNull] this AlterDatabaseOperation operation,
-            [CanBeNull] string schema,
+            [CanBeNull] string? schema,
             [NotNull] string name,
-            [CanBeNull] string version)
+            [CanBeNull] string? version)
             => PostgresExtension.GetOrAddPostgresExtension(operation, schema, name, version);
     }
 }

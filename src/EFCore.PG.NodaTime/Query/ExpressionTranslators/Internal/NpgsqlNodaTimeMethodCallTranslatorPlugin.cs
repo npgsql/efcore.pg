@@ -43,20 +43,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
         /// The static method info for <see cref="T:SystemClock.GetCurrentInstant()"/>.
         /// </summary>
         [NotNull] static readonly MethodInfo GetCurrentInstant =
-            typeof(SystemClock).GetRuntimeMethod(nameof(SystemClock.GetCurrentInstant), Type.EmptyTypes);
+            typeof(SystemClock).GetRuntimeMethod(nameof(SystemClock.GetCurrentInstant), Type.EmptyTypes)!;
 
         /// <summary>
         /// The mapping of supported method translations.
         /// </summary>
         [NotNull] static readonly Dictionary<MethodInfo, string> PeriodMethodMap = new()
         {
-            { typeof(Period).GetRuntimeMethod(nameof(Period.FromYears),        new[] { typeof(int) }),  "years" },
-            { typeof(Period).GetRuntimeMethod(nameof(Period.FromMonths),       new[] { typeof(int) }),  "months" },
-            { typeof(Period).GetRuntimeMethod(nameof(Period.FromWeeks),        new[] { typeof(int) }),  "weeks" },
-            { typeof(Period).GetRuntimeMethod(nameof(Period.FromDays),         new[] { typeof(int) }),  "days" },
-            { typeof(Period).GetRuntimeMethod(nameof(Period.FromHours),        new[] { typeof(long) }), "hours" },
-            { typeof(Period).GetRuntimeMethod(nameof(Period.FromMinutes),      new[] { typeof(long) }), "mins" },
-            { typeof(Period).GetRuntimeMethod(nameof(Period.FromSeconds),      new[] { typeof(long) }), "secs" },
+            { typeof(Period).GetRuntimeMethod(nameof(Period.FromYears),        new[] { typeof(int) })!,  "years" },
+            { typeof(Period).GetRuntimeMethod(nameof(Period.FromMonths),       new[] { typeof(int) })!,  "months" },
+            { typeof(Period).GetRuntimeMethod(nameof(Period.FromWeeks),        new[] { typeof(int) })!,  "weeks" },
+            { typeof(Period).GetRuntimeMethod(nameof(Period.FromDays),         new[] { typeof(int) })!,  "days" },
+            { typeof(Period).GetRuntimeMethod(nameof(Period.FromHours),        new[] { typeof(long) })!, "hours" },
+            { typeof(Period).GetRuntimeMethod(nameof(Period.FromMinutes),      new[] { typeof(long) })!, "mins" },
+            { typeof(Period).GetRuntimeMethod(nameof(Period.FromSeconds),      new[] { typeof(long) })!, "secs" },
             //{ typeof(Period).GetRuntimeMethod(nameof(Period.FromMilliseconds), new[] { typeof(long) }), "" },
             //{ typeof(Period).GetRuntimeMethod(nameof(Period.FromNanoseconds),  new[] { typeof(long) }), "" },
         };
@@ -73,8 +73,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
 
 #pragma warning disable EF1001
         /// <inheritdoc />
-        public virtual SqlExpression Translate(
-            SqlExpression instance,
+        public virtual SqlExpression? Translate(
+            SqlExpression? instance,
             MethodInfo method,
             IReadOnlyList<SqlExpression> arguments,
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)

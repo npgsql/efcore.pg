@@ -47,7 +47,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
             [NotNull] SqlExpression item,
             [NotNull] SqlExpression array,
             PostgresAllOperatorType operatorType,
-            [CanBeNull] RelationalTypeMapping typeMapping)
+            [CanBeNull] RelationalTypeMapping? typeMapping)
             : base(typeof(bool), typeMapping)
         {
             if (!(array.Type.IsArrayOrGenericList() || array is SqlConstantExpression { Value: null }))
@@ -68,10 +68,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
             => Update((SqlExpression)visitor.Visit(Item), (SqlExpression)visitor.Visit(Array));
 
         /// <inheritdoc />
-        public override bool Equals(object obj) => obj is PostgresAllExpression e && Equals(e);
+        public override bool Equals(object? obj) => obj is PostgresAllExpression e && Equals(e);
 
         /// <inheritdoc />
-        public virtual bool Equals(PostgresAllExpression other)
+        public virtual bool Equals(PostgresAllExpression? other)
             => ReferenceEquals(this, other) ||
                other is object &&
                base.Equals(other) &&

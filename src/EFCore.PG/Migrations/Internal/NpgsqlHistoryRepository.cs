@@ -40,7 +40,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal
             }
         }
 
-        protected override bool InterpretExistsResult(object value) => (bool)value;
+        protected override bool InterpretExistsResult(object? value) => (bool?)value == true;
 
         public override string GetCreateIfNotExistsScript()
         {

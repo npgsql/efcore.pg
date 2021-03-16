@@ -54,8 +54,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         public NpgsqlConvertTranslator([NotNull] ISqlExpressionFactory sqlExpressionFactory)
             => _sqlExpressionFactory = sqlExpressionFactory;
 
-        public virtual SqlExpression Translate(
-            SqlExpression instance,
+        public virtual SqlExpression? Translate(
+            SqlExpression? instance,
             MethodInfo method,
             IReadOnlyList<SqlExpression> arguments,
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)

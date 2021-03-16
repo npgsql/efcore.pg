@@ -3,7 +3,7 @@ using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
+using Microsoft.EntityFrameworkCore.Utilities;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore
@@ -17,16 +17,13 @@ namespace Microsoft.EntityFrameworkCore
         /// <see cref="Migration.Down(MigrationBuilder)" />.
         /// <returns>True if Npgsql is being used; false otherwise.</returns>
         public static bool IsNpgsql([NotNull] this MigrationBuilder builder)
-            => builder.ActiveProvider.Equals(
-                typeof(NpgsqlMigrationBuilderExtensions).GetTypeInfo().Assembly.GetName().Name,
-                StringComparison.Ordinal);
+            => builder.ActiveProvider == typeof(NpgsqlMigrationBuilderExtensions).GetTypeInfo().Assembly.GetName().Name;
 
         public static MigrationBuilder EnsurePostgresExtension(
             [NotNull] this MigrationBuilder builder,
             [NotNull] string name,
-            [CanBeNull] string schema = null,
-            [CanBeNull] string version = null
-        )
+            [CanBeNull] string? schema = null,
+            [CanBeNull] string? version = null)
         {
             Check.NotEmpty(name, nameof(name));
             Check.NullButNotEmpty(schema, nameof(schema));
@@ -43,8 +40,8 @@ namespace Microsoft.EntityFrameworkCore
         public static MigrationBuilder CreatePostgresExtension(
             [NotNull] this MigrationBuilder builder,
             [NotNull] string name,
-            [CanBeNull] string schema = null,
-            [CanBeNull] string version = null)
+            [CanBeNull] string? schema = null,
+            [CanBeNull] string? version = null)
             => EnsurePostgresExtension(builder, name, schema, version);
 
         [Obsolete("This no longer does anything and should be removed.")]

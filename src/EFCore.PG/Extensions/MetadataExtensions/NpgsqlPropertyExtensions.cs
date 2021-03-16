@@ -5,9 +5,8 @@ using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using Microsoft.EntityFrameworkCore.Utilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore
@@ -21,8 +20,8 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="property"> The property.</param>
         /// <returns>The name to use for the hi-lo sequence.</returns>
-        public static string GetHiLoSequenceName([NotNull] this IReadOnlyProperty property)
-            => (string)property[NpgsqlAnnotationNames.HiLoSequenceName];
+        public static string? GetHiLoSequenceName([NotNull] this IReadOnlyProperty property)
+            => (string?)property[NpgsqlAnnotationNames.HiLoSequenceName];
 
         /// <summary>
         ///     Returns the name to use for the hi-lo sequence.
@@ -30,12 +29,12 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="property"> The property. </param>
         /// <param name="storeObject"> The identifier of the store object. </param>
         /// <returns> The name to use for the hi-lo sequence. </returns>
-        public static string GetHiLoSequenceName([NotNull] this IReadOnlyProperty property, in StoreObjectIdentifier storeObject)
+        public static string? GetHiLoSequenceName([NotNull] this IReadOnlyProperty property, in StoreObjectIdentifier storeObject)
         {
             var annotation = property.FindAnnotation(NpgsqlAnnotationNames.HiLoSequenceName);
             if (annotation != null)
             {
-                return (string)annotation.Value;
+                return (string?)annotation.Value;
             }
 
             var sharedTableRootProperty = property.FindSharedStoreObjectRootProperty(storeObject);
@@ -49,7 +48,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="property">The property.</param>
         /// <param name="name">The sequence name to use.</param>
-        public static void SetHiLoSequenceName([NotNull] this IMutableProperty property, [CanBeNull] string name)
+        public static void SetHiLoSequenceName([NotNull] this IMutableProperty property, [CanBeNull] string? name)
             => property.SetOrRemoveAnnotation(
                 NpgsqlAnnotationNames.HiLoSequenceName,
                 Check.NullButNotEmpty(name, nameof(name)));
@@ -60,9 +59,9 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="property">The property.</param>
         /// <param name="name">The sequence name to use.</param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
-        public static string SetHiLoSequenceName(
+        public static string? SetHiLoSequenceName(
             [NotNull] this IConventionProperty property,
-            [CanBeNull] string name,
+            [CanBeNull] string? name,
             bool fromDataAnnotation = false)
         {
             property.SetOrRemoveAnnotation(
@@ -86,8 +85,8 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="property">The property.</param>
         /// <returns>The schema to use for the hi-lo sequence.</returns>
-        public static string GetHiLoSequenceSchema([NotNull] this IReadOnlyProperty property)
-            => (string)property[NpgsqlAnnotationNames.HiLoSequenceSchema];
+        public static string? GetHiLoSequenceSchema([NotNull] this IReadOnlyProperty property)
+            => (string?)property[NpgsqlAnnotationNames.HiLoSequenceSchema];
 
         /// <summary>
         ///     Returns the schema to use for the hi-lo sequence.
@@ -95,12 +94,12 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="property"> The property. </param>
         /// <param name="storeObject"> The identifier of the store object. </param>
         /// <returns> The schema to use for the hi-lo sequence. </returns>
-        public static string GetHiLoSequenceSchema([NotNull] this IReadOnlyProperty property, in StoreObjectIdentifier storeObject)
+        public static string? GetHiLoSequenceSchema([NotNull] this IReadOnlyProperty property, in StoreObjectIdentifier storeObject)
         {
             var annotation = property.FindAnnotation(NpgsqlAnnotationNames.HiLoSequenceSchema);
             if (annotation != null)
             {
-                return (string)annotation.Value;
+                return (string?)annotation.Value;
             }
 
             var sharedTableRootProperty = property.FindSharedStoreObjectRootProperty(storeObject);
@@ -114,7 +113,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="property">The property.</param>
         /// <param name="schema">The schema to use.</param>
-        public static void SetHiLoSequenceSchema([NotNull] this IMutableProperty property, [CanBeNull] string schema)
+        public static void SetHiLoSequenceSchema([NotNull] this IMutableProperty property, [CanBeNull] string? schema)
             => property.SetOrRemoveAnnotation(
                 NpgsqlAnnotationNames.HiLoSequenceSchema,
                 Check.NullButNotEmpty(schema, nameof(schema)));
@@ -125,8 +124,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="property">The property.</param>
         /// <param name="schema">The schema to use.</param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
-        public static string SetHiLoSequenceSchema(
-            [NotNull] this IConventionProperty property, [CanBeNull] string schema, bool fromDataAnnotation = false)
+        public static string? SetHiLoSequenceSchema(
+            [NotNull] this IConventionProperty property, [CanBeNull] string? schema, bool fromDataAnnotation = false)
         {
             property.SetOrRemoveAnnotation(
                 NpgsqlAnnotationNames.HiLoSequenceSchema,
@@ -149,7 +148,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="property"> The property. </param>
         /// <returns> The sequence to use, or <see langword="null" /> if no sequence exists in the model. </returns>
-        public static IReadOnlySequence FindHiLoSequence([NotNull] this IReadOnlyProperty property)
+        public static IReadOnlySequence? FindHiLoSequence([NotNull] this IReadOnlyProperty property)
         {
             var model = property.DeclaringEntityType.Model;
 
@@ -168,7 +167,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="property"> The property. </param>
         /// <param name="storeObject"> The identifier of the store object. </param>
         /// <returns> The sequence to use, or <see langword="null" /> if no sequence exists in the model. </returns>
-        public static IReadOnlySequence FindHiLoSequence([NotNull] this IReadOnlyProperty property, in StoreObjectIdentifier storeObject)
+        public static IReadOnlySequence? FindHiLoSequence([NotNull] this IReadOnlyProperty property, in StoreObjectIdentifier storeObject)
         {
             var model = property.DeclaringEntityType.Model;
 
@@ -186,8 +185,8 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="property"> The property. </param>
         /// <returns> The sequence to use, or <see langword="null" /> if no sequence exists in the model. </returns>
-        public static ISequence FindHiLoSequence([NotNull] this IProperty property)
-            => (ISequence)((IReadOnlyProperty)property).FindHiLoSequence();
+        public static ISequence? FindHiLoSequence([NotNull] this IProperty property)
+            => (ISequence?)((IReadOnlyProperty)property).FindHiLoSequence();
 
         /// <summary>
         ///     Finds the <see cref="ISequence" /> in the model to use for the hi-lo pattern.
@@ -195,8 +194,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="property"> The property. </param>
         /// <param name="storeObject"> The identifier of the store object. </param>
         /// <returns> The sequence to use, or <see langword="null" /> if no sequence exists in the model. </returns>
-        public static ISequence FindHiLoSequence([NotNull] this IProperty property, in StoreObjectIdentifier storeObject)
-            => (ISequence)((IReadOnlyProperty)property).FindHiLoSequence(storeObject);
+        public static ISequence? FindHiLoSequence([NotNull] this IProperty property, in StoreObjectIdentifier storeObject)
+            => (ISequence?)((IReadOnlyProperty)property).FindHiLoSequence(storeObject);
 
         /// <summary>
         /// Removes all identity sequence annotations from the property.
@@ -261,7 +260,7 @@ namespace Microsoft.EntityFrameworkCore
         internal static NpgsqlValueGenerationStrategy GetValueGenerationStrategy(
             [NotNull] this IReadOnlyProperty property,
             in StoreObjectIdentifier storeObject,
-            ITypeMappingSource typeMappingSource)
+            ITypeMappingSource? typeMappingSource)
         {
             if (property[NpgsqlAnnotationNames.ValueGenerationStrategy] is object annotation)
                 return (NpgsqlValueGenerationStrategy)annotation;
@@ -317,7 +316,7 @@ namespace Microsoft.EntityFrameworkCore
         private static NpgsqlValueGenerationStrategy GetDefaultValueGenerationStrategy(
             IReadOnlyProperty property,
             in StoreObjectIdentifier storeObject,
-            ITypeMappingSource typeMappingSource)
+            ITypeMappingSource? typeMappingSource)
         {
             var modelStrategy = property.DeclaringEntityType.Model.GetValueGenerationStrategy();
 
@@ -418,7 +417,7 @@ namespace Microsoft.EntityFrameworkCore
         private static bool IsCompatibleWithValueGeneration(
             [NotNull] IReadOnlyProperty property,
             in StoreObjectIdentifier storeObject,
-            ITypeMappingSource typeMappingSource)
+            ITypeMappingSource? typeMappingSource)
         {
             var type = property.ClrType;
 
@@ -732,8 +731,8 @@ namespace Microsoft.EntityFrameworkCore
         /// See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
         /// </para>
         /// </returns>
-        public static string GetTsVectorConfig([NotNull] this IReadOnlyProperty property)
-            => (string)property[NpgsqlAnnotationNames.TsVectorConfig];
+        public static string? GetTsVectorConfig([NotNull] this IReadOnlyProperty property)
+            => (string?)property[NpgsqlAnnotationNames.TsVectorConfig];
 
         /// <summary>
         /// Sets the text search configuration for this generated tsvector property, or <c>null</c> if this is not a
@@ -749,7 +748,7 @@ namespace Microsoft.EntityFrameworkCore
         /// See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
         /// </para>
         /// </param>
-        public static void SetTsVectorConfig([NotNull] this IMutableProperty property, [CanBeNull] string config)
+        public static void SetTsVectorConfig([NotNull] this IMutableProperty property, [CanBeNull] string? config)
         {
             Check.NullButNotEmpty(config, nameof(config));
 
@@ -796,8 +795,8 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="property">The property.</param>
         /// <returns>The included property names, or <c>null</c> if this is not a Generated tsvector column.</returns>
-        public static IReadOnlyList<string> GetTsVectorProperties([NotNull] this IReadOnlyProperty property)
-            => (string[])property[NpgsqlAnnotationNames.TsVectorProperties];
+        public static IReadOnlyList<string>? GetTsVectorProperties([NotNull] this IReadOnlyProperty property)
+            => (string[]?)property[NpgsqlAnnotationNames.TsVectorProperties];
 
         /// <summary>
         /// Sets the properties included in this generated tsvector property, or <c>null</c> to make this a regular,
@@ -807,7 +806,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="properties">The included property names.</param>
         public static void SetTsVectorProperties(
             [NotNull] this IMutableProperty property,
-            [CanBeNull] IReadOnlyList<string> properties)
+            [CanBeNull] IReadOnlyList<string>? properties)
         {
             Check.NullButNotEmpty(properties, nameof(properties));
 
@@ -821,9 +820,9 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="property">The property.</param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <param name="properties">The included property names.</param>
-        public static IReadOnlyList<string> SetTsVectorProperties(
+        public static IReadOnlyList<string>? SetTsVectorProperties(
             [NotNull] this IConventionProperty property,
-            [CanBeNull] IReadOnlyList<string> properties,
+            [CanBeNull] IReadOnlyList<string>? properties,
             bool fromDataAnnotation = false)
         {
             Check.NullButNotEmpty(properties, nameof(properties));
@@ -852,7 +851,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="property"> The property. </param>
         /// <returns> The collation for the column this property is mapped to. </returns>
-        public static string GetDefaultCollation([NotNull] this IReadOnlyProperty property)
+        public static string? GetDefaultCollation([NotNull] this IReadOnlyProperty property)
             => property.FindTypeMapping() is StringTypeMapping
                 ? property.DeclaringEntityType.Model.GetDefaultColumnCollation()
                 : null;

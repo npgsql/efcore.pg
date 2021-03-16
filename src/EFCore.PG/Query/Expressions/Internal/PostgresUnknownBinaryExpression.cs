@@ -4,7 +4,7 @@ using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
+using Microsoft.EntityFrameworkCore.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
 {
@@ -42,13 +42,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         /// <param name="right">The right-hand expression.</param>
         /// <param name="binaryOperator">The operator symbol acting on the expression.</param>
         /// <param name="type">The result type.</param>
+        /// <param name="typeMapping">The type mapping for the expression.</param>
         /// <exception cref="ArgumentNullException" />
         public PostgresUnknownBinaryExpression(
             [NotNull] SqlExpression left,
             [NotNull] SqlExpression right,
             [NotNull] string binaryOperator,
             [NotNull] Type type,
-            [CanBeNull] RelationalTypeMapping typeMapping = null)
+            [CanBeNull] RelationalTypeMapping? typeMapping = null)
             : base(type, typeMapping)
         {
             Left = Check.NotNull(left, nameof(left));
@@ -65,14 +66,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
                 ? this
                 : new PostgresUnknownBinaryExpression(left, right, Operator, Type, TypeMapping);
 
-        public virtual bool Equals(PostgresUnknownBinaryExpression other)
+        public virtual bool Equals(PostgresUnknownBinaryExpression? other)
             => ReferenceEquals(this, other) ||
                other is object &&
                Left.Equals(other.Left) &&
                Right.Equals(other.Right) &&
                Operator == other.Operator;
 
-        public override bool Equals(object obj) => obj is PostgresUnknownBinaryExpression e && Equals(e);
+        public override bool Equals(object? obj) => obj is PostgresUnknownBinaryExpression e && Equals(e);
 
         public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), Left, Right, Operator);
 

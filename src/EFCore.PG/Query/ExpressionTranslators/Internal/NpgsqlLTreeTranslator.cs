@@ -28,17 +28,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         readonly RelationalTypeMapping _lqueryArrayTypeMapping;
         readonly RelationalTypeMapping _ltxtqueryTypeMapping;
 
-        static readonly MethodInfo IsAncestorOf =
-            typeof(LTree).GetRuntimeMethod(nameof(LTree.IsAncestorOf), new[] { typeof(LTree) });
+        private static readonly MethodInfo IsAncestorOf =
+            typeof(LTree).GetRuntimeMethod(nameof(LTree.IsAncestorOf), new[] { typeof(LTree) })!;
 
-        static readonly MethodInfo IsDescendantOf =
-            typeof(LTree).GetRuntimeMethod(nameof(LTree.IsDescendantOf), new[] { typeof(LTree) });
+        private static readonly MethodInfo IsDescendantOf =
+            typeof(LTree).GetRuntimeMethod(nameof(LTree.IsDescendantOf), new[] { typeof(LTree) })!;
 
-        static readonly MethodInfo MatchesLQuery =
-            typeof(LTree).GetRuntimeMethod(nameof(LTree.MatchesLQuery), new[] { typeof(string) });
+        private static readonly MethodInfo MatchesLQuery =
+            typeof(LTree).GetRuntimeMethod(nameof(LTree.MatchesLQuery), new[] { typeof(string) })!;
 
-        static readonly MethodInfo MatchesLTxtQuery =
-            typeof(LTree).GetRuntimeMethod(nameof(LTree.MatchesLTxtQuery), new[] { typeof(string) });
+        private static readonly MethodInfo MatchesLTxtQuery =
+            typeof(LTree).GetRuntimeMethod(nameof(LTree.MatchesLTxtQuery), new[] { typeof(string) })!;
 
         public NpgsqlLTreeTranslator(
             [NotNull] IRelationalTypeMappingSource typeMappingSource,
@@ -46,17 +46,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         {
             _typeMappingSource = typeMappingSource;
             _sqlExpressionFactory = sqlExpressionFactory;
-            _boolTypeMapping = typeMappingSource.FindMapping(typeof(bool));
-            _ltreeTypeMapping = typeMappingSource.FindMapping(typeof(LTree));
-            _ltreeArrayTypeMapping = typeMappingSource.FindMapping(typeof(LTree[]));
-            _lqueryTypeMapping = typeMappingSource.FindMapping("lquery");
-            _lqueryArrayTypeMapping = typeMappingSource.FindMapping("lquery[]");
-            _ltxtqueryTypeMapping = typeMappingSource.FindMapping("ltxtquery");
+            _boolTypeMapping = typeMappingSource.FindMapping(typeof(bool))!;
+            _ltreeTypeMapping = typeMappingSource.FindMapping(typeof(LTree))!;
+            _ltreeArrayTypeMapping = typeMappingSource.FindMapping(typeof(LTree[]))!;
+            _lqueryTypeMapping = typeMappingSource.FindMapping("lquery")!;
+            _lqueryArrayTypeMapping = typeMappingSource.FindMapping("lquery[]")!;
+            _ltxtqueryTypeMapping = typeMappingSource.FindMapping("ltxtquery")!;
         }
 
         /// <inheritdoc />
-        public virtual SqlExpression Translate(
-            SqlExpression instance,
+        public virtual SqlExpression? Translate(
+            SqlExpression? instance,
             MethodInfo method,
             IReadOnlyList<SqlExpression> arguments,
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)
@@ -68,7 +68,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     nameof(LTree.IsAncestorOf)
                         => new PostgresBinaryExpression(
                             PostgresExpressionType.Contains,
-                            _sqlExpressionFactory.ApplyTypeMapping(instance, _ltreeTypeMapping),
+                            _sqlExpressionFactory.ApplyTypeMapping(instance!, _ltreeTypeMapping),
                             _sqlExpressionFactory.ApplyTypeMapping(arguments[0], _ltreeTypeMapping),
                             typeof(bool),
                             _boolTypeMapping),
@@ -76,7 +76,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     nameof(LTree.IsDescendantOf)
                         => new PostgresBinaryExpression(
                             PostgresExpressionType.ContainedBy,
-                            _sqlExpressionFactory.ApplyTypeMapping(instance, _ltreeTypeMapping),
+                            _sqlExpressionFactory.ApplyTypeMapping(instance!, _ltreeTypeMapping),
                             _sqlExpressionFactory.ApplyTypeMapping(arguments[0], _ltreeTypeMapping),
                             typeof(bool),
                             _boolTypeMapping),
@@ -84,7 +84,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     nameof(LTree.MatchesLQuery)
                         => new PostgresBinaryExpression(
                             PostgresExpressionType.LTreeMatches,
-                            _sqlExpressionFactory.ApplyTypeMapping(instance, _ltreeTypeMapping),
+                            _sqlExpressionFactory.ApplyTypeMapping(instance!, _ltreeTypeMapping),
                             _sqlExpressionFactory.ApplyTypeMapping(arguments[0], _lqueryTypeMapping),
                             typeof(bool),
                             _boolTypeMapping),
@@ -92,7 +92,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     nameof(LTree.MatchesLTxtQuery)
                         => new PostgresBinaryExpression(
                             PostgresExpressionType.LTreeMatches,
-                            _sqlExpressionFactory.ApplyTypeMapping(instance, _ltreeTypeMapping),
+                            _sqlExpressionFactory.ApplyTypeMapping(instance!, _ltreeTypeMapping),
                             _sqlExpressionFactory.ApplyTypeMapping(arguments[0], _ltxtqueryTypeMapping),
                             typeof(bool),
                             _boolTypeMapping),
@@ -100,7 +100,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                      nameof(LTree.Subtree)
                          => _sqlExpressionFactory.Function(
                              "subltree",
-                             new[] { instance, arguments[0], arguments[1] },
+                             new[] { instance!, arguments[0], arguments[1] },
                              nullable: true,
                              TrueArrays[3],
                              typeof(LTree),
@@ -110,8 +110,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                          => _sqlExpressionFactory.Function(
                              "subpath",
                              arguments.Count == 2
-                                 ? new[] { instance, arguments[0], arguments[1] }
-                                 : new[] { instance, arguments[0] },
+                                 ? new[] { instance!, arguments[0], arguments[1] }
+                                 : new[] { instance!, arguments[0] },
                              nullable: true,
                              arguments.Count == 2 ? TrueArrays[3] : TrueArrays[2],
                              typeof(LTree),
@@ -121,8 +121,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                          => _sqlExpressionFactory.Function(
                              "index",
                              arguments.Count == 2
-                                 ? new[] { instance, arguments[0], arguments[1] }
-                                 : new[] { instance, arguments[0] },
+                                 ? new[] { instance!, arguments[0], arguments[1] }
+                                 : new[] { instance!, arguments[0] },
                              nullable: true,
                              arguments.Count == 2 ? TrueArrays[3] : TrueArrays[2],
                              typeof(int)),
@@ -143,15 +143,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             return null;
         }
 
-        public virtual SqlExpression Translate(
-            SqlExpression instance,
+        public virtual SqlExpression? Translate(
+            SqlExpression? instance,
             MemberInfo member,
             Type returnType,
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)
             => member.DeclaringType == typeof(LTree) && member.Name == nameof(LTree.NLevel)
                 ? _sqlExpressionFactory.Function(
                     "nlevel",
-                    new[] { instance },
+                    new[] { instance! },
                     nullable: true,
                     TrueArrays[1],
                     typeof(int))
@@ -161,7 +161,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         /// Called directly from <see cref="NpgsqlSqlTranslatingExpressionVisitor"/> to translate LTree array-related constructs which
         /// cannot be translated in regular method translators, since they require accessing lambdas.
         /// </summary>
-        public virtual Expression VisitArrayMethodCall(
+        public virtual Expression? VisitArrayMethodCall(
             [NotNull] NpgsqlSqlTranslatingExpressionVisitor sqlTranslatingExpressionVisitor,
             [NotNull] MethodInfo method,
             [NotNull] ReadOnlyCollection<Expression> arguments)
@@ -174,7 +174,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     wherePredicate.Body is MethodCallExpression wherePredicateMethodCall)
                 {
                     var predicateMethod = wherePredicateMethodCall.Method;
-                    var predicateInstance = wherePredicateMethodCall.Object;
+                    var predicateInstance = wherePredicateMethodCall.Object!;
                     var predicateArguments = wherePredicateMethodCall.Arguments;
 
                     // Pattern match: new[] { "q1", "q2" }.Any(q => e.SomeLTree.MatchesLQuery(q))

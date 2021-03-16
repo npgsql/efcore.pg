@@ -1,10 +1,10 @@
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Utilities;
 using NetTopologySuite.Geometries;
 using Npgsql;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore
@@ -22,8 +22,8 @@ namespace Microsoft.EntityFrameworkCore
         /// </returns>
         public static NpgsqlDbContextOptionsBuilder UseNetTopologySuite(
             [NotNull] this NpgsqlDbContextOptionsBuilder optionsBuilder,
-            [CanBeNull] CoordinateSequenceFactory coordinateSequenceFactory = null,
-            [CanBeNull] PrecisionModel precisionModel = null,
+            [CanBeNull] CoordinateSequenceFactory? coordinateSequenceFactory = null,
+            [CanBeNull] PrecisionModel? precisionModel = null,
             Ordinates handleOrdinates = Ordinates.None,
             bool geographyAsDefault = false)
         {

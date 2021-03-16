@@ -14,12 +14,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     /// </summary>
     public class NpgsqlStringMemberTranslator : IMemberTranslator
     {
-        readonly ISqlExpressionFactory _sqlExpressionFactory;
+        private readonly ISqlExpressionFactory _sqlExpressionFactory;
 
         public NpgsqlStringMemberTranslator([NotNull] ISqlExpressionFactory sqlExpressionFactory)
             => _sqlExpressionFactory = sqlExpressionFactory;
 
-        public virtual SqlExpression Translate(SqlExpression instance,
+        public virtual SqlExpression? Translate(SqlExpression? instance,
             MemberInfo member,
             Type returnType,
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)

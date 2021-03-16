@@ -50,8 +50,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             _jsonPocoTranslator = jsonPocoTranslator;
         }
 
-        public virtual SqlExpression Translate(
-            SqlExpression instance,
+        public virtual SqlExpression? Translate(
+            SqlExpression? instance,
             MethodInfo method,
             IReadOnlyList<SqlExpression> arguments,
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)
@@ -89,7 +89,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 => arrayOrList.TypeMapping is RelationalTypeMapping typeMapping &&
                    typeMapping is not (NpgsqlArrayTypeMapping or NpgsqlJsonTypeMapping);
 
-            SqlExpression TranslateCommon(SqlExpression arrayOrList, IReadOnlyList<SqlExpression> arguments)
+            SqlExpression? TranslateCommon(SqlExpression arrayOrList, IReadOnlyList<SqlExpression> arguments)
             {
                 // Predicate-less Any - translate to a simple length check.
                 if (method.IsClosedFormOf(EnumerableAnyWithoutPredicate))
@@ -169,7 +169,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             }
         }
 
-        public virtual SqlExpression Translate(SqlExpression instance,
+        public virtual SqlExpression? Translate(SqlExpression? instance,
             MemberInfo member,
             Type returnType,
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)

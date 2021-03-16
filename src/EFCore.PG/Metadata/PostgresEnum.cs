@@ -4,8 +4,8 @@ using System.Linq;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Utilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 {
@@ -47,7 +47,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         [NotNull]
         public static PostgresEnum GetOrAddPostgresEnum(
             [NotNull] IMutableAnnotatable annotatable,
-            [CanBeNull] string schema,
+            [CanBeNull] string? schema,
             [NotNull] string name,
             [NotNull] string[] labels)
         {
@@ -96,9 +96,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         /// <exception cref="ArgumentNullException"><paramref name="annotatable"/></exception>
         /// <exception cref="ArgumentNullException"><paramref name="name"/></exception>
         [CanBeNull]
-        public static PostgresEnum FindPostgresEnum(
+        public static PostgresEnum? FindPostgresEnum(
             [NotNull] IReadOnlyAnnotatable annotatable,
-            [CanBeNull] string schema,
+            [CanBeNull] string? schema,
             [NotNull] string name)
         {
             Check.NotNull(annotatable, nameof(annotatable));
@@ -111,7 +111,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         }
 
         [NotNull]
-        static string BuildAnnotationName(string schema, string name)
+        static string BuildAnnotationName(string? schema, string name)
             => schema != null
                 ? $"{NpgsqlAnnotationNames.EnumPrefix}{schema}.{name}"
                 : $"{NpgsqlAnnotationNames.EnumPrefix}{name}";
@@ -142,30 +142,30 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         /// The enum schema or null to represent the default schema.
         /// </summary>
         [CanBeNull]
-        public virtual string Schema => GetData().Schema;
+        public virtual string? Schema => GetData().Schema;
 
         /// <summary>
         /// The enum name.
         /// </summary>
         [NotNull]
-        public virtual string Name => GetData().Name;
+        public virtual string Name => GetData().Name!;
 
         /// <summary>
         /// The enum labels.
         /// </summary>
         public virtual IReadOnlyList<string> Labels
         {
-            get => GetData().Labels;
+            get => GetData().Labels!;
             [param: NotNull] set => SetData(value);
         }
 
-        (string Schema, string Name, string[] Labels) GetData()
+        (string? Schema, string? Name, string[]? Labels) GetData()
             => Deserialize(Annotatable.FindAnnotation(_annotationName));
 
         void SetData([NotNull] IEnumerable<string> labels)
             => Annotatable[_annotationName] = string.Join(",", labels);
 
-        static (string Schema, string Name, string[] Labels) Deserialize([CanBeNull] IAnnotation annotation)
+        static (string? Schema, string? Name, string[]? Labels) Deserialize([CanBeNull] IAnnotation? annotation)
         {
             if (annotation == null || !(annotation.Value is string value) || string.IsNullOrEmpty(value))
                 return (null, null, null);

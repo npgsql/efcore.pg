@@ -7,7 +7,7 @@ using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
+using Microsoft.EntityFrameworkCore.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
 {
@@ -25,7 +25,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         public PostgresNewArrayExpression(
             [NotNull] IReadOnlyList<SqlExpression> expressions,
             [NotNull] Type type,
-            [CanBeNull] RelationalTypeMapping typeMapping)
+            [CanBeNull] RelationalTypeMapping? typeMapping)
             : base(type, typeMapping)
         {
             Check.NotNull(expressions, nameof(expressions));
@@ -46,7 +46,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         {
             Check.NotNull(visitor, nameof(visitor));
 
-            List<SqlExpression> newExpressions = null;
+            List<SqlExpression>? newExpressions = null;
             for (var i = 0; i < Expressions.Count; i++)
             {
                 var expression = Expressions[i];
@@ -105,7 +105,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         }
 
         /// <inheritdoc />
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
             => obj != null
                && (ReferenceEquals(this, obj)
                    || obj is PostgresNewArrayExpression sqlBinaryExpression

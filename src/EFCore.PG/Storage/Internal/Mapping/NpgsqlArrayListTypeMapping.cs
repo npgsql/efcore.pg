@@ -48,7 +48,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                                 typeof(NpgsqlArrayConverter<,>).MakeGenericType(
                                     typeof(List<>).MakeGenericType(elementConverter.ModelClrType),
                                     elementConverter.ProviderClrType.MakeArrayType()),
-                                elementConverter)
+                                elementConverter)!
                             : null,
                         CreateComparer(elementMapping, listType)),
                     storeType
@@ -84,7 +84,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         // However, a limitation in EF Core prevents us from merging the code together, see
         // https://github.com/aspnet/EntityFrameworkCore/issues/11077
 
-        static ValueComparer CreateComparer(RelationalTypeMapping elementMapping, Type listType)
+        private static ValueComparer CreateComparer(RelationalTypeMapping elementMapping, Type listType)
         {
             Debug.Assert(listType.IsGenericType && listType.GetGenericTypeDefinition() == typeof(List<>));
 
@@ -95,10 +95,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 elementType == unwrappedType
                     ? typeof(ListComparer<>).MakeGenericType(elementType)
                     : typeof(NullableListComparer<>).MakeGenericType(unwrappedType),
-                elementMapping);
+                elementMapping)!;
         }
 
-        sealed class ListComparer<TElem> : ValueComparer<List<TElem>>
+        private sealed class ListComparer<TElem> : ValueComparer<List<TElem>>
         {
             public ListComparer(RelationalTypeMapping elementMapping)
                 : base(
@@ -108,10 +108,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
             public override Type Type => typeof(List<TElem>);
 
-            static bool Compare(List<TElem> a, List<TElem> b, ValueComparer<TElem> elementComparer)
+            private static bool Compare(List<TElem>? a, List<TElem>? b, ValueComparer<TElem> elementComparer)
             {
-                if (a.Count != b.Count)
+                if (a is null)
+                {
+                    return b is null;
+                }
+
+                if (b is null || a.Count != b.Count)
+                {
                     return false;
+                }
 
                 // Note: the following currently boxes every element access because ValueComparer isn't really
                 // generic (see https://github.com/aspnet/EntityFrameworkCore/issues/11072)
@@ -122,7 +129,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 return true;
             }
 
-            static int GetHashCode(List<TElem> source, ValueComparer<TElem> elementComparer)
+            private static int GetHashCode(List<TElem> source, ValueComparer<TElem> elementComparer)
             {
                 var hash = new HashCode();
                 foreach (var el in source)
@@ -130,7 +137,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 return hash.ToHashCode();
             }
 
-            static List<TElem> Snapshot(List<TElem> source, ValueComparer<TElem> elementComparer)
+            private static List<TElem>? Snapshot(List<TElem>? source, ValueComparer<TElem> elementComparer)
             {
                 if (source == null)
                     return null;
@@ -140,13 +147,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 // Note: the following currently boxes every element access because ValueComparer isn't really
                 // generic (see https://github.com/aspnet/EntityFrameworkCore/issues/11072)
                 foreach (var e in source)
-                    snapshot.Add(elementComparer.Snapshot(e));
+                    snapshot.Add(elementComparer.Snapshot(e)!); // TODO: https://github.com/dotnet/efcore/pull/24410
 
                 return snapshot;
             }
         }
 
-        sealed class NullableListComparer<TElem> : ValueComparer<List<TElem?>>
+        private sealed class NullableListComparer<TElem> : ValueComparer<List<TElem?>>
             where TElem : struct
         {
             public NullableListComparer(RelationalTypeMapping elementMapping)
@@ -157,10 +164,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
             public override Type Type => typeof(List<TElem?>);
 
-            static bool Compare(List<TElem?> a, List<TElem?> b, ValueComparer<TElem> elementComparer)
+            private static bool Compare(List<TElem?>? a, List<TElem?>? b, ValueComparer<TElem> elementComparer)
             {
-                if (a.Count != b.Count)
+                if (a is null)
+                {
+                    return b is null;
+                }
+
+                if (b is null || a.Count != b.Count)
+                {
                     return false;
+                }
 
                 // Note: the following currently boxes every element access because ValueComparer isn't really
                 // generic (see https://github.com/aspnet/EntityFrameworkCore/issues/11072)
@@ -180,7 +194,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 return true;
             }
 
-            static int GetHashCode(List<TElem?> source, ValueComparer<TElem> elementComparer)
+            private static int GetHashCode(List<TElem?> source, ValueComparer<TElem> elementComparer)
             {
                 var nullableEqualityComparer = new NullableEqualityComparer<TElem>(elementComparer);
                 var hash = new HashCode();
@@ -189,7 +203,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 return hash.ToHashCode();
             }
 
-            static List<TElem?> Snapshot(List<TElem?> source, ValueComparer<TElem> elementComparer)
+            static List<TElem?>? Snapshot(List<TElem?>? source, ValueComparer<TElem> elementComparer)
             {
                 if (source == null)
                     return null;

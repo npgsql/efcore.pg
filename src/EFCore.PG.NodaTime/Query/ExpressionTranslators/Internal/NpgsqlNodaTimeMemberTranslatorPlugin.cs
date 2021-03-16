@@ -44,7 +44,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
         /// The static member info for <see cref="T:SystemClock.Instance"/>.
         /// </summary>
         [NotNull] static readonly MemberInfo Instance =
-            typeof(SystemClock).GetRuntimeProperty(nameof(SystemClock.Instance));
+            typeof(SystemClock).GetRuntimeProperty(nameof(SystemClock.Instance))!;
 
         public NpgsqlNodaTimeMemberTranslator([NotNull] ISqlExpressionFactory sqlExpressionFactory)
             => _sqlExpressionFactory = sqlExpressionFactory;
@@ -57,8 +57,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
         };
 
         /// <inheritdoc />
-        public virtual SqlExpression Translate(
-            SqlExpression instance,
+        public virtual SqlExpression? Translate(
+            SqlExpression? instance,
             MemberInfo member,
             Type returnType,
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)
@@ -68,10 +68,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
                 return _sqlExpressionFactory.Constant(SystemClock.Instance);
 
             var declaringType = member.DeclaringType;
-            if (declaringType == typeof(LocalDateTime) ||
-                declaringType == typeof(LocalDate) ||
-                declaringType == typeof(LocalTime) ||
-                declaringType == typeof(Period))
+            if (instance is not null
+                && (declaringType == typeof(LocalDateTime)
+                    || declaringType == typeof(LocalDate)
+                    || declaringType == typeof(LocalTime)
+                    || declaringType == typeof(Period)))
             {
                 return TranslateDateTime(instance, member, returnType);
             }
@@ -87,7 +88,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
         /// The translated expression or null.
         /// </returns>
         [CanBeNull]
-        SqlExpression TranslateDateTime(SqlExpression instance, MemberInfo member, Type returnType)
+        SqlExpression? TranslateDateTime(SqlExpression instance, MemberInfo member, Type returnType)
         {
             switch (member.Name)
             {

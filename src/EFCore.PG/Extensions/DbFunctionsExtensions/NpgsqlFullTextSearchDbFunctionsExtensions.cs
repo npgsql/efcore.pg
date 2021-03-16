@@ -15,7 +15,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// https://www.postgresql.org/docs/current/static/functions-textsearch.html
         /// </remarks>
-        public static NpgsqlTsVector ArrayToTsVector([CanBeNull] this DbFunctions _, [NotNull] string[] lexemes)
+        public static NpgsqlTsVector ArrayToTsVector([NotNull] this DbFunctions _, [NotNull] string[] lexemes)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(ArrayToTsVector)));
 
         /// <summary>
@@ -24,7 +24,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-DOCUMENTS
         /// </remarks>
-        public static NpgsqlTsVector ToTsVector([CanBeNull] this DbFunctions _, [NotNull] string document)
+        public static NpgsqlTsVector ToTsVector([NotNull] this DbFunctions _, [NotNull] string document)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(ToTsVector)));
 
         /// <summary>
@@ -35,7 +35,7 @@ namespace Microsoft.EntityFrameworkCore
         /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-DOCUMENTS
         /// </remarks>
         public static NpgsqlTsVector ToTsVector(
-            [CanBeNull] this DbFunctions _,
+            [NotNull] this DbFunctions _,
             [NotNull] string config,
             [NotNull] string document)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(ToTsVector)));
@@ -46,7 +46,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES
         /// </remarks>
-        public static NpgsqlTsQuery PlainToTsQuery([CanBeNull] this DbFunctions _, [NotNull] string query)
+        public static NpgsqlTsQuery PlainToTsQuery([NotNull] this DbFunctions _, [NotNull] string query)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(PlainToTsQuery)));
 
         /// <summary>
@@ -57,7 +57,7 @@ namespace Microsoft.EntityFrameworkCore
         /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES
         /// </remarks>
         public static NpgsqlTsQuery PlainToTsQuery(
-            [CanBeNull] this DbFunctions _,
+            [NotNull] this DbFunctions _,
             [NotNull] string config,
             [NotNull] string query)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(PlainToTsQuery)));
@@ -68,7 +68,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES
         /// </remarks>
-        public static NpgsqlTsQuery PhraseToTsQuery([CanBeNull] this DbFunctions _, [NotNull] string query)
+        public static NpgsqlTsQuery PhraseToTsQuery([NotNull] this DbFunctions _, [NotNull] string query)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(PhraseToTsQuery)));
 
         /// <summary>
@@ -79,7 +79,7 @@ namespace Microsoft.EntityFrameworkCore
         /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES
         /// </remarks>
         public static NpgsqlTsQuery PhraseToTsQuery(
-            [CanBeNull] this DbFunctions _,
+            [NotNull] this DbFunctions _,
             [NotNull] string config,
             [NotNull] string query)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(PhraseToTsQuery)));
@@ -92,7 +92,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES
         /// </remarks>
-        public static NpgsqlTsQuery ToTsQuery([CanBeNull] this DbFunctions _, [NotNull] string query)
+        public static NpgsqlTsQuery ToTsQuery([NotNull] this DbFunctions _, [NotNull] string query)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(ToTsQuery)));
 
         /// <summary>
@@ -105,7 +105,7 @@ namespace Microsoft.EntityFrameworkCore
         /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES
         /// </remarks>
         public static NpgsqlTsQuery ToTsQuery(
-            [CanBeNull] this DbFunctions _,
+            [NotNull] this DbFunctions _,
             [NotNull] string config,
             [NotNull] string query)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(ToTsQuery)));
@@ -116,7 +116,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES
         /// </remarks>
-        public static NpgsqlTsQuery WebSearchToTsQuery([CanBeNull] this DbFunctions _, [NotNull] string query)
+        public static NpgsqlTsQuery WebSearchToTsQuery([NotNull] this DbFunctions _, [NotNull] string query)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(WebSearchToTsQuery)));
 
         /// <summary>
@@ -127,7 +127,7 @@ namespace Microsoft.EntityFrameworkCore
         /// http://www.postgresql.org/docs/current/static/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES
         /// </remarks>
         public static NpgsqlTsQuery WebSearchToTsQuery(
-            [CanBeNull] this DbFunctions _,
+            [NotNull] this DbFunctions _,
             [NotNull] string config,
             [NotNull] string query)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(WebSearchToTsQuery)));
@@ -140,11 +140,11 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="text">The text to remove the diacritics.</param>
         /// <remarks>
         /// <para>The method call is translated to <c>unaccent(regdictionary, text)</c>.</para>
-        /// 
+        ///
         /// See https://www.postgresql.org/docs/current/unaccent.html.
         /// </remarks>
         /// <returns>A string without diacritics.</returns>
-        public static string Unaccent([CanBeNull] this DbFunctions _, [NotNull] string regDictionary, [CanBeNull] string text)
+        public static string Unaccent([NotNull] this DbFunctions _, [NotNull] string regDictionary, [NotNull] string text)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Unaccent)));
 
         /// <summary>
@@ -158,7 +158,7 @@ namespace Microsoft.EntityFrameworkCore
         /// See https://www.postgresql.org/docs/current/unaccent.html.
         /// </remarks>
         /// <returns>A string without diacritics.</returns>
-        public static string Unaccent([CanBeNull] this DbFunctions _, [CanBeNull] string text)
+        public static string Unaccent([NotNull] this DbFunctions _, [NotNull] string text)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Unaccent)));
     }
 }

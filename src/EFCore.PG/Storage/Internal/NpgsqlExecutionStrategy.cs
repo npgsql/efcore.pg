@@ -19,7 +19,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         public virtual TResult Execute<TState, TResult>(
             TState state,
             Func<DbContext, TState, TResult> operation,
-            Func<DbContext, TState, ExecutionResult<TResult>> verifySucceeded)
+            Func<DbContext, TState, ExecutionResult<TResult>>? verifySucceeded)
         {
             try
             {
@@ -34,7 +34,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         public virtual async Task<TResult> ExecuteAsync<TState, TResult>(
             TState state,
             Func<DbContext, TState, CancellationToken, Task<TResult>> operation,
-            Func<DbContext, TState, CancellationToken, Task<ExecutionResult<TResult>>> verifySucceeded,
+            Func<DbContext, TState, CancellationToken, Task<ExecutionResult<TResult>>>? verifySucceeded,
             CancellationToken cancellationToken)
         {
             try

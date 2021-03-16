@@ -5,8 +5,6 @@ using System.Reflection;
 using JetBrains.Annotations;
 using CA = System.Diagnostics.CodeAnalysis;
 
-#nullable enable
-
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Utilities
 {
     // Most of the code here is common with EF Core's NonNullableConventionBase

@@ -12,9 +12,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 {
     public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationalConnection
     {
-        private ProvideClientCertificatesCallback ProvideClientCertificatesCallback { get; }
-        private RemoteCertificateValidationCallback RemoteCertificateValidationCallback { get; }
-        private ProvidePasswordCallback ProvidePasswordCallback { get; }
+        private ProvideClientCertificatesCallback? ProvideClientCertificatesCallback { get; }
+        private RemoteCertificateValidationCallback? RemoteCertificateValidationCallback { get; }
+        private ProvidePasswordCallback? ProvidePasswordCallback { get; }
 
         /// <summary>
         ///     Indicates whether the store connection supports ambient transactions
@@ -27,9 +27,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             var npgsqlOptions =
                 dependencies.ContextOptions.Extensions.OfType<NpgsqlOptionsExtension>().FirstOrDefault();
 
-            ProvideClientCertificatesCallback = npgsqlOptions.ProvideClientCertificatesCallback;
-            RemoteCertificateValidationCallback = npgsqlOptions.RemoteCertificateValidationCallback;
-            ProvidePasswordCallback = npgsqlOptions.ProvidePasswordCallback;
+            if (npgsqlOptions is not null)
+            {
+                ProvideClientCertificatesCallback = npgsqlOptions.ProvideClientCertificatesCallback;
+                RemoteCertificateValidationCallback = npgsqlOptions.RemoteCertificateValidationCallback;
+                ProvidePasswordCallback = npgsqlOptions.ProvidePasswordCallback;
+            }
         }
 
         protected override DbConnection CreateDbConnection()
@@ -74,7 +77,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         }
 
         // Accessing Transaction.Current is expensive, so don't do it if Enlist is false in the connection string
-        public override Transaction CurrentAmbientTransaction
+        public override Transaction? CurrentAmbientTransaction
             => DbConnection.Settings.Enlist ? Transaction.Current : null;
 
         public virtual NpgsqlRelationalConnection CloneWith(string connectionString)

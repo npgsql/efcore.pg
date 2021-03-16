@@ -8,7 +8,7 @@ namespace System.Reflection
     internal static class PropertyInfoExtensions
     {
         public static bool IsStatic(this PropertyInfo property)
-            => (property.GetMethod ?? property.SetMethod).IsStatic;
+            => (property.GetMethod ?? property.SetMethod)!.IsStatic;
 
         public static bool IsIndexerProperty([NotNull] this PropertyInfo propertyInfo)
         {

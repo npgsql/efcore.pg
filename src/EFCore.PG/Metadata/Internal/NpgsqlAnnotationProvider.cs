@@ -87,8 +87,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
 
                 yield return new Annotation(
                     NpgsqlAnnotationNames.TsVectorProperties,
-                    valueGeneratedProperty.GetTsVectorProperties()
-                        .Select(p2 => valueGeneratedProperty.DeclaringEntityType.FindProperty(p2).GetColumnName(tableIdentifier))
+                    valueGeneratedProperty.GetTsVectorProperties()!
+                        .Select(p2 => valueGeneratedProperty.DeclaringEntityType.FindProperty(p2)!.GetColumnName(tableIdentifier))
                         .ToArray());
             }
         }
@@ -118,7 +118,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
                 yield return new Annotation(
                     NpgsqlAnnotationNames.IndexInclude,
                     includeProperties
-                        .Select(p => modelIndex.DeclaringEntityType.FindProperty(p).GetColumnName(tableIdentifier))
+                        .Select(p => modelIndex.DeclaringEntityType.FindProperty(p)!.GetColumnName(tableIdentifier))
                         .ToArray());
             }
 

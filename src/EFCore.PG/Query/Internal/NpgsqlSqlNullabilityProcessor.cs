@@ -1,13 +1,11 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
+using Microsoft.EntityFrameworkCore.Utilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
@@ -15,7 +13,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
     /// <inheritdoc />
     public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
     {
-        readonly ISqlExpressionFactory _sqlExpressionFactory;
+        private readonly ISqlExpressionFactory _sqlExpressionFactory;
 
         /// <summary>
         /// Creates a new instance of the <see cref="NpgsqlSqlNullabilityProcessor" /> class.
@@ -172,7 +170,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             var array = Visit(arrayIndexExpression.Array, allowOptimizedExpansion, out var arrayNullable);
             var index = Visit(arrayIndexExpression.Index, allowOptimizedExpansion, out var indexNullable);
 
-            nullable = arrayNullable || indexNullable || ((NpgsqlArrayTypeMapping)arrayIndexExpression.Array.TypeMapping).IsElementNullable;
+            nullable = arrayNullable || indexNullable || ((NpgsqlArrayTypeMapping)arrayIndexExpression.Array.TypeMapping!).IsElementNullable;
 
             return arrayIndexExpression.Update(array, index);
         }
@@ -250,7 +248,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         {
             Check.NotNull(newArrayExpression, nameof(newArrayExpression));
 
-            List<SqlExpression> newInitializers = null;
+            List<SqlExpression>? newInitializers = null;
             for (var i = 0; i < newArrayExpression.Expressions.Count; i++)
             {
                 var initializer = newArrayExpression.Expressions[i];
@@ -310,7 +308,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 
             var expression = Visit(jsonTraversalExpression.Expression, out nullable);
 
-            List<SqlExpression> newPath = null;
+            List<SqlExpression>? newPath = null;
             for (var i = 0; i < jsonTraversalExpression.Path.Count; i++)
             {
                 var pathComponent = jsonTraversalExpression.Path[i];

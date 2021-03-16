@@ -4,8 +4,8 @@ using System.Linq;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Utilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 {
@@ -46,9 +46,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         [NotNull]
         public static PostgresExtension GetOrAddPostgresExtension(
             [NotNull] IMutableAnnotatable annotatable,
-            [CanBeNull] string schema,
+            [CanBeNull] string? schema,
             [NotNull] string name,
-            [CanBeNull] string version)
+            [CanBeNull] string? version)
         {
             Check.NotNull(annotatable, nameof(annotatable));
             Check.NullButNotEmpty(schema, nameof(schema));
@@ -77,7 +77,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         public static PostgresExtension GetOrAddPostgresExtension(
             [NotNull] IMutableAnnotatable annotatable,
             [NotNull] string name,
-            [CanBeNull] string version)
+            [CanBeNull] string? version)
             => GetOrAddPostgresExtension(annotatable, null, name, version);
 
         /// <summary>
@@ -93,9 +93,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         /// <exception cref="ArgumentNullException"><paramref name="annotatable"/></exception>
         /// <exception cref="ArgumentNullException"><paramref name="name"/></exception>
         [CanBeNull]
-        public static PostgresExtension FindPostgresExtension(
+        public static PostgresExtension? FindPostgresExtension(
             [NotNull] IReadOnlyAnnotatable annotatable,
-            [CanBeNull] string schema,
+            [CanBeNull] string? schema,
             [NotNull] string name)
         {
             Check.NotNull(annotatable, nameof(annotatable));
@@ -108,7 +108,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         }
 
         [NotNull]
-        static string BuildAnnotationName(string schema, string name)
+        static string BuildAnnotationName(string? schema, string name)
             => schema != null
                 ? $"{NpgsqlAnnotationNames.PostgresExtensionPrefix}{schema}.{name}"
                 : $"{NpgsqlAnnotationNames.PostgresExtensionPrefix}{name}";
@@ -139,33 +139,33 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         /// The extension schema or null to represent the default schema.
         /// </summary>
         [CanBeNull]
-        public virtual string Schema => GetData().Schema;
+        public virtual string? Schema => GetData().Schema;
 
         /// <summary>
         /// The extension name.
         /// </summary>
         [NotNull]
-        public virtual string Name => GetData().Name;
+        public virtual string Name => GetData().Name!;
 
         /// <summary>
         /// The extension version.
         /// </summary>
-        public virtual string Version
+        public virtual string? Version
         {
             get => GetData().Version;
             [param: CanBeNull] set => SetData(value);
         }
 
-        (string Schema, string Name, string Version) GetData()
-            => Deserialize(Annotatable.FindAnnotation(_annotationName));
+        (string? Schema, string? Name, string? Version) GetData()
+            => Deserialize(Annotatable.FindAnnotation(_annotationName)!);
 
-        void SetData([CanBeNull] string version)
+        void SetData([CanBeNull] string? version)
         {
             var data = GetData();
             Annotatable[_annotationName] = $"{data.Schema},{data.Name},{version}";
         }
 
-        static (string Schema, string Name, string Version) Deserialize([CanBeNull] IAnnotation annotation)
+        static (string? Schema, string? Name, string? Version) Deserialize([CanBeNull] IAnnotation? annotation)
         {
             if (annotation == null || !(annotation.Value is string value) || string.IsNullOrEmpty(value))
                 return (null, null, null);

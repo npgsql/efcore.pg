@@ -1,7 +1,7 @@
 ﻿using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Utilities;
 using Microsoft.EntityFrameworkCore.ValueGeneration;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
 {

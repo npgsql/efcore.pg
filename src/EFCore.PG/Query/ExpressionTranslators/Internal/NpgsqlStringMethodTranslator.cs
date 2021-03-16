@@ -23,46 +23,46 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     public class NpgsqlStringMethodTranslator : IMethodCallTranslator
     {
         // Note: This is the PostgreSQL default and does not need to be explicitly specified
-        const char LikeEscapeChar = '\\';
+        private const char LikeEscapeChar = '\\';
 
-        readonly ISqlExpressionFactory _sqlExpressionFactory;
-        readonly SqlConstantExpression _whitespace;
-        readonly RelationalTypeMapping _textTypeMapping;
+        private readonly ISqlExpressionFactory _sqlExpressionFactory;
+        private readonly SqlConstantExpression _whitespace;
+        private readonly RelationalTypeMapping _textTypeMapping;
 
         #region MethodInfo
 
-        static readonly MethodInfo Contains                = typeof(string).GetRuntimeMethod(nameof(string.Contains), new[] { typeof(string) });
-        static readonly MethodInfo DbFunctionsReverse      = typeof(NpgsqlDbFunctionsExtensions).GetRuntimeMethod(nameof(NpgsqlDbFunctionsExtensions.Reverse), new[] { typeof(DbFunctions), typeof(string) });
-        static readonly MethodInfo EndsWith                = typeof(string).GetRuntimeMethod(nameof(string.EndsWith), new[] { typeof(string) });
-        static readonly MethodInfo IndexOfChar             = typeof(string).GetRuntimeMethod(nameof(string.IndexOf), new[] { typeof(char) });
-        static readonly MethodInfo IndexOfString           = typeof(string).GetRuntimeMethod(nameof(string.IndexOf), new[] { typeof(string) });
-        static readonly MethodInfo IsNullOrWhiteSpace      = typeof(string).GetRuntimeMethod(nameof(string.IsNullOrWhiteSpace), new[] { typeof(string) });
-        static readonly MethodInfo PadLeft                 = typeof(string).GetRuntimeMethod(nameof(string.PadLeft), new[] { typeof(int) });
-        static readonly MethodInfo PadLeftWithChar         = typeof(string).GetRuntimeMethod(nameof(string.PadLeft), new[] { typeof(int), typeof(char) });
-        static readonly MethodInfo PadRight                = typeof(string).GetRuntimeMethod(nameof(string.PadRight), new[] { typeof(int) });
-        static readonly MethodInfo PadRightWithChar        = typeof(string).GetRuntimeMethod(nameof(string.PadRight), new[] { typeof(int), typeof(char) });
-        static readonly MethodInfo Replace                 = typeof(string).GetRuntimeMethod(nameof(string.Replace), new[] { typeof(string), typeof(string) });
-        static readonly MethodInfo StartsWith              = typeof(string).GetRuntimeMethod(nameof(string.StartsWith), new[] { typeof(string) });
-        static readonly MethodInfo Substring               = typeof(string).GetTypeInfo().GetDeclaredMethods(nameof(string.Substring)).Single(m => m.GetParameters().Length == 1);
-        static readonly MethodInfo SubstringWithLength     = typeof(string).GetTypeInfo().GetDeclaredMethods(nameof(string.Substring)).Single(m => m.GetParameters().Length == 2);
-        static readonly MethodInfo ToLower                 = typeof(string).GetRuntimeMethod(nameof(string.ToLower), Array.Empty<Type>());
-        static readonly MethodInfo ToUpper                 = typeof(string).GetRuntimeMethod(nameof(string.ToUpper), Array.Empty<Type>());
-        static readonly MethodInfo TrimBothWithNoParam     = typeof(string).GetRuntimeMethod(nameof(string.Trim), Type.EmptyTypes);
-        static readonly MethodInfo TrimBothWithChars       = typeof(string).GetRuntimeMethod(nameof(string.Trim), new[] { typeof(char[]) });
-        static readonly MethodInfo TrimBothWithSingleChar  = typeof(string).GetRuntimeMethod(nameof(string.Trim), new[] { typeof(char) });
-        static readonly MethodInfo TrimEndWithNoParam      = typeof(string).GetRuntimeMethod(nameof(string.TrimEnd), new Type[0]);
-        static readonly MethodInfo TrimEndWithChars        = typeof(string).GetRuntimeMethod(nameof(string.TrimEnd), new[] { typeof(char[]) });
-        static readonly MethodInfo TrimEndWithSingleChar   = typeof(string).GetRuntimeMethod(nameof(string.TrimEnd), new[] { typeof(char) });
-        static readonly MethodInfo TrimStartWithNoParam    = typeof(string).GetRuntimeMethod(nameof(string.TrimStart), new Type[0]);
-        static readonly MethodInfo TrimStartWithChars      = typeof(string).GetRuntimeMethod(nameof(string.TrimStart), new[] { typeof(char[]) });
-        static readonly MethodInfo TrimStartWithSingleChar = typeof(string).GetRuntimeMethod(nameof(string.TrimStart), new[] { typeof(char) });
+        private static readonly MethodInfo Contains                = typeof(string).GetRuntimeMethod(nameof(string.Contains), new[] { typeof(string) })!;
+        private static readonly MethodInfo DbFunctionsReverse      = typeof(NpgsqlDbFunctionsExtensions).GetRuntimeMethod(nameof(NpgsqlDbFunctionsExtensions.Reverse), new[] { typeof(DbFunctions), typeof(string) })!;
+        private static readonly MethodInfo EndsWith                = typeof(string).GetRuntimeMethod(nameof(string.EndsWith), new[] { typeof(string) })!;
+        private static readonly MethodInfo IndexOfChar             = typeof(string).GetRuntimeMethod(nameof(string.IndexOf), new[] { typeof(char) })!;
+        private static readonly MethodInfo IndexOfString           = typeof(string).GetRuntimeMethod(nameof(string.IndexOf), new[] { typeof(string) })!;
+        private static readonly MethodInfo IsNullOrWhiteSpace      = typeof(string).GetRuntimeMethod(nameof(string.IsNullOrWhiteSpace), new[] { typeof(string) })!;
+        private static readonly MethodInfo PadLeft                 = typeof(string).GetRuntimeMethod(nameof(string.PadLeft), new[] { typeof(int) })!;
+        private static readonly MethodInfo PadLeftWithChar         = typeof(string).GetRuntimeMethod(nameof(string.PadLeft), new[] { typeof(int), typeof(char) })!;
+        private static readonly MethodInfo PadRight                = typeof(string).GetRuntimeMethod(nameof(string.PadRight), new[] { typeof(int) })!;
+        private static readonly MethodInfo PadRightWithChar        = typeof(string).GetRuntimeMethod(nameof(string.PadRight), new[] { typeof(int), typeof(char) })!;
+        private static readonly MethodInfo Replace                 = typeof(string).GetRuntimeMethod(nameof(string.Replace), new[] { typeof(string), typeof(string) })!;
+        private static readonly MethodInfo StartsWith              = typeof(string).GetRuntimeMethod(nameof(string.StartsWith), new[] { typeof(string) })!;
+        private static readonly MethodInfo Substring               = typeof(string).GetTypeInfo().GetDeclaredMethods(nameof(string.Substring)).Single(m => m.GetParameters().Length == 1);
+        private static readonly MethodInfo SubstringWithLength     = typeof(string).GetTypeInfo().GetDeclaredMethods(nameof(string.Substring)).Single(m => m.GetParameters().Length == 2);
+        private static readonly MethodInfo ToLower                 = typeof(string).GetRuntimeMethod(nameof(string.ToLower), Array.Empty<Type>())!;
+        private static readonly MethodInfo ToUpper                 = typeof(string).GetRuntimeMethod(nameof(string.ToUpper), Array.Empty<Type>())!;
+        private static readonly MethodInfo TrimBothWithNoParam     = typeof(string).GetRuntimeMethod(nameof(string.Trim), Type.EmptyTypes)!;
+        private static readonly MethodInfo TrimBothWithChars       = typeof(string).GetRuntimeMethod(nameof(string.Trim), new[] { typeof(char[]) })!;
+        private static readonly MethodInfo TrimBothWithSingleChar  = typeof(string).GetRuntimeMethod(nameof(string.Trim), new[] { typeof(char) })!;
+        private static readonly MethodInfo TrimEndWithNoParam      = typeof(string).GetRuntimeMethod(nameof(string.TrimEnd), new Type[0])!;
+        private static readonly MethodInfo TrimEndWithChars        = typeof(string).GetRuntimeMethod(nameof(string.TrimEnd), new[] { typeof(char[]) })!;
+        private static readonly MethodInfo TrimEndWithSingleChar   = typeof(string).GetRuntimeMethod(nameof(string.TrimEnd), new[] { typeof(char) })!;
+        private static readonly MethodInfo TrimStartWithNoParam    = typeof(string).GetRuntimeMethod(nameof(string.TrimStart), new Type[0])!;
+        private static readonly MethodInfo TrimStartWithChars      = typeof(string).GetRuntimeMethod(nameof(string.TrimStart), new[] { typeof(char[]) })!;
+        private static readonly MethodInfo TrimStartWithSingleChar = typeof(string).GetRuntimeMethod(nameof(string.TrimStart), new[] { typeof(char) })!;
 
-        static readonly MethodInfo FirstOrDefaultMethodInfoWithoutArgs
+        private static readonly MethodInfo FirstOrDefaultMethodInfoWithoutArgs
             = typeof(Enumerable).GetRuntimeMethods().Single(
                 m => m.Name == nameof(Enumerable.FirstOrDefault)
                      && m.GetParameters().Length == 1).MakeGenericMethod(typeof(char));
 
-        static readonly MethodInfo LastOrDefaultMethodInfoWithoutArgs
+        private static readonly MethodInfo LastOrDefaultMethodInfoWithoutArgs
             = typeof(Enumerable).GetRuntimeMethods().Single(
                 m => m.Name == nameof(Enumerable.LastOrDefault)
                      && m.GetParameters().Length == 1).MakeGenericMethod(typeof(char));
@@ -77,11 +77,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             _whitespace = _sqlExpressionFactory.Constant(
                 @" \t\n\r",  // TODO: Complete this
                 typeMappingSource.EStringTypeMapping);
-            _textTypeMapping = (RelationalTypeMapping)typeMappingSource.FindMapping(typeof(string));
+            _textTypeMapping = (RelationalTypeMapping)typeMappingSource.FindMapping(typeof(string))!;
         }
 
-        public virtual SqlExpression Translate(
-            SqlExpression instance,
+        public virtual SqlExpression? Translate(
+            SqlExpression? instance,
             MethodInfo method,
             IReadOnlyList<SqlExpression> arguments,
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)
@@ -89,14 +89,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             if (method == IndexOfString || method == IndexOfChar)
             {
                 var argument = arguments[0];
-                var stringTypeMapping = ExpressionExtensions.InferTypeMapping(instance, argument);
+                var stringTypeMapping = ExpressionExtensions.InferTypeMapping(instance!, argument);
 
                 return _sqlExpressionFactory.Subtract(
                     _sqlExpressionFactory.Function(
                         "strpos",
                         new[]
                         {
-                            _sqlExpressionFactory.ApplyTypeMapping(instance, stringTypeMapping),
+                            _sqlExpressionFactory.ApplyTypeMapping(instance!, stringTypeMapping),
                             _sqlExpressionFactory.ApplyTypeMapping(argument, stringTypeMapping)
                         },
                         nullable: true,
@@ -109,13 +109,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             {
                 var oldValue = arguments[0];
                 var newValue = arguments[1];
-                var stringTypeMapping = ExpressionExtensions.InferTypeMapping(instance, oldValue, newValue);
+                var stringTypeMapping = ExpressionExtensions.InferTypeMapping(instance!, oldValue, newValue);
 
                 return _sqlExpressionFactory.Function(
                     "replace",
                     new[]
                     {
-                        _sqlExpressionFactory.ApplyTypeMapping(instance, stringTypeMapping),
+                        _sqlExpressionFactory.ApplyTypeMapping(instance!, stringTypeMapping),
                         _sqlExpressionFactory.ApplyTypeMapping(oldValue, stringTypeMapping),
                         _sqlExpressionFactory.ApplyTypeMapping(newValue, stringTypeMapping)
                     },
@@ -129,26 +129,26 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             {
                 return _sqlExpressionFactory.Function(
                     method == ToLower ? "lower" : "upper",
-                    new[] { instance },
+                    new[] { instance! },
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[1],
                     method.ReturnType,
-                    instance.TypeMapping);
+                    instance!.TypeMapping);
             }
 
             if (method == Substring || method == SubstringWithLength)
             {
                 var args =
                     method == Substring
-                        ? new[] { instance, GenerateOneBasedIndexExpression(arguments[0]) }
-                        : new[] { instance, GenerateOneBasedIndexExpression(arguments[0]), arguments[1] };
+                        ? new[] { instance!, GenerateOneBasedIndexExpression(arguments[0]) }
+                        : new[] { instance!, GenerateOneBasedIndexExpression(arguments[0]), arguments[1] };
                 return _sqlExpressionFactory.Function(
                     "substring",
                     args,
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[args.Length],
                     method.ReturnType,
-                    instance.TypeMapping);
+                    instance!.TypeMapping);
             }
 
             if (method == IsNullOrWhiteSpace)
@@ -177,7 +177,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             var isTrimBoth  = method == TrimBothWithNoParam  || method == TrimBothWithChars  || method == TrimBothWithSingleChar;
             if (isTrimStart || isTrimEnd || isTrimBoth)
             {
-                char[] trimChars = null;
+                char[]? trimChars = null;
 
                 if (method == TrimStartWithChars || method == TrimStartWithSingleChar ||
                     method == TrimEndWithChars   || method == TrimEndWithSingleChar   ||
@@ -189,28 +189,28 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
                     trimChars = constantTrimChars.Value is char c
                         ? new[] { c }
-                        : (char[])constantTrimChars.Value;
+                        : (char[]?)constantTrimChars.Value;
                 }
 
                 return _sqlExpressionFactory.Function(
                     isTrimStart ? "ltrim" : isTrimEnd ? "rtrim" : "btrim",
                     new[]
                     {
-                        instance,
+                        instance!,
                         trimChars == null || trimChars.Length == 0
                             ? _whitespace
                             : _sqlExpressionFactory.Constant(new string(trimChars))
                     },
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[2],
-                    instance.Type,
+                    instance!.Type,
                     instance.TypeMapping);
             }
 
             if (method == Contains)
             {
                 var pattern = arguments[0];
-                var stringTypeMapping = ExpressionExtensions.InferTypeMapping(instance, pattern);
+                var stringTypeMapping = ExpressionExtensions.InferTypeMapping(instance!, pattern);
                 instance = _sqlExpressionFactory.ApplyTypeMapping(instance, stringTypeMapping);
                 pattern = _sqlExpressionFactory.ApplyTypeMapping(pattern, stringTypeMapping);
 
@@ -219,7 +219,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                         "strpos",
                         new[]
                         {
-                            _sqlExpressionFactory.ApplyTypeMapping(instance, stringTypeMapping),
+                            _sqlExpressionFactory.ApplyTypeMapping(instance!, stringTypeMapping),
                             _sqlExpressionFactory.ApplyTypeMapping(pattern, stringTypeMapping)
                         },
                         nullable: true,
@@ -229,7 +229,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
                 if (pattern is SqlConstantExpression constantPattern)
                 {
-                    return (string)constantPattern.Value == string.Empty
+                    return (string?)constantPattern.Value == string.Empty
                         ? (SqlExpression)_sqlExpressionFactory.Constant(true)
                         : strposCheck;
                 }
@@ -245,15 +245,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             {
                 var args =
                     method == PadLeft || method == PadRight
-                        ? new[] { instance, arguments[0] }
-                        : new[] { instance, arguments[0], arguments[1] };
+                        ? new[] { instance!, arguments[0] }
+                        : new[] { instance!, arguments[0], arguments[1] };
 
                 return _sqlExpressionFactory.Function(
                     method == PadLeft || method == PadLeftWithChar ? "lpad" : "rpad",
                     args,
                     nullable: true,
                     argumentsPropagateNullability: TrueArrays[args.Length],
-                    instance.Type,
+                    instance!.Type,
                     instance.TypeMapping);
             }
 
@@ -302,9 +302,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             }
 
             if (method == StartsWith)
-                return TranslateStartsEndsWith(instance, arguments[0], true);
+                return TranslateStartsEndsWith(instance!, arguments[0], true);
             if (method == EndsWith)
-                return TranslateStartsEndsWith(instance, arguments[0], false);
+                return TranslateStartsEndsWith(instance!, arguments[0], false);
 
             return null;
         }

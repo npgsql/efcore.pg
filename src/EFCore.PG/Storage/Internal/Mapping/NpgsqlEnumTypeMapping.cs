@@ -20,10 +20,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
         public NpgsqlEnumTypeMapping(
             [NotNull] string storeType,
-            [CanBeNull] string storeTypeSchema,
+            [CanBeNull] string? storeTypeSchema,
             [NotNull] Type enumType,
             [NotNull] ISqlGenerationHelper sqlGenerationHelper,
-            [CanBeNull] INpgsqlNameTranslator nameTranslator = null)
+            [CanBeNull] INpgsqlNameTranslator? nameTranslator = null)
             : base(sqlGenerationHelper.DelimitIdentifier(storeType, storeTypeSchema), enumType)
         {
             if (!enumType.IsEnum || !enumType.IsValueType)
@@ -56,7 +56,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         static Dictionary<object, string> CreateValueMapping([NotNull] Type enumType, [NotNull] INpgsqlNameTranslator nameTranslator)
             => enumType.GetFields(BindingFlags.Static | BindingFlags.Public)
                        .ToDictionary(
-                           x => x.GetValue(null),
+                           x => x.GetValue(null)!,
                            x => x.GetCustomAttribute<PgNameAttribute>()?.PgName ?? nameTranslator.TranslateMemberName(x.Name));
     }
 }

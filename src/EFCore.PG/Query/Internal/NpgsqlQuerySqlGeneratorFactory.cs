@@ -9,8 +9,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
     /// </summary>
     public class NpgsqlQuerySqlGeneratorFactory : IQuerySqlGeneratorFactory
     {
-        [NotNull] readonly QuerySqlGeneratorDependencies _dependencies;
-        [NotNull] readonly INpgsqlOptions _npgsqlOptions;
+        private readonly QuerySqlGeneratorDependencies _dependencies;
+        private readonly INpgsqlOptions _npgsqlOptions;
 
         public NpgsqlQuerySqlGeneratorFactory(
             [NotNull] QuerySqlGeneratorDependencies dependencies,

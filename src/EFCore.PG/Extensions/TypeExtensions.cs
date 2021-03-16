@@ -2,15 +2,13 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
-#nullable enable
-
 // ReSharper disable once CheckNamespace
 namespace System.Reflection
 {
     internal static class TypeExtensions
     {
-        internal static bool IsGenericList(this Type type)
-            => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>);
+        internal static bool IsGenericList(this Type? type)
+            => type is not null && type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>);
 
         internal static bool IsArrayOrGenericList(this Type type)
             => type.IsArray || type.IsGenericList();

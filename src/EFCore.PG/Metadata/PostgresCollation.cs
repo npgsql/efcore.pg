@@ -4,8 +4,8 @@ using System.Linq;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Utilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 {
@@ -23,11 +23,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         [NotNull]
         public static PostgresCollation GetOrAddCollation(
             [NotNull] IMutableAnnotatable annotatable,
-            [CanBeNull] string schema,
+            [CanBeNull] string? schema,
             [NotNull] string name,
             [NotNull] string lcCollate,
             [NotNull] string lcCtype,
-            [CanBeNull] string provider = null,
+            [CanBeNull] string? provider = null,
             bool? deterministic = null)
         {
             Check.NotNull(annotatable, nameof(annotatable));
@@ -49,9 +49,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         }
 
         [CanBeNull]
-        public static PostgresCollation FindCollation(
+        public static PostgresCollation? FindCollation(
             [NotNull] IReadOnlyAnnotatable annotatable,
-            [CanBeNull] string schema,
+            [CanBeNull] string? schema,
             [NotNull] string name)
         {
             Check.NotNull(annotatable, nameof(annotatable));
@@ -64,7 +64,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         }
 
         [NotNull]
-        static string BuildAnnotationName(string schema, string name)
+        static string BuildAnnotationName(string? schema, string name)
             => schema != null
                 ? $"{NpgsqlAnnotationNames.CollationDefinitionPrefix}{schema}.{name}"
                 : $"{NpgsqlAnnotationNames.CollationDefinitionPrefix}{name}";
@@ -81,24 +81,24 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         public virtual Annotatable Annotatable => (Annotatable)_annotatable;
 
         [CanBeNull]
-        public virtual string Schema => GetData().Schema;
+        public virtual string? Schema => GetData().Schema;
 
         [NotNull]
-        public virtual string Name => GetData().Name;
+        public virtual string Name => GetData().Name!;
 
         public virtual string LcCollate
         {
-            get => GetData().LcCollate;
+            get => GetData().LcCollate!;
             [param: NotNull] set => SetData(lcCollate: value);
         }
 
         public virtual string LcCtype
         {
-            get => GetData().LcCtype;
+            get => GetData().LcCtype!;
             [param: NotNull] set => SetData(lcCtype: value);
         }
 
-        public virtual string Provider
+        public virtual string? Provider
         {
             get => GetData().Provider;
             [param: CanBeNull] set => SetData(provider: value);
@@ -110,20 +110,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             set => SetData(deterministic: value);
         }
 
-        (string Schema, string Name, string LcCollate, string LcCtype, string Provider, bool? IsDeterministic) GetData()
+        (string? Schema, string? Name, string? LcCollate, string? LcCtype, string? Provider, bool? IsDeterministic) GetData()
             => Deserialize(Annotatable.FindAnnotation(_annotationName));
 
-        void SetData(string lcCollate = null, string lcCtype = null, string provider = null, bool? deterministic = null)
+        void SetData(string? lcCollate = null, string? lcCtype = null, string? provider = null, bool? deterministic = null)
             => Annotatable[_annotationName] =
                 $"{lcCollate ?? LcCollate},{lcCtype ?? LcCtype},{provider ?? Provider},{deterministic ?? IsDeterministic}";
 
-        static (string Schema, string Name, string LcCollate, string LcCtype, string Provider, bool? IsDeterministic)
-            Deserialize([CanBeNull] IAnnotation annotation)
+        static (string? Schema, string? Name, string? LcCollate, string? LcCtype, string? Provider, bool? IsDeterministic)
+            Deserialize([CanBeNull] IAnnotation? annotation)
         {
             if (annotation == null || !(annotation.Value is string value) || string.IsNullOrEmpty(value))
-                return (null, null, null, null, null, null);
+                return (null, null!, null!, null!, null, null);
 
-            var elements = value.Split(',');
+            string?[] elements = value.Split(',');
             if (elements.Length != 4)
                 throw new ArgumentException($"Cannot parse collation annotation value: {value}");
 
@@ -131,9 +131,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
                 if (elements[i] == "")
                     elements[i] = null;
 
-            var isDeterministic = elements[3] is null
-                ? (bool?)null
-                : bool.Parse(elements[3]);
+            var isDeterministic = elements[3] is string isDeterminsticString
+                ? bool.Parse(isDeterminsticString)
+                : (bool?)null;
 
             // TODO: This would be a safer operation if we stored schema and name in the annotation value (see Sequence.cs).
             // Yes, this doesn't support dots in the schema/collation name, let somebody complain first.

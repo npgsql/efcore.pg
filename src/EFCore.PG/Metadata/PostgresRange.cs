@@ -4,8 +4,8 @@ using System.Linq;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Utilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 {
@@ -51,13 +51,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         [NotNull]
         public static PostgresRange GetOrAddPostgresRange(
             [NotNull] IMutableAnnotatable annotatable,
-            [CanBeNull] string schema,
+            [CanBeNull] string? schema,
             [NotNull] string name,
             [NotNull] string subtype,
-            [CanBeNull] string canonicalFunction = null,
-            [CanBeNull] string subtypeOpClass = null,
-            [CanBeNull] string collation = null,
-            [CanBeNull] string subtypeDiff = null)
+            [CanBeNull] string? canonicalFunction = null,
+            [CanBeNull] string? subtypeOpClass = null,
+            [CanBeNull] string? collation = null,
+            [CanBeNull] string? subtypeDiff = null)
         {
             Check.NotNull(annotatable, nameof(annotatable));
             Check.NullButNotEmpty(schema, nameof(schema));
@@ -92,9 +92,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         /// <exception cref="ArgumentNullException"><paramref name="annotatable"/></exception>
         /// <exception cref="ArgumentNullException"><paramref name="name"/></exception>
         [CanBeNull]
-        public static PostgresRange FindPostgresRange(
+        public static PostgresRange? FindPostgresRange(
             [NotNull] IReadOnlyAnnotatable annotatable,
-            [CanBeNull] string schema,
+            [CanBeNull] string? schema,
             [NotNull] string name)
         {
             Check.NotNull(annotatable, nameof(annotatable));
@@ -107,7 +107,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         }
 
         [NotNull]
-        static string BuildAnnotationName(string schema, string name)
+        static string BuildAnnotationName(string? schema, string name)
             => schema != null
                 ? $"{NpgsqlAnnotationNames.RangePrefix}{schema}.{name}"
                 : $"{NpgsqlAnnotationNames.RangePrefix}{name}";
@@ -138,27 +138,27 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         /// The range schema or null to represent the default schema.
         /// </summary>
         [CanBeNull]
-        public virtual string Schema => GetData().Schema;
+        public virtual string? Schema => GetData().Schema;
 
         /// <summary>
         /// The range name.
         /// </summary>
         [NotNull]
-        public virtual string Name => GetData().Name;
+        public virtual string Name => GetData().Name!;
 
         /// <summary>
         /// The subtype of the range.
         /// </summary>
         public virtual string Subtype
         {
-            get => GetData().Subtype;
+            get => GetData().Subtype!;
             [param: NotNull] set => SetData(subtype: value);
         }
 
         /// <summary>
         /// The function defining a "step" in a discrete range.
         /// </summary>
-        public virtual string CanonicalFunction
+        public virtual string? CanonicalFunction
         {
             get => GetData().CanonicalFunction;
             [param: CanBeNull] set => SetData(canonicalFunction: value);
@@ -167,7 +167,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         /// <summary>
         /// The operator class to use.
         /// </summary>
-        public virtual string SubtypeOpClass
+        public virtual string? SubtypeOpClass
         {
             get => GetData().SubtypeOpClass;
             [param: CanBeNull] set => SetData(subtypeOpClass: value);
@@ -176,7 +176,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         /// <summary>
         /// The collation to use.
         /// </summary>
-        public virtual string Collation
+        public virtual string? Collation
         {
             get => GetData().Collation;
             [param: CanBeNull] set => SetData(collation: value);
@@ -185,26 +185,26 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         /// <summary>
         /// The function defining a difference in subtype values.
         /// </summary>
-        public virtual string SubtypeDiff
+        public virtual string? SubtypeDiff
         {
             get => GetData().SubtypeDiff;
             [param: CanBeNull] set => SetData(subtypeDiff: value);
         }
 
-        (string Schema, string Name, string Subtype, string CanonicalFunction, string SubtypeOpClass, string Collation, string SubtypeDiff) GetData()
-            => Deserialize(Annotatable.FindAnnotation(_annotationName));
+        (string? Schema, string? Name, string? Subtype, string? CanonicalFunction, string? SubtypeOpClass, string? Collation, string? SubtypeDiff) GetData()
+            => Deserialize(Annotatable.FindAnnotation(_annotationName)!);
 
-        void SetData(string subtype = null, string canonicalFunction = null, string subtypeOpClass = null, string collation = null, string subtypeDiff = null)
+        void SetData(string? subtype = null, string? canonicalFunction = null, string? subtypeOpClass = null, string? collation = null, string? subtypeDiff = null)
             => Annotatable[_annotationName] =
                 $"{subtype ?? Subtype},{canonicalFunction ?? CanonicalFunction},{subtypeOpClass ?? SubtypeOpClass},{collation ?? Collation},{subtypeDiff ?? SubtypeDiff}";
 
-        static (string Schema, string Name, string Subtype, string CanonicalFunction, string SubtypeOpClass, string Collation, string SubtypeDiff)
-            Deserialize([CanBeNull] IAnnotation annotation)
+        static (string? Schema, string? Name, string? Subtype, string? CanonicalFunction, string? SubtypeOpClass, string? Collation, string? SubtypeDiff)
+            Deserialize([CanBeNull] IAnnotation? annotation)
         {
             if (annotation == null || !(annotation.Value is string value) || string.IsNullOrEmpty(value))
                 return (null, null, null, null, null, null, null);
 
-            var elements = value.Split(',');
+            string?[] elements = value.Split(',');
             if (elements.Length != 5)
                 throw new ArgumentException($"Cannot parse range annotation value: {value}");
 

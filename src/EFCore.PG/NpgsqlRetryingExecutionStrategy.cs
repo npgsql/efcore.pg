@@ -9,7 +9,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
     public class NpgsqlRetryingExecutionStrategy : ExecutionStrategy
     {
-        readonly ICollection<string> _additionalErrorCodes;
+        readonly ICollection<string>? _additionalErrorCodes;
 
         /// <summary>
         ///     Creates a new instance of <see cref="NpgsqlRetryingExecutionStrategy" />.
@@ -69,7 +69,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             [NotNull] DbContext context,
             int maxRetryCount,
             TimeSpan maxRetryDelay,
-            [CanBeNull] ICollection<string> errorCodesToAdd)
+            [CanBeNull] ICollection<string>? errorCodesToAdd)
             : base(context,
                 maxRetryCount,
                 maxRetryDelay)
@@ -86,14 +86,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             [NotNull] ExecutionStrategyDependencies dependencies,
             int maxRetryCount,
             TimeSpan maxRetryDelay,
-            [CanBeNull] ICollection<string> errorCodesToAdd)
+            [CanBeNull] ICollection<string>? errorCodesToAdd)
             : base(dependencies, maxRetryCount, maxRetryDelay)
             => _additionalErrorCodes = errorCodesToAdd;
 
         // TODO: Unlike SqlException, which seems to also wrap various transport/IO errors
         // and expose them via error codes, we have NpgsqlException with an inner exception.
         // Would be good to provide a way to add these into the additional list.
-        protected override bool ShouldRetryOn(Exception exception)
+        protected override bool ShouldRetryOn(Exception? exception)
             => exception is PostgresException postgresException &&
                _additionalErrorCodes?.Contains(postgresException.SqlState) == true
                || NpgsqlTransientExceptionDetector.ShouldRetryOn(exception);

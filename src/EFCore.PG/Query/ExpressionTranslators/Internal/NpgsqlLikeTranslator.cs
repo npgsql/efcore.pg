@@ -13,30 +13,30 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     /// </summary>
     public class NpgsqlLikeTranslator : IMethodCallTranslator
     {
-        static readonly MethodInfo Like =
+        private static readonly MethodInfo Like =
             typeof(DbFunctionsExtensions).GetRuntimeMethod(
                 nameof(DbFunctionsExtensions.Like),
-                new[] { typeof(DbFunctions), typeof(string), typeof(string) });
+                new[] { typeof(DbFunctions), typeof(string), typeof(string) })!;
 
-        static readonly MethodInfo LikeWithEscape =
+        private static readonly MethodInfo LikeWithEscape =
             typeof(DbFunctionsExtensions).GetRuntimeMethod(
                 nameof(DbFunctionsExtensions.Like),
-                new[] { typeof(DbFunctions), typeof(string), typeof(string), typeof(string) });
+                new[] { typeof(DbFunctions), typeof(string), typeof(string), typeof(string) })!;
 
         // ReSharper disable once InconsistentNaming
-        static readonly MethodInfo ILike =
+        private static readonly MethodInfo ILike =
             typeof(NpgsqlDbFunctionsExtensions).GetRuntimeMethod(
                 nameof(NpgsqlDbFunctionsExtensions.ILike),
-                new[] { typeof(DbFunctions), typeof(string), typeof(string) });
+                new[] { typeof(DbFunctions), typeof(string), typeof(string) })!;
 
         // ReSharper disable once InconsistentNaming
-        static readonly MethodInfo ILikeWithEscape =
+        private static readonly MethodInfo ILikeWithEscape =
             typeof(NpgsqlDbFunctionsExtensions).GetRuntimeMethod(
                 nameof(NpgsqlDbFunctionsExtensions.ILike),
-                new[] { typeof(DbFunctions), typeof(string), typeof(string), typeof(string) });
+                new[] { typeof(DbFunctions), typeof(string), typeof(string), typeof(string) })!;
 
         [NotNull]
-        readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
+        private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="NpgsqlMathTranslator"/> class.
@@ -46,8 +46,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             => _sqlExpressionFactory = sqlExpressionFactory;
 
         /// <inheritdoc />
-        public virtual SqlExpression Translate(
-            SqlExpression instance,
+        public virtual SqlExpression? Translate(
+            SqlExpression? instance,
             MethodInfo method,
             IReadOnlyList<SqlExpression> arguments,
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)

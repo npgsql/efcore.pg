@@ -23,19 +23,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     /// </remarks>
     public class NpgsqlNetworkTranslator : IMethodCallTranslator
     {
-        static readonly MethodInfo IPAddressParse =
-            typeof(IPAddress).GetRuntimeMethod(nameof(IPAddress.Parse), new[] { typeof(string) });
+        private static readonly MethodInfo IPAddressParse =
+            typeof(IPAddress).GetRuntimeMethod(nameof(IPAddress.Parse), new[] { typeof(string) })!;
 
-        static readonly MethodInfo PhysicalAddressParse =
-            typeof(PhysicalAddress).GetRuntimeMethod(nameof(PhysicalAddress.Parse), new[] { typeof(string) });
+        private static readonly MethodInfo PhysicalAddressParse =
+            typeof(PhysicalAddress).GetRuntimeMethod(nameof(PhysicalAddress.Parse), new[] { typeof(string) })!;
 
-        readonly IRelationalTypeMappingSource _typeMappingSource;
-        readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
+        private readonly IRelationalTypeMappingSource _typeMappingSource;
+        private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
 
-        readonly RelationalTypeMapping _boolMapping;
-        readonly RelationalTypeMapping _inetMapping;
-        readonly RelationalTypeMapping _cidrMapping;
-        readonly RelationalTypeMapping _macaddr8Mapping;
+        private readonly RelationalTypeMapping _boolMapping;
+        private readonly RelationalTypeMapping _inetMapping;
+        private readonly RelationalTypeMapping _cidrMapping;
+        private readonly RelationalTypeMapping _macaddr8Mapping;
 
         public NpgsqlNetworkTranslator(
             [NotNull] IRelationalTypeMappingSource typeMappingSource,
@@ -43,15 +43,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         {
             _typeMappingSource = typeMappingSource;
             _sqlExpressionFactory = sqlExpressionFactory;
-            _boolMapping = typeMappingSource.FindMapping(typeof(bool));
-            _inetMapping = typeMappingSource.FindMapping("inet");
-            _cidrMapping = typeMappingSource.FindMapping("cidr");
-            _macaddr8Mapping = typeMappingSource.FindMapping("macaddr8");
+            _boolMapping = typeMappingSource.FindMapping(typeof(bool))!;
+            _inetMapping = typeMappingSource.FindMapping("inet")!;
+            _cidrMapping = typeMappingSource.FindMapping("cidr")!;
+            _macaddr8Mapping = typeMappingSource.FindMapping("macaddr8")!;
         }
 
         /// <inheritdoc />
-        public virtual SqlExpression Translate(
-            SqlExpression instance,
+        public virtual SqlExpression? Translate(
+            SqlExpression? instance,
             MethodInfo method,
             IReadOnlyList<SqlExpression> arguments,
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)
@@ -137,14 +137,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             nameof(NpgsqlNetworkDbFunctionsExtensions.Truncate)      => NullPropagatingFunction("trunc",            new[] { arguments[1] }, typeof(PhysicalAddress), arguments[1].TypeMapping),
             nameof(NpgsqlNetworkDbFunctionsExtensions.Set7BitMac8)   => NullPropagatingFunction("macaddr8_set7bit", new[] { arguments[1] }, typeof(PhysicalAddress), _macaddr8Mapping),
 
-            _ => (SqlExpression)null
+            _ => null
             };
 
             SqlFunctionExpression NullPropagatingFunction(
                 string name,
                 SqlExpression[] arguments,
                 Type returnType,
-                RelationalTypeMapping typeMapping = null)
+                RelationalTypeMapping? typeMapping = null)
                 => _sqlExpressionFactory.Function(
                     name,
                     arguments,

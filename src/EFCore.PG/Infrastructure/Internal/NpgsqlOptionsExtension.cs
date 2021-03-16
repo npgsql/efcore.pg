@@ -6,8 +6,8 @@ using System.Net.Security;
 using System.Text;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Utilities;
 using Microsoft.Extensions.DependencyInjection;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 using NpgsqlTypes;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
@@ -17,20 +17,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
     /// </summary>
     public class NpgsqlOptionsExtension : RelationalOptionsExtension
     {
-        DbContextOptionsExtensionInfo _info;
-        [NotNull] readonly List<UserRangeDefinition> _userRangeDefinitions;
+        private DbContextOptionsExtensionInfo? _info;
+        readonly List<UserRangeDefinition> _userRangeDefinitions;
 
         /// <summary>
         /// The name of the database for administrative operations.
         /// </summary>
         [CanBeNull]
-        public virtual string AdminDatabase { get; private set; }
+        public virtual string? AdminDatabase { get; private set; }
 
         /// <summary>
         /// The backend version to target.
         /// </summary>
         [CanBeNull]
-        public virtual Version PostgresVersion { get; private set; }
+        public virtual Version? PostgresVersion { get; private set; }
 
         /// <summary>
         /// The list of range mappings specified by the user.
@@ -42,19 +42,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// The specified <see cref="ProvideClientCertificatesCallback"/>.
         /// </summary>
         [CanBeNull]
-        public virtual ProvideClientCertificatesCallback ProvideClientCertificatesCallback { get; private set; }
+        public virtual ProvideClientCertificatesCallback? ProvideClientCertificatesCallback { get; private set; }
 
         /// <summary>
         /// The specified <see cref="RemoteCertificateValidationCallback"/>.
         /// </summary>
         [CanBeNull]
-        public virtual RemoteCertificateValidationCallback RemoteCertificateValidationCallback { get; private set; }
+        public virtual RemoteCertificateValidationCallback? RemoteCertificateValidationCallback { get; private set; }
 
         /// <summary>
         /// The specified <see cref="ProvidePasswordCallback"/>.
         /// </summary>
         [CanBeNull]
-        public virtual ProvidePasswordCallback ProvidePasswordCallback { get; private set; }
+        public virtual ProvidePasswordCallback? ProvidePasswordCallback { get; private set; }
 
         /// <summary>
         /// True if reverse null ordering is enabled; otherwise, false.
@@ -93,8 +93,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         [NotNull]
         public virtual NpgsqlOptionsExtension WithUserRangeDefinition<TSubtype>(
             [NotNull] string rangeName,
-            [CanBeNull] string schemaName = null,
-            [CanBeNull] string subtypeName = null)
+            [CanBeNull] string? schemaName = null,
+            [CanBeNull] string? subtypeName = null)
             => WithUserRangeDefinition(rangeName, schemaName, typeof(TSubtype), subtypeName);
 
         /// <summary>
@@ -103,9 +103,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         [NotNull]
         public virtual NpgsqlOptionsExtension WithUserRangeDefinition(
             [NotNull] string rangeName,
-            [CanBeNull] string schemaName,
+            [CanBeNull] string? schemaName,
             [NotNull] Type subtypeClrType,
-            [CanBeNull] string subtypeName)
+            [CanBeNull] string? subtypeName)
         {
             Check.NotEmpty(rangeName, nameof(rangeName));
             Check.NotNull(subtypeClrType, nameof(subtypeClrType));
@@ -122,7 +122,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// </summary>
         /// <param name="adminDatabase">The name of the database for administrative operations.</param>
         [NotNull]
-        public virtual NpgsqlOptionsExtension WithAdminDatabase([CanBeNull] string adminDatabase)
+        public virtual NpgsqlOptionsExtension WithAdminDatabase([CanBeNull] string? adminDatabase)
         {
             var clone = (NpgsqlOptionsExtension)Clone();
 
@@ -139,7 +139,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// A copy of the current instance with the specified PostgreSQL version.
         /// </returns>
         [NotNull]
-        public virtual NpgsqlOptionsExtension WithPostgresVersion([CanBeNull] Version postgresVersion)
+        public virtual NpgsqlOptionsExtension WithPostgresVersion([CanBeNull] Version? postgresVersion)
         {
             var clone = (NpgsqlOptionsExtension)Clone();
 
@@ -169,7 +169,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// </summary>
         /// <param name="callback">The specified callback.</param>
         [NotNull]
-        public virtual NpgsqlOptionsExtension WithProvideClientCertificatesCallback([CanBeNull] ProvideClientCertificatesCallback callback)
+        public virtual NpgsqlOptionsExtension WithProvideClientCertificatesCallback([CanBeNull] ProvideClientCertificatesCallback? callback)
         {
             var clone = (NpgsqlOptionsExtension)Clone();
 
@@ -183,7 +183,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// </summary>
         /// <param name="callback">The specified callback.</param>
         [NotNull]
-        public virtual NpgsqlOptionsExtension WithRemoteCertificateValidationCallback([CanBeNull] RemoteCertificateValidationCallback callback)
+        public virtual NpgsqlOptionsExtension WithRemoteCertificateValidationCallback([CanBeNull] RemoteCertificateValidationCallback? callback)
         {
             var clone = (NpgsqlOptionsExtension)Clone();
 
@@ -197,7 +197,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// </summary>
         /// <param name="callback">The specified callback.</param>
         [NotNull]
-        public virtual NpgsqlOptionsExtension WithProvidePasswordCallback([CanBeNull] ProvidePasswordCallback callback)
+        public virtual NpgsqlOptionsExtension WithProvidePasswordCallback([CanBeNull] ProvidePasswordCallback? callback)
         {
             var clone = (NpgsqlOptionsExtension)Clone();
 
@@ -211,7 +211,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         #region Infrastructure
 
         /// <inheritdoc />
-        [NotNull]
         protected override RelationalOptionsExtension Clone() => new NpgsqlOptionsExtension(this);
 
         /// <inheritdoc />
@@ -225,7 +224,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         sealed class ExtensionInfo : RelationalExtensionInfo
         {
             long? _serviceProviderHash;
-            string _logFragment;
+            string? _logFragment;
 
             public ExtensionInfo(IDbContextOptionsExtension extension)
                 : base(extension)
@@ -236,7 +235,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
 
             public override bool IsDatabaseProvider => true;
 
-            [NotNull]
             public override string LogFragment
             {
                 get
@@ -368,7 +366,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// (which is public unless changed on the model).
         /// </summary>
         [CanBeNull]
-        public virtual string SchemaName { get; }
+        public virtual string? SchemaName { get; }
 
         /// <summary>
         /// The CLR type of the range's subtype (or element).
@@ -382,13 +380,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// This is usually not needed - the subtype will be inferred based on <see cref="SubtypeClrType"/>.
         /// </summary>
         [CanBeNull]
-        public virtual string SubtypeName { get; }
+        public virtual string? SubtypeName { get; }
 
         public UserRangeDefinition(
             [NotNull] string rangeName,
-            [CanBeNull] string schemaName,
+            [CanBeNull] string? schemaName,
             [NotNull] Type subtypeClrType,
-            [CanBeNull] string subtypeName)
+            [CanBeNull] string? subtypeName)
         {
             RangeName = Check.NotEmpty(rangeName, nameof(rangeName));
             SchemaName = schemaName;
@@ -399,9 +397,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         public override int GetHashCode()
             => HashCode.Combine(RangeName, SchemaName, SubtypeClrType, SubtypeName);
 
-        public override bool Equals(object obj) => obj is UserRangeDefinition urd && Equals(urd);
+        public override bool Equals(object? obj) => obj is UserRangeDefinition urd && Equals(urd);
 
-        public virtual bool Equals(UserRangeDefinition other)
+        public virtual bool Equals(UserRangeDefinition? other)
             => ReferenceEquals(this, other) ||
                !(other is null) &&
                RangeName == other.RangeName &&
@@ -411,9 +409,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
 
         public virtual void Deconstruct(
             [NotNull] out string rangeName,
-            [CanBeNull] out string schemaName,
+            [CanBeNull] out string? schemaName,
             [NotNull] out Type subtypeClrType,
-            [CanBeNull] out string subtypeName)
+            [CanBeNull] out string? subtypeName)
         {
             rangeName = RangeName;
             schemaName = SchemaName;

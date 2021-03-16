@@ -5,7 +5,7 @@ using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
+using Microsoft.EntityFrameworkCore.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
 {
@@ -34,7 +34,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
             [NotNull] SqlExpression array,
             [NotNull] SqlExpression index,
             [NotNull] Type type,
-            [CanBeNull] RelationalTypeMapping typeMapping)
+            [CanBeNull] RelationalTypeMapping? typeMapping)
             : base(type.UnwrapNullableType(), typeMapping)
         {
             Check.NotNull(array, nameof(array));
@@ -60,14 +60,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         protected override Expression VisitChildren(ExpressionVisitor visitor)
             => Update((SqlExpression)visitor.Visit(Array), (SqlExpression)visitor.Visit(Index));
 
-        public virtual bool Equals(PostgresArrayIndexExpression other)
+        public virtual bool Equals(PostgresArrayIndexExpression? other)
             => ReferenceEquals(this, other) ||
                other is object &&
                base.Equals(other) &&
                Array.Equals(other.Array) &&
                Index.Equals(other.Index);
 
-        public override bool Equals(object obj) => obj is PostgresArrayIndexExpression e && Equals(e);
+        public override bool Equals(object? obj) => obj is PostgresArrayIndexExpression e && Equals(e);
 
         public override int GetHashCode() => HashCode.Combine(base.GetHashCode(), Array, Index);
 

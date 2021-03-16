@@ -9,9 +9,9 @@ using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Utilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 using NpgsqlTypes;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
@@ -21,18 +21,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
     /// </summary>
     public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     {
-        readonly ISqlGenerationHelper _sqlGenerationHelper;
+        private readonly ISqlGenerationHelper _sqlGenerationHelper;
 
         /// <summary>
         /// True if null ordering is reversed; otherwise false.
         /// </summary>
-        readonly bool _reverseNullOrderingEnabled;
+        private readonly bool _reverseNullOrderingEnabled;
 
         /// <summary>
         /// The backend version to target. If null, it means the user hasn't set a compatibility version, and the
         /// latest should be targeted.
         /// </summary>
-        readonly Version _postgresVersion;
+        private readonly Version _postgresVersion;
 
         /// <inheritdoc />
         public NpgsqlQuerySqlGenerator(
@@ -204,6 +204,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 
         protected virtual Expression VisitPostgresNewArray([NotNull] PostgresNewArrayExpression postgresNewArrayExpression)
         {
+            Debug.Assert(postgresNewArrayExpression.TypeMapping is not null);
+
             Sql.Append("ARRAY[");
             var first = true;
             foreach (var initializer in postgresNewArrayExpression.Expressions)
@@ -328,6 +330,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 
         protected override Expression VisitSqlUnary(SqlUnaryExpression sqlUnaryExpression)
         {
+            Debug.Assert(sqlUnaryExpression.TypeMapping is not null);
+            Debug.Assert(sqlUnaryExpression.Operand.TypeMapping is not null);
+
             switch (sqlUnaryExpression.OperatorType)
             {
             case ExpressionType.Convert:
@@ -673,10 +678,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 
             for (var i = 0; i < e.Arguments.Count; i++)
             {
-                if (i < e.ArgumentNames.Count && e.ArgumentNames[i] != null)
+                if (i < e.ArgumentNames.Count && e.ArgumentNames[i] is string argumentName)
                 {
                     Sql
-                        .Append(e.ArgumentNames[i])
+                        .Append(argumentName)
                         .Append(" => ");
                 }
 
@@ -693,7 +698,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             return e;
         }
 
-        static bool RequiresBrackets(SqlExpression expression)
+        private static bool RequiresBrackets(SqlExpression expression)
             => expression is SqlBinaryExpression || expression is LikeExpression || expression is PostgresBinaryExpression;
     }
 }

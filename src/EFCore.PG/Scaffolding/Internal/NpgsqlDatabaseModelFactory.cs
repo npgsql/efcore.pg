@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -14,13 +13,12 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Scaffolding;
 using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
+using Microsoft.EntityFrameworkCore.Utilities;
 using Microsoft.Extensions.Logging;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
-
-#nullable enable
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
 {
@@ -232,7 +230,7 @@ WHERE
                     var name = reader.GetString("relname");
                     var comment = reader.GetValueOrDefault<string>("description");
 
-                    var table = new DatabaseTable()
+                    var table = new DatabaseTable
                     {
                         Database = databaseModel,
                         Name = name,
