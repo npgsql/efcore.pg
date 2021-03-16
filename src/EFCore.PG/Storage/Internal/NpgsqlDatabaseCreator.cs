@@ -64,7 +64,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 try
                 {
                     await Dependencies.MigrationCommandExecutor
-                        .ExecuteNonQueryAsync(CreateCreateOperations(), masterConnection, cancellationToken);
+                        .ExecuteNonQueryAsync(CreateCreateOperations(), masterConnection, cancellationToken)
+                        .ConfigureAwait(false);
                 }
                 catch (PostgresException e) when (
                     e.SqlState == "23505" && e.ConstraintName == "pg_database_datname_index"
@@ -77,7 +78,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 ClearPool();
             }
 
-            await ExistsAsync(cancellationToken);
+            await ExistsAsync(cancellationToken).ConfigureAwait(false);
         }
 
         public override bool HasTables()
@@ -105,7 +106,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                                                       null,
                                                       Dependencies.CurrentContext.Context,
                                                       Dependencies.CommandLogger),
-                                                  cancellationToken: ct), cancellationToken);
+                                                  cancellationToken: ct).ConfigureAwait(false), cancellationToken);
 
         IRelationalCommand CreateHasTablesCommand()
             => _rawSqlCommandBuilder
@@ -151,7 +152,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             {
                 if (async)
                 {
-                    await unpooledRelationalConnection.OpenAsync(cancellationToken);
+                    await unpooledRelationalConnection.OpenAsync(cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
@@ -182,7 +183,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             {
                 if (async)
                 {
-                    await unpooledRelationalConnection.DisposeAsync();
+                    await unpooledRelationalConnection.DisposeAsync().ConfigureAwait(false);
                 }
                 else
                 {
@@ -212,7 +213,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             using (var masterConnection = _connection.CreateMasterConnection())
             {
                 await Dependencies.MigrationCommandExecutor
-                    .ExecuteNonQueryAsync(CreateDropCommands(), masterConnection, cancellationToken);
+                    .ExecuteNonQueryAsync(CreateDropCommands(), masterConnection, cancellationToken)
+                    .ConfigureAwait(false);
             }
         }
 
@@ -270,8 +272,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
             try
             {
-                await Dependencies.MigrationCommandExecutor.ExecuteNonQueryAsync(commands, _connection,
-                    cancellationToken);
+                await Dependencies.MigrationCommandExecutor.ExecuteNonQueryAsync(commands, _connection, cancellationToken)
+                    .ConfigureAwait(false);
             }
             catch (PostgresException e) when (
                 e.SqlState == "23505" && e.ConstraintName == "pg_type_typname_nsp_index"
@@ -283,7 +285,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
             if (reloadTypes)
             {
-                await _connection.OpenAsync(cancellationToken);
+                await _connection.OpenAsync(cancellationToken).ConfigureAwait(false);
                 try
                 {
                     // TODO: Not async

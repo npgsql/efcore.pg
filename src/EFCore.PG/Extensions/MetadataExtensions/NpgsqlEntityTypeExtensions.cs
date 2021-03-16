@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
@@ -18,7 +19,7 @@ namespace Microsoft.EntityFrameworkCore
 
         public static Dictionary<string, object> GetStorageParameters([NotNull] this IEntityType entityType)
             => entityType.GetAnnotations()
-                .Where(a => a.Name.StartsWith(NpgsqlAnnotationNames.StorageParameterPrefix))
+                .Where(a => a.Name.StartsWith(NpgsqlAnnotationNames.StorageParameterPrefix, StringComparison.Ordinal))
                 .ToDictionary(
                     a => a.Name.Substring(NpgsqlAnnotationNames.StorageParameterPrefix.Length),
                     a => a.Value

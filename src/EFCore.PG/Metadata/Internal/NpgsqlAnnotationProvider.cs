@@ -26,7 +26,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
             if (entityType[CockroachDbAnnotationNames.InterleaveInParent] != null)
                 yield return new Annotation(CockroachDbAnnotationNames.InterleaveInParent, entityType[CockroachDbAnnotationNames.InterleaveInParent]);
             foreach (var storageParamAnnotation in entityType.GetAnnotations()
-                .Where(a => a.Name.StartsWith(NpgsqlAnnotationNames.StorageParameterPrefix)))
+                .Where(a => a.Name.StartsWith(NpgsqlAnnotationNames.StorageParameterPrefix, StringComparison.Ordinal)))
             {
                 yield return storageParamAnnotation;
             }

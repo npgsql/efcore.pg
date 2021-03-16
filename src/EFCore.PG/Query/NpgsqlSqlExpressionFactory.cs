@@ -82,9 +82,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             RelationalTypeMapping FlipTimestampTypeMapping(RelationalTypeMapping mapping)
             {
                 var storeType = mapping.StoreType;
-                if (storeType.StartsWith("timestamp with time zone") || storeType.StartsWith("timestamptz"))
+                if (storeType.StartsWith("timestamp with time zone", StringComparison.Ordinal) || storeType.StartsWith("timestamptz", StringComparison.Ordinal))
                     return _typeMappingSource.FindMapping("timestamp without time zone");
-                if (storeType.StartsWith("timestamp without time zone") || storeType.StartsWith("timestamp"))
+                if (storeType.StartsWith("timestamp without time zone", StringComparison.Ordinal) || storeType.StartsWith("timestamp", StringComparison.Ordinal))
                     return _typeMappingSource.FindMapping("timestamp with time zone");
                 throw new ArgumentException($"timestamp argument to AtTimeZone had unknown store type {storeType}", nameof(timestamp));
             }
