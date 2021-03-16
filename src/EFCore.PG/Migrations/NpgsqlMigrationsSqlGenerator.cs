@@ -1660,7 +1660,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
         private Dictionary<string, string> GetStorageParameters(Annotatable annotatable)
             => annotatable.GetAnnotations()
-                .Where(a => a.Name.StartsWith(NpgsqlAnnotationNames.StorageParameterPrefix))
+                .Where(a => a.Name.StartsWith(NpgsqlAnnotationNames.StorageParameterPrefix, StringComparison.Ordinal))
                 .ToDictionary(
                     a => a.Name.Substring(NpgsqlAnnotationNames.StorageParameterPrefix.Length),
                     a => GenerateStorageParameterValue(a.Value!)
@@ -1715,7 +1715,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
                 // Of the built-in access methods, only btree (the default) supports
                 // sorting, thus we only want to emit sort options for btree indexes.
-                if (method == null || string.Equals(method, "btree"))
+                if (method == null || method == "btree")
                 {
                     if (column.SortOrder == SortOrder.Descending)
                     {

@@ -170,7 +170,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
 
                     if (nextPropagating == ModificationCommands.Count)
                     {
-                        Debug.Assert(!(await npgsqlReader.NextResultAsync(cancellationToken)), "Expected less resultsets");
+                        Debug.Assert(!(await npgsqlReader.NextResultAsync(cancellationToken).ConfigureAwait(false)), "Expected less resultsets");
                         break;
                     }
 
@@ -178,7 +178,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
 
                     var modificationCommand = ModificationCommands[commandIndex++];
 
-                    if (!(await reader.ReadAsync(cancellationToken)))
+                    if (!(await reader.ReadAsync(cancellationToken).ConfigureAwait(false)))
                     {
                         throw new DbUpdateConcurrencyException(
                             RelationalStrings.UpdateConcurrencyException(1, 0),
@@ -189,7 +189,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
                     var valueBufferFactory = CreateValueBufferFactory(modificationCommand.ColumnModifications);
                     modificationCommand.PropagateResults(valueBufferFactory.Create(npgsqlReader));
 
-                    await npgsqlReader.NextResultAsync(cancellationToken);
+                    await npgsqlReader.NextResultAsync(cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (DbUpdateException)

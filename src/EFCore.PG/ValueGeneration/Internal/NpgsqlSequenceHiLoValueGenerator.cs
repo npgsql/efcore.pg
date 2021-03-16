@@ -77,7 +77,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
                             readerColumns: null,
                             context: null,
                             _commandLogger),
-                        cancellationToken),
+                        cancellationToken).ConfigureAwait(false),
                 typeof(long),
                 CultureInfo.InvariantCulture)!;
 
