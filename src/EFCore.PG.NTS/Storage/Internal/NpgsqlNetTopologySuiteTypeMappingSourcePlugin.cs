@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Utilities;
@@ -110,26 +111,26 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                     return false;
             }
 
-            subtypeName = subtypeName.ToUpper();
+            subtypeName = subtypeName.ToUpper(CultureInfo.InvariantCulture);
 
             // We have geometry(subtype, srid), parse the subtype (POINT, POINTZ, POINTM, POINTZM...)
 
             if (TryGetClrType(subtypeName, out clrType))
                 return true;
 
-            if (subtypeName.EndsWith("ZM") && TryGetClrType(subtypeName[0..^2], out clrType))
+            if (subtypeName.EndsWith("ZM", StringComparison.Ordinal) && TryGetClrType(subtypeName[0..^2], out clrType))
             {
                 ordinates = Ordinates.XYZM;
                 return true;
             }
 
-            if (subtypeName.EndsWith("M") && TryGetClrType(subtypeName[0..^1], out clrType))
+            if (subtypeName.EndsWith("M", StringComparison.Ordinal) && TryGetClrType(subtypeName[0..^1], out clrType))
             {
                 ordinates = Ordinates.XYM;
                 return true;
             }
 
-            if (subtypeName.EndsWith("Z") && TryGetClrType(subtypeName[0..^1], out clrType))
+            if (subtypeName.EndsWith("Z", StringComparison.Ordinal) && TryGetClrType(subtypeName[0..^1], out clrType))
             {
                 ordinates = Ordinates.XYZ;
                 return true;

@@ -39,7 +39,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         {
             try
             {
-                return await operation(Dependencies.CurrentContext.Context, state, cancellationToken);
+                return await operation(Dependencies.CurrentContext.Context, state, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex) when (ExecutionStrategy.CallOnWrappedException(ex, NpgsqlTransientExceptionDetector.ShouldRetryOn))
             {

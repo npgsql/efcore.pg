@@ -23,7 +23,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             Check.NotNull(annotation, nameof(annotation));
 
             if (annotation.Name == RelationalAnnotationNames.DefaultSchema
-                && string.Equals("public", (string?)annotation.Value))
+                && (string?)annotation.Value == "public")
             {
                 return true;
             }
@@ -37,7 +37,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             Check.NotNull(annotation, nameof(annotation));
 
             if (annotation.Name == NpgsqlAnnotationNames.IndexMethod
-                && string.Equals("btree", (string?)annotation.Value))
+                && (string?)annotation.Value == "btree")
             {
                 return true;
             }

@@ -126,7 +126,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     typeof(int));
             }
 
-            if (method.Name.StartsWith("TryGet") && arguments.Count == 0)
+            if (method.Name.StartsWith("TryGet", StringComparison.Ordinal) && arguments.Count == 0)
                 throw new InvalidOperationException($"The TryGet* methods on {nameof(JsonElement)} aren't translated yet, use Get* instead.'");
 
             return null;
