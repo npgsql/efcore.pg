@@ -15,7 +15,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
 {
     public class NpgsqlNetTopologySuiteOptionsExtension : IDbContextOptionsExtension
     {
-        DbContextOptionsExtensionInfo? _info;
+        private DbContextOptionsExtensionInfo? _info;
 
         public virtual bool IsGeographyDefault { get; private set; }
 
@@ -59,16 +59,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
             }
         }
 
-        sealed class ExtensionInfo : DbContextOptionsExtensionInfo
+        private sealed class ExtensionInfo : DbContextOptionsExtensionInfo
         {
-            string? _logFragment;
+            private string? _logFragment;
 
             public ExtensionInfo(IDbContextOptionsExtension extension)
                 : base(extension)
             {
             }
 
-            new NpgsqlNetTopologySuiteOptionsExtension Extension
+            private new NpgsqlNetTopologySuiteOptionsExtension Extension
                 => (NpgsqlNetTopologySuiteOptionsExtension)base.Extension;
 
             public override bool IsDatabaseProvider => false;

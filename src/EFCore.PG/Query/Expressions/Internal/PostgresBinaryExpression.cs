@@ -156,7 +156,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
                     || obj is PostgresBinaryExpression sqlBinaryExpression
                     && Equals(sqlBinaryExpression));
 
-        bool Equals(PostgresBinaryExpression sqlBinaryExpression)
+        private bool Equals(PostgresBinaryExpression sqlBinaryExpression)
             => base.Equals(sqlBinaryExpression)
                 && OperatorType == sqlBinaryExpression.OperatorType
                 && Left.Equals(sqlBinaryExpression.Left)

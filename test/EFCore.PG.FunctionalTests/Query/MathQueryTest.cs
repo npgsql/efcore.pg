@@ -18,7 +18,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
     /// </remarks>
     public class MathQueryTest : IClassFixture<MathQueryTest.MathQueryNpgsqlFixture>
     {
-        MathQueryNpgsqlFixture Fixture { get; }
+        private MathQueryNpgsqlFixture Fixture { get; }
 
         // ReSharper disable once UnusedParameter.Local
         public MathQueryTest(MathQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)

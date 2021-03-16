@@ -28,11 +28,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
     public class NpgsqlGeometryMemberTranslator : IMemberTranslator
     {
-        readonly ISqlExpressionFactory _sqlExpressionFactory;
-        readonly IRelationalTypeMappingSource _typeMappingSource;
-        readonly CaseWhenClause[] _ogcGeometryTypeWhenThenList;
+        private readonly ISqlExpressionFactory _sqlExpressionFactory;
+        private readonly IRelationalTypeMappingSource _typeMappingSource;
+        private readonly CaseWhenClause[] _ogcGeometryTypeWhenThenList;
 
-        static readonly bool[][] TrueArrays =
+        private static readonly bool[][] TrueArrays =
         {
             Array.Empty<bool>(),
             new[] { true },

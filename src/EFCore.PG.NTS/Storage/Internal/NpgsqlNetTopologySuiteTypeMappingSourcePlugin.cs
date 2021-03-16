@@ -13,9 +13,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
     {
         // Note: we reference the options rather than copying IsGeographyDefault out, because that field is initialized
         // rather late by SingletonOptionsInitializer
-        readonly INpgsqlNetTopologySuiteOptions _options;
+        private readonly INpgsqlNetTopologySuiteOptions _options;
 
-        static bool TryGetClrType(string subtypeName, [CA.NotNullWhen(true)] out Type? clrType)
+        private static bool TryGetClrType(string subtypeName, [CA.NotNullWhen(true)] out Type? clrType)
         {
             clrType = subtypeName switch
             {

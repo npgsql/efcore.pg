@@ -309,7 +309,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             return null;
         }
 
-        SqlExpression TranslateStartsEndsWith(SqlExpression instance, SqlExpression pattern, bool startsWith)
+        private SqlExpression TranslateStartsEndsWith(SqlExpression instance, SqlExpression pattern, bool startsWith)
         {
             var stringTypeMapping = ExpressionExtensions.InferTypeMapping(instance, pattern);
 
@@ -372,9 +372,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 : _sqlExpressionFactory.Equal(leftRight, castPattern);
         }
 
-        bool IsLikeWildChar(char c) => c == '%' || c == '_';
+        private bool IsLikeWildChar(char c) => c == '%' || c == '_';
 
-        string EscapeLikePattern(string pattern)
+        private string EscapeLikePattern(string pattern)
         {
             var builder = new StringBuilder();
             for (var i = 0; i < pattern.Length; i++)
@@ -391,7 +391,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             return builder.ToString();
         }
 
-        SqlExpression GenerateOneBasedIndexExpression([NotNull] SqlExpression expression)
+        private SqlExpression GenerateOneBasedIndexExpression([NotNull] SqlExpression expression)
             => expression is SqlConstantExpression constant
                 ? _sqlExpressionFactory.Constant(Convert.ToInt32(constant.Value) + 1, constant.TypeMapping)
                 : (SqlExpression)_sqlExpressionFactory.Add(expression, _sqlExpressionFactory.Constant(1));

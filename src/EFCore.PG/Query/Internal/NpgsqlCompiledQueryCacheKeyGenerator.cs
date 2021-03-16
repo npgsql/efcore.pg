@@ -20,10 +20,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 GenerateCacheKeyCore(query, async),
                 RelationalDependencies.ContextOptions.FindExtension<NpgsqlOptionsExtension>()?.ReverseNullOrdering ?? false);
 
-        struct NpgsqlCompiledQueryCacheKey
+        private struct NpgsqlCompiledQueryCacheKey
         {
-            readonly RelationalCompiledQueryCacheKey _relationalCompiledQueryCacheKey;
-            readonly bool _reverseNullOrdering;
+            private readonly RelationalCompiledQueryCacheKey _relationalCompiledQueryCacheKey;
+            private readonly bool _reverseNullOrdering;
 
             public NpgsqlCompiledQueryCacheKey(
                 RelationalCompiledQueryCacheKey relationalCompiledQueryCacheKey, bool reverseNullOrdering)
@@ -37,7 +37,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                    && obj is NpgsqlCompiledQueryCacheKey key
                    && Equals(key);
 
-            bool Equals(NpgsqlCompiledQueryCacheKey other)
+            private bool Equals(NpgsqlCompiledQueryCacheKey other)
                 => _relationalCompiledQueryCacheKey.Equals(other._relationalCompiledQueryCacheKey)
                    && _reverseNullOrdering == other._reverseNullOrdering;
 

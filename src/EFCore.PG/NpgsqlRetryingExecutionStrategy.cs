@@ -9,7 +9,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
     public class NpgsqlRetryingExecutionStrategy : ExecutionStrategy
     {
-        readonly ICollection<string>? _additionalErrorCodes;
+        private readonly ICollection<string>? _additionalErrorCodes;
 
         /// <summary>
         ///     Creates a new instance of <see cref="NpgsqlRetryingExecutionStrategy" />.

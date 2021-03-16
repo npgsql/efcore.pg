@@ -85,7 +85,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                     IsolationLevel.Serializable));
         }
 
-        void Test_commit_failure(bool realFailure, Action<TestNpgsqlRetryingExecutionStrategy, ExecutionStrategyContext> execute)
+        private void Test_commit_failure(bool realFailure, Action<TestNpgsqlRetryingExecutionStrategy, ExecutionStrategyContext> execute)
         {
             CleanContext();
 

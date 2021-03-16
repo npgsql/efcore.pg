@@ -67,7 +67,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
             }
         }
 
-        static string? ExtractValue(string value, ref int position)
+        private static string? ExtractValue(string value, ref int position)
         {
             position = value.IndexOf('\'', position) + 1;
 
@@ -85,13 +85,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
             return extracted.Length == 0 ? null : extracted;
         }
 
-        static long? AsLong(string? value)
+        private static long? AsLong(string? value)
             => value == null ? null : (long?)long.Parse(value, CultureInfo.InvariantCulture);
 
-        static bool AsBool(string? value)
+        private static bool AsBool(string? value)
             => value != null && bool.Parse(value);
 
-        static void EscapeAndQuote(StringBuilder builder, object? value)
+        private static void EscapeAndQuote(StringBuilder builder, object? value)
         {
             builder.Append("'");
 

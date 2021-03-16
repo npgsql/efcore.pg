@@ -14,7 +14,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
     /// </summary>
     public class NpgsqlValueGeneratorCache : ValueGeneratorCache, INpgsqlValueGeneratorCache
     {
-        readonly ConcurrentDictionary<string, NpgsqlSequenceValueGeneratorState> _sequenceGeneratorCache
+        private readonly ConcurrentDictionary<string, NpgsqlSequenceValueGeneratorState> _sequenceGeneratorCache
             = new();
 
         /// <summary>
@@ -43,7 +43,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
                 sequenceName => new NpgsqlSequenceValueGeneratorState(sequence));
         }
 
-        static string GetSequenceName(ISequence sequence, IRelationalConnection connection)
+        private static string GetSequenceName(ISequence sequence, IRelationalConnection connection)
         {
             var dbConnection = connection.DbConnection;
 

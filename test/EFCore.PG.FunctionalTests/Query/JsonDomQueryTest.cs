@@ -12,7 +12,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     public class JsonDomQueryTest : IClassFixture<JsonDomQueryTest.JsonDomQueryFixture>
     {
-        JsonDomQueryFixture Fixture { get; }
+        private JsonDomQueryFixture Fixture { get; }
 
         // ReSharper disable once UnusedParameter.Local
         public JsonDomQueryTest(JsonDomQueryFixture fixture, ITestOutputHelper testOutputHelper)
@@ -503,7 +503,7 @@ WHERE json_typeof(j.""CustomerElement""#>'{Statistics,Visits}') = 'number'");
 
         protected JsonDomQueryContext CreateContext() => Fixture.CreateContext();
 
-        void AssertSql(params string[] expected)
+        private void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
         public class JsonDomQueryContext : PoolableDbContext

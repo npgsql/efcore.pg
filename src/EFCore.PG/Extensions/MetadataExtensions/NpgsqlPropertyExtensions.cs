@@ -292,7 +292,7 @@ namespace Microsoft.EntityFrameworkCore
             return GetDefaultValueGenerationStrategy(property, storeObject, typeMappingSource);
         }
 
-        static NpgsqlValueGenerationStrategy GetDefaultValueGenerationStrategy(IReadOnlyProperty property)
+        private static NpgsqlValueGenerationStrategy GetDefaultValueGenerationStrategy(IReadOnlyProperty property)
         {
             var modelStrategy = property.DeclaringEntityType.Model.GetValueGenerationStrategy();
 
@@ -366,7 +366,7 @@ namespace Microsoft.EntityFrameworkCore
             return value;
         }
 
-        static void CheckValueGenerationStrategy(IReadOnlyProperty property, NpgsqlValueGenerationStrategy? value)
+        private static void CheckValueGenerationStrategy(IReadOnlyProperty property, NpgsqlValueGenerationStrategy? value)
         {
             if (value != null)
             {

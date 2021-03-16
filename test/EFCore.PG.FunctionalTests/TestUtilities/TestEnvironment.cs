@@ -22,11 +22,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
         }
 
-        const string DefaultConnectionString = "Server=localhost;Username=npgsql_tests;Password=npgsql_tests";
+        private const string DefaultConnectionString = "Server=localhost;Username=npgsql_tests;Password=npgsql_tests";
 
         public static string DefaultConnection => Config["DefaultConnection"] ?? DefaultConnectionString;
 
-        static Version _postgresVersion;
+        private static Version _postgresVersion;
 
         public static Version PostgresVersion
         {

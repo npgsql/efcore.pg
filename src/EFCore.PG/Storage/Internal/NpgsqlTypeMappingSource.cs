@@ -32,98 +32,98 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         protected virtual ConcurrentDictionary<string, RelationalTypeMapping[]> StoreTypeMappings { get; }
         protected virtual ConcurrentDictionary<Type, RelationalTypeMapping> ClrTypeMappings { get; }
 
-        readonly IReadOnlyList<UserRangeDefinition> _userRangeDefinitions;
+        private readonly IReadOnlyList<UserRangeDefinition> _userRangeDefinitions;
 
         #region Mappings
 
         // Numeric types
-        readonly NpgsqlFloatTypeMapping        _float4             = new();
-        readonly NpgsqlDoubleTypeMapping       _float8             = new();
-        readonly DecimalTypeMapping            _numeric            = new("numeric", DbType.Decimal);
-        readonly NpgsqlMoneyTypeMapping        _money              = new();
-        readonly GuidTypeMapping               _uuid               = new("uuid", DbType.Guid);
-        readonly ShortTypeMapping              _int2               = new("smallint", DbType.Int16);
-        readonly ByteTypeMapping               _int2Byte           = new("smallint", DbType.Byte);
-        readonly IntTypeMapping                _int4               = new("integer", DbType.Int32);
-        readonly LongTypeMapping               _int8               = new("bigint", DbType.Int64);
+        private readonly NpgsqlFloatTypeMapping        _float4             = new();
+        private readonly NpgsqlDoubleTypeMapping       _float8             = new();
+        private readonly DecimalTypeMapping            _numeric            = new("numeric", DbType.Decimal);
+        private readonly NpgsqlMoneyTypeMapping        _money              = new();
+        private readonly GuidTypeMapping               _uuid               = new("uuid", DbType.Guid);
+        private readonly ShortTypeMapping              _int2               = new("smallint", DbType.Int16);
+        private readonly ByteTypeMapping               _int2Byte           = new("smallint", DbType.Byte);
+        private readonly IntTypeMapping                _int4               = new("integer", DbType.Int32);
+        private readonly LongTypeMapping               _int8               = new("bigint", DbType.Int64);
 
         // Character types
-        readonly StringTypeMapping             _text               = new("text", DbType.String);
-        readonly StringTypeMapping             _varchar            = new("character varying", DbType.String);
-        readonly NpgsqlCharacterTypeMapping    _char               = new("character");
-        readonly CharTypeMapping               _singleChar         = new("character(1)", DbType.String);
-        readonly NpgsqlCharacterTypeMapping    _stringAsSingleChar = new("character(1)");
-        readonly NpgsqlStringTypeMapping       _xml                = new("xml", NpgsqlDbType.Xml);
-        readonly NpgsqlStringTypeMapping       _citext             = new("citext", NpgsqlDbType.Citext);
+        private readonly StringTypeMapping             _text               = new("text", DbType.String);
+        private readonly StringTypeMapping             _varchar            = new("character varying", DbType.String);
+        private readonly NpgsqlCharacterTypeMapping    _char               = new("character");
+        private readonly CharTypeMapping               _singleChar         = new("character(1)", DbType.String);
+        private readonly NpgsqlCharacterTypeMapping    _stringAsSingleChar = new("character(1)");
+        private readonly NpgsqlStringTypeMapping       _xml                = new("xml", NpgsqlDbType.Xml);
+        private readonly NpgsqlStringTypeMapping       _citext             = new("citext", NpgsqlDbType.Citext);
 
         // JSON mappings
-        readonly NpgsqlJsonTypeMapping         _jsonbString        = new("jsonb", typeof(string));
-        readonly NpgsqlJsonTypeMapping         _jsonString         = new("json", typeof(string));
-        readonly NpgsqlJsonTypeMapping         _jsonbDocument      = new("jsonb", typeof(JsonDocument));
-        readonly NpgsqlJsonTypeMapping         _jsonDocument       = new("json", typeof(JsonDocument));
-        readonly NpgsqlJsonTypeMapping         _jsonbElement       = new("jsonb", typeof(JsonElement));
-        readonly NpgsqlJsonTypeMapping         _jsonElement        = new("json", typeof(JsonElement));
+        private readonly NpgsqlJsonTypeMapping         _jsonbString        = new("jsonb", typeof(string));
+        private readonly NpgsqlJsonTypeMapping         _jsonString         = new("json", typeof(string));
+        private readonly NpgsqlJsonTypeMapping         _jsonbDocument      = new("jsonb", typeof(JsonDocument));
+        private readonly NpgsqlJsonTypeMapping         _jsonDocument       = new("json", typeof(JsonDocument));
+        private readonly NpgsqlJsonTypeMapping         _jsonbElement       = new("jsonb", typeof(JsonElement));
+        private readonly NpgsqlJsonTypeMapping         _jsonElement        = new("json", typeof(JsonElement));
 
         // Date/Time types
-        readonly NpgsqlDateTypeMapping         _date               = new();
-        readonly NpgsqlTimestampTypeMapping    _timestamp          = new();
-        readonly NpgsqlTimestampTzTypeMapping  _timestamptz        = new(typeof(DateTime));
-        readonly NpgsqlTimestampTzTypeMapping  _timestamptzDto     = new(typeof(DateTimeOffset));
-        readonly NpgsqlIntervalTypeMapping     _interval           = new();
-        readonly NpgsqlTimeTypeMapping         _time               = new();
-        readonly NpgsqlTimeTzTypeMapping       _timetz             = new();
+        private readonly NpgsqlDateTypeMapping         _date               = new();
+        private readonly NpgsqlTimestampTypeMapping    _timestamp          = new();
+        private readonly NpgsqlTimestampTzTypeMapping  _timestamptz        = new(typeof(DateTime));
+        private readonly NpgsqlTimestampTzTypeMapping  _timestamptzDto     = new(typeof(DateTimeOffset));
+        private readonly NpgsqlIntervalTypeMapping     _interval           = new();
+        private readonly NpgsqlTimeTypeMapping         _time               = new();
+        private readonly NpgsqlTimeTzTypeMapping       _timetz             = new();
 
         // Network address types
-        readonly NpgsqlMacaddrTypeMapping      _macaddr            = new();
-        readonly NpgsqlMacaddr8TypeMapping     _macaddr8           = new();
-        readonly NpgsqlInetTypeMapping         _inet               = new();
-        readonly NpgsqlCidrTypeMapping         _cidr               = new();
+        private readonly NpgsqlMacaddrTypeMapping      _macaddr            = new();
+        private readonly NpgsqlMacaddr8TypeMapping     _macaddr8           = new();
+        private readonly NpgsqlInetTypeMapping         _inet               = new();
+        private readonly NpgsqlCidrTypeMapping         _cidr               = new();
 
         // Built-in geometric types
-        readonly NpgsqlPointTypeMapping        _point              = new();
-        readonly NpgsqlBoxTypeMapping          _box                = new();
-        readonly NpgsqlLineTypeMapping         _line               = new();
-        readonly NpgsqlLineSegmentTypeMapping  _lseg               = new();
-        readonly NpgsqlPathTypeMapping         _path               = new();
-        readonly NpgsqlPolygonTypeMapping      _polygon            = new();
-        readonly NpgsqlCircleTypeMapping       _circle             = new();
+        private readonly NpgsqlPointTypeMapping        _point              = new();
+        private readonly NpgsqlBoxTypeMapping          _box                = new();
+        private readonly NpgsqlLineTypeMapping         _line               = new();
+        private readonly NpgsqlLineSegmentTypeMapping  _lseg               = new();
+        private readonly NpgsqlPathTypeMapping         _path               = new();
+        private readonly NpgsqlPolygonTypeMapping      _polygon            = new();
+        private readonly NpgsqlCircleTypeMapping       _circle             = new();
 
         // uint mappings
-        readonly NpgsqlUintTypeMapping         _xid                = new("xid", NpgsqlDbType.Xid);
-        readonly NpgsqlUintTypeMapping         _oid                = new("oid", NpgsqlDbType.Oid);
-        readonly NpgsqlUintTypeMapping         _cid                = new("cid", NpgsqlDbType.Cid);
-        readonly NpgsqlUintTypeMapping         _regtype            = new("regtype", NpgsqlDbType.Regtype);
-        readonly NpgsqlUintTypeMapping         _lo                 = new("lo", NpgsqlDbType.Oid);
+        private readonly NpgsqlUintTypeMapping         _xid                = new("xid", NpgsqlDbType.Xid);
+        private readonly NpgsqlUintTypeMapping         _oid                = new("oid", NpgsqlDbType.Oid);
+        private readonly NpgsqlUintTypeMapping         _cid                = new("cid", NpgsqlDbType.Cid);
+        private readonly NpgsqlUintTypeMapping         _regtype            = new("regtype", NpgsqlDbType.Regtype);
+        private readonly NpgsqlUintTypeMapping         _lo                 = new("lo", NpgsqlDbType.Oid);
 
         // Full text search mappings
-        readonly NpgsqlTsQueryTypeMapping   _tsquery               = new();
-        readonly NpgsqlTsVectorTypeMapping  _tsvector              = new();
-        readonly NpgsqlRegconfigTypeMapping _regconfig             = new();
-        readonly NpgsqlTsRankingNormalizationTypeMapping _rankingNormalization = new();
+        private readonly NpgsqlTsQueryTypeMapping   _tsquery               = new();
+        private readonly NpgsqlTsVectorTypeMapping  _tsvector              = new();
+        private readonly NpgsqlRegconfigTypeMapping _regconfig             = new();
+        private readonly NpgsqlTsRankingNormalizationTypeMapping _rankingNormalization = new();
 
         // Unaccent mapping
-        readonly NpgsqlRegdictionaryTypeMapping _regdictionary = new();
+        private readonly NpgsqlRegdictionaryTypeMapping _regdictionary = new();
 
         // Built-in ranges
-        readonly NpgsqlRangeTypeMapping        _int4range;
-        readonly NpgsqlRangeTypeMapping        _int8range;
-        readonly NpgsqlRangeTypeMapping        _numrange;
-        readonly NpgsqlRangeTypeMapping        _tsrange;
-        readonly NpgsqlRangeTypeMapping        _tstzrange;
-        readonly NpgsqlRangeTypeMapping        _daterange;
+        private readonly NpgsqlRangeTypeMapping        _int4range;
+        private readonly NpgsqlRangeTypeMapping        _int8range;
+        private readonly NpgsqlRangeTypeMapping        _numrange;
+        private readonly NpgsqlRangeTypeMapping        _tsrange;
+        private readonly NpgsqlRangeTypeMapping        _tstzrange;
+        private readonly NpgsqlRangeTypeMapping        _daterange;
 
         // Other types
-        readonly NpgsqlBoolTypeMapping            _bool            = new();
-        readonly NpgsqlBitTypeMapping             _bit             = new();
-        readonly NpgsqlVarbitTypeMapping          _varbit          = new();
-        readonly NpgsqlByteArrayTypeMapping       _bytea           = new();
-        readonly NpgsqlHstoreTypeMapping          _hstore          = new(typeof(Dictionary<string, string>));
-        readonly NpgsqlHstoreTypeMapping          _immutableHstore = new(typeof(ImmutableDictionary<string, string>));
-        readonly NpgsqlTidTypeMapping             _tid             = new();
+        private readonly NpgsqlBoolTypeMapping            _bool            = new();
+        private readonly NpgsqlBitTypeMapping             _bit             = new();
+        private readonly NpgsqlVarbitTypeMapping          _varbit          = new();
+        private readonly NpgsqlByteArrayTypeMapping       _bytea           = new();
+        private readonly NpgsqlHstoreTypeMapping          _hstore          = new(typeof(Dictionary<string, string>));
+        private readonly NpgsqlHstoreTypeMapping          _immutableHstore = new(typeof(ImmutableDictionary<string, string>));
+        private readonly NpgsqlTidTypeMapping             _tid             = new();
 
-        readonly LTreeTypeMapping                 _ltree           = new();
-        readonly NpgsqlStringTypeMapping          _lquery          = new("lquery", NpgsqlDbType.LQuery);
-        readonly NpgsqlStringTypeMapping          _ltxtquery       = new("ltxtquery", NpgsqlDbType.LTxtQuery);
+        private readonly LTreeTypeMapping                 _ltree           = new();
+        private readonly NpgsqlStringTypeMapping          _lquery          = new("lquery", NpgsqlDbType.LQuery);
+        private readonly NpgsqlStringTypeMapping          _ltxtquery       = new("ltxtquery", NpgsqlDbType.LTxtQuery);
 
         // Special stuff
         // ReSharper disable once InconsistentNaming
@@ -559,7 +559,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             return new NpgsqlRangeTypeMapping(rangeDefinition.RangeName, rangeDefinition.SchemaName, rangeClrType, subtypeMapping, _sqlGenerationHelper);
         }
 
-        static bool NameBasesUsesPrecision(ReadOnlySpan<char> span)
+        private static bool NameBasesUsesPrecision(ReadOnlySpan<char> span)
             => span.ToString() switch
             {
                 "decimal"     => true,

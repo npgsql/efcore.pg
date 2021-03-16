@@ -188,7 +188,7 @@ FROM ""Orders"" AS o
 WHERE make_timestamp(date_part('year', o.""OrderDate"")::INT, date_part('month', o.""OrderDate"")::INT, 1, 0, 0, 0::double precision) = TIMESTAMP '1996-09-11 00:00:00'");
         }
 
-        void AssertSql(params string[] expected)
+        private void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
         protected override void ClearLog()

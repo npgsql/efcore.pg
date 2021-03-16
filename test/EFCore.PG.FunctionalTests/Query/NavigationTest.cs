@@ -58,7 +58,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 entityType.GetForeignKeys().Skip(1).First().ToString());
         }
 
-        readonly NavigationTestFixture _fixture;
+        private readonly NavigationTestFixture _fixture;
 
         public NavigationTest(NavigationTestFixture fixture) => _fixture = fixture;
     }
@@ -89,7 +89,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
     public class NavigationTestFixture
     {
-        readonly DbContextOptions _options;
+        private readonly DbContextOptions _options;
 
         public NavigationTestFixture()
         {

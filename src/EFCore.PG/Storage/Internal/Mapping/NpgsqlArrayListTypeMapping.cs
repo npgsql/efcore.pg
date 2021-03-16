@@ -203,7 +203,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 return hash.ToHashCode();
             }
 
-            static List<TElem?>? Snapshot(List<TElem?>? source, ValueComparer<TElem> elementComparer)
+            private static List<TElem?>? Snapshot(List<TElem?>? source, ValueComparer<TElem> elementComparer)
             {
                 if (source == null)
                     return null;

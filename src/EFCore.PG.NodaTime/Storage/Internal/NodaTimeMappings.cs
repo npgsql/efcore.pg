@@ -39,19 +39,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         internal static Expression GenerateCodeLiteral(Instant instant)
             => Expression.Call(FromUnixTimeTicks, Expression.Constant(instant.ToUnixTimeTicks()));
 
-        static readonly MethodInfo FromUnixTimeTicks
+        private static readonly MethodInfo FromUnixTimeTicks
             = typeof(Instant).GetRuntimeMethod(nameof(Instant.FromUnixTimeTicks), new[] { typeof(long) })!;
     }
 
     public class TimestampLocalDateTimeMapping : NpgsqlTypeMapping
     {
-        static readonly ConstructorInfo ConstructorWithMinutes =
+        private static readonly ConstructorInfo ConstructorWithMinutes =
             typeof(LocalDateTime).GetConstructor(new[] { typeof(int), typeof(int), typeof(int), typeof(int), typeof(int) })!;
 
-        static readonly ConstructorInfo ConstructorWithSeconds =
+        private static readonly ConstructorInfo ConstructorWithSeconds =
             typeof(LocalDateTime).GetConstructor(new[] { typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int) })!;
 
-        static readonly MethodInfo PlusNanosecondsMethod =
+        private static readonly MethodInfo PlusNanosecondsMethod =
             typeof(LocalDateTime).GetMethod(nameof(LocalDateTime.PlusNanoseconds), new[] { typeof(long) })!;
 
         public TimestampLocalDateTimeMapping() : base("timestamp", typeof(LocalDateTime), NpgsqlDbType.Timestamp) {}
@@ -115,13 +115,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
     public class TimestampTzOffsetDateTimeMapping : NpgsqlTypeMapping
     {
-        static readonly ConstructorInfo Constructor =
+        private static readonly ConstructorInfo Constructor =
             typeof(OffsetDateTime).GetConstructor(new[] { typeof(LocalDateTime), typeof(Offset) })!;
 
-        static readonly MethodInfo OffsetFromHoursMethod =
+        private static readonly MethodInfo OffsetFromHoursMethod =
             typeof(Offset).GetMethod(nameof(Offset.FromHours), new[] { typeof(int) })!;
 
-        static readonly MethodInfo OffsetFromSecondsMethod =
+        private static readonly MethodInfo OffsetFromSecondsMethod =
             typeof(Offset).GetMethod(nameof(Offset.FromSeconds), new[] { typeof(int) })!;
 
         public TimestampTzOffsetDateTimeMapping() : base("timestamp with time zone", typeof(OffsetDateTime), NpgsqlDbType.TimestampTz) {}
@@ -156,7 +156,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
     public class TimestampTzZonedDateTimeMapping : NpgsqlTypeMapping
     {
-        static readonly ZonedDateTimePattern Pattern =
+        private static readonly ZonedDateTimePattern Pattern =
             ZonedDateTimePattern.CreateWithInvariantCulture("uuuu'-'MM'-'dd'T'HH':'mm':'ss;FFFFFFo<G>",
                 DateTimeZoneProviders.Tzdb);
 
@@ -192,13 +192,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                     Expression.Constant(zonedDateTime.Zone.Id)));
         }
 
-        static readonly ConstructorInfo Constructor =
+        private static readonly ConstructorInfo Constructor =
             typeof(ZonedDateTime).GetConstructor(new[] { typeof(Instant), typeof(DateTimeZone) })!;
 
-        static readonly MemberInfo TzdbDateTimeZoneSourceDefaultMember =
+        private static readonly MemberInfo TzdbDateTimeZoneSourceDefaultMember =
             typeof(TzdbDateTimeZoneSource).GetMember(nameof(TzdbDateTimeZoneSource.Default))[0];
 
-        static readonly MethodInfo ForIdMethod =
+        private static readonly MethodInfo ForIdMethod =
             typeof(TzdbDateTimeZoneSource).GetRuntimeMethod(
                 nameof(TzdbDateTimeZoneSource.ForId),
                 new[] { typeof(string) })!;
@@ -210,7 +210,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
     public class DateMapping : NpgsqlTypeMapping
     {
-        static readonly ConstructorInfo Constructor =
+        private static readonly ConstructorInfo Constructor =
             typeof(LocalDate).GetConstructor(new[] { typeof(int), typeof(int), typeof(int) })!;
 
         public DateMapping() : base("date", typeof(LocalDate), NpgsqlDbType.Date) {}
@@ -243,13 +243,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
     public class TimeMapping : NpgsqlTypeMapping
     {
-        static readonly ConstructorInfo ConstructorWithMinutes =
+        private static readonly ConstructorInfo ConstructorWithMinutes =
             typeof(LocalTime).GetConstructor(new[] { typeof(int), typeof(int) })!;
 
-        static readonly ConstructorInfo ConstructorWithSeconds =
+        private static readonly ConstructorInfo ConstructorWithSeconds =
             typeof(LocalTime).GetConstructor(new[] { typeof(int), typeof(int), typeof(int) })!;
 
-        static readonly MethodInfo FromHourMinuteSecondNanosecondMethod =
+        private static readonly MethodInfo FromHourMinuteSecondNanosecondMethod =
             typeof(LocalTime).GetMethod(nameof(LocalTime.FromHourMinuteSecondNanosecond),
                 new[] { typeof(int), typeof(int), typeof(int), typeof(long) })!;
 
@@ -287,26 +287,26 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
     public class TimeTzMapping : NpgsqlTypeMapping
     {
-        static readonly ConstructorInfo OffsetTimeConstructor =
+        private static readonly ConstructorInfo OffsetTimeConstructor =
             typeof(OffsetTime).GetConstructor(new[] { typeof(LocalTime), typeof(Offset) })!;
 
-        static readonly ConstructorInfo LocalTimeConstructorWithMinutes =
+        private static readonly ConstructorInfo LocalTimeConstructorWithMinutes =
             typeof(LocalTime).GetConstructor(new[] { typeof(int), typeof(int) })!;
 
-        static readonly ConstructorInfo LocalTimeConstructorWithSeconds =
+        private static readonly ConstructorInfo LocalTimeConstructorWithSeconds =
             typeof(LocalTime).GetConstructor(new[] { typeof(int), typeof(int), typeof(int) })!;
 
-        static readonly MethodInfo LocalTimeFromHourMinuteSecondNanosecondMethod =
+        private static readonly MethodInfo LocalTimeFromHourMinuteSecondNanosecondMethod =
             typeof(LocalTime).GetMethod(nameof(LocalTime.FromHourMinuteSecondNanosecond),
                 new[] { typeof(int), typeof(int), typeof(int), typeof(long) })!;
 
-        static readonly MethodInfo OffsetFromHoursMethod =
+        private static readonly MethodInfo OffsetFromHoursMethod =
             typeof(Offset).GetMethod(nameof(Offset.FromHours), new[] { typeof(int) })!;
 
-        static readonly MethodInfo OffsetFromSeconds =
+        private static readonly MethodInfo OffsetFromSeconds =
             typeof(Offset).GetMethod(nameof(Offset.FromSeconds), new[] { typeof(int) })!;
 
-        static readonly OffsetTimePattern Pattern =
+        private static readonly OffsetTimePattern Pattern =
             OffsetTimePattern.CreateWithInvariantCulture("HH':'mm':'ss;FFFFFFo<G>");
 
         public TimeTzMapping() : base("time with time zone", typeof(OffsetTime), NpgsqlDbType.TimeTz) {}
@@ -353,15 +353,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
     public class PeriodIntervalMapping : NpgsqlTypeMapping
     {
-        static readonly MethodInfo FromYears = typeof(Period).GetRuntimeMethod(nameof(Period.FromYears), new[] { typeof(int) })!;
-        static readonly MethodInfo FromMonths = typeof(Period).GetRuntimeMethod(nameof(Period.FromMonths), new[] { typeof(int) })!;
-        static readonly MethodInfo FromWeeks = typeof(Period).GetRuntimeMethod(nameof(Period.FromWeeks), new[] { typeof(int) })!;
-        static readonly MethodInfo FromDays = typeof(Period).GetRuntimeMethod(nameof(Period.FromDays), new[] { typeof(int) })!;
-        static readonly MethodInfo FromHours = typeof(Period).GetRuntimeMethod(nameof(Period.FromHours), new[] { typeof(long) })!;
-        static readonly MethodInfo FromMinutes = typeof(Period).GetRuntimeMethod(nameof(Period.FromMinutes), new[] { typeof(long) })!;
-        static readonly MethodInfo FromSeconds = typeof(Period).GetRuntimeMethod(nameof(Period.FromSeconds), new[] { typeof(long) })!;
-        static readonly MethodInfo FromMilliseconds = typeof(Period).GetRuntimeMethod(nameof(Period.FromMilliseconds), new[] { typeof(long) })!;
-        static readonly MethodInfo FromNanoseconds = typeof(Period).GetRuntimeMethod(nameof(Period.FromNanoseconds), new[] { typeof(long) })!;
+        private static readonly MethodInfo FromYears = typeof(Period).GetRuntimeMethod(nameof(Period.FromYears), new[] { typeof(int) })!;
+        private static readonly MethodInfo FromMonths = typeof(Period).GetRuntimeMethod(nameof(Period.FromMonths), new[] { typeof(int) })!;
+        private static readonly MethodInfo FromWeeks = typeof(Period).GetRuntimeMethod(nameof(Period.FromWeeks), new[] { typeof(int) })!;
+        private static readonly MethodInfo FromDays = typeof(Period).GetRuntimeMethod(nameof(Period.FromDays), new[] { typeof(int) })!;
+        private static readonly MethodInfo FromHours = typeof(Period).GetRuntimeMethod(nameof(Period.FromHours), new[] { typeof(long) })!;
+        private static readonly MethodInfo FromMinutes = typeof(Period).GetRuntimeMethod(nameof(Period.FromMinutes), new[] { typeof(long) })!;
+        private static readonly MethodInfo FromSeconds = typeof(Period).GetRuntimeMethod(nameof(Period.FromSeconds), new[] { typeof(long) })!;
+        private static readonly MethodInfo FromMilliseconds = typeof(Period).GetRuntimeMethod(nameof(Period.FromMilliseconds), new[] { typeof(long) })!;
+        private static readonly MethodInfo FromNanoseconds = typeof(Period).GetRuntimeMethod(nameof(Period.FromNanoseconds), new[] { typeof(long) })!;
 
         private static readonly PropertyInfo Zero = typeof(Period).GetProperty(nameof(Period.Zero))!;
 
@@ -414,11 +414,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
     public class DurationIntervalMapping : NpgsqlTypeMapping
     {
-        static readonly MethodInfo FromDays = typeof(Duration).GetRuntimeMethod(nameof(Duration.FromDays), new[] { typeof(int) })!;
-        static readonly MethodInfo FromHours = typeof(Duration).GetRuntimeMethod(nameof(Duration.FromHours), new[] { typeof(int) })!;
-        static readonly MethodInfo FromMinutes = typeof(Duration).GetRuntimeMethod(nameof(Duration.FromMinutes), new[] { typeof(long) })!;
-        static readonly MethodInfo FromSeconds = typeof(Duration).GetRuntimeMethod(nameof(Duration.FromSeconds), new[] { typeof(long) })!;
-        static readonly MethodInfo FromMilliseconds = typeof(Duration).GetRuntimeMethod(nameof(Duration.FromMilliseconds), new[] { typeof(long) })!;
+        private static readonly MethodInfo FromDays = typeof(Duration).GetRuntimeMethod(nameof(Duration.FromDays), new[] { typeof(int) })!;
+        private static readonly MethodInfo FromHours = typeof(Duration).GetRuntimeMethod(nameof(Duration.FromHours), new[] { typeof(int) })!;
+        private static readonly MethodInfo FromMinutes = typeof(Duration).GetRuntimeMethod(nameof(Duration.FromMinutes), new[] { typeof(long) })!;
+        private static readonly MethodInfo FromSeconds = typeof(Duration).GetRuntimeMethod(nameof(Duration.FromSeconds), new[] { typeof(long) })!;
+        private static readonly MethodInfo FromMilliseconds = typeof(Duration).GetRuntimeMethod(nameof(Duration.FromMilliseconds), new[] { typeof(long) })!;
 
         private static readonly PropertyInfo Zero = typeof(Duration).GetProperty(nameof(Duration.Zero))!;
 

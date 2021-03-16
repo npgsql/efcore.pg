@@ -16,7 +16,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
     /// </remarks>
     public class TrigramsQueryNpgsqlTest : IClassFixture<TrigramsQueryNpgsqlTest.TrigramsQueryNpgsqlFixture>
     {
-        TrigramsQueryNpgsqlFixture Fixture { get; }
+        private TrigramsQueryNpgsqlFixture Fixture { get; }
 
         // ReSharper disable once UnusedParameter.Local
         public TrigramsQueryNpgsqlTest(TrigramsQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
@@ -281,13 +281,13 @@ WHERE ((COALESCE(t.""Text"", '') || ' ') || COALESCE(t.""Text"", '')) % 'query'"
 
         protected TrigramsContext CreateContext() => Fixture.CreateContext();
 
-        void AssertSql(params string[] expected) => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
+        private void AssertSql(params string[] expected) => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
         /// <summary>
         /// Asserts that the SQL fragment appears in the logs.
         /// </summary>
         /// <param name="sql">The SQL statement or fragment to search for in the logs.</param>
-        void AssertContainsSql(string sql) => Assert.Contains(sql, Fixture.TestSqlLoggerFactory.Sql);
+        private void AssertContainsSql(string sql) => Assert.Contains(sql, Fixture.TestSqlLoggerFactory.Sql);
 
         #endregion
     }

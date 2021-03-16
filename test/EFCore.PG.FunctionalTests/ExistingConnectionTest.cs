@@ -19,7 +19,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         public async Task Can_use_an_existing_open_connection()
             => await Can_use_an_existing_closed_connection_test(openConnection: true);
 
-        static async Task Can_use_an_existing_closed_connection_test(bool openConnection)
+        private static async Task Can_use_an_existing_closed_connection_test(bool openConnection)
         {
             var serviceProvider = new ServiceCollection()
                 .AddEntityFrameworkNpgsql()
@@ -72,10 +72,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             }
         }
 
-        class NorthwindContext : DbContext
+        private class NorthwindContext : DbContext
         {
-            readonly IServiceProvider _serviceProvider;
-            readonly NpgsqlConnection _connection;
+            private readonly IServiceProvider _serviceProvider;
+            private readonly NpgsqlConnection _connection;
 
             public NorthwindContext(IServiceProvider serviceProvider, NpgsqlConnection connection)
             {
@@ -100,7 +100,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         }
 
         // ReSharper disable once ClassNeverInstantiated.Local
-        class Customer
+        private class Customer
         {
             // ReSharper disable once UnusedAutoPropertyAccessor.Local
             public string CustomerId { get; set; }

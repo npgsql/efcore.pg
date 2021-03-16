@@ -82,7 +82,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                             new NpgsqlOptions()))));
         }
 
-        class FakeDbContext : DbContext
+        private class FakeDbContext : DbContext
         {
         }
     }

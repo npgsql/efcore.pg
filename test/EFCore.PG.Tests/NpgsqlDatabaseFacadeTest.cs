@@ -102,7 +102,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             Assert.False(context.Database.IsNpgsql());
         }*/
 
-        class ProviderContext : DbContext
+        private class ProviderContext : DbContext
         {
             protected ProviderContext()
             {
@@ -116,26 +116,26 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             public bool? IsNpgsqlSet { get; protected set; }
         }
 
-        class NpgsqlOnConfiguringContext : ProviderContext
+        private class NpgsqlOnConfiguringContext : ProviderContext
         {
             protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
                 => optionsBuilder.UseNpgsql("Database=Maltesers");
         }
 
-        class NpgsqlOnModelContext : NpgsqlOnConfiguringContext
+        private class NpgsqlOnModelContext : NpgsqlOnConfiguringContext
         {
             protected override void OnModelCreating(ModelBuilder modelBuilder)
                 => IsNpgsqlSet = Database.IsNpgsql();
         }
 
-        class NpgsqlConstructorContext : NpgsqlOnConfiguringContext
+        private class NpgsqlConstructorContext : NpgsqlOnConfiguringContext
         {
             // ReSharper disable once VirtualMemberCallInConstructor
             public NpgsqlConstructorContext()
                 => IsNpgsqlSet = Database.IsNpgsql();
         }
 
-        class NpgsqlUseInOnConfiguringContext : NpgsqlOnConfiguringContext
+        private class NpgsqlUseInOnConfiguringContext : NpgsqlOnConfiguringContext
         {
             protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
             {
@@ -145,7 +145,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             }
         }
 
-        class ProviderOnModelContext : ProviderContext
+        private class ProviderOnModelContext : ProviderContext
         {
             public ProviderOnModelContext(DbContextOptions options)
                 : base(options)
@@ -156,7 +156,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 => IsNpgsqlSet = Database.IsNpgsql();
         }
 
-        class ProviderConstructorContext : ProviderContext
+        private class ProviderConstructorContext : ProviderContext
         {
             // ReSharper disable once VirtualMemberCallInConstructor
             public ProviderConstructorContext(DbContextOptions options)
@@ -164,7 +164,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                 => IsNpgsqlSet = Database.IsNpgsql();
         }
 
-        class ProviderUseInOnConfiguringContext : ProviderContext
+        private class ProviderUseInOnConfiguringContext : ProviderContext
         {
             public ProviderUseInOnConfiguringContext(DbContextOptions options)
                 : base(options)

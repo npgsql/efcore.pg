@@ -12,7 +12,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     public class RangeQueryNpgsqlTest : IClassFixture<RangeQueryNpgsqlTest.RangeQueryNpgsqlFixture>
     {
-        RangeQueryNpgsqlFixture Fixture { get; }
+        private RangeQueryNpgsqlFixture Fixture { get; }
 
         // ReSharper disable once UnusedParameter.Local
         public RangeQueryNpgsqlTest(RangeQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
@@ -576,7 +576,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         protected RangeContext CreateContext() => Fixture.CreateContext();
 
-        void AssertContainsSql(string sql) => Assert.Contains(sql, Fixture.TestSqlLoggerFactory.Sql);
+        private void AssertContainsSql(string sql) => Assert.Contains(sql, Fixture.TestSqlLoggerFactory.Sql);
 
         #endregion
     }

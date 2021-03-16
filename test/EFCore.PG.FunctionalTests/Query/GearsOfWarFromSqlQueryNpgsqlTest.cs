@@ -23,6 +23,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         protected override void ClearLog()
             => Fixture.TestSqlLoggerFactory.Clear();
 
-        string Sql => Fixture.TestSqlLoggerFactory.Sql;
+        private string Sql => Fixture.TestSqlLoggerFactory.Sql;
     }
 }

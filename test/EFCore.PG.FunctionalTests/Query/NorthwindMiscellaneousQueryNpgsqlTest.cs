@@ -240,10 +240,10 @@ ORDER BY c.""CustomerID"" NULLS FIRST, c0.""CustomerID"" NULLS FIRST");
         protected override void ClearLog()
             => Fixture.TestSqlLoggerFactory.Clear();
 
-        void AssertSql(params string[] expected)
+        private void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
-        void AssertContainsSqlFragment(string expectedFragment)
+        private void AssertContainsSqlFragment(string expectedFragment)
             => Assert.Contains(Fixture.TestSqlLoggerFactory.SqlStatements, s => s.Contains(expectedFragment));
     }
 }

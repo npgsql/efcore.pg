@@ -14,8 +14,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
     /// </summary>
     public class PostgresEnum
     {
-        [NotNull] readonly IReadOnlyAnnotatable _annotatable;
-        [NotNull] readonly string _annotationName;
+        [NotNull]
+        private readonly IReadOnlyAnnotatable _annotatable;
+        [NotNull]
+        private readonly string _annotationName;
 
         /// <summary>
         /// Creates a <see cref="PostgresEnum"/>.
@@ -111,7 +113,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         }
 
         [NotNull]
-        static string BuildAnnotationName(string? schema, string name)
+        private static string BuildAnnotationName(string? schema, string name)
             => schema != null
                 ? $"{NpgsqlAnnotationNames.EnumPrefix}{schema}.{name}"
                 : $"{NpgsqlAnnotationNames.EnumPrefix}{name}";
@@ -159,13 +161,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             [param: NotNull] set => SetData(value);
         }
 
-        (string? Schema, string? Name, string[]? Labels) GetData()
+        private (string? Schema, string? Name, string[]? Labels) GetData()
             => Deserialize(Annotatable.FindAnnotation(_annotationName));
 
-        void SetData([NotNull] IEnumerable<string> labels)
+        private void SetData([NotNull] IEnumerable<string> labels)
             => Annotatable[_annotationName] = string.Join(",", labels);
 
-        static (string? Schema, string? Name, string[]? Labels) Deserialize([CanBeNull] IAnnotation? annotation)
+        private static (string? Schema, string? Name, string[]? Labels) Deserialize([CanBeNull] IAnnotation? annotation)
         {
             if (annotation == null || !(annotation.Value is string value) || string.IsNullOrEmpty(value))
                 return (null, null, null);

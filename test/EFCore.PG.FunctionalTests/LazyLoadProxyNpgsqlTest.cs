@@ -26,7 +26,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         protected override void RecordLog() => Sql = Fixture.TestSqlLoggerFactory.Sql;
 
         // ReSharper disable once UnusedAutoPropertyAccessor.Local
-        string Sql { get; set; }
+        private string Sql { get; set; }
 
         public class LoadNpgsqlFixture : LoadFixtureBase
         {

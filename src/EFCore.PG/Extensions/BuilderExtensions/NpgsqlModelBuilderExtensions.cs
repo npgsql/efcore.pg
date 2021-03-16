@@ -689,14 +689,14 @@ namespace Microsoft.EntityFrameworkCore
 
         // See: https://github.com/npgsql/npgsql/blob/dev/src/Npgsql/TypeMapping/TypeMapperBase.cs#L132-L138
         [NotNull]
-        static string GetTypePgName<TEnum>([NotNull] INpgsqlNameTranslator nameTranslator) where TEnum : struct, Enum
+        private static string GetTypePgName<TEnum>([NotNull] INpgsqlNameTranslator nameTranslator) where TEnum : struct, Enum
             => typeof(TEnum).GetCustomAttribute<PgNameAttribute>()?.PgName ??
                nameTranslator.TranslateTypeName(typeof(TEnum).Name);
 
         // See: https://github.com/npgsql/npgsql/blob/dev/src/Npgsql/TypeHandlers/EnumHandler.cs#L118-L129
         [NotNull]
         [ItemNotNull]
-        static string[] GetMemberPgNames<TEnum>([NotNull] INpgsqlNameTranslator nameTranslator) where TEnum : struct, Enum
+        private static string[] GetMemberPgNames<TEnum>([NotNull] INpgsqlNameTranslator nameTranslator) where TEnum : struct, Enum
             => typeof(TEnum)
                .GetFields(BindingFlags.Static | BindingFlags.Public)
                .Select(x => x.GetCustomAttribute<PgNameAttribute>()?.PgName ??

@@ -9,7 +9,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 {
     public class NpgsqlExecutionStrategy : IExecutionStrategy
     {
-        ExecutionStrategyDependencies Dependencies { get; }
+        private ExecutionStrategyDependencies Dependencies { get; }
 
         public NpgsqlExecutionStrategy([NotNull] ExecutionStrategyDependencies dependencies)
             => Dependencies = dependencies;

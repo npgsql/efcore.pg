@@ -71,9 +71,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 _                     => throw new NotSupportedException("Cannot generate code literals for JSON POCOs")
             };
 
-        static readonly Expression DefaultJsonDocumentOptions = Expression.New(typeof(JsonDocumentOptions));
+        private static readonly Expression DefaultJsonDocumentOptions = Expression.New(typeof(JsonDocumentOptions));
 
-        static readonly MethodInfo ParseMethod =
+        private static readonly MethodInfo ParseMethod =
             typeof(JsonDocument).GetMethod(nameof(JsonDocument.Parse), new[] { typeof(string), typeof(JsonDocumentOptions) })!;
     }
 }

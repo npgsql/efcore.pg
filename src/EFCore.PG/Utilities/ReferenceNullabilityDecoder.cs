@@ -86,7 +86,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Utilities
             return IsContextNonNullable(memberInfo.DeclaringType!);
         }
 
-        bool TryGetNullableFlags(MemberInfo memberInfo, [CA.NotNullWhen(true)] out byte[]? flags)
+        private bool TryGetNullableFlags(MemberInfo memberInfo, [CA.NotNullWhen(true)] out byte[]? flags)
         {
             if (memberInfo.GetCustomAttributes().FirstOrDefault(a => a.GetType().FullName == NullableAttributeFullName) is Attribute
                 attribute)

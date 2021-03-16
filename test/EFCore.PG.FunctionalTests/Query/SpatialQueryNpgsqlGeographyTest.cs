@@ -294,12 +294,12 @@ FROM ""PointEntity"" AS p");
 
         #endregion
 
-        void AssertSql(params string[] expected) => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
+        private void AssertSql(params string[] expected) => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
         public class SpatialQueryNpgsqlGeographyFixture : SpatialQueryNpgsqlFixture
         {
-            NtsGeometryServices _geometryServices;
-            GeometryFactory _geometryFactory;
+            private NtsGeometryServices _geometryServices;
+            private GeometryFactory _geometryFactory;
 
             public NtsGeometryServices GeometryServices
                 => LazyInitializer.EnsureInitialized(

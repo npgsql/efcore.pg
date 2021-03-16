@@ -15,7 +15,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
     /// </summary>
     public class NpgsqlValueGenerationStrategyConvention : IModelInitializedConvention, IModelFinalizingConvention
     {
-        readonly Version? _postgresVersion;
+        private readonly Version? _postgresVersion;
 
         /// <summary>
         /// Creates a new instance of <see cref="NpgsqlValueGenerationStrategyConvention" />.

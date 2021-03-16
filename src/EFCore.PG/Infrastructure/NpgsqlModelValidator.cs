@@ -19,7 +19,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         /// <summary>
         /// The backend version to target.
         /// </summary>
-        readonly Version _postgresVersion;
+        private readonly Version _postgresVersion;
 
         /// <inheritdoc />
         public NpgsqlModelValidator(

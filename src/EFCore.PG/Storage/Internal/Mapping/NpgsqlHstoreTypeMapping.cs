@@ -18,7 +18,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     /// </remarks>
     public class NpgsqlHstoreTypeMapping : NpgsqlTypeMapping
     {
-        static readonly HstoreMutableComparer MutableComparerInstance = new();
+        private static readonly HstoreMutableComparer MutableComparerInstance = new();
 
         public NpgsqlHstoreTypeMapping([NotNull] Type clrType)
             : base(
@@ -76,7 +76,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             throw new ArgumentException($"CLR type must be {nameof(Dictionary<string,string>)} or {nameof(ImmutableDictionary<string,string>)}");
         }
 
-        sealed class HstoreMutableComparer : ValueComparer<Dictionary<string, string>>
+        private sealed class HstoreMutableComparer : ValueComparer<Dictionary<string, string>>
         {
             public HstoreMutableComparer() : base(
                 (a, b) => Compare(a,b),
@@ -84,7 +84,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 o => o == null ? null : new Dictionary<string, string>(o))
             {}
 
-            static bool Compare(Dictionary<string, string>? a, Dictionary<string, string>? b)
+            private static bool Compare(Dictionary<string, string>? a, Dictionary<string, string>? b)
             {
                 if (a is null)
                 {

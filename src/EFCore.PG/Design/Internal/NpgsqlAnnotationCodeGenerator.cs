@@ -150,7 +150,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
                 .Concat(GenerateIdentityOptions(annotations))
                 .ToList();
 
-        IReadOnlyList<MethodCallCodeFragment> GenerateValueGenerationStrategy(
+        private IReadOnlyList<MethodCallCodeFragment> GenerateValueGenerationStrategy(
             IDictionary<string, IAnnotation> annotations,
             bool onModel)
         {
@@ -220,7 +220,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
                     : default;
         }
 
-        IReadOnlyList<MethodCallCodeFragment> GenerateIdentityOptions(IDictionary<string, IAnnotation> annotations)
+        private IReadOnlyList<MethodCallCodeFragment> GenerateIdentityOptions(IDictionary<string, IAnnotation> annotations)
         {
             if (!TryGetAndRemove(annotations, NpgsqlAnnotationNames.IdentityOptions,
                 out string? annotationValue))

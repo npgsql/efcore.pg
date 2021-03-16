@@ -32,12 +32,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     /// </summary>
     public class NpgsqlGeometryMethodTranslator : IMethodCallTranslator
     {
-        static readonly MethodInfo _collectionItem = typeof(GeometryCollection).GetRuntimeProperty("Item")!.GetMethod!;
+        private static readonly MethodInfo _collectionItem = typeof(GeometryCollection).GetRuntimeProperty("Item")!.GetMethod!;
 
-        readonly ISqlExpressionFactory _sqlExpressionFactory;
-        readonly IRelationalTypeMappingSource _typeMappingSource;
+        private readonly ISqlExpressionFactory _sqlExpressionFactory;
+        private readonly IRelationalTypeMappingSource _typeMappingSource;
 
-        static readonly bool[][] TrueArrays =
+        private static readonly bool[][] TrueArrays =
         {
             Array.Empty<bool>(),
             new[] { true },

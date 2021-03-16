@@ -35,7 +35,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             return base.OpenAsync(cancellationToken, errorsExpected);
         }
 
-        void PreOpen()
+        private void PreOpen()
         {
             if (DbConnection.State == ConnectionState.Open)
             {

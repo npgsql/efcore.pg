@@ -22,7 +22,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     /// </remarks>
     public class NpgsqlMathTranslator : IMethodCallTranslator
     {
-        static readonly Dictionary<MethodInfo, string> SupportedMethodTranslations = new()
+        private static readonly Dictionary<MethodInfo, string> SupportedMethodTranslations = new()
         {
             { typeof(Math).GetRuntimeMethod(nameof(Math.Abs), new[] { typeof(decimal) })!, "abs" },
             { typeof(Math).GetRuntimeMethod(nameof(Math.Abs), new[] { typeof(double) })!, "abs" },

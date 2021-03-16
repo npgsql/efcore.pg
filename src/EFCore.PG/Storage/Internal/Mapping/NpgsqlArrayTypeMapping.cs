@@ -150,7 +150,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         protected class NullableEqualityComparer<T> : IEqualityComparer<T?>
             where T : struct
         {
-            readonly IEqualityComparer<T> _underlyingComparer;
+            private readonly IEqualityComparer<T> _underlyingComparer;
 
             public NullableEqualityComparer(IEqualityComparer<T> underlyingComparer)
                 => _underlyingComparer = underlyingComparer;

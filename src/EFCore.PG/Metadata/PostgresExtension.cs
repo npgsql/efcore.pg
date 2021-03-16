@@ -14,8 +14,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
     /// </summary>
     public class PostgresExtension
     {
-        [NotNull] readonly IReadOnlyAnnotatable _annotatable;
-        [NotNull] readonly string _annotationName;
+        [NotNull]
+        private readonly IReadOnlyAnnotatable _annotatable;
+        [NotNull]
+        private readonly string _annotationName;
 
         /// <summary>
         /// Creates a <see cref="PostgresExtension"/>.
@@ -108,7 +110,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         }
 
         [NotNull]
-        static string BuildAnnotationName(string? schema, string name)
+        private static string BuildAnnotationName(string? schema, string name)
             => schema != null
                 ? $"{NpgsqlAnnotationNames.PostgresExtensionPrefix}{schema}.{name}"
                 : $"{NpgsqlAnnotationNames.PostgresExtensionPrefix}{name}";
@@ -156,16 +158,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             [param: CanBeNull] set => SetData(value);
         }
 
-        (string? Schema, string? Name, string? Version) GetData()
+        private (string? Schema, string? Name, string? Version) GetData()
             => Deserialize(Annotatable.FindAnnotation(_annotationName)!);
 
-        void SetData([CanBeNull] string? version)
+        private void SetData([CanBeNull] string? version)
         {
             var data = GetData();
             Annotatable[_annotationName] = $"{data.Schema},{data.Name},{version}";
         }
 
-        static (string? Schema, string? Name, string? Version) Deserialize([CanBeNull] IAnnotation? annotation)
+        private static (string? Schema, string? Name, string? Version) Deserialize([CanBeNull] IAnnotation? annotation)
         {
             if (annotation == null || !(annotation.Value is string value) || string.IsNullOrEmpty(value))
                 return (null, null, null);

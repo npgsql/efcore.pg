@@ -18,7 +18,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     public class ArrayQueryTest : IClassFixture<ArrayQueryTest.ArrayArrayQueryFixture>
     {
-        ArrayArrayQueryFixture Fixture { get; }
+        private ArrayArrayQueryFixture Fixture { get; }
 
         // ReSharper disable once UnusedParameter.Local
         public ArrayQueryTest(ArrayArrayQueryFixture fixture, ITestOutputHelper testOutputHelper)
@@ -1205,7 +1205,7 @@ WHERE FALSE");
 
         protected ArrayArrayQueryContext CreateContext() => Fixture.CreateContext();
 
-        void AssertSql(bool list, params string[] expected)
+        private void AssertSql(bool list, params string[] expected)
             => AssertSql(list
                 ? expected.Select(e => e
                         .Replace(@"""IntArray""", @"""IntList""")
@@ -1215,7 +1215,7 @@ WHERE FALSE");
                     .ToArray()
                 : expected);
 
-        void AssertSql(params string[] expected)
+        private void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
         public static IEnumerable<object[]> IsListData = new[] { new object[] { false }, new object[] { true } };
@@ -1347,7 +1347,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ArrayTests
 {
     using SomeArrayEntity = ArrayQueryTest.SomeArrayEntity;
 
-    static class QueryableExtensions
+    internal static class QueryableExtensions
     {
         internal static IQueryable<T> OverArrayOrList<T>(this IQueryable<T> source, bool list)
         {
@@ -1360,16 +1360,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ArrayTests
         }
     }
 
-    class ArrayToListReplacingExpressionVisitor : ExpressionVisitor
+    internal class ArrayToListReplacingExpressionVisitor : ExpressionVisitor
     {
-        static readonly PropertyInfo IntArray = typeof(SomeArrayEntity).GetProperty(nameof(SomeArrayEntity.IntArray));
-        static readonly PropertyInfo NullableIntArray = typeof(SomeArrayEntity).GetProperty(nameof(SomeArrayEntity.NullableIntArray));
-        static readonly PropertyInfo IntList = typeof(SomeArrayEntity).GetProperty(nameof(SomeArrayEntity.IntList));
-        static readonly PropertyInfo NullableIntList = typeof(SomeArrayEntity).GetProperty(nameof(SomeArrayEntity.NullableIntList));
-        static readonly PropertyInfo StringArray = typeof(SomeArrayEntity).GetProperty(nameof(SomeArrayEntity.StringArray));
-        static readonly PropertyInfo NullableStringArray = typeof(SomeArrayEntity).GetProperty(nameof(SomeArrayEntity.NullableStringArray));
-        static readonly PropertyInfo StringList = typeof(SomeArrayEntity).GetProperty(nameof(SomeArrayEntity.StringList));
-        static readonly PropertyInfo NullableStringList = typeof(SomeArrayEntity).GetProperty(nameof(SomeArrayEntity.NullableStringList));
+        private static readonly PropertyInfo IntArray = typeof(SomeArrayEntity).GetProperty(nameof(SomeArrayEntity.IntArray));
+        private static readonly PropertyInfo NullableIntArray = typeof(SomeArrayEntity).GetProperty(nameof(SomeArrayEntity.NullableIntArray));
+        private static readonly PropertyInfo IntList = typeof(SomeArrayEntity).GetProperty(nameof(SomeArrayEntity.IntList));
+        private static readonly PropertyInfo NullableIntList = typeof(SomeArrayEntity).GetProperty(nameof(SomeArrayEntity.NullableIntList));
+        private static readonly PropertyInfo StringArray = typeof(SomeArrayEntity).GetProperty(nameof(SomeArrayEntity.StringArray));
+        private static readonly PropertyInfo NullableStringArray = typeof(SomeArrayEntity).GetProperty(nameof(SomeArrayEntity.NullableStringArray));
+        private static readonly PropertyInfo StringList = typeof(SomeArrayEntity).GetProperty(nameof(SomeArrayEntity.StringList));
+        private static readonly PropertyInfo NullableStringList = typeof(SomeArrayEntity).GetProperty(nameof(SomeArrayEntity.NullableStringList));
 
         protected override Expression VisitMember(MemberExpression node)
         {

@@ -59,7 +59,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
             Assert.Equal(outputWithSchema, sb.ToString());
         }
 
-        ISqlGenerationHelper CreateSqlGenerationHelper()
+        private ISqlGenerationHelper CreateSqlGenerationHelper()
             => new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies());
     }
 }

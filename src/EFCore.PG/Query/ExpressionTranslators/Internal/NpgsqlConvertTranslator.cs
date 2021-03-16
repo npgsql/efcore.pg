@@ -15,7 +15,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     /// </summary>
     public class NpgsqlConvertTranslator : IMethodCallTranslator
     {
-        static readonly Dictionary<string, string> TypeMapping = new()
+        private static readonly Dictionary<string, string> TypeMapping = new()
         {
             [nameof(Convert.ToBoolean)] = "bool",
             [nameof(Convert.ToByte)]    = "smallint",
@@ -27,7 +27,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             [nameof(Convert.ToString)]  = "text"
         };
 
-        static readonly List<Type> SupportedTypes = new()
+        private static readonly List<Type> SupportedTypes = new()
         {
             typeof(bool),
             typeof(byte),
@@ -40,7 +40,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             typeof(string)
         };
 
-        static readonly List<MethodInfo> SupportedMethods
+        private static readonly List<MethodInfo> SupportedMethods
             = TypeMapping.Keys
                 .SelectMany(
                     t => typeof(Convert).GetTypeInfo().GetDeclaredMethods(t)
@@ -49,7 +49,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                                  && SupportedTypes.Contains(m.GetParameters().First().ParameterType)))
                 .ToList();
 
-        readonly ISqlExpressionFactory _sqlExpressionFactory;
+        private readonly ISqlExpressionFactory _sqlExpressionFactory;
 
         public NpgsqlConvertTranslator([NotNull] ISqlExpressionFactory sqlExpressionFactory)
             => _sqlExpressionFactory = sqlExpressionFactory;

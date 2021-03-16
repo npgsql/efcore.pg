@@ -1954,7 +1954,7 @@ CREATE TABLE column_types (
 
         #endregion
 
-        void Test(string createSql, IEnumerable<string> tables, IEnumerable<string> schemas, Action<DatabaseModel> asserter, string cleanupSql)
+        private void Test(string createSql, IEnumerable<string> tables, IEnumerable<string> schemas, Action<DatabaseModel> asserter, string cleanupSql)
         {
             Fixture.TestStore.ExecuteNonQuery(createSql);
 

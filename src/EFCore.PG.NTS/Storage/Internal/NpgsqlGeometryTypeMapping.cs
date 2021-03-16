@@ -14,7 +14,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
     [UsedImplicitly]
     public class NpgsqlGeometryTypeMapping<TGeometry> : RelationalGeometryTypeMapping<TGeometry, TGeometry>, INpgsqlTypeMapping
     {
-        readonly bool _isGeography;
+        private readonly bool _isGeography;
 
         /// <inheritdoc />
         public virtual NpgsqlDbType NpgsqlDbType

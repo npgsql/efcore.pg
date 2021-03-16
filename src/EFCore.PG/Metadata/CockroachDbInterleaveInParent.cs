@@ -10,9 +10,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 {
     public class CockroachDbInterleaveInParent
     {
-        const string AnnotationName = CockroachDbAnnotationNames.InterleaveInParent;
+        private const string AnnotationName = CockroachDbAnnotationNames.InterleaveInParent;
 
-        readonly IReadOnlyAnnotatable _annotatable;
+        private readonly IReadOnlyAnnotatable _annotatable;
 
         public virtual Annotatable Annotatable => (Annotatable)_annotatable;
 
@@ -49,7 +49,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             }
         }
 
-        (string? ParentTableSchema, string ParentTableName, List<string> InterleavePrefix) GetData()
+        private (string? ParentTableSchema, string ParentTableName, List<string> InterleavePrefix) GetData()
         {
             var str = Annotatable[AnnotationName] as string;
             return str == null
@@ -57,10 +57,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
                 : Deserialize(str);
         }
 
-        void SetData(string? parentTableSchema, string parentTableName, List<string> interleavePrefix)
+        private void SetData(string? parentTableSchema, string parentTableName, List<string> interleavePrefix)
             => Annotatable[AnnotationName] = Serialize(parentTableSchema, parentTableName, interleavePrefix);
 
-        static string Serialize(string? parentTableSchema, string parentTableName, List<string> interleavePrefix)
+        private static string Serialize(string? parentTableSchema, string parentTableName, List<string> interleavePrefix)
         {
             var builder = new StringBuilder();
 

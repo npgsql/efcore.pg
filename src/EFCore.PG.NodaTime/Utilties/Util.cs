@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Utilties
 {
-    static class Util
+    internal static class Util
     {
         internal static NewExpression ConstantNew(ConstructorInfo constructor, params object[] parameters)
             => Expression.New(constructor, parameters.Select(p => Expression.Constant(p)).ToArray());

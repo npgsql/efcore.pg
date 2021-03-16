@@ -10,12 +10,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
 {
     public class NpgsqlTestHelpers : TestHelpers
     {
-        Version _postgresVersion;
+        private Version _postgresVersion;
 
         public class VersionScope : IDisposable
         {
-            readonly NpgsqlTestHelpers _helpers;
-            readonly Version _oldVersion, _newVersion;
+            private readonly NpgsqlTestHelpers _helpers;
+            private readonly Version _oldVersion, _newVersion;
 
             internal VersionScope(NpgsqlTestHelpers helpers, Version version)
             {

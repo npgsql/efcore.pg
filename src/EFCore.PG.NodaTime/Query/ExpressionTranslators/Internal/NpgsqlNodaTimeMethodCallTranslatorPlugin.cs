@@ -37,18 +37,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
     /// </summary>
     public class NpgsqlNodaTimeMethodCallTranslator : IMethodCallTranslator
     {
-        readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
+        private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
 
         /// <summary>
         /// The static method info for <see cref="T:SystemClock.GetCurrentInstant()"/>.
         /// </summary>
-        [NotNull] static readonly MethodInfo GetCurrentInstant =
+        [NotNull]
+        private static readonly MethodInfo GetCurrentInstant =
             typeof(SystemClock).GetRuntimeMethod(nameof(SystemClock.GetCurrentInstant), Type.EmptyTypes)!;
 
         /// <summary>
         /// The mapping of supported method translations.
         /// </summary>
-        [NotNull] static readonly Dictionary<MethodInfo, string> PeriodMethodMap = new()
+        [NotNull]
+        private static readonly Dictionary<MethodInfo, string> PeriodMethodMap = new()
         {
             { typeof(Period).GetRuntimeMethod(nameof(Period.FromYears),        new[] { typeof(int) })!,  "years" },
             { typeof(Period).GetRuntimeMethod(nameof(Period.FromMonths),       new[] { typeof(int) })!,  "months" },
@@ -61,7 +63,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
             //{ typeof(Period).GetRuntimeMethod(nameof(Period.FromNanoseconds),  new[] { typeof(long) }), "" },
         };
 
-        static readonly bool[][] TrueArrays =
+        private static readonly bool[][] TrueArrays =
         {
             Array.Empty<bool>(),
             new[] { true },

@@ -9,7 +9,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     public class CharacterQueryNpgsqlTest : IClassFixture<CharacterQueryNpgsqlTest.CharacterQueryNpgsqlFixture>
     {
-        CharacterQueryNpgsqlFixture Fixture { get; }
+        private CharacterQueryNpgsqlFixture Fixture { get; }
 
         // ReSharper disable once UnusedParameter.Local
         public CharacterQueryNpgsqlTest(CharacterQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)

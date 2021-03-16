@@ -21,7 +21,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
 {
     public class NpgsqlDatabaseCleaner : RelationalDatabaseCleaner
     {
-        readonly NpgsqlSqlGenerationHelper _sqlGenerationHelper;
+        private readonly NpgsqlSqlGenerationHelper _sqlGenerationHelper;
 
         public NpgsqlDatabaseCleaner()
             => _sqlGenerationHelper = new NpgsqlSqlGenerationHelper(new RelationalSqlGenerationHelperDependencies());
@@ -66,7 +66,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             base.Clean(facade);
         }
 
-        void DropExtensions(NpgsqlConnection conn)
+        private void DropExtensions(NpgsqlConnection conn)
         {
             const string getExtensions = @"
 SELECT name FROM pg_available_extensions WHERE installed_version IS NOT NULL AND name <> 'plpgsql'";
@@ -89,7 +89,7 @@ SELECT name FROM pg_available_extensions WHERE installed_version IS NOT NULL AND
         /// <summary>
         /// Drop user-defined ranges and enums, cascading to all tables which depend on them
         /// </summary>
-        void DropTypes(NpgsqlConnection conn)
+        private void DropTypes(NpgsqlConnection conn)
         {
             const string getUserDefinedRangesEnums = @"
 SELECT ns.nspname, typname
@@ -115,7 +115,7 @@ WHERE typtype IN ('r', 'e') AND nspname <> 'pg_catalog'";
         /// <summary>
         /// Drop all user-defined functions and procedures
         /// </summary>
-        void DropFunctions(NpgsqlConnection conn)
+        private void DropFunctions(NpgsqlConnection conn)
         {
             const string getUserDefinedFunctions = @"
 SELECT 'DROP ROUTINE ""' || nspname || '"".""' || proname || '""(' || oidvectortypes(proargtypes) || ');' FROM pg_proc
@@ -142,8 +142,7 @@ WHERE
             }
         }
 
-
-        void DropCollations(NpgsqlConnection conn)
+        private void DropCollations(NpgsqlConnection conn)
         {
             const string getUserCollations = @"SELECT nspname, collname
 FROM pg_collation coll

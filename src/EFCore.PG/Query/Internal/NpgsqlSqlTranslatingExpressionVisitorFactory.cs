@@ -6,7 +6,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 {
     public class NpgsqlSqlTranslatingExpressionVisitorFactory : IRelationalSqlTranslatingExpressionVisitorFactory
     {
-        [NotNull] readonly RelationalSqlTranslatingExpressionVisitorDependencies _dependencies;
+        [NotNull]
+        private readonly RelationalSqlTranslatingExpressionVisitorDependencies _dependencies;
 
         public NpgsqlSqlTranslatingExpressionVisitorFactory(
             [NotNull] RelationalSqlTranslatingExpressionVisitorDependencies dependencies)

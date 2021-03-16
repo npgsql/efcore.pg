@@ -38,18 +38,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
     /// </remarks>
     public class NpgsqlNodaTimeMemberTranslator : IMemberTranslator
     {
-        readonly ISqlExpressionFactory _sqlExpressionFactory;
+        private readonly ISqlExpressionFactory _sqlExpressionFactory;
 
         /// <summary>
         /// The static member info for <see cref="T:SystemClock.Instance"/>.
         /// </summary>
-        [NotNull] static readonly MemberInfo Instance =
+        [NotNull]
+        private static readonly MemberInfo Instance =
             typeof(SystemClock).GetRuntimeProperty(nameof(SystemClock.Instance))!;
 
         public NpgsqlNodaTimeMemberTranslator([NotNull] ISqlExpressionFactory sqlExpressionFactory)
             => _sqlExpressionFactory = sqlExpressionFactory;
 
-        static readonly bool[][] TrueArrays =
+        private static readonly bool[][] TrueArrays =
         {
             Array.Empty<bool>(),
             new[] { true },
@@ -88,7 +89,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
         /// The translated expression or null.
         /// </returns>
         [CanBeNull]
-        SqlExpression? TranslateDateTime(SqlExpression instance, MemberInfo member, Type returnType)
+        private SqlExpression? TranslateDateTime(SqlExpression instance, MemberInfo member, Type returnType)
         {
             switch (member.Name)
             {
@@ -174,7 +175,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
         /// This also gets rid of sub-second components when retrieving seconds.
         /// </remarks>
         [NotNull]
-        SqlExpression GetDatePartExpression(
+        private SqlExpression GetDatePartExpression(
             [NotNull] SqlExpression instance,
             [NotNull] string partName,
             bool floor = false)

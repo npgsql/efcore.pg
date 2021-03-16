@@ -10,7 +10,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion
 {
     public class NpgsqlValueConverterSelector : ValueConverterSelector
     {
-        readonly ConcurrentDictionary<(Type ModelElementClrType, Type ProviderElementClrType), ValueConverterInfo> _arrayConverters
+        private readonly ConcurrentDictionary<(Type ModelElementClrType, Type ProviderElementClrType), ValueConverterInfo> _arrayConverters
             = new();
 
         public NpgsqlValueConverterSelector([NotNull] ValueConverterSelectorDependencies dependencies)

@@ -74,7 +74,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
                 nullable, argumentsPropagateNullability, type, typeMapping);
         }
 
-        PostgresFunctionExpression(
+        private PostgresFunctionExpression(
             [NotNull] string name,
             [NotNull] IEnumerable<SqlExpression> arguments,
             [CanBeNull] IEnumerable<string?>? argumentNames,

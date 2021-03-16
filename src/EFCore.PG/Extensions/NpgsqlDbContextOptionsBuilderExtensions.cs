@@ -173,12 +173,12 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns>
         /// An existing instance of <see cref="NpgsqlOptionsExtension"/>, or a new instance if one does not exist.
         /// </returns>
-        static NpgsqlOptionsExtension GetOrCreateExtension(DbContextOptionsBuilder optionsBuilder)
+        private static NpgsqlOptionsExtension GetOrCreateExtension(DbContextOptionsBuilder optionsBuilder)
             => optionsBuilder.Options.FindExtension<NpgsqlOptionsExtension>() is NpgsqlOptionsExtension existing
                 ? new NpgsqlOptionsExtension(existing)
                 : new NpgsqlOptionsExtension();
 
-        static void ConfigureWarnings(DbContextOptionsBuilder optionsBuilder)
+        private static void ConfigureWarnings(DbContextOptionsBuilder optionsBuilder)
         {
             var coreOptionsExtension = optionsBuilder.Options.FindExtension<CoreOptionsExtension>()
                                        ?? new CoreOptionsExtension();

@@ -588,7 +588,7 @@ FROM ""PointEntity"" AS p");
 FROM ""PointEntity"" AS p");
         }
 
-        void AssertSql(params string[] expected) => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
+        private void AssertSql(params string[] expected) => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
         public class SpatialQueryNpgsqlGeometryFixture : SpatialQueryNpgsqlFixture
         {

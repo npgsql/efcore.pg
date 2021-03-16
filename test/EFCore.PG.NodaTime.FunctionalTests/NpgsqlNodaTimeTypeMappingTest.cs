@@ -203,7 +203,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
         #region Support
 
-        static readonly NpgsqlTypeMappingSource Mapper = new(
+        private static readonly NpgsqlTypeMappingSource Mapper = new(
             new TypeMappingSourceDependencies(
                 new ValueConverterSelector(new ValueConverterSelectorDependencies()),
                 Array.Empty<ITypeMappingSourcePlugin>()),
@@ -215,16 +215,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             new NpgsqlOptions()
         );
 
-        static RelationalTypeMapping GetMapping(string storeType) => Mapper.FindMapping(storeType);
+        private static RelationalTypeMapping GetMapping(string storeType) => Mapper.FindMapping(storeType);
 
-        static RelationalTypeMapping GetMapping(Type clrType) => (RelationalTypeMapping)Mapper.FindMapping(clrType);
+        private static RelationalTypeMapping GetMapping(Type clrType) => (RelationalTypeMapping)Mapper.FindMapping(clrType);
 
-        static RelationalTypeMapping GetMapping(Type clrType, string storeType)
+        private static RelationalTypeMapping GetMapping(Type clrType, string storeType)
             => Mapper.FindMapping(clrType, storeType);
 
-        static readonly CSharpHelper CsHelper = new(Mapper);
+        private static readonly CSharpHelper CsHelper = new(Mapper);
 
-        static string CodeLiteral(object value) => CsHelper.UnknownLiteral(value);
+        private static string CodeLiteral(object value) => CsHelper.UnknownLiteral(value);
 
         #endregion Support
     }

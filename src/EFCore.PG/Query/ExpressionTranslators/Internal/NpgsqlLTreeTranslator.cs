@@ -19,14 +19,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 {
     public class NpgsqlLTreeTranslator : IMethodCallTranslator, IMemberTranslator
     {
-        readonly IRelationalTypeMappingSource _typeMappingSource;
-        readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
-        readonly RelationalTypeMapping _boolTypeMapping;
-        readonly RelationalTypeMapping _ltreeTypeMapping;
-        readonly RelationalTypeMapping _ltreeArrayTypeMapping;
-        readonly RelationalTypeMapping _lqueryTypeMapping;
-        readonly RelationalTypeMapping _lqueryArrayTypeMapping;
-        readonly RelationalTypeMapping _ltxtqueryTypeMapping;
+        private readonly IRelationalTypeMappingSource _typeMappingSource;
+        private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
+        private readonly RelationalTypeMapping _boolTypeMapping;
+        private readonly RelationalTypeMapping _ltreeTypeMapping;
+        private readonly RelationalTypeMapping _ltreeArrayTypeMapping;
+        private readonly RelationalTypeMapping _lqueryTypeMapping;
+        private readonly RelationalTypeMapping _lqueryArrayTypeMapping;
+        private readonly RelationalTypeMapping _ltxtqueryTypeMapping;
 
         private static readonly MethodInfo IsAncestorOf =
             typeof(LTree).GetRuntimeMethod(nameof(LTree.IsAncestorOf), new[] { typeof(LTree) })!;

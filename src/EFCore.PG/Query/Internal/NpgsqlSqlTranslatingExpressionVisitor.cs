@@ -457,14 +457,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         /// PostgreSQL array indexing is 1-based. If the index happens to be a constant,
         /// just increment it. Otherwise, append a +1 in the SQL.
         /// </summary>
-        SqlExpression GenerateOneBasedIndexExpression([NotNull] SqlExpression expression)
+        private SqlExpression GenerateOneBasedIndexExpression([NotNull] SqlExpression expression)
             => expression is SqlConstantExpression constant
                 ? _sqlExpressionFactory.Constant(Convert.ToInt32(constant.Value) + 1, constant.TypeMapping)
                 : (SqlExpression)_sqlExpressionFactory.Add(expression, _sqlExpressionFactory.Constant(1));
 
         #region Copied from RelationalSqlTranslatingExpressionVisitor
 
-        static Expression TryRemoveImplicitConvert(Expression expression)
+        private static Expression TryRemoveImplicitConvert(Expression expression)
         {
             if (expression is UnaryExpression unaryExpression)
             {

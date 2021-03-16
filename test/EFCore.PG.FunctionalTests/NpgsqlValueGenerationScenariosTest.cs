@@ -10,7 +10,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
     public class NpgsqlValueGenerationScenariosTest
     {
-        static readonly string DatabaseName = "NpgsqlValueGenerationScenariosTest";
+        private static readonly string DatabaseName = "NpgsqlValueGenerationScenariosTest";
 
         [Fact]
         public void Insert_with_sequence_id()
@@ -542,7 +542,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
         public abstract class ContextBase : DbContext
         {
-            readonly string _databaseName;
+            private readonly string _databaseName;
 
             protected ContextBase(string databaseName) => _databaseName = databaseName;
 

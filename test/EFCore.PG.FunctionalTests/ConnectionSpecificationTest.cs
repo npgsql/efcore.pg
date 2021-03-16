@@ -35,7 +35,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             Assert.True(context.Customers.Any());
         }
 
-        class StringInOnConfiguringContext : NorthwindContextBase
+        private class StringInOnConfiguringContext : NorthwindContextBase
         {
             protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
                 => optionsBuilder.UseNpgsql(NpgsqlTestStore.NorthwindConnectionString, b => b.ApplyConfiguration());
@@ -63,9 +63,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             Assert.True(context.Customers.Any());
         }
 
-        class ConnectionInOnConfiguringContext : NorthwindContextBase
+        private class ConnectionInOnConfiguringContext : NorthwindContextBase
         {
-            readonly NpgsqlConnection _connection;
+            private readonly NpgsqlConnection _connection;
 
             public ConnectionInOnConfiguringContext(NpgsqlConnection connection)
                 => _connection = connection;
@@ -81,7 +81,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         }
 
         // ReSharper disable once UnusedMember.Local
-        class StringInConfigContext : NorthwindContextBase
+        private class StringInConfigContext : NorthwindContextBase
         {
             protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
                 => optionsBuilder.UseNpgsql("Database=Crunchie", b => b.ApplyConfiguration());
@@ -113,7 +113,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         }
 
         // ReSharper disable once ClassNeverInstantiated.Local
-        class NoUseNpgsqlContext : NorthwindContextBase
+        private class NoUseNpgsqlContext : NorthwindContextBase
         {
         }
 
@@ -142,10 +142,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             Assert.True(context.Customers.Any());
         }
 
-        class OptionsContext : NorthwindContextBase
+        private class OptionsContext : NorthwindContextBase
         {
-            readonly NpgsqlConnection _connection;
-            readonly DbContextOptions<OptionsContext> _options;
+            private readonly NpgsqlConnection _connection;
+            private readonly DbContextOptions<OptionsContext> _options;
 
             public OptionsContext(DbContextOptions<OptionsContext> options, NpgsqlConnection connection)
                 : base(options)
@@ -192,9 +192,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             Assert.True(context.Customers.Any());
         }
 
-        class NonGenericOptionsContext : NorthwindContextBase
+        private class NonGenericOptionsContext : NorthwindContextBase
         {
-            readonly DbContextOptions _options;
+            private readonly DbContextOptions _options;
 
             public NonGenericOptionsContext(DbContextOptions options)
                 : base(options)
@@ -210,7 +210,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             }
         }
 
-        class NorthwindContextBase : DbContext
+        private class NorthwindContextBase : DbContext
         {
             protected NorthwindContextBase()
             {
@@ -233,7 +233,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         }
 
         // ReSharper disable once ClassNeverInstantiated.Local
-        class Customer
+        private class Customer
         {
             // ReSharper disable once UnusedAutoPropertyAccessor.Local
             public string CustomerId { get; set; }

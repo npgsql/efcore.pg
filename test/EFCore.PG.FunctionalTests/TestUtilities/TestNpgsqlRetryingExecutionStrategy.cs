@@ -6,9 +6,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
 {
     public class TestNpgsqlRetryingExecutionStrategy : NpgsqlRetryingExecutionStrategy
     {
-        const bool ErrorNumberDebugMode = false;
+        private const bool ErrorNumberDebugMode = false;
 
-        static readonly string[] AdditionalSqlStates =
+        private static readonly string[] AdditionalSqlStates =
         {
             "XX000"
         };

@@ -33,7 +33,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             context.SaveChanges();
         }
 
-        NpgsqlTestStore CreateDatabase920()
+        private NpgsqlTestStore CreateDatabase920()
             => CreateTestStore(() => new Bug920Context(_options), context => ClearLog());
 
         public enum Bug920Enum { One, Two }
@@ -45,7 +45,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             public Bug920Enum Enum { get; set; }
         }
 
-        class Bug920Context : DbContext
+        private class Bug920Context : DbContext
         {
             public Bug920Context(DbContextOptions options) : base(options) {}
             public DbSet<Bug920Entity> Entities { get; set; }
@@ -53,9 +53,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         #endregion Bug920
 
-        DbContextOptions _options;
+        private DbContextOptions _options;
 
-        NpgsqlTestStore CreateTestStore<TContext>(
+        private NpgsqlTestStore CreateTestStore<TContext>(
             Func<TContext> contextCreator,
             Action<TContext> contextInitializer)
             where TContext : DbContext, IDisposable
@@ -75,7 +75,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             Fixture.TestSqlLoggerFactory.Clear();
         }
 
-        void AssertSql(params string[] expected)
+        private void AssertSql(params string[] expected)
         {
             Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
         }

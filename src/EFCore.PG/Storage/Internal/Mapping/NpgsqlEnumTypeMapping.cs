@@ -10,13 +10,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 {
     public class NpgsqlEnumTypeMapping : RelationalTypeMapping
     {
-        [NotNull] readonly ISqlGenerationHelper _sqlGenerationHelper;
-        [NotNull] readonly INpgsqlNameTranslator _nameTranslator;
+        [NotNull]
+        private readonly ISqlGenerationHelper _sqlGenerationHelper;
+        [NotNull]
+        private readonly INpgsqlNameTranslator _nameTranslator;
 
         /// <summary>
         /// Translates the CLR member value to the PostgreSQL value label.
         /// </summary>
-        [NotNull] readonly Dictionary<object, string> _members;
+        [NotNull]
+        private readonly Dictionary<object, string> _members;
 
         public NpgsqlEnumTypeMapping(
             [NotNull] string storeType,
@@ -53,7 +56,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         protected override string GenerateNonNullSqlLiteral(object value) => $"'{_members[value]}'::{StoreType}";
 
         [NotNull]
-        static Dictionary<object, string> CreateValueMapping([NotNull] Type enumType, [NotNull] INpgsqlNameTranslator nameTranslator)
+        private static Dictionary<object, string> CreateValueMapping([NotNull] Type enumType, [NotNull] INpgsqlNameTranslator nameTranslator)
             => enumType.GetFields(BindingFlags.Static | BindingFlags.Public)
                        .ToDictionary(
                            x => x.GetValue(null)!,

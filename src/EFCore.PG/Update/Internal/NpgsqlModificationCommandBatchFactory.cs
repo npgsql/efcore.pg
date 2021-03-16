@@ -9,8 +9,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
 {
     public class NpgsqlModificationCommandBatchFactory : IModificationCommandBatchFactory
     {
-        readonly ModificationCommandBatchFactoryDependencies _dependencies;
-        readonly IDbContextOptions _options;
+        private readonly ModificationCommandBatchFactoryDependencies _dependencies;
+        private readonly IDbContextOptions _options;
 
         public NpgsqlModificationCommandBatchFactory(
             [NotNull] ModificationCommandBatchFactoryDependencies dependencies,

@@ -17,10 +17,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 {
     public class NpgsqlJsonDbFunctionsTranslator : IMethodCallTranslator
     {
-        readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
-        readonly RelationalTypeMapping _boolTypeMapping;
-        readonly RelationalTypeMapping _stringTypeMapping;
-        readonly RelationalTypeMapping _jsonbTypeMapping;
+        private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
+        private readonly RelationalTypeMapping _boolTypeMapping;
+        private readonly RelationalTypeMapping _stringTypeMapping;
+        private readonly RelationalTypeMapping _jsonbTypeMapping;
 
         public NpgsqlJsonDbFunctionsTranslator(
             [NotNull] IRelationalTypeMappingSource typeMappingSource,

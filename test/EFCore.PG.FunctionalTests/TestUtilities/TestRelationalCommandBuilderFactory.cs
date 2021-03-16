@@ -24,9 +24,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
         public virtual IRelationalCommandBuilder Create()
             => new TestRelationalCommandBuilder(Dependencies);
 
-        class TestRelationalCommandBuilder : IRelationalCommandBuilder
+        private class TestRelationalCommandBuilder : IRelationalCommandBuilder
         {
-            readonly List<IRelationalParameter> _parameters = new List<IRelationalParameter>();
+            private readonly List<IRelationalParameter> _parameters = new List<IRelationalParameter>();
 
             public TestRelationalCommandBuilder(
                 RelationalCommandBuilderDependencies dependencies)
@@ -86,9 +86,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             public int CommandTextLength => Instance.Length;
         }
 
-        class TestRelationalCommand : IRelationalCommand
+        private class TestRelationalCommand : IRelationalCommand
         {
-            readonly RelationalCommand _realRelationalCommand;
+            private readonly RelationalCommand _realRelationalCommand;
 
             public TestRelationalCommand(
                 RelationalCommandBuilderDependencies dependencies,
@@ -200,7 +200,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             public DbCommand CreateDbCommand(RelationalCommandParameterObject parameterObject, Guid commandId, DbCommandMethod commandMethod)
                 => throw new NotImplementedException();
 
-            string PreExecution(IRelationalConnection connection)
+            private string PreExecution(IRelationalConnection connection)
             {
                 string errorNumber = null;
                 var testConnection = (TestNpgsqlConnection)connection;

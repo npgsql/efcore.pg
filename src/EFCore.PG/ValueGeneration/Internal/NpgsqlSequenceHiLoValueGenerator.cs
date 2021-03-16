@@ -19,11 +19,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
     /// </summary>
     public class NpgsqlSequenceHiLoValueGenerator<TValue> : HiLoValueGenerator<TValue>
     {
-        readonly IRawSqlCommandBuilder _rawSqlCommandBuilder;
-        readonly IUpdateSqlGenerator _sqlGenerator;
-        readonly INpgsqlRelationalConnection _connection;
-        readonly ISequence _sequence;
-        readonly IDiagnosticsLogger<DbLoggerCategory.Database.Command> _commandLogger;
+        private readonly IRawSqlCommandBuilder _rawSqlCommandBuilder;
+        private readonly IUpdateSqlGenerator _sqlGenerator;
+        private readonly INpgsqlRelationalConnection _connection;
+        private readonly ISequence _sequence;
+        private readonly IDiagnosticsLogger<DbLoggerCategory.Database.Command> _commandLogger;
 
         /// <summary>
         ///     This API supports the Entity Framework Core infrastructure and is not intended to be used

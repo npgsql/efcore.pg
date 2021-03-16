@@ -34,11 +34,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion
             ElementConverter = elementConverter;
         }
 
-        static Expression<Func<TModelArray, TProviderArray>> ToArrayProviderExpression(
+        private static Expression<Func<TModelArray, TProviderArray>> ToArrayProviderExpression(
             LambdaExpression elementToProviderExpression)
             => ArrayConversionExpression<TModelArray, TProviderArray>(elementToProviderExpression);
 
-        static Expression<Func<TProviderArray, TModelArray>> FromArrayProviderExpression(
+        private static Expression<Func<TProviderArray, TModelArray>> FromArrayProviderExpression(
             LambdaExpression elementFromProviderExpression)
             => ArrayConversionExpression<TProviderArray, TModelArray>(elementFromProviderExpression);
 
@@ -46,7 +46,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion
         /// Generates a lambda expression that accepts an array, and converts it to another array by looping and applying
         /// a conversion lambda to each of its elements.
         /// </summary>
-        static Expression<Func<TInput, TOutput>> ArrayConversionExpression<TInput, TOutput>(LambdaExpression elementConversionExpression)
+        private static Expression<Func<TInput, TOutput>> ArrayConversionExpression<TInput, TOutput>(LambdaExpression elementConversionExpression)
         {
             if (!typeof(TInput).TryGetElementType(out var inputElementType) ||
                 !typeof(TOutput).TryGetElementType(out var outputElementType))
@@ -125,7 +125,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion
                     : Expression.Property(arrayOrList, arrayOrList.Type.FindIndexerProperty()!, index);
         }
 
-        static Expression ForLoop(ParameterExpression loopVar, Expression initValue, Expression condition, Expression increment, Expression loopContent)
+        private static Expression ForLoop(ParameterExpression loopVar, Expression initValue, Expression condition, Expression increment, Expression loopContent)
         {
             var initAssign = Expression.Assign(loopVar, initValue);
             var breakLabel = Expression.Label("LoopBreak");

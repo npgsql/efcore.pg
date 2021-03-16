@@ -923,7 +923,7 @@ FROM ""Customers"" AS c
 WHERE to_tsvector(c.""ContactTitle"") @@ (to_tsquery('owner') || to_tsquery('foo'))");
         }
 
-        void AssertSql(params string[] expected)
+        private void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
         protected NorthwindContext CreateContext() => Fixture.CreateContext();

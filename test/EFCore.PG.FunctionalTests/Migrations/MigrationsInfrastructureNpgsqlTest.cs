@@ -41,7 +41,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             Assert.True(creator.Exists());
         }
 
-        class BloggingContext : DbContext
+        private class BloggingContext : DbContext
         {
             public BloggingContext(DbContextOptions options)
                 : base(options)

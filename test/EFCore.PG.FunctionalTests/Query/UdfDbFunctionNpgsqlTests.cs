@@ -710,7 +710,7 @@ LIMIT 2");
             }
         }
 
-        void AssertSql(params string[] expected)
+        private void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
     }
 }

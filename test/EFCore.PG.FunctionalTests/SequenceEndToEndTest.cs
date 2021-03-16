@@ -48,7 +48,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             }
         }
 
-        static void AddEntities(IServiceProvider serviceProvider, string name)
+        private static void AddEntities(IServiceProvider serviceProvider, string name)
         {
             using var context = new BronieContext(serviceProvider, name);
             for (var i = 0; i < 10; i++)
@@ -106,7 +106,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             }
         }
 
-        static void AddEntitiesToMultipleContexts(
+        private static void AddEntitiesToMultipleContexts(
             IServiceProvider serviceProvider,
             string dbName1,
             string dbName2)
@@ -164,7 +164,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             }
         }
 
-        static async Task AddEntitiesAsync(IServiceProvider serviceProvider, string databaseName)
+        private static async Task AddEntitiesAsync(IServiceProvider serviceProvider, string databaseName)
         {
             using var context = new BronieContext(serviceProvider, databaseName);
             for (var i = 0; i < 10; i++)
@@ -258,7 +258,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             }
         }
 
-        static void AddEntitiesWithIds(IServiceProvider serviceProvider, int idOffset, string name)
+        private static void AddEntitiesWithIds(IServiceProvider serviceProvider, int idOffset, string name)
         {
             using var context = new BronieContext(serviceProvider, name);
             for (var i = 1; i < 11; i++)
@@ -272,10 +272,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             context.SaveChanges();
         }
 
-        class BronieContext : DbContext
+        private class BronieContext : DbContext
         {
-            readonly IServiceProvider _serviceProvider;
-            readonly string _databaseName;
+            private readonly IServiceProvider _serviceProvider;
+            private readonly string _databaseName;
 
             public BronieContext(IServiceProvider serviceProvider, string databaseName)
             {
@@ -301,7 +301,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             }
         }
 
-        class Pegasus
+        private class Pegasus
         {
             public int Identifier { get; set; }
             public string Name { get; set; }
@@ -363,7 +363,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             }
         }
 
-        static void AddEntitiesNullable(IServiceProvider serviceProvider, string databaseName, bool useSequence)
+        private static void AddEntitiesNullable(IServiceProvider serviceProvider, string databaseName, bool useSequence)
         {
             using var context = new NullableBronieContext(serviceProvider, databaseName, useSequence);
             for (var i = 0; i < 10; i++)
@@ -377,11 +377,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             context.SaveChanges();
         }
 
-        class NullableBronieContext : DbContext
+        private class NullableBronieContext : DbContext
         {
-            readonly IServiceProvider _serviceProvider;
-            readonly string _databaseName;
-            readonly bool _useSequence;
+            private readonly IServiceProvider _serviceProvider;
+            private readonly string _databaseName;
+            private readonly bool _useSequence;
 
             public NullableBronieContext(IServiceProvider serviceProvider, string databaseName, bool useSequence)
             {
@@ -415,7 +415,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             }
         }
 
-        class Unicon
+        private class Unicon
         {
             public int? Identifier { get; set; }
             public string Name { get; set; }

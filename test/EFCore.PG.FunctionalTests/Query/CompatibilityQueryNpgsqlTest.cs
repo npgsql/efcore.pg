@@ -11,7 +11,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     public class CompatibilityQueryNpgsqlTest : IClassFixture<CompatibilityQueryNpgsqlTest.CompatibilityQueryNpgsqlFixture>
     {
-        CompatibilityQueryNpgsqlFixture Fixture { get; }
+        private CompatibilityQueryNpgsqlFixture Fixture { get; }
 
         // ReSharper disable once UnusedParameter.Local
         public CompatibilityQueryNpgsqlTest(CompatibilityQueryNpgsqlFixture fixture, ITestOutputHelper testOutputHelper)
@@ -23,7 +23,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 
         // CURRENTLY EMPTY
 
-        CompatibilityContext CreateContext(Version postgresVersion = null)
+        private CompatibilityContext CreateContext(Version postgresVersion = null)
         {
             var builder = new DbContextOptionsBuilder(Fixture.CreateOptions());
             if (postgresVersion != null)
@@ -107,13 +107,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         /// Asserts that the SQL fragment appears in the logs.
         /// </summary>
         /// <param name="sql">The SQL statement or fragment to search for in the logs.</param>
-        void AssertContainsSql(string sql) => Assert.Contains(sql, Fixture.TestSqlLoggerFactory.Sql);
+        private void AssertContainsSql(string sql) => Assert.Contains(sql, Fixture.TestSqlLoggerFactory.Sql);
 
         /// <summary>
         /// Asserts that the SQL fragment does not appears in the logs.
         /// </summary>
         /// <param name="sql">The SQL statement or fragment to search for in the logs.</param>
-        void AssertDoesNotContainsSql(string sql) => Assert.DoesNotContain(sql, Fixture.TestSqlLoggerFactory.Sql);
+        private void AssertDoesNotContainsSql(string sql) => Assert.DoesNotContain(sql, Fixture.TestSqlLoggerFactory.Sql);
 
         #endregion
     }

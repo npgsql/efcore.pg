@@ -17,8 +17,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 {
     public class NpgsqlDatabaseCreator : RelationalDatabaseCreator
     {
-        readonly INpgsqlRelationalConnection _connection;
-        readonly IRawSqlCommandBuilder _rawSqlCommandBuilder;
+        private readonly INpgsqlRelationalConnection _connection;
+        private readonly IRawSqlCommandBuilder _rawSqlCommandBuilder;
 
         public NpgsqlDatabaseCreator(
             [NotNull] RelationalDatabaseCreatorDependencies dependencies,
@@ -107,7 +107,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                                                       Dependencies.CommandLogger),
                                                   cancellationToken: ct))!, cancellationToken);
 
-        IRelationalCommand CreateHasTablesCommand()
+        private IRelationalCommand CreateHasTablesCommand()
             => _rawSqlCommandBuilder
                 .Build(@"
                     SELECT CASE WHEN COUNT(*) = 0 THEN FALSE ELSE TRUE END
@@ -115,7 +115,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                     WHERE table_type = 'BASE TABLE' AND table_schema NOT IN ('pg_catalog', 'information_schema')
                 ");
 
-        IReadOnlyList<MigrationCommand> CreateCreateOperations()
+        private IReadOnlyList<MigrationCommand> CreateCreateOperations()
             => Dependencies.MigrationsSqlGenerator.Generate(new[]
             {
                 new NpgsqlCreateDatabaseOperation
@@ -296,7 +296,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             }
         }
 
-        IReadOnlyList<MigrationCommand> CreateDropCommands()
+        private IReadOnlyList<MigrationCommand> CreateDropCommands()
         {
             var operations = new MigrationOperation[]
             {
@@ -309,10 +309,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         }
 
         // Clear connection pools in case there are active connections that are pooled
-        static void ClearAllPools() => NpgsqlConnection.ClearAllPools();
+        private static void ClearAllPools() => NpgsqlConnection.ClearAllPools();
 
         // Clear connection pool for the database connection since after the 'create database' call, a previously
         // invalid connection may now be valid.
-        void ClearPool() => NpgsqlConnection.ClearPool((NpgsqlConnection)_connection.DbConnection);
+        private void ClearPool() => NpgsqlConnection.ClearPool((NpgsqlConnection)_connection.DbConnection);
     }
 }

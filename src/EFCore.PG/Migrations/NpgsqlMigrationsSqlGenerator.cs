@@ -1571,7 +1571,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 #pragma warning disable 618
         // Version 1.0 had a bad strategy for expressing serial columns, which depended on a
         // ValueGeneratedOnAdd annotation. Detect that and throw.
-        static void CheckForOldValueGenerationAnnotation([NotNull] IAnnotatable annotatable)
+        private static void CheckForOldValueGenerationAnnotation([NotNull] IAnnotatable annotatable)
         {
             if (annotatable.FindAnnotation(NpgsqlAnnotationNames.ValueGeneratedOnAdd) != null)
                 throw new NotSupportedException("The Npgsql:ValueGeneratedOnAdd annotation has been found in your migrations, but is no longer supported. Please replace it with '.Annotation(\"Npgsql:ValueGenerationStrategy\", NpgsqlValueGenerationStrategy.SerialColumn)' where you want PostgreSQL serial (autoincrement) columns, and remove it in all other cases.");
@@ -1642,7 +1642,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
         #region System column utilities
 
-        bool IsSystemColumn(string name) => SystemColumnNames.Contains(name);
+        private bool IsSystemColumn(string name) => SystemColumnNames.Contains(name);
 
         /// <summary>
         /// Tables in PostgreSQL implicitly have a set of system columns, which are always there.
@@ -1652,13 +1652,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         /// <remarks>
         /// https://www.postgresql.org/docs/current/static/ddl-system-columns.html
         /// </remarks>
-        static readonly string[] SystemColumnNames = { "oid", "tableoid", "xmin", "cmin", "xmax", "cmax", "ctid" };
+        private static readonly string[] SystemColumnNames = { "oid", "tableoid", "xmin", "cmin", "xmax", "cmax", "ctid" };
 
         #endregion System column utilities
 
         #region Storage parameter utilities
 
-        Dictionary<string, string> GetStorageParameters(Annotatable annotatable)
+        private Dictionary<string, string> GetStorageParameters(Annotatable annotatable)
             => annotatable.GetAnnotations()
                 .Where(a => a.Name.StartsWith(NpgsqlAnnotationNames.StorageParameterPrefix))
                 .ToDictionary(
@@ -1666,7 +1666,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                     a => GenerateStorageParameterValue(a.Value!)
                 );
 
-        static string GenerateStorageParameterValue(object value)
+        private static string GenerateStorageParameterValue(object value)
         {
             if (value is bool)
                 return (bool)value ? "true" : "false";
@@ -1679,13 +1679,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
         #region Helpers
 
-        string DelimitIdentifier(string identifier) =>
+        private string DelimitIdentifier(string identifier) =>
             Dependencies.SqlGenerationHelper.DelimitIdentifier(identifier);
 
-        string DelimitIdentifier(string name, string? schema) =>
+        private string DelimitIdentifier(string name, string? schema) =>
             Dependencies.SqlGenerationHelper.DelimitIdentifier(name, schema);
 
-        string IndexColumnList(IndexColumn[] columns, string? method)
+        private string IndexColumnList(IndexColumn[] columns, string? method)
         {
             var isFirst = true;
             var builder = new StringBuilder();
@@ -1741,7 +1741,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             return builder.ToString();
         }
 
-        string ColumnsToTsVector(IEnumerable<string> columns, string tsVectorConfig, IModel? model, string? schema, string table)
+        private string ColumnsToTsVector(IEnumerable<string> columns, string tsVectorConfig, IModel? model, string? schema, string table)
         {
             string GetTsVectorColumnExpression(string columnName)
             {
@@ -1762,7 +1762,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 .ToString();
         }
 
-        static bool TryParseSchema(string identifier, out string name, out string? schema)
+        private static bool TryParseSchema(string identifier, out string name, out string? schema)
         {
             var index = identifier.IndexOf('.');
 
@@ -1802,7 +1802,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             return columns;
         }
 
-        readonly struct IndexColumn
+        private readonly struct IndexColumn
         {
             public IndexColumn(string name, string? @operator, string? collation, SortOrder sortOrder, NullSortOrder nullSortOrder)
             {

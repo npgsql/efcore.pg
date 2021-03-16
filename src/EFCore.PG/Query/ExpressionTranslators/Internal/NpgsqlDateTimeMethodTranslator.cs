@@ -19,7 +19,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         /// <summary>
         /// The mapping of supported method translations.
         /// </summary>
-        [NotNull] static readonly Dictionary<MethodInfo, string> MethodInfoDatePartMapping = new()
+        [NotNull]
+        private static readonly Dictionary<MethodInfo, string> MethodInfoDatePartMapping = new()
         {
             { typeof(DateTime).GetRuntimeMethod(nameof(DateTime.AddYears), new[] { typeof(int) })!, "years" },
             { typeof(DateTime).GetRuntimeMethod(nameof(DateTime.AddMonths), new[] { typeof(int) })!, "months" },

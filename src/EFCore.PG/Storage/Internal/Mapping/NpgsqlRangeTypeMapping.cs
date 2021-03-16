@@ -16,7 +16,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     /// </remarks>
     public class NpgsqlRangeTypeMapping : NpgsqlTypeMapping
     {
-        [NotNull] readonly ISqlGenerationHelper _sqlGenerationHelper;
+        [NotNull]
+        private readonly ISqlGenerationHelper _sqlGenerationHelper;
 
         // ReSharper disable once MemberCanBePrivate.Global
         /// <summary>
@@ -82,7 +83,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             return sb.ToString();
         }
 
-        static NpgsqlDbType GenerateNpgsqlDbType([NotNull] RelationalTypeMapping subtypeMapping)
+        private static NpgsqlDbType GenerateNpgsqlDbType([NotNull] RelationalTypeMapping subtypeMapping)
         {
             if (subtypeMapping is INpgsqlTypeMapping npgsqlTypeMapping)
                 return NpgsqlDbType.Range | npgsqlTypeMapping.NpgsqlDbType;

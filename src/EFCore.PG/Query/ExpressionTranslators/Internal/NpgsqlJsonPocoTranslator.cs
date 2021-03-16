@@ -107,7 +107,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         }
 
         // The PostgreSQL traversal operator always returns text, so we need to convert to int, bool, etc.
-        SqlExpression ConvertFromText(SqlExpression expression, Type returnType)
+        private SqlExpression ConvertFromText(SqlExpression expression, Type returnType)
         {
             var unwrappedReturnType = returnType.UnwrapNullableType();
 

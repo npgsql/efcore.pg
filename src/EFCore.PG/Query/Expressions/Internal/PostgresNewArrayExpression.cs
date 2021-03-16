@@ -111,7 +111,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
                    || obj is PostgresNewArrayExpression sqlBinaryExpression
                    && Equals(sqlBinaryExpression));
 
-        bool Equals(PostgresNewArrayExpression postgresNewArrayExpression)
+        private bool Equals(PostgresNewArrayExpression postgresNewArrayExpression)
             => base.Equals(postgresNewArrayExpression)
                && Expressions.SequenceEqual(postgresNewArrayExpression.Expressions);
 

@@ -16,10 +16,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
 {
     public class NpgsqlTestStore : RelationalTestStore
     {
-        readonly string _scriptPath;
-        readonly string _additionalSql;
+        private readonly string _scriptPath;
+        private readonly string _additionalSql;
 
-        const string Northwind = "Northwind";
+        private const string Northwind = "Northwind";
 
         public const int CommandTimeout = 600;
 
@@ -46,7 +46,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             => new NpgsqlTestStore(name, shared: false)
                 .InitializeNpgsql(null, (Func<DbContext>)null, null);
 
-        NpgsqlTestStore(
+        private NpgsqlTestStore(
             string name,
             string scriptPath = null,
             string additionalSql = null,
@@ -103,7 +103,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
         public override DbContextOptionsBuilder AddProviderOptions(DbContextOptionsBuilder builder)
             => builder.UseNpgsql(Connection, b => b.ApplyConfiguration().CommandTimeout(CommandTimeout));
 
-        static string GetScratchDbName()
+        private static string GetScratchDbName()
         {
             string name;
             do
@@ -115,7 +115,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             return name;
         }
 
-        bool CreateDatabase(Action<DbContext> clean)
+        private bool CreateDatabase(Action<DbContext> clean)
         {
             using (var master = new NpgsqlConnection(CreateAdminConnectionString()))
             {
@@ -145,9 +145,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             return true;
         }
 
-        static void WaitForExists(NpgsqlConnection connection) => WaitForExistsImplementation(connection);
+        private static void WaitForExists(NpgsqlConnection connection) => WaitForExistsImplementation(connection);
 
-        static void WaitForExistsImplementation(NpgsqlConnection connection)
+        private static void WaitForExistsImplementation(NpgsqlConnection connection)
         {
             var retryCount = 0;
             while (true)
@@ -197,7 +197,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
         }
 
         // ReSharper disable once UnusedMember.Local
-        static void Clean(string name)
+        private static void Clean(string name)
         {
             var options = new DbContextOptionsBuilder()
                 .UseNpgsql(CreateConnectionString(name), b => b.ApplyConfiguration())
@@ -213,10 +213,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
             }
         }
 
-        static string GetCreateDatabaseStatement(string name)
+        private static string GetCreateDatabaseStatement(string name)
             => $@"CREATE DATABASE ""{name}""";
 
-        static bool DatabaseExists(string name)
+        private static bool DatabaseExists(string name)
         {
             using (var master = new NpgsqlConnection(CreateAdminConnectionString()))
                 return ExecuteScalar<long>(master, $@"SELECT COUNT(*) FROM pg_database WHERE datname = '{name}'") > 0;
@@ -237,13 +237,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
 
         // Kill all connection to the database
         // TODO: Pre-9.2 PG has column name procid instead of pid
-        static string GetDisconnectDatabaseSql(string name) => $@"
+        private static string GetDisconnectDatabaseSql(string name) => $@"
 REVOKE CONNECT ON DATABASE ""{name}"" FROM PUBLIC;
 SELECT pg_terminate_backend (pg_stat_activity.pid)
    FROM pg_stat_activity
    WHERE datname = '{name}'";
 
-        static string GetDropDatabaseSql(string name) => $@"DROP DATABASE ""{name}""";
+        private static string GetDropDatabaseSql(string name) => $@"DROP DATABASE ""{name}""";
 
         public override void OpenConnection() => Connection.Open();
 
@@ -253,35 +253,35 @@ SELECT pg_terminate_backend (pg_stat_activity.pid)
         public T ExecuteScalar<T>(string sql, params object[] parameters)
             => ExecuteScalar<T>(Connection, sql, parameters);
 
-        static T ExecuteScalar<T>(DbConnection connection, string sql, params object[] parameters)
+        private static T ExecuteScalar<T>(DbConnection connection, string sql, params object[] parameters)
             => Execute(connection, command => (T)command.ExecuteScalar(), sql, false, parameters);
 
         // ReSharper disable once UnusedMember.Global
         public Task<T> ExecuteScalarAsync<T>(string sql, params object[] parameters)
             => ExecuteScalarAsync<T>(Connection, sql, parameters);
 
-        static Task<T> ExecuteScalarAsync<T>(DbConnection connection, string sql, object[] parameters = null)
+        private static Task<T> ExecuteScalarAsync<T>(DbConnection connection, string sql, object[] parameters = null)
             => ExecuteAsync(connection, async command => (T)await command.ExecuteScalarAsync(), sql, false, parameters);
 
         // ReSharper disable once UnusedMethodReturnValue.Global
         public int ExecuteNonQuery(string sql, params object[] parameters)
             => ExecuteNonQuery(Connection, sql, parameters);
 
-        static int ExecuteNonQuery(DbConnection connection, string sql, object[] parameters = null)
+        private static int ExecuteNonQuery(DbConnection connection, string sql, object[] parameters = null)
             => Execute(connection, command => command.ExecuteNonQuery(), sql, false, parameters);
 
         // ReSharper disable once UnusedMember.Global
         public Task<int> ExecuteNonQueryAsync(string sql, params object[] parameters)
             => ExecuteNonQueryAsync(Connection, sql, parameters);
 
-        static Task<int> ExecuteNonQueryAsync(DbConnection connection, string sql, object[] parameters = null)
+        private static Task<int> ExecuteNonQueryAsync(DbConnection connection, string sql, object[] parameters = null)
             => ExecuteAsync(connection, command => command.ExecuteNonQueryAsync(), sql, false, parameters);
 
         // ReSharper disable once UnusedMember.Global
         public IEnumerable<T> Query<T>(string sql, params object[] parameters)
             => Query<T>(Connection, sql, parameters);
 
-        static IEnumerable<T> Query<T>(DbConnection connection, string sql, object[] parameters = null)
+        private static IEnumerable<T> Query<T>(DbConnection connection, string sql, object[] parameters = null)
             => Execute(connection, command =>
             {
                 using (var dataReader = command.ExecuteReader())
@@ -299,7 +299,7 @@ SELECT pg_terminate_backend (pg_stat_activity.pid)
         public Task<IEnumerable<T>> QueryAsync<T>(string sql, params object[] parameters)
             => QueryAsync<T>(Connection, sql, parameters);
 
-        static Task<IEnumerable<T>> QueryAsync<T>(DbConnection connection, string sql, object[] parameters = null)
+        private static Task<IEnumerable<T>> QueryAsync<T>(DbConnection connection, string sql, object[] parameters = null)
             => ExecuteAsync(connection, async command =>
             {
                 using (var dataReader = await command.ExecuteReaderAsync())
@@ -313,12 +313,12 @@ SELECT pg_terminate_backend (pg_stat_activity.pid)
                 }
             }, sql, false, parameters);
 
-        static T Execute<T>(
+        private static T Execute<T>(
             DbConnection connection, Func<DbCommand, T> execute, string sql,
             bool useTransaction = false, object[] parameters = null)
             => ExecuteCommand(connection, execute, sql, useTransaction, parameters);
 
-        static T ExecuteCommand<T>(
+        private static T ExecuteCommand<T>(
             DbConnection connection, Func<DbCommand, T> execute, string sql, bool useTransaction, object[] parameters)
         {
             if (connection.State != ConnectionState.Closed)
@@ -351,12 +351,12 @@ SELECT pg_terminate_backend (pg_stat_activity.pid)
             }
         }
 
-        static Task<T> ExecuteAsync<T>(
+        private static Task<T> ExecuteAsync<T>(
             DbConnection connection, Func<DbCommand, Task<T>> executeAsync, string sql,
             bool useTransaction = false, IReadOnlyList<object> parameters = null)
             => ExecuteCommandAsync(connection, executeAsync, sql, useTransaction, parameters);
 
-        static async Task<T> ExecuteCommandAsync<T>(
+        private static async Task<T> ExecuteCommandAsync<T>(
             DbConnection connection, Func<DbCommand, Task<T>> executeAsync, string sql, bool useTransaction, IReadOnlyList<object> parameters)
         {
             if (connection.State != ConnectionState.Closed)
@@ -388,7 +388,7 @@ SELECT pg_terminate_backend (pg_stat_activity.pid)
             }
         }
 
-        static DbCommand CreateCommand(
+        private static DbCommand CreateCommand(
             DbConnection connection, string commandText, IReadOnlyList<object> parameters = null)
         {
             var command = (NpgsqlCommand)connection.CreateCommand();
@@ -413,7 +413,7 @@ SELECT pg_terminate_backend (pg_stat_activity.pid)
                 Database = name
             }.ConnectionString;
 
-        static string CreateAdminConnectionString() => CreateConnectionString("postgres");
+        private static string CreateAdminConnectionString() => CreateConnectionString("postgres");
 
         public override void Clean(DbContext context)
             => context.Database.EnsureClean();

@@ -24,21 +24,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     /// </remarks>
     public class NpgsqlArrayTranslator : IMethodCallTranslator, IMemberTranslator
     {
-        static readonly MethodInfo SequenceEqual =
+        private static readonly MethodInfo SequenceEqual =
             typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
                 .Single(m => m.Name == nameof(Enumerable.SequenceEqual) && m.GetParameters().Length == 2);
 
-        static readonly MethodInfo EnumerableContains =
+        private static readonly MethodInfo EnumerableContains =
             typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
                 .Single(m => m.Name == nameof(Enumerable.Contains) && m.GetParameters().Length == 2);
 
-        static readonly MethodInfo EnumerableAnyWithoutPredicate =
+        private static readonly MethodInfo EnumerableAnyWithoutPredicate =
             typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
                 .Single(mi => mi.Name == nameof(Enumerable.Any) && mi.GetParameters().Length == 1);
 
-        readonly IRelationalTypeMappingSource _typeMappingSource;
-        readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
-        readonly NpgsqlJsonPocoTranslator _jsonPocoTranslator;
+        private readonly IRelationalTypeMappingSource _typeMappingSource;
+        private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
+        private readonly NpgsqlJsonPocoTranslator _jsonPocoTranslator;
 
         public NpgsqlArrayTranslator(
             [NotNull] IRelationalTypeMappingSource typeMappingSource,
@@ -194,7 +194,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         /// PostgreSQL array indexing is 1-based. If the index happens to be a constant,
         /// just increment it. Otherwise, append a +1 in the SQL.
         /// </summary>
-        SqlExpression GenerateOneBasedIndexExpression([NotNull] SqlExpression expression)
+        private SqlExpression GenerateOneBasedIndexExpression([NotNull] SqlExpression expression)
             => expression is SqlConstantExpression constant
                 ? _sqlExpressionFactory.Constant(Convert.ToInt32(constant.Value) + 1, constant.TypeMapping)
                 : (SqlExpression)_sqlExpressionFactory.Add(expression, _sqlExpressionFactory.Constant(1));

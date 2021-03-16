@@ -13,7 +13,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
     /// </summary>
     public class CitextQueryTest : IClassFixture<CitextQueryTest.CitextQueryFixture>
     {
-        CitextQueryFixture Fixture { get; }
+        private CitextQueryFixture Fixture { get; }
 
         // ReSharper disable once UnusedParameter.Local
         public CitextQueryTest(CitextQueryFixture fixture, ITestOutputHelper testOutputHelper)
@@ -265,7 +265,7 @@ LIMIT 2");
 
         protected CitextQueryContext CreateContext() => Fixture.CreateContext();
 
-        void AssertSql(params string[] expected)
+        private void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
         public class CitextQueryContext : PoolableDbContext

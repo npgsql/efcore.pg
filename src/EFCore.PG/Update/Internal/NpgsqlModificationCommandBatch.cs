@@ -28,9 +28,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
     /// </remarks>
     public class NpgsqlModificationCommandBatch : ReaderModificationCommandBatch
     {
-        const int DefaultBatchSize = 1000;
-        readonly int _maxBatchSize;
-        int _parameterCount;
+        private const int DefaultBatchSize = 1000;
+        private readonly int _maxBatchSize;
+        private int _parameterCount;
 
         /// <summary>
         /// Constructs an instance of the <see cref="NpgsqlModificationCommandBatch"/> class.

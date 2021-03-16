@@ -46,7 +46,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             return Expression.New(Constructor, Expression.NewArrayInit(typeof(bool), exprs));
         }
 
-        static readonly ConstructorInfo Constructor =
+        private static readonly ConstructorInfo Constructor =
             typeof(BitArray).GetConstructor(new[] { typeof(bool[]) })!;
     }
 }

@@ -18,7 +18,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
     public class NpgsqlOptionsExtension : RelationalOptionsExtension
     {
         private DbContextOptionsExtensionInfo? _info;
-        readonly List<UserRangeDefinition> _userRangeDefinitions;
+        private readonly List<UserRangeDefinition> _userRangeDefinitions;
 
         /// <summary>
         /// The name of the database for administrative operations.
@@ -221,17 +221,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         public override DbContextOptionsExtensionInfo Info
             => _info ??= new ExtensionInfo(this);
 
-        sealed class ExtensionInfo : RelationalExtensionInfo
+        private sealed class ExtensionInfo : RelationalExtensionInfo
         {
-            long? _serviceProviderHash;
-            string? _logFragment;
+            private long? _serviceProviderHash;
+            private string? _logFragment;
 
             public ExtensionInfo(IDbContextOptionsExtension extension)
                 : base(extension)
             {
             }
 
-            new NpgsqlOptionsExtension Extension => (NpgsqlOptionsExtension)base.Extension;
+            private new NpgsqlOptionsExtension Extension => (NpgsqlOptionsExtension)base.Extension;
 
             public override bool IsDatabaseProvider => true;
 

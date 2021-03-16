@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Utilities
 {
-    static class SortOrderHelper
+    internal static class SortOrderHelper
     {
         public static bool IsDefaultSortOrder([CanBeNull] IReadOnlyList<SortOrder>? sortOrders)
             => sortOrders?.All(sortOrder => sortOrder == SortOrder.Ascending) ?? true;

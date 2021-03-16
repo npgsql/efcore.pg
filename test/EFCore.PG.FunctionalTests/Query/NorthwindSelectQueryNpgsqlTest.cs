@@ -30,7 +30,7 @@ FROM ""Orders"" AS o");
         public override Task Member_binding_after_ctor_arguments_fails_with_client_eval(bool async)
             => AssertTranslationFailed(() => base.Member_binding_after_ctor_arguments_fails_with_client_eval(async));
 
-        void AssertSql(params string[] expected)
+        private void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
         protected override void ClearLog()

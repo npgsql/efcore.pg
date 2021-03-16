@@ -11,8 +11,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 {
     public class PostgresCollation
     {
-        [NotNull] readonly IReadOnlyAnnotatable _annotatable;
-        [NotNull] readonly string _annotationName;
+        [NotNull]
+        private readonly IReadOnlyAnnotatable _annotatable;
+        [NotNull]
+        private readonly string _annotationName;
 
         internal PostgresCollation([NotNull] IReadOnlyAnnotatable annotatable, [NotNull] string annotationName)
         {
@@ -64,7 +66,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         }
 
         [NotNull]
-        static string BuildAnnotationName(string? schema, string name)
+        private static string BuildAnnotationName(string? schema, string name)
             => schema != null
                 ? $"{NpgsqlAnnotationNames.CollationDefinitionPrefix}{schema}.{name}"
                 : $"{NpgsqlAnnotationNames.CollationDefinitionPrefix}{name}";
@@ -110,14 +112,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             set => SetData(deterministic: value);
         }
 
-        (string? Schema, string? Name, string? LcCollate, string? LcCtype, string? Provider, bool? IsDeterministic) GetData()
+        private (string? Schema, string? Name, string? LcCollate, string? LcCtype, string? Provider, bool? IsDeterministic) GetData()
             => Deserialize(Annotatable.FindAnnotation(_annotationName));
 
-        void SetData(string? lcCollate = null, string? lcCtype = null, string? provider = null, bool? deterministic = null)
+        private void SetData(string? lcCollate = null, string? lcCtype = null, string? provider = null, bool? deterministic = null)
             => Annotatable[_annotationName] =
                 $"{lcCollate ?? LcCollate},{lcCtype ?? LcCtype},{provider ?? Provider},{deterministic ?? IsDeterministic}";
 
-        static (string? Schema, string? Name, string? LcCollate, string? LcCtype, string? Provider, bool? IsDeterministic)
+        private static (string? Schema, string? Name, string? LcCollate, string? LcCtype, string? Provider, bool? IsDeterministic)
             Deserialize([CanBeNull] IAnnotation? annotation)
         {
             if (annotation == null || !(annotation.Value is string value) || string.IsNullOrEmpty(value))

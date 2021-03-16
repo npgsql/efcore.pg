@@ -356,7 +356,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             return unknownBinaryExpression.Update(left, right);
         }
 
-        static bool MayContainNulls(SqlExpression arrayExpression)
+        private static bool MayContainNulls(SqlExpression arrayExpression)
         {
             if (arrayExpression is SqlConstantExpression constantArrayExpression &&
                 constantArrayExpression.Value is Array constantArray)
