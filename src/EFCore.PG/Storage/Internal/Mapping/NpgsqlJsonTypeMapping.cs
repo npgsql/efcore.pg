@@ -4,7 +4,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Utilities;
 using NpgsqlTypes;
@@ -17,7 +16,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     /// </summary>
     public class NpgsqlJsonTypeMapping : NpgsqlTypeMapping
     {
-        public NpgsqlJsonTypeMapping([NotNull] string storeType, [NotNull] Type clrType)
+        public NpgsqlJsonTypeMapping(string storeType, Type clrType)
             : base(storeType, clrType, storeType == "jsonb" ? NpgsqlDbType.Jsonb : NpgsqlDbType.Json)
         {
             if (storeType != "json" && storeType != "jsonb")
@@ -34,7 +33,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
             => new NpgsqlJsonTypeMapping(parameters, NpgsqlDbType);
 
-        protected virtual string EscapeSqlLiteral([NotNull] string literal)
+        protected virtual string EscapeSqlLiteral(string literal)
             => Check.NotNull(literal, nameof(literal)).Replace("'", "''");
 
         protected override string GenerateNonNullSqlLiteral(object value)

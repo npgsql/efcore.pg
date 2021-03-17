@@ -1,5 +1,4 @@
-﻿using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.EntityFrameworkCore.Scaffolding;
 
@@ -14,7 +13,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
         /// Constructs an instance of the <see cref="NpgsqlCodeGenerator"/> class.
         /// </summary>
         /// <param name="dependencies">The dependencies.</param>
-        public NpgsqlCodeGenerator([NotNull] ProviderCodeGeneratorDependencies dependencies)
+        public NpgsqlCodeGenerator(ProviderCodeGeneratorDependencies dependencies)
             : base(dependencies) {}
 
         public override MethodCallCodeFragment GenerateUseProvider(

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq.Expressions;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 
@@ -9,8 +8,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
     public class NpgsqlCompiledQueryCacheKeyGenerator : RelationalCompiledQueryCacheKeyGenerator
     {
         public NpgsqlCompiledQueryCacheKeyGenerator(
-            [NotNull] CompiledQueryCacheKeyGeneratorDependencies dependencies,
-            [NotNull] RelationalCompiledQueryCacheKeyGeneratorDependencies relationalDependencies)
+            CompiledQueryCacheKeyGeneratorDependencies dependencies,
+            RelationalCompiledQueryCacheKeyGeneratorDependencies relationalDependencies)
             : base(dependencies, relationalDependencies)
         {
         }

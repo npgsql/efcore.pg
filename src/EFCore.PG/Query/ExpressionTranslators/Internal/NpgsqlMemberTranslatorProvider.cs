@@ -1,5 +1,4 @@
-﻿using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Query;
+﻿using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
@@ -12,8 +11,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         public virtual NpgsqlJsonPocoTranslator JsonPocoTranslator { get; }
 
         public NpgsqlMemberTranslatorProvider(
-            [NotNull] RelationalMemberTranslatorProviderDependencies dependencies,
-            [NotNull] IRelationalTypeMappingSource typeMappingSource)
+            RelationalMemberTranslatorProviderDependencies dependencies,
+            IRelationalTypeMappingSource typeMappingSource)
             : base(dependencies)
         {
             var sqlExpressionFactory = (NpgsqlSqlExpressionFactory)dependencies.SqlExpressionFactory;

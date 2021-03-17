@@ -1,6 +1,5 @@
 using System.Linq.Expressions;
 using System.Reflection;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Query;
@@ -17,8 +16,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             typeof(NpgsqlTsVector).GetRuntimeMethod(nameof(NpgsqlTsVector.Parse), new[] { typeof(string) })!;
 
         public NpgsqlEvaluatableExpressionFilter(
-            [NotNull] EvaluatableExpressionFilterDependencies dependencies,
-            [NotNull] RelationalEvaluatableExpressionFilterDependencies relationalDependencies)
+            EvaluatableExpressionFilterDependencies dependencies,
+            RelationalEvaluatableExpressionFilterDependencies relationalDependencies)
             : base(dependencies, relationalDependencies)
         {
         }

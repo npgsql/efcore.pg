@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
-using JetBrains.Annotations;
-using CA = System.Diagnostics.CodeAnalysis;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Utilities
 {
@@ -19,7 +18,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Utilities
         private const string NullableAttributeFullName = "System.Runtime.CompilerServices.NullableAttribute";
         private const string NullableContextAttributeFullName = "System.Runtime.CompilerServices.NullableContextAttribute";
 
-        protected virtual bool IsNonNullableReferenceType([NotNull] MemberInfo memberInfo)
+        protected virtual bool IsNonNullableReferenceType(MemberInfo memberInfo)
         {
             if (memberInfo.GetMemberType().IsValueType)
             {
@@ -31,9 +30,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Utilities
             var isMaybeNull = memberInfo switch
             {
                 FieldInfo f
-                    => f.CustomAttributes.Any(a => a.AttributeType == typeof(CA.MaybeNullAttribute)),
+                    => f.CustomAttributes.Any(a => a.AttributeType == typeof(MaybeNullAttribute)),
                 PropertyInfo p
-                    => p.GetMethod?.ReturnParameter?.CustomAttributes?.Any(a => a.AttributeType == typeof(CA.MaybeNullAttribute)) == true,
+                    => p.GetMethod?.ReturnParameter?.CustomAttributes?.Any(a => a.AttributeType == typeof(MaybeNullAttribute)) == true,
                 _ => false
             };
 
@@ -86,7 +85,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Utilities
             return IsContextNonNullable(memberInfo.DeclaringType!);
         }
 
-        private bool TryGetNullableFlags(MemberInfo memberInfo, [CA.NotNullWhen(true)] out byte[]? flags)
+        private bool TryGetNullableFlags(MemberInfo memberInfo, [NotNullWhen(true)] out byte[]? flags)
         {
             if (memberInfo.GetCustomAttributes().FirstOrDefault(a => a.GetType().FullName == NullableAttributeFullName) is Attribute
                 attribute)

@@ -1,6 +1,5 @@
 using System;
 using System.Reflection;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Microsoft.EntityFrameworkCore.Utilities;
@@ -16,14 +15,14 @@ namespace Microsoft.EntityFrameworkCore
         /// The migrationBuilder from the parameters on <see cref="Migration.Up(MigrationBuilder)" /> or
         /// <see cref="Migration.Down(MigrationBuilder)" />.
         /// <returns>True if Npgsql is being used; false otherwise.</returns>
-        public static bool IsNpgsql([NotNull] this MigrationBuilder builder)
+        public static bool IsNpgsql(this MigrationBuilder builder)
             => builder.ActiveProvider == typeof(NpgsqlMigrationBuilderExtensions).GetTypeInfo().Assembly.GetName().Name;
 
         public static MigrationBuilder EnsurePostgresExtension(
-            [NotNull] this MigrationBuilder builder,
-            [NotNull] string name,
-            [CanBeNull] string? schema = null,
-            [CanBeNull] string? version = null)
+            this MigrationBuilder builder,
+            string name,
+            string? schema = null,
+            string? version = null)
         {
             Check.NotEmpty(name, nameof(name));
             Check.NullButNotEmpty(schema, nameof(schema));
@@ -38,16 +37,16 @@ namespace Microsoft.EntityFrameworkCore
 
         [Obsolete("Use EnsurePostgresExtension instead")]
         public static MigrationBuilder CreatePostgresExtension(
-            [NotNull] this MigrationBuilder builder,
-            [NotNull] string name,
-            [CanBeNull] string? schema = null,
-            [CanBeNull] string? version = null)
+            this MigrationBuilder builder,
+            string name,
+            string? schema = null,
+            string? version = null)
             => EnsurePostgresExtension(builder, name, schema, version);
 
         [Obsolete("This no longer does anything and should be removed.")]
         public static MigrationBuilder DropPostgresExtension(
-            [NotNull] this MigrationBuilder builder,
-            [NotNull] string name)
+            this MigrationBuilder builder,
+            string name)
             => builder;
     }
 }

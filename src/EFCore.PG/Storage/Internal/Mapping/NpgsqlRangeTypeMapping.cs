@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Text;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Storage;
 using NpgsqlTypes;
 
@@ -16,7 +15,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     /// </remarks>
     public class NpgsqlRangeTypeMapping : NpgsqlTypeMapping
     {
-        [NotNull]
         private readonly ISqlGenerationHelper _sqlGenerationHelper;
 
         // ReSharper disable once MemberCanBePrivate.Global
@@ -33,10 +31,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         /// <param name="subtypeMapping">The type mapping for the range subtype.</param>
         /// <param name="sqlGenerationHelper">The SQL generation helper to delimit the store name.</param>
         public NpgsqlRangeTypeMapping(
-            [NotNull] string storeType,
-            [NotNull] Type clrType,
-            [NotNull] RelationalTypeMapping subtypeMapping,
-            [NotNull] ISqlGenerationHelper sqlGenerationHelper)
+            string storeType,
+            Type clrType,
+            RelationalTypeMapping subtypeMapping,
+            ISqlGenerationHelper sqlGenerationHelper)
             : this(storeType, null, clrType, subtypeMapping, sqlGenerationHelper) {}
 
         /// <summary>
@@ -48,11 +46,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         /// <param name="subtypeMapping">The type mapping for the range subtype.</param>
         /// <param name="sqlGenerationHelper">The SQL generation helper to delimit the store name.</param>
         public NpgsqlRangeTypeMapping(
-            [NotNull] string storeType,
-            [CanBeNull] string? storeTypeSchema,
-            [NotNull] Type clrType,
-            [NotNull] RelationalTypeMapping subtypeMapping,
-            [NotNull] ISqlGenerationHelper sqlGenerationHelper)
+            string storeType,
+            string? storeTypeSchema,
+            Type clrType,
+            RelationalTypeMapping subtypeMapping,
+            ISqlGenerationHelper sqlGenerationHelper)
             : base(sqlGenerationHelper.DelimitIdentifier(storeType, storeTypeSchema), clrType, GenerateNpgsqlDbType(subtypeMapping))
         {
             SubtypeMapping = subtypeMapping;
@@ -62,8 +60,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         protected NpgsqlRangeTypeMapping(
             RelationalTypeMappingParameters parameters,
             NpgsqlDbType npgsqlDbType,
-            [NotNull] RelationalTypeMapping subtypeMapping,
-            [NotNull] ISqlGenerationHelper sqlGenerationHelper)
+            RelationalTypeMapping subtypeMapping,
+            ISqlGenerationHelper sqlGenerationHelper)
             : base(parameters, npgsqlDbType)
         {
             SubtypeMapping = subtypeMapping;
@@ -83,7 +81,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             return sb.ToString();
         }
 
-        private static NpgsqlDbType GenerateNpgsqlDbType([NotNull] RelationalTypeMapping subtypeMapping)
+        private static NpgsqlDbType GenerateNpgsqlDbType(RelationalTypeMapping subtypeMapping)
         {
             if (subtypeMapping is INpgsqlTypeMapping npgsqlTypeMapping)
                 return NpgsqlDbType.Range | npgsqlTypeMapping.NpgsqlDbType;

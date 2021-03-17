@@ -1,6 +1,5 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -21,7 +20,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
         ///     Initializes a new instance of the <see cref="ValueGeneratorCache" /> class.
         /// </summary>
         /// <param name="dependencies"> Parameter object containing dependencies for this service. </param>
-        public NpgsqlValueGeneratorCache([NotNull] ValueGeneratorCacheDependencies dependencies)
+        public NpgsqlValueGeneratorCache(ValueGeneratorCacheDependencies dependencies)
             : base(dependencies)
         {
         }

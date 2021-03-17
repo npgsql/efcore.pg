@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
@@ -19,7 +18,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
     /// </remarks>
     public class NpgsqlNodaTimeMemberTranslatorPlugin : IMemberTranslatorPlugin
     {
-        public NpgsqlNodaTimeMemberTranslatorPlugin([NotNull] ISqlExpressionFactory sqlExpressionFactory)
+        public NpgsqlNodaTimeMemberTranslatorPlugin(ISqlExpressionFactory sqlExpressionFactory)
         {
             Translators = new IMemberTranslator[]
             {
@@ -43,11 +42,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
         /// <summary>
         /// The static member info for <see cref="T:SystemClock.Instance"/>.
         /// </summary>
-        [NotNull]
         private static readonly MemberInfo Instance =
             typeof(SystemClock).GetRuntimeProperty(nameof(SystemClock.Instance))!;
 
-        public NpgsqlNodaTimeMemberTranslator([NotNull] ISqlExpressionFactory sqlExpressionFactory)
+        public NpgsqlNodaTimeMemberTranslator(ISqlExpressionFactory sqlExpressionFactory)
             => _sqlExpressionFactory = sqlExpressionFactory;
 
         private static readonly bool[][] TrueArrays =
@@ -88,7 +86,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
         /// <returns>
         /// The translated expression or null.
         /// </returns>
-        [CanBeNull]
         private SqlExpression? TranslateDateTime(SqlExpression instance, MemberInfo member, Type returnType)
         {
             switch (member.Name)
@@ -174,10 +171,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
         /// DATE_PART returns doubles, which we floor and cast into ints
         /// This also gets rid of sub-second components when retrieving seconds.
         /// </remarks>
-        [NotNull]
         private SqlExpression GetDatePartExpression(
-            [NotNull] SqlExpression instance,
-            [NotNull] string partName,
+            SqlExpression instance,
+            string partName,
             bool floor = false)
         {
             var result = _sqlExpressionFactory.Function(

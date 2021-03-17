@@ -11,7 +11,6 @@ using System.Net.NetworkInformation;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -131,10 +130,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
         #endregion Mappings
 
-        public NpgsqlTypeMappingSource([NotNull] TypeMappingSourceDependencies dependencies,
-            [NotNull] RelationalTypeMappingSourceDependencies relationalDependencies,
-            [NotNull] ISqlGenerationHelper sqlGenerationHelper,
-            [CanBeNull] INpgsqlOptions? npgsqlOptions = null)
+        public NpgsqlTypeMappingSource(TypeMappingSourceDependencies dependencies,
+            RelationalTypeMappingSourceDependencies relationalDependencies,
+            ISqlGenerationHelper sqlGenerationHelper,
+            INpgsqlOptions? npgsqlOptions = null)
             : base(dependencies, relationalDependencies)
         {
             _sqlGenerationHelper = Check.NotNull(sqlGenerationHelper, nameof(sqlGenerationHelper));
@@ -292,13 +291,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         /// To be used in case user-defined mappings are added late, after this TypeMappingSource has already been initialized.
         /// This is basically only for test usage.
         /// </summary>
-        public virtual void LoadUserDefinedTypeMappings([NotNull] ISqlGenerationHelper sqlGenerationHelper)
+        public virtual void LoadUserDefinedTypeMappings(ISqlGenerationHelper sqlGenerationHelper)
             => SetupEnumMappings(sqlGenerationHelper);
 
         /// <summary>
         /// Gets all global enum mappings from the ADO.NET layer and creates mappings for them
         /// </summary>
-        protected virtual void SetupEnumMappings([NotNull] ISqlGenerationHelper sqlGenerationHelper)
+        protected virtual void SetupEnumMappings(ISqlGenerationHelper sqlGenerationHelper)
         {
             foreach (var adoMapping in NpgsqlConnection.GlobalTypeMapper.Mappings.Where(m => m.TypeHandlerFactory is IEnumTypeHandlerFactory).ToArray())
             {

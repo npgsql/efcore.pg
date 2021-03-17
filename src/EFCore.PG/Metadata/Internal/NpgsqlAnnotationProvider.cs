@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -11,7 +10,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
 {
     public class NpgsqlAnnotationProvider : RelationalAnnotationProvider
     {
-        public NpgsqlAnnotationProvider([NotNull] RelationalAnnotationProviderDependencies dependencies)
+        public NpgsqlAnnotationProvider(RelationalAnnotationProviderDependencies dependencies)
             : base(dependencies)
         {
         }

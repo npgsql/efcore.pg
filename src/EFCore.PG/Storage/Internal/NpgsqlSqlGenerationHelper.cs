@@ -2,7 +2,6 @@
 using System.Data;
 using System.Linq;
 using System.Text;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
@@ -18,7 +17,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 ReservedWords = new HashSet<string>(conn.GetSchema("ReservedWords").Rows.Cast<DataRow>().Select(r => (string)r["ReservedWord"]));
         }
 
-        public NpgsqlSqlGenerationHelper([NotNull] RelationalSqlGenerationHelperDependencies dependencies)
+        public NpgsqlSqlGenerationHelper(RelationalSqlGenerationHelperDependencies dependencies)
             : base(dependencies) {}
 
         public override string DelimitIdentifier(string identifier)

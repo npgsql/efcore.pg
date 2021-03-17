@@ -1,7 +1,6 @@
 using System;
 using System.Linq.Expressions;
 using System.Text.RegularExpressions;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -17,13 +16,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         /// <summary>
         /// The match expression.
         /// </summary>
-        [NotNull]
         public virtual SqlExpression Match { get; }
 
         /// <summary>
         /// The pattern to match.
         /// </summary>
-        [NotNull]
         public virtual SqlExpression Pattern { get; }
 
         /// <summary>
@@ -39,10 +36,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         /// <param name="options">The options for regular expression evaluation.</param>
         /// <param name="typeMapping">The type mapping for the expression.</param>
         public PostgresRegexMatchExpression(
-            [NotNull] SqlExpression match,
-            [NotNull] SqlExpression pattern,
+            SqlExpression match,
+            SqlExpression pattern,
             RegexOptions options,
-            [CanBeNull] RelationalTypeMapping? typeMapping)
+            RelationalTypeMapping? typeMapping)
             : base(typeof(bool), typeMapping)
         {
             Match = match;
@@ -54,7 +51,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         protected override Expression VisitChildren(ExpressionVisitor visitor)
             => Update((SqlExpression)visitor.Visit(Match), (SqlExpression)visitor.Visit(Pattern));
 
-        public virtual PostgresRegexMatchExpression Update([NotNull] SqlExpression match, [NotNull] SqlExpression pattern)
+        public virtual PostgresRegexMatchExpression Update(SqlExpression match, SqlExpression pattern)
             => match != Match || pattern != Pattern
                 ? new PostgresRegexMatchExpression(match, pattern, Options, TypeMapping)
                 : this;

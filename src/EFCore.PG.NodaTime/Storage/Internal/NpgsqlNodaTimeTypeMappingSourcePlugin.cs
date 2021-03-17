@@ -2,7 +2,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Storage;
 using NodaTime;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
@@ -43,7 +42,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         /// <summary>
         /// Constructs an instance of the <see cref="NpgsqlNodaTimeTypeMappingSourcePlugin"/> class.
         /// </summary>
-        public NpgsqlNodaTimeTypeMappingSourcePlugin([NotNull] ISqlGenerationHelper sqlGenerationHelper)
+        public NpgsqlNodaTimeTypeMappingSourcePlugin(ISqlGenerationHelper sqlGenerationHelper)
         {
             _timestampLocalDateTimeRange = new NpgsqlRangeTypeMapping("tsrange", typeof(NpgsqlRange<LocalDateTime>), _timestampLocalDateTime, sqlGenerationHelper);
             _timestampInstantRange = new NpgsqlRangeTypeMapping("tsrange", typeof(NpgsqlRange<Instant>), _timestampInstant, sqlGenerationHelper);

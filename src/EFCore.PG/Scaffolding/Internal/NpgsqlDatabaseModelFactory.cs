@@ -6,7 +6,6 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -73,7 +72,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
         /// <summary>
         /// Constructs an instance of the <see cref="NpgsqlDatabaseModelFactory"/> class.
         /// </summary>
-        public NpgsqlDatabaseModelFactory([NotNull] IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
+        public NpgsqlDatabaseModelFactory(IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
             => _logger = Check.NotNull(logger, nameof(logger));
 
         /// <inheritdoc />

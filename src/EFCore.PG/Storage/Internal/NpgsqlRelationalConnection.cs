@@ -1,8 +1,8 @@
 using System.Data.Common;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net.Security;
 using System.Transactions;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -21,7 +21,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         /// </summary>
         protected override bool SupportsAmbientTransactions => true;
 
-        public NpgsqlRelationalConnection([NotNull] RelationalConnectionDependencies dependencies)
+        public NpgsqlRelationalConnection(RelationalConnectionDependencies dependencies)
             : base(dependencies)
         {
             var npgsqlOptions =
@@ -69,11 +69,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             return new NpgsqlRelationalConnection(Dependencies with { ContextOptions = optionsBuilder.Options });
         }
 
-        // [CA.AllowNull]
+        [AllowNull]
         public new virtual NpgsqlConnection DbConnection
         {
             get => (NpgsqlConnection)base.DbConnection;
-            [param: CanBeNull] set => base.DbConnection = value;
+            set => base.DbConnection = value;
         }
 
         // Accessing Transaction.Current is expensive, so don't do it if Enlist is false in the connection string

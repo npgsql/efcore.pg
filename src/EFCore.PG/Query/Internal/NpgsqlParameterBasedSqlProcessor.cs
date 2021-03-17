@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Utilities;
@@ -9,7 +8,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
     public class NpgsqlParameterBasedSqlProcessor : RelationalParameterBasedSqlProcessor
     {
         public NpgsqlParameterBasedSqlProcessor(
-            [NotNull] RelationalParameterBasedSqlProcessorDependencies dependencies,
+            RelationalParameterBasedSqlProcessorDependencies dependencies,
             bool useRelationalNulls)
             : base(dependencies, useRelationalNulls)
         {

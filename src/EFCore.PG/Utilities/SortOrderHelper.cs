@@ -1,18 +1,17 @@
 using System.Collections.Generic;
 using System.Linq;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Utilities
 {
     internal static class SortOrderHelper
     {
-        public static bool IsDefaultSortOrder([CanBeNull] IReadOnlyList<SortOrder>? sortOrders)
+        public static bool IsDefaultSortOrder(IReadOnlyList<SortOrder>? sortOrders)
             => sortOrders?.All(sortOrder => sortOrder == SortOrder.Ascending) ?? true;
 
         public static bool IsDefaultNullSortOrder(
-            [CanBeNull] IReadOnlyList<NullSortOrder>? nullSortOrders,
-            [CanBeNull] IReadOnlyList<SortOrder>? sortOrders)
+            IReadOnlyList<NullSortOrder>? nullSortOrders,
+            IReadOnlyList<SortOrder>? sortOrders)
         {
             if (nullSortOrders == null)
             {

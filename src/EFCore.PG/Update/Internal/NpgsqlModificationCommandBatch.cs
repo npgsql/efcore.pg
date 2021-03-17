@@ -2,7 +2,6 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Internal;
@@ -41,7 +40,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
         /// <param name="valueBufferFactoryFactory">A factory for creating <see cref="ValueBuffer" /> factories.</param>
         /// <param name="maxBatchSize">The maximum count of commands to batch.</param>
         public NpgsqlModificationCommandBatch(
-            [NotNull] ModificationCommandBatchFactoryDependencies dependencies,
+            ModificationCommandBatchFactoryDependencies dependencies,
             int? maxBatchSize)
             : base(dependencies)
         {

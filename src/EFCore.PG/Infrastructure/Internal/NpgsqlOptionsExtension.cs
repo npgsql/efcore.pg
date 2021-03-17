@@ -4,7 +4,6 @@ using System.Globalization;
 using System.Linq;
 using System.Net.Security;
 using System.Text;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Utilities;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,37 +22,31 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// <summary>
         /// The name of the database for administrative operations.
         /// </summary>
-        [CanBeNull]
         public virtual string? AdminDatabase { get; private set; }
 
         /// <summary>
         /// The backend version to target.
         /// </summary>
-        [CanBeNull]
         public virtual Version? PostgresVersion { get; private set; }
 
         /// <summary>
         /// The list of range mappings specified by the user.
         /// </summary>
-        [NotNull]
         public virtual IReadOnlyList<UserRangeDefinition> UserRangeDefinitions => _userRangeDefinitions;
 
         /// <summary>
         /// The specified <see cref="ProvideClientCertificatesCallback"/>.
         /// </summary>
-        [CanBeNull]
         public virtual ProvideClientCertificatesCallback? ProvideClientCertificatesCallback { get; private set; }
 
         /// <summary>
         /// The specified <see cref="RemoteCertificateValidationCallback"/>.
         /// </summary>
-        [CanBeNull]
         public virtual RemoteCertificateValidationCallback? RemoteCertificateValidationCallback { get; private set; }
 
         /// <summary>
         /// The specified <see cref="ProvidePasswordCallback"/>.
         /// </summary>
-        [CanBeNull]
         public virtual ProvidePasswordCallback? ProvidePasswordCallback { get; private set; }
 
         /// <summary>
@@ -72,7 +65,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// Initializes an instance of <see cref="NpgsqlOptionsExtension"/> by copying the specified instance.
         /// </summary>
         /// <param name="copyFrom">The instance to copy.</param>
-        public NpgsqlOptionsExtension([NotNull] NpgsqlOptionsExtension copyFrom) : base(copyFrom)
+        public NpgsqlOptionsExtension(NpgsqlOptionsExtension copyFrom) : base(copyFrom)
         {
             AdminDatabase = copyFrom.AdminDatabase;
             _userRangeDefinitions = new List<UserRangeDefinition>(copyFrom._userRangeDefinitions);
@@ -90,22 +83,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// <summary>
         /// Returns a copy of the current instance configured with the specified range mapping.
         /// </summary>
-        [NotNull]
         public virtual NpgsqlOptionsExtension WithUserRangeDefinition<TSubtype>(
-            [NotNull] string rangeName,
-            [CanBeNull] string? schemaName = null,
-            [CanBeNull] string? subtypeName = null)
+            string rangeName,
+            string? schemaName = null,
+            string? subtypeName = null)
             => WithUserRangeDefinition(rangeName, schemaName, typeof(TSubtype), subtypeName);
 
         /// <summary>
         /// Returns a copy of the current instance configured with the specified range mapping.
         /// </summary>
-        [NotNull]
         public virtual NpgsqlOptionsExtension WithUserRangeDefinition(
-            [NotNull] string rangeName,
-            [CanBeNull] string? schemaName,
-            [NotNull] Type subtypeClrType,
-            [CanBeNull] string? subtypeName)
+            string rangeName,
+            string? schemaName,
+            Type subtypeClrType,
+            string? subtypeName)
         {
             Check.NotEmpty(rangeName, nameof(rangeName));
             Check.NotNull(subtypeClrType, nameof(subtypeClrType));
@@ -121,8 +112,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// Returns a copy of the current instance configured to use the specified administrative database.
         /// </summary>
         /// <param name="adminDatabase">The name of the database for administrative operations.</param>
-        [NotNull]
-        public virtual NpgsqlOptionsExtension WithAdminDatabase([CanBeNull] string? adminDatabase)
+        public virtual NpgsqlOptionsExtension WithAdminDatabase(string? adminDatabase)
         {
             var clone = (NpgsqlOptionsExtension)Clone();
 
@@ -138,8 +128,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// <returns>
         /// A copy of the current instance with the specified PostgreSQL version.
         /// </returns>
-        [NotNull]
-        public virtual NpgsqlOptionsExtension WithPostgresVersion([CanBeNull] Version? postgresVersion)
+        public virtual NpgsqlOptionsExtension WithPostgresVersion(Version? postgresVersion)
         {
             var clone = (NpgsqlOptionsExtension)Clone();
 
@@ -152,7 +141,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// Returns a copy of the current instance configured with the specified value..
         /// </summary>
         /// <param name="reverseNullOrdering">True to enable reverse null ordering; otherwise, false.</param>
-        [NotNull]
         internal virtual NpgsqlOptionsExtension WithReverseNullOrdering(bool reverseNullOrdering)
         {
             var clone = (NpgsqlOptionsExtension)Clone();
@@ -168,8 +156,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// Returns a copy of the current instance with the specified <see cref="ProvideClientCertificatesCallback"/>.
         /// </summary>
         /// <param name="callback">The specified callback.</param>
-        [NotNull]
-        public virtual NpgsqlOptionsExtension WithProvideClientCertificatesCallback([CanBeNull] ProvideClientCertificatesCallback? callback)
+        public virtual NpgsqlOptionsExtension WithProvideClientCertificatesCallback(ProvideClientCertificatesCallback? callback)
         {
             var clone = (NpgsqlOptionsExtension)Clone();
 
@@ -182,8 +169,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// Returns a copy of the current instance with the specified <see cref="RemoteCertificateValidationCallback"/>.
         /// </summary>
         /// <param name="callback">The specified callback.</param>
-        [NotNull]
-        public virtual NpgsqlOptionsExtension WithRemoteCertificateValidationCallback([CanBeNull] RemoteCertificateValidationCallback? callback)
+        public virtual NpgsqlOptionsExtension WithRemoteCertificateValidationCallback(RemoteCertificateValidationCallback? callback)
         {
             var clone = (NpgsqlOptionsExtension)Clone();
 
@@ -196,8 +182,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// Returns a copy of the current instance with the specified <see cref="ProvidePasswordCallback"/>.
         /// </summary>
         /// <param name="callback">The specified callback.</param>
-        [NotNull]
-        public virtual NpgsqlOptionsExtension WithProvidePasswordCallback([CanBeNull] ProvidePasswordCallback? callback)
+        public virtual NpgsqlOptionsExtension WithProvidePasswordCallback(ProvidePasswordCallback? callback)
         {
             var clone = (NpgsqlOptionsExtension)Clone();
 
@@ -358,35 +343,31 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// <summary>
         /// The name of the PostgreSQL range type to be mapped.
         /// </summary>
-        [NotNull]
         public virtual string RangeName { get; }
 
         /// <summary>
         /// The PostgreSQL schema in which the range is defined. If null, the default schema is used
         /// (which is public unless changed on the model).
         /// </summary>
-        [CanBeNull]
         public virtual string? SchemaName { get; }
 
         /// <summary>
         /// The CLR type of the range's subtype (or element).
         /// The actual mapped type will be an <see cref="NpgsqlRange{T}"/> over this type.
         /// </summary>
-        [NotNull]
         public virtual Type SubtypeClrType { get; }
 
         /// <summary>
         /// Optionally, the name of the range's PostgreSQL subtype (or element).
         /// This is usually not needed - the subtype will be inferred based on <see cref="SubtypeClrType"/>.
         /// </summary>
-        [CanBeNull]
         public virtual string? SubtypeName { get; }
 
         public UserRangeDefinition(
-            [NotNull] string rangeName,
-            [CanBeNull] string? schemaName,
-            [NotNull] Type subtypeClrType,
-            [CanBeNull] string? subtypeName)
+            string rangeName,
+            string? schemaName,
+            Type subtypeClrType,
+            string? subtypeName)
         {
             RangeName = Check.NotEmpty(rangeName, nameof(rangeName));
             SchemaName = schemaName;
@@ -408,10 +389,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
                SubtypeName == other.SubtypeName;
 
         public virtual void Deconstruct(
-            [NotNull] out string rangeName,
-            [CanBeNull] out string? schemaName,
-            [NotNull] out Type subtypeClrType,
-            [CanBeNull] out string? subtypeName)
+            out string rangeName,
+            out string? schemaName,
+            out Type subtypeClrType,
+            out string? subtypeName)
         {
             rangeName = RangeName;
             schemaName = SchemaName;

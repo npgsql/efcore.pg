@@ -1,4 +1,3 @@
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Storage;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
@@ -11,9 +10,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         public virtual NpgsqlLTreeTranslator LTreeTranslator { get; }
 
         public NpgsqlMethodCallTranslatorProvider(
-            [NotNull] RelationalMethodCallTranslatorProviderDependencies dependencies,
-            [NotNull] IRelationalTypeMappingSource typeMappingSource,
-            [NotNull] INpgsqlOptions npgsqlOptions)
+            RelationalMethodCallTranslatorProviderDependencies dependencies,
+            IRelationalTypeMappingSource typeMappingSource,
+            INpgsqlOptions npgsqlOptions)
             : base(dependencies)
         {
             var npgsqlSqlExpressionFactory = (NpgsqlSqlExpressionFactory)dependencies.SqlExpressionFactory;

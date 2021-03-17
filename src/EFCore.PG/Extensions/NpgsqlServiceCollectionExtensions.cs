@@ -1,4 +1,3 @@
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -53,7 +52,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <returns>
         ///     The same service collection so that multiple calls can be chained.
         /// </returns>
-        public static IServiceCollection AddEntityFrameworkNpgsql([NotNull] this IServiceCollection serviceCollection)
+        public static IServiceCollection AddEntityFrameworkNpgsql(this IServiceCollection serviceCollection)
         {
             Check.NotNull(serviceCollection, nameof(serviceCollection));
 

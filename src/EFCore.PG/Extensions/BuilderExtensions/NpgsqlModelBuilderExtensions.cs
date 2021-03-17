@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Utilities;
@@ -29,9 +28,9 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="schema">The schema of the sequence.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
         public static ModelBuilder UseHiLo(
-            [NotNull] this ModelBuilder modelBuilder,
-            [CanBeNull] string? name = null,
-            [CanBeNull] string? schema = null)
+            this ModelBuilder modelBuilder,
+            string? name = null,
+            string? schema = null)
         {
             Check.NotNull(modelBuilder, nameof(modelBuilder));
             Check.NullButNotEmpty(name, nameof(name));
@@ -63,9 +62,9 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="fromDataAnnotation"> Indicates whether the configuration was specified using a data annotation. </param>
         /// <returns> A builder to further configure the sequence. </returns>
         public static IConventionSequenceBuilder? HasHiLoSequence(
-            [NotNull] this IConventionModelBuilder modelBuilder,
-            [CanBeNull] string? name,
-            [CanBeNull] string? schema,
+            this IConventionModelBuilder modelBuilder,
+            string? name,
+            string? schema,
             bool fromDataAnnotation = false)
         {
             if (!modelBuilder.CanSetHiLoSequence(name, schema))
@@ -88,9 +87,9 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="fromDataAnnotation"> Indicates whether the configuration was specified using a data annotation. </param>
         /// <returns> <c>true</c> if the given name and schema can be set for the hi-lo sequence. </returns>
         public static bool CanSetHiLoSequence(
-            [NotNull] this IConventionModelBuilder modelBuilder,
-            [CanBeNull] string? name,
-            [CanBeNull] string? schema,
+            this IConventionModelBuilder modelBuilder,
+            string? name,
+            string? schema,
             bool fromDataAnnotation = false)
         {
             Check.NotNull(modelBuilder, nameof(modelBuilder));
@@ -117,7 +116,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="modelBuilder">The model builder.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
         public static ModelBuilder UseSerialColumns(
-            [NotNull] this ModelBuilder modelBuilder)
+            this ModelBuilder modelBuilder)
         {
             Check.NotNull(modelBuilder, nameof(modelBuilder));
 
@@ -146,7 +145,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="modelBuilder">The model builder.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
         public static ModelBuilder UseIdentityAlwaysColumns(
-            [NotNull] this ModelBuilder modelBuilder)
+            this ModelBuilder modelBuilder)
         {
             Check.NotNull(modelBuilder, nameof(modelBuilder));
 
@@ -173,7 +172,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="modelBuilder">The model builder.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
         public static ModelBuilder UseIdentityByDefaultColumns(
-            [NotNull] this ModelBuilder modelBuilder)
+            this ModelBuilder modelBuilder)
         {
             Check.NotNull(modelBuilder, nameof(modelBuilder));
 
@@ -200,7 +199,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="modelBuilder">The model builder.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
         public static ModelBuilder UseIdentityColumns(
-            [NotNull] this ModelBuilder modelBuilder)
+            this ModelBuilder modelBuilder)
             => modelBuilder.UseIdentityByDefaultColumns();
 
         /// <summary>
@@ -213,7 +212,7 @@ namespace Microsoft.EntityFrameworkCore
         /// The same builder instance if the configuration was applied, <c>null</c> otherwise.
         /// </returns>
         public static IConventionModelBuilder? HasValueGenerationStrategy(
-            [NotNull] this IConventionModelBuilder modelBuilder,
+            this IConventionModelBuilder modelBuilder,
             NpgsqlValueGenerationStrategy? valueGenerationStrategy,
             bool fromDataAnnotation = false)
         {
@@ -240,7 +239,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="fromDataAnnotation"> Indicates whether the configuration was specified using a data annotation. </param>
         /// <returns> <c>true</c> if the given value can be set as the default value generation strategy. </returns>
         public static bool CanSetValueGenerationStrategy(
-            [NotNull] this IConventionModelBuilder modelBuilder,
+            this IConventionModelBuilder modelBuilder,
             NpgsqlValueGenerationStrategy? valueGenerationStrategy,
             bool fromDataAnnotation = false)
         {
@@ -268,12 +267,11 @@ namespace Microsoft.EntityFrameworkCore
         /// See: https://www.postgresql.org/docs/current/external-extensions.html
         /// </remarks>
         /// <exception cref="ArgumentNullException"><paramref name="modelBuilder"/></exception>
-        [NotNull]
         public static ModelBuilder HasPostgresExtension(
-            [NotNull] this ModelBuilder modelBuilder,
-            [CanBeNull] string? schema,
-            [NotNull] string name,
-            [CanBeNull] string? version = null)
+            this ModelBuilder modelBuilder,
+            string? schema,
+            string name,
+            string? version = null)
         {
             Check.NotNull(modelBuilder, nameof(modelBuilder));
             Check.NullButNotEmpty(schema, nameof(schema));
@@ -296,10 +294,9 @@ namespace Microsoft.EntityFrameworkCore
         /// See: https://www.postgresql.org/docs/current/external-extensions.html
         /// </remarks>
         /// <exception cref="ArgumentNullException"><paramref name="modelBuilder"/></exception>
-        [NotNull]
         public static ModelBuilder HasPostgresExtension(
-            [NotNull] this ModelBuilder modelBuilder,
-            [NotNull] string name)
+            this ModelBuilder modelBuilder,
+            string name)
             => modelBuilder.HasPostgresExtension(null, name, null);
 
         #endregion
@@ -320,12 +317,11 @@ namespace Microsoft.EntityFrameworkCore
         /// See: https://www.postgresql.org/docs/current/static/datatype-enum.html
         /// </remarks>
         /// <exception cref="ArgumentNullException">builder</exception>
-        [NotNull]
         public static ModelBuilder HasPostgresEnum(
-            [NotNull] this ModelBuilder modelBuilder,
-            [CanBeNull] string? schema,
-            [NotNull] string name,
-            [NotNull] string[] labels)
+            this ModelBuilder modelBuilder,
+            string? schema,
+            string name,
+            string[] labels)
         {
             Check.NotNull(modelBuilder, nameof(modelBuilder));
             Check.NotEmpty(name, nameof(name));
@@ -348,11 +344,10 @@ namespace Microsoft.EntityFrameworkCore
         /// See: https://www.postgresql.org/docs/current/static/datatype-enum.html
         /// </remarks>
         /// <exception cref="ArgumentNullException">builder</exception>
-        [NotNull]
         public static ModelBuilder HasPostgresEnum(
-            [NotNull] this ModelBuilder modelBuilder,
-            [NotNull] string name,
-            [NotNull] string[] labels)
+            this ModelBuilder modelBuilder,
+            string name,
+            string[] labels)
             => modelBuilder.HasPostgresEnum(null, name, labels);
 
         /// <summary>
@@ -372,12 +367,11 @@ namespace Microsoft.EntityFrameworkCore
         /// See: https://www.postgresql.org/docs/current/static/datatype-enum.html
         /// </remarks>
         /// <exception cref="ArgumentNullException">builder</exception>
-        [NotNull]
         public static ModelBuilder HasPostgresEnum<TEnum>(
-            [NotNull] this ModelBuilder modelBuilder,
-            [CanBeNull] string? schema = null,
-            [CanBeNull] string? name = null,
-            [CanBeNull] INpgsqlNameTranslator? nameTranslator = null)
+            this ModelBuilder modelBuilder,
+            string? schema = null,
+            string? name = null,
+            INpgsqlNameTranslator? nameTranslator = null)
             where TEnum : struct, Enum
         {
             if (nameTranslator == null)
@@ -394,8 +388,8 @@ namespace Microsoft.EntityFrameworkCore
         #region Templates
 
         public static ModelBuilder UseDatabaseTemplate(
-            [NotNull] this ModelBuilder modelBuilder,
-            [NotNull] string templateDatabaseName)
+            this ModelBuilder modelBuilder,
+            string templateDatabaseName)
         {
             Check.NotNull(modelBuilder, nameof(modelBuilder));
             Check.NotEmpty(templateDatabaseName, nameof(templateDatabaseName));
@@ -428,16 +422,15 @@ namespace Microsoft.EntityFrameworkCore
         /// See https://www.postgresql.org/docs/current/static/rangetypes.html,
         /// https://www.postgresql.org/docs/current/static/sql-createtype.html,
         /// </remarks>
-        [NotNull]
         public static ModelBuilder HasPostgresRange(
-            [NotNull] this ModelBuilder modelBuilder,
-            [CanBeNull] string? schema,
-            [NotNull] string name,
-            [NotNull] string subtype,
-            [CanBeNull] string? canonicalFunction = null,
-            [CanBeNull] string? subtypeOpClass = null,
-            [CanBeNull] string? collation = null,
-            [CanBeNull] string? subtypeDiff = null)
+            this ModelBuilder modelBuilder,
+            string? schema,
+            string name,
+            string subtype,
+            string? canonicalFunction = null,
+            string? subtypeOpClass = null,
+            string? collation = null,
+            string? subtypeDiff = null)
         {
             Check.NotNull(modelBuilder, nameof(modelBuilder));
             Check.NotEmpty(name, nameof(name));
@@ -465,9 +458,9 @@ namespace Microsoft.EntityFrameworkCore
         /// https://www.postgresql.org/docs/current/static/sql-createtype.html,
         /// </remarks>
         public static ModelBuilder HasPostgresRange(
-            [NotNull] this ModelBuilder modelBuilder,
-            [NotNull] string name,
-            [NotNull] string subtype)
+            this ModelBuilder modelBuilder,
+            string name,
+            string subtype)
             => HasPostgresRange(modelBuilder, null, name, subtype);
 
         #endregion
@@ -475,8 +468,8 @@ namespace Microsoft.EntityFrameworkCore
         #region Tablespaces
 
         public static ModelBuilder UseTablespace(
-            [NotNull] this ModelBuilder modelBuilder,
-            [NotNull] string tablespace)
+            this ModelBuilder modelBuilder,
+            string tablespace)
         {
             Check.NotNull(modelBuilder, nameof(modelBuilder));
             Check.NotEmpty(tablespace, nameof(tablespace));
@@ -506,12 +499,11 @@ namespace Microsoft.EntityFrameworkCore
         /// Defaults to <c>true</c>.
         /// </param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-        [NotNull]
         public static ModelBuilder HasCollation(
-            [NotNull] this ModelBuilder modelBuilder,
-            [NotNull] string name,
-            [NotNull] string locale,
-            [CanBeNull] string? provider = null,
+            this ModelBuilder modelBuilder,
+            string name,
+            string locale,
+            string? provider = null,
             bool? deterministic = null)
         => modelBuilder.HasCollation(schema: null, name, locale, provider: provider, deterministic: deterministic);
 
@@ -533,13 +525,12 @@ namespace Microsoft.EntityFrameworkCore
         /// Defaults to <c>true</c>.
         /// </param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-        [NotNull]
         public static ModelBuilder HasCollation(
-            [NotNull] this ModelBuilder modelBuilder,
-            [CanBeNull] string? schema,
-            [NotNull] string name,
-            [NotNull] string locale,
-            [CanBeNull] string? provider = null,
+            this ModelBuilder modelBuilder,
+            string? schema,
+            string name,
+            string locale,
+            string? provider = null,
             bool? deterministic = null)
         {
             Check.NotNull(modelBuilder, nameof(modelBuilder));
@@ -575,14 +566,13 @@ namespace Microsoft.EntityFrameworkCore
         /// Defaults to <c>true</c>.
         /// </param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-        [NotNull]
         public static ModelBuilder HasCollation(
-            [NotNull] this ModelBuilder modelBuilder,
-            [CanBeNull] string? schema,
-            [NotNull] string name,
-            [NotNull] string lcCollate,
-            [NotNull] string lcCtype,
-            [CanBeNull] string? provider = null,
+            this ModelBuilder modelBuilder,
+            string? schema,
+            string name,
+            string lcCollate,
+            string lcCtype,
+            string? provider = null,
             bool? deterministic = null)
         {
             Check.NotNull(modelBuilder, nameof(modelBuilder));
@@ -622,7 +612,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="modelBuilder">The model builder.</param>
         /// <param name="collation">The collation.</param>
         /// <returns>A builder to further configure the property.</returns>
-        public static ModelBuilder UseDefaultColumnCollation([NotNull] this ModelBuilder modelBuilder, [CanBeNull] string? collation)
+        public static ModelBuilder UseDefaultColumnCollation(this ModelBuilder modelBuilder, string? collation)
         {
             Check.NotNull(modelBuilder, nameof(modelBuilder));
             Check.NullButNotEmpty(collation, nameof(collation));
@@ -652,8 +642,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns>A builder to further configure the property.</returns>
         public static IConventionModelBuilder? UseDefaultColumnCollation(
-            [NotNull] this IConventionModelBuilder modelBuilder,
-            [CanBeNull] string? collation,
+            this IConventionModelBuilder modelBuilder,
+            string? collation,
             bool fromDataAnnotation = false)
         {
             if (modelBuilder.CanSetDefaultColumnCollation(collation, fromDataAnnotation))
@@ -673,8 +663,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns><c>true</c> if the given value can be set as the collation.</returns>
         public static bool CanSetDefaultColumnCollation(
-            [NotNull] this IConventionModelBuilder modelBuilder,
-            [CanBeNull] string? collation,
+            this IConventionModelBuilder modelBuilder,
+            string? collation,
             bool fromDataAnnotation = false)
         {
             Check.NotNull(modelBuilder, nameof(modelBuilder));
@@ -688,15 +678,12 @@ namespace Microsoft.EntityFrameworkCore
         #region Helpers
 
         // See: https://github.com/npgsql/npgsql/blob/dev/src/Npgsql/TypeMapping/TypeMapperBase.cs#L132-L138
-        [NotNull]
-        private static string GetTypePgName<TEnum>([NotNull] INpgsqlNameTranslator nameTranslator) where TEnum : struct, Enum
+        private static string GetTypePgName<TEnum>(INpgsqlNameTranslator nameTranslator) where TEnum : struct, Enum
             => typeof(TEnum).GetCustomAttribute<PgNameAttribute>()?.PgName ??
                nameTranslator.TranslateTypeName(typeof(TEnum).Name);
 
         // See: https://github.com/npgsql/npgsql/blob/dev/src/Npgsql/TypeHandlers/EnumHandler.cs#L118-L129
-        [NotNull]
-        [ItemNotNull]
-        private static string[] GetMemberPgNames<TEnum>([NotNull] INpgsqlNameTranslator nameTranslator) where TEnum : struct, Enum
+        private static string[] GetMemberPgNames<TEnum>(INpgsqlNameTranslator nameTranslator) where TEnum : struct, Enum
             => typeof(TEnum)
                .GetFields(BindingFlags.Static | BindingFlags.Public)
                .Select(x => x.GetCustomAttribute<PgNameAttribute>()?.PgName ??

@@ -1,6 +1,5 @@
 using System;
 using System.Linq.Expressions;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -23,10 +22,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         /// <param name="typeMapping">The <see cref="RelationalTypeMapping"/> associated with the expression.</param>
         public PostgresBinaryExpression(
             PostgresExpressionType operatorType,
-            [NotNull] SqlExpression left,
-            [NotNull] SqlExpression right,
-            [NotNull] Type type,
-            [CanBeNull] RelationalTypeMapping? typeMapping)
+            SqlExpression left,
+            SqlExpression right,
+            Type type,
+            RelationalTypeMapping? typeMapping)
             : base(type, typeMapping)
         {
             Check.NotNull(left, nameof(left));
@@ -68,7 +67,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         /// <param name="left">The <see cref="Left"/> property of the result.</param>
         /// <param name="right">The <see cref="Right"/> property of the result.</param>
         /// <returns>This expression if no children changed, or an expression with the updated children.</returns>
-        public virtual PostgresBinaryExpression Update([NotNull] SqlExpression left, [NotNull] SqlExpression right)
+        public virtual PostgresBinaryExpression Update(SqlExpression left, SqlExpression right)
         {
             Check.NotNull(left, nameof(left));
             Check.NotNull(right, nameof(right));

@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
@@ -30,9 +29,9 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="schema"> The schema of the sequence.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
         public static PropertyBuilder UseHiLo(
-            [NotNull] this PropertyBuilder propertyBuilder,
-            [CanBeNull] string? name = null,
-            [CanBeNull] string? schema = null)
+            this PropertyBuilder propertyBuilder,
+            string? name = null,
+            string? schema = null)
         {
             Check.NotNull(propertyBuilder, nameof(propertyBuilder));
             Check.NullButNotEmpty(name, nameof(name));
@@ -66,9 +65,9 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="schema"> The schema of the sequence.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
         public static PropertyBuilder<TProperty> UseHiLo<TProperty>(
-            [NotNull] this PropertyBuilder<TProperty> propertyBuilder,
-            [CanBeNull] string? name = null,
-            [CanBeNull] string? schema = null)
+            this PropertyBuilder<TProperty> propertyBuilder,
+            string? name = null,
+            string? schema = null)
             => (PropertyBuilder<TProperty>)UseHiLo((PropertyBuilder)propertyBuilder, name, schema);
 
         /// <summary>
@@ -81,9 +80,9 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="fromDataAnnotation"> Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns>A builder to further configure the sequence.</returns>
         public static IConventionSequenceBuilder? HasHiLoSequence(
-            [NotNull] this IConventionPropertyBuilder propertyBuilder,
-            [CanBeNull] string? name,
-            [CanBeNull] string? schema,
+            this IConventionPropertyBuilder propertyBuilder,
+            string? name,
+            string? schema,
             bool fromDataAnnotation = false)
         {
             if (!propertyBuilder.CanSetHiLoSequence(name, schema))
@@ -108,9 +107,9 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="fromDataAnnotation"> Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns><c>true</c> if the given name and schema can be set for the hi-lo sequence.</returns>
         public static bool CanSetHiLoSequence(
-            [NotNull] this IConventionPropertyBuilder propertyBuilder,
-            [CanBeNull] string? name,
-            [CanBeNull] string? schema,
+            this IConventionPropertyBuilder propertyBuilder,
+            string? name,
+            string? schema,
             bool fromDataAnnotation = false)
         {
             Check.NotNull(propertyBuilder, nameof(propertyBuilder));
@@ -135,7 +134,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="propertyBuilder"> The builder for the property being configured.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
         public static PropertyBuilder UseSerialColumn(
-            [NotNull] this PropertyBuilder propertyBuilder)
+            this PropertyBuilder propertyBuilder)
         {
             Check.NotNull(propertyBuilder, nameof(propertyBuilder));
 
@@ -160,7 +159,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="propertyBuilder"> The builder for the property being configured.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
         public static PropertyBuilder<TProperty> UseSerialColumn<TProperty>(
-            [NotNull] this PropertyBuilder<TProperty> propertyBuilder)
+            this PropertyBuilder<TProperty> propertyBuilder)
             => (PropertyBuilder<TProperty>)UseSerialColumn((PropertyBuilder)propertyBuilder);
 
         #endregion Serial
@@ -178,7 +177,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="propertyBuilder"> The builder for the property being configured.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-        public static PropertyBuilder UseIdentityAlwaysColumn([NotNull] this PropertyBuilder propertyBuilder)
+        public static PropertyBuilder UseIdentityAlwaysColumn(this PropertyBuilder propertyBuilder)
         {
             Check.NotNull(propertyBuilder, nameof(propertyBuilder));
 
@@ -202,7 +201,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="propertyBuilder"> The builder for the property being configured.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
         public static PropertyBuilder<TProperty> UseIdentityAlwaysColumn<TProperty>(
-            [NotNull] this PropertyBuilder<TProperty> propertyBuilder)
+            this PropertyBuilder<TProperty> propertyBuilder)
             => (PropertyBuilder<TProperty>)UseIdentityAlwaysColumn((PropertyBuilder)propertyBuilder);
 
         #endregion Identity always
@@ -222,7 +221,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="propertyBuilder"> The builder for the property being configured.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
-        public static PropertyBuilder UseIdentityByDefaultColumn([NotNull] this PropertyBuilder propertyBuilder)
+        public static PropertyBuilder UseIdentityByDefaultColumn(this PropertyBuilder propertyBuilder)
         {
             Check.NotNull(propertyBuilder, nameof(propertyBuilder));
 
@@ -249,7 +248,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="propertyBuilder"> The builder for the property being configured.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
         public static PropertyBuilder<TProperty> UseIdentityByDefaultColumn<TProperty>(
-            [NotNull] this PropertyBuilder<TProperty> propertyBuilder)
+            this PropertyBuilder<TProperty> propertyBuilder)
             => (PropertyBuilder<TProperty>)UseIdentityByDefaultColumn((PropertyBuilder)propertyBuilder);
 
         /// <summary>
@@ -267,7 +266,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="propertyBuilder"> The builder for the property being configured.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
         public static PropertyBuilder UseIdentityColumn(
-            [NotNull] this PropertyBuilder propertyBuilder)
+            this PropertyBuilder propertyBuilder)
             => propertyBuilder.UseIdentityByDefaultColumn();
 
         /// <summary>
@@ -286,7 +285,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="propertyBuilder"> The builder for the property being configured.</param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
         public static PropertyBuilder<TProperty> UseIdentityColumn<TProperty>(
-            [NotNull] this PropertyBuilder<TProperty> propertyBuilder)
+            this PropertyBuilder<TProperty> propertyBuilder)
             => propertyBuilder.UseIdentityByDefaultColumn();
 
         #endregion Identity by default
@@ -303,7 +302,7 @@ namespace Microsoft.EntityFrameworkCore
         /// The same builder instance if the configuration was applied, <c>null</c> otherwise.
         /// </returns>
         public static IConventionPropertyBuilder? HasValueGenerationStrategy(
-            [NotNull] this IConventionPropertyBuilder propertyBuilder,
+            this IConventionPropertyBuilder propertyBuilder,
             NpgsqlValueGenerationStrategy? valueGenerationStrategy,
             bool fromDataAnnotation = false)
         {
@@ -330,7 +329,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns><c>true</c> if the given value can be set as the default value generation strategy.</returns>
         public static bool CanSetValueGenerationStrategy(
-            [NotNull] this IConventionPropertyBuilder propertyBuilder,
+            this IConventionPropertyBuilder propertyBuilder,
             NpgsqlValueGenerationStrategy? valueGenerationStrategy,
             bool fromDataAnnotation = false)
         {
@@ -375,7 +374,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
         public static PropertyBuilder HasIdentityOptions(
-            [NotNull] this PropertyBuilder propertyBuilder,
+            this PropertyBuilder propertyBuilder,
             long? startValue = null,
             long? incrementBy = null,
             long? minValue = null,
@@ -422,7 +421,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
         public static PropertyBuilder<TProperty> HasIdentityOptions<TProperty>(
-            [NotNull] this PropertyBuilder<TProperty> propertyBuilder,
+            this PropertyBuilder<TProperty> propertyBuilder,
             long? startValue = null,
             long? incrementBy = null,
             long? minValue = null,
@@ -461,7 +460,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
         public static IConventionPropertyBuilder? HasIdentityOptions(
-            [NotNull] this IConventionPropertyBuilder propertyBuilder,
+            this IConventionPropertyBuilder propertyBuilder,
             long? startValue = null,
             long? incrementBy = null,
             long? minValue = null,
@@ -511,7 +510,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </param>
         /// <returns>The same builder instance so that multiple calls can be chained.</returns>
         public static bool CanSetIdentityOptions(
-            [NotNull] this IConventionPropertyBuilder propertyBuilder,
+            this IConventionPropertyBuilder propertyBuilder,
             long? startValue = null,
             long? incrementBy = null,
             long? minValue = null,
@@ -539,31 +538,31 @@ namespace Microsoft.EntityFrameworkCore
         #region Array value conversion
 
         public static PropertyBuilder<TElementProperty[]> HasPostgresArrayConversion<TElementProperty, TElementProvider>(
-            [NotNull] this PropertyBuilder<TElementProperty[]> propertyBuilder,
-            [NotNull] Expression<Func<TElementProperty, TElementProvider>> convertToProviderExpression,
-            [NotNull] Expression<Func<TElementProvider, TElementProperty>> convertFromProviderExpression)
+            this PropertyBuilder<TElementProperty[]> propertyBuilder,
+            Expression<Func<TElementProperty, TElementProvider>> convertToProviderExpression,
+            Expression<Func<TElementProvider, TElementProperty>> convertFromProviderExpression)
             => propertyBuilder.HasPostgresArrayConversion<TElementProperty, TElementProvider>(
                 new ValueConverter<TElementProperty, TElementProvider>(
                     convertToProviderExpression, convertFromProviderExpression));
 
         public static PropertyBuilder<List<TElementProperty>> HasPostgresArrayConversion<TElementProperty, TElementProvider>(
-            [NotNull] this PropertyBuilder<List<TElementProperty>> propertyBuilder,
-            [NotNull] Expression<Func<TElementProperty, TElementProvider>> convertToProviderExpression,
-            [NotNull] Expression<Func<TElementProvider, TElementProperty>> convertFromProviderExpression)
+            this PropertyBuilder<List<TElementProperty>> propertyBuilder,
+            Expression<Func<TElementProperty, TElementProvider>> convertToProviderExpression,
+            Expression<Func<TElementProvider, TElementProperty>> convertFromProviderExpression)
             => propertyBuilder.HasConversion(
                 new NpgsqlArrayConverter<List<TElementProperty>, List<TElementProvider>>(
                     new ValueConverter<TElementProperty, TElementProvider>(
                         convertToProviderExpression, convertFromProviderExpression)));
 
         public static PropertyBuilder<TElementProperty[]> HasPostgresArrayConversion<TElementProperty, TElementProvider>(
-            [NotNull] this PropertyBuilder<TElementProperty[]> propertyBuilder,
-            [NotNull] ValueConverter elementValueConverter)
+            this PropertyBuilder<TElementProperty[]> propertyBuilder,
+            ValueConverter elementValueConverter)
             => propertyBuilder.HasConversion(
                 new NpgsqlArrayConverter<TElementProperty[], TElementProvider[]>(elementValueConverter));
 
         public static PropertyBuilder<List<TElementProperty>> HasPostgresArrayConversion<TElementProperty, TElementProvider>(
-            [NotNull] this PropertyBuilder<List<TElementProperty>> propertyBuilder,
-            [NotNull] ValueConverter elementValueConverter)
+            this PropertyBuilder<List<TElementProperty>> propertyBuilder,
+            ValueConverter elementValueConverter)
             => propertyBuilder.HasConversion(
                 new NpgsqlArrayConverter<List<TElementProperty>, List<TElementProvider>>(elementValueConverter));
 
@@ -589,9 +588,9 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="includedPropertyNames">An array of property names to be included in the tsvector.</param>
         /// <returns>A builder to further configure the property.</returns>
         public static PropertyBuilder IsGeneratedTsVectorColumn(
-            [NotNull] this PropertyBuilder propertyBuilder,
-            [NotNull] string config,
-            [NotNull] params string[] includedPropertyNames)
+            this PropertyBuilder propertyBuilder,
+            string config,
+            params string[] includedPropertyNames)
         {
             Check.NotNull(propertyBuilder, nameof(propertyBuilder));
             Check.NotNull(config, nameof(config));
@@ -620,9 +619,9 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="includedPropertyNames">An array of property names to be included in the tsvector.</param>
         /// <returns>A builder to further configure the property.</returns>
         public static PropertyBuilder<NpgsqlTsVector> IsGeneratedTsVectorColumn(
-            [NotNull] this PropertyBuilder<NpgsqlTsVector> propertyBuilder,
-            [NotNull] string config,
-            [NotNull] params string[] includedPropertyNames)
+            this PropertyBuilder<NpgsqlTsVector> propertyBuilder,
+            string config,
+            params string[] includedPropertyNames)
             => (PropertyBuilder<NpgsqlTsVector>)IsGeneratedTsVectorColumn((PropertyBuilder)propertyBuilder, config, includedPropertyNames);
 
         /// <summary>
@@ -644,9 +643,9 @@ namespace Microsoft.EntityFrameworkCore
         /// <c>null</c> otherwise.
         /// </returns>
         public static IConventionPropertyBuilder? IsGeneratedTsVectorColumn(
-            [NotNull] this IConventionPropertyBuilder propertyBuilder,
-            [NotNull] string config,
-            [NotNull] IReadOnlyList<string> includedPropertyNames,
+            this IConventionPropertyBuilder propertyBuilder,
+            string config,
+            IReadOnlyList<string> includedPropertyNames,
             bool fromDataAnnotation = false)
         {
             Check.NotNull(propertyBuilder, nameof(propertyBuilder));
@@ -680,9 +679,9 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns><c>true</c> if the property can be configured as a full-text search tsvector column.</returns>
         public static bool CanSetIsGeneratedTsVectorColumn(
-            [NotNull] this IConventionPropertyBuilder propertyBuilder,
-            [CanBeNull] string? config,
-            [CanBeNull] IReadOnlyList<string>? includedPropertyNames,
+            this IConventionPropertyBuilder propertyBuilder,
+            string? config,
+            IReadOnlyList<string>? includedPropertyNames,
             bool fromDataAnnotation = false)
         {
             Check.NotNull(propertyBuilder, nameof(propertyBuilder));

@@ -2,7 +2,6 @@
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -30,11 +29,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
         ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
         public NpgsqlSequenceHiLoValueGenerator(
-            [NotNull] IRawSqlCommandBuilder rawSqlCommandBuilder,
-            [NotNull] IUpdateSqlGenerator sqlGenerator,
-            [NotNull] NpgsqlSequenceValueGeneratorState generatorState,
-            [NotNull] INpgsqlRelationalConnection connection,
-            [NotNull] IDiagnosticsLogger<DbLoggerCategory.Database.Command> commandLogger)
+            IRawSqlCommandBuilder rawSqlCommandBuilder,
+            IUpdateSqlGenerator sqlGenerator,
+            NpgsqlSequenceValueGeneratorState generatorState,
+            INpgsqlRelationalConnection connection,
+            IDiagnosticsLogger<DbLoggerCategory.Database.Command> commandLogger)
             : base(generatorState)
         {
             _sequence = generatorState.Sequence;

@@ -1,5 +1,4 @@
 using System;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
@@ -16,9 +15,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
 
         [EntityFrameworkInternal]
         public NpgsqlConventionSetBuilder(
-            [NotNull] ProviderConventionSetBuilderDependencies dependencies,
-            [NotNull] RelationalConventionSetBuilderDependencies relationalDependencies,
-            [NotNull] INpgsqlOptions npgsqlOptions)
+            ProviderConventionSetBuilderDependencies dependencies,
+            RelationalConventionSetBuilderDependencies relationalDependencies,
+            INpgsqlOptions npgsqlOptions)
             : base(dependencies, relationalDependencies)
             => _postgresVersion = npgsqlOptions.PostgresVersion;
 

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Utilities;
@@ -39,14 +38,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         public virtual IReadOnlyList<string?> ArgumentSeparators { get; }
 
         public static PostgresFunctionExpression CreateWithNamedArguments(
-            [NotNull] string name,
-            [NotNull] IEnumerable<SqlExpression> arguments,
-            [NotNull] IEnumerable<string?> argumentNames,
+            string name,
+            IEnumerable<SqlExpression> arguments,
+            IEnumerable<string?> argumentNames,
             bool nullable,
-            [NotNull] IEnumerable<bool> argumentsPropagateNullability,
+            IEnumerable<bool> argumentsPropagateNullability,
             bool builtIn,
-            [NotNull] Type type,
-            [CanBeNull] RelationalTypeMapping? typeMapping)
+            Type type,
+            RelationalTypeMapping? typeMapping)
         {
             Check.NotNull(arguments, nameof(arguments));
             Check.NotNull(argumentNames, nameof(argumentNames));
@@ -57,14 +56,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         }
 
         public static PostgresFunctionExpression CreateWithArgumentSeparators(
-            [NotNull] string name,
-            [NotNull] IEnumerable<SqlExpression> arguments,
-            [NotNull] IEnumerable<string?> argumentSeparators,
+            string name,
+            IEnumerable<SqlExpression> arguments,
+            IEnumerable<string?> argumentSeparators,
             bool nullable,
-            [NotNull] IEnumerable<bool> argumentsPropagateNullability,
+            IEnumerable<bool> argumentsPropagateNullability,
             bool builtIn,
-            [NotNull] Type type,
-            [CanBeNull] RelationalTypeMapping? typeMapping)
+            Type type,
+            RelationalTypeMapping? typeMapping)
         {
             Check.NotNull(arguments, nameof(arguments));
             Check.NotNull(argumentSeparators, nameof(argumentSeparators));
@@ -75,14 +74,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         }
 
         private PostgresFunctionExpression(
-            [NotNull] string name,
-            [NotNull] IEnumerable<SqlExpression> arguments,
-            [CanBeNull] IEnumerable<string?>? argumentNames,
-            [CanBeNull] IEnumerable<string?>? argumentSeparators,
+            string name,
+            IEnumerable<SqlExpression> arguments,
+            IEnumerable<string?>? argumentNames,
+            IEnumerable<string?>? argumentSeparators,
             bool nullable,
-            [NotNull] IEnumerable<bool> argumentsPropagateNullability,
-            [NotNull] Type type,
-            [CanBeNull] RelationalTypeMapping? typeMapping)
+            IEnumerable<bool> argumentsPropagateNullability,
+            Type type,
+            RelationalTypeMapping? typeMapping)
         : base(name, arguments, nullable, argumentsPropagateNullability, type, typeMapping)
         {
             Check.NotEmpty(name, nameof(name));

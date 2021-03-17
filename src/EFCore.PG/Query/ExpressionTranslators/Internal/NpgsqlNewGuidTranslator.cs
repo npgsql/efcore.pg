@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
@@ -24,8 +23,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         private readonly string _uuidGenerationFunction;
 
         public NpgsqlNewGuidTranslator(
-            [NotNull] ISqlExpressionFactory sqlExpressionFactory,
-            [CanBeNull] Version? postgresVersion)
+            ISqlExpressionFactory sqlExpressionFactory,
+            Version? postgresVersion)
         {
             _sqlExpressionFactory = sqlExpressionFactory;
             _uuidGenerationFunction = postgresVersion?.AtLeast(13) == true ? "gen_random_uuid" : "uuid_generate_v4";

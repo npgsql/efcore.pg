@@ -1,6 +1,5 @@
 using System;
 using System.Reflection;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
@@ -14,7 +13,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     {
         private readonly ISqlExpressionFactory _sqlExpressionFactory;
 
-        public NpgsqlTimeSpanMemberTranslator([NotNull] ISqlExpressionFactory sqlExpressionFactory)
+        public NpgsqlTimeSpanMemberTranslator(ISqlExpressionFactory sqlExpressionFactory)
             => _sqlExpressionFactory = sqlExpressionFactory;
 
         private static readonly bool[] FalseTrueArray = { false, true };

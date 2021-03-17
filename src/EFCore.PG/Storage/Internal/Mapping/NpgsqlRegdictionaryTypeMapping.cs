@@ -1,4 +1,3 @@
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Utilities;
 using NpgsqlTypes;
@@ -18,7 +17,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         protected override string GenerateNonNullSqlLiteral(object value)
             => $"'{EscapeSqlLiteral((string)value)}'";
 
-        private string EscapeSqlLiteral([NotNull] string literal)
+        private string EscapeSqlLiteral(string literal)
             => Check.NotNull(literal, nameof(literal)).Replace("'", "''");
     }
 }

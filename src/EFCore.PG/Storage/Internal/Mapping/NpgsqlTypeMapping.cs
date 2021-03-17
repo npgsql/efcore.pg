@@ -1,6 +1,5 @@
 using System;
 using System.Data.Common;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Storage;
 using NpgsqlTypes;
 
@@ -22,7 +21,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         /// <param name="storeType">The database type to map.</param>
         /// <param name="clrType">The CLR type to map.</param>
         /// <param name="npgsqlDbType">The database type used by Npgsql.</param>
-        public NpgsqlTypeMapping([NotNull] string storeType, [NotNull] Type clrType, NpgsqlDbType npgsqlDbType)
+        public NpgsqlTypeMapping(string storeType, Type clrType, NpgsqlDbType npgsqlDbType)
             : base(storeType, clrType)
             => NpgsqlDbType = npgsqlDbType;
 

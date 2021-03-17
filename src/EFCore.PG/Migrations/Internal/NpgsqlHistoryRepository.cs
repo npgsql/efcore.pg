@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Text;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage;
 
@@ -8,7 +7,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal
 {
     public class NpgsqlHistoryRepository : HistoryRepository
     {
-        public NpgsqlHistoryRepository([NotNull] HistoryRepositoryDependencies dependencies)
+        public NpgsqlHistoryRepository(HistoryRepositoryDependencies dependencies)
             : base(dependencies)
         {
         }

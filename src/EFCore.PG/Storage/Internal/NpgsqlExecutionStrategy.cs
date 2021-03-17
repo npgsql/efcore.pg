@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
@@ -11,7 +10,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
     {
         private ExecutionStrategyDependencies Dependencies { get; }
 
-        public NpgsqlExecutionStrategy([NotNull] ExecutionStrategyDependencies dependencies)
+        public NpgsqlExecutionStrategy(ExecutionStrategyDependencies dependencies)
             => Dependencies = dependencies;
 
         public virtual bool RetriesOnFailure => false;

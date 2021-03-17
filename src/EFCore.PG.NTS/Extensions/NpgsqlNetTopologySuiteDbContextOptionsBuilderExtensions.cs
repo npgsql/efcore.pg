@@ -1,4 +1,3 @@
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Utilities;
 using NetTopologySuite.Geometries;
@@ -21,9 +20,9 @@ namespace Microsoft.EntityFrameworkCore
         /// The options builder so that further configuration can be chained.
         /// </returns>
         public static NpgsqlDbContextOptionsBuilder UseNetTopologySuite(
-            [NotNull] this NpgsqlDbContextOptionsBuilder optionsBuilder,
-            [CanBeNull] CoordinateSequenceFactory? coordinateSequenceFactory = null,
-            [CanBeNull] PrecisionModel? precisionModel = null,
+            this NpgsqlDbContextOptionsBuilder optionsBuilder,
+            CoordinateSequenceFactory? coordinateSequenceFactory = null,
+            PrecisionModel? precisionModel = null,
             Ordinates handleOrdinates = Ordinates.None,
             bool geographyAsDefault = false)
         {

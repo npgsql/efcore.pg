@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
@@ -17,8 +16,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     public class NpgsqlNetTopologySuiteMethodCallTranslatorPlugin : IMethodCallTranslatorPlugin
     {
         public NpgsqlNetTopologySuiteMethodCallTranslatorPlugin(
-            [NotNull] IRelationalTypeMappingSource typeMappingSource,
-            [NotNull] ISqlExpressionFactory sqlExpressionFactory)
+            IRelationalTypeMappingSource typeMappingSource,
+            ISqlExpressionFactory sqlExpressionFactory)
             => Translators = new IMethodCallTranslator[]
             {
                 new NpgsqlGeometryMethodTranslator(sqlExpressionFactory, typeMappingSource),
@@ -47,8 +46,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         };
 
         public NpgsqlGeometryMethodTranslator(
-            [NotNull] ISqlExpressionFactory sqlExpressionFactory,
-            [NotNull] IRelationalTypeMappingSource typeMappingSource)
+            ISqlExpressionFactory sqlExpressionFactory,
+            IRelationalTypeMappingSource typeMappingSource)
         {
             _sqlExpressionFactory = sqlExpressionFactory;
             _typeMappingSource = typeMappingSource;
@@ -67,8 +66,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     : null;
 
         private SqlExpression? TranslateDbFunction(
-            [NotNull] MethodInfo method,
-            [NotNull] IReadOnlyList<SqlExpression> arguments)
+            MethodInfo method,
+            IReadOnlyList<SqlExpression> arguments)
             => method.Name switch
             {
                 nameof(NpgsqlNetTopologySuiteDbFunctionsExtensions.Transform) => _sqlExpressionFactory.Function(
@@ -88,9 +87,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             };
 
         private SqlExpression? TranslateGeometryMethod(
-            [NotNull] SqlExpression instance,
-            [NotNull] MethodInfo method,
-            [NotNull] IReadOnlyList<SqlExpression> arguments)
+            SqlExpression instance,
+            MethodInfo method,
+            IReadOnlyList<SqlExpression> arguments)
         {
             var typeMapping = ExpressionExtensions.InferTypeMapping(
                 arguments.Prepend(instance).Where(e => typeof(Geometry).IsAssignableFrom(e.Type)).ToArray());

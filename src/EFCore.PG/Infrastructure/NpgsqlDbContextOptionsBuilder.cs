@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Security;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -20,21 +19,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         /// Initializes a new instance of the <see cref="NpgsqlDbContextOptionsBuilder"/> class.
         /// </summary>
         /// <param name="optionsBuilder"> The core options builder.</param>
-        public NpgsqlDbContextOptionsBuilder([NotNull] DbContextOptionsBuilder optionsBuilder)
+        public NpgsqlDbContextOptionsBuilder(DbContextOptionsBuilder optionsBuilder)
             : base(optionsBuilder) {}
 
         /// <summary>
         /// Connect to this database for administrative operations (creating/dropping databases).
         /// </summary>
         /// <param name="dbName">The name of the database for administrative operations.</param>
-        public virtual NpgsqlDbContextOptionsBuilder UseAdminDatabase([CanBeNull] string? dbName)
+        public virtual NpgsqlDbContextOptionsBuilder UseAdminDatabase(string? dbName)
             => WithOption(e => e.WithAdminDatabase(dbName));
 
         /// <summary>
         /// Configures the backend version to target.
         /// </summary>
         /// <param name="postgresVersion">The backend version to target.</param>
-        public virtual NpgsqlDbContextOptionsBuilder SetPostgresVersion([CanBeNull] Version? postgresVersion)
+        public virtual NpgsqlDbContextOptionsBuilder SetPostgresVersion(Version? postgresVersion)
             => WithOption(e => e.WithPostgresVersion(postgresVersion));
 
         /// <summary>
@@ -63,9 +62,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         /// <code>NpgsqlTypeMappingSource.MapRange{float}("floatrange");</code>
         /// </example>
         public virtual NpgsqlDbContextOptionsBuilder MapRange<TSubtype>(
-            [NotNull] string rangeName,
-            [CanBeNull] string? schemaName = null,
-            [CanBeNull] string? subtypeName = null)
+            string rangeName,
+            string? schemaName = null,
+            string? subtypeName = null)
             => MapRange(rangeName, typeof(TSubtype), schemaName, subtypeName);
 
         /// <summary>
@@ -86,10 +85,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         /// <code>NpgsqlTypeMappingSource.MapRange("floatrange", typeof(float));</code>
         /// </example>
         public virtual NpgsqlDbContextOptionsBuilder MapRange(
-            [NotNull] string rangeName,
-            [NotNull] Type subtypeClrType,
-            [CanBeNull] string? schemaName = null,
-            [CanBeNull] string? subtypeName = null)
+            string rangeName,
+            Type subtypeClrType,
+            string? schemaName = null,
+            string? subtypeName = null)
             => WithOption(e => e.WithUserRangeDefinition(rangeName, schemaName, subtypeClrType, subtypeName));
 
         /// <summary>
@@ -108,7 +107,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         /// </summary>
         /// <param name="callback">The callback to use.</param>
         public virtual NpgsqlDbContextOptionsBuilder ProvideClientCertificatesCallback(
-            [CanBeNull] ProvideClientCertificatesCallback? callback)
+            ProvideClientCertificatesCallback? callback)
             => WithOption(e => e.WithProvideClientCertificatesCallback(callback));
 
         /// <summary>
@@ -116,7 +115,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         /// </summary>
         /// <param name="callback">The callback to use.</param>
         public virtual NpgsqlDbContextOptionsBuilder RemoteCertificateValidationCallback(
-            [CanBeNull] RemoteCertificateValidationCallback? callback)
+            RemoteCertificateValidationCallback? callback)
             => WithOption(e => e.WithRemoteCertificateValidationCallback(callback));
 
         /// <summary>
@@ -124,7 +123,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         /// </summary>
         /// <param name="callback">The callback to use.</param>
         public virtual NpgsqlDbContextOptionsBuilder ProvidePasswordCallback(
-            [CanBeNull] ProvidePasswordCallback? callback)
+            ProvidePasswordCallback? callback)
             => WithOption(e => e.WithProvidePasswordCallback(callback));
 
         #endregion Authentication
@@ -138,7 +137,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         /// An instance of <see cref="NpgsqlDbContextOptionsBuilder"/> configured to use
         /// the default retrying <see cref="IExecutionStrategy" />.
         /// </returns>
-        [NotNull]
         public virtual NpgsqlDbContextOptionsBuilder EnableRetryOnFailure()
             => ExecutionStrategy(c => new NpgsqlRetryingExecutionStrategy(c));
 
@@ -148,7 +146,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         /// <returns>
         /// An instance of <see cref="NpgsqlDbContextOptionsBuilder"/> with the specified parameters.
         /// </returns>
-        [NotNull]
         public virtual NpgsqlDbContextOptionsBuilder EnableRetryOnFailure(int maxRetryCount)
             => ExecutionStrategy(c => new NpgsqlRetryingExecutionStrategy(c, maxRetryCount));
 
@@ -161,11 +158,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         /// <returns>
         /// An instance of <see cref="NpgsqlDbContextOptionsBuilder"/> with the specified parameters.
         /// </returns>
-        [NotNull]
         public virtual NpgsqlDbContextOptionsBuilder EnableRetryOnFailure(
             int maxRetryCount,
             TimeSpan maxRetryDelay,
-            [CanBeNull] ICollection<string>? errorCodesToAdd)
+            ICollection<string>? errorCodesToAdd)
             => ExecutionStrategy(c => new NpgsqlRetryingExecutionStrategy(c, maxRetryCount, maxRetryDelay, errorCodesToAdd));
 
         #endregion Retrying execution strategy

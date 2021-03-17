@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Utilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
@@ -16,13 +15,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 
         public virtual Annotatable Annotatable => (Annotatable)_annotatable;
 
-        public CockroachDbInterleaveInParent([NotNull] IReadOnlyAnnotatable annotatable)
+        public CockroachDbInterleaveInParent(IReadOnlyAnnotatable annotatable)
             => _annotatable = annotatable;
 
         public virtual string? ParentTableSchema
         {
             get => GetData().ParentTableSchema;
-            [param: CanBeNull] set
+            set
             {
                 (var _, var parentTableName, var interleavePrefix) = GetData();
                 SetData(value, parentTableName, interleavePrefix);
@@ -32,7 +31,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         public virtual string ParentTableName
         {
             get => GetData().ParentTableName;
-            [param: NotNull] set
+            set
             {
                 (var parentTableSchema, var _, var interleavePrefix) = GetData();
                 SetData(parentTableSchema, value, interleavePrefix);
@@ -42,7 +41,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         public virtual List<string> InterleavePrefix
         {
             get => GetData().InterleavePrefix;
-            [param: NotNull] set
+            set
             {
                 (var parentTableSchema, var parentTableName, var _) = GetData();
                 SetData(parentTableSchema, parentTableName, value);
@@ -80,7 +79,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             return builder.ToString();
         }
 
-        internal static (string? ParentTableSchema, string ParentTableName, List<string> InterleavePrefix) Deserialize([NotNull] string value)
+        internal static (string? ParentTableSchema, string ParentTableName, List<string> InterleavePrefix) Deserialize(string value)
         {
             Check.NotEmpty(value, nameof(value));
 

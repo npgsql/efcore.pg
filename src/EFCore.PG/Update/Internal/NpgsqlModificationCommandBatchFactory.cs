@@ -1,5 +1,4 @@
 using System.Linq;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Update;
 using Microsoft.EntityFrameworkCore.Utilities;
@@ -13,8 +12,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
         private readonly IDbContextOptions _options;
 
         public NpgsqlModificationCommandBatchFactory(
-            [NotNull] ModificationCommandBatchFactoryDependencies dependencies,
-            [NotNull] IDbContextOptions options)
+            ModificationCommandBatchFactoryDependencies dependencies,
+            IDbContextOptions options)
         {
             Check.NotNull(dependencies, nameof(dependencies));
             Check.NotNull(options, nameof(options));

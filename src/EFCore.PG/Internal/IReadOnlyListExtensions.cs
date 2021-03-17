@@ -1,13 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using JetBrains.Annotations;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
 {
     internal static class IReadOnlyListExtensions
     {
-        public static IReadOnlyList<T> Slice<T>([NotNull] this IReadOnlyList<T> list, int start)
+        public static IReadOnlyList<T> Slice<T>(this IReadOnlyList<T> list, int start)
             => new IReadOnlyListSlice<T>(list, start);
 
         private sealed class IReadOnlyListSlice<T> : IReadOnlyList<T>

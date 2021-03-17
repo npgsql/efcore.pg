@@ -14,7 +14,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
 {
     public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
     {
-        public NpgsqlAnnotationCodeGenerator([JetBrains.Annotations.NotNull] AnnotationCodeGeneratorDependencies dependencies)
+        public NpgsqlAnnotationCodeGenerator(AnnotationCodeGeneratorDependencies dependencies)
             : base(dependencies) {}
 
         protected override bool IsHandledByConvention(IModel model, IAnnotation annotation)
