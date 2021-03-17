@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using JetBrains.Annotations;
 
 // ReSharper disable once CheckNamespace
 namespace System.Reflection
@@ -8,7 +7,7 @@ namespace System.Reflection
     internal static class MethodInfoExtensions
     {
         internal static bool IsClosedFormOf(
-            [NotNull] this MethodInfo methodInfo, [NotNull] MethodInfo genericMethod)
+            this MethodInfo methodInfo, MethodInfo genericMethod)
             => methodInfo.IsGenericMethod
                && Equals(
                    methodInfo.GetGenericMethodDefinition(),

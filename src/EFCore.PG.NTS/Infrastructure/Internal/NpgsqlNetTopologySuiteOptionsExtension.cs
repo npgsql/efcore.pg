@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -21,7 +20,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
 
         public NpgsqlNetTopologySuiteOptionsExtension() {}
 
-        protected NpgsqlNetTopologySuiteOptionsExtension([NotNull] NpgsqlNetTopologySuiteOptionsExtension copyFrom)
+        protected NpgsqlNetTopologySuiteOptionsExtension(NpgsqlNetTopologySuiteOptionsExtension copyFrom)
             => IsGeographyDefault = copyFrom.IsGeographyDefault;
 
         protected virtual NpgsqlNetTopologySuiteOptionsExtension Clone() => new(this);
@@ -84,7 +83,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
                 debugInfo[$"{prefix}:{nameof(IsGeographyDefault)}"] = Extension.IsGeographyDefault.ToString();
             }
 
-            [NotNull]
             public override string LogFragment
             {
                 get

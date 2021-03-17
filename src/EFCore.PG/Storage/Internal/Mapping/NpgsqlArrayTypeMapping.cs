@@ -5,7 +5,6 @@ using System.ComponentModel;
 using System.Data.Common;
 using System.Reflection;
 using System.Text;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
@@ -25,7 +24,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         /// <summary>
         /// The relational type mapping used to initialize the array mapping.
         /// </summary>
-        [NotNull]
         public virtual RelationalTypeMapping ElementMapping { get; }
 
         /// <summary>
@@ -40,7 +38,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         public virtual bool IsElementNullable { get; }
 
         protected NpgsqlArrayTypeMapping(
-            RelationalTypeMappingParameters parameters, [NotNull] RelationalTypeMapping elementMapping, bool isElementNullable)
+            RelationalTypeMappingParameters parameters, RelationalTypeMapping elementMapping, bool isElementNullable)
             : base(parameters)
         {
             ElementMapping = elementMapping;
@@ -83,7 +81,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
         protected abstract RelationalTypeMapping Clone(
             RelationalTypeMappingParameters parameters,
-            [NotNull] RelationalTypeMapping elementMapping);
+            RelationalTypeMapping elementMapping);
 
         protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
             => Clone(parameters, ElementMapping);

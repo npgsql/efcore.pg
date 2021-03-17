@@ -23,7 +23,7 @@ namespace System.Reflection
             return elementType != null;
         }
 
-        public static PropertyInfo? FindIndexerProperty([NotNull] this Type type)
+        public static PropertyInfo? FindIndexerProperty(this Type type)
         {
             var defaultPropertyAttribute = type.GetCustomAttributes<DefaultMemberAttribute>().FirstOrDefault();
 

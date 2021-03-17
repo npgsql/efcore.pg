@@ -1,7 +1,6 @@
 using System;
 using System.Globalization;
 using System.Text;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
@@ -37,10 +36,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
             return builder.ToString();
         }
 
-        public static IdentitySequenceOptionsData Get([NotNull] IReadOnlyAnnotatable annotatable)
+        public static IdentitySequenceOptionsData Get(IReadOnlyAnnotatable annotatable)
             => Deserialize((string?)annotatable[NpgsqlAnnotationNames.IdentityOptions]);
 
-        public static IdentitySequenceOptionsData Deserialize([CanBeNull] string? value)
+        public static IdentitySequenceOptionsData Deserialize(string? value)
         {
             var data = new IdentitySequenceOptionsData();
 

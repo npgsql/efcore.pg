@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -20,7 +19,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="property"> The property.</param>
         /// <returns>The name to use for the hi-lo sequence.</returns>
-        public static string? GetHiLoSequenceName([NotNull] this IReadOnlyProperty property)
+        public static string? GetHiLoSequenceName(this IReadOnlyProperty property)
             => (string?)property[NpgsqlAnnotationNames.HiLoSequenceName];
 
         /// <summary>
@@ -29,7 +28,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="property"> The property. </param>
         /// <param name="storeObject"> The identifier of the store object. </param>
         /// <returns> The name to use for the hi-lo sequence. </returns>
-        public static string? GetHiLoSequenceName([NotNull] this IReadOnlyProperty property, in StoreObjectIdentifier storeObject)
+        public static string? GetHiLoSequenceName(this IReadOnlyProperty property, in StoreObjectIdentifier storeObject)
         {
             var annotation = property.FindAnnotation(NpgsqlAnnotationNames.HiLoSequenceName);
             if (annotation != null)
@@ -48,7 +47,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="property">The property.</param>
         /// <param name="name">The sequence name to use.</param>
-        public static void SetHiLoSequenceName([NotNull] this IMutableProperty property, [CanBeNull] string? name)
+        public static void SetHiLoSequenceName(this IMutableProperty property, string? name)
             => property.SetOrRemoveAnnotation(
                 NpgsqlAnnotationNames.HiLoSequenceName,
                 Check.NullButNotEmpty(name, nameof(name)));
@@ -60,8 +59,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="name">The sequence name to use.</param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         public static string? SetHiLoSequenceName(
-            [NotNull] this IConventionProperty property,
-            [CanBeNull] string? name,
+            this IConventionProperty property,
+            string? name,
             bool fromDataAnnotation = false)
         {
             property.SetOrRemoveAnnotation(
@@ -77,7 +76,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="property">The property.</param>
         /// <returns>The <see cref="ConfigurationSource" /> for the hi-lo sequence name.</returns>
-        public static ConfigurationSource? GetHiLoSequenceNameConfigurationSource([NotNull] this IConventionProperty property)
+        public static ConfigurationSource? GetHiLoSequenceNameConfigurationSource(this IConventionProperty property)
             => property.FindAnnotation(NpgsqlAnnotationNames.HiLoSequenceName)?.GetConfigurationSource();
 
         /// <summary>
@@ -85,7 +84,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="property">The property.</param>
         /// <returns>The schema to use for the hi-lo sequence.</returns>
-        public static string? GetHiLoSequenceSchema([NotNull] this IReadOnlyProperty property)
+        public static string? GetHiLoSequenceSchema(this IReadOnlyProperty property)
             => (string?)property[NpgsqlAnnotationNames.HiLoSequenceSchema];
 
         /// <summary>
@@ -94,7 +93,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="property"> The property. </param>
         /// <param name="storeObject"> The identifier of the store object. </param>
         /// <returns> The schema to use for the hi-lo sequence. </returns>
-        public static string? GetHiLoSequenceSchema([NotNull] this IReadOnlyProperty property, in StoreObjectIdentifier storeObject)
+        public static string? GetHiLoSequenceSchema(this IReadOnlyProperty property, in StoreObjectIdentifier storeObject)
         {
             var annotation = property.FindAnnotation(NpgsqlAnnotationNames.HiLoSequenceSchema);
             if (annotation != null)
@@ -113,7 +112,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="property">The property.</param>
         /// <param name="schema">The schema to use.</param>
-        public static void SetHiLoSequenceSchema([NotNull] this IMutableProperty property, [CanBeNull] string? schema)
+        public static void SetHiLoSequenceSchema(this IMutableProperty property, string? schema)
             => property.SetOrRemoveAnnotation(
                 NpgsqlAnnotationNames.HiLoSequenceSchema,
                 Check.NullButNotEmpty(schema, nameof(schema)));
@@ -125,7 +124,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="schema">The schema to use.</param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         public static string? SetHiLoSequenceSchema(
-            [NotNull] this IConventionProperty property, [CanBeNull] string? schema, bool fromDataAnnotation = false)
+            this IConventionProperty property, string? schema, bool fromDataAnnotation = false)
         {
             property.SetOrRemoveAnnotation(
                 NpgsqlAnnotationNames.HiLoSequenceSchema,
@@ -140,7 +139,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="property">The property.</param>
         /// <returns>The <see cref="ConfigurationSource" /> for the hi-lo sequence schema.</returns>
-        public static ConfigurationSource? GetHiLoSequenceSchemaConfigurationSource([NotNull] this IConventionProperty property)
+        public static ConfigurationSource? GetHiLoSequenceSchemaConfigurationSource(this IConventionProperty property)
             => property.FindAnnotation(NpgsqlAnnotationNames.HiLoSequenceSchema)?.GetConfigurationSource();
 
         /// <summary>
@@ -148,7 +147,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="property"> The property. </param>
         /// <returns> The sequence to use, or <see langword="null" /> if no sequence exists in the model. </returns>
-        public static IReadOnlySequence? FindHiLoSequence([NotNull] this IReadOnlyProperty property)
+        public static IReadOnlySequence? FindHiLoSequence(this IReadOnlyProperty property)
         {
             var model = property.DeclaringEntityType.Model;
 
@@ -167,7 +166,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="property"> The property. </param>
         /// <param name="storeObject"> The identifier of the store object. </param>
         /// <returns> The sequence to use, or <see langword="null" /> if no sequence exists in the model. </returns>
-        public static IReadOnlySequence? FindHiLoSequence([NotNull] this IReadOnlyProperty property, in StoreObjectIdentifier storeObject)
+        public static IReadOnlySequence? FindHiLoSequence(this IReadOnlyProperty property, in StoreObjectIdentifier storeObject)
         {
             var model = property.DeclaringEntityType.Model;
 
@@ -185,7 +184,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="property"> The property. </param>
         /// <returns> The sequence to use, or <see langword="null" /> if no sequence exists in the model. </returns>
-        public static ISequence? FindHiLoSequence([NotNull] this IProperty property)
+        public static ISequence? FindHiLoSequence(this IProperty property)
             => (ISequence?)((IReadOnlyProperty)property).FindHiLoSequence();
 
         /// <summary>
@@ -194,13 +193,13 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="property"> The property. </param>
         /// <param name="storeObject"> The identifier of the store object. </param>
         /// <returns> The sequence to use, or <see langword="null" /> if no sequence exists in the model. </returns>
-        public static ISequence? FindHiLoSequence([NotNull] this IProperty property, in StoreObjectIdentifier storeObject)
+        public static ISequence? FindHiLoSequence(this IProperty property, in StoreObjectIdentifier storeObject)
             => (ISequence?)((IReadOnlyProperty)property).FindHiLoSequence(storeObject);
 
         /// <summary>
         /// Removes all identity sequence annotations from the property.
         /// </summary>
-        public static void RemoveHiLoOptions([NotNull] this IMutableProperty property)
+        public static void RemoveHiLoOptions(this IMutableProperty property)
         {
             property.SetHiLoSequenceName(null);
             property.SetHiLoSequenceSchema(null);
@@ -209,7 +208,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <summary>
         /// Removes all identity sequence annotations from the property.
         /// </summary>
-        public static void RemoveHiLoOptions([NotNull] this IConventionProperty property)
+        public static void RemoveHiLoOptions(this IConventionProperty property)
         {
             property.SetHiLoSequenceName(null);
             property.SetHiLoSequenceSchema(null);
@@ -226,7 +225,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </para>
         /// </summary>
         /// <returns>The strategy, or <see cref="NpgsqlValueGenerationStrategy.None"/> if none was set.</returns>
-        public static NpgsqlValueGenerationStrategy GetValueGenerationStrategy([NotNull] this IReadOnlyProperty property)
+        public static NpgsqlValueGenerationStrategy GetValueGenerationStrategy(this IReadOnlyProperty property)
         {
             if (property[NpgsqlAnnotationNames.ValueGenerationStrategy] is object annotation)
                 return (NpgsqlValueGenerationStrategy)annotation;
@@ -253,12 +252,12 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="storeObject"> The identifier of the store object. </param>
         /// <returns> The strategy, or <see cref="NpgsqlValueGenerationStrategy.None" /> if none was set. </returns>
         public static NpgsqlValueGenerationStrategy GetValueGenerationStrategy(
-            [NotNull] this IReadOnlyProperty property,
+            this IReadOnlyProperty property,
             in StoreObjectIdentifier storeObject)
             => GetValueGenerationStrategy(property, storeObject, null);
 
         internal static NpgsqlValueGenerationStrategy GetValueGenerationStrategy(
-            [NotNull] this IReadOnlyProperty property,
+            this IReadOnlyProperty property,
             in StoreObjectIdentifier storeObject,
             ITypeMappingSource? typeMappingSource)
         {
@@ -343,7 +342,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="property">The property.</param>
         /// <param name="value">The strategy to use.</param>
         public static void SetValueGenerationStrategy(
-            [NotNull] this IMutableProperty property, NpgsqlValueGenerationStrategy? value)
+            this IMutableProperty property, NpgsqlValueGenerationStrategy? value)
         {
             CheckValueGenerationStrategy(property, value);
 
@@ -357,7 +356,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="value">The strategy to use.</param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         public static NpgsqlValueGenerationStrategy? SetValueGenerationStrategy(
-            [NotNull] this IConventionProperty property, NpgsqlValueGenerationStrategy? value, bool fromDataAnnotation = false)
+            this IConventionProperty property, NpgsqlValueGenerationStrategy? value, bool fromDataAnnotation = false)
         {
             CheckValueGenerationStrategy(property, value);
 
@@ -396,7 +395,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="property">The property.</param>
         /// <returns>The <see cref="ConfigurationSource" /> for the <see cref="NpgsqlValueGenerationStrategy" />.</returns>
         public static ConfigurationSource? GetValueGenerationStrategyConfigurationSource(
-            [NotNull] this IConventionProperty property)
+            this IConventionProperty property)
             => property.FindAnnotation(NpgsqlAnnotationNames.ValueGenerationStrategy)?.GetConfigurationSource();
 
         /// <summary>
@@ -404,7 +403,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="property"> The property. </param>
         /// <returns> <see langword="true" /> if compatible. </returns>
-        public static bool IsCompatibleWithValueGeneration([NotNull] IReadOnlyProperty property)
+        public static bool IsCompatibleWithValueGeneration(IReadOnlyProperty property)
         {
             var type = property.ClrType;
 
@@ -415,7 +414,7 @@ namespace Microsoft.EntityFrameworkCore
         }
 
         private static bool IsCompatibleWithValueGeneration(
-            [NotNull] IReadOnlyProperty property,
+            IReadOnlyProperty property,
             in StoreObjectIdentifier storeObject,
             ITypeMappingSource? typeMappingSource)
         {
@@ -437,7 +436,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="property">The property.</param>
         /// <returns>The identity start value.</returns>
-        public static long? GetIdentityStartValue([NotNull] this IReadOnlyProperty property)
+        public static long? GetIdentityStartValue(this IReadOnlyProperty property)
             => IdentitySequenceOptionsData.Get(property).StartValue;
 
         /// <summary>
@@ -445,7 +444,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="property">The property.</param>
         /// <param name="startValue">The value to set.</param>
-        public static void SetIdentityStartValue([NotNull] this IMutableProperty property, long? startValue)
+        public static void SetIdentityStartValue(this IMutableProperty property, long? startValue)
         {
             var options = IdentitySequenceOptionsData.Get(property);
             options.StartValue = startValue;
@@ -459,7 +458,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="startValue">The value to set.</param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         public static long? SetIdentityStartValue(
-            [NotNull] this IConventionProperty property, long? startValue, bool fromDataAnnotation = false)
+            this IConventionProperty property, long? startValue, bool fromDataAnnotation = false)
         {
             var options = IdentitySequenceOptionsData.Get(property);
             options.StartValue = startValue;
@@ -473,7 +472,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="property">The property.</param>
         /// <returns>The <see cref="ConfigurationSource" /> for the identity start value.</returns>
         public static ConfigurationSource? GetIdentityStartValueConfigurationSource(
-            [NotNull] this IConventionProperty property)
+            this IConventionProperty property)
             => property.FindAnnotation(NpgsqlAnnotationNames.IdentityOptions)?.GetConfigurationSource();
 
         /// <summary>
@@ -481,7 +480,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="property">The property.</param>
         /// <returns>The identity increment value.</returns>
-        public static long? GetIdentityIncrementBy([NotNull] this IReadOnlyProperty property)
+        public static long? GetIdentityIncrementBy(this IReadOnlyProperty property)
             => IdentitySequenceOptionsData.Get(property).IncrementBy;
 
         /// <summary>
@@ -489,7 +488,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="property">The property.</param>
         /// <param name="incrementBy">The value to set.</param>
-        public static void SetIdentityIncrementBy([NotNull] this IMutableProperty property, long? incrementBy)
+        public static void SetIdentityIncrementBy(this IMutableProperty property, long? incrementBy)
         {
             var options = IdentitySequenceOptionsData.Get(property);
             options.IncrementBy = incrementBy ?? 1;
@@ -503,7 +502,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="incrementBy">The value to set.</param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         public static long? SetIdentityIncrementBy(
-            [NotNull] this IConventionProperty property, long? incrementBy, bool fromDataAnnotation = false)
+            this IConventionProperty property, long? incrementBy, bool fromDataAnnotation = false)
         {
             var options = IdentitySequenceOptionsData.Get(property);
             options.IncrementBy = incrementBy ?? 1;
@@ -517,7 +516,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="property">The property.</param>
         /// <returns>The <see cref="ConfigurationSource" /> for the identity increment value.</returns>
         public static ConfigurationSource? GetIdentityIncrementByConfigurationSource(
-            [NotNull] this IConventionProperty property)
+            this IConventionProperty property)
             => property.FindAnnotation(NpgsqlAnnotationNames.IdentityOptions)?.GetConfigurationSource();
 
         /// <summary>
@@ -525,7 +524,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="property">The property.</param>
         /// <returns>The identity minimum value.</returns>
-        public static long? GetIdentityMinValue([NotNull] this IReadOnlyProperty property)
+        public static long? GetIdentityMinValue(this IReadOnlyProperty property)
             => IdentitySequenceOptionsData.Get(property).MinValue;
 
         /// <summary>
@@ -533,7 +532,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="property">The property.</param>
         /// <param name="minValue">The value to set.</param>
-        public static void SetIdentityMinValue([NotNull] this IMutableProperty property, long? minValue)
+        public static void SetIdentityMinValue(this IMutableProperty property, long? minValue)
         {
             var options = IdentitySequenceOptionsData.Get(property);
             options.MinValue = minValue;
@@ -547,7 +546,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="minValue">The value to set.</param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         public static long? SetIdentityMinValue(
-            [NotNull] this IConventionProperty property, long? minValue, bool fromDataAnnotation = false)
+            this IConventionProperty property, long? minValue, bool fromDataAnnotation = false)
         {
             var options = IdentitySequenceOptionsData.Get(property);
             options.MinValue = minValue;
@@ -561,7 +560,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="property">The property.</param>
         /// <returns>The <see cref="ConfigurationSource" /> for the identity minimum value.</returns>
         public static ConfigurationSource? GetIdentityMinValueConfigurationSource(
-            [NotNull] this IConventionProperty property)
+            this IConventionProperty property)
             => property.FindAnnotation(NpgsqlAnnotationNames.IdentityOptions)?.GetConfigurationSource();
 
         /// <summary>
@@ -569,7 +568,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="property">The property.</param>
         /// <returns>The identity maximum value.</returns>
-        public static long? GetIdentityMaxValue([NotNull] this IReadOnlyProperty property)
+        public static long? GetIdentityMaxValue(this IReadOnlyProperty property)
             => IdentitySequenceOptionsData.Get(property).MaxValue;
 
         /// <summary>
@@ -577,7 +576,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="property">The property.</param>
         /// <param name="maxValue">The value to set.</param>
-        public static void SetIdentityMaxValue([NotNull] this IMutableProperty property, long? maxValue)
+        public static void SetIdentityMaxValue(this IMutableProperty property, long? maxValue)
         {
             var options = IdentitySequenceOptionsData.Get(property);
             options.MaxValue = maxValue;
@@ -591,7 +590,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="maxValue">The value to set.</param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         public static long? SetIdentityMaxValue(
-            [NotNull] this IConventionProperty property, long? maxValue, bool fromDataAnnotation = false)
+            this IConventionProperty property, long? maxValue, bool fromDataAnnotation = false)
         {
             var options = IdentitySequenceOptionsData.Get(property);
             options.MaxValue = maxValue;
@@ -605,7 +604,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="property">The property.</param>
         /// <returns>The <see cref="ConfigurationSource" /> for the identity maximum value.</returns>
         public static ConfigurationSource? GetIdentityMaxValueConfigurationSource(
-            [NotNull] this IConventionProperty property)
+            this IConventionProperty property)
             => property.FindAnnotation(NpgsqlAnnotationNames.IdentityOptions)?.GetConfigurationSource();
 
         /// <summary>
@@ -613,7 +612,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="property">The property.</param>
         /// <returns>Whether the identity's sequence is cyclic.</returns>
-        public static bool? GetIdentityIsCyclic([NotNull] this IReadOnlyProperty property)
+        public static bool? GetIdentityIsCyclic(this IReadOnlyProperty property)
             => IdentitySequenceOptionsData.Get(property).IsCyclic;
 
         /// <summary>
@@ -621,7 +620,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="property">The property.</param>
         /// <param name="cyclic">The value to set.</param>
-        public static void SetIdentityIsCyclic([NotNull] this IMutableProperty property, bool? cyclic)
+        public static void SetIdentityIsCyclic(this IMutableProperty property, bool? cyclic)
         {
             var options = IdentitySequenceOptionsData.Get(property);
             options.IsCyclic = cyclic ?? false;
@@ -635,7 +634,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="cyclic">The value to set.</param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         public static bool? SetIdentityIsCyclic(
-            [NotNull] this IConventionProperty property, bool? cyclic, bool fromDataAnnotation = false)
+            this IConventionProperty property, bool? cyclic, bool fromDataAnnotation = false)
         {
             var options = IdentitySequenceOptionsData.Get(property);
             options.IsCyclic = cyclic ?? false;
@@ -649,7 +648,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="property">The property.</param>
         /// <returns>The <see cref="ConfigurationSource" /> for whether the identity's sequence is cyclic.</returns>
         public static ConfigurationSource? GetIdentityIsCyclicConfigurationSource(
-            [NotNull] this IConventionProperty property)
+            this IConventionProperty property)
             => property.FindAnnotation(NpgsqlAnnotationNames.IdentityOptions)?.GetConfigurationSource();
 
         /// <summary>
@@ -658,7 +657,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="property">The property.</param>
         /// <returns>The number of sequence numbers to be cached.</returns>
-        public static long? GetIdentityNumbersToCache([NotNull] this IReadOnlyProperty property)
+        public static long? GetIdentityNumbersToCache(this IReadOnlyProperty property)
             => IdentitySequenceOptionsData.Get(property).NumbersToCache;
 
         /// <summary>
@@ -666,7 +665,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="property">The property.</param>
         /// <param name="numbersToCache">The value to set.</param>
-        public static void SetIdentityNumbersToCache([NotNull] this IMutableProperty property, long? numbersToCache)
+        public static void SetIdentityNumbersToCache(this IMutableProperty property, long? numbersToCache)
         {
             var options = IdentitySequenceOptionsData.Get(property);
             options.NumbersToCache = numbersToCache ?? 1;
@@ -680,7 +679,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="numbersToCache">The value to set.</param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         public static long? SetIdentityNumbersToCache(
-            [NotNull] this IConventionProperty property, long? numbersToCache, bool fromDataAnnotation = false)
+            this IConventionProperty property, long? numbersToCache, bool fromDataAnnotation = false)
         {
             var options = IdentitySequenceOptionsData.Get(property);
             options.NumbersToCache = numbersToCache ?? 1;
@@ -698,19 +697,19 @@ namespace Microsoft.EntityFrameworkCore
         /// and stored in memory for faster access.
         /// </returns>
         public static ConfigurationSource? GetIdentityNumbersToCacheConfigurationSource(
-            [NotNull] this IConventionProperty property)
+            this IConventionProperty property)
             => property.FindAnnotation(NpgsqlAnnotationNames.IdentityOptions)?.GetConfigurationSource();
 
         /// <summary>
         /// Removes identity sequence options from the property.
         /// </summary>
-        public static void RemoveIdentityOptions([NotNull] this IMutableProperty property)
+        public static void RemoveIdentityOptions(this IMutableProperty property)
             => property.RemoveAnnotation(NpgsqlAnnotationNames.IdentityOptions);
 
         /// <summary>
         /// Removes identity sequence options from the property.
         /// </summary>
-        public static void RemoveIdentityOptions([NotNull] this IConventionProperty property)
+        public static void RemoveIdentityOptions(this IConventionProperty property)
             => property.RemoveAnnotation(NpgsqlAnnotationNames.IdentityOptions);
 
         #endregion Identity sequence options
@@ -731,7 +730,7 @@ namespace Microsoft.EntityFrameworkCore
         /// See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
         /// </para>
         /// </returns>
-        public static string? GetTsVectorConfig([NotNull] this IReadOnlyProperty property)
+        public static string? GetTsVectorConfig(this IReadOnlyProperty property)
             => (string?)property[NpgsqlAnnotationNames.TsVectorConfig];
 
         /// <summary>
@@ -748,7 +747,7 @@ namespace Microsoft.EntityFrameworkCore
         /// See https://www.postgresql.org/docs/current/textsearch-controls.html for more information.
         /// </para>
         /// </param>
-        public static void SetTsVectorConfig([NotNull] this IMutableProperty property, [CanBeNull] string? config)
+        public static void SetTsVectorConfig(this IMutableProperty property, string? config)
         {
             Check.NullButNotEmpty(config, nameof(config));
 
@@ -771,7 +770,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </para>
         /// </param>
         public static string SetTsVectorConfig(
-            [NotNull] this IConventionProperty property, [NotNull] string config, bool fromDataAnnotation = false)
+            this IConventionProperty property, string config, bool fromDataAnnotation = false)
         {
             Check.NullButNotEmpty(config, nameof(config));
 
@@ -786,7 +785,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="property">The property.</param>
         /// <returns>The configuration source for the text search configuration for the generated tsvector property.</returns>
-        public static ConfigurationSource? GetTsVectorConfigConfigurationSource([NotNull] this IConventionProperty property)
+        public static ConfigurationSource? GetTsVectorConfigConfigurationSource(this IConventionProperty property)
             => property.FindAnnotation(NpgsqlAnnotationNames.TsVectorConfig)?.GetConfigurationSource();
 
         /// <summary>
@@ -795,7 +794,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="property">The property.</param>
         /// <returns>The included property names, or <c>null</c> if this is not a Generated tsvector column.</returns>
-        public static IReadOnlyList<string>? GetTsVectorProperties([NotNull] this IReadOnlyProperty property)
+        public static IReadOnlyList<string>? GetTsVectorProperties(this IReadOnlyProperty property)
             => (string[]?)property[NpgsqlAnnotationNames.TsVectorProperties];
 
         /// <summary>
@@ -805,8 +804,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="property">The property.</param>
         /// <param name="properties">The included property names.</param>
         public static void SetTsVectorProperties(
-            [NotNull] this IMutableProperty property,
-            [CanBeNull] IReadOnlyList<string>? properties)
+            this IMutableProperty property,
+            IReadOnlyList<string>? properties)
         {
             Check.NullButNotEmpty(properties, nameof(properties));
 
@@ -821,8 +820,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <param name="properties">The included property names.</param>
         public static IReadOnlyList<string>? SetTsVectorProperties(
-            [NotNull] this IConventionProperty property,
-            [CanBeNull] IReadOnlyList<string>? properties,
+            this IConventionProperty property,
+            IReadOnlyList<string>? properties,
             bool fromDataAnnotation = false)
         {
             Check.NullButNotEmpty(properties, nameof(properties));
@@ -837,7 +836,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="property">The property.</param>
         /// <returns>The configuration source for the properties included in the generated tsvector property.</returns>
-        public static ConfigurationSource? GetTsVectorPropertiesConfigurationSource([NotNull] this IConventionProperty property)
+        public static ConfigurationSource? GetTsVectorPropertiesConfigurationSource(this IConventionProperty property)
             => property.FindAnnotation(NpgsqlAnnotationNames.TsVectorConfig)?.GetConfigurationSource();
 
         #endregion Generated tsvector column
@@ -851,7 +850,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="property"> The property. </param>
         /// <returns> The collation for the column this property is mapped to. </returns>
-        public static string? GetDefaultCollation([NotNull] this IReadOnlyProperty property)
+        public static string? GetDefaultCollation(this IReadOnlyProperty property)
             => property.FindTypeMapping() is StringTypeMapping
                 ? property.DeclaringEntityType.Model.GetDefaultColumnCollation()
                 : null;

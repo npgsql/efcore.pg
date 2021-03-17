@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Utilities;
@@ -11,25 +10,22 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 {
     public class PostgresCollation
     {
-        [NotNull]
         private readonly IReadOnlyAnnotatable _annotatable;
-        [NotNull]
         private readonly string _annotationName;
 
-        internal PostgresCollation([NotNull] IReadOnlyAnnotatable annotatable, [NotNull] string annotationName)
+        internal PostgresCollation(IReadOnlyAnnotatable annotatable, string annotationName)
         {
             _annotatable = Check.NotNull(annotatable, nameof(annotatable));
             _annotationName = Check.NotNull(annotationName, nameof(annotationName));
         }
 
-        [NotNull]
         public static PostgresCollation GetOrAddCollation(
-            [NotNull] IMutableAnnotatable annotatable,
-            [CanBeNull] string? schema,
-            [NotNull] string name,
-            [NotNull] string lcCollate,
-            [NotNull] string lcCtype,
-            [CanBeNull] string? provider = null,
+            IMutableAnnotatable annotatable,
+            string? schema,
+            string name,
+            string lcCollate,
+            string lcCtype,
+            string? provider = null,
             bool? deterministic = null)
         {
             Check.NotNull(annotatable, nameof(annotatable));
@@ -50,11 +46,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             };
         }
 
-        [CanBeNull]
         public static PostgresCollation? FindCollation(
-            [NotNull] IReadOnlyAnnotatable annotatable,
-            [CanBeNull] string? schema,
-            [NotNull] string name)
+            IReadOnlyAnnotatable annotatable,
+            string? schema,
+            string name)
         {
             Check.NotNull(annotatable, nameof(annotatable));
             Check.NullButNotEmpty(schema, nameof(schema));
@@ -65,45 +60,39 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             return annotatable[annotationName] == null ? null : new PostgresCollation(annotatable, annotationName);
         }
 
-        [NotNull]
         private static string BuildAnnotationName(string? schema, string name)
             => schema != null
                 ? $"{NpgsqlAnnotationNames.CollationDefinitionPrefix}{schema}.{name}"
                 : $"{NpgsqlAnnotationNames.CollationDefinitionPrefix}{name}";
 
-        [NotNull]
-        [ItemNotNull]
-        public static IEnumerable<PostgresCollation> GetCollations([NotNull] IReadOnlyAnnotatable annotatable)
+        public static IEnumerable<PostgresCollation> GetCollations(IReadOnlyAnnotatable annotatable)
             => Check.NotNull(annotatable, nameof(annotatable))
                     .GetAnnotations()
                     .Where(a => a.Name.StartsWith(NpgsqlAnnotationNames.CollationDefinitionPrefix, StringComparison.Ordinal))
                     .Select(a => new PostgresCollation(annotatable, a.Name));
 
-        [NotNull]
         public virtual Annotatable Annotatable => (Annotatable)_annotatable;
 
-        [CanBeNull]
         public virtual string? Schema => GetData().Schema;
 
-        [NotNull]
         public virtual string Name => GetData().Name!;
 
         public virtual string LcCollate
         {
             get => GetData().LcCollate!;
-            [param: NotNull] set => SetData(lcCollate: value);
+            set => SetData(lcCollate: value);
         }
 
         public virtual string LcCtype
         {
             get => GetData().LcCtype!;
-            [param: NotNull] set => SetData(lcCtype: value);
+            set => SetData(lcCtype: value);
         }
 
         public virtual string? Provider
         {
             get => GetData().Provider;
-            [param: CanBeNull] set => SetData(provider: value);
+            set => SetData(provider: value);
         }
 
         public virtual bool? IsDeterministic
@@ -120,7 +109,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
                 $"{lcCollate ?? LcCollate},{lcCtype ?? LcCtype},{provider ?? Provider},{deterministic ?? IsDeterministic}";
 
         private static (string? Schema, string? Name, string? LcCollate, string? LcCtype, string? Provider, bool? IsDeterministic)
-            Deserialize([CanBeNull] IAnnotation? annotation)
+            Deserialize(IAnnotation? annotation)
         {
             if (annotation == null || !(annotation.Value is string value) || string.IsNullOrEmpty(value))
                 return (null, null!, null!, null!, null, null);

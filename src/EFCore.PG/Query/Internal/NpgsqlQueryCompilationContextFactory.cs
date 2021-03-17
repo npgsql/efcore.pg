@@ -1,4 +1,3 @@
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Utilities;
 
@@ -10,8 +9,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         private readonly RelationalQueryCompilationContextDependencies _relationalDependencies;
 
         public NpgsqlQueryCompilationContextFactory(
-            [NotNull] QueryCompilationContextDependencies dependencies,
-            [NotNull] RelationalQueryCompilationContextDependencies relationalDependencies)
+            QueryCompilationContextDependencies dependencies,
+            RelationalQueryCompilationContextDependencies relationalDependencies)
         {
             Check.NotNull(dependencies, nameof(dependencies));
             Check.NotNull(relationalDependencies, nameof(relationalDependencies));

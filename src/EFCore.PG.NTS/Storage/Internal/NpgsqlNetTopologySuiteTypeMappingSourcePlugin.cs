@@ -1,11 +1,10 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Utilities;
 using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
-using CA = System.Diagnostics.CodeAnalysis;
 
 // ReSharper disable once CheckNamespace
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
@@ -16,7 +15,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         // rather late by SingletonOptionsInitializer
         private readonly INpgsqlNetTopologySuiteOptions _options;
 
-        private static bool TryGetClrType(string subtypeName, [CA.NotNullWhen(true)] out Type? clrType)
+        private static bool TryGetClrType(string subtypeName, [NotNullWhen(true)] out Type? clrType)
         {
             clrType = subtypeName switch
             {
@@ -34,7 +33,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             return clrType != null;
         }
 
-        public NpgsqlNetTopologySuiteTypeMappingSourcePlugin([NotNull] INpgsqlNetTopologySuiteOptions options)
+        public NpgsqlNetTopologySuiteTypeMappingSourcePlugin(INpgsqlNetTopologySuiteOptions options)
             => _options = Check.NotNull(options, nameof(options));
 
         public virtual RelationalTypeMapping? FindMapping(in RelationalTypeMappingInfo mappingInfo)
@@ -68,7 +67,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         /// attempts to parse it and return its components.
         /// </summary>
         public static bool TryParseStoreTypeName(
-            [NotNull] string storeTypeName,
+            string storeTypeName,
             out string subtypeName,
             out bool isGeography,
             out Type? clrType,

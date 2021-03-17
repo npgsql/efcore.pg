@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Reflection;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
@@ -20,7 +19,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     {
         private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
 
-        public NpgsqlDateTimeMemberTranslator([NotNull] NpgsqlSqlExpressionFactory sqlExpressionFactory)
+        public NpgsqlDateTimeMemberTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory)
             => _sqlExpressionFactory = sqlExpressionFactory;
 
         /// <inheritdoc />
@@ -101,10 +100,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         /// DATE_PART returns doubles, which we floor and cast into ints
         /// This also gets rid of sub-second components when retrieving seconds.
         /// </remarks>
-        [NotNull]
         private SqlExpression GetDatePartExpression(
-            [NotNull] SqlExpression instance,
-            [NotNull] string partName,
+            SqlExpression instance,
+            string partName,
             bool floor = false)
         {
             var result = _sqlExpressionFactory.Function(

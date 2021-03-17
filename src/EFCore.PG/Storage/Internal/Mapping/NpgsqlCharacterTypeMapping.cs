@@ -1,7 +1,6 @@
 using System;
 using System.Data.Common;
 using System.Linq;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage;
 
@@ -39,7 +38,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
         public override ValueComparer KeyComparer => Comparer;
 
-        public NpgsqlCharacterTypeMapping([NotNull] string storeType, int? size = null)
+        public NpgsqlCharacterTypeMapping(string storeType, int? size = null)
             : this(new RelationalTypeMappingParameters(
                 new CoreTypeMappingParameters(typeof(string)),
                 storeType,

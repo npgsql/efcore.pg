@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Reflection;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
@@ -16,7 +15,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     {
         private readonly ISqlExpressionFactory _sqlExpressionFactory;
 
-        public NpgsqlStringMemberTranslator([NotNull] ISqlExpressionFactory sqlExpressionFactory)
+        public NpgsqlStringMemberTranslator(ISqlExpressionFactory sqlExpressionFactory)
             => _sqlExpressionFactory = sqlExpressionFactory;
 
         public virtual SqlExpression? Translate(SqlExpression? instance,

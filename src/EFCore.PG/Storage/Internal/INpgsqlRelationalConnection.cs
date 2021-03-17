@@ -1,5 +1,4 @@
-﻿using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Storage;
+﻿using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 {
@@ -7,6 +6,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
     {
         INpgsqlRelationalConnection CreateMasterConnection();
 
-        NpgsqlRelationalConnection CloneWith([NotNull] string connectionString);
+        NpgsqlRelationalConnection CloneWith(string connectionString);
     }
 }

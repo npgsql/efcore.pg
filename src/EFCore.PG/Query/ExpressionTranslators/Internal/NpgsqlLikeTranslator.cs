@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Reflection;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
@@ -35,14 +34,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 nameof(NpgsqlDbFunctionsExtensions.ILike),
                 new[] { typeof(DbFunctions), typeof(string), typeof(string), typeof(string) })!;
 
-        [NotNull]
         private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="NpgsqlMathTranslator"/> class.
         /// </summary>
         /// <param name="sqlExpressionFactory">The SQL expression factory to use when generating expressions..</param>
-        public NpgsqlLikeTranslator([NotNull] NpgsqlSqlExpressionFactory sqlExpressionFactory)
+        public NpgsqlLikeTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory)
             => _sqlExpressionFactory = sqlExpressionFactory;
 
         /// <inheritdoc />

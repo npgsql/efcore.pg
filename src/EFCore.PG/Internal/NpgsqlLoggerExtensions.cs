@@ -1,4 +1,3 @@
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging;
@@ -8,8 +7,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
     public static class NpgsqlLoggerExtensions
     {
         public static void MissingSchemaWarning(
-            [NotNull] this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
-            [CanBeNull] string? schemaName)
+            this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
+            string? schemaName)
         {
             var definition = NpgsqlResources.LogMissingSchema(diagnostics);
 
@@ -20,8 +19,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         }
 
         public static void MissingTableWarning(
-            [NotNull] this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
-            [CanBeNull] string? tableName)
+            this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
+            string? tableName)
         {
             var definition = NpgsqlResources.LogMissingTable(diagnostics);
 
@@ -32,10 +31,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         }
 
         public static void ForeignKeyReferencesMissingPrincipalTableWarning(
-            [NotNull] this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
-            [CanBeNull] string? foreignKeyName,
-            [CanBeNull] string? tableName,
-            [CanBeNull] string? principalTableName)
+            this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
+            string? foreignKeyName,
+            string? tableName,
+            string? principalTableName)
         {
             var definition = NpgsqlResources.LogPrincipalTableNotInSelectionSet(diagnostics);
 
@@ -46,14 +45,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         }
 
         public static void ColumnFound(
-            [NotNull] this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
-            [NotNull] string tableName,
-            [NotNull] string columnName,
-            [NotNull] string dataTypeName,
+            this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
+            string tableName,
+            string columnName,
+            string dataTypeName,
             bool nullable,
             bool identity,
-            [CanBeNull] string? defaultValue,
-            [CanBeNull] string? computedValue)
+            string? defaultValue,
+            string? computedValue)
         {
             var definition = NpgsqlResources.LogFoundColumn(diagnostics);
 
@@ -78,12 +77,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         }
 
         public static void CollationFound(
-            [NotNull] this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
-            [NotNull] string schema,
-            [NotNull] string collationName,
-            [NotNull] string lcCollate,
-            [NotNull] string lcCtype,
-            [CanBeNull] string? provider,
+            this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
+            string schema,
+            string collationName,
+            string lcCollate,
+            string lcCtype,
+            string? provider,
             bool deterministic)
         {
             var definition = NpgsqlResources.LogFoundCollation(diagnostics);
@@ -95,9 +94,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         }
 
         public static void UniqueConstraintFound(
-            [NotNull] this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
-            [CanBeNull] string? uniqueConstraintName,
-            [NotNull] string tableName)
+            this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
+            string? uniqueConstraintName,
+            string tableName)
         {
             var definition = NpgsqlResources.LogFoundUniqueConstraint(diagnostics);
 
@@ -108,8 +107,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         }
 
         public static void EnumColumnSkippedWarning(
-            [NotNull] this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
-            [NotNull] string columnName)
+            this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
+            string columnName)
         {
             var definition = NpgsqlResources.LogEnumColumnSkipped(diagnostics);
 
@@ -120,9 +119,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         }
 
         public static void ExpressionIndexSkippedWarning(
-            [NotNull] this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
-            [NotNull] string indexName,
-            [NotNull] string tableName)
+            this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
+            string indexName,
+            string tableName)
         {
             var definition = NpgsqlResources.LogExpressionIndexSkipped(diagnostics);
 
@@ -133,9 +132,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         }
 
         public static void UnsupportedColumnIndexSkippedWarning(
-            [NotNull] this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
-            [NotNull] string indexName,
-            [NotNull] string tableName)
+            this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
+            string indexName,
+            string tableName)
         {
             var definition = NpgsqlResources.LogUnsupportedColumnIndexSkipped(diagnostics);
 
@@ -146,9 +145,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         }
 
         public static void UnsupportedColumnConstraintSkippedWarning(
-            [NotNull] this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
-            [CanBeNull] string? indexName,
-            [NotNull] string tableName)
+            this IDiagnosticsLogger<DbLoggerCategory.Scaffolding> diagnostics,
+            string? indexName,
+            string tableName)
         {
             var definition = NpgsqlResources.LogUnsupportedColumnConstraintSkipped(diagnostics);
 

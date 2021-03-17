@@ -1,4 +1,3 @@
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -21,7 +20,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="serviceCollection">The <see cref="IServiceCollection" /> to add services to.</param>
         /// <returns>The same service collection so that multiple calls can be chained.</returns>
         public static IServiceCollection AddEntityFrameworkNpgsqlNodaTime(
-            [NotNull] this IServiceCollection serviceCollection)
+            this IServiceCollection serviceCollection)
         {
             Check.NotNull(serviceCollection, nameof(serviceCollection));
 

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
@@ -28,8 +27,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         private readonly RelationalTypeMapping _boolMapping;
 
         public NpgsqlRangeTranslator(
-            [NotNull] IRelationalTypeMappingSource typeMappingSource,
-            [NotNull] NpgsqlSqlExpressionFactory npgsqlSqlExpressionFactory)
+            IRelationalTypeMappingSource typeMappingSource,
+            NpgsqlSqlExpressionFactory npgsqlSqlExpressionFactory)
         {
             _typeMappingSource = typeMappingSource;
             _sqlExpressionFactory = npgsqlSqlExpressionFactory;

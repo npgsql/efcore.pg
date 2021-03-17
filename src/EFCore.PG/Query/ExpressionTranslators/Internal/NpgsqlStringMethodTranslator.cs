@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
@@ -70,8 +69,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         #endregion
 
         public NpgsqlStringMethodTranslator(
-            [NotNull] NpgsqlTypeMappingSource typeMappingSource,
-            [NotNull] ISqlExpressionFactory sqlExpressionFactory)
+            NpgsqlTypeMappingSource typeMappingSource,
+            ISqlExpressionFactory sqlExpressionFactory)
         {
             _sqlExpressionFactory = sqlExpressionFactory;
             _whitespace = _sqlExpressionFactory.Constant(
@@ -391,7 +390,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             return builder.ToString();
         }
 
-        private SqlExpression GenerateOneBasedIndexExpression([NotNull] SqlExpression expression)
+        private SqlExpression GenerateOneBasedIndexExpression(SqlExpression expression)
             => expression is SqlConstantExpression constant
                 ? _sqlExpressionFactory.Constant(Convert.ToInt32(constant.Value) + 1, constant.TypeMapping)
                 : (SqlExpression)_sqlExpressionFactory.Add(expression, _sqlExpressionFactory.Constant(1));

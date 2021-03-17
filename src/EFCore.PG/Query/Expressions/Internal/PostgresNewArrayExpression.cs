@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -23,9 +22,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         /// <param name="type">The <see cref="Type"/> of the expression.</param>
         /// <param name="typeMapping">The <see cref="RelationalTypeMapping"/> associated with the expression.</param>
         public PostgresNewArrayExpression(
-            [NotNull] IReadOnlyList<SqlExpression> expressions,
-            [NotNull] Type type,
-            [CanBeNull] RelationalTypeMapping? typeMapping)
+            IReadOnlyList<SqlExpression> expressions,
+            Type type,
+            RelationalTypeMapping? typeMapping)
             : base(type, typeMapping)
         {
             Check.NotNull(expressions, nameof(expressions));
@@ -72,7 +71,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         /// </summary>
         /// <param name="expressions">The values to initialize the elements of the new array.</param>
         /// <returns>This expression if no children changed, or an expression with the updated children.</returns>
-        public virtual PostgresNewArrayExpression Update([NotNull] IReadOnlyList<SqlExpression> expressions)
+        public virtual PostgresNewArrayExpression Update(IReadOnlyList<SqlExpression> expressions)
         {
             Check.NotNull(expressions, nameof(expressions));
 

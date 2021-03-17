@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
@@ -21,7 +20,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
     /// </remarks>
     public class NpgsqlNodaTimeMethodCallTranslatorPlugin : IMethodCallTranslatorPlugin
     {
-        public NpgsqlNodaTimeMethodCallTranslatorPlugin([NotNull] ISqlExpressionFactory sqlExpressionFactory)
+        public NpgsqlNodaTimeMethodCallTranslatorPlugin(ISqlExpressionFactory sqlExpressionFactory)
         {
             Translators = new IMethodCallTranslator[]
             {
@@ -42,14 +41,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
         /// <summary>
         /// The static method info for <see cref="T:SystemClock.GetCurrentInstant()"/>.
         /// </summary>
-        [NotNull]
         private static readonly MethodInfo GetCurrentInstant =
             typeof(SystemClock).GetRuntimeMethod(nameof(SystemClock.GetCurrentInstant), Type.EmptyTypes)!;
 
         /// <summary>
         /// The mapping of supported method translations.
         /// </summary>
-        [NotNull]
         private static readonly Dictionary<MethodInfo, string> PeriodMethodMap = new()
         {
             { typeof(Period).GetRuntimeMethod(nameof(Period.FromYears),        new[] { typeof(int) })!,  "years" },
@@ -70,7 +67,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
             new[] { true, true },
         };
 
-        public NpgsqlNodaTimeMethodCallTranslator([NotNull] NpgsqlSqlExpressionFactory sqlExpressionFactory)
+        public NpgsqlNodaTimeMethodCallTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory)
             => _sqlExpressionFactory = sqlExpressionFactory;
 
 #pragma warning disable EF1001

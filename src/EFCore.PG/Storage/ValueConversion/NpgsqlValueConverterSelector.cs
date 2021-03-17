@@ -3,7 +3,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion
@@ -13,7 +12,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion
         private readonly ConcurrentDictionary<(Type ModelElementClrType, Type ProviderElementClrType), ValueConverterInfo> _arrayConverters
             = new();
 
-        public NpgsqlValueConverterSelector([NotNull] ValueConverterSelectorDependencies dependencies)
+        public NpgsqlValueConverterSelector(ValueConverterSelectorDependencies dependencies)
             : base(dependencies) {}
 
         /// <inheritdoc />

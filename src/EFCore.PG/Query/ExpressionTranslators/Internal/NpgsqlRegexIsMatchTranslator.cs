@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
@@ -27,7 +26,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
         private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
 
-        public NpgsqlRegexIsMatchTranslator([NotNull] NpgsqlSqlExpressionFactory sqlExpressionFactory)
+        public NpgsqlRegexIsMatchTranslator(NpgsqlSqlExpressionFactory sqlExpressionFactory)
             => _sqlExpressionFactory = sqlExpressionFactory;
 
         /// <inheritdoc />

@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Utilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -20,7 +19,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="model"> The model. </param>
         /// <returns> The name to use for the default hi-lo sequence. </returns>
-        public static string GetHiLoSequenceName([NotNull] this IReadOnlyModel model)
+        public static string GetHiLoSequenceName(this IReadOnlyModel model)
             => (string?)model[NpgsqlAnnotationNames.HiLoSequenceName]
                ?? DefaultHiLoSequenceName;
 
@@ -29,7 +28,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="model"> The model. </param>
         /// <param name="name"> The value to set. </param>
-        public static void SetHiLoSequenceName([NotNull] this IMutableModel model, [CanBeNull] string? name)
+        public static void SetHiLoSequenceName(this IMutableModel model, string? name)
         {
             Check.NullButNotEmpty(name, nameof(name));
 
@@ -43,7 +42,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="name"> The value to set. </param>
         /// <param name="fromDataAnnotation"> Indicates whether the configuration was specified using a data annotation. </param>
         public static string? SetHiLoSequenceName(
-            [NotNull] this IConventionModel model, [CanBeNull] string? name, bool fromDataAnnotation = false)
+            this IConventionModel model, string? name, bool fromDataAnnotation = false)
         {
             Check.NullButNotEmpty(name, nameof(name));
 
@@ -57,7 +56,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="model"> The model. </param>
         /// <returns> The <see cref="ConfigurationSource" /> for the default hi-lo sequence name. </returns>
-        public static ConfigurationSource? GetHiLoSequenceNameConfigurationSource([NotNull] this IConventionModel model)
+        public static ConfigurationSource? GetHiLoSequenceNameConfigurationSource(this IConventionModel model)
             => model.FindAnnotation(NpgsqlAnnotationNames.HiLoSequenceName)?.GetConfigurationSource();
 
         /// <summary>
@@ -66,7 +65,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="model"> The model. </param>
         /// <returns> The schema to use for the default hi-lo sequence. </returns>
-        public static string? GetHiLoSequenceSchema([NotNull] this IReadOnlyModel model)
+        public static string? GetHiLoSequenceSchema(this IReadOnlyModel model)
             => (string?)model[NpgsqlAnnotationNames.HiLoSequenceSchema];
 
         /// <summary>
@@ -74,7 +73,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="model"> The model. </param>
         /// <param name="value"> The value to set. </param>
-        public static void SetHiLoSequenceSchema([NotNull] this IMutableModel model, [CanBeNull] string? value)
+        public static void SetHiLoSequenceSchema(this IMutableModel model, string? value)
         {
             Check.NullButNotEmpty(value, nameof(value));
 
@@ -88,7 +87,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="value"> The value to set. </param>
         /// <param name="fromDataAnnotation"> Indicates whether the configuration was specified using a data annotation. </param>
         public static string? SetHiLoSequenceSchema(
-            [NotNull] this IConventionModel model, [CanBeNull] string? value, bool fromDataAnnotation = false)
+            this IConventionModel model, string? value, bool fromDataAnnotation = false)
         {
             Check.NullButNotEmpty(value, nameof(value));
 
@@ -102,7 +101,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="model"> The model. </param>
         /// <returns> The <see cref="ConfigurationSource" /> for the default hi-lo sequence schema. </returns>
-        public static ConfigurationSource? GetHiLoSequenceSchemaConfigurationSource([NotNull] this IConventionModel model)
+        public static ConfigurationSource? GetHiLoSequenceSchemaConfigurationSource(this IConventionModel model)
             => model.FindAnnotation(NpgsqlAnnotationNames.HiLoSequenceSchema)?.GetConfigurationSource();
 
         #endregion
@@ -115,7 +114,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="model"> The model. </param>
         /// <returns> The default <see cref="NpgsqlValueGenerationStrategy" />. </returns>
-        public static NpgsqlValueGenerationStrategy? GetValueGenerationStrategy([NotNull] this IReadOnlyModel model)
+        public static NpgsqlValueGenerationStrategy? GetValueGenerationStrategy(this IReadOnlyModel model)
             => (NpgsqlValueGenerationStrategy?)model[NpgsqlAnnotationNames.ValueGenerationStrategy];
 
         /// <summary>
@@ -124,7 +123,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="model"> The model. </param>
         /// <param name="value"> The value to set. </param>
-        public static void SetValueGenerationStrategy([NotNull] this IMutableModel model, NpgsqlValueGenerationStrategy? value)
+        public static void SetValueGenerationStrategy(this IMutableModel model, NpgsqlValueGenerationStrategy? value)
             => model.SetOrRemoveAnnotation(NpgsqlAnnotationNames.ValueGenerationStrategy, value);
 
         /// <summary>
@@ -135,7 +134,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="value"> The value to set. </param>
         /// <param name="fromDataAnnotation"> Indicates whether the configuration was specified using a data annotation. </param>
         public static NpgsqlValueGenerationStrategy? SetValueGenerationStrategy(
-            [NotNull] this IConventionModel model,
+            this IConventionModel model,
             NpgsqlValueGenerationStrategy? value,
             bool fromDataAnnotation = false)
         {
@@ -149,22 +148,21 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="model"> The model. </param>
         /// <returns> The <see cref="ConfigurationSource" /> for the default <see cref="NpgsqlValueGenerationStrategy" />. </returns>
-        public static ConfigurationSource? GetValueGenerationStrategyConfigurationSource([NotNull] this IConventionModel model)
+        public static ConfigurationSource? GetValueGenerationStrategyConfigurationSource(this IConventionModel model)
             => model.FindAnnotation(NpgsqlAnnotationNames.ValueGenerationStrategy)?.GetConfigurationSource();
 
         #endregion
 
         #region PostgreSQL Extensions
 
-        [NotNull]
         public static PostgresExtension GetOrAddPostgresExtension(
-            [NotNull] this IMutableModel model,
-            [CanBeNull] string? schema,
-            [NotNull] string name,
-            [CanBeNull] string? version)
+            this IMutableModel model,
+            string? schema,
+            string name,
+            string? version)
             => PostgresExtension.GetOrAddPostgresExtension(model, schema, name, version);
 
-        public static IReadOnlyList<PostgresExtension> GetPostgresExtensions([NotNull] this IReadOnlyModel model)
+        public static IReadOnlyList<PostgresExtension> GetPostgresExtensions(this IReadOnlyModel model)
             => PostgresExtension.GetPostgresExtensions(model).ToArray();
 
         #endregion
@@ -172,13 +170,13 @@ namespace Microsoft.EntityFrameworkCore
         #region Enum types
 
         public static PostgresEnum GetOrAddPostgresEnum(
-            [NotNull] this IMutableModel model,
-            [CanBeNull] string? schema,
-            [NotNull] string name,
-            [NotNull] string[] labels)
+            this IMutableModel model,
+            string? schema,
+            string name,
+            string[] labels)
             => PostgresEnum.GetOrAddPostgresEnum(model, schema, name, labels);
 
-        public static IReadOnlyList<PostgresEnum> GetPostgresEnums([NotNull] this IReadOnlyModel model)
+        public static IReadOnlyList<PostgresEnum> GetPostgresEnums(this IReadOnlyModel model)
             => PostgresEnum.GetPostgresEnums(model).ToArray();
 
         #endregion Enum types
@@ -186,14 +184,14 @@ namespace Microsoft.EntityFrameworkCore
         #region Range types
 
         public static PostgresRange GetOrAddPostgresRange(
-            [NotNull] this IMutableModel model,
-            [CanBeNull] string? schema,
-            [NotNull] string name,
-            [NotNull] string subtype,
-            [CanBeNull] string? canonicalFunction = null,
-            [CanBeNull] string? subtypeOpClass = null,
-            [CanBeNull] string? collation = null,
-            [CanBeNull] string? subtypeDiff = null)
+            this IMutableModel model,
+            string? schema,
+            string name,
+            string subtype,
+            string? canonicalFunction = null,
+            string? subtypeOpClass = null,
+            string? collation = null,
+            string? subtypeDiff = null)
             => PostgresRange.GetOrAddPostgresRange(
                 model,
                 schema,
@@ -204,22 +202,22 @@ namespace Microsoft.EntityFrameworkCore
                 collation,
                 subtypeDiff);
 
-        public static IReadOnlyList<PostgresRange> PostgresRanges([NotNull] this IReadOnlyModel model)
+        public static IReadOnlyList<PostgresRange> PostgresRanges(this IReadOnlyModel model)
             => PostgresRange.GetPostgresRanges(model).ToArray();
 
         #endregion Range types
 
         #region Database Template
 
-        public static string? GetDatabaseTemplate([NotNull] this IReadOnlyModel model)
+        public static string? GetDatabaseTemplate(this IReadOnlyModel model)
             => (string?)model[NpgsqlAnnotationNames.DatabaseTemplate];
 
-        public static void SetDatabaseTemplate([NotNull] this IMutableModel model, [CanBeNull] string? template)
+        public static void SetDatabaseTemplate(this IMutableModel model, string? template)
             => model.SetOrRemoveAnnotation(NpgsqlAnnotationNames.DatabaseTemplate, template);
 
         public static string? SetDatabaseTemplate(
-            [NotNull] this IConventionModel model,
-            [CanBeNull] string? template,
+            this IConventionModel model,
+            string? template,
             bool fromDataAnnotation = false)
         {
             Check.NullButNotEmpty(template, nameof(template));
@@ -229,22 +227,22 @@ namespace Microsoft.EntityFrameworkCore
             return template;
         }
 
-        public static ConfigurationSource? GetDatabaseTemplateConfigurationSource([NotNull] this IConventionModel model)
+        public static ConfigurationSource? GetDatabaseTemplateConfigurationSource(this IConventionModel model)
             => model.FindAnnotation(NpgsqlAnnotationNames.DatabaseTemplate)?.GetConfigurationSource();
 
         #endregion
 
         #region Tablespace
 
-        public static string? GetTablespace([NotNull] this IReadOnlyModel model)
+        public static string? GetTablespace(this IReadOnlyModel model)
             => (string?)model[NpgsqlAnnotationNames.Tablespace];
 
-        public static void SetTablespace([NotNull] this IMutableModel model, [CanBeNull] string? tablespace)
+        public static void SetTablespace(this IMutableModel model, string? tablespace)
             => model.SetOrRemoveAnnotation(NpgsqlAnnotationNames.Tablespace, tablespace);
 
         public static string? SetTablespace(
-            [NotNull] this IConventionModel model,
-            [CanBeNull] string? tablespace,
+            this IConventionModel model,
+            string? tablespace,
             bool fromDataAnnotation = false)
         {
             Check.NullButNotEmpty(tablespace, nameof(tablespace));
@@ -254,7 +252,7 @@ namespace Microsoft.EntityFrameworkCore
             return tablespace;
         }
 
-        public static ConfigurationSource? GetTablespaceConfigurationSource([NotNull] this IConventionModel model)
+        public static ConfigurationSource? GetTablespaceConfigurationSource(this IConventionModel model)
             => model.FindAnnotation(NpgsqlAnnotationNames.Tablespace)?.GetConfigurationSource();
 
         #endregion
@@ -262,12 +260,12 @@ namespace Microsoft.EntityFrameworkCore
         #region Collation management
 
         public static PostgresCollation GetOrAddCollation(
-            [NotNull] this IMutableModel model,
-            [CanBeNull] string? schema,
-            [NotNull] string name,
-            [NotNull] string lcCollate,
-            [NotNull] string lcCtype,
-            [CanBeNull] string? provider = null,
+            this IMutableModel model,
+            string? schema,
+            string name,
+            string lcCollate,
+            string lcCtype,
+            string? provider = null,
             bool? deterministic = null)
             => PostgresCollation.GetOrAddCollation(
                 model,
@@ -278,7 +276,7 @@ namespace Microsoft.EntityFrameworkCore
                 provider,
                 deterministic);
 
-        public static IReadOnlyList<PostgresCollation> GetCollations([NotNull] this IReadOnlyModel model)
+        public static IReadOnlyList<PostgresCollation> GetCollations(this IReadOnlyModel model)
             => PostgresCollation.GetCollations(model).ToArray();
 
         #endregion Collation management
@@ -299,7 +297,7 @@ namespace Microsoft.EntityFrameworkCore
         /// For more information, see https://www.postgresql.org/docs/current/collation.html.
         /// </p>
         /// </remarks>
-        public static string? GetDefaultColumnCollation([NotNull] this IReadOnlyModel model)
+        public static string? GetDefaultColumnCollation(this IReadOnlyModel model)
             => (string?)model[NpgsqlAnnotationNames.DefaultColumnCollation];
 
         /// <summary>
@@ -316,7 +314,7 @@ namespace Microsoft.EntityFrameworkCore
         /// For more information, see https://www.postgresql.org/docs/current/collation.html.
         /// </p>
         /// </remarks>
-        public static void SetDefaultColumnCollation([NotNull] this IMutableModel model, [CanBeNull] string? collation)
+        public static void SetDefaultColumnCollation(this IMutableModel model, string? collation)
             => model.SetOrRemoveAnnotation(NpgsqlAnnotationNames.DefaultColumnCollation, collation);
 
         /// <summary>
@@ -333,7 +331,7 @@ namespace Microsoft.EntityFrameworkCore
         /// For more information, see https://www.postgresql.org/docs/current/collation.html.
         /// </p>
         /// </remarks>
-        public static string? SetDefaultColumnCollation([NotNull] this IConventionModel model, [CanBeNull] string? collation, bool fromDataAnnotation = false)
+        public static string? SetDefaultColumnCollation(this IConventionModel model, string? collation, bool fromDataAnnotation = false)
         {
             model.SetOrRemoveAnnotation(NpgsqlAnnotationNames.DefaultColumnCollation, collation, fromDataAnnotation);
             return collation;
@@ -344,7 +342,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="model">The model.</param>
         /// <returns>The <see cref="ConfigurationSource" /> for the default column collation.</returns>
-        public static ConfigurationSource? GetDefaultColumnCollationConfigurationSource([NotNull] this IConventionModel model)
+        public static ConfigurationSource? GetDefaultColumnCollationConfigurationSource(this IConventionModel model)
             => model.FindAnnotation(NpgsqlAnnotationNames.DefaultColumnCollation)?.GetConfigurationSource();
 
         #endregion Default column collation

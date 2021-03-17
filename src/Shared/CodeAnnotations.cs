@@ -34,103 +34,6 @@ using System;
 namespace JetBrains.Annotations
 {
     /// <summary>
-    /// Indicates that the value of the marked element could be <c>null</c> sometimes,
-    /// so checking for <c>null</c> is required before its usage.
-    /// </summary>
-    /// <example><code>
-    /// [CanBeNull] object Test() => null;
-    ///
-    /// void UseTest() {
-    ///   var p = Test();
-    ///   var s = p.ToString(); // Warning: Possible 'System.NullReferenceException'
-    /// }
-    /// </code></example>
-    [AttributeUsage(
-        AttributeTargets.Method
-        | AttributeTargets.Parameter
-        | AttributeTargets.Property
-        | AttributeTargets.Delegate
-        | AttributeTargets.Field
-        | AttributeTargets.Event
-        | AttributeTargets.Class
-        | AttributeTargets.Interface
-        | AttributeTargets.GenericParameter)]
-    internal sealed class CanBeNullAttribute : Attribute
-    {
-    }
-
-    /// <summary>
-    /// Indicates that the value of the marked element can never be <c>null</c>.
-    /// </summary>
-    /// <example><code>
-    /// [NotNull] object Foo() {
-    ///   return null; // Warning: Possible 'null' assignment
-    /// }
-    /// </code></example>
-    [AttributeUsage(
-        AttributeTargets.Method
-        | AttributeTargets.Parameter
-        | AttributeTargets.Property
-        | AttributeTargets.Delegate
-        | AttributeTargets.Field
-        | AttributeTargets.Event
-        | AttributeTargets.Class
-        | AttributeTargets.Interface
-        | AttributeTargets.GenericParameter)]
-    internal sealed class NotNullAttribute : Attribute
-    {
-    }
-
-    /// <summary>
-    /// Can be applied to symbols of types derived from IEnumerable as well as to symbols of Task
-    /// and Lazy classes to indicate that the value of a collection item, of the Task.Result property
-    /// or of the Lazy.Value property can never be null.
-    /// </summary>
-    /// <example><code>
-    /// public void Foo([ItemNotNull]List&lt;string&gt; books)
-    /// {
-    ///   foreach (var book in books) {
-    ///     if (book != null) // Warning: Expression is always true
-    ///      Console.WriteLine(book.ToUpper());
-    ///   }
-    /// }
-    /// </code></example>
-    [AttributeUsage(
-        AttributeTargets.Method
-        | AttributeTargets.Parameter
-        | AttributeTargets.Property
-        | AttributeTargets.Delegate
-        | AttributeTargets.Field)]
-    internal sealed class ItemNotNullAttribute : Attribute
-    {
-    }
-
-    /// <summary>
-    /// Can be applied to symbols of types derived from IEnumerable as well as to symbols of Task
-    /// and Lazy classes to indicate that the value of a collection item, of the Task.Result property
-    /// or of the Lazy.Value property can be null.
-    /// </summary>
-    /// <example><code>
-    /// public void Foo([ItemCanBeNull]List&lt;string&gt; books)
-    /// {
-    ///   foreach (var book in books)
-    ///   {
-    ///     // Warning: Possible 'System.NullReferenceException'
-    ///     Console.WriteLine(book.ToUpper());
-    ///   }
-    /// }
-    /// </code></example>
-    [AttributeUsage(
-        AttributeTargets.Method
-        | AttributeTargets.Parameter
-        | AttributeTargets.Property
-        | AttributeTargets.Delegate
-        | AttributeTargets.Field)]
-    internal sealed class ItemCanBeNullAttribute : Attribute
-    {
-    }
-
-    /// <summary>
     /// Indicates that the marked method builds string by the format pattern and (optional) arguments.
     /// The parameter, which contains the format string, should be given in constructor. The format string
     /// should be in <see cref="string.Format(IFormatProvider,string,object[])"/>-like form.
@@ -150,12 +53,12 @@ namespace JetBrains.Annotations
         /// <param name="formatParameterName">
         /// Specifies which parameter of an annotated method should be treated as the format string
         /// </param>
-        public StringFormatMethodAttribute([NotNull] string formatParameterName)
+        public StringFormatMethodAttribute(string formatParameterName)
         {
             FormatParameterName = formatParameterName;
         }
 
-        [NotNull] public string FormatParameterName { get; }
+        public string FormatParameterName { get; }
     }
 
     /// <summary>
@@ -190,12 +93,12 @@ namespace JetBrains.Annotations
         AllowMultiple = true)]
     internal sealed class ValueProviderAttribute : Attribute
     {
-        public ValueProviderAttribute([NotNull] string name)
+        public ValueProviderAttribute(string name)
         {
             Name = name;
         }
 
-        [NotNull] public string Name { get; }
+        public string Name { get; }
     }
 
     /// <summary>
@@ -328,18 +231,18 @@ namespace JetBrains.Annotations
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
     internal sealed class ContractAnnotationAttribute : Attribute
     {
-        public ContractAnnotationAttribute([NotNull] string contract)
+        public ContractAnnotationAttribute(string contract)
             : this(contract, false)
         {
         }
 
-        public ContractAnnotationAttribute([NotNull] string contract, bool forceFullStates)
+        public ContractAnnotationAttribute(string contract, bool forceFullStates)
         {
             Contract = contract;
             ForceFullStates = forceFullStates;
         }
 
-        [NotNull] public string Contract { get; }
+        public string Contract { get; }
 
         public bool ForceFullStates { get; }
     }
@@ -409,12 +312,12 @@ namespace JetBrains.Annotations
     [BaseTypeRequired(typeof(Attribute))]
     internal sealed class BaseTypeRequiredAttribute : Attribute
     {
-        public BaseTypeRequiredAttribute([NotNull] Type baseType)
+        public BaseTypeRequiredAttribute(Type baseType)
         {
             BaseType = baseType;
         }
 
-        [NotNull] public Type BaseType { get; }
+        public Type BaseType { get; }
     }
 
     /// <summary>

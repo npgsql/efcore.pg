@@ -1,5 +1,4 @@
-﻿using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -19,10 +18,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
         ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
         ValueGenerator Create(
-            [NotNull] IProperty property,
-            [NotNull] NpgsqlSequenceValueGeneratorState generatorState,
-            [NotNull] INpgsqlRelationalConnection connection,
-            [NotNull] IRawSqlCommandBuilder rawSqlCommandBuilder,
-            [NotNull] IDiagnosticsLogger<DbLoggerCategory.Database.Command> commandLogger);
+            IProperty property,
+            NpgsqlSequenceValueGeneratorState generatorState,
+            INpgsqlRelationalConnection connection,
+            IRawSqlCommandBuilder rawSqlCommandBuilder,
+            IDiagnosticsLogger<DbLoggerCategory.Database.Command> commandLogger);
     }
 }

@@ -1,16 +1,13 @@
-﻿using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Query;
+﻿using Microsoft.EntityFrameworkCore.Query;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 {
     public class NpgsqlSqlTranslatingExpressionVisitorFactory : IRelationalSqlTranslatingExpressionVisitorFactory
     {
-        [NotNull]
         private readonly RelationalSqlTranslatingExpressionVisitorDependencies _dependencies;
 
         public NpgsqlSqlTranslatingExpressionVisitorFactory(
-            [NotNull] RelationalSqlTranslatingExpressionVisitorDependencies dependencies)
+            RelationalSqlTranslatingExpressionVisitorDependencies dependencies)
             => _dependencies = dependencies;
 
         public virtual RelationalSqlTranslatingExpressionVisitor Create(

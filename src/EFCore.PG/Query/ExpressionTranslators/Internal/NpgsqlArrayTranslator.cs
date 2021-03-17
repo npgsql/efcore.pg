@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
@@ -41,9 +40,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         private readonly NpgsqlJsonPocoTranslator _jsonPocoTranslator;
 
         public NpgsqlArrayTranslator(
-            [NotNull] IRelationalTypeMappingSource typeMappingSource,
-            [NotNull] NpgsqlSqlExpressionFactory sqlExpressionFactory,
-            [NotNull] NpgsqlJsonPocoTranslator jsonPocoTranslator)
+            IRelationalTypeMappingSource typeMappingSource,
+            NpgsqlSqlExpressionFactory sqlExpressionFactory,
+            NpgsqlJsonPocoTranslator jsonPocoTranslator)
         {
             _typeMappingSource = typeMappingSource;
             _sqlExpressionFactory = sqlExpressionFactory;
@@ -194,7 +193,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         /// PostgreSQL array indexing is 1-based. If the index happens to be a constant,
         /// just increment it. Otherwise, append a +1 in the SQL.
         /// </summary>
-        private SqlExpression GenerateOneBasedIndexExpression([NotNull] SqlExpression expression)
+        private SqlExpression GenerateOneBasedIndexExpression(SqlExpression expression)
             => expression is SqlConstantExpression constant
                 ? _sqlExpressionFactory.Constant(Convert.ToInt32(constant.Value) + 1, constant.TypeMapping)
                 : (SqlExpression)_sqlExpressionFactory.Add(expression, _sqlExpressionFactory.Constant(1));

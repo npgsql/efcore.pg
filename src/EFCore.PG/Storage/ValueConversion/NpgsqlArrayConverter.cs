@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion
@@ -15,7 +14,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion
     {
         public virtual ValueConverter ElementConverter { get; }
 
-        public NpgsqlArrayConverter([NotNull] ValueConverter elementConverter)
+        public NpgsqlArrayConverter(ValueConverter elementConverter)
             : base(
                 ToArrayProviderExpression(elementConverter.ConvertToProviderExpression),
                 FromArrayProviderExpression(elementConverter.ConvertFromProviderExpression))

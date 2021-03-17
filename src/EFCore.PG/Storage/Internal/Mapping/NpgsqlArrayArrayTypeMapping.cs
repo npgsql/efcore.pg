@@ -2,12 +2,10 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.Diagnostics;
-using System.Linq;
-using JetBrains.Annotations;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion;
-using CA = System.Diagnostics.CodeAnalysis;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 {
@@ -29,7 +27,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         /// </summary>
         /// <param name="storeType">The database type to map.</param>
         /// <param name="elementMapping">The element type mapping.</param>
-        public NpgsqlArrayArrayTypeMapping([NotNull] string storeType, [NotNull] RelationalTypeMapping elementMapping)
+        public NpgsqlArrayArrayTypeMapping(string storeType, RelationalTypeMapping elementMapping)
             : this(storeType, elementMapping, elementMapping.ClrType.MakeArrayType()) {}
 
         /// <summary>
@@ -37,7 +35,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         /// </summary>
         /// <param name="elementMapping">The element type mapping.</param>
         /// <param name="arrayType">The array type to map.</param>
-        public NpgsqlArrayArrayTypeMapping([NotNull] RelationalTypeMapping elementMapping, [NotNull] Type arrayType)
+        public NpgsqlArrayArrayTypeMapping(RelationalTypeMapping elementMapping, Type arrayType)
             : this(elementMapping.StoreType + "[]", elementMapping, arrayType) {}
 
         private NpgsqlArrayArrayTypeMapping(string storeType, RelationalTypeMapping elementMapping, Type arrayType)
@@ -60,7 +58,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
         protected NpgsqlArrayArrayTypeMapping(
             RelationalTypeMappingParameters parameters,
-            [NotNull] RelationalTypeMapping elementMapping,
+            RelationalTypeMapping elementMapping,
             bool? isElementNullable = null)
             : base(
                 parameters,
@@ -141,7 +139,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 return hash.ToHashCode();
             }
 
-            [return: CA.NotNullIfNotNull("source")]
+            [return: NotNullIfNotNull("source")]
             private static TElem[]? Snapshot(TElem[]? source, ValueComparer<TElem> elementComparer)
             {
                 if (source == null)
@@ -205,7 +203,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 return hash.ToHashCode();
             }
 
-            [return: CA.NotNullIfNotNull("source")]
+            [return: NotNullIfNotNull("source")]
             private static TElem?[]? Snapshot(TElem?[]? source, ValueComparer<TElem> elementComparer)
             {
                 if (source == null)

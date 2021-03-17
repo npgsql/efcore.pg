@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Text.Json.Serialization;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
@@ -21,8 +20,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         private readonly RelationalTypeMapping _stringTypeMapping;
 
         public NpgsqlJsonPocoTranslator(
-            [NotNull] IRelationalTypeMappingSource typeMappingSource,
-            [NotNull] NpgsqlSqlExpressionFactory sqlExpressionFactory)
+            IRelationalTypeMappingSource typeMappingSource,
+            NpgsqlSqlExpressionFactory sqlExpressionFactory)
         {
             _typeMappingSource = typeMappingSource;
             _sqlExpressionFactory = sqlExpressionFactory;
@@ -42,7 +41,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 : null;
 
         public virtual SqlExpression? TranslateMemberAccess(
-            [NotNull] SqlExpression instance, [NotNull] SqlExpression member, [NotNull] Type returnType)
+            SqlExpression instance, SqlExpression member, Type returnType)
         {
             // The first time we see a JSON traversal it's on a column - create a JsonTraversalExpression.
             // Traversals on top of that get appended into the same expression.
@@ -70,7 +69,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             return null;
         }
 
-        public virtual SqlExpression? TranslateArrayLength([NotNull] SqlExpression expression)
+        public virtual SqlExpression? TranslateArrayLength(SqlExpression expression)
         {
             if (expression is ColumnExpression columnExpression &&
                 columnExpression.TypeMapping is NpgsqlJsonTypeMapping mapping)

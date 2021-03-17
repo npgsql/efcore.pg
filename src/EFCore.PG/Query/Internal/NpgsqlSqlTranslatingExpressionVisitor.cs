@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
@@ -15,7 +15,6 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
-using CA = System.Diagnostics.CodeAnalysis;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 {
@@ -47,9 +46,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         private static Type? _nodaTimePeriodType;
 
         public NpgsqlSqlTranslatingExpressionVisitor(
-            [NotNull] RelationalSqlTranslatingExpressionVisitorDependencies dependencies,
-            [NotNull] QueryCompilationContext queryCompilationContext,
-            [NotNull] QueryableMethodTranslatingExpressionVisitor queryableMethodTranslatingExpressionVisitor)
+            RelationalSqlTranslatingExpressionVisitorDependencies dependencies,
+            QueryCompilationContext queryCompilationContext,
+            QueryableMethodTranslatingExpressionVisitor queryableMethodTranslatingExpressionVisitor)
             : base(dependencies, queryCompilationContext, queryableMethodTranslatingExpressionVisitor)
         {
             _sqlExpressionFactory = (NpgsqlSqlExpressionFactory)dependencies.SqlExpressionFactory;
@@ -164,7 +163,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         /// Identifies complex array-related constructs which cannot be translated in regular method translators, since
         /// they require accessing lambdas.
         /// </summary>
-        private Expression? VisitArrayMethodCall([NotNull] MethodInfo method, [NotNull] ReadOnlyCollection<Expression> arguments)
+        private Expression? VisitArrayMethodCall(MethodInfo method, ReadOnlyCollection<Expression> arguments)
         {
             var array = arguments[0];
 
@@ -236,8 +235,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 
                     static bool TryMatchEquality(
                         Expression expression,
-                        [CA.NotNullWhen(true)] out Expression? left,
-                        [CA.NotNullWhen(true)] out Expression? right)
+                        [NotNullWhen(true)] out Expression? left,
+                        [NotNullWhen(true)] out Expression? right)
                     {
                         if (expression is BinaryExpression binary)
                         {
@@ -457,7 +456,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         /// PostgreSQL array indexing is 1-based. If the index happens to be a constant,
         /// just increment it. Otherwise, append a +1 in the SQL.
         /// </summary>
-        private SqlExpression GenerateOneBasedIndexExpression([NotNull] SqlExpression expression)
+        private SqlExpression GenerateOneBasedIndexExpression(SqlExpression expression)
             => expression is SqlConstantExpression constant
                 ? _sqlExpressionFactory.Constant(Convert.ToInt32(constant.Value) + 1, constant.TypeMapping)
                 : (SqlExpression)_sqlExpressionFactory.Add(expression, _sqlExpressionFactory.Constant(1));

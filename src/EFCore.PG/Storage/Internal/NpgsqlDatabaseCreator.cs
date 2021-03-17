@@ -6,7 +6,6 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
@@ -21,9 +20,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         private readonly IRawSqlCommandBuilder _rawSqlCommandBuilder;
 
         public NpgsqlDatabaseCreator(
-            [NotNull] RelationalDatabaseCreatorDependencies dependencies,
-            [NotNull] INpgsqlRelationalConnection connection,
-            [NotNull] IRawSqlCommandBuilder rawSqlCommandBuilder)
+            RelationalDatabaseCreatorDependencies dependencies,
+            INpgsqlRelationalConnection connection,
+            IRawSqlCommandBuilder rawSqlCommandBuilder)
             : base(dependencies)
         {
             _connection = connection;

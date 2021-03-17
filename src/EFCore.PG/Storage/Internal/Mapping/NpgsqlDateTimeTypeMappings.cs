@@ -1,5 +1,4 @@
 ﻿using System;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Storage;
 using NpgsqlTypes;
 
@@ -21,7 +20,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
     public class NpgsqlTimestampTzTypeMapping : NpgsqlTypeMapping
     {
-        public NpgsqlTimestampTzTypeMapping([NotNull] Type clrType)
+        public NpgsqlTimestampTzTypeMapping(Type clrType)
             : base("timestamp with time zone", clrType, NpgsqlDbType.TimestampTz) {}
 
         protected NpgsqlTimestampTzTypeMapping(RelationalTypeMappingParameters parameters)

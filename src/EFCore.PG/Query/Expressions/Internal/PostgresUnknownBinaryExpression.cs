@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq.Expressions;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -20,19 +19,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         /// <summary>
         /// The left-hand expression.
         /// </summary>
-        [NotNull]
         public virtual SqlExpression Left { get; }
 
         /// <summary>
         /// The right-hand expression.
         /// </summary>
-        [NotNull]
         public virtual SqlExpression Right { get; }
 
         /// <summary>
         /// The operator.
         /// </summary>
-        [NotNull]
         public virtual string Operator { get; }
 
         /// <summary>
@@ -45,11 +41,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         /// <param name="typeMapping">The type mapping for the expression.</param>
         /// <exception cref="ArgumentNullException" />
         public PostgresUnknownBinaryExpression(
-            [NotNull] SqlExpression left,
-            [NotNull] SqlExpression right,
-            [NotNull] string binaryOperator,
-            [NotNull] Type type,
-            [CanBeNull] RelationalTypeMapping? typeMapping = null)
+            SqlExpression left,
+            SqlExpression right,
+            string binaryOperator,
+            Type type,
+            RelationalTypeMapping? typeMapping = null)
             : base(type, typeMapping)
         {
             Left = Check.NotNull(left, nameof(left));
@@ -61,7 +57,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         protected override Expression VisitChildren(ExpressionVisitor visitor)
             => Update((SqlExpression)visitor.Visit(Left), (SqlExpression)visitor.Visit(Right));
 
-        public virtual PostgresUnknownBinaryExpression Update([NotNull] SqlExpression left, [NotNull] SqlExpression right)
+        public virtual PostgresUnknownBinaryExpression Update(SqlExpression left, SqlExpression right)
             => left == Left && right == Right
                 ? this
                 : new PostgresUnknownBinaryExpression(left, right, Operator, Type, TypeMapping);

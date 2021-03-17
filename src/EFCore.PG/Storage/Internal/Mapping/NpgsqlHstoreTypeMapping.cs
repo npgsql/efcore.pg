@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage;
 using NpgsqlTypes;
@@ -20,7 +19,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     {
         private static readonly HstoreMutableComparer MutableComparerInstance = new();
 
-        public NpgsqlHstoreTypeMapping([NotNull] Type clrType)
+        public NpgsqlHstoreTypeMapping(Type clrType)
             : base(
                 new RelationalTypeMappingParameters(
                     new CoreTypeMappingParameters(clrType, comparer: GetComparer(clrType)),

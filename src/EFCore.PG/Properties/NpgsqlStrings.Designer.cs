@@ -4,7 +4,6 @@ using System;
 using System.Reflection;
 using System.Resources;
 using System.Threading;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Logging;
@@ -27,7 +26,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         /// <summary>
         ///     '{entityType1}.{property1}' and '{entityType2}.{property2}' are both mapped to column '{columnName}' in '{table}' but are configured with different value generation strategies.
         /// </summary>
-        public static string DuplicateColumnNameValueGenerationStrategyMismatch([CanBeNull] object? entityType1, [CanBeNull] object? property1, [CanBeNull] object? entityType2, [CanBeNull] object? property2, [CanBeNull] object? columnName, [CanBeNull] object? table)
+        public static string DuplicateColumnNameValueGenerationStrategyMismatch(object? entityType1, object? property1, object? entityType2, object? property2, object? columnName, object? table)
             => string.Format(
                 GetString("DuplicateColumnNameValueGenerationStrategyMismatch", nameof(entityType1), nameof(property1), nameof(entityType2), nameof(property2), nameof(columnName), nameof(table)),
                 entityType1, property1, entityType2, property2, columnName, table);
@@ -35,7 +34,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         /// <summary>
         ///     The indexes {index1} on '{entityType1}' and {index2} on '{entityType2}' are both mapped to '{table}.{indexName}', but have different collation configurations.
         /// </summary>
-        public static string DuplicateIndexCollationMismatch([CanBeNull] object? index1, [CanBeNull] object? entityType1, [CanBeNull] object? index2, [CanBeNull] object? entityType2, [CanBeNull] object? table, [CanBeNull] object? indexName)
+        public static string DuplicateIndexCollationMismatch(object? index1, object? entityType1, object? index2, object? entityType2, object? table, object? indexName)
             => string.Format(
                 GetString("DuplicateIndexCollationMismatch", nameof(index1), nameof(entityType1), nameof(index2), nameof(entityType2), nameof(table), nameof(indexName)),
                 index1, entityType1, index2, entityType2, table, indexName);
@@ -43,7 +42,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         /// <summary>
         ///     The indexes {index1} on '{entityType1}' and {index2} on '{entityType2}' are both mapped to '{table}.{indexName}', but have different concurrent creation configurations.
         /// </summary>
-        public static string DuplicateIndexConcurrentCreationMismatch([CanBeNull] object? index1, [CanBeNull] object? entityType1, [CanBeNull] object? index2, [CanBeNull] object? entityType2, [CanBeNull] object? table, [CanBeNull] object? indexName)
+        public static string DuplicateIndexConcurrentCreationMismatch(object? index1, object? entityType1, object? index2, object? entityType2, object? table, object? indexName)
             => string.Format(
                 GetString("DuplicateIndexConcurrentCreationMismatch", nameof(index1), nameof(entityType1), nameof(index2), nameof(entityType2), nameof(table), nameof(indexName)),
                 index1, entityType1, index2, entityType2, table, indexName);
@@ -51,7 +50,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         /// <summary>
         ///     The indexes {index1} on '{entityType1}' and {index2} on '{entityType2}' are both mapped to '{table}.{indexName}', but have different included columns: {includedColumns1} and {includedColumns2}.
         /// </summary>
-        public static string DuplicateIndexIncludedMismatch([CanBeNull] object? index1, [CanBeNull] object? entityType1, [CanBeNull] object? index2, [CanBeNull] object? entityType2, [CanBeNull] object? table, [CanBeNull] object? indexName, [CanBeNull] object? includedColumns1, [CanBeNull] object? includedColumns2)
+        public static string DuplicateIndexIncludedMismatch(object? index1, object? entityType1, object? index2, object? entityType2, object? table, object? indexName, object? includedColumns1, object? includedColumns2)
             => string.Format(
                 GetString("DuplicateIndexIncludedMismatch", nameof(index1), nameof(entityType1), nameof(index2), nameof(entityType2), nameof(table), nameof(indexName), nameof(includedColumns1), nameof(includedColumns2)),
                 index1, entityType1, index2, entityType2, table, indexName, includedColumns1, includedColumns2);
@@ -65,7 +64,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         /// <summary>
         ///     Include property '{entityType}.{property}' cannot be defined multiple times
         /// </summary>
-        public static string IncludePropertyDuplicated([CanBeNull] object? entityType, [CanBeNull] object? property)
+        public static string IncludePropertyDuplicated(object? entityType, object? property)
             => string.Format(
                 GetString("IncludePropertyDuplicated", nameof(entityType), nameof(property)),
                 entityType, property);
@@ -73,7 +72,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         /// <summary>
         ///     Include property '{entityType}.{property}' is already included in the index
         /// </summary>
-        public static string IncludePropertyInIndex([CanBeNull] object? entityType, [CanBeNull] object? property)
+        public static string IncludePropertyInIndex(object? entityType, object? property)
             => string.Format(
                 GetString("IncludePropertyInIndex", nameof(entityType), nameof(property)),
                 entityType, property);
@@ -81,7 +80,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         /// <summary>
         ///     Include property '{entityType}.{property}' not found
         /// </summary>
-        public static string IncludePropertyNotFound([CanBeNull] object? entityType, [CanBeNull] object? property)
+        public static string IncludePropertyNotFound(object? entityType, object? property)
             => string.Format(
                 GetString("IncludePropertyNotFound", nameof(entityType), nameof(property)),
                 entityType, property);
@@ -89,7 +88,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         /// <summary>
         ///     The specified table '{table}' is not valid. Specify tables using the format '[schema].[table]'.
         /// </summary>
-        public static string InvalidTableToIncludeInScaffolding([CanBeNull] object? table)
+        public static string InvalidTableToIncludeInScaffolding(object? table)
             => string.Format(
                 GetString("InvalidTableToIncludeInScaffolding", nameof(table)),
                 table);
@@ -97,7 +96,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         /// <summary>
         ///     The property '{property}' on entity type '{entityType}' is configured to use 'SequenceHiLo' value generator, which is only intended for keys. If this was intentional configure an alternate key on the property, otherwise call 'ValueGeneratedNever' or configure store generation for this property.
         /// </summary>
-        public static string NonKeyValueGeneration([CanBeNull] object? property, [CanBeNull] object? entityType)
+        public static string NonKeyValueGeneration(object? property, object? entityType)
             => string.Format(
                 GetString("NonKeyValueGeneration", nameof(property), nameof(entityType)),
                 property, entityType);
@@ -105,7 +104,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         /// <summary>
         ///     PostgreSQL sequences cannot be used to generate values for the property '{property}' on entity type '{entityType}' because the property type is '{propertyType}'. Sequences can only be used with integer properties.
         /// </summary>
-        public static string SequenceBadType([CanBeNull] object? property, [CanBeNull] object? entityType, [CanBeNull] object? propertyType)
+        public static string SequenceBadType(object? property, object? entityType, object? propertyType)
             => string.Format(
                 GetString("SequenceBadType", nameof(property), nameof(entityType), nameof(propertyType)),
                 property, entityType, propertyType);
@@ -145,7 +144,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         /// <summary>
         ///     Enum column '{name}' cannot be scaffolded, define a CLR enum type and add the property manually.
         /// </summary>
-        public static EventDefinition<string> LogEnumColumnSkipped([NotNull] IDiagnosticsLogger logger)
+        public static EventDefinition<string> LogEnumColumnSkipped(IDiagnosticsLogger logger)
         {
             var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogEnumColumnSkipped;
             if (definition == null)
@@ -170,7 +169,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         /// <summary>
         ///     Expression index '{name}' on table {tableName} cannot be scaffolded, expression indices aren't supported and must be added via raw SQL in migrations.
         /// </summary>
-        public static EventDefinition<string, string> LogExpressionIndexSkipped([NotNull] IDiagnosticsLogger logger)
+        public static EventDefinition<string, string> LogExpressionIndexSkipped(IDiagnosticsLogger logger)
         {
             var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogExpressionIndexSkipped;
             if (definition == null)
@@ -195,7 +194,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         /// <summary>
         ///     Found collation with name: {collationName}, schema: {schema}, LC_COLLATE: {lcCollate}, LC_CTYPE: {lcCtype}, provider: {provider}, deterministic: {isDeterministic}
         /// </summary>
-        public static EventDefinition<string, string, string, string, string?, bool> LogFoundCollation([NotNull] IDiagnosticsLogger logger)
+        public static EventDefinition<string, string, string, string, string?, bool> LogFoundCollation(IDiagnosticsLogger logger)
         {
             var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogFoundCollation;
             if (definition == null)
@@ -220,7 +219,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         /// <summary>
         ///     Found column with table: {tableName}, column name: {columnName}, data type: {dataType}, nullable: {isNullable}, identity: {isIdentity}, default value: {defaultValue}, computed value: {computedValue}
         /// </summary>
-        public static FallbackEventDefinition LogFoundColumn([NotNull] IDiagnosticsLogger logger)
+        public static FallbackEventDefinition LogFoundColumn(IDiagnosticsLogger logger)
         {
             var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogFoundColumn;
             if (definition == null)
@@ -242,7 +241,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         /// <summary>
         ///     Found foreign key on table: {tableName}, name: {foreignKeyName}, principal table: {principalTableName}, delete action: {deleteAction}.
         /// </summary>
-        public static EventDefinition<string, string, string, string> LogFoundForeignKey([NotNull] IDiagnosticsLogger logger)
+        public static EventDefinition<string, string, string, string> LogFoundForeignKey(IDiagnosticsLogger logger)
         {
             var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogFoundForeignKey;
             if (definition == null)
@@ -267,7 +266,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         /// <summary>
         ///     Found index with name: {indexName}, table: {tableName}, is unique: {isUnique}.
         /// </summary>
-        public static EventDefinition<string, string, bool> LogFoundIndex([NotNull] IDiagnosticsLogger logger)
+        public static EventDefinition<string, string, bool> LogFoundIndex(IDiagnosticsLogger logger)
         {
             var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogFoundIndex;
             if (definition == null)
@@ -292,7 +291,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         /// <summary>
         ///     Found primary key with name: {primaryKeyName}, table: {tableName}.
         /// </summary>
-        public static EventDefinition<string, string> LogFoundPrimaryKey([NotNull] IDiagnosticsLogger logger)
+        public static EventDefinition<string, string> LogFoundPrimaryKey(IDiagnosticsLogger logger)
         {
             var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogFoundPrimaryKey;
             if (definition == null)
@@ -317,7 +316,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         /// <summary>
         ///     Found sequence name: {name}, data type: {dataType}, cyclic: {isCyclic}, increment: {increment}, start: {start}, minimum: {min}, maximum: {max}.
         /// </summary>
-        public static FallbackEventDefinition LogFoundSequence([NotNull] IDiagnosticsLogger logger)
+        public static FallbackEventDefinition LogFoundSequence(IDiagnosticsLogger logger)
         {
             var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogFoundSequence;
             if (definition == null)
@@ -339,7 +338,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         /// <summary>
         ///     Found table with name: {name}.
         /// </summary>
-        public static EventDefinition<string> LogFoundTable([NotNull] IDiagnosticsLogger logger)
+        public static EventDefinition<string> LogFoundTable(IDiagnosticsLogger logger)
         {
             var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogFoundTable;
             if (definition == null)
@@ -364,7 +363,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         /// <summary>
         ///     Found unique constraint with name: {uniqueConstraintName}, table: {tableName}.
         /// </summary>
-        public static EventDefinition<string?, string> LogFoundUniqueConstraint([NotNull] IDiagnosticsLogger logger)
+        public static EventDefinition<string?, string> LogFoundUniqueConstraint(IDiagnosticsLogger logger)
         {
             var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogFoundUniqueConstraint;
             if (definition == null)
@@ -389,7 +388,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         /// <summary>
         ///     Unable to find a schema in the database matching the selected schema {schema}.
         /// </summary>
-        public static EventDefinition<string?> LogMissingSchema([NotNull] IDiagnosticsLogger logger)
+        public static EventDefinition<string?> LogMissingSchema(IDiagnosticsLogger logger)
         {
             var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogMissingSchema;
             if (definition == null)
@@ -414,7 +413,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         /// <summary>
         ///     Unable to find a table in the database matching the selected table {table}.
         /// </summary>
-        public static EventDefinition<string?> LogMissingTable([NotNull] IDiagnosticsLogger logger)
+        public static EventDefinition<string?> LogMissingTable(IDiagnosticsLogger logger)
         {
             var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogMissingTable;
             if (definition == null)
@@ -439,7 +438,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         /// <summary>
         ///     For foreign key {foreignKeyName} on table {tableName}, unable to find the column called {principalColumnName} on the foreign key's principal table, {principaltableName}. Skipping foreign key.
         /// </summary>
-        public static EventDefinition<string, string, string, string> LogPrincipalColumnNotFound([NotNull] IDiagnosticsLogger logger)
+        public static EventDefinition<string, string, string, string> LogPrincipalColumnNotFound(IDiagnosticsLogger logger)
         {
             var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogPrincipalColumnNotFound;
             if (definition == null)
@@ -464,7 +463,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         /// <summary>
         ///     For foreign key {fkName} on table {tableName}, unable to model the end of the foreign key on principal table {principaltableName}. This is usually because the principal table was not included in the selection set.
         /// </summary>
-        public static EventDefinition<string?, string?, string?> LogPrincipalTableNotInSelectionSet([NotNull] IDiagnosticsLogger logger)
+        public static EventDefinition<string?, string?, string?> LogPrincipalTableNotInSelectionSet(IDiagnosticsLogger logger)
         {
             var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogPrincipalTableNotInSelectionSet;
             if (definition == null)
@@ -489,7 +488,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         /// <summary>
         ///     Constraint '{name}' on table {tableName} cannot be scaffolded because it includes a column that cannot be scaffolded (e.g. enum).
         /// </summary>
-        public static EventDefinition<string?, string> LogUnsupportedColumnConstraintSkipped([NotNull] IDiagnosticsLogger logger)
+        public static EventDefinition<string?, string> LogUnsupportedColumnConstraintSkipped(IDiagnosticsLogger logger)
         {
             var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogUnsupportedColumnConstraintSkipped;
             if (definition == null)
@@ -514,7 +513,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         /// <summary>
         ///     Index '{name}' on table {tableName} cannot be scaffolded because it includes a column that cannot be scaffolded (e.g. enum).
         /// </summary>
-        public static EventDefinition<string, string> LogUnsupportedColumnIndexSkipped([NotNull] IDiagnosticsLogger logger)
+        public static EventDefinition<string, string> LogUnsupportedColumnIndexSkipped(IDiagnosticsLogger logger)
         {
             var definition = ((Diagnostics.Internal.NpgsqlLoggingDefinitions)logger.Definitions).LogUnsupportedColumnIndexSkipped;
             if (definition == null)

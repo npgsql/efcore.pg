@@ -1,5 +1,4 @@
 ﻿using System;
-using JetBrains.Annotations;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 {
@@ -8,7 +7,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
     /// </summary>
     public class NpgsqlTransientExceptionDetector
     {
-        public static bool ShouldRetryOn([CanBeNull] Exception? ex)
+        public static bool ShouldRetryOn(Exception? ex)
             => (ex as NpgsqlException)?.IsTransient == true || ex is TimeoutException;
     }
 }

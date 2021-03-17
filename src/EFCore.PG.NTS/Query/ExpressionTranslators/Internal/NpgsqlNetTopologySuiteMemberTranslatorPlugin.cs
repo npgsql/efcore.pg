@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
@@ -16,8 +15,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     public class NpgsqlNetTopologySuiteMemberTranslatorPlugin : IMemberTranslatorPlugin
     {
         public NpgsqlNetTopologySuiteMemberTranslatorPlugin(
-            [NotNull] IRelationalTypeMappingSource typeMappingSource,
-            [NotNull] ISqlExpressionFactory sqlExpressionFactory)
+            IRelationalTypeMappingSource typeMappingSource,
+            ISqlExpressionFactory sqlExpressionFactory)
             => Translators = new IMemberTranslator[]
             {
                 new NpgsqlGeometryMemberTranslator(sqlExpressionFactory, typeMappingSource),
@@ -41,8 +40,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         };
 
         public NpgsqlGeometryMemberTranslator(
-            [NotNull] ISqlExpressionFactory sqlExpressionFactory,
-            [NotNull] IRelationalTypeMappingSource typeMappingSource)
+            ISqlExpressionFactory sqlExpressionFactory,
+            IRelationalTypeMappingSource typeMappingSource)
         {
             _sqlExpressionFactory = sqlExpressionFactory;
             _typeMappingSource = typeMappingSource;

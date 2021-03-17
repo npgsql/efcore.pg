@@ -1,5 +1,4 @@
 ﻿using System;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -24,7 +23,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
         ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
         public NpgsqlSequenceValueGeneratorFactory(
-            [NotNull] IUpdateSqlGenerator sqlGenerator)
+            IUpdateSqlGenerator sqlGenerator)
         {
             Check.NotNull(sqlGenerator, nameof(sqlGenerator));
 

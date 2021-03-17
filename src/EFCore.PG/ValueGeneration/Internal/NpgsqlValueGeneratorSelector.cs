@@ -1,5 +1,4 @@
 ﻿using System;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -18,11 +17,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
         private readonly IDiagnosticsLogger<DbLoggerCategory.Database.Command> _commandLogger;
 
         public NpgsqlValueGeneratorSelector(
-            [NotNull] ValueGeneratorSelectorDependencies dependencies,
-            [NotNull] INpgsqlSequenceValueGeneratorFactory sequenceFactory,
-            [NotNull] INpgsqlRelationalConnection connection,
-            [NotNull] IRawSqlCommandBuilder rawSqlCommandBuilder,
-            [NotNull] IDiagnosticsLogger<DbLoggerCategory.Database.Command> commandLogger)
+            ValueGeneratorSelectorDependencies dependencies,
+            INpgsqlSequenceValueGeneratorFactory sequenceFactory,
+            INpgsqlRelationalConnection connection,
+            IRawSqlCommandBuilder rawSqlCommandBuilder,
+            IDiagnosticsLogger<DbLoggerCategory.Database.Command> commandLogger)
             : base(dependencies)
         {
             _sequenceFactory = sequenceFactory;

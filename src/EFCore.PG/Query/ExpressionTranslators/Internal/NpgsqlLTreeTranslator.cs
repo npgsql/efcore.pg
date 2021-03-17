@@ -4,7 +4,6 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
@@ -41,8 +40,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             typeof(LTree).GetRuntimeMethod(nameof(LTree.MatchesLTxtQuery), new[] { typeof(string) })!;
 
         public NpgsqlLTreeTranslator(
-            [NotNull] IRelationalTypeMappingSource typeMappingSource,
-            [NotNull] NpgsqlSqlExpressionFactory sqlExpressionFactory)
+            IRelationalTypeMappingSource typeMappingSource,
+            NpgsqlSqlExpressionFactory sqlExpressionFactory)
         {
             _typeMappingSource = typeMappingSource;
             _sqlExpressionFactory = sqlExpressionFactory;
@@ -162,9 +161,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         /// cannot be translated in regular method translators, since they require accessing lambdas.
         /// </summary>
         public virtual Expression? VisitArrayMethodCall(
-            [NotNull] NpgsqlSqlTranslatingExpressionVisitor sqlTranslatingExpressionVisitor,
-            [NotNull] MethodInfo method,
-            [NotNull] ReadOnlyCollection<Expression> arguments)
+            NpgsqlSqlTranslatingExpressionVisitor sqlTranslatingExpressionVisitor,
+            MethodInfo method,
+            ReadOnlyCollection<Expression> arguments)
         {
             var array = arguments[0];
 

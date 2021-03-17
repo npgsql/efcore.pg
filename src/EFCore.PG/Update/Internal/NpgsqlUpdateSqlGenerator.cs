@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Update;
 using Microsoft.EntityFrameworkCore.Utilities;
 
@@ -10,7 +9,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
 {
     public class NpgsqlUpdateSqlGenerator : UpdateSqlGenerator
     {
-        public NpgsqlUpdateSqlGenerator([NotNull] UpdateSqlGeneratorDependencies dependencies)
+        public NpgsqlUpdateSqlGenerator(UpdateSqlGeneratorDependencies dependencies)
             : base(dependencies)
         {
         }
@@ -22,8 +21,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
             => AppendInsertOperation(commandStringBuilder, command, commandPosition, false);
 
         public virtual ResultSetMapping AppendInsertOperation(
-            [NotNull] StringBuilder commandStringBuilder,
-            [NotNull] ModificationCommand command,
+            StringBuilder commandStringBuilder,
+            ModificationCommand command,
             int commandPosition,
             bool overridingSystemValue)
         {

@@ -1,4 +1,3 @@
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
@@ -8,7 +7,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         private readonly RelationalParameterBasedSqlProcessorDependencies _dependencies;
 
         public NpgsqlParameterBasedSqlProcessorFactory(
-            [NotNull] RelationalParameterBasedSqlProcessorDependencies dependencies)
+            RelationalParameterBasedSqlProcessorDependencies dependencies)
             => _dependencies = dependencies;
 
         public virtual RelationalParameterBasedSqlProcessor Create(bool useRelationalNulls)

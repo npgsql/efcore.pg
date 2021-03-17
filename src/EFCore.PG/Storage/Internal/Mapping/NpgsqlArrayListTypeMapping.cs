@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore.Storage;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion;
@@ -27,7 +26,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         /// </summary>
         /// <param name="storeType">The database type to map.</param>
         /// <param name="elementMapping">The element type mapping.</param>
-        public NpgsqlArrayListTypeMapping([NotNull] string storeType, [NotNull] RelationalTypeMapping elementMapping)
+        public NpgsqlArrayListTypeMapping(string storeType, RelationalTypeMapping elementMapping)
             : this(storeType, elementMapping, typeof(List<>).MakeGenericType(elementMapping.ClrType)) {}
 
         /// <summary>
@@ -35,7 +34,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         /// </summary>
         /// <param name="elementMapping">The element type mapping.</param>
         /// <param name="listType">The database type to map.</param>
-        public NpgsqlArrayListTypeMapping([NotNull] RelationalTypeMapping elementMapping, [NotNull] Type listType)
+        public NpgsqlArrayListTypeMapping(RelationalTypeMapping elementMapping, Type listType)
             : this(elementMapping.StoreType + "[]", elementMapping, listType) {}
 
         private NpgsqlArrayListTypeMapping(string storeType, RelationalTypeMapping elementMapping, Type listType)
@@ -57,7 +56,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         }
 
         protected NpgsqlArrayListTypeMapping(
-            RelationalTypeMappingParameters parameters, [NotNull] RelationalTypeMapping elementMapping, bool? isElementNullable = null)
+            RelationalTypeMappingParameters parameters, RelationalTypeMapping elementMapping, bool? isElementNullable = null)
             : base(
                 parameters,
                 elementMapping,
