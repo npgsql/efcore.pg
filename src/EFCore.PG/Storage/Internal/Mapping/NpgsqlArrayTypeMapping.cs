@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data.Common;
+using System.Diagnostics;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
@@ -79,12 +80,29 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 $"Value converters for array or List properties must be configured via {nameof(NpgsqlPropertyBuilderExtensions.HasPostgresArrayConversion)}.");
         }
 
-        protected abstract RelationalTypeMapping Clone(
-            RelationalTypeMappingParameters parameters,
-            RelationalTypeMapping elementMapping);
+        protected abstract RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters, RelationalTypeMapping elementMapping);
 
         protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
-            => Clone(parameters, ElementMapping);
+        {
+            var elementMapping = ElementMapping;
+
+            // Apply precision, scale and size to the element mapping, not to the array
+            if (parameters.Size is not null)
+            {
+                elementMapping = elementMapping.Clone(elementMapping.StoreType, parameters.Size);
+                parameters = Parameters.WithStoreTypeAndSize(elementMapping.StoreType, size: null);
+            }
+
+            if (parameters.Precision is not null || parameters.Scale is not null)
+            {
+                elementMapping = elementMapping.Clone(parameters.Precision, parameters.Scale);
+                parameters = Parameters.WithPrecision(null).WithScale(null);
+            }
+
+            parameters = parameters.WithStoreTypeAndSize(elementMapping.StoreType + "[]", size: null);
+
+            return Clone(parameters, elementMapping);
+        }
 
         // The array-to-array mapping needs to know how to generate an SQL literal for a List<>, and
         // the list-to-array mapping needs to know how to generate an SQL literal for an array.

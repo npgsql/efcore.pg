@@ -108,6 +108,22 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         }
 
         [Theory]
+        [InlineData(typeof(decimal), "numeric(5)")]
+        [InlineData(typeof(decimal[]), "numeric(5)[]")]
+        [InlineData(typeof(DateTime), "timestamp(5) without time zone")]
+        [InlineData(typeof(DateTime[]), "timestamp(5) without time zone[]")]
+        [InlineData(typeof(TimeSpan), "interval(5)")]
+        [InlineData(typeof(TimeSpan[]), "interval(5)[]")]
+        [InlineData(typeof(int), "integer")]
+        [InlineData(typeof(int[]), "integer[]")]
+        public void By_ClrType_and_precision(Type clrType, string expectedStoreType)
+        {
+            var mapping = (RelationalTypeMapping)Source.FindMapping(clrType, null, precision: 5);
+            Assert.Equal(expectedStoreType, mapping.StoreType);
+            Assert.Same(clrType, mapping.ClrType);
+        }
+
+        [Theory]
         [InlineData("integer", typeof(int))]
         [InlineData("integer[]", typeof(int[]))]
         [InlineData("integer[]", typeof(List<int>))]
