@@ -38,7 +38,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         // Numeric types
         private readonly NpgsqlFloatTypeMapping        _float4             = new();
         private readonly NpgsqlDoubleTypeMapping       _float8             = new();
-        private readonly DecimalTypeMapping            _numeric            = new("numeric", DbType.Decimal);
+        private readonly NpgsqlDecimalTypeMapping      _numeric            = new();
         private readonly NpgsqlMoneyTypeMapping        _money              = new();
         private readonly GuidTypeMapping               _uuid               = new("uuid", DbType.Guid);
         private readonly ShortTypeMapping              _int2               = new("smallint", DbType.Int16);
@@ -326,7 +326,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             // First, try any plugins, allowing them to override built-in mappings (e.g. NodaTime)
             base.FindMapping(mappingInfo) ??
             FindBaseMapping(mappingInfo)?.Clone(mappingInfo) ??
-            FindArrayMapping(mappingInfo) ??
+            FindArrayMapping(mappingInfo)?.Clone(mappingInfo) ??
             FindUserRangeMapping(mappingInfo);
 
         protected virtual RelationalTypeMapping? FindBaseMapping(in RelationalTypeMappingInfo mappingInfo)
@@ -381,8 +381,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 return null;
             }
 
-            // If needed, clone the mapping with the configured length/precision/scale
-            // TODO: Cache size/precision/scale mappings?
             if (mappingInfo.Size.HasValue)
             {
                 if (clrType == typeof(string))
@@ -399,23 +397,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 {
                     mapping = mappingInfo.IsFixedLength ?? false ? (RelationalTypeMapping)_bit : _varbit;
                     return mapping.Clone($"{mapping.StoreType}({mappingInfo.Size})", mappingInfo.Size);
-                }
-            }
-            else if (mappingInfo.Precision.HasValue)
-            {
-                if (clrType == typeof(decimal))
-                {
-                    return _numeric.Clone(mappingInfo.Scale.HasValue
-                        ? $"numeric({mappingInfo.Precision.Value},{mappingInfo.Scale.Value})"
-                        : $"numeric({mappingInfo.Precision.Value})",
-                        null);
-                }
-
-                if (clrType == typeof(DateTime) ||
-                    clrType == typeof(DateTimeOffset) ||
-                    clrType == typeof(TimeSpan))
-                {
-                    return mapping.Clone($"{mapping.StoreType}({mappingInfo.Precision.Value})", null);
                 }
             }
 
