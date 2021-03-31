@@ -46,8 +46,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 .ToArray();
 
             AssertSql(
-                @"@__cidr_1='(0.0.0.0
-0)' (DbType = Object)
+                @"@__cidr_1='(0.0.0.0, 0)' (DbType = Object)
 
 SELECT n.""Cidr"" = @__cidr_1
 FROM ""NetTestEntities"" AS n

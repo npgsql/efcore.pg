@@ -475,12 +475,14 @@ WHERE m.""TimeSpanAsTime"" = @__timeSpan_0");
 @p16='Value4' (Nullable = false)
 @p17='84.4'
 @p18='a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
-@p19='System.Int32[]' (Nullable = false) (DbType = Object)
+@p19={ '2'
+'3' } (Nullable = false) (DbType = Object)
 @p20='78'
 @p21='Sad' (DbType = Object)
 @p22='(5.2,3.3)' (DbType = Object)
 @p23='[4,8)' (DbType = Object)
-@p24='System.Net.NetworkInformation.PhysicalAddress[]' (Nullable = false) (DbType = Object)
+@p24={ '08002B010203'
+'08002B010204' } (Nullable = false) (DbType = Object)
 @p25='08002B010203' (Nullable = false) (DbType = Object)
 @p26='2'
 @p27='12724' (DbType = Object)

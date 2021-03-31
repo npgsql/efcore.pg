@@ -7,6 +7,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -116,16 +118,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 ");
 
         private IReadOnlyList<MigrationCommand> CreateCreateOperations()
-            => Dependencies.MigrationsSqlGenerator.Generate(new[]
-            {
-                new NpgsqlCreateDatabaseOperation
+        {
+            var designTimeModel = Dependencies.CurrentContext.Context.GetService<IDesignTimeModel>().Model;
+
+            return Dependencies.MigrationsSqlGenerator.Generate(
+                new[]
                 {
-                    Name = _connection.DbConnection.Database,
-                    Template = Dependencies.Model.GetDatabaseTemplate(),
-                    Collation = Dependencies.Model.GetCollation(),
-                    Tablespace = Dependencies.Model.GetTablespace()
-                }
-            });
+                    new NpgsqlCreateDatabaseOperation
+                    {
+                        Name = _connection.DbConnection.Database,
+                        Template = designTimeModel.GetDatabaseTemplate(),
+                        Collation = designTimeModel.GetCollation(),
+                        Tablespace = designTimeModel.GetTablespace()
+                    }
+                });
+        }
 
         public override bool Exists()
             => Exists(async: false).GetAwaiter().GetResult();
@@ -219,8 +226,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
         public override void CreateTables()
         {
-            var operations = Dependencies.ModelDiffer.GetDifferences(null, Dependencies.Model.GetRelationalModel());
-            var commands = Dependencies.MigrationsSqlGenerator.Generate(operations, Dependencies.Model);
+            var designTimeModel = Dependencies.CurrentContext.Context.GetService<IDesignTimeModel>().Model;
+            var operations = Dependencies.ModelDiffer.GetDifferences(null, designTimeModel.GetRelationalModel());
+            var commands = Dependencies.MigrationsSqlGenerator.Generate(operations, designTimeModel);
 
             // If a PostgreSQL extension, enum or range was added, we want Npgsql to reload all types at the ADO.NET level.
             var reloadTypes =
@@ -258,8 +266,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
         public override async Task CreateTablesAsync(CancellationToken cancellationToken = default)
         {
-            var operations = Dependencies.ModelDiffer.GetDifferences(null, Dependencies.Model.GetRelationalModel());
-            var commands = Dependencies.MigrationsSqlGenerator.Generate(operations, Dependencies.Model);
+            var designTimeModel = Dependencies.CurrentContext.Context.GetService<IDesignTimeModel>().Model;
+            var operations = Dependencies.ModelDiffer.GetDifferences(null, designTimeModel.GetRelationalModel());
+            var commands = Dependencies.MigrationsSqlGenerator.Generate(operations, designTimeModel);
 
             // If a PostgreSQL extension, enum or range was added, we want Npgsql to reload all types at the ADO.NET level.
             var reloadTypes =
