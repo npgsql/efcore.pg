@@ -48,17 +48,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal
         }
 
         public override string GetBeginIfNotExistsScript(string migrationId) => $@"
-DO $$
+DO $EF$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM {SqlGenerationHelper.DelimitIdentifier(TableName, TableSchema)} WHERE ""{MigrationIdColumnName}"" = '{migrationId}') THEN";
 
         public override string GetBeginIfExistsScript(string migrationId) => $@"
-DO $$
+DO $EF$
 BEGIN
     IF EXISTS(SELECT 1 FROM {SqlGenerationHelper.DelimitIdentifier(TableName, TableSchema)} WHERE ""{MigrationIdColumnName}"" = '{migrationId}') THEN";
 
         public override string GetEndIfScript() =>
             @"    END IF;
-END $$;";
+END $EF$;";
     }
 }
