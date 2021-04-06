@@ -198,7 +198,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             if (operation[PostgresXlDistributeByAnnotationNames.DistributeBy] is string)
             {
                 var distributeBy = new PostgresXlDistributeBy(operation);
-                var (distributionStrategy, distributeByColumnFunction, distributionStyle, distributeByColumnName) = distributeBy.Deconstruct();
+                var (distributionStrategy, distributeByColumnFunction, distributionStyle, distributeByColumnName) = distributeBy;
 
                 ValidateTableDistributionProperties(distributionStrategy, distributeByColumnFunction, distributionStyle, distributeByColumnName);
 

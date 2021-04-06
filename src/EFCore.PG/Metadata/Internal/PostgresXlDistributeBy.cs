@@ -61,15 +61,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
             }
         }
 
-        public virtual (PostgresXlDistributeByStrategy distributionStrategy,
-            PostgresXlDistributeByColumnFunction distributeByColumnFunction,
-            PostgresXlDistributionStyle distributionStyle,
-            string distributeByColumnName) Deconstruct()
-            => (
-                DistributionStrategy,
-                DistributeByColumnFunction,
-                DistributionStyle,
-                DistributeByPropertyName);
+        public void Deconstruct(out PostgresXlDistributeByStrategy distributionStrategy,
+            out PostgresXlDistributeByColumnFunction distributeByColumnFunction,
+            out PostgresXlDistributionStyle distributionStyle,
+            out string distributeByColumnName)
+        {
+            distributionStrategy = DistributionStrategy;
+            distributeByColumnFunction = DistributeByColumnFunction;
+            distributionStyle = DistributionStyle;
+            distributeByColumnName = DistributeByPropertyName;
+        }
 
         private (PostgresXlDistributeByStrategy DistributionStrategy, PostgresXlDistributeByColumnFunction DistributeByColumnFunction, PostgresXlDistributionStyle DistributionStyle, string ColumnName) GetData()
         {
