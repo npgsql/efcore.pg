@@ -1,4 +1,3 @@
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -23,8 +22,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
         /// <param name="dependencies">Parameter object containing dependencies for this convention.</param>
         /// <param name="relationalDependencies">Parameter object containing relational dependencies for this convention.</param>
         public NpgsqlValueGenerationConvention(
-            [NotNull] ProviderConventionSetBuilderDependencies dependencies,
-            [NotNull] RelationalConventionSetBuilderDependencies relationalDependencies)
+            ProviderConventionSetBuilderDependencies dependencies,
+            RelationalConventionSetBuilderDependencies relationalDependencies)
             : base(dependencies, relationalDependencies)
         {
         }
@@ -40,8 +39,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
         public override void ProcessPropertyAnnotationChanged(
             IConventionPropertyBuilder propertyBuilder,
             string name,
-            IConventionAnnotation annotation,
-            IConventionAnnotation oldAnnotation,
+            IConventionAnnotation? annotation,
+            IConventionAnnotation? oldAnnotation,
             IConventionContext<IConventionAnnotation> context)
         {
             if (name == NpgsqlAnnotationNames.ValueGenerationStrategy)
@@ -85,14 +84,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
         /// <param name="property"> The property. </param>
         /// <param name="storeObject"> The identifier of the store object. </param>
         /// <returns>The store value generation strategy to set for the given property.</returns>
-        public new static ValueGenerated? GetValueGenerated([NotNull] IReadOnlyProperty property, in StoreObjectIdentifier storeObject)
+        public new static ValueGenerated? GetValueGenerated(IReadOnlyProperty property, in StoreObjectIdentifier storeObject)
             => RelationalValueGenerationConvention.GetValueGenerated(property, storeObject)
                ?? (property.GetValueGenerationStrategy(storeObject) != NpgsqlValueGenerationStrategy.None
                    ? ValueGenerated.OnAdd
                    : (ValueGenerated?)null);
 
         private ValueGenerated? GetValueGenerated(
-            [NotNull] IReadOnlyProperty property,
+            IReadOnlyProperty property,
             in StoreObjectIdentifier storeObject,
             ITypeMappingSource typeMappingSource)
             => RelationalValueGenerationConvention.GetValueGenerated(property, storeObject)

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Storage;
 using NpgsqlTypes;
 
@@ -10,20 +9,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 {
     public class NpgsqlEnumTypeMapping : RelationalTypeMapping
     {
-        [NotNull] readonly ISqlGenerationHelper _sqlGenerationHelper;
-        [NotNull] readonly INpgsqlNameTranslator _nameTranslator;
+        private readonly ISqlGenerationHelper _sqlGenerationHelper;
+        private readonly INpgsqlNameTranslator _nameTranslator;
 
         /// <summary>
         /// Translates the CLR member value to the PostgreSQL value label.
         /// </summary>
-        [NotNull] readonly Dictionary<object, string> _members;
+        private readonly Dictionary<object, string> _members;
 
         public NpgsqlEnumTypeMapping(
-            [NotNull] string storeType,
-            [CanBeNull] string storeTypeSchema,
-            [NotNull] Type enumType,
-            [NotNull] ISqlGenerationHelper sqlGenerationHelper,
-            [CanBeNull] INpgsqlNameTranslator nameTranslator = null)
+            string storeType,
+            string? storeTypeSchema,
+            Type enumType,
+            ISqlGenerationHelper sqlGenerationHelper,
+            INpgsqlNameTranslator? nameTranslator = null)
             : base(sqlGenerationHelper.DelimitIdentifier(storeType, storeTypeSchema), enumType)
         {
             if (!enumType.IsEnum || !enumType.IsValueType)
@@ -38,8 +37,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
         protected NpgsqlEnumTypeMapping(
             RelationalTypeMappingParameters parameters,
-            [NotNull] ISqlGenerationHelper sqlGenerationHelper,
-            [NotNull] INpgsqlNameTranslator nameTranslator)
+            ISqlGenerationHelper sqlGenerationHelper,
+            INpgsqlNameTranslator nameTranslator)
             : base(parameters)
         {
             _nameTranslator = nameTranslator;
@@ -52,11 +51,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
         protected override string GenerateNonNullSqlLiteral(object value) => $"'{_members[value]}'::{StoreType}";
 
-        [NotNull]
-        static Dictionary<object, string> CreateValueMapping([NotNull] Type enumType, [NotNull] INpgsqlNameTranslator nameTranslator)
+        private static Dictionary<object, string> CreateValueMapping(Type enumType, INpgsqlNameTranslator nameTranslator)
             => enumType.GetFields(BindingFlags.Static | BindingFlags.Public)
                        .ToDictionary(
-                           x => x.GetValue(null),
+                           x => x.GetValue(null)!,
                            x => x.GetCustomAttribute<PgNameAttribute>()?.PgName ?? nameTranslator.TranslateMemberName(x.Name));
     }
 }

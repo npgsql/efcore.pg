@@ -32,7 +32,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         public override Expression GenerateCodeLiteral(object value)
             => Expression.Call(ParseMethod, Expression.Constant(((PhysicalAddress)value).ToString()));
 
-        static readonly MethodInfo ParseMethod = typeof(PhysicalAddress).GetMethod("Parse", new[] { typeof(string) });
+        private static readonly MethodInfo ParseMethod = typeof(PhysicalAddress).GetMethod("Parse", new[] { typeof(string) })!;
     }
 
     /// <summary>
@@ -60,7 +60,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         public override Expression GenerateCodeLiteral(object value)
             => Expression.Call(ParseMethod, Expression.Constant(((PhysicalAddress)value).ToString()));
 
-        static readonly MethodInfo ParseMethod = typeof(PhysicalAddress).GetMethod("Parse", new[] { typeof(string) });
+        private static readonly MethodInfo ParseMethod = typeof(PhysicalAddress).GetMethod("Parse", new[] { typeof(string) })!;
     }
 
     /// <summary>
@@ -88,7 +88,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         public override Expression GenerateCodeLiteral(object value)
             => Expression.Call(ParseMethod, Expression.Constant(((IPAddress)value).ToString()));
 
-        static readonly MethodInfo ParseMethod = typeof(IPAddress).GetMethod("Parse", new[] { typeof(string) });
+        private static readonly MethodInfo ParseMethod = typeof(IPAddress).GetMethod("Parse", new[] { typeof(string) })!;
     }
 
     /// <summary>
@@ -125,9 +125,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 Expression.Constant(cidr.Subnet));
         }
 
-        static readonly MethodInfo ParseMethod = typeof(IPAddress).GetMethod("Parse", new[] { typeof(string) });
+        private static readonly MethodInfo ParseMethod = typeof(IPAddress).GetMethod("Parse", new[] { typeof(string) })!;
 
-        static readonly ConstructorInfo Constructor =
-            typeof((IPAddress, int)).GetConstructor(new[] { typeof(IPAddress), typeof(int) });
+        private static readonly ConstructorInfo Constructor =
+            typeof((IPAddress, int)).GetConstructor(new[] { typeof(IPAddress), typeof(int) })!;
     }
 }

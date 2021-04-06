@@ -6,7 +6,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
 {
     public class NpgsqlArrayValueConverterTest
     {
-        static readonly ValueConverter<Beatles[], int[]> EnumArrayToNumberArray
+        private static readonly ValueConverter<Beatles[], int[]> EnumArrayToNumberArray
             = new NpgsqlArrayConverter<Beatles[], int[]>(new EnumToNumberConverter<Beatles, int>());
 
         [ConditionalFact]
@@ -65,7 +65,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
             Assert.Null(converter(null));
         }
 
-        enum Beatles
+        private enum Beatles
         {
             John = 7,
             Paul = 4,

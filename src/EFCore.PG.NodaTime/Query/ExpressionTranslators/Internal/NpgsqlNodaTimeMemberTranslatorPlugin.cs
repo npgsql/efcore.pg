@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
@@ -19,7 +18,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
     /// </remarks>
     public class NpgsqlNodaTimeMemberTranslatorPlugin : IMemberTranslatorPlugin
     {
-        public NpgsqlNodaTimeMemberTranslatorPlugin([NotNull] ISqlExpressionFactory sqlExpressionFactory)
+        public NpgsqlNodaTimeMemberTranslatorPlugin(ISqlExpressionFactory sqlExpressionFactory)
         {
             Translators = new IMemberTranslator[]
             {
@@ -38,18 +37,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
     /// </remarks>
     public class NpgsqlNodaTimeMemberTranslator : IMemberTranslator
     {
-        readonly ISqlExpressionFactory _sqlExpressionFactory;
+        private readonly ISqlExpressionFactory _sqlExpressionFactory;
 
         /// <summary>
         /// The static member info for <see cref="T:SystemClock.Instance"/>.
         /// </summary>
-        [NotNull] static readonly MemberInfo Instance =
-            typeof(SystemClock).GetRuntimeProperty(nameof(SystemClock.Instance));
+        private static readonly MemberInfo Instance =
+            typeof(SystemClock).GetRuntimeProperty(nameof(SystemClock.Instance))!;
 
-        public NpgsqlNodaTimeMemberTranslator([NotNull] ISqlExpressionFactory sqlExpressionFactory)
+        public NpgsqlNodaTimeMemberTranslator(ISqlExpressionFactory sqlExpressionFactory)
             => _sqlExpressionFactory = sqlExpressionFactory;
 
-        static readonly bool[][] TrueArrays =
+        private static readonly bool[][] TrueArrays =
         {
             Array.Empty<bool>(),
             new[] { true },
@@ -57,8 +56,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
         };
 
         /// <inheritdoc />
-        public virtual SqlExpression Translate(
-            SqlExpression instance,
+        public virtual SqlExpression? Translate(
+            SqlExpression? instance,
             MemberInfo member,
             Type returnType,
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)
@@ -68,10 +67,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
                 return _sqlExpressionFactory.Constant(SystemClock.Instance);
 
             var declaringType = member.DeclaringType;
-            if (declaringType == typeof(LocalDateTime) ||
-                declaringType == typeof(LocalDate) ||
-                declaringType == typeof(LocalTime) ||
-                declaringType == typeof(Period))
+            if (instance is not null
+                && (declaringType == typeof(LocalDateTime)
+                    || declaringType == typeof(LocalDate)
+                    || declaringType == typeof(LocalTime)
+                    || declaringType == typeof(Period)))
             {
                 return TranslateDateTime(instance, member, returnType);
             }
@@ -86,8 +86,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
         /// <returns>
         /// The translated expression or null.
         /// </returns>
-        [CanBeNull]
-        SqlExpression TranslateDateTime(SqlExpression instance, MemberInfo member, Type returnType)
+        private SqlExpression? TranslateDateTime(SqlExpression instance, MemberInfo member, Type returnType)
         {
             switch (member.Name)
             {
@@ -172,10 +171,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime
         /// DATE_PART returns doubles, which we floor and cast into ints
         /// This also gets rid of sub-second components when retrieving seconds.
         /// </remarks>
-        [NotNull]
-        SqlExpression GetDatePartExpression(
-            [NotNull] SqlExpression instance,
-            [NotNull] string partName,
+        private SqlExpression GetDatePartExpression(
+            SqlExpression instance,
+            string partName,
             bool floor = false)
         {
             var result = _sqlExpressionFactory.Function(

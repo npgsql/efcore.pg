@@ -12,7 +12,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 {
     public class NpgsqlInternalMetadataBuilderExtensionsTest
     {
-        IConventionModelBuilder CreateBuilder() => new InternalModelBuilder(new Model());
+        private IConventionModelBuilder CreateBuilder() => new InternalModelBuilder(new Model());
 
         [ConditionalFact]
         public void Can_access_model()

@@ -1,4 +1,5 @@
-﻿namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
+﻿// ReSharper disable once CheckNamespace
+namespace Microsoft.EntityFrameworkCore.Metadata
 {
     public enum NpgsqlValueGenerationStrategy
     {

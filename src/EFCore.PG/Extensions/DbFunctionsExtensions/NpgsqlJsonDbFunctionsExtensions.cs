@@ -1,7 +1,6 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using NpgsqlTypes;
@@ -31,7 +30,7 @@ namespace Microsoft.EntityFrameworkCore
         /// See https://www.postgresql.org/docs/current/functions-json.html.
         /// </remarks>
         public static bool JsonContains(
-            [CanBeNull] this DbFunctions _, [NotNull] object json, [NotNull] object contained)
+            this DbFunctions _, object json, object contained)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(JsonContains)));
 
         /// <summary>
@@ -50,7 +49,7 @@ namespace Microsoft.EntityFrameworkCore
         /// See https://www.postgresql.org/docs/current/functions-json.html.
         /// </remarks>
         public static bool JsonContained(
-            [CanBeNull] this DbFunctions _, [NotNull] object contained, [NotNull] object json)
+            this DbFunctions _, object contained, object json)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(JsonContained)));
 
         /// <summary>
@@ -66,7 +65,7 @@ namespace Microsoft.EntityFrameworkCore
         ///
         /// See https://www.postgresql.org/docs/current/functions-json.html.
         /// </remarks>
-        public static bool JsonExists([CanBeNull] this DbFunctions _, [NotNull] object json, [NotNull] string key)
+        public static bool JsonExists(this DbFunctions _, object json, string key)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(JsonExists)));
 
         /// <summary>
@@ -82,8 +81,7 @@ namespace Microsoft.EntityFrameworkCore
         ///
         /// See https://www.postgresql.org/docs/current/functions-json.html.
         /// </remarks>
-        public static bool JsonExistAny(
-            [CanBeNull] this DbFunctions _, [NotNull] object json, [NotNull] params string[] keys)
+        public static bool JsonExistAny(this DbFunctions _, object json, params string[] keys)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(JsonExistAny)));
 
         /// <summary>
@@ -99,8 +97,7 @@ namespace Microsoft.EntityFrameworkCore
         ///
         /// See https://www.postgresql.org/docs/current/functions-json.html.
         /// </remarks>
-        public static bool JsonExistAll(
-            [CanBeNull] this DbFunctions _, [NotNull] object json, [NotNull] params string[] keys)
+        public static bool JsonExistAll(this DbFunctions _, object json, params string[] keys)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(JsonExistAll)));
 
         /// <summary>
@@ -114,7 +111,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <remarks>
         /// See https://www.postgresql.org/docs/current/functions-json.html.
         /// </remarks>
-        public static string JsonTypeof([CanBeNull] this DbFunctions _, [NotNull] object json)
+        public static string JsonTypeof(this DbFunctions _, object json)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(JsonTypeof)));
     }
 }

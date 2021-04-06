@@ -65,7 +65,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         protected virtual ModelBuilder CreateConventionModelBuilder()
             => NpgsqlTestHelpers.Instance.CreateConventionBuilder();
 
-        class Customer
+        private class Customer
         {
             public int Id { get; set; }
             public string Name { get; set; }
@@ -73,7 +73,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             public IEnumerable<Order> Orders { get; set; }
         }
 
-        class Order
+        private class Order
         {
             public int OrderId { get; set; }
 
@@ -83,7 +83,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             public OrderDetails Details { get; set; }
         }
 
-        class OrderDetails
+        private class OrderDetails
         {
             public int Id { get; set; }
 

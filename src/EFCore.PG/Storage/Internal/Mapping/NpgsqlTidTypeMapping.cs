@@ -34,7 +34,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             return Expression.New(Constructor, Expression.Constant(tid.BlockNumber), Expression.Constant(tid.OffsetNumber));
         }
 
-        static readonly ConstructorInfo Constructor =
-            typeof(NpgsqlTid).GetConstructor(new[] { typeof(uint), typeof(ushort) });
+        private static readonly ConstructorInfo Constructor =
+            typeof(NpgsqlTid).GetConstructor(new[] { typeof(uint), typeof(ushort) })!;
     }
 }

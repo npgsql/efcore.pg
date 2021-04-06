@@ -148,7 +148,7 @@ WHERE reverse(c.""ContactName"") = 'srednA airaM'");
 
         #endregion
 
-        void AssertSql(params string[] expected)
+        private void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
     }
 }

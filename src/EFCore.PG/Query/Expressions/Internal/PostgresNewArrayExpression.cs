@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
+using Microsoft.EntityFrameworkCore.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
 {
@@ -23,9 +22,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         /// <param name="type">The <see cref="Type"/> of the expression.</param>
         /// <param name="typeMapping">The <see cref="RelationalTypeMapping"/> associated with the expression.</param>
         public PostgresNewArrayExpression(
-            [NotNull] IReadOnlyList<SqlExpression> expressions,
-            [NotNull] Type type,
-            [CanBeNull] RelationalTypeMapping typeMapping)
+            IReadOnlyList<SqlExpression> expressions,
+            Type type,
+            RelationalTypeMapping? typeMapping)
             : base(type, typeMapping)
         {
             Check.NotNull(expressions, nameof(expressions));
@@ -46,7 +45,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         {
             Check.NotNull(visitor, nameof(visitor));
 
-            List<SqlExpression> newExpressions = null;
+            List<SqlExpression>? newExpressions = null;
             for (var i = 0; i < Expressions.Count; i++)
             {
                 var expression = Expressions[i];
@@ -72,7 +71,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         /// </summary>
         /// <param name="expressions">The values to initialize the elements of the new array.</param>
         /// <returns>This expression if no children changed, or an expression with the updated children.</returns>
-        public virtual PostgresNewArrayExpression Update([NotNull] IReadOnlyList<SqlExpression> expressions)
+        public virtual PostgresNewArrayExpression Update(IReadOnlyList<SqlExpression> expressions)
         {
             Check.NotNull(expressions, nameof(expressions));
 
@@ -105,13 +104,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         }
 
         /// <inheritdoc />
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
             => obj != null
                && (ReferenceEquals(this, obj)
                    || obj is PostgresNewArrayExpression sqlBinaryExpression
                    && Equals(sqlBinaryExpression));
 
-        bool Equals(PostgresNewArrayExpression postgresNewArrayExpression)
+        private bool Equals(PostgresNewArrayExpression postgresNewArrayExpression)
             => base.Equals(postgresNewArrayExpression)
                && Expressions.SequenceEqual(postgresNewArrayExpression.Expressions);
 

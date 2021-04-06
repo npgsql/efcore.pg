@@ -1,9 +1,17 @@
 <Project>
-  <!-- Package configuration -->
   <PropertyGroup>
-    <Copyright>Copyright 2020 © The Npgsql Development Team</Copyright>
+    <LangVersion>9.0</LangVersion>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <NoWarn>NU5105</NoWarn>
+    <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
+    <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)Npgsql.snk</AssemblyOriginatorKeyFile>
+    <SignAssembly>true</SignAssembly>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+
+    <Copyright>Copyright 2021 © The Npgsql Development Team</Copyright>
     <Company>Npgsql</Company>
-    <VersionPrefix>6.0.0</VersionPrefix>
+    <VersionPrefix>6.0.0-preview3</VersionPrefix>
     <TargetFramework>net5.0</TargetFramework>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <PackageLicenseExpression>PostgreSQL</PackageLicenseExpression>
@@ -14,20 +22,4 @@
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)postgresql.png" Pack="true" PackagePath="" />
   </ItemGroup>
-
-  <!-- Language configuration -->
-  <PropertyGroup>
-    <LangVersion>9.0</LangVersion>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <AnalysisLevel>latest</AnalysisLevel>
-    <NoWarn>NU5105</NoWarn>
-    <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
-  </PropertyGroup>
-
-  <!-- Signing configuration -->
-  <PropertyGroup>
-    <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)Npgsql.snk</AssemblyOriginatorKeyFile>
-    <SignAssembly>true</SignAssembly>
-  </PropertyGroup>
-
 </Project>

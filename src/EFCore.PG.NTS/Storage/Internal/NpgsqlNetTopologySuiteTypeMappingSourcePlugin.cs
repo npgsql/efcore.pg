@@ -1,9 +1,10 @@
 using System;
-using JetBrains.Annotations;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Utilities;
 using NetTopologySuite.Geometries;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 // ReSharper disable once CheckNamespace
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
@@ -12,9 +13,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
     {
         // Note: we reference the options rather than copying IsGeographyDefault out, because that field is initialized
         // rather late by SingletonOptionsInitializer
-        readonly INpgsqlNetTopologySuiteOptions _options;
+        private readonly INpgsqlNetTopologySuiteOptions _options;
 
-        static bool TryGetClrType(string subtypeName, out Type clrType)
+        private static bool TryGetClrType(string subtypeName, [NotNullWhen(true)] out Type? clrType)
         {
             clrType = subtypeName switch
             {
@@ -32,10 +33,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             return clrType != null;
         }
 
-        public NpgsqlNetTopologySuiteTypeMappingSourcePlugin([NotNull] INpgsqlNetTopologySuiteOptions options)
+        public NpgsqlNetTopologySuiteTypeMappingSourcePlugin(INpgsqlNetTopologySuiteOptions options)
             => _options = Check.NotNull(options, nameof(options));
 
-        public virtual RelationalTypeMapping FindMapping(in RelationalTypeMappingInfo mappingInfo)
+        public virtual RelationalTypeMapping? FindMapping(in RelationalTypeMappingInfo mappingInfo)
         {
             // TODO: Array
             var clrType = mappingInfo.ClrType;
@@ -57,7 +58,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 ? (RelationalTypeMapping)Activator.CreateInstance(
                     typeof(NpgsqlGeometryTypeMapping<>).MakeGenericType(clrType ?? typeof(Geometry)),
                     storeTypeName ?? (isGeography ? "geography" : "geometry"),
-                    isGeography)
+                    isGeography)!
                 : null;
         }
 
@@ -66,10 +67,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         /// attempts to parse it and return its components.
         /// </summary>
         public static bool TryParseStoreTypeName(
-            [NotNull] string storeTypeName,
+            string storeTypeName,
             out string subtypeName,
             out bool isGeography,
-            out Type clrType,
+            out Type? clrType,
             out int srid,
             out Ordinates ordinates)
         {
@@ -109,26 +110,26 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                     return false;
             }
 
-            subtypeName = subtypeName.ToUpper();
+            subtypeName = subtypeName.ToUpper(CultureInfo.InvariantCulture);
 
             // We have geometry(subtype, srid), parse the subtype (POINT, POINTZ, POINTM, POINTZM...)
 
             if (TryGetClrType(subtypeName, out clrType))
                 return true;
 
-            if (subtypeName.EndsWith("ZM") && TryGetClrType(subtypeName[0..^2], out clrType))
+            if (subtypeName.EndsWith("ZM", StringComparison.Ordinal) && TryGetClrType(subtypeName[0..^2], out clrType))
             {
                 ordinates = Ordinates.XYZM;
                 return true;
             }
 
-            if (subtypeName.EndsWith("M") && TryGetClrType(subtypeName[0..^1], out clrType))
+            if (subtypeName.EndsWith("M", StringComparison.Ordinal) && TryGetClrType(subtypeName[0..^1], out clrType))
             {
                 ordinates = Ordinates.XYM;
                 return true;
             }
 
-            if (subtypeName.EndsWith("Z") && TryGetClrType(subtypeName[0..^1], out clrType))
+            if (subtypeName.EndsWith("Z", StringComparison.Ordinal) && TryGetClrType(subtypeName[0..^1], out clrType))
             {
                 ordinates = Ordinates.XYZ;
                 return true;

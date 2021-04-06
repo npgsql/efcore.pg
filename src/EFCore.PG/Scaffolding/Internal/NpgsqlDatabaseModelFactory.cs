@@ -2,25 +2,22 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Scaffolding;
 using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
+using Microsoft.EntityFrameworkCore.Utilities;
 using Microsoft.Extensions.Logging;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
-
-#nullable enable
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
 {
@@ -34,12 +31,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
         /// <summary>
         /// The regular expression formatting string for schema and/or table names.
         /// </summary>
-        const string NamePartRegex = @"(?:(?:""(?<part{0}>(?:(?:"""")|[^""])+)"")|(?<part{0}>[^\.\[""]+))";
+        private const string NamePartRegex = @"(?:(?:""(?<part{0}>(?:(?:"""")|[^""])+)"")|(?<part{0}>[^\.\[""]+))";
 
         /// <summary>
         /// The <see cref="Regex"/> to extract the schema and/or table names.
         /// </summary>
-        static readonly Regex SchemaTableNameExtractor =
+        private static readonly Regex SchemaTableNameExtractor =
             new(
                 string.Format(
                     CultureInfo.InvariantCulture,
@@ -53,7 +50,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
         /// Tables and views which are considered to be system tables and should not get scaffolded, e.g. the support table
         /// created by the PostGIS extension.
         /// </summary>
-        static readonly string[] SystemTablesAndViews =
+        private static readonly string[] SystemTablesAndViews =
         {
             "spatial_ref_sys", "geography_columns", "geometry_columns", "raster_columns", "raster_overviews"
         };
@@ -61,12 +58,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
         /// <summary>
         /// The types used for serial columns.
         /// </summary>
-        static readonly string[] SerialTypes = { "int2", "int4", "int8" };
+        private static readonly string[] SerialTypes = { "int2", "int4", "int8" };
 
         /// <summary>
         /// The diagnostic logger instance.
         /// </summary>
-        readonly IDiagnosticsLogger<DbLoggerCategory.Scaffolding> _logger;
+        private readonly IDiagnosticsLogger<DbLoggerCategory.Scaffolding> _logger;
 
         #endregion
 
@@ -75,7 +72,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
         /// <summary>
         /// Constructs an instance of the <see cref="NpgsqlDatabaseModelFactory"/> class.
         /// </summary>
-        public NpgsqlDatabaseModelFactory([NotNull] IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
+        public NpgsqlDatabaseModelFactory(IDiagnosticsLogger<DbLoggerCategory.Scaffolding> logger)
             => _logger = Check.NotNull(logger, nameof(logger));
 
         /// <inheritdoc />
@@ -189,7 +186,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
 
         #region Type information queries
 
-        static void PopulateGlobalDatabaseInfo(NpgsqlConnection connection, DatabaseModel databaseModel)
+        private static void PopulateGlobalDatabaseInfo(NpgsqlConnection connection, DatabaseModel databaseModel)
         {
             var commandText = @"SELECT datcollate FROM pg_database WHERE datname=current_database()";
             using var command = new NpgsqlCommand(commandText, connection);
@@ -201,7 +198,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
         /// <summary>
         /// Queries the database for defined tables and registers them with the model.
         /// </summary>
-        static IEnumerable<DatabaseTable> GetTables(
+        private static IEnumerable<DatabaseTable> GetTables(
             NpgsqlConnection connection,
             DatabaseModel databaseModel,
             Func<string, string, string>? tableFilter,
@@ -232,7 +229,7 @@ WHERE
                     var name = reader.GetString("relname");
                     var comment = reader.GetValueOrDefault<string>("description");
 
-                    var table = new DatabaseTable()
+                    var table = new DatabaseTable
                     {
                         Database = databaseModel,
                         Name = name,
@@ -253,7 +250,7 @@ WHERE
         /// <summary>
         /// Queries the database for defined columns and registers them with the model.
         /// </summary>
-        static void GetColumns(
+        private static void GetColumns(
             NpgsqlConnection connection,
             IReadOnlyList<DatabaseTable> tables,
             string? tableFilter,
@@ -458,7 +455,7 @@ ORDER BY attnum";
         /// <summary>
         /// Queries the database for defined indexes and registers them with the model.
         /// </summary>
-        static void GetIndexes(
+        private static void GetIndexes(
             NpgsqlConnection connection,
             IReadOnlyList<DatabaseTable> tables,
             string? tableFilter,
@@ -624,7 +621,7 @@ WHERE
 
                         var columnCollations = record
                             .GetFieldValue<uint[]>("indcollation")
-                            .Select(oid => collations.TryGetValue(oid, out var collation) && !string.Equals(collation, "default") ? collation : null)
+                            .Select(oid => collations.TryGetValue(oid, out var collation) && collation != "default" ? collation : null)
                             .ToArray();
 
                         if (columnCollations.Any(coll => coll != null))
@@ -666,7 +663,7 @@ WHERE
         /// <summary>
         /// Queries the database for defined constraints and registers them with the model.
         /// </summary>
-        static void GetConstraints(
+        private static void GetConstraints(
             NpgsqlConnection connection,
             IReadOnlyList<DatabaseTable> tables,
             string? tableFilter,
@@ -833,7 +830,7 @@ WHERE
         /// <summary>
         /// Queries the database for defined sequences and registers them with the model.
         /// </summary>
-        static IEnumerable<DatabaseSequence> GetSequences(
+        private static IEnumerable<DatabaseSequence> GetSequences(
             NpgsqlConnection connection,
             DatabaseModel databaseModel,
             Func<string, string>? schemaFilter,
@@ -892,7 +889,7 @@ WHERE
         /// <summary>
         /// Queries the database for defined enums and registers them with the model.
         /// </summary>
-        static HashSet<string> GetEnums(NpgsqlConnection connection, DatabaseModel databaseModel)
+        private static HashSet<string> GetEnums(NpgsqlConnection connection, DatabaseModel databaseModel)
         {
             const string commandText = @"
 SELECT
@@ -928,7 +925,7 @@ GROUP BY nspname, typname";
         /// <summary>
         /// Queries the installed database extensions and registers them with the model.
         /// </summary>
-        static void GetExtensions(NpgsqlConnection connection, DatabaseModel databaseModel)
+        private static void GetExtensions(NpgsqlConnection connection, DatabaseModel databaseModel)
         {
             const string commandText = @"
 SELECT ns.nspname, extname, extversion FROM pg_extension
@@ -949,8 +946,7 @@ JOIN pg_namespace ns ON ns.oid=extnamespace";
             }
         }
 
-
-        static void GetCollations(
+        private static void GetCollations(
             NpgsqlConnection connection,
             DatabaseModel databaseModel,
             string internalSchemas,
@@ -1017,7 +1013,7 @@ WHERE
         /// </summary>
         /// <param name="column">The column to configure.</param>
         /// <param name="systemTypeName">The type name of the column.</param>
-        static void AdjustDefaults(DatabaseColumn column, string systemTypeName)
+        private static void AdjustDefaults(DatabaseColumn column, string systemTypeName)
         {
             var defaultValue = column.DefaultValueSql;
             if (defaultValue == null || defaultValue == "(NULL)")
@@ -1067,7 +1063,7 @@ WHERE
             }
         }
 
-        static SequenceInfo ReadSequenceInfo(DbDataRecord record, Version postgresVersion)
+        private static SequenceInfo ReadSequenceInfo(DbDataRecord record, Version postgresVersion)
         {
             var storeType = record.GetFieldValue<string>("seqtype");
             var startValue = record.GetValueOrDefault<long>("seqstart");
@@ -1141,7 +1137,7 @@ WHERE
             };
         }
 
-        sealed class SequenceInfo
+        private sealed class SequenceInfo
         {
             public SequenceInfo(string storeType) => StoreType = storeType;
             public string StoreType { get; set; }
@@ -1160,7 +1156,7 @@ WHERE
         /// <summary>
         /// Builds a delegate to generate a schema filter fragment.
         /// </summary>
-        static Func<string, string>? GenerateSchemaFilter(IReadOnlyList<string> schemas)
+        private static Func<string, string>? GenerateSchemaFilter(IReadOnlyList<string> schemas)
             => schemas.Any()
                 ? s => $"{s} IN ({string.Join(", ", schemas.Select(EscapeLiteral))})"
                 : (Func<string, string>?)null;
@@ -1168,7 +1164,7 @@ WHERE
         /// <summary>
         /// Builds a delegate to generate a table filter fragment.
         /// </summary>
-        static Func<string, string, string>? GenerateTableFilter(
+        private static Func<string, string, string>? GenerateTableFilter(
             IReadOnlyList<(string? Schema, string Table)> tables,
             Func<string, string>? schemaFilter)
             => schemaFilter != null || tables.Any()
@@ -1241,7 +1237,7 @@ WHERE
         /// <summary>
         /// Type names as returned by PostgreSQL's format_type need to be cleaned up a bit
         /// </summary>
-        static string AdjustFormattedTypeName(string formattedTypeName)
+        private static string AdjustFormattedTypeName(string formattedTypeName)
         {
             // User-defined types (e.g. enums) with capital letters get formatted with quotes, remove.
             if (formattedTypeName[0] == '"')
@@ -1256,7 +1252,7 @@ WHERE
         /// <summary>
         /// Maps a character to a <see cref="ReferentialAction"/>.
         /// </summary>
-        static ReferentialAction ConvertToReferentialAction(string onDeleteAction)
+        private static ReferentialAction ConvertToReferentialAction(string onDeleteAction)
             => onDeleteAction switch
             {
                 "a" => ReferentialAction.NoAction,
@@ -1272,13 +1268,13 @@ WHERE
         /// Constructs the display name given a schema and table name.
         /// </summary>
         // TODO: should this default to/screen out the public schema?
-        static string DisplayName(string? schema, string name)
+        private static string DisplayName(string? schema, string name)
             => string.IsNullOrEmpty(schema) ? name : $"{schema}.{name}";
 
         /// <summary>
         /// Parses the table name into a tuple of schema name and table name where the schema may be null.
         /// </summary>
-        static (string? Schema, string Table) Parse(string table)
+        private static (string? Schema, string Table) Parse(string table)
         {
             var match = SchemaTableNameExtractor.Match(table.Trim());
 
@@ -1294,7 +1290,7 @@ WHERE
         /// <summary>
         /// Wraps a string literal in single quotes.
         /// </summary>
-        static string EscapeLiteral(string? s) => $"'{s}'";
+        private static string EscapeLiteral(string? s) => $"'{s}'";
 
         #endregion
     }

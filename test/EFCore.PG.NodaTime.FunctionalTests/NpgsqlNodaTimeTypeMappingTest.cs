@@ -184,6 +184,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                          "NodaTime.Period.FromSeconds(7L) + NodaTime.Period.FromMilliseconds(8L) + NodaTime.Period.FromNanoseconds(9L)",
                 CodeLiteral(Period.FromYears(1) + Period.FromMonths(2) + Period.FromWeeks(3) + Period.FromDays(4) + Period.FromHours(5) +
                             Period.FromMinutes(6) + Period.FromSeconds(7) + Period.FromMilliseconds(8) + Period.FromNanoseconds(9)));
+
+            Assert.Equal("NodaTime.Period.Zero", CodeLiteral(Period.Zero));
         }
 
         [Fact]
@@ -195,11 +197,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                          "NodaTime.Duration.FromSeconds(7L) + NodaTime.Duration.FromMilliseconds(8L)",
                 CodeLiteral(Duration.FromDays(4) + Duration.FromHours(5) + Duration.FromMinutes(6) + Duration.FromSeconds(7) +
                             Duration.FromMilliseconds(8)));
+
+            Assert.Equal("NodaTime.Duration.Zero", CodeLiteral(Duration.Zero));
         }
 
         #region Support
 
-        static readonly NpgsqlTypeMappingSource Mapper = new(
+        private static readonly NpgsqlTypeMappingSource Mapper = new(
             new TypeMappingSourceDependencies(
                 new ValueConverterSelector(new ValueConverterSelectorDependencies()),
                 Array.Empty<ITypeMappingSourcePlugin>()),
@@ -211,16 +215,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             new NpgsqlOptions()
         );
 
-        static RelationalTypeMapping GetMapping(string storeType) => Mapper.FindMapping(storeType);
+        private static RelationalTypeMapping GetMapping(string storeType) => Mapper.FindMapping(storeType);
 
-        static RelationalTypeMapping GetMapping(Type clrType) => (RelationalTypeMapping)Mapper.FindMapping(clrType);
+        private static RelationalTypeMapping GetMapping(Type clrType) => (RelationalTypeMapping)Mapper.FindMapping(clrType);
 
-        static RelationalTypeMapping GetMapping(Type clrType, string storeType)
+        private static RelationalTypeMapping GetMapping(Type clrType, string storeType)
             => Mapper.FindMapping(clrType, storeType);
 
-        static readonly CSharpHelper CsHelper = new(Mapper);
+        private static readonly CSharpHelper CsHelper = new(Mapper);
 
-        static string CodeLiteral(object value) => CsHelper.UnknownLiteral(value);
+        private static string CodeLiteral(object value) => CsHelper.UnknownLiteral(value);
 
         #endregion Support
     }

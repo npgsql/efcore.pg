@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Text;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage;
 
@@ -8,7 +7,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal
 {
     public class NpgsqlHistoryRepository : HistoryRepository
     {
-        public NpgsqlHistoryRepository([NotNull] HistoryRepositoryDependencies dependencies)
+        public NpgsqlHistoryRepository(HistoryRepositoryDependencies dependencies)
             : base(dependencies)
         {
         }
@@ -40,7 +39,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal
             }
         }
 
-        protected override bool InterpretExistsResult(object value) => (bool)value;
+        protected override bool InterpretExistsResult(object? value) => (bool?)value == true;
 
         public override string GetCreateIfNotExistsScript()
         {
@@ -49,17 +48,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Internal
         }
 
         public override string GetBeginIfNotExistsScript(string migrationId) => $@"
-DO $$
+DO $EF$
 BEGIN
     IF NOT EXISTS(SELECT 1 FROM {SqlGenerationHelper.DelimitIdentifier(TableName, TableSchema)} WHERE ""{MigrationIdColumnName}"" = '{migrationId}') THEN";
 
         public override string GetBeginIfExistsScript(string migrationId) => $@"
-DO $$
+DO $EF$
 BEGIN
     IF EXISTS(SELECT 1 FROM {SqlGenerationHelper.DelimitIdentifier(TableName, TableSchema)} WHERE ""{MigrationIdColumnName}"" = '{migrationId}') THEN";
 
         public override string GetEndIfScript() =>
             @"    END IF;
-END $$;";
+END $EF$;";
     }
 }

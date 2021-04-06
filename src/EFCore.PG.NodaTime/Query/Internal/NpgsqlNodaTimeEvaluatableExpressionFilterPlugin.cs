@@ -9,11 +9,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.NodaTime.Query.Internal
 {
     public class NpgsqlNodaTimeEvaluatableExpressionFilterPlugin : IEvaluatableExpressionFilterPlugin
     {
-        static readonly MethodInfo GetCurrentInstantMethod =
-            typeof(SystemClock).GetRuntimeMethod(nameof(SystemClock.GetCurrentInstant), Array.Empty<Type>());
+        private static readonly MethodInfo GetCurrentInstantMethod =
+            typeof(SystemClock).GetRuntimeMethod(nameof(SystemClock.GetCurrentInstant), Array.Empty<Type>())!;
 
-        static readonly MemberInfo SystemClockInstanceMember =
-            typeof(SystemClock).GetMember(nameof(SystemClock.Instance)).FirstOrDefault();
+        private static readonly MemberInfo SystemClockInstanceMember =
+            typeof(SystemClock).GetMember(nameof(SystemClock.Instance)).FirstOrDefault()!;
 
         public virtual bool IsEvaluatableExpression(Expression expression)
             => !(

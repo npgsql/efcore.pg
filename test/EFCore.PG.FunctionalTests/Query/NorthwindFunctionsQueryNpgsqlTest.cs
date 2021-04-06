@@ -156,7 +156,7 @@ WHERE (c.""Region"" IS NULL) OR (btrim(c.""Region"", E' \t\n\r') = '')");
 
         #region Guid
 
-        static string UuidGenerationFunction { get; } = TestEnvironment.PostgresVersion.AtLeast(13)
+        private static string UuidGenerationFunction { get; } = TestEnvironment.PostgresVersion.AtLeast(13)
             ? "gen_random_uuid"
             : "uuid_generate_v4";
 
@@ -284,13 +284,13 @@ ORDER BY {UuidGenerationFunction}() NULLS FIRST");
 
         #endregion Unsupported
 
-        void AssertSql(params string[] expected)
+        private void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
         protected override void ClearLog()
             => Fixture.TestSqlLoggerFactory.Clear();
 
-        void AssertContainsSqlFragment(string expectedFragment)
+        private void AssertContainsSqlFragment(string expectedFragment)
             => Assert.Contains(Fixture.TestSqlLoggerFactory.SqlStatements, s => s.Contains(expectedFragment));
     }
 }

@@ -2,11 +2,9 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
-#nullable enable
-
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
 {
-    static class DbDataReaderExtension
+    internal static class DbDataReaderExtension
     {
         [DebuggerStepThrough]
         [return: MaybeNull]

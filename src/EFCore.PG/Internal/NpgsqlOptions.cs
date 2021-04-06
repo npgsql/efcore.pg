@@ -14,7 +14,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
         public static readonly Version DefaultPostgresVersion = new(12, 0);
 
         /// <inheritdoc />
-        public virtual Version PostgresVersion { get; private set; }
+        public virtual Version PostgresVersion { get; private set; } = null!;
 
         /// <inheritdoc />
         public virtual bool ReverseNullOrderingEnabled { get; private set; }

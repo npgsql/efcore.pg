@@ -1,9 +1,17 @@
 name: Build
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+      - 'hotfix/**'
+      - 'release/**'
+    tags:
+      - v*
+  pull_request:
 
 env:
-  dotnet_sdk_version: '5.0.x'
+  dotnet_sdk_version: '6.0.100-preview.2.21155.3'
   postgis_version: 3
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
 
@@ -26,7 +34,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2.3.4
 
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v1
@@ -104,7 +112,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2.3.4
 
       - name: Setup .NET Core SDK
         uses: actions/setup-dotnet@v1
@@ -120,7 +128,7 @@ jobs:
         run: dotnet pack --configuration Release --output nupkgs -p:ContinuousIntegrationBuild=true
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v2.2.2
         with:
           name: EFCore.PG
           path: nupkgs

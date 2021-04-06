@@ -200,6 +200,6 @@ WHERE (floor(date_part('millisecond', m.""Duration""))::INT % 1000) = 1");
 
         #endregion TimeSpan
 
-        void AssertSql(params string[] expected) => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
+        private void AssertSql(params string[] expected) => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
     }
 }

@@ -1,20 +1,20 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Utilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
 {
     public class NpgsqlAnnotationCodeGenerator : AnnotationCodeGenerator
     {
-        public NpgsqlAnnotationCodeGenerator([NotNull] AnnotationCodeGeneratorDependencies dependencies)
+        public NpgsqlAnnotationCodeGenerator(AnnotationCodeGeneratorDependencies dependencies)
             : base(dependencies) {}
 
         protected override bool IsHandledByConvention(IModel model, IAnnotation annotation)
@@ -23,7 +23,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             Check.NotNull(annotation, nameof(annotation));
 
             if (annotation.Name == RelationalAnnotationNames.DefaultSchema
-                && string.Equals("public", (string)annotation.Value))
+                && (string?)annotation.Value == "public")
             {
                 return true;
             }
@@ -37,7 +37,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             Check.NotNull(annotation, nameof(annotation));
 
             if (annotation.Name == NpgsqlAnnotationNames.IndexMethod
-                && string.Equals("btree", (string)annotation.Value))
+                && (string?)annotation.Value == "btree")
             {
                 return true;
             }
@@ -58,7 +58,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
                 // to assume that the PostgreSQL version of the scaffolded database necessarily determines the
                 // version of the database that the scaffolded model will target. This makes life difficult for
                 // models with mixed strategies but that's an edge case.
-                return (NpgsqlValueGenerationStrategy)annotation.Value switch
+                return (NpgsqlValueGenerationStrategy?)annotation.Value switch
                 {
                     NpgsqlValueGenerationStrategy.SerialColumn => true,
                     NpgsqlValueGenerationStrategy.IdentityByDefaultColumn => true,
@@ -76,7 +76,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
                 .Concat(GenerateValueGenerationStrategy(annotations, onModel: true))
                 .ToList();
 
-        protected override MethodCallCodeFragment GenerateFluentApi(IModel model, IAnnotation annotation)
+        protected override MethodCallCodeFragment? GenerateFluentApi(IModel model, IAnnotation annotation)
         {
             Check.NotNull(model, nameof(model));
             Check.NotNull(annotation, nameof(annotation));
@@ -131,7 +131,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             return null;
         }
 
-        protected override MethodCallCodeFragment GenerateFluentApi(IEntityType entityType, IAnnotation annotation)
+        protected override MethodCallCodeFragment? GenerateFluentApi(IEntityType entityType, IAnnotation annotation)
         {
             Check.NotNull(entityType, nameof(entityType));
             Check.NotNull(annotation, nameof(annotation));
@@ -150,7 +150,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
                 .Concat(GenerateIdentityOptions(annotations))
                 .ToList();
 
-        IReadOnlyList<MethodCallCodeFragment> GenerateValueGenerationStrategy(
+        private IReadOnlyList<MethodCallCodeFragment> GenerateValueGenerationStrategy(
             IDictionary<string, IAnnotation> annotations,
             bool onModel)
         {
@@ -187,7 +187,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
                 };
 
             case NpgsqlValueGenerationStrategy.SequenceHiLo:
-                var name = GetAndRemove<string>(NpgsqlAnnotationNames.HiLoSequenceName);
+                var name = GetAndRemove<string>(NpgsqlAnnotationNames.HiLoSequenceName)!;
                 var schema = GetAndRemove<string>(NpgsqlAnnotationNames.HiLoSequenceSchema);
                 return new List<MethodCallCodeFragment>
                 {
@@ -197,7 +197,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
                         {
                             (null, null) => Array.Empty<object>(),
                             (_, null) => new object[] { name },
-                            _ => new object[] { name, schema }
+                            _ => new object?[] { name!, schema }
                         })
                 };
 
@@ -214,16 +214,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
                 throw new ArgumentOutOfRangeException(strategy.ToString());
             }
 
-            T GetAndRemove<T>(string annotationName)
-                => TryGetAndRemove(annotations, annotationName, out T annotationValue)
+            T? GetAndRemove<T>(string annotationName)
+                => TryGetAndRemove(annotations, annotationName, out T? annotationValue)
                     ? annotationValue
                     : default;
         }
 
-        IReadOnlyList<MethodCallCodeFragment> GenerateIdentityOptions(IDictionary<string, IAnnotation> annotations)
+        private IReadOnlyList<MethodCallCodeFragment> GenerateIdentityOptions(IDictionary<string, IAnnotation> annotations)
         {
             if (!TryGetAndRemove(annotations, NpgsqlAnnotationNames.IdentityOptions,
-                out string annotationValue))
+                out string? annotationValue))
             {
                 return Array.Empty<MethodCallCodeFragment>();
             }
@@ -242,7 +242,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             };
         }
 
-        protected override MethodCallCodeFragment GenerateFluentApi(IIndex index, IAnnotation annotation)
+        protected override MethodCallCodeFragment? GenerateFluentApi(IIndex index, IAnnotation annotation)
             => annotation.Name switch
             {
                 RelationalAnnotationNames.Collation
@@ -261,7 +261,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
                 _ => null
             };
 
-        static bool TryGetAndRemove<T>(IDictionary<string, IAnnotation> annotations, string annotationName, out T annotationValue)
+        private static bool TryGetAndRemove<T>(
+            IDictionary<string, IAnnotation> annotations,
+            string annotationName,
+            [NotNullWhen(true)] out T? annotationValue)
         {
             if (annotations.TryGetValue(annotationName, out var annotation)
                 && annotation.Value != null)

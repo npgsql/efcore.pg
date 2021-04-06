@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq.Expressions;
 using System.Reflection;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -25,13 +24,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         /// <summary>
         /// The value to test against the <see cref="Array"/>.
         /// </summary>
-        [NotNull]
         public virtual SqlExpression Item { get; }
 
         /// <summary>
         /// The array of values or patterns to test for the <see cref="Item"/>.
         /// </summary>
-        [NotNull]
         public virtual SqlExpression Array { get; }
 
         /// <summary>
@@ -47,10 +44,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         /// <param name="array">The array to search.</param>
         /// <param name="typeMapping">The type mapping for the expression.</param>
         public PostgresAnyExpression(
-            [NotNull] SqlExpression item,
-            [NotNull] SqlExpression array,
+            SqlExpression item,
+            SqlExpression array,
             PostgresAnyOperatorType operatorType,
-            [CanBeNull] RelationalTypeMapping typeMapping)
+            RelationalTypeMapping? typeMapping)
             : base(typeof(bool), typeMapping)
         {
             if (!(array is SqlConstantExpression { Value: null }))
@@ -66,7 +63,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
             OperatorType = operatorType;
         }
 
-        public virtual PostgresAnyExpression Update([NotNull] SqlExpression item, [NotNull] SqlExpression array)
+        public virtual PostgresAnyExpression Update(SqlExpression item, SqlExpression array)
             => item != Item || array != Array
                 ? new PostgresAnyExpression(item, array, OperatorType, TypeMapping)
                 : this;
@@ -76,10 +73,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
             => Update((SqlExpression)visitor.Visit(Item), (SqlExpression)visitor.Visit(Array));
 
         /// <inheritdoc />
-        public override bool Equals(object obj) => obj is PostgresAnyExpression e && Equals(e);
+        public override bool Equals(object? obj) => obj is PostgresAnyExpression e && Equals(e);
 
         /// <inheritdoc />
-        public virtual bool Equals(PostgresAnyExpression other)
+        public virtual bool Equals(PostgresAnyExpression? other)
             => ReferenceEquals(this, other) ||
                other is object &&
                base.Equals(other) &&

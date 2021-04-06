@@ -3,34 +3,33 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Utilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Migrations.Operations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 {
     public class NpgsqlMigrationsSqlGenerator : MigrationsSqlGenerator
     {
-        readonly RelationalTypeMapping _stringTypeMapping;
+        private readonly RelationalTypeMapping _stringTypeMapping;
 
         /// <summary>
         /// The backend version to target.
         /// </summary>
-        readonly Version _postgresVersion;
+        private readonly Version _postgresVersion;
 
         public NpgsqlMigrationsSqlGenerator(
-            [NotNull] MigrationsSqlGeneratorDependencies dependencies,
-            [NotNull] INpgsqlOptions npgsqlOptions)
+            MigrationsSqlGeneratorDependencies dependencies,
+            INpgsqlOptions npgsqlOptions)
             : base(dependencies)
         {
             _postgresVersion = npgsqlOptions.PostgresVersion;
@@ -40,7 +39,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
         public override IReadOnlyList<MigrationCommand> Generate(
             IReadOnlyList<MigrationOperation> operations,
-            IModel model = null,
+            IModel? model = null,
             MigrationsSqlGenerationOptions options = MigrationsSqlGenerationOptions.Default)
         {
             var results = base.Generate(operations, model, options);
@@ -70,7 +69,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 {
                     t.Schema,
                     t.Table,
-                    Column = p,
+                    Column = p!,
                 }))
                 .ToArray();
 
@@ -84,7 +83,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                     // parameter string literal, but the second one is a column name that shouldn't be double-quoted...
 
                     var table = Dependencies.SqlGenerationHelper.DelimitIdentifier(c.Table, c.Schema);
-                    var column = Dependencies.SqlGenerationHelper.DelimitIdentifier(c.Column);
+                    var column = Dependencies.SqlGenerationHelper.DelimitIdentifier(c.Column!);
                     var unquotedColumn = c.Column.Replace("'", "''");
 
                     // When generating idempotent scripts, migration DDL is enclosed in anonymous DO blocks,
@@ -115,7 +114,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             return results;
         }
 
-        protected override void Generate(MigrationOperation operation, IModel model, MigrationCommandListBuilder builder)
+        protected override void Generate(MigrationOperation operation, IModel? model, MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
@@ -139,7 +138,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
         protected override void Generate(
             CreateTableOperation operation,
-            IModel model,
+            IModel? model,
             MigrationCommandListBuilder builder,
             bool terminate = true)
         {
@@ -404,7 +403,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             }
         }
 
-        protected override void Generate(AlterTableOperation operation, IModel model, MigrationCommandListBuilder builder)
+        protected override void Generate(AlterTableOperation operation, IModel? model, MigrationCommandListBuilder builder)
         {
             var madeChanges = false;
 
@@ -487,7 +486,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
         protected override void Generate(
             DropColumnOperation operation,
-            IModel model,
+            IModel? model,
             MigrationCommandListBuilder builder,
             bool terminate = true)
         {
@@ -500,7 +499,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
         protected override void Generate(
             AddColumnOperation operation,
-            IModel model,
+            IModel? model,
             MigrationCommandListBuilder builder,
             bool terminate = true)
         {
@@ -547,7 +546,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             }
         }
 
-        protected override void Generate(AlterColumnOperation operation, IModel model, MigrationCommandListBuilder builder)
+        protected override void Generate(AlterColumnOperation operation, IModel? model, MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
@@ -599,14 +598,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 return;
             }
 
-            string newSequenceName = null;
+            string? newSequenceName = null;
 
             var alterBase = $"ALTER TABLE {DelimitIdentifier(operation.Table, operation.Schema)} " +
                             $"ALTER COLUMN {DelimitIdentifier(operation.Name)} ";
 
             // TYPE + COLLATION
             var type = operation.ColumnType ??
-                       GetColumnType(operation.Schema, operation.Table, operation.Name, operation, model);
+                       GetColumnType(operation.Schema, operation.Table, operation.Name, operation, model)!;
             var oldType = IsOldColumnSupported(model)
                 ? operation.OldColumn.ColumnType ??
                   GetColumnType(operation.Schema, operation.Table, operation.Name, operation.OldColumn, model)
@@ -615,8 +614,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             // If a collation was defined on the column specifically, via the standard EF mechanism, it will be
             // available in operation.Collation (as usual). If not, there may be a model-wide default column collation,
             // which gets transmitted via the Npgsql-specific annotation.
-            var oldCollation = (string)(operation.OldColumn.Collation ?? operation.OldColumn[NpgsqlAnnotationNames.DefaultColumnCollation]);
-            var newCollation = (string)(operation.Collation ?? operation[NpgsqlAnnotationNames.DefaultColumnCollation]);
+            var oldCollation = (string?)(operation.OldColumn.Collation ?? operation.OldColumn[NpgsqlAnnotationNames.DefaultColumnCollation]);
+            var newCollation = (string?)(operation.Collation ?? operation[NpgsqlAnnotationNames.DefaultColumnCollation]);
 
             if (type != oldType || newCollation != oldCollation)
             {
@@ -855,7 +854,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             EndStatement(builder);
         }
 
-        protected override void Generate(RenameIndexOperation operation, IModel model, MigrationCommandListBuilder builder)
+        protected override void Generate(RenameIndexOperation operation, IModel? model, MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
@@ -870,7 +869,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             EndStatement(builder);
         }
 
-        protected override void Generate(RenameSequenceOperation operation, IModel model, MigrationCommandListBuilder builder)
+        protected override void Generate(RenameSequenceOperation operation, IModel? model, MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
@@ -893,7 +892,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             EndStatement(builder);
         }
 
-        protected override void Generate(RenameTableOperation operation, IModel model, MigrationCommandListBuilder builder)
+        protected override void Generate(RenameTableOperation operation, IModel? model, MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
@@ -918,7 +917,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
         protected override void Generate(
             CreateIndexOperation operation,
-            IModel model,
+            IModel? model,
             MigrationCommandListBuilder builder,
             bool terminate = true)
         {
@@ -966,7 +965,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             }
         }
 
-        protected override void IndexOptions(CreateIndexOperation operation, IModel model, MigrationCommandListBuilder builder)
+        protected override void IndexOptions(CreateIndexOperation operation, IModel? model, MigrationCommandListBuilder builder)
         {
             if (_postgresVersion.AtLeast(11) &&
                 operation[NpgsqlAnnotationNames.IndexInclude] is string[] includeColumns &&
@@ -981,7 +980,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             base.IndexOptions(operation, model, builder);
         }
 
-        protected override void Generate(EnsureSchemaOperation operation, IModel model, MigrationCommandListBuilder builder)
+        protected override void Generate(EnsureSchemaOperation operation, IModel? model, MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
@@ -1006,9 +1005,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         }
 
         protected virtual void Generate(
-            [NotNull] NpgsqlCreateDatabaseOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            NpgsqlCreateDatabaseOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
@@ -1047,9 +1046,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         }
 
         public virtual void Generate(
-            [NotNull] NpgsqlDropDatabaseOperation operation,
-            [CanBeNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            NpgsqlDropDatabaseOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
             Check.NotNull(builder, nameof(builder));
@@ -1075,11 +1074,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
         protected override void Generate(
             AlterDatabaseOperation operation,
-            IModel model,
+            IModel? model,
             MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
-            Check.NotNull(model, nameof(model));
             Check.NotNull(builder, nameof(builder));
 
             if (operation.Collation != operation.OldDatabase.Collation)
@@ -1096,11 +1094,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         }
 
         protected virtual void GenerateCreateExtension(
-            [NotNull] PostgresExtension extension,
-            [NotNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            PostgresExtension extension,
+            IModel? model,
+            MigrationCommandListBuilder builder)
         {
-            var schema = extension.Schema ?? model.GetDefaultSchema();
+            var schema = extension.Schema ?? model?.GetDefaultSchema();
 
             // Schemas are normally created (or rather ensured) by the model differ, which scans all tables, sequences
             // and other database objects. However, it isn't aware of extensions, so we always ensure schema on enum creation.
@@ -1132,9 +1130,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         #region Collation management
 
         protected virtual void GenerateCollationStatements(
-            [NotNull] AlterDatabaseOperation operation,
-            [NotNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            AlterDatabaseOperation operation,
+            IModel? model,
+            MigrationCommandListBuilder builder)
         {
             foreach (var collationToCreate in operation.GetPostgresCollations()
                 .Where(ne => operation.GetOldPostgresCollations().All(oe => oe.Name != ne.Name || oe.Schema != ne.Schema)))
@@ -1165,11 +1163,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         }
 
         protected virtual void GenerateCreateCollation(
-            [NotNull] PostgresCollation collation,
-            [NotNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            PostgresCollation collation,
+            IModel? model,
+            MigrationCommandListBuilder builder)
         {
-            var schema = collation.Schema ?? model.GetDefaultSchema();
+            var schema = collation.Schema ?? model?.GetDefaultSchema();
 
             // Schemas are normally created (or rather ensured) by the model differ, which scans all tables, sequences
             // and other database objects. However, it isn't aware of collation, so we always ensure schema on collation creation.
@@ -1203,11 +1201,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         }
 
         protected virtual void GenerateDropCollation(
-            [NotNull] PostgresCollation collation,
-            [NotNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            PostgresCollation collation,
+            IModel? model,
+            MigrationCommandListBuilder builder)
         {
-            var schema = collation.Schema ?? model.GetDefaultSchema();
+            var schema = collation.Schema ?? model?.GetDefaultSchema();
 
             builder
                 .Append("DROP COLLATION ")
@@ -1220,9 +1218,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         #region Enum management
 
         protected virtual void GenerateEnumStatements(
-                [NotNull] AlterDatabaseOperation operation,
-                [NotNull] IModel model,
-                [NotNull] MigrationCommandListBuilder builder)
+                AlterDatabaseOperation operation,
+                IModel? model,
+                MigrationCommandListBuilder builder)
         {
             foreach (var enumTypeToCreate in operation.GetPostgresEnums()
                 .Where(ne => operation.GetOldPostgresEnums().All(oe => oe.Name != ne.Name || oe.Schema != ne.Schema)))
@@ -1273,11 +1271,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         }
 
         protected virtual void GenerateCreateEnum(
-            [NotNull] PostgresEnum enumType,
-            [NotNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            PostgresEnum enumType,
+            IModel? model,
+            MigrationCommandListBuilder builder)
         {
-            var schema = enumType.Schema ?? model.GetDefaultSchema();
+            var schema = enumType.Schema ?? model?.GetDefaultSchema();
 
             // Schemas are normally created (or rather ensured) by the model differ, which scans all tables, sequences
             // and other database objects. However, it isn't aware of enums, so we always ensure schema on enum creation.
@@ -1301,11 +1299,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         }
 
         protected virtual void GenerateDropEnum(
-            [NotNull] PostgresEnum enumType,
-            [NotNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            PostgresEnum enumType,
+            IModel? model,
+            MigrationCommandListBuilder builder)
         {
-            var schema = enumType.Schema ?? model.GetDefaultSchema();
+            var schema = enumType.Schema ?? model?.GetDefaultSchema();
 
             builder
                 .Append("DROP TYPE ")
@@ -1314,13 +1312,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         }
 
         protected virtual void GenerateAddEnumLabel(
-            [NotNull] PostgresEnum enumType,
-            [NotNull] string addedLabel,
-            [CanBeNull] string beforeLabel,
-            [NotNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            PostgresEnum enumType,
+            string addedLabel,
+            string? beforeLabel,
+            IModel? model,
+            MigrationCommandListBuilder builder)
         {
-            var schema = enumType.Schema ?? model.GetDefaultSchema();
+            var schema = enumType.Schema ?? model?.GetDefaultSchema();
 
             builder
                 .Append("ALTER TYPE ")
@@ -1347,9 +1345,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         #region Range management
 
         protected virtual void GenerateRangeStatements(
-                [NotNull] AlterDatabaseOperation operation,
-                [NotNull] IModel model,
-                [NotNull] MigrationCommandListBuilder builder)
+                AlterDatabaseOperation operation,
+                IModel? model,
+                MigrationCommandListBuilder builder)
         {
             foreach (var rangeTypeToCreate in operation.GetPostgresRanges()
                 .Where(ne => operation.GetOldPostgresRanges().All(oe => oe.Name != ne.Name)))
@@ -1372,11 +1370,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         }
 
         protected virtual void GenerateCreateRange(
-            [NotNull] PostgresRange rangeType,
-            [NotNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            PostgresRange rangeType,
+            IModel? model,
+            MigrationCommandListBuilder builder)
         {
-            var schema = rangeType.Schema ?? model.GetDefaultSchema();
+            var schema = rangeType.Schema ?? model?.GetDefaultSchema();
 
             // Schemas are normally created (or rather ensured) by the model differ, which scans all tables, sequences
             // and other database objects. However, it isn't aware of ranges, so we always ensure schema on range creation.
@@ -1386,7 +1384,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             builder
                 .Append("CREATE TYPE ")
                 .Append(DelimitIdentifier(rangeType.Name, schema))
-                .AppendLine($" AS RANGE (")
+                .AppendLine(" AS RANGE (")
                 .IncrementIndent();
 
             var def = new List<string> { $"SUBTYPE = {rangeType.Subtype}" };
@@ -1410,11 +1408,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         }
 
         protected virtual void GenerateDropRange(
-            [NotNull] PostgresRange rangeType,
-            [NotNull] IModel model,
-            [NotNull] MigrationCommandListBuilder builder)
+            PostgresRange rangeType,
+            IModel? model,
+            MigrationCommandListBuilder builder)
         {
-            var schema = rangeType.Schema ?? model.GetDefaultSchema();
+            var schema = rangeType.Schema ?? model?.GetDefaultSchema();
 
             builder
                 .Append("DROP TYPE ")
@@ -1426,7 +1424,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
         protected override void Generate(
             DropIndexOperation operation,
-            IModel model,
+            IModel? model,
             MigrationCommandListBuilder builder,
             bool terminate = true)
         {
@@ -1446,7 +1444,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
         protected override void Generate(
             RenameColumnOperation operation,
-            IModel model,
+            IModel? model,
             MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
@@ -1473,7 +1471,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         /// <param name="terminate"> Indicates whether or not to terminate the command after generating SQL for the operation. </param>
         protected override void Generate(
             InsertDataOperation operation,
-            IModel model,
+            IModel? model,
             MigrationCommandListBuilder builder,
             bool terminate = true)
         {
@@ -1498,7 +1496,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 builder.EndCommand();
         }
 
-        protected override void Generate(CreateSequenceOperation operation, IModel model, MigrationCommandListBuilder builder)
+        protected override void Generate(CreateSequenceOperation operation, IModel? model, MigrationCommandListBuilder builder)
         {
             Check.NotNull(operation, nameof(operation));
 
@@ -1523,11 +1521,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         #region Utilities
 
         protected override void ColumnDefinition(
-            string schema,
+            string? schema,
             string table,
             string name,
             ColumnOperation operation,
-            IModel model,
+            IModel? model,
             MigrationCommandListBuilder builder)
         {
             Check.NotEmpty(name, nameof(name));
@@ -1581,7 +1579,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 return;
             }
 
-            var columnType = operation.ColumnType ?? GetColumnType(schema, table, name, operation, model);
+            var columnType = operation.ColumnType ?? GetColumnType(schema, table, name, operation, model)!;
             builder
                 .Append(DelimitIdentifier(name))
                 .Append(" ")
@@ -1607,8 +1605,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
         // Note: this definition is only used for creating new identity columns, not for alterations.
         protected virtual void IdentityDefinition(
-            [NotNull] ColumnOperation operation,
-            [NotNull] MigrationCommandListBuilder builder)
+            ColumnOperation operation,
+            MigrationCommandListBuilder builder)
         {
             if (!(operation[NpgsqlAnnotationNames.ValueGenerationStrategy] is NpgsqlValueGenerationStrategy strategy) ||
                 !strategy.IsIdentity())
@@ -1706,11 +1704,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         /// <param name="model"> The target model which may be <c>null</c> if the operations exist without a model. </param>
         /// <param name="builder"> The command builder to use to add the SQL fragment. </param>
         protected override void ComputedColumnDefinition(
-            string schema,
+            string? schema,
             string table,
             string name,
             ColumnOperation operation,
-            IModel model,
+            IModel? model,
             MigrationCommandListBuilder builder)
         {
             Check.NotEmpty(name, nameof(name));
@@ -1730,7 +1728,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             builder
                 .Append(DelimitIdentifier(name))
                 .Append(" ")
-                .Append(operation.ColumnType ?? GetColumnType(schema, table, name, operation, model));
+                .Append(operation.ColumnType ?? GetColumnType(schema, table, name, operation, model)!);
 
             if (operation.Collation != null)
             {
@@ -1741,14 +1739,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
             builder
                 .Append(" GENERATED ALWAYS AS (")
-                .Append(operation.ComputedColumnSql)
+                .Append(operation.ComputedColumnSql!)
                 .Append(") STORED");
         }
 
 #pragma warning disable 618
         // Version 1.0 had a bad strategy for expressing serial columns, which depended on a
         // ValueGeneratedOnAdd annotation. Detect that and throw.
-        static void CheckForOldValueGenerationAnnotation([NotNull] IAnnotatable annotatable)
+        private static void CheckForOldValueGenerationAnnotation(IAnnotatable annotatable)
         {
             if (annotatable.FindAnnotation(NpgsqlAnnotationNames.ValueGeneratedOnAdd) != null)
                 throw new NotSupportedException("The Npgsql:ValueGeneratedOnAdd annotation has been found in your migrations, but is no longer supported. Please replace it with '.Annotation(\"Npgsql:ValueGenerationStrategy\", NpgsqlValueGenerationStrategy.SerialColumn)' where you want PostgreSQL serial (autoincrement) columns, and remove it in all other cases.");
@@ -1764,11 +1762,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         /// <param name="type">The type of the object (e.g. TABLE, INDEX, SEQUENCE).</param>
         /// <param name="builder">The builder to which operations are appended.</param>
         public virtual void Rename(
-            [CanBeNull] string schema,
-            [NotNull] string name,
-            [NotNull] string newName,
-            [NotNull] string type,
-            [NotNull] MigrationCommandListBuilder builder)
+            string? schema,
+            string name,
+            string newName,
+            string type,
+            MigrationCommandListBuilder builder)
         {
             Check.NotEmpty(name, nameof(name));
             Check.NotEmpty(newName, nameof(newName));
@@ -1794,11 +1792,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         /// <param name="type">The type of the object (e.g. TABLE, INDEX, SEQUENCE).</param>
         /// <param name="builder">The builder to which operations are appended.</param>
         public virtual void Transfer(
-            [NotNull] string newSchema,
-            [CanBeNull] string schema,
-            [NotNull] string name,
-            [NotNull] string type,
-            [NotNull] MigrationCommandListBuilder builder)
+            string newSchema,
+            string? schema,
+            string name,
+            string type,
+            MigrationCommandListBuilder builder)
         {
             Check.NotEmpty(newSchema, nameof(newSchema));
             Check.NotEmpty(name, nameof(name));
@@ -1819,7 +1817,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
         #region System column utilities
 
-        bool IsSystemColumn(string name) => SystemColumnNames.Contains(name);
+        private bool IsSystemColumn(string name) => SystemColumnNames.Contains(name);
 
         /// <summary>
         /// Tables in PostgreSQL implicitly have a set of system columns, which are always there.
@@ -1829,40 +1827,40 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
         /// <remarks>
         /// https://www.postgresql.org/docs/current/static/ddl-system-columns.html
         /// </remarks>
-        static readonly string[] SystemColumnNames = { "oid", "tableoid", "xmin", "cmin", "xmax", "cmax", "ctid" };
+        private static readonly string[] SystemColumnNames = { "oid", "tableoid", "xmin", "cmin", "xmax", "cmax", "ctid" };
 
         #endregion System column utilities
 
         #region Storage parameter utilities
 
-        Dictionary<string, string> GetStorageParameters(Annotatable annotatable)
+        private Dictionary<string, string> GetStorageParameters(Annotatable annotatable)
             => annotatable.GetAnnotations()
-                .Where(a => a.Name.StartsWith(NpgsqlAnnotationNames.StorageParameterPrefix))
+                .Where(a => a.Name.StartsWith(NpgsqlAnnotationNames.StorageParameterPrefix, StringComparison.Ordinal))
                 .ToDictionary(
                     a => a.Name.Substring(NpgsqlAnnotationNames.StorageParameterPrefix.Length),
-                    a => GenerateStorageParameterValue(a.Value)
+                    a => GenerateStorageParameterValue(a.Value!)
                 );
 
-        static string GenerateStorageParameterValue(object value)
+        private static string GenerateStorageParameterValue(object value)
         {
             if (value is bool)
                 return (bool)value ? "true" : "false";
             if (value is string)
                 return $"'{value}'";
-            return value.ToString();
+            return value.ToString()!;
         }
 
         #endregion Storage parameter utilities
 
         #region Helpers
 
-        string DelimitIdentifier(string identifier) =>
+        private string DelimitIdentifier(string identifier) =>
             Dependencies.SqlGenerationHelper.DelimitIdentifier(identifier);
 
-        string DelimitIdentifier(string name, string schema) =>
+        private string DelimitIdentifier(string name, string? schema) =>
             Dependencies.SqlGenerationHelper.DelimitIdentifier(name, schema);
 
-        string IndexColumnList(IndexColumn[] columns, string method)
+        private string IndexColumnList(IndexColumn[] columns, string? method)
         {
             var isFirst = true;
             var builder = new StringBuilder();
@@ -1892,7 +1890,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
 
                 // Of the built-in access methods, only btree (the default) supports
                 // sorting, thus we only want to emit sort options for btree indexes.
-                if (method == null || string.Equals(method, "btree"))
+                if (method == null || method == "btree")
                 {
                     if (column.SortOrder == SortOrder.Descending)
                     {
@@ -1918,7 +1916,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             return builder.ToString();
         }
 
-        string ColumnsToTsVector(IEnumerable<string> columns, string tsVectorConfig, IModel model, string schema, string table)
+        private string ColumnsToTsVector(IEnumerable<string> columns, string tsVectorConfig, IModel? model, string? schema, string table)
         {
             string GetTsVectorColumnExpression(string columnName)
             {
@@ -1939,7 +1937,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 .ToString();
         }
 
-        static bool TryParseSchema(string identifier, out string name, out string schema)
+        private static bool TryParseSchema(string identifier, out string name, out string? schema)
         {
             var index = identifier.IndexOf('.');
 
@@ -1950,12 +1948,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 return true;
             }
 
+            name = identifier;
             schema = default;
-            name = default;
             return false;
         }
 
-        static IndexColumn[] GetIndexColumns(CreateIndexOperation operation)
+        private static IndexColumn[] GetIndexColumns(CreateIndexOperation operation)
         {
             var collations = operation[RelationalAnnotationNames.Collation] as string[];
 
@@ -1979,9 +1977,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             return columns;
         }
 
-        readonly struct IndexColumn
+        private readonly struct IndexColumn
         {
-            public IndexColumn(string name, string @operator, string collation, SortOrder sortOrder, NullSortOrder nullSortOrder)
+            public IndexColumn(string name, string? @operator, string? collation, SortOrder sortOrder, NullSortOrder nullSortOrder)
             {
                 Name = name;
                 Operator = @operator;
@@ -1991,8 +1989,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             }
 
             public string Name { get; }
-            public string Operator { get; }
-            public string Collation { get; }
+            public string? Operator { get; }
+            public string? Collation { get; }
             public SortOrder SortOrder { get; }
             public NullSortOrder NullSortOrder { get; }
         }

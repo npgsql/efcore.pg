@@ -9,7 +9,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
 {
     public class NpgsqlValueConverterSelectorTest
     {
-        readonly IValueConverterSelector _selector
+        private readonly IValueConverterSelector _selector
             = new NpgsqlValueConverterSelector(new ValueConverterSelectorDependencies());
 
         [ConditionalFact]
@@ -31,7 +31,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
                 (typeof(NpgsqlArrayConverter<Queen[], double[]>), default),
                 (typeof(NpgsqlArrayConverter<Queen[], float[]>), default));
 
-        static void AssertConverters(
+        private static void AssertConverters(
             IList<ValueConverterInfo> converterInfos,
             params (Type InfoType, ConverterMappingHints Hints)[] converterTypes)
         {
@@ -44,7 +44,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
             }
         }
 
-        enum Queen
+        private enum Queen
         {
             Freddie,
             Brian,

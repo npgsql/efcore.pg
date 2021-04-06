@@ -1,7 +1,6 @@
-﻿using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Metadata;
+﻿using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Utilities;
 using Microsoft.EntityFrameworkCore.ValueGeneration;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
 {
@@ -15,7 +14,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
         ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
         ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
-        public NpgsqlSequenceValueGeneratorState([NotNull] ISequence sequence)
+        public NpgsqlSequenceValueGeneratorState(ISequence sequence)
             : base(Check.NotNull(sequence, nameof(sequence)).IncrementBy)
         {
             Sequence = sequence;

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.Json;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
@@ -17,15 +16,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 {
     public class NpgsqlJsonDomTranslator : IMemberTranslator, IMethodCallTranslator
     {
-        static readonly MemberInfo RootElement = typeof(JsonDocument).GetProperty(nameof(JsonDocument.RootElement));
-        static readonly MethodInfo GetProperty = typeof(JsonElement).GetRuntimeMethod(nameof(JsonElement.GetProperty), new[] { typeof(string) });
-        static readonly MethodInfo GetArrayLength = typeof(JsonElement).GetRuntimeMethod(nameof(JsonElement.GetArrayLength), Type.EmptyTypes);
+        private static readonly MemberInfo RootElement = typeof(JsonDocument).GetProperty(nameof(JsonDocument.RootElement))!;
+        private static readonly MethodInfo GetProperty = typeof(JsonElement).GetRuntimeMethod(nameof(JsonElement.GetProperty), new[] { typeof(string) })!;
+        private static readonly MethodInfo GetArrayLength = typeof(JsonElement).GetRuntimeMethod(nameof(JsonElement.GetArrayLength), Type.EmptyTypes)!;
 
-        static readonly MethodInfo ArrayIndexer = typeof(JsonElement).GetProperties()
+        private static readonly MethodInfo ArrayIndexer = typeof(JsonElement).GetProperties()
             .Single(p => p.GetIndexParameters().Length == 1 && p.GetIndexParameters()[0].ParameterType == typeof(int))
-            .GetMethod;
+            .GetMethod!;
 
-        static readonly string[] GetMethods =
+        private static readonly string[] GetMethods =
         {
             nameof(JsonElement.GetBoolean),
             nameof(JsonElement.GetDateTime),
@@ -40,20 +39,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             nameof(JsonElement.GetString)
         };
 
-        readonly IRelationalTypeMappingSource _typeMappingSource;
-        readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
-        readonly RelationalTypeMapping _stringTypeMapping;
+        private readonly IRelationalTypeMappingSource _typeMappingSource;
+        private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
+        private readonly RelationalTypeMapping _stringTypeMapping;
 
         public NpgsqlJsonDomTranslator(
-            [NotNull] IRelationalTypeMappingSource typeMappingSource,
-            [NotNull] NpgsqlSqlExpressionFactory sqlExpressionFactory)
+            IRelationalTypeMappingSource typeMappingSource,
+            NpgsqlSqlExpressionFactory sqlExpressionFactory)
         {
             _typeMappingSource = typeMappingSource;
             _sqlExpressionFactory = sqlExpressionFactory;
-            _stringTypeMapping = typeMappingSource.FindMapping(typeof(string));
+            _stringTypeMapping = typeMappingSource.FindMapping(typeof(string))!;
         }
 
-        public virtual SqlExpression Translate(SqlExpression instance,
+        public virtual SqlExpression? Translate(SqlExpression? instance,
             MemberInfo member,
             Type returnType,
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)
@@ -72,14 +71,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             return null;
         }
 
-        public virtual SqlExpression Translate(
-            SqlExpression instance,
+        public virtual SqlExpression? Translate(
+            SqlExpression? instance,
             MethodInfo method,
             IReadOnlyList<SqlExpression> arguments,
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)
         {
             if (method.DeclaringType != typeof(JsonElement) ||
-                !(instance.TypeMapping is NpgsqlJsonTypeMapping mapping))
+                instance?.TypeMapping is not NpgsqlJsonTypeMapping mapping)
             {
                 return null;
             }
@@ -126,14 +125,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     typeof(int));
             }
 
-            if (method.Name.StartsWith("TryGet") && arguments.Count == 0)
+            if (method.Name.StartsWith("TryGet", StringComparison.Ordinal) && arguments.Count == 0)
                 throw new InvalidOperationException($"The TryGet* methods on {nameof(JsonElement)} aren't translated yet, use Get* instead.'");
 
             return null;
         }
 
         // The PostgreSQL traversal operator always returns text, so we need to convert to int, bool, etc.
-        SqlExpression ConvertFromText(SqlExpression expression, Type returnType)
+        private SqlExpression ConvertFromText(SqlExpression expression, Type returnType)
         {
             switch (Type.GetTypeCode(returnType))
             {

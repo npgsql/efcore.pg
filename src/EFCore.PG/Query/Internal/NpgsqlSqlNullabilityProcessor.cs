@@ -1,13 +1,10 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
+using Microsoft.EntityFrameworkCore.Utilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
@@ -15,7 +12,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
     /// <inheritdoc />
     public class NpgsqlSqlNullabilityProcessor : SqlNullabilityProcessor
     {
-        readonly ISqlExpressionFactory _sqlExpressionFactory;
+        private readonly ISqlExpressionFactory _sqlExpressionFactory;
 
         /// <summary>
         /// Creates a new instance of the <see cref="NpgsqlSqlNullabilityProcessor" /> class.
@@ -23,7 +20,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         /// <param name="dependencies">Parameter object containing dependencies for this class.</param>
         /// <param name="useRelationalNulls">A bool value indicating whether relational null semantics are in use.</param>
         public NpgsqlSqlNullabilityProcessor(
-            [NotNull] RelationalParameterBasedSqlProcessorDependencies dependencies,
+            RelationalParameterBasedSqlProcessorDependencies dependencies,
             bool useRelationalNulls)
             : base(dependencies, useRelationalNulls)
             => _sqlExpressionFactory = dependencies.SqlExpressionFactory;
@@ -63,7 +60,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         /// <param name="nullable">A bool value indicating whether the sql expression is nullable.</param>
         /// <returns>An optimized sql expression.</returns>
         protected virtual SqlExpression VisitAny(
-            [NotNull] PostgresAnyExpression anyExpression, bool allowOptimizedExpansion, out bool nullable)
+            PostgresAnyExpression anyExpression, bool allowOptimizedExpansion, out bool nullable)
         {
             Check.NotNull(anyExpression, nameof(anyExpression));
 
@@ -134,7 +131,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         /// <param name="nullable">A bool value indicating whether the sql expression is nullable.</param>
         /// <returns>An optimized sql expression.</returns>
         protected virtual SqlExpression VisitAll(
-            [NotNull] PostgresAllExpression allExpression, bool allowOptimizedExpansion, out bool nullable)
+            PostgresAllExpression allExpression, bool allowOptimizedExpansion, out bool nullable)
         {
             Check.NotNull(allExpression, nameof(allExpression));
 
@@ -165,14 +162,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         /// <param name="nullable">A bool value indicating whether the sql expression is nullable.</param>
         /// <returns>An optimized sql expression.</returns>
         protected virtual SqlExpression VisitArrayIndex(
-            [NotNull] PostgresArrayIndexExpression arrayIndexExpression, bool allowOptimizedExpansion, out bool nullable)
+            PostgresArrayIndexExpression arrayIndexExpression, bool allowOptimizedExpansion, out bool nullable)
         {
             Check.NotNull(arrayIndexExpression, nameof(arrayIndexExpression));
 
             var array = Visit(arrayIndexExpression.Array, allowOptimizedExpansion, out var arrayNullable);
             var index = Visit(arrayIndexExpression.Index, allowOptimizedExpansion, out var indexNullable);
 
-            nullable = arrayNullable || indexNullable || ((NpgsqlArrayTypeMapping)arrayIndexExpression.Array.TypeMapping).IsElementNullable;
+            nullable = arrayNullable || indexNullable || ((NpgsqlArrayTypeMapping)arrayIndexExpression.Array.TypeMapping!).IsElementNullable;
 
             return arrayIndexExpression.Update(array, index);
         }
@@ -187,7 +184,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         /// <param name="nullable">A bool value indicating whether the sql expression is nullable.</param>
         /// <returns>An optimized sql expression.</returns>
         protected virtual SqlExpression VisitBinary(
-            [NotNull] PostgresBinaryExpression binaryExpression, bool allowOptimizedExpansion, out bool nullable)
+            PostgresBinaryExpression binaryExpression, bool allowOptimizedExpansion, out bool nullable)
         {
             Check.NotNull(binaryExpression, nameof(binaryExpression));
 
@@ -217,7 +214,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         /// <param name="nullable">A bool value indicating whether the sql expression is nullable.</param>
         /// <returns>An optimized sql expression.</returns>
         protected virtual SqlExpression VisitILike(
-            [NotNull] PostgresILikeExpression iLikeExpression, bool allowOptimizedExpansion, out bool nullable)
+            PostgresILikeExpression iLikeExpression, bool allowOptimizedExpansion, out bool nullable)
         {
             Check.NotNull(iLikeExpression, nameof(iLikeExpression));
 
@@ -246,11 +243,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         /// <param name="nullable">A bool value indicating whether the sql expression is nullable.</param>
         /// <returns>An optimized sql expression.</returns>
         protected virtual SqlExpression VisitNewArray(
-            [NotNull] PostgresNewArrayExpression newArrayExpression, bool allowOptimizedExpansion, out bool nullable)
+            PostgresNewArrayExpression newArrayExpression, bool allowOptimizedExpansion, out bool nullable)
         {
             Check.NotNull(newArrayExpression, nameof(newArrayExpression));
 
-            List<SqlExpression> newInitializers = null;
+            List<SqlExpression>? newInitializers = null;
             for (var i = 0; i < newArrayExpression.Expressions.Count; i++)
             {
                 var initializer = newArrayExpression.Expressions[i];
@@ -282,7 +279,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         /// <param name="nullable">A bool value indicating whether the sql expression is nullable.</param>
         /// <returns>An optimized sql expression.</returns>
         protected virtual SqlExpression VisitRegexMatch(
-            [NotNull] PostgresRegexMatchExpression regexMatchExpression, bool allowOptimizedExpansion, out bool nullable)
+            PostgresRegexMatchExpression regexMatchExpression, bool allowOptimizedExpansion, out bool nullable)
         {
             Check.NotNull(regexMatchExpression, nameof(regexMatchExpression));
 
@@ -304,13 +301,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         /// <param name="nullable">A bool value indicating whether the sql expression is nullable.</param>
         /// <returns>An optimized sql expression.</returns>
         protected virtual SqlExpression VisitJsonTraversal(
-            [NotNull] PostgresJsonTraversalExpression jsonTraversalExpression, bool allowOptimizedExpansion, out bool nullable)
+            PostgresJsonTraversalExpression jsonTraversalExpression, bool allowOptimizedExpansion, out bool nullable)
         {
             Check.NotNull(jsonTraversalExpression, nameof(jsonTraversalExpression));
 
             var expression = Visit(jsonTraversalExpression.Expression, out nullable);
 
-            List<SqlExpression> newPath = null;
+            List<SqlExpression>? newPath = null;
             for (var i = 0; i < jsonTraversalExpression.Path.Count; i++)
             {
                 var pathComponent = jsonTraversalExpression.Path[i];
@@ -346,7 +343,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         /// <param name="nullable">A bool value indicating whether the sql expression is nullable.</param>
         /// <returns>An optimized sql expression.</returns>
         protected virtual SqlExpression VisitUnknownBinary(
-            [NotNull] PostgresUnknownBinaryExpression unknownBinaryExpression, bool allowOptimizedExpansion, out bool nullable)
+            PostgresUnknownBinaryExpression unknownBinaryExpression, bool allowOptimizedExpansion, out bool nullable)
         {
             Check.NotNull(unknownBinaryExpression, nameof(unknownBinaryExpression));
 
@@ -358,7 +355,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             return unknownBinaryExpression.Update(left, right);
         }
 
-        static bool MayContainNulls(SqlExpression arrayExpression)
+        private static bool MayContainNulls(SqlExpression arrayExpression)
         {
             if (arrayExpression is SqlConstantExpression constantArrayExpression &&
                 constantArrayExpression.Value is Array constantArray)

@@ -1,8 +1,8 @@
 using System;
 using System.Data.Common;
 using System.Text;
-using Microsoft.EntityFrameworkCore.Storage;
 using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.Storage;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
@@ -14,13 +14,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
     [UsedImplicitly]
     public class NpgsqlGeometryTypeMapping<TGeometry> : RelationalGeometryTypeMapping<TGeometry, TGeometry>, INpgsqlTypeMapping
     {
-        readonly bool _isGeography;
+        private readonly bool _isGeography;
 
         /// <inheritdoc />
         public virtual NpgsqlDbType NpgsqlDbType
             => _isGeography ? NpgsqlDbType.Geography : NpgsqlDbType.Geometry;
 
-        public NpgsqlGeometryTypeMapping([NotNull] string storeType, bool isGeography) : base(converter: null, storeType)
+        public NpgsqlGeometryTypeMapping(string storeType, bool isGeography) : base(converter: null, storeType)
             => _isGeography = isGeography;
 
         protected NpgsqlGeometryTypeMapping(RelationalTypeMappingParameters parameters)

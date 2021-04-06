@@ -2,7 +2,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Storage;
 using NodaTime;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
@@ -18,32 +17,32 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
         #region TypeMapping
 
-        readonly TimestampInstantMapping _timestampInstant = new();
-        readonly TimestampLocalDateTimeMapping _timestampLocalDateTime = new();
+        private readonly TimestampInstantMapping _timestampInstant = new();
+        private readonly TimestampLocalDateTimeMapping _timestampLocalDateTime = new();
 
-        readonly TimestampTzInstantMapping _timestamptzInstant = new();
-        readonly TimestampTzZonedDateTimeMapping _timestamptzZonedDateTime = new();
-        readonly TimestampTzOffsetDateTimeMapping _timestamptzOffsetDateTime = new();
+        private readonly TimestampTzInstantMapping _timestamptzInstant = new();
+        private readonly TimestampTzZonedDateTimeMapping _timestamptzZonedDateTime = new();
+        private readonly TimestampTzOffsetDateTimeMapping _timestamptzOffsetDateTime = new();
 
-        readonly DateMapping _date = new();
-        readonly TimeMapping _time = new();
-        readonly TimeTzMapping _timetz = new();
-        readonly PeriodIntervalMapping _periodInterval = new();
-        readonly DurationIntervalMapping _durationInterval = new();
+        private readonly DateMapping _date = new();
+        private readonly TimeMapping _time = new();
+        private readonly TimeTzMapping _timetz = new();
+        private readonly PeriodIntervalMapping _periodInterval = new();
+        private readonly DurationIntervalMapping _durationInterval = new();
 
-        readonly NpgsqlRangeTypeMapping _timestampLocalDateTimeRange;
-        readonly NpgsqlRangeTypeMapping _timestampInstantRange;
-        readonly NpgsqlRangeTypeMapping _timestamptzInstantRange;
-        readonly NpgsqlRangeTypeMapping _timestamptzZonedDateTimeRange;
-        readonly NpgsqlRangeTypeMapping _timestamptzOffsetDateTimeRange;
-        readonly NpgsqlRangeTypeMapping _dateRange;
+        private readonly NpgsqlRangeTypeMapping _timestampLocalDateTimeRange;
+        private readonly NpgsqlRangeTypeMapping _timestampInstantRange;
+        private readonly NpgsqlRangeTypeMapping _timestamptzInstantRange;
+        private readonly NpgsqlRangeTypeMapping _timestamptzZonedDateTimeRange;
+        private readonly NpgsqlRangeTypeMapping _timestamptzOffsetDateTimeRange;
+        private readonly NpgsqlRangeTypeMapping _dateRange;
 
         #endregion
 
         /// <summary>
         /// Constructs an instance of the <see cref="NpgsqlNodaTimeTypeMappingSourcePlugin"/> class.
         /// </summary>
-        public NpgsqlNodaTimeTypeMappingSourcePlugin([NotNull] ISqlGenerationHelper sqlGenerationHelper)
+        public NpgsqlNodaTimeTypeMappingSourcePlugin(ISqlGenerationHelper sqlGenerationHelper)
         {
             _timestampLocalDateTimeRange = new NpgsqlRangeTypeMapping("tsrange", typeof(NpgsqlRange<LocalDateTime>), _timestampLocalDateTime, sqlGenerationHelper);
             _timestampInstantRange = new NpgsqlRangeTypeMapping("tsrange", typeof(NpgsqlRange<Instant>), _timestampInstant, sqlGenerationHelper);
@@ -93,10 +92,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             ClrTypeMappings = new ConcurrentDictionary<Type, RelationalTypeMapping>(clrTypeMappings);
         }
 
-        public virtual RelationalTypeMapping FindMapping(in RelationalTypeMappingInfo mappingInfo)
+        public virtual RelationalTypeMapping? FindMapping(in RelationalTypeMappingInfo mappingInfo)
             => FindExistingMapping(mappingInfo) ?? FindArrayMapping(mappingInfo);
 
-        protected virtual RelationalTypeMapping FindExistingMapping(in RelationalTypeMappingInfo mappingInfo)
+        protected virtual RelationalTypeMapping? FindExistingMapping(in RelationalTypeMappingInfo mappingInfo)
         {
             var clrType = mappingInfo.ClrType;
             var storeTypeName = mappingInfo.StoreTypeName;
@@ -116,7 +115,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                     return null;
                 }
 
-                if (StoreTypeMappings.TryGetValue(storeTypeNameBase, out mappings))
+                if (StoreTypeMappings.TryGetValue(storeTypeNameBase!, out mappings))
                 {
                     if (clrType == null)
                         return mappings[0].Clone(in mappingInfo);
@@ -140,10 +139,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         }
 
         // TODO: This is duplicated from NpgsqlTypeMappingSource
-        protected virtual RelationalTypeMapping FindArrayMapping(in RelationalTypeMappingInfo mappingInfo)
+        protected virtual RelationalTypeMapping? FindArrayMapping(in RelationalTypeMappingInfo mappingInfo)
         {
             var clrType = mappingInfo.ClrType;
-            Type elementClrType = null;
+            Type? elementClrType = null;
 
             if (clrType != null && !clrType.TryGetElementType(out elementClrType))
                 return null; // Not an array/list
@@ -153,13 +152,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             if (storeType != null)
             {
                 // PostgreSQL array type names are the element plus []
-                if (!storeType.EndsWith("[]"))
+                if (!storeType.EndsWith("[]", StringComparison.Ordinal))
                     return null;
 
                 var elementStoreType = storeType.Substring(0, storeType.Length - 2);
-                var elementStoreTypeNameBase = storeTypeNameBase.Substring(0, storeTypeNameBase.Length - 2);
+                var elementStoreTypeNameBase = storeTypeNameBase!.Substring(0, storeTypeNameBase.Length - 2);
 
-                RelationalTypeMapping elementMapping;
+                RelationalTypeMapping? elementMapping;
 
                 if (elementClrType == null)
                 {

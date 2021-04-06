@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Text.Json.Serialization;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
@@ -16,20 +15,20 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 {
     public class NpgsqlJsonPocoTranslator : IMemberTranslator
     {
-        readonly IRelationalTypeMappingSource _typeMappingSource;
-        readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
-        readonly RelationalTypeMapping _stringTypeMapping;
+        private readonly IRelationalTypeMappingSource _typeMappingSource;
+        private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
+        private readonly RelationalTypeMapping _stringTypeMapping;
 
         public NpgsqlJsonPocoTranslator(
-            [NotNull] IRelationalTypeMappingSource typeMappingSource,
-            [NotNull] NpgsqlSqlExpressionFactory sqlExpressionFactory)
+            IRelationalTypeMappingSource typeMappingSource,
+            NpgsqlSqlExpressionFactory sqlExpressionFactory)
         {
             _typeMappingSource = typeMappingSource;
             _sqlExpressionFactory = sqlExpressionFactory;
-            _stringTypeMapping = typeMappingSource.FindMapping(typeof(string));
+            _stringTypeMapping = typeMappingSource.FindMapping(typeof(string))!;
         }
 
-        public virtual SqlExpression Translate(SqlExpression instance,
+        public virtual SqlExpression? Translate(SqlExpression? instance,
             MemberInfo member,
             Type returnType,
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)
@@ -41,8 +40,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     returnType)
                 : null;
 
-        public virtual SqlExpression TranslateMemberAccess(
-            [NotNull] SqlExpression instance, [NotNull] SqlExpression member, [NotNull] Type returnType)
+        public virtual SqlExpression? TranslateMemberAccess(
+            SqlExpression instance, SqlExpression member, Type returnType)
         {
             // The first time we see a JSON traversal it's on a column - create a JsonTraversalExpression.
             // Traversals on top of that get appended into the same expression.
@@ -70,7 +69,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             return null;
         }
 
-        public virtual SqlExpression TranslateArrayLength([NotNull] SqlExpression expression)
+        public virtual SqlExpression? TranslateArrayLength(SqlExpression expression)
         {
             if (expression is ColumnExpression columnExpression &&
                 columnExpression.TypeMapping is NpgsqlJsonTypeMapping mapping)
@@ -94,7 +93,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     lastPathComponent.Type,
                     _typeMappingSource.FindMapping(lastPathComponent.Type));
 
-                var jsonMapping = (NpgsqlJsonTypeMapping)traversal.Expression.TypeMapping;
+                var jsonMapping = (NpgsqlJsonTypeMapping)traversal.Expression.TypeMapping!;
                 return _sqlExpressionFactory.Function(
                     jsonMapping.IsJsonb ? "jsonb_array_length" : "json_array_length",
                     new[] { newTraversal },
@@ -107,7 +106,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         }
 
         // The PostgreSQL traversal operator always returns text, so we need to convert to int, bool, etc.
-        SqlExpression ConvertFromText(SqlExpression expression, Type returnType)
+        private SqlExpression ConvertFromText(SqlExpression expression, Type returnType)
         {
             var unwrappedReturnType = returnType.UnwrapNullableType();
 

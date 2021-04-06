@@ -1,5 +1,4 @@
 using System;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
@@ -12,13 +11,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
     [EntityFrameworkInternal]
     public class NpgsqlConventionSetBuilder : RelationalConventionSetBuilder
     {
-        readonly Version _postgresVersion;
+        private readonly Version _postgresVersion;
 
         [EntityFrameworkInternal]
         public NpgsqlConventionSetBuilder(
-            [NotNull] ProviderConventionSetBuilderDependencies dependencies,
-            [NotNull] RelationalConventionSetBuilderDependencies relationalDependencies,
-            [NotNull] INpgsqlOptions npgsqlOptions)
+            ProviderConventionSetBuilderDependencies dependencies,
+            RelationalConventionSetBuilderDependencies relationalDependencies,
+            INpgsqlOptions npgsqlOptions)
             : base(dependencies, relationalDependencies)
             => _postgresVersion = npgsqlOptions.PostgresVersion;
 
@@ -58,21 +57,52 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
             return conventionSet;
         }
 
-        [EntityFrameworkInternal]
+        /// <summary>
+        ///     <para>
+        ///         Call this method to build a <see cref="ConventionSet" /> for Npgsql when using
+        ///         the <see cref="ModelBuilder" /> outside of <see cref="DbContext.OnModelCreating" />.
+        ///     </para>
+        ///     <para>
+        ///         Note that it is unusual to use this method.
+        ///         Consider using <see cref="DbContext" /> in the normal way instead.
+        ///     </para>
+        /// </summary>
+        /// <returns> The convention set. </returns>
         public static ConventionSet Build()
+        {
+            using var serviceScope = CreateServiceScope();
+            using var context = serviceScope.ServiceProvider.GetRequiredService<DbContext>();
+            return ConventionSet.CreateConventionSet(context);
+        }
+
+        /// <summary>
+        ///     <para>
+        ///         Call this method to build a <see cref="ModelBuilder" /> for Npgsql outside of <see cref="DbContext.OnModelCreating" />.
+        ///     </para>
+        ///     <para>
+        ///         Note that it is unusual to use this method.
+        ///         Consider using <see cref="DbContext" /> in the normal way instead.
+        ///     </para>
+        /// </summary>
+        /// <returns> The convention set. </returns>
+        public static ModelBuilder CreateModelBuilder()
+        {
+            using var serviceScope = CreateServiceScope();
+            using var context = serviceScope.ServiceProvider.GetRequiredService<DbContext>();
+            return new ModelBuilder(ConventionSet.CreateConventionSet(context), context.GetService<ModelDependencies>());
+        }
+
+        private static IServiceScope CreateServiceScope()
         {
             var serviceProvider = new ServiceCollection()
                 .AddEntityFrameworkNpgsql()
-                .AddDbContext<DbContext>(o => o.UseNpgsql("Server=."))
+                .AddDbContext<DbContext>(
+                    (p, o) =>
+                        o.UseNpgsql("Server=.")
+                            .UseInternalServiceProvider(p))
                 .BuildServiceProvider();
 
-            using (var serviceScope = serviceProvider.GetRequiredService<IServiceScopeFactory>().CreateScope())
-            {
-                using (var context = serviceScope.ServiceProvider.GetService<DbContext>())
-                {
-                    return ConventionSet.CreateConventionSet(context);
-                }
-            }
+            return serviceProvider.GetRequiredService<IServiceScopeFactory>().CreateScope();
         }
     }
 }

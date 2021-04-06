@@ -2,7 +2,6 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Internal;
@@ -28,9 +27,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
     /// </remarks>
     public class NpgsqlModificationCommandBatch : ReaderModificationCommandBatch
     {
-        const int DefaultBatchSize = 1000;
-        readonly int _maxBatchSize;
-        int _parameterCount;
+        private const int DefaultBatchSize = 1000;
+        private readonly int _maxBatchSize;
+        private int _parameterCount;
 
         /// <summary>
         /// Constructs an instance of the <see cref="NpgsqlModificationCommandBatch"/> class.
@@ -41,7 +40,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
         /// <param name="valueBufferFactoryFactory">A factory for creating <see cref="ValueBuffer" /> factories.</param>
         /// <param name="maxBatchSize">The maximum count of commands to batch.</param>
         public NpgsqlModificationCommandBatch(
-            [NotNull] ModificationCommandBatchFactoryDependencies dependencies,
+            ModificationCommandBatchFactoryDependencies dependencies,
             int? maxBatchSize)
             : base(dependencies)
         {
@@ -170,7 +169,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
 
                     if (nextPropagating == ModificationCommands.Count)
                     {
-                        Debug.Assert(!(await npgsqlReader.NextResultAsync(cancellationToken)), "Expected less resultsets");
+                        Debug.Assert(!(await npgsqlReader.NextResultAsync(cancellationToken).ConfigureAwait(false)), "Expected less resultsets");
                         break;
                     }
 
@@ -178,7 +177,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
 
                     var modificationCommand = ModificationCommands[commandIndex++];
 
-                    if (!(await reader.ReadAsync(cancellationToken)))
+                    if (!(await reader.ReadAsync(cancellationToken).ConfigureAwait(false)))
                     {
                         throw new DbUpdateConcurrencyException(
                             RelationalStrings.UpdateConcurrencyException(1, 0),
@@ -189,7 +188,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
                     var valueBufferFactory = CreateValueBufferFactory(modificationCommand.ColumnModifications);
                     modificationCommand.PropagateResults(valueBufferFactory.Create(npgsqlReader));
 
-                    await npgsqlReader.NextResultAsync(cancellationToken);
+                    await npgsqlReader.NextResultAsync(cancellationToken).ConfigureAwait(false);
                 }
             }
             catch (DbUpdateException)

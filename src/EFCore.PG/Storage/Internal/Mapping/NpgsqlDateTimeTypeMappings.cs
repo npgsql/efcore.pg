@@ -1,5 +1,4 @@
 ﻿using System;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Storage;
 using NpgsqlTypes;
 
@@ -15,13 +14,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
             => new NpgsqlTimestampTypeMapping(parameters);
 
+        protected override string ProcessStoreType(RelationalTypeMappingParameters parameters, string storeType, string _)
+            => parameters.Precision is null ? storeType : $"timestamp({parameters.Precision}) without time zone";
+
         protected override string GenerateNonNullSqlLiteral(object value)
             => FormattableString.Invariant($"TIMESTAMP '{(DateTime)value:yyyy-MM-dd HH:mm:ss.FFFFFF}'");
     }
 
     public class NpgsqlTimestampTzTypeMapping : NpgsqlTypeMapping
     {
-        public NpgsqlTimestampTzTypeMapping([NotNull] Type clrType)
+        public NpgsqlTimestampTzTypeMapping(Type clrType)
             : base("timestamp with time zone", clrType, NpgsqlDbType.TimestampTz) {}
 
         protected NpgsqlTimestampTzTypeMapping(RelationalTypeMappingParameters parameters)
@@ -29,6 +31,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
         protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
             => new NpgsqlTimestampTzTypeMapping(parameters);
+
+        protected override string ProcessStoreType(RelationalTypeMappingParameters parameters, string storeType, string _)
+            => parameters.Precision is null ? storeType : $"timestamp({parameters.Precision}) with time zone";
 
         protected override string GenerateNonNullSqlLiteral(object value)
         {
@@ -108,6 +113,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
         protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
             => new NpgsqlIntervalTypeMapping(parameters);
+
+        protected override string ProcessStoreType(RelationalTypeMappingParameters parameters, string storeType, string _)
+            => parameters.Precision is null ? storeType : $"interval({parameters.Precision})";
 
         protected override string GenerateNonNullSqlLiteral(object value)
             => FormatTimeSpanAsInterval((TimeSpan)value);

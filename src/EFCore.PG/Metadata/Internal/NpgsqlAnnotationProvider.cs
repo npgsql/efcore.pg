@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -11,7 +10,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
 {
     public class NpgsqlAnnotationProvider : RelationalAnnotationProvider
     {
-        public NpgsqlAnnotationProvider([NotNull] RelationalAnnotationProviderDependencies dependencies)
+        public NpgsqlAnnotationProvider(RelationalAnnotationProviderDependencies dependencies)
             : base(dependencies)
         {
         }
@@ -26,7 +25,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
             if (entityType[CockroachDbAnnotationNames.InterleaveInParent] != null)
                 yield return new Annotation(CockroachDbAnnotationNames.InterleaveInParent, entityType[CockroachDbAnnotationNames.InterleaveInParent]);
             foreach (var storageParamAnnotation in entityType.GetAnnotations()
-                .Where(a => a.Name.StartsWith(NpgsqlAnnotationNames.StorageParameterPrefix)))
+                .Where(a => a.Name.StartsWith(NpgsqlAnnotationNames.StorageParameterPrefix, StringComparison.Ordinal)))
             {
                 yield return storageParamAnnotation;
             }
@@ -87,8 +86,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
 
                 yield return new Annotation(
                     NpgsqlAnnotationNames.TsVectorProperties,
-                    valueGeneratedProperty.GetTsVectorProperties()
-                        .Select(p2 => valueGeneratedProperty.DeclaringEntityType.FindProperty(p2).GetColumnName(tableIdentifier))
+                    valueGeneratedProperty.GetTsVectorProperties()!
+                        .Select(p2 => valueGeneratedProperty.DeclaringEntityType.FindProperty(p2)!.GetColumnName(tableIdentifier))
                         .ToArray());
             }
         }
@@ -118,7 +117,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
                 yield return new Annotation(
                     NpgsqlAnnotationNames.IndexInclude,
                     includeProperties
-                        .Select(p => modelIndex.DeclaringEntityType.FindProperty(p).GetColumnName(tableIdentifier))
+                        .Select(p => modelIndex.DeclaringEntityType.FindProperty(p)!.GetColumnName(tableIdentifier))
                         .ToArray());
             }
 

@@ -10,7 +10,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     public class EnumQueryTest : IClassFixture<EnumQueryTest.EnumFixture>
     {
-        EnumFixture Fixture { get; }
+        private EnumFixture Fixture { get; }
 
         // ReSharper disable once UnusedParameter.Local
         public EnumQueryTest(EnumFixture fixture, ITestOutputHelper testOutputHelper)
@@ -178,14 +178,14 @@ LIMIT 2");
 
         protected EnumContext CreateContext() => Fixture.CreateContext();
 
-        void AssertSql(params string[] expected)
+        private void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
-        void AssertContainsInSql(string expected)
+        private void AssertContainsInSql(string expected)
             => Assert.Contains(expected, Fixture.TestSqlLoggerFactory.Sql);
 
         // ReSharper disable once UnusedMember.Local
-        void AssertDoesNotContainInSql(string expected)
+        private void AssertDoesNotContainInSql(string expected)
             => Assert.DoesNotContain(expected, Fixture.TestSqlLoggerFactory.Sql);
 
         public class EnumContext : PoolableDbContext

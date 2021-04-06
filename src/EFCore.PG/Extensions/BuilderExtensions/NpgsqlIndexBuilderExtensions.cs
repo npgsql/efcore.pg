@@ -3,11 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using Microsoft.EntityFrameworkCore.Utilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
@@ -31,8 +30,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="method">The name of the index.</param>
         /// <returns>A builder to further configure the index.</returns>
         public static IndexBuilder HasMethod(
-            [NotNull] this IndexBuilder indexBuilder,
-            [CanBeNull] string method)
+            this IndexBuilder indexBuilder,
+            string? method)
         {
             Check.NotNull(indexBuilder, nameof(indexBuilder));
             Check.NullButNotEmpty(method, nameof(method));
@@ -52,8 +51,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="method">The name of the index.</param>
         /// <returns>A builder to further configure the index.</returns>
         public static IndexBuilder<TEntity> HasMethod<TEntity>(
-            [NotNull] this IndexBuilder<TEntity> indexBuilder,
-            [CanBeNull] string method)
+            this IndexBuilder<TEntity> indexBuilder,
+            string? method)
             => (IndexBuilder<TEntity>)HasMethod((IndexBuilder)indexBuilder, method);
 
         /// <summary>
@@ -66,9 +65,9 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="method">The name of the index.</param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns>A builder to further configure the index.</returns>
-        public static IConventionIndexBuilder HasMethod(
-            [NotNull] this IConventionIndexBuilder indexBuilder,
-            [CanBeNull] string method,
+        public static IConventionIndexBuilder? HasMethod(
+            this IConventionIndexBuilder indexBuilder,
+            string? method,
             bool fromDataAnnotation = false)
         {
             if (indexBuilder.CanSetMethod(method, fromDataAnnotation))
@@ -92,8 +91,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns><c>true</c> if the index can be configured with the method</returns>
         public static bool CanSetMethod(
-            [NotNull] this IConventionIndexBuilder indexBuilder,
-            [CanBeNull] string method,
+            this IConventionIndexBuilder indexBuilder,
+            string? method,
             bool fromDataAnnotation = false)
         {
             Check.NotNull(indexBuilder, nameof(indexBuilder));
@@ -115,8 +114,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="operators">The operators to use for each column.</param>
         /// <returns>A builder to further configure the index.</returns>
         public static IndexBuilder HasOperators(
-            [NotNull] this IndexBuilder indexBuilder,
-            [CanBeNull] params string[] operators)
+            this IndexBuilder indexBuilder,
+            params string[]? operators)
         {
             Check.NotNull(indexBuilder, nameof(indexBuilder));
             Check.NullButNotEmpty(operators, nameof(operators));
@@ -136,8 +135,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="operators">The operators to use for each column.</param>
         /// <returns>A builder to further configure the index.</returns>
         public static IndexBuilder<TEntity> HasOperators<TEntity>(
-            [NotNull] this IndexBuilder<TEntity> indexBuilder,
-            [CanBeNull] params string[] operators)
+            this IndexBuilder<TEntity> indexBuilder,
+            params string[]? operators)
             => (IndexBuilder<TEntity>)HasOperators((IndexBuilder)indexBuilder, operators);
 
         /// <summary>
@@ -150,9 +149,9 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="operators">The operators to use for each column.</param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns>A builder to further configure the index.</returns>
-        public static IConventionIndexBuilder HasOperators(
-            [NotNull] this IConventionIndexBuilder indexBuilder,
-            [CanBeNull] IReadOnlyList<string> operators,
+        public static IConventionIndexBuilder? HasOperators(
+            this IConventionIndexBuilder indexBuilder,
+            IReadOnlyList<string>? operators,
             bool fromDataAnnotation)
         {
             if (indexBuilder.CanSetOperators(operators, fromDataAnnotation))
@@ -176,8 +175,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns><c>true</c> if the index can be configured with the method.</returns>
         public static bool CanSetOperators(
-            [NotNull] this IConventionIndexBuilder indexBuilder,
-            [CanBeNull] IReadOnlyList<string> operators,
+            this IConventionIndexBuilder indexBuilder,
+            IReadOnlyList<string>? operators,
             bool fromDataAnnotation)
         {
             Check.NotNull(indexBuilder, nameof(indexBuilder));
@@ -204,8 +203,8 @@ namespace Microsoft.EntityFrameworkCore
         /// </param>
         /// <returns>A builder to further configure the index.</returns>
         public static IndexBuilder IsTsVectorExpressionIndex(
-            [NotNull] this IndexBuilder indexBuilder,
-            [NotNull] string config)
+            this IndexBuilder indexBuilder,
+            string config)
         {
             Check.NotNull(indexBuilder, nameof(indexBuilder));
             Check.NotNull(config, nameof(config));
@@ -229,8 +228,8 @@ namespace Microsoft.EntityFrameworkCore
         /// </param>
         /// <returns>A builder to further configure the index.</returns>
         public static IndexBuilder<TEntity> IsTsVectorExpressionIndex<TEntity>(
-            [NotNull] this IndexBuilder<TEntity> indexBuilder,
-            [NotNull] string config)
+            this IndexBuilder<TEntity> indexBuilder,
+            string config)
             => (IndexBuilder<TEntity>)IsTsVectorExpressionIndex((IndexBuilder)indexBuilder, config);
 
         /// <summary>
@@ -250,9 +249,9 @@ namespace Microsoft.EntityFrameworkCore
         /// The same builder instance if the configuration was applied,
         /// <c>null</c> otherwise.
         /// </returns>
-        public static IConventionIndexBuilder IsTsVectorExpressionIndex(
-            [NotNull] this IConventionIndexBuilder indexBuilder,
-            [CanBeNull] string config)
+        public static IConventionIndexBuilder? IsTsVectorExpressionIndex(
+            this IConventionIndexBuilder indexBuilder,
+            string? config)
         {
             Check.NotNull(indexBuilder, nameof(indexBuilder));
 
@@ -282,8 +281,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns><c>true</c> if the index can be configured as a full-text tsvector expression index.</returns>
         public static bool CanSetIsTsVectorExpressionIndex(
-            [NotNull] this IConventionIndexBuilder indexBuilder,
-            [CanBeNull] string config,
+            this IConventionIndexBuilder indexBuilder,
+            string? config,
             bool fromDataAnnotation = false)
         {
             Check.NotNull(indexBuilder, nameof(indexBuilder));
@@ -305,8 +304,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="values">The sort options to use for each column.</param>
         /// <returns>A builder to further configure the index.</returns>
         public static IndexBuilder UseCollation(
-            [NotNull] this IndexBuilder indexBuilder,
-            [CanBeNull] params string[] values)
+            this IndexBuilder indexBuilder,
+            params string[]? values)
         {
             Check.NotNull(indexBuilder, nameof(indexBuilder));
             Check.NullButNotEmpty(values, nameof(values));
@@ -326,8 +325,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="values">The sort options to use for each column.</param>
         /// <returns>A builder to further configure the index.</returns>
         public static IndexBuilder<TEntity> UseCollation<TEntity>(
-            [NotNull] this IndexBuilder<TEntity> indexBuilder,
-            [CanBeNull] params string[] values)
+            this IndexBuilder<TEntity> indexBuilder,
+            params string[]? values)
             => (IndexBuilder<TEntity>)UseCollation((IndexBuilder)indexBuilder, values);
 
         /// <summary>
@@ -340,9 +339,9 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="values">The sort options to use for each column.</param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns>A builder to further configure the index.</returns>
-        public static IConventionIndexBuilder UseCollation(
-            [NotNull] this IConventionIndexBuilder indexBuilder,
-            [CanBeNull] IReadOnlyList<string> values,
+        public static IConventionIndexBuilder? UseCollation(
+            this IConventionIndexBuilder indexBuilder,
+            IReadOnlyList<string>? values,
             bool fromDataAnnotation)
         {
             if (indexBuilder.CanSetCollation(values, fromDataAnnotation))
@@ -366,8 +365,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns>A builder to further configure the index.</returns>
         public static bool CanSetCollation(
-            [NotNull] this IConventionIndexBuilder indexBuilder,
-            [CanBeNull] IReadOnlyList<string> values,
+            this IConventionIndexBuilder indexBuilder,
+            IReadOnlyList<string>? values,
             bool fromDataAnnotation)
         {
             Check.NotNull(indexBuilder, nameof(indexBuilder));
@@ -389,8 +388,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="values">The sort order to use for each column.</param>
         /// <returns>A builder to further configure the index.</returns>
         public static IndexBuilder HasSortOrder(
-            [NotNull] this IndexBuilder indexBuilder,
-            [CanBeNull] params SortOrder[] values)
+            this IndexBuilder indexBuilder,
+            params SortOrder[]? values)
         {
             Check.NotNull(indexBuilder, nameof(indexBuilder));
             Check.NullButNotEmpty(values, nameof(values));
@@ -411,8 +410,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="values">The sort order to use for each column.</param>
         /// <returns>A builder to further configure the index.</returns>
         public static IndexBuilder<TEntity> HasSortOrder<TEntity>(
-            [NotNull] this IndexBuilder<TEntity> indexBuilder,
-            [CanBeNull] params SortOrder[] values)
+            this IndexBuilder<TEntity> indexBuilder,
+            params SortOrder[]? values)
             => (IndexBuilder<TEntity>)HasSortOrder((IndexBuilder)indexBuilder, values);
 
         /// <summary>
@@ -425,9 +424,9 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <param name="values">The sort order to use for each column.</param>
         /// <returns>A builder to further configure the index.</returns>
-        public static IConventionIndexBuilder HasSortOrder(
-            [NotNull] this IConventionIndexBuilder indexBuilder,
-            [CanBeNull] IReadOnlyList<SortOrder> values,
+        public static IConventionIndexBuilder? HasSortOrder(
+            this IConventionIndexBuilder indexBuilder,
+            IReadOnlyList<SortOrder>? values,
             bool fromDataAnnotation)
         {
             if (indexBuilder.CanSetSortOrder(values, fromDataAnnotation))
@@ -455,8 +454,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns>A builder to further configure the index.</returns>
         public static bool CanSetSortOrder(
-            [NotNull] this IConventionIndexBuilder indexBuilder,
-            [CanBeNull] IReadOnlyList<SortOrder> values,
+            this IConventionIndexBuilder indexBuilder,
+            IReadOnlyList<SortOrder>? values,
             bool fromDataAnnotation)
         {
             Check.NotNull(indexBuilder, nameof(indexBuilder));
@@ -478,8 +477,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="values">The sort order to use for each column.</param>
         /// <returns>A builder to further configure the index.</returns>
         public static IndexBuilder HasNullSortOrder(
-            [NotNull] this IndexBuilder indexBuilder,
-            [CanBeNull] params NullSortOrder[] values)
+            this IndexBuilder indexBuilder,
+            params NullSortOrder[]? values)
         {
             Check.NotNull(indexBuilder, nameof(indexBuilder));
             Check.NullButNotEmpty(values, nameof(values));
@@ -502,8 +501,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="values">The sort order to use for each column.</param>
         /// <returns>A builder to further configure the index.</returns>
         public static IndexBuilder<TEntity> HasNullSortOrder<TEntity>(
-            [NotNull] this IndexBuilder<TEntity> indexBuilder,
-            [CanBeNull] params NullSortOrder[] values)
+            this IndexBuilder<TEntity> indexBuilder,
+            params NullSortOrder[]? values)
             => (IndexBuilder<TEntity>)HasNullSortOrder((IndexBuilder)indexBuilder, values);
 
         /// <summary>
@@ -516,9 +515,9 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="values">The sort order to use for each column.</param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns>A builder to further configure the index.</returns>
-        public static IConventionIndexBuilder HasNullSortOrder(
-            [NotNull] this IConventionIndexBuilder indexBuilder,
-            [CanBeNull] IReadOnlyList<NullSortOrder> values,
+        public static IConventionIndexBuilder? HasNullSortOrder(
+            this IConventionIndexBuilder indexBuilder,
+            IReadOnlyList<NullSortOrder>? values,
             bool fromDataAnnotation)
         {
             if (indexBuilder.CanSetNullSortOrder(values, fromDataAnnotation))
@@ -545,8 +544,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns>A builder to further configure the index.</returns>
         public static bool CanSetNullSortOrder(
-            [NotNull] this IConventionIndexBuilder indexBuilder,
-            [CanBeNull] IReadOnlyList<NullSortOrder> values,
+            this IConventionIndexBuilder indexBuilder,
+            IReadOnlyList<NullSortOrder>? values,
             bool fromDataAnnotation)
         {
             Check.NotNull(indexBuilder, nameof(indexBuilder));
@@ -569,8 +568,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="propertyNames">An array of property names to be used in INCLUDE clause.</param>
         /// <returns>A builder to further configure the index.</returns>
         public static IndexBuilder IncludeProperties(
-            [NotNull] this IndexBuilder indexBuilder,
-            [NotNull, ItemNotNull] params string[] propertyNames)
+            this IndexBuilder indexBuilder,
+            params string[] propertyNames)
         {
             Check.NotNull(indexBuilder, nameof(indexBuilder));
             Check.NullButNotEmpty(propertyNames, nameof(propertyNames));
@@ -591,8 +590,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="propertyNames">An array of property names to be used in INCLUDE clause.</param>
         /// <returns>A builder to further configure the index.</returns>
         public static IndexBuilder<TEntity> IncludeProperties<TEntity>(
-            [NotNull] this IndexBuilder<TEntity> indexBuilder,
-            [NotNull] params string[] propertyNames)
+            this IndexBuilder<TEntity> indexBuilder,
+            params string[] propertyNames)
         {
             Check.NotNull(indexBuilder, nameof(indexBuilder));
             Check.NullButNotEmpty(propertyNames, nameof(propertyNames));
@@ -622,8 +621,8 @@ namespace Microsoft.EntityFrameworkCore
         /// </param>
         /// <returns>A builder to further configure the index.</returns>
         public static IndexBuilder<TEntity> IncludeProperties<TEntity>(
-            [NotNull] this IndexBuilder<TEntity> indexBuilder,
-            [NotNull] Expression<Func<TEntity, object>> includeExpression)
+            this IndexBuilder<TEntity> indexBuilder,
+            Expression<Func<TEntity, object>> includeExpression)
         {
             Check.NotNull(indexBuilder, nameof(indexBuilder));
             Check.NotNull(includeExpression, nameof(includeExpression));
@@ -644,9 +643,9 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="propertyNames">An array of property names to be used in INCLUDE clause.</param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns>A builder to further configure the index.</returns>
-        public static IConventionIndexBuilder IncludeProperties(
-            [NotNull] this IConventionIndexBuilder indexBuilder,
-            [NotNull] IReadOnlyList<string> propertyNames,
+        public static IConventionIndexBuilder? IncludeProperties(
+            this IConventionIndexBuilder indexBuilder,
+            IReadOnlyList<string> propertyNames,
             bool fromDataAnnotation = false)
         {
             if (indexBuilder.CanSetIncludeProperties(propertyNames, fromDataAnnotation))
@@ -667,8 +666,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns> <c>true</c> if the given include properties can be set. </returns>
         public static bool CanSetIncludeProperties(
-            [NotNull] this IConventionIndexBuilder indexBuilder,
-            [CanBeNull] IReadOnlyList<string> propertyNames,
+            this IConventionIndexBuilder indexBuilder,
+            IReadOnlyList<string>? propertyNames,
             bool fromDataAnnotation = false)
         {
             Check.NotNull(indexBuilder, nameof(indexBuilder));
@@ -693,7 +692,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="indexBuilder">The builder for the index being configured.</param>
         /// <param name="createdConcurrently">A value indicating whether the index is created with the "concurrently" option.</param>
         /// <returns>A builder to further configure the index.</returns>
-        public static IndexBuilder IsCreatedConcurrently([NotNull] this IndexBuilder indexBuilder, bool createdConcurrently = true)
+        public static IndexBuilder IsCreatedConcurrently(this IndexBuilder indexBuilder, bool createdConcurrently = true)
         {
             Check.NotNull(indexBuilder, nameof(indexBuilder));
 
@@ -712,7 +711,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="indexBuilder">The builder for the index being configured.</param>
         /// <param name="createdConcurrently">A value indicating whether the index is created with the "concurrently" option.</param>
         /// <returns>A builder to further configure the index.</returns>
-        public static IndexBuilder<TEntity> IsCreatedConcurrently<TEntity>([NotNull] this IndexBuilder<TEntity> indexBuilder, bool createdConcurrently = true)
+        public static IndexBuilder<TEntity> IsCreatedConcurrently<TEntity>(this IndexBuilder<TEntity> indexBuilder, bool createdConcurrently = true)
             => (IndexBuilder<TEntity>)IsCreatedConcurrently((IndexBuilder)indexBuilder, createdConcurrently);
 
         /// <summary>
@@ -726,8 +725,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="createdConcurrently">A value indicating whether the index is created with the "concurrently" option.</param>
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns>A builder to further configure the index.</returns>
-        public static IConventionIndexBuilder IsCreatedConcurrently(
-            [NotNull] this IConventionIndexBuilder indexBuilder,
+        public static IConventionIndexBuilder? IsCreatedConcurrently(
+            this IConventionIndexBuilder indexBuilder,
             bool? createdConcurrently,
             bool fromDataAnnotation = false)
         {
@@ -752,7 +751,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns>A builder to further configure the index.</returns>
         public static bool CanSetIsCreatedConcurrently(
-            [NotNull] this IConventionIndexBuilder indexBuilder,
+            this IConventionIndexBuilder indexBuilder,
             bool? createdConcurrently,
             bool fromDataAnnotation = false)
         {
@@ -776,8 +775,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns>A builder to further configure the index.</returns>
         [Obsolete("Use UseCollation")]
         public static IndexBuilder HasCollation(
-            [NotNull] this IndexBuilder indexBuilder,
-            [CanBeNull] params string[] values)
+            this IndexBuilder indexBuilder,
+            params string[]? values)
             => UseCollation(indexBuilder, values);
 
         /// <summary>
@@ -791,8 +790,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns>A builder to further configure the index.</returns>
         [Obsolete("Use UseCollation")]
         public static IndexBuilder<TEntity> HasCollation<TEntity>(
-            [NotNull] this IndexBuilder<TEntity> indexBuilder,
-            [CanBeNull] params string[] values)
+            this IndexBuilder<TEntity> indexBuilder,
+            params string[]? values)
             => UseCollation(indexBuilder, values);
 
         /// <summary>
@@ -806,9 +805,9 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="fromDataAnnotation">Indicates whether the configuration was specified using a data annotation.</param>
         /// <returns>A builder to further configure the index.</returns>
         [Obsolete("Use UseCollation")]
-        public static IConventionIndexBuilder HasCollation(
-            [NotNull] this IConventionIndexBuilder indexBuilder,
-            [CanBeNull] IReadOnlyList<string> values,
+        public static IConventionIndexBuilder? HasCollation(
+            this IConventionIndexBuilder indexBuilder,
+            IReadOnlyList<string>? values,
             bool fromDataAnnotation)
             => UseCollation(indexBuilder, values, fromDataAnnotation);
 
@@ -824,8 +823,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns>A builder to further configure the index.</returns>
         [Obsolete("Use CanSetHasCollation")]
         public static bool CanSetHasCollation(
-            [NotNull] this IConventionIndexBuilder indexBuilder,
-            [CanBeNull] IReadOnlyList<string> values,
+            this IConventionIndexBuilder indexBuilder,
+            IReadOnlyList<string>? values,
             bool fromDataAnnotation)
             => CanSetCollation(indexBuilder, values, fromDataAnnotation);
 
@@ -841,8 +840,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns><c>true</c> if the index can be configured with the method</returns>
         [Obsolete("Use CanSetMethod")]
         public static bool CanSetHasMethod(
-            [NotNull] this IConventionIndexBuilder indexBuilder, [CanBeNull] string method,
-            bool fromDataAnnotation = false)
+            this IConventionIndexBuilder indexBuilder, string? method, bool fromDataAnnotation = false)
             => CanSetMethod(indexBuilder, method, fromDataAnnotation);
 
         /// <summary>
@@ -857,7 +855,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns><c>true</c> if the index can be configured with the method.</returns>
         [Obsolete("Use CanSetOperators")]
         public static bool CanSetHasOperators(
-            [NotNull] this IConventionIndexBuilder indexBuilder, [CanBeNull] IReadOnlyList<string> operators,
+            this IConventionIndexBuilder indexBuilder, IReadOnlyList<string>? operators,
             bool fromDataAnnotation)
             => CanSetOperators(indexBuilder, operators, fromDataAnnotation);
 
@@ -878,8 +876,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns><c>true</c> if the index can be configured as a full-text tsvector expression index.</returns>
         [Obsolete("Use CanSetIsTsVectorExpressionIndex")]
         public static bool CanSetToTsVector(
-            [NotNull] this IConventionIndexBuilder indexBuilder,
-            [CanBeNull] string config,
+            this IConventionIndexBuilder indexBuilder,
+            string? config,
             bool fromDataAnnotation = false)
             => CanSetIsTsVectorExpressionIndex(indexBuilder, config, fromDataAnnotation);
 
@@ -895,8 +893,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns>A builder to further configure the index.</returns>
         [Obsolete("Use CanSetSortOrder")]
         public static bool CanSetHasSortOrder(
-            [NotNull] this IConventionIndexBuilder indexBuilder,
-            [CanBeNull] IReadOnlyList<SortOrder> values,
+            this IConventionIndexBuilder indexBuilder,
+            IReadOnlyList<SortOrder>? values,
             bool fromDataAnnotation)
             => CanSetSortOrder(indexBuilder, values, fromDataAnnotation);
 
@@ -912,8 +910,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns>A builder to further configure the index.</returns>
         [Obsolete("Use CanSetNullSortOrder")]
         public static bool CanSetHasNullSortOrder(
-            [NotNull] this IConventionIndexBuilder indexBuilder,
-            [CanBeNull] IReadOnlyList<NullSortOrder> values,
+            this IConventionIndexBuilder indexBuilder,
+            IReadOnlyList<NullSortOrder>? values,
             bool fromDataAnnotation)
             => CanSetNullSortOrder(indexBuilder, values, fromDataAnnotation);
 
@@ -926,8 +924,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns> <c>true</c> if the given include properties can be set. </returns>
         [Obsolete("Use CanSetIncludeProperties")]
         public static bool CanSetInclude(
-            [NotNull] this IConventionIndexBuilder indexBuilder,
-            [CanBeNull] IReadOnlyList<string> propertyNames,
+            this IConventionIndexBuilder indexBuilder,
+            IReadOnlyList<string>? propertyNames,
             bool fromDataAnnotation = false)
             => CanSetIncludeProperties(indexBuilder, propertyNames, fromDataAnnotation);
 

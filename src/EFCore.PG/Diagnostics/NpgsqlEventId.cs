@@ -18,7 +18,7 @@ namespace Microsoft.EntityFrameworkCore.Diagnostics
         // Warning: These values must not change between releases.
         // Only add new values to the end of sections, never in the middle.
         // Try to use {Noun}{Verb} naming and be consistent with existing names.
-        enum Id
+        private enum Id
         {
             // Model validation events
             // Scaffolding events
@@ -55,8 +55,8 @@ namespace Microsoft.EntityFrameworkCore.Diagnostics
             CollationFound
         }
 
-        static readonly string ScaffoldingPrefix = DbLoggerCategory.Scaffolding.Name + ".";
-        static EventId MakeScaffoldingId(Id id) => new((int)id, ScaffoldingPrefix + id);
+        private static readonly string ScaffoldingPrefix = DbLoggerCategory.Scaffolding.Name + ".";
+        private static EventId MakeScaffoldingId(Id id) => new((int)id, ScaffoldingPrefix + id);
 
         /// <summary>
         ///   <para>

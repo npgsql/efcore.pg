@@ -1,11 +1,10 @@
 using System;
 using System.Data.Common;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Utilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore
@@ -31,8 +30,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="npgsqlOptionsAction">An optional action to allow additional Npgsql-specific configuration.</param>
         /// <returns>The options builder so that further configuration can be chained.</returns>
         public static DbContextOptionsBuilder UseNpgsql(
-            [NotNull] this DbContextOptionsBuilder optionsBuilder,
-            [CanBeNull] Action<NpgsqlDbContextOptionsBuilder> npgsqlOptionsAction = null)
+            this DbContextOptionsBuilder optionsBuilder,
+            Action<NpgsqlDbContextOptionsBuilder>? npgsqlOptionsAction = null)
         {
             Check.NotNull(optionsBuilder, nameof(optionsBuilder));
 
@@ -54,11 +53,10 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns>
         /// The options builder so that further configuration can be chained.
         /// </returns>
-        [NotNull]
         public static DbContextOptionsBuilder UseNpgsql(
-            [NotNull] this DbContextOptionsBuilder optionsBuilder,
-            [NotNull] string connectionString,
-            [CanBeNull] Action<NpgsqlDbContextOptionsBuilder> npgsqlOptionsAction = null)
+            this DbContextOptionsBuilder optionsBuilder,
+            string connectionString,
+            Action<NpgsqlDbContextOptionsBuilder>? npgsqlOptionsAction = null)
         {
             Check.NotNull(optionsBuilder, nameof(optionsBuilder));
             Check.NotEmpty(connectionString, nameof(connectionString));
@@ -86,11 +84,10 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns>
         /// The options builder so that further configuration can be chained.
         /// </returns>
-        [NotNull]
         public static DbContextOptionsBuilder UseNpgsql(
-            [NotNull] this DbContextOptionsBuilder optionsBuilder,
-            [NotNull] DbConnection connection,
-            [CanBeNull] Action<NpgsqlDbContextOptionsBuilder> npgsqlOptionsAction = null)
+            this DbContextOptionsBuilder optionsBuilder,
+            DbConnection connection,
+            Action<NpgsqlDbContextOptionsBuilder>? npgsqlOptionsAction = null)
         {
             Check.NotNull(optionsBuilder, nameof(optionsBuilder));
             Check.NotNull(connection, nameof(connection));
@@ -120,8 +117,8 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="npgsqlOptionsAction">An optional action to allow additional Npgsql-specific configuration.</param>
         /// <returns>The options builder so that further configuration can be chained.</returns>
         public static DbContextOptionsBuilder<TContext> UseNpgsql<TContext>(
-            [NotNull] this DbContextOptionsBuilder<TContext> optionsBuilder,
-            [CanBeNull] Action<NpgsqlDbContextOptionsBuilder> npgsqlOptionsAction = null)
+            this DbContextOptionsBuilder<TContext> optionsBuilder,
+            Action<NpgsqlDbContextOptionsBuilder>? npgsqlOptionsAction = null)
             where TContext : DbContext
             => (DbContextOptionsBuilder<TContext>)UseNpgsql(
                 (DbContextOptionsBuilder)optionsBuilder, npgsqlOptionsAction);
@@ -135,11 +132,10 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns>
         /// The options builder so that further configuration can be chained.
         /// </returns>
-        [NotNull]
         public static DbContextOptionsBuilder<TContext> UseNpgsql<TContext>(
-            [NotNull] this DbContextOptionsBuilder<TContext> optionsBuilder,
-            [NotNull] string connectionString,
-            [CanBeNull] Action<NpgsqlDbContextOptionsBuilder> npgsqlOptionsAction = null)
+            this DbContextOptionsBuilder<TContext> optionsBuilder,
+            string connectionString,
+            Action<NpgsqlDbContextOptionsBuilder>? npgsqlOptionsAction = null)
             where TContext : DbContext
             => (DbContextOptionsBuilder<TContext>)UseNpgsql(
                 (DbContextOptionsBuilder)optionsBuilder, connectionString, npgsqlOptionsAction);
@@ -157,11 +153,10 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns>
         /// The options builder so that further configuration can be chained.
         /// </returns>
-        [NotNull]
         public static DbContextOptionsBuilder<TContext> UseNpgsql<TContext>(
-            [NotNull] this DbContextOptionsBuilder<TContext> optionsBuilder,
-            [NotNull] DbConnection connection,
-            [CanBeNull] Action<NpgsqlDbContextOptionsBuilder> npgsqlOptionsAction = null)
+            this DbContextOptionsBuilder<TContext> optionsBuilder,
+            DbConnection connection,
+            Action<NpgsqlDbContextOptionsBuilder>? npgsqlOptionsAction = null)
             where TContext : DbContext
             => (DbContextOptionsBuilder<TContext>)UseNpgsql(
                 (DbContextOptionsBuilder)optionsBuilder, connection, npgsqlOptionsAction);
@@ -173,12 +168,12 @@ namespace Microsoft.EntityFrameworkCore
         /// <returns>
         /// An existing instance of <see cref="NpgsqlOptionsExtension"/>, or a new instance if one does not exist.
         /// </returns>
-        static NpgsqlOptionsExtension GetOrCreateExtension(DbContextOptionsBuilder optionsBuilder)
+        private static NpgsqlOptionsExtension GetOrCreateExtension(DbContextOptionsBuilder optionsBuilder)
             => optionsBuilder.Options.FindExtension<NpgsqlOptionsExtension>() is NpgsqlOptionsExtension existing
                 ? new NpgsqlOptionsExtension(existing)
                 : new NpgsqlOptionsExtension();
 
-        static void ConfigureWarnings(DbContextOptionsBuilder optionsBuilder)
+        private static void ConfigureWarnings(DbContextOptionsBuilder optionsBuilder)
         {
             var coreOptionsExtension = optionsBuilder.Options.FindExtension<CoreOptionsExtension>()
                                        ?? new CoreOptionsExtension();

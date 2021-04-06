@@ -2,7 +2,7 @@ using System;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Utilities
 {
-    static class Statics
+    internal static class Statics
     {
         internal static readonly bool[][] TrueArrays =
         {

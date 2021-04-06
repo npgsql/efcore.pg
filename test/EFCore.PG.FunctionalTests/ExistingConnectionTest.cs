@@ -19,7 +19,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         public async Task Can_use_an_existing_open_connection()
             => await Can_use_an_existing_closed_connection_test(openConnection: true);
 
-        static async Task Can_use_an_existing_closed_connection_test(bool openConnection)
+        private static async Task Can_use_an_existing_closed_connection_test(bool openConnection)
         {
             var serviceProvider = new ServiceCollection()
                 .AddEntityFrameworkNpgsql()
@@ -31,7 +31,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 
                 var openCount = 0;
                 var closeCount = 0;
-                var disposeCount = 0;
 
                 using (var connection = new NpgsqlConnection(store.ConnectionString))
                 {
@@ -51,7 +50,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                             closeCount++;
                         }
                     };
-                    connection.Disposed += (_, __) => disposeCount++;
 
                     using (var context = new NorthwindContext(serviceProvider, connection))
                     {
@@ -70,16 +68,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                         Assert.Equal(1, openCount);
                         Assert.Equal(1, closeCount);
                     }
-
-                    Assert.Equal(0, disposeCount);
                 }
             }
         }
 
-        class NorthwindContext : DbContext
+        private class NorthwindContext : DbContext
         {
-            readonly IServiceProvider _serviceProvider;
-            readonly NpgsqlConnection _connection;
+            private readonly IServiceProvider _serviceProvider;
+            private readonly NpgsqlConnection _connection;
 
             public NorthwindContext(IServiceProvider serviceProvider, NpgsqlConnection connection)
             {
@@ -104,7 +100,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         }
 
         // ReSharper disable once ClassNeverInstantiated.Local
-        class Customer
+        private class Customer
         {
             // ReSharper disable once UnusedAutoPropertyAccessor.Local
             public string CustomerId { get; set; }

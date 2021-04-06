@@ -52,10 +52,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             Assert.Null(entity.P5);
         }
 
-        class Context : DbContext
+        private class Context : DbContext
         {
-            readonly IServiceProvider _serviceProvider;
-            readonly string _databaseName;
+            private readonly IServiceProvider _serviceProvider;
+            private readonly string _databaseName;
 
             public Context(IServiceProvider serviceProvider, string databaseName)
             {
@@ -82,7 +82,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             }
         }
 
-        class Entity
+        private class Entity
         {
             public int Id { get; set; }
             public int P1 { get; set; }
@@ -108,10 +108,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             public FlagEnum? CalculatedFlagEnum { get; set; }
         }
 
-        class NullableContext : DbContext
+        private class NullableContext : DbContext
         {
-            readonly IServiceProvider _serviceProvider;
-            readonly string _databaseName;
+            private readonly IServiceProvider _serviceProvider;
+            private readonly string _databaseName;
 
             public NullableContext(IServiceProvider serviceProvider, string databaseName)
             {

@@ -1,9 +1,8 @@
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Utilities;
 using Npgsql;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 // ReSharper disable once CheckNamespace
 namespace Microsoft.EntityFrameworkCore
@@ -18,7 +17,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <returns> The options builder so that further configuration can be chained. </returns>
         public static NpgsqlDbContextOptionsBuilder UseNodaTime(
-            [NotNull] this NpgsqlDbContextOptionsBuilder optionsBuilder)
+            this NpgsqlDbContextOptionsBuilder optionsBuilder)
         {
             Check.NotNull(optionsBuilder, nameof(optionsBuilder));
 

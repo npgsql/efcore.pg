@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
@@ -18,21 +17,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     /// </remarks>
     public class NpgsqlNewGuidTranslator : IMethodCallTranslator
     {
-        static readonly MethodInfo MethodInfo = typeof(Guid).GetRuntimeMethod(nameof(Guid.NewGuid), Array.Empty<Type>());
+        private static readonly MethodInfo MethodInfo = typeof(Guid).GetRuntimeMethod(nameof(Guid.NewGuid), Array.Empty<Type>())!;
 
-        readonly ISqlExpressionFactory _sqlExpressionFactory;
-        readonly string _uuidGenerationFunction;
+        private readonly ISqlExpressionFactory _sqlExpressionFactory;
+        private readonly string _uuidGenerationFunction;
 
         public NpgsqlNewGuidTranslator(
-            [NotNull] ISqlExpressionFactory sqlExpressionFactory,
-            [CanBeNull] Version postgresVersion)
+            ISqlExpressionFactory sqlExpressionFactory,
+            Version? postgresVersion)
         {
             _sqlExpressionFactory = sqlExpressionFactory;
-            _uuidGenerationFunction = postgresVersion.AtLeast(13) ? "gen_random_uuid" : "uuid_generate_v4";
+            _uuidGenerationFunction = postgresVersion?.AtLeast(13) == true ? "gen_random_uuid" : "uuid_generate_v4";
         }
 
-        public virtual SqlExpression Translate(
-            SqlExpression instance,
+        public virtual SqlExpression? Translate(
+            SqlExpression? instance,
             MethodInfo method,
             IReadOnlyList<SqlExpression> arguments,
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)

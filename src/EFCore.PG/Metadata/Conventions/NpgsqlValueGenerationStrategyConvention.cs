@@ -1,5 +1,4 @@
 ﻿using System;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -15,7 +14,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
     /// </summary>
     public class NpgsqlValueGenerationStrategyConvention : IModelInitializedConvention, IModelFinalizingConvention
     {
-        readonly Version _postgresVersion;
+        private readonly Version? _postgresVersion;
 
         /// <summary>
         /// Creates a new instance of <see cref="NpgsqlValueGenerationStrategyConvention" />.
@@ -24,9 +23,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Conventions
         /// <param name="relationalDependencies">Parameter object containing relational dependencies for this convention.</param>
         /// <param name="postgresVersion">The PostgreSQL version being targeted. This affects the default value generation strategy.</param>
         public NpgsqlValueGenerationStrategyConvention(
-            [NotNull] ProviderConventionSetBuilderDependencies dependencies,
-            [NotNull] RelationalConventionSetBuilderDependencies relationalDependencies,
-            [CanBeNull] Version postgresVersion)
+            ProviderConventionSetBuilderDependencies dependencies,
+            RelationalConventionSetBuilderDependencies relationalDependencies,
+            Version? postgresVersion)
         {
             Dependencies = dependencies;
             _postgresVersion = postgresVersion;

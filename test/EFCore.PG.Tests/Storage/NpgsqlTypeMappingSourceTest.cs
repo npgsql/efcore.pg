@@ -108,6 +108,22 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
         }
 
         [Theory]
+        [InlineData(typeof(decimal), "numeric(5)")]
+        [InlineData(typeof(decimal[]), "numeric(5)[]")]
+        [InlineData(typeof(DateTime), "timestamp(5) without time zone")]
+        [InlineData(typeof(DateTime[]), "timestamp(5) without time zone[]")]
+        [InlineData(typeof(TimeSpan), "interval(5)")]
+        [InlineData(typeof(TimeSpan[]), "interval(5)[]")]
+        [InlineData(typeof(int), "integer")]
+        [InlineData(typeof(int[]), "integer[]")]
+        public void By_ClrType_and_precision(Type clrType, string expectedStoreType)
+        {
+            var mapping = (RelationalTypeMapping)Source.FindMapping(clrType, null, precision: 5);
+            Assert.Equal(expectedStoreType, mapping.StoreType);
+            Assert.Same(clrType, mapping.ClrType);
+        }
+
+        [Theory]
         [InlineData("integer", typeof(int))]
         [InlineData("integer[]", typeof(int[]))]
         [InlineData("integer[]", typeof(List<int>))]
@@ -201,9 +217,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
                 options);
         }
 
-        NpgsqlTypeMappingSource Source { get; }
+        private NpgsqlTypeMappingSource Source { get; }
 
-        class DummyTypeMappingSourcePlugin : IRelationalTypeMappingSourcePlugin
+        private class DummyTypeMappingSourcePlugin : IRelationalTypeMappingSourcePlugin
         {
             public RelationalTypeMapping FindMapping(in RelationalTypeMappingInfo mappingInfo)
                 => mappingInfo.StoreTypeName != null
@@ -214,9 +230,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
                        ? _dummyMapping
                        : null;
 
-            DummyMapping _dummyMapping = new();
+            private DummyMapping _dummyMapping = new();
 
-            class DummyMapping : RelationalTypeMapping
+            private class DummyMapping : RelationalTypeMapping
             {
                 // TODO: The DbType is a hack, we currently require of range subtype mapping that they other expose an NpgsqlDbType
                 // or a DbType (from which NpgsqlDbType is computed), since RangeTypeMapping sends an NpgsqlDbType.
@@ -224,16 +240,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
                 // NpgsqlParameter.DataTypeName
                 public DummyMapping() : base("dummy", typeof(DummyType), System.Data.DbType.Guid) {}
 
-                DummyMapping(RelationalTypeMappingParameters parameters) : base(parameters) {}
+                private DummyMapping(RelationalTypeMappingParameters parameters) : base(parameters) {}
 
                 protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
                     => new DummyMapping(parameters);
             }
         }
 
-        class DummyType {}
+        private class DummyType {}
 
-        class UnknownType {}
+        private class UnknownType {}
 
         #endregion Support
     }

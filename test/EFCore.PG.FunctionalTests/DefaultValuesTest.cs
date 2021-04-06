@@ -11,7 +11,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
     public class DefaultValuesTest : IDisposable
     {
-        readonly IServiceProvider _serviceProvider = new ServiceCollection()
+        private readonly IServiceProvider _serviceProvider = new ServiceCollection()
             .AddEntityFrameworkNpgsql()
             .BuildServiceProvider();
 
@@ -45,10 +45,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             context.Database.EnsureDeleted();
         }
 
-        class ChipsContext : DbContext
+        private class ChipsContext : DbContext
         {
-            readonly IServiceProvider _serviceProvider;
-            readonly string _databaseName;
+            private readonly IServiceProvider _serviceProvider;
+            private readonly string _databaseName;
 
             public ChipsContext(IServiceProvider serviceProvider, string databaseName)
             {
@@ -71,7 +71,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
                     .HasDefaultValue(new DateTime(2035, 9, 25));
         }
 
-        class KettleChips
+        private class KettleChips
         {
             // ReSharper disable once UnusedMember.Local
             public int Id { get; set; }

@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-#nullable enable
-
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Internal
 {
     internal static class EnumerableMethods

@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Text;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Storage;
 using NpgsqlTypes;
 
@@ -16,7 +15,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     /// </remarks>
     public class NpgsqlRangeTypeMapping : NpgsqlTypeMapping
     {
-        [NotNull] readonly ISqlGenerationHelper _sqlGenerationHelper;
+        private readonly ISqlGenerationHelper _sqlGenerationHelper;
 
         // ReSharper disable once MemberCanBePrivate.Global
         /// <summary>
@@ -32,10 +31,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         /// <param name="subtypeMapping">The type mapping for the range subtype.</param>
         /// <param name="sqlGenerationHelper">The SQL generation helper to delimit the store name.</param>
         public NpgsqlRangeTypeMapping(
-            [NotNull] string storeType,
-            [NotNull] Type clrType,
-            [NotNull] RelationalTypeMapping subtypeMapping,
-            [NotNull] ISqlGenerationHelper sqlGenerationHelper)
+            string storeType,
+            Type clrType,
+            RelationalTypeMapping subtypeMapping,
+            ISqlGenerationHelper sqlGenerationHelper)
             : this(storeType, null, clrType, subtypeMapping, sqlGenerationHelper) {}
 
         /// <summary>
@@ -47,11 +46,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         /// <param name="subtypeMapping">The type mapping for the range subtype.</param>
         /// <param name="sqlGenerationHelper">The SQL generation helper to delimit the store name.</param>
         public NpgsqlRangeTypeMapping(
-            [NotNull] string storeType,
-            [CanBeNull] string storeTypeSchema,
-            [NotNull] Type clrType,
-            [NotNull] RelationalTypeMapping subtypeMapping,
-            [NotNull] ISqlGenerationHelper sqlGenerationHelper)
+            string storeType,
+            string? storeTypeSchema,
+            Type clrType,
+            RelationalTypeMapping subtypeMapping,
+            ISqlGenerationHelper sqlGenerationHelper)
             : base(sqlGenerationHelper.DelimitIdentifier(storeType, storeTypeSchema), clrType, GenerateNpgsqlDbType(subtypeMapping))
         {
             SubtypeMapping = subtypeMapping;
@@ -61,8 +60,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         protected NpgsqlRangeTypeMapping(
             RelationalTypeMappingParameters parameters,
             NpgsqlDbType npgsqlDbType,
-            [NotNull] RelationalTypeMapping subtypeMapping,
-            [NotNull] ISqlGenerationHelper sqlGenerationHelper)
+            RelationalTypeMapping subtypeMapping,
+            ISqlGenerationHelper sqlGenerationHelper)
             : base(parameters, npgsqlDbType)
         {
             SubtypeMapping = subtypeMapping;
@@ -82,7 +81,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             return sb.ToString();
         }
 
-        static NpgsqlDbType GenerateNpgsqlDbType([NotNull] RelationalTypeMapping subtypeMapping)
+        private static NpgsqlDbType GenerateNpgsqlDbType(RelationalTypeMapping subtypeMapping)
         {
             if (subtypeMapping is INpgsqlTypeMapping npgsqlTypeMapping)
                 return NpgsqlDbType.Range | npgsqlTypeMapping.NpgsqlDbType;
@@ -99,16 +98,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             var subtypeType = SubtypeMapping.ClrType;
             var rangeType = typeof(NpgsqlRange<>).MakeGenericType(subtypeType);
 
-            var lower = rangeType.GetProperty(nameof(NpgsqlRange<int>.LowerBound)).GetValue(value);
-            var upper = rangeType.GetProperty(nameof(NpgsqlRange<int>.UpperBound)).GetValue(value);
-            var lowerInfinite = (bool)rangeType.GetProperty(nameof(NpgsqlRange<int>.LowerBoundInfinite)).GetValue(value);
-            var upperInfinite = (bool)rangeType.GetProperty(nameof(NpgsqlRange<int>.UpperBoundInfinite)).GetValue(value);
-            var lowerInclusive = (bool)rangeType.GetProperty(nameof(NpgsqlRange<int>.LowerBoundIsInclusive)).GetValue(value);
-            var upperInclusive = (bool)rangeType.GetProperty(nameof(NpgsqlRange<int>.UpperBoundIsInclusive)).GetValue(value);
+            var lower = rangeType.GetProperty(nameof(NpgsqlRange<int>.LowerBound))!.GetValue(value);
+            var upper = rangeType.GetProperty(nameof(NpgsqlRange<int>.UpperBound))!.GetValue(value);
+            var lowerInfinite = (bool)rangeType.GetProperty(nameof(NpgsqlRange<int>.LowerBoundInfinite))!.GetValue(value)!;
+            var upperInfinite = (bool)rangeType.GetProperty(nameof(NpgsqlRange<int>.UpperBoundInfinite))!.GetValue(value)!;
+            var lowerInclusive = (bool)rangeType.GetProperty(nameof(NpgsqlRange<int>.LowerBoundIsInclusive))!.GetValue(value)!;
+            var upperInclusive = (bool)rangeType.GetProperty(nameof(NpgsqlRange<int>.UpperBoundIsInclusive))!.GetValue(value)!;
 
             return lowerInfinite || upperInfinite
                ? Expression.New(
-                    rangeType.GetConstructor(new[] { subtypeType, typeof(bool), typeof(bool), subtypeType, typeof(bool), typeof(bool) }),
+                    rangeType.GetConstructor(new[] { subtypeType, typeof(bool), typeof(bool), subtypeType, typeof(bool), typeof(bool) })!,
                     Expression.Constant(lower),
                     Expression.Constant(lowerInclusive),
                     Expression.Constant(lowerInfinite),
@@ -116,7 +115,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                     Expression.Constant(upperInclusive),
                     Expression.Constant(upperInfinite))
                : Expression.New(
-                    rangeType.GetConstructor(new[] { subtypeType, typeof(bool), subtypeType, typeof(bool) }),
+                    rangeType.GetConstructor(new[] { subtypeType, typeof(bool), subtypeType, typeof(bool) })!,
                     Expression.Constant(lower),
                     Expression.Constant(lowerInclusive),
                     Expression.Constant(upper),

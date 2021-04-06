@@ -1,4 +1,3 @@
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 
@@ -9,12 +8,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
     /// </summary>
     public class NpgsqlQuerySqlGeneratorFactory : IQuerySqlGeneratorFactory
     {
-        [NotNull] readonly QuerySqlGeneratorDependencies _dependencies;
-        [NotNull] readonly INpgsqlOptions _npgsqlOptions;
+        private readonly QuerySqlGeneratorDependencies _dependencies;
+        private readonly INpgsqlOptions _npgsqlOptions;
 
         public NpgsqlQuerySqlGeneratorFactory(
-            [NotNull] QuerySqlGeneratorDependencies dependencies,
-            [NotNull] INpgsqlOptions npgsqlOptions)
+            QuerySqlGeneratorDependencies dependencies,
+            INpgsqlOptions npgsqlOptions)
         {
             _dependencies = dependencies;
             _npgsqlOptions = npgsqlOptions;

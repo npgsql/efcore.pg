@@ -1,5 +1,4 @@
 ﻿using System.Reflection;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 
@@ -24,7 +23,7 @@ namespace Microsoft.EntityFrameworkCore
         /// </summary>
         /// <param name="database">The facade from <see cref="DbContext.Database" />.</param>
         /// <returns>True if Npgsql is being used; false otherwise.</returns>
-        public static bool IsNpgsql([NotNull] this DatabaseFacade database)
+        public static bool IsNpgsql(this DatabaseFacade database)
             => database.ProviderName == typeof(NpgsqlOptionsExtension).GetTypeInfo().Assembly.GetName().Name;
     }
 }

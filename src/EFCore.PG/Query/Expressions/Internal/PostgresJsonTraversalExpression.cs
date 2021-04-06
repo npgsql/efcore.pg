@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -17,13 +16,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         /// <summary>
         /// The match expression.
         /// </summary>
-        [NotNull]
         public virtual SqlExpression Expression { get; }
 
         /// <summary>
         /// The pattern to match.
         /// </summary>
-        [NotNull]
         public virtual IReadOnlyList<SqlExpression> Path { get; }
 
         /// <summary>
@@ -35,11 +32,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         /// Constructs a <see cref="PostgresJsonTraversalExpression"/>.
         /// </summary>
         public PostgresJsonTraversalExpression(
-            [NotNull] SqlExpression expression,
-            [NotNull] IReadOnlyList<SqlExpression> path,
+            SqlExpression expression,
+            IReadOnlyList<SqlExpression> path,
             bool returnsText,
-            [NotNull] Type type,
-            [CanBeNull] RelationalTypeMapping typeMapping)
+            Type type,
+            RelationalTypeMapping? typeMapping)
             : base(type, typeMapping)
         {
             if (returnsText && type != typeof(string))
@@ -57,15 +54,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
                 Path.Select(p => (SqlExpression)visitor.Visit(p)).ToArray());
 
         public virtual PostgresJsonTraversalExpression Update(
-            [NotNull] SqlExpression expression,
-            [NotNull] IReadOnlyList<SqlExpression> path)
+            SqlExpression expression,
+            IReadOnlyList<SqlExpression> path)
             => expression == Expression &&
                path.Count == Path.Count &&
                path.Zip(Path, (x, y) => (x, y)).All(tup => tup.x == tup.y)
                 ? this
                 : new PostgresJsonTraversalExpression(expression, path, ReturnsText, Type, TypeMapping);
 
-        public virtual PostgresJsonTraversalExpression Append([NotNull] SqlExpression pathComponent)
+        public virtual PostgresJsonTraversalExpression Append(SqlExpression pathComponent)
         {
             var newPath = new SqlExpression[Path.Count + 1];
             for (var i = 0; i < Path.Count(); i++)
@@ -75,10 +72,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         }
 
         /// <inheritdoc />
-        public override bool Equals(object obj) => Equals(obj as PostgresJsonTraversalExpression);
+        public override bool Equals(object? obj) => Equals(obj as PostgresJsonTraversalExpression);
 
         /// <inheritdoc />
-        public virtual bool Equals(PostgresJsonTraversalExpression other)
+        public virtual bool Equals(PostgresJsonTraversalExpression? other)
             => ReferenceEquals(this, other) ||
                other is object &&
                base.Equals(other) &&

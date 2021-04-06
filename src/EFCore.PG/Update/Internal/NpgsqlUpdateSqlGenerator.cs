@@ -2,15 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Update;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
+using Microsoft.EntityFrameworkCore.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
 {
     public class NpgsqlUpdateSqlGenerator : UpdateSqlGenerator
     {
-        public NpgsqlUpdateSqlGenerator([NotNull] UpdateSqlGeneratorDependencies dependencies)
+        public NpgsqlUpdateSqlGenerator(UpdateSqlGeneratorDependencies dependencies)
             : base(dependencies)
         {
         }
@@ -22,8 +21,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
             => AppendInsertOperation(commandStringBuilder, command, commandPosition, false);
 
         public virtual ResultSetMapping AppendInsertOperation(
-            [NotNull] StringBuilder commandStringBuilder,
-            [NotNull] ModificationCommand command,
+            StringBuilder commandStringBuilder,
+            ModificationCommand command,
             int commandPosition,
             bool overridingSystemValue)
         {
@@ -87,7 +86,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal
                 .AppendJoin(operations.Select(c => SqlGenerationHelper.DelimitIdentifier(c.ColumnName)));
         }
 
-        public override void AppendNextSequenceValueOperation(StringBuilder commandStringBuilder, string name, string schema)
+        public override void AppendNextSequenceValueOperation(StringBuilder commandStringBuilder, string name, string? schema)
         {
             commandStringBuilder.Append("SELECT nextval('");
             SqlGenerationHelper.DelimitIdentifier(commandStringBuilder, Check.NotNull(name, nameof(name)), schema);

@@ -5,13 +5,12 @@ using System.Linq.Expressions;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Text.RegularExpressions;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Utilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 using NpgsqlTypes;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
@@ -21,24 +20,24 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
     /// </summary>
     public class NpgsqlQuerySqlGenerator : QuerySqlGenerator
     {
-        readonly ISqlGenerationHelper _sqlGenerationHelper;
+        private readonly ISqlGenerationHelper _sqlGenerationHelper;
 
         /// <summary>
         /// True if null ordering is reversed; otherwise false.
         /// </summary>
-        readonly bool _reverseNullOrderingEnabled;
+        private readonly bool _reverseNullOrderingEnabled;
 
         /// <summary>
         /// The backend version to target. If null, it means the user hasn't set a compatibility version, and the
         /// latest should be targeted.
         /// </summary>
-        readonly Version _postgresVersion;
+        private readonly Version _postgresVersion;
 
         /// <inheritdoc />
         public NpgsqlQuerySqlGenerator(
-            [NotNull] QuerySqlGeneratorDependencies dependencies,
+            QuerySqlGeneratorDependencies dependencies,
             bool reverseNullOrderingEnabled,
-            [NotNull] Version postgresVersion)
+            Version postgresVersion)
             : base(dependencies)
         {
             _sqlGenerationHelper = dependencies.SqlGenerationHelper;
@@ -202,8 +201,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             }
         }
 
-        protected virtual Expression VisitPostgresNewArray([NotNull] PostgresNewArrayExpression postgresNewArrayExpression)
+        protected virtual Expression VisitPostgresNewArray(PostgresNewArrayExpression postgresNewArrayExpression)
         {
+            Debug.Assert(postgresNewArrayExpression.TypeMapping is not null);
+
             Sql.Append("ARRAY[");
             var first = true;
             foreach (var initializer in postgresNewArrayExpression.Expressions)
@@ -225,7 +226,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             return postgresNewArrayExpression;
         }
 
-        protected virtual Expression VisitPostgresBinary([NotNull] PostgresBinaryExpression binaryExpression)
+        protected virtual Expression VisitPostgresBinary(PostgresBinaryExpression binaryExpression)
         {
             Check.NotNull(binaryExpression, nameof(binaryExpression));
 
@@ -317,7 +318,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             return binaryExpression;
         }
 
-        protected virtual Expression VisitArrayIndex([NotNull] SqlBinaryExpression expression)
+        protected virtual Expression VisitArrayIndex(SqlBinaryExpression expression)
         {
             Visit(expression.Left);
             Sql.Append("[");
@@ -328,6 +329,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 
         protected override Expression VisitSqlUnary(SqlUnaryExpression sqlUnaryExpression)
         {
+            Debug.Assert(sqlUnaryExpression.TypeMapping is not null);
+            Debug.Assert(sqlUnaryExpression.Operand.TypeMapping is not null);
+
             switch (sqlUnaryExpression.OperatorType)
             {
             case ExpressionType.Convert:
@@ -415,8 +419,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             return collateExpresion;
         }
 
-        [NotNull]
-        public virtual Expression VisitArrayAll([NotNull] PostgresAllExpression expression)
+        public virtual Expression VisitArrayAll(PostgresAllExpression expression)
         {
             Visit(expression.Item);
 
@@ -437,8 +440,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             return expression;
         }
 
-        [NotNull]
-        public virtual Expression VisitArrayAny([NotNull] PostgresAnyExpression expression)
+        public virtual Expression VisitArrayAny(PostgresAnyExpression expression)
         {
             Visit(expression.Item);
 
@@ -463,8 +465,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         /// <summary>
         /// Produces SQL array index expression (e.g. arr[1]).
         /// </summary>
-        [NotNull]
-        public virtual Expression VisitArrayIndex([NotNull] PostgresArrayIndexExpression expression)
+        public virtual Expression VisitArrayIndex(PostgresArrayIndexExpression expression)
         {
             Visit(expression.Array);
             Sql.Append("[");
@@ -483,8 +484,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         /// <remarks>
         /// See: http://www.postgresql.org/docs/current/static/functions-matching.html
         /// </remarks>
-        [NotNull]
-        public virtual Expression VisitRegexMatch([NotNull] PostgresRegexMatchExpression expression)
+        public virtual Expression VisitRegexMatch(PostgresRegexMatchExpression expression)
         {
             var options = expression.Options;
 
@@ -525,8 +525,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         /// <returns>
         /// An <see cref="Expression"/>.
         /// </returns>
-        [NotNull]
-        public virtual Expression VisitILike([NotNull] PostgresILikeExpression likeExpression)
+        public virtual Expression VisitILike(PostgresILikeExpression likeExpression)
         {
             Visit(likeExpression.Match);
             Sql.Append(" ILIKE ");
@@ -548,8 +547,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         /// <returns>
         /// An <see cref="Expression"/>.
         /// </returns>
-        [NotNull]
-        public virtual Expression VisitJsonPathTraversal([NotNull] PostgresJsonTraversalExpression expression)
+        public virtual Expression VisitJsonPathTraversal(PostgresJsonTraversalExpression expression)
         {
             Visit(expression.Expression);
 
@@ -593,7 +591,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         /// <returns>
         /// An <see cref="Expression"/>.
         /// </returns>
-        public virtual Expression VisitUnknownBinary([NotNull] PostgresUnknownBinaryExpression unknownBinaryExpression)
+        public virtual Expression VisitUnknownBinary(PostgresUnknownBinaryExpression unknownBinaryExpression)
         {
             Check.NotNull(unknownBinaryExpression, nameof(unknownBinaryExpression));
 
@@ -646,8 +644,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         /// <returns>
         /// An <see cref="Expression"/>.
         /// </returns>
-        [NotNull]
-        public virtual Expression VisitPgFunction([NotNull] PostgresFunctionExpression e)
+        public virtual Expression VisitPgFunction(PostgresFunctionExpression e)
         {
             Check.NotNull(e, nameof(e));
 
@@ -673,10 +670,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 
             for (var i = 0; i < e.Arguments.Count; i++)
             {
-                if (i < e.ArgumentNames.Count && e.ArgumentNames[i] != null)
+                if (i < e.ArgumentNames.Count && e.ArgumentNames[i] is string argumentName)
                 {
                     Sql
-                        .Append(e.ArgumentNames[i])
+                        .Append(argumentName)
                         .Append(" => ");
                 }
 
@@ -693,7 +690,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
             return e;
         }
 
-        static bool RequiresBrackets(SqlExpression expression)
+        private static bool RequiresBrackets(SqlExpression expression)
             => expression is SqlBinaryExpression || expression is LikeExpression || expression is PostgresBinaryExpression;
     }
 }

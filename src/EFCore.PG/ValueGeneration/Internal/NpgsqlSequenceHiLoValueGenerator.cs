@@ -2,7 +2,6 @@
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -19,22 +18,22 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
     /// </summary>
     public class NpgsqlSequenceHiLoValueGenerator<TValue> : HiLoValueGenerator<TValue>
     {
-        readonly IRawSqlCommandBuilder _rawSqlCommandBuilder;
-        readonly IUpdateSqlGenerator _sqlGenerator;
-        readonly INpgsqlRelationalConnection _connection;
-        readonly ISequence _sequence;
-        readonly IDiagnosticsLogger<DbLoggerCategory.Database.Command> _commandLogger;
+        private readonly IRawSqlCommandBuilder _rawSqlCommandBuilder;
+        private readonly IUpdateSqlGenerator _sqlGenerator;
+        private readonly INpgsqlRelationalConnection _connection;
+        private readonly ISequence _sequence;
+        private readonly IDiagnosticsLogger<DbLoggerCategory.Database.Command> _commandLogger;
 
         /// <summary>
         ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
         ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
         public NpgsqlSequenceHiLoValueGenerator(
-            [NotNull] IRawSqlCommandBuilder rawSqlCommandBuilder,
-            [NotNull] IUpdateSqlGenerator sqlGenerator,
-            [NotNull] NpgsqlSequenceValueGeneratorState generatorState,
-            [NotNull] INpgsqlRelationalConnection connection,
-            [NotNull] IDiagnosticsLogger<DbLoggerCategory.Database.Command> commandLogger)
+            IRawSqlCommandBuilder rawSqlCommandBuilder,
+            IUpdateSqlGenerator sqlGenerator,
+            NpgsqlSequenceValueGeneratorState generatorState,
+            INpgsqlRelationalConnection connection,
+            IDiagnosticsLogger<DbLoggerCategory.Database.Command> commandLogger)
             : base(generatorState)
         {
             _sequence = generatorState.Sequence;
@@ -60,7 +59,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
                             context: null,
                             _commandLogger)),
                 typeof(long),
-                CultureInfo.InvariantCulture);
+                CultureInfo.InvariantCulture)!;
 
         /// <summary>
         ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
@@ -77,9 +76,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
                             readerColumns: null,
                             context: null,
                             _commandLogger),
-                        cancellationToken),
+                        cancellationToken).ConfigureAwait(false),
                 typeof(long),
-                CultureInfo.InvariantCulture);
+                CultureInfo.InvariantCulture)!;
 
         /// <summary>
         ///     This API supports the Entity Framework Core infrastructure and is not intended to be used

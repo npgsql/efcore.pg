@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage;
 using NpgsqlTypes;
@@ -18,9 +17,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
     /// </remarks>
     public class NpgsqlHstoreTypeMapping : NpgsqlTypeMapping
     {
-        static readonly HstoreMutableComparer MutableComparerInstance = new();
+        private static readonly HstoreMutableComparer MutableComparerInstance = new();
 
-        public NpgsqlHstoreTypeMapping([NotNull] Type clrType)
+        public NpgsqlHstoreTypeMapping(Type clrType)
             : base(
                 new RelationalTypeMappingParameters(
                     new CoreTypeMappingParameters(clrType, comparer: GetComparer(clrType)),
@@ -59,7 +58,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             return sb.ToString();
         }
 
-        static ValueComparer GetComparer(Type clrType)
+        private static ValueComparer? GetComparer(Type clrType)
         {
             if (clrType == typeof(Dictionary<string, string>))
                 return MutableComparerInstance;
@@ -76,7 +75,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             throw new ArgumentException($"CLR type must be {nameof(Dictionary<string,string>)} or {nameof(ImmutableDictionary<string,string>)}");
         }
 
-        sealed class HstoreMutableComparer : ValueComparer<Dictionary<string, string>>
+        private sealed class HstoreMutableComparer : ValueComparer<Dictionary<string, string>>
         {
             public HstoreMutableComparer() : base(
                 (a, b) => Compare(a,b),
@@ -84,14 +83,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 o => o == null ? null : new Dictionary<string, string>(o))
             {}
 
-            static bool Compare(Dictionary<string, string> a, Dictionary<string, string> b)
+            private static bool Compare(Dictionary<string, string>? a, Dictionary<string, string>? b)
             {
                 if (a is null)
+                {
                     return b is null;
-                if (b is null)
+                }
+
+                if (b is null || a.Count != b.Count)
+                {
                     return false;
-                if (a.Count != b.Count)
-                    return false;
+                }
+
                 foreach (var kv in a)
                     if (!b.TryGetValue(kv.Key, out var bValue) || kv.Value != bValue)
                         return false;

@@ -13,7 +13,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     public class JsonPocoQueryTest : IClassFixture<JsonPocoQueryTest.JsonPocoQueryFixture>
     {
-        JsonPocoQueryFixture Fixture { get; }
+        private JsonPocoQueryFixture Fixture { get; }
 
         // ReSharper disable once UnusedParameter.Local
         public JsonPocoQueryTest(JsonPocoQueryFixture fixture, ITestOutputHelper testOutputHelper)
@@ -520,7 +520,7 @@ WHERE json_typeof(j.""Customer""#>'{Statistics,Visits}') = 'number'");
 
         protected JsonPocoQueryContext CreateContext() => Fixture.CreateContext();
 
-        void AssertSql(params string[] expected)
+        private void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
         public class JsonPocoQueryContext : PoolableDbContext

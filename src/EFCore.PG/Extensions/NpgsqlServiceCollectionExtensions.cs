@@ -1,4 +1,3 @@
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -9,6 +8,7 @@ using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.EntityFrameworkCore.Update;
+using Microsoft.EntityFrameworkCore.Utilities;
 using Microsoft.EntityFrameworkCore.ValueGeneration;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Diagnostics.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
@@ -24,7 +24,6 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Update.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal;
 
 // ReSharper disable once CheckNamespace
@@ -53,7 +52,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <returns>
         ///     The same service collection so that multiple calls can be chained.
         /// </returns>
-        public static IServiceCollection AddEntityFrameworkNpgsql([NotNull] this IServiceCollection serviceCollection)
+        public static IServiceCollection AddEntityFrameworkNpgsql(this IServiceCollection serviceCollection)
         {
             Check.NotNull(serviceCollection, nameof(serviceCollection));
 
@@ -61,7 +60,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 new EntityFrameworkRelationalServicesBuilder(serviceCollection)
                     .TryAdd<LoggingDefinitions, NpgsqlLoggingDefinitions>()
                     .TryAdd<IDatabaseProvider, DatabaseProvider<NpgsqlOptionsExtension>>()
-                    .TryAdd<IValueGeneratorCache>(p => p.GetService<INpgsqlValueGeneratorCache>())
+                    .TryAdd<IValueGeneratorCache>(p => p.GetRequiredService<INpgsqlValueGeneratorCache>())
                     .TryAdd<IRelationalTypeMappingSource, NpgsqlTypeMappingSource>()
                     .TryAdd<ISqlGenerationHelper, NpgsqlSqlGenerationHelper>()
                     .TryAdd<IRelationalAnnotationProvider, NpgsqlAnnotationProvider>()
@@ -71,7 +70,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     .TryAdd<IUpdateSqlGenerator, NpgsqlUpdateSqlGenerator>()
                     .TryAdd<IModificationCommandBatchFactory, NpgsqlModificationCommandBatchFactory>()
                     .TryAdd<IValueGeneratorSelector, NpgsqlValueGeneratorSelector>()
-                    .TryAdd<IRelationalConnection>(p => p.GetService<INpgsqlRelationalConnection>())
+                    .TryAdd<IRelationalConnection>(p => p.GetRequiredService<INpgsqlRelationalConnection>())
                     .TryAdd<IMigrationsSqlGenerator, NpgsqlMigrationsSqlGenerator>()
                     .TryAdd<IRelationalDatabaseCreator, NpgsqlDatabaseCreator>()
                     .TryAdd<IHistoryRepository, NpgsqlHistoryRepository>()
@@ -84,7 +83,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     .TryAdd<IRelationalSqlTranslatingExpressionVisitorFactory, NpgsqlSqlTranslatingExpressionVisitorFactory>()
                     .TryAdd<IRelationalParameterBasedSqlProcessorFactory, NpgsqlParameterBasedSqlProcessorFactory>()
                     .TryAdd<ISqlExpressionFactory, NpgsqlSqlExpressionFactory>()
-                    .TryAdd<ISingletonOptions, INpgsqlOptions>(p => p.GetService<INpgsqlOptions>())
+                    .TryAdd<ISingletonOptions, INpgsqlOptions>(p => p.GetRequiredService<INpgsqlOptions>())
                     .TryAdd<IValueConverterSelector, NpgsqlValueConverterSelector>()
                     .TryAdd<IQueryCompilationContextFactory, NpgsqlQueryCompilationContextFactory>()
                     .TryAddProviderSpecificServices(

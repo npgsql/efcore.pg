@@ -2,13 +2,15 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Data.Common;
+using System.Diagnostics;
 using System.Reflection;
 using System.Text;
-using JetBrains.Annotations;
+using System.Text.RegularExpressions;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion;
 using NpgsqlTypes;
-
-#nullable enable
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 {
@@ -23,7 +25,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         /// <summary>
         /// The relational type mapping used to initialize the array mapping.
         /// </summary>
-        [NotNull]
         public virtual RelationalTypeMapping ElementMapping { get; }
 
         /// <summary>
@@ -38,7 +39,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         public virtual bool IsElementNullable { get; }
 
         protected NpgsqlArrayTypeMapping(
-            RelationalTypeMappingParameters parameters, [NotNull] RelationalTypeMapping elementMapping, bool isElementNullable)
+            RelationalTypeMappingParameters parameters, RelationalTypeMapping elementMapping, bool isElementNullable)
             : base(parameters)
         {
             ElementMapping = elementMapping;
@@ -59,6 +60,49 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         /// Returns a copy of this type mapping with <see cref="IsElementNullable"/> set to <see langword="false"/>.
         /// </summary>
         public abstract NpgsqlArrayTypeMapping MakeNonNullable();
+
+        public override CoreTypeMapping Clone(ValueConverter? converter)
+        {
+            // When the mapping is cloned to apply a value converter, we need to also apply that value converter to the element, otherwise
+            // we end up with an array mapping over a converter-less element mapping. This is important in some inference situations.
+            // If the array converter was properly set up, it's a INpgsqlArrayConverter with a reference to its element's converter.
+            // Just clone the element's mapping with that (same with the null converter case).
+            if (converter is INpgsqlArrayConverter or null)
+            {
+                return Clone(
+                    Parameters.WithComposedConverter(converter),
+                    (RelationalTypeMapping)ElementMapping.Clone(converter is INpgsqlArrayConverter arrayConverter
+                        ? arrayConverter.ElementConverter
+                        : null));
+            }
+
+            throw new NotSupportedException(
+                $"Value converters for array or List properties must be configured via {nameof(NpgsqlPropertyBuilderExtensions.HasPostgresArrayConversion)}.");
+        }
+
+        protected abstract RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters, RelationalTypeMapping elementMapping);
+
+        protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
+        {
+            var elementMapping = ElementMapping;
+
+            // Apply precision, scale and size to the element mapping, not to the array
+            if (parameters.Size is not null)
+            {
+                elementMapping = elementMapping.Clone(elementMapping.StoreType, parameters.Size);
+                parameters = Parameters.WithStoreTypeAndSize(elementMapping.StoreType, size: null);
+            }
+
+            if (parameters.Precision is not null || parameters.Scale is not null)
+            {
+                elementMapping = elementMapping.Clone(parameters.Precision, parameters.Scale);
+                parameters = Parameters.WithPrecision(null).WithScale(null);
+            }
+
+            parameters = parameters.WithStoreTypeAndSize(elementMapping.StoreType + "[]", size: null);
+
+            return Clone(parameters, elementMapping);
+        }
 
         // The array-to-array mapping needs to know how to generate an SQL literal for a List<>, and
         // the list-to-array mapping needs to know how to generate an SQL literal for an array.
@@ -122,7 +166,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         protected class NullableEqualityComparer<T> : IEqualityComparer<T?>
             where T : struct
         {
-            readonly IEqualityComparer<T> _underlyingComparer;
+            private readonly IEqualityComparer<T> _underlyingComparer;
 
             public NullableEqualityComparer(IEqualityComparer<T> underlyingComparer)
                 => _underlyingComparer = underlyingComparer;

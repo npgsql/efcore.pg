@@ -1,12 +1,11 @@
-﻿using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Storage;
+﻿using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 {
     public class NpgsqlExecutionStrategyFactory : RelationalExecutionStrategyFactory
     {
         public NpgsqlExecutionStrategyFactory(
-            [NotNull] ExecutionStrategyDependencies dependencies)
+            ExecutionStrategyDependencies dependencies)
             : base(dependencies)
         {
         }

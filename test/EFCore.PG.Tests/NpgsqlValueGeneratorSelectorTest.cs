@@ -35,7 +35,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             AssertGenerator<BinaryValueGenerator>("Binary");
         }
 
-        void AssertGenerator<TExpected>(string propertyName, bool setSequences = false)
+        private void AssertGenerator<TExpected>(string propertyName, bool setSequences = false)
         {
             var builder = NpgsqlTestHelpers.Instance.CreateConventionBuilder();
             builder.Entity<AnEntity>(
@@ -173,7 +173,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             Assert.IsType<NpgsqlSequenceHiLoValueGenerator<int>>(selector.Select(entityType.FindProperty("Id"), entityType));
         }
 
-        class AnEntity
+        private class AnEntity
         {
             // ReSharper disable UnusedMember.Local
             // ReSharper disable UnusedAutoPropertyAccessor.Local
@@ -201,7 +201,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
         }
 
         // ReSharper disable once ClassNeverInstantiated.Local
-        class CustomValueGenerator : ValueGenerator<int>
+        private class CustomValueGenerator : ValueGenerator<int>
         {
             public override int Next(EntityEntry entry) => throw new NotImplementedException();
 

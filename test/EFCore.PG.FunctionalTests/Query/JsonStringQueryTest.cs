@@ -12,7 +12,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
 {
     public class JsonStringQueryTest : IClassFixture<JsonStringQueryTest.JsonStringQueryFixture>
     {
-        JsonStringQueryFixture Fixture { get; }
+        private JsonStringQueryFixture Fixture { get; }
 
         // ReSharper disable once UnusedParameter.Local
         public JsonStringQueryTest(JsonStringQueryFixture fixture, ITestOutputHelper testOutputHelper)
@@ -216,7 +216,7 @@ WHERE j.""CustomerJsonb"" ?& ARRAY['foo','Age']::text[]");
 
         protected JsonStringQueryContext CreateContext() => Fixture.CreateContext();
 
-        void AssertSql(params string[] expected)
+        private void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
         public class JsonStringQueryContext : PoolableDbContext

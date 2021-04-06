@@ -1,17 +1,16 @@
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
+using Microsoft.EntityFrameworkCore.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 {
     public class NpgsqlQueryCompilationContextFactory : IQueryCompilationContextFactory
     {
-        readonly QueryCompilationContextDependencies _dependencies;
-        readonly RelationalQueryCompilationContextDependencies _relationalDependencies;
+        private readonly QueryCompilationContextDependencies _dependencies;
+        private readonly RelationalQueryCompilationContextDependencies _relationalDependencies;
 
         public NpgsqlQueryCompilationContextFactory(
-            [NotNull] QueryCompilationContextDependencies dependencies,
-            [NotNull] RelationalQueryCompilationContextDependencies relationalDependencies)
+            QueryCompilationContextDependencies dependencies,
+            RelationalQueryCompilationContextDependencies relationalDependencies)
         {
             Check.NotNull(dependencies, nameof(dependencies));
             Check.NotNull(relationalDependencies, nameof(relationalDependencies));

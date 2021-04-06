@@ -1,7 +1,6 @@
 using System;
 using System.Data.Common;
 using System.Linq;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage;
 
@@ -30,7 +29,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         /// value converter instead.
         /// </p>
         /// </remarks>
-        [NotNull] static readonly ValueComparer<string> CharacterValueComparer =
+        private static readonly ValueComparer<string> CharacterValueComparer =
             new(
                 (x, y) => EqualsWithoutTrailingWhitespace(x, y),
                 x => GetHashCodeWithoutTrailingWhitespace(x));
@@ -39,7 +38,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
 
         public override ValueComparer KeyComparer => Comparer;
 
-        public NpgsqlCharacterTypeMapping([NotNull] string storeType, int? size = null)
+        public NpgsqlCharacterTypeMapping(string storeType, int? size = null)
             : this(new RelationalTypeMappingParameters(
                 new CoreTypeMappingParameters(typeof(string)),
                 storeType,
@@ -71,10 +70,16 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
             base.ConfigureParameter(parameter);
         }
 
-        static bool EqualsWithoutTrailingWhitespace(string a, string b)
-            => a.AsSpan().TrimEnd().SequenceEqual(b.AsSpan().TrimEnd());
+        private static bool EqualsWithoutTrailingWhitespace(string? a, string? b)
+            => (a, b) switch
+            {
+                (null, null) => true,
+                (_, null) => false,
+                (null, _) => false,
+                _ => a.AsSpan().TrimEnd().SequenceEqual(b.AsSpan().TrimEnd())
+            };
 
-        static int GetHashCodeWithoutTrailingWhitespace(string a)
-            => a?.TrimEnd().GetHashCode() ?? 0;
+        private static int GetHashCodeWithoutTrailingWhitespace(string a)
+            => a.TrimEnd().GetHashCode();
     }
 }

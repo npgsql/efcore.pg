@@ -2,54 +2,53 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using System.Reflection;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Utilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 {
     public class NpgsqlSqlTranslatingExpressionVisitor : RelationalSqlTranslatingExpressionVisitor
     {
-        static readonly ConstructorInfo DateTimeCtor1 =
-            typeof(DateTime).GetConstructor(new[] { typeof(int), typeof(int), typeof(int) });
+        private static readonly ConstructorInfo DateTimeCtor1 =
+            typeof(DateTime).GetConstructor(new[] { typeof(int), typeof(int), typeof(int) })!;
 
-        static readonly ConstructorInfo DateTimeCtor2 =
-            typeof(DateTime).GetConstructor(new[] { typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int) });
+        private static readonly ConstructorInfo DateTimeCtor2 =
+            typeof(DateTime).GetConstructor(new[] { typeof(int), typeof(int), typeof(int), typeof(int), typeof(int), typeof(int) })!;
 
-        static readonly MethodInfo Like2MethodInfo =
-            typeof(DbFunctionsExtensions)
-                .GetRuntimeMethod(nameof(DbFunctionsExtensions.Like), new[] { typeof(DbFunctions), typeof(string), typeof(string) });
+        private static readonly MethodInfo Like2MethodInfo =
+            typeof(DbFunctionsExtensions).GetRuntimeMethod(
+                nameof(DbFunctionsExtensions.Like), new[] { typeof(DbFunctions), typeof(string), typeof(string) })!;
 
         // ReSharper disable once InconsistentNaming
-        static readonly MethodInfo ILike2MethodInfo
-            = typeof(NpgsqlDbFunctionsExtensions)
-                .GetRuntimeMethod(nameof(NpgsqlDbFunctionsExtensions.ILike), new[] { typeof(DbFunctions), typeof(string), typeof(string) });
+        private static readonly MethodInfo ILike2MethodInfo
+            = typeof(NpgsqlDbFunctionsExtensions).GetRuntimeMethod(
+                nameof(NpgsqlDbFunctionsExtensions.ILike), new[] { typeof(DbFunctions), typeof(string), typeof(string) })!;
 
-        static readonly MethodInfo ObjectEquals
-            = typeof(object).GetRuntimeMethod(nameof(object.Equals), new[] { typeof(object), typeof(object) });
+        private static readonly MethodInfo ObjectEquals
+            = typeof(object).GetRuntimeMethod(nameof(object.Equals), new[] { typeof(object), typeof(object) })!;
 
-        readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
-        readonly IRelationalTypeMappingSource _typeMappingSource;
-        readonly NpgsqlJsonPocoTranslator _jsonPocoTranslator;
-        readonly NpgsqlLTreeTranslator _ltreeTranslator;
+        private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
+        private readonly IRelationalTypeMappingSource _typeMappingSource;
+        private readonly NpgsqlJsonPocoTranslator _jsonPocoTranslator;
+        private readonly NpgsqlLTreeTranslator _ltreeTranslator;
 
-        static Type _nodaTimePeriodType;
+        private static Type? _nodaTimePeriodType;
 
         public NpgsqlSqlTranslatingExpressionVisitor(
-            [NotNull] RelationalSqlTranslatingExpressionVisitorDependencies dependencies,
-            [NotNull] QueryCompilationContext queryCompilationContext,
-            [NotNull] QueryableMethodTranslatingExpressionVisitor queryableMethodTranslatingExpressionVisitor)
+            RelationalSqlTranslatingExpressionVisitorDependencies dependencies,
+            QueryCompilationContext queryCompilationContext,
+            QueryableMethodTranslatingExpressionVisitor queryableMethodTranslatingExpressionVisitor)
             : base(dependencies, queryCompilationContext, queryableMethodTranslatingExpressionVisitor)
         {
             _sqlExpressionFactory = (NpgsqlSqlExpressionFactory)dependencies.SqlExpressionFactory;
@@ -125,7 +124,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 
                 // Translate Length on byte[], but only if the type mapping is for bytea. There's also array of bytes
                 // (mapped to smallint[]), which is handled below with CARDINALITY.
-                if (sqlOperand.Type == typeof(byte[]) &&
+                if (sqlOperand!.Type == typeof(byte[]) &&
                     (sqlOperand.TypeMapping == null || sqlOperand.TypeMapping is NpgsqlByteArrayTypeMapping))
                 {
                     return _sqlExpressionFactory.Function(
@@ -164,7 +163,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         /// Identifies complex array-related constructs which cannot be translated in regular method translators, since
         /// they require accessing lambdas.
         /// </summary>
-        private Expression VisitArrayMethodCall([NotNull] MethodInfo method, [NotNull] ReadOnlyCollection<Expression> arguments)
+        private Expression? VisitArrayMethodCall(MethodInfo method, ReadOnlyCollection<Expression> arguments)
         {
             var array = arguments[0];
 
@@ -213,7 +212,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                         {
                             return _sqlExpressionFactory.Overlaps(
                                 (SqlExpression)Visit(arguments[0]),
-                                (SqlExpression)Visit(wherePredicateMethodCall.Object));
+                                (SqlExpression)Visit(wherePredicateMethodCall.Object!));
                         }
                     }
 
@@ -234,7 +233,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                                 item));
                     }
 
-                    static bool TryMatchEquality(Expression expression, out Expression left, out Expression right)
+                    static bool TryMatchEquality(
+                        Expression expression,
+                        [NotNullWhen(true)] out Expression? left,
+                        [NotNullWhen(true)] out Expression? right)
                     {
                         if (expression is BinaryExpression binary)
                         {
@@ -252,7 +254,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 
                             if (methodCall.Method.Name == nameof(object.Equals) && methodCall.Arguments.Count == 1)
                             {
-                                (left, right) = (methodCall.Object, methodCall.Arguments[0]);
+                                (left, right) = (methodCall.Object!, methodCall.Arguments[0]);
                                 return true;
                             }
                         }
@@ -293,6 +295,19 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                         return _sqlExpressionFactory.ContainedBy(
                             (SqlExpression)Visit(arguments[0]),
                             (SqlExpression)Visit(predicateArguments[0]));
+                    }
+
+                    // As above, but for Contains on List<T>
+                    if (predicateMethod.DeclaringType?.IsGenericType == true &&
+                        predicateMethod.DeclaringType.GetGenericTypeDefinition() == typeof(List<>) &&
+                        predicateMethod.Name == nameof(List<int>.Contains) &&
+                        predicateMethod.GetParameters().Length == 1 &&
+                        predicateArguments[0] is ParameterExpression parameterExpression2 &&
+                        parameterExpression2 == wherePredicate.Parameters[0])
+                    {
+                        return _sqlExpressionFactory.ContainedBy(
+                            (SqlExpression)Visit(arguments[0]),
+                            (SqlExpression)Visit(wherePredicateMethodCall.Object!));
                     }
                 }
             }
@@ -344,7 +359,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                     }
 
                     var subtraction = _sqlExpressionFactory.MakeBinary(
-                        ExpressionType.Subtract, sqlLeft, sqlRight, _typeMappingSource.FindMapping(typeof(int)));
+                        ExpressionType.Subtract, sqlLeft!, sqlRight!, _typeMappingSource.FindMapping(typeof(int)))!;
 
                     return PostgresFunctionExpression.CreateWithNamedArguments(
                         "MAKE_INTERVAL",
@@ -353,7 +368,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                         nullable: true,
                         argumentsPropagateNullability: TrueArrays[1],
                         builtIn: true,
-                        _nodaTimePeriodType ??= binaryExpression.Left.Type.Assembly.GetType("NodaTime.Period"),
+                        _nodaTimePeriodType ??= binaryExpression.Left.Type.Assembly.GetType("NodaTime.Period")!,
                         typeMapping: null);
                 }
 
@@ -373,7 +388,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 {
                     return _sqlExpressionFactory.Function(
                         "get_byte",
-                        new[] { sqlLeft, sqlRight },
+                        new[] { sqlLeft!, sqlRight! },
                         nullable: true,
                         argumentsPropagateNullability: TrueArrays[2],
                         typeof(byte));
@@ -381,9 +396,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 
                 return
                     // Try translating ArrayIndex inside json column
-                    _jsonPocoTranslator.TranslateMemberAccess(sqlLeft, sqlRight, binaryExpression.Type) ??
+                    _jsonPocoTranslator.TranslateMemberAccess(sqlLeft!, sqlRight!, binaryExpression.Type) ??
                     // Other types should be subscriptable - but PostgreSQL arrays are 1-based, so adjust the index.
-                    _sqlExpressionFactory.ArrayIndex(sqlLeft, GenerateOneBasedIndexExpression(sqlRight));
+                    _sqlExpressionFactory.ArrayIndex(sqlLeft!, GenerateOneBasedIndexExpression(sqlRight!));
             }
 
             return base.VisitBinary(binaryExpression);
@@ -430,7 +445,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                         return false;
                     }
 
-                    sqlArguments[i] = sqlArgument;
+                    sqlArguments[i] = sqlArgument!;
                 }
 
                 return true;
@@ -441,14 +456,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
         /// PostgreSQL array indexing is 1-based. If the index happens to be a constant,
         /// just increment it. Otherwise, append a +1 in the SQL.
         /// </summary>
-        SqlExpression GenerateOneBasedIndexExpression([NotNull] SqlExpression expression)
+        private SqlExpression GenerateOneBasedIndexExpression(SqlExpression expression)
             => expression is SqlConstantExpression constant
                 ? _sqlExpressionFactory.Constant(Convert.ToInt32(constant.Value) + 1, constant.TypeMapping)
                 : (SqlExpression)_sqlExpressionFactory.Add(expression, _sqlExpressionFactory.Constant(1));
 
         #region Copied from RelationalSqlTranslatingExpressionVisitor
 
-        static Expression TryRemoveImplicitConvert(Expression expression)
+        private static Expression TryRemoveImplicitConvert(Expression expression)
         {
             if (expression is UnaryExpression unaryExpression)
             {
@@ -480,7 +495,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
 
 
         [DebuggerStepThrough]
-        bool TranslationFailed(Expression original, Expression translation, out SqlExpression castTranslation)
+        private static bool TranslationFailed(Expression? original, Expression? translation, out SqlExpression? castTranslation)
         {
             if (original != null && !(translation is SqlExpression))
             {

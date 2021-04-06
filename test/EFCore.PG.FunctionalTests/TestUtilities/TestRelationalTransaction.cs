@@ -28,7 +28,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities
 
     public class TestRelationalTransaction : RelationalTransaction
     {
-        readonly TestNpgsqlConnection _testConnection;
+        private readonly TestNpgsqlConnection _testConnection;
 
         public TestRelationalTransaction(
             IRelationalConnection connection,

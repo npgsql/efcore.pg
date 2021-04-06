@@ -1,14 +1,12 @@
 using System;
 using System.Linq;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Utilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
 {
@@ -20,13 +18,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         /// <summary>
         /// The backend version to target.
         /// </summary>
-        readonly Version _postgresVersion;
+        private readonly Version _postgresVersion;
 
         /// <inheritdoc />
         public NpgsqlModelValidator(
-            [NotNull] ModelValidatorDependencies dependencies,
-            [NotNull] RelationalModelValidatorDependencies relationalDependencies,
-            [NotNull] INpgsqlOptions npgsqlOptions)
+            ModelValidatorDependencies dependencies,
+            RelationalModelValidatorDependencies relationalDependencies,
+            INpgsqlOptions npgsqlOptions)
             : base(dependencies, relationalDependencies)
             => _postgresVersion = Check.NotNull(npgsqlOptions, nameof(npgsqlOptions)).PostgresVersion;
 
@@ -42,7 +40,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
         /// Validates that identity columns are used only with PostgreSQL 10.0 or later.
         /// </summary>
         /// <param name="model">The model to validate.</param>
-        protected virtual void ValidateIdentityVersionCompatibility([NotNull] IModel model)
+        protected virtual void ValidateIdentityVersionCompatibility(IModel model)
         {
             if (_postgresVersion.AtLeast(10))
                 return;
@@ -72,7 +70,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
             }
         }
 
-        protected virtual void ValidateIndexIncludeProperties([NotNull] IModel model)
+        protected virtual void ValidateIndexIncludeProperties(IModel model)
         {
             foreach (var index in model.GetEntityTypes().SelectMany(t => t.GetDeclaredIndexes()))
             {

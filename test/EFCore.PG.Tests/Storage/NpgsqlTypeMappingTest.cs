@@ -343,7 +343,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
             Assert.Equal(@"'sad'::""DummyEnum""", mapping.GenerateSqlLiteral(DummyEnum.Sad));
         }
 
-        enum DummyEnum
+        private enum DummyEnum
         {
             // ReSharper disable once UnusedMember.Local
             Happy,
@@ -611,7 +611,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
             Assert.False(comparer.Equals(source, JsonDocument.Parse(json).RootElement));
         }
 
-        static readonly Customer SampleCustomer = new()
+        private static readonly Customer SampleCustomer = new()
         {
             Name = "Joe",
             Age = 25,
@@ -652,7 +652,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
 
         #region Support
 
-        static readonly NpgsqlTypeMappingSource Mapper = new(
+        private static readonly NpgsqlTypeMappingSource Mapper = new(
             new TypeMappingSourceDependencies(
                 new ValueConverterSelector(new ValueConverterSelectorDependencies()),
                 Array.Empty<ITypeMappingSourcePlugin>()
@@ -662,13 +662,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage
             new NpgsqlOptions()
         );
 
-        static RelationalTypeMapping GetMapping(string storeType) => Mapper.FindMapping(storeType);
+        private static RelationalTypeMapping GetMapping(string storeType) => Mapper.FindMapping(storeType);
 
-        static RelationalTypeMapping GetMapping(Type clrType) => (RelationalTypeMapping)Mapper.FindMapping(clrType);
+        private static RelationalTypeMapping GetMapping(Type clrType) => (RelationalTypeMapping)Mapper.FindMapping(clrType);
 
-        static readonly CSharpHelper CsHelper = new(Mapper);
+        private static readonly CSharpHelper CsHelper = new(Mapper);
 
-        static string CodeLiteral(object value) => CsHelper.UnknownLiteral(value);
+        private static string CodeLiteral(object value) => CsHelper.UnknownLiteral(value);
 
         #endregion Support
     }

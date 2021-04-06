@@ -21,7 +21,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
-        NodaTimeFixture Fixture { get; }
+        private NodaTimeFixture Fixture { get; }
 
         [Fact]
         public void Operator()
@@ -458,11 +458,11 @@ LIMIT 2");
 
         #region Support
 
-        NodaTimeContext CreateContext() => Fixture.CreateContext();
+        private NodaTimeContext CreateContext() => Fixture.CreateContext();
 
-        string Sql => Fixture.TestSqlLoggerFactory.Sql;
+        private string Sql => Fixture.TestSqlLoggerFactory.Sql;
 
-        static Period _defaultPeriod;
+        private static Period _defaultPeriod;
 
         public class NodaTimeFixture : SharedStoreFixtureBase<NodaTimeContext>
         {
@@ -537,7 +537,7 @@ LIMIT 2");
             // ReSharper restore UnusedAutoPropertyAccessor.Global
         }
 
-        void AssertSql(params string[] expected)
+        private void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
         #endregion Support

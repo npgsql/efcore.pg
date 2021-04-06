@@ -8,7 +8,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
 {
     public class SystemColumnTest : IClassFixture<SystemColumnTest.SystemColumnFixture>
     {
-        SystemColumnFixture Fixture { get; }
+        private SystemColumnFixture Fixture { get; }
 
         public SystemColumnTest(SystemColumnFixture fixture, ITestOutputHelper testOutputHelper)
         {
@@ -61,7 +61,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL
             // ReSharper restore UnusedAutoPropertyAccessor.Global
         }
 
-        SystemColumnContext CreateContext() => Fixture.CreateContext();
+        private SystemColumnContext CreateContext() => Fixture.CreateContext();
 
         public class SystemColumnFixture : SharedStoreFixtureBase<SystemColumnContext>
         {

@@ -12,7 +12,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
 {
     public class NpgsqlNodaTimeOptionsExtension : IDbContextOptionsExtension
     {
-        DbContextOptionsExtensionInfo _info;
+        private DbContextOptionsExtensionInfo? _info;
 
         public virtual void ApplyServices(IServiceCollection services)
             => services.AddEntityFrameworkNpgsqlNodaTime();
@@ -36,14 +36,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
             }
         }
 
-        sealed class ExtensionInfo : DbContextOptionsExtensionInfo
+        private sealed class ExtensionInfo : DbContextOptionsExtensionInfo
         {
             public ExtensionInfo(IDbContextOptionsExtension extension)
                 : base(extension)
             {
             }
 
-            new NpgsqlNodaTimeOptionsExtension Extension
+            private new NpgsqlNodaTimeOptionsExtension Extension
                 => (NpgsqlNodaTimeOptionsExtension)base.Extension;
 
             public override bool IsDatabaseProvider => false;

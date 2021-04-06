@@ -1,29 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Utilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
 {
     public class CockroachDbInterleaveInParent
     {
-        const string AnnotationName = CockroachDbAnnotationNames.InterleaveInParent;
+        private const string AnnotationName = CockroachDbAnnotationNames.InterleaveInParent;
 
-        readonly IReadOnlyAnnotatable _annotatable;
+        private readonly IReadOnlyAnnotatable _annotatable;
 
         public virtual Annotatable Annotatable => (Annotatable)_annotatable;
 
-        public CockroachDbInterleaveInParent([NotNull] IReadOnlyAnnotatable annotatable)
+        public CockroachDbInterleaveInParent(IReadOnlyAnnotatable annotatable)
             => _annotatable = annotatable;
 
-        public virtual string ParentTableSchema
+        public virtual string? ParentTableSchema
         {
             get => GetData().ParentTableSchema;
-            [param: CanBeNull] set
+            set
             {
                 (var _, var parentTableName, var interleavePrefix) = GetData();
                 SetData(value, parentTableName, interleavePrefix);
@@ -33,7 +31,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         public virtual string ParentTableName
         {
             get => GetData().ParentTableName;
-            [param: NotNull] set
+            set
             {
                 (var parentTableSchema, var _, var interleavePrefix) = GetData();
                 SetData(parentTableSchema, value, interleavePrefix);
@@ -43,25 +41,25 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
         public virtual List<string> InterleavePrefix
         {
             get => GetData().InterleavePrefix;
-            [param: NotNull] set
+            set
             {
                 (var parentTableSchema, var parentTableName, var _) = GetData();
                 SetData(parentTableSchema, parentTableName, value);
             }
         }
 
-        (string ParentTableSchema, string ParentTableName, List<string> InterleavePrefix) GetData()
+        private (string? ParentTableSchema, string ParentTableName, List<string> InterleavePrefix) GetData()
         {
             var str = Annotatable[AnnotationName] as string;
             return str == null
-                ? (null, null, null)
+                ? (null, null!, null!)
                 : Deserialize(str);
         }
 
-        void SetData(string parentTableSchema, string parentTableName, List<string> interleavePrefix)
+        private void SetData(string? parentTableSchema, string parentTableName, List<string> interleavePrefix)
             => Annotatable[AnnotationName] = Serialize(parentTableSchema, parentTableName, interleavePrefix);
 
-        static string Serialize(string parentTableSchema, string parentTableName, List<string> interleavePrefix)
+        private static string Serialize(string? parentTableSchema, string parentTableName, List<string> interleavePrefix)
         {
             var builder = new StringBuilder();
 
@@ -81,7 +79,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             return builder.ToString();
         }
 
-        internal static (string ParentTableSchema, string ParentTableName, List<string> InterleavePrefix) Deserialize([NotNull] string value)
+        internal static (string? ParentTableSchema, string ParentTableName, List<string> InterleavePrefix) Deserialize(string value)
         {
             Check.NotEmpty(value, nameof(value));
 
@@ -89,10 +87,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             {
                 var position = 0;
                 var parentTableSchema = ExtractValue(value, ref position);
-                var parentTableName = ExtractValue(value, ref position);
+                var parentTableName = ExtractValue(value, ref position)!;
                 var interleavePrefix = new List<string>();
                 while (position < value.Length - 1)
-                    interleavePrefix.Add(ExtractValue(value, ref position));
+                    interleavePrefix.Add(ExtractValue(value, ref position)!);
                 return (parentTableSchema, parentTableName, interleavePrefix);
             }
             catch (Exception ex)
@@ -101,7 +99,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             }
         }
 
-        private static string ExtractValue(string value, ref int position)
+        private static string? ExtractValue(string value, ref int position)
         {
             position = value.IndexOf('\'', position) + 1;
 
@@ -119,13 +117,13 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata
             return extracted.Length == 0 ? null : extracted;
         }
 
-        private static void EscapeAndQuote(StringBuilder builder, object value)
+        private static void EscapeAndQuote(StringBuilder builder, object? value)
         {
             builder.Append("'");
 
             if (value != null)
             {
-                builder.Append(value.ToString().Replace("'", "''"));
+                builder.Append(value.ToString()!.Replace("'", "''"));
             }
 
             builder.Append("'");

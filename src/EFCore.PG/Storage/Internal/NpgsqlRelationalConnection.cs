@@ -1,7 +1,8 @@
 using System.Data.Common;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net.Security;
-using JetBrains.Annotations;
+using System.Transactions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -11,25 +12,27 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 {
     public class NpgsqlRelationalConnection : RelationalConnection, INpgsqlRelationalConnection
     {
-        ProvideClientCertificatesCallback ProvideClientCertificatesCallback { get; }
-        RemoteCertificateValidationCallback RemoteCertificateValidationCallback { get; }
-        ProvidePasswordCallback ProvidePasswordCallback { get; }
-
+        private ProvideClientCertificatesCallback? ProvideClientCertificatesCallback { get; }
+        private RemoteCertificateValidationCallback? RemoteCertificateValidationCallback { get; }
+        private ProvidePasswordCallback? ProvidePasswordCallback { get; }
 
         /// <summary>
         ///     Indicates whether the store connection supports ambient transactions
         /// </summary>
         protected override bool SupportsAmbientTransactions => true;
 
-        public NpgsqlRelationalConnection([NotNull] RelationalConnectionDependencies dependencies)
+        public NpgsqlRelationalConnection(RelationalConnectionDependencies dependencies)
             : base(dependencies)
         {
             var npgsqlOptions =
                 dependencies.ContextOptions.Extensions.OfType<NpgsqlOptionsExtension>().FirstOrDefault();
 
-            ProvideClientCertificatesCallback = npgsqlOptions.ProvideClientCertificatesCallback;
-            RemoteCertificateValidationCallback = npgsqlOptions.RemoteCertificateValidationCallback;
-            ProvidePasswordCallback = npgsqlOptions.ProvidePasswordCallback;
+            if (npgsqlOptions is not null)
+            {
+                ProvideClientCertificatesCallback = npgsqlOptions.ProvideClientCertificatesCallback;
+                RemoteCertificateValidationCallback = npgsqlOptions.RemoteCertificateValidationCallback;
+                ProvidePasswordCallback = npgsqlOptions.ProvidePasswordCallback;
+            }
         }
 
         protected override DbConnection CreateDbConnection()
@@ -59,6 +62,30 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             relationalOptions = relationalOptions.Connection != null
                 ? relationalOptions.WithConnection(((NpgsqlConnection)DbConnection).CloneWith(connectionString))
                 : relationalOptions.WithConnectionString(connectionString);
+
+            var optionsBuilder = new DbContextOptionsBuilder();
+            ((IDbContextOptionsBuilderInfrastructure)optionsBuilder).AddOrUpdateExtension(relationalOptions);
+
+            return new NpgsqlRelationalConnection(Dependencies with { ContextOptions = optionsBuilder.Options });
+        }
+
+        [AllowNull]
+        public new virtual NpgsqlConnection DbConnection
+        {
+            get => (NpgsqlConnection)base.DbConnection;
+            set => base.DbConnection = value;
+        }
+
+        // Accessing Transaction.Current is expensive, so don't do it if Enlist is false in the connection string
+        public override Transaction? CurrentAmbientTransaction
+            => DbConnection.Settings.Enlist ? Transaction.Current : null;
+
+        public virtual NpgsqlRelationalConnection CloneWith(string connectionString)
+        {
+            var clonedDbConnection = DbConnection.CloneWith(connectionString);
+
+            var relationalOptions = RelationalOptionsExtension.Extract(Dependencies.ContextOptions)
+                .WithConnection(clonedDbConnection);
 
             var optionsBuilder = new DbContextOptionsBuilder();
             ((IDbContextOptionsBuilderInfrastructure)optionsBuilder).AddOrUpdateExtension(relationalOptions);

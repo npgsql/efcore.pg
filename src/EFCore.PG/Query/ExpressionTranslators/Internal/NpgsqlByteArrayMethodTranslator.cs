@@ -1,27 +1,26 @@
 using System.Collections.Generic;
 using System.Reflection;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
+using Microsoft.EntityFrameworkCore.Utilities;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 using static Npgsql.EntityFrameworkCore.PostgreSQL.Utilities.Statics;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
     public class NpgsqlByteArrayMethodTranslator : IMethodCallTranslator
     {
-        readonly ISqlExpressionFactory _sqlExpressionFactory;
+        private readonly ISqlExpressionFactory _sqlExpressionFactory;
 
-        public NpgsqlByteArrayMethodTranslator([NotNull] ISqlExpressionFactory sqlExpressionFactory)
+        public NpgsqlByteArrayMethodTranslator(ISqlExpressionFactory sqlExpressionFactory)
             => _sqlExpressionFactory = sqlExpressionFactory;
 
-        public virtual SqlExpression Translate(
-            SqlExpression instance,
+        public virtual SqlExpression? Translate(
+            SqlExpression? instance,
             MethodInfo method,
             IReadOnlyList<SqlExpression> arguments,
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)
@@ -40,7 +39,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
                     // We have a byte value, but we need a bytea for PostgreSQL POSITION.
                     var value = arguments[1] is SqlConstantExpression constantValue
-                        ? (SqlExpression)_sqlExpressionFactory.Constant(new[] { (byte)constantValue.Value }, typeMapping)
+                        ? (SqlExpression)_sqlExpressionFactory.Constant(new[] { (byte)constantValue.Value! }, typeMapping)
                         // Create bytea from non-constant byte: SELECT set_byte('\x00', 0, 8::smallint);
                         : _sqlExpressionFactory.Function(
                             "set_byte",

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
@@ -24,34 +23,34 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
     /// </remarks>
     public class NpgsqlArrayTranslator : IMethodCallTranslator, IMemberTranslator
     {
-        static readonly MethodInfo SequenceEqual =
+        private static readonly MethodInfo SequenceEqual =
             typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
                 .Single(m => m.Name == nameof(Enumerable.SequenceEqual) && m.GetParameters().Length == 2);
 
-        static readonly MethodInfo EnumerableContains =
+        private static readonly MethodInfo EnumerableContains =
             typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
                 .Single(m => m.Name == nameof(Enumerable.Contains) && m.GetParameters().Length == 2);
 
-        static readonly MethodInfo EnumerableAnyWithoutPredicate =
+        private static readonly MethodInfo EnumerableAnyWithoutPredicate =
             typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
                 .Single(mi => mi.Name == nameof(Enumerable.Any) && mi.GetParameters().Length == 1);
 
-        readonly IRelationalTypeMappingSource _typeMappingSource;
-        readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
-        readonly NpgsqlJsonPocoTranslator _jsonPocoTranslator;
+        private readonly IRelationalTypeMappingSource _typeMappingSource;
+        private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
+        private readonly NpgsqlJsonPocoTranslator _jsonPocoTranslator;
 
         public NpgsqlArrayTranslator(
-            [NotNull] IRelationalTypeMappingSource typeMappingSource,
-            [NotNull] NpgsqlSqlExpressionFactory sqlExpressionFactory,
-            [NotNull] NpgsqlJsonPocoTranslator jsonPocoTranslator)
+            IRelationalTypeMappingSource typeMappingSource,
+            NpgsqlSqlExpressionFactory sqlExpressionFactory,
+            NpgsqlJsonPocoTranslator jsonPocoTranslator)
         {
             _typeMappingSource = typeMappingSource;
             _sqlExpressionFactory = sqlExpressionFactory;
             _jsonPocoTranslator = jsonPocoTranslator;
         }
 
-        public virtual SqlExpression Translate(
-            SqlExpression instance,
+        public virtual SqlExpression? Translate(
+            SqlExpression? instance,
             MethodInfo method,
             IReadOnlyList<SqlExpression> arguments,
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)
@@ -89,7 +88,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 => arrayOrList.TypeMapping is RelationalTypeMapping typeMapping &&
                    typeMapping is not (NpgsqlArrayTypeMapping or NpgsqlJsonTypeMapping);
 
-            SqlExpression TranslateCommon(SqlExpression arrayOrList, IReadOnlyList<SqlExpression> arguments)
+            SqlExpression? TranslateCommon(SqlExpression arrayOrList, IReadOnlyList<SqlExpression> arguments)
             {
                 // Predicate-less Any - translate to a simple length check.
                 if (method.IsClosedFormOf(EnumerableAnyWithoutPredicate))
@@ -114,11 +113,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                      method.GetParameters().Length == 1)
                     &&
                     (
-                        // Handle either parameters (no mapping but supported CLR type), or array columns. We specifically
+                        // Handle either array columns (with an array mapping) or parameters/constants (no mapping). We specifically
                         // don't want to translate if the type mapping is bytea (CLR type is array, but not an array in
                         // the database).
-                        arrayOrList.TypeMapping == null && _typeMappingSource.FindMapping(arrayOrList.Type) != null ||
-                        arrayOrList.TypeMapping is NpgsqlArrayTypeMapping
+                        // arrayOrList.TypeMapping == null && _typeMappingSource.FindMapping(arrayOrList.Type) != null ||
+                        arrayOrList.TypeMapping is NpgsqlArrayTypeMapping or null
                     ))
                 {
                     var item = arguments[0];
@@ -169,7 +168,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             }
         }
 
-        public virtual SqlExpression Translate(SqlExpression instance,
+        public virtual SqlExpression? Translate(SqlExpression? instance,
             MemberInfo member,
             Type returnType,
             IDiagnosticsLogger<DbLoggerCategory.Query> logger)
@@ -194,7 +193,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
         /// PostgreSQL array indexing is 1-based. If the index happens to be a constant,
         /// just increment it. Otherwise, append a +1 in the SQL.
         /// </summary>
-        SqlExpression GenerateOneBasedIndexExpression([NotNull] SqlExpression expression)
+        private SqlExpression GenerateOneBasedIndexExpression(SqlExpression expression)
             => expression is SqlConstantExpression constant
                 ? _sqlExpressionFactory.Constant(Convert.ToInt32(constant.Value) + 1, constant.TypeMapping)
                 : (SqlExpression)_sqlExpressionFactory.Add(expression, _sqlExpressionFactory.Constant(1));

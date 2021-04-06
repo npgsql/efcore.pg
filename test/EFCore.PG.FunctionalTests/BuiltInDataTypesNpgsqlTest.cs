@@ -58,7 +58,7 @@ WHERE m.""TimeSpanAsTime"" = TIME '00:01:02'");
             Assert.Empty(results);
 
             AssertSql(
-                @"@__timeSpan_0='02:01:00' (Nullable = true) (DbType = Object)
+                @"@__timeSpan_0='02:01:00' (Nullable = true)
 
 SELECT m.""Int""
 FROM ""MappedNullableDataTypes"" AS m
@@ -492,7 +492,7 @@ WHERE m.""TimeSpanAsTime"" = @__timeSpan_0");
 @p33='Gumball Rules!' (Nullable = false)
 @p34='Gumball Rules OK' (Nullable = false)
 @p35='11:15:12' (DbType = Object)
-@p36='11:15:12' (DbType = Object)
+@p36='11:15:12'
 @p37='65535'
 @p38='-1'
 @p39='4294967295'
@@ -503,12 +503,12 @@ WHERE m.""TimeSpanAsTime"" = @__timeSpan_0");
                     ignoreLineEndingDifferences: true);
         }
 
-        string DumpParameters()
+        private string DumpParameters()
             => Fixture.TestSqlLoggerFactory.Parameters.Single().Replace(", ", Environment.NewLine);
 
         // ReSharper disable once UnusedMember.Local
         // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
-        static void AssertMappedDataTypes(MappedDataTypes entity, int id)
+        private static void AssertMappedDataTypes(MappedDataTypes entity, int id)
         {
             // ReSharper disable once UnusedVariable
             var expected = CreateMappedDataTypes(id);
@@ -566,7 +566,7 @@ WHERE m.""TimeSpanAsTime"" = @__timeSpan_0");
             Assert.Equal(NpgsqlTsRankingNormalization.DivideByLength, entity.RankingNormalization);
         }
 
-        static MappedDataTypes CreateMappedDataTypes(int id)
+        private static MappedDataTypes CreateMappedDataTypes(int id)
             => new()
             {
                 Int = id,
@@ -644,7 +644,7 @@ WHERE m.""TimeSpanAsTime"" = @__timeSpan_0");
         }
 
         // ReSharper disable ParameterOnlyUsedForPreconditionCheck.Local
-        static void AssertNullMappedNullableDataTypes(MappedNullableDataTypes entity, int id)
+        private static void AssertNullMappedNullableDataTypes(MappedNullableDataTypes entity, int id)
         // ReSharper restore ParameterOnlyUsedForPreconditionCheck.Local
         {
             Assert.Equal(id, entity.Int);
@@ -906,7 +906,7 @@ FROM ""MappedDataTypes"" AS m");
             _ = context.Set<MappedDataTypes>().Where(m => m.DecimalAsMoney > money).ToList();
         }
 
-        void AssertSql(params string[] expected)
+        private void AssertSql(params string[] expected)
             => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
         public class BuiltInDataTypesNpgsqlFixture : BuiltInDataTypesFixtureBase

@@ -1,29 +1,27 @@
 ﻿using System;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Utilities;
 using Microsoft.EntityFrameworkCore.ValueGeneration;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Utilities;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
 {
     public class NpgsqlValueGeneratorSelector : RelationalValueGeneratorSelector
     {
-        readonly INpgsqlSequenceValueGeneratorFactory _sequenceFactory;
-        readonly INpgsqlRelationalConnection _connection;
-        readonly IRawSqlCommandBuilder _rawSqlCommandBuilder;
-        readonly IDiagnosticsLogger<DbLoggerCategory.Database.Command> _commandLogger;
+        private readonly INpgsqlSequenceValueGeneratorFactory _sequenceFactory;
+        private readonly INpgsqlRelationalConnection _connection;
+        private readonly IRawSqlCommandBuilder _rawSqlCommandBuilder;
+        private readonly IDiagnosticsLogger<DbLoggerCategory.Database.Command> _commandLogger;
 
         public NpgsqlValueGeneratorSelector(
-            [NotNull] ValueGeneratorSelectorDependencies dependencies,
-            [NotNull] INpgsqlSequenceValueGeneratorFactory sequenceFactory,
-            [NotNull] INpgsqlRelationalConnection connection,
-            [NotNull] IRawSqlCommandBuilder rawSqlCommandBuilder,
-            [NotNull] IDiagnosticsLogger<DbLoggerCategory.Database.Command> commandLogger)
+            ValueGeneratorSelectorDependencies dependencies,
+            INpgsqlSequenceValueGeneratorFactory sequenceFactory,
+            INpgsqlRelationalConnection connection,
+            IRawSqlCommandBuilder rawSqlCommandBuilder,
+            IDiagnosticsLogger<DbLoggerCategory.Database.Command> commandLogger)
             : base(dependencies)
         {
             _sequenceFactory = sequenceFactory;

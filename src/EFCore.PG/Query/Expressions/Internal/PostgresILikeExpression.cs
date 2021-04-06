@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq.Expressions;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -17,20 +16,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         /// <summary>
         /// The match expression.
         /// </summary>
-        [NotNull]
         public virtual SqlExpression Match { get; }
 
         /// <summary>
         /// The pattern to match.
         /// </summary>
-        [NotNull]
         public virtual SqlExpression Pattern { get; }
 
         /// <summary>
         /// The escape character to use in <see cref="Pattern"/>.
         /// </summary>
-        [CanBeNull]
-        public virtual SqlExpression EscapeChar { get; }
+        public virtual SqlExpression? EscapeChar { get; }
 
         /// <summary>
         /// Constructs a <see cref="PostgresILikeExpression"/>.
@@ -40,10 +36,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
         /// <param name="escapeChar">The escape character to use in <paramref name="pattern"/>.</param>
         /// <exception cref="ArgumentNullException" />
         public PostgresILikeExpression(
-            [NotNull] SqlExpression match,
-            [NotNull] SqlExpression pattern,
-            [CanBeNull] SqlExpression escapeChar,
-            [CanBeNull] RelationalTypeMapping typeMapping)
+            SqlExpression match,
+            SqlExpression pattern,
+            SqlExpression? escapeChar,
+            RelationalTypeMapping? typeMapping)
             : base(typeof(bool), typeMapping)
         {
             Match = match;
@@ -56,21 +52,21 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Expressions.Internal
             => Update(
                 (SqlExpression)visitor.Visit(Match),
                 (SqlExpression)visitor.Visit(Pattern),
-                (SqlExpression)visitor.Visit(EscapeChar));
+                EscapeChar is null ? null : (SqlExpression)visitor.Visit(EscapeChar));
 
         public virtual PostgresILikeExpression Update(
-            [NotNull] SqlExpression match,
-            [NotNull] SqlExpression pattern,
-            [NotNull] SqlExpression escapeChar)
+            SqlExpression match,
+            SqlExpression pattern,
+            SqlExpression? escapeChar)
             => match == Match && pattern == Pattern && escapeChar == EscapeChar
                 ? this
                 : new PostgresILikeExpression(match, pattern, escapeChar, TypeMapping);
 
         /// <inheritdoc />
-        public override bool Equals(object obj) => obj is PostgresILikeExpression other && Equals(other);
+        public override bool Equals(object? obj) => obj is PostgresILikeExpression other && Equals(other);
 
         /// <inheritdoc />
-        public virtual bool Equals(PostgresILikeExpression other)
+        public virtual bool Equals(PostgresILikeExpression? other)
             => ReferenceEquals(this, other) ||
                other is object &&
                base.Equals(other) &&

@@ -1,5 +1,4 @@
 ﻿using System;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
 // ReSharper disable once CheckNamespace
@@ -18,10 +17,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="matchExpression">The string that is to be matched.</param>
         /// <param name="pattern">The pattern which may involve wildcards %,_,[,],^.</param>
         /// <returns><see langword="true" /> if there is a match.</returns>
-        public static bool ILike(
-            [CanBeNull] this DbFunctions _,
-            [CanBeNull] string matchExpression,
-            [CanBeNull] string pattern)
+        public static bool ILike(this DbFunctions _, string matchExpression, string pattern)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(ILike)));
 
         // ReSharper disable once InconsistentNaming
@@ -36,11 +32,7 @@ namespace Microsoft.EntityFrameworkCore
         /// if they are not used as wildcards.
         /// </param>
         /// <returns><see langword="true" /> if there is a match.</returns>
-        public static bool ILike(
-            [CanBeNull] this DbFunctions _,
-            [CanBeNull] string matchExpression,
-            [CanBeNull] string pattern,
-            [CanBeNull] string escapeCharacter)
+        public static bool ILike(this DbFunctions _, string matchExpression, string pattern, string escapeCharacter)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(ILike)));
 
         /// <summary>
@@ -49,7 +41,7 @@ namespace Microsoft.EntityFrameworkCore
         /// <param name="_">The <see cref="DbFunctions"/> instance.</param>
         /// <param name="value">The string that is to be reversed.</param>
         /// <returns>The reversed string.</returns>
-        public static string Reverse([CanBeNull] this DbFunctions _, [CanBeNull] string value)
+        public static string Reverse(this DbFunctions _, string value)
             => throw new InvalidOperationException(CoreStrings.FunctionOnClient(nameof(Reverse)));
     }
 }

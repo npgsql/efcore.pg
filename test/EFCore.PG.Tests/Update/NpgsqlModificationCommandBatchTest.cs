@@ -56,7 +56,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Tests.Update
                     new ModificationCommand("T1", null, new ParameterNameGenerator().GenerateNext, false, null)));
         }
 
-        class FakeDbContext : DbContext
+        private class FakeDbContext : DbContext
         {
         }
     }

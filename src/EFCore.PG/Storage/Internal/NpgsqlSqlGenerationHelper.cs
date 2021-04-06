@@ -2,14 +2,13 @@
 using System.Data;
 using System.Linq;
 using System.Text;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 {
     public class NpgsqlSqlGenerationHelper : RelationalSqlGenerationHelper
     {
-        static readonly HashSet<string> ReservedWords;
+        private static readonly HashSet<string> ReservedWords;
 
         static NpgsqlSqlGenerationHelper()
         {
@@ -18,7 +17,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 ReservedWords = new HashSet<string>(conn.GetSchema("ReservedWords").Rows.Cast<DataRow>().Select(r => (string)r["ReservedWord"]));
         }
 
-        public NpgsqlSqlGenerationHelper([NotNull] RelationalSqlGenerationHelperDependencies dependencies)
+        public NpgsqlSqlGenerationHelper(RelationalSqlGenerationHelperDependencies dependencies)
             : base(dependencies) {}
 
         public override string DelimitIdentifier(string identifier)
@@ -35,7 +34,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         /// <summary>
         /// Returns whether the given string can be used as an unquoted identifier in PostgreSQL, without quotes.
         /// </summary>
-        static bool RequiresQuoting(string identifier)
+        private static bool RequiresQuoting(string identifier)
         {
             var first = identifier[0];
             if (!char.IsLower(first) && first != '_')

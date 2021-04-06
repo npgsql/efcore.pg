@@ -3,21 +3,20 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion
 {
     public class NpgsqlValueConverterSelector : ValueConverterSelector
     {
-        readonly ConcurrentDictionary<(Type ModelElementClrType, Type ProviderElementClrType), ValueConverterInfo> _arrayConverters
+        private readonly ConcurrentDictionary<(Type ModelElementClrType, Type ProviderElementClrType), ValueConverterInfo> _arrayConverters
             = new();
 
-        public NpgsqlValueConverterSelector([NotNull] ValueConverterSelectorDependencies dependencies)
+        public NpgsqlValueConverterSelector(ValueConverterSelectorDependencies dependencies)
             : base(dependencies) {}
 
         /// <inheritdoc />
-        public override IEnumerable<ValueConverterInfo> Select(Type modelClrType, Type providerClrType = null)
+        public override IEnumerable<ValueConverterInfo> Select(Type modelClrType, Type? providerClrType = null)
         {
             var providerElementType = default(Type);
 
@@ -48,7 +47,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.ValueConversion
                                 typeof(NpgsqlArrayConverter<,>).MakeGenericType(
                                     modelClrType,
                                     x.ProviderArrayType),
-                                x.ElementConverterInfo.Create()))));
+                                x.ElementConverterInfo.Create())!)));
 
                 return arrayConverters.Concat(base.Select(modelClrType, providerClrType));
             }

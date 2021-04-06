@@ -195,7 +195,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Design.Internal
             Assert.Collection(result.Arguments, name => Assert.Equal("postgis", name));
         }
 
-        NpgsqlAnnotationCodeGenerator CreateGenerator()
+        private NpgsqlAnnotationCodeGenerator CreateGenerator()
             => new(new AnnotationCodeGeneratorDependencies(
                 new NpgsqlTypeMappingSource(
                     new TypeMappingSourceDependencies(
