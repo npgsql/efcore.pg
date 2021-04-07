@@ -279,34 +279,29 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                 var leftType = left.Type.UnwrapNullableType();
                 var rightType = right.Type.UnwrapNullableType();
 
-                if (binary.OperatorType == ExpressionType.Add)
-                {
-                    // Note that we apply the given type mapping from above to the left operand (which has the same CLR type as
-                    // the binary expression's)
+                // Note that we apply the given type mapping from above to the left operand (which has the same CLR type as
+                // the binary expression's)
 
-                    // DateTime + TimeSpan => DateTime
-                    // DateTimeOffset + TimeSpan => DateTimeOffset
-                    if (rightType == typeof(TimeSpan) && (
-                            leftType == typeof(DateTime) ||
-                            leftType == typeof(DateTimeOffset)) ||
-                        rightType.FullName == "NodaTime.Period" && (
-                            leftType.FullName == "NodaTime.LocalDateTime" ||
-                            leftType.FullName == "NodaTime.LocalDate" ||
-                            leftType.FullName == "NodaTime.LocalTime") ||
-                        rightType.FullName == "NodaTime.Duration" && (
-                            leftType.FullName == "NodaTime.Instant" ||
-                            leftType.FullName == "NodaTime.ZonedDateTime"))
-                    {
-                        var newLeft = ApplyTypeMapping(left, typeMapping);
-                        var newRight = ApplyDefaultTypeMapping(right);
-                        return new SqlBinaryExpression(binary.OperatorType, newLeft, newRight, binary.Type, newLeft.TypeMapping);
-                    }
+                // DateTime + TimeSpan => DateTime
+                // DateTimeOffset + TimeSpan => DateTimeOffset
+                if (rightType == typeof(TimeSpan) && (
+                        leftType == typeof(DateTime) ||
+                        leftType == typeof(DateTimeOffset)) ||
+                    rightType.FullName == "NodaTime.Period" && (
+                        leftType.FullName == "NodaTime.LocalDateTime" ||
+                        leftType.FullName == "NodaTime.LocalDate" ||
+                        leftType.FullName == "NodaTime.LocalTime") ||
+                    rightType.FullName == "NodaTime.Duration" && (
+                        leftType.FullName == "NodaTime.Instant" ||
+                        leftType.FullName == "NodaTime.ZonedDateTime"))
+                {
+                    var newLeft = ApplyTypeMapping(left, typeMapping);
+                    var newRight = ApplyDefaultTypeMapping(right);
+                    return new SqlBinaryExpression(binary.OperatorType, newLeft, newRight, binary.Type, newLeft.TypeMapping);
                 }
 
                 if (binary.OperatorType == ExpressionType.Subtract)
                 {
-                    var inferredTypeMapping = typeMapping ?? ExpressionExtensions.InferTypeMapping(left, right);
-
                     // DateTime - DateTime => TimeSpan
                     // DateTimeOffset - DateTimeOffset => TimeSpan
                     // Instant - Instant => Duration
@@ -319,6 +314,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
                         leftType.FullName == "NodaTime.LocalDate" && rightType.FullName == "NodaTime.LocalDate" ||
                         leftType.FullName == "NodaTime.LocalTime" && rightType.FullName == "NodaTime.LocalTime")
                     {
+                        var inferredTypeMapping = typeMapping ?? ExpressionExtensions.InferTypeMapping(left, right);
+
                         return new SqlBinaryExpression(
                             ExpressionType.Subtract,
                             ApplyTypeMapping(left, inferredTypeMapping),
