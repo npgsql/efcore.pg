@@ -97,7 +97,7 @@ namespace Microsoft.EntityFrameworkCore
 
         #region Postgres-xl Distribute By
 
-        public static PostgresXlDistributeBy GetPostgresXlDistributeBy([NotNull] this IReadOnlyEntityType entityType)
+        public static PostgresXlDistributeBy GetPostgresXlDistributeBy(this IReadOnlyEntityType entityType)
             => new(entityType);
 
         #endregion Postgres-xl Distribute By

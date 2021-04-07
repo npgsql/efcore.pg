@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -215,7 +216,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                             .Append("DISTRIBUTE BY ")
                             .Append(distributeByColumnFunction.ToString().ToUpperInvariant())
                             .Append(" (")
-                            .Append(DelimitIdentifier(distributeByColumnName))
+                            .Append(DelimitIdentifier(distributeByColumnName!))
                             .Append(")");
                     }
 
@@ -245,7 +246,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                         .Append("DISTSTYLE ")
                         .Append(distributionStyle.ToString().ToUpperInvariant())
                         .Append(" DISTKEY (")
-                        .Append(DelimitIdentifier(distributeByColumnName))
+                        .Append(DelimitIdentifier(distributeByColumnName!))
                         .Append(")");
                 }
                 else if (distributionStyle == PostgresXlDistributionStyle.All || distributionStyle == PostgresXlDistributionStyle.Even)
@@ -294,7 +295,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
                 PostgresXlDistributeByColumnFunction distributeByColumnFunction,
                 PostgresXlDistributionStyle distributionStyle,
                 // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
-                string distributeByColumnName)
+                string? distributeByColumnName)
             {
                 switch (distributionStrategy)
                 {

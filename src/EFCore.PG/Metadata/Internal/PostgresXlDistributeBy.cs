@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+#nullable enable
 using System;
 using System.Text;
 using JetBrains.Annotations;
@@ -18,7 +19,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
         public virtual Annotatable Annotatable
             => (Annotatable)_annotatable;
 
-        public PostgresXlDistributeBy([NotNull] IReadOnlyAnnotatable annotatable)
+        public PostgresXlDistributeBy(IReadOnlyAnnotatable annotatable)
             => _annotatable = annotatable;
 
         public virtual PostgresXlDistributeByStrategy DistributionStrategy
@@ -51,10 +52,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
             }
         }
 
-        public virtual string DistributeByPropertyName
+        public virtual string? DistributeByPropertyName
         {
             get => GetData().ColumnName;
-            [param:NotNull] set
+            set
             {
                 var (distributionStrategy, distributeByColumnFunction, distributionStyle, _) = GetData();
                 SetData(distributionStrategy, distributeByColumnFunction, distributionStyle, value);
@@ -64,7 +65,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
         public void Deconstruct(out PostgresXlDistributeByStrategy distributionStrategy,
             out PostgresXlDistributeByColumnFunction distributeByColumnFunction,
             out PostgresXlDistributionStyle distributionStyle,
-            out string distributeByColumnName)
+            out string? distributeByColumnName)
         {
             distributionStrategy = DistributionStrategy;
             distributeByColumnFunction = DistributeByColumnFunction;
@@ -72,7 +73,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
             distributeByColumnName = DistributeByPropertyName;
         }
 
-        private (PostgresXlDistributeByStrategy DistributionStrategy, PostgresXlDistributeByColumnFunction DistributeByColumnFunction, PostgresXlDistributionStyle DistributionStyle, string ColumnName) GetData()
+        private (PostgresXlDistributeByStrategy DistributionStrategy, PostgresXlDistributeByColumnFunction DistributeByColumnFunction, PostgresXlDistributionStyle DistributionStyle, string? ColumnName) GetData()
         {
             var str = Annotatable[AnnotationName] as string;
             return str == null
@@ -84,7 +85,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
             PostgresXlDistributeByStrategy distributionStrategy,
             PostgresXlDistributeByColumnFunction distributeByColumnFunction,
             PostgresXlDistributionStyle postgresXlDistributionStyle,
-            string distributeByColumnName)
+            string? distributeByColumnName)
         {
             Annotatable[AnnotationName] = Serialize(distributionStrategy, distributeByColumnFunction, postgresXlDistributionStyle, distributeByColumnName);
         }
@@ -93,7 +94,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
             PostgresXlDistributeByStrategy distributionStrategy,
             PostgresXlDistributeByColumnFunction distributeByColumnFunction,
             PostgresXlDistributionStyle postgresXlDistributionStyle,
-            string distributeByColumnName)
+            string? distributeByColumnName)
         {
             var stringBuilder = new StringBuilder();
 
@@ -111,31 +112,31 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.Internal
         private (PostgresXlDistributeByStrategy DistributionStrategy,
             PostgresXlDistributeByColumnFunction DistributeByColumnFunction,
             PostgresXlDistributionStyle DistributionStyle,
-            string ColumnName)
+            string? ColumnName)
             Deserialize(string str)
         {
             var position = 0;
-            var distributionStrategy = Enum.Parse<PostgresXlDistributeByStrategy>(ExtractValue(str, ref position));
-            var distributeByColumnFunction = Enum.Parse<PostgresXlDistributeByColumnFunction>(ExtractValue(str, ref position));
-            var distributionStyle = Enum.Parse<PostgresXlDistributionStyle>(ExtractValue(str, ref position));
+            var distributionStrategy = Enum.Parse<PostgresXlDistributeByStrategy>(ExtractValue(str, ref position)!);
+            var distributeByColumnFunction = Enum.Parse<PostgresXlDistributeByColumnFunction>(ExtractValue(str, ref position)!);
+            var distributionStyle = Enum.Parse<PostgresXlDistributionStyle>(ExtractValue(str, ref position)!);
             var columnName = ExtractValue(str, ref position);
 
             return (distributionStrategy, distributeByColumnFunction, distributionStyle, columnName);
         }
 
-        private static void EscapeAndQuote(StringBuilder builder, object value)
+        private static void EscapeAndQuote(StringBuilder builder, object? value)
         {
             builder.Append("'");
 
             if (value != null)
             {
-                builder.Append(value.ToString().Replace("'", "''"));
+                builder.Append(value.ToString()?.Replace("'", "''"));
             }
 
             builder.Append("'");
         }
 
-        private static string ExtractValue(string value, ref int position)
+        private static string? ExtractValue(string value, ref int position)
         {
             position = value.IndexOf('\'', position) + 1;
 

@@ -331,7 +331,7 @@ namespace Microsoft.EntityFrameworkCore
         #region Postgres-xl Distribute By
 
         public static EntityTypeBuilder PostgresXlDistributeBy(
-            [NotNull] this EntityTypeBuilder entityTypeBuilder,
+            this EntityTypeBuilder entityTypeBuilder,
             PostgresXlDistributeByStrategy distributeByStrategy)
         {
             switch (distributeByStrategy)
@@ -348,14 +348,14 @@ namespace Microsoft.EntityFrameworkCore
         }
 
         public static EntityTypeBuilder<TEntity> PostgresXlDistributeBy<TEntity>(
-            [NotNull] this EntityTypeBuilder<TEntity> entityTypeBuilder,
+            this EntityTypeBuilder<TEntity> entityTypeBuilder,
             PostgresXlDistributeByStrategy distributeByStrategy)
             where TEntity : class
             => (EntityTypeBuilder<TEntity>)PostgresXlDistributeBy((EntityTypeBuilder)entityTypeBuilder, distributeByStrategy);
 
         public static EntityTypeBuilder PostgresXlDistributeBy(
-            [NotNull] this EntityTypeBuilder entityTypeBuilder,
-            [NotNull] string propertyName,
+            this EntityTypeBuilder entityTypeBuilder,
+            string propertyName,
             PostgresXlDistributeByColumnFunction distributeByColumnFunction = PostgresXlDistributeByColumnFunction.None)
         {
             Check.NotNull(entityTypeBuilder, nameof(entityTypeBuilder));
@@ -371,8 +371,8 @@ namespace Microsoft.EntityFrameworkCore
         }
 
         public static EntityTypeBuilder PostgresXlDistributeBy<TEntity>(
-            [NotNull] this EntityTypeBuilder entityTypeBuilder,
-            [NotNull] Expression<Func<TEntity, object>> propertyExpression,
+            this EntityTypeBuilder entityTypeBuilder,
+            Expression<Func<TEntity, object>> propertyExpression,
             PostgresXlDistributeByColumnFunction distributeByColumnFunction = PostgresXlDistributeByColumnFunction.None)
         {
             Check.NotNull(entityTypeBuilder, nameof(entityTypeBuilder));
@@ -384,15 +384,15 @@ namespace Microsoft.EntityFrameworkCore
         }
 
         public static EntityTypeBuilder<TEntity> PostgresXlDistributeBy<TEntity>(
-            [NotNull] this EntityTypeBuilder<TEntity> entityTypeBuilder,
-            [NotNull] string propertyName,
+            this EntityTypeBuilder<TEntity> entityTypeBuilder,
+            string propertyName,
             PostgresXlDistributeByColumnFunction distributeByColumnFunction = PostgresXlDistributeByColumnFunction.None)
             where TEntity : class
             => (EntityTypeBuilder<TEntity>)PostgresXlDistributeBy(
                 (EntityTypeBuilder)entityTypeBuilder, propertyName, distributeByColumnFunction);
 
         public static EntityTypeBuilder PostgresXlDistributionStyle(
-            [NotNull] this EntityTypeBuilder entityTypeBuilder,
+            this EntityTypeBuilder entityTypeBuilder,
             PostgresXlDistributionStyle distributionStyle)
         {
             Check.NotNull(entityTypeBuilder, nameof(entityTypeBuilder));
@@ -414,7 +414,7 @@ namespace Microsoft.EntityFrameworkCore
         }
 
         public static EntityTypeBuilder<TEntity> PostgresXlDistributionStyle<TEntity>(
-            [NotNull] this EntityTypeBuilder<TEntity> entityTypeBuilder,
+            this EntityTypeBuilder<TEntity> entityTypeBuilder,
             PostgresXlDistributionStyle distributionStyle
             )
             where TEntity : class
@@ -422,8 +422,8 @@ namespace Microsoft.EntityFrameworkCore
 
 
         public static EntityTypeBuilder PostgresXlDistributionStyleKey(
-            [NotNull] this EntityTypeBuilder entityTypeBuilder,
-            [NotNull] string distributionKey)
+            this EntityTypeBuilder entityTypeBuilder,
+            string distributionKey)
         {
             Check.NotNull(entityTypeBuilder, nameof(entityTypeBuilder));
             Check.NotEmpty(distributionKey, nameof(distributionKey));
@@ -436,8 +436,8 @@ namespace Microsoft.EntityFrameworkCore
         }
 
         public static EntityTypeBuilder<TEntity> PostgresXlDistributionStyleKey<TEntity>(
-            [NotNull] this EntityTypeBuilder<TEntity> entityTypeBuilder,
-            [NotNull] Expression<Func<TEntity, object>> distributionKeyExpression)
+            this EntityTypeBuilder<TEntity> entityTypeBuilder,
+            Expression<Func<TEntity, object>> distributionKeyExpression)
             where TEntity : class
         {
             Check.NotNull(entityTypeBuilder, nameof(entityTypeBuilder));
@@ -449,8 +449,8 @@ namespace Microsoft.EntityFrameworkCore
         }
 
         public static EntityTypeBuilder<TEntity> PostgresXlDistributionStyleKey<TEntity>(
-            [NotNull] this EntityTypeBuilder<TEntity> entityTypeBuilder,
-            [NotNull] string distributionKey)
+            this EntityTypeBuilder<TEntity> entityTypeBuilder,
+            string distributionKey)
             where TEntity : class
             => (EntityTypeBuilder<TEntity>)PostgresXlDistributionStyleKey((EntityTypeBuilder)entityTypeBuilder, distributionKey);
 
