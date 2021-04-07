@@ -1996,8 +1996,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Migrations
             public NullSortOrder NullSortOrder { get; }
         }
 
-
-
         #endregion
     }
 }
