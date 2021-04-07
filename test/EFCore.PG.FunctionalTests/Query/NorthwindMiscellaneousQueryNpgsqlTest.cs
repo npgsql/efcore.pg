@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -17,7 +18,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             : base(fixture)
         {
             ClearLog();
-            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+            // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
         public override async Task Query_expression_with_to_string_and_contains(bool async)
@@ -58,6 +59,21 @@ WHERE (o.""OrderDate"" IS NOT NULL)");
 SELECT o.""OrderDate"" + CAST((@__years_0::text || ' years') AS interval) AS ""OrderDate""
 FROM ""Orders"" AS o
 WHERE (o.""OrderDate"" IS NOT NULL)");
+        }
+
+        [Theory]
+        [MemberData(nameof(IsAsyncData))]
+        public async Task DateTime_subtract_TimeSpan(bool async)
+        {
+            await AssertQuery(
+                async,
+                ss => ss.Set<Order>().Where(o => o.OrderDate - TimeSpan.FromDays(1) == new DateTime(1997, 10, 8)),
+                entryCount: 2);
+
+            AssertSql(
+                @"SELECT o.""OrderID"", o.""CustomerID"", o.""EmployeeID"", o.""OrderDate""
+FROM ""Orders"" AS o
+WHERE (o.""OrderDate"" - INTERVAL '1 00:00:00') = TIMESTAMP '1997-10-08 00:00:00'");
         }
 
         // TODO: Array tests can probably move to the dedicated ArrayQueryTest suite
