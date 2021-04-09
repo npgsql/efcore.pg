@@ -14,14 +14,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.ValueGeneration.Internal
         private readonly INpgsqlSequenceValueGeneratorFactory _sequenceFactory;
         private readonly INpgsqlRelationalConnection _connection;
         private readonly IRawSqlCommandBuilder _rawSqlCommandBuilder;
-        private readonly IDiagnosticsLogger<DbLoggerCategory.Database.Command> _commandLogger;
+        private readonly IRelationalCommandDiagnosticsLogger _commandLogger;
 
         public NpgsqlValueGeneratorSelector(
             ValueGeneratorSelectorDependencies dependencies,
             INpgsqlSequenceValueGeneratorFactory sequenceFactory,
             INpgsqlRelationalConnection connection,
             IRawSqlCommandBuilder rawSqlCommandBuilder,
-            IDiagnosticsLogger<DbLoggerCategory.Database.Command> commandLogger)
+            IRelationalCommandDiagnosticsLogger commandLogger)
             : base(dependencies)
         {
             _sequenceFactory = sequenceFactory;
