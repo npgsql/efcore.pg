@@ -20,7 +20,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             Fixture = fixture;
             Fixture.TestSqlLoggerFactory.Clear();
-            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+            // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
         [Fact]
@@ -354,8 +354,7 @@ LIMIT 2");
 
             Assert.Equal(1, count);
             AssertSql(
-                @"@__element_1='{""Name"": ""Joe""
-""Age"": 25}' (DbType = Object)
+                @"@__element_1='{""Name"": ""Joe"", ""Age"": 25}' (DbType = Object)
 
 SELECT COUNT(*)::INT
 FROM ""JsonbEntities"" AS j
@@ -386,8 +385,7 @@ WHERE j.""Customer"" @> '{""Name"": ""Joe"", ""Age"": 25}'");
 
             Assert.Equal(1, count);
             AssertSql(
-                @"@__someJson_1='{""Name"": ""Joe""
-""Age"": 25}' (DbType = Object)
+                @"@__someJson_1='{""Name"": ""Joe"", ""Age"": 25}' (DbType = Object)
 
 SELECT COUNT(*)::INT
 FROM ""JsonbEntities"" AS j
@@ -404,8 +402,7 @@ WHERE j.""Customer"" @> @__someJson_1");
 
             Assert.Equal(1, count);
             AssertSql(
-                @"@__element_1='{""Name"": ""Joe""
-""Age"": 25}' (DbType = Object)
+                @"@__element_1='{""Name"": ""Joe"", ""Age"": 25}' (DbType = Object)
 
 SELECT COUNT(*)::INT
 FROM ""JsonbEntities"" AS j
@@ -436,8 +433,7 @@ WHERE '{""Name"": ""Joe"", ""Age"": 25}' <@ j.""Customer""");
 
             Assert.Equal(1, count);
             AssertSql(
-                @"@__someJson_1='{""Name"": ""Joe""
-""Age"": 25}' (DbType = Object)
+                @"@__someJson_1='{""Name"": ""Joe"", ""Age"": 25}' (DbType = Object)
 
 SELECT COUNT(*)::INT
 FROM ""JsonbEntities"" AS j

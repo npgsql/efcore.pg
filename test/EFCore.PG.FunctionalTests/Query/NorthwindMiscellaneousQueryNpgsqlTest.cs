@@ -115,7 +115,7 @@ WHERE c.""CustomerID"" IN ('ALFKI', 'ANATR')");
             // Ideally parameter sniffing would allow us to produce SQL without the null check since the regions array doesn't contain one
             // (see https://github.com/aspnet/EntityFrameworkCore/issues/17598).
             AssertSql(
-                @"@__regions_0='System.String[]' (DbType = Object)
+                @"@__regions_0={ 'UK', 'SP' } (DbType = Object)
 
 SELECT c.""CustomerID"", c.""Address"", c.""City"", c.""CompanyName"", c.""ContactName"", c.""ContactTitle"", c.""Country"", c.""Fax"", c.""Phone"", c.""PostalCode"", c.""Region""
 FROM ""Customers"" AS c
@@ -138,7 +138,7 @@ WHERE c.""Region"" = ANY (@__regions_0) OR ((c.""Region"" IS NULL) AND (array_po
             // Ideally parameter sniffing would allow us to produce SQL with an optimized null check (no need to check the array server-side)
             // (see https://github.com/aspnet/EntityFrameworkCore/issues/17598).
             AssertSql(
-                @"@__regions_0='System.String[]' (DbType = Object)
+                @"@__regions_0={ 'UK', 'SP', NULL } (DbType = Object)
 
 SELECT c.""CustomerID"", c.""Address"", c.""City"", c.""CompanyName"", c.""ContactName"", c.""ContactTitle"", c.""Country"", c.""Fax"", c.""Phone"", c.""PostalCode"", c.""Region""
 FROM ""Customers"" AS c
@@ -166,7 +166,7 @@ WHERE c.""Region"" = ANY (@__regions_0) OR ((c.""Region"" IS NULL) AND (array_po
             }, result.Select(e => e.CustomerID));
 
             AssertSql(
-                @"@__collection_0='System.String[]' (DbType = Object)
+                @"@__collection_0={ 'A%', 'B%', 'C%' } (DbType = Object)
 
 SELECT c.""CustomerID"", c.""Address"", c.""City"", c.""CompanyName"", c.""ContactName"", c.""ContactTitle"", c.""Country"", c.""Fax"", c.""Phone"", c.""PostalCode"", c.""Region""
 FROM ""Customers"" AS c
@@ -186,7 +186,7 @@ WHERE c.""Address"" LIKE ANY (@__collection_0)");
             Assert.Empty(result);
 
             AssertSql(
-                @"@__collection_0='System.String[]' (DbType = Object)
+                @"@__collection_0={ 'A%', 'B%', 'C%' } (DbType = Object)
 
 SELECT c.""CustomerID"", c.""Address"", c.""City"", c.""CompanyName"", c.""ContactName"", c.""ContactTitle"", c.""Country"", c.""Fax"", c.""Phone"", c.""PostalCode"", c.""Region""
 FROM ""Customers"" AS c
@@ -210,7 +210,7 @@ WHERE c.""Address"" LIKE ALL (@__collection_0)");
             }, result.Select(e => e.CustomerID));
 
             AssertSql(
-                @"@__collection_0='System.String[]' (DbType = Object)
+                @"@__collection_0={ 'a%', 'b%', 'c%' } (DbType = Object)
 
 SELECT c.""CustomerID"", c.""Address"", c.""City"", c.""CompanyName"", c.""ContactName"", c.""ContactTitle"", c.""Country"", c.""Fax"", c.""Phone"", c.""PostalCode"", c.""Region""
 FROM ""Customers"" AS c
@@ -230,7 +230,7 @@ WHERE c.""Address"" ILIKE ANY (@__collection_0)");
             Assert.Empty(result);
 
             AssertSql(
-                @"@__collection_0='System.String[]' (DbType = Object)
+                @"@__collection_0={ 'a%', 'b%', 'c%' } (DbType = Object)
 
 SELECT c.""CustomerID"", c.""Address"", c.""City"", c.""CompanyName"", c.""ContactName"", c.""ContactTitle"", c.""Country"", c.""Fax"", c.""Phone"", c.""PostalCode"", c.""Region""
 FROM ""Customers"" AS c

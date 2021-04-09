@@ -19,7 +19,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             Fixture = fixture;
             Fixture.TestSqlLoggerFactory.Clear();
-            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+            // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
         [Fact]
@@ -79,20 +79,7 @@ FROM ""JsonEntities"" AS j
 WHERE j.""Id"" = @__p_0
 LIMIT 1",
                 //
-                @"@__expected_0='{""Age"": 25
-""Name"": ""Joe""
-""IsVip"": false
-""Orders"": [{""Price"": 99.5
-""ShippingDate"": ""2019-10-01""
-""ShippingAddress"": ""Some address 1""}
-{""Price"": 23
-""ShippingDate"": ""2019-10-10""
-""ShippingAddress"": ""Some address 2""}]
-""Statistics"": {""Nested"": {""IntArray"": [3
-4]
-""SomeProperty"": 10}
-""Visits"": 4
-""Purchases"": 3}}' (DbType = Object)
+                @"@__expected_0='{""Age"": 25, ""Name"": ""Joe"", ""IsVip"": false, ""Orders"": [{""Price"": 99.5, ""ShippingDate"": ""2019-10-01"", ""ShippingAddress"": ""Some address 1""}, {""Price"": 23, ""ShippingDate"": ""2019-10-10"", ""ShippingAddress"": ""Some address 2""}], ""Statistics"": {""Nested"": {""IntArray"": [3, 4], ""SomeProperty"": 10}, ""Visits"": 4, ""Purchases"": 3}}' (DbType = Object)
 
 SELECT j.""Id"", j.""CustomerJson"", j.""CustomerJsonb""
 FROM ""JsonEntities"" AS j
@@ -146,8 +133,7 @@ WHERE j.""CustomerJsonb"" @> '{""Name"": ""Joe"", ""Age"": 25}'");
 
             Assert.Equal(1, count);
             AssertSql(
-                @"@__element_1='{""Name"": ""Joe""
-""Age"": 25}' (DbType = Object)
+                @"@__element_1='{""Name"": ""Joe"", ""Age"": 25}' (DbType = Object)
 
 SELECT COUNT(*)::INT
 FROM ""JsonEntities"" AS j

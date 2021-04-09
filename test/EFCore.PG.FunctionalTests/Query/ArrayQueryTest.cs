@@ -174,7 +174,7 @@ LIMIT 2");
 
             Assert.Equal(1, id);
             AssertSql(list,
-                @"@__arr_0='System.Int32[]' (DbType = Object)
+                @"@__arr_0={ '3', '4' } (DbType = Object)
 
 SELECT s.""Id""
 FROM ""SomeEntities"" AS s
@@ -215,7 +215,7 @@ LIMIT 2");
 
             Assert.Equal(1, id);
             AssertSql(list,
-                @"@__arr_0='System.Nullable`1[System.Int32][]' (DbType = Object)
+                @"@__arr_0={ '3', '4', NULL } (DbType = Object)
 
 SELECT s.""Id""
 FROM ""SomeEntities"" AS s
@@ -418,7 +418,7 @@ LIMIT 2");
 
             Assert.Equal(1, id);
             AssertSql(
-                @"@__array_0='System.String[]' (DbType = Object)
+                @"@__array_0={ 'foo', 'xxx' } (DbType = Object)
 
 SELECT s.""Id""
 FROM ""SomeEntities"" AS s
@@ -438,7 +438,7 @@ LIMIT 2");
 
             Assert.Equal(1, id);
             AssertSql(
-                @"@__array_0='System.Int32[]' (DbType = Object)
+                @"@__array_0={ '1' } (DbType = Object)
 
 SELECT s.""Id""
 FROM ""SomeEntities"" AS s
@@ -455,7 +455,7 @@ LIMIT 2");
 
             Assert.Equal(0, count);
             AssertSql(
-                @"@__array_0='System.String[]' (DbType = Object)
+                @"@__array_0={ 'unknown1', 'unknown2', NULL } (DbType = Object)
 
 SELECT COUNT(*)::INT
 FROM ""SomeEntities"" AS s
@@ -472,7 +472,7 @@ WHERE s.""NonNullableText"" = ANY (@__array_0)");
             Assert.Equal(2, count);
 
             AssertSql(
-                @"@__array_0='System.String[]' (DbType = Object)
+                @"@__array_0={ 'unknown1', 'unknown2', NULL } (DbType = Object)
 
 SELECT COUNT(*)::INT
 FROM ""SomeEntities"" AS s
@@ -488,7 +488,7 @@ WHERE NOT (s.""NonNullableText"" = ANY (@__array_0) AND (s.""NonNullableText"" =
 
             Assert.Equal(0, count);
             AssertSql(
-                @"@__array_0='System.String[]' (DbType = Object)
+                @"@__array_0={ 'unknown1', 'unknown2', NULL } (DbType = Object)
 
 SELECT COUNT(*)::INT
 FROM ""SomeEntities"" AS s
@@ -504,7 +504,7 @@ WHERE s.""NullableText"" = ANY (@__array_0) OR ((s.""NullableText"" IS NULL) AND
 
             Assert.Equal(2, count);
             AssertSql(
-                @"@__array_0='System.String[]' (DbType = Object)
+                @"@__array_0={ 'unknown1', 'unknown2', NULL } (DbType = Object)
 
 SELECT COUNT(*)::INT
 FROM ""SomeEntities"" AS s
@@ -523,7 +523,7 @@ WHERE NOT (s.""NullableText"" = ANY (@__array_0) AND (s.""NullableText"" = ANY (
 
             Assert.Equal(1, id);
             AssertSql(
-                @"@__list_0='System.Collections.Generic.List`1[System.Int32]' (DbType = Object)
+                @"@__list_0={ '1' } (DbType = Object)
 
 SELECT s.""Id""
 FROM ""SomeEntities"" AS s
@@ -564,7 +564,7 @@ LIMIT 2");
 
             Assert.Equal(2, id);
             AssertSql(
-                @"@__array_0='System.Int32[]' (DbType = Object)
+                @"@__array_0={ '2', '3' } (DbType = Object)
 
 SELECT s.""Id""
 FROM ""SomeEntities"" AS s
@@ -584,7 +584,7 @@ LIMIT 2");
 
             Assert.Equal(2, id);
             AssertSql(
-                @"@__list_0='System.Int32[]' (DbType = Object)
+                @"@__list_0={ '2', '3' } (DbType = Object)
 
 SELECT s.""Id""
 FROM ""SomeEntities"" AS s
@@ -644,7 +644,7 @@ LIMIT 2");
 
             Assert.Equal(1, id);
             AssertSql(
-                @"@__p_0='System.Int32[]' (DbType = Object)
+                @"@__p_0={ '8', '9' } (DbType = Object)
 
 SELECT s.""Id""
 FROM ""SomeEntities"" AS s
@@ -664,7 +664,7 @@ LIMIT 2");
 
             Assert.Equal(1, id);
             AssertSql(
-                @"@__p_0='System.Collections.Generic.List`1[System.Int32]' (DbType = Object)
+                @"@__p_0={ '8', '9' } (DbType = Object)
 
 SELECT s.""Id""
 FROM ""SomeEntities"" AS s
@@ -835,7 +835,7 @@ LIMIT 2");
                 .ToList();
 
             AssertSql(
-                @"@__patterns_0='System.String[]' (DbType = Object)
+                @"@__patterns_0={ 'a%', 'b%', 'c%' } (DbType = Object)
 
 SELECT s.""IntArray"" AS ""Array"", s.""NullableText"" AS ""Text""
 FROM ""SomeEntities"" AS s
@@ -930,14 +930,14 @@ WHERE ARRAY[1,2]::integer[] && s.""IntArray""");
             Assert.Equal(0, count);
 
             AssertSql(list,
-                @"@__ints_0='System.Collections.Generic.List`1[System.Int32]' (DbType = Object)
+                @"@__ints_0={ '2', '3' } (DbType = Object)
 
 SELECT s.""Id""
 FROM ""SomeEntities"" AS s
 WHERE s.""IntArray"" && @__ints_0
 LIMIT 2",
                 //
-                @"@__ints_0='System.Collections.Generic.List`1[System.Int32]' (DbType = Object)
+                @"@__ints_0={ '1', '2' } (DbType = Object)
 
 SELECT COUNT(*)::INT
 FROM ""SomeEntities"" AS s
@@ -966,14 +966,14 @@ WHERE s.""IntArray"" && @__ints_0");
             Assert.Equal(0, count);
 
             AssertSql(list,
-                @"@__ints_0='System.Int32[]' (DbType = Object)
+                @"@__ints_0={ '2', '3' } (DbType = Object)
 
 SELECT s.""Id""
 FROM ""SomeEntities"" AS s
 WHERE s.""IntArray"" && @__ints_0
 LIMIT 2",
                 //
-                @"@__ints_0='System.Int32[]' (DbType = Object)
+                @"@__ints_0={ '1', '2' } (DbType = Object)
 
 SELECT COUNT(*)::INT
 FROM ""SomeEntities"" AS s
@@ -1256,7 +1256,6 @@ WHERE FALSE");
                         NullableStringArray = new[] { "3", "4", null },
                         StringList = new List<string> { "3", "4" },
                         NullableStringList = new List<string> { "3", "4", null},
-                        IntMatrix = new[,] { { 5, 6 }, { 7, 8 } },
                         NullableText = "foo",
                         NonNullableText = "foo",
                         ValueConvertedScalar = new IntWrapper(1),
@@ -1277,7 +1276,6 @@ WHERE FALSE");
                         NullableStringArray = new[] { "5", "6", "7", "8" },
                         StringList = new List<string> { "5", "6", "7", "8" },
                         NullableStringList = new List<string> { "5", "6", "7", "8" },
-                        IntMatrix = new[,] { { 10, 11 }, { 12, 13 } },
                         NullableText = "bar",
                         NonNullableText = "bar",
                         ValueConvertedScalar = new IntWrapper(2),
@@ -1298,7 +1296,6 @@ WHERE FALSE");
             public List<int> IntList { get; set; } = null!;
             public int?[] NullableIntArray { get; set; } = null!;
             public List<int?> NullableIntList { get; set; } = null!;
-            public int[,] IntMatrix { get; set; } = null!;
             public byte[] Bytea { get; set; } = null!;
             public byte[] ByteArray { get; set; } = null!;
             public string[] StringArray { get; set; } = null!;

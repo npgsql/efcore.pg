@@ -126,8 +126,7 @@ FROM ""LineStringEntity"" AS l");
             await base.Crosses(async);
 
             AssertSql(
-                @"@__lineString_0='LINESTRING (0.5 -0.5
-0.5 0.5)' (DbType = Object)
+                @"@__lineString_0='LINESTRING (0.5 -0.5, 0.5 0.5)' (DbType = Object)
 
 SELECT l.""Id"", ST_Crosses(l.""LineString"", @__lineString_0) AS ""Crosses""
 FROM ""LineStringEntity"" AS l");
@@ -138,10 +137,7 @@ FROM ""LineStringEntity"" AS l");
             await base.Difference(async);
 
             AssertSql(
-                @"@__polygon_0='POLYGON ((0 0
-1 0
-1 1
-0 0))' (DbType = Object)
+                @"@__polygon_0='POLYGON ((0 0, 1 0, 1 1, 0 0))' (DbType = Object)
 
 SELECT p.""Id"", ST_Difference(p.""Polygon"", @__polygon_0) AS ""Difference""
 FROM ""PolygonEntity"" AS p");
@@ -258,10 +254,7 @@ FROM ""PolygonEntity"" AS p");
             await base.Intersection(async);
 
             AssertSql(
-                @"@__polygon_0='POLYGON ((0 0
-1 0
-1 1
-0 0))' (DbType = Object)
+                @"@__polygon_0='POLYGON ((0 0, 1 0, 1 1, 0 0))' (DbType = Object)
 
 SELECT p.""Id"", ST_Intersection(p.""Polygon"", @__polygon_0) AS ""Intersection""
 FROM ""PolygonEntity"" AS p");
@@ -272,8 +265,7 @@ FROM ""PolygonEntity"" AS p");
             await base.Intersects(async);
 
             AssertSql(
-                @"@__lineString_0='LINESTRING (0.5 -0.5
-0.5 0.5)' (DbType = Object)
+                @"@__lineString_0='LINESTRING (0.5 -0.5, 0.5 0.5)' (DbType = Object)
 
 SELECT l.""Id"", ST_Intersects(l.""LineString"", @__lineString_0) AS ""Intersects""
 FROM ""LineStringEntity"" AS l");
@@ -427,10 +419,7 @@ FROM ""PointEntity"" AS p");
             await base.Overlaps(async);
 
             AssertSql(
-                @"@__polygon_0='POLYGON ((0 0
-1 0
-1 1
-0 0))' (DbType = Object)
+                @"@__polygon_0='POLYGON ((0 0, 1 0, 1 1, 0 0))' (DbType = Object)
 
 SELECT p.""Id"", ST_Overlaps(p.""Polygon"", @__polygon_0) AS ""Overlaps""
 FROM ""PolygonEntity"" AS p");
@@ -450,10 +439,7 @@ FROM ""PolygonEntity"" AS p");
             await base.Relate(async);
 
             AssertSql(
-                @"@__polygon_0='POLYGON ((0 0
-1 0
-1 1
-0 0))' (DbType = Object)
+                @"@__polygon_0='POLYGON ((0 0, 1 0, 1 1, 0 0))' (DbType = Object)
 
 SELECT p.""Id"", ST_Relate(p.""Polygon"", @__polygon_0, '212111212') AS ""Relate""
 FROM ""PolygonEntity"" AS p");
@@ -482,10 +468,7 @@ FROM ""LineStringEntity"" AS l");
             await base.SymmetricDifference(async);
 
             AssertSql(
-                @"@__polygon_0='POLYGON ((0 0
-1 0
-1 1
-0 0))' (DbType = Object)
+                @"@__polygon_0='POLYGON ((0 0, 1 0, 1 1, 0 0))' (DbType = Object)
 
 SELECT p.""Id"", ST_SymDifference(p.""Polygon"", @__polygon_0) AS ""SymmetricDifference""
 FROM ""PolygonEntity"" AS p");
@@ -514,10 +497,7 @@ FROM ""PointEntity"" AS p");
             await base.Touches(async);
 
             AssertSql(
-                @"@__polygon_0='POLYGON ((0 1
-1 0
-1 1
-0 1))' (DbType = Object)
+                @"@__polygon_0='POLYGON ((0 1, 1 0, 1 1, 0 1))' (DbType = Object)
 
 SELECT p.""Id"", ST_Touches(p.""Polygon"", @__polygon_0) AS ""Touches""
 FROM ""PolygonEntity"" AS p");
@@ -528,10 +508,7 @@ FROM ""PolygonEntity"" AS p");
             await base.Union(async);
 
             AssertSql(
-                @"@__polygon_0='POLYGON ((0 0
-1 0
-1 1
-0 0))' (DbType = Object)
+                @"@__polygon_0='POLYGON ((0 0, 1 0, 1 1, 0 0))' (DbType = Object)
 
 SELECT p.""Id"", ST_Union(p.""Polygon"", @__polygon_0) AS ""Union""
 FROM ""PolygonEntity"" AS p");
@@ -551,11 +528,7 @@ FROM ""MultiLineStringEntity"" AS m");
             await base.Within(async);
 
             AssertSql(
-                @"@__polygon_0='POLYGON ((-1 -1
-2 -1
-2 2
--1 2
--1 -1))' (DbType = Object)
+                @"@__polygon_0='POLYGON ((-1 -1, 2 -1, 2 2, -1 2, -1 -1))' (DbType = Object)
 
 SELECT p.""Id"", ST_Within(p.""Point"", @__polygon_0) AS ""Within""
 FROM ""PointEntity"" AS p");

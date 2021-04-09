@@ -146,7 +146,7 @@ LIMIT 2");
             Assert.Equal(2, result.Id);
 
             AssertSql(
-                @"@__values_0='Npgsql.EntityFrameworkCore.PostgreSQL.Query.EnumQueryTest+ByteEnum[]' (DbType = Object)
+                @"@__values_0='0x01' (DbType = Object)
 
 SELECT s.""Id"", s.""ByteEnum"", s.""EnumValue"", s.""InferredEnum"", s.""MappedEnum"", s.""SchemaQualifiedEnum"", s.""UnmappedByteEnum"", s.""UnmappedEnum""
 FROM test.""SomeEntities"" AS s

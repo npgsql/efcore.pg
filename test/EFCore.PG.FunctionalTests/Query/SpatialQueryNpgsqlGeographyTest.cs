@@ -138,10 +138,7 @@ FROM ""PointEntity"" AS p");
             await base.Intersection(async);
 
             AssertSql(
-                @"@__polygon_0='POLYGON ((0 0
-1 0
-1 1
-0 0))' (DbType = Object)
+                @"@__polygon_0='POLYGON ((0 0, 1 0, 1 1, 0 0))' (DbType = Object)
 
 SELECT p.""Id"", ST_Intersection(p.""Polygon"", @__polygon_0) AS ""Intersection""
 FROM ""PolygonEntity"" AS p");
@@ -152,8 +149,7 @@ FROM ""PolygonEntity"" AS p");
             await base.Intersects(async);
 
             AssertSql(
-                @"@__lineString_0='LINESTRING (0.5 -0.5
-0.5 0.5)' (DbType = Object)
+                @"@__lineString_0='LINESTRING (0.5 -0.5, 0.5 0.5)' (DbType = Object)
 
 SELECT l.""Id"", ST_Intersects(l.""LineString"", @__lineString_0) AS ""Intersects""
 FROM ""LineStringEntity"" AS l");

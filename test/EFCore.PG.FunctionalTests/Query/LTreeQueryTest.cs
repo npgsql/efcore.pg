@@ -120,7 +120,7 @@ LIMIT 2");
 
             Assert.Equal(4, entity.Id);
             AssertSql(
-                @"@__lqueries_0='System.String[]' (DbType = Object)
+                @"@__lqueries_0={ '*.Astrophysics', '*.Geology' } (DbType = Object)
 
 SELECT l.""Id"", l.""Path""
 FROM ""LTreeEntities"" AS l
@@ -164,7 +164,7 @@ LIMIT 2");
 
             Assert.Equal(4, count);
             AssertSql(
-                @"@__ltrees_0='System.String[]' (DbType = Object)
+                @"@__ltrees_0={ 'Top.Science', 'Top.Art' } (DbType = Object)
 
 SELECT COUNT(*)::INT
 FROM ""LTreeEntities"" AS l
@@ -180,7 +180,7 @@ WHERE @__ltrees_0 @> l.""Path""");
 
             Assert.Equal(3, count);
             AssertSql(
-                @"@__ltrees_0='System.String[]' (DbType = Object)
+                @"@__ltrees_0={ 'Top.Science.Astronomy', 'Top.Art' } (DbType = Object)
 
 SELECT COUNT(*)::INT
 FROM ""LTreeEntities"" AS l
@@ -196,7 +196,7 @@ WHERE @__ltrees_0 <@ l.""Path""");
             _ = ctx.LTreeEntities.Count(_ => ltrees.Any(t => t.MatchesLQuery("*.Astrophysics")));
 
             AssertSql(
-                @"@__ltrees_0='System.String[]' (DbType = Object)
+                @"@__ltrees_0={ 'Top.Science.Astronomy.Astrophysics', 'Top.Science.Astronomy.Cosmology' } (DbType = Object)
 
 SELECT COUNT(*)::INT
 FROM ""LTreeEntities"" AS l
@@ -214,8 +214,8 @@ WHERE @__ltrees_0 ~ '*.Astrophysics'");
             _ = ctx.LTreeEntities.Count(_ => ltrees.Any(t => lqueries.Any(q => t.MatchesLQuery(q))));
 
             AssertSql(
-                @"@__ltrees_0='System.String[]' (DbType = Object)
-@__lqueries_1='System.String[]' (DbType = Object)
+                @"@__ltrees_0={ 'Top.Science.Astronomy.Astrophysics', 'Top.Science.Astronomy.Cosmology' } (DbType = Object)
+@__lqueries_1={ '*.Astrophysics', '*.Geology' } (DbType = Object)
 
 SELECT COUNT(*)::INT
 FROM ""LTreeEntities"" AS l
@@ -231,7 +231,7 @@ WHERE @__ltrees_0 ? @__lqueries_1");
             _ = ctx.LTreeEntities.Count(_ => ltrees.Any(t => t.MatchesLTxtQuery("Astro*")));
 
             AssertSql(
-                @"@__ltrees_0='System.String[]' (DbType = Object)
+                @"@__ltrees_0={ 'Top.Science.Astronomy.Astrophysics', 'Top.Science.Astronomy.Cosmology' } (DbType = Object)
 
 SELECT COUNT(*)::INT
 FROM ""LTreeEntities"" AS l
@@ -248,7 +248,7 @@ WHERE @__ltrees_0 @ 'Astro*'");
 
             Assert.Equal(4, count);
             AssertSql(
-                @"@__ltrees_0='System.String[]' (DbType = Object)
+                @"@__ltrees_0={ 'Top.Science', 'Top.Hobbies' } (DbType = Object)
 
 SELECT COUNT(*)::INT
 FROM ""LTreeEntities"" AS l
@@ -265,7 +265,7 @@ WHERE @__ltrees_0 ?@> l.""Path"" = 'Top.Science'");
 
             Assert.Equal(3, count);
             AssertSql(
-                @"@__ltrees_0='System.String[]' (DbType = Object)
+                @"@__ltrees_0={ 'Top.Science.Astronomy', 'Top.Hobbies.Amateurs_Astronomy' } (DbType = Object)
 
 SELECT COUNT(*)::INT
 FROM ""LTreeEntities"" AS l
@@ -281,7 +281,7 @@ WHERE @__ltrees_0 ?<@ l.""Path"" = 'Top.Science.Astronomy'");
             _ = ctx.LTreeEntities.Count(_ => ltrees.FirstOrDefault(l => l.MatchesLQuery("*.Astrophysics")) == "Top.Science.Astronomy.Astrophysics");
 
             AssertSql(
-                @"@__ltrees_0='System.String[]' (DbType = Object)
+                @"@__ltrees_0={ 'Top.Science.Astronomy.Astrophysics', 'Top.Science.Astronomy.Cosmology' } (DbType = Object)
 
 SELECT COUNT(*)::INT
 FROM ""LTreeEntities"" AS l
@@ -297,7 +297,7 @@ WHERE @__ltrees_0 ?~ '*.Astrophysics' = 'Top.Science.Astronomy.Astrophysics'");
             _ = ctx.LTreeEntities.Count(_ => ltrees.FirstOrDefault(l => l.MatchesLTxtQuery("Astro*")) == "Top.Science.Astronomy.Astrophysics");
 
             AssertSql(
-                @"@__ltrees_0='System.String[]' (DbType = Object)
+                @"@__ltrees_0={ 'Top.Science.Astronomy.Astrophysics', 'Top.Science.Astronomy.Cosmology' } (DbType = Object)
 
 SELECT COUNT(*)::INT
 FROM ""LTreeEntities"" AS l

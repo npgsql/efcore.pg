@@ -19,7 +19,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             Fixture = fixture;
             Fixture.TestSqlLoggerFactory.Clear();
-            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+            // Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
         [Fact]
@@ -107,23 +107,7 @@ FROM ""JsonbEntities"" AS j
 WHERE j.""Id"" = @__p_0
 LIMIT 1",
                 //
-                @"@__expected_0='{""ID"": ""00000000-0000-0000-0000-000000000000""
-""Age"": 25
-""Name"": ""Joe""
-""IsVip"": false
-""Orders"": [{""Price"": 99.5
-""ShippingDate"": ""2019-10-01""
-""ShippingAddress"": ""Some address 1""}
-{""Price"": 23
-""ShippingDate"": ""2019-10-10""
-""ShippingAddress"": ""Some address 2""}]
-""Statistics"": {""Nested"": {""IntArray"": [3
-4]
-""SomeProperty"": 10
-""SomeNullableInt"": 20
-""SomeNullableGuid"": ""d5f2685d-e5c4-47e5-97aa-d0266154eb2d""}
-""Visits"": 4
-""Purchases"": 3}}' (DbType = Object)
+                @"@__expected_0='{""ID"": ""00000000-0000-0000-0000-000000000000"", ""Age"": 25, ""Name"": ""Joe"", ""IsVip"": false, ""Orders"": [{""Price"": 99.5, ""ShippingDate"": ""2019-10-01"", ""ShippingAddress"": ""Some address 1""}, {""Price"": 23, ""ShippingDate"": ""2019-10-10"", ""ShippingAddress"": ""Some address 2""}], ""Statistics"": {""Nested"": {""IntArray"": [3, 4], ""SomeProperty"": 10, ""SomeNullableInt"": 20, ""SomeNullableGuid"": ""d5f2685d-e5c4-47e5-97aa-d0266154eb2d""}, ""Visits"": 4, ""Purchases"": 3}}' (DbType = Object)
 
 SELECT j.""Id"", j.""CustomerDocument"", j.""CustomerElement""
 FROM ""JsonbEntities"" AS j
@@ -373,8 +357,7 @@ LIMIT 2");
 
             Assert.Equal(1, count);
             AssertSql(
-                @"@__element_1='{""Name"": ""Joe""
-""Age"": 25}' (DbType = Object)
+                @"@__element_1='{""Name"": ""Joe"", ""Age"": 25}' (DbType = Object)
 
 SELECT COUNT(*)::INT
 FROM ""JsonbEntities"" AS j
@@ -405,8 +388,7 @@ WHERE j.""CustomerElement"" @> '{""Name"": ""Joe"", ""Age"": 25}'");
 
             Assert.Equal(1, count);
             AssertSql(
-                @"@__element_1='{""Name"": ""Joe""
-""Age"": 25}' (DbType = Object)
+                @"@__element_1='{""Name"": ""Joe"", ""Age"": 25}' (DbType = Object)
 
 SELECT COUNT(*)::INT
 FROM ""JsonbEntities"" AS j
