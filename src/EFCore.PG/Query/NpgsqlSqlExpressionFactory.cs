@@ -378,27 +378,24 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
             // If the array's type mapping isn't provided (parameter/constant), attempt to infer it from the item.
             if (arrayMapping is null)
             {
-                // First, special-case arrays of objects, not taking the array CLR type into account in the lookup (it would never succeed)
-                if (arrayExpression.Type == typeof(object[]) || arrayExpression.Type == typeof(List<object>))
+                if (itemMapping.Converter is { } converter)
                 {
-                    arrayMapping = (NpgsqlArrayTypeMapping?)_typeMappingSource.FindMapping(itemMapping.StoreType + "[]");
+                    // If the item mapping has a value converter, construct an array mapping directly over it - this will build the
+                    // corresponding array type converter.
+                    arrayMapping = arrayExpression.Type.IsArray
+                        ? new NpgsqlArrayArrayTypeMapping(arrayExpression.Type, itemMapping)
+                        : new NpgsqlArrayListTypeMapping(arrayExpression.Type, itemMapping);
                 }
                 else
                 {
-                    // Try to look up an array mapping based on the item type.
+                    // No value converter on the item mapping - just try to look up an array mapping based on the item type.
+                    // Special-case arrays of objects, not taking the array CLR type into account in the lookup (it would never succeed).
                     // Note that we provide both the array CLR type *and* an array store type constructed from the element's store type.
                     // If we use only the array CLR type, byte[] will yield bytea which we don't want.
-                    arrayMapping =
-                        (NpgsqlArrayTypeMapping?)_typeMappingSource.FindMapping(arrayExpression.Type, itemMapping.StoreType + "[]");
-
-                    // If we failed, and the item mapping has a value converter, construct an array mapping directly over it - this will
-                    // build the corresponding array type converter
-                    if (arrayMapping is null && itemMapping.Converter is not null)
-                    {
-                        arrayMapping = arrayExpression.Type.IsArray
-                            ? new NpgsqlArrayArrayTypeMapping(itemMapping, arrayExpression.Type)
-                            : new NpgsqlArrayListTypeMapping(itemMapping, arrayExpression.Type);
-                    }
+                    arrayMapping = arrayExpression.Type == typeof(object[]) || arrayExpression.Type == typeof(List<object>)
+                        ? (NpgsqlArrayTypeMapping?) _typeMappingSource.FindMapping(itemMapping.StoreType + "[]")
+                        : (NpgsqlArrayTypeMapping?) _typeMappingSource.FindMapping(arrayExpression.Type,
+                            itemMapping.StoreType + "[]");
                 }
             }
 

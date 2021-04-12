@@ -464,7 +464,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                     Nullable.GetUnderlyingType(elementType) is null ||
                     Nullable.GetUnderlyingType(elementType) == elementMapping.ClrType);
 
-                return new NpgsqlArrayArrayTypeMapping(elementMapping, clrType);
+                return new NpgsqlArrayArrayTypeMapping(clrType, elementMapping);
             }
 
             if (clrType.IsGenericList())
@@ -480,7 +480,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 if (elementMapping is NpgsqlArrayTypeMapping)
                     return null;
 
-                return new NpgsqlArrayListTypeMapping(elementMapping, clrType);
+                return new NpgsqlArrayListTypeMapping(clrType, elementMapping);
             }
 
             return null;

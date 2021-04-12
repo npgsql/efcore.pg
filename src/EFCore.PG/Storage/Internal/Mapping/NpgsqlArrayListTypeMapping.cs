@@ -32,27 +32,45 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         /// <summary>
         /// Creates the default list mapping.
         /// </summary>
-        /// <param name="elementMapping">The element type mapping.</param>
         /// <param name="listType">The database type to map.</param>
-        public NpgsqlArrayListTypeMapping(RelationalTypeMapping elementMapping, Type listType)
+        /// <param name="elementMapping">The element type mapping.</param>
+        public NpgsqlArrayListTypeMapping(Type listType, RelationalTypeMapping elementMapping)
             : this(elementMapping.StoreType + "[]", elementMapping, listType) {}
 
         private NpgsqlArrayListTypeMapping(string storeType, RelationalTypeMapping elementMapping, Type listType)
-            : this(
-                new RelationalTypeMappingParameters(
-                    new CoreTypeMappingParameters(
-                        listType,
-                        elementMapping.Converter is ValueConverter elementConverter
-                            ? (ValueConverter)Activator.CreateInstance(
-                                typeof(NpgsqlArrayConverter<,>).MakeGenericType(
-                                    typeof(List<>).MakeGenericType(elementConverter.ModelClrType),
-                                    elementConverter.ProviderClrType.MakeArrayType()),
-                                elementConverter)!
-                            : null,
-                        CreateComparer(elementMapping, listType)),
-                    storeType
-                ), elementMapping)
+            : this(CreateParameters(storeType, elementMapping, listType), elementMapping)
         {
+        }
+
+        private static RelationalTypeMappingParameters CreateParameters(
+            string storeType,
+            RelationalTypeMapping elementMapping,
+            Type listType)
+        {
+            ValueConverter? converter = null;
+
+            if (elementMapping.Converter is { } elementConverter)
+            {
+                var isNullable = listType.TryGetElementType(out var elementType) && elementType!.IsNullableValueType();
+
+                // We construct the list's ProviderClrType and ModelClrType from the element's, but nullability has been unwrapped on the
+                // element mapping. So we look at the given listType for that.
+                // Note that if there's a value converter, the ProviderClrType is an array rather than a list (because why not)
+                var providerClrType = isNullable
+                    ? elementConverter.ProviderClrType.MakeNullable().MakeArrayType()
+                    : elementConverter.ProviderClrType.MakeArrayType();
+
+                var modelClrType = typeof(List<>).MakeGenericType(
+                    isNullable ? elementConverter.ModelClrType.MakeNullable() : elementConverter.ModelClrType);
+
+                converter = (ValueConverter)Activator.CreateInstance(
+                    typeof(NpgsqlArrayConverter<,>).MakeGenericType(modelClrType, providerClrType),
+                    elementConverter)!;
+            }
+
+            return new RelationalTypeMappingParameters(
+                new CoreTypeMappingParameters(listType, converter, CreateComparer(elementMapping, listType)),
+                storeType);
         }
 
         protected NpgsqlArrayListTypeMapping(
@@ -62,9 +80,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 elementMapping,
                 CalculateElementNullability(
                     // Note that the ClrType on elementMapping has been unwrapped for nullability, so we consult the List's CLR type instead
-                    parameters.CoreParameters.Converter is null
-                        ? parameters.CoreParameters.ClrType.GetGenericArguments()[0]
-                        : parameters.CoreParameters.Converter.ModelClrType.GetGenericArguments()[0],
+                    parameters.CoreParameters.ClrType.GetGenericArguments()[0],
                     isElementNullable))
         {
             if (!parameters.CoreParameters.ClrType.IsGenericList())

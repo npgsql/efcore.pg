@@ -33,27 +33,45 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         /// <summary>
         /// Creates the default array mapping (i.e. for the single-dimensional CLR array type)
         /// </summary>
-        /// <param name="elementMapping">The element type mapping.</param>
         /// <param name="arrayType">The array type to map.</param>
-        public NpgsqlArrayArrayTypeMapping(RelationalTypeMapping elementMapping, Type arrayType)
+        /// <param name="elementMapping">The element type mapping.</param>
+        public NpgsqlArrayArrayTypeMapping(Type arrayType, RelationalTypeMapping elementMapping)
             : this(elementMapping.StoreType + "[]", elementMapping, arrayType) {}
 
         private NpgsqlArrayArrayTypeMapping(string storeType, RelationalTypeMapping elementMapping, Type arrayType)
-            : this(
-                new RelationalTypeMappingParameters(
-                    new CoreTypeMappingParameters(
-                        arrayType,
-                        elementMapping.Converter is ValueConverter elementConverter
-                            ? (ValueConverter)Activator.CreateInstance(
-                                typeof(NpgsqlArrayConverter<,>).MakeGenericType(
-                                    elementConverter.ModelClrType.MakeArrayType(),
-                                    elementConverter.ProviderClrType.MakeArrayType()),
-                                elementConverter)!
-                            : null,
-                        CreateComparer(elementMapping, arrayType)),
-                    storeType
-                ), elementMapping)
+            : this(CreateParameters(storeType, elementMapping, arrayType), elementMapping)
         {
+        }
+
+        private static RelationalTypeMappingParameters CreateParameters(
+            string storeType,
+            RelationalTypeMapping elementMapping,
+            Type arrayType)
+        {
+            ValueConverter? converter = null;
+
+            if (elementMapping.Converter is { } elementConverter)
+            {
+                var isNullable = arrayType.GetElementType()!.IsNullableValueType();
+
+                // We construct the array's ProviderClrType and ModelClrType from the element's, but nullability has been unwrapped on the
+                // element mapping. So we look at the given arrayType for that.
+                var providerClrType = isNullable
+                    ? elementConverter.ProviderClrType.MakeNullable().MakeArrayType()
+                    : elementConverter.ProviderClrType.MakeArrayType();
+
+                var modelClrType = isNullable
+                    ? elementConverter.ModelClrType.MakeNullable().MakeArrayType()
+                    : elementConverter.ModelClrType.MakeArrayType();
+
+                converter = (ValueConverter)Activator.CreateInstance(
+                    typeof(NpgsqlArrayConverter<,>).MakeGenericType(modelClrType, providerClrType),
+                    elementConverter)!;
+            }
+
+            return new RelationalTypeMappingParameters(
+                new CoreTypeMappingParameters(arrayType, converter, CreateComparer(elementMapping, arrayType)),
+                storeType);
         }
 
         protected NpgsqlArrayArrayTypeMapping(
@@ -65,11 +83,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
                 elementMapping,
                 CalculateElementNullability(
                     // Note that the ClrType on elementMapping has been unwrapped for nullability, so we consult the array's CLR type instead
-                    parameters.CoreParameters.Converter is null
-                        ? (parameters.CoreParameters.ClrType.GetElementType()
-                            ?? throw new ArgumentException("CLR type isn't an array"))
-                        : (parameters.CoreParameters.Converter.ModelClrType.GetElementType()
-                            ?? throw new ArgumentException("CLR type isn't an array")),
+                    parameters.CoreParameters.ClrType.GetElementType()
+                    ?? throw new ArgumentException($"CLR type {parameters.CoreParameters.ClrType} isn't an array"),
                     isElementNullable))
         {
             if (!parameters.CoreParameters.ClrType.IsArray)
