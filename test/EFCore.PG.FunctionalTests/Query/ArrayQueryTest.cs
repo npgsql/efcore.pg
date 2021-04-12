@@ -556,7 +556,7 @@ LIMIT 2");
         public void Array_param_Contains_value_converted_column()
         {
             using var ctx = CreateContext();
-            var array = new IntWrapper[] { new(2), new(3) };
+            var array = new[] { SomeEnum.Two, SomeEnum.Three };
             var id = ctx.SomeEntities
                 .Where(e => array.Contains(e.ValueConvertedScalar))
                 .Select(e => e.Id)
@@ -564,7 +564,7 @@ LIMIT 2");
 
             Assert.Equal(2, id);
             AssertSql(
-                @"@__array_0={ '2', '3' } (DbType = Object)
+                @"@__array_0={ '-2', '-3' } (DbType = Object)
 
 SELECT s.""Id""
 FROM ""SomeEntities"" AS s
@@ -576,7 +576,7 @@ LIMIT 2");
         public void List_param_Contains_value_converted_column()
         {
             using var ctx = CreateContext();
-            var list = new List<IntWrapper> { new(2), new(3) };
+            var list = new List<SomeEnum> { SomeEnum.Two, SomeEnum.Three };
             var id = ctx.SomeEntities
                 .Where(e => list.Contains(e.ValueConvertedScalar))
                 .Select(e => e.Id)
@@ -584,7 +584,7 @@ LIMIT 2");
 
             Assert.Equal(2, id);
             AssertSql(
-                @"@__list_0={ '2', '3' } (DbType = Object)
+                @"@__list_0={ '-2', '-3' } (DbType = Object)
 
 SELECT s.""Id""
 FROM ""SomeEntities"" AS s
@@ -596,7 +596,7 @@ LIMIT 2");
         public void Array_column_Contains_value_converted_param()
         {
             using var ctx = CreateContext();
-            var item = new IntWrapper(8);
+            var item = SomeEnum.Eight;
             var id = ctx.SomeEntities
                 .Where(e => e.ValueConvertedArray.Contains(item))
                 .Select(e => e.Id)
@@ -604,7 +604,7 @@ LIMIT 2");
 
             Assert.Equal(1, id);
             AssertSql(
-                @"@__item_0='8' (Nullable = true)
+                @"@__item_0='-8'
 
 SELECT s.""Id""
 FROM ""SomeEntities"" AS s
@@ -616,7 +616,7 @@ LIMIT 2");
         public void List_column_Contains_value_converted_param()
         {
             using var ctx = CreateContext();
-            var item = new IntWrapper(8);
+            var item = SomeEnum.Eight;
             var id = ctx.SomeEntities
                 .Where(e => e.ValueConvertedList.Contains(item))
                 .Select(e => e.Id)
@@ -624,7 +624,7 @@ LIMIT 2");
 
             Assert.Equal(1, id);
             AssertSql(
-                @"@__item_0='8' (Nullable = true)
+                @"@__item_0='-8'
 
 SELECT s.""Id""
 FROM ""SomeEntities"" AS s
@@ -636,7 +636,7 @@ LIMIT 2");
         public void Array_param_Contains_value_converted_array_column()
         {
             using var ctx = CreateContext();
-            var p = new IntWrapper[] { new(8), new(9) };
+            var p = new[] { SomeEnum.Eight, SomeEnum.Nine };
             var id = ctx.SomeEntities
                 .Where(e => e.ValueConvertedArray.All(x => p.Contains(x)))
                 .Select(e => e.Id)
@@ -644,7 +644,7 @@ LIMIT 2");
 
             Assert.Equal(1, id);
             AssertSql(
-                @"@__p_0={ '8', '9' } (DbType = Object)
+                @"@__p_0={ '-8', '-9' } (DbType = Object)
 
 SELECT s.""Id""
 FROM ""SomeEntities"" AS s
@@ -656,7 +656,7 @@ LIMIT 2");
         public void List_param_Contains_value_converted_list_column()
         {
             using var ctx = CreateContext();
-            var p = new List<IntWrapper> { new(8), new(9) };
+            var p = new List<SomeEnum> { SomeEnum.Eight, SomeEnum.Nine };
             var id = ctx.SomeEntities
                 .Where(e => e.ValueConvertedList.All(x => p.Contains(x)))
                 .Select(e => e.Id)
@@ -664,7 +664,7 @@ LIMIT 2");
 
             Assert.Equal(1, id);
             AssertSql(
-                @"@__p_0={ '8', '9' } (DbType = Object)
+                @"@__p_0={ '-8', '-9' } (DbType = Object)
 
 SELECT s.""Id""
 FROM ""SomeEntities"" AS s
@@ -1230,14 +1230,15 @@ WHERE FALSE");
                 => modelBuilder.Entity<SomeArrayEntity>(
                     e =>
                     {
+                        // We do negative to make sure our value converter is properly used, and not the built-in one
                         e.Property(ae => ae.ValueConvertedScalar)
-                            .HasConversion(w => w.Value, v => new IntWrapper(v));
+                            .HasConversion(w => -(int)w, v => (SomeEnum)(-v));
 
                         e.Property(ae => ae.ValueConvertedArray)
-                            .HasPostgresArrayConversion(w => w.Value, v => new IntWrapper(v));
+                            .HasPostgresArrayConversion(w => -(int)w, v => (SomeEnum)(-v));
 
                         e.Property(ae => ae.ValueConvertedList)
-                            .HasPostgresArrayConversion(w => w.Value, v => new IntWrapper(v));
+                            .HasPostgresArrayConversion(w => -(int)w, v => (SomeEnum)(-v));
                     });
 
             public static void Seed(ArrayArrayQueryContext context)
@@ -1258,9 +1259,9 @@ WHERE FALSE");
                         NullableStringList = new List<string> { "3", "4", null},
                         NullableText = "foo",
                         NonNullableText = "foo",
-                        ValueConvertedScalar = new IntWrapper(1),
-                        ValueConvertedArray = new IntWrapper[] { new(8), new(9)},
-                        ValueConvertedList = new List<IntWrapper> { new(8), new(9)},
+                        ValueConvertedScalar = SomeEnum.One,
+                        ValueConvertedArray = new[] { SomeEnum.Eight, SomeEnum.Nine },
+                        ValueConvertedList = new List<SomeEnum> { SomeEnum.Eight, SomeEnum.Nine },
                         Byte = 10
                     },
                     new SomeArrayEntity
@@ -1278,9 +1279,9 @@ WHERE FALSE");
                         NullableStringList = new List<string> { "5", "6", "7", "8" },
                         NullableText = "bar",
                         NonNullableText = "bar",
-                        ValueConvertedScalar = new IntWrapper(2),
-                        ValueConvertedArray = new IntWrapper[] { new(9), new(10)},
-                        ValueConvertedList = new List<IntWrapper> { new(9), new(10)},
+                        ValueConvertedScalar = SomeEnum.Two,
+                        ValueConvertedArray = new[] { SomeEnum.Nine, SomeEnum.Ten },
+                        ValueConvertedList = new List<SomeEnum> { SomeEnum.Nine, SomeEnum.Ten },
                         Byte = 20
                     });
                 context.SaveChanges();
@@ -1304,16 +1305,20 @@ WHERE FALSE");
             public List<string?> NullableStringList { get; set; } = null!;
             public string? NullableText { get; set; }
             public string NonNullableText { get; set; } = null!;
-            public IntWrapper ValueConvertedScalar { get; set; } = null!;
-            public IntWrapper[] ValueConvertedArray { get; set; } = null!;
-            public List<IntWrapper> ValueConvertedList { get; set; } = null!;
+            public SomeEnum ValueConvertedScalar { get; set; }
+            public SomeEnum[] ValueConvertedArray { get; set; } = null!;
+            public List<SomeEnum> ValueConvertedList { get; set; } = null!;
             public byte Byte { get; set; }
         }
 
-        public class IntWrapper
+        public enum SomeEnum
         {
-            public IntWrapper(int value) => Value = value;
-            public int Value { get; set; }
+            One = 1,
+            Two = 2,
+            Three = 3,
+            Eight = 8,
+            Nine = 9,
+            Ten = 10
         }
 
         #nullable restore
