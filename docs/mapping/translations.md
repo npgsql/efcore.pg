@@ -28,7 +28,7 @@ dateTime.AddSeconds(1)         | [dateTime + INTERVAL '1 seconds'](https://www.p
 dateTime.AddYears(1)           | [dateTime + INTERVAL '1 years'](https://www.postgresql.org/docs/current/functions-datetime.html#OPERATORS-DATETIME-TABLE)
 dateTime.Date                  | [date_trunc('day', dateTime)](https://www.postgresql.org/docs/current/functions-datetime.html)
 dateTime.Day                   | [date_part('day', dateTime)::INT](https://www.postgresql.org/docs/current/functions-datetime.html)
-dateTime.DayOfWeek             | [floor(date_part('dow', o.""OrderDate""))::INT](https://www.postgresql.org/docs/current/functions-datetime.html)
+dateTime.DayOfWeek             | [floor(date_part('dow', dateTime))::INT](https://www.postgresql.org/docs/current/functions-datetime.html)
 dateTime.DayOfYear             | [date_part('doy', dateTime)::INT](https://www.postgresql.org/docs/current/functions-datetime.html)
 dateTime.Hour                  | [date_part('hour', dateTime)::INT](https://www.postgresql.org/docs/current/functions-datetime.html)
 dateTime.Minute                | [date_part('minute', dateTime)::INT](https://www.postgresql.org/docs/current/functions-datetime.html)
