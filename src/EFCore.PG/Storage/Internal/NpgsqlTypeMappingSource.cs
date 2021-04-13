@@ -155,6 +155,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 { "boolean",                     new[] { _bool                         } },
                 { "bool",                        new[] { _bool                         } },
                 { "bytea",                       new[] { _bytea                        } },
+                { "blob",                        new[] { _bytea                        } },
                 { "real",                        new[] { _float4                       } },
                 { "float4",                      new[] { _float4                       } },
                 { "double precision",            new[] { _float8                       } },
