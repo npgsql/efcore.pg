@@ -22,7 +22,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
             AddTranslators(new IMethodCallTranslator[]
             {
-                new NpgsqlArrayTranslator(typeMappingSource, npgsqlSqlExpressionFactory, jsonTranslator),
+                new NpgsqlArrayTranslator(npgsqlSqlExpressionFactory, jsonTranslator, npgsqlOptions.UseRedshift),
                 new NpgsqlByteArrayMethodTranslator(npgsqlSqlExpressionFactory),
                 new NpgsqlConvertTranslator(npgsqlSqlExpressionFactory),
                 new NpgsqlDateTimeMethodTranslator(typeMappingSource, npgsqlSqlExpressionFactory),

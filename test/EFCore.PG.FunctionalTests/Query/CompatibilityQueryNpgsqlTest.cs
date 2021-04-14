@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.TestUtilities;
+using Microsoft.Extensions.DependencyInjection;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using Npgsql.EntityFrameworkCore.PostgreSQL.TestUtilities;
 using Xunit;
@@ -18,103 +20,103 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query
         {
             Fixture = fixture;
             Fixture.TestSqlLoggerFactory.Clear();
-            //Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
+            Fixture.TestSqlLoggerFactory.SetTestOutputHelper(testOutputHelper);
         }
 
-        // CURRENTLY EMPTY
+        [ConditionalFact]
+        public async Task Array_contains_is_not_parameterized_with_array_on_redshift()
+        {
+            var ctx = CreateRedshiftContext();
+
+            var numbers = new[] { 8, 9 };
+            var result = await ctx.TestEntities.Where(e => numbers.Contains(e.SomeInt)).SingleAsync();
+            Assert.Equal(1, result.Id);
+
+            AssertSql(
+                @"SELECT t.""Id"", t.""SomeInt""
+FROM ""TestEntities"" AS t
+WHERE t.""SomeInt"" IN (8, 9)
+LIMIT 2");
+        }
+
+        #region Support
 
         private CompatibilityContext CreateContext(Version postgresVersion = null)
+            => Fixture.CreateContext(postgresVersion);
+
+        private CompatibilityContext CreateRedshiftContext()
+            => Fixture.CreateRedshiftContext();
+
+        public class CompatibilityQueryNpgsqlFixture : FixtureBase, IDisposable, IAsyncLifetime
         {
-            var builder = new DbContextOptionsBuilder(Fixture.CreateOptions());
-            if (postgresVersion != null)
-                new NpgsqlDbContextOptionsBuilder(builder).SetPostgresVersion(postgresVersion);
-            return new CompatibilityContext(builder.Options);
+            private TestStore _testStore;
+
+            private const string StoreName = "CompatibilityTest";
+            private readonly ListLoggerFactory _listLoggerFactory = NpgsqlTestStoreFactory.Instance.CreateListLoggerFactory(_ => false);
+            public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)_listLoggerFactory;
+
+            public virtual CompatibilityContext CreateContext()
+                => CreateContext(null);
+
+            public virtual CompatibilityContext CreateContext(Version postgresVersion)
+            {
+                var builder = new DbContextOptionsBuilder();
+                _testStore.AddProviderOptions(builder);
+                builder
+                    .UseNpgsql(o => o.SetPostgresVersion(postgresVersion))
+                    .UseLoggerFactory(_listLoggerFactory);
+                return new CompatibilityContext(builder.Options);
+            }
+
+            public virtual CompatibilityContext CreateRedshiftContext()
+            {
+                var builder = new DbContextOptionsBuilder();
+                _testStore.AddProviderOptions(builder);
+                builder
+                    .UseNpgsql(o => o.UseRedshift())
+                    .UseLoggerFactory(_listLoggerFactory);
+                return new CompatibilityContext(builder.Options);
+            }
+
+            public virtual Task InitializeAsync()
+            {
+                _testStore = NpgsqlTestStoreFactory.Instance.GetOrCreate(StoreName);
+                _testStore.Initialize(null, CreateContext, c => CompatibilityContext.Seed((CompatibilityContext)c));
+                return Task.CompletedTask;
+            }
+
+            // Called after DisposeAsync
+            public virtual void Dispose()
+            {
+            }
+
+            public virtual Task DisposeAsync()
+                => _testStore.DisposeAsync();
         }
 
-        #region Fixtures
-
-        /// <summary>
-        /// Represents a fixture suitable for testing backendVersion.
-        /// </summary>
-        public class CompatibilityQueryNpgsqlFixture : SharedStoreFixtureBase<CompatibilityContext>
-        {
-            protected override string StoreName => "CompatibilityTest";
-            protected override ITestStoreFactory TestStoreFactory => NpgsqlTestStoreFactory.Instance;
-            public TestSqlLoggerFactory TestSqlLoggerFactory => (TestSqlLoggerFactory)ListLoggerFactory;
-            protected override void Seed(CompatibilityContext context) => CompatibilityContext.Seed(context);
-        }
-
-        /// <summary>
-        /// Represents an entity suitable for testing backendVersion.
-        /// </summary>
         public class CompatibilityTestEntity
         {
-            /// <summary>
-            /// The primary key.
-            /// </summary>
             public int Id { get; set; }
-
-            /// <summary>
-            /// The date and time.
-            /// </summary>
-            public DateTime DateTime { get; set; }
+            public int SomeInt { get; set; }
         }
 
-        /// <summary>
-        /// Represents a database suitable for testing range operators.
-        /// </summary>
-        public class CompatibilityContext : PoolableDbContext
+        public class CompatibilityContext : DbContext
         {
-            /// <summary>
-            /// Represents a set of entities for backendVersion testing.
-            /// </summary>
-            public DbSet<CompatibilityTestEntity> CompatibilityTestEntities { get; set; }
-
-            /// <inheritdoc />
+            public DbSet<CompatibilityTestEntity> TestEntities { get; set; }
             public CompatibilityContext(DbContextOptions options) : base(options) {}
-
-            /// <inheritdoc />
-            protected override void OnModelCreating(ModelBuilder builder) {}
 
             public static void Seed(CompatibilityContext context)
             {
-                context.CompatibilityTestEntities.AddRange(
-                    new CompatibilityTestEntity
-                    {
-                        Id = 1,
-                        DateTime = new DateTime(2018, 06, 23)
-                    },
-                    new CompatibilityTestEntity
-                    {
-                        Id = 2,
-                        DateTime = new DateTime(2018, 06, 23)
-                    },
-                    new CompatibilityTestEntity
-                    {
-                        Id = 3,
-                        DateTime = new DateTime(2018, 06, 23)
-                    });
-
+                context.TestEntities.AddRange(
+                    new CompatibilityTestEntity { Id = 1, SomeInt = 8 },
+                    new CompatibilityTestEntity { Id = 2, SomeInt = 10 });
                 context.SaveChanges();
             }
         }
 
-        #endregion
+        private void AssertSql(params string[] expected)
+            => Fixture.TestSqlLoggerFactory.AssertBaseline(expected);
 
-        #region Helpers
-
-        /// <summary>
-        /// Asserts that the SQL fragment appears in the logs.
-        /// </summary>
-        /// <param name="sql">The SQL statement or fragment to search for in the logs.</param>
-        private void AssertContainsSql(string sql) => Assert.Contains(sql, Fixture.TestSqlLoggerFactory.Sql);
-
-        /// <summary>
-        /// Asserts that the SQL fragment does not appears in the logs.
-        /// </summary>
-        /// <param name="sql">The SQL statement or fragment to search for in the logs.</param>
-        private void AssertDoesNotContainsSql(string sql) => Assert.DoesNotContain(sql, Fixture.TestSqlLoggerFactory.Sql);
-
-        #endregion
+        #endregion Support
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Storage;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Internal
 {
@@ -12,7 +13,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
         public NpgsqlMemberTranslatorProvider(
             RelationalMemberTranslatorProviderDependencies dependencies,
-            IRelationalTypeMappingSource typeMappingSource)
+            IRelationalTypeMappingSource typeMappingSource,
+            INpgsqlOptions npgsqlOptions)
             : base(dependencies)
         {
             var sqlExpressionFactory = (NpgsqlSqlExpressionFactory)dependencies.SqlExpressionFactory;
@@ -20,7 +22,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
 
             AddTranslators(
                 new IMemberTranslator[] {
-                    new NpgsqlArrayTranslator(typeMappingSource, sqlExpressionFactory, JsonPocoTranslator),
+                    new NpgsqlArrayTranslator(sqlExpressionFactory, JsonPocoTranslator, npgsqlOptions.UseRedshift),
                     new NpgsqlDateTimeMemberTranslator(sqlExpressionFactory),
                     new NpgsqlJsonDomTranslator(typeMappingSource, sqlExpressionFactory),
                     new NpgsqlLTreeTranslator(typeMappingSource, sqlExpressionFactory),
