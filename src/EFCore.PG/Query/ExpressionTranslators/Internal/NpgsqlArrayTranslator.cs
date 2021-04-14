@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
@@ -35,18 +34,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
             typeof(Enumerable).GetTypeInfo().GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
                 .Single(mi => mi.Name == nameof(Enumerable.Any) && mi.GetParameters().Length == 1);
 
-        private readonly IRelationalTypeMappingSource _typeMappingSource;
         private readonly NpgsqlSqlExpressionFactory _sqlExpressionFactory;
         private readonly NpgsqlJsonPocoTranslator _jsonPocoTranslator;
+        private readonly bool _useRedshift;
 
         public NpgsqlArrayTranslator(
-            IRelationalTypeMappingSource typeMappingSource,
             NpgsqlSqlExpressionFactory sqlExpressionFactory,
-            NpgsqlJsonPocoTranslator jsonPocoTranslator)
+            NpgsqlJsonPocoTranslator jsonPocoTranslator,
+            bool useRedshift)
         {
-            _typeMappingSource = typeMappingSource;
             _sqlExpressionFactory = sqlExpressionFactory;
             _jsonPocoTranslator = jsonPocoTranslator;
+            _useRedshift = useRedshift;
         }
 
         public virtual SqlExpression? Translate(
@@ -94,8 +93,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 if (method.IsClosedFormOf(EnumerableAnyWithoutPredicate))
                 {
                     return _sqlExpressionFactory.GreaterThan(
-                        _jsonPocoTranslator.TranslateArrayLength(arrayOrList) ??
-                        _sqlExpressionFactory.Function(
+                        _jsonPocoTranslator.TranslateArrayLength(arrayOrList)
+                        ?? _sqlExpressionFactory.Function(
                             "cardinality",
                             new[] { arrayOrList },
                             nullable: true,
@@ -108,17 +107,18 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                 // is pattern-matched in AllAnyToContainsRewritingExpressionVisitor, which transforms it to
                 // new[] { "a", "b", "c" }.Contains(e.Some Text).
 
-                if ((method.IsClosedFormOf(EnumerableContains) || // Enumerable.Contains extension method
-                     method.Name == nameof(List<int>.Contains) && method.DeclaringType.IsGenericList() &&
-                     method.GetParameters().Length == 1)
+                if ((method.IsClosedFormOf(EnumerableContains)
+                        ||
+                        method.Name == nameof(List<int>.Contains)
+                        && method.DeclaringType.IsGenericList()
+                        && method.GetParameters().Length == 1)
                     &&
-                    (
-                        // Handle either array columns (with an array mapping) or parameters/constants (no mapping). We specifically
-                        // don't want to translate if the type mapping is bytea (CLR type is array, but not an array in
-                        // the database).
-                        // arrayOrList.TypeMapping == null && _typeMappingSource.FindMapping(arrayOrList.Type) != null ||
-                        arrayOrList.TypeMapping is NpgsqlArrayTypeMapping or null
-                    ))
+                    // Handle either array columns (with an array mapping) or parameters/constants (no mapping). We specifically
+                    // don't want to translate if the type mapping is bytea (CLR type is array, but not an array in
+                    // the database).
+                    // arrayOrList.TypeMapping == null && _typeMappingSource.FindMapping(arrayOrList.Type) != null ||
+                    arrayOrList.TypeMapping is NpgsqlArrayTypeMapping or null
+                    && !_useRedshift)
                 {
                     var item = arguments[0];
 
@@ -142,7 +142,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                                     typeof(int)));
                         }
 
-                        return _sqlExpressionFactory.Contains(arrayOrList,
+                        return _sqlExpressionFactory.Contains(
+                            arrayOrList,
                             _sqlExpressionFactory.NewArrayOrConstant(new[] { item }, arrayOrList.Type));
 
                     // Don't do anything PG-specific for constant arrays since the general EF Core mechanism is fine

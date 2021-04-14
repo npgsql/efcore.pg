@@ -16,6 +16,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
     /// </summary>
     public class NpgsqlOptionsExtension : RelationalOptionsExtension
     {
+        public static readonly Version DefaultPostgresVersion = new(12, 0);
+
         private DbContextOptionsExtensionInfo? _info;
         private readonly List<UserRangeDefinition> _userRangeDefinitions;
 
@@ -27,7 +29,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         /// <summary>
         /// The backend version to target.
         /// </summary>
-        public virtual Version? PostgresVersion { get; private set; }
+        public virtual Version PostgresVersion { get; private set; } = DefaultPostgresVersion;
+
+        /// <summary>
+        /// Whether to target Redshift.
+        /// </summary>
+        public virtual bool UseRedshift { get; private set; }
 
         /// <summary>
         /// The list of range mappings specified by the user.
@@ -132,7 +139,23 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         {
             var clone = (NpgsqlOptionsExtension)Clone();
 
-            clone.PostgresVersion = postgresVersion;
+            clone.PostgresVersion = postgresVersion ?? DefaultPostgresVersion;
+
+            return clone;
+        }
+
+        /// <summary>
+        /// Returns a copy of the current instance with the specified Redshift settings.
+        /// </summary>
+        /// <param name="useRedshift">Whether to target Redshift.</param>
+        /// <returns>
+        /// A copy of the current instance with the specified Redshift setting.
+        /// </returns>
+        public virtual NpgsqlOptionsExtension WithRedshift(bool useRedshift)
+        {
+            var clone = (NpgsqlOptionsExtension)Clone();
+
+            clone.UseRedshift = useRedshift;
 
             return clone;
         }
@@ -148,6 +171,17 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
             clone.ReverseNullOrdering = reverseNullOrdering;
 
             return clone;
+        }
+
+        /// <inheritdoc />
+        public override void Validate(IDbContextOptions options)
+        {
+            base.Validate(options);
+
+            if (UseRedshift && !PostgresVersion.Equals(DefaultPostgresVersion))
+            {
+                throw new InvalidOperationException($"{nameof(UseRedshift)} and {nameof(PostgresVersion)} cannot both be set");
+            }
         }
 
         #region Authentication
@@ -234,9 +268,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
                         builder.Append(nameof(Extension.AdminDatabase)).Append("=").Append(Extension.AdminDatabase).Append(' ');
                     }
 
-                    if (Extension.PostgresVersion != null)
+                    if (!Extension.PostgresVersion.Equals(DefaultPostgresVersion))
                     {
                         builder.Append(nameof(Extension.PostgresVersion)).Append("=").Append(Extension.PostgresVersion).Append(' ');
+                    }
+
+                    if (Extension.UseRedshift)
+                    {
+                        builder.Append(nameof(Extension.UseRedshift)).Append(' ');
                     }
 
                     if (Extension.ProvideClientCertificatesCallback != null)
@@ -296,6 +335,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
                             (h, ud) => (h * 397) ^ ud.GetHashCode());
                         _serviceProviderHash = (_serviceProviderHash * 397) ^ Extension.AdminDatabase?.GetHashCode() ?? 0L;
                         _serviceProviderHash = (_serviceProviderHash * 397) ^ (Extension.PostgresVersion?.GetHashCode() ?? 0L);
+                        _serviceProviderHash = (_serviceProviderHash * 397) ^ Extension.UseRedshift.GetHashCode();
                         _serviceProviderHash = (_serviceProviderHash * 397) ^ (Extension.ProvideClientCertificatesCallback?.GetHashCode() ?? 0L);
                         _serviceProviderHash = (_serviceProviderHash * 397) ^ (Extension.RemoteCertificateValidationCallback?.GetHashCode() ?? 0L);
                         _serviceProviderHash = (_serviceProviderHash * 397) ^ (Extension.ProvidePasswordCallback?.GetHashCode() ?? 0L);
@@ -314,6 +354,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
 
                 debugInfo["Npgsql.EntityFrameworkCore.PostgreSQL:" + nameof(NpgsqlDbContextOptionsBuilder.SetPostgresVersion)]
                     = (Extension.PostgresVersion?.GetHashCode() ?? 0).ToString(CultureInfo.InvariantCulture);
+
+                debugInfo["Npgsql.EntityFrameworkCore.PostgreSQL:" + nameof(NpgsqlDbContextOptionsBuilder.UseRedshift)]
+                    = Extension.UseRedshift.GetHashCode().ToString(CultureInfo.InvariantCulture);
 
                 debugInfo["Npgsql.EntityFrameworkCore.PostgreSQL:" + nameof(NpgsqlDbContextOptionsBuilder.ReverseNullOrdering)]
                     = Extension.ReverseNullOrdering.GetHashCode().ToString(CultureInfo.InvariantCulture);
@@ -338,7 +381,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         #endregion Infrastructure
     }
 
-    public class UserRangeDefinition : IEquatable<UserRangeDefinition>
+    /// <summary>
+    /// A definition for a user-defined PostgreSQL range to be mapped.
+    /// </summary>
+    public record UserRangeDefinition
     {
         /// <summary>
         /// The name of the PostgreSQL range type to be mapped.
@@ -373,31 +419,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
             SchemaName = schemaName;
             SubtypeClrType = Check.NotNull(subtypeClrType, nameof(subtypeClrType));
             SubtypeName = subtypeName;
-        }
-
-        public override int GetHashCode()
-            => HashCode.Combine(RangeName, SchemaName, SubtypeClrType, SubtypeName);
-
-        public override bool Equals(object? obj) => obj is UserRangeDefinition urd && Equals(urd);
-
-        public virtual bool Equals(UserRangeDefinition? other)
-            => ReferenceEquals(this, other) ||
-               !(other is null) &&
-               RangeName == other.RangeName &&
-               SchemaName == other.SchemaName &&
-               SubtypeClrType == other.SubtypeClrType &&
-               SubtypeName == other.SubtypeName;
-
-        public virtual void Deconstruct(
-            out string rangeName,
-            out string? schemaName,
-            out Type subtypeClrType,
-            out string? subtypeName)
-        {
-            rangeName = RangeName;
-            schemaName = SchemaName;
-            subtypeClrType = SubtypeClrType;
-            subtypeName = SubtypeName;
         }
     }
 }

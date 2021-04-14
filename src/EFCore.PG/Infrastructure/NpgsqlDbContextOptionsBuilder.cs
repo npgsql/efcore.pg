@@ -45,6 +45,14 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure
             => SetPostgresVersion(new Version(major, minor));
 
         /// <summary>
+        /// Configures the provider to work in Redshift compatibility mode, which avoids certain unsupported features from modern
+        /// PostgreSQL versions.
+        /// </summary>
+        /// <param name="useRedshift">Whether to target Redshift.</param>
+        public virtual NpgsqlDbContextOptionsBuilder UseRedshift(bool useRedshift = true)
+            => WithOption(e => e.WithRedshift(useRedshift));
+
+        /// <summary>
         /// Maps a user-defined PostgreSQL range type for use.
         /// </summary>
         /// <typeparam name="TSubtype">

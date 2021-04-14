@@ -15,6 +15,11 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal
         Version PostgresVersion { get; }
 
         /// <summary>
+        /// Whether to target Redshift.
+        /// </summary>
+        bool UseRedshift { get; }
+
+        /// <summary>
         /// True if reverse null ordering is enabled; otherwise, false.
         /// </summary>
         bool ReverseNullOrderingEnabled { get; }
