@@ -47,7 +47,7 @@ static MyDbContext()
     => NpgsqlConnection.GlobalTypeMapper.MapEnum<Mood>();
 ```
 
-This code lets Npgsql know that your CLR enum type, `Mood`, should be mapped to a database enum called `Mood`.
+This code lets Npgsql know that your CLR enum type, `Mood`, should be mapped to a database enum called `Mood`. Note that if your enum is in a custom schema (not `public`), you must specify that schema in the call to `MapEnum`.
 
 If you're curious as to inner workings, this code maps the enum with the ADO.NET provider - [see here for the full docs](http://www.npgsql.org/doc/types/enums_and_composites.html). When the Npgsql EF Core first initializes, it calls into the ADO.NET provider to get all mapped enums, and sets everything up internally at the EF Core layer as well.
 
