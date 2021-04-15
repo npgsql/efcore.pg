@@ -208,7 +208,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Scaffolding.Internal
         {
             var filter = tableFilter != null ? $"AND {tableFilter("ns.nspname", "cls.relname")}" : null;
             var commandText = $@"
-SELECT nspname, relname, description
+SELECT nspname, relname, relkind, description
 FROM pg_class AS cls
 JOIN pg_namespace AS ns ON ns.oid = cls.relnamespace
 LEFT OUTER JOIN pg_description AS des ON des.objoid = cls.oid AND des.objsubid=0
@@ -227,15 +227,21 @@ WHERE
                 {
                     var schema = reader.GetValueOrDefault<string>("nspname");
                     var name = reader.GetString("relname");
+                    var type = reader.GetChar("relkind");
                     var comment = reader.GetValueOrDefault<string>("description");
 
-                    var table = new DatabaseTable
+                    var table = type switch
                     {
-                        Database = databaseModel,
-                        Name = name,
-                        Schema = schema,
-                        Comment = comment
+                        'r' => new DatabaseTable(),
+                        'v' => new DatabaseView(),
+                        'm' => new DatabaseView(),
+                        _ => throw new ArgumentOutOfRangeException($"Unknown relkind '{type}' when scaffolding {DisplayName(schema, name)}")
                     };
+
+                    table.Database = databaseModel;
+                    table.Name = name;
+                    table.Schema = schema;
+                    table.Comment = comment;
 
                     tables.Add(table);
                 }
