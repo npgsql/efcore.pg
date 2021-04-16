@@ -64,7 +64,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 try
                 {
                     await Dependencies.MigrationCommandExecutor
-                        .ExecuteNonQueryAsync(CreateCreateOperations(), masterConnection, cancellationToken);
+                        .ExecuteNonQueryAsync(CreateCreateOperations(), masterConnection, cancellationToken)
+                        .ConfigureAwait(false);
                 }
                 catch (PostgresException e) when (
                     e.SqlState == "23505" && e.ConstraintName == "pg_database_datname_index"
@@ -77,7 +78,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 ClearPool();
             }
 
-            await ExistsAsync(cancellationToken);
+            await ExistsAsync(cancellationToken).ConfigureAwait(false);
         }
 
         public override bool HasTables()
@@ -105,7 +106,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                                                       null,
                                                       Dependencies.CurrentContext.Context,
                                                       Dependencies.CommandLogger),
-                                                  cancellationToken: ct), cancellationToken);
+                                                  cancellationToken: ct).ConfigureAwait(false), cancellationToken);
 
         IRelationalCommand CreateHasTablesCommand()
             => _rawSqlCommandBuilder
@@ -128,21 +129,36 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             });
 
         public override bool Exists()
+            => Exists(async: false).GetAwaiter().GetResult();
+
+        public override Task<bool> ExistsAsync(CancellationToken cancellationToken = default)
+            => Exists(async: true, cancellationToken);
+
+        private async Task<bool> Exists(bool async, CancellationToken cancellationToken = default)
         {
+            // When checking whether a database exists, pooling must be off, otherwise we may
+            // attempt to reuse a pooled connection, which may be broken (this happened in the tests).
+            // If Pooling is off, but Multiplexing is on - NpgsqlConnectionStringBuilder.Validate will throw,
+            // so we turn off Multiplexing as well.
+            var unpooledCsb = new NpgsqlConnectionStringBuilder(_connection.ConnectionString)
+            {
+                Pooling = false,
+                Multiplexing = false
+            };
+
+            using var _ = new TransactionScope(TransactionScopeOption.Suppress, TransactionScopeAsyncFlowOption.Enabled);
+            var unpooledRelationalConnection = _connection.CloneWith(unpooledCsb.ToString());
             try
             {
-                // When checking whether a database exists, pooling must be off, otherwise we may
-                // attempt to reuse a pooled connection, which may be broken (this happened in the tests).
-                // If Pooling is off, but Multiplexing is on - NpgsqlConnectionStringBuilder.Validate will throw,
-                // so we turn off Multiplexing as well.
-                var unpooledCsb = new NpgsqlConnectionStringBuilder(_connection.ConnectionString)
+                if (async)
                 {
-                    Pooling = false,
-                    Multiplexing = false
-                };
-                using var unpooledConn = ((NpgsqlConnection)_connection.DbConnection).CloneWith(unpooledCsb.ToString());
-                using var _ = new TransactionScope(TransactionScopeOption.Suppress);
-                unpooledConn.Open();
+                    await unpooledRelationalConnection.OpenAsync(cancellationToken).ConfigureAwait(false);
+                }
+                else
+                {
+                    unpooledRelationalConnection.Open();
+                }
+
                 return true;
             }
             catch (PostgresException e)
@@ -156,55 +172,28 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             }
             catch (NpgsqlException e) when (
                 e.InnerException is IOException &&
-                e.InnerException.InnerException is SocketException &&
-                ((SocketException)e.InnerException.InnerException).SocketErrorCode == SocketError.ConnectionReset
+                e.InnerException.InnerException is SocketException socketException &&
+                socketException.SocketErrorCode == SocketError.ConnectionReset
             )
             {
                 // Pretty awful hack around #104
                 return false;
             }
-        }
-
-        public override async Task<bool> ExistsAsync(CancellationToken cancellationToken = default)
-        {
-            try
+            finally
             {
-                // When checking whether a database exists, pooling must be off, otherwise we may
-                // attempt to reuse a pooled connection, which may be broken (this happened in the tests).
-                // If Pooling is off, but Multiplexing is on - NpgsqlConnectionStringBuilder.Validate will throw,
-                // so we turn off Multiplexing as well.
-                var unpooledCsb = new NpgsqlConnectionStringBuilder(_connection.ConnectionString)
+                if (async)
                 {
-                    Pooling = false,
-                    Multiplexing = false
-                };
-                using var unpooledConn = ((NpgsqlConnection)_connection.DbConnection).CloneWith(unpooledCsb.ToString());
-                using var _ = new TransactionScope(TransactionScopeOption.Suppress, TransactionScopeAsyncFlowOption.Enabled);
-                await unpooledConn.OpenAsync(cancellationToken);
-                return true;
-            }
-            catch (PostgresException e)
-            {
-                if (IsDoesNotExist(e))
-                {
-                    return false;
+                    await unpooledRelationalConnection.DisposeAsync().ConfigureAwait(false);
                 }
-
-                throw;
-            }
-            catch (NpgsqlException e) when (
-                e.InnerException is IOException &&
-                e.InnerException.InnerException is SocketException &&
-                ((SocketException)e.InnerException.InnerException).SocketErrorCode == SocketError.ConnectionReset
-            )
-            {
-                // Pretty awful hack around #104
-                return false;
+                else
+                {
+                    unpooledRelationalConnection.Dispose();
+                }
             }
         }
 
         // Login failed is thrown when database does not exist (See Issue #776)
-        static bool IsDoesNotExist(PostgresException exception) => exception.SqlState == "3D000";
+        private static bool IsDoesNotExist(PostgresException exception) => exception.SqlState == "3D000";
 
         public override void Delete()
         {
@@ -224,7 +213,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             using (var masterConnection = _connection.CreateMasterConnection())
             {
                 await Dependencies.MigrationCommandExecutor
-                    .ExecuteNonQueryAsync(CreateDropCommands(), masterConnection, cancellationToken);
+                    .ExecuteNonQueryAsync(CreateDropCommands(), masterConnection, cancellationToken)
+                    .ConfigureAwait(false);
             }
         }
 
@@ -282,8 +272,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
             try
             {
-                await Dependencies.MigrationCommandExecutor.ExecuteNonQueryAsync(commands, _connection,
-                    cancellationToken);
+                await Dependencies.MigrationCommandExecutor.ExecuteNonQueryAsync(commands, _connection, cancellationToken)
+                    .ConfigureAwait(false);
             }
             catch (PostgresException e) when (
                 e.SqlState == "23505" && e.ConstraintName == "pg_type_typname_nsp_index"
@@ -295,7 +285,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
 
             if (reloadTypes)
             {
-                await _connection.OpenAsync(cancellationToken);
+                await _connection.OpenAsync(cancellationToken).ConfigureAwait(false);
                 try
                 {
                     // TODO: Not async

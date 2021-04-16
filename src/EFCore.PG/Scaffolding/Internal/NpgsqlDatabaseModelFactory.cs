@@ -624,7 +624,7 @@ WHERE
 
                         var columnCollations = record
                             .GetValueOrDefault<uint[]>("indcollation")
-                            .Select(oid => collations.TryGetValue(oid, out var collation) && !string.Equals(collation, "default") ? collation : null)
+                            .Select(oid => collations.TryGetValue(oid, out var collation) && collation != "default" ? collation : null)
                             .ToArray();
 
                         if (columnCollations.Any(coll => coll != null))

@@ -153,7 +153,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             if (storeType != null)
             {
                 // PostgreSQL array type names are the element plus []
-                if (!storeType.EndsWith("[]"))
+                if (!storeType.EndsWith("[]", StringComparison.Ordinal))
                     return null;
 
                 var elementStoreType = storeType.Substring(0, storeType.Length - 2);

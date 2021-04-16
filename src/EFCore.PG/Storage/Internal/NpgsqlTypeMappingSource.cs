@@ -36,7 +36,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
         // Numeric types
         readonly NpgsqlFloatTypeMapping        _float4             = new NpgsqlFloatTypeMapping();
         readonly NpgsqlDoubleTypeMapping       _float8             = new NpgsqlDoubleTypeMapping();
-        readonly DecimalTypeMapping            _numeric            = new DecimalTypeMapping("numeric", DbType.Decimal);
+        readonly NpgsqlDecimalTypeMapping      _numeric            = new();
         readonly NpgsqlMoneyTypeMapping        _money              = new NpgsqlMoneyTypeMapping();
         readonly GuidTypeMapping               _uuid               = new GuidTypeMapping("uuid", DbType.Guid);
         readonly ShortTypeMapping              _int2               = new ShortTypeMapping("smallint", DbType.Int16);
@@ -367,8 +367,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 return null;
             }
 
-            // If needed, clone the mapping with the configured length/precision/scale
-            // TODO: Cache size/precision/scale mappings?
             if (mappingInfo.Size.HasValue)
             {
                 if (clrType == typeof(string))
@@ -385,23 +383,6 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 {
                     mapping = mappingInfo.IsFixedLength ?? false ? (RelationalTypeMapping)_bit : _varbit;
                     return mapping.Clone($"{mapping.StoreType}({mappingInfo.Size})", mappingInfo.Size);
-                }
-            }
-            else if (mappingInfo.Precision.HasValue)
-            {
-                if (clrType == typeof(decimal))
-                {
-                    return _numeric.Clone(mappingInfo.Scale.HasValue
-                        ? $"numeric({mappingInfo.Precision.Value},{mappingInfo.Scale.Value})"
-                        : $"numeric({mappingInfo.Precision.Value})",
-                        null);
-                }
-
-                if (clrType == typeof(DateTime) ||
-                    clrType == typeof(DateTimeOffset) ||
-                    clrType == typeof(TimeSpan))
-                {
-                    return mapping.Clone($"{mapping.StoreType}({mappingInfo.Precision.Value})", null);
                 }
             }
 
@@ -421,7 +402,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             if (storeType != null)
             {
                 // PostgreSQL array type names are the element plus []
-                if (!storeType.EndsWith("[]"))
+                if (!storeType.EndsWith("[]", StringComparison.Ordinal))
                     return null;
 
                 var elementStoreType = storeType.Substring(0, storeType.Length - 2);
@@ -453,7 +434,9 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
                 if (elementMapping == null || elementMapping is NpgsqlArrayTypeMapping)
                     return null;
 
-                return new NpgsqlArrayArrayTypeMapping(storeType, elementMapping);
+                return clrType is null || clrType.IsArray
+                    ? new NpgsqlArrayArrayTypeMapping(storeType, elementMapping)
+                    : new NpgsqlArrayListTypeMapping(storeType, elementMapping);
             }
 
             if (clrType == null)

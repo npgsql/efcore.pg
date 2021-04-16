@@ -15,7 +15,7 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal.Mapping
         }
 
         protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
-            => new NpgsqlMoneyTypeMapping();
+            => new NpgsqlMoneyTypeMapping(parameters);
 
         protected override string GenerateNonNullSqlLiteral(object value)
             => base.GenerateNonNullSqlLiteral(value) + "::money";
