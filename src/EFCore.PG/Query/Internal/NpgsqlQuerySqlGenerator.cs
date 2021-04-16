@@ -340,9 +340,10 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal
                 // where there's no precedence issues
                 switch (sqlUnaryExpression.Operand)
                 {
-                case SqlConstantExpression _:
-                case SqlParameterExpression _:
-                case SqlFunctionExpression _:
+                case SqlConstantExpression:
+                case SqlParameterExpression:
+                case SqlFunctionExpression:
+                case ScalarSubqueryExpression:
                     var storeType = sqlUnaryExpression.TypeMapping.StoreType;
                     if (storeType == "integer")
                         storeType = "INT";  // Shorthand that looks better in SQL

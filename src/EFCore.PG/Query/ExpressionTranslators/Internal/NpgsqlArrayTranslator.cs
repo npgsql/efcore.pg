@@ -153,6 +153,15 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Query.ExpressionTranslators.Inte
                     case SqlConstantExpression:
                         return null;
 
+                    // Similar to ParameterExpression below, but when a bare subquery is present inside ANY(), PostgreSQL just compares
+                    // against each of its resulting rows (just like IN). To "extract" the array result of the scalar subquery, we need to
+                    // add an explicit cast (see #1803).
+                    case ScalarSubqueryExpression subqueryExpression:
+                        return _sqlExpressionFactory.Any(
+                            item,
+                            _sqlExpressionFactory.Convert(subqueryExpression, subqueryExpression.Type, subqueryExpression.TypeMapping),
+                            PostgresAnyOperatorType.Equal);
+
                     // For ParameterExpression, and for all other cases - e.g. array returned from some function -
                     // translate to e.SomeText = ANY (@p). This is superior to the general solution which will expand
                     // parameters to constants, since non-PG SQL does not support arrays.
