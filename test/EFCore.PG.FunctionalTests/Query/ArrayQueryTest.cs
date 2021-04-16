@@ -592,6 +592,30 @@ WHERE s.""Byte"" = ANY (@__values_0)
 LIMIT 2");
         }
 
+        [Theory]
+        [MemberData(nameof(IsListData))]
+        public void Array_column_Contains_in_scalar_subquery(bool list)
+        {
+            using var ctx = CreateContext();
+            var id = ctx.SomeEntityContainers
+                .Where(c => c.ArrayEntities.OrderBy(e => e.Id).First().NullableIntArray.Contains(3))
+                .Select(e => e.Id)
+                .OverArrayOrList(list)
+                .Single();
+
+            Assert.Equal(1, id);
+            AssertSql(list,
+                @"SELECT s.""Id""
+FROM ""SomeEntityContainers"" AS s
+WHERE 3 = ANY ((
+    SELECT s0.""NullableIntArray""
+    FROM ""SomeEntities"" AS s0
+    WHERE s.""Id"" = s0.""SomeContainerEntityId""
+    ORDER BY s0.""Id""
+    LIMIT 1)::integer[])
+LIMIT 2");
+        }
+
         #endregion
 
         #region Length/Count
@@ -997,6 +1021,7 @@ WHERE (get_byte(s.""SomeBytea"", 0) = 3) AND get_byte(s.""SomeBytea"", 0) IS NOT
         public class ArrayArrayQueryContext : PoolableDbContext
         {
             public DbSet<SomeArrayEntity> SomeEntities { get; set; }
+            public DbSet<SomeContainerEntity> SomeEntityContainers { get; set; }
 
             public ArrayArrayQueryContext(DbContextOptions options) : base(options) {}
 
@@ -1007,8 +1032,9 @@ WHERE (get_byte(s.""SomeBytea"", 0) = 3) AND get_byte(s.""SomeBytea"", 0) IS NOT
 
             public static void Seed(ArrayArrayQueryContext context)
             {
-                context.SomeEntities.AddRange(
-                    new SomeArrayEntity
+                var arrayEntities = new SomeArrayEntity[]
+                {
+                    new()
                     {
                         Id = 1,
                         IntArray = new[] { 3, 4 },
@@ -1025,7 +1051,7 @@ WHERE (get_byte(s.""SomeBytea"", 0) = 3) AND get_byte(s.""SomeBytea"", 0) IS NOT
                         ValueConvertedGuid = Guid.Parse("54b46885-a17c-49f0-a12e-08ae7d7da5ca"),
                         Byte = 10
                     },
-                    new SomeArrayEntity
+                    new()
                     {
                         Id = 2,
                         IntArray = new[] { 5, 6, 7 },
@@ -1041,7 +1067,15 @@ WHERE (get_byte(s.""SomeBytea"", 0) = 3) AND get_byte(s.""SomeBytea"", 0) IS NOT
                         NonNullableText = "bar",
                         ValueConvertedGuid = Guid.Empty,
                         Byte = 20
-                    });
+                    }
+                };
+
+                context.SomeEntities.AddRange(arrayEntities);
+                context.SomeEntityContainers.Add(new SomeContainerEntity
+                {
+                    Id = 1,
+                    ArrayEntities = new List<SomeArrayEntity> { arrayEntities[0], arrayEntities[1] }
+                });
                 context.SaveChanges();
             }
         }
@@ -1063,6 +1097,12 @@ WHERE (get_byte(s.""SomeBytea"", 0) = 3) AND get_byte(s.""SomeBytea"", 0) IS NOT
             public string NonNullableText { get; set; }
             public Guid ValueConvertedGuid { get; set; }
             public byte Byte { get; set; }
+        }
+
+        public class SomeContainerEntity
+        {
+            public int Id { get; set; }
+            public List<SomeArrayEntity> ArrayEntities { get; set; } = null!;
         }
 
         public class ArrayArrayQueryFixture : SharedStoreFixtureBase<ArrayArrayQueryContext>
