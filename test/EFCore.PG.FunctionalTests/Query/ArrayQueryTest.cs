@@ -672,6 +672,30 @@ WHERE s.""ValueConvertedList"" <@ @__p_0
 LIMIT 2");
         }
 
+        [Theory]
+        [MemberData(nameof(IsListData))]
+        public void Array_column_Contains_in_scalar_subquery(bool list)
+        {
+            using var ctx = CreateContext();
+            var id = ctx.SomeEntityContainers
+                .Where(c => c.ArrayEntities.OrderBy(e => e.Id).First().NullableIntArray.Contains(3))
+                .Select(e => e.Id)
+                .OverArrayOrList(list)
+                .Single();
+
+            Assert.Equal(1, id);
+            AssertSql(list,
+                @"SELECT s.""Id""
+FROM ""SomeEntityContainers"" AS s
+WHERE 3 = ANY ((
+    SELECT s0.""NullableIntArray""
+    FROM ""SomeEntities"" AS s0
+    WHERE s.""Id"" = s0.""SomeContainerEntityId""
+    ORDER BY s0.""Id""
+    LIMIT 1)::integer[])
+LIMIT 2");
+        }
+
         #endregion
 
         #region Length/Count
@@ -1223,6 +1247,7 @@ WHERE FALSE");
         public class ArrayArrayQueryContext : PoolableDbContext
         {
             public DbSet<SomeArrayEntity> SomeEntities { get; set; }
+            public DbSet<SomeContainerEntity> SomeEntityContainers { get; set; }
 
             public ArrayArrayQueryContext(DbContextOptions options) : base(options) {}
 
@@ -1243,8 +1268,9 @@ WHERE FALSE");
 
             public static void Seed(ArrayArrayQueryContext context)
             {
-                context.SomeEntities.AddRange(
-                    new SomeArrayEntity
+                var arrayEntities = new SomeArrayEntity[]
+                {
+                    new()
                     {
                         Id = 1,
                         IntArray = new[] { 3, 4 },
@@ -1264,7 +1290,7 @@ WHERE FALSE");
                         ValueConvertedList = new List<SomeEnum> { SomeEnum.Eight, SomeEnum.Nine },
                         Byte = 10
                     },
-                    new SomeArrayEntity
+                    new()
                     {
                         Id = 2,
                         IntArray = new[] { 5, 6, 7, 8 },
@@ -1283,7 +1309,15 @@ WHERE FALSE");
                         ValueConvertedArray = new[] { SomeEnum.Nine, SomeEnum.Ten },
                         ValueConvertedList = new List<SomeEnum> { SomeEnum.Nine, SomeEnum.Ten },
                         Byte = 20
-                    });
+                    }
+                };
+
+                context.SomeEntities.AddRange(arrayEntities);
+                context.SomeEntityContainers.Add(new SomeContainerEntity
+                {
+                    Id = 1,
+                    ArrayEntities = new List<SomeArrayEntity> { arrayEntities[0], arrayEntities[1] }
+                });
                 context.SaveChanges();
             }
         }
@@ -1319,6 +1353,12 @@ WHERE FALSE");
             Eight = 8,
             Nine = 9,
             Ten = 10
+        }
+
+        public class SomeContainerEntity
+        {
+            public int Id { get; set; }
+            public List<SomeArrayEntity> ArrayEntities { get; set; } = null!;
         }
 
         #nullable restore
