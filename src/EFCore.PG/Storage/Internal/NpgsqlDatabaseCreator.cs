@@ -189,10 +189,12 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.Storage.Internal
             {
                 if (async)
                 {
+                    await unpooledRelationalConnection.CloseAsync().ConfigureAwait(false);
                     await unpooledRelationalConnection.DisposeAsync().ConfigureAwait(false);
                 }
                 else
                 {
+                    unpooledRelationalConnection.Close();
                     unpooledRelationalConnection.Dispose();
                 }
             }
